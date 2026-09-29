@@ -49,6 +49,8 @@ const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 const SSR_ALLOWLIST = "docs/tracking/ssr-error-allowlist.txt";
 /** DEC-083 — a REAL captured job log (local e2e run) for the census self-test. */
 const CENSUS_FIXTURE = "scripts/fixtures/e2e-ssr-census/job.log.txt";
+/** DEC-087 — a REAL captured results.json (local shard 3/6, 98 tests) for the timing self-test. */
+const TIMING_FIXTURE = "scripts/fixtures/e2e-timing/results.json";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
 /** INC-084g — the describe-nested shape, captured from a real Playwright run. */
 const DESCRIBE_FIXTURE = "scripts/fixtures/e2e-context-sample-describe";
@@ -80,11 +82,14 @@ export const FLAKE_LEDGER_HEADER = [
   "",
 ].join("\n");
 
-type PwResult = { status?: string; error?: { message?: string } };
+type PwResult = { status?: string; error?: { message?: string }; duration?: number };
 type PwTest = { projectName?: string; status?: string; results?: PwResult[] };
 type PwSpec = { title?: string; ok?: boolean; file?: string; tests?: PwTest[] };
 type PwSuite = { title?: string; file?: string; specs?: PwSpec[]; suites?: PwSuite[] };
-type PwJson = { suites?: PwSuite[]; stats?: { expected?: number; skipped?: number } };
+type PwJson = {
+  suites?: PwSuite[];
+  stats?: { expected?: number; skipped?: number; startTime?: string; duration?: number };
+};
 
 // eslint-disable-next-line no-control-regex -- stripping real ANSI colour codes is the point
 const ANSI = /\u001b\[[0-9;]*m/g;
@@ -518,6 +523,86 @@ export function a11ySection(
           "",
         ]),
   ];
+}
+
+/** DEC-087 — minutes with one decimal, from milliseconds. */
+function minutes(ms: number): string {
+  return `${(ms / 60_000).toFixed(1)} min`;
+}
+
+/** DEC-087 — every (file, title, project, summed duration) a results.json records. */
+export function testTimings(
+  json: PwJson,
+): { file: string; title: string; project: string; ms: number }[] {
+  const out: { file: string; title: string; project: string; ms: number }[] = [];
+  const walk = (suite: PwSuite, file: string | undefined) => {
+    const here = suite.file ?? file;
+    for (const spec of suite.specs ?? []) {
+      for (const t of spec.tests ?? []) {
+        // Every attempt counts: a retried test cost its shard both runs.
+        const ms = (t.results ?? []).reduce((sum, r) => sum + (r.duration ?? 0), 0);
+        out.push({
+          file: spec.file ?? here ?? "?",
+          title: spec.title ?? "?",
+          project: t.projectName ?? "?",
+          ms,
+        });
+      }
+    }
+    for (const child of suite.suites ?? []) walk(child, here);
+  };
+  for (const suite of json.suites ?? []) walk(suite, undefined);
+  return out;
+}
+
+/**
+ * DEC-087 — THE TIMING CENSUS (non-gating), identical in the red and green
+ * forms: per source the wall time from `stats`; per spec FILE the summed test
+ * duration and the source(s) that ran it; the 15 slowest tests. A spec file is
+ * one sharding unit (`fullyParallel: false`), so the file table names the long
+ * pole. Coverage is stated as in DEC-083: a source without a parseable
+ * results.json is named, never counted as zero.
+ */
+export function timingSection(sources: { label: string; json: PwJson | null }[]): string[] {
+  const read = sources.filter((s) => s.json !== null && typeof s.json.stats?.duration === "number");
+  const missing = sources.filter((s) => !read.includes(s)).map((s) => s.label);
+  const out = [
+    "## Timing (DEC-087, non-gating)",
+    "",
+    `Results read: ${read.length === 0 ? "none" : read.map((s) => s.label).join(", ")} · unavailable: ${missing.length === 0 ? "none" : missing.join(", ")}`,
+    "",
+  ];
+  if (read.length === 0) return [...out, "No timing: no source carried a results.json.", ""];
+  out.push("| Source | Started (UTC) | Wall time |", "| --- | --- | --- |");
+  for (const s of read)
+    out.push(
+      `| ${s.label} | ${s.json?.stats?.startTime ?? "?"} | ${minutes(s.json?.stats?.duration ?? 0)} |`,
+    );
+  out.push("");
+  const files = new Map<string, { ms: number; tests: number; sources: Set<string> }>();
+  const all: { file: string; title: string; project: string; ms: number }[] = [];
+  for (const s of read) {
+    for (const t of testTimings(s.json as PwJson)) {
+      all.push(t);
+      const row = files.get(t.file) ?? { ms: 0, tests: 0, sources: new Set<string>() };
+      row.ms += t.ms;
+      row.tests += 1;
+      row.sources.add(s.label);
+      files.set(t.file, row);
+    }
+  }
+  out.push("| Spec file | Tests | Summed duration | Ran in |", "| --- | --- | --- | --- |");
+  for (const [file, row] of [...files].sort((a, b) => b[1].ms - a[1].ms))
+    out.push(
+      `| \`${file}\` | ${row.tests} | ${minutes(row.ms)} | ${[...row.sources].join(", ")} |`,
+    );
+  out.push("", "15 slowest tests:", "", "| Test | Project | Duration |", "| --- | --- | --- |");
+  for (const t of [...all].sort((a, b) => b.ms - a.ms).slice(0, 15))
+    out.push(
+      `| \`${t.file}\` › ${t.title.replace(/\|/g, "\\|")} | ${t.project} | ${(t.ms / 1000).toFixed(1)} s |`,
+    );
+  out.push("");
+  return out;
 }
 
 /**
@@ -970,6 +1055,8 @@ export function renderSources(
     // DEC-083 / DEC-084 — rendered on every red form, failed sources or not.
     ...ssrCensusSection(ssrCensus(sources, ssrAllowlist), sources),
     ...a11ySection(sources),
+    // DEC-087 — the timing census, in both forms.
+    ...timingSection(sources),
   ];
 
   // DEC-059 — THE POST-TEST SECTION. Rendered for every source that carried one,
@@ -1132,6 +1219,8 @@ export function renderGreen(
     // DEC-083 / DEC-084 — the green form carries the same census and summary.
     ...ssrCensusSection(ssrCensus(sources, ssrAllowlist), sources),
     ...a11ySection(sources),
+    // DEC-087 — the timing census, in both forms.
+    ...timingSection(sources),
   ].join("\n");
 }
 
@@ -1871,8 +1960,61 @@ async function main() {
       }
     }
 
+    // DEC-087 — the timing census, from a REAL captured results.json (a local
+    // before-split shard 3/6 run, 98 tests, CI-T1).
+    {
+      const timingJson = (await Bun.file(TIMING_FIXTURE).json()) as PwJson;
+      const rows = testTimings(timingJson);
+      const shard: Source = { label: "shard 1", json: timingJson, logTail: null };
+      const gap: Source = { label: "shard 4", json: null, logTail: null };
+      const section = timingSection([shard, gap]);
+      const text = section.join("\n");
+      const slowStart = section.indexOf("15 slowest tests:");
+      const slowRows = section.slice(slowStart + 4).filter((l) => l.startsWith("| `"));
+      const slowMs = slowRows.map((l) => Number(/\| ([\d.]+) s \|$/.exec(l)?.[1] ?? NaN));
+      const fileRows = section
+        .slice(0, slowStart)
+        .filter((l) => l.startsWith("| `") && l.endsWith("| shard 1 |"));
+      const fileTests = fileRows.reduce((n, l) => n + Number(l.split(" | ")[1]), 0);
+      const meta0: ReportMeta = { runId: "self-test", runUrl: "", sha: "self-test" };
+      const checks: [string, boolean][] = [
+        ["T1 fixture has > 15 timed tests", rows.length > 15 && rows.every((r) => r.ms > 0)],
+        ["T2 heading", text.includes("## Timing (DEC-087, non-gating)")],
+        [
+          "T3 coverage names the missing source",
+          text.includes("Results read: shard 1 · unavailable: shard 4"),
+        ],
+        [
+          "T4 wall time is stats.duration",
+          text.includes(
+            `| shard 1 | ${timingJson.stats?.startTime} | ${((timingJson.stats?.duration ?? 0) / 60_000).toFixed(1)} min |`,
+          ),
+        ],
+        [
+          "T5 exactly 15 slowest, descending",
+          slowRows.length === 15 && slowMs.every((ms, i) => i === 0 || ms <= (slowMs[i - 1] ?? 0)),
+        ],
+        ["T6 file table accounts for every test", fileTests === rows.length],
+        [
+          "T7 both forms carry it",
+          renderGreen(meta0, 0, [], new Map(), [shard]).includes("## Timing (DEC-087") &&
+            renderSources([shard], meta0).includes("## Timing (DEC-087"),
+        ],
+        [
+          "T8 no source → stated, not silent",
+          timingSection([gap]).includes("No timing: no source carried a results.json."),
+        ],
+      ];
+      const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
+      if (failed.length > 0) {
+        console.error(`SELF-TEST FAILED — DEC-087 timing: ${failed.join("; ")}`);
+        console.error(text);
+        process.exit(1);
+      }
+    }
+
     console.log(
-      "Self-test OK: DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
     );
 
     return;

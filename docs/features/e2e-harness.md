@@ -322,3 +322,16 @@ DEC-084 — Accessibility pass (2026-09-28). The smoke tier runs axe-core on the
 - Implementation: `e2e/a11y.spec.ts` (A11Y-1, A11Y-2) is on the smoke tier's file list in `ci.yml`. It prints `[a11y] <page> <project> serious=<n> critical=<n>` and never fails on a violation. The reporter's `grepA11y` and `a11ySection` render one line in both forms. `@axe-core/playwright` is pinned at 4.13.0, and only the test runner imports it.
 
 - INC-323 afterEach rule (2026-09-29): a hook that purges drafts takes `{ page }` and runs `await page.goto("about:blank")` BEFORE any purge, so the page's debounced autosave cannot reach a deleted draft. Applied in post-wizard, a11y, photo-pipeline.
+
+## DEC-087 — timing census and the file-is-the-shard-unit rule
+
+DEC-087 — Timing census (2026-09-29, non-gating). Every run, green or red, writes a "Timing (DEC-087, non-gating)" section: per source (smoke, shard n, email, changed) the wall time from its results.json (`stats.startTime` / `stats.duration`); per spec FILE the summed test duration (every attempt counted) and the source(s) that ran it; the 15 slowest tests (title, project, duration). The section opens with "Results read: <sources> · unavailable: <sources or none>", as in DEC-083; a source without a results.json is named, never counted as zero.
+
+- Implementation (`scripts/e2e-failure-report.ts`): `testTimings` walks a results.json; `timingSection` renders in `renderSources` and `renderGreen`. Verdicts and promote are unchanged.
+- Self-test fixture: `scripts/fixtures/e2e-timing/results.json`, a real local capture (the before-split shard 3/6 run, 98 tests).
+
+THE FILE IS THE SHARD UNIT. `playwright.config.ts` sets `fullyParallel: false`, so `--shard` distributes whole spec files: one large file is one shard's long pole. No spec file carries more than ~25 tests; a file that grows past that is split by area, helpers moved to `e2e/helpers/` unchanged, every test keeping its exact title and body, and its afterEach/afterAll hooks travelling with its tests (J3).
+
+- CI-T1 split (2026-09-29): `post-wizard.spec.ts` (76 tests) became `post-wizard-category` (20), `post-wizard-specs` (23), `post-wizard-pricing` (13), `post-wizard-resets` (8), `post-wizard-place` (12); `admin-attributes.spec.ts` (64) became `admin-attributes-library` (20), `admin-attributes-import` (16), `admin-attributes-links` (11), `admin-attributes-editor` (17). The attribute console's module-level locators and fixture helpers moved to `e2e/helpers/admin-attributes.ts`; the wizard's describe-scoped helpers and its afterEach are repeated in each wizard file that uses them. Total listed tests 922 before and after; tag selections unchanged (@global-state 16, @a11y 4, @private-identity 34).
+
+JUDGE (pre-committed, DEC-087): the split is kept as a win if the median push→report wall time over the next three green CI runs is ≤ 19 minutes (80 % of the current ~24-minute median); if not, the timing section names the new long pole and nothing else changes without a new DEC.

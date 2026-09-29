@@ -1,0 +1,4078 @@
+{
+  "config": {
+    "configFile": "/tmp/ci-t1/before/playwright.config.ts",
+    "rootDir": "/tmp/ci-t1/before/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "/tmp/ci-t1/before/e2e/global-setup.ts",
+    "globalTeardown": "/tmp/ci-t1/before/e2e/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/tmp/ci-t1/before/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "mobile-360",
+        "name": "mobile-360",
+        "testDir": "/tmp/ci-t1/before/e2e",
+        "testIgnore": [
+          "**/nightly/**",
+          "**/auth-signup.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/tmp/ci-t1/before/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "desktop-1280",
+        "name": "desktop-1280",
+        "testDir": "/tmp/ci-t1/before/e2e",
+        "testIgnore": [
+          "**/nightly/**",
+          "**/auth-signup.spec.ts",
+          "**/auth-signin-errors.spec.ts",
+          "**/auth-callback.spec.ts",
+          "**/auth-reset.spec.ts",
+          "**/auth-google.spec.ts",
+          "**/settings.spec.ts"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/tmp/ci-t1/before/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "email-serial",
+        "name": "email-serial",
+        "testDir": "/tmp/ci-t1/before/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/auth-signup.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ],
+      [
+        "line"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": {
+      "current": 3,
+      "total": 6
+    },
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.1",
+    "workers": 2,
+    "webServer": {
+      "command": "bun run serve:e2e:built --port 4173",
+      "url": "http://127.0.0.1:4173",
+      "reuseExistingServer": false,
+      "timeout": 180000,
+      "stdout": "pipe",
+      "stderr": "pipe"
+    }
+  },
+  "suites": [
+    {
+      "title": "posting-routes.spec.ts",
+      "file": "posting-routes.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "POSTING ROUTES",
+          "file": "posting-routes.spec.ts",
+          "line": 53,
+          "column": 6,
+          "specs": [
+            {
+              "title": "PR-1 the draft route sets the observed residency from the edge exactly once",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3852,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:45.095Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-6bf68c31676a6bb911cc",
+              "file": "posting-routes.spec.ts",
+              "line": 81,
+              "column": 3
+            },
+            {
+              "title": "PR-2 an incomplete step is the door's own refusal, at status 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3507,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:49.175Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-087c45f487d9bb7ba80b",
+              "file": "posting-routes.spec.ts",
+              "line": 111,
+              "column": 3
+            },
+            {
+              "title": "PR-10 a pricing basis is the door's own refusal by name, at status 200 (DEC-079)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5355,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:52.703Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-36facb84f2cc6b7c9548",
+              "file": "posting-routes.spec.ts",
+              "line": 139,
+              "column": 3
+            },
+            {
+              "title": "PR-11 negotiable is a flag: stored on a price, forced off on contact (DEC-081)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4492,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:58.090Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-e021491058c6cdf73be6",
+              "file": "posting-routes.spec.ts",
+              "line": 206,
+              "column": 3
+            },
+            {
+              "title": "PR-12 the draft door at step 1 takes 'negotiable' as an alias: fixed + flag (INC-309)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3196,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:02.606Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-20559d1a3b64066d39b5",
+              "file": "posting-routes.spec.ts",
+              "line": 243,
+              "column": 3
+            },
+            {
+              "title": "PR-13 a draft may carry a commission before its percentage (INC-312)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3593,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:05.818Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-c8ef9c5b17c9348cd6bc",
+              "file": "posting-routes.spec.ts",
+              "line": 267,
+              "column": 3
+            },
+            {
+              "title": "PR-14 the draft door's answer names the currency it stored (INC-321)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3725,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "PR-14 answer: {\"ok\":true,\"draft_step\":5,\"listing_id\":\"25b2b5b3-aa60-4ea9-a41b-07a84916887d\",\"price_currency\":\"ETB\"}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:09.440Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-239f9420d49ed46723c7",
+              "file": "posting-routes.spec.ts",
+              "line": 294,
+              "column": 3
+            },
+            {
+              "title": "PR-15 a save on a deleted draft is a refusal, never a 5xx or a null revision (INC-324)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3638,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:13.184Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-7d216a8cfd19f9ef3c58",
+              "file": "posting-routes.spec.ts",
+              "line": 326,
+              "column": 3
+            },
+            {
+              "title": "PR-3 a complete draft publishes to screening and never to active",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3621,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:16.837Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-f075fa9e07dcfefc8f5f",
+              "file": "posting-routes.spec.ts",
+              "line": 368,
+              "column": 3
+            },
+            {
+              "title": "PR-4 identity: the alias is saved, and a second seller cannot take it",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4419,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:20.488Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-a04cfb95340f03ab13ab",
+              "file": "posting-routes.spec.ts",
+              "line": 390,
+              "column": 3
+            },
+            {
+              "title": "PR-5 assist answers from the facts alone, within the field caps",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4133,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:24.929Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-8549de54bd20effc9ef3",
+              "file": "posting-routes.spec.ts",
+              "line": 417,
+              "column": 3
+            },
+            {
+              "title": "PR-6 the options route is ETag'd: a conditional repeat costs a 304",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 961,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:29.094Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-207a0dc64ce97272eb6f",
+              "file": "posting-routes.spec.ts",
+              "line": 461,
+              "column": 3
+            },
+            {
+              "title": "PR-7 the draft dial refuses by name once the ceiling is reached",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 17971,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:30.102Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-db850232f4c30233e737",
+              "file": "posting-routes.spec.ts",
+              "line": 484,
+              "column": 3
+            },
+            {
+              "title": "PR-8 no bearer is 401 on every posting route",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1052,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:48.126Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-14b6f931e32000bfb395",
+              "file": "posting-routes.spec.ts",
+              "line": 517,
+              "column": 3
+            },
+            {
+              "title": "PR-9 catalog finder is bounded, multilingual and rate-limited",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2391,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:49.200Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3587d7fb9c6076023d07-05fe11c027e1f0399ec9",
+              "file": "posting-routes.spec.ts",
+              "line": 525,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "primitives-law.spec.ts",
+      "file": "primitives-law.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "display primitives law (test-once responsiveness)",
+          "file": "primitives-law.spec.ts",
+          "line": 41,
+          "column": 6,
+          "specs": [
+            {
+              "title": "primitives fit and adapt at 360",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1673,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:45.100Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-733b52c366b4ffb8b141",
+              "file": "primitives-law.spec.ts",
+              "line": 43,
+              "column": 5
+            },
+            {
+              "title": "primitives fit and adapt at 768",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1414,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:46.989Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-9b62c8a3ab6a4edd8f95",
+              "file": "primitives-law.spec.ts",
+              "line": 43,
+              "column": 5
+            },
+            {
+              "title": "primitives fit and adapt at 1280",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1600,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:48.430Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-d19d8dcb717d0ed3b7a6",
+              "file": "primitives-law.spec.ts",
+              "line": 43,
+              "column": 5
+            },
+            {
+              "title": "L8 rowHref navigates from the table row, the card and the keyboard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3986,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:50.056Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-a8bb70b404bf42ad1dcb",
+              "file": "primitives-law.spec.ts",
+              "line": 110,
+              "column": 3
+            },
+            {
+              "title": "primitives render their empty state",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1023,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:54.067Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-38bfc9a3f0bb8d09fcd8",
+              "file": "primitives-law.spec.ts",
+              "line": 134,
+              "column": 5
+            },
+            {
+              "title": "primitives render their loading state",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 901,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:55.109Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-01932d47c0d1199cfb52",
+              "file": "primitives-law.spec.ts",
+              "line": 134,
+              "column": 5
+            },
+            {
+              "title": "primitives render their error state",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1009,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:56.033Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-8bacba42a66758136a39",
+              "file": "primitives-law.spec.ts",
+              "line": 134,
+              "column": 5
+            },
+            {
+              "title": "L9 cardUntil=lg keeps cards at 360 until lg",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1400,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:57.063Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-3d9a4d6c9b94af59f25e",
+              "file": "primitives-law.spec.ts",
+              "line": 164,
+              "column": 5
+            },
+            {
+              "title": "L9 cardUntil=lg keeps cards at 768 until lg",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1694,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:07:58.488Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-1da64688b5418fd16749",
+              "file": "primitives-law.spec.ts",
+              "line": 164,
+              "column": 5
+            },
+            {
+              "title": "L9 cardUntil=lg keeps cards at 1280 until lg",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2012,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:00.209Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-3e58fac01eaeb76bfdd8",
+              "file": "primitives-law.spec.ts",
+              "line": 164,
+              "column": 5
+            },
+            {
+              "title": "L10 the primitive scroller engages and reaches the last cell",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1542,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:02.241Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-326dfe7856c258d6028e",
+              "file": "primitives-law.spec.ts",
+              "line": 193,
+              "column": 3
+            },
+            {
+              "title": "L11 wide columns hide below xl and the first column stays pinned",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1463,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:03.799Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "6059720ff80c75f775d0-819a484e3dd5cc5aa1ec",
+              "file": "primitives-law.spec.ts",
+              "line": 256,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "rbac.spec.ts",
+      "file": "rbac.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "RBAC client seam",
+          "file": "rbac.spec.ts",
+          "line": 33,
+          "column": 6,
+          "specs": [
+            {
+              "title": "R-1 logged out: no Admin tab and no RBAC request at all",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1103,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:05.294Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f2d4bd4479eae63a7f57-894afd781a5e30c78568",
+              "file": "rbac.spec.ts",
+              "line": 34,
+              "column": 3
+            },
+            {
+              "title": "R-2 regular user: no Admin tab, and /admin redirects home",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3808,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:06.417Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f2d4bd4479eae63a7f57-1d2dcfb488cb748d6507",
+              "file": "rbac.spec.ts",
+              "line": 47,
+              "column": 3
+            },
+            {
+              "title": "R-3 staff user: Admin tab appears and /admin renders",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3418,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:10.274Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f2d4bd4479eae63a7f57-7dd0c413640034e4edd7",
+              "file": "rbac.spec.ts",
+              "line": 61,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "settings.spec.ts",
+      "file": "settings.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "S-1: unauthenticated /settings lands on /auth",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-360",
+              "projectName": "mobile-360",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 737,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-29T06:08:13.733Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d877ffdf71ec720167ae-6570ededbc6e9b3917c9",
+          "file": "settings.spec.ts",
+          "line": 20,
+          "column": 1
+        },
+        {
+          "title": "S-2: settings renders all three sections and guards the only method",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-360",
+              "projectName": "mobile-360",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 3539,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-29T06:08:14.485Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d877ffdf71ec720167ae-2fc66d006496bbf09ecb",
+          "file": "settings.spec.ts",
+          "line": 26,
+          "column": 1
+        },
+        {
+          "title": "S-3 (U-4): wrong current password is rejected; correct one rotates the password",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-360",
+              "projectName": "mobile-360",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 10586,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-29T06:08:18.041Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d877ffdf71ec720167ae-5a4e87c0986ff8528ff3",
+          "file": "settings.spec.ts",
+          "line": 50,
+          "column": 1
+        },
+        {
+          "title": "S-4: the password renders as its own method and cannot be removed alone",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-360",
+              "projectName": "mobile-360",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6277,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-29T06:08:28.671Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d877ffdf71ec720167ae-a3649834450f7847c601",
+          "file": "settings.spec.ts",
+          "line": 105,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "shell-table-law.spec.ts",
+      "file": "shell-table-law.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "shell table law",
+          "file": "shell-table-law.spec.ts",
+          "line": 33,
+          "column": 6,
+          "specs": [
+            {
+              "title": "admin tables never overflow horizontally",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5407,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:35.029Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f2f07af27b6edeaacaa7-d78778e8754ece41974c",
+              "file": "shell-table-law.spec.ts",
+              "line": 34,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "shell.spec.ts",
+      "file": "shell.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "app shell",
+          "file": "shell.spec.ts",
+          "line": 141,
+          "column": 6,
+          "specs": [
+            {
+              "title": "mounts with header, rail slot and footer, logged out",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 972,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:40.552Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-0b15bd8c81df51f97b0a",
+              "file": "shell.spec.ts",
+              "line": 142,
+              "column": 3
+            },
+            {
+              "title": "feed renders its empty state",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1569,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:41.553Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-d44bfa9c53d83a7b7615",
+              "file": "shell.spec.ts",
+              "line": 168,
+              "column": 3
+            },
+            {
+              "title": "language toggle renders Amharic (Ge'ez path)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1492,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:43.137Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-587933c1576f00164d76",
+              "file": "shell.spec.ts",
+              "line": 197,
+              "column": 3
+            },
+            {
+              "title": "the vertical stack is ordered: top bar, location row, breadcrumbs, body",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1205,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:44.649Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-1bf7ae523d70837da472",
+              "file": "shell.spec.ts",
+              "line": 225,
+              "column": 3
+            },
+            {
+              "title": "the location row cascades Country -> Region -> City, city selectable",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2511,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "INC-283: picks resolved region=addis-ababa city=addis-ababa\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:45.878Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-52c10790bf5561620e25",
+              "file": "shell.spec.ts",
+              "line": 244,
+              "column": 3
+            },
+            {
+              "title": "breadcrumb segments navigate the category path",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1090,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:48.408Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-827e40bd7db112d267b5",
+              "file": "shell.spec.ts",
+              "line": 316,
+              "column": 3
+            },
+            {
+              "title": "the marketplace breadcrumb is Home alone — no redundant panel segment",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 868,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:49.514Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-cc68ea48119d3d916c69",
+              "file": "shell.spec.ts",
+              "line": 341,
+              "column": 3
+            },
+            {
+              "title": "the feed body is centred with equal left and right gutters",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3649,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:50.395Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-cfe3e27839c1ff4b5a5b",
+              "file": "shell.spec.ts",
+              "line": 352,
+              "column": 3
+            },
+            {
+              "title": "the feed still loads when the market tree cannot be fetched (INC-282)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 954,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:54.060Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-3b2ee7da5c5009c560b8",
+              "file": "shell.spec.ts",
+              "line": 417,
+              "column": 3
+            },
+            {
+              "title": "the self-drawing spinner renders while the feed loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 857,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:55.025Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-6f7d72b10deeca131a2d",
+              "file": "shell.spec.ts",
+              "line": 445,
+              "column": 3
+            },
+            {
+              "title": "footer columns are centred as a group and each is centred",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 897,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:55.897Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-0d3b9340e009ff0a83b8",
+              "file": "shell.spec.ts",
+              "line": 463,
+              "column": 3
+            },
+            {
+              "title": "feed grid reflows without clipping and never overflows",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 872,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:56.809Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-e5369ac27798f661e59f",
+              "file": "shell.spec.ts",
+              "line": 491,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "corner-block grid",
+          "file": "shell.spec.ts",
+          "line": 526,
+          "column": 6,
+          "specs": [
+            {
+              "title": "logo cell sits exactly above the rail and beside the top bar",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 527,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 94,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:57.697Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 527,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-400634b3942f8ed7098a",
+              "file": "shell.spec.ts",
+              "line": 529,
+              "column": 3
+            },
+            {
+              "title": "the lockup's second line spans the wordmark exactly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 527,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 83,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:57.806Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 527,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-cad99fd1d67e74f7caa8",
+              "file": "shell.spec.ts",
+              "line": 553,
+              "column": 3
+            },
+            {
+              "title": "rail submenus expand and collapse",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 527,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 96,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:57.902Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 527,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-458a6a1751476c398172",
+              "file": "shell.spec.ts",
+              "line": 565,
+              "column": 3
+            },
+            {
+              "title": "every rail row carries a leading icon on one gutter",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 527,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 126,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:58.013Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 527,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-6bf4baa30987ef3086d6",
+              "file": "shell.spec.ts",
+              "line": 580,
+              "column": 3
+            },
+            {
+              "title": "category rows carry DISTINCT icons, not one repeated glyph",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 527,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 86,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:58.157Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 527,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-abd4baf925f87c2ba8ff",
+              "file": "shell.spec.ts",
+              "line": 600,
+              "column": 3
+            },
+            {
+              "title": "the rail collapses to icons, shows a tooltip, and remembers the choice",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 527,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 102,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:58.257Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 527,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-ea72dd3051a0d67231f2",
+              "file": "shell.spec.ts",
+              "line": 618,
+              "column": 3
+            },
+            {
+              "title": "exactly one collapse toggle, and the wordmark moves into the bar when collapsed",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 527,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 86,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:58.373Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 527,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-3ae3e5254dea28ff6ba3",
+              "file": "shell.spec.ts",
+              "line": 672,
+              "column": 3
+            },
+            {
+              "title": "the rail sign-out is absent for a logged-out visitor",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 527,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 86,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:58.471Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 527,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-5b1d34bd2b2334257fe9",
+              "file": "shell.spec.ts",
+              "line": 710,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "tablet chrome (md = 768px)",
+          "file": "shell.spec.ts",
+          "line": 716,
+          "column": 6,
+          "specs": [
+            {
+              "title": "tablets get the persistent rail and the FULL controls",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "run once",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 723,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 121,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:58.571Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "run once",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 723,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-29d0017b74bb7aec3b2d",
+              "file": "shell.spec.ts",
+              "line": 721,
+              "column": 3
+            },
+            {
+              "title": "the top bar is ONE band: logo-cell height AND background, location row separate",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "run once",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 754,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 119,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:58.706Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "run once",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 754,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-05a95f622e3542e14a55",
+              "file": "shell.spec.ts",
+              "line": 751,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "dark mode",
+          "file": "shell.spec.ts",
+          "line": 783,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the toggle flips the mode and the surfaces actually change",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1609,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:08:58.838Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-3d46b4eaffc2e8485352",
+              "file": "shell.spec.ts",
+              "line": 784,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "mobile chrome",
+          "file": "shell.spec.ts",
+          "line": 804,
+          "column": 6,
+          "specs": [
+            {
+              "title": "rail is a drawer behind the hamburger",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1294,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:00.464Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-751e218a9bc80b9bc651",
+              "file": "shell.spec.ts",
+              "line": 807,
+              "column": 3
+            },
+            {
+              "title": "the drawer switcher NAVIGATES to the panel's home (U0e)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4159,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:01.782Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-d74f7619154b553f4174",
+              "file": "shell.spec.ts",
+              "line": 823,
+              "column": 3
+            },
+            {
+              "title": "the drawer logo block matches the top bar's divider and height",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1709,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:05.957Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-c9e02123962d0161f51f",
+              "file": "shell.spec.ts",
+              "line": 850,
+              "column": 3
+            },
+            {
+              "title": "the rail-collapse toggle does not exist on mobile",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1085,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:07.697Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-1980b1242688142dec74",
+              "file": "shell.spec.ts",
+              "line": 868,
+              "column": 3
+            },
+            {
+              "title": "no Settings item leaks into the mobile category drawer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1621,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:08.805Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-7898f92218eceacc382a",
+              "file": "shell.spec.ts",
+              "line": 877,
+              "column": 3
+            },
+            {
+              "title": "search opens a full-width row BELOW the bar",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1506,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:10.453Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-ace9cec10d7d1763f4be",
+              "file": "shell.spec.ts",
+              "line": 886,
+              "column": 3
+            },
+            {
+              "title": "no horizontal overflow and text stays legible at 360",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1328,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:11.997Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-dd45c439acb48cae0c0c",
+              "file": "shell.spec.ts",
+              "line": 900,
+              "column": 3
+            },
+            {
+              "title": "primary touch targets are at least 44px",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1624,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:13.351Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-26336ef0b0b271ef04f0",
+              "file": "shell.spec.ts",
+              "line": 918,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "panel-scoped chrome",
+          "file": "shell.spec.ts",
+          "line": 952,
+          "column": 6,
+          "specs": [
+            {
+              "title": "location row is present on Marketplace and absent on Account",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6490,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:14.997Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-c1efc85cedd21681975a",
+              "file": "shell.spec.ts",
+              "line": 958,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "marketplace rail is categories only",
+          "file": "shell.spec.ts",
+          "line": 998,
+          "column": 6,
+          "specs": [
+            {
+              "title": "no Settings item leaks into the category rail",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "persistent rail is md+",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 999,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 170,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:21.515Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "persistent rail is md+",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 999,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-58e07d83e1a99f25b759",
+              "file": "shell.spec.ts",
+              "line": 1003,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "panel follows the route",
+          "file": "shell.spec.ts",
+          "line": 1011,
+          "column": 6,
+          "specs": [
+            {
+              "title": "/settings shows the Account context, and returning shows categories",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "persistent rail is md+",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1012,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 175,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:21.706Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "persistent rail is md+",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1012,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-14fa1c8fb8179f482bd0",
+              "file": "shell.spec.ts",
+              "line": 1019,
+              "column": 3
+            },
+            {
+              "title": "top-bar controls are right-aligned at desktop width",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "persistent rail is md+",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1012,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 144,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:21.916Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "persistent rail is md+",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1012,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-4c4e108860668c0d7165",
+              "file": "shell.spec.ts",
+              "line": 1047,
+              "column": 3
+            },
+            {
+              "title": "admin panel is absent for a normal signed-in user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "persistent rail is md+",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1012,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 188,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:22.087Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "persistent rail is md+",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1012,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-34c2a4fa22ef2298c8ff",
+              "file": "shell.spec.ts",
+              "line": 1059,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "panel header band (U0d)",
+          "file": "shell.spec.ts",
+          "line": 1074,
+          "column": 6,
+          "specs": [
+            {
+              "title": "the band sits in the rail directly below the logo cell",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1075,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 186,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:22.320Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1075,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-cab7118b41f245c35bb4",
+              "file": "shell.spec.ts",
+              "line": 1077,
+              "column": 3
+            },
+            {
+              "title": "the desktop rail switcher NAVIGATES to the panel's home (U0e)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1075,
+                        "column": 8
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 165,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:22.554Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1075,
+                            "column": 8
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-adab92df1209c1c86587",
+              "file": "shell.spec.ts",
+              "line": 1088,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "rail scroll regions (U0f)",
+          "file": "shell.spec.ts",
+          "line": 1117,
+          "column": 6,
+          "specs": [
+            {
+              "title": "drawer: items scroll, header fixed, sign out pinned",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3801,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:22.760Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-ea0ca9f58f26b6180f50",
+              "file": "shell.spec.ts",
+              "line": 1118,
+              "column": 3
+            },
+            {
+              "title": "md+ rail: items scroll, header fixed",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1154,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 120,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:26.589Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1154,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-b6a6c52d986c58f984d6",
+              "file": "shell.spec.ts",
+              "line": 1153,
+              "column": 3
+            },
+            {
+              "title": "footer never covers the rail's Sign out",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1200,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 128,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:26.724Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1200,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-2aeff5de4189fc3ad4f1",
+              "file": "shell.spec.ts",
+              "line": 1199,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "desktop layout laws (U0g)",
+          "file": "shell.spec.ts",
+          "line": 1253,
+          "column": 6,
+          "specs": [
+            {
+              "title": "L1/L2: the top band and the rail stay put while content scrolls",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1303,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 139,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:26.873Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1303,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-9cee0589c1be58403273",
+              "file": "shell.spec.ts",
+              "line": 1299,
+              "column": 3
+            },
+            {
+              "title": "L3: the footer spans the full width beneath the fixed rail",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1370,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 155,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:27.038Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1370,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-7b139174318a604e6973",
+              "file": "shell.spec.ts",
+              "line": 1369,
+              "column": 3
+            },
+            {
+              "title": "U0i: the rail ends at the footer top and its last item stays reachable",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "md and up only",
+                      "location": {
+                        "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                        "line": 1437,
+                        "column": 10
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "skipped",
+                      "duration": 140,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:27.220Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "md and up only",
+                          "location": {
+                            "file": "/tmp/ci-t1/before/e2e/shell.spec.ts",
+                            "line": 1437,
+                            "column": 10
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3420664513cb0bae123e-05108d3c7cb23b9ed916",
+              "file": "shell.spec.ts",
+              "line": 1433,
+              "column": 3
+            },
+            {
+              "title": "the tall fixture does not overflow horizontally at 360",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1085,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:27.385Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-3a355358b2f69207b84e",
+              "file": "shell.spec.ts",
+              "line": 1460,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "i18n gate is non-blocking (U4f-2)",
+          "file": "shell.spec.ts",
+          "line": 1475,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TR-18 the header renders while the languages read is still in flight",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 960,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:28.494Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-e7dcb09f2e6909c2f3ed",
+              "file": "shell.spec.ts",
+              "line": 1492,
+              "column": 3
+            },
+            {
+              "title": "TR-18 a regular user is still redirected off /admin before the list resolves",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3425,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:29.487Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-e225bfd4e2d5e02d8321",
+              "file": "shell.spec.ts",
+              "line": 1504,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "U4h device language star",
+          "file": "shell.spec.ts",
+          "line": 1535,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TR-27 a star set signed-out survives reload, sign-in and sign-out",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5367,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:32.930Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-78141866d8a0f3ed7345",
+              "file": "shell.spec.ts",
+              "line": 1560,
+              "column": 3
+            },
+            {
+              "title": "TR-28 the account carries onto a starless device, and never over a star",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6086,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:38.310Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-80cdb799dd9488ed038b",
+              "file": "shell.spec.ts",
+              "line": 1575,
+              "column": 3
+            },
+            {
+              "title": "TR-28 hreflang alternates equal the anon publication gate",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1628,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:44.430Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-5c6dbef989ca88c4bad0",
+              "file": "shell.spec.ts",
+              "line": 1621,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "L4b location picker",
+          "file": "shell.spec.ts",
+          "line": 1702,
+          "column": 6,
+          "specs": [
+            {
+              "title": "LS-1 the cascade reaches a sub-city",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5007,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:46.077Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-e827fca10bed685ca4e5",
+              "file": "shell.spec.ts",
+              "line": 1733,
+              "column": 3
+            },
+            {
+              "title": "LS-2 a pick is remembered, clearing forgets it",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 15506,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:09:51.275Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-fbd2fc4b1b40783a15ae",
+              "file": "shell.spec.ts",
+              "line": 1751,
+              "column": 3
+            },
+            {
+              "title": "LS-3 an open market is guessed from the edge country, never saved",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1180,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:10:06.811Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-4b58b4ce70af6f2ac32e",
+              "file": "shell.spec.ts",
+              "line": 1784,
+              "column": 3
+            },
+            {
+              "title": "LS-4 a closed market is not guessed",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1122,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:10:08.005Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-3b95946b8f873dd4fdcb",
+              "file": "shell.spec.ts",
+              "line": 1801,
+              "column": 3
+            },
+            {
+              "title": "LS-5 no header and no cookie: no guess, and the markets route caches",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 1049,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:10:09.141Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-7293e24d6e6e8789f4d7",
+              "file": "shell.spec.ts",
+              "line": 1820,
+              "column": 3
+            },
+            {
+              "title": "LS-6 the nearest curated metro wins by geometry",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 10127,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:10:10.206Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-1c0ad2ed472dfd5027a1",
+              "file": "shell.spec.ts",
+              "line": 1918,
+              "column": 3
+            },
+            {
+              "title": "LS-7 a region code alone selects the region",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 15491,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:10:20.354Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-ddfabd7ad7e8faf76b51",
+              "file": "shell.spec.ts",
+              "line": 1947,
+              "column": 3
+            },
+            {
+              "title": "LS-8 a city name alone selects that city",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 15131,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:10:35.866Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-f2093fa40a87ee961559",
+              "file": "shell.spec.ts",
+              "line": 1975,
+              "column": 3
+            },
+            {
+              "title": "LS-9 coordinates far from every metro stop at the market",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 15151,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:10:51.019Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-442db77d3dc11fa2603d",
+              "file": "shell.spec.ts",
+              "line": 1997,
+              "column": 3
+            },
+            {
+              "title": "LS-10 a saved area beats the deepest guess",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 16754,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:11:06.184Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-81f1555dc77debfff3da",
+              "file": "shell.spec.ts",
+              "line": 2025,
+              "column": 3
+            },
+            {
+              "title": "LS-11 picking a second market renders its own tree and saves its own node",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 21029,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:11:22.956Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-4bbc55a03e5611bdeecb",
+              "file": "shell.spec.ts",
+              "line": 2068,
+              "column": 3
+            },
+            {
+              "title": "LS-12 a market whose every level has one option resolves to the deepest place",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 11913,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:11:44.011Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-d47f5d5575848c5bef49",
+              "file": "shell.spec.ts",
+              "line": 2235,
+              "column": 3
+            },
+            {
+              "title": "LS-13 a second city stops the auto-select at the region",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-360",
+                  "projectName": "mobile-360",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 15620,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-29T06:11:55.948Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3420664513cb0bae123e-142d0c03aa4f330d82bc",
+              "file": "shell.spec.ts",
+              "line": 2272,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-29T06:07:37.257Z",
+    "duration": 278110.01,
+    "expected": 77,
+    "skipped": 21,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
