@@ -1034,10 +1034,13 @@ test.describe("POSTING WIZARD", () => {
     await expect
       .poll(
         async () => {
-          const header = await page.locator("header").first().boundingBox();
+          // The app shell's own header (the document's first <header>), read in-page.
+          const headerBottom = await page.evaluate(
+            () => document.querySelector("header")?.getBoundingClientRect().bottom ?? null,
+          );
           const box = await page.getByTestId("post-where-place").boundingBox();
           return (
-            header !== null && box !== null && box.y >= header.y + header.height - 1 && box.y < 740
+            headerBottom !== null && box !== null && box.y >= headerBottom - 1 && box.y < 740
           );
         },
         { message: "PW-80: the place was not scrolled below the header", timeout: 5_000 },
