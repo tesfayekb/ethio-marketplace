@@ -592,3 +592,4 @@
 - 2026-09-28 — DEC-084: non-gating axe-core smoke (e2e/a11y.spec.ts: home, /auth, wizard steps 1/3/5, both projects); the reporter carries an Accessibility line. Security-scan census recorded (docs/tracking/security-scan-2026-09-28.md).
 - 2026-09-28 — DEC-083/084 R1 (INC-326): allowlist added to .prettierignore; e2e logs upload on every outcome; a11y runs once (@a11y); census and a11y sections state which logs they read.
 - 2026-09-28 — W2: INC-320 answered lazy lists read up front, D70 first-refusal focus, D71 category soft border, INC-325 focusable step strip; allowlist attributions for five messages (AT-16, AT-23/CT-22, CT-23, IG-4, AT-58).
+- 2026-09-29 — W3: INC-329 joining the parent set is no longer a reset (answers survive Back); PW-74 round-trip law; D72 one RequiredMark on every required label; PW-75.

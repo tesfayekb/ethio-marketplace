@@ -14,6 +14,7 @@ import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
 import { clearPin, savePin } from "./posting-service";
+import { RequiredMark } from "./field";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { PinValue } from "./map/map-pin-dropper";
 import type { Refusal } from "./types";
@@ -371,7 +372,11 @@ export function StepWhere({
   return (
     <div className="space-y-5" data-testid="post-where">
       <p className="text-sm text-muted-foreground">{t("post.where.why")}</p>
-      <p className="text-sm font-medium text-foreground">{t("post.where.defaultPlaceLabel")}</p>
+      {/* D72 — a place (coverage) is required: its heading carries the one mark. */}
+      <p className="flex items-center gap-1 text-sm font-medium text-foreground">
+        <span>{t("post.where.defaultPlaceLabel")}</span>
+        <RequiredMark />
+      </p>
 
       {/* ------------------------------ the market ---------------------------- */}
       <div className="space-y-1">

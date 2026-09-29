@@ -757,10 +757,11 @@ export function StepSpecifications({
     const now: Record<string, string> = {};
     for (const key of parents) now[key] = selectedValue(view[key]);
     const before = parentsSeen.current;
+    // INC-329 — joining the parent set is not a move; only a changed answer resets.
     const movedKey =
       before === null
         ? null
-        : (Object.keys(now).find((key) => (before[key] ?? "") !== now[key]) ?? null);
+        : (Object.keys(now).find((key) => key in before && before[key] !== now[key]) ?? null);
     parentsSeen.current = now;
     // D46 — the identity's previous answer, so Undo can name the old thing again.
     if (movedKey === null) {

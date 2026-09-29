@@ -11,6 +11,8 @@ import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { entityName } from "@/i18n/entity";
 import { useI18n } from "@/i18n";
 
+import { RequiredMark } from "./field";
+
 /**
  * U6-C1-R1 — STEP 1: ONE CONTROL (operator walk 2026-09-18).
  *
@@ -123,8 +125,13 @@ export function StepCategory({
       <p className="text-sm text-muted-foreground">{t("post.category.why")}</p>
 
       <div className="space-y-1">
-        <label htmlFor="post-category-search" className="text-sm font-medium text-foreground">
-          {t("post.category.filterLabel")}
+        {/* D72 — the category is required: the heading carries the one mark. */}
+        <label
+          htmlFor="post-category-search"
+          className="flex items-center gap-1 text-sm font-medium text-foreground"
+        >
+          <span>{t("post.category.filterLabel")}</span>
+          <RequiredMark />
         </label>
         <input
           id="post-category-search"
