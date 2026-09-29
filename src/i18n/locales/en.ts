@@ -2226,7 +2226,8 @@ export const en = {
   "post.where.addRegion": "Add a region",
   "post.where.addCountry": "Add a country",
   "post.where.showHeading": "Where should this ad be shown?",
-  "post.where.showIntro": "Choose the cities where buyers will see this ad, then tick the one where the item or service is.",
+  "post.where.showIntro":
+    "Choose the cities where buyers will see this ad, then tick the one where the item or service is.",
   "post.where.itemHere": "Item or service is here",
   "post.where.itemMoved": "The item or service is now marked in {name}.",
   "post.category.nextBlocked": "Choose a category to continue.",

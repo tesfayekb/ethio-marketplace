@@ -2129,7 +2129,8 @@ export const am: Messages = {
   "post.where.addRegion": "ክልል ጨምር",
   "post.where.addCountry": "አገር ጨምር",
   "post.where.showHeading": "ማስታወቂያው የት ይታይ?",
-  "post.where.showIntro": "ገዢዎች ይህን ማስታወቂያ የሚያዩባቸውን ከተሞች ይምረጡ፣ ከዚያም ዕቃው ወይም አገልግሎቱ ያለበትን ምልክት ያድርጉ።",
+  "post.where.showIntro":
+    "ገዢዎች ይህን ማስታወቂያ የሚያዩባቸውን ከተሞች ይምረጡ፣ ከዚያም ዕቃው ወይም አገልግሎቱ ያለበትን ምልክት ያድርጉ።",
   "post.where.itemHere": "ዕቃው ወይም አገልግሎቱ እዚህ ነው",
   "post.where.itemMoved": "ዕቃው ወይም አገልግሎቱ አሁን በ{name} ምልክት ተደርጓል።",
   "post.category.nextBlocked": "ለመቀጠል ምድብ ይምረጡ።",
