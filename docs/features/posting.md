@@ -1102,3 +1102,11 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 - **INC-341.** Step 6 counts distinct cities (`coalesce(city_id, id)`, so a sub-city is its own city), distinct `region_id` and distinct countries. Proofs P22–P29 (P28: two regions → `coverageExceedsPlan:region`; P29: a city and its own sub-city are one city).
 - **INC-342.** `DESCRIPTION_MAX` in `step-details.tsx` is 5000, the door's cap; the AI assist keeps 1200 (DEC-072). Pinned by `step-details-limits.test.ts` and PR-18.
 - PR-17 now seeds a scratch region → city → sub-city under ET instead of reading real places.
+
+### W6b-1 — the place step is where the ad is shown (2026-09-30)
+
+- Heading `post.where.showHeading` and intro `post.where.showIntro` (new keys, EN+AM); the old `itemLocation` / `alsoShownIn` / `defaultPlace*` / `why` / `refusal.multipleMarkets` keys are retired (D5).
+- One radio, "Item or service is here" (`post.where.itemHere`), across every city box; exactly one is ticked. The ticked place is sent first in the coverage, so it becomes `listings.location_id` (a chosen sub-city is the ticked node). No door change.
+- A city box appears only under a chosen region. Any city box may be removed while another remains; removing the ticked one moves the tick to the first remaining box and announces it (`post.where.itemMoved`, polite live region). A lone box offers no Remove.
+- Prefill: the draft's own saved places (Back) → a NEW post's most recent OTHER non-draft listing (`readLastListingPlaces`, filtered by `seller_id` explicitly per INC-330; item place first, same market only, capped at the plan's city count) → saved-area cookie → location guess.
+- Tests: `step-where.test.tsx` (tick, ordering, removal, region-gated city box, sub-city, last-post prefill); PW-83/PW-84 in `e2e/post-wizard-where.spec.ts`; PW-20 updated (lone box ticked, no Remove).

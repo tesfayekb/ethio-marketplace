@@ -34,9 +34,14 @@ const TREES: Record<string, TreeNode[]> = {
     node("c1", "r1", "city"),
     node("c2", "r1", "city"),
     node("c3", "r2", "city"),
+    node("s1", "c1", "sub_city"),
   ],
   KE: [node("ke", null, "country"), node("kr", "ke", "region"), node("kc", "kr", "city")],
 };
+
+const lastPlaces = vi.hoisted(() => ({
+  value: null as null | { country: string; itemId: string; placeIds: string[] },
+}));
 
 vi.mock("@/components/shell/location-data", () => ({
   readAreaCookie: () => ({ country: "ET", id: "c1" }),
@@ -70,6 +75,7 @@ vi.mock("@/i18n/entity", () => ({
 vi.mock("./posting-service", () => ({
   savePin: vi.fn(async () => true),
   clearPin: vi.fn(async () => true),
+  readLastListingPlaces: vi.fn(async () => lastPlaces.value),
 }));
 
 const { StepWhere } = await import("./step-where");
@@ -92,6 +98,7 @@ function Harness({ caps }: { caps: { cities: number; regions: number; countries:
 }
 
 beforeEach(() => {
+  lastPlaces.value = null;
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => new Response(JSON.stringify({}), { status: 200 })),
@@ -173,5 +180,88 @@ describe("StepWhere — the nested layout (W6 R4/R5)", () => {
     expect(screen.queryByTestId("post-where-add-city")).toBeNull();
     expect(screen.queryByTestId("post-where-add-region")).toBeNull();
     expect(screen.queryByTestId("post-where-add-country")).toBeNull();
+  });
+});
+
+/**
+ * W6b-1 (R2–R4) — WHERE THE AD IS SHOWN: one tick across every city box, the
+ * ticked place first, a city box only under a chosen region, and the last post
+ * as the first prefill. Plan: 3 cities / 2 regions / 2 countries.
+ */
+describe("StepWhere — the ad's places and the item tick (W6b-1)", () => {
+  const regionBox = (id: string) =>
+    document.querySelector<HTMLElement>(
+      `[data-testid="post-where-region-box"][data-region="${id}"]`,
+    )!;
+  const ticks = () => screen.getAllByTestId("post-where-item-tick") as HTMLInputElement[];
+
+  it("shows a city box only after its region is chosen", async () => {
+    await mount();
+    fireEvent.click(within(primaryBox()).getByTestId("post-where-add-region"));
+    const pending = within(primaryBox())
+      .getAllByTestId("post-where-region-box")
+      .find((box) => box.getAttribute("data-region") === "")!;
+    expect(within(pending).queryAllByTestId("post-where-row")).toHaveLength(0);
+    fireEvent.change(within(pending).getByTestId("post-where-row-region"), {
+      target: { value: "r2" },
+    });
+    expect(within(regionBox("r2")).getAllByTestId("post-where-row")).toHaveLength(1);
+  });
+
+  it("puts each add button in its own box (R2)", async () => {
+    await mount();
+    const region = regionBox("r1");
+    const addCity = within(region).getByTestId("post-where-add-city");
+    expect(region.lastElementChild).toBe(addCity);
+    const addRegion = within(primaryBox()).getByTestId("post-where-add-region");
+    expect(region.contains(addRegion)).toBe(false);
+    expect(primaryBox().lastElementChild).toBe(addRegion);
+    expect(primaryBox().contains(screen.getByTestId("post-where-add-country"))).toBe(false);
+  });
+
+  it("has exactly one tick, and moving it puts that place first", async () => {
+    await mount();
+    fireEvent.click(within(regionBox("r1")).getByTestId("post-where-add-city"));
+    const rows = within(regionBox("r1")).getAllByTestId("post-where-row");
+    fireEvent.change(within(rows[1]!).getByTestId("post-where-row-city"), {
+      target: { value: "c2" },
+    });
+    expect(ticks()).toHaveLength(2);
+    expect(ticks().filter((tick) => tick.checked)).toHaveLength(1);
+    expect(screen.getByTestId("coverage")).toHaveTextContent(/^c1,c2$/);
+    fireEvent.click(within(rows[1]!).getByTestId("post-where-item-tick"));
+    expect(ticks().filter((tick) => tick.checked)).toHaveLength(1);
+    expect(screen.getByTestId("coverage")).toHaveTextContent(/^c2,c1$/);
+  });
+
+  it("moves the tick when the ticked city is removed, and announces it", async () => {
+    await mount();
+    fireEvent.click(within(regionBox("r1")).getByTestId("post-where-add-city"));
+    const rows = within(regionBox("r1")).getAllByTestId("post-where-row");
+    fireEvent.change(within(rows[1]!).getByTestId("post-where-row-city"), {
+      target: { value: "c2" },
+    });
+    fireEvent.click(within(rows[0]!).getByTestId("post-where-remove"));
+    expect(ticks()).toHaveLength(1);
+    expect(ticks()[0]!.checked).toBe(true);
+    expect(screen.getByTestId("coverage")).toHaveTextContent(/^c2$/);
+    expect(screen.getByTestId("post-where-announce")).toHaveTextContent("post.where.itemMoved");
+  });
+
+  it("makes a chosen sub-city the item place", async () => {
+    await mount();
+    fireEvent.change(screen.getByTestId("post-where-subcity"), { target: { value: "s1" } });
+    expect(screen.getByTestId("coverage")).toHaveTextContent(/^s1$/);
+  });
+
+  it("prefills a new post from the last post before the saved area", async () => {
+    lastPlaces.value = { country: "ET", itemId: "c3", placeIds: ["c3"] };
+    await mount();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.getByTestId("coverage")).toHaveTextContent(/^c3$/);
+    expect(ticks()[0]!.checked).toBe(true);
+    expect(primaryBox()).toHaveAttribute("data-empty", "0");
   });
 });

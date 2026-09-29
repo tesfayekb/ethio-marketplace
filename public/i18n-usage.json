@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 311,
-  "dynamicCallSites": 202,
+  "dynamicCallSites": 201,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -4074,7 +4074,11 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.where.defaultPlaceLabel": [
+    "post.where.itemHere": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.itemMoved": [
       "/post",
       "/post/$listingId"
     ],
@@ -4130,15 +4134,19 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.where.showHeading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.showIntro": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.where.treeFailed": [
       "/post",
       "/post/$listingId"
     ],
     "post.where.treeLoading": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.where.why": [
       "/post",
       "/post/$listingId"
     ],
