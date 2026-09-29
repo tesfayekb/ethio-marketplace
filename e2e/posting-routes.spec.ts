@@ -585,7 +585,11 @@ test.describe("POSTING ROUTES", () => {
       if (error || !data) throw new Error(`[e2e:pr-17] no active ET ${level}: ${error?.message}`);
       return data.id as string;
     };
-    const [region, city, subCity] = [await pick("region"), await pick("city"), await pick("sub_city")];
+    const [region, city, subCity] = [
+      await pick("region"),
+      await pick("city"),
+      await pick("sub_city"),
+    ];
     const save = (coverage: string[], step: number) =>
       postRoute(
         page,

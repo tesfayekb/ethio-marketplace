@@ -886,7 +886,9 @@ test.describe("POSTING WIZARD", () => {
     // W6 R1/R4 (census item 5) — the item's location is required and is the
     // first city, so it can be CHANGED but not removed: no Remove on its row.
     await expect(
-      page.locator('[data-testid="post-where-row"][data-key="primary"] [data-testid="post-where-remove"]'),
+      page.locator(
+        '[data-testid="post-where-row"][data-key="primary"] [data-testid="post-where-remove"]',
+      ),
       "PW-20: the item's own city offered a Remove",
     ).toHaveCount(0);
     await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute("data-used", "1");
@@ -1007,9 +1009,7 @@ test.describe("POSTING WIZARD", () => {
             () => document.querySelector("header")?.getBoundingClientRect().bottom ?? null,
           );
           const box = await page.getByTestId("post-where-place").boundingBox();
-          return (
-            headerBottom !== null && box !== null && box.y >= headerBottom - 1 && box.y < 740
-          );
+          return headerBottom !== null && box !== null && box.y >= headerBottom - 1 && box.y < 740;
         },
         { message: "PW-80: the place was not scrolled below the header", timeout: 5_000 },
       )
