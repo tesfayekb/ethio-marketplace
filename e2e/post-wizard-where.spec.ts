@@ -113,7 +113,9 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   }
 
   function tickOf(page: Page, key: string) {
-    return page.locator(`[data-testid="post-where-item-tick"][data-key="${key}"]`);
+    return page.locator(
+      `[data-testid="post-where-row"][data-key="${key}"] [data-testid="post-where-item-tick"]`,
+    );
   }
 
   /**
@@ -132,10 +134,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await waitForTreeSlug(page, "ET", chain.city.slug);
     const listingId = await openAtStep6(page, user.id, category.id);
 
-    await expect(
-      page.getByTestId("post-where-heading"),
-      "PW-83: the heading is not the new key",
-    ).toHaveAttribute("data-testid", "post-where-heading");
+    await expect(page.getByTestId("post-where-heading"), "PW-83: no heading").toBeVisible();
     await expect(page.getByTestId("post-where-intro"), "PW-83: the intro never rendered").toBeVisible();
 
     const region = page.getByTestId("post-where-region");
