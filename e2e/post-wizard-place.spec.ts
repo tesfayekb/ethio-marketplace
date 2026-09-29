@@ -296,17 +296,11 @@ test.describe("POSTING WIZARD", () => {
       "PW-11: the whole-city choice did not record the city node by itself",
     ).toBeVisible();
 
-    // THE PLAN: one city. A second place is refused before a round trip is spent.
-    await page.getByTestId("post-where-extra-region").selectOption(chain.region.id);
-    await page.getByTestId("post-where-extra-city").selectOption(chain.city.id);
-    // A DIFFERENT place from the default (the whole city), so the plan — not a
-    // duplicate — is what refuses it.
-    await page.getByTestId("post-where-extra-subcity").selectOption(chain.subCity.id);
-    await page.getByTestId("post-where-add").click();
-    await expect(
-      page.getByTestId("post-where-plan-full"),
-      "PW-11: a second place was accepted past the plan",
-    ).toBeVisible();
+    // W6 R5 (census item 5) — the second cascade is gone: on the free plan's
+    // 1/1/1 no add button shows at all, so a second place cannot be started.
+    await expect(page.getByTestId("post-where-add-city")).toHaveCount(0);
+    await expect(page.getByTestId("post-where-add-region")).toHaveCount(0);
+    await expect(page.getByTestId("post-where-add-country")).toHaveCount(0);
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
     await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute("data-used", "1");
 
@@ -889,11 +883,12 @@ test.describe("POSTING WIZARD", () => {
       "PW-20: the item's own place did not list itself",
     ).toBeVisible();
 
-    // REMOVED — and offered back, so the automatic rule is never a trap.
-    await page.locator(`[data-testid="post-where-remove"][data-id="${city.id}"]`).click();
-    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "0");
-    await page.getByTestId("post-where-add-back").click();
-    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+    // W6 R1/R4 (census item 5) — the item's location is required and is the
+    // first city, so it can be CHANGED but not removed: no Remove on its row.
+    await expect(
+      page.locator('[data-testid="post-where-row"][data-key="primary"] [data-testid="post-where-remove"]'),
+      "PW-20: the item's own city offered a Remove",
+    ).toHaveCount(0);
     await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute("data-used", "1");
 
     // DB TRUTH (J4): exactly the one place the screen shows.
@@ -915,9 +910,7 @@ test.describe("POSTING WIZARD", () => {
    * it is re-asked. The free plan carries ONE city and plans are not per-seller,
    * so the second place is refused by the plan in words (F3: the door repeats it).
    */
-  test("PW-33 a further place is added under a place already listed, and the plan refuses the second", async ({
-    page,
-  }) => {
+  test("PW-33 a region alone never lists itself; its city does (W6 R2)", async ({ page }) => {
     const user = await seller(page);
     const category = await leaf();
     const chain = await seedScratchChain("ET");
@@ -935,38 +928,17 @@ test.describe("POSTING WIZARD", () => {
       "PW-33: the scratch region never reached the picker",
     ).toHaveCount(1, { timeout: 20_000 });
     await region.selectOption(chain.region.id);
-    // The REGION alone is the item's place, so the listed row is the region and
-    // its own next level (its cities) is what may be added under it.
+    // W6 R2 (census item 5, was "the region lists itself"): a region is only
+    // the way to a city, so nothing is listed until the city is chosen.
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "0");
     await expect(
       page.locator(`[data-testid="post-where-chosen-row"][data-id="${chain.region.id}"]`),
-      "PW-33: the region did not list itself",
-    ).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("post-where-plan-levels")).toBeVisible();
-
-    const under = page.locator(
-      `[data-testid="post-where-add-under"][data-id="${chain.region.id}"]`,
-    );
-    await expect(under, "PW-33: the listed region offered no place beneath it").toBeVisible({
-      timeout: 20_000,
-    });
-    await under.click();
-    const picker = page.locator(
-      `[data-testid="post-where-under-select"][data-id="${chain.region.id}"]`,
-    );
-    // THE NEXT LEVEL ONLY: the region's own city, with no market or region re-asked.
+      "PW-33: a region listed itself",
+    ).toHaveCount(0);
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
     await expect(
-      picker.locator(`option[value="${chain.city.id}"]`),
-      "PW-33: the nested picker did not offer the region's city",
-    ).toHaveCount(1, { timeout: 20_000 });
-    await picker.selectOption(chain.city.id);
-    await page
-      .locator(`[data-testid="post-where-under-add"][data-id="${chain.region.id}"]`)
-      .click();
-
-    // THE PLAN: one place. The refusal is the plan's, said before a round trip.
-    await expect(
-      page.getByTestId("post-where-plan-full"),
-      "PW-33: a second place was accepted past the plan",
+      page.locator(`[data-testid="post-where-chosen-row"][data-id="${chain.city.id}"]`),
+      "PW-33: the city did not list itself",
     ).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
   });
