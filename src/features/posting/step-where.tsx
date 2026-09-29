@@ -260,7 +260,10 @@ function CountryBox({
                   ))}
                 </select>
                 {regions.length === 0 && (
-                  <p className="text-xs text-muted-foreground" data-testid="post-where-region-empty">
+                  <p
+                    className="text-xs text-muted-foreground"
+                    data-testid="post-where-region-empty"
+                  >
                     {t("post.where.noRegions")}
                   </p>
                 )}
@@ -306,7 +309,9 @@ function CountryBox({
                     {cityNode !== null && subCities.length > 0 && (
                       <div className="space-y-1">
                         <label
-                          htmlFor={isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`}
+                          htmlFor={
+                            isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`
+                          }
                           className="text-sm font-medium text-foreground"
                         >
                           {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
@@ -430,7 +435,9 @@ function OtherCountryBox({
       </select>
     </div>
   );
-  return <CountryBox primary={false} code={code} nodes={nodes} rows={rows} market={market} {...rest} />;
+  return (
+    <CountryBox primary={false} code={code} nodes={nodes} rows={rows} market={market} {...rest} />
+  );
 }
 
 export function StepWhere({
@@ -587,7 +594,9 @@ export function StepWhere({
   };
   const patchRows = useCallback((keys: string[], patch: Partial<Row>) => {
     touched.current = true;
-    setRows((current) => current.map((row) => (keys.includes(row.key) ? { ...row, ...patch } : row)));
+    setRows((current) =>
+      current.map((row) => (keys.includes(row.key) ? { ...row, ...patch } : row)),
+    );
   }, []);
 
   const primaryRow = rows[0]!;
@@ -726,8 +735,7 @@ export function StepWhere({
           {markets.markets
             .filter(
               (market) =>
-                market.code === country ||
-                !otherGroups.some((group) => group.code === market.code),
+                market.code === country || !otherGroups.some((group) => group.code === market.code),
             )
             .map((market) => (
               <option key={market.code} value={market.code}>

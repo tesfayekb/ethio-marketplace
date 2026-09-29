@@ -1019,7 +1019,9 @@ test.describe("POSTING WIZARD", () => {
       "data-empty",
       "1",
     );
-    await expect(page.getByTestId("post-where-heading").getByTestId("post-required-mark")).toHaveCount(1);
+    await expect(
+      page.getByTestId("post-where-heading").getByTestId("post-required-mark"),
+    ).toHaveCount(1);
 
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-refusal-summary")).toBeVisible({ timeout: 20_000 });
@@ -1034,7 +1036,9 @@ test.describe("POSTING WIZARD", () => {
         async () => {
           const header = await page.locator("header").first().boundingBox();
           const box = await page.getByTestId("post-where-place").boundingBox();
-          return header !== null && box !== null && box.y >= header.y + header.height - 1 && box.y < 740;
+          return (
+            header !== null && box !== null && box.y >= header.y + header.height - 1 && box.y < 740
+          );
         },
         { message: "PW-80: the place was not scrolled below the header", timeout: 5_000 },
       )
@@ -1045,9 +1049,14 @@ test.describe("POSTING WIZARD", () => {
       "data-empty",
       "0",
     );
-    await expect(page.getByTestId("post-where-heading").getByTestId("post-required-mark")).toHaveCount(0);
+    await expect(
+      page.getByTestId("post-where-heading").getByTestId("post-required-mark"),
+    ).toHaveCount(0);
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-7"), "PW-80: Next did not pass with a city").toBeVisible({
+    await expect(
+      page.getByTestId("post-step-7"),
+      "PW-80: Next did not pass with a city",
+    ).toBeVisible({
       timeout: 20_000,
     });
 
@@ -1074,21 +1083,28 @@ test.describe("POSTING WIZARD", () => {
     const chain = await seedScratchChain("ET");
     places.push(chain.region.slug);
     await waitForTreeSlug(page, "ET", chain.city.slug);
-    await page.context().addCookies([
-      { name: "ethio_area", value: `ET:${chain.city.id}`, url: "http://127.0.0.1:4173" },
-    ]);
+    await page
+      .context()
+      .addCookies([
+        { name: "ethio_area", value: `ET:${chain.city.id}`, url: "http://127.0.0.1:4173" },
+      ]);
     const listingId = await reachStep5(page, user.id, category);
     await page.getByTestId("post-price-mode-free").click();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
-    await expect(page.getByTestId("post-where-city"), "PW-81: the city was not prefilled").toHaveValue(
-      chain.city.id,
-      { timeout: 20_000 },
-    );
+    await expect(
+      page.getByTestId("post-where-city"),
+      "PW-81: the city was not prefilled",
+    ).toHaveValue(chain.city.id, { timeout: 20_000 });
     await expect(placeBox(page)).toHaveAttribute("data-empty", "0");
-    await expect(page.getByTestId("post-where-heading").getByTestId("post-required-mark")).toHaveCount(0);
+    await expect(
+      page.getByTestId("post-where-heading").getByTestId("post-required-mark"),
+    ).toHaveCount(0);
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-7"), "PW-81: Next refused a prefilled city").toBeVisible({
+    await expect(
+      page.getByTestId("post-step-7"),
+      "PW-81: Next refused a prefilled city",
+    ).toBeVisible({
       timeout: 20_000,
     });
     expect((await coverageOf(listingId)).placeIds).toContain(chain.city.id);
@@ -1104,7 +1120,8 @@ test.describe("POSTING WIZARD", () => {
       .select("max_cities, max_regions, max_countries")
       .eq("plan", "free")
       .single();
-    if (error || !plan) throw new Error(`PW-82: the free plan could not be read: ${error?.message}`);
+    if (error || !plan)
+      throw new Error(`PW-82: the free plan could not be read: ${error?.message}`);
     const user = await seller(page);
     const category = await leaf();
     const chain = await seedScratchChain("ET");
