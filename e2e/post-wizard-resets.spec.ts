@@ -20,6 +20,7 @@ import {
   seedPostableCategory,
   seedSpecSet,
   textOf,
+  stopPageBeforePurge,
 } from "./helpers/posting";
 
 /**
@@ -63,8 +64,8 @@ test.describe("POSTING WIZARD", () => {
   const walkMarks: string[] = [];
 
   test.afterEach(async ({ page }) => {
-    // INC-323 — stop the page first, so no debounced autosave lands after the purge.
-    await page.goto("about:blank");
+    // INC-323 — stop the page first, and wait out a save in flight, so none lands after the purge.
+    await stopPageBeforePurge(page);
     const ladder = walkMarks.splice(0);
     if (ladder.length > 0) {
       await test
@@ -945,5 +946,45 @@ test.describe("POSTING WIZARD", () => {
         timeout: 20_000,
       },
     );
+  });
+
+  /**
+   * INC-332 — A TAP ON NEXT IS NEVER LOST. The title is cleared and Next is
+   * pressed at once: no blur wait, no wait for the on-blur message. The press is
+   * a raw pointer down/up at the button's centre as measured BEFORE the press,
+   * so a message that moves the button under the finger loses the click.
+   */
+  test("PW-79 clearing the title and tapping Next at once still registers the tap (INC-332)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await reachStep3(page, user.id, category);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e inc332 listing title");
+    await page.getByTestId("post-description").fill("e2e inc332 listing description");
+    await page.getByTestId("post-title").fill("");
+    await expect(page.getByTestId("post-title")).toBeFocused();
+    const next = page.getByTestId("post-next");
+    await next.scrollIntoViewIfNeeded();
+    const box = await next.boundingBox();
+    if (box === null) throw new Error("PW-79: Next has no box");
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.up();
+    await expect(
+      page.getByTestId("post-refusal-summary"),
+      "PW-79: the tap on Next was lost — no refusal summary",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect(
+      page.getByTestId("post-title"),
+      "PW-79: the title did not take focus",
+    ).toBeFocused();
+    await expect(
+      page.getByTestId("post-title"),
+      "PW-79: the page did not scroll to the title",
+    ).toBeInViewport();
   });
 });

@@ -1069,3 +1069,9 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 - **INC-331 — not reproduced.** PW-74 gained a prefilled, untouched, unpinned fact (`seats`); it survives the round trip in both list sizes on both projects, so no code change was made.
 - **D1 — the category mark is on the list heading.** The optional search label is unmarked; `post-category-list-heading` carries `RequiredMark` only while no leaf is chosen, clearing with the soft border (also after Back). PW-75 updated.
 - **D2 — the refused field arrives whole.** `focusElement` scrolls the field container (`scroll-mt-20`, label included) to the top, smoothly unless reduced motion is requested, then focuses the control with `preventScroll`. Proof: PW-77 (both motion settings, label below the sticky header).
+
+### W5 — INC-336 / INC-332 / INC-323 / DEC-084 (2026-09-29)
+
+- INC-336: a list above `EAGER_OPTION_LIMIT` (200, unchanged) is read once per key per mount the moment any other select on the step is answered; with no sibling answered nothing is read. The schema carries no parent link, so "any sibling answered" is the earliest point a parent can exist. Every behaviour reasoning over a dependent list — the fold, DEC-086's required mark and soft border, INC-244 fill-and-hide, the narrowing — then holds its rows. PW-78.
+- INC-332: the action bar (`post-actions`) ignores the press on its buttons, so focus stays in the field until the click has registered; the click then blurs the field and its judgement shows. One rule for every on-blur field (details, price, who, specifications) and every bar layout. PW-79.
+- INC-323: posting teardowns call `stopPageBeforePurge` (network quiet, then `about:blank`), so a save already in flight cannot reach a purged draft.

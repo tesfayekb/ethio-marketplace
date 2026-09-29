@@ -2212,3 +2212,18 @@ export async function priceBpOf(listingId: string): Promise<number | null> {
   if (error) throw new Error(`[e2e:d31c] reading price_bp failed: ${error.message}`);
   return data?.price_bp ?? null;
 }
+
+/**
+ * INC-323 (W5 Part C) — STOP THE PAGE, SAFELY, BEFORE A PURGE. Blanking the page
+ * kills a debounced autosave, but a save ALREADY in flight is still processed by
+ * the server after the browser aborts it, and lands after the purge as
+ * "listing not found". So the page first waits for its network to go quiet (a
+ * request in flight is waited out; the wait is bounded and never fails the
+ * teardown), then blanks, which cancels any timer that has not fired yet.
+ */
+export async function stopPageBeforePurge(page: Page): Promise<void> {
+  if (page.url() !== "about:blank") {
+    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+  }
+  await page.goto("about:blank");
+}

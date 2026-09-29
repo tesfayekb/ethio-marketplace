@@ -8,13 +8,15 @@ import {
   destroyListingsOf,
   destroyPostableCategory,
   seedPostableCategory,
+  stopPageBeforePurge,
 } from "./helpers/posting";
 
 /**
- * DEC-084 — THE ACCESSIBILITY PASS (smoke tier, NON-GATING this turn).
+ * DEC-084 — THE ACCESSIBILITY PASS (smoke tier, GATING since 2026-09-29).
  *
  * axe-core runs on the marketplace home, /auth, and wizard steps 1, 3 and 5 for
- * a scratch seller, at both projects. The test NEVER fails on a violation: it
+ * a scratch seller, at both projects. The test FAILS on any serious or critical
+ * violation (the pre-committed rule was met: seven clean CI runs). It first
  * writes the serious/critical counts to its annotations and to the console as
  * `[a11y] <page> <project> serious=<n> critical=<n>`, which the reporter reads
  * into its "Accessibility" line. The public listing page and the seller
@@ -37,15 +39,17 @@ async function audit(page: Page, name: string): Promise<void> {
     .join(" ");
   if (rules) console.log(`[a11y-rules] ${name} ${project} ${rules}`);
   test.info().annotations.push({ type: "a11y", description: `${line}${rules ? ` ${rules}` : ""}` });
+  // DEC-084 gating (2026-09-29): the counts are printed first, then judged.
+  expect(serious + critical, `${line}${rules ? ` ${rules}` : ""}`).toBe(0);
 }
 
-test.describe("A11Y SMOKE (DEC-084, non-gating)", () => {
+test.describe("A11Y SMOKE (DEC-084, gating)", () => {
   const sellers: string[] = [];
   const categories: string[] = [];
 
   test.afterEach(async ({ page }) => {
-    // INC-323 — stop the page first, so no debounced autosave lands after the purge.
-    await page.goto("about:blank");
+    // INC-323 — stop the page first, and wait out a save in flight, so none lands after the purge.
+    await stopPageBeforePurge(page);
     // J3 — cleanup survives a body timeout; each destroy throws on failure.
     for (const id of sellers.splice(0)) await destroyListingsOf(id);
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);

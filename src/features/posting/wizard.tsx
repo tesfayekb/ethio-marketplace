@@ -514,7 +514,30 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
 
               <FormLayout
                 footer={
-                  <div className="space-y-1">
+                  <div
+                    className="space-y-1"
+                    /* INC-332 — A TAP ON NEXT OR BACK IS NEVER LOST. Pressing a
+                       button used to blur the field first; its on-blur judgement
+                       then rendered a message that moved the button out from
+                       under the finger, and the click landed elsewhere. The press
+                       no longer moves focus, so nothing shifts before the click;
+                       the click itself then blurs the field (its judgement still
+                       shows) AFTER it has registered. One rule for every step's
+                       on-blur field and every layout of this bar. */
+                    data-testid="post-actions"
+                    onMouseDown={(event) => {
+                      if ((event.target as HTMLElement).closest("button") !== null) {
+                        event.preventDefault();
+                      }
+                    }}
+                    onClickCapture={(event) => {
+                      if ((event.target as HTMLElement).closest("button") === null) return;
+                      const active = document.activeElement;
+                      if (active instanceof HTMLElement && !event.currentTarget.contains(active)) {
+                        active.blur();
+                      }
+                    }}
+                  >
                     <div className="flex gap-2">
                       <button
                         type="button"
