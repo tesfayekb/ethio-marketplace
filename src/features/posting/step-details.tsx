@@ -27,8 +27,13 @@ import { checkText, mergeRefusals } from "./validate";
  * placeholder.
  */
 
-const TITLE_MAX = 120;
-const DESCRIPTION_MAX = 1200;
+/**
+ * INC-342 — the DOOR is the authority (validate_listing_draft step 4): title
+ * 1–120, description ≤ 5000. The form follows it; the AI assist keeps its own
+ * shorter 1200 cap (DEC-072). Pinned by step-details-limits.test.ts and PR-18.
+ */
+export const TITLE_MAX = 120;
+export const DESCRIPTION_MAX = 5000;
 
 interface Suggestion {
   title: string;
