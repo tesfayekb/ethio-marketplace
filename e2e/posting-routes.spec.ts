@@ -563,6 +563,59 @@ test.describe("POSTING ROUTES", () => {
     expect(short.status()).toBe(400);
   });
   /**
+   * PR-17 — W6 INC-337 AT THE ROUTE. The draft door refuses region-only coverage
+   * with `cityRequired` (even below step 6 — ruling 2026-09-29) and accepts a city
+   * and a sub-city. Real places are READ, never written (G27).
+   */
+  test("PR-17 the draft route refuses a region-only place and accepts a city and a sub-city", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const admin = adminClient();
+    const pick = async (level: string) => {
+      const { data, error } = await admin
+        .from("locations")
+        .select("id")
+        .eq("country_code", "ET")
+        .eq("level", level)
+        .eq("is_active", true)
+        .limit(1)
+        .single();
+      if (error || !data) throw new Error(`[e2e:pr-17] no active ET ${level}: ${error?.message}`);
+      return data.id as string;
+    };
+    const [region, city, subCity] = [
+      await pick("region"),
+      await pick("city"),
+      await pick("sub_city"),
+    ];
+    const save = (coverage: string[], step: number) =>
+      postRoute(
+        page,
+        DRAFT,
+        { step, categoryId: cat.id, title: "e2e pr17", priceMode: "free", coverage },
+        { token, country: "ET" },
+      );
+    for (const step of [3, 6]) {
+      const refused = await save([region], step);
+      expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
+      expect(refused.payload["ok"], JSON.stringify(refused.payload)).toBe(false);
+      expect(reasonsOf(refused.payload), `step ${step}`).toContainEqual({
+        field: "coverage",
+        reason: "cityRequired",
+      });
+    }
+    for (const place of [city, subCity]) {
+      const accepted = await save([place], 6);
+      expect(
+        reasonsOf(accepted.payload).filter((row) => row.field === "coverage"),
+        JSON.stringify(accepted.payload),
+      ).toEqual([]);
+    }
+  });
+
+  /**
    * DEC-086 — THE MODEL QUESTION IS REQUIRED WHEN IT MATTERS, AT THE ROUTE. A
    * dependent pick-list whose options carry facts: missing under an answered
    * parent with two children → refused `{attr_key, required}`; answered (or

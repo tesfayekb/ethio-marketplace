@@ -1075,3 +1075,23 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 - INC-336: a list above `EAGER_OPTION_LIMIT` (200, unchanged) is read once per key per mount the moment any other select on the step is answered; with no sibling answered nothing is read. The schema carries no parent link, so "any sibling answered" is the earliest point a parent can exist. Every behaviour reasoning over a dependent list — the fold, DEC-086's required mark and soft border, INC-244 fill-and-hide, the narrowing — then holds its rows. PW-78.
 - INC-332: the action bar (`post-actions`) ignores the press on its buttons, so focus stays in the field until the click has registered; the click then blurs the field and its judgement shows. One rule for every on-blur field (details, price, who, specifications) and every bar layout. PW-79.
 - INC-323: posting teardowns call `stopPageBeforePurge` (network quiet, then `about:blank`), so a save already in flight cannot reach a purged draft.
+
+### W6 — INC-337 / INC-338 / DEC-064 amendment (2026-09-29)
+
+- **Door** (migration `a3a572bf`, mark `20260929235900`): `validate_listing_draft`
+  re-declared whole from 1dc182d8. Every coverage id must be a city or sub-city
+  (`cityRequired`); sent places are judged at ANY step (a pre-step-6 save can no
+  longer store an unchecked place); `required` stays at step 6+; `multipleMarkets`
+  retired; G29 — `v_lands` now counts distinct countries (country-level nodes
+  land in `v_anchors`). Proofs P22–P27.
+- **Place step**: nested country → region → city boxes (R4); the heading's mark
+  and the soft border stand until the item's city is chosen (R1); a refusal
+  says "Choose a city." and scrolls to `post-coverage`; add buttons follow the
+  plan from the schema (R5, INC-338 — `PLAN_CITIES` deleted); the draft's own
+  saved places seed the cascade before the cookie/guess prefill.
+- **Replaced behaviours** (named): the second "add another place" cascade and
+  "add under" (→ the nested add buttons); remove / put back of the item's own
+  place (→ changed, never removed, R1/R4); a region as the automatic place (→
+  cities only, R2); the client-side "plan full" message (→ no button without room).
+- **Tests**: PR-17, PW-80, PW-81 (cookie prefill, per the corrected R3), PW-82,
+  `step-where.test.tsx`; PW-11, PW-20, PW-33 updated for R2/R4/R5.

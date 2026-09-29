@@ -61,7 +61,8 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   priceNotAllowed: "post.refusal.priceNotAllowed",
   posterExpiryTooSoon: "post.refusal.posterExpiryTooSoon",
   posterExpiryTooLate: "post.refusal.posterExpiryTooLate",
-  multipleMarkets: "post.refusal.multipleMarkets",
+  // W6 — multipleMarkets retired 2026-09-29; every place is a city (INC-337).
+  cityRequired: "post.refusal.cityRequired",
   providerUnavailable: "post.refusal.providerUnavailable",
   // U6-C2b — step 7's own vocabulary (`save_posting_identity`,
   // `listing_contact_refusals`): the identity door answers here.

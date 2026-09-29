@@ -327,7 +327,7 @@ strictly and tolerates the later ones empty. `publish_listing` and
 | 3    | attributes                | `validate_listing_attributes` (its refusals pass through verbatim)                                                                                                                                                                                                                                                                                      |
 | 4    | title, description, video | title 1–120 after trim, description ≤ 5000, YouTube shape                                                                                                                                                                                                                                                                                               |
 | 5    | price                     | mode ∈ fixed/negotiable/free/contact; amount > 0 and required for the first two, NULL for the others; currency ∈ `currencies`, defaulting to the seller's home-country currency; period ∈ once/hour/day/week/month/year and equal to the category default when `price_period_locked`; poster expiry NULL or between now + 1 day and now + `expiry_days` |
-| 6    | coverage                  | every id an active place of ONE open market; per-level counts against the caller's plan (`free` for everyone in v1); the item's own place is `p_coverage[1]`; a sub-city or its city are both legal (D19)                                                                                                                                               |
+| 6    | coverage                  | every id an active CITY or SUB-CITY of an open market; countries counted against the plan's max_countries (multipleMarkets retired 2026-09-29); sent places are judged at any step, `required` from step 6 (W6); the item's own place is `p_coverage[1]` (D19)                                                                                          |
 | 7    | contact                   | `messages` always true; `phone`/`telegram`/`whatsapp` objects of `{show, value}` with validated handles; nothing else                                                                                                                                                                                                                                   |
 | 8    | review                    | no fields of its own                                                                                                                                                                                                                                                                                                                                    |
 
@@ -335,7 +335,7 @@ strictly and tolerates the later ones empty. `publish_listing` and
 refusal writes nothing): `residencyUnknown`, `categoryNotPostable`, `required`,
 `tooLong`, `badShape`, `badValue`, `notPositive`, `mustBeEmpty`,
 `priceNotAllowed`, `unknownCurrency`, `periodLocked`, `posterExpiryTooSoon`,
-`posterExpiryTooLate`, `unknownPlace`, `multipleMarkets`,
+`posterExpiryTooLate`, `unknownPlace`, `cityRequired` (W6; `multipleMarkets` retired 2026-09-29),
 `coverageExceedsPlan:city|region|country`, `messagesRequired`,
 `showNeedsValue`, `badHandle`, `unknownKey`, `renewNeedsActive`,
 `renewTooSoon`. Ownership and lifecycle violations raise (`not your listing`,

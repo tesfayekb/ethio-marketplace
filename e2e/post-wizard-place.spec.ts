@@ -296,17 +296,11 @@ test.describe("POSTING WIZARD", () => {
       "PW-11: the whole-city choice did not record the city node by itself",
     ).toBeVisible();
 
-    // THE PLAN: one city. A second place is refused before a round trip is spent.
-    await page.getByTestId("post-where-extra-region").selectOption(chain.region.id);
-    await page.getByTestId("post-where-extra-city").selectOption(chain.city.id);
-    // A DIFFERENT place from the default (the whole city), so the plan — not a
-    // duplicate — is what refuses it.
-    await page.getByTestId("post-where-extra-subcity").selectOption(chain.subCity.id);
-    await page.getByTestId("post-where-add").click();
-    await expect(
-      page.getByTestId("post-where-plan-full"),
-      "PW-11: a second place was accepted past the plan",
-    ).toBeVisible();
+    // W6 R5 (census item 5) — the second cascade is gone: on the free plan's
+    // 1/1/1 no add button shows at all, so a second place cannot be started.
+    await expect(page.getByTestId("post-where-add-city")).toHaveCount(0);
+    await expect(page.getByTestId("post-where-add-region")).toHaveCount(0);
+    await expect(page.getByTestId("post-where-add-country")).toHaveCount(0);
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
     await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute("data-used", "1");
 
@@ -836,7 +830,7 @@ test.describe("POSTING WIZARD", () => {
    * it lists itself, it can be taken out and put back, and the plan's count is a
    * fact on screen rather than a surprise at the end.
    */
-  test("PW-20 where: the default place lists itself, comes back, and the plan bounds the rest", async ({
+  test("PW-20 where: the default place lists itself and the item's own city cannot be removed", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -889,11 +883,14 @@ test.describe("POSTING WIZARD", () => {
       "PW-20: the item's own place did not list itself",
     ).toBeVisible();
 
-    // REMOVED — and offered back, so the automatic rule is never a trap.
-    await page.locator(`[data-testid="post-where-remove"][data-id="${city.id}"]`).click();
-    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "0");
-    await page.getByTestId("post-where-add-back").click();
-    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+    // W6 R1/R4 (census item 5) — the item's location is required and is the
+    // first city, so it can be CHANGED but not removed: no Remove on its row.
+    await expect(
+      page.locator(
+        '[data-testid="post-where-row"][data-key="primary"] [data-testid="post-where-remove"]',
+      ),
+      "PW-20: the item's own city offered a Remove",
+    ).toHaveCount(0);
     await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute("data-used", "1");
 
     // DB TRUTH (J4): exactly the one place the screen shows.
@@ -907,17 +904,11 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * U6-C1-R3b-3b STEP 4 (PW-33) — A PLACE IS ADDED UNDER A PLACE ALREADY LISTED.
-   *
-   * The walk's complaint: adding a second city meant answering the market and the
-   * region again in a second cascade. Each listed place now opens its OWN next
-   * level — a region offers its cities, a city its sub-cities — and nothing above
-   * it is re-asked. The free plan carries ONE city and plans are not per-seller,
-   * so the second place is refused by the plan in words (F3: the door repeats it).
+   * PW-33 — W6 R2 (updated 2026-09-29, census item 5). It used to prove that a
+   * listed REGION offered its cities beneath it; under INC-337 a region is never
+   * a place, so the test now proves the region alone lists nothing and its city does.
    */
-  test("PW-33 a further place is added under a place already listed, and the plan refuses the second", async ({
-    page,
-  }) => {
+  test("PW-33 a region alone never lists itself; its city does (W6 R2)", async ({ page }) => {
     const user = await seller(page);
     const category = await leaf();
     const chain = await seedScratchChain("ET");
@@ -935,40 +926,199 @@ test.describe("POSTING WIZARD", () => {
       "PW-33: the scratch region never reached the picker",
     ).toHaveCount(1, { timeout: 20_000 });
     await region.selectOption(chain.region.id);
-    // The REGION alone is the item's place, so the listed row is the region and
-    // its own next level (its cities) is what may be added under it.
+    // W6 R2 (census item 5, was "the region lists itself"): a region is only
+    // the way to a city, so nothing is listed until the city is chosen.
+    await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "0");
     await expect(
       page.locator(`[data-testid="post-where-chosen-row"][data-id="${chain.region.id}"]`),
-      "PW-33: the region did not list itself",
-    ).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("post-where-plan-levels")).toBeVisible();
-
-    const under = page.locator(
-      `[data-testid="post-where-add-under"][data-id="${chain.region.id}"]`,
-    );
-    await expect(under, "PW-33: the listed region offered no place beneath it").toBeVisible({
-      timeout: 20_000,
-    });
-    await under.click();
-    const picker = page.locator(
-      `[data-testid="post-where-under-select"][data-id="${chain.region.id}"]`,
-    );
-    // THE NEXT LEVEL ONLY: the region's own city, with no market or region re-asked.
+      "PW-33: a region listed itself",
+    ).toHaveCount(0);
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
     await expect(
-      picker.locator(`option[value="${chain.city.id}"]`),
-      "PW-33: the nested picker did not offer the region's city",
-    ).toHaveCount(1, { timeout: 20_000 });
-    await picker.selectOption(chain.city.id);
-    await page
-      .locator(`[data-testid="post-where-under-add"][data-id="${chain.region.id}"]`)
-      .click();
-
-    // THE PLAN: one place. The refusal is the plan's, said before a round trip.
-    await expect(
-      page.getByTestId("post-where-plan-full"),
-      "PW-33: a second place was accepted past the plan",
+      page.locator(`[data-testid="post-where-chosen-row"][data-id="${chain.city.id}"]`),
+      "PW-33: the city did not list itself",
     ).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1");
+  });
+
+  /* ================ W6 — A CITY IS REQUIRED (INC-337, R1–R5) ================ */
+
+  /** The item's own place box and its heading's required mark (R1). */
+  function placeBox(page: Page) {
+    return page.locator('[data-testid="post-where-country-box"][data-primary="1"]');
+  }
+
+  /**
+   * PW-80 — R1/R2. Neither a market alone nor a region alone is a place: the mark
+   * and the soft border stand before Next, Next refuses in words and scrolls to
+   * the place (label below the header), and a city clears both. DB truth: every
+   * coverage row is a city or a sub-city.
+   */
+  test("PW-80 a city is required: marked before Next, refused and scrolled to on Next, cleared by a city", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+    const listingId = await reachStep5(page, user.id, category);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+
+    const region = page.getByTestId("post-where-region");
+    await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    // The market alone: no region, no city.
+    await region.selectOption("");
+    const city = page.getByTestId("post-where-city");
+    if ((await city.count()) === 1) await city.selectOption("");
+    await expect(placeBox(page), "PW-80: the market alone shows no soft border").toHaveAttribute(
+      "data-empty",
+      "1",
+    );
+    await expect(
+      page.getByTestId("post-where-heading").getByTestId("post-required-mark"),
+      "PW-80: the market alone shows no required mark",
+    ).toHaveCount(1);
+    // A region alone.
+    await region.selectOption(chain.region.id);
+    await expect(placeBox(page), "PW-80: a region alone shows no soft border").toHaveAttribute(
+      "data-empty",
+      "1",
+    );
+    await expect(
+      page.getByTestId("post-where-heading").getByTestId("post-required-mark"),
+    ).toHaveCount(1);
+
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-refusal-summary")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.locator('[data-testid="post-where-refusal"][data-choose-city="1"]'),
+      "PW-80: Next did not say Choose a city",
+    ).toBeVisible();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    // D70/D2 — the whole box, heading included, lands below the header.
+    await expect
+      .poll(
+        async () => {
+          // The app shell's own header (the document's first <header>), read in-page.
+          const headerBottom = await page.evaluate(
+            () => document.querySelector("header")?.getBoundingClientRect().bottom ?? null,
+          );
+          const box = await page.getByTestId("post-where-place").boundingBox();
+          return headerBottom !== null && box !== null && box.y >= headerBottom - 1 && box.y < 740;
+        },
+        { message: "PW-80: the place was not scrolled below the header", timeout: 5_000 },
+      )
+      .toBe(true);
+
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+    await expect(placeBox(page), "PW-80: a city did not clear the soft border").toHaveAttribute(
+      "data-empty",
+      "0",
+    );
+    await expect(
+      page.getByTestId("post-where-heading").getByTestId("post-required-mark"),
+    ).toHaveCount(0);
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-step-7"),
+      "PW-80: Next did not pass with a city",
+    ).toBeVisible({
+      timeout: 20_000,
+    });
+
+    // DB TRUTH (J4): every coverage row is a city or a sub-city.
+    const { placeIds } = await coverageOf(listingId);
+    expect(placeIds.length, "PW-80: no coverage row was written").toBeGreaterThan(0);
+    const { data } = await adminClient().from("locations").select("level").in("id", placeIds);
+    expect(
+      (data ?? []).every((row) => row.level === "city" || row.level === "sub_city"),
+      `PW-80: a coverage row is not a city: ${JSON.stringify(data)}`,
+    ).toBe(true);
+  });
+
+  /**
+   * PW-81 — R3 as corrected by the 2026-09-29 ruling: the EXISTING prefill (the
+   * saved-area cookie) fills a scratch city; it carries no mark and Next passes
+   * without touching the step. (The last-listing prefill is W6b.)
+   */
+  test("PW-81 a prefilled city counts as chosen: no mark, Next passes untouched", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+    await page
+      .context()
+      .addCookies([
+        { name: "ethio_area", value: `ET:${chain.city.id}`, url: "http://127.0.0.1:4173" },
+      ]);
+    const listingId = await reachStep5(page, user.id, category);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    await expect(
+      page.getByTestId("post-where-city"),
+      "PW-81: the city was not prefilled",
+    ).toHaveValue(chain.city.id, { timeout: 20_000 });
+    await expect(placeBox(page)).toHaveAttribute("data-empty", "0");
+    await expect(
+      page.getByTestId("post-where-heading").getByTestId("post-required-mark"),
+    ).toHaveCount(0);
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-step-7"),
+      "PW-81: Next refused a prefilled city",
+    ).toBeVisible({
+      timeout: 20_000,
+    });
+    expect((await coverageOf(listingId)).placeIds).toContain(chain.city.id);
+  });
+
+  /**
+   * PW-82 — R5. The add buttons follow the plan, read from the DB (the 'free'
+   * row is read, never written — G27): each shows only while its level has room.
+   */
+  test("PW-82 the add buttons follow the plan's own limits", async ({ page }) => {
+    const { data: plan, error } = await adminClient()
+      .from("coverage_plans")
+      .select("max_cities, max_regions, max_countries")
+      .eq("plan", "free")
+      .single();
+    if (error || !plan)
+      throw new Error(`PW-82: the free plan could not be read: ${error?.message}`);
+    const user = await seller(page);
+    const category = await leaf();
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+    await reachStep5(page, user.id, category);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    const region = page.getByTestId("post-where-region");
+    await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await region.selectOption(chain.region.id);
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+    await expect(placeBox(page)).toHaveAttribute("data-empty", "0");
+    const cityRoom = plan.max_cities > 1;
+    const regionRoom = cityRoom && plan.max_regions > 1;
+    const countryRoom = regionRoom && plan.max_countries > 1;
+    await expect(page.getByTestId("post-where-add-city")).toHaveCount(cityRoom ? 1 : 0);
+    await expect(page.getByTestId("post-where-add-region")).toHaveCount(regionRoom ? 1 : 0);
+    await expect(page.getByTestId("post-where-add-country")).toHaveCount(countryRoom ? 1 : 0);
+    await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute(
+      "data-max",
+      String(plan.max_cities),
+    );
   });
 
   /* ======================= U6-C1-R3b-4 — THE MAP PIN ======================= */

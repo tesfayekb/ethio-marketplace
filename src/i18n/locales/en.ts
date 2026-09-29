@@ -2224,6 +2224,13 @@ export const en = {
   "post.specs.resetUndo": "Undo",
   "post.where.addUnder": "Add a place under this",
   "post.where.planLevels": "{regions} region(s), {cities} city(ies), {subCities} sub-city(ies)",
+  // W6 (INC-337, R1/R4) — new keys.
+  "post.refusal.cityRequired": "Choose a city.",
+  "post.where.itemLocation": "Item's location",
+  "post.where.alsoShownIn": "Also shown in",
+  "post.where.addCity": "Add a city",
+  "post.where.addRegion": "Add a region",
+  "post.where.addCountry": "Add a country",
   "post.category.nextBlocked": "Choose a category to continue.",
   "post.category.chooseOne": "Choose a category from the list.",
   "post.price.moreCurrencies": "More currencies…",
