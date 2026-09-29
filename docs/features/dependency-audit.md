@@ -112,3 +112,16 @@ it cannot be remediated ("build-time-only transitive; not in the shipped
 bundle"), and an explicit RE-CHECK DATE (detection + 14 days); the CI gate then
 points reviewers at this file. Nothing is accepted merely because it is not in
 the runtime tree.
+
+## 2026-09-29 Audit — undici via jsdom, REMEDIATED (INC-344)
+
+- Advisories: GHSA-rfgv-xxqx-mfg5, GHSA-w293-vg96-wgc3, GHSA-vp8m-p9jh-q5pm
+  (3 high), `undici` >=8.0.0 <8.10.2.
+- Path: `jsdom` → `undici` (devDependency, unit/component test environment only).
+- Remediation: `package.json` `overrides` gains `"undici": "^8.10.2"`. The range
+  stays inside 8.x because `jsdom@30` requires `undici@^8.9.0`; a fix version
+  exists, so it is LANDED, not ruled (law H2).
+- Resolved: `undici@8.11.2` in `bun.lock`.
+- Verification: unit and component tests (jsdom) 130/130 green. `bun audit`
+  cannot reach the advisory service from the build sandbox, so the clean-audit
+  verdict comes from the CI `dependency-audit` job.
