@@ -1863,6 +1863,10 @@ test.describe("POSTING WIZARD", () => {
       const model = control("model");
 
       await control("identity").selectOption(k("id1"));
+      // D25 — a parent change resets every detail a parent speaks about, so the
+      // small fact picker is answered before the model and the year it bounds.
+      await control("kind").selectOption(k("tread"));
+      await expect(control("power")).toHaveValue(k("electric"), { timeout: 20_000 });
       await control("make").selectOption(make);
       await expect(model).toBeEnabled();
       await model.focus();
@@ -1870,8 +1874,6 @@ test.describe("POSTING WIZARD", () => {
       await model.selectOption(chosenModel);
       await expect(control("doors")).toHaveValue("3", { timeout: 20_000 });
       await control("year").selectOption("2015");
-      await control("kind").selectOption(k("tread"));
-      await expect(control("power")).toHaveValue(k("electric"), { timeout: 20_000 });
       await control("colour").selectOption(k("red"));
       await page
         .locator(`[data-testid="post-attr-checks"][data-attr="${k("multi")}"] [data-value="${k("ma")}"]`)
