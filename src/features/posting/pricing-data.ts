@@ -129,7 +129,7 @@ export interface SellerHome {
  * market prefill's last resort in step 6.
  */
 /**
- * INC-331 — THE SIGNED-IN SELLER'S OWN ID, read from the local session (no
+ * INC-330 — THE SIGNED-IN SELLER'S OWN ID, read from the local session (no
  * network). Every "the seller's own row" read below filters by it: RLS alone is
  * not a filter. `listings_public_read` shows EVERY active listing to a seller, so
  * an unfiltered "last listing" read returned another seller's currency; and an
@@ -218,7 +218,7 @@ export async function readGuessCurrency(): Promise<string> {
 /**
  * THE MONEY THE SELLER LAST USED. A seller who priced their last listing in ETB
  * means ETB again, wherever the edge thinks they are today — so their OWN last
- * listing outranks the guess market. Filtered by `seller_id` (INC-331): RLS
+ * listing outranks the guess market. Filtered by `seller_id` (INC-330): RLS
  * also shows every ACTIVE listing, so the filter — not the policy — is what
  * keeps another seller's currency out. A failure simply yields `null`.
  */
