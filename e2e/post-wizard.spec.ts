@@ -1779,7 +1779,12 @@ test.describe("POSTING WIZARD", () => {
           attr_type: "single_select",
           options: [option(make), option(k("mk2"))],
         },
-        { attr_key: k("model"), name_en: `${stem} model`, attr_type: "single_select", options: models },
+        {
+          attr_key: k("model"),
+          name_en: `${stem} model`,
+          attr_type: "single_select",
+          options: models,
+        },
         {
           attr_key: k("year"),
           name_en: `${stem} year`,
@@ -1801,7 +1806,10 @@ test.describe("POSTING WIZARD", () => {
           attr_key: k("kind"),
           name_en: `${stem} kind`,
           attr_type: "single_select",
-          options: [option(k("tread"), { facts: { [k("power")]: k("electric") } }), option(k("bike"))],
+          options: [
+            option(k("tread"), { facts: { [k("power")]: k("electric") } }),
+            option(k("bike")),
+          ],
         },
         {
           attr_key: k("power"),
@@ -1813,7 +1821,10 @@ test.describe("POSTING WIZARD", () => {
           attr_key: k("colour"),
           name_en: `${stem} colour`,
           attr_type: "single_select",
-          options: [option(k("red"), { swatch: "#cc0000" }), option(k("blue"), { swatch: "#0000cc" })],
+          options: [
+            option(k("red"), { swatch: "#cc0000" }),
+            option(k("blue"), { swatch: "#0000cc" }),
+          ],
         },
         {
           attr_key: k("multi"),
@@ -1839,10 +1850,7 @@ test.describe("POSTING WIZARD", () => {
         },
       ];
       const supabase = adminClient();
-      const { data, error } = await supabase
-        .from("attributes")
-        .insert(rows)
-        .select("id, attr_key");
+      const { data, error } = await supabase.from("attributes").insert(rows).select("id, attr_key");
       if (error || !data) throw new Error(`PW-74: seeding failed: ${error?.message ?? "no rows"}`);
       specs.push(...rows.map((row) => row.attr_key));
       const idOf = (key: string) => data.find((row) => row.attr_key === key)!.id;
@@ -1876,14 +1884,18 @@ test.describe("POSTING WIZARD", () => {
       await control("year").selectOption("2015");
       await control("colour").selectOption(k("red"));
       await page
-        .locator(`[data-testid="post-attr-checks"][data-attr="${k("multi")}"] [data-value="${k("ma")}"]`)
+        .locator(
+          `[data-testid="post-attr-checks"][data-attr="${k("multi")}"] [data-value="${k("ma")}"]`,
+        )
         .check();
       await control("bool").check();
       await control("number").fill("120");
       await control("number").blur();
       await control("text").fill("e2e trip text");
       await control("other").selectOption("other");
-      await page.locator(`[data-testid="post-attr-other"][data-attr="${k("other")}"]`).fill("e2e own");
+      await page
+        .locator(`[data-testid="post-attr-other"][data-attr="${k("other")}"]`)
+        .fill("e2e own");
 
       const filled: Record<string, unknown> = {
         [k("identity")]: k("id1"),
@@ -1921,7 +1933,9 @@ test.describe("POSTING WIZARD", () => {
         }
         await expect(control("bool"), `PW-74 ${phase}: bool unticked`).toBeChecked();
         await expect(
-          page.locator(`[data-testid="post-attr-checks"][data-attr="${k("multi")}"] [data-value="${k("ma")}"]`),
+          page.locator(
+            `[data-testid="post-attr-checks"][data-attr="${k("multi")}"] [data-value="${k("ma")}"]`,
+          ),
           `PW-74 ${phase}: multi lost its chip`,
         ).toBeChecked();
         await expect(
@@ -1932,9 +1946,10 @@ test.describe("POSTING WIZARD", () => {
           page.getByTestId("post-category-reset-undo"),
           `PW-74 ${phase}: a reset was offered`,
         ).toHaveCount(0);
-        await expect(page.getByTestId("post-specs-reset"), `PW-74 ${phase}: a reset fired`).toHaveCount(
-          0,
-        );
+        await expect(
+          page.getByTestId("post-specs-reset"),
+          `PW-74 ${phase}: a reset fired`,
+        ).toHaveCount(0);
         await expect
           .poll(async () => attributesOf(listingId), {
             message: `PW-74 ${phase}: the stored answers differ from the filled set`,
@@ -1987,15 +2002,18 @@ test.describe("POSTING WIZARD", () => {
         .getByTestId("post-required-mark"),
       "PW-75: an optional detail carries the mark",
     ).toHaveCount(0);
-    await page.locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`).fill("x");
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
+      .fill("x");
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
     await expect(
-      page.locator('[data-testid="post-field"][data-field="post-title"]').getByTestId("post-required-mark"),
+      page
+        .locator('[data-testid="post-field"][data-field="post-title"]')
+        .getByTestId("post-required-mark"),
       "PW-75: the title carries no mark",
     ).toBeVisible();
   });
-
 
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
   async function answeredThenMoved(page: Page) {

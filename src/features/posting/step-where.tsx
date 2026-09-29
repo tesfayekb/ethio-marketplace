@@ -14,6 +14,7 @@ import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
 import { clearPin, savePin } from "./posting-service";
+import { RequiredMark } from "./field";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { PinValue } from "./map/map-pin-dropper";
 import type { Refusal } from "./types";
