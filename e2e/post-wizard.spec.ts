@@ -1985,9 +1985,8 @@ test.describe("POSTING WIZARD", () => {
         .getByTestId("post-required-mark"),
       "PW-75: an optional detail carries the mark",
     ).toHaveCount(0);
-    await nextThroughPhotos(page).catch(() => undefined);
     await page.locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`).fill("x");
-    if (!(await page.getByTestId("post-step-4").isVisible())) await nextThroughPhotos(page);
+    await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
     await expect(
       page.locator('[data-testid="post-field"][data-field="post-title"]').getByTestId("post-required-mark"),
