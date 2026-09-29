@@ -830,7 +830,7 @@ test.describe("POSTING WIZARD", () => {
    * it lists itself, it can be taken out and put back, and the plan's count is a
    * fact on screen rather than a surprise at the end.
    */
-  test("PW-20 where: the default place lists itself and the item's own city cannot be removed", async ({
+  test("PW-20 where: the default place lists itself, is ticked, and a lone city box offers no Remove", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -883,13 +883,20 @@ test.describe("POSTING WIZARD", () => {
       "PW-20: the item's own place did not list itself",
     ).toBeVisible();
 
-    // W6 R1/R4 (census item 5) — the item's location is required and is the
-    // first city, so it can be CHANGED but not removed: no Remove on its row.
+    // W6b-1 R3 (updated 2026-09-30) — any city box may be removed while another
+    // remains; a LONE box (the free plan's 1/1/1) is the ticked item place and
+    // offers no Remove, so the step can never be left without a city.
+    await expect(
+      page.locator(
+        '[data-testid="post-where-row"][data-key="primary"] [data-testid="post-where-item-tick"]',
+      ),
+      "PW-20: the lone city box is not ticked as the item place",
+    ).toBeChecked();
     await expect(
       page.locator(
         '[data-testid="post-where-row"][data-key="primary"] [data-testid="post-where-remove"]',
       ),
-      "PW-20: the item's own city offered a Remove",
+      "PW-20: a lone city box offered a Remove",
     ).toHaveCount(0);
     await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute("data-used", "1");
 
