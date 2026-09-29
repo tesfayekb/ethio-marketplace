@@ -798,6 +798,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           listingId={draft.listingId}
                           pin={draft.pin}
                           onPinSaved={(pin) => draft.setPin(pin)}
+                          maxCities={planCaps?.maxCities ?? null}
+                          maxRegions={planCaps?.maxRegions ?? null}
+                          maxCountries={planCaps?.maxCountries ?? null}
                         />
                       )}
                       {draft.step === 7 && (

@@ -2127,6 +2127,13 @@ export const am: Messages = {
   "post.specs.resetUndo": "ቀልብስ",
   "post.where.addUnder": "በዚህ ስር ቦታ ጨምር",
   "post.where.planLevels": "{regions} ክልል፣ {cities} ከተማ፣ {subCities} ክፍለ ከተማ",
+  // W6 (INC-337, R1/R4) — new keys.
+  "post.refusal.cityRequired": 'ከተማ ይምረጡ።',
+  "post.where.itemLocation": 'የዕቃው ቦታ',
+  "post.where.alsoShownIn": 'እንዲሁም የሚታይበት',
+  "post.where.addCity": 'ከተማ ጨምር',
+  "post.where.addRegion": 'ክልል ጨምር',
+  "post.where.addCountry": 'አገር ጨምር',
   "post.category.nextBlocked": "ለመቀጠል ምድብ ይምረጡ።",
   "post.category.chooseOne": "ከዝርዝሩ ውስጥ ምድብ ይምረጡ።",
   "post.price.moreCurrencies": "ተጨማሪ ገንዘቦች…",
