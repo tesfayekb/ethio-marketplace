@@ -43,7 +43,9 @@ test.describe("A11Y SMOKE (DEC-084, non-gating)", () => {
   const sellers: string[] = [];
   const categories: string[] = [];
 
-  test.afterEach(async () => {
+  test.afterEach(async ({ page }) => {
+    // INC-323 — stop the page first, so no debounced autosave lands after the purge.
+    await page.goto("about:blank");
     // J3 — cleanup survives a body timeout; each destroy throws on failure.
     for (const id of sellers.splice(0)) await destroyListingsOf(id);
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);

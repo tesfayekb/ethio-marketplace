@@ -53,7 +53,9 @@ test.describe("PHOTO PIPELINE", () => {
   const sellers: string[] = [];
   const objects: { userId: string; listingId: string }[] = [];
 
-  test.afterEach(async () => {
+  test.afterEach(async ({ page }) => {
+    // INC-323 — stop the page first, so no debounced autosave lands after the purge.
+    await page.goto("about:blank");
     // J3 — an afterEach survives a body timeout; a `finally` in the body does not.
     for (const ref of objects.splice(0)) await purgeListingObjects(ref.userId, ref.listingId);
     for (const sellerId of sellers.splice(0)) {
