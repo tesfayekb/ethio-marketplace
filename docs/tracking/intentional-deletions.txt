@@ -23,3 +23,8 @@ src/server/category-images/pipeline.ts
 src/server/category-images/raster.ts
 src/server/category-images/raster.test.ts
 src/server/category-images/font.ts
+
+# CI-T1 / DEC-087 (2026-09-29): split by area into the nine files
+# (post-wizard-*.spec.ts, admin-attributes-*.spec.ts); test bodies byte-identical.
+e2e/post-wizard.spec.ts
+e2e/admin-attributes.spec.ts
