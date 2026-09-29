@@ -89,9 +89,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     expect(listingId, "no draft id").not.toBe("");
     objects.push({ userId, listingId });
     await gotoReady(page, `/post/${listingId}`);
-    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
-    await page.getByTestId("post-price-mode-free").click();
-    await page.getByTestId("post-next").click();
+    // D39 — a fresh visit opens at the first unfinished step: 5 is saved, so 6.
     await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
     return listingId;
   }
