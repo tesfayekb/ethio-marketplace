@@ -371,7 +371,11 @@ export function StepWhere({
   return (
     <div className="space-y-5" data-testid="post-where">
       <p className="text-sm text-muted-foreground">{t("post.where.why")}</p>
-      <p className="text-sm font-medium text-foreground">{t("post.where.defaultPlaceLabel")}</p>
+      {/* D72 — a place (coverage) is required: its heading carries the one mark. */}
+      <p className="flex items-center gap-1 text-sm font-medium text-foreground">
+        <span>{t("post.where.defaultPlaceLabel")}</span>
+        <RequiredMark />
+      </p>
 
       {/* ------------------------------ the market ---------------------------- */}
       <div className="space-y-1">

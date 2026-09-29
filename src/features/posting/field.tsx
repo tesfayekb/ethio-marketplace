@@ -121,6 +121,23 @@ export function controlClass(refused: boolean, soft = false): string {
   return `${fieldControlClass} ${border}`;
 }
 
+/**
+ * D72 — THE ONE REQUIRED MARK. A visible asterisk (hidden from screen readers)
+ * and the word "Required" for them. Every required control whose label a step
+ * renders itself uses this, so the mark reads the same on every step.
+ */
+export function RequiredMark() {
+  const { t } = useI18n();
+  return (
+    <span data-testid="post-required-mark">
+      <span className="text-destructive" aria-hidden="true">
+        *
+      </span>
+      <span className="sr-only">{t("post.field.required")}</span>
+    </span>
+  );
+}
+
 export function Field({
   id,
   label,
@@ -149,13 +166,10 @@ export function Field({
       <label htmlFor={id} className="flex items-center gap-1 text-sm font-medium text-foreground">
         <span>{label}</span>
         {required ? (
-          <span className="text-destructive" aria-hidden="true">
-            *
-          </span>
+          <RequiredMark />
         ) : (
           <span className="text-xs font-normal text-muted-foreground">{t("post.optional")}</span>
         )}
-        {required && <span className="sr-only">{t("post.field.required")}</span>}
       </label>
       {children}
       {hint}

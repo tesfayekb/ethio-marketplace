@@ -345,9 +345,8 @@ export function StepPricing({
       <fieldset className="space-y-2">
         <legend className="flex items-center gap-1 text-sm font-medium text-foreground">
           <span>{t("post.price.modeLabel")}</span>
-          <span className="text-destructive" aria-hidden="true">
-            *
-          </span>
+          {/* D72 — the one required mark (it also gives screen readers the word). */}
+          <RequiredMark />
         </legend>
         <div className="flex flex-wrap gap-2">
           {modes.map((mode) => (
