@@ -1604,6 +1604,133 @@ test.describe("POSTING WIZARD", () => {
     }
   });
 
+  /**
+   * INC-320 — a BIG list (over the eager limit) stays lazy, but a select that
+   * mounts with a stored answer reads its list up front so the answer shows.
+   * Scratch definitions only (G27), reaped by the afterEach (J3).
+   */
+  test("PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const info = test.info();
+    const stem = `e2e_lazy_${info.project.name.replace(/\W/g, "")}_${info.workerIndex}_${Date.now()}`;
+    const makes = [`${stem}_mk1`, `${stem}_mk2`];
+    const option = (value: string, parent?: string) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+      active: true,
+      ...(parent === undefined ? {} : { parent }),
+    });
+    // 210 models: past EAGER_OPTION_LIMIT (200), so the list is lazy (DEC-053).
+    const models = Array.from({ length: 210 }, (_, index) =>
+      option(`${stem}_md${index}`, makes[index % 2]),
+    );
+    const supabase = adminClient();
+    const { data, error } = await supabase
+      .from("attributes")
+      .insert([
+        {
+          attr_key: `${stem}_make`,
+          name_en: `${stem} make`,
+          attr_type: "single_select",
+          options: makes.map((value) => option(value)),
+        },
+        {
+          attr_key: `${stem}_model`,
+          name_en: `${stem} model`,
+          attr_type: "single_select",
+          options: models,
+        },
+      ])
+      .select("id, attr_key");
+    if (error || !data) throw new Error(`PW-69: seeding failed: ${error?.message ?? "no rows"}`);
+    specs.push(`${stem}_make`, `${stem}_model`);
+    const idOf = (key: string) => data.find((row) => row.attr_key === key)!.id;
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      { category_id: category.id, attribute_id: idOf(`${stem}_make`), display_order: 1 },
+      { category_id: category.id, attribute_id: idOf(`${stem}_model`), display_order: 2 },
+    ]);
+    if (linkError) throw new Error(`PW-69: linking failed: ${linkError.message}`);
+
+    await reachStep3(page, user.id, category);
+    const make = page.locator(`[data-testid="post-attr-control"][data-attr="${stem}_make"]`);
+    const model = page.locator(`[data-testid="post-attr-control"][data-attr="${stem}_model"]`);
+    const chosen = `${stem}_md0`;
+    await make.selectOption(makes[0]);
+    await expect(model).toBeEnabled();
+    await model.focus();
+    await expect(model).toHaveAttribute("data-options", "ready");
+    await model.selectOption(chosen);
+    await expect(model).toHaveValue(chosen);
+
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e c2a listing title");
+    await page.getByTestId("post-description").fill("e2e c2a listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+
+    // D39 — Back walks 5 → 4 → 2 → 3.
+    for (const step of [4, 2, 3]) {
+      await page.getByTestId("post-back").click();
+      await expect(page.getByTestId(`post-step-${step}`)).toBeVisible();
+    }
+    // No tap on the model: the answered list was read up front.
+    await expect(model, "PW-69: the list was not read for the stored answer").toHaveAttribute(
+      "data-options",
+      "ready",
+      { timeout: 20_000 },
+    );
+    await expect(model, "PW-69: the stored model shows the placeholder").toHaveValue(chosen);
+    await expect(model.locator("option:checked")).toHaveText(`${chosen} label`);
+  });
+
+  /** D70 — the first refused control of this step takes focus after Next. */
+  test("PW-70 a strict refusal focuses the first refused field (D70)", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await reachStep3(page, user.id, category);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    const title = page.getByTestId("post-title");
+    await title.fill("");
+    // The on-blur judgement lands first, so the layout is settled before Next.
+    await title.blur();
+    await expect(
+      page.locator('[data-testid="post-field-refusal"][data-field="post-title"]'),
+    ).toBeVisible();
+    await page.getByTestId("post-next").click();
+    // The door's strict refusal is what moves the focus (the summary shows it).
+    await expect(page.getByTestId("post-refusal-summary")).toBeVisible({ timeout: 20_000 });
+    await expect(title, "PW-70: the refused title did not take focus").toBeFocused();
+    await expect(title, "PW-70: the refused title is off screen").toBeInViewport();
+  });
+
+  /** D71 — the step-1 group wears the soft required border until a leaf is chosen. */
+  test("PW-71 the category group wears the soft border until a leaf is chosen (D71)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await gotoReady(page, "/post");
+    const group = page.getByTestId("post-category-group");
+    await expect(group).toHaveAttribute("data-empty", "1");
+    await expect(group).toHaveClass(/border-destructive\/40/);
+    await chooseBySearch(page, category.slug, category.id);
+    const [draft] = await draftsOf(user.id);
+    objects.push({ userId: user.id, listingId: String(draft?.id ?? "") });
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await expect(group, "PW-71: a chosen leaf still reads empty").toHaveAttribute(
+      "data-empty",
+      "0",
+    );
+  });
+
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
   async function answeredThenMoved(page: Page) {
     const user = await seller(page);

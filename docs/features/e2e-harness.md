@@ -313,6 +313,7 @@ R1 (INC-326, 2026-09-28): every source (smoke, shards, email) uploads its log on
 
 - Implementation (`scripts/e2e-failure-report.ts`): `allSsrLines` reads every line, with no cap (quoting keeps the 20-line cap). `normaliseSsr` strips the path prefix, ANSI codes, UUIDs, numbers and quoted values. `ssrCensus` judges quietness per line, against the key and the redacted line, so a pattern can name a quoted constraint. `ssrCensusSection` renders in `renderSources` and `renderGreen`. Verdicts and promote are unchanged.
 - Self-test fixture: `scripts/fixtures/e2e-ssr-census/job.log.txt`, a real local capture.
+- W2 allowlist additions (2026-09-28, from run 36494534782), each deliberately provoked: `export_failed permission denied` (AT-16), `preview_failed permission denied` (AT-23, CT-22), `commit_failed step-up required` (CT-23), `strings emptyFile` (IG-4), `commit_failed duplicate key value violates unique constraint` (AT-58, INC-327). `listing not found` stays OFF: no test provokes it deliberately — a scratch seller's debounced autosave reaches the door after the afterEach has deleted the draft (the page fixture outlives the hook).
 
 ## DEC-084 — accessibility pass
 

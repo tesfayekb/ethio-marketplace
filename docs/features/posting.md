@@ -1045,3 +1045,10 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 - **Door:** `submit_listing` (migration `6b0f6ae1`, mark `20260928100000`, whole redeclaration) answers `price_currency` — the value on the stored row, the door's own home fill included; `null` when no price carries one.
 - **Mirror rule:** `use-draft.ts` `pass()` fills `priceCurrency` from the answer only when the wizard's copy is empty. A mirror of what the door stored is never a new answer: no version bump, no pending step, no save-state change, no flush.
 - **Tests:** PW-73 (home read gated throughout; the mirrored code survives a D59 reset + Undo); PR-14 (step-5 fixed without a currency answers a 3-letter code equal to the stored row).
+
+### INC-320 / D70 / D71 (2026-09-28)
+
+- **INC-320 — an answered big list is read up front.** DEC-053 amended: a list over `EAGER_OPTION_LIMIT` stays lazy, but a select that mounts WITH a stored answer requests its list once per key per mount (`step-specifications.tsx`, effect beside the eager one, keyed on which selects are answered), so the chosen option's label shows on re-entry instead of the placeholder. Test: PW-69 (210-model scratch list).
+- **D70 — focus the first refused field.** After a strict refusal, `focusFirstRefusal` (`field.tsx`) keeps the control-bearing refusals this step owns and focuses the first in document order (block center); one effect in `wizard.tsx` keyed on `draft.refusals`. Control lookup also tries `post-<field>` and `post-attr-<key>`, the ids the steps use. Test: PW-70.
+- **D71 — the category picker's soft border.** `post-category-group` wears `border-destructive/40` while no leaf is chosen and nothing is refused, full destructive after a refusal, none once chosen; `data-empty="1"/"0"`. Test: PW-71.
+- **INC-325 — step strip focusable.** axe named `ol.-mx-1` (the mobile step strip) as `scrollable-region-focusable` on step 1 at mobile-360; the scroll container now takes `tabIndex={0}` with a focus ring.
