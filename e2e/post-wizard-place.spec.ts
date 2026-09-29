@@ -10,9 +10,10 @@ import {
   waitForServedTree,
   waitForTreeSlug,
 } from "./helpers/locations";
-import { createUser } from "./helpers/users";
+import { adminClient, createUser } from "./helpers/users";
 import {
   activeCityOf,
+  attributesOf,
   bearerOf,
   pinOf,
   postRoute,
@@ -1157,5 +1158,189 @@ test.describe("POSTING WIZARD", () => {
     );
     expect(refusal?.field, "PW-41: the refusal named another field").toBe("geocode");
     expect(refusal?.reason, "PW-41: the refusal used another word").toBe("rateLimited");
+  });
+  /**
+   * DEC-085 — KNOWN PRODUCTS ASK ONLY WHAT VARIES. brand → series → model; the
+   * model pins a pick-list (allowed: one value), a number (fact + min = max) and a
+   * year (min = max), and narrows a variant (storage: 3 allowed, one prefilled).
+   * The pinned rows are filled and hidden; the draft (DB truth) and the review
+   * hold them; Back and forward change nothing. Scratch catalogue only (G27),
+   * reaped by the afterEach (J3).
+   */
+  test("PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const info = test.info();
+    const stem = `e2e_pin_${info.project.name.replace(/\W/g, "")}_${info.workerIndex}_${Date.now()}`;
+    const k = (name: string) => `${stem}_${name}`;
+    const option = (value: string, extra: Record<string, unknown> = {}) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+      active: true,
+      ...extra,
+    });
+    const supabase = adminClient();
+    const insert = async (rows: Record<string, unknown>[]) => {
+      const { data, error } = await supabase.from("attributes").insert(rows).select("id, attr_key");
+      if (error || !data) throw new Error(`PW-76: seeding failed: ${error?.message ?? "no rows"}`);
+      specs.push(...rows.map((row) => String(row["attr_key"])));
+      return data;
+    };
+    const brandRows = await insert([
+      {
+        attr_key: k("brand"),
+        name_en: `${stem} brand`,
+        attr_type: "single_select",
+        options: [option(k("b1")), option(k("b2"))],
+      },
+    ]);
+    const seriesRows = await insert([
+      {
+        attr_key: k("series"),
+        name_en: `${stem} series`,
+        attr_type: "single_select",
+        options: [option(k("s1"), { parent: k("b1") }), option(k("s2"), { parent: k("b1") })],
+        depends_on: brandRows[0]!.id,
+      },
+    ]);
+    const rest = await insert([
+      {
+        attr_key: k("model"),
+        name_en: `${stem} model`,
+        attr_type: "single_select",
+        options: [
+          option(k("m1"), {
+            parent: k("s1"),
+            allowed: {
+              [k("finish")]: [k("f1")],
+              [k("storage")]: [k("g1"), k("g2"), k("g3")],
+            },
+            facts: { [k("weight")]: 5, [k("storage")]: k("g2") },
+            bounds: { [k("weight")]: { min: 5, max: 5 }, [k("year")]: { min: 2020, max: 2020 } },
+          }),
+          option(k("m2"), { parent: k("s1"), facts: { [k("weight")]: 7 } }),
+        ],
+        depends_on: seriesRows[0]!.id,
+      },
+      {
+        attr_key: k("finish"),
+        name_en: `${stem} finish`,
+        attr_type: "single_select",
+        options: [option(k("f1")), option(k("f2"))],
+      },
+      {
+        attr_key: k("weight"),
+        name_en: `${stem} weight`,
+        attr_type: "number",
+        min_bound: "1",
+        max_bound: "99",
+        decimals: 0,
+      },
+      {
+        attr_key: k("year"),
+        name_en: `${stem} year`,
+        attr_type: "number",
+        min_bound: "1900",
+        max_bound: "2030",
+        decimals: 0,
+        format: "year",
+      },
+      {
+        attr_key: k("storage"),
+        name_en: `${stem} storage`,
+        attr_type: "single_select",
+        options: [option(k("g1")), option(k("g2")), option(k("g3")), option(k("g4"))],
+      },
+      { attr_key: k("note"), name_en: `${stem} note`, attr_type: "text", max_length: 40 },
+    ]);
+    const all = [...brandRows, ...seriesRows, ...rest];
+    const order = ["brand", "series", "model", "finish", "weight", "year", "storage", "note"];
+    const { error: linkError } = await supabase.from("category_attribute_links").insert(
+      order.map((name, index) => ({
+        category_id: category.id,
+        attribute_id: all.find((row) => row.attr_key === k(name))!.id,
+        display_order: index + 1,
+        is_required: name === "brand",
+        ...(name === "brand" ? { card_rank: 1 } : {}),
+      })),
+    );
+    if (linkError) throw new Error(`PW-76: linking failed: ${linkError.message}`);
+
+    const listingId = await reachStep3(page, user.id, category);
+    const row = (name: string) => page.locator(`[data-testid="post-spec"][data-attr="${k(name)}"]`);
+    const control = (name: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${k(name)}"]`);
+
+    await control("brand").selectOption(k("b1"));
+    await expect(control("series")).toBeEnabled();
+    await control("series").selectOption(k("s1"));
+    await expect(control("model")).toBeEnabled();
+    await control("model").selectOption(k("m1"));
+
+    const pinned = {
+      [k("brand")]: k("b1"),
+      [k("series")]: k("s1"),
+      [k("model")]: k("m1"),
+      [k("finish")]: k("f1"),
+      [k("weight")]: 5,
+      [k("year")]: 2020,
+      [k("storage")]: k("g2"),
+    };
+    const assertPinned = async (phase: string) => {
+      for (const name of ["finish", "weight", "year"]) {
+        await expect(row(name), `PW-76 ${phase}: pinned ${name} is still asked`).toHaveCount(0, {
+          timeout: 20_000,
+        });
+      }
+      await expect(control("storage"), `PW-76 ${phase}: the variant lost its prefill`).toHaveValue(
+        k("g2"),
+      );
+      await expect(
+        control("storage").locator("option:not([value=''])"),
+        `PW-76 ${phase}: the variant is not narrowed to three`,
+      ).toHaveCount(3);
+      await expect(row("note"), `PW-76 ${phase}: the seller's own row is gone`).toBeVisible();
+      await expect
+        .poll(async () => attributesOf(listingId), {
+          message: `PW-76 ${phase}: the draft does not hold the pinned values`,
+          timeout: 20_000,
+        })
+        .toEqual(pinned);
+    };
+    await assertPinned("chosen");
+
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    for (const step of [2, 3]) {
+      await page.getByTestId("post-back").click();
+      await expect(page.getByTestId(`post-step-${step}`)).toBeVisible();
+    }
+    await specsSettled(page);
+    await assertPinned("after Back");
+
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e pin listing title");
+    await page.getByTestId("post-description").fill("e2e pin listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    await chooseOneCity(page);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible();
+    const review = page.locator(
+      '[data-testid="post-review-section"][data-step="3"] [data-testid="post-review-value"]',
+    );
+    for (const shown of [`${k("f1")} label`, "2020", "5"]) {
+      await expect(review, `PW-76: the review does not show ${shown}`).toContainText(shown);
+    }
+    expect(await attributesOf(listingId), "PW-76: the review walk moved an answer").toEqual(pinned);
   });
 });

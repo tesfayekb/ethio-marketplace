@@ -527,6 +527,38 @@ export function StepSpecifications({
   );
 
   /**
+   * DEC-086 — AN EXACT-MODEL QUESTION IS REQUIRED WHENEVER IT MATTERS. The mirror
+   * of the door's rule in `validate_listing_draft` (step 3): a dependent pick-list
+   * whose options carry facts, allowed or bounds is required once its parent is
+   * answered and that answer offers two or more child options ('other' counts).
+   * The door decides (F3); this only shows the mark and the soft border early.
+   */
+  const requiredByModel = useCallback(
+    (def: AttrDef): boolean => {
+      if (!SELECT_TYPES.includes(def.attrType)) return false;
+      const parentKey = folds[def.attrKey];
+      if (parentKey === undefined) return false;
+      const list = allowedListOf(def);
+      const speaks = list.some(
+        (option) =>
+          (option.facts !== null && option.facts !== undefined) ||
+          (option.allowed !== null && option.allowed !== undefined) ||
+          (option.bounds !== null && option.bounds !== undefined),
+      );
+      if (!speaks) return false;
+      const parentValue = selectedValue(values[parentKey]);
+      if (parentValue.trim() === "") return false;
+      const children = list.filter(
+        (option) =>
+          option.parent === parentValue ||
+          (option.value === "other" && (option.parent === null || option.parent === "")),
+      );
+      return children.length >= 2;
+    },
+    [folds, allowedListOf, values],
+  );
+
+  /**
    * THE FACTS OF EVERY CHOSEN OPTION (D18), gathered once: the values to prefill
    * and the bounds to narrow. A later option wins over an earlier one for the
    * same sibling, which is the order the seller answered them in.
@@ -614,6 +646,16 @@ export function StepSpecifications({
       return { min, max, narrowed: fromOptions.length > 0 };
     },
     [facts],
+  );
+
+  /** DEC-085 — the one value a number's effective bounds leave, or `null`. */
+  const pinnedNumber = useCallback(
+    (def: AttrDef): number | null => {
+      if (def.attrType !== "number") return null;
+      const bound = boundsOf(def);
+      return bound.min !== null && bound.max !== null && bound.min === bound.max ? bound.min : null;
+    },
+    [boundsOf],
   );
 
   /**
@@ -949,6 +991,21 @@ export function StepSpecifications({
     }
 
     /**
+     * DEC-085 — ONE ADMISSIBLE NUMBER IS THE ANSWER. When the chosen options pin
+     * a number or a year to one value (effective bounds with min = max), the form
+     * writes that value, exactly like INC-244's single-option fill, and the row
+     * below is hidden like D44. The door still judges it (F3).
+     */
+    for (const def of definitions) {
+      if (def.attrType !== "number") continue;
+      if (!conditionMet(def, next)) continue;
+      const pin = pinnedNumber(def);
+      if (pin === null || same(next[def.attrKey], pin)) continue;
+      next[def.attrKey] = pin;
+      changed = true;
+    }
+
+    /**
      * INC-257 — THE LAST WORD IS VISIBILITY. Every pass above may have moved an
      * answer a condition reads, so the patch is swept once at the end: a detail
      * this patch leaves unasked carries nothing out of this screen, and the door
@@ -982,6 +1039,7 @@ export function StepSpecifications({
     values,
     facts,
     narrowing,
+    pinnedNumber,
     prefills,
     parents,
     roots,
@@ -1167,7 +1225,9 @@ export function StepSpecifications({
      * start — visible guidance, not a refusal nobody made (F4).
      */
     const empty = isEmpty(value);
-    const ctrl = controlClass(refusal !== null, def.isRequired && empty);
+    // DEC-086 — a model question that matters is required from the moment the rule applies.
+    const required = def.isRequired || requiredByModel(def);
+    const ctrl = controlClass(refusal !== null, required && empty);
     /**
      * INC-240 — WHOSE ANSWER IS ON SCREEN. `fromModel` says the model's own
      * answer still stands; `modelDiffers` says the seller's own answer stands
@@ -1210,6 +1270,9 @@ export function StepSpecifications({
      * judges it unchanged (F3). A prefill-only fact keeps its input.
      */
     if (lockedByModel && !empty) return null;
+    // DEC-085 — a number or year pinned to one value is stored and hidden the same way.
+    const pin = pinnedNumber(def);
+    if (pin !== null && same(value, pin)) return null;
 
     return (
       <div
@@ -1223,7 +1286,7 @@ export function StepSpecifications({
           <Field
             id={controlId}
             label={label}
-            required={def.isRequired}
+            required={required}
             refusal={refusal}
             refusalTestId="post-attr-refusal"
             refusalAttr={def.attrKey}

@@ -4034,6 +4034,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.step.category": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.stepLater": [
       "/post",
       "/post/$listingId"

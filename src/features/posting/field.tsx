@@ -162,7 +162,7 @@ export function Field({
 }) {
   const { t } = useI18n();
   return (
-    <div className="space-y-1" data-testid="post-field" data-field={id}>
+    <div className="scroll-mt-20 space-y-1" data-testid="post-field" data-field={id}>
       <label htmlFor={id} className="flex items-center gap-1 text-sm font-medium text-foreground">
         <span>{label}</span>
         {required ? (
@@ -203,10 +203,25 @@ function fieldTarget(field: string): HTMLElement | null {
   );
 }
 
-/** Move the seller to the control a refusal names, however that step built it. */
+/**
+ * Move the seller to the control a refusal names, however that step built it.
+ *
+ * W4 D2 — the FIELD CONTAINER (label included) is scrolled into view, smoothly
+ * unless the seller asked for reduced motion; its `scroll-mt-20` keeps the label
+ * below the fixed header. Then the control takes focus without a second jump.
+ */
 function focusElement(target: HTMLElement): void {
-  target.scrollIntoView({ block: "center" });
-  if (typeof (target as HTMLElement & { focus?: () => void }).focus === "function") target.focus();
+  const container =
+    target.closest<HTMLElement>('[data-testid="post-field"]') ??
+    target.closest<HTMLElement>('[data-testid="post-spec"]') ??
+    target;
+  const reduced =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  container.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
+  if (typeof (target as HTMLElement & { focus?: () => void }).focus === "function") {
+    target.focus({ preventScroll: true });
+  }
 }
 
 function focusField(field: string): void {

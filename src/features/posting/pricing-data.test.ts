@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * INC-331 — THE PRE-FILL READS ARE THE SELLER'S OWN. RLS shows every ACTIVE
+ * INC-330 — THE PRE-FILL READS ARE THE SELLER'S OWN. RLS shows every ACTIVE
  * listing to any seller (`listings_public_read`), so the "last listing" read must
  * filter by `seller_id` itself; the home read must filter `profiles.user_id`.
  * The mock records every `.eq()` the chain applies.
@@ -44,7 +44,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 const { readLastListingCurrency, readSellerHome } = await import("./pricing-data");
 
-describe("INC-331 — the currency pre-fill reads only the signed-in seller's rows", () => {
+describe("INC-330 — the currency pre-fill reads only the signed-in seller's rows", () => {
   beforeEach(() => {
     calls.length = 0;
     sessionUser = "seller-1";

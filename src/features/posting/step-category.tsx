@@ -125,13 +125,12 @@ export function StepCategory({
       <p className="text-sm text-muted-foreground">{t("post.category.why")}</p>
 
       <div className="space-y-1">
-        {/* D72 — the category is required: the heading carries the one mark. */}
+        {/* W4 D1 — the search is optional: its label carries no mark. */}
         <label
           htmlFor="post-category-search"
           className="flex items-center gap-1 text-sm font-medium text-foreground"
         >
           <span>{t("post.category.filterLabel")}</span>
-          <RequiredMark />
         </label>
         <input
           id="post-category-search"
@@ -149,6 +148,16 @@ export function StepCategory({
         <p className="text-xs text-muted-foreground">{t("post.category.filterHint")}</p>
       </div>
 
+      {/* W4 D1 — the required mark sits on the LIST heading and clears with the
+          soft border the moment a leaf is chosen (including after Back). */}
+      <p
+        className="flex items-center gap-1 text-sm font-medium text-foreground"
+        data-testid="post-category-list-heading"
+      >
+        <span>{t("post.step.category")}</span>
+        {selectedId === null && <RequiredMark />}
+      </p>
+
       {/* THE ONE CONTROL. Filtered, it is the matching leaves with their paths;
           unfiltered, it is the level the seller stands on. */}
       {/* D71 — the U6-C1-R2 soft state: while no leaf is chosen and nothing is
@@ -160,10 +169,10 @@ export function StepCategory({
         data-empty={selectedId === null ? "1" : "0"}
         className={
           invalid
-            ? "rounded-md border border-destructive p-2 ring-1 ring-destructive"
+            ? "scroll-mt-20 rounded-md border border-destructive p-2 ring-1 ring-destructive"
             : selectedId === null
-              ? "rounded-md border border-destructive/40 p-2"
-              : "rounded-md border border-transparent p-2"
+              ? "scroll-mt-20 rounded-md border border-destructive/40 p-2"
+              : "scroll-mt-20 rounded-md border border-transparent p-2"
         }
       >
         {invalid && (
