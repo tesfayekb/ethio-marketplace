@@ -128,8 +128,28 @@ export interface SellerHome {
  * public `countries` read. Used as the PREFILL for pricing (D13) and as the
  * market prefill's last resort in step 6.
  */
+/**
+ * INC-331 — THE SIGNED-IN SELLER'S OWN ID, read from the local session (no
+ * network). Every "the seller's own row" read below filters by it: RLS alone is
+ * not a filter. `listings_public_read` shows EVERY active listing to a seller, so
+ * an unfiltered "last listing" read returned another seller's currency; and an
+ * unfiltered `profiles` read made the policy judge every row (slow enough on a
+ * large table to leave the price step with no currency — PW-10), and returns
+ * several rows to an admin, which `maybeSingle` refuses.
+ */
+async function signedInId(): Promise<string | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user.id ?? null;
+}
+
 export async function readSellerHome(): Promise<SellerHome> {
-  const { data, error } = await supabase.from("profiles").select("home_country_code").maybeSingle();
+  const userId = await signedInId();
+  if (userId === null) return { countryCode: null, currencyCode: null };
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("home_country_code")
+    .eq("user_id", userId)
+    .maybeSingle();
   if (error || data === null) return { countryCode: null, currencyCode: null };
   const countryCode = data.home_country_code ?? null;
   if (countryCode === null) return { countryCode: null, currencyCode: null };
@@ -198,13 +218,17 @@ export async function readGuessCurrency(): Promise<string> {
 /**
  * THE MONEY THE SELLER LAST USED. A seller who priced their last listing in ETB
  * means ETB again, wherever the edge thinks they are today — so their OWN last
- * listing outranks the guess market. An owner read through RLS: no other
- * seller's row is visible, and a failure simply yields `null`.
+ * listing outranks the guess market. Filtered by `seller_id` (INC-331): RLS
+ * also shows every ACTIVE listing, so the filter — not the policy — is what
+ * keeps another seller's currency out. A failure simply yields `null`.
  */
 export async function readLastListingCurrency(): Promise<string | null> {
+  const userId = await signedInId();
+  if (userId === null) return null;
   const { data, error } = await supabase
     .from("listings")
     .select("price_currency,created_at")
+    .eq("seller_id", userId)
     .not("price_currency", "is", null)
     .order("created_at", { ascending: false })
     .limit(1)
