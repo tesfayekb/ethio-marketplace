@@ -739,31 +739,29 @@ export function StepWhere({
    * remaining box, announced through the live region.
    */
   const onRemove = (key: string) => {
+    if (rows.length <= 1) return;
     act();
-    setRows((current) => {
-      if (current.length <= 1) return current;
-      const rest = current.filter((row) => row.key !== key);
-      const head = rest[0]!;
-      const wasTicked = key === tickKey;
-      let next = rest;
-      if (key === PRIMARY) {
-        const code = head.country ?? country;
-        next = [{ ...head, key: PRIMARY, country: code }, ...rest.slice(1)];
-        if (code !== country) {
-          placeSeeded.current = code;
-          setCountry(code);
-        }
-        if (itemKey === head.key) setItemKey(PRIMARY);
+    const rest = rows.filter((row) => row.key !== key);
+    const head = rest[0]!;
+    let next = rest;
+    let nextTick = itemKey;
+    if (key === PRIMARY) {
+      const code = head.country ?? country;
+      next = [{ ...head, key: PRIMARY, country: code }, ...rest.slice(1)];
+      if (nextTick === head.key) nextTick = PRIMARY;
+      if (code !== country) {
+        placeSeeded.current = code;
+        setCountry(code);
       }
-      if (wasTicked) {
-        setItemKey(next[0]!.key);
-        const node = nodes.find((entry) => entry.id === placeOf(next[0]!)) ?? null;
-        setAnnounce(
-          fill(t("post.where.itemMoved"), { name: node === null ? "" : nameOf(node) }),
-        );
-      }
-      return next;
-    });
+    }
+    if (key === tickKey) {
+      nextTick = next[0]!.key;
+      const id = placeOf(next[0]!);
+      const node = nodes.find((entry) => entry.id === id) ?? null;
+      setAnnounce(fill(t("post.where.itemMoved"), { name: node === null ? "" : nameOf(node) }));
+    }
+    setItemKey(nextTick);
+    setRows(next);
   };
   const onAddCity = (code: string | null, region: string | null) => {
     act();
