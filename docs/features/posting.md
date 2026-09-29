@@ -1095,3 +1095,10 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
   cities only, R2); the client-side "plan full" message (→ no button without room).
 - **Tests**: PR-17, PW-80, PW-81 (cookie prefill, per the corrected R3), PW-82,
   `step-where.test.tsx`; PW-11, PW-20, PW-33 updated for R2/R4/R5.
+
+### W6-R — INC-340 / INC-341 / INC-342 (2026-09-29)
+
+- **INC-340.** a3a572bf could not apply on staging: its proofs borrowed real places and staging has no sub-city. Migration 13cb1b22 re-declares `validate_listing_draft` whole from a3a572bf (md5 64539a18…) and its proofs build two scratch markets on free ISO user-assigned codes picked at runtime; no reference place or country row is read (G27 for proofs). It inserts its own mark 20260930001000 and a3a572bf's 20260929235900, so on staging it replaces a3a572bf (the preflight accepts a file whose declared mark is in the ledger).
+- **INC-341.** Step 6 counts distinct cities (`coalesce(city_id, id)`, so a sub-city is its own city), distinct `region_id` and distinct countries. Proofs P22–P29 (P28: two regions → `coverageExceedsPlan:region`; P29: a city and its own sub-city are one city).
+- **INC-342.** `DESCRIPTION_MAX` in `step-details.tsx` is 5000, the door's cap; the AI assist keeps 1200 (DEC-072). Pinned by `step-details-limits.test.ts` and PR-18.
+- PR-17 now seeds a scratch region → city → sub-city under ET instead of reading real places.
