@@ -593,3 +593,4 @@
 - 2026-09-28 — DEC-083/084 R1 (INC-326): allowlist added to .prettierignore; e2e logs upload on every outcome; a11y runs once (@a11y); census and a11y sections state which logs they read.
 - 2026-09-28 — W2: INC-320 answered lazy lists read up front, D70 first-refusal focus, D71 category soft border, INC-325 focusable step strip; allowlist attributions for five messages (AT-16, AT-23/CT-22, CT-23, IG-4, AT-58).
 - 2026-09-29 — W3: INC-329 joining the parent set is no longer a reset (answers survive Back); PW-74 round-trip law; D72 one RequiredMark on every required label; PW-75.
+- 2026-09-29 — C2: INC-324 submit_listing locks the draft (FOR UPDATE) and answers a lost row as `listing not found` (mark 20260929120000); INC-323 draft-purging afterEach hooks stop the page first; PR-15; INC-328 tree route names an upstream HTML page instead of logging it.

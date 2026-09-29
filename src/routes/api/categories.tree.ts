@@ -65,7 +65,12 @@ interface CacheEntry {
 let cached: CacheEntry | null = null;
 
 function logRouteError(error: unknown): void {
-  const message = error instanceof Error ? error.message : String(error);
+  const raw = error instanceof Error ? error.message : String(error);
+  // INC-328 — an upstream HTML error page is named, never dumped into the log.
+  const status = /\b([45]\d\d)\b/.exec(raw)?.[1] ?? "unknown";
+  const message = raw.trimStart().startsWith("<")
+    ? `upstream returned an HTML error page (${status})`
+    : raw;
   console.error("[ssr-error]", "/api/categories/tree", message);
 }
 

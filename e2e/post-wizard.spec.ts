@@ -104,7 +104,9 @@ test.describe("POSTING WIZARD", () => {
    */
   const walkMarks: string[] = [];
 
-  test.afterEach(async () => {
+  test.afterEach(async ({ page }) => {
+    // INC-323 — stop the page first, so no debounced autosave lands after the purge.
+    await page.goto("about:blank");
     const ladder = walkMarks.splice(0);
     if (ladder.length > 0) {
       await test

@@ -323,6 +323,48 @@ test.describe("POSTING ROUTES", () => {
     expect(data?.price_currency).toBe(code);
   });
 
+  test("PR-15 a save on a deleted draft is a refusal, never a 5xx or a null revision (INC-324)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const first = await postRoute(
+      page,
+      DRAFT,
+      { step: 1, categoryId: cat.id },
+      { token, country: "ET" },
+    );
+    expect(first.status, JSON.stringify(first.payload)).toBe(200);
+    expect(first.payload["ok"], JSON.stringify(first.payload)).toBe(true);
+    const listingId = String(first.payload["listing_id"] ?? "");
+    expect(listingId).not.toBe("");
+
+    const admin = adminClient();
+    const { error: revError } = await admin
+      .from("listing_revisions")
+      .delete()
+      .eq("listing_id", listingId);
+    if (revError) throw new Error(`[e2e:pr-15] clearing revisions failed: ${revError.message}`);
+    const { error: delError } = await admin.from("listings").delete().eq("id", listingId);
+    if (delError) throw new Error(`[e2e:pr-15] deleting the draft failed: ${delError.message}`);
+
+    const again = await postRoute(
+      page,
+      DRAFT,
+      { listingId, step: 1, categoryId: cat.id },
+      { token, country: "ET" },
+    );
+    expect(again.status, JSON.stringify(again.payload)).toBe(200);
+    expect(again.payload["ok"], JSON.stringify(again.payload)).toBe(false);
+
+    const { count, error } = await admin
+      .from("listing_revisions")
+      .select("id", { count: "exact", head: true })
+      .is("listing_id", null);
+    if (error) throw new Error(`[e2e:pr-15] reading revisions failed: ${error.message}`);
+    expect(count).toBe(0);
+  });
+
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
     const { token } = await seller(page);
     const cat = await category();
