@@ -1992,7 +1992,7 @@ test.describe("POSTING WIZARD", () => {
     );
     await gotoReady(page, "/post");
     await expect(
-      page.getByTestId("post-step-1").getByTestId("post-required-mark").first(),
+      page.locator('label[for="post-category-search"]').getByTestId("post-required-mark"),
       "PW-75: the category heading carries no mark",
     ).toBeVisible();
     await reachStep3(page, user.id, category);
