@@ -1731,6 +1731,271 @@ test.describe("POSTING WIZARD", () => {
     );
   });
 
+  /**
+   * INC-329 — THE ROUND-TRIP LAW. Every answer the seller gave on step 3 is still
+   * there after Next to the price and Back, and a tap on the model that changes
+   * nothing changes nothing. Scratch leaf and scratch definitions only (G27),
+   * reaped by the afterEach (J3). Two variants: the model list small (eager) and
+   * past the eager limit (lazy, INC-320).
+   */
+  for (const variant of [
+    { name: "small", models: 3 },
+    { name: "big", models: 210 },
+  ]) {
+    test(`PW-74 a step-3 round trip keeps every answer (INC-329, ${variant.name} model list)`, async ({
+      page,
+    }) => {
+      const user = await seller(page);
+      const category = await leaf();
+      const info = test.info();
+      const stem = `e2e_trip_${info.project.name.replace(/\W/g, "")}_${info.workerIndex}_${Date.now()}`;
+      const k = (name: string) => `${stem}_${name}`;
+      const option = (value: string, extra: Record<string, unknown> = {}) => ({
+        value,
+        label_en: `${value} label`,
+        label_am: `${value} ምልክት`,
+        active: true,
+        ...extra,
+      });
+      const make = k("mk1");
+      const models = Array.from({ length: variant.models }, (_, index) =>
+        option(`${stem}_md${index}`, {
+          parent: index % 2 === 0 ? make : k("mk2"),
+          bounds: { [k("year")]: { min: 2000 } },
+          facts: { [k("doors")]: 3 },
+        }),
+      );
+      const chosenModel = `${stem}_md0`;
+      const rows = [
+        {
+          attr_key: k("identity"),
+          name_en: `${stem} identity`,
+          attr_type: "single_select",
+          options: [option(k("id1")), option(k("id2"))],
+        },
+        {
+          attr_key: k("make"),
+          name_en: `${stem} make`,
+          attr_type: "single_select",
+          options: [option(make), option(k("mk2"))],
+        },
+        { attr_key: k("model"), name_en: `${stem} model`, attr_type: "single_select", options: models },
+        {
+          attr_key: k("year"),
+          name_en: `${stem} year`,
+          attr_type: "number",
+          min_bound: "1900",
+          max_bound: "2030",
+          decimals: 0,
+          format: "year",
+        },
+        {
+          attr_key: k("doors"),
+          name_en: `${stem} doors`,
+          attr_type: "number",
+          min_bound: "1",
+          max_bound: "9",
+          decimals: 0,
+        },
+        {
+          attr_key: k("kind"),
+          name_en: `${stem} kind`,
+          attr_type: "single_select",
+          options: [option(k("tread"), { facts: { [k("power")]: k("electric") } }), option(k("bike"))],
+        },
+        {
+          attr_key: k("power"),
+          name_en: `${stem} power`,
+          attr_type: "single_select",
+          options: [option(k("electric")), option(k("manual"))],
+        },
+        {
+          attr_key: k("colour"),
+          name_en: `${stem} colour`,
+          attr_type: "single_select",
+          options: [option(k("red"), { swatch: "#cc0000" }), option(k("blue"), { swatch: "#0000cc" })],
+        },
+        {
+          attr_key: k("multi"),
+          name_en: `${stem} multi`,
+          attr_type: "multi_select",
+          options: [option(k("ma")), option(k("mb"))],
+        },
+        { attr_key: k("bool"), name_en: `${stem} bool`, attr_type: "boolean" },
+        {
+          attr_key: k("number"),
+          name_en: `${stem} number`,
+          attr_type: "number",
+          min_bound: "0",
+          max_bound: "999999",
+          decimals: 0,
+        },
+        { attr_key: k("text"), name_en: `${stem} text`, attr_type: "text", max_length: 40 },
+        {
+          attr_key: k("other"),
+          name_en: `${stem} other`,
+          attr_type: "single_select",
+          options: [option(k("oa")), option("other")],
+        },
+      ];
+      const supabase = adminClient();
+      const { data, error } = await supabase
+        .from("attributes")
+        .insert(rows)
+        .select("id, attr_key");
+      if (error || !data) throw new Error(`PW-74: seeding failed: ${error?.message ?? "no rows"}`);
+      specs.push(...rows.map((row) => row.attr_key));
+      const idOf = (key: string) => data.find((row) => row.attr_key === key)!.id;
+      const { error: linkError } = await supabase.from("category_attribute_links").insert(
+        rows.map((row, index) => ({
+          category_id: category.id,
+          attribute_id: idOf(row.attr_key),
+          display_order: index + 1,
+          is_required: row.attr_key === k("identity") || row.attr_key === k("year"),
+          ...(row.attr_key === k("identity") ? { card_rank: 1 } : {}),
+        })),
+      );
+      if (linkError) throw new Error(`PW-74: linking failed: ${linkError.message}`);
+
+      const listingId = await reachStep3(page, user.id, category);
+      const control = (key: string) =>
+        page.locator(`[data-testid="post-attr-control"][data-attr="${k(key)}"]`);
+      const model = control("model");
+
+      await control("identity").selectOption(k("id1"));
+      await control("make").selectOption(make);
+      await expect(model).toBeEnabled();
+      await model.focus();
+      await expect(model).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+      await model.selectOption(chosenModel);
+      await expect(control("doors")).toHaveValue("3", { timeout: 20_000 });
+      await control("year").selectOption("2015");
+      await control("kind").selectOption(k("tread"));
+      await expect(control("power")).toHaveValue(k("electric"), { timeout: 20_000 });
+      await control("colour").selectOption(k("red"));
+      await page
+        .locator(`[data-testid="post-attr-checks"][data-attr="${k("multi")}"] [data-value="${k("ma")}"]`)
+        .check();
+      await control("bool").check();
+      await control("number").fill("120");
+      await control("number").blur();
+      await control("text").fill("e2e trip text");
+      await control("other").selectOption("other");
+      await page.locator(`[data-testid="post-attr-other"][data-attr="${k("other")}"]`).fill("e2e own");
+
+      const filled: Record<string, unknown> = {
+        [k("identity")]: k("id1"),
+        [k("make")]: make,
+        [k("model")]: chosenModel,
+        [k("year")]: 2015,
+        [k("doors")]: 3,
+        [k("kind")]: k("tread"),
+        [k("power")]: k("electric"),
+        [k("colour")]: k("red"),
+        [k("multi")]: [k("ma")],
+        [k("bool")]: true,
+        [k("number")]: 120,
+        [k("text")]: "e2e trip text",
+        [k("other")]: { value: "other", text: "e2e own" },
+      };
+
+      const assertKept = async (phase: string) => {
+        for (const [key, value] of [
+          ["identity", k("id1")],
+          ["make", make],
+          ["model", chosenModel],
+          ["year", "2015"],
+          ["doors", "3"],
+          ["kind", k("tread")],
+          ["power", k("electric")],
+          ["colour", k("red")],
+          ["number", "120"],
+          ["text", "e2e trip text"],
+          ["other", "other"],
+        ] as const) {
+          await expect(control(key), `PW-74 ${phase}: ${key} lost its answer`).toHaveValue(value, {
+            timeout: 20_000,
+          });
+        }
+        await expect(control("bool"), `PW-74 ${phase}: bool unticked`).toBeChecked();
+        await expect(
+          page.locator(`[data-testid="post-attr-checks"][data-attr="${k("multi")}"] [data-value="${k("ma")}"]`),
+          `PW-74 ${phase}: multi lost its chip`,
+        ).toBeChecked();
+        await expect(
+          page.locator(`[data-testid="post-attr-other"][data-attr="${k("other")}"]`),
+          `PW-74 ${phase}: other lost its text`,
+        ).toHaveValue("e2e own");
+        await expect(
+          page.getByTestId("post-category-reset-undo"),
+          `PW-74 ${phase}: a reset was offered`,
+        ).toHaveCount(0);
+        await expect(page.getByTestId("post-specs-reset"), `PW-74 ${phase}: a reset fired`).toHaveCount(
+          0,
+        );
+        await expect
+          .poll(async () => attributesOf(listingId), {
+            message: `PW-74 ${phase}: the stored answers differ from the filled set`,
+            timeout: 20_000,
+          })
+          .toEqual(filled);
+      };
+
+      await assertKept("before");
+      await nextThroughPhotos(page);
+      await expect(page.getByTestId("post-step-4")).toBeVisible();
+      await page.getByTestId("post-title").fill("e2e trip listing title");
+      await page.getByTestId("post-description").fill("e2e trip listing description");
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-step-5")).toBeVisible();
+      for (const step of [4, 2, 3]) {
+        await page.getByTestId("post-back").click();
+        await expect(page.getByTestId(`post-step-${step}`)).toBeVisible();
+      }
+      await expect(model).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+      await assertKept("after Back");
+      await model.focus();
+      await model.click();
+      await page.keyboard.press("Escape");
+      await assertKept("after a tap on the model");
+    });
+  }
+
+  /** D72 — one required mark: step-1 heading and title carry it; an optional detail does not. */
+  test("PW-75 the required mark is uniform across steps (D72)", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    await gotoReady(page, "/post");
+    await expect(
+      page.getByTestId("post-step-1").getByTestId("post-required-mark").first(),
+      "PW-75: the category heading carries no mark",
+    ).toBeVisible();
+    await reachStep3(page, user.id, category);
+    await expect(
+      page
+        .locator(`[data-testid="post-field"][data-field="post-attr-${spec.number.attrKey}"]`)
+        .getByTestId("post-required-mark"),
+      "PW-75: an optional detail carries the mark",
+    ).toHaveCount(0);
+    await nextThroughPhotos(page).catch(() => undefined);
+    await page.locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`).fill("x");
+    if (!(await page.getByTestId("post-step-4").isVisible())) await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.locator('[data-testid="post-field"][data-field="post-title"]').getByTestId("post-required-mark"),
+      "PW-75: the title carries no mark",
+    ).toBeVisible();
+  });
+
+
   /** D59 — leaf A answered through the price, then moved to leaf B from step 1. */
   async function answeredThenMoved(page: Page) {
     const user = await seller(page);
