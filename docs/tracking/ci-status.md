@@ -1,36 +1,31 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `7c300b6e95283bd57a19d3ea6fa71580d22e5dff` (short `7c300b6`)
-- Conclusion: **SUCCESS**
-- Completed (UTC): 2026-09-29T09:24:34Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36547403556
+- Commit: `58bfd6d7a2203c338feb285bfb6b2fcd24543753` (short `58bfd6d`)
+- Conclusion: **FAILURE**
+- Completed (UTC): 2026-09-29T09:33:13Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36549793568
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Build, typecheck, lint | success |
-| Import gate guard (with self-test) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
 | Gitleaks secrets scan | success |
 | Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
 | i18n used-on map is fresh (U4i ②) | success |
-| Component tests | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| E2E preflight (migration parity, staging) | success |
-| Listing-write seam guard (with self-test) | success |
 | Hardcoded string scan (enforcing) | success |
+| Listing-write seam guard (with self-test) | success |
+| E2E preflight (migration parity, staging) | failure |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
 | Migration linter (with self-test) | success |
-| E2E build (shared dist) | success |
-| E2E email (serial, quota-bound) | success |
-| E2E smoke tier | success |
-| E2E shard 1/6 | success |
-| E2E shard 5/6 | success |
-| E2E shard 4/6 | success |
-| E2E shard 6/6 | success |
-| E2E changed specs (fast lane) | success |
-| E2E shard 3/6 | success |
-| E2E shard 2/6 | success |
-| E2E (Playwright, ethio-staging) | success |
-| Promote to main (fast-forward on green) | success |
+| Build, typecheck, lint | success |
+| First-paint bundle budget (gzipped ceiling) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Import gate guard (with self-test) | success |
+| Component tests | success |
+| E2E (Playwright, ethio-staging) | failure |
+| E2E build (shared dist) | skipped |
+| E2E changed specs (fast lane) | skipped |
+| E2E shard ${{ matrix.shard }}/6 | skipped |
+| E2E smoke tier | skipped |
+| E2E email (serial, quota-bound) | skipped |
+| Promote to main (fast-forward on green) | skipped |
