@@ -830,7 +830,7 @@ test.describe("POSTING WIZARD", () => {
    * it lists itself, it can be taken out and put back, and the plan's count is a
    * fact on screen rather than a surprise at the end.
    */
-  test("PW-20 where: the default place lists itself, comes back, and the plan bounds the rest", async ({
+  test("PW-20 where: the default place lists itself and the item's own city cannot be removed", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -902,13 +902,9 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * U6-C1-R3b-3b STEP 4 (PW-33) — A PLACE IS ADDED UNDER A PLACE ALREADY LISTED.
-   *
-   * The walk's complaint: adding a second city meant answering the market and the
-   * region again in a second cascade. Each listed place now opens its OWN next
-   * level — a region offers its cities, a city its sub-cities — and nothing above
-   * it is re-asked. The free plan carries ONE city and plans are not per-seller,
-   * so the second place is refused by the plan in words (F3: the door repeats it).
+   * PW-33 — W6 R2 (updated 2026-09-29, census item 5). It used to prove that a
+   * listed REGION offered its cities beneath it; under INC-337 a region is never
+   * a place, so the test now proves the region alone lists nothing and its city does.
    */
   test("PW-33 a region alone never lists itself; its city does (W6 R2)", async ({ page }) => {
     const user = await seller(page);
