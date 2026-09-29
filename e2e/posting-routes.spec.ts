@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
+import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   activeCityOf,
   anyAttributeId,
@@ -54,11 +55,14 @@ test.describe("POSTING ROUTES", () => {
   const categories: string[] = [];
   const sellers: string[] = [];
   const specs: string[] = [];
+  const places: string[] = [];
 
   test.afterEach(async () => {
     // J3 — an afterEach hook survives a body timeout; a `finally` inside the body
     // does not, and that is how markets leaked in INC-218.
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
+    // Listings first: their place rows point at the scratch chain.
+    for (const slug of places.splice(0)) await destroyLocation(slug);
     // Links first: a category cannot be deleted while a definition link points at it.
     await destroySpecSet(specs.splice(0));
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
@@ -565,31 +569,17 @@ test.describe("POSTING ROUTES", () => {
   /**
    * PR-17 — W6 INC-337 AT THE ROUTE. The draft door refuses region-only coverage
    * with `cityRequired` (even below step 6 — ruling 2026-09-29) and accepts a city
-   * and a sub-city. Real places are READ, never written (G27).
+   * and a sub-city. INC-340 / G27: the places are a SCRATCH chain under the ET
+   * anchor (staging carries no sub-city), reaped by the afterEach (J3).
    */
   test("PR-17 the draft route refuses a region-only place and accepts a city and a sub-city", async ({
     page,
   }) => {
     const { token } = await seller(page);
     const cat = await category();
-    const admin = adminClient();
-    const pick = async (level: string) => {
-      const { data, error } = await admin
-        .from("locations")
-        .select("id")
-        .eq("country_code", "ET")
-        .eq("level", level)
-        .eq("is_active", true)
-        .limit(1)
-        .single();
-      if (error || !data) throw new Error(`[e2e:pr-17] no active ET ${level}: ${error?.message}`);
-      return data.id as string;
-    };
-    const [region, city, subCity] = [
-      await pick("region"),
-      await pick("city"),
-      await pick("sub_city"),
-    ];
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    const [region, city, subCity] = [chain.region.id, chain.city.id, chain.subCity.id];
     const save = (coverage: string[], step: number) =>
       postRoute(
         page,
@@ -613,6 +603,37 @@ test.describe("POSTING ROUTES", () => {
         JSON.stringify(accepted.payload),
       ).toEqual([]);
     }
+  });
+
+  /**
+   * PR-18 — INC-342 THE DESCRIPTION LIMIT IS THE DOOR'S. 5000 characters are
+   * accepted at step 4; 5001 are refused `tooLong`. The form's cap follows it.
+   */
+  test("PR-18 the draft route accepts a 5000-character description and refuses 5001", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const save = (description: string) =>
+      postRoute(
+        page,
+        DRAFT,
+        { step: 4, categoryId: cat.id, title: "e2e pr18", description, attributes: {} },
+        { token, country: "ET" },
+      );
+    const accepted = await save("a".repeat(5000));
+    expect(accepted.status, JSON.stringify(accepted.payload)).toBe(200);
+    expect(
+      reasonsOf(accepted.payload).filter((row) => row.field === "description"),
+      JSON.stringify(accepted.payload),
+    ).toEqual([]);
+    const refused = await save("a".repeat(5001));
+    expect(refused.status).toBe(200);
+    expect(refused.payload["ok"], JSON.stringify(refused.payload)).toBe(false);
+    expect(reasonsOf(refused.payload)).toContainEqual({
+      field: "description",
+      reason: "tooLong",
+    });
   });
 
   /**
