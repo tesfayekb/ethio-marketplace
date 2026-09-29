@@ -5,7 +5,7 @@ import { Z_POPOVER } from "@/components/layout/layers";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
-import { controlClass, Field } from "./field";
+import { controlClass, Field, RequiredMark } from "./field";
 import {
   currencyText,
   orderCurrencies,
