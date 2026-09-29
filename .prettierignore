@@ -68,3 +68,4 @@ docs/tracking/intentional-deletions.txt
 
 # DEC-083 / INC-326: the ssr-error allowlist is a plain pattern list (no parser).
 docs/tracking/ssr-error-allowlist.txt
+scripts/fixtures/e2e-timing/

@@ -328,7 +328,7 @@ DEC-084 — Accessibility pass (2026-09-28). The smoke tier runs axe-core on the
 DEC-087 — Timing census (2026-09-29, non-gating). Every run, green or red, writes a "Timing (DEC-087, non-gating)" section: per source (smoke, shard n, email, changed) the wall time from its results.json (`stats.startTime` / `stats.duration`); per spec FILE the summed test duration (every attempt counted) and the source(s) that ran it; the 15 slowest tests (title, project, duration). The section opens with "Results read: <sources> · unavailable: <sources or none>", as in DEC-083; a source without a results.json is named, never counted as zero.
 
 - Implementation (`scripts/e2e-failure-report.ts`): `testTimings` walks a results.json; `timingSection` renders in `renderSources` and `renderGreen`. Verdicts and promote are unchanged.
-- Self-test fixture: `scripts/fixtures/e2e-timing/results.json`, a real local capture (`e2e/layout.spec.ts`, both projects).
+- Self-test fixture: `scripts/fixtures/e2e-timing/results.json`, a real local capture (the before-split shard 3/6 run, 98 tests).
 
 THE FILE IS THE SHARD UNIT. `playwright.config.ts` sets `fullyParallel: false`, so `--shard` distributes whole spec files: one large file is one shard's long pole. No spec file carries more than ~25 tests; a file that grows past that is split by area, helpers moved to `e2e/helpers/` unchanged, every test keeping its exact title and body, and its afterEach/afterAll hooks travelling with its tests (J3).
 

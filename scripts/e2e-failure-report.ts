@@ -49,7 +49,7 @@ const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 const SSR_ALLOWLIST = "docs/tracking/ssr-error-allowlist.txt";
 /** DEC-083 — a REAL captured job log (local e2e run) for the census self-test. */
 const CENSUS_FIXTURE = "scripts/fixtures/e2e-ssr-census/job.log.txt";
-/** DEC-087 — a REAL captured results.json (local run, > 15 tests) for the timing self-test. */
+/** DEC-087 — a REAL captured results.json (local shard 3/6, 98 tests) for the timing self-test. */
 const TIMING_FIXTURE = "scripts/fixtures/e2e-timing/results.json";
 const CONTEXT_FIXTURE = "scripts/fixtures/e2e-context-sample";
 /** INC-084g — the describe-nested shape, captured from a real Playwright run. */
@@ -1961,7 +1961,7 @@ async function main() {
     }
 
     // DEC-087 — the timing census, from a REAL captured results.json (a local
-    // run of e2e/layout.spec.ts on both projects, more than 15 tests).
+    // before-split shard 3/6 run, 98 tests, CI-T1).
     {
       const timingJson = (await Bun.file(TIMING_FIXTURE).json()) as PwJson;
       const rows = testTimings(timingJson);
