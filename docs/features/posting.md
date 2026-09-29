@@ -159,7 +159,7 @@ it can be replaced rather than hunted for. The cover is the first registered
 photo until the seller says otherwise. Stripping, caps and the policy pass are
 the server's, not the device's — see `media-pipeline.md`.
 
-## Tests (`e2e/post-wizard.spec.ts`)
+## Tests (`e2e/post-wizard-{category,specs,pricing,resets,place}.spec.ts`)
 
 `PW-1` shell · `PW-2` search-to-leaf creates the draft · `PW-3` a folder is never
 selectable · `PW-4` a photo is prepared, stored stripped and removable · `PW-7`

@@ -133,7 +133,7 @@ and the delete blast radius both re-read from the mutation's invalidation.
 
 ## Tests
 
-`e2e/admin-attributes.spec.ts` — AT-1 gating · AT-2 definitions · AT-3
+`e2e/admin-attributes-{library,import,links,editor}.spec.ts` — AT-1 gating · AT-2 definitions · AT-3
 link/unlink · AT-4 card picker clears the amber flag · AT-5 delete refused then
 accepted · AT-6 merge · AT-7 category filter (DB truth) · AT-8 assign from the
 library · AT-9 twin rendering with no sideways scroll and no clipped last column at 1024/1194/1280/1366 ·
