@@ -11,6 +11,7 @@ import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { entityName } from "@/i18n/entity";
 import { useI18n } from "@/i18n";
 
+import { useCatalogFinder, useMatchLine, type FinderMatch } from "./catalog-finder";
 import { RequiredMark } from "./field";
 
 /**
@@ -62,6 +63,51 @@ const crumbClass =
   "hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+/** D37-2 — one hit: name, path and, for an option hit, the line naming the match. */
+function HitButton({
+  node,
+  matches,
+  lang,
+  selected,
+  label,
+  path,
+  onChoose,
+}: {
+  node: CategoryNode;
+  matches: FinderMatch[];
+  lang: string;
+  selected: boolean;
+  label: string;
+  path: string;
+  onChoose: () => void;
+}) {
+  const { t } = useI18n();
+  const line = useMatchLine(node.id, matches, lang);
+  return (
+    <button
+      type="button"
+      data-testid="post-category-hit"
+      data-category={node.id}
+      aria-current={selected ? "true" : undefined}
+      className={`${rowClass} ${selected ? rowSelected : ""} flex-col items-start gap-0`}
+      onClick={onChoose}
+    >
+      <span className="flex items-center gap-2 font-medium">
+        <NodeGlyph icon={node.icon} />
+        {label}
+      </span>
+      <span className="text-xs text-muted-foreground">{path}</span>
+      {line !== null && (
+        <span className="text-xs text-foreground" data-testid="post-category-hit-match">
+          {t("post.category.matchLine")
+            .replace("{attribute}", line.attribute)
+            .replace("{option}", line.option)}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export function StepCategory({
   tree,
   isLoading,
@@ -77,7 +123,8 @@ export function StepCategory({
   tree: CategoryTree;
   isLoading: boolean;
   treeError: boolean;
-  onChoose: (categoryId: string) => void;
+  /** D37-2 — a finder hit carries its matches; the wizard revalidates them. */
+  onChoose: (categoryId: string, matches?: FinderMatch[]) => void;
   /**
    * U6-C1-R3a-2 — true once someone tried to continue with no leaf chosen: the
    * choice group wears the refusal outline until a choice clears it (F4).
@@ -129,8 +176,7 @@ export function StepCategory({
    */
   const chosenPath = selectedId === null ? [] : pathOf(tree, selectedId);
   const chosenIds = new Set(chosenPath.map((node) => node.id));
-  const offPath =
-    selectedId !== null && !filtering && cursor !== null && !chosenIds.has(cursor);
+  const offPath = selectedId !== null && !filtering && cursor !== null && !chosenIds.has(cursor);
   const unanswered = selectedId === null || offPath;
 
   if (treeError) {
@@ -184,22 +230,41 @@ export function StepCategory({
         data-testid="post-category-list-heading"
       >
         <span>{t("post.step.category")}</span>
-        {selectedId === null && <RequiredMark />}
+        {unanswered && <RequiredMark />}
       </p>
+
+      {offPath && selectedId !== null && (
+        <p
+          className="flex flex-wrap items-center gap-2 text-sm text-foreground"
+          data-testid="post-category-current"
+        >
+          <span className="text-muted-foreground">{t("post.category.currentChoice")}</span>
+          <span className="font-medium">{chosenPath.map((step) => label(step)).join(" › ")}</span>
+          <button
+            type="button"
+            data-testid="post-category-keep"
+            className="min-h-11 px-2 text-sm font-medium text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => onCursor(tree.parentOf.get(selectedId) ?? null)}
+          >
+            {t("post.category.keepIt")}
+          </button>
+        </p>
+      )}
 
       {/* THE ONE CONTROL. Filtered, it is the matching leaves with their paths;
           unfiltered, it is the level the seller stands on. */}
       {/* D71 — the U6-C1-R2 soft state: while no leaf is chosen and nothing is
           refused the group wears the soft required border, at every level; full
-          destructive after a refusal; none once a leaf is chosen. */}
+          destructive after a refusal; none once a leaf is chosen. INC-346: a
+          level off the chosen leaf's path counts as unanswered. */}
       <div
         data-testid="post-category-group"
         data-invalid={invalid ? "1" : "0"}
-        data-empty={selectedId === null ? "1" : "0"}
+        data-empty={unanswered ? "1" : "0"}
         className={
           invalid
             ? "scroll-mt-20 rounded-md border border-destructive p-2 ring-1 ring-destructive"
-            : selectedId === null
+            : unanswered
               ? "scroll-mt-20 rounded-md border border-destructive/40 p-2"
               : "scroll-mt-20 rounded-md border border-transparent p-2"
         }
@@ -211,31 +276,29 @@ export function StepCategory({
         )}
         {filtering ? (
           <ul className="space-y-2" data-testid="post-category-hits">
+            {nameOnly && (
+              <li className="text-xs text-muted-foreground" data-testid="post-category-nameonly">
+                {t("post.category.nameMatchesOnly")}
+              </li>
+            )}
             {hits.length === 0 && (
               <li className="text-sm text-muted-foreground" data-testid="post-category-nohits">
                 {t("post.category.noHits")}
               </li>
             )}
-            {hits.map((node) => (
+            {hits.map(({ node, matches }) => (
               <li key={node.id}>
-                <button
-                  type="button"
-                  data-testid="post-category-hit"
-                  data-category={node.id}
-                  aria-current={node.id === selectedId ? "true" : undefined}
-                  className={`${rowClass} ${node.id === selectedId ? rowSelected : ""} flex-col items-start gap-0`}
-                  onClick={() => onChoose(node.id)}
-                >
-                  <span className="flex items-center gap-2 font-medium">
-                    <NodeGlyph icon={node.icon} />
-                    {label(node)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {pathOf(tree, node.id)
-                      .map((step) => label(step))
-                      .join(" › ")}
-                  </span>
-                </button>
+                <HitButton
+                  node={node}
+                  matches={matches}
+                  lang={entities.lang}
+                  selected={node.id === selectedId}
+                  label={label(node)}
+                  path={pathOf(tree, node.id)
+                    .map((step) => label(step))
+                    .join(" › ")}
+                  onChoose={() => onChoose(node.id, matches)}
+                />
               </li>
             ))}
           </ul>
@@ -289,7 +352,8 @@ export function StepCategory({
                       data-category={node.id}
                       disabled={!folder && !postable}
                       aria-current={node.id === selectedId ? "true" : undefined}
-                      className={`${rowClass} ${node.id === selectedId ? rowSelected : ""}`}
+                      data-on-path={chosenIds.has(node.id) ? "1" : undefined}
+                      className={`${rowClass} ${chosenIds.has(node.id) ? rowSelected : ""}`}
                       onClick={() => {
                         if (folder) onCursor(node.id);
                         else onChoose(node.id);
