@@ -199,7 +199,7 @@ export function MapPinDropper({
           L.circle([place.lat, place.lng], {
             radius: circleRadius(place.level),
             weight: 1,
-            color: "hsl(var(--primary))",
+            color: tokenColor("primary"),
             fillOpacity: 0.06,
             interactive: false,
           }).addTo(map);
@@ -218,7 +218,7 @@ export function MapPinDropper({
           const shape = L.geoJSON(outline as never, {
             style: {
               weight: 1.5,
-              color: "hsl(var(--primary))",
+              color: tokenColor("primary"),
               fillOpacity: 0.06,
             },
             interactive: false,

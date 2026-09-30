@@ -124,7 +124,7 @@ function boxClass(empty: boolean, refused: boolean): string {
   const border = refused
     ? "border-destructive ring-1 ring-destructive"
     : empty
-      ? "border-destructive/40"
+      ? "border-destructive"
       : "border-input";
   // W6b-1 R2 — compact padding at 360 px keeps a city box ≥ 280 px wide.
   return `space-y-3 rounded-md border p-2 sm:p-3 ${border}`;

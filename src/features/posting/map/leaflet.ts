@@ -185,6 +185,17 @@ export function watchTiles(
   }
 }
 
+/**
+ * INC-353 — a theme token as the concrete colour it is. The tokens are full
+ * oklch colours (styles.css), so they are never wrapped in hsl(); SVG paths
+ * that need a literal value read it from the computed style.
+ */
+export function tokenColor(name: string): string {
+  if (typeof document === "undefined") return "currentColor";
+  const value = getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
+  return value === "" ? "currentColor" : value;
+}
+
 /** The pin itself: a token-coloured drop that needs no image asset (apex-style). */
 export function pinIcon(L: LeafletModule): Leaflet.DivIcon {
   return L.divIcon({
@@ -192,7 +203,7 @@ export function pinIcon(L: LeafletModule): Leaflet.DivIcon {
     html:
       '<span style="position:relative;display:block;width:28px;height:28px;' +
       "border-radius:50% 50% 50% 0;transform:rotate(-45deg);" +
-      "border:3px solid hsl(var(--background));background:hsl(var(--primary));" +
+      "border:3px solid var(--background);background:var(--primary);" +
       'box-shadow:0 2px 6px rgba(0,0,0,.35)"></span>',
     iconSize: [28, 28],
     iconAnchor: [14, 28],
