@@ -100,9 +100,38 @@ export function StepCategory({
 
   const label = (node: CategoryNode) => entityName("category", node, entities);
   const filtering = term.trim() !== "";
-  const hits = filtering ? searchLeaves(tree, term, entities) : [];
+  const finder = useCatalogFinder(term, entities.lang);
+  /**
+   * D37-2 — the local NAME match renders at once and stays the answer while the
+   * finder is asked, and when it fails (then the notice says so, F4). Once the
+   * finder answers for this very term, its leaves in its order are the list.
+   */
+  const localHits: { node: CategoryNode; matches: FinderMatch[] }[] = filtering
+    ? searchLeaves(tree, term, entities).map((node) => ({ node, matches: [] }))
+    : [];
+  const finderHits =
+    finder.state === "ready" && finder.term === term.trim()
+      ? finder.hits.flatMap((hit) => {
+          const node = tree.byId.get(hit.leafId);
+          return node !== undefined && isPostable(tree, node)
+            ? [{ node, matches: hit.matches }]
+            : [];
+        })
+      : null;
+  const hits = finderHits ?? localHits;
+  const nameOnly = finder.state === "failed" && finder.term === term.trim();
   const level = cursor === null ? rootsOf(tree) : childrenOf(tree, cursor);
   const trail = cursor === null ? [] : pathOf(tree, cursor);
+  /**
+   * INC-346 — the chosen leaf's path. A level ON it (the roots, or an ancestor of
+   * the leaf) shows the choice as selected; a level OFF it asks again: the mark,
+   * the soft border and "Current choice … Keep it".
+   */
+  const chosenPath = selectedId === null ? [] : pathOf(tree, selectedId);
+  const chosenIds = new Set(chosenPath.map((node) => node.id));
+  const offPath =
+    selectedId !== null && !filtering && cursor !== null && !chosenIds.has(cursor);
+  const unanswered = selectedId === null || offPath;
 
   if (treeError) {
     return (
