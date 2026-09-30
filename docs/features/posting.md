@@ -1110,3 +1110,10 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 - A city box appears only under a chosen region. Any city box may be removed while another remains; removing the ticked one moves the tick to the first remaining box and announces it (`post.where.itemMoved`, polite live region). A lone box offers no Remove.
 - Prefill: the draft's own saved places (Back) → a NEW post's most recent OTHER non-draft listing (`readLastListingPlaces`, filtered by `seller_id` explicitly per INC-330; item place first, same market only, capped at the plan's city count) → saved-area cookie → location guess.
 - Tests: `step-where.test.tsx` (tick, ordering, removal, region-gated city box, sub-city, last-post prefill); PW-83/PW-84 in `e2e/post-wizard-where.spec.ts`; PW-20 updated (lone box ticked, no Remove).
+
+## W7 — the category finder on step 1 (D37-2) and asking again off the chosen path (INC-346)
+
+- Typing two or more characters asks the catalog finder (`/api/catalog/find`, debounced 250 ms, the previous request aborted, `lang` = the active language). The local name match renders at once and stays as the fallback; when the finder fails or refuses, a translated "Showing name matches only." notice shows and the failure is logged (F4).
+- Each finder hit carries its first fitting match as a line ("Size: M"), using the attribute's and option's own labels. Choosing a hit selects the leaf and carries its matches into the draft as prefills. Every pair is revalidated against the leaf's schema and current options first (`catalog-finder.ts`, forward-scan rule in catalog-finder.md); a pair that does not fit is dropped. The door still judges every answer.
+- While a leaf is chosen, a level on its path shows the choice as selected and asks nothing. A level off the path shows the required mark, the soft border and "Current choice: <path>" with "Keep it", which returns to the chosen leaf. Next still accepts the current choice; choosing a new leaf replaces it.
+- Proofs: PW-85, PW-86, PW-87 in `e2e/post-wizard-finder.spec.ts` (scratch leaves, attributes and options only).
