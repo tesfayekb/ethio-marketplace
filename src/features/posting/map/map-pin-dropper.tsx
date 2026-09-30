@@ -21,6 +21,7 @@ import {
   watchTiles,
   type TileKind,
   type TilePlan,
+  tokenColor,
 } from "./leaflet";
 import { DETAILS_MAX } from "./location-details";
 import { insideOutline } from "./outline";
