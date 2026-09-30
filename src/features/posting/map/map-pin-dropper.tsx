@@ -16,6 +16,7 @@ import {
   loadLeaflet,
   loadTilePlan,
   OSM_PLAN,
+  creditOf,
   pinIcon,
   reportFallback,
   watchTiles,
@@ -107,6 +108,7 @@ export function MapPinDropper({
   const [precision, setPrecision] = useState<string>(saved?.precision ?? "exact");
   const [tile, setTile] = useState<TileKind>("street");
   const [backup, setBackup] = useState(false);
+  const [credit, setCredit] = useState("");
   const [outside, setOutside] = useState(false);
 
   const [query, setQuery] = useState("");
