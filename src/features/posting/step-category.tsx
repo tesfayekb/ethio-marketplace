@@ -176,8 +176,7 @@ export function StepCategory({
    */
   const chosenPath = selectedId === null ? [] : pathOf(tree, selectedId);
   const chosenIds = new Set(chosenPath.map((node) => node.id));
-  const offPath =
-    selectedId !== null && !filtering && cursor !== null && !chosenIds.has(cursor);
+  const offPath = selectedId !== null && !filtering && cursor !== null && !chosenIds.has(cursor);
   const unanswered = selectedId === null || offPath;
 
   if (treeError) {

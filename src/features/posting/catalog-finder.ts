@@ -184,7 +184,9 @@ export function useMatchLine(
     void fit(leafId, matches, lang).then((kept) => {
       if (cancelled) return;
       const first = kept[0];
-      setLine(first === undefined ? null : { attribute: first.attributeLabel, option: first.optionLabel });
+      setLine(
+        first === undefined ? null : { attribute: first.attributeLabel, option: first.optionLabel },
+      );
     });
     return () => {
       cancelled = true;

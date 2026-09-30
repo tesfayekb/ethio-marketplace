@@ -13,6 +13,7 @@ import { useI18n } from "@/i18n";
 
 import { RefusalSummary, focusFirstRefusal } from "./field";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
+import { prefillFromMatches } from "./catalog-finder";
 import { StepCategory } from "./step-category";
 import { StepDetails } from "./step-details";
 import { StepPhotos } from "./step-photos";
@@ -247,6 +248,74 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   // here is the honest in-between: the session is still being read, or the
   // redirect is in flight.
   if (authLoading || user === null) {
+    /** Step 1's answer: the leaf, plus any finder prefill that fitted (D37-2). */
+    const chooseLeaf = (nextCategoryId: string, prefill: Record<string, unknown>) => {
+      // ONE CONTROL, AUTO-ADVANCE: choosing a postable leaf IS the
+      // answer to step 1, so the wizard saves it and moves on. No
+      // confirmation screen — the chip above every later step is the
+      // confirmation, and it carries the way back.
+      setTriedWithoutLeaf(false);
+      setNoticeDismissed(false);
+      const previous = draft.values.categoryId;
+      if (previous === null || previous === nextCategoryId) {
+        setResetOffer(null);
+        setPhotosNeedRecheck(false);
+        draft.change(
+          {
+            categoryId: nextCategoryId,
+            attributes: { ...prefill, ...draft.values.attributes },
+          },
+          true,
+        );
+        void draft.saveAt(1).then((saved) => {
+          if (saved) draft.goTo(3);
+        });
+        return;
+      }
+      // D59 — A REAL CHANGE: every answer the category shapes is
+      // reset in ONE change (INC-248's chosen-option drop is
+      // subsumed), photos, place and contact are left alone, and
+      // the old values are held for Undo.
+      const v = draft.values;
+      setResetOffer({
+        categoryId: v.categoryId,
+        attributes: v.attributes,
+        title: v.title,
+        description: v.description,
+        videoUrl: v.videoUrl,
+        priceMode: v.priceMode,
+        priceAmount: v.priceAmount,
+        priceCurrency: v.priceCurrency,
+        pricePeriod: v.pricePeriod,
+        priceBp: v.priceBp,
+        priceNegotiable: v.priceNegotiable,
+      });
+      setPhotosNeedRecheck(draft.photos.length > 0);
+      draft.change(
+        {
+          categoryId: nextCategoryId,
+          attributes: prefill,
+          title: "",
+          description: "",
+          videoUrl: "",
+          priceMode: "fixed",
+          priceAmount: null,
+          priceCurrency: null,
+          pricePeriod: null,
+          priceBp: null,
+          priceNegotiable: false,
+        },
+        false,
+      );
+      void (async () => {
+        // REWIND, not `saveAt`: the claim must come DOWN to
+        // step 1 (see `rewindTo`).
+        const saved = await draft.rewindTo(1);
+        // D39 — specifications come next in every branch.
+        if (saved) draft.goTo(3);
+      })();
+    };
+
     return (
       <PageShell as="main" width="narrow">
         <PageCard>
