@@ -134,7 +134,7 @@ function boxClass(empty: boolean, refused: boolean, step = ""): string {
 }
 
 /** J — region box: indented, about two-thirds and right-aligned from 768 px. */
-const REGION_STEP = "ms-1.5 border-s-2 md:ms-auto md:w-2/3";
+const REGION_STEP = "ms-1.5 border-s-2 md:ms-auto md:w-3/4";
 /** J — city line: one step further in than its region. */
 const CITY_STEP = "ms-1.5 border-s-2 md:ms-6";
 
@@ -358,7 +358,7 @@ function CountryBox({
                       {/* I/J — the city line: the tick sits right of the city from 768 px, under it at 360. */}
                       <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-3">
                         {cities.length > 0 && (
-                          <div className="space-y-1 md:min-w-0 md:flex-1">
+                          <div className="space-y-1 md:min-w-48 md:flex-1">
                             <label htmlFor={cityId} className="text-sm font-medium text-foreground">
                               {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
                               {placeOf(row) === null && <RequiredMark />}
@@ -382,7 +382,7 @@ function CountryBox({
                           </div>
                         )}
                         {/* W6b-1 R3 — the one tick, a radio group across every box. */}
-                        <label className="flex min-h-11 shrink-0 items-center gap-2 text-sm text-foreground">
+                        <label className="flex min-h-11 items-center gap-2 text-sm text-foreground md:max-w-40">
                           <input
                             type="radio"
                             name="post-where-item"

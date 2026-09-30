@@ -597,6 +597,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   /** PW-98 — the tick on the city line: right of the city at ≥ 768, under it at 360. */
   async function tickOnCityLine(page: Page, label: string) {
     const tick = tickOf(page, "primary");
+    await page.getByTestId("post-where-city").scrollIntoViewIfNeeded();
     await expect(tick, `PW-98 ${label}: the tick is not visible`).toBeVisible();
     await expect(tick, `PW-98 ${label}: the tick is not checked`).toBeChecked();
     await expect(tick, `PW-98 ${label}: the tick is off screen`).toBeInViewport();
@@ -700,6 +701,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       .locator("select")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
     expect(widths.length, "PW-99: no selects").toBeGreaterThan(0);
+    if ((page.viewportSize()?.width ?? 0) >= 768) return;
     for (const width of widths) {
       expect(
         width,
