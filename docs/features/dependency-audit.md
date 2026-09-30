@@ -125,3 +125,16 @@ the runtime tree.
 - Verification: unit and component tests (jsdom) 130/130 green. `bun audit`
   cannot reach the advisory service from the build sandbox, so the clean-audit
   verdict comes from the CI `dependency-audit` job.
+
+## 2026-09-30 Audit — brace-expansion < 1.1.19, REMEDIATED (INC-348)
+
+- Advisories: GHSA-6j4f-fj2g-mc7p, GHSA-qhr7-859c-m2p7 (2 high), `brace-expansion`
+  < 1.1.19 (DoS via uncontrolled recursion).
+- Paths: `eslint` › `@eslint/eslintrc` › `minimatch` › `brace-expansion` and
+  `typescript-eslint` › … › `minimatch` › `brace-expansion` (dev tooling only).
+- Remediation: `package.json` `overrides` raises `"brace-expansion"` from
+  `"^1.1.17"` to `"^1.1.19"`, still inside 1.x for the reason recorded on
+  2026-08-04 (a flat floor drags `minimatch@3` onto 5.x and `eslint` dies).
+- Resolved: `brace-expansion@1.1.21` in `bun.lock`, one copy in the tree.
+- Verification: `eslint .` runs with 0 errors. `bun audit` 404s in the build
+  sandbox, so the clean-audit verdict comes from the CI `dependency-audit` job.
