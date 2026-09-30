@@ -710,3 +710,39 @@ export async function clearPin(listingId: string): Promise<boolean> {
   }
   return true;
 }
+
+/** W6b-2 B3 — the draft's own location details (`street_address`), or null. */
+export async function readListingNote(listingId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("listings")
+    .select("street_address")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error !== null) {
+    console.error("[pin] reading the location details failed:", error.message);
+    return null;
+  }
+  return typeof data?.street_address === "string" ? data.street_address : null;
+}
+
+/**
+ * W6b-2 B3 — THE LOCATION DETAILS THROUGH THE PIN'S OWN DOOR. With a pin, the pin
+ * is re-sent unchanged beside the note; without one, the coordinates are omitted
+ * and the door (as re-declared in W6b-2) keeps the note alone.
+ */
+export async function saveListingNote(
+  listingId: string,
+  note: string | null,
+  pin: { lat: number; lng: number; precision: string } | null,
+): Promise<boolean> {
+  const { error } = await supabase.rpc("set_listing_pin", {
+    p_listing_id: listingId,
+    ...(pin === null ? {} : { p_lat: pin.lat, p_lng: pin.lng, p_precision: pin.precision }),
+    p_street: note ?? undefined,
+  });
+  if (error !== null) {
+    console.error("[pin] set_listing_pin refused:", error.message);
+    return false;
+  }
+  return true;
+}

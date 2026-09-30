@@ -1079,6 +1079,53 @@ export function StepSpecifications({
   ]);
 
   /**
+   * W6b-2 A3 (INC-347) — A BORROWED ROW STILL OBEYS THE ANSWERS OF OTHER STEPS.
+   * The price step draws the basis alone (`only=[basisKey]`) and skips the full
+   * reconciliation above (D62-2), but the answers that SPEAK about the basis —
+   * a step-3 type's `facts` and `allowed` — are answered on another screen. So
+   * the drawn rows get the two passes that apply to them, from the same derived
+   * `facts` / `visibleOptionsOf` the step-3 form uses:
+   *   - a value the chosen options no longer offer (the link default `per_kg`
+   *     under Milk's `allowed`) is replaced by the fact, or cleared;
+   *   - an empty drawn row takes the fact when the fact is offered.
+   * A value the seller chose that is still offered is never touched.
+   */
+  useEffect(() => {
+    if (schema === null || only === null) return;
+    const view = latestRef.current;
+    const next = { ...view };
+    let changed = false;
+    for (const key of only) {
+      const def = definitions.find((entry) => entry.attrKey === key);
+      if (def === undefined || def.attrType !== "single_select") continue;
+      if (!conditionMet(def, view)) continue;
+      const held = options[key] ?? IDLE;
+      if (held.state !== "ready") continue;
+      const offered = new Set(visibleOptionsOf(def).map((option) => option.value));
+      const current = selectedValue(view[key]);
+      const fact = facts.prefill[key];
+      const factValue = typeof fact === "string" && offered.has(fact) ? fact : null;
+      const stale = current !== "" && current !== "other" && !offered.has(current);
+      if (current === "" || stale) {
+        if (factValue !== null) {
+          next[key] = factValue;
+          changed = true;
+        } else if (stale) {
+          delete next[key];
+          changed = true;
+        }
+      }
+    }
+    if (!changed) return;
+    const stamp = JSON.stringify(next);
+    if (reconcile.current === stamp) return;
+    reconcile.current = stamp;
+    emit(next, false);
+    // `only` is read through its string identity (I3).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onlyKey, schema, definitions, options, values, facts, visibleOptionsOf, emit]);
+
+  /**
    * M-MAINT-2 §12 / INC-245 — THE LINK's DEFAULT FILLS AN EMPTY FIELD: on the
    * first render of the step for this category, and again after a make or model
    * reset has emptied fields (D25/D25b). It never overwrites an answer that is

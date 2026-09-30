@@ -65,6 +65,25 @@ const PERIOD_KEYS: Record<string, MessageKey> = {
   year: "post.price.period.year",
 };
 
+/** W6b-2 A2 — how many zeros the typed amount is shifted by. */
+type AmountScale = 0 | 3 | 6;
+
+/**
+ * The typed digits shifted by `zeros` places as a decimal STRING operation, so
+ * "5.25" × million is exactly 5250000 (E4 — no float product). Anything that is
+ * not a plain decimal is `null`.
+ */
+export function scaleAmount(raw: string, zeros: AmountScale): number | null {
+  if (!/^\d*\.?\d*$/.test(raw) || raw === "" || raw === ".") return null;
+  const [whole = "", frac = ""] = raw.split(".");
+  const moved = frac.padEnd(zeros, "0");
+  const digits = `${whole}${moved.slice(0, zeros)}`;
+  const rest = moved.slice(zeros);
+  const text = rest === "" ? digits : `${digits}.${rest}`;
+  const value = Number(text === "" ? "0" : text);
+  return Number.isFinite(value) ? value : null;
+}
+
 export interface PricingValues {
   priceMode: string;
   /** The amount as the seller typed it; `null` until they type a number. */
@@ -328,6 +347,25 @@ export function StepPricing({
     setHighlight(0);
   };
 
+  /**
+   * W6b-2 A2 — the box holds what the seller TYPED; the scale (— · thousand ·
+   * million) multiplies it by a decimal shift on the digits, never a float
+   * product (E4). The value sent is the full amount; a reopen shows it as typed
+   * with the scale at "—". A value written from outside (a mode switch clears it)
+   * resets the box.
+   */
+  const [amountText, setAmountText] = useState<string>(
+    values.priceAmount === null ? "" : String(values.priceAmount),
+  );
+  const [amountScale, setAmountScale] = useState<AmountScale>(0);
+  useEffect(() => {
+    if (values.priceAmount === scaleAmount(amountText, amountScale)) return;
+    setAmountText(values.priceAmount === null ? "" : String(values.priceAmount));
+    setAmountScale(0);
+    // Only an outside write re-seeds the box; the seller's own typing never does.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.priceAmount]);
+
   /** The seller's own locale formatting for the amount caption (never for storage). */
   const shownAmount =
     values.priceAmount === null
@@ -537,32 +575,46 @@ export function StepPricing({
               )
             }
           >
-            <input
-              id="post-price-amount"
-              data-testid="post-price-amount"
-              inputMode="decimal"
-              className={controlClass(amountRefusal !== null)}
-              value={values.priceAmount === null ? "" : String(values.priceAmount)}
-              placeholder={t("post.price.amountPlaceholder")}
-              onBlur={() => {
-                const found = checkNumber("price_amount", values.priceAmount, {
-                  required: true,
-                  positive: true,
-                });
-                setLocal((prev) => [
-                  ...prev.filter((entry) => entry.field !== "price_amount"),
-                  ...(found === null ? [] : [found]),
-                ]);
-              }}
-              onChange={(event) => {
-                const raw = event.target.value.replace(/[^\d.]/g, "");
-                const parsed = raw === "" ? null : Number(raw);
-                onChange(
-                  { priceAmount: parsed !== null && Number.isFinite(parsed) ? parsed : null },
-                  false,
-                );
-              }}
-            />
+            <div className="flex min-w-0 gap-2">
+              <input
+                id="post-price-amount"
+                data-testid="post-price-amount"
+                inputMode="decimal"
+                className={`${controlClass(amountRefusal !== null)} min-w-0 flex-1`}
+                value={amountText}
+                placeholder={t("post.price.amountEnter")}
+                onBlur={() => {
+                  const found = checkNumber("price_amount", values.priceAmount, {
+                    required: true,
+                    positive: true,
+                  });
+                  setLocal((prev) => [
+                    ...prev.filter((entry) => entry.field !== "price_amount"),
+                    ...(found === null ? [] : [found]),
+                  ]);
+                }}
+                onChange={(event) => {
+                  const raw = event.target.value.replace(/[^\d.]/g, "");
+                  setAmountText(raw);
+                  onChange({ priceAmount: scaleAmount(raw, amountScale) }, false);
+                }}
+              />
+              <select
+                aria-label={t("post.price.scaleLabel")}
+                data-testid="post-price-scale"
+                className="min-h-11 shrink-0 rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                value={String(amountScale)}
+                onChange={(event) => {
+                  const next = Number(event.target.value) as AmountScale;
+                  setAmountScale(next);
+                  onChange({ priceAmount: scaleAmount(amountText, next) }, false);
+                }}
+              >
+                <option value="0">{t("post.price.scaleNone")}</option>
+                <option value="3">{t("post.price.scaleThousand")}</option>
+                <option value="6">{t("post.price.scaleMillion")}</option>
+              </select>
+            </div>
           </Field>
         </>
       )}

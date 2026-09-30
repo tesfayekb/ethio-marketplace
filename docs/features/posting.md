@@ -1117,3 +1117,52 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 - Each finder hit carries its first fitting match as a line ("Size: M"), using the attribute's and option's own labels. Choosing a hit selects the leaf and carries its matches into the draft as prefills. Every pair is revalidated against the leaf's schema and current options first (`catalog-finder.ts`, forward-scan rule in catalog-finder.md); a pair that does not fit is dropped. The door still judges every answer.
 - While a leaf is chosen, a level on its path shows the choice as selected and asks nothing. A level off the path shows the required mark, the soft border and "Current choice: <path>" with "Keep it", which returns to the chosen leaf. Next still accepts the current choice; choosing a new leaf replaces it.
 - Proofs: PW-85, PW-86, PW-87 in `e2e/post-wizard-finder.spec.ts` (scratch leaves, attributes and options only).
+
+## W6b-2 — price entry, the two place boxes, location details, and the map (2026-09-30)
+
+- **A1/A2 — the amount.** The box's placeholder is "Enter amount" (no example
+  number; the old `post.price.amountPlaceholder` key is retired). Beside it a
+  scale — — · thousand · million — shifts the typed digits as a decimal
+  STRING operation (`scaleAmount`, E4: 5.25 × million is exactly 5 250 000).
+  The value sent is the full amount; a reopen shows it as a plain number with
+  the scale at "—".
+- **A3 — INC-347.** The price step's borrowed basis row (`only=[basisKey]`)
+  skipped reconciliation, so a step-3 answer's `facts` / `allowed` for the
+  basis never reached it (Milk kept the link default `per_kg`). The borrowed
+  row now runs the two passes that apply to it: a value no longer offered is
+  replaced by the fact (or cleared), and an empty row takes an offered fact. A
+  value the seller chose that is still offered is never touched. PW-88.
+- **B1 — two boxes.** "Where this ad is shown" (country → region → city boxes,
+  the chosen list, the plan) and "Item / service location" (the ticked place's
+  name, the map for `map_pin` categories only, and the location details).
+- **B2 — the plan in one line:** "{used} of {max} cities · {regions}
+  region(s)" with a Details toggle for the caption and the level counts.
+- **B3 — location details** ("Building, floor, suite or directions. No phone
+  numbers."), for every category, stored in `street_address` through
+  `set_listing_pin` (re-declared in 60cedbed: a note without a pin is kept;
+  Remove still clears all four columns; sanitised, ≤ 200). Saved on blur.
+- **B4 — red per box:** a country box until its country is chosen, a region
+  box until its region is, a city box until its city is (`data-red`). The
+  heading's required mark still waits for a city (W6 R1).
+- **C1/C2 — tiles.** `/api/map/tiles` names the provider: Esri (static
+  streets; imagery + labels for satellite) with the server-held key
+  `ESRI_API_KEY`, else OpenStreetMap. Three tile errors in a row, or one
+  401/403/429, switch the session to OSM with a "backup map" note and one
+  `[map] fallback provider=osm reason=<token>` server line. The key is
+  referrer-restricted by Esri, so any other origin (local runs, staging
+  preview) falls back — PW-92 proves the fallback path.
+- **C3/C4 — the pin sheet.** Full screen at ≤ 640 px, a dialog above, with a
+  sticky Save location / Cancel footer. The map opens on the ticked place:
+  its outline from `/api/geo/outline` (our Nominatim pattern: caller check,
+  dial, cache) fitted at maxZoom 14 (city) / 16 (sub-city), else a circle; a
+  saved pin opens on the pin at 16. Tap drops, drag moves, search and My
+  location move it; the reverse geocoder fills empty location details; a
+  soft notice says when the pin is outside the ticked place.
+- **C5 — numbers (staging build, 360 px, Slow 4G, same script before/after).**
+  Before: step 6 20.3 s, map ready 3.9 s, first tile 5.8 s, Save below the
+  fold after a tap. After: step 6 20.5 s, map ready 4.4 s, first tile 6.5 s
+  (Esri 401 off-domain → OSM backup), Save on screen, pin saved. The step-6
+  load time is the wizard's, not the map's, and is unchanged.
+- Tests: PW-88–PW-92 in `e2e/post-wizard-where.spec.ts`; `map/outline.test.ts`
+  (scale, point-in-outline, sanitiser). Scratch categories carry `map_pin` by
+  default (`seedPostableCategory`), so the existing pin specs keep their map.

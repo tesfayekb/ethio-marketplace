@@ -14,10 +14,18 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
-import { clearPin, readLastListingPlaces, savePin, type LastPlaces } from "./posting-service";
+import {
+  clearPin,
+  readLastListingPlaces,
+  readListingNote,
+  saveListingNote,
+  savePin,
+  type LastPlaces,
+} from "./posting-service";
 import { RequiredMark } from "./field";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
-import type { PinValue } from "./map/map-pin-dropper";
+import type { PinPlace, PinValue } from "./map/map-pin-dropper";
+import { DETAILS_MAX, sanitizeDetails } from "./map/location-details";
 import type { Refusal } from "./types";
 
 /**
@@ -106,7 +114,12 @@ function placeOf(row: Row): string | null {
   return row.subCity ?? row.city;
 }
 
-/** The soft/destructive border every box wears (the D71 three states). */
+/**
+ * The soft/destructive border every box wears (the D71 three states).
+ * W6b-2 B4 — PER BOX: a country box is red until its country is chosen, a region
+ * box until its region is, a city box until its city is; each clears the moment
+ * it is filled. The heading's required mark still waits for a city (W6 R1).
+ */
 function boxClass(empty: boolean, refused: boolean): string {
   const border = refused
     ? "border-destructive ring-1 ring-destructive"
@@ -236,7 +249,8 @@ function CountryBox({
       data-primary={primary ? "1" : "0"}
       data-country={code ?? ""}
       data-empty={empty ? "1" : "0"}
-      className={boxClass(empty, primary && refused)}
+      data-red={code === null ? "1" : "0"}
+      className={boxClass(code === null, primary && refused)}
     >
       {market}
       {nodes.length > 0 &&
@@ -250,7 +264,8 @@ function CountryBox({
               data-testid="post-where-region-box"
               data-region={group.region ?? ""}
               data-empty={groupEmpty ? "1" : "0"}
-              className={boxClass(groupEmpty, false)}
+              data-red={group.region === null ? "1" : "0"}
+              className={boxClass(group.region === null, false)}
             >
               <div className="space-y-1">
                 <label
@@ -314,7 +329,8 @@ function CountryBox({
                       data-testid="post-where-row"
                       data-key={row.key}
                       data-item={row.key === itemKey ? "1" : "0"}
-                      className="space-y-2 rounded-md border border-input p-2 sm:p-3"
+                      data-red={placeOf(row) === null ? "1" : "0"}
+                      className={boxClass(placeOf(row) === null, false)}
                     >
                       {cities.length > 0 && (
                         <div className="space-y-1">
@@ -499,6 +515,7 @@ export function StepWhere({
   maxCities = null,
   maxRegions = null,
   maxCountries = null,
+  mapCapable = false,
 }: {
   /** The chosen place ids; the FIRST one is the item's own place (spec §4 C2). */
   coverage: string[];
@@ -514,10 +531,34 @@ export function StepWhere({
   maxCities?: number | null;
   maxRegions?: number | null;
   maxCountries?: number | null;
+  /** W6b-2 B1 — the map shows only for a category with the `map_pin` capability. */
+  mapCapable?: boolean;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
   const [pinOpen, setPinOpen] = useState(false);
+  const [planOpen, setPlanOpen] = useState(false);
+  /**
+   * W6b-2 B3 — THE LOCATION DETAILS: one value, `listings.street_address`, for
+   * every category, pin or no pin. Read once from the draft's own row; saved on
+   * blur through the pin's own door (`set_listing_pin`), which keeps the pin
+   * columns as they are. The door caps it at 200 and is the authority (F3).
+   */
+  const [note, setNote] = useState<string>(pin?.street ?? "");
+  const [noteState, setNoteState] = useState<"idle" | "busy" | "saved" | "failed" | "long">("idle");
+  const [pinState, setPinState] = useState<"idle" | "saved" | "removed" | "failed">("idle");
+  const noteRead = useRef(false);
+  useEffect(() => {
+    if (listingId === null || noteRead.current) return;
+    noteRead.current = true;
+    let cancelled = false;
+    void readListingNote(listingId).then((found) => {
+      if (!cancelled && found !== null) setNote((current) => (current === "" ? found : current));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [listingId]);
 
   /**
    * U6-C1-R3a / INC-237 — the saved area's market is known synchronously; until
@@ -827,15 +868,35 @@ export function StepWhere({
     coverageRefusal !== null &&
     (coverageRefusal.reason === "required" || coverageRefusal.reason === "cityRequired");
 
-  /** WHERE THE MAP OPENS: the seller's own place's centre, else the market's, else nothing. */
-  const pinCentre = useMemo(() => {
-    const first = chosen.find((node) => node.centerLat !== null && node.centerLng !== null);
-    if (first !== undefined) return { lat: first.centerLat, lng: first.centerLng };
-    const market = nodes.find(
-      (node) => node.level === "country" && node.centerLat !== null && node.centerLng !== null,
-    );
-    return { lat: market?.centerLat ?? null, lng: market?.centerLng ?? null };
-  }, [chosen, nodes]);
+  /**
+   * W6b-2 C3 — WHERE THE MAP OPENS: the TICKED place (its sub-city when chosen),
+   * its level deciding the zoom, and a query naming it for the outline route.
+   */
+  const itemNode = useMemo(() => {
+    const id = placeOf(itemRow);
+    return id === null ? null : (nodes.find((node) => node.id === id) ?? null);
+  }, [itemRow, nodes]);
+  const pinPlace = useMemo<PinPlace>(() => {
+    const market = nodes.find((node) => node.level === "country") ?? null;
+    const centre =
+      itemNode !== null && itemNode.centerLat !== null && itemNode.centerLng !== null
+        ? itemNode
+        : (chosen.find((node) => node.centerLat !== null && node.centerLng !== null) ?? market);
+    const parent =
+      itemNode !== null && itemNode.level === "sub_city" && itemRow.city !== null
+        ? (nodes.find((node) => node.id === itemRow.city) ?? null)
+        : null;
+    const words = [itemNode, parent, market]
+      .filter((node): node is TreeNode => node !== null)
+      .map((node) => node.nameEn ?? node.slug);
+    return {
+      lat: centre?.centerLat ?? null,
+      lng: centre?.centerLng ?? null,
+      level:
+        itemNode?.level === "sub_city" ? "sub_city" : itemNode?.level === "city" ? "city" : null,
+      query: itemNode === null ? null : words.join(", "),
+    };
+  }, [itemNode, itemRow, chosen, nodes]);
 
   const primaryMarket = (
     <div className="space-y-1">
@@ -907,122 +968,107 @@ export function StepWhere({
 
   return (
     <div className="space-y-5" data-testid="post-where">
-      <p className="text-sm text-muted-foreground" data-testid="post-where-intro">
-        {t("post.where.showIntro")}
-      </p>
-      <p className="sr-only" aria-live="polite" data-testid="post-where-announce">
-        {announce}
-      </p>
-
-      {/* R1 — the place, heading included, is the refusal's scroll target (D70/D2). */}
-      <div
-        id="post-coverage"
-        tabIndex={-1}
-        data-testid="post-where-place"
-        className="scroll-mt-20 space-y-3 focus-visible:outline-none"
+      {/* W6b-2 B1 — Box 1: where this ad is shown. */}
+      <section
+        className="space-y-4 rounded-lg border-2 border-primary/60 p-3"
+        data-testid="post-where-shown-box"
+        aria-labelledby="post-where-shown-title"
       >
-        <p
-          className="flex items-center gap-1 text-sm font-medium text-foreground"
-          data-testid="post-where-heading"
-        >
-          <span>{t("post.where.showHeading")}</span>
-          {!hasCity && <RequiredMark />}
+        <h3 id="post-where-shown-title" className="text-sm font-semibold text-foreground">
+          {t("post.where.shownBoxTitle")}
+        </h3>
+        <p className="text-sm text-muted-foreground" data-testid="post-where-intro">
+          {t("post.where.showIntro")}
+        </p>
+        <p className="sr-only" aria-live="polite" data-testid="post-where-announce">
+          {announce}
         </p>
 
-        <CountryBox
-          primary
-          code={country}
-          nodes={nodes}
-          rows={primaryRows}
-          room={room}
-          refused={coverageRefusal !== null}
-          market={primaryMarket}
-          itemKey={tickKey}
-          canRemove={rows.length > 1}
-          onTick={onTick}
-          onRegion={onRegion}
-          onRow={onRow}
-          onRemove={onRemove}
-          onAddCity={onAddCity}
-          onAddRegion={onAddRegion}
-        />
+        {/* R1 — the place, heading included, is the refusal's scroll target (D70/D2). */}
+        <div
+          id="post-coverage"
+          tabIndex={-1}
+          data-testid="post-where-place"
+          className="scroll-mt-20 space-y-3 focus-visible:outline-none"
+        >
+          <p
+            className="flex items-center gap-1 text-sm font-medium text-foreground"
+            data-testid="post-where-heading"
+          >
+            <span>{t("post.where.showHeading")}</span>
+            {!hasCity && <RequiredMark />}
+          </p>
 
-        {otherGroups.map((group) => (
-          <OtherCountryBox
-            key={group.key}
-            code={group.code}
-            rows={group.rows}
-            taken={takenCountries}
+          <CountryBox
+            primary
+            code={country}
+            nodes={nodes}
+            rows={primaryRows}
             room={room}
-            refused={false}
+            refused={coverageRefusal !== null}
+            market={primaryMarket}
             itemKey={tickKey}
             canRemove={rows.length > 1}
             onTick={onTick}
-            onCountry={onCountry}
             onRegion={onRegion}
             onRow={onRow}
             onRemove={onRemove}
             onAddCity={onAddCity}
             onAddRegion={onAddRegion}
           />
-        ))}
 
-        {countryRoom && (
-          <button
-            type="button"
-            data-testid="post-where-add-country"
-            className={addClass}
-            onClick={onAddCountry}
-          >
-            {t("post.where.addCountry")}
-          </button>
-        )}
+          {otherGroups.map((group) => (
+            <OtherCountryBox
+              key={group.key}
+              code={group.code}
+              rows={group.rows}
+              taken={takenCountries}
+              room={room}
+              refused={false}
+              itemKey={tickKey}
+              canRemove={rows.length > 1}
+              onTick={onTick}
+              onCountry={onCountry}
+              onRegion={onRegion}
+              onRow={onRow}
+              onRemove={onRemove}
+              onAddCity={onAddCity}
+              onAddRegion={onAddRegion}
+            />
+          ))}
 
-        {coverageRefusal !== null && (
-          <p
-            className="text-sm text-destructive"
-            data-testid="post-where-refusal"
-            data-choose-city={chooseCity ? "1" : "0"}
-            role="alert"
-          >
-            {chooseCity
-              ? t("post.refusal.cityRequired")
-              : t(draftRefusalKey(coverageRefusal.reason))}
+          {countryRoom && (
+            <button
+              type="button"
+              data-testid="post-where-add-country"
+              className={addClass}
+              onClick={onAddCountry}
+            >
+              {t("post.where.addCountry")}
+            </button>
+          )}
+
+          {coverageRefusal !== null && (
+            <p
+              className="text-sm text-destructive"
+              data-testid="post-where-refusal"
+              data-choose-city={chooseCity ? "1" : "0"}
+              role="alert"
+            >
+              {chooseCity
+                ? t("post.refusal.cityRequired")
+                : t(draftRefusalKey(coverageRefusal.reason))}
+            </p>
+          )}
+        </div>
+
+        {prefilled && (
+          <p className="text-xs text-muted-foreground" data-testid="post-where-prefilled">
+            {t("post.where.prefilled")}
           </p>
         )}
-      </div>
 
-      {prefilled && (
-        <p className="text-xs text-muted-foreground" data-testid="post-where-prefilled">
-          {t("post.where.prefilled")}
-        </p>
-      )}
-
-      {/* --------------------------- the chosen places ------------------------ */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-foreground">{t("post.where.chosenLabel")}</p>
-        {maxCities !== null && (
-          <>
-            <p className="text-xs text-muted-foreground" data-testid="post-where-plan">
-              {fill(t("post.where.planCaption"), { cities: maxCities })}
-            </p>
-            <p
-              className="text-xs text-muted-foreground"
-              data-testid="post-where-plan-count"
-              data-used={desired.length}
-              data-max={maxCities}
-            >
-              {fill(t("post.where.planCount"), { used: desired.length, max: maxCities })}
-            </p>
-          </>
-        )}
-        <p className="text-xs text-muted-foreground" data-testid="post-where-plan-levels">
-          {fill(t("post.where.planLevels"), {
-            regions: regionsNamed,
-            cities: levelCounts.city,
-            subCities: levelCounts.sub_city,
-          })}
-        </p>
+        {/* ----------------- W6b-2 B2 — the plan, in ONE line ------------------ */}
         <ul className="space-y-1" data-testid="post-where-chosen" data-count={desired.length}>
           {chosen.map((node) => (
             <li key={node.id} className="text-sm">
@@ -1032,55 +1078,227 @@ export function StepWhere({
             </li>
           ))}
         </ul>
-
-        {/* ------------------------------ the map pin --------------------------- */}
-        {listingId === null ? (
-          <p className="text-xs text-muted-foreground" data-testid="post-where-pin-later">
-            {t("post.where.pinLater")}
-          </p>
-        ) : (
-          <div className="space-y-2">
+        <div className="space-y-1">
+          <p
+            className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
+            data-testid="post-where-plan-line"
+          >
+            {maxCities === null ? (
+              <span>{fill(t("post.where.planLineUnknown"), { regions: regionsNamed })}</span>
+            ) : (
+              <span
+                data-testid="post-where-plan-count"
+                data-used={desired.length}
+                data-max={maxCities}
+              >
+                {fill(t("post.where.planLine"), {
+                  used: desired.length,
+                  max: maxCities,
+                  regions: regionsNamed,
+                })}
+              </span>
+            )}
             <button
               type="button"
-              className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
-              aria-expanded={pinOpen}
-              onClick={() => setPinOpen(!pinOpen)}
-              data-testid="post-where-pin-open"
+              className="min-h-11 px-1 text-xs font-medium text-foreground underline underline-offset-2"
+              aria-expanded={planOpen}
+              onClick={() => setPlanOpen(!planOpen)}
+              data-testid="post-where-plan-toggle"
             >
-              {t(pinOpen ? "post.pin.close" : "post.pin.open")}
+              {t(planOpen ? "post.where.planHide" : "post.where.planDetails")}
             </button>
-            {pinOpen && (
-              <Suspense
-                fallback={
-                  <p className="text-xs text-muted-foreground">{t("post.pin.searching")}</p>
-                }
-              >
-                <MapPinDropper
-                  saved={pin}
-                  centreLat={pinCentre.lat}
-                  centreLng={pinCentre.lng}
-                  onSave={async (value) => {
-                    const ok = await savePin(
-                      listingId,
-                      value.lat,
-                      value.lng,
-                      value.precision,
-                      value.street,
-                    );
-                    if (ok) onPinSaved?.(value);
-                    return ok;
+          </p>
+          {planOpen && (
+            <div className="space-y-1" data-testid="post-where-plan-details">
+              {maxCities !== null && (
+                <p className="text-xs text-muted-foreground" data-testid="post-where-plan">
+                  {fill(t("post.where.planCaption"), { cities: maxCities })}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground" data-testid="post-where-plan-levels">
+                {fill(t("post.where.planLevels"), {
+                  regions: regionsNamed,
+                  cities: levelCounts.city,
+                  subCities: levelCounts.sub_city,
+                })}
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ------------- W6b-2 B1 — Box 2: the item / service location ---------- */}
+      <section
+        className="space-y-3 rounded-lg border-2 border-primary/60 p-3"
+        data-testid="post-where-item-box"
+        aria-labelledby="post-where-item-title"
+      >
+        <h3 id="post-where-item-title" className="text-sm font-semibold text-foreground">
+          {t("post.where.itemBoxTitle")}
+        </h3>
+        <p className="text-sm text-foreground" data-testid="post-where-item-name">
+          {itemNode === null ? t("post.where.itemNone") : nameOf(itemNode)}
+        </p>
+
+        {mapCapable &&
+          (listingId === null ? (
+            <p className="text-xs text-muted-foreground" data-testid="post-where-pin-later">
+              {t("post.where.pinLater")}
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {!pinOpen && (
+                <p
+                  className="text-sm text-foreground"
+                  data-testid="post-pin-position"
+                  data-lat={pin === null ? "" : pin.lat.toFixed(5)}
+                  data-lng={pin === null ? "" : pin.lng.toFixed(5)}
+                >
+                  {pin === null
+                    ? t("post.pin.none")
+                    : fill(t("post.pin.at"), {
+                        lat: pin.lat.toFixed(5),
+                        lng: pin.lng.toFixed(5),
+                      })}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
+                  aria-haspopup="dialog"
+                  onClick={() => {
+                    setPinState("idle");
+                    setPinOpen(true);
                   }}
-                  onRemove={async () => {
-                    const ok = await clearPin(listingId);
-                    if (ok) onPinSaved?.(null);
-                    return ok;
-                  }}
-                />
-              </Suspense>
-            )}
-          </div>
-        )}
-      </div>
+                  data-testid="post-where-pin-open"
+                >
+                  {t(pin === null ? "post.pin.open" : "post.pin.change")}
+                </button>
+                {pin !== null && (
+                  <button
+                    type="button"
+                    className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
+                    onClick={() => {
+                      void clearPin(listingId).then((ok) => {
+                        if (ok) {
+                          onPinSaved?.(null);
+                          setNote("");
+                        }
+                        setPinState(ok ? "removed" : "failed");
+                      });
+                    }}
+                    data-testid="post-pin-remove"
+                  >
+                    {t("post.pin.remove")}
+                  </button>
+                )}
+              </div>
+              {pinState === "saved" && (
+                <p className="text-sm text-foreground" data-testid="post-pin-saved">
+                  {t("post.pin.saved")}
+                </p>
+              )}
+              {pinState === "removed" && (
+                <p className="text-sm text-foreground" data-testid="post-pin-removed">
+                  {t("post.pin.removed")}
+                </p>
+              )}
+              {pinState === "failed" && (
+                <p className="text-sm text-destructive" data-testid="post-pin-error">
+                  {t("post.pin.saveFailed")}
+                </p>
+              )}
+              {pinOpen && (
+                <Suspense
+                  fallback={
+                    <p className="text-xs text-muted-foreground">{t("post.pin.searching")}</p>
+                  }
+                >
+                  <MapPinDropper
+                    saved={pin}
+                    place={pinPlace}
+                    note={note}
+                    onNote={setNote}
+                    onClose={() => setPinOpen(false)}
+                    onSave={async (value) => {
+                      const street = sanitizeDetails(note);
+                      const ok = await savePin(
+                        listingId,
+                        value.lat,
+                        value.lng,
+                        value.precision,
+                        street === "" ? null : street,
+                      );
+                      if (ok) {
+                        onPinSaved?.({ ...value, street: street === "" ? null : street });
+                        setPinState("saved");
+                        setPinOpen(false);
+                      }
+                      return ok;
+                    }}
+                  />
+                </Suspense>
+              )}
+            </div>
+          ))}
+
+        {/* W6b-2 B3 — the location details, for every category. */}
+        <div className="space-y-1">
+          <label htmlFor="post-where-details" className="text-sm font-medium text-foreground">
+            {t("post.where.detailsLabel")}
+          </label>
+          <input
+            id="post-where-details"
+            data-testid="post-where-details"
+            className={fieldClass}
+            value={note}
+            disabled={listingId === null}
+            onChange={(event) => {
+              setNote(event.target.value);
+              setNoteState("idle");
+            }}
+            onBlur={() => {
+              if (listingId === null) return;
+              const clean = sanitizeDetails(note);
+              if (clean.length > DETAILS_MAX) {
+                setNoteState("long");
+                return;
+              }
+              setNoteState("busy");
+              void saveListingNote(listingId, clean === "" ? null : clean, pin).then((ok) => {
+                setNoteState(ok ? "saved" : "failed");
+                if (ok && pin !== null)
+                  onPinSaved?.({ ...pin, street: clean === "" ? null : clean });
+              });
+            }}
+          />
+          <p className="text-xs text-muted-foreground">{t("post.where.detailsHelp")}</p>
+          {noteState === "saved" && (
+            <p className="text-xs text-muted-foreground" data-testid="post-where-details-saved">
+              {t("post.where.detailsSaved")}
+            </p>
+          )}
+          {noteState === "long" && (
+            <p
+              className="text-xs text-destructive"
+              role="alert"
+              data-testid="post-where-details-long"
+            >
+              {fill(t("post.where.detailsTooLong"), { max: DETAILS_MAX })}
+            </p>
+          )}
+          {noteState === "failed" && (
+            <p
+              className="text-xs text-destructive"
+              role="alert"
+              data-testid="post-where-details-failed"
+            >
+              {t("post.where.detailsFailed")}
+            </p>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
