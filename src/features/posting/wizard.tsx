@@ -655,65 +655,17 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           onTerm={setCategoryTerm}
                           selectedId={categoryId}
                           invalid={triedWithoutLeaf && categoryId === null}
-                          onChoose={(nextCategoryId) => {
-                            // ONE CONTROL, AUTO-ADVANCE: choosing a postable leaf IS the
-                            // answer to step 1, so the wizard saves it and moves on. No
-                            // confirmation screen — the chip above every later step is the
-                            // confirmation, and it carries the way back.
-                            setTriedWithoutLeaf(false);
-                            setNoticeDismissed(false);
-                            const previous = draft.values.categoryId;
-                            if (previous === null || previous === nextCategoryId) {
-                              setResetOffer(null);
-                              setPhotosNeedRecheck(false);
-                              draft.change({ categoryId: nextCategoryId }, true);
-                              void draft.saveAt(1).then((saved) => {
-                                if (saved) draft.goTo(3);
-                              });
+                          onChoose={(nextCategoryId, matches) => {
+                            // D37-2 — a finder hit carries proposed answers; they are
+                            // revalidated against the leaf's schema and options first
+                            // (the finder is a hint), then land as editable prefills.
+                            if (matches !== undefined && matches.length > 0) {
+                              void prefillFromMatches(nextCategoryId, matches, entities.lang).then(
+                                (prefill) => chooseLeaf(nextCategoryId, prefill),
+                              );
                               return;
                             }
-                            // D59 — A REAL CHANGE: every answer the category shapes is
-                            // reset in ONE change (INC-248's chosen-option drop is
-                            // subsumed), photos, place and contact are left alone, and
-                            // the old values are held for Undo.
-                            const v = draft.values;
-                            setResetOffer({
-                              categoryId: v.categoryId,
-                              attributes: v.attributes,
-                              title: v.title,
-                              description: v.description,
-                              videoUrl: v.videoUrl,
-                              priceMode: v.priceMode,
-                              priceAmount: v.priceAmount,
-                              priceCurrency: v.priceCurrency,
-                              pricePeriod: v.pricePeriod,
-                              priceBp: v.priceBp,
-                              priceNegotiable: v.priceNegotiable,
-                            });
-                            setPhotosNeedRecheck(draft.photos.length > 0);
-                            draft.change(
-                              {
-                                categoryId: nextCategoryId,
-                                attributes: {},
-                                title: "",
-                                description: "",
-                                videoUrl: "",
-                                priceMode: "fixed",
-                                priceAmount: null,
-                                priceCurrency: null,
-                                pricePeriod: null,
-                                priceBp: null,
-                                priceNegotiable: false,
-                              },
-                              false,
-                            );
-                            void (async () => {
-                              // REWIND, not `saveAt`: the claim must come DOWN to
-                              // step 1 (see `rewindTo`).
-                              const saved = await draft.rewindTo(1);
-                              // D39 — specifications come next in every branch.
-                              if (saved) draft.goTo(3);
-                            })();
+                            chooseLeaf(nextCategoryId, {});
                           }}
                         />
                       )}
