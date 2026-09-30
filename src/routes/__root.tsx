@@ -203,7 +203,7 @@ function ErrorContent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   return (
     <I18nProvider>
