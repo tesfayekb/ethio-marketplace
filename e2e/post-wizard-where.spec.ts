@@ -39,6 +39,22 @@ import {
 const DRAFT = "/api/listings/draft";
 const PUBLISH = "/api/listings/publish";
 
+/** INC-355 — the computed destructive token colour, for border comparisons. */
+async function destructiveOf(page: import("@playwright/test").Page): Promise<string> {
+  return page.evaluate(() => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--destructive)";
+    document.body.append(probe);
+    const colour = getComputedStyle(probe).color;
+    probe.remove();
+    return colour;
+  });
+}
+
+async function borderOf(box: import("@playwright/test").Locator): Promise<string> {
+  return box.evaluate((el) => getComputedStyle(el).borderTopColor);
+}
+
 test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   const categories: string[] = [];
   const sellers: string[] = [];
@@ -395,8 +411,19 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       "data-red",
       "1",
     );
+    expect(await borderOf(regionBox), "PW-90: the empty region border is not full destructive").toEqual(
+      await destructiveOf(page),
+    );
+    await expect(
+      regionBox.locator("label").first().getByTestId("post-required-mark"),
+      "PW-90: the empty region box has no asterisk",
+    ).toHaveCount(1);
     await region.selectOption(chain.region.id);
     await expect(regionBox, "PW-90: a chosen region stays red").toHaveAttribute("data-red", "0");
+    await expect(
+      regionBox.locator("label").first().getByTestId("post-required-mark"),
+      "PW-90: a chosen region keeps its asterisk",
+    ).toHaveCount(0);
     const cityBox = page.getByTestId("post-where-row");
     await page.getByTestId("post-where-city").selectOption("");
     await expect(cityBox, "PW-90: an empty city box is not red").toHaveAttribute("data-red", "1");
@@ -410,8 +437,16 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       return { got: getComputedStyle(el).borderTopColor, want };
     });
     expect(alpha.got, "PW-90: the empty city border is not full destructive").toBe(alpha.want);
+    await expect(
+      cityBox.locator('label[for="post-where-city"]').getByTestId("post-required-mark"),
+      "PW-90: the empty city box has no asterisk",
+    ).toHaveCount(1);
     await page.getByTestId("post-where-city").selectOption(chain.city.id);
     await expect(cityBox, "PW-90: a chosen city stays red").toHaveAttribute("data-red", "0");
+    await expect(
+      cityBox.locator('label[for="post-where-city"]').getByTestId("post-required-mark"),
+      "PW-90: a chosen city keeps its asterisk",
+    ).toHaveCount(0);
   });
 
   /**
