@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36781795077
-- Commit: `e765c0120b798f680d9aa43f0e23dfb7df170130`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36785019059
+- Commit: `c3761f9261485da2121e1c15c2125b7f45128f71`
 - Attempt: 1
-- Written (UTC): 2026-09-30T22:06:28.408Z
+- Written (UTC): 2026-09-30T22:35:44.345Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -30,10 +30,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36781795077
-  E2E_HEAD_COMMIT_MESSAGE: Fixed pin, outline & red borders
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36785019059
+  E2E_HEAD_COMMIT_MESSAGE: Fixed hidden "other" boxes
 
-X-Lovable-Edit-ID: edt-df8b92ce-dc7d-45d3-9dc3-2354afb5ca3f
+X-Lovable-Edit-ID: edt-ec9b5e8e-7174-45c8-a8d6-6f5fdef867c6
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -50,11 +50,11 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 Wrote docs/tracking/e2e-last-failure.md (8/8 source(s) with usable results, 4 context file(s) found).
 From https://github.com/tesfayekb/ethio-marketplace
  * branch            dev        -> FETCH_HEAD
-HEAD is now at e765c01 Fixed pin, outline & red borders
-[dev 1d01087] ci: e2e failure report + flake ledger [skip ci]
- 1 file changed, 368 insertions(+), 94 deletions(-)
+HEAD is now at c3761f9 Fixed hidden "other" boxes
+[dev 403c14b] ci: e2e failure report + flake ledger [skip ci]
+ 1 file changed, 75 insertions(+), 76 deletions(-)
 To https://github.com/tesfayekb/ethio-marketplace
-   e765c01..1d01087  HEAD -> dev
+   c3761f9..403c14b  HEAD -> dev
 ##[group]Run echo "smoke=success email=success shards=failure"
 [36;1mecho "smoke=success email=success shards=failure"[0m
 [36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
@@ -70,7 +70,7 @@ smoke=success email=success shards=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/7819821e-6e65-40cc-9b1f-5179b683c55b' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/401ef59d-db25-47db-90b0-761f83f75a63' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
