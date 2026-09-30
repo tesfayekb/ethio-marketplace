@@ -3456,6 +3456,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.category.currentChoice": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.category.empty": [
       "/post",
       "/post/$listingId"
@@ -3473,6 +3477,18 @@
       "/post/$listingId"
     ],
     "post.category.illustrationAlt": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.keepIt": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.matchLine": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.nameMatchesOnly": [
       "/post",
       "/post/$listingId"
     ],
