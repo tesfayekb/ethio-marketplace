@@ -273,6 +273,7 @@ function CountryBox({
                   className="text-sm font-medium text-foreground"
                 >
                   {t(LEVEL_KEYS["region"] ?? "post.where.level.region")}
+                  {group.region === null && <RequiredMark />}
                 </label>
                 <select
                   id={hasPrimary ? "post-where-region" : `post-where-region-${group.key}`}
@@ -336,6 +337,7 @@ function CountryBox({
                         <div className="space-y-1">
                           <label htmlFor={cityId} className="text-sm font-medium text-foreground">
                             {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
+                            {placeOf(row) === null && <RequiredMark />}
                           </label>
                           <select
                             id={cityId}
@@ -470,6 +472,7 @@ function OtherCountryBox({
     <div className="space-y-1">
       <label htmlFor={id} className="text-sm font-medium text-foreground">
         {t("post.where.marketLabel")}
+        {code === null && <RequiredMark />}
       </label>
       <select
         id={id}
