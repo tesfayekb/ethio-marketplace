@@ -1,59 +1,124 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36642555497 passed
+last E2E run 36646916552 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36642555497
-- Commit: `eda023d3384fee19856ab2b1c75e6166308b72d8`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36646916552
+- Commit: `c7ae8d785c111c430c4e495d6d2419cb51e7c37d`
 - Attempt: 1
-- Written (UTC): 2026-09-29T23:15:10.108Z
+- Written (UTC): 2026-09-30T00:02:40.330Z
 - Post-test warnings: 9
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Flaky (passed on retry, DEC-030, non-gating): 2
 
 ## Flake ledger (DEC-030)
 
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · admin-translations-governance.spec.ts › U4g bulk approval, order and orphans › TR-29 the catalog exports as CSV and a translated CSV imports back — Error: the CSV export was page-scoped: 1952 stable+own rows against a 1953-row expectation
+- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · admin-users.spec.ts › U1 admin users › AU-9 edit: staff edits display name and alias, activity records it — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · shell.spec.ts › U4h device language star › TR-28 hreflang alternates equal the anon publication gate — Error: [INC-113] url: http://127.0.0.1:4173/
 
 ## Flaky bodies (DEC-078)
 
-### admin-translations-governance.spec.ts › U4g bulk approval, order and orphans › TR-29 the catalog exports as CSV and a translated CSV imports back
+### admin-users.spec.ts › U1 admin users › AU-9 edit: staff edits display name and alias, activity records it
 
-- Source: `shard 5`
-- Project: `desktop-1280`
+- Source: `shard 2`
+- Project: `mobile-360`
 
 ```text
-Error: the CSV export was page-scoped: 1952 stable+own rows against a 1953-row expectation
+Error: expect(locator).toBeVisible() failed
 
-expect(received).toBe(expected) // Object.is equality
+Locator: getByTestId('activity-user.profile_edit').first()
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
 
-Expected: 1953
-Received: 1952
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('activity-user.profile_edit').first()
+
+
+[INC-115d] expected activity row: user.profile_edit
+[INC-109] url: http://127.0.0.1:4173/admin/users/174a5f0e-f82c-44e0-848e-c5b06a6b9eae
+[INC-109] testids: admin-user-detail=1 user-detail-error=0 user-detail-loading=0
+[INC-109] queries:
+  ["auth-derived","admin","users","detail","174a5f0e-f82c-44e0-848e-c5b06a6b9eae"] status=success error=none dataUpdatedAt=1790725853243 dataLength=non-array
+  ["auth-derived","admin","users","activity","174a5f0e-f82c-44e0-848e-c5b06a6b9eae"] status=success error=none dataUpdatedAt=1790725853162 dataLength=0
+  ["auth-derived","admin","users","roles"] status=success error=none dataUpdatedAt=1790725853236 dataLength=37
+[INC-114] audit_log rows for 174a5f0e-f82c-44e0-848e-c5b06a6b9eae: 1
+  action=user.profile_edit entity=profiles:174a5f0e-f82c-44e0-848e-c5b06a6b9eae created_at=2026-09-29T23:50:53.099262+00:00
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e758]:
-            - generic [ref=e759]: About
-          - listitem [ref=e760]:
-            - generic [ref=e761]: How it works
-      - navigation "Help" [ref=e762]:
-        - heading "Help" [level=2] [ref=e763]
-        - list [ref=e764]:
-          - listitem [ref=e765]:
-            - generic [ref=e766]: Safety
-          - listitem [ref=e767]:
-            - generic [ref=e768]: Contact
-      - navigation "Legal" [ref=e769]:
-        - heading "Legal" [level=2] [ref=e770]
-        - list [ref=e771]:
-          - listitem [ref=e772]:
-            - generic [ref=e773]: Terms
-          - listitem [ref=e774]:
-            - generic [ref=e775]: Privacy
-    - paragraph [ref=e777]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e150]:
+            - generic [ref=e151]: About
+          - listitem [ref=e152]:
+            - generic [ref=e153]: How it works
+      - navigation "Help" [ref=e154]:
+        - heading "Help" [level=2] [ref=e155]
+        - list [ref=e156]:
+          - listitem [ref=e157]:
+            - generic [ref=e158]: Safety
+          - listitem [ref=e159]:
+            - generic [ref=e160]: Contact
+      - navigation "Legal" [ref=e161]:
+        - heading "Legal" [level=2] [ref=e162]
+        - list [ref=e163]:
+          - listitem [ref=e164]:
+            - generic [ref=e165]: Terms
+          - listitem [ref=e166]:
+            - generic [ref=e167]: Privacy
+    - paragraph [ref=e169]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+### shell.spec.ts › U4h device language star › TR-28 hreflang alternates equal the anon publication gate
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: [INC-113] url: http://127.0.0.1:4173/
+[INC-113] html lang: en
+[INC-113] provider publicLanguages: {"gateReady":true,"degraded":false,"active":"en","star":null,"codes":["en","am"]}
+[INC-113] rendered options: (none) · stars: (none) · menu closed (options are portalled)
+
+expect(received).toEqual(expected) // deep equality
+
+- Expected  - 0
++ Received  + 1
+
+  Array [
+    "am",
+    "en",
+    "x-default",
++   "zxb-51de",
+  ]
+```
+
+Context:
+
+```text
+          - listitem [ref=e71]:
+            - generic [ref=e72]: About
+          - listitem [ref=e73]:
+            - generic [ref=e74]: How it works
+      - navigation "Help" [ref=e75]:
+        - heading "Help" [level=2] [ref=e76]
+        - list [ref=e77]:
+          - listitem [ref=e78]:
+            - generic [ref=e79]: Safety
+          - listitem [ref=e80]:
+            - generic [ref=e81]: Contact
+      - navigation "Legal" [ref=e82]:
+        - heading "Legal" [level=2] [ref=e83]
+        - list [ref=e84]:
+          - listitem [ref=e85]:
+            - generic [ref=e86]: Terms
+          - listitem [ref=e87]:
+            - generic [ref=e88]: Privacy
+    - paragraph [ref=e90]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -61,7 +126,7 @@ Context:
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
-106 line(s), 36 message(s): 1 off the allowlist, 35 allowlisted.
+105 line(s), 36 message(s): 1 off the allowlist, 35 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
@@ -73,8 +138,8 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 | `definitions badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `definitions wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `export_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
-| `listing not found` | 4 | shard 3, shard 6, changed |
 | `preview_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
+| `listing not found` | 3 | shard 3, shard 6 |
 | `categories file too large` (quiet) | 2 | shard 2, shard 5 |
 | `categories nulByte` (quiet) | 2 | shard 2, shard 5 |
 | `categories unknownColumn` (quiet) | 2 | shard 2, shard 5 |
@@ -108,7 +173,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 4 · Sources: shard 3, shard 6, changed
+- Count: 3 · Sources: shard 3, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -126,62 +191,62 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-09-29T22:58:48.430Z | 10.3 min |
-| email | 2026-09-29T22:58:55.383Z | 0.2 min |
-| shard 1 | 2026-09-29T22:58:47.910Z | 16.0 min |
-| shard 2 | 2026-09-29T22:58:50.728Z | 11.0 min |
-| shard 3 | 2026-09-29T22:58:43.224Z | 8.1 min |
-| shard 4 | 2026-09-29T22:58:40.955Z | 11.9 min |
-| shard 5 | 2026-09-29T22:58:39.196Z | 10.1 min |
-| shard 6 | 2026-09-29T22:58:47.298Z | 9.0 min |
-| changed | 2026-09-29T22:58:51.503Z | 5.8 min |
+| smoke | 2026-09-29T23:47:51.811Z | 9.7 min |
+| email | 2026-09-29T23:47:59.982Z | 0.3 min |
+| shard 1 | 2026-09-29T23:47:50.743Z | 14.5 min |
+| shard 2 | 2026-09-29T23:47:55.926Z | 10.9 min |
+| shard 3 | 2026-09-29T23:47:56.643Z | 7.7 min |
+| shard 4 | 2026-09-29T23:47:48.375Z | 11.8 min |
+| shard 5 | 2026-09-29T23:47:56.493Z | 11.9 min |
+| shard 6 | 2026-09-29T23:47:51.844Z | 8.6 min |
+| changed | 2026-09-29T23:47:57.334Z | 6.2 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `post-wizard-place.spec.ts` | 68 | 15.2 min | shard 2, shard 5, changed |
-| `shell.spec.ts` | 252 | 13.9 min | smoke, shard 3, shard 6 |
-| `post-wizard-specs.spec.ts` | 52 | 8.7 min | shard 3, shard 6 |
-| `admin-attributes-library.spec.ts` | 40 | 8.6 min | shard 1, shard 4 |
+| `post-wizard-place.spec.ts` | 68 | 16.3 min | shard 2, shard 5, changed |
+| `shell.spec.ts` | 252 | 13.3 min | smoke, shard 3, shard 6 |
+| `post-wizard-specs.spec.ts` | 52 | 8.1 min | shard 3, shard 6 |
+| `admin-attributes-library.spec.ts` | 40 | 8.1 min | shard 1, shard 4 |
 | `admin-attributes-editor.spec.ts` | 34 | 6.0 min | shard 1, shard 4 |
-| `import-security.spec.ts` | 34 | 5.5 min | shard 2, shard 5 |
+| `import-security.spec.ts` | 34 | 5.6 min | shard 2, shard 5 |
 | `admin-translations-console.spec.ts` | 36 | 5.2 min | shard 1, shard 5 |
-| `admin-attributes-links.spec.ts` | 22 | 5.1 min | shard 1, shard 4 |
-| `admin-locations.spec.ts` | 34 | 5.1 min | shard 1, shard 4 |
-| `admin-roles.spec.ts` | 24 | 4.9 min | shard 1, shard 4 |
-| `post-wizard-pricing.spec.ts` | 26 | 4.9 min | shard 3, shard 6 |
-| `admin-categories-console.spec.ts` | 32 | 4.8 min | shard 1, shard 4 |
-| `admin-categories-lifecycle.spec.ts` | 38 | 4.8 min | shard 1, shard 4 |
-| `auth-signout.spec.ts` | 44 | 4.2 min | smoke, shard 2, shard 5 |
+| `admin-attributes-links.spec.ts` | 22 | 5.0 min | shard 1, shard 4 |
+| `admin-categories-console.spec.ts` | 32 | 4.7 min | shard 1, shard 4 |
+| `post-wizard-pricing.spec.ts` | 26 | 4.6 min | shard 3, shard 6 |
+| `admin-locations.spec.ts` | 34 | 4.4 min | shard 1, shard 4 |
+| `admin-categories-lifecycle.spec.ts` | 38 | 4.4 min | shard 1, shard 4 |
+| `post-wizard-category.spec.ts` | 40 | 4.3 min | shard 2, shard 5 |
+| `auth-signout.spec.ts` | 44 | 4.3 min | smoke, shard 2, shard 5 |
 | `post-wizard-resets.spec.ts` | 18 | 4.1 min | shard 3, shard 6 |
-| `post-wizard-category.spec.ts` | 40 | 3.9 min | shard 2, shard 5 |
-| `admin-attributes-import.spec.ts` | 32 | 3.8 min | shard 1, shard 4 |
-| `admin-users.spec.ts` | 22 | 3.4 min | shard 2, shard 5 |
+| `admin-users.spec.ts` | 22 | 4.0 min | shard 2, shard 5 |
+| `admin-roles.spec.ts` | 24 | 4.0 min | shard 1, shard 4 |
+| `admin-attributes-import.spec.ts` | 32 | 3.9 min | shard 1, shard 4 |
+| `admin-translations-data.spec.ts` | 8 | 2.7 min | shard 2, shard 5 |
 | `admin-translations-governance.spec.ts` | 8 | 2.7 min | shard 2, shard 5 |
-| `photo-pipeline.spec.ts` | 20 | 2.6 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 36 | 2.6 min | shard 3, shard 6 |
-| `admin-translations-data.spec.ts` | 8 | 2.5 min | shard 2, shard 5 |
-| `post-wizard-where.spec.ts` | 8 | 2.5 min | shard 3, shard 6, changed |
-| `mfa-stepup.spec.ts` | 18 | 2.2 min | shard 2, shard 5 |
-| `admin-countries.spec.ts` | 16 | 2.2 min | shard 1, shard 4 |
+| `photo-pipeline.spec.ts` | 20 | 2.5 min | shard 2, shard 5 |
+| `posting-routes.spec.ts` | 36 | 2.4 min | shard 3, shard 6 |
+| `post-wizard-where.spec.ts` | 8 | 2.4 min | shard 3, shard 6, changed |
+| `mfa-stepup.spec.ts` | 18 | 2.3 min | shard 2, shard 5 |
+| `admin-countries.spec.ts` | 16 | 2.1 min | shard 1, shard 4 |
 | `admin-audit.spec.ts` | 10 | 1.6 min | shard 1, shard 4 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `admin-shell.spec.ts` | 10 | 0.9 min | shard 1, shard 5 |
+| `admin-shell.spec.ts` | 10 | 1.0 min | shard 1, shard 5 |
 | `admin-coverage.spec.ts` | 14 | 0.9 min | shard 1, shard 4 |
-| `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
 | `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
-| `a11y.spec.ts` | 4 | 0.6 min | smoke |
+| `admin-categories-images.spec.ts` | 2 | 0.6 min | shard 1, shard 4 |
+| `a11y.spec.ts` | 4 | 0.5 min | smoke |
+| `category-image-routes.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
+| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
 | `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
-| `category-nav.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
-| `settings.spec.ts` | 4 | 0.3 min | shard 3 |
 | `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
 | `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `settings.spec.ts` | 4 | 0.3 min | shard 3 |
 | `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
 | `i18n-coverage.spec.ts` | 8 | 0.2 min | shard 2, shard 5 |
 | `rbac.spec.ts` | 6 | 0.2 min | shard 3, shard 6 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
+| `shell-table-law.spec.ts` | 2 | 0.2 min | shard 3, shard 6 |
 | `auth-signup.spec.ts` | 1 | 0.1 min | email |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
@@ -190,18 +255,18 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-locations.spec.ts` › LT-7 import round trip: a three-row file previews, commits, exports, deletes and undoes with the original ids | mobile-360 | 58.9 s |
-| `admin-roles.spec.ts` › RP-8 Amharic + no horizontal overflow | mobile-360 | 45.7 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 40.6 s |
+| `admin-users.spec.ts` › AU-9 edit: staff edits display name and alias, activity records it | mobile-360 | 39.2 s |
 | `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 35.2 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 34.5 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 34.0 s |
 | `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 33.8 s |
-| `admin-translations-governance.spec.ts` › TR-29 the catalog exports as CSV and a translated CSV imports back | desktop-1280 | 32.7 s |
-| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 31.8 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 31.8 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 31.7 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 31.6 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 30.9 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 30.5 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 29.8 s |
-| `admin-translations-data.spec.ts` › TR-24 the Data scope machine-translates one row and then every untranslated one | mobile-360 | 29.1 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 33.8 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 33.7 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 33.4 s |
+| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 33.1 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 32.3 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 32.2 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 31.4 s |
+| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 31.3 s |
+| `admin-translations-governance.spec.ts` › TR-29 the catalog exports as CSV and a translated CSV imports back | mobile-360 | 29.8 s |
+| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 29.6 s |
+| `admin-translations-data.spec.ts` › TR-24 the Data scope machine-translates one row and then every untranslated one | mobile-360 | 29.2 s |
