@@ -598,6 +598,12 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     expect(city && box, `PW-98 ${label}: no geometry`).toBeTruthy();
     if (city === null || box === null) return;
     const wide = (page.viewportSize()?.width ?? 0) >= 768;
+    // I — the DOM evidence the report pastes: geometry and the rendered line.
+    console.log(
+      `[PW-98 ${label}] city=${JSON.stringify(city)} tick=${JSON.stringify(box)} line=${await page
+        .locator('[data-testid="post-where-row"][data-key="primary"]')
+        .evaluate((el) => el.outerHTML.replace(/\s+/g, " ").slice(0, 600))}`,
+    );
     if (wide) {
       expect(box.x, `PW-98 ${label}: the tick is not right of the city`).toBeGreaterThanOrEqual(
         city.x + city.width - 1,
@@ -685,7 +691,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
     expect(widths.length, "PW-99: no selects").toBeGreaterThan(0);
     for (const width of widths) {
-      expect(width, "PW-99: a select is narrower than 280 px").toBeGreaterThanOrEqual(280);
+      expect(width, `PW-99: a select is narrower than 280 px (${widths.join(", ")})`).toBeGreaterThanOrEqual(280);
     }
   });
 

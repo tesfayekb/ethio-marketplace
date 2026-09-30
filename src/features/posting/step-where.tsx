@@ -120,15 +120,22 @@ function placeOf(row: Row): string | null {
  * box until its region is, a city box until its city is; each clears the moment
  * it is filled. The heading's required mark still waits for a city (W6 R1).
  */
-function boxClass(empty: boolean, refused: boolean): string {
+function boxClass(empty: boolean, refused: boolean, step = ""): string {
   const border = refused
     ? "border-destructive ring-1 ring-destructive"
     : empty
       ? "border-destructive"
       : "border-input";
   // W6b-1 R2 — compact padding at 360 px keeps a city box ≥ 280 px wide.
-  return `space-y-3 rounded-md border p-2 sm:p-3 ${border}`;
+  // J — the staircase: `step` indents a level; at 360 a small indent and the
+  // box's own start rule, with padding kept tight so selects stay ≥ 280 px.
+  return `space-y-3 rounded-md border px-1.5 py-2 sm:p-3 ${step} ${border}`;
 }
+
+/** J — region box: indented, about two-thirds and right-aligned from 768 px. */
+const REGION_STEP = "ms-1.5 border-s-2 md:ms-auto md:w-2/3";
+/** J — city line: one step further in than its region. */
+const CITY_STEP = "ms-1.5 border-s-2 md:ms-6";
 
 async function readGuess(): Promise<GuessFacts> {
   try {
@@ -265,7 +272,7 @@ function CountryBox({
               data-region={group.region ?? ""}
               data-empty={groupEmpty ? "1" : "0"}
               data-red={group.region === null ? "1" : "0"}
-              className={boxClass(group.region === null, false)}
+              className={boxClass(group.region === null, false, REGION_STEP)}
             >
               <div className="space-y-1">
                 <label
@@ -331,7 +338,7 @@ function CountryBox({
                       data-key={row.key}
                       data-item={row.key === itemKey ? "1" : "0"}
                       data-red={placeOf(row) === null ? "1" : "0"}
-                      className={boxClass(placeOf(row) === null, false)}
+                      className={boxClass(placeOf(row) === null, false, CITY_STEP)}
                     >
                       {cities.length > 0 && (
                         <div className="space-y-1">
