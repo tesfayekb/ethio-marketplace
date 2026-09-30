@@ -2244,8 +2244,14 @@ export async function seedFinderOption(): Promise<{
   aliasAm: string;
 }> {
   const leaf = await seedPostableCategory();
-  const stamp = rand().replace(/[^a-z]/g, "").slice(0, 6) || "qzxw";
-  const tag = `${stamp}${Math.random().toString(36).replace(/[^a-z]/g, "").slice(0, 6)}`;
+  const stamp =
+    rand()
+      .replace(/[^a-z]/g, "")
+      .slice(0, 6) || "qzxw";
+  const tag = `${stamp}${Math.random()
+    .toString(36)
+    .replace(/[^a-z]/g, "")
+    .slice(0, 6)}`;
   const attrKey = `e2e_find_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`.replace(
     /[^a-z0-9_]/g,
     "_",

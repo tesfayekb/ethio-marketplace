@@ -91,10 +91,8 @@ test.describe("POSTING WIZARD — the category finder (W7)", () => {
 
     await search.fill("");
     await switchLanguage(page, "am");
+    const amRequest = page.waitForRequest((request) => request.url().includes("/api/catalog/find"));
     await search.fill(seed.aliasAm);
-    const amRequest = page.waitForRequest((request) =>
-      request.url().includes("/api/catalog/find"),
-    );
     const amHit = hitOf(page, seed.leaf.id);
     await expect(amHit, "PW-85: the Amharic alias never listed the leaf").toBeVisible({
       timeout: 20_000,
@@ -135,10 +133,7 @@ test.describe("POSTING WIZARD — the category finder (W7)", () => {
     );
     await gotoReady(page, "/post");
     await page.getByTestId("post-category-search").fill(branch.leaf.slug);
-    await expect(
-      hitOf(page, branch.leaf.id),
-      "PW-86: the name match did not render",
-    ).toBeVisible();
+    await expect(hitOf(page, branch.leaf.id), "PW-86: the name match did not render").toBeVisible();
     await expect(
       page.getByTestId("post-category-nameonly"),
       "PW-86: the finder failed silently — no name-matches-only notice",
