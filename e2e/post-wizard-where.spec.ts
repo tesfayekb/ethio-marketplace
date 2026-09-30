@@ -582,4 +582,137 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(map).toHaveAttribute("data-provider", "osm", { timeout: 20_000 });
     await expect(await uncovered("OpenStreetMap")).toContainText("OpenStreetMap");
   });
+  /** PW-98 — the tick on the city line: right of the city at ≥ 768, under it at 360. */
+  async function tickOnCityLine(page: Page, label: string) {
+    const tick = tickOf(page, "primary");
+    await expect(tick, `PW-98 ${label}: the tick is not visible`).toBeVisible();
+    await expect(tick, `PW-98 ${label}: the tick is not checked`).toBeChecked();
+    await expect(tick, `PW-98 ${label}: the tick is off screen`).toBeInViewport();
+    const city = await page.getByTestId("post-where-city").boundingBox();
+    const box = await tick.boundingBox();
+    expect(city && box, `PW-98 ${label}: no geometry`).toBeTruthy();
+    if (city === null || box === null) return;
+    const wide = (page.viewportSize()?.width ?? 0) >= 768;
+    if (wide) {
+      expect(box.x, `PW-98 ${label}: the tick is not right of the city`).toBeGreaterThanOrEqual(
+        city.x + city.width - 1,
+      );
+      expect(Math.abs(box.y + box.height / 2 - (city.y + city.height / 2)), `PW-98 ${label}: not on the city line`).toBeLessThan(city.height);
+    } else {
+      expect(box.y, `PW-98 ${label}: the tick is not under the city`).toBeGreaterThanOrEqual(
+        city.y + city.height - 1,
+      );
+    }
+  }
+
+  /**
+   * PW-98 — I (INC-356). The "item or service is here" tick is seen and
+   * checked on the city line, on a fresh post and on a prefilled one.
+   */
+  test("PW-98 the item tick sits on the city line, fresh and prefilled", async ({ page }) => {
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+    const user = await signedInSeller(page);
+
+    await openAtStep6(page, user.id, category.id);
+    const region = page.getByTestId("post-where-region");
+    await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await region.selectOption(chain.region.id);
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+    await tickOnCityLine(page, "fresh");
+
+    const prior = await publishedAt(page, category.id, chain.city.id);
+    objects.push({ userId: user.id, listingId: prior });
+    await openAtStep6(page, user.id, category.id);
+    await expect(page.getByTestId("post-where-city")).toHaveValue(chain.city.id, {
+      timeout: 20_000,
+    });
+    await tickOnCityLine(page, "prefilled");
+  });
+
+  /**
+   * PW-99 — J. The staircase: at ≥ 768 the region box is narrower than the
+   * country box and right-aligned; at 360 every select is at least 280 px.
+   */
+  test("PW-99 the place boxes step in; every select stays at least 280 px", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+    await openAtStep6(page, user.id, category.id);
+    const region = page.getByTestId("post-where-region");
+    await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await region.selectOption(chain.region.id);
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+    const country = await page
+      .locator('[data-testid="post-where-country-box"][data-primary="1"]')
+      .boundingBox();
+    const regionBox = await page.getByTestId("post-where-region-box").first().boundingBox();
+    const cityRow = await page.getByTestId("post-where-row").first().boundingBox();
+    expect(country && regionBox && cityRow, "PW-99: no geometry").toBeTruthy();
+    if (country === null || regionBox === null || cityRow === null) return;
+    expect(regionBox.x, "PW-99: the region box is not indented").toBeGreaterThan(country.x);
+    expect(cityRow.x, "PW-99: the city line is not indented past the region").toBeGreaterThan(
+      regionBox.x,
+    );
+    if ((page.viewportSize()?.width ?? 0) >= 768) {
+      expect(regionBox.width, "PW-99: the region box is not narrower").toBeLessThan(
+        country.width * 0.8,
+      );
+      const countryRight = country.x + country.width;
+      const regionRight = regionBox.x + regionBox.width;
+      expect(countryRight - regionRight, "PW-99: the region box is not right-aligned").toBeLessThan(
+        24,
+      );
+    }
+    const widths = await page
+      .getByTestId("post-where-shown-box")
+      .locator("select")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+    expect(widths.length, "PW-99: no selects").toBeGreaterThan(0);
+    for (const width of widths) {
+      expect(width, "PW-99: a select is narrower than 280 px").toBeGreaterThanOrEqual(280);
+    }
+  });
+
+  /**
+   * PW-100 — K. A category WITHOUT map_pin offers the map; the explanation line
+   * and the "Show on my ad as" choice show; after Save the preview shows the pin.
+   */
+  test("PW-100 every category offers the map; after Save the preview shows the pin", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory({ capabilities: [] });
+    categories.push(category.slug);
+    const listingId = await openAtStep6(page, user.id, category.id);
+    await expect(page.getByTestId("post-where-item-help"), "PW-100: no explanation line").toBeVisible();
+    await expect(
+      page.getByTestId("post-where-pin-open"),
+      "PW-100: a category without map_pin offered no map",
+    ).toBeVisible();
+    await page.getByTestId("post-where-pin-open").click();
+    const map = page.getByTestId("post-pin-map");
+    await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
+    await expect(page.getByTestId("post-pin-precision-label"), "PW-100: no Show-on-my-ad label").toBeVisible();
+    await map.click({ position: { x: 120, y: 90 } });
+    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    await page.getByTestId("post-pin-save").click();
+    await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-where-pin-preview"), "PW-100: no preview after Save").toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId("post-where-pin-change")).toBeVisible();
+    await expect(page.getByTestId("post-where-pin-remove")).toBeVisible();
+    expect((await pinOf(listingId)).lat, "PW-100: no pin reached the row").not.toBeNull();
+  });
 });
