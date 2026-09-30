@@ -1,36 +1,36 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `07e6a52339ed918d7716107839911ebed1a366ad` (short `07e6a52`)
-- Conclusion: **SUCCESS**
-- Completed (UTC): 2026-09-30T19:20:55Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36762595363
+- Commit: `e765c0120b798f680d9aa43f0e23dfb7df170130` (short `e765c01`)
+- Conclusion: **FAILURE**
+- Completed (UTC): 2026-09-30T22:06:18Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36781795077
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Build, typecheck, lint | success |
-| Gitleaks secrets scan | success |
-| Import gate guard (with self-test) | success |
-| Component tests | success |
-| i18n used-on map is fresh (U4i ②) | success |
-| Migration linter (with self-test) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| E2E preflight (migration parity, staging) | success |
 | Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| Listing-write seam guard (with self-test) | success |
+| Build, typecheck, lint | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Import gate guard (with self-test) | success |
+| Gitleaks secrets scan | success |
+| i18n used-on map is fresh (U4i ②) | success |
 | Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Migration linter (with self-test) | success |
+| Listing-write seam guard (with self-test) | success |
+| E2E preflight (migration parity, staging) | success |
 | Hardcoded string scan (enforcing) | success |
+| Component tests | success |
+| First-paint bundle budget (gzipped ceiling) | success |
 | E2E build (shared dist) | success |
-| E2E email (serial, quota-bound) | success |
 | E2E changed specs (fast lane) | success |
-| E2E shard 6/6 | success |
-| E2E shard 4/6 | success |
-| E2E shard 2/6 | success |
 | E2E smoke tier | success |
-| E2E shard 5/6 | success |
+| E2E shard 2/6 | failure |
+| E2E email (serial, quota-bound) | success |
 | E2E shard 3/6 | success |
-| E2E shard 1/6 | success |
-| E2E (Playwright, ethio-staging) | success |
-| Promote to main (fast-forward on green) | success |
+| E2E shard 6/6 | success |
+| E2E shard 1/6 | failure |
+| E2E shard 4/6 | failure |
+| E2E shard 5/6 | failure |
+| E2E (Playwright, ethio-staging) | failure |
+| Promote to main (fast-forward on green) | skipped |
