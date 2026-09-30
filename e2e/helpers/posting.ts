@@ -2227,3 +2227,61 @@ export async function stopPageBeforePurge(page: Page): Promise<void> {
   }
   await page.goto("about:blank");
 }
+
+/**
+ * W7 (D37-2) — A SCRATCH FINDER OPTION: a scratch leaf linked to a scratch
+ * single_select whose one option's label and aliases (one Latin, one Ge'ez) are
+ * unique scratch words, then a real finder rebuild. Nothing real is written
+ * (G27); `destroySpecSet([attrKey])` and `destroyPostableCategory(slug)` reap it.
+ */
+export async function seedFinderOption(): Promise<{
+  leaf: { id: string; slug: string };
+  attrKey: string;
+  attrLabel: string;
+  value: string;
+  label: string;
+  alias: string;
+  aliasAm: string;
+}> {
+  const leaf = await seedPostableCategory();
+  const stamp =
+    rand()
+      .replace(/[^a-z]/g, "")
+      .slice(0, 6) || "qzxw";
+  const tag = `${stamp}${Math.random()
+    .toString(36)
+    .replace(/[^a-z]/g, "")
+    .slice(0, 6)}`;
+  const attrKey = `e2e_find_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`.replace(
+    /[^a-z0-9_]/g,
+    "_",
+  );
+  const attrLabel = `e2efindattr${tag}`;
+  const value = `e2efindval${tag}`;
+  const label = `e2eflabel${tag}`;
+  const alias = `e2efalias${tag}`;
+  const aliasAm = `ፍለጋ${tag}`;
+  const supabase = adminClient();
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert({
+      attr_key: attrKey,
+      name_en: attrLabel,
+      attr_type: "single_select",
+      options: [{ value, label_en: label, active: true, aliases: [alias, aliasAm] }],
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    throw new Error(`[e2e:w7] seeding the finder option failed: ${error?.message ?? "no row"}`);
+  }
+  const { error: linkError } = await supabase.from("category_attribute_links").insert({
+    category_id: leaf.id,
+    attribute_id: data.id,
+    is_required: false,
+    display_order: 1,
+  });
+  if (linkError) throw new Error(`[e2e:w7] linking the finder option failed: ${linkError.message}`);
+  await rebuildFinderIndex();
+  return { leaf, attrKey, attrLabel, value, label, alias, aliasAm };
+}
