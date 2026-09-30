@@ -456,13 +456,16 @@ export function MapPinDropper({
           </div>
 
           <fieldset className="space-y-1">
-            <legend className="text-sm font-medium text-foreground">
-              {t("post.pin.precisionLabel")}
+            <legend
+              className="text-sm font-medium text-foreground"
+              data-testid="post-pin-precision-label"
+            >
+              {t("post.pin.showAsLabel")}
             </legend>
             {(
               [
-                ["exact", "post.pin.precisionExact"],
-                ["approx", "post.pin.precisionApprox"],
+                ["exact", "post.pin.showAsExact"],
+                ["approx", "post.pin.showAsApprox"],
               ] as const
             ).map(([value, key]) => (
               <label

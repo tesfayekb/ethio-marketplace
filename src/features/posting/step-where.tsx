@@ -34,6 +34,7 @@ import type { Refusal } from "./types";
  * never carries a mapping library (the weight and budget guards prove it), and a
  * seller who never asks for a pin never downloads one.
  */
+const MapPreview = lazy(() => import("./map/map-preview"));
 const MapPinDropper = lazy(() =>
   import("./map/map-pin-dropper").then((mod) => ({ default: mod.MapPinDropper })),
 );
@@ -538,7 +539,6 @@ export function StepWhere({
   maxCities = null,
   maxRegions = null,
   maxCountries = null,
-  mapCapable = false,
 }: {
   /** The chosen place ids; the FIRST one is the item's own place (spec §4 C2). */
   coverage: string[];
@@ -554,8 +554,6 @@ export function StepWhere({
   maxCities?: number | null;
   maxRegions?: number | null;
   maxCountries?: number | null;
-  /** W6b-2 B1 — the map shows only for a category with the `map_pin` capability. */
-  mapCapable?: boolean;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
@@ -1164,108 +1162,120 @@ export function StepWhere({
           {itemNode === null ? t("post.where.itemNone") : nameOf(itemNode)}
         </p>
 
-        {mapCapable &&
-          (listingId === null ? (
-            <p className="text-xs text-muted-foreground" data-testid="post-where-pin-later">
-              {t("post.where.pinLater")}
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {!pinOpen && (
-                <p
-                  className="text-sm text-foreground"
-                  data-testid="post-pin-position"
-                  data-lat={pin === null ? "" : pin.lat.toFixed(5)}
-                  data-lng={pin === null ? "" : pin.lng.toFixed(5)}
-                >
-                  {pin === null
-                    ? t("post.pin.none")
-                    : fill(t("post.pin.at"), {
-                        lat: pin.lat.toFixed(5),
-                        lng: pin.lng.toFixed(5),
-                      })}
-                </p>
-              )}
-              <div className="flex flex-wrap gap-2">
+        {/* K — one explanation line; the map is offered in EVERY category. */}
+        <p className="text-xs text-muted-foreground" data-testid="post-where-item-help">
+          {t("post.where.itemHelp")}
+        </p>
+
+        {listingId === null ? (
+          <p className="text-xs text-muted-foreground" data-testid="post-where-pin-later">
+            {t("post.where.pinLater")}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {!pinOpen && (
+              <p
+                className="text-sm text-foreground"
+                data-testid="post-pin-position"
+                data-lat={pin === null ? "" : pin.lat.toFixed(5)}
+                data-lng={pin === null ? "" : pin.lng.toFixed(5)}
+              >
+                {pin === null
+                  ? t("post.pin.none")
+                  : fill(t("post.pin.at"), {
+                      lat: pin.lat.toFixed(5),
+                      lng: pin.lng.toFixed(5),
+                    })}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
+                aria-haspopup="dialog"
+                onClick={() => {
+                  setPinState("idle");
+                  setPinOpen(true);
+                }}
+                data-testid="post-where-pin-open"
+              >
+                {t(pin === null ? "post.pin.open" : "post.pin.change")}
+              </button>
+              {pin !== null && (
                 <button
                   type="button"
                   className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
-                  aria-haspopup="dialog"
                   onClick={() => {
-                    setPinState("idle");
-                    setPinOpen(true);
-                  }}
-                  data-testid="post-where-pin-open"
-                >
-                  {t(pin === null ? "post.pin.open" : "post.pin.change")}
-                </button>
-                {pin !== null && (
-                  <button
-                    type="button"
-                    className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
-                    onClick={() => {
-                      void clearPin(listingId).then((ok) => {
-                        if (ok) {
-                          onPinSaved?.(null);
-                          setNote("");
-                        }
-                        setPinState(ok ? "removed" : "failed");
-                      });
-                    }}
-                    data-testid="post-pin-remove"
-                  >
-                    {t("post.pin.remove")}
-                  </button>
-                )}
-              </div>
-              {pinState === "saved" && (
-                <p className="text-sm text-foreground" data-testid="post-pin-saved">
-                  {t("post.pin.saved")}
-                </p>
-              )}
-              {pinState === "removed" && (
-                <p className="text-sm text-foreground" data-testid="post-pin-removed">
-                  {t("post.pin.removed")}
-                </p>
-              )}
-              {pinState === "failed" && (
-                <p className="text-sm text-destructive" data-testid="post-pin-error">
-                  {t("post.pin.saveFailed")}
-                </p>
-              )}
-              {pinOpen && (
-                <Suspense
-                  fallback={
-                    <p className="text-xs text-muted-foreground">{t("post.pin.searching")}</p>
-                  }
-                >
-                  <MapPinDropper
-                    saved={pin}
-                    place={pinPlace}
-                    note={note}
-                    onNote={setNote}
-                    onClose={() => setPinOpen(false)}
-                    onSave={async (value) => {
-                      const street = sanitizeDetails(note);
-                      const ok = await savePin(
-                        listingId,
-                        value.lat,
-                        value.lng,
-                        value.precision,
-                        street === "" ? null : street,
-                      );
+                    void clearPin(listingId).then((ok) => {
                       if (ok) {
-                        onPinSaved?.({ ...value, street: street === "" ? null : street });
-                        setPinState("saved");
-                        setPinOpen(false);
+                        onPinSaved?.(null);
+                        setNote("");
                       }
-                      return ok;
-                    }}
-                  />
-                </Suspense>
+                      setPinState(ok ? "removed" : "failed");
+                    });
+                  }}
+                  data-testid="post-pin-remove"
+                >
+                  {t("post.pin.remove")}
+                </button>
               )}
             </div>
-          ))}
+            {/* K — after Save, the small map exactly as buyers see it. */}
+            {pin !== null && !pinOpen && (
+              <div data-testid="post-where-pin-preview">
+                <Suspense fallback={null}>
+                  <MapPreview lat={pin.lat} lng={pin.lng} precision={pin.precision ?? null} />
+                </Suspense>
+              </div>
+            )}
+            {pinState === "saved" && (
+              <p className="text-sm text-foreground" data-testid="post-pin-saved">
+                {t("post.pin.saved")}
+              </p>
+            )}
+            {pinState === "removed" && (
+              <p className="text-sm text-foreground" data-testid="post-pin-removed">
+                {t("post.pin.removed")}
+              </p>
+            )}
+            {pinState === "failed" && (
+              <p className="text-sm text-destructive" data-testid="post-pin-error">
+                {t("post.pin.saveFailed")}
+              </p>
+            )}
+            {pinOpen && (
+              <Suspense
+                fallback={
+                  <p className="text-xs text-muted-foreground">{t("post.pin.searching")}</p>
+                }
+              >
+                <MapPinDropper
+                  saved={pin}
+                  place={pinPlace}
+                  note={note}
+                  onNote={setNote}
+                  onClose={() => setPinOpen(false)}
+                  onSave={async (value) => {
+                    const street = sanitizeDetails(note);
+                    const ok = await savePin(
+                      listingId,
+                      value.lat,
+                      value.lng,
+                      value.precision,
+                      street === "" ? null : street,
+                    );
+                    if (ok) {
+                      onPinSaved?.({ ...value, street: street === "" ? null : street });
+                      setPinState("saved");
+                      setPinOpen(false);
+                    }
+                    return ok;
+                  }}
+                />
+              </Suspense>
+            )}
+          </div>
+        )}
 
         {/* W6b-2 B3 — the location details, for every category. */}
         <div className="space-y-1">
