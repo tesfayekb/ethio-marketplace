@@ -3664,10 +3664,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.pin.precisionLabel": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.pin.remove": [
       "/post",
       "/post/$listingId"
@@ -3701,6 +3697,10 @@
       "/post/$listingId"
     ],
     "post.pin.searching": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.showAsLabel": [
       "/post",
       "/post/$listingId"
     ],
@@ -4127,6 +4127,10 @@
       "/post/$listingId"
     ],
     "post.where.itemBoxTitle": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.itemHelp": [
       "/post",
       "/post/$listingId"
     ],
