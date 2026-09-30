@@ -400,6 +400,16 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const cityBox = page.getByTestId("post-where-row");
     await page.getByTestId("post-where-city").selectOption("");
     await expect(cityBox, "PW-90: an empty city box is not red").toHaveAttribute("data-red", "1");
+    // INC-355 — required + empty reads as the FULL destructive border, not a 40% tint.
+    const alpha = await cityBox.evaluate((el) => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--destructive)";
+      document.body.append(probe);
+      const want = getComputedStyle(probe).color;
+      probe.remove();
+      return { got: getComputedStyle(el).borderTopColor, want };
+    });
+    expect(alpha.got, "PW-90: the empty city border is not full destructive").toBe(alpha.want);
     await page.getByTestId("post-where-city").selectOption(chain.city.id);
     await expect(cityBox, "PW-90: a chosen city stays red").toHaveAttribute("data-red", "0");
   });
@@ -457,6 +467,21 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(map).toHaveAttribute("data-provider", "osm");
     await map.click({ position: { x: 120, y: 90 } });
     await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    // INC-353 — the pin and the place shape paint a real colour, never an
+    // unresolved hsl(var(--…)) that the browser drops as invisible.
+    const paint = await map.evaluate((el) => {
+      const pin = el.querySelector(".leaflet-marker-pane span");
+      const shape = el.querySelector(".leaflet-overlay-pane path");
+      return {
+        pin: pin === null ? null : getComputedStyle(pin).backgroundColor,
+        shape: shape === null ? null : shape.getAttribute("stroke"),
+      };
+    });
+    expect(paint.pin, "PW-92: the pin paints no colour").not.toBeNull();
+    expect(paint.pin, "PW-92: the pin is transparent").not.toMatch(/^(rgba\(0, 0, 0, 0\)|transparent)$/);
+    if (paint.shape !== null) {
+      expect(paint.shape, "PW-92: the place shape stroke is unresolved").not.toMatch(/var\(|hsl\(/);
+    }
     await expect(
       page.getByTestId("post-pin-save"),
       "PW-92: Save location is below the fold",
