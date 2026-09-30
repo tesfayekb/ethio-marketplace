@@ -491,4 +491,60 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(page.getByTestId("post-pin-sheet")).toHaveCount(0);
     expect((await pinOf(listingId)).lat, "PW-92: no pin reached the row").not.toBeNull();
   });
+  /**
+   * PW-97 — G (INC-354). The map credit is on screen and on top at every
+   * width: Esri on the Esri plan (mocked), OpenStreetMap on the backup.
+   */
+  test("PW-97 the map credit is visible and uncovered on both plans", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    await openAtStep6(page, user.id, category.id);
+    const png = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=",
+      "base64",
+    );
+    await page.route("https://e2e-tiles.invalid/**", (route) =>
+      route.fulfill({ status: 200, contentType: "image/png", body: png }),
+    );
+    const plan = {
+      provider: "esri",
+      street: [{ url: "https://e2e-tiles.invalid/{z}/{x}/{y}.png", attribution: "Powered by <a>Esri</a>" }],
+    };
+    await page.route("**/api/map/tiles", (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(plan) })
+        : route.fulfill({ status: 200, body: '{"ok":true}' }),
+    );
+    const uncovered = async (label: string) => {
+      const credit = page.getByTestId("post-pin-credit");
+      await credit.scrollIntoViewIfNeeded();
+      await expect(credit, `PW-97: the ${label} credit is off screen`).toBeInViewport();
+      const onTop = await credit.evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+        return hit !== null && (hit === el || el.contains(hit));
+      });
+      expect(onTop, `PW-97: the ${label} credit is covered`).toBe(true);
+      return credit;
+    };
+    await page.getByTestId("post-where-pin-open").click();
+    const map = page.getByTestId("post-pin-map");
+    await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
+    await expect(map).toHaveAttribute("data-provider", "esri");
+    await expect(await uncovered("Esri")).toContainText("Esri");
+    await page.getByTestId("post-pin-cancel").click();
+    await expect(page.getByTestId("post-pin-sheet")).toHaveCount(0);
+
+    await page.evaluate(() => sessionStorage.clear());
+    await page.reload();
+    await page.route("**/api/map/tiles", (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({ status: 403, body: "{}" })
+        : route.fulfill({ status: 200, body: '{"ok":true}' }),
+    );
+    await page.getByTestId("post-where-pin-open").click();
+    await expect(map).toHaveAttribute("data-provider", "osm", { timeout: 20_000 });
+    await expect(await uncovered("OpenStreetMap")).toContainText("OpenStreetMap");
+  });
 });
