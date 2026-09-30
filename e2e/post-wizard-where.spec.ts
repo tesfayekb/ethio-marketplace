@@ -1,4 +1,4 @@
-import type { Browser, Page } from "@playwright/test";
+import type { Browser, Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
@@ -40,7 +40,7 @@ const DRAFT = "/api/listings/draft";
 const PUBLISH = "/api/listings/publish";
 
 /** INC-355 — the computed destructive token colour, for border comparisons. */
-async function destructiveOf(page: import("@playwright/test").Page): Promise<string> {
+async function destructiveOf(page: Page): Promise<string> {
   return page.evaluate(() => {
     const probe = document.createElement("span");
     probe.style.color = "var(--destructive)";
@@ -51,7 +51,7 @@ async function destructiveOf(page: import("@playwright/test").Page): Promise<str
   });
 }
 
-async function borderOf(box: import("@playwright/test").Locator): Promise<string> {
+async function borderOf(box: Locator): Promise<string> {
   return box.evaluate((el) => getComputedStyle(el).borderTopColor);
 }
 
