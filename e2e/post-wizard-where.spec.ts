@@ -416,13 +416,13 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       "PW-90: the empty region border is not full destructive",
     ).toEqual(await destructiveOf(page));
     await expect(
-      regionBox.locator("label").first().getByTestId("post-required-mark"),
+      regionBox.locator('label[for="post-where-region"]').getByTestId("post-required-mark"),
       "PW-90: the empty region box has no asterisk",
     ).toHaveCount(1);
     await region.selectOption(chain.region.id);
     await expect(regionBox, "PW-90: a chosen region stays red").toHaveAttribute("data-red", "0");
     await expect(
-      regionBox.locator("label").first().getByTestId("post-required-mark"),
+      regionBox.locator('label[for="post-where-region"]').getByTestId("post-required-mark"),
       "PW-90: a chosen region keeps its asterisk",
     ).toHaveCount(0);
     const cityBox = page.getByTestId("post-where-row");
@@ -678,8 +678,8 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const country = await page
       .locator('[data-testid="post-where-country-box"][data-primary="1"]')
       .boundingBox();
-    const regionBox = await page.getByTestId("post-where-region-box").first().boundingBox();
-    const cityRow = await page.getByTestId("post-where-row").first().boundingBox();
+    const regionBox = await page.locator('[data-testid="post-where-region-box"]:has(#post-where-region)').boundingBox();
+    const cityRow = await page.locator('[data-testid="post-where-row"][data-key="primary"]').boundingBox();
     expect(country && regionBox && cityRow, "PW-99: no geometry").toBeTruthy();
     if (country === null || regionBox === null || cityRow === null) return;
     expect(regionBox.x, "PW-99: the region box is not indented").toBeGreaterThan(country.x);
