@@ -11,6 +11,7 @@ import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { entityName } from "@/i18n/entity";
 import { useI18n } from "@/i18n";
 
+import { useCatalogFinder, useMatchLine, type FinderMatch } from "./catalog-finder";
 import { RequiredMark } from "./field";
 
 /**
@@ -62,6 +63,48 @@ const crumbClass =
   "hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+/** D37-2 — one hit: name, path and, for an option hit, the line naming the match. */
+function HitButton({
+  node,
+  matches,
+  lang,
+  selected,
+  label,
+  path,
+  onChoose,
+}: {
+  node: CategoryNode;
+  matches: FinderMatch[];
+  lang: string;
+  selected: boolean;
+  label: string;
+  path: string;
+  onChoose: () => void;
+}) {
+  const line = useMatchLine(node.id, matches, lang);
+  return (
+    <button
+      type="button"
+      data-testid="post-category-hit"
+      data-category={node.id}
+      aria-current={selected ? "true" : undefined}
+      className={`${rowClass} ${selected ? rowSelected : ""} flex-col items-start gap-0`}
+      onClick={onChoose}
+    >
+      <span className="flex items-center gap-2 font-medium">
+        <NodeGlyph icon={node.icon} />
+        {label}
+      </span>
+      <span className="text-xs text-muted-foreground">{path}</span>
+      {line !== null && (
+        <span className="text-xs text-foreground" data-testid="post-category-hit-match">
+          {`${line.attribute}: ${line.option}`}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export function StepCategory({
   tree,
   isLoading,
@@ -77,7 +120,8 @@ export function StepCategory({
   tree: CategoryTree;
   isLoading: boolean;
   treeError: boolean;
-  onChoose: (categoryId: string) => void;
+  /** D37-2 — a finder hit carries its matches; the wizard revalidates them. */
+  onChoose: (categoryId: string, matches?: FinderMatch[]) => void;
   /**
    * U6-C1-R3a-2 — true once someone tried to continue with no leaf chosen: the
    * choice group wears the refusal outline until a choice clears it (F4).
@@ -306,7 +350,8 @@ export function StepCategory({
                       data-category={node.id}
                       disabled={!folder && !postable}
                       aria-current={node.id === selectedId ? "true" : undefined}
-                      className={`${rowClass} ${node.id === selectedId ? rowSelected : ""}`}
+                      data-on-path={chosenIds.has(node.id) ? "1" : undefined}
+                      className={`${rowClass} ${chosenIds.has(node.id) ? rowSelected : ""}`}
                       onClick={() => {
                         if (folder) onCursor(node.id);
                         else onChoose(node.id);
