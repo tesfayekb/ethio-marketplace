@@ -1654,7 +1654,7 @@ export function StepSpecifications({
             )}
 
             {/* INC-244 — a locked answer says whose answer it is. */}
-            {lockedByModel && (
+            {lockedByModel && !settledOther && (
               <p
                 className="text-xs text-muted-foreground"
                 data-testid="post-attr-set-by-model"
