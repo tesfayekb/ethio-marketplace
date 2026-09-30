@@ -81,6 +81,7 @@ function HitButton({
   path: string;
   onChoose: () => void;
 }) {
+  const { t } = useI18n();
   const line = useMatchLine(node.id, matches, lang);
   return (
     <button
@@ -98,7 +99,7 @@ function HitButton({
       <span className="text-xs text-muted-foreground">{path}</span>
       {line !== null && (
         <span className="text-xs text-foreground" data-testid="post-category-hit-match">
-          {`${line.attribute}: ${line.option}`}
+          {t("post.category.matchLine", { attribute: line.attribute, option: line.option })}
         </span>
       )}
     </button>
