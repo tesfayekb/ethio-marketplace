@@ -7,7 +7,6 @@ import {
   useRouterState,
   HeadContent,
   Scripts,
-  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie, getRequest, getRequestUrl } from "@tanstack/react-start/server";
@@ -204,14 +203,11 @@ function ErrorContent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-function ErrorComponent({ error, reset }: ErrorComponentProps) {
+function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   return (
     <I18nProvider>
-      <ErrorContent
-        error={error instanceof Error ? error : new Error(String(error))}
-        reset={reset}
-      />
+      <ErrorContent error={error} reset={reset} />
     </I18nProvider>
   );
 }
