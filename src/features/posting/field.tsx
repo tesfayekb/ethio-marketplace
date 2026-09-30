@@ -117,12 +117,7 @@ export const fieldControlClass =
  * claiming a refusal nobody made (F4).
  */
 export function controlClass(refused: boolean, soft = false): string {
-  // INC-355 — required + empty is the FULL destructive border; refused adds the ring.
-  const border = refused
-    ? "border-destructive ring-1 ring-destructive"
-    : soft
-      ? "border-destructive"
-      : "border-input";
+  const border = refused ? "border-destructive" : soft ? "border-destructive/40" : "border-input";
   return `${fieldControlClass} ${border}`;
 }
 
