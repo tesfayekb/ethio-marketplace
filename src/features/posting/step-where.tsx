@@ -905,6 +905,7 @@ export function StepWhere({
     <div className="space-y-1">
       <label htmlFor="post-where-market" className="text-sm font-medium text-foreground">
         {t("post.where.marketLabel")}
+        {country === null && <RequiredMark />}
       </label>
       {markets.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("post.where.marketLoading")}</p>
