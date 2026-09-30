@@ -265,7 +265,7 @@ export function StepCategory({
           invalid
             ? "scroll-mt-20 rounded-md border border-destructive p-2 ring-1 ring-destructive"
             : unanswered
-              ? "scroll-mt-20 rounded-md border border-destructive/40 p-2"
+              ? "scroll-mt-20 rounded-md border border-destructive p-2"
               : "scroll-mt-20 rounded-md border border-transparent p-2"
         }
       >
