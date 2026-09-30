@@ -540,7 +540,12 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       "base64",
     );
     await page.route("https://e2e-tiles.invalid/**", (route) =>
-      route.fulfill({ status: 200, contentType: "image/png", body: png }),
+      route.fulfill({
+        status: 200,
+        contentType: "image/png",
+        headers: { "access-control-allow-origin": "*" },
+        body: png,
+      }),
     );
     const plan = {
       provider: "esri",
