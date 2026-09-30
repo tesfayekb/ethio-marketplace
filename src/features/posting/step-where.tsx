@@ -249,6 +249,20 @@ function CountryBox({
     else found.rows.push(row);
   }
   const empty = !rows.some((row) => placeOf(row) !== null);
+  const addRegionButton = room.region &&
+    code !== null &&
+    nodes.length > 0 &&
+    regions.length > 0 && (
+      <button
+        type="button"
+        data-testid="post-where-add-region"
+        data-country={code}
+        className={addClass}
+        onClick={() => onAddRegion(code)}
+      >
+        {t("post.where.addRegion")}
+      </button>
+    );
 
   return (
     <div
@@ -261,7 +275,7 @@ function CountryBox({
     >
       {market}
       {nodes.length > 0 &&
-        groups.map((group) => {
+        groups.map((group, index) => {
           const hasPrimary = group.rows.some((row) => row.key === PRIMARY);
           const cities = childrenOf(nodes, group.region, "city");
           const groupEmpty = !group.rows.some((row) => placeOf(row) !== null);
@@ -340,45 +354,45 @@ function CountryBox({
                       data-red={placeOf(row) === null ? "1" : "0"}
                       className={boxClass(placeOf(row) === null, false, CITY_STEP)}
                     >
-                      {/* I/J — the city line: the tick sits right of the city from 768 px, under it at 360. */
+                      {/* I/J — the city line: the tick sits right of the city from 768 px, under it at 360. */}
                       <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-3">
-                      {cities.length > 0 && (
-                        <div className="space-y-1 md:min-w-0 md:flex-1">
-                          <label htmlFor={cityId} className="text-sm font-medium text-foreground">
-                            {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
-                            {placeOf(row) === null && <RequiredMark />}
-                          </label>
-                          <select
-                            id={cityId}
-                            data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
-                            className={fieldClass}
-                            value={row.city ?? ""}
-                            onChange={(event) =>
-                              onRow(row.key, { city: event.target.value || null, subCity: null })
-                            }
-                          >
-                            <option value="">{t("post.where.levelNone")}</option>
-                            {cities.map((node) => (
-                              <option key={node.id} value={node.id}>
-                                {nameOf(node)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                      {/* W6b-1 R3 — the one tick, a radio group across every box. */}
-                      <label className="flex min-h-11 shrink-0 items-center gap-2 text-sm text-foreground">
-                        <input
-                          type="radio"
-                          name="post-where-item"
-                          data-testid="post-where-item-tick"
-                          data-key={row.key}
-                          className="h-5 w-5 shrink-0 accent-primary"
-                          checked={row.key === itemKey}
-                          onChange={() => onTick(row.key)}
-                        />
-                        <span>{t("post.where.itemHere")}</span>
-                      </label>
+                        {cities.length > 0 && (
+                          <div className="space-y-1 md:min-w-0 md:flex-1">
+                            <label htmlFor={cityId} className="text-sm font-medium text-foreground">
+                              {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
+                              {placeOf(row) === null && <RequiredMark />}
+                            </label>
+                            <select
+                              id={cityId}
+                              data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
+                              className={fieldClass}
+                              value={row.city ?? ""}
+                              onChange={(event) =>
+                                onRow(row.key, { city: event.target.value || null, subCity: null })
+                              }
+                            >
+                              <option value="">{t("post.where.levelNone")}</option>
+                              {cities.map((node) => (
+                                <option key={node.id} value={node.id}>
+                                  {nameOf(node)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                        {/* W6b-1 R3 — the one tick, a radio group across every box. */}
+                        <label className="flex min-h-11 shrink-0 items-center gap-2 text-sm text-foreground">
+                          <input
+                            type="radio"
+                            name="post-where-item"
+                            data-testid="post-where-item-tick"
+                            data-key={row.key}
+                            className="h-5 w-5 shrink-0 accent-primary"
+                            checked={row.key === itemKey}
+                            onChange={() => onTick(row.key)}
+                          />
+                          <span>{t("post.where.itemHere")}</span>
+                        </label>
                       </div>
                       {/* D19 — "All of <city>" is the CITY node offered beside its children. */}
                       {cityNode !== null && subCities.length > 0 && (
@@ -428,31 +442,27 @@ function CountryBox({
                   );
                 })}
 
+              {/* J — "+ Add city" at the right end, under the last city line. */}
               {room.city && (group.region !== null || regions.length === 0) && (
-                <button
-                  type="button"
-                  data-testid="post-where-add-city"
-                  data-region={group.region ?? ""}
-                  className={addClass}
-                  onClick={() => onAddCity(code, group.region)}
-                >
-                  {t("post.where.addCity")}
-                </button>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    data-testid="post-where-add-city"
+                    data-region={group.region ?? ""}
+                    className={addClass}
+                    onClick={() => onAddCity(code, group.region)}
+                  >
+                    {t("post.where.addCity")}
+                  </button>
+                </div>
               )}
+              {/* J — "+ Add region" at the bottom of the (last) region box. */}
+              {index === groups.length - 1 && addRegionButton}
             </div>
           );
         })}
-      {room.region && code !== null && nodes.length > 0 && regions.length > 0 && (
-        <button
-          type="button"
-          data-testid="post-where-add-region"
-          data-country={code}
-          className={addClass}
-          onClick={() => onAddRegion(code)}
-        >
-          {t("post.where.addRegion")}
-        </button>
-      )}
+      {/* J — with no region box yet, "+ Add region" closes the country box. */}
+      {groups.length === 0 && addRegionButton}
     </div>
   );
 }

@@ -411,9 +411,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       "data-red",
       "1",
     );
-    expect(await borderOf(regionBox), "PW-90: the empty region border is not full destructive").toEqual(
-      await destructiveOf(page),
-    );
+    expect(
+      await borderOf(regionBox),
+      "PW-90: the empty region border is not full destructive",
+    ).toEqual(await destructiveOf(page));
     await expect(
       regionBox.locator("label").first().getByTestId("post-required-mark"),
       "PW-90: the empty region box has no asterisk",
@@ -513,7 +514,9 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       };
     });
     expect(paint.pin, "PW-92: the pin paints no colour").not.toBeNull();
-    expect(paint.pin, "PW-92: the pin is transparent").not.toMatch(/^(rgba\(0, 0, 0, 0\)|transparent)$/);
+    expect(paint.pin, "PW-92: the pin is transparent").not.toMatch(
+      /^(rgba\(0, 0, 0, 0\)|transparent)$/,
+    );
     if (paint.shape !== null) {
       expect(paint.shape, "PW-92: the place shape stroke is unresolved").not.toMatch(/var\(|hsl\(/);
     }
@@ -549,11 +552,17 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     );
     const plan = {
       provider: "esri",
-      street: [{ url: "https://e2e-tiles.invalid/{z}/{x}/{y}.png", attribution: "Powered by <a>Esri</a>" }],
+      street: [
+        { url: "https://e2e-tiles.invalid/{z}/{x}/{y}.png", attribution: "Powered by <a>Esri</a>" },
+      ],
     };
     await page.route("**/api/map/tiles", (route) =>
       route.request().method() === "GET"
-        ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(plan) })
+        ? route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify(plan),
+          })
         : route.fulfill({ status: 200, body: '{"ok":true}' }),
     );
     const uncovered = async (label: string) => {
@@ -608,7 +617,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       expect(box.x, `PW-98 ${label}: the tick is not right of the city`).toBeGreaterThanOrEqual(
         city.x + city.width - 1,
       );
-      expect(Math.abs(box.y + box.height / 2 - (city.y + city.height / 2)), `PW-98 ${label}: not on the city line`).toBeLessThan(city.height);
+      expect(
+        Math.abs(box.y + box.height / 2 - (city.y + city.height / 2)),
+        `PW-98 ${label}: not on the city line`,
+      ).toBeLessThan(city.height);
     } else {
       expect(box.y, `PW-98 ${label}: the tick is not under the city`).toBeGreaterThanOrEqual(
         city.y + city.height - 1,
@@ -691,7 +703,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
     expect(widths.length, "PW-99: no selects").toBeGreaterThan(0);
     for (const width of widths) {
-      expect(width, `PW-99: a select is narrower than 280 px (${widths.join(", ")})`).toBeGreaterThanOrEqual(280);
+      expect(
+        width,
+        `PW-99: a select is narrower than 280 px (${widths.join(", ")})`,
+      ).toBeGreaterThanOrEqual(280);
     }
   });
 
@@ -706,7 +721,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const category = await seedPostableCategory({ capabilities: [] });
     categories.push(category.slug);
     const listingId = await openAtStep6(page, user.id, category.id);
-    await expect(page.getByTestId("post-where-item-help"), "PW-100: no explanation line").toBeVisible();
+    await expect(
+      page.getByTestId("post-where-item-help"),
+      "PW-100: no explanation line",
+    ).toBeVisible();
     await expect(
       page.getByTestId("post-where-pin-open"),
       "PW-100: a category without map_pin offered no map",
@@ -714,12 +732,18 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await page.getByTestId("post-where-pin-open").click();
     const map = page.getByTestId("post-pin-map");
     await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
-    await expect(page.getByTestId("post-pin-precision-label"), "PW-100: no Show-on-my-ad label").toBeVisible();
+    await expect(
+      page.getByTestId("post-pin-precision-label"),
+      "PW-100: no Show-on-my-ad label",
+    ).toBeVisible();
     await map.click({ position: { x: 120, y: 90 } });
     await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("post-where-pin-preview"), "PW-100: no preview after Save").toBeVisible({
+    await expect(
+      page.getByTestId("post-where-pin-preview"),
+      "PW-100: no preview after Save",
+    ).toBeVisible({
       timeout: 20_000,
     });
     await expect(page.getByTestId("post-where-pin-change")).toBeVisible();
