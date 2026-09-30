@@ -1343,7 +1343,10 @@ export function StepSpecifications({
      * still travels in the draft, review and preview still show it, and the door
      * judges it unchanged (F3). A prefill-only fact keeps its input.
      */
-    if (lockedByModel && !empty) return null;
+    // INC-357 (N1) — a settled "other" still owes its text at the door
+    // (otherNeedsText), so it is never hidden: it renders as its own write-in box.
+    const settledOther = lockedByModel && chosen === "other";
+    if (lockedByModel && !empty && !settledOther) return null;
     // DEC-085 — a number or year pinned to one value is stored and hidden the same way.
     const pin = pinnedNumber(def);
     if (pin !== null && same(value, pin)) return null;
@@ -1487,7 +1490,7 @@ export function StepSpecifications({
               </div>
             )}
 
-            {def.attrType === "single_select" && (
+            {def.attrType === "single_select" && !settledOther && (
               <select
                 id={controlId}
                 data-testid="post-attr-control"
@@ -1586,6 +1589,8 @@ export function StepSpecifications({
 
             {def.attrType === "single_select" && chosen === "other" && (
               <input
+                id={settledOther ? controlId : undefined}
+                data-settled={settledOther ? "1" : "0"}
                 data-testid="post-attr-other"
                 data-attr={def.attrKey}
                 className={ctrl}
@@ -1649,7 +1654,7 @@ export function StepSpecifications({
             )}
 
             {/* INC-244 — a locked answer says whose answer it is. */}
-            {lockedByModel && (
+            {lockedByModel && !settledOther && (
               <p
                 className="text-xs text-muted-foreground"
                 data-testid="post-attr-set-by-model"
