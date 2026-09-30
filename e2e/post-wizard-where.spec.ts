@@ -678,8 +678,12 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const country = await page
       .locator('[data-testid="post-where-country-box"][data-primary="1"]')
       .boundingBox();
-    const regionBox = await page.locator('[data-testid="post-where-region-box"]:has(#post-where-region)').boundingBox();
-    const cityRow = await page.locator('[data-testid="post-where-row"][data-key="primary"]').boundingBox();
+    const regionBox = await page
+      .locator('[data-testid="post-where-region-box"]:has(#post-where-region)')
+      .boundingBox();
+    const cityRow = await page
+      .locator('[data-testid="post-where-row"][data-key="primary"]')
+      .boundingBox();
     expect(country && regionBox && cityRow, "PW-99: no geometry").toBeTruthy();
     if (country === null || regionBox === null || cityRow === null) return;
     expect(regionBox.x, "PW-99: the region box is not indented").toBeGreaterThan(country.x);
