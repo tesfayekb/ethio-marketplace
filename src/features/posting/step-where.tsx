@@ -340,8 +340,10 @@ function CountryBox({
                       data-red={placeOf(row) === null ? "1" : "0"}
                       className={boxClass(placeOf(row) === null, false, CITY_STEP)}
                     >
+                      {/* I/J — the city line: the tick sits right of the city from 768 px, under it at 360. */
+                      <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-3">
                       {cities.length > 0 && (
-                        <div className="space-y-1">
+                        <div className="space-y-1 md:min-w-0 md:flex-1">
                           <label htmlFor={cityId} className="text-sm font-medium text-foreground">
                             {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
                             {placeOf(row) === null && <RequiredMark />}
@@ -364,6 +366,20 @@ function CountryBox({
                           </select>
                         </div>
                       )}
+                      {/* W6b-1 R3 — the one tick, a radio group across every box. */}
+                      <label className="flex min-h-11 shrink-0 items-center gap-2 text-sm text-foreground">
+                        <input
+                          type="radio"
+                          name="post-where-item"
+                          data-testid="post-where-item-tick"
+                          data-key={row.key}
+                          className="h-5 w-5 shrink-0 accent-primary"
+                          checked={row.key === itemKey}
+                          onChange={() => onTick(row.key)}
+                        />
+                        <span>{t("post.where.itemHere")}</span>
+                      </label>
+                      </div>
                       {/* D19 — "All of <city>" is the CITY node offered beside its children. */}
                       {cityNode !== null && subCities.length > 0 && (
                         <div className="space-y-1">
@@ -397,19 +413,6 @@ function CountryBox({
                           </select>
                         </div>
                       )}
-                      {/* W6b-1 R3 — the one tick, a radio group across every box. */}
-                      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-                        <input
-                          type="radio"
-                          name="post-where-item"
-                          data-testid="post-where-item-tick"
-                          data-key={row.key}
-                          className="h-5 w-5 shrink-0 accent-primary"
-                          checked={row.key === itemKey}
-                          onChange={() => onTick(row.key)}
-                        />
-                        <span>{t("post.where.itemHere")}</span>
-                      </label>
                       {canRemove && (
                         <button
                           type="button"
