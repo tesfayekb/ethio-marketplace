@@ -454,7 +454,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
    * PW-91 — B1/B3. A category without `map_pin` shows no map; the location
    * details are offered anyway and stored without a pin.
    */
-  test("PW-91 location details without a map are stored; a mapless category shows no pin", async ({
+  test("PW-91 location details without a pin are stored in a category without map_pin", async ({
     page,
   }) => {
     const user = await signedInSeller(page);
@@ -463,10 +463,8 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const listingId = await openAtStep6(page, user.id, category.id);
 
     await expect(page.getByTestId("post-where-item-box")).toBeVisible();
-    await expect(
-      page.getByTestId("post-where-pin-open"),
-      "PW-91: a mapless category offered a map",
-    ).toHaveCount(0);
+    // W6d K — the map_pin gate is gone: every category offers the map.
+    await expect(page.getByTestId("post-where-pin-open")).toBeVisible();
     const details = page.getByTestId("post-where-details");
     await details.fill("  3rd floor,\tSuite <5>  ");
     await details.blur();
@@ -746,8 +744,8 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     ).toBeVisible({
       timeout: 20_000,
     });
-    await expect(page.getByTestId("post-where-pin-change")).toBeVisible();
-    await expect(page.getByTestId("post-where-pin-remove")).toBeVisible();
+    await expect(page.getByTestId("post-where-pin-open")).toBeVisible();
+    await expect(page.getByTestId("post-pin-remove")).toBeVisible();
     expect((await pinOf(listingId)).lat, "PW-100: no pin reached the row").not.toBeNull();
   });
 });
