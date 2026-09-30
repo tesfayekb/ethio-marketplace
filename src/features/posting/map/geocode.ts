@@ -87,3 +87,14 @@ export async function reverseStreet(lat: number, lng: number): Promise<ReverseAn
 
 /** The approximate circle's radius, in metres — the privacy promise, in one place. */
 export const APPROX_RADIUS_M = 500;
+
+/**
+ * W6b-2 C3 — a place's outline through OUR route (never Nominatim from here).
+ * `null` for no outline or any refusal: the map then draws a circle instead.
+ */
+export async function readOutline(query: string): Promise<unknown> {
+  const { payload, reason } = await ask(`/api/geo/outline?q=${encodeURIComponent(query)}`);
+  if (reason !== null) return null;
+  const outline = payload["outline"];
+  return outline !== null && typeof outline === "object" ? outline : null;
+}

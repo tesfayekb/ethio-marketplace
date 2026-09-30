@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 312,
-  "dynamicCallSites": 201,
+  "scanned": 316,
+  "dynamicCallSites": 202,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3632,6 +3632,14 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.pin.backupMap": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.cancel": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.pin.layerSatellite": [
       "/post",
       "/post/$listingId"
@@ -3652,6 +3660,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.pin.outsidePlace": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.pin.precisionLabel": [
       "/post",
       "/post/$listingId"
@@ -3664,11 +3676,11 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.pin.save": [
+    "post.pin.saveFailed": [
       "/post",
       "/post/$listingId"
     ],
-    "post.pin.saveFailed": [
+    "post.pin.saveLocation": [
       "/post",
       "/post/$listingId"
     ],
@@ -3689,14 +3701,6 @@
       "/post/$listingId"
     ],
     "post.pin.searching": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.pin.streetHint": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.pin.streetLabel": [
       "/post",
       "/post/$listingId"
     ],
@@ -3740,15 +3744,15 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.price.amountEnter": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.price.amountLabel": [
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountPer": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.price.amountPlaceholder": [
       "/post",
       "/post/$listingId"
     ],
@@ -3805,6 +3809,22 @@
       "/post/$listingId"
     ],
     "post.price.periodLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.scaleLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.scaleMillion": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.scaleNone": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.price.scaleThousand": [
       "/post",
       "/post/$listingId"
     ],
@@ -4086,7 +4106,27 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.where.chosenLabel": [
+    "post.where.detailsFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.detailsHelp": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.detailsLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.detailsSaved": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.detailsTooLong": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.itemBoxTitle": [
       "/post",
       "/post/$listingId"
     ],
@@ -4095,6 +4135,10 @@
       "/post/$listingId"
     ],
     "post.where.itemMoved": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.itemNone": [
       "/post",
       "/post/$listingId"
     ],
@@ -4134,11 +4178,15 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.where.planCount": [
+    "post.where.planLevels": [
       "/post",
       "/post/$listingId"
     ],
-    "post.where.planLevels": [
+    "post.where.planLine": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.planLineUnknown": [
       "/post",
       "/post/$listingId"
     ],
@@ -4155,6 +4203,10 @@
       "/post/$listingId"
     ],
     "post.where.showIntro": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.shownBoxTitle": [
       "/post",
       "/post/$listingId"
     ],

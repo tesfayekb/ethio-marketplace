@@ -4,7 +4,15 @@ import type * as Leaflet from "leaflet";
 import { useI18n } from "@/i18n";
 
 import { APPROX_RADIUS_M } from "./geocode";
-import { loadLeaflet, pinIcon, TILES } from "./leaflet";
+import {
+  addTileLayers,
+  loadLeaflet,
+  loadTilePlan,
+  OSM_PLAN,
+  pinIcon,
+  reportFallback,
+  watchTiles,
+} from "./leaflet";
 
 /**
  * U6-C1-R3b-4 STEP 3 — THE PIN AS A BUYER SEES IT.
@@ -47,8 +55,8 @@ export function MapPreview({
     if (box === null) return;
     let cancelled = false;
 
-    void loadLeaflet()
-      .then((L) => {
+    void Promise.all([loadLeaflet(), loadTilePlan()])
+      .then(([L, { plan }]) => {
         if (cancelled || mapRef.current !== null) return;
         const centre: [number, number] = approx ? [snap(lat), snap(lng)] : [lat, lng];
         const map = L.map(box, {
@@ -64,10 +72,13 @@ export function MapPreview({
           attributionControl: true,
         });
         mapRef.current = map;
-        L.tileLayer(TILES.street.url, {
-          attribution: TILES.street.attribution,
-          maxZoom: TILES.street.maxZoom,
-        }).addTo(map);
+        // W6b-2 C2 — the same provider and the same backup as the seller's map.
+        const layers = addTileLayers(L, map, plan, "street");
+        watchTiles(layers, (reason) => {
+          reportFallback(reason);
+          for (const layer of layers) layer.remove();
+          addTileLayers(L, map, OSM_PLAN, "street");
+        });
         if (approx) {
           L.circle(centre, { radius: APPROX_RADIUS_M, weight: 2 }).addTo(map);
         } else {

@@ -209,6 +209,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   /** D62-2 — one stable array (I3): the basis key moved from step 3 to step 5. */
   const basisKey = facts?.priceBasisKey ?? null;
   const basisExclude = useMemo(() => (basisKey === null ? null : [basisKey]), [basisKey]);
+  /** W6b-2 B1 — the map pin is offered only where the category allows it. */
+  const mapCapable = facts?.capabilities.includes("map_pin") ?? false;
 
   const current = STEPS[draft.step - 1] ?? STEPS[0];
   const chosenCategory =
@@ -822,6 +824,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           maxCities={planCaps?.maxCities ?? null}
                           maxRegions={planCaps?.maxRegions ?? null}
                           maxCountries={planCaps?.maxCountries ?? null}
+                          mapCapable={mapCapable}
                         />
                       )}
                       {draft.step === 7 && (

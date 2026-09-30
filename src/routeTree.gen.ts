@@ -37,6 +37,7 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
 import { Route as ApiUploadPhotoRouteImport } from './routes/api/upload/photo'
+import { Route as ApiMapTilesRouteImport } from './routes/api/map/tiles'
 import { Route as ApiLocationsCountryRouteImport } from './routes/api/locations.$country'
 import { Route as ApiListingsPublishRouteImport } from './routes/api/listings/publish'
 import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/identity'
@@ -45,6 +46,7 @@ import { Route as ApiListingsAssistRouteImport } from './routes/api/listings/ass
 import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
 import { Route as ApiGeoSearchRouteImport } from './routes/api/geo/search'
 import { Route as ApiGeoReverseRouteImport } from './routes/api/geo/reverse'
+import { Route as ApiGeoOutlineRouteImport } from './routes/api/geo/outline'
 import { Route as ApiCategoriesTreeRouteImport } from './routes/api/categories.tree'
 import { Route as ApiCatalogFindRouteImport } from './routes/api/catalog.find'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
@@ -203,6 +205,11 @@ const ApiUploadPhotoRoute = ApiUploadPhotoRouteImport.update({
   path: '/api/upload/photo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMapTilesRoute = ApiMapTilesRouteImport.update({
+  id: '/api/map/tiles',
+  path: '/api/map/tiles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiLocationsCountryRoute = ApiLocationsCountryRouteImport.update({
   id: '/$country',
   path: '/$country',
@@ -241,6 +248,11 @@ const ApiGeoSearchRoute = ApiGeoSearchRouteImport.update({
 const ApiGeoReverseRoute = ApiGeoReverseRouteImport.update({
   id: '/reverse',
   path: '/reverse',
+  getParentRoute: () => ApiGeoRoute,
+} as any)
+const ApiGeoOutlineRoute = ApiGeoOutlineRouteImport.update({
+  id: '/outline',
+  path: '/outline',
   getParentRoute: () => ApiGeoRoute,
 } as any)
 const ApiCategoriesTreeRoute = ApiCategoriesTreeRouteImport.update({
@@ -371,6 +383,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/api/catalog/find': typeof ApiCatalogFindRoute
   '/api/categories/tree': typeof ApiCategoriesTreeRoute
+  '/api/geo/outline': typeof ApiGeoOutlineRoute
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
@@ -379,6 +392,7 @@ export interface FileRoutesByFullPath {
   '/api/listings/identity': typeof ApiListingsIdentityRoute
   '/api/listings/publish': typeof ApiListingsPublishRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
+  '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
@@ -425,6 +439,7 @@ export interface FileRoutesByTo {
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/api/catalog/find': typeof ApiCatalogFindRoute
   '/api/categories/tree': typeof ApiCategoriesTreeRoute
+  '/api/geo/outline': typeof ApiGeoOutlineRoute
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
@@ -433,6 +448,7 @@ export interface FileRoutesByTo {
   '/api/listings/identity': typeof ApiListingsIdentityRoute
   '/api/listings/publish': typeof ApiListingsPublishRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
+  '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
@@ -481,6 +497,7 @@ export interface FileRoutesById {
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
   '/api/catalog/find': typeof ApiCatalogFindRoute
   '/api/categories/tree': typeof ApiCategoriesTreeRoute
+  '/api/geo/outline': typeof ApiGeoOutlineRoute
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
@@ -489,6 +506,7 @@ export interface FileRoutesById {
   '/api/listings/identity': typeof ApiListingsIdentityRoute
   '/api/listings/publish': typeof ApiListingsPublishRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
+  '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
@@ -538,6 +556,7 @@ export interface FileRouteTypes {
     | '/admin/users/$userId'
     | '/api/catalog/find'
     | '/api/categories/tree'
+    | '/api/geo/outline'
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/i18n/$lang'
@@ -546,6 +565,7 @@ export interface FileRouteTypes {
     | '/api/listings/identity'
     | '/api/listings/publish'
     | '/api/locations/$country'
+    | '/api/map/tiles'
     | '/api/upload/photo'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
@@ -592,6 +612,7 @@ export interface FileRouteTypes {
     | '/admin/users/$userId'
     | '/api/catalog/find'
     | '/api/categories/tree'
+    | '/api/geo/outline'
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/i18n/$lang'
@@ -600,6 +621,7 @@ export interface FileRouteTypes {
     | '/api/listings/identity'
     | '/api/listings/publish'
     | '/api/locations/$country'
+    | '/api/map/tiles'
     | '/api/upload/photo'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
@@ -647,6 +669,7 @@ export interface FileRouteTypes {
     | '/admin/users_/$userId'
     | '/api/catalog/find'
     | '/api/categories/tree'
+    | '/api/geo/outline'
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/i18n/$lang'
@@ -655,6 +678,7 @@ export interface FileRouteTypes {
     | '/api/listings/identity'
     | '/api/listings/publish'
     | '/api/locations/$country'
+    | '/api/map/tiles'
     | '/api/upload/photo'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
@@ -692,6 +716,7 @@ export interface RootRouteChildren {
   ApiListingsDraftRoute: typeof ApiListingsDraftRoute
   ApiListingsIdentityRoute: typeof ApiListingsIdentityRoute
   ApiListingsPublishRoute: typeof ApiListingsPublishRoute
+  ApiMapTilesRoute: typeof ApiMapTilesRoute
   ApiUploadPhotoRoute: typeof ApiUploadPhotoRoute
   ApiAdminAttributesExportRoute: typeof ApiAdminAttributesExportRoute
   ApiAdminAttributesImportRoute: typeof ApiAdminAttributesImportRoute
@@ -904,6 +929,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUploadPhotoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/map/tiles': {
+      id: '/api/map/tiles'
+      path: '/api/map/tiles'
+      fullPath: '/api/map/tiles'
+      preLoaderRoute: typeof ApiMapTilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/locations/$country': {
       id: '/api/locations/$country'
       path: '/$country'
@@ -958,6 +990,13 @@ declare module '@tanstack/react-router' {
       path: '/reverse'
       fullPath: '/api/geo/reverse'
       preLoaderRoute: typeof ApiGeoReverseRouteImport
+      parentRoute: typeof ApiGeoRoute
+    }
+    '/api/geo/outline': {
+      id: '/api/geo/outline'
+      path: '/outline'
+      fullPath: '/api/geo/outline'
+      preLoaderRoute: typeof ApiGeoOutlineRouteImport
       parentRoute: typeof ApiGeoRoute
     }
     '/api/categories/tree': {
@@ -1123,11 +1162,13 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface ApiGeoRouteChildren {
+  ApiGeoOutlineRoute: typeof ApiGeoOutlineRoute
   ApiGeoReverseRoute: typeof ApiGeoReverseRoute
   ApiGeoSearchRoute: typeof ApiGeoSearchRoute
 }
 
 const ApiGeoRouteChildren: ApiGeoRouteChildren = {
+  ApiGeoOutlineRoute: ApiGeoOutlineRoute,
   ApiGeoReverseRoute: ApiGeoReverseRoute,
   ApiGeoSearchRoute: ApiGeoSearchRoute,
 }
@@ -1170,6 +1211,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiListingsDraftRoute: ApiListingsDraftRoute,
   ApiListingsIdentityRoute: ApiListingsIdentityRoute,
   ApiListingsPublishRoute: ApiListingsPublishRoute,
+  ApiMapTilesRoute: ApiMapTilesRoute,
   ApiUploadPhotoRoute: ApiUploadPhotoRoute,
   ApiAdminAttributesExportRoute: ApiAdminAttributesExportRoute,
   ApiAdminAttributesImportRoute: ApiAdminAttributesImportRoute,

@@ -10,9 +10,15 @@ import {
   coverageOf,
   destroyListingsOf,
   destroyPostableCategory,
+  attributesOf,
+  destroySpecSet,
+  draftsOf,
+  pinOf,
+  pricingOf,
   postRoute,
   rand,
   seedPostableCategory,
+  seedUnitFactSet,
   stopPageBeforePurge,
 } from "./helpers/posting";
 
@@ -38,12 +44,14 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   const sellers: string[] = [];
   const objects: { userId: string; listingId: string }[] = [];
   const places: string[] = [];
+  const specs: string[] = [];
 
   test.afterEach(async ({ page }) => {
     await stopPageBeforePurge(page);
     for (const ref of objects.splice(0)) await purgeListingObjects(ref.userId, ref.listingId);
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
+    if (specs.length > 0) await destroySpecSet(specs.splice(0));
     // A coverage row must be gone before its place.
     for (const slug of places.splice(0)) await destroyLocation(slug);
   });
@@ -248,4 +256,214 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       await context.close();
     }
   }
+
+  /* ============================ W6b-2 — walks ============================ */
+
+  const control = (page: Page, attrKey: string) =>
+    page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+
+  /** Step 1 by search → step 3 (D39), as a seller walks it. */
+  async function walkToStep3(page: Page, userId: string, category: { id: string; slug: string }) {
+    await gotoReady(page, "/post");
+    await page.getByTestId("post-category-search").fill(category.slug);
+    const hit = page.locator(`[data-testid="post-category-hit"][data-category="${category.id}"]`);
+    await expect(hit).toBeVisible({ timeout: 20_000 });
+    await hit.click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    const [draft] = await draftsOf(userId);
+    const listingId = String(draft?.id ?? "");
+    expect(listingId, "step 1 created no draft").not.toBe("");
+    objects.push({ userId, listingId });
+    return listingId;
+  }
+
+  /** Step 3 → photos → details → step 5. */
+  async function walkOnToStep5(page: Page) {
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-title").fill("e2e w6b2 listing title");
+    await page.getByTestId("post-description").fill("e2e w6b2 listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+  }
+
+  /**
+   * PW-88 — INC-347. The type is answered on step 3; its facts and narrowing
+   * speak about the basis that step 5 draws. On step 5 the basis must show the
+   * type's fact (per_litre) and must not offer the link default (per_kg).
+   */
+  test("PW-88 a step-3 answer's fact and narrowing reach the step-5 basis", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const set = await seedUnitFactSet(category.id);
+    specs.push(...set.attrKeys);
+    const listingId = await walkToStep3(page, user.id, category);
+    const type = control(page, set.typeKey);
+    await expect(type.locator(`option[value="${set.typeValue}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await type.selectOption(set.typeValue);
+    await walkOnToStep5(page);
+    await expect(page.getByTestId("post-price-basis")).toHaveAttribute("data-options", "1", {
+      timeout: 20_000,
+    });
+    const basis = control(page, set.basisKey);
+    await expect(basis, "PW-88: the basis does not show the type's fact").toHaveValue("per_litre", {
+      timeout: 20_000,
+    });
+    await expect(
+      basis.locator('option[value="per_kg"]'),
+      "PW-88: the basis still offers per_kg",
+    ).toHaveCount(0);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.basisKey], {
+        message: "PW-88: the stored basis is not per_litre",
+        timeout: 20_000,
+      })
+      .toBe("per_litre");
+  });
+
+  /** PW-89 — A2: 5.25 × million is stored as 5250000; a reopen shows it as typed. */
+  test("PW-89 thousand / million: the full amount is stored and shown", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const listingId = await walkToStep3(page, user.id, category);
+    await walkOnToStep5(page);
+    await page.getByTestId("post-price-mode-fixed").click();
+    const amount = page.getByTestId("post-price-amount");
+    await expect(amount, "PW-89: an example number is still the placeholder").not.toHaveAttribute(
+      "placeholder",
+      /\d/,
+    );
+    await amount.fill("5.25");
+    await page.getByTestId("post-price-scale").selectOption("6");
+    await expect(page.getByTestId("post-price-amount-shown")).toContainText("5,250,000");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await pricingOf(listingId)).amount, {
+        message: "PW-89: the door did not store 5250000",
+        timeout: 20_000,
+      })
+      .toBe(5_250_000);
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-price-amount")).toHaveValue("5250000");
+    await expect(page.getByTestId("post-price-scale")).toHaveValue("0");
+  });
+
+  /**
+   * PW-90 — B1/B2/B4. Two boxes; each level's box is red until its own level is
+   * chosen and clears at once; the plan reads as one line with a details toggle.
+   */
+  test("PW-90 two boxes, a red border per unfilled level, the plan in one line", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+    await openAtStep6(page, user.id, category.id);
+
+    await expect(page.getByTestId("post-where-shown-box"), "PW-90: no Box 1").toBeVisible();
+    await expect(page.getByTestId("post-where-item-box"), "PW-90: no Box 2").toBeVisible();
+    await expect(page.getByTestId("post-where-plan-line"), "PW-90: no plan line").toBeVisible();
+    await expect(page.getByTestId("post-where-plan")).toHaveCount(0);
+    await page.getByTestId("post-where-plan-toggle").click();
+    await expect(page.getByTestId("post-where-plan-details")).toBeVisible();
+
+    const countryBox = page.locator('[data-testid="post-where-country-box"][data-primary="1"]');
+    await expect(countryBox, "PW-90: a chosen country stays red").toHaveAttribute("data-red", "0");
+    const region = page.getByTestId("post-where-region");
+    await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await region.selectOption("");
+    const regionBox = page.getByTestId("post-where-region-box");
+    await expect(regionBox, "PW-90: an empty region box is not red").toHaveAttribute(
+      "data-red",
+      "1",
+    );
+    await region.selectOption(chain.region.id);
+    await expect(regionBox, "PW-90: a chosen region stays red").toHaveAttribute("data-red", "0");
+    const cityBox = page.getByTestId("post-where-row");
+    await page.getByTestId("post-where-city").selectOption("");
+    await expect(cityBox, "PW-90: an empty city box is not red").toHaveAttribute("data-red", "1");
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+    await expect(cityBox, "PW-90: a chosen city stays red").toHaveAttribute("data-red", "0");
+  });
+
+  /**
+   * PW-91 — B1/B3. A category without `map_pin` shows no map; the location
+   * details are offered anyway and stored without a pin.
+   */
+  test("PW-91 location details without a map are stored; a mapless category shows no pin", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory({ capabilities: [] });
+    categories.push(category.slug);
+    const listingId = await openAtStep6(page, user.id, category.id);
+
+    await expect(page.getByTestId("post-where-item-box")).toBeVisible();
+    await expect(
+      page.getByTestId("post-where-pin-open"),
+      "PW-91: a mapless category offered a map",
+    ).toHaveCount(0);
+    const details = page.getByTestId("post-where-details");
+    await details.fill("  3rd floor,\tSuite <5>  ");
+    await details.blur();
+    await expect(page.getByTestId("post-where-details-saved")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await pinOf(listingId)).street, {
+        message: "PW-91: the details were not stored as sanitised text",
+        timeout: 20_000,
+      })
+      .toBe("3rd floor, Suite 5");
+    expect((await pinOf(listingId)).lat, "PW-91: a pin appeared from nowhere").toBeNull();
+  });
+
+  /**
+   * PW-92 — C2/C4. The tile plan answers 403: the map falls back to OSM with a
+   * note, a tap still drops a pin, and "Save location" is on screen at once.
+   */
+  test("PW-92 a refused tile plan falls back to OSM; the pin still drops and Save stays on screen", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const listingId = await openAtStep6(page, user.id, category.id);
+    await page.route("**/api/map/tiles", (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({ status: 403, body: "{}" })
+        : route.fulfill({ status: 200, body: '{"ok":true}' }),
+    );
+    await page.getByTestId("post-where-pin-open").click();
+    const map = page.getByTestId("post-pin-map");
+    await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
+    await expect(page.getByTestId("post-pin-fallback"), "PW-92: no backup-map note").toBeVisible();
+    await expect(map).toHaveAttribute("data-provider", "osm");
+    await map.click({ position: { x: 120, y: 90 } });
+    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    await expect(
+      page.getByTestId("post-pin-save"),
+      "PW-92: Save location is below the fold",
+    ).toBeInViewport();
+    await page.getByTestId("post-pin-save").click();
+    await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-pin-sheet")).toHaveCount(0);
+    expect((await pinOf(listingId)).lat, "PW-92: no pin reached the row").not.toBeNull();
+  });
 });

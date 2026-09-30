@@ -130,6 +130,12 @@ export async function seedPostableCategory(
     pricePeriodLocked?: boolean;
     expiryDays?: number;
     priceEnabled?: boolean;
+    /**
+     * W6b-2 B1 — the map pin is offered only for a `map_pin` category. Scratch
+     * leaves carry it by default so the existing pin specs keep their map; a test
+     * of the gate itself passes `[]`.
+     */
+    capabilities?: string[];
   } = {},
 ) {
   const slug = scratchCategorySlug();
@@ -150,6 +156,7 @@ export async function seedPostableCategory(
         : { price_period_locked: facts.pricePeriodLocked }),
       ...(facts.expiryDays === undefined ? {} : { expiry_days: facts.expiryDays }),
       ...(facts.priceEnabled === undefined ? {} : { price_enabled: facts.priceEnabled }),
+      capabilities: facts.capabilities ?? ["map_pin"],
     })
     .select("id, slug")
     .single();
@@ -2284,4 +2291,82 @@ export async function seedFinderOption(): Promise<{
   if (linkError) throw new Error(`[e2e:w7] linking the finder option failed: ${linkError.message}`);
   await rebuildFinderIndex();
   return { leaf, attrKey, attrLabel, value, label, alias, aliasAm };
+}
+
+/**
+ * W6b-2 A3 (INC-347) — A UNIT-OF-SALE BASIS DECIDED ON STEP 3. A scratch leaf
+ * carries a scratch type picker (step 3) and a scratch `unit_of_sale-e2e_…`
+ * basis (drawn on step 5, D62-2) whose LINK default is `per_kg`. The type's one
+ * option says `facts {basis: per_litre}` and `allowed {basis: [per_litre,
+ * per_piece]}` — Milk's live shape. Scratch only (G27); `destroySpecSet(attrKeys)`.
+ */
+export interface UnitFactSet {
+  typeKey: string;
+  typeValue: string;
+  basisKey: string;
+  attrKeys: string[];
+}
+
+export async function seedUnitFactSet(categoryId: string): Promise<UnitFactSet> {
+  const stem = `e2e_${Date.now().toString(36)}${rand()}`;
+  const typeKey = `${stem}_type`;
+  const typeValue = `${stem}_milk`;
+  const basisKey = `unit_of_sale-${stem}`;
+  const tokens = ["per_kg", "per_litre", "per_piece", "per_pack"];
+  const supabase = adminClient();
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert([
+      {
+        attr_key: typeKey,
+        name_en: `${stem} type`,
+        attr_type: "single_select",
+        options: [
+          {
+            value: typeValue,
+            label_en: `${stem} milk`,
+            label_am: `${stem} ወተት`,
+            facts: { [basisKey]: "per_litre" },
+            allowed: { [basisKey]: ["per_litre", "per_piece"] },
+          },
+          { value: `${stem}_other`, label_en: `${stem} other`, label_am: `${stem} ሌላ` },
+        ],
+      },
+      {
+        attr_key: basisKey,
+        name_en: `${stem} unit`,
+        attr_type: "single_select",
+        options: tokens.map((token) => ({
+          value: token,
+          label_en: `Per ${token.slice(4)}`,
+          label_am: `በ${token.slice(4)}`,
+        })),
+      },
+    ])
+    .select("id, attr_key");
+  if (error || !data) throw new Error(`[e2e:inc347] seeding failed: ${error?.message}`);
+  const idOf = (key: string) => {
+    const row = data.find((entry) => entry.attr_key === key);
+    if (!row) throw new Error(`[e2e:inc347] ${key} missing after seed`);
+    return row.id;
+  };
+  const { error: linkError } = await supabase.from("category_attribute_links").insert([
+    {
+      category_id: categoryId,
+      attribute_id: idOf(typeKey),
+      is_required: true,
+      card_rank: 1,
+      display_order: 100,
+    },
+    {
+      category_id: categoryId,
+      attribute_id: idOf(basisKey),
+      is_required: true,
+      card_rank: 2,
+      display_order: 101,
+      default_value: "per_kg",
+    },
+  ]);
+  if (linkError) throw new Error(`[e2e:inc347] linking failed: ${linkError.message}`);
+  return { typeKey, typeValue, basisKey, attrKeys: [typeKey, basisKey] };
 }
