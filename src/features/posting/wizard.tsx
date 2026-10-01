@@ -208,7 +208,15 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
 
   /** D62-2 — one stable array (I3): the basis key moved from step 3 to step 5. */
   const basisKey = facts?.priceBasisKey ?? null;
-  const basisExclude = useMemo(() => (basisKey === null ? null : [basisKey]), [basisKey]);
+  /**
+   * N2 — GOODS ask "How it's sold" on step 3, at the definition's own display
+   * order (a `unit_of_sale-` key); SERVICES keep D62-2 (asked first on step 5).
+   */
+  const basisOnSpecs = basisKey !== null && basisKey.startsWith("unit_of_sale-");
+  const basisExclude = useMemo(
+    () => (basisKey === null || basisOnSpecs ? null : [basisKey]),
+    [basisKey, basisOnSpecs],
+  );
   /** W6b-2 B1 — the map pin is offered only where the category allows it. */
 
   const current = STEPS[draft.step - 1] ?? STEPS[0];
@@ -794,7 +802,29 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             posterExpiresAt: draft.values.posterExpiresAt,
                           }}
                           basisControl={
-                            basisExclude === null ? null : (
+                            basisOnSpecs ? (
+                              <p
+                                className="flex flex-wrap items-center gap-2 text-sm text-foreground"
+                                data-testid="post-price-unit-chosen"
+                              >
+                                <span>
+                                  {basisValue === null
+                                    ? t("post.price.unitNotChosen")
+                                    : t("post.price.unitChosenOn").replace(
+                                        "{basis}",
+                                        basisLabel ?? basisValue,
+                                      )}
+                                </span>
+                                <button
+                                  type="button"
+                                  data-testid="post-price-unit-change"
+                                  className="min-h-11 px-2 text-sm font-medium text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  onClick={() => draft.goTo(3)}
+                                >
+                                  {t("post.price.unitChange")}
+                                </button>
+                              </p>
+                            ) : basisExclude === null ? null : (
                               <StepSpecifications
                                 categoryId={draft.values.categoryId}
                                 values={draft.values.attributes}

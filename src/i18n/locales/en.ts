@@ -2024,6 +2024,9 @@ export const en = {
   "post.price.commissionLabel": "Commission (%)",
   "post.price.commissionHelp": "Your fee as a percentage of the deal, e.g. 2.5",
   "post.price.basisFixed": "Priced per {basis} — set by your Pricing Basis",
+  "post.price.unitChosenOn": "Sold per {basis} — chosen on step 3, Details.",
+  "post.price.unitNotChosen": "How it's sold is asked on step 3, Details.",
+  "post.price.unitChange": "Change on step 3",
   "post.price.expiryLabel": "Take it down on (optional)",
   "post.price.expiryHint":
     "Leave it empty to use the normal window. At most {days} days from today.",
