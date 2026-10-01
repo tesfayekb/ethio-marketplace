@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 import { gotoReady, switchUser } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import { rand, bandOnly, destroyCategory, action, signInAsSuperAdmin } from "./helpers/categories";
 import {
@@ -1060,7 +1060,7 @@ test.describe("C3 attributes console", () => {
         .from("role_permissions")
         .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
 
-      const viewer = await createUser({ confirmed: true });
+      const viewer = await leaseUser();
       await supabase
         .from("user_roles")
         .insert({ user_id: viewer.id, role_id: role.id, scope_type: "global" });

@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import { gotoReady, stepUpIfPrompted, switchUser, waitForHydration } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
   scratchSlug,
@@ -1102,7 +1102,7 @@ test.describe("CAT-IE categories import/export", () => {
       ["categories", "view"],
     ]);
     try {
-      const viewer = await createUser({ confirmed: true });
+      const viewer = await leaseUser();
       await adminClient()
         .from("user_roles")
         .insert({ user_id: viewer.id, role_id: roleId, scope_type: "global" });
@@ -1144,7 +1144,7 @@ test.describe("CAT-IE categories import/export", () => {
     ]);
     const slug = scratchSlug();
     try {
-      const importer = await createUser({ confirmed: true });
+      const importer = await leaseUser();
       await adminClient()
         .from("user_roles")
         .insert({ user_id: importer.id, role_id: roleId, scope_type: "global" });

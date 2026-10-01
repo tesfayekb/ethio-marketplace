@@ -12,7 +12,7 @@ import {
   useJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * LOCATIONS ERA L2b-C2 — THE COVERAGE CONSOLE (CV-1..CV-7).
@@ -112,14 +112,14 @@ test.describe("L2b coverage console", () => {
   test("CV-1 gating: a plain user is refused; the roster renders for a super admin", async ({
     page,
   }) => {
-    const plain = await createUser({ confirmed: true });
+    const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await page.goto("/admin/coverage");
     await waitForHydration(page);
     await expect(page.getByTestId("admin-section-coverage")).toHaveCount(0);
     await expect(page.getByTestId("coverage-create-open")).toHaveCount(0);
 
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/coverage");

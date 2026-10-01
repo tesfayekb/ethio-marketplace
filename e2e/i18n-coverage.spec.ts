@@ -6,7 +6,7 @@ import { en } from "../src/i18n/locales/en";
 import { LANGUAGE_STORAGE_KEY } from "../src/i18n/provider";
 
 import { gotoReady, openRailScope, signIn } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * U0h PART 2 / U0i PART 3 — I18N CHROME COVERAGE GUARD.
@@ -213,7 +213,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
   });
 
   test("the admin shell renders no English fallback", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
     // Sign in FIRST in English: the signIn helper addresses controls by their
@@ -234,7 +234,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
    * value leaking through the component's dev-warn fallback.
    */
   test("the roles permission matrix renders no raw English vocabulary", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
     const { data: role, error } = await adminClient()

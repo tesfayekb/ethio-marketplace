@@ -2,6 +2,9 @@ import { defineConfig, devices } from "@playwright/test";
 
 import base from "./playwright.config";
 
+// DEC-097 — the nightly leases from its own account lane.
+process.env["E2E_POOL_LANE"] ??= "nightly";
+
 /**
  * Nightly E2E — cases that need REAL elapsed time (see docs/features/nightly-e2e.md).
  * Same target contract as the per-push suite: local build/dev server against the

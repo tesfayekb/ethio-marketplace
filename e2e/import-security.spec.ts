@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import { gotoReady, switchUser } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import {
   rand,
   bandOnly,
@@ -797,7 +797,7 @@ for (const family of FAMILIES) {
       // J9 — this test EXHAUSTS an operator's preview budget, so it spends its
       // own identity, never the pooled super admin every other test shares.
       await signInAsSuperAdmin(page);
-      const operator = await createUser({ confirmed: true });
+      const operator = await leaseUser();
       await grantRole(operator.id, "super_admin");
       await switchUser(page, operator.email, operator.password);
       await gotoReady(page, "/admin/categories");

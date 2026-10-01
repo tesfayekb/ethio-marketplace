@@ -1,5 +1,7 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
 
+import { accountLedgerFile } from "./helpers/users";
+
 import { adminClient, processId, STATE_FILE, type E2EUser } from "./global-setup";
 
 const NAMESPACE = "@ethio-e2e.invalid";
@@ -43,11 +45,12 @@ function ownedBy(email: string | undefined, id: string): email is string {
  * that attempt still throws.
  */
 export default async function globalTeardown() {
-  const persisted = existsSync(STATE_FILE)
-    ? ((JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser).processId ?? "")
-    : "";
-  const currentProcessId = persisted || processId();
+  const state = existsSync(STATE_FILE)
+    ? (JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser)
+    : null;
+  const currentProcessId = state?.processId || processId();
   const supabase = adminClient();
+  await reportSignIns(supabase, state);
 
   let users: ListedUser[] = [];
   try {
@@ -120,4 +123,51 @@ export async function sweepStaleUsers(): Promise<number> {
 
   console.log(`[e2e:sweep] deleted ${deleted} stale user(s) in ${NAMESPACE} older than 24h`);
   return deleted;
+}
+
+/**
+ * DEC-097 (c) — one line per run: accounts that signed in inside this
+ * process's window, split pool vs fresh. Ids come from the lease ledger and the
+ * setup's own mints; last_sign_in_at is read per id (never a full user list).
+ * A counting fault is a WARNING, never a red shard (DEC-059).
+ */
+async function reportSignIns(
+  supabase: ReturnType<typeof adminClient>,
+  state: E2EUser | null,
+): Promise<void> {
+  try {
+    const startedAt = state?.startedAt ? Date.parse(state.startedAt) : Number.NaN;
+    const pool = new Set<string>();
+    const fresh = new Set<string>();
+    if (state?.id) fresh.add(state.id);
+    for (const admin of state?.superAdmins ?? []) fresh.add(admin.id);
+    const ledger = accountLedgerFile();
+    if (existsSync(ledger)) {
+      for (const line of readFileSync(ledger, "utf8").split("\n")) {
+        const [kind, id] = line.trim().split(" ");
+        if (!id) continue;
+        (kind === "pool" ? pool : fresh).add(id);
+      }
+      rmSync(ledger, { force: true });
+    }
+    const signedIn = async (ids: Set<string>) => {
+      let n = 0;
+      for (const id of ids) {
+        const { data, error } = await supabase.auth.admin.getUserById(id);
+        if (error || !data?.user) continue;
+        const at = data.user.last_sign_in_at ? Date.parse(data.user.last_sign_in_at) : Number.NaN;
+        if (Number.isFinite(at) && (!Number.isFinite(startedAt) || at >= startedAt)) n += 1;
+      }
+      return n;
+    };
+    const p = await signedIn(pool);
+    const f = await signedIn(fresh);
+    console.log(`[e2e:teardown] accounts signed in this run: ${p + f} (pool ${p}, fresh ${f})`);
+  } catch (error) {
+    console.warn(
+      `[e2e:teardown] WARNING could not count sign-ins: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
 }
