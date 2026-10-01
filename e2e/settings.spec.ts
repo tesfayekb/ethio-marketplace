@@ -9,7 +9,7 @@ import {
   signOutViaUi,
   waitForHydration,
 } from "./helpers/ui";
-import { createUser } from "./helpers/users";
+import { leaseUser } from "./helpers/users";
 
 /**
  * Settings surface (P1-f). Google-identity paths are NOT covered here: a linked
@@ -24,7 +24,7 @@ test("S-1: unauthenticated /settings lands on /auth", async ({ page }) => {
 });
 
 test("S-2: settings renders all three sections and guards the only method", async ({ page }) => {
-  const user = await createUser({ confirmed: true });
+  const user = await leaseUser();
   await signIn(page, user.email, user.password);
   await expectSignedIn(page, user.displayName);
 
@@ -50,7 +50,7 @@ test("S-2: settings renders all three sections and guards the only method", asyn
 test("S-3 (U-4): wrong current password is rejected; correct one rotates the password", async ({
   page,
 }) => {
-  const user = await createUser({ confirmed: true });
+  const user = await leaseUser();
   const newPassword = `${user.password}-rotated`;
 
   // INC-120 LAW: this test's subject IS the credential (rotation + signed-out
@@ -105,7 +105,7 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
 test("S-4: the password renders as its own method and cannot be removed alone", async ({
   page,
 }) => {
-  const user = await createUser({ confirmed: true });
+  const user = await leaseUser();
   await signIn(page, user.email, user.password);
   await expectSignedIn(page, user.displayName);
 

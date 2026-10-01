@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import {
   bearerOf,
   completeDraft,
@@ -82,7 +82,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   }
 
   async function signedInSeller(page: Page) {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);
@@ -249,7 +249,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const context = await browser.newContext();
     const other = await context.newPage();
     try {
-      const user = await createUser({ confirmed: true });
+      const user = await leaseUser();
       sellers.push(user.id);
       await asEdge(other);
       await signInViaSession(other, user.email, user.password);

@@ -11,7 +11,7 @@ import {
   useJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import { geometryDump, grantRole } from "./helpers/categories";
 import {
   actionsOf,
@@ -100,14 +100,14 @@ test.describe("L2a locations console", () => {
   test("LT-1 gating: a plain user is refused; the roster and transfer toolbar render for an admin", async ({
     page,
   }) => {
-    const plain = await createUser({ confirmed: true });
+    const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await page.goto("/admin/places");
     await waitForHydration(page);
     await expect(page.getByTestId("location-search")).toHaveCount(0);
     await expect(page.getByTestId("location-create-open")).toHaveCount(0);
 
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/places");
@@ -509,7 +509,7 @@ test.describe("L2a locations console", () => {
 
       // A super admin with NO enrolled factor: the gate can never be satisfied,
       // so the server refuses and DB truth stays byte-identical (F5).
-      const weak = await createUser({ confirmed: true });
+      const weak = await leaseUser();
       await grantRole(weak.id, "super_admin");
       await switchUser(page, weak.email, weak.password);
       await gotoReady(page, "/admin/places");

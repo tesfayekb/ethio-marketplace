@@ -25,7 +25,7 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { destroyCountry } from "./helpers/countries";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import { distanceKm } from "../src/lib/geo-distance";
 
 /** Grants a named role via the service role — the staff fixture (see rbac.spec.ts). */
@@ -821,7 +821,7 @@ test.describe("mobile chrome", () => {
   });
 
   test("the drawer switcher NAVIGATES to the panel's home (U0e)", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/");
 
@@ -956,7 +956,7 @@ test.describe("panel-scoped chrome", () => {
    * a signed-in user, so this needs a real session.
    */
   test("location row is present on Marketplace and absent on Account", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await expectSignedIn(page, user.displayName);
     await gotoReady(page, "/");
@@ -1017,7 +1017,7 @@ test.describe("panel follows the route", () => {
    * marketplace category rail. The panel is now derived from the route.
    */
   test("/settings shows the Account context, and returning shows categories", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await expectSignedIn(page, user.displayName);
 
@@ -1057,7 +1057,7 @@ test.describe("panel follows the route", () => {
 
   // Law F3 (UI convenience only): the Admin panel is absent for a non-admin.
   test("admin panel is absent for a normal signed-in user", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await expectSignedIn(page, user.displayName);
     await gotoReady(page, "/");
@@ -1086,7 +1086,7 @@ test.describe("panel header band (U0d)", () => {
   });
 
   test("the desktop rail switcher NAVIGATES to the panel's home (U0e)", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/");
 
@@ -1117,7 +1117,7 @@ test.describe("panel header band (U0d)", () => {
 test.describe("rail scroll regions (U0f)", () => {
   test("drawer: items scroll, header fixed, sign out pinned", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) >= 768, "mobile drawer only");
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await page.setViewportSize({ width: 360, height: 480 });
     await gotoReady(page, "/");
@@ -1155,7 +1155,7 @@ test.describe("rail scroll regions (U0f)", () => {
     // Guaranteed-overflow premise: the Admin panel's 7 sections plus the fixed
     // header and pinned foot cannot fit in 360px of height. The staff fixture
     // is granted through the same service-role path rbac.spec.ts uses.
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     await signIn(page, staff.email, staff.password);
     await page.setViewportSize({ width: 1280, height: 360 });
@@ -1198,7 +1198,7 @@ test.describe("rail scroll regions (U0f)", () => {
    */
   test("footer never covers the rail's Sign out", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/");
 
@@ -1504,7 +1504,7 @@ test.describe("i18n gate is non-blocking (U4f-2)", () => {
   test("TR-18 a regular user is still redirected off /admin before the list resolves", async ({
     page,
   }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await signIn(page, user.email, user.password);
     const languages = await delayLanguagesRead(page, 5000);
 
@@ -1564,7 +1564,7 @@ test.describe("U4h device language star", () => {
     await gotoReady(page, "/");
     await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am");
 
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am");
 
@@ -1578,7 +1578,7 @@ test.describe("U4h device language star", () => {
     const supabase = adminClient();
 
     // Persona A — account prefers Amharic, device has never starred anything.
-    const carried = await createUser({ confirmed: true });
+    const carried = await leaseUser();
     const { error: carryError } = await supabase
       .from("profiles")
       .update({ preferred_language: "am" })
@@ -1596,7 +1596,7 @@ test.describe("U4h device language star", () => {
     // Persona B — the same account preference, but this device already starred
     // English. The device wins; the account never overwrites an explicit star.
     await signOutViaUi(page);
-    const overridden = await createUser({ confirmed: true });
+    const overridden = await leaseUser();
     const { error: prefError } = await supabase
       .from("profiles")
       .update({ preferred_language: "am" })

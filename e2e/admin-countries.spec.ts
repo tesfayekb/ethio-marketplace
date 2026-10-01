@@ -27,7 +27,7 @@ import {
   useJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
-import { createUser } from "./helpers/users";
+import { leaseUser } from "./helpers/users";
 
 /**
  * LOCATIONS ERA L2b-C1 — THE COUNTRIES CONSOLE (CO-1..CO-8).
@@ -57,14 +57,14 @@ test.describe("L2b countries console", () => {
   test("CO-1 gating: a plain user is refused; the roster and its transfer toolbar render for an admin", async ({
     page,
   }) => {
-    const plain = await createUser({ confirmed: true });
+    const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await page.goto("/admin/countries");
     await waitForHydration(page);
     await expect(page.getByTestId("country-search")).toHaveCount(0);
     await expect(page.getByTestId("country-create-open")).toHaveCount(0);
 
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/countries");

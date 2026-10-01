@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation } from "./helpers/locations";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import {
   attributesOf,
   postRoute,
@@ -110,7 +110,7 @@ test.describe("POSTING WIZARD", () => {
   }
 
   async function seller(page: import("@playwright/test").Page) {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);

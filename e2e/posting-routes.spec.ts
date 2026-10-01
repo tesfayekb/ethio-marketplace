@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   activeCityOf,
@@ -69,7 +69,7 @@ test.describe("POSTING ROUTES", () => {
   });
 
   async function seller(page: import("@playwright/test").Page) {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     sellers.push(user.id);
     await signInViaSession(page, user.email, user.password);
     await gotoReady(page, "/");
