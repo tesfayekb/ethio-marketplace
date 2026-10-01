@@ -161,15 +161,26 @@ async function assertAmharicCategories(page: Page, scope: string, where: string)
       const nav = document.querySelector(`${sel} nav[aria-label="${catLabel}"]`);
       if (!nav) return [];
       return Array.from(nav.querySelectorAll("li button, li a, li span[aria-disabled]"))
-        .map((el) => (el.textContent ?? "").trim())
-        .filter(Boolean);
+        .map((el) => {
+          const testid =
+            el.closest('[data-testid^="rail-category-"]')?.getAttribute("data-testid") ?? "";
+          return {
+            label: (el.textContent ?? "").trim(),
+            slug: testid.replace(/^rail-category-/, "") || "?",
+          };
+        })
+        .filter((row) => row.label !== "");
     },
     [scope, am["shell.categoriesLabel"]] as const,
   );
 
   expect(labels.length, `${where}: no category rows rendered`).toBeGreaterThan(0);
-  const english = labels.filter((label) => !ALLOW.has(label) && LATIN_ONLY.test(label));
-  expect(english, `${where}: category labels still in English`).toEqual([]);
+  const english = labels.filter((row) => !ALLOW.has(row.label) && LATIN_ONLY.test(row.label));
+  // INC-361 — the message names the slug of each English label.
+  expect(
+    english.map((row) => `${row.slug} => "${row.label}"`),
+    `${where}: category labels still in English`,
+  ).toEqual([]);
 }
 
 test.describe("i18n chrome coverage (Amharic)", () => {

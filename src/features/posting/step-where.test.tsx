@@ -230,9 +230,7 @@ describe("StepWhere — the ad's places and the item tick (W6b-1)", () => {
     const addCity = within(r1).getByTestId("post-where-add-city");
     const cityRows = within(r1).getAllByTestId("post-where-row");
     for (const row of cityRows) {
-      expect(
-        row.compareDocumentPosition(addCity) & Node.DOCUMENT_POSITION_FOLLOWING,
-      ).toBeTruthy();
+      expect(row.compareDocumentPosition(addCity) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     }
 
     const boxes = within(primaryBox()).getAllByTestId("post-where-region-box");
