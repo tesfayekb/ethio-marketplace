@@ -2,75 +2,69 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36882672052
 - Commit: `6a33e31bf345131821698f36fb0c331b10d3dcb1`
-- Attempt: 1
-- Written (UTC): 2026-10-01T15:31:39.464Z
+- Attempt: 2
+- Written (UTC): 2026-10-01T16:17:52.988Z
 
-## E2E (Playwright, ethio-staging) — failure
+## Promote to main (fast-forward on green) — failure
 
 ### Evidence lines
 
 ```text
-[36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
-[36;1m    || echo "::warning::DEC-030 flake-ledger re-append failed"[0m
-[36;1m  echo "::warning::E2E failure report push failed after retries"[0m
-[36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
-Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
-##[error]E2E failed — see docs/tracking/e2e-last-failure.md
+error: failed to push some refs to 'https://github.com/tesfayekb/ethio-marketplace'
 ##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-shell: /usr/bin/bash -e {0}
-env:
-  E2E_RESULTS_DIR: shard-results
-  E2E_LOGS_DIR: shard-logs
-  E2E_CONTEXT_DIR: shard-contexts
-  E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
-  E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36882672052
-  E2E_HEAD_COMMIT_MESSAGE: Fixed Next conflict handling
-
-X-Lovable-Edit-ID: edt-d18b4fd3-a02f-4857-8128-0add3fa70eba
-Co-authored-by: tesfayekb <tesfayekb@me.com>
-##[endgroup]
-  layout OK — per-artifact subdir: 1 context file(s), report rendered.
-  layout OK — merged flat: 1 context file(s), report rendered.
-  layout OK — zero artifacts: 0 context file(s), report rendered.
-  layout OK — missing directory: 0 context file(s), report rendered.
-DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
-DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.
-ok — R1a census names the missing log
-ok — R1a a11y never states zero with a gap
-ok — R1b census: all N logs read
-ok — R1b a11y: all N logs read
-Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (8/8 source(s) with usable results, 2 context file(s) found).
+ * [new branch]        lovable-sync-1790668701 -> origin/lovable-sync-1790668701
+ * [new branch]        lovable-sync-1790806349 -> origin/lovable-sync-1790806349
+ * [new branch]        lovable-sync-1790807903 -> origin/lovable-sync-1790807903
+ * [new branch]        main                    -> origin/main
+[command]/usr/bin/git branch --list --remote origin/dev
+  origin/dev
+[command]/usr/bin/git rev-parse refs/remotes/origin/dev
+9d610bf68aa6e4bd7fa0939e1283454b628fcf60
+[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules origin +6a33e31bf345131821698f36fb0c331b10d3dcb1:refs/remotes/origin/dev
 From https://github.com/tesfayekb/ethio-marketplace
- * branch            dev        -> FETCH_HEAD
-HEAD is now at 6a33e31 Fixed Next conflict handling
-[dev 1dc5c13] ci: e2e failure report + flake ledger [skip ci]
- 1 file changed, 186 insertions(+), 68 deletions(-)
-To https://github.com/tesfayekb/ethio-marketplace
-   6a33e31..1dc5c13  HEAD -> dev
-##[group]Run echo "smoke=success email=failure shards=success"
-[36;1mecho "smoke=success email=failure shards=success"[0m
-[36;1mif [ "success" != "success" ] || [ "success" != "success" ] || [ "failure" != "success" ]; then[0m
-[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
-[36;1m  exit 1[0m
-[36;1mfi[0m
-[36;1mecho "All E2E shards and the smoke tier passed."[0m
+ + 9d610bf6...6a33e31b 6a33e31bf345131821698f36fb0c331b10d3dcb1 -> origin/dev  (forced update)
+##[endgroup]
+##[group]Determining the checkout info
+##[endgroup]
+[command]/usr/bin/git sparse-checkout disable
+[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+##[group]Checking out the ref
+[command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
+Switched to a new branch 'dev'
+branch 'dev' set up to track 'origin/dev'.
+##[endgroup]
+[command]/usr/bin/git log -1 --format=%H
+6a33e31bf345131821698f36fb0c331b10d3dcb1
+##[group]Run git config user.name "github-actions[bot]"
+[36;1mgit config user.name "github-actions[bot]"[0m
+[36;1mgit config user.email "41898282+github-actions[bot]@users.noreply.github.com"[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=success email=failure shards=success
-##[error]E2E failed — see docs/tracking/e2e-last-failure.md
+##[group]Run git fetch origin main
+[36;1mgit fetch origin main[0m
+[36;1mgit merge-base --is-ancestor origin/main HEAD || { echo "::error::MAIN DIVERGED — fast-forward impossible; manual reconcile per DEC-020 (ff-only law, never merge/rebase here); run the sync-main dispatch after confirming main's extra commits are tracking-only"; exit 1; }[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+From https://github.com/tesfayekb/ethio-marketplace
+ * branch              main       -> FETCH_HEAD
+##[group]Run git push origin HEAD:main
+[36;1mgit push origin HEAD:main[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+remote: fatal error in commit_refs        
+To https://github.com/tesfayekb/ethio-marketplace
+ ! [remote rejected]   HEAD -> main (failure)
+error: failed to push some refs to 'https://github.com/tesfayekb/ethio-marketplace'
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/53ae8af7-7365-4610-b3c8-6c0190305182' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/be6190cd-7e5b-4255-9024-694025ccf126' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
