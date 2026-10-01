@@ -16,6 +16,7 @@ import {
   loadLeaflet,
   loadTilePlan,
   OSM_PLAN,
+  creditOf,
   pinIcon,
   reportFallback,
   watchTiles,
@@ -107,6 +108,7 @@ export function MapPinDropper({
   const [precision, setPrecision] = useState<string>(saved?.precision ?? "exact");
   const [tile, setTile] = useState<TileKind>("street");
   const [backup, setBackup] = useState(false);
+  const [credit, setCredit] = useState("");
   const [outside, setOutside] = useState(false);
 
   const [query, setQuery] = useState("");
@@ -160,6 +162,7 @@ export function MapPinDropper({
     if (L === null || map === null) return;
     for (const layer of layersRef.current) layer.remove();
     layersRef.current = addTileLayers(L, map, planRef.current, kind);
+    setCredit(creditOf(planRef.current, kind));
     if (planRef.current.provider === "osm") return;
     watchTiles(layersRef.current, (reason) => {
       reportFallback(reason);
@@ -182,6 +185,8 @@ export function MapPinDropper({
         if (answer.reason !== null) setBackup(true);
         const fallbackCentre: [number, number] = [place.lat ?? 9.03, place.lng ?? 38.74];
         const map = L.map(box, {
+          // INC-354 — the credit is drawn below the map, never under a control bar.
+          attributionControl: false,
           center: saved === null ? fallbackCentre : [saved.lat, saved.lng],
           zoom: saved === null ? (place.level === "sub_city" ? 16 : 14) : 16,
         });
@@ -396,6 +401,13 @@ export function MapPinDropper({
             data-outline="0"
             data-provider={backup ? "osm" : planRef.current.provider}
           />
+          <p
+            className="text-end text-xs text-muted-foreground"
+            data-testid="post-pin-credit"
+            data-provider={backup ? "osm" : planRef.current.provider}
+          >
+            {credit}
+          </p>
           <p className="text-xs text-muted-foreground">{t("post.pin.tapHint")}</p>
           {backup && (
             <p className="text-xs text-muted-foreground" data-testid="post-pin-fallback">
@@ -444,13 +456,16 @@ export function MapPinDropper({
           </div>
 
           <fieldset className="space-y-1">
-            <legend className="text-sm font-medium text-foreground">
-              {t("post.pin.precisionLabel")}
+            <legend
+              className="text-sm font-medium text-foreground"
+              data-testid="post-pin-precision-label"
+            >
+              {t("post.pin.showAsLabel")}
             </legend>
             {(
               [
-                ["exact", "post.pin.precisionExact"],
-                ["approx", "post.pin.precisionApprox"],
+                ["exact", "post.pin.showAsExact"],
+                ["approx", "post.pin.showAsApprox"],
               ] as const
             ).map(([value, key]) => (
               <label

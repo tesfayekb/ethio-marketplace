@@ -34,6 +34,7 @@ import type { Refusal } from "./types";
  * never carries a mapping library (the weight and budget guards prove it), and a
  * seller who never asks for a pin never downloads one.
  */
+const MapPreview = lazy(() => import("./map/map-preview"));
 const MapPinDropper = lazy(() =>
   import("./map/map-pin-dropper").then((mod) => ({ default: mod.MapPinDropper })),
 );
@@ -120,15 +121,26 @@ function placeOf(row: Row): string | null {
  * box until its region is, a city box until its city is; each clears the moment
  * it is filled. The heading's required mark still waits for a city (W6 R1).
  */
-function boxClass(empty: boolean, refused: boolean): string {
+function boxClass(empty: boolean, refused: boolean, step = ""): string {
   const border = refused
     ? "border-destructive ring-1 ring-destructive"
     : empty
       ? "border-destructive"
       : "border-input";
-  // W6b-1 R2 — compact padding at 360 px keeps a city box ≥ 280 px wide.
-  return `space-y-3 rounded-md border p-2 sm:p-3 ${border}`;
+  if (step === "") return `space-y-3 rounded-md border px-1.5 py-2 sm:p-3 ${border}`;
+  // PW-99 ruling (2026-09-30) — below 768 px a nested level is a LEFT RULE only:
+  // no side borders, no side padding beyond the rule's gap, so every select
+  // keeps ≥ 200 px and the page never scrolls sideways. From 768 px it is a box.
+  return (
+    `space-y-3 rounded-none border-0 border-s-2 py-1 ps-2 md:rounded-md md:border md:p-3 ` +
+    `${step} ${border}`
+  );
 }
+
+/** J — region box: indented by its rule at 360; two-thirds, right-aligned from 768 px. */
+const REGION_STEP = "ms-1 md:ms-auto md:w-3/4";
+/** J — city line: one step further in than its region. */
+const CITY_STEP = "ms-1 md:ms-6";
 
 async function readGuess(): Promise<GuessFacts> {
   try {
@@ -242,6 +254,20 @@ function CountryBox({
     else found.rows.push(row);
   }
   const empty = !rows.some((row) => placeOf(row) !== null);
+  const addRegionButton = room.region &&
+    code !== null &&
+    nodes.length > 0 &&
+    regions.length > 0 && (
+      <button
+        type="button"
+        data-testid="post-where-add-region"
+        data-country={code}
+        className={addClass}
+        onClick={() => onAddRegion(code)}
+      >
+        {t("post.where.addRegion")}
+      </button>
+    );
 
   return (
     <div
@@ -254,7 +280,7 @@ function CountryBox({
     >
       {market}
       {nodes.length > 0 &&
-        groups.map((group) => {
+        groups.map((group, index) => {
           const hasPrimary = group.rows.some((row) => row.key === PRIMARY);
           const cities = childrenOf(nodes, group.region, "city");
           const groupEmpty = !group.rows.some((row) => placeOf(row) !== null);
@@ -265,7 +291,7 @@ function CountryBox({
               data-region={group.region ?? ""}
               data-empty={groupEmpty ? "1" : "0"}
               data-red={group.region === null ? "1" : "0"}
-              className={boxClass(group.region === null, false)}
+              className={boxClass(group.region === null, false, REGION_STEP)}
             >
               <div className="space-y-1">
                 <label
@@ -273,6 +299,7 @@ function CountryBox({
                   className="text-sm font-medium text-foreground"
                 >
                   {t(LEVEL_KEYS["region"] ?? "post.where.level.region")}
+                  {group.region === null && <RequiredMark />}
                 </label>
                 <select
                   id={hasPrimary ? "post-where-region" : `post-where-region-${group.key}`}
@@ -330,31 +357,48 @@ function CountryBox({
                       data-key={row.key}
                       data-item={row.key === itemKey ? "1" : "0"}
                       data-red={placeOf(row) === null ? "1" : "0"}
-                      className={boxClass(placeOf(row) === null, false)}
+                      className={boxClass(placeOf(row) === null, false, CITY_STEP)}
                     >
-                      {cities.length > 0 && (
-                        <div className="space-y-1">
-                          <label htmlFor={cityId} className="text-sm font-medium text-foreground">
-                            {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
-                          </label>
-                          <select
-                            id={cityId}
-                            data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
-                            className={fieldClass}
-                            value={row.city ?? ""}
-                            onChange={(event) =>
-                              onRow(row.key, { city: event.target.value || null, subCity: null })
-                            }
-                          >
-                            <option value="">{t("post.where.levelNone")}</option>
-                            {cities.map((node) => (
-                              <option key={node.id} value={node.id}>
-                                {nameOf(node)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
+                      {/* I/J — the city line: the tick sits right of the city from 768 px, under it at 360. */}
+                      <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-3">
+                        {cities.length > 0 && (
+                          <div className="space-y-1 md:min-w-48 md:flex-1">
+                            <label htmlFor={cityId} className="text-sm font-medium text-foreground">
+                              {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
+                              {placeOf(row) === null && <RequiredMark />}
+                            </label>
+                            <select
+                              id={cityId}
+                              data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
+                              className={fieldClass}
+                              value={row.city ?? ""}
+                              onChange={(event) =>
+                                onRow(row.key, { city: event.target.value || null, subCity: null })
+                              }
+                            >
+                              <option value="">{t("post.where.levelNone")}</option>
+                              {cities.map((node) => (
+                                <option key={node.id} value={node.id}>
+                                  {nameOf(node)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                        {/* W6b-1 R3 — the one tick, a radio group across every box. */}
+                        <label className="flex min-h-11 items-center gap-2 text-sm text-foreground md:max-w-40">
+                          <input
+                            type="radio"
+                            name="post-where-item"
+                            data-testid="post-where-item-tick"
+                            data-key={row.key}
+                            className="h-5 w-5 shrink-0 accent-primary"
+                            checked={row.key === itemKey}
+                            onChange={() => onTick(row.key)}
+                          />
+                          <span>{t("post.where.itemHere")}</span>
+                        </label>
+                      </div>
                       {/* D19 — "All of <city>" is the CITY node offered beside its children. */}
                       {cityNode !== null && subCities.length > 0 && (
                         <div className="space-y-1">
@@ -388,19 +432,6 @@ function CountryBox({
                           </select>
                         </div>
                       )}
-                      {/* W6b-1 R3 — the one tick, a radio group across every box. */}
-                      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-                        <input
-                          type="radio"
-                          name="post-where-item"
-                          data-testid="post-where-item-tick"
-                          data-key={row.key}
-                          className="h-5 w-5 shrink-0 accent-primary"
-                          checked={row.key === itemKey}
-                          onChange={() => onTick(row.key)}
-                        />
-                        <span>{t("post.where.itemHere")}</span>
-                      </label>
                       {canRemove && (
                         <button
                           type="button"
@@ -416,31 +447,27 @@ function CountryBox({
                   );
                 })}
 
+              {/* J — "+ Add city" at the right end, under the last city line. */}
               {room.city && (group.region !== null || regions.length === 0) && (
-                <button
-                  type="button"
-                  data-testid="post-where-add-city"
-                  data-region={group.region ?? ""}
-                  className={addClass}
-                  onClick={() => onAddCity(code, group.region)}
-                >
-                  {t("post.where.addCity")}
-                </button>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    data-testid="post-where-add-city"
+                    data-region={group.region ?? ""}
+                    className={addClass}
+                    onClick={() => onAddCity(code, group.region)}
+                  >
+                    {t("post.where.addCity")}
+                  </button>
+                </div>
               )}
+              {/* J — "+ Add region" at the bottom of the (last) region box. */}
+              {index === groups.length - 1 && addRegionButton}
             </div>
           );
         })}
-      {room.region && code !== null && nodes.length > 0 && regions.length > 0 && (
-        <button
-          type="button"
-          data-testid="post-where-add-region"
-          data-country={code}
-          className={addClass}
-          onClick={() => onAddRegion(code)}
-        >
-          {t("post.where.addRegion")}
-        </button>
-      )}
+      {/* J — with no region box yet, "+ Add region" closes the country box. */}
+      {groups.length === 0 && addRegionButton}
     </div>
   );
 }
@@ -470,6 +497,7 @@ function OtherCountryBox({
     <div className="space-y-1">
       <label htmlFor={id} className="text-sm font-medium text-foreground">
         {t("post.where.marketLabel")}
+        {code === null && <RequiredMark />}
       </label>
       <select
         id={id}
@@ -515,7 +543,6 @@ export function StepWhere({
   maxCities = null,
   maxRegions = null,
   maxCountries = null,
-  mapCapable = false,
 }: {
   /** The chosen place ids; the FIRST one is the item's own place (spec §4 C2). */
   coverage: string[];
@@ -531,8 +558,6 @@ export function StepWhere({
   maxCities?: number | null;
   maxRegions?: number | null;
   maxCountries?: number | null;
-  /** W6b-2 B1 — the map shows only for a category with the `map_pin` capability. */
-  mapCapable?: boolean;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
@@ -902,6 +927,7 @@ export function StepWhere({
     <div className="space-y-1">
       <label htmlFor="post-where-market" className="text-sm font-medium text-foreground">
         {t("post.where.marketLabel")}
+        {country === null && <RequiredMark />}
       </label>
       {markets.isLoading ? (
         <p className="text-sm text-muted-foreground">{t("post.where.marketLoading")}</p>
@@ -1140,108 +1166,120 @@ export function StepWhere({
           {itemNode === null ? t("post.where.itemNone") : nameOf(itemNode)}
         </p>
 
-        {mapCapable &&
-          (listingId === null ? (
-            <p className="text-xs text-muted-foreground" data-testid="post-where-pin-later">
-              {t("post.where.pinLater")}
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {!pinOpen && (
-                <p
-                  className="text-sm text-foreground"
-                  data-testid="post-pin-position"
-                  data-lat={pin === null ? "" : pin.lat.toFixed(5)}
-                  data-lng={pin === null ? "" : pin.lng.toFixed(5)}
-                >
-                  {pin === null
-                    ? t("post.pin.none")
-                    : fill(t("post.pin.at"), {
-                        lat: pin.lat.toFixed(5),
-                        lng: pin.lng.toFixed(5),
-                      })}
-                </p>
-              )}
-              <div className="flex flex-wrap gap-2">
+        {/* K — one explanation line; the map is offered in EVERY category. */}
+        <p className="text-xs text-muted-foreground" data-testid="post-where-item-help">
+          {t("post.where.itemHelp")}
+        </p>
+
+        {listingId === null ? (
+          <p className="text-xs text-muted-foreground" data-testid="post-where-pin-later">
+            {t("post.where.pinLater")}
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {!pinOpen && (
+              <p
+                className="text-sm text-foreground"
+                data-testid="post-pin-position"
+                data-lat={pin === null ? "" : pin.lat.toFixed(5)}
+                data-lng={pin === null ? "" : pin.lng.toFixed(5)}
+              >
+                {pin === null
+                  ? t("post.pin.none")
+                  : fill(t("post.pin.at"), {
+                      lat: pin.lat.toFixed(5),
+                      lng: pin.lng.toFixed(5),
+                    })}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
+                aria-haspopup="dialog"
+                onClick={() => {
+                  setPinState("idle");
+                  setPinOpen(true);
+                }}
+                data-testid="post-where-pin-open"
+              >
+                {t(pin === null ? "post.pin.open" : "post.pin.change")}
+              </button>
+              {pin !== null && (
                 <button
                   type="button"
                   className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
-                  aria-haspopup="dialog"
                   onClick={() => {
-                    setPinState("idle");
-                    setPinOpen(true);
-                  }}
-                  data-testid="post-where-pin-open"
-                >
-                  {t(pin === null ? "post.pin.open" : "post.pin.change")}
-                </button>
-                {pin !== null && (
-                  <button
-                    type="button"
-                    className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
-                    onClick={() => {
-                      void clearPin(listingId).then((ok) => {
-                        if (ok) {
-                          onPinSaved?.(null);
-                          setNote("");
-                        }
-                        setPinState(ok ? "removed" : "failed");
-                      });
-                    }}
-                    data-testid="post-pin-remove"
-                  >
-                    {t("post.pin.remove")}
-                  </button>
-                )}
-              </div>
-              {pinState === "saved" && (
-                <p className="text-sm text-foreground" data-testid="post-pin-saved">
-                  {t("post.pin.saved")}
-                </p>
-              )}
-              {pinState === "removed" && (
-                <p className="text-sm text-foreground" data-testid="post-pin-removed">
-                  {t("post.pin.removed")}
-                </p>
-              )}
-              {pinState === "failed" && (
-                <p className="text-sm text-destructive" data-testid="post-pin-error">
-                  {t("post.pin.saveFailed")}
-                </p>
-              )}
-              {pinOpen && (
-                <Suspense
-                  fallback={
-                    <p className="text-xs text-muted-foreground">{t("post.pin.searching")}</p>
-                  }
-                >
-                  <MapPinDropper
-                    saved={pin}
-                    place={pinPlace}
-                    note={note}
-                    onNote={setNote}
-                    onClose={() => setPinOpen(false)}
-                    onSave={async (value) => {
-                      const street = sanitizeDetails(note);
-                      const ok = await savePin(
-                        listingId,
-                        value.lat,
-                        value.lng,
-                        value.precision,
-                        street === "" ? null : street,
-                      );
+                    void clearPin(listingId).then((ok) => {
                       if (ok) {
-                        onPinSaved?.({ ...value, street: street === "" ? null : street });
-                        setPinState("saved");
-                        setPinOpen(false);
+                        onPinSaved?.(null);
+                        setNote("");
                       }
-                      return ok;
-                    }}
-                  />
-                </Suspense>
+                      setPinState(ok ? "removed" : "failed");
+                    });
+                  }}
+                  data-testid="post-pin-remove"
+                >
+                  {t("post.pin.remove")}
+                </button>
               )}
             </div>
-          ))}
+            {/* K — after Save, the small map exactly as buyers see it. */}
+            {pin !== null && !pinOpen && (
+              <div data-testid="post-where-pin-preview">
+                <Suspense fallback={null}>
+                  <MapPreview lat={pin.lat} lng={pin.lng} precision={pin.precision ?? null} />
+                </Suspense>
+              </div>
+            )}
+            {pinState === "saved" && (
+              <p className="text-sm text-foreground" data-testid="post-pin-saved">
+                {t("post.pin.saved")}
+              </p>
+            )}
+            {pinState === "removed" && (
+              <p className="text-sm text-foreground" data-testid="post-pin-removed">
+                {t("post.pin.removed")}
+              </p>
+            )}
+            {pinState === "failed" && (
+              <p className="text-sm text-destructive" data-testid="post-pin-error">
+                {t("post.pin.saveFailed")}
+              </p>
+            )}
+            {pinOpen && (
+              <Suspense
+                fallback={
+                  <p className="text-xs text-muted-foreground">{t("post.pin.searching")}</p>
+                }
+              >
+                <MapPinDropper
+                  saved={pin}
+                  place={pinPlace}
+                  note={note}
+                  onNote={setNote}
+                  onClose={() => setPinOpen(false)}
+                  onSave={async (value) => {
+                    const street = sanitizeDetails(note);
+                    const ok = await savePin(
+                      listingId,
+                      value.lat,
+                      value.lng,
+                      value.precision,
+                      street === "" ? null : street,
+                    );
+                    if (ok) {
+                      onPinSaved?.({ ...value, street: street === "" ? null : street });
+                      setPinState("saved");
+                      setPinOpen(false);
+                    }
+                    return ok;
+                  }}
+                />
+              </Suspense>
+            )}
+          </div>
+        )}
 
         {/* W6b-2 B3 — the location details, for every category. */}
         <div className="space-y-1">
