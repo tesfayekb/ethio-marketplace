@@ -99,7 +99,6 @@ async function displayName(userId: string): Promise<string | null> {
   return data?.display_name ?? null;
 }
 
-
 async function statusChangeCount(userId: string): Promise<number> {
   const supabase = adminClient();
   const { data, error } = await supabase
