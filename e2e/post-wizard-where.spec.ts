@@ -659,9 +659,9 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
 
   /**
    * PW-99 — J. The staircase: at ≥ 768 the region box is narrower than the
-   * country box and right-aligned; at 360 every select is at least 280 px.
+   * country box and right-aligned; at 360 a left rule only, every select ≥ 200 px, no sideways scroll.
    */
-  test("PW-99 the place boxes step in; every select stays at least 280 px", async ({ page }) => {
+  test("PW-99 the place boxes step in; every select stays at least 200 px", async ({ page }) => {
     const user = await signedInSeller(page);
     const category = await seedPostableCategory();
     categories.push(category.slug);
