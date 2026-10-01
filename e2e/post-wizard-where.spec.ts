@@ -332,6 +332,13 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       basis.locator('option[value="per_kg"]'),
       "PW-88: the unit still offers per_kg",
     ).toHaveCount(0);
+    // N2-a — the unit is asked before quantity: "How it's sold" renders above
+    // the later-ordered row on step 3.
+    await expect(control(page, set.quantityKey)).toBeVisible({ timeout: 20_000 });
+    const unitBox = await basis.boundingBox();
+    const quantityBox = await control(page, set.quantityKey).boundingBox();
+    expect(unitBox && quantityBox, "PW-88: unit or quantity row not rendered").toBeTruthy();
+    expect(unitBox!.y, "PW-88: the unit is not asked above quantity").toBeLessThan(quantityBox!.y);
     await walkOnToStep5(page);
     await expect(page.getByTestId("post-price-basis")).toHaveCount(0);
     await expect(page.getByTestId("post-price-unit-chosen")).toHaveAttribute(

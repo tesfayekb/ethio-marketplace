@@ -2304,6 +2304,7 @@ export interface UnitFactSet {
   typeKey: string;
   typeValue: string;
   basisKey: string;
+  quantityKey: string;
   attrKeys: string[];
 }
 
@@ -2315,6 +2316,8 @@ export async function seedUnitFactSet(
   const typeKey = `${stem}_type`;
   const typeValue = `${stem}_milk`;
   const basisKey = `unit_of_sale-${stem}`;
+  // N2-a — a later-ordered row, so a test can prove the unit is asked first.
+  const quantityKey = `${stem}_quantity`;
   const tokens = ["per_kg", "per_litre", "per_piece", "per_pack"];
   const supabase = adminClient();
   const { data, error } = await supabase
@@ -2348,6 +2351,7 @@ export async function seedUnitFactSet(
           label_am: `በ${token.slice(4)}`,
         })),
       },
+      { attr_key: quantityKey, name_en: `${stem} quantity`, attr_type: "text" },
     ])
     .select("id, attr_key");
   if (error || !data) throw new Error(`[e2e:inc347] seeding failed: ${error?.message}`);
@@ -2372,9 +2376,16 @@ export async function seedUnitFactSet(
       display_order: 101,
       default_value: "per_kg",
     },
+    {
+      category_id: categoryId,
+      attribute_id: idOf(quantityKey),
+      is_required: false,
+      card_rank: 3,
+      display_order: 102,
+    },
   ]);
   if (linkError) throw new Error(`[e2e:inc347] linking failed: ${linkError.message}`);
-  return { typeKey, typeValue, basisKey, attrKeys: [typeKey, basisKey] };
+  return { typeKey, typeValue, basisKey, quantityKey, attrKeys: [typeKey, basisKey, quantityKey] };
 }
 
 /**
