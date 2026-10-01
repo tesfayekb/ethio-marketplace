@@ -501,21 +501,19 @@ rebase — a divergence is a manual reconcile, per the decision record.
 
 Known mechanics:
 
-- The reporters' `[skip ci]` tracking commits (`ci-status.md`,
-  `e2e-last-failure.md`) land on dev AFTER the tested SHA, so dev may sit
-  ahead of main by tracking commits until the next promote. That gap is
-  always fast-forwardable — the ancestry guard passes and the promote carries
-  the tracking commits along.
+- DEC-098: the reporters' `[skip ci]` evidence commits (`ci-status.md`,
+  `guards-last-failure.md`, `e2e-last-failure.md`, `flake-ledger.md`, the two
+  nightly files) land on branch `ci-evidence` through
+  `scripts/publish-evidence.sh`, never on dev, so dev moves only when a turn
+  pushes. The copies still on dev are frozen until stage 2.
 - main hosts no push-triggered CI BY DESIGN: its greenness is certified by
   dev's run at the identical SHA. The `paths-ignore` list is irrelevant
   there; the promote push never triggers a run.
 - Nightly follows the repository DEFAULT branch — the operator flips the
   default to dev after the first green promote, or nightly keeps testing
   stale main.
-- EVERY committing workflow targets dev. `ci-status-report.yml` checks out dev
-  and pushes `HEAD:dev`; `nightly-e2e.yml`'s heartbeat fetches, resets and
-  pushes dev; ci.yml's e2e report job already did. No workflow but `promote`
-  writes to main.
+- No workflow pushes to dev. Evidence goes to `ci-evidence`; only `promote`
+  (fast-forward) and the operator's `sync-main` write to main.
 
 ### sync-main — the only sanctioned non-fast-forward path
 

@@ -166,43 +166,18 @@ jobs:
             fs.writeFileSync('docs/tracking/guards-last-failure.md', guards);
             fs.writeFileSync('/tmp/guards-last-failure.md', guards);
 
-      # Regenerate-after-fetch + retry, mirroring nightly-e2e.yml (INC-027).
-      # The status file is derived state owned entirely by this run, so
-      # rewriting it on top of whatever dev now holds is always correct and
-      # can never conflict. A failed push is a warning, never a red job — the
-      # reporter must not redden Actions on its own bookkeeping.
+      # DEC-098 — evidence lives on branch ci-evidence, never on dev. The
+      # script works in its own worktree (this checkout stays on dev), retries
+      # three times regenerating on top of the fetched branch, and a failed
+      # publish is a warning, never a red job.
       - name: Commit and push
         run: |
           set -u
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          pushed=0
-          for attempt in 1 2 3; do
-            git fetch origin dev
-            git reset --hard origin/dev
-            mkdir -p docs/tracking
-            cp /tmp/ci-status.md docs/tracking/ci-status.md
-            cp /tmp/guards-last-failure.md docs/tracking/guards-last-failure.md
-            git add docs/tracking/ci-status.md docs/tracking/guards-last-failure.md
-            if git diff --cached --quiet; then
-              echo "No status change; nothing to commit."
-              pushed=1
-              break
-            fi
-            git commit -m "ci: update CI status report [skip ci]"
-            if git push origin HEAD:dev; then
-              pushed=1
-              break
-            fi
-            echo "Status push rejected (attempt ${attempt}/3); refetching."
-            sleep 5
-          done
-
-          if [ "$pushed" -ne 1 ]; then
-            echo "::warning::CI status push failed after retries"
-          fi
-          exit 0
+          mkdir -p docs/tracking
+          cp /tmp/ci-status.md docs/tracking/ci-status.md
+          cp /tmp/guards-last-failure.md docs/tracking/guards-last-failure.md
+          bash scripts/publish-evidence.sh "ci: update CI status report [skip ci]" \
+            docs/tracking/ci-status.md docs/tracking/guards-last-failure.md
 
   # DEC-020 divergence repair — the ONLY sanctioned non-fast-forward path to
   # main. Operator-triggered only (workflow_dispatch), never automatic. Use it
