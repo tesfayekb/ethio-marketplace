@@ -335,3 +335,15 @@ THE FILE IS THE SHARD UNIT. `playwright.config.ts` sets `fullyParallel: false`, 
 - CI-T1 split (2026-09-29): `post-wizard.spec.ts` (76 tests) became `post-wizard-category` (20), `post-wizard-specs` (23), `post-wizard-pricing` (13), `post-wizard-resets` (8), `post-wizard-place` (12); `admin-attributes.spec.ts` (64) became `admin-attributes-library` (20), `admin-attributes-import` (16), `admin-attributes-links` (11), `admin-attributes-editor` (17). The attribute console's module-level locators and fixture helpers moved to `e2e/helpers/admin-attributes.ts`; the wizard's describe-scoped helpers and its afterEach are repeated in each wizard file that uses them. Total listed tests 922 before and after; tag selections unchanged (@global-state 16, @a11y 4, @private-identity 34).
 
 JUDGE (pre-committed, DEC-087): the split is kept as a win if the median push→report wall time over the next three green CI runs is ≤ 19 minutes (80 % of the current ~24-minute median); if not, the timing section names the new long pole and nothing else changes without a new DEC.
+
+## DEC-097 — E2E account pool (adopted provisionally 2026-10-01)
+
+Why: staging was minting about 4,000 users a day (one per test), and deleting a user does not take it off the monthly-active count.
+
+- `leaseUser()` (`e2e/helpers/users.ts`) returns a confirmed account `e2e-pool-<lane>-<NNN>@ethio-e2e.invalid`. Lanes are `s<shard>` on CI, `nightly` (set by `playwright.nightly.config.ts`) and `local`. Lanes never share accounts.
+- Seat = `parallelIndex × 10 + n`, where n is the account's order within its test. The pool's size per lane is workers × the most accounts any one test leases, not the number of tests.
+- Accounts are created on first lease if they are missing, and are idempotent. Teardown and the nightly sweep never delete them, because both only match `e2e+` addresses.
+- At every lease the account is reaped back to the state `handle_new_user()` leaves: listings (with cascades), rate-limit rows, every role except the base `user` role, profile and directory defaults (ET / ip_guess, active), MFA factors and the ban. It also gets a fresh random password, kept in memory only, and every session is revoked. Roles a test grants therefore last only until the next lease.
+- Keep minting with `createUser()`: mfa-stepup, auth-reset, auth-signin-errors, auth-callback, `@private-identity` (`mintPrivateSuperAdmin`), admin-users TARGET accounts, and the PW category "stranger" deny proof.
+- Each run prints `[e2e:teardown] accounts signed in this run: <n> (pool <p>, fresh <f>)`. The count comes from `.state/accounts.log` plus the setup's own mints, read per id against `last_sign_in_at` after the run started.
+- Decision rule: ADOPT after three consecutive full green runs with no flake-ledger entry traceable to a shared account, where each run's count is ≤ pool size + the minting tests. Otherwise revert to per-test minting.
