@@ -10,8 +10,17 @@ carries CI state without an authenticated GitHub API call.
 docs/tracking/ci-status.md: commit SHA, overall conclusion, per-job table, UTC
 completion timestamp, and the run URL. In the same step it also writes
 docs/tracking/guards-last-failure.md (below). Both files land in one `[skip ci]`
-commit on dev (DEC-020), regenerated after every `git reset --hard origin/dev` inside
-the push retry loop.
+commit on branch `ci-evidence` through `scripts/publish-evidence.sh` (DEC-098).
+
+## Where the evidence lives (DEC-098)
+
+Evidence lives on branch `ci-evidence` at `docs/tracking/<file>` — ci-status.md,
+guards-last-failure.md, e2e-last-failure.md, flake-ledger.md, nightly-status.md and
+nightly-last-failure.md. Read it with
+`git fetch origin ci-evidence && git show origin/ci-evidence:docs/tracking/ci-status.md`.
+The publisher works in its own worktree, never touches dev or main, retries three
+times regenerating on top of the fetched branch, and a failed publish is a warning,
+never a red job. The copies on dev are frozen until stage 2.
 
 ## guards-last-failure.md (DEC-066)
 
