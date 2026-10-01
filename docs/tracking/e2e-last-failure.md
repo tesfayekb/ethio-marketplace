@@ -1,24 +1,92 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36903983908 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36903983908
-- Commit: `cceab250c2bf3f4dd16f13d4a06aea3856d230d2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36907680147
+- Commit: `2f60049609952c9f08847421aa76a13b3bc34a5c`
 - Attempt: 1
-- Written (UTC): 2026-10-01T18:20:48.448Z
-- Post-test warnings: 9
-- Flaky (passed on retry, DEC-030, non-gating): 0
+- Written (UTC): 2026-10-01T18:52:11.437Z
+- Passed: 891 · Skipped: 71 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 2
+- Post-test errors (DEC-059, non-gating): smoke, email, shard 2, shard 3, shard 4, shard 5, shard 6, changed
+- Sources without results: shard 1
+
+## Flake ledger (DEC-030)
+
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
+
+- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · post-wizard-pricing.spec.ts › POSTING WIZARD › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages — Error: reachStep7: no region carried the city e2e-scratch-36907680147-5-5-desktop-1280-1-tr14.
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · admin-translations-data.spec.ts › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one — Error: [e2e:u4d] scratch location cleanup failed: update or delete on table "locations" violates foreign key constraint "listings_location_id_fkey" on table "listings"
+
+## Flaky bodies (DEC-078)
+
+### post-wizard-pricing.spec.ts › POSTING WIZARD › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: reachStep7: no region carried the city e2e-scratch-36907680147-5-5-desktop-1280-1-tr14.
+the market select's value: ET
+regions offered (6): Choose one | Addis Ababa | Amhara | Dire Dawa | Oromia | Sidama | Tigray
+the tree route when the step opened: status 200, 17 slugs
+the tree route now: status 200, 17 slugs, markets (none)
+the city e2e-scratch-36907680147-5-5-desktop-1280-1-tr14 in that read: yes
+elapsed since the tree wait: 9331 ms
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+```
+
+Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-55-a-commission-basis-asks-a-percentage-stores-basis-points-and-reads-it-back-in-both-languages-mobile-360`
+
+### admin-translations-data.spec.ts › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: [e2e:u4d] scratch location cleanup failed: update or delete on table "locations" violates foreign key constraint "listings_location_id_fkey" on table "listings"
+```
+
+Context:
+
+```text
+          - listitem [ref=e814]:
+            - generic [ref=e815]: About
+          - listitem [ref=e816]:
+            - generic [ref=e817]: How it works
+      - navigation "Help" [ref=e818]:
+        - heading "Help" [level=2] [ref=e819]
+        - list [ref=e820]:
+          - listitem [ref=e821]:
+            - generic [ref=e822]: Safety
+          - listitem [ref=e823]:
+            - generic [ref=e824]: Contact
+      - navigation "Legal" [ref=e825]:
+        - heading "Legal" [level=2] [ref=e826]
+        - list [ref=e827]:
+          - listitem [ref=e828]:
+            - generic [ref=e829]: Terms
+          - listitem [ref=e830]:
+            - generic [ref=e831]: Privacy
+    - paragraph [ref=e833]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors — census (DEC-083, non-gating)
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
-102 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+106 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
+| `listing not found` | 6 | shard 3, shard 6 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -40,7 +108,6 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 | `definitions tooManyRows` (quiet) | 2 | shard 2, shard 5 |
 | `definitions unknownColumn` (quiet) | 2 | shard 2, shard 5 |
 | `links unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `listing not found` | 2 | shard 3, shard 6 |
 | `locations badHeader` (quiet) | 2 | shard 2, shard 5 |
 | `locations file too large` (quiet) | 2 | shard 2, shard 5 |
 | `locations nulByte` (quiet) | 2 | shard 2, shard 5 |
@@ -59,7 +126,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 2 · Sources: shard 3, shard 6
+- Count: 6 · Sources: shard 3, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -73,63 +140,62 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 
 ## Timing (DEC-087, non-gating)
 
-Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Results read: smoke, email, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: shard 1
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-01T18:04:55.954Z | 9.7 min |
-| email | 2026-10-01T18:04:47.573Z | 0.3 min |
-| shard 1 | 2026-10-01T18:04:48.411Z | 15.1 min |
-| shard 2 | 2026-10-01T18:10:57.090Z | 9.5 min |
-| shard 3 | 2026-10-01T18:10:52.114Z | 8.6 min |
-| shard 4 | 2026-10-01T18:04:41.389Z | 11.5 min |
-| shard 5 | 2026-10-01T18:04:55.749Z | 11.1 min |
-| shard 6 | 2026-10-01T18:04:42.935Z | 9.0 min |
-| changed | 2026-10-01T18:12:20.216Z | 2.4 min |
+| smoke | 2026-10-01T18:34:38.657Z | 9.0 min |
+| email | 2026-10-01T18:34:44.670Z | 0.2 min |
+| shard 2 | 2026-10-01T18:34:57.874Z | 11.6 min |
+| shard 3 | 2026-10-01T18:34:37.042Z | 8.7 min |
+| shard 4 | 2026-10-01T18:35:25.045Z | 12.6 min |
+| shard 5 | 2026-10-01T18:34:42.300Z | 11.8 min |
+| shard 6 | 2026-10-01T18:35:00.928Z | 10.2 min |
+| changed | 2026-10-01T18:35:05.868Z | 2.7 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 252 | 13.3 min | smoke, shard 3, shard 6 |
+| `shell.spec.ts` | 252 | 13.1 min | smoke, shard 3, shard 6 |
 | `post-wizard-where.spec.ts` | 48 | 8.7 min | shard 3, shard 6, changed |
-| `admin-attributes-library.spec.ts` | 40 | 7.1 min | shard 1, shard 4 |
-| `post-wizard-specs.spec.ts` | 52 | 6.8 min | shard 3, shard 6 |
-| `post-wizard-place.spec.ts` | 34 | 5.9 min | shard 2, shard 5 |
-| `admin-categories-lifecycle.spec.ts` | 38 | 5.7 min | shard 1, shard 4 |
-| `admin-categories-console.spec.ts` | 32 | 5.5 min | shard 1, shard 4 |
-| `admin-attributes-editor.spec.ts` | 34 | 5.1 min | shard 1, shard 4 |
-| `admin-locations.spec.ts` | 34 | 5.0 min | shard 1, shard 4 |
-| `admin-translations-console.spec.ts` | 36 | 4.8 min | shard 1, shard 5 |
-| `admin-roles.spec.ts` | 24 | 4.3 min | shard 1, shard 4 |
-| `auth-signout.spec.ts` | 44 | 4.1 min | smoke, shard 2, shard 5 |
-| `admin-attributes-links.spec.ts` | 22 | 4.0 min | shard 1, shard 4 |
-| `post-wizard-category.spec.ts` | 40 | 3.9 min | shard 2, shard 5 |
-| `import-security.spec.ts` | 34 | 3.7 min | shard 2, shard 5 |
-| `post-wizard-pricing.spec.ts` | 26 | 3.3 min | shard 3, shard 6 |
-| `post-wizard-resets.spec.ts` | 18 | 3.1 min | shard 3, shard 6 |
-| `admin-users.spec.ts` | 22 | 3.1 min | shard 2, shard 5 |
-| `admin-attributes-import.spec.ts` | 32 | 3.0 min | shard 1, shard 4 |
-| `admin-countries.spec.ts` | 16 | 2.5 min | shard 1, shard 4 |
-| `admin-translations-governance.spec.ts` | 8 | 2.2 min | shard 2, shard 5 |
-| `admin-translations-data.spec.ts` | 8 | 2.2 min | shard 2, shard 5 |
-| `photo-pipeline.spec.ts` | 20 | 2.2 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 36 | 2.0 min | shard 3, shard 6 |
-| `mfa-stepup.spec.ts` | 18 | 1.8 min | shard 2, shard 5 |
-| `admin-audit.spec.ts` | 10 | 1.5 min | shard 1, shard 4 |
-| `admin-coverage.spec.ts` | 14 | 1.2 min | shard 1, shard 4 |
+| `post-wizard-specs.spec.ts` | 52 | 7.7 min | shard 3, shard 6 |
+| `post-wizard-place.spec.ts` | 34 | 6.8 min | shard 2, shard 5 |
+| `import-security.spec.ts` | 34 | 5.5 min | shard 2, shard 5 |
+| `post-wizard-category.spec.ts` | 40 | 4.8 min | shard 2, shard 5 |
+| `post-wizard-pricing.spec.ts` | 26 | 4.5 min | shard 3, shard 6 |
+| `admin-attributes-library.spec.ts` | 20 | 4.2 min | shard 4 |
+| `auth-signout.spec.ts` | 44 | 3.8 min | smoke, shard 2, shard 5 |
+| `post-wizard-resets.spec.ts` | 18 | 3.5 min | shard 3, shard 6 |
+| `admin-users.spec.ts` | 22 | 3.3 min | shard 2, shard 5 |
+| `admin-attributes-editor.spec.ts` | 17 | 3.0 min | shard 4 |
+| `photo-pipeline.spec.ts` | 20 | 2.9 min | shard 2, shard 5 |
+| `admin-translations-data.spec.ts` | 8 | 2.8 min | shard 2, shard 5 |
+| `admin-categories-console.spec.ts` | 16 | 2.6 min | shard 4 |
+| `admin-translations-console.spec.ts` | 18 | 2.6 min | shard 5 |
+| `admin-categories-lifecycle.spec.ts` | 19 | 2.6 min | shard 4 |
+| `posting-routes.spec.ts` | 36 | 2.5 min | shard 3, shard 6 |
+| `admin-attributes-links.spec.ts` | 11 | 2.5 min | shard 4 |
+| `admin-locations.spec.ts` | 17 | 2.4 min | shard 4 |
+| `admin-translations-governance.spec.ts` | 8 | 2.4 min | shard 2, shard 5 |
+| `mfa-stepup.spec.ts` | 18 | 2.3 min | shard 2, shard 5 |
+| `admin-roles.spec.ts` | 12 | 2.1 min | shard 4 |
+| `admin-attributes-import.spec.ts` | 16 | 1.7 min | shard 4 |
+| `admin-countries.spec.ts` | 8 | 1.1 min | shard 4 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `admin-shell.spec.ts` | 10 | 0.8 min | shard 1, shard 4 |
-| `post-wizard-finder.spec.ts` | 6 | 0.8 min | shard 2, shard 5 |
-| `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
+| `post-wizard-finder.spec.ts` | 6 | 0.9 min | shard 2, shard 5 |
+| `admin-audit.spec.ts` | 5 | 0.8 min | shard 4 |
 | `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
-| `a11y.spec.ts` | 4 | 0.5 min | smoke |
-| `primitives-law.spec.ts` | 24 | 0.5 min | shard 3, shard 6 |
-| `post-wizard-details.spec.ts` | 4 | 0.4 min | shard 2, shard 5 |
-| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
+| `admin-coverage.spec.ts` | 7 | 0.5 min | shard 4 |
+| `post-wizard-details.spec.ts` | 4 | 0.5 min | shard 2, shard 5 |
+| `admin-shell.spec.ts` | 5 | 0.4 min | shard 4 |
+| `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
+| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
+| `a11y.spec.ts` | 4 | 0.3 min | smoke |
+| `admin-categories-images.spec.ts` | 1 | 0.3 min | shard 4 |
 | `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
-| `category-nav.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
-| `settings.spec.ts` | 4 | 0.3 min | shard 3 |
+| `category-image-routes.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
 | `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 0.2 min | shard 2, shard 5 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
+| `settings.spec.ts` | 4 | 0.3 min | shard 3 |
 | `rbac.spec.ts` | 6 | 0.2 min | shard 3, shard 6 |
 | `i18n-coverage.spec.ts` | 8 | 0.2 min | shard 2, shard 5 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
@@ -143,18 +209,137 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 35.6 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 34.1 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 33.6 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 32.1 s |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 31.7 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 29.4 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 28.3 s |
-| `admin-categories-console.spec.ts` › CT-6 retirement: a retired category leaves the active tree and keeps its listings home | mobile-360 | 28.1 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 27.3 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 27.3 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 26.5 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 25.6 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 25.1 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 24.2 s |
-| `admin-attributes-links.spec.ts` › AT-59 the link editor's Save reflects change, saved and error | mobile-360 | 23.9 s |
+| `admin-translations-data.spec.ts` › TR-24 the Data scope machine-translates one row and then every untranslated one | desktop-1280 | 48.1 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 34.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | desktop-1280 | 34.2 s |
+| `post-wizard-pricing.spec.ts` › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages | mobile-360 | 32.5 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 32.2 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 31.1 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 30.9 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 30.8 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 30.0 s |
+| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 29.2 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 28.8 s |
+| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 28.6 s |
+| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 28.6 s |
+| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 28.3 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 27.7 s |
+
+## Post-test errors: smoke
+
+smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 44 user(s) owned by process 36907680147-smoke
+```
+
+## Post-test errors: email
+
+email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 4 user(s) owned by process 36907680147-email
+```
+
+## Post-test errors: shard 2
+
+shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 128 user(s) owned by process 36907680147-2
+```
+
+## Post-test errors: shard 3
+
+shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 94 user(s) owned by process 36907680147-3
+```
+
+## Post-test errors: shard 4
+
+shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 47 user(s) owned by process 36907680147-4
+```
+
+## Post-test errors: shard 5
+
+shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 125 user(s) owned by process 36907680147-5
+```
+
+## Post-test errors: shard 6
+
+shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 91 user(s) owned by process 36907680147-6
+```
+
+## Post-test errors: changed
+
+changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] deleted 29 user(s) owned by process 36907680147-changed
+```
+
+## Server errors: shard 1
+
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
+[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
+[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
+```
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- error lines (1) ---
+[e2e:setup] EN baseline probe unavailable: TypeError: fetch failed
+--- final 10 lines ---
+[e2e:l4c] get_my_translator_languages for pooled 66eae50a-ba0b-4d46-86b1-c660ed2a39eb: []
+  ✓  166 [mobile-360] › e2e/admin-translations-console.spec.ts:494:3 › U4b translations console › TR-11 per-row AI translate writes a machine row and captures a revision (13.0s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+36907680147-1-3238-3-xg7v5a@ethio-e2e.invalid)
+  ✓  167 [mobile-360] › e2e/admin-translations-console.spec.ts:560:3 › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key (4.8s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+36907680147-1-3238-3-xg7v5a@ethio-e2e.invalid)
+[e2e:l4c] get_my_translator_languages for pooled 66eae50a-ba0b-4d46-86b1-c660ed2a39eb: []
+  ✓  168 [mobile-360] › e2e/admin-translations-console.spec.ts:681:3 › U4b translations console › TR-13 the placeholder validator flags a machine write too (7.9s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+36907680147-1-3238-3-xg7v5a@ethio-e2e.invalid)
+[e2e:l4c] get_my_translator_languages for pooled 66eae50a-ba0b-4d46-86b1-c660ed2a39eb: []
+```
+
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
+[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
+[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
+```
