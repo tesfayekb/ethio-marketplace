@@ -306,11 +306,13 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   }
 
   /**
-   * PW-88 — INC-347. The type is answered on step 3; its facts and narrowing
-   * speak about the basis that step 5 draws. On step 5 the basis must show the
-   * type's fact (per_litre) and must not offer the link default (per_kg).
+   * PW-88 — INC-347, re-expressed for N2: a goods unit (`unit_of_sale-`) is asked
+   * on step 3. After the type is chosen, "How it's sold" shows the type's fact
+   * (per_litre) and offers no per_kg; step 5 names the chosen unit read-only.
    */
-  test("PW-88 a step-3 answer's fact and narrowing reach the step-5 basis", async ({ page }) => {
+  test("PW-88 a step-3 answer's fact and narrowing reach the unit asked on step 3", async ({
+    page,
+  }) => {
     const user = await signedInSeller(page);
     const category = await seedPostableCategory();
     categories.push(category.slug);
@@ -322,27 +324,64 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       timeout: 20_000,
     });
     await type.selectOption(set.typeValue);
-    await walkOnToStep5(page);
-    await expect(page.getByTestId("post-price-basis")).toHaveAttribute("data-options", "1", {
-      timeout: 20_000,
-    });
     const basis = control(page, set.basisKey);
-    await expect(basis, "PW-88: the basis does not show the type's fact").toHaveValue("per_litre", {
+    await expect(basis, "PW-88: the unit does not show the type's fact").toHaveValue("per_litre", {
       timeout: 20_000,
     });
     await expect(
       basis.locator('option[value="per_kg"]'),
-      "PW-88: the basis still offers per_kg",
+      "PW-88: the unit still offers per_kg",
     ).toHaveCount(0);
+    await walkOnToStep5(page);
+    await expect(page.getByTestId("post-price-basis")).toHaveCount(0);
+    await expect(page.getByTestId("post-price-unit-chosen")).toHaveAttribute(
+      "data-basis",
+      "per_litre",
+      { timeout: 20_000 },
+    );
     await page.getByTestId("post-price-mode-free").click();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
     await expect
       .poll(async () => (await attributesOf(listingId))[set.basisKey], {
-        message: "PW-88: the stored basis is not per_litre",
+        message: "PW-88: the stored unit is not per_litre",
         timeout: 20_000,
       })
       .toBe("per_litre");
+  });
+
+  /**
+   * PW-104 — N2: a goods unit settled by the type (Gesho → Per Kg) is filled on
+   * step 3, and step 5 names it read-only with a way back to step 3.
+   */
+  test("PW-104 a unit settled by the type is named on step 5 and changed on step 3", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const set = await seedUnitFactSet(category.id, { settled: true });
+    specs.push(...set.attrKeys);
+    const listingId = await walkToStep3(page, user.id, category);
+    const type = control(page, set.typeKey);
+    await expect(type.locator(`option[value="${set.typeValue}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await type.selectOption(set.typeValue);
+    await walkOnToStep5(page);
+    await expect(page.getByTestId("post-price-basis")).toHaveCount(0);
+    await expect(
+      page.getByTestId("post-price-unit-chosen"),
+      "PW-104: step 5 does not name the settled unit",
+    ).toHaveAttribute("data-basis", "per_kg", { timeout: 20_000 });
+    await page.getByTestId("post-price-unit-change").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.basisKey], {
+        message: "PW-104: the settled unit was not stored",
+        timeout: 20_000,
+      })
+      .toBe("per_kg");
   });
 
   /** PW-89 — A2: 5.25 × million is stored as 5250000; a reopen shows it as typed. */

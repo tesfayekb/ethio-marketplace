@@ -25,7 +25,7 @@ import { StepSpecifications } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
 import { MobileStepStrip } from "./mobile-step-strip";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
-import { basisNoun, basisToken } from "./price-basis";
+import { basisNoun, basisToken, isUnitOfSaleKey } from "./price-basis";
 import { readPostingSchema, type AttrDef, type PlanCaps } from "./posting-service";
 import { useDraft, type DraftValues } from "./use-draft";
 
@@ -212,7 +212,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    * N2 — GOODS ask "How it's sold" on step 3, at the definition's own display
    * order (a `unit_of_sale-` key); SERVICES keep D62-2 (asked first on step 5).
    */
-  const basisOnSpecs = basisKey !== null && basisKey.startsWith("unit_of_sale-");
+  const basisOnSpecs = isUnitOfSaleKey(basisKey);
   const basisExclude = useMemo(
     () => (basisKey === null || basisOnSpecs ? null : [basisKey]),
     [basisKey, basisOnSpecs],
@@ -806,6 +806,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                               <p
                                 className="flex flex-wrap items-center gap-2 text-sm text-foreground"
                                 data-testid="post-price-unit-chosen"
+                                data-basis={basisValue ?? ""}
                               >
                                 <span>
                                   {basisValue === null
