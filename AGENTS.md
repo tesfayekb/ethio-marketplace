@@ -18,3 +18,4 @@ Full rules live in Lovable Project Knowledge and are summarized here: modify onl
 - Text attributes are validated by preset allowlist (`attr_preset_ok`), never by free regex; option records use the strict shape `value, label_en, label_am, parent, active, bounds, aliases` — unknown keys are refusals, defaults are omitted (DEC-050).
 - A console save must never drop a field it does not show: editors round-trip every stored field of a record (INC-188).
 - E2E tests that only need a signed-in account use `leaseUser()` (lane-scoped pool, reaped at lease); `createUser()` is only for tests that need a brand-new identity or a target account. Why: deleted users still count toward the org's monthly active users (DEC-097).
+- CI evidence lives on branch `ci-evidence`, never dev: `git fetch origin ci-evidence && git show origin/ci-evidence:docs/tracking/ci-status.md`. Why: bot commits on dev strand turns on side branches (DEC-098).

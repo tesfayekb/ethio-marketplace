@@ -51,18 +51,20 @@ suite; a final "Report test outcome" step re-raises the captured outcome. So a g
 suite with a broken heartbeat push is a green job with a warning, and a red suite is
 never masked by a successful bookkeeping commit.
 
-### Regenerate-after-fetch push
+### Regenerate-after-fetch publish (DEC-098)
 
-The push is not rebased — it is **regenerated**, up to 3 attempts: fetch origin main,
-`reset --hard` onto it, re-write the status file from this run's own data, commit,
-push. Why regenerate rather than rebase or merge: the status file is _derived state_.
+The heartbeat and the evidence file publish to branch `ci-evidence` through
+`scripts/publish-evidence.sh`, never to dev. The step writes the status file once
+from this run's own data; the script then, up to 3 attempts, fetches `ci-evidence`,
+resets its own worktree onto it, copies both files in, commits only on change and
+pushes. Why regenerate rather than rebase or merge: the files are _derived state_.
 Every field (conclusion, SHA, timestamp, run URL) belongs to the run that is writing
-it, so rewriting on top of whatever main now holds is always correct and can never
-conflict. The file content comes from one shell function used on every attempt, so
-the retry cannot drift from the first write.
+it, so rewriting on top of whatever the branch now holds is always correct and can
+never conflict.
 
-After 3 failed attempts the step emits `::warning::heartbeat push failed after
-retries` and exits 0. The file then lags, which the staleness rule above catches.
+After 3 failed attempts the script emits `::warning::` and exits 0. The file then
+lags, which the staleness rule above catches. Read it with
+`git fetch origin ci-evidence && git show origin/ci-evidence:docs/tracking/nightly-status.md`.
 
 The file is machine-generated and is exempt from the prettier gate in
 `.prettierignore`, same class as `docs/tracking/ci-status.md` (INC-011).

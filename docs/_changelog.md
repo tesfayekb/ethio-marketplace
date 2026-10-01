@@ -616,3 +616,4 @@
 - 2026-10-01 · N2 CI repair: PW-88 re-expressed on step 3 (goods unit asked with the type's fact; step 5 names it via `post-price-unit-chosen[data-basis]`); goods detection is the server's `^unit_of_sale(-|$)` rule (`isUnitOfSaleKey`); a fact refills a unit the narrowing just cleared (step-specifications); PW-104 covers a unit settled by the type. PW-55/56/57/58 stay on step 5 (scratch `pricing_type-` basis = services, D62-2).
 - 2026-10-01 DEC-097: E2E account pool (leaseUser, lane-scoped seats, reap at lease, per-run signed-in count); provisional pending three green runs.
 - 2026-10-01 · INC-377/INC-378: IG-3 and the shell table law mint fresh accounts; lease reaper clears listing-keyed meters; CI pool lanes alternate by run-number parity; DEC-097 decision rule clarified.
+- 2026-10-01 DEC-098 stage 1: CI reporters publish evidence to branch ci-evidence via scripts/publish-evidence.sh; no workflow pushes to dev; dev copies frozen until stage 2.
