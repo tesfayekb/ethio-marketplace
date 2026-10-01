@@ -16,5 +16,7 @@
 ## INC-373 (2026-10-01)
 
 - [x] Revert package.json, bun.lock, routeTree.gen.ts to 2f600496 on dev; typecheck + AT-58 green locally
+- [x] prettier roadmap.md (d9506a9c format:check red)
+- [ ] DEC-097 E2E account pool: (a) census reported; (b) pool lanes + lease reaper; (c) per-run signed-in count line; adopt after 3 green runs
 - [ ] D+L+M migration incl. S2 (rebuild after commit + pg_cron sweep with heartbeat, one round trip per search) and Part O readers via one shared helper
 - [ ] S2 re-time (stop if warm p95 > 300 ms), S3, DEC-096 stranded-turn detector, T(+T4), A, B, C, Part O, Part P, INC-371, E census, full DEC-023
