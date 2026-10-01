@@ -1,27 +1,24 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36909917591
-- Commit: `d5b9740aa859bc87ee0182efe5dc8dffbe4d02a8`
-- Attempt: 2
-- Written (UTC): 2026-10-01T19:34:52.438Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36917264848
+- Commit: `d9506a9cdff73b5df48af1af9942d07a88bd973b`
+- Attempt: 1
+- Written (UTC): 2026-10-01T20:08:12.686Z
 
 ## Build, typecheck, lint — failure
 
 ### Evidence lines
 
 ```text
-src/routes/__root.tsx(264,3): error TS2322: Type '({ error, reset }: { error: Error; reset: () => void; }) => Element' is not assignable to type 'false | ErrorRouteComponent | null | undefined'.
-##[error]Process completed with exit code 2.
+##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-+ @tailwindcss/vite@4.2.4
-+ @tanstack/react-query@5.101.1
-+ @tanstack/react-router@1.170.41
-+ @tanstack/react-start@1.168.60
-+ @tanstack/router-plugin@1.168.42
++ @tanstack/react-router@1.170.16
++ @tanstack/react-start@1.168.26
++ @tanstack/router-plugin@1.168.18
 + @types/pngjs@6.0.5
 + class-variance-authority@0.7.1
 + clsx@2.1.1
@@ -47,104 +44,26 @@ src/routes/__root.tsx(264,3): error TS2322: Type '({ error, reset }: { error: Er
 + vite-tsconfig-paths@6.1.1
 + zod@3.25.76
 
-549 packages installed [3.32s]
+519 packages installed [2.82s]
 ##[group]Run bun run typecheck
 [36;1mbun run typecheck[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
 $ tsc --noEmit
-src/routes/__root.tsx(264,3): error TS2322: Type '({ error, reset }: { error: Error; reset: () => void; }) => Element' is not assignable to type 'false | ErrorRouteComponent | null | undefined'.
-  Type '({ error, reset }: { error: Error; reset: () => void; }) => Element' is not assignable to type '((props: ErrorComponentProps) => any) & { preload?: (() => Promise<void> | undefined) | undefined; }'.
-    Type '({ error, reset }: { error: Error; reset: () => void; }) => Element' is not assignable to type '(props: ErrorComponentProps) => any'.
-      Types of parameters '__0' and 'props' are incompatible.
-        Type 'ErrorComponentProps' is not assignable to type '{ error: Error; reset: () => void; }'.
-          Types of property 'error' are incompatible.
-            Type 'unknown' is not assignable to type 'Error'.
-##[error]Process completed with exit code 2.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/cfdbad7f-3995-4f0c-b10a-dec1e4de3684' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## E2E (Playwright, ethio-staging) — failure
-
-### Evidence lines
-
-```text
-[36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
-[36;1m    || echo "::warning::DEC-030 flake-ledger re-append failed"[0m
-[36;1m  echo "::warning::E2E failure report push failed after retries"[0m
-[36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
-Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
-##[error]E2E failed — see docs/tracking/e2e-last-failure.md
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
-  E2E_CONTEXT_DIR: shard-contexts
-  E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
-  E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36909917591
-  E2E_HEAD_COMMIT_MESSAGE: Updated packages & noted issues
-
-X-Lovable-Edit-ID: edt-406e8180-5571-4908-a230-695a8f6922b7
-Co-authored-by: tesfayekb <tesfayekb@me.com>
-##[endgroup]
-  layout OK — per-artifact subdir: 1 context file(s), report rendered.
-  layout OK — merged flat: 1 context file(s), report rendered.
-  layout OK — zero artifacts: 0 context file(s), report rendered.
-  layout OK — missing directory: 0 context file(s), report rendered.
-DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
-DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.
-ok — R1a census names the missing log
-ok — R1a a11y never states zero with a gap
-ok — R1b census: all N logs read
-ok — R1b a11y: all N logs read
-Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (8/8 source(s) with usable results, 5 context file(s) found).
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
-From https://github.com/tesfayekb/ethio-marketplace
- * branch            dev        -> FETCH_HEAD
-   d5b9740..96d57db  dev        -> origin/dev
-HEAD is now at 96d57db ci: update CI status report [skip ci]
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
-[dev dfa95d7] ci: e2e failure report + flake ledger [skip ci]
- 2 files changed, 289 insertions(+), 114 deletions(-)
-To https://github.com/tesfayekb/ethio-marketplace
-   96d57db..dfa95d7  HEAD -> dev
-##[group]Run echo "smoke=success email=success shards=failure"
-[36;1mecho "smoke=success email=success shards=failure"[0m
-[36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
-[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
-[36;1m  exit 1[0m
-[36;1mfi[0m
-[36;1mecho "All E2E shards and the smoke tier passed."[0m
+##[group]Run bun run format:check
+[36;1mbun run format:check[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=success email=success shards=failure
-##[error]E2E failed — see docs/tracking/e2e-last-failure.md
+$ prettier --check "src/**" "e2e/**" "docs/**" "*.{json,js,ts,md}"
+Checking formatting...
+[[33mwarn[39m] roadmap.md
+[[33mwarn[39m] Code style issues found in the above file. Run Prettier with --write to fix.
+error: script "format:check" exited with code 1
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/f5bc9059-fa7a-40ba-81d5-cf5734e0434c' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/3a819a42-3daa-4bb3-9dee-5a4f72dbfd4c' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
