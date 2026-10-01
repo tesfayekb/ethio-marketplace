@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 
 import { POOL_EXEMPT_TABLES, POOL_RESET_TABLES } from "../../e2e/helpers/pool-reset-map";
 
@@ -8,10 +8,7 @@ import { POOL_EXEMPT_TABLES, POOL_RESET_TABLES } from "../../e2e/helpers/pool-re
 const USER_COLUMN = /^(user_id|seller_id|actor_id|target_id|actor|reviewer|\w+_by)$/;
 
 function tablesWithUserColumn(): string[] {
-  const source = readFileSync(
-    fileURLToPath(new URL("../integrations/supabase/types.ts", import.meta.url)),
-    "utf8",
-  );
+  const source = readFileSync(resolve(process.cwd(), "src/integrations/supabase/types.ts"), "utf8");
   const tables = source.slice(source.indexOf("Tables: {"), source.indexOf("Views: {"));
   const found: string[] = [];
   for (const match of tables.matchAll(/\n {6}(\w+): \{\n {8}Row: \{([\s\S]*?)\n {8}\}/g)) {
