@@ -99,10 +99,6 @@ async function displayName(userId: string): Promise<string | null> {
   return data?.display_name ?? null;
 }
 
-function userRow(page: Page, userId: string) {
-  return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
-}
-
 async function statusChangeCount(userId: string): Promise<number> {
   const supabase = adminClient();
   const { data, error } = await supabase
