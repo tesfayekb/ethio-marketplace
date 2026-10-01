@@ -267,6 +267,20 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
     .eq("user_id", id)
     .neq("role_id", base.data!.id);
   if (roles.error) fail("roles", roles.error.message);
+  // DEC-099 (INC-380): every RESET table in pool-reset-map.ts is handled here.
+  const languages = await supabase.from("translator_languages").delete().eq("user_id", id);
+  if (languages.error) fail("translator languages", languages.error.message);
+  const endedAt = new Date().toISOString();
+  for (const column of ["actor_id", "target_id"] as const) {
+    const ended = await supabase
+      .from("impersonation_sessions")
+      .update({ ended_at: endedAt, ended_reason: "e2e_pool_reset" })
+      .eq(column, id)
+      .is("ended_at", null);
+    if (ended.error) fail(`impersonation (${column})`, ended.error.message);
+  }
+  const revisions = await supabase.from("listing_revisions").delete().eq("seller_id", id);
+  if (revisions.error) fail("listing revisions", revisions.error.message);
   const held = await supabase
     .from("user_roles")
     .select("id")
@@ -332,6 +346,7 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
 
   const updated = await supabase.auth.admin.updateUserById(id, {
     password,
+    email,
     email_confirm: true,
     ban_duration: "none",
     user_metadata: { country_guess: "ET" },
