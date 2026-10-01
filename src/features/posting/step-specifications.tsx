@@ -926,6 +926,8 @@ export function StepSpecifications({
     }
     skipReset.current = false;
 
+    /** Keys whose answer the narrowing below cleared in THIS patch. */
+    const narrowedOut = new Set<string>();
     for (const def of definitions) {
       if (!SELECT_TYPES.includes(def.attrType)) continue;
       const parentKey = folds[def.attrKey];
@@ -956,6 +958,7 @@ export function StepSpecifications({
       if (picked !== "" && picked !== "other" && !offered.has(picked)) {
         changed = true;
         delete next[def.attrKey];
+        narrowedOut.add(def.attrKey);
       }
     }
 
@@ -963,7 +966,9 @@ export function StepSpecifications({
     for (const [key, written] of Object.entries(owned)) {
       const def = definitions.find((entry) => entry.attrKey === key);
       if (def === undefined) continue;
-      if (!same(next[key], written)) continue; // the seller owns it now
+      // N2 (PW-88) — a value the narrowing just cleared (the link default
+      // `per_kg` under Milk's `allowed`) is not the seller's: the fact refills it.
+      if (!same(next[key], written) && !narrowedOut.has(key)) continue; // the seller owns it now
       const fact = facts.prefill[key];
       // INC-257 — a detail the answers no longer ask for keeps nothing, whoever
       // wrote it: the sweep below would drop it anyway, and our provenance must
@@ -976,7 +981,7 @@ export function StepSpecifications({
         }
         continue;
       }
-      if (!same(fact, written)) {
+      if (!same(fact, written) || !same(next[key], fact)) {
         owned[key] = fact;
         next[key] = fact;
         changed = true;

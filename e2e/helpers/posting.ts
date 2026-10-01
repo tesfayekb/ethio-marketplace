@@ -2307,7 +2307,10 @@ export interface UnitFactSet {
   attrKeys: string[];
 }
 
-export async function seedUnitFactSet(categoryId: string): Promise<UnitFactSet> {
+export async function seedUnitFactSet(
+  categoryId: string,
+  shape: { settled?: boolean } = {},
+): Promise<UnitFactSet> {
   const stem = `e2e_${Date.now().toString(36)}${rand()}`;
   const typeKey = `${stem}_type`;
   const typeValue = `${stem}_milk`;
@@ -2326,8 +2329,11 @@ export async function seedUnitFactSet(categoryId: string): Promise<UnitFactSet> 
             value: typeValue,
             label_en: `${stem} milk`,
             label_am: `${stem} ወተት`,
-            facts: { [basisKey]: "per_litre" },
-            allowed: { [basisKey]: ["per_litre", "per_piece"] },
+            // PW-104 — `settled`: the type leaves one unit (Gesho → Per Kg).
+            facts: { [basisKey]: shape.settled === true ? "per_kg" : "per_litre" },
+            allowed: {
+              [basisKey]: shape.settled === true ? ["per_kg"] : ["per_litre", "per_piece"],
+            },
           },
           { value: `${stem}_other`, label_en: `${stem} other`, label_am: `${stem} ሌላ` },
         ],

@@ -99,3 +99,14 @@ export function basisNoun(label: string): string | null {
   }
   return null;
 }
+
+/**
+ * N2 — GOODS DETECTION, the server's own rule: `public.price_basis_keys`
+ * matches `^(pricing_type|unit_of_sale)(-|$)` (migration e91792f9:58). A goods
+ * basis is the `unit_of_sale` arm, bare key included.
+ */
+export const UNIT_OF_SALE_KEY = /^unit_of_sale(-|$)/;
+
+export function isUnitOfSaleKey(key: string | null): boolean {
+  return key !== null && UNIT_OF_SALE_KEY.test(key);
+}
