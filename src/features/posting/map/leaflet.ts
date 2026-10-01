@@ -209,3 +209,21 @@ export function pinIcon(L: LeafletModule): Leaflet.DivIcon {
     iconAnchor: [14, 28],
   });
 }
+
+/**
+ * INC-354 — the plan's credit as plain text (F2: provider strings are data,
+ * never HTML). Tags are dropped and the few entities providers use decoded.
+ */
+export function creditOf(plan: TilePlan, kind: TileKind): string {
+  const parts = plan[kind]
+    .map((spec) =>
+      spec.attribution
+        .replace(/<[^>]*>/g, "")
+        .replace(/&copy;/g, "\u00a9")
+        .replace(/&amp;/g, "&")
+        .replace(/&nbsp;/g, " ")
+        .trim(),
+    )
+    .filter((text) => text !== "");
+  return [...new Set(parts)].join(" · ");
+}

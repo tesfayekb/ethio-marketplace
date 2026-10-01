@@ -1,4 +1,4 @@
-import type { Browser, Page } from "@playwright/test";
+import type { Browser, Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
@@ -38,6 +38,22 @@ import {
 
 const DRAFT = "/api/listings/draft";
 const PUBLISH = "/api/listings/publish";
+
+/** INC-355 — the computed destructive token colour, for border comparisons. */
+async function destructiveOf(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--destructive)";
+    document.body.append(probe);
+    const colour = getComputedStyle(probe).color;
+    probe.remove();
+    return colour;
+  });
+}
+
+async function borderOf(box: Locator): Promise<string> {
+  return box.evaluate((el) => getComputedStyle(el).borderTopColor);
+}
 
 test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   const categories: string[] = [];
@@ -395,20 +411,50 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       "data-red",
       "1",
     );
+    expect(
+      await borderOf(regionBox),
+      "PW-90: the empty region border is not full destructive",
+    ).toEqual(await destructiveOf(page));
+    await expect(
+      regionBox.locator('label[for="post-where-region"]').getByTestId("post-required-mark"),
+      "PW-90: the empty region box has no asterisk",
+    ).toHaveCount(1);
     await region.selectOption(chain.region.id);
     await expect(regionBox, "PW-90: a chosen region stays red").toHaveAttribute("data-red", "0");
+    await expect(
+      regionBox.locator('label[for="post-where-region"]').getByTestId("post-required-mark"),
+      "PW-90: a chosen region keeps its asterisk",
+    ).toHaveCount(0);
     const cityBox = page.getByTestId("post-where-row");
     await page.getByTestId("post-where-city").selectOption("");
     await expect(cityBox, "PW-90: an empty city box is not red").toHaveAttribute("data-red", "1");
+    // INC-355 — required + empty reads as the FULL destructive border, not a 40% tint.
+    const alpha = await cityBox.evaluate((el) => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--destructive)";
+      document.body.append(probe);
+      const want = getComputedStyle(probe).color;
+      probe.remove();
+      return { got: getComputedStyle(el).borderTopColor, want };
+    });
+    expect(alpha.got, "PW-90: the empty city border is not full destructive").toBe(alpha.want);
+    await expect(
+      cityBox.locator('label[for="post-where-city"]').getByTestId("post-required-mark"),
+      "PW-90: the empty city box has no asterisk",
+    ).toHaveCount(1);
     await page.getByTestId("post-where-city").selectOption(chain.city.id);
     await expect(cityBox, "PW-90: a chosen city stays red").toHaveAttribute("data-red", "0");
+    await expect(
+      cityBox.locator('label[for="post-where-city"]').getByTestId("post-required-mark"),
+      "PW-90: a chosen city keeps its asterisk",
+    ).toHaveCount(0);
   });
 
   /**
    * PW-91 — B1/B3. A category without `map_pin` shows no map; the location
    * details are offered anyway and stored without a pin.
    */
-  test("PW-91 location details without a map are stored; a mapless category shows no pin", async ({
+  test("PW-91 location details without a pin are stored in a category without map_pin", async ({
     page,
   }) => {
     const user = await signedInSeller(page);
@@ -417,10 +463,8 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const listingId = await openAtStep6(page, user.id, category.id);
 
     await expect(page.getByTestId("post-where-item-box")).toBeVisible();
-    await expect(
-      page.getByTestId("post-where-pin-open"),
-      "PW-91: a mapless category offered a map",
-    ).toHaveCount(0);
+    // W6d K — the map_pin gate is gone: every category offers the map.
+    await expect(page.getByTestId("post-where-pin-open")).toBeVisible();
     const details = page.getByTestId("post-where-details");
     await details.fill("  3rd floor,\tSuite <5>  ");
     await details.blur();
@@ -457,6 +501,23 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(map).toHaveAttribute("data-provider", "osm");
     await map.click({ position: { x: 120, y: 90 } });
     await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    // INC-353 — the pin and the place shape paint a real colour, never an
+    // unresolved hsl(var(--…)) that the browser drops as invisible.
+    const paint = await map.evaluate((el) => {
+      const pin = el.querySelector(".leaflet-marker-pane span");
+      const shape = el.querySelector(".leaflet-overlay-pane path");
+      return {
+        pin: pin === null ? null : getComputedStyle(pin).backgroundColor,
+        shape: shape === null ? null : shape.getAttribute("stroke"),
+      };
+    });
+    expect(paint.pin, "PW-92: the pin paints no colour").not.toBeNull();
+    expect(paint.pin, "PW-92: the pin is transparent").not.toMatch(
+      /^(rgba\(0, 0, 0, 0\)|transparent)$/,
+    );
+    if (paint.shape !== null) {
+      expect(paint.shape, "PW-92: the place shape stroke is unresolved").not.toMatch(/var\(|hsl\(/);
+    }
     await expect(
       page.getByTestId("post-pin-save"),
       "PW-92: Save location is below the fold",
@@ -465,5 +526,232 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-pin-sheet")).toHaveCount(0);
     expect((await pinOf(listingId)).lat, "PW-92: no pin reached the row").not.toBeNull();
+  });
+  /**
+   * PW-97 — G (INC-354). The map credit is on screen and on top at every
+   * width: Esri on the Esri plan (mocked), OpenStreetMap on the backup.
+   */
+  test("PW-97 the map credit is visible and uncovered on both plans", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    await openAtStep6(page, user.id, category.id);
+    const png = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=",
+      "base64",
+    );
+    await page.route("https://e2e-tiles.invalid/**", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "image/png",
+        headers: { "access-control-allow-origin": "*" },
+        body: png,
+      }),
+    );
+    const plan = {
+      provider: "esri",
+      street: [
+        { url: "https://e2e-tiles.invalid/{z}/{x}/{y}.png", attribution: "Powered by <a>Esri</a>" },
+      ],
+    };
+    await page.route("**/api/map/tiles", (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify(plan),
+          })
+        : route.fulfill({ status: 200, body: '{"ok":true}' }),
+    );
+    const uncovered = async (label: string) => {
+      const credit = page.getByTestId("post-pin-credit");
+      await credit.scrollIntoViewIfNeeded();
+      await expect(credit, `PW-97: the ${label} credit is off screen`).toBeInViewport();
+      const onTop = await credit.evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+        return hit !== null && (hit === el || el.contains(hit));
+      });
+      expect(onTop, `PW-97: the ${label} credit is covered`).toBe(true);
+      return credit;
+    };
+    await page.getByTestId("post-where-pin-open").click();
+    const map = page.getByTestId("post-pin-map");
+    await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
+    await expect(map).toHaveAttribute("data-provider", "esri");
+    await expect(await uncovered("Esri")).toContainText("Esri");
+    await page.getByTestId("post-pin-cancel").click();
+    await expect(page.getByTestId("post-pin-sheet")).toHaveCount(0);
+
+    await page.evaluate(() => sessionStorage.clear());
+    await page.reload();
+    await page.route("**/api/map/tiles", (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({ status: 403, body: "{}" })
+        : route.fulfill({ status: 200, body: '{"ok":true}' }),
+    );
+    await page.getByTestId("post-where-pin-open").click();
+    await expect(map).toHaveAttribute("data-provider", "osm", { timeout: 20_000 });
+    await expect(await uncovered("OpenStreetMap")).toContainText("OpenStreetMap");
+  });
+  /** PW-98 — the tick on the city line: right of the city at ≥ 768, under it at 360. */
+  async function tickOnCityLine(page: Page, label: string) {
+    const tick = tickOf(page, "primary");
+    await page.getByTestId("post-where-city").scrollIntoViewIfNeeded();
+    await expect(tick, `PW-98 ${label}: the tick is not visible`).toBeVisible();
+    await expect(tick, `PW-98 ${label}: the tick is not checked`).toBeChecked();
+    await expect(tick, `PW-98 ${label}: the tick is off screen`).toBeInViewport();
+    const city = await page.getByTestId("post-where-city").boundingBox();
+    const box = await tick.boundingBox();
+    expect(city && box, `PW-98 ${label}: no geometry`).toBeTruthy();
+    if (city === null || box === null) return;
+    const wide = (page.viewportSize()?.width ?? 0) >= 768;
+    // I — the DOM evidence the report pastes: geometry and the rendered line.
+    console.log(
+      `[PW-98 ${label}] city=${JSON.stringify(city)} tick=${JSON.stringify(box)} line=${await page
+        .locator('[data-testid="post-where-row"][data-key="primary"]')
+        .evaluate((el) => el.outerHTML.replace(/\s+/g, " ").slice(0, 600))}`,
+    );
+    if (wide) {
+      expect(box.x, `PW-98 ${label}: the tick is not right of the city`).toBeGreaterThanOrEqual(
+        city.x + city.width - 1,
+      );
+      expect(
+        Math.abs(box.y + box.height / 2 - (city.y + city.height / 2)),
+        `PW-98 ${label}: not on the city line`,
+      ).toBeLessThan(city.height);
+    } else {
+      expect(box.y, `PW-98 ${label}: the tick is not under the city`).toBeGreaterThanOrEqual(
+        city.y + city.height - 1,
+      );
+    }
+  }
+
+  /**
+   * PW-98 — I (INC-356). The "item or service is here" tick is seen and
+   * checked on the city line, on a fresh post and on a prefilled one.
+   */
+  test("PW-98 the item tick sits on the city line, fresh and prefilled", async ({ page }) => {
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+    const user = await signedInSeller(page);
+
+    await openAtStep6(page, user.id, category.id);
+    const region = page.getByTestId("post-where-region");
+    await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await region.selectOption(chain.region.id);
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+    await tickOnCityLine(page, "fresh");
+
+    const prior = await publishedAt(page, category.id, chain.city.id);
+    objects.push({ userId: user.id, listingId: prior });
+    await openAtStep6(page, user.id, category.id);
+    await expect(page.getByTestId("post-where-city")).toHaveValue(chain.city.id, {
+      timeout: 20_000,
+    });
+    await tickOnCityLine(page, "prefilled");
+  });
+
+  /**
+   * PW-99 — J. The staircase: at ≥ 768 the region box is narrower than the
+   * country box and right-aligned; at 360 every select is at least 280 px.
+   */
+  test("PW-99 the place boxes step in; every select stays at least 280 px", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+    await openAtStep6(page, user.id, category.id);
+    const region = page.getByTestId("post-where-region");
+    await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await region.selectOption(chain.region.id);
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+    const country = await page
+      .locator('[data-testid="post-where-country-box"][data-primary="1"]')
+      .boundingBox();
+    const regionBox = await page
+      .locator('[data-testid="post-where-region-box"]:has(#post-where-region)')
+      .boundingBox();
+    const cityRow = await page
+      .locator('[data-testid="post-where-row"][data-key="primary"]')
+      .boundingBox();
+    expect(country && regionBox && cityRow, "PW-99: no geometry").toBeTruthy();
+    if (country === null || regionBox === null || cityRow === null) return;
+    expect(regionBox.x, "PW-99: the region box is not indented").toBeGreaterThan(country.x);
+    expect(cityRow.x, "PW-99: the city line is not indented past the region").toBeGreaterThan(
+      regionBox.x,
+    );
+    if ((page.viewportSize()?.width ?? 0) >= 768) {
+      expect(regionBox.width, "PW-99: the region box is not narrower").toBeLessThan(
+        country.width * 0.8,
+      );
+      const countryRight = country.x + country.width;
+      const regionRight = regionBox.x + regionBox.width;
+      expect(countryRight - regionRight, "PW-99: the region box is not right-aligned").toBeLessThan(
+        24,
+      );
+    }
+    const widths = await page
+      .getByTestId("post-where-shown-box")
+      .locator("select")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+    expect(widths.length, "PW-99: no selects").toBeGreaterThan(0);
+    if ((page.viewportSize()?.width ?? 0) >= 768) return;
+    for (const width of widths) {
+      expect(
+        width,
+        `PW-99: a select is narrower than 280 px (${widths.join(", ")})`,
+      ).toBeGreaterThanOrEqual(280);
+    }
+  });
+
+  /**
+   * PW-100 — K. A category WITHOUT map_pin offers the map; the explanation line
+   * and the "Show on my ad as" choice show; after Save the preview shows the pin.
+   */
+  test("PW-100 every category offers the map; after Save the preview shows the pin", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory({ capabilities: [] });
+    categories.push(category.slug);
+    const listingId = await openAtStep6(page, user.id, category.id);
+    await expect(
+      page.getByTestId("post-where-item-help"),
+      "PW-100: no explanation line",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("post-where-pin-open"),
+      "PW-100: a category without map_pin offered no map",
+    ).toBeVisible();
+    await page.getByTestId("post-where-pin-open").click();
+    const map = page.getByTestId("post-pin-map");
+    await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
+    await expect(
+      page.getByTestId("post-pin-precision-label"),
+      "PW-100: no Show-on-my-ad label",
+    ).toBeVisible();
+    await map.click({ position: { x: 120, y: 90 } });
+    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    await page.getByTestId("post-pin-save").click();
+    await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByTestId("post-where-pin-preview"),
+      "PW-100: no preview after Save",
+    ).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId("post-where-pin-open")).toBeVisible();
+    await expect(page.getByTestId("post-pin-remove")).toBeVisible();
+    expect((await pinOf(listingId)).lat, "PW-100: no pin reached the row").not.toBeNull();
   });
 });
