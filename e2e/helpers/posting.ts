@@ -2304,6 +2304,7 @@ export interface UnitFactSet {
   typeKey: string;
   typeValue: string;
   basisKey: string;
+  quantityKey: string;
   attrKeys: string[];
 }
 

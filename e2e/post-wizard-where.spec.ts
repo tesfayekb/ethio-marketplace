@@ -373,9 +373,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const unitBox = await control(page, set.basisKey).boundingBox();
     const quantityBox = await control(page, set.quantityKey).boundingBox();
     expect(unitBox && quantityBox, "PW-104: unit or quantity row not rendered").toBeTruthy();
-    expect(unitBox!.y, "PW-104: the unit is not asked above quantity").toBeLessThan(
-      quantityBox!.y,
-    );
+    expect(unitBox!.y, "PW-104: the unit is not asked above quantity").toBeLessThan(quantityBox!.y);
     await walkOnToStep5(page);
     await expect(page.getByTestId("post-price-basis")).toHaveCount(0);
     await expect(
