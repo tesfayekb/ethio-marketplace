@@ -706,12 +706,33 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
     expect(widths.length, "PW-99: no selects").toBeGreaterThan(0);
     if ((page.viewportSize()?.width ?? 0) >= 768) return;
+    // Ruling 2026-09-30: at 360 a nested level is a left rule only, every select
+    // is at least 200 px, and the page never scrolls sideways.
     for (const width of widths) {
       expect(
         width,
-        `PW-99: a select is narrower than 280 px (${widths.join(", ")})`,
-      ).toBeGreaterThanOrEqual(280);
+        `PW-99: a select is narrower than 200 px (${widths.join(", ")})`,
+      ).toBeGreaterThanOrEqual(200);
     }
+    const nested = await page
+      .locator(
+        '[data-testid="post-where-region-box"]:has(#post-where-region), [data-testid="post-where-row"][data-key="primary"]',
+      )
+      .evaluateAll((els) =>
+        els.map((el) => {
+          const s = getComputedStyle(el);
+          return [s.borderInlineEndWidth, s.borderTopWidth, s.borderInlineStartWidth];
+        }),
+      );
+    for (const [end, top, start] of nested) {
+      expect(end, "PW-99: a nested box has a side border at 360").toBe("0px");
+      expect(top, "PW-99: a nested box has a top border at 360").toBe("0px");
+      expect(start, "PW-99: a nested level has no left rule").not.toBe("0px");
+    }
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow, "PW-99: the page scrolls sideways at 360").toBeLessThanOrEqual(0);
   });
 
   /**

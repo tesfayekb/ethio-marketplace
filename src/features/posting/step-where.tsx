@@ -127,16 +127,20 @@ function boxClass(empty: boolean, refused: boolean, step = ""): string {
     : empty
       ? "border-destructive"
       : "border-input";
-  // W6b-1 R2 — compact padding at 360 px keeps a city box ≥ 280 px wide.
-  // J — the staircase: `step` indents a level; at 360 a small indent and the
-  // box's own start rule, with padding kept tight so selects stay ≥ 280 px.
-  return `space-y-3 rounded-md border px-1.5 py-2 sm:p-3 ${step} ${border}`;
+  if (step === "") return `space-y-3 rounded-md border px-1.5 py-2 sm:p-3 ${border}`;
+  // PW-99 ruling (2026-09-30) — below 768 px a nested level is a LEFT RULE only:
+  // no side borders, no side padding beyond the rule's gap, so every select
+  // keeps ≥ 200 px and the page never scrolls sideways. From 768 px it is a box.
+  return (
+    `space-y-3 rounded-none border-0 border-s-2 py-1 ps-2 md:rounded-md md:border md:p-3 ` +
+    `${step} ${border}`
+  );
 }
 
-/** J — region box: indented, about two-thirds and right-aligned from 768 px. */
-const REGION_STEP = "ms-1.5 border-s-2 md:ms-auto md:w-3/4";
+/** J — region box: indented by its rule at 360; two-thirds, right-aligned from 768 px. */
+const REGION_STEP = "ms-1 md:ms-auto md:w-3/4";
 /** J — city line: one step further in than its region. */
-const CITY_STEP = "ms-1.5 border-s-2 md:ms-6";
+const CITY_STEP = "ms-1 md:ms-6";
 
 async function readGuess(): Promise<GuessFacts> {
   try {
