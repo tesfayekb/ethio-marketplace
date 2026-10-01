@@ -7,7 +7,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
   rand,
@@ -47,13 +47,13 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const plain = await createUser({ confirmed: true });
+    const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await page.goto("/admin/attributes");
     await waitForHydration(page);
     await expect(page.getByTestId("attribute-search")).toHaveCount(0);
 
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/attributes");
@@ -697,7 +697,7 @@ test.describe("C3 attributes console", () => {
         .from("role_permissions")
         .insert(wanted.map((p) => ({ role_id: roleId, permission_id: p.id })));
 
-      const viewer = await createUser({ confirmed: true });
+      const viewer = await leaseUser();
       await supabase
         .from("user_roles")
         .insert({ user_id: viewer.id, role_id: roleId, scope_type: "global" });
@@ -911,7 +911,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    const plain = await createUser({ confirmed: true });
+    const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await gotoReady(page, "/admin/attributes");
     await expect(page.getByTestId("attribute-export")).toHaveCount(0);

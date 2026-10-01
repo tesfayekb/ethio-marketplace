@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -114,6 +114,8 @@ export type E2EUser = {
    * an identity (INC-168). No session is stored: each test mints its own.
    */
   superAdmins?: E2ESuperAdmin[];
+  /** DEC-097 (c) — start of this process's run window for the sign-in count. */
+  startedAt?: string;
 };
 
 let cachedProcessId: string | null = null;
@@ -399,6 +401,9 @@ export default async function globalSetup() {
   }
 
   const supabase = adminClient();
+  const runStartedAt = new Date().toISOString();
+  // DEC-097 (c) — a fresh account ledger per run (one suite per lane at a time).
+  rmSync(join(dirname(STATE_FILE), "accounts.log"), { force: true });
 
   const currentProcessId = processId();
   console.log(`[e2e:setup] PROCESS_ID = ${currentProcessId}`);
@@ -477,6 +482,7 @@ export default async function globalSetup() {
     displayName: email.split("@")[0]!,
     processId: currentProcessId,
     superAdmins,
+    startedAt: runStartedAt,
   };
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });

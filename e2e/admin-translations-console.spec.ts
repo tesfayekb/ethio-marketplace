@@ -18,7 +18,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import {
   langRow,
   stringRow,
@@ -108,7 +108,7 @@ test.describe("U4b translations console", () => {
   test("TR-1 gating: a permissionless user is refused; a super admin sees the roster", async ({
     page,
   }) => {
-    const plain = await createUser({ confirmed: true });
+    const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await page.goto("/admin/translations");
     await waitForHydration(page);
@@ -407,7 +407,7 @@ test.describe("U4b translations console", () => {
    */
   test("TR-10 translator card proves both permission states", async ({ page }) => {
     const { secret } = await signInAsSuperAdmin(page);
-    const target = await createUser({ confirmed: true });
+    const target = await leaseUser();
     const supabase = adminClient();
     const roleName = `e2e-tr10-${processId()}-${process.env["TEST_WORKER_INDEX"] ?? process.pid}`;
     let roleId: string | null = null;
@@ -846,7 +846,7 @@ test.describe("U4b translations console", () => {
     // TR-4 persona pattern: the verb WITHOUT the language assignment. The
     // refusal must come from the SERVER (403 + its own words), before any
     // provider call and before any write.
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     const supabase = adminClient();
     const roleName = `e2e-u4c-machine-${processId()}-${process.env["TEST_WORKER_INDEX"] ?? "0"}`;
     const { data: role, error: roleError } = await supabase

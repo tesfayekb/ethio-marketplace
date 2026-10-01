@@ -9,7 +9,7 @@ import {
 import { en } from "../src/i18n/locales/en";
 
 import { gotoReady, openRailScope, signIn, switchUser, waitForHydration } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * Phase U0 — admin shell & navigation.
@@ -84,7 +84,7 @@ test.describe("Admin shell (U0)", () => {
   test("A-1 admin fixture: gated section nav, section page + breadcrumb, deep link", async ({
     page,
   }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     const perms = await permissionsOfRole("admin");
     const expected = expectedSectionIds(perms);
@@ -181,7 +181,7 @@ test.describe("Admin shell (U0)", () => {
   test("A-2 moderator fixture: exactly one section (audit), other deep links refused, admin tab still visible", async ({
     page,
   }) => {
-    const mod = await createUser({ confirmed: true });
+    const mod = await leaseUser();
     await grantRole(mod.id, "moderator");
     const perms = await permissionsOfRole("moderator");
     expect(expectedSectionIds(perms), "moderator section census drifted").toEqual(["audit"]);
@@ -236,7 +236,7 @@ test.describe("Admin shell (U0)", () => {
   });
 
   test("A-4 admin TAB from marketplace navigates to /admin (INC-071)", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
     await signIn(page, staff.email, staff.password);
@@ -255,7 +255,7 @@ test.describe("Admin shell (U0)", () => {
   });
 
   test("A-3 regular user: /admin still redirects home", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
 
     await signIn(page, user.email, user.password);
     await waitForHydration(page);
@@ -281,7 +281,7 @@ test.describe("Admin shell (U0)", () => {
     const grouped = ADMIN_SECTIONS.filter((s) => sectionGroupId(s) === "categories");
     expect(grouped.length, "the categories group census drifted").toBeGreaterThan(1);
 
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     const perms = await permissionsOfRole("admin");
     const visible = grouped.filter((s) => perms.includes(s.permission));
@@ -340,7 +340,7 @@ test.describe("Admin shell (U0)", () => {
 
     // GATED PER SUB-ITEM: a moderator sees neither the group nor its members,
     // and every grouped deep link is refused to the landing with the notice.
-    const mod = await createUser({ confirmed: true });
+    const mod = await leaseUser();
     await grantRole(mod.id, "moderator");
     // INC-074 CLASS RULE — the second persona goes through the SAME door A-2
     // uses: sign out through the UI first, never a bare `signIn` over a live

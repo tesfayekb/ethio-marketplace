@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 
 import { gotoReady, signIn, waitForHydration } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * Phase R3 — RBAC client seam.
@@ -45,7 +45,7 @@ test.describe("RBAC client seam", () => {
   });
 
   test("R-2 regular user: no Admin tab, and /admin redirects home", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
 
     await signIn(page, user.email, user.password);
     await waitForHydration(page);
@@ -59,7 +59,7 @@ test.describe("RBAC client seam", () => {
   });
 
   test("R-3 staff user: Admin tab appears and /admin renders", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
     await signIn(page, staff.email, staff.password);

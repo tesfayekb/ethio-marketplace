@@ -9,7 +9,7 @@ import {
   waitForServedTree,
   waitForTreeSlug,
 } from "./helpers/locations";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser } from "./helpers/users";
 import {
   seedCatchAllLeaf,
   activeCityOf,
@@ -126,7 +126,7 @@ test.describe("POSTING WIZARD", () => {
   }
 
   async function seller(page: import("@playwright/test").Page) {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);

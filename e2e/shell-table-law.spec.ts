@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import { gotoReady, switchUser, waitForHydration } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * U1b — THE TABLE LAW (INC-075).
@@ -32,7 +32,7 @@ async function grantRole(userId: string, roleName: string) {
 
 test.describe("shell table law", () => {
   test("admin tables never overflow horizontally", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     await switchUser(page, staff.email, staff.password);
 

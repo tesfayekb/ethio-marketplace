@@ -4,7 +4,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 
 import { gotoReady, openRailScope, signIn, signOutViaUi } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * U0j — sign-out is a HARD RESET (INC-072), repaired in U0j-2.
@@ -56,7 +56,7 @@ async function expectSignedOutMarketplace(page: Page) {
 
 test.describe("U0j sign-out hard reset", () => {
   test("SO-1 admin: one click signs out and resets to the marketplace", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
     await signIn(page, user.email, user.password);
@@ -76,7 +76,7 @@ test.describe("U0j sign-out hard reset", () => {
   });
 
   test("SO-2 settings: confirmed sign-out empties the gated surface", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
 
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/settings");
@@ -88,7 +88,7 @@ test.describe("U0j sign-out hard reset", () => {
   });
 
   test("SO-3 live guard: a same-tab client sign-out evacuates /admin", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
     await signIn(page, user.email, user.password);
@@ -112,7 +112,7 @@ test.describe("U0j sign-out hard reset", () => {
   test("SO-3b reload path: a cleared token means /admin never renders on mount", async ({
     page,
   }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
     await signIn(page, user.email, user.password);
@@ -135,7 +135,7 @@ test.describe("U0j sign-out hard reset", () => {
   });
 
   test("SO-4 signed-out marketplace carries no gated UI", async ({ page }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
     await signIn(page, user.email, user.password);
@@ -259,7 +259,7 @@ async function readStamps(page: Page) {
 test.describe("U0k session policy", () => {
   test("SP-1 idle: the warning appears, then the session is hard-reset", async ({ page }) => {
     await overridePolicy(page, { idleMs: 4000, warnMs: 2500, absoluteMs: 600_000 });
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
 
     await signIn(page, user.email, user.password);
     await expect(page.getByTestId("session-idle-warning")).toBeVisible({ timeout: 15000 });
@@ -272,7 +272,7 @@ test.describe("U0k session policy", () => {
 
   test("SP-2 stay signed in extends past the original deadline", async ({ page }) => {
     await overridePolicy(page, { idleMs: 6000, warnMs: 4000, absoluteMs: 600_000 });
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
 
     await signIn(page, user.email, user.password);
     await expect(page.getByTestId("session-idle-warning")).toBeVisible({ timeout: 15000 });
@@ -287,7 +287,7 @@ test.describe("U0k session policy", () => {
 
   test("SP-3 absolute: continuous activity does not save the session", async ({ page }) => {
     await overridePolicy(page, { idleMs: 600_000, warnMs: 1000, absoluteMs: 5000 });
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
 
     await signIn(page, user.email, user.password);
     await page.evaluate(() => {
@@ -302,7 +302,7 @@ test.describe("U0k session policy", () => {
   });
 
   test("SP-4 cross-tab: signing out in one tab evacuates the other", async ({ page, context }) => {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
     await signIn(page, user.email, user.password);
@@ -332,7 +332,7 @@ test.describe("U0k session policy", () => {
       absoluteMs: 12 * 60 * 60_000,
     });
     await seedStaleClocks(page, 3 * 60 * 60_000);
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
     await signIn(page, user.email, user.password);
@@ -361,7 +361,7 @@ test.describe("U0k session policy", () => {
       warnMs: 60_000,
       absoluteMs: 12 * 60 * 60_000,
     });
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
 
     await signIn(page, user.email, user.password);
     const before = await readStamps(page);
