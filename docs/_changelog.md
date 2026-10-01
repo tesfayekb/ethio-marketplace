@@ -618,3 +618,4 @@
 - 2026-10-01 · INC-377/INC-378: IG-3 and the shell table law mint fresh accounts; lease reaper clears listing-keyed meters; CI pool lanes alternate by run-number parity; DEC-097 decision rule clarified.
 - 2026-10-01 DEC-098 stage 1: CI reporters publish evidence to branch ci-evidence via scripts/publish-evidence.sh; no workflow pushes to dev; dev copies frozen until stage 2.
 - INC-379 (2026-10-01): e2e reference-row reads (activeCityOf, anyAttributeId, seedActiveListing's place, regionUnder) exclude scratch rows and use a fixed order.
+- 2026-10-01 DEC-099 / INC-380 — pool reset by census: e2e/helpers/pool-reset-map.ts declares every user-id table, auth item and storage path RESET or EXEMPT; reaper adds translator_languages, open impersonation sessions, listing_revisions, email re-set; guard src/test/pool-reset-map.test.ts; TR-10 asserts a clean target and undoes its languages; TR-28 restores preferred_language. Pool decision rule restarts at zero.

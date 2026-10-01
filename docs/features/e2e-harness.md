@@ -352,3 +352,7 @@ Why: staging was minting about 4,000 users a day (one per test), and deleting a 
 - Decision rule: ADOPT after three consecutive full green runs with no flake-ledger entry traceable to a shared account, where each run's count is ≤ pool size + the minting tests. Otherwise revert to per-test minting.
 
 - INC-379: helpers that read "any" reference row (locations, categories, attributes) exclude `e2e`-prefixed scratch rows and pick by a fixed order (slug / attr_key).
+
+### DEC-099 — reset by census (INC-380)
+
+The reaper resets what `e2e/helpers/pool-reset-map.ts` marks RESET; everything else holding a user id is EXEMPT with a reason. `src/test/pool-reset-map.test.ts` scans `types.ts` (columns user_id, seller_id, actor_id, target_id, actor, reviewer, \*\_by) and fails on any table in neither list. Tests also undo their own writes on leased accounts. Decision rule (replaces DEC-097's count, restarted at zero on this landing): three consecutive green runs with no pool-traceable flake ADOPT; any pool-traceable red or flake REVERTS the pool to per-test accounts, no further bring-up.
