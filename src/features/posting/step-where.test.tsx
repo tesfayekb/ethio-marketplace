@@ -217,7 +217,7 @@ describe("StepWhere — the ad's places and the item tick (W6b-1)", () => {
    * covered by the e2e staircase, not this test.
    */
   it("puts each add button where the staircase ruling places it (J)", async () => {
-    await mount();
+    await mount({ cities: 3, regions: 3, countries: 2 });
     fireEvent.click(within(primaryBox()).getByTestId("post-where-add-region"));
     const pending = within(primaryBox())
       .getAllByTestId("post-where-region-box")
