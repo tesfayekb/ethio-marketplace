@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 
-import { useShell } from "@/components/app-shell";
+import { useShell } from "@/components/shell-context";
 import { PANELS } from "@/config/panels";
 import type { PanelId } from "@/config/panels.types";
 

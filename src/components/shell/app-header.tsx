@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { useShell } from "@/components/app-shell";
+import { useShell } from "@/components/shell-context";
 import { useRailCollapsed } from "@/providers/rail-state";
 
 const ICON_BUTTON =

@@ -1,6 +1,6 @@
 import { ChevronDown, MapPin } from "lucide-react";
 
-import { useShell, type LocationNode } from "@/components/app-shell";
+import { useShell, type LocationNode } from "@/components/shell-context";
 import {
   DropdownMenu,
   DropdownMenuContent,

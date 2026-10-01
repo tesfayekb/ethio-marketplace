@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
-import { useShell } from "@/components/app-shell";
+import { useShell } from "@/components/shell-context";
 import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { Logo } from "@/components/brand/logo";
 import { PanelHeader } from "@/components/shell/panel-header";

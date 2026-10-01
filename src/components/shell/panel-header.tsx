@@ -1,6 +1,6 @@
 import { ChevronDown, Check } from "lucide-react";
 
-import { useShell } from "@/components/app-shell";
+import { useShell } from "@/components/shell-context";
 import {
   DropdownMenu,
   DropdownMenuContent,

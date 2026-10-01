@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { useShell } from "@/components/app-shell";
+import { useShell } from "@/components/shell-context";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
