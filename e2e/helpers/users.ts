@@ -139,12 +139,18 @@ export const POOL_SEATS_PER_SLOT = 10;
 /**
  * Lanes never share accounts: one per CI shard, one for the nightly, one for
  * local runs. `E2E_POOL_LANE` overrides (the nightly config sets it).
+ * CI lanes alternate by run-number parity (`s<shard>a` / `s<shard>b`), so a run
+ * and the cancelled run before it never lease the same accounts.
  */
 export function poolLane(): string {
   const explicit = process.env["E2E_POOL_LANE"];
   if (explicit) return explicit.toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (process.env["CI"])
-    return `s${(process.env["E2E_SHARD"] ?? "solo").replace(/[^a-z0-9]/gi, "")}`;
+  if (process.env["CI"]) {
+    const shard = (process.env["E2E_SHARD"] ?? "solo").replace(/[^a-z0-9]/gi, "").toLowerCase();
+    const runNumber = Number(process.env["GITHUB_RUN_NUMBER"] ?? "0");
+    const parity = Number.isFinite(runNumber) && runNumber % 2 === 1 ? "b" : "a";
+    return `s${shard}${parity}`;
+  }
   return "local";
 }
 
@@ -236,6 +242,18 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
     throw new Error(`[e2e:pool] reaping ${email} (${step}) failed: ${message}`);
   };
 
+  // INC-377 counter census: rate_limits keyed by user id (upload, geocode,
+  // draft, assist, identity, post) and by listing id (assist:listing). The
+  // import preview budget lives in server memory (src/server/imports/gate.ts)
+  // and catalog_find is keyed by a hashed address — neither is per-account in
+  // the database, so tests that exhaust them mint fresh (DEC-097 class i).
+  const owned = await supabase.from("listings").select("id").eq("seller_id", id);
+  if (owned.error) fail("listing ids", owned.error.message);
+  const listingIds = (owned.data ?? []).map((row) => row.id);
+  if (listingIds.length > 0) {
+    const listingMeters = await supabase.from("rate_limits").delete().in("key", listingIds);
+    if (listingMeters.error) fail("listing rate limits", listingMeters.error.message);
+  }
   const listings = await supabase.from("listings").delete().eq("seller_id", id);
   if (listings.error) fail("listings", listings.error.message);
   const limits = await supabase.from("rate_limits").delete().eq("key", id);

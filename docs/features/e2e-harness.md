@@ -340,7 +340,10 @@ JUDGE (pre-committed, DEC-087): the split is kept as a win if the median push→
 
 Why: staging was minting about 4,000 users a day (one per test), and deleting a user does not take it off the monthly-active count.
 
-- `leaseUser()` (`e2e/helpers/users.ts`) returns a confirmed account `e2e-pool-<lane>-<NNN>@ethio-e2e.invalid`. Lanes are `s<shard>` on CI, `nightly` (set by `playwright.nightly.config.ts`) and `local`. Lanes never share accounts.
+- `leaseUser()` (`e2e/helpers/users.ts`) returns a confirmed account `e2e-pool-<lane>-<NNN>@ethio-e2e.invalid`. Lanes are `s<shard>a` / `s<shard>b` on CI (alternating by run-number parity, so a run never shares accounts with the cancelled run before it), `nightly` (set by `playwright.nightly.config.ts`) and `local`. Lanes never share accounts.
+- Class (i) also covers a test that exhausts a per-user budget (INC-377) and a test whose subject is the minted address itself (INC-378). User rows are found by search or a unique filter, never by page position (G28).
+- The reaper clears every per-account meter: `rate_limits` rows keyed by the user id and by the user's listing ids. The import preview budget (server memory) and the catalogue-find limit (hashed address) are not per-account database rows.
+- Decision rule: bring-up fixes for deterministic failures are allowed until the first fully green run; from then, three consecutive green runs with no pool-traceable flake ADOPT, and any pool-traceable red or flake REVERTS.
 - Seat = `parallelIndex × 10 + n`, where n is the account's order within its test. The pool's size per lane is workers × the most accounts any one test leases, not the number of tests.
 - Accounts are created on first lease if they are missing, and are idempotent. Teardown and the nightly sweep never delete them, because both only match `e2e+` addresses.
 - At every lease the account is reaped back to the state `handle_new_user()` leaves: listings (with cascades), rate-limit rows, every role except the base `user` role, profile and directory defaults (ET / ip_guess, active), MFA factors and the ban. It also gets a fresh random password, kept in memory only, and every session is revoked. Roles a test grants therefore last only until the next lease.

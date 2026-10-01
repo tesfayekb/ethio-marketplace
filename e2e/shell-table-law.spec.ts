@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
-import { gotoReady, switchUser, waitForHydration } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { gotoReady, switchUser, userRow, waitForHydration } from "./helpers/ui";
+import { adminClient, createUser } from "./helpers/users";
 
 /**
  * U1b — THE TABLE LAW (INC-075).
@@ -32,7 +32,9 @@ async function grantRole(userId: string, roleName: string) {
 
 test.describe("shell table law", () => {
   test("admin tables never overflow horizontally", async ({ page }) => {
-    const staff = await leaseUser();
+    // INC-378 — the long minted e2e address IS check (d)'s subject, so this
+    // test mints its staff account (DEC-097 class i) instead of leasing one.
+    const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
     await switchUser(page, staff.email, staff.password);
 
@@ -64,8 +66,10 @@ test.describe("shell table law", () => {
       inner.clientWidth,
     );
 
-    // (d) the long seeded e2e email still fits inside the container.
-    const row = page.getByTestId(`user-row-${staff.id}`);
+    // (d) the long seeded e2e email still fits inside the container. J6/G28 —
+    // the row is found by searching, never by page position.
+    await page.getByTestId("users-search").fill(staff.email);
+    const row = userRow(page, staff.id);
     await expect(row).toBeVisible({ timeout: 15000 });
     const rowBox = (await row.boundingBox())!;
     const containerBox = (await page.getByTestId("data-table").boundingBox())!;

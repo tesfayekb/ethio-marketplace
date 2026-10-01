@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import { gotoReady, switchUser } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser } from "./helpers/users";
 import {
   rand,
   bandOnly,
@@ -794,10 +794,11 @@ for (const family of FAMILIES) {
     }) => {
       test.setTimeout(240_000);
       bandOnly(page, "any");
-      // J9 — this test EXHAUSTS an operator's preview budget, so it spends its
-      // own identity, never the pooled super admin every other test shares.
+      // J9 / INC-377 — this test EXHAUSTS an operator's preview budget, which
+      // lives in the server's memory and no reaper can clear, so it mints a
+      // never-used operator (DEC-097 class i), never a pooled account.
       await signInAsSuperAdmin(page);
-      const operator = await leaseUser();
+      const operator = await createUser({ confirmed: true });
       await grantRole(operator.id, "super_admin");
       await switchUser(page, operator.email, operator.password);
       await gotoReady(page, "/admin/categories");
