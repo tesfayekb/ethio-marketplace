@@ -1576,46 +1576,67 @@ test.describe("U4h device language star", () => {
     page,
   }) => {
     const supabase = adminClient();
-
-    // Persona A — account prefers Amharic, device has never starred anything.
-    const carried = await leaseUser();
-    const { error: carryError } = await supabase
-      .from("profiles")
-      .update({ preferred_language: "am" })
-      .eq("user_id", carried.id);
-    if (carryError) throw new Error(`[e2e:shell] seeding preference: ${carryError.message}`);
-
-    await signIn(page, carried.email, carried.password);
-    await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am", {
-      timeout: 15000,
-    });
-    // The carry WRITES the device star — that is what makes it outlive the session.
-    const star = await page.evaluate(() => window.localStorage.getItem("ethio.lang.star"));
-    expect(star, await describeSwitcher(page)).toBe("am");
-
-    // Persona B — the same account preference, but this device already starred
-    // English. The device wins; the account never overwrites an explicit star.
-    await signOutViaUi(page);
-    const overridden = await leaseUser();
-    const { error: prefError } = await supabase
-      .from("profiles")
-      .update({ preferred_language: "am" })
-      .eq("user_id", overridden.id);
-    if (prefError) throw new Error(`[e2e:shell] seeding preference: ${prefError.message}`);
-
-    const context = await page.context().browser()!.newContext();
-    const fresh = await context.newPage();
+    const seeded: string[] = [];
+    let restoreError: string | null = null;
     try {
-      await seedStar(fresh, "en");
-      await signIn(fresh, overridden.email, overridden.password);
-      await expect(fresh.locator("html"), await describeSwitcher(fresh)).toHaveAttribute(
+      // Persona A — account prefers Amharic, device has never starred anything.
+      const carried = await leaseUser();
+      seeded.push(carried.id);
+      const { error: carryError } = await supabase
+        .from("profiles")
+        .update({ preferred_language: "am" })
+        .eq("user_id", carried.id);
+      if (carryError) throw new Error(`[e2e:shell] seeding preference: ${carryError.message}`);
+
+      await signIn(page, carried.email, carried.password);
+      await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute(
         "lang",
-        "en",
+        "am",
+        {
+          timeout: 15000,
+        },
       );
-      expect(await fresh.evaluate(() => window.localStorage.getItem("ethio.lang.star"))).toBe("en");
+      // The carry WRITES the device star — that is what makes it outlive the session.
+      const star = await page.evaluate(() => window.localStorage.getItem("ethio.lang.star"));
+      expect(star, await describeSwitcher(page)).toBe("am");
+
+      // Persona B — the same account preference, but this device already starred
+      // English. The device wins; the account never overwrites an explicit star.
+      await signOutViaUi(page);
+      const overridden = await leaseUser();
+      seeded.push(overridden.id);
+      const { error: prefError } = await supabase
+        .from("profiles")
+        .update({ preferred_language: "am" })
+        .eq("user_id", overridden.id);
+      if (prefError) throw new Error(`[e2e:shell] seeding preference: ${prefError.message}`);
+
+      const context = await page.context().browser()!.newContext();
+      const fresh = await context.newPage();
+      try {
+        await seedStar(fresh, "en");
+        await signIn(fresh, overridden.email, overridden.password);
+        await expect(fresh.locator("html"), await describeSwitcher(fresh)).toHaveAttribute(
+          "lang",
+          "en",
+        );
+        expect(await fresh.evaluate(() => window.localStorage.getItem("ethio.lang.star"))).toBe(
+          "en",
+        );
+      } finally {
+        await context.close();
+      }
     } finally {
-      await context.close();
+      // DEC-099 step 4: undo what this test wrote on its leased accounts.
+      if (seeded.length > 0) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ preferred_language: null })
+          .in("user_id", seeded);
+        if (error) restoreError = error.message;
+      }
     }
+    if (restoreError) throw new Error(`[e2e:shell] restoring preference: ${restoreError}`);
   });
 
   test("TR-28 hreflang alternates equal the anon publication gate", async ({ page }) => {

@@ -456,6 +456,11 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, `/admin/users/${target.id}`);
       const amBox = page.getByTestId("translator-lang-am");
       await expect(amBox).toBeVisible({ timeout: 20000 });
+      // INC-380: a dirty leased account fails here, clearly, instead of flaking.
+      await expect(amBox, "leased target already holds am (pool reset incomplete)").toHaveAttribute(
+        "aria-checked",
+        "false",
+      );
       await amBox.click();
       await page.getByTestId("translator-save").click();
       await stepUpIfPrompted(page, secret);
@@ -471,6 +476,7 @@ test.describe("U4b translations console", () => {
       await expect(reloadedBox).toHaveAttribute("aria-checked", "true");
       await expectNoHorizontalOverflow(page);
     } finally {
+      await supabase.from("translator_languages").delete().eq("user_id", target.id);
       if (roleId) {
         await supabase.from("user_roles").delete().eq("role_id", roleId);
         await supabase.from("roles").delete().eq("id", roleId);
