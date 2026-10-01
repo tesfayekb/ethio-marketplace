@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
-import { useShell } from "@/components/app-shell";
+import { useShell } from "@/components/shell-context";
 import { AdminShellProvider } from "@/features/admin/admin-context";
 import { sectionForPath } from "@/features/admin/sections";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";

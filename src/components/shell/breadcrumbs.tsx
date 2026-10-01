@@ -1,7 +1,7 @@
 import { useRouterState } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 
-import { useShell } from "@/components/app-shell";
+import { useShell } from "@/components/shell-context";
 import {
   Breadcrumb,
   BreadcrumbItem,

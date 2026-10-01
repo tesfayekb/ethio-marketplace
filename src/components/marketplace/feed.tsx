@@ -1,4 +1,4 @@
-import { useShell } from "@/components/app-shell";
+import { useShell } from "@/components/shell-context";
 import { WovenMark } from "@/components/brand/logo";
 import { Spinner } from "@/components/brand/spinner";
 import { ListingCard } from "@/components/marketplace/listing-card";
