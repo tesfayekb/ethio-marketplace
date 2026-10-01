@@ -1588,8 +1588,9 @@ test.describe("POSTING WIZARD", () => {
       row("model").getByTestId("post-required-mark"),
       "PW-78: the big model list shows no required mark after the brand",
     ).toHaveCount(1, { timeout: 20_000 });
-    await expect(control("model"), "PW-78: no soft border on the big model list").toHaveClass(
-      /border-destructive\/40/,
+    // INC-355 — required + empty wears the FULL destructive border.
+    await expect(control("model"), "PW-78: no full red border on the big model list").toHaveClass(
+      /(^|\s)border-destructive(\s|$)/,
     );
     await expect(page.getByTestId("post-refusal-summary")).toHaveCount(0);
 
