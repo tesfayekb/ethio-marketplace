@@ -2370,3 +2370,97 @@ export async function seedUnitFactSet(categoryId: string): Promise<UnitFactSet> 
   if (linkError) throw new Error(`[e2e:inc347] linking failed: ${linkError.message}`);
   return { typeKey, typeValue, basisKey, attrKeys: [typeKey, basisKey] };
 }
+
+/**
+ * INC-357 N1 — THE WRITE-IN SET. A type whose one option allows ONLY "other" on a
+ * brand list, a required and an optional plain text detail, and a free list that
+ * offers its own Other. Every row the door demands must have a box on screen.
+ */
+export interface WriteInSet {
+  kind: ScratchAttr;
+  brand: ScratchAttr;
+  textRequired: ScratchAttr;
+  textOptional: ScratchAttr;
+  colour: ScratchAttr;
+  kindOtherOnly: string;
+  brandNamed: string;
+  attrKeys: string[];
+}
+
+export async function seedWriteInSet(categoryId: string): Promise<WriteInSet> {
+  const supabase = adminClient();
+  const stem = `e2e_wri_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const kindOtherOnly = `${stem}_k1`;
+  const brandNamed = `${stem}_b1`;
+  const option = (value: string, extra: Record<string, unknown> = {}) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    active: true,
+    ...extra,
+  });
+  const { data, error } = await supabase
+    .from("attributes")
+    .insert([
+      {
+        attr_key: `${stem}_kind`,
+        name_en: `${stem} kind`,
+        attr_type: "single_select",
+        options: [option(kindOtherOnly, { allowed: { [`${stem}_brand`]: ["other"] } })],
+      },
+      {
+        attr_key: `${stem}_brand`,
+        name_en: `${stem} brand`,
+        attr_type: "single_select",
+        options: [option(brandNamed), option("other")],
+      },
+      { attr_key: `${stem}_treq`, name_en: `${stem} treq`, attr_type: "text", max_length: 40 },
+      { attr_key: `${stem}_topt`, name_en: `${stem} topt`, attr_type: "text", max_length: 40 },
+      {
+        attr_key: `${stem}_colour`,
+        name_en: `${stem} colour`,
+        attr_type: "single_select",
+        options: [option(`${stem}_c1`), option("other")],
+      },
+    ])
+    .select("id, attr_key, name_en");
+  if (error || !data) {
+    throw new Error(`[e2e:n1] seeding the write-in set failed: ${error?.message ?? "no rows"}`);
+  }
+  const pick = (suffix: string): ScratchAttr => {
+    const row = data.find((entry) => entry.attr_key.endsWith(suffix));
+    if (!row) throw new Error(`[e2e:n1] the ${suffix} definition is missing`);
+    return { id: row.id, attrKey: row.attr_key, nameEn: row.name_en };
+  };
+  const kind = pick("_kind");
+  const brand = pick("_brand");
+  const textRequired = pick("_treq");
+  const textOptional = pick("_topt");
+  const colour = pick("_colour");
+  const link = (attr: ScratchAttr, order: number, required: boolean) => ({
+    category_id: categoryId,
+    attribute_id: attr.id,
+    is_required: required,
+    display_order: order,
+  });
+  const { error: linkError } = await supabase
+    .from("category_attribute_links")
+    .insert([
+      link(kind, 1, true),
+      link(brand, 2, true),
+      link(textRequired, 3, true),
+      link(textOptional, 4, false),
+      link(colour, 5, false),
+    ]);
+  if (linkError) throw new Error(`[e2e:n1] linking the write-in set failed: ${linkError.message}`);
+  return {
+    kind,
+    brand,
+    textRequired,
+    textOptional,
+    colour,
+    kindOtherOnly,
+    brandNamed,
+    attrKeys: [kind, brand, textRequired, textOptional, colour].map((a) => a.attrKey),
+  };
+}

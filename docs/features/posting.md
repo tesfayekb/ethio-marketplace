@@ -239,6 +239,15 @@ pending and runs again straight after. Before this, such a collision was dropped
 on the floor: the seller's last edit never reached the door and the step did not
 advance.
 
+INC-366 — a `Next` is answered by ITS claim's verdict. When an autosave was in
+the air, that autosave's follow-up pass carries the claim; if the door refuses
+it, `saveAt` returns false even though its own run then finds nothing queued.
+Before this, Next advanced past a refusal (PW-103).
+
+INC-357 N1 — a single admissible "Other" keeps its write-in: the one-answer
+fill compares the chosen value, so `{ value: "other", text }` is never flattened
+back to `"other"` (PW-102). Tests: `e2e/post-wizard-details.spec.ts`.
+
 ## Option-carried `facts` (D18, C1-R3a-2)
 
 `get_attribute_options` projects `facts`, so the prefill is built: choosing an
