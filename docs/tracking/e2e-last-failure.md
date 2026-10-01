@@ -1,56 +1,126 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36935469464 passed
+last E2E run 36938569694 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36935469464
-- Commit: `aeaf3d121474e9b11d76d96550279a9d508bd8da`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36938569694
+- Commit: `9a648c5c4e7aa575e1b625623eb3eee394f80506`
 - Attempt: 1
-- Written (UTC): 2026-10-01T22:46:46.855Z
+- Written (UTC): 2026-10-01T23:18:40.247Z
 - Post-test warnings: 16
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Flaky (passed on retry, DEC-030, non-gating): 2
 
 ## Flake ledger (DEC-030)
 
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · post-wizard-pricing.spec.ts › POSTING WIZARD › PW-57 a per-quintal basis keeps the period once and reviews as a price per quintal — Error: reachStep7: no region carried the city e2e-scratch-36935469464-2-2-mobile-360-0-tr26b.
+- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-translations-console.spec.ts › U4b translations console › TR-10 translator card proves both permission states — Error: expect(locator).toHaveAttribute(expected) failed
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · admin-translations-console.spec.ts › U4b translations console › TR-10 translator card proves both permission states — Error: expect(locator).toHaveAttribute(expected) failed
 
 ## Flaky bodies (DEC-078)
 
-### post-wizard-pricing.spec.ts › POSTING WIZARD › PW-57 a per-quintal basis keeps the period once and reviews as a price per quintal
+### admin-translations-console.spec.ts › U4b translations console › TR-10 translator card proves both permission states
 
-- Source: `shard 3`
+- Source: `shard 1`
 - Project: `mobile-360`
 
 ```text
-Error: reachStep7: no region carried the city e2e-scratch-36935469464-2-2-mobile-360-0-tr26b.
-the market select's value: ET
-regions offered (6): Choose one | Addis Ababa | Amhara | Dire Dawa | Oromia | Sidama | Tigray
-the tree route when the step opened: status 200, 22 slugs
-the tree route now: status 200, 22 slugs, markets (none)
-the city e2e-scratch-36935469464-2-2-mobile-360-0-tr26b in that read: yes
-elapsed since the tree wait: 4651 ms
+Error: expect(locator).toHaveAttribute(expected) failed
 
-expect(received).toBe(expected) // Object.is equality
+Locator:  getByTestId('translator-lang-am')
+Expected: "true"
+Received: "false"
+Timeout:  10000ms
 
-Expected: true
-Received: false
+Call log:
+  - Expect "toHaveAttribute" with timeout 10000ms
+  - waiting for getByTestId('translator-lang-am')
+    14 × locator resolved to <button value="on" type="button" role="checkbox" aria-checked="false" data-state="unchecked" id="translator-lang-am" data-testid="translator-lang-am" class="grid place-content-center peer h-4 w-4 shrink-0 rounded-sm border border-primary shadow cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"></button>
+       - unexpected value "false"
+
 ```
 
-Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-57-a-per-quintal-basis-keeps-the-period-once-and-reviews-as-a-price-per-quintal-mobile-360`
+Context:
+
+```text
+          - listitem [ref=e232]:
+            - generic [ref=e233]: About
+          - listitem [ref=e234]:
+            - generic [ref=e235]: How it works
+      - navigation "Help" [ref=e236]:
+        - heading "Help" [level=2] [ref=e237]
+        - list [ref=e238]:
+          - listitem [ref=e239]:
+            - generic [ref=e240]: Safety
+          - listitem [ref=e241]:
+            - generic [ref=e242]: Contact
+      - navigation "Legal" [ref=e243]:
+        - heading "Legal" [level=2] [ref=e244]
+        - list [ref=e245]:
+          - listitem [ref=e246]:
+            - generic [ref=e247]: Terms
+          - listitem [ref=e248]:
+            - generic [ref=e249]: Privacy
+    - paragraph [ref=e251]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+### admin-translations-console.spec.ts › U4b translations console › TR-10 translator card proves both permission states
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toHaveAttribute(expected) failed
+
+Locator:  getByTestId('translator-lang-am')
+Expected: "true"
+Received: "false"
+Timeout:  10000ms
+
+Call log:
+  - Expect "toHaveAttribute" with timeout 10000ms
+  - waiting for getByTestId('translator-lang-am')
+    14 × locator resolved to <button value="on" type="button" role="checkbox" aria-checked="false" data-state="unchecked" id="translator-lang-am" data-testid="translator-lang-am" class="grid place-content-center peer h-4 w-4 shrink-0 rounded-sm border border-primary shadow cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"></button>
+       - unexpected value "false"
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e342]:
+            - generic [ref=e343]: About
+          - listitem [ref=e344]:
+            - generic [ref=e345]: How it works
+      - navigation "Help" [ref=e346]:
+        - heading "Help" [level=2] [ref=e347]
+        - list [ref=e348]:
+          - listitem [ref=e349]:
+            - generic [ref=e350]: Safety
+          - listitem [ref=e351]:
+            - generic [ref=e352]: Contact
+      - navigation "Legal" [ref=e353]:
+        - heading "Legal" [level=2] [ref=e354]
+        - list [ref=e355]:
+          - listitem [ref=e356]:
+            - generic [ref=e357]: Terms
+          - listitem [ref=e358]:
+            - generic [ref=e359]: Privacy
+    - paragraph [ref=e361]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors — census (DEC-083, non-gating)
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-105 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+103 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
-| `listing not found` | 5 | shard 3, shard 6 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -58,6 +128,7 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 ·
 | `definitions wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `export_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
 | `preview_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
+| `listing not found` | 3 | shard 3, shard 6 |
 | `categories file too large` (quiet) | 2 | shard 2, shard 5 |
 | `categories nulByte` (quiet) | 2 | shard 2, shard 5 |
 | `categories unknownColumn` (quiet) | 2 | shard 2, shard 5 |
@@ -90,7 +161,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 5 · Sources: shard 3, shard 6
+- Count: 3 · Sources: shard 3, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -108,63 +179,63 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-01T22:31:51.303Z | 11.5 min |
-| email | 2026-10-01T22:31:52.821Z | 0.3 min |
-| shard 1 | 2026-10-01T22:31:42.327Z | 14.1 min |
-| shard 2 | 2026-10-01T22:31:44.424Z | 11.8 min |
-| shard 3 | 2026-10-01T22:31:42.041Z | 10.9 min |
-| shard 4 | 2026-10-01T22:31:54.430Z | 14.6 min |
-| shard 5 | 2026-10-01T22:31:46.658Z | 14.4 min |
-| shard 6 | 2026-10-01T22:31:52.147Z | 12.3 min |
+| smoke | 2026-10-01T23:03:38.293Z | 11.0 min |
+| email | 2026-10-01T23:03:46.648Z | 0.2 min |
+| shard 1 | 2026-10-01T23:03:36.753Z | 14.7 min |
+| shard 2 | 2026-10-01T23:03:48.191Z | 13.4 min |
+| shard 3 | 2026-10-01T23:03:38.930Z | 10.1 min |
+| shard 4 | 2026-10-01T23:03:49.254Z | 12.9 min |
+| shard 5 | 2026-10-01T23:03:43.209Z | 12.4 min |
+| shard 6 | 2026-10-01T23:03:47.586Z | 13.0 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 252 | 14.6 min | smoke, shard 3, shard 6 |
+| `shell.spec.ts` | 252 | 14.4 min | smoke, shard 3, shard 6 |
 | `post-wizard-specs.spec.ts` | 52 | 10.4 min | shard 3, shard 6 |
-| `admin-attributes-library.spec.ts` | 40 | 8.4 min | shard 1, shard 4 |
-| `post-wizard-place.spec.ts` | 34 | 7.1 min | shard 2, shard 5 |
-| `admin-attributes-editor.spec.ts` | 34 | 6.2 min | shard 1, shard 4 |
-| `auth-signout.spec.ts` | 44 | 6.1 min | smoke, shard 2, shard 5 |
-| `post-wizard-category.spec.ts` | 40 | 6.0 min | shard 2, shard 5 |
-| `post-wizard-pricing.spec.ts` | 26 | 5.9 min | shard 3, shard 6 |
-| `admin-categories-console.spec.ts` | 32 | 5.9 min | shard 1, shard 4 |
-| `import-security.spec.ts` | 34 | 5.4 min | shard 2, shard 5 |
-| `admin-categories-lifecycle.spec.ts` | 38 | 5.4 min | shard 1, shard 4 |
-| `admin-translations-console.spec.ts` | 36 | 5.3 min | shard 1, shard 5 |
-| `post-wizard-where.spec.ts` | 24 | 5.0 min | shard 3, shard 6 |
-| `admin-locations.spec.ts` | 34 | 4.8 min | shard 1, shard 4 |
-| `post-wizard-resets.spec.ts` | 18 | 4.7 min | shard 3, shard 6 |
-| `admin-attributes-links.spec.ts` | 22 | 4.6 min | shard 1, shard 4 |
-| `admin-users.spec.ts` | 22 | 4.4 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 36 | 4.3 min | shard 3, shard 6 |
-| `admin-roles.spec.ts` | 24 | 4.3 min | shard 1, shard 4 |
-| `admin-attributes-import.spec.ts` | 32 | 4.1 min | shard 1, shard 4 |
-| `photo-pipeline.spec.ts` | 20 | 3.9 min | shard 2, shard 5 |
-| `admin-translations-governance.spec.ts` | 8 | 2.5 min | shard 2, shard 5 |
+| `admin-attributes-library.spec.ts` | 40 | 8.3 min | shard 1, shard 4 |
+| `post-wizard-place.spec.ts` | 34 | 6.7 min | shard 2, shard 5 |
+| `post-wizard-category.spec.ts` | 40 | 6.1 min | shard 2, shard 5 |
+| `admin-categories-console.spec.ts` | 32 | 5.8 min | shard 1, shard 4 |
+| `admin-translations-console.spec.ts` | 36 | 5.8 min | shard 1, shard 5 |
+| `admin-attributes-editor.spec.ts` | 34 | 5.8 min | shard 1, shard 4 |
+| `auth-signout.spec.ts` | 44 | 5.7 min | smoke, shard 2, shard 5 |
+| `admin-categories-lifecycle.spec.ts` | 38 | 5.7 min | shard 1, shard 4 |
+| `post-wizard-pricing.spec.ts` | 26 | 5.5 min | shard 3, shard 6 |
+| `import-security.spec.ts` | 34 | 5.5 min | shard 2, shard 5 |
+| `post-wizard-where.spec.ts` | 24 | 5.3 min | shard 3, shard 6 |
+| `post-wizard-resets.spec.ts` | 18 | 4.6 min | shard 3, shard 6 |
+| `admin-locations.spec.ts` | 34 | 4.5 min | shard 1, shard 4 |
+| `posting-routes.spec.ts` | 36 | 4.2 min | shard 3, shard 6 |
+| `admin-attributes-links.spec.ts` | 22 | 4.2 min | shard 1, shard 4 |
+| `admin-users.spec.ts` | 22 | 4.2 min | shard 2, shard 5 |
+| `admin-roles.spec.ts` | 24 | 4.1 min | shard 1, shard 4 |
+| `admin-attributes-import.spec.ts` | 32 | 3.6 min | shard 1, shard 4 |
+| `photo-pipeline.spec.ts` | 20 | 3.6 min | shard 2, shard 5 |
+| `admin-translations-governance.spec.ts` | 8 | 2.6 min | shard 2, shard 5 |
 | `admin-translations-data.spec.ts` | 8 | 2.5 min | shard 2, shard 5 |
-| `admin-countries.spec.ts` | 16 | 2.3 min | shard 1, shard 4 |
+| `mfa-stepup.spec.ts` | 18 | 2.5 min | shard 2, shard 5 |
 | `admin-audit.spec.ts` | 10 | 2.3 min | shard 1, shard 4 |
-| `mfa-stepup.spec.ts` | 18 | 2.2 min | shard 2, shard 5 |
-| `post-wizard-finder.spec.ts` | 6 | 1.1 min | shard 2, shard 5 |
+| `admin-countries.spec.ts` | 16 | 2.3 min | shard 1, shard 4 |
+| `post-wizard-finder.spec.ts` | 6 | 1.2 min | shard 2, shard 5 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `admin-coverage.spec.ts` | 14 | 1.1 min | shard 1, shard 4 |
-| `admin-shell.spec.ts` | 10 | 1.0 min | shard 1, shard 4 |
+| `admin-coverage.spec.ts` | 14 | 1.0 min | shard 1, shard 4 |
+| `admin-shell.spec.ts` | 10 | 0.9 min | shard 1, shard 4 |
+| `post-wizard-details.spec.ts` | 4 | 0.7 min | shard 2, shard 5 |
 | `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
-| `category-image-routes.spec.ts` | 10 | 0.6 min | shard 2, shard 5 |
-| `post-wizard-details.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
 | `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
-| `a11y.spec.ts` | 4 | 0.6 min | smoke |
-| `i18n-coverage.spec.ts` | 8 | 0.4 min | shard 2, shard 5 |
-| `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
+| `category-image-routes.spec.ts` | 10 | 0.5 min | shard 2, shard 5 |
+| `primitives-law.spec.ts` | 24 | 0.5 min | shard 3, shard 6 |
+| `a11y.spec.ts` | 4 | 0.5 min | smoke |
+| `rbac.spec.ts` | 6 | 0.4 min | shard 3, shard 6 |
 | `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
 | `settings.spec.ts` | 4 | 0.4 min | shard 3 |
-| `rbac.spec.ts` | 6 | 0.3 min | shard 3, shard 6 |
+| `i18n-coverage.spec.ts` | 8 | 0.4 min | shard 2, shard 5 |
 | `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
 | `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
 | `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `auth-signup.spec.ts` | 1 | 0.1 min | email |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
@@ -173,18 +244,18 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 39.0 s |
-| `post-wizard-pricing.spec.ts` › PW-57 a per-quintal basis keeps the period once and reviews as a price per quintal | mobile-360 | 37.1 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 34.9 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 33.6 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 33.6 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 33.5 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 32.5 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 32.4 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 32.2 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 30.7 s |
-| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | desktop-1280 | 29.9 s |
-| `admin-translations-data.spec.ts` › TR-24 the Data scope machine-translates one row and then every untranslated one | desktop-1280 | 29.9 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 29.8 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 29.4 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 29.2 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 36.4 s |
+| `admin-translations-console.spec.ts` › TR-10 translator card proves both permission states | desktop-1280 | 35.3 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 34.2 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 33.9 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 33.2 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 33.1 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 32.7 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 32.7 s |
+| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 31.9 s |
+| `post-wizard-where.spec.ts` › PW-98 the item tick sits on the city line, fresh and prefilled | desktop-1280 | 29.7 s |
+| `admin-translations-governance.spec.ts` › TR-29 the catalog exports as CSV and a translated CSV imports back | mobile-360 | 29.7 s |
+| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 29.4 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 27.9 s |
+| `admin-translations-console.spec.ts` › TR-10 translator card proves both permission states | mobile-360 | 27.7 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 27.6 s |
