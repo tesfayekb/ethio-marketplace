@@ -1,7 +1,9 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { DoorAnswer } from "./posting-service";
+import type { saveDraft } from "./posting-service";
+
+type DoorAnswer = Awaited<ReturnType<typeof saveDraft>>;
 
 /**
  * INC-367 — a late refusal answering an EARLIER claim must never block, or
