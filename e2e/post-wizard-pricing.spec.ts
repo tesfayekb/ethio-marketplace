@@ -429,6 +429,13 @@ test.describe("POSTING WIZARD", () => {
     page,
   }) => {
     const user = await seller(page);
+    const t0 = Date.now();
+    page.on("response", async (r) => {
+      if (!r.url().includes("/api/listings/draft")) return;
+      let b: any = {}; let rq: any = {};
+      try { b = await r.json(); rq = JSON.parse(r.request().postData() ?? "{}"); } catch {}
+      console.log(`[PW58LOG] ${test.info().project.name}#${test.info().repeatEachIndex} +${Date.now()-t0}ms step=${rq.step} bp=${rq.priceBp} status=${r.status()} ok=${b.ok} refusals=${JSON.stringify((b.refusals??[]).map((x:any)=>x.reason))}`);
+    });
     const { category, basis } = await basisLeaf();
     await reachPricingWithBasis(page, user.id, category, basis, "commission");
     const box = page.getByTestId("post-price-commission");
@@ -447,6 +454,7 @@ test.describe("POSTING WIZARD", () => {
 
     await box.fill("2.5");
     await expect(said).toHaveCount(0);
+    console.log(`[PW58LOG] ${test.info().project.name}#${test.info().repeatEachIndex} +${Date.now()-t0}ms NEXT-CLICK`);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
   });
