@@ -198,6 +198,9 @@ export async function seedActiveListing(categoryId: string, sellerId: string): P
     .from("locations")
     .select("id, country_code")
     .eq("is_active", true)
+    // INC-379: a real seeded place only, the same one on every run.
+    .not("slug", "like", "e2e%")
+    .order("slug")
     .limit(1)
     .maybeSingle();
   if (locationError || !location) {

@@ -617,3 +617,4 @@
 - 2026-10-01 DEC-097: E2E account pool (leaseUser, lane-scoped seats, reap at lease, per-run signed-in count); provisional pending three green runs.
 - 2026-10-01 · INC-377/INC-378: IG-3 and the shell table law mint fresh accounts; lease reaper clears listing-keyed meters; CI pool lanes alternate by run-number parity; DEC-097 decision rule clarified.
 - 2026-10-01 DEC-098 stage 1: CI reporters publish evidence to branch ci-evidence via scripts/publish-evidence.sh; no workflow pushes to dev; dev copies frozen until stage 2.
+- INC-379 (2026-10-01): e2e reference-row reads (activeCityOf, anyAttributeId, seedActiveListing's place, regionUnder) exclude scratch rows and use a fixed order.

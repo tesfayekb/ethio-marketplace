@@ -176,14 +176,35 @@ export async function destroyPostableCategory(slug: string): Promise<void> {
   await supabase.from("categories").delete().eq("id", data.id);
 }
 
-/** An EXISTING active city of a market, read as DB truth — never written. */
+/**
+ * An EXISTING active city of a market, read as DB truth — never written.
+ * INC-379: a REAL seeded city only — scratch rows (`e2e-` slugs, J1) are
+ * excluded, its parent must be an active real region, and the pick is ordered
+ * by slug so every run reads the same row.
+ */
 export async function activeCityOf(countryCode: string) {
-  const { data, error } = await adminClient()
+  const supabase = adminClient();
+  const { data: regions, error: regionError } = await supabase
+    .from("locations")
+    .select("id")
+    .eq("country_code", countryCode)
+    .eq("level", "region")
+    .eq("is_active", true)
+    .not("slug", "like", "e2e%");
+  if (regionError) {
+    throw new Error(`[e2e:a2c] reading regions of ${countryCode} failed: ${regionError.message}`);
+  }
+  const regionIds = (regions ?? []).map((row) => row.id);
+  if (regionIds.length === 0) throw new Error(`[e2e:a2c] ${countryCode} has no active region`);
+  const { data, error } = await supabase
     .from("locations")
     .select("id, slug, country_code")
     .eq("country_code", countryCode)
     .eq("level", "city")
     .eq("is_active", true)
+    .not("slug", "like", "e2e%")
+    .in("parent_id", regionIds)
+    .order("slug")
     .limit(1)
     .maybeSingle();
   if (error) throw new Error(`[e2e:a2c] reading a city of ${countryCode} failed: ${error.message}`);
@@ -223,6 +244,9 @@ export async function anyAttributeId(): Promise<string> {
   const { data, error } = await adminClient()
     .from("attributes")
     .select("id")
+    // INC-379: never another test's scratch definition; a fixed pick.
+    .not("attr_key", "like", "e2e%")
+    .order("attr_key")
     .limit(1)
     .maybeSingle();
   if (error) throw new Error(`[e2e:a2c] reading an attribute failed: ${error.message}`);

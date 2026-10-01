@@ -350,3 +350,5 @@ Why: staging was minting about 4,000 users a day (one per test), and deleting a 
 - Keep minting with `createUser()`: mfa-stepup, auth-reset, auth-signin-errors, auth-callback, `@private-identity` (`mintPrivateSuperAdmin`), admin-users TARGET accounts, and the PW category "stranger" deny proof.
 - Each run prints `[e2e:teardown] accounts signed in this run: <n> (pool <p>, fresh <f>)`. The count comes from `.state/accounts.log` plus the setup's own mints, read per id against `last_sign_in_at` after the run started.
 - Decision rule: ADOPT after three consecutive full green runs with no flake-ledger entry traceable to a shared account, where each run's count is ≤ pool size + the minting tests. Otherwise revert to per-test minting.
+
+- INC-379: helpers that read "any" reference row (locations, categories, attributes) exclude `e2e`-prefixed scratch rows and pick by a fixed order (slug / attr_key).

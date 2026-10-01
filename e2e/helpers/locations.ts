@@ -249,6 +249,8 @@ export async function regionUnder(countryCode: string) {
     .eq("is_active", true)
     .not("slug", "like", "e2e-%")
     .order("display_order")
+    // INC-379: a tie on display_order must not make the pick vary by run.
+    .order("slug")
     .limit(1)
     .maybeSingle();
   if (error || !data) {
