@@ -127,7 +127,8 @@ async function handlePost(request: Request): Promise<Response> {
 
   const { data, error } = await supabase.rpc("submit_listing", args);
   if (error) {
-    logRouteError(PATH, error.message);
+    // INC-368 — a seller's mistake is not a server error: the two constraint
+    // translations below are expected refusals and are NOT logged as [ssr-error].
     // INC-301 — the commission range constraint is a seller's mistake, in words.
     if (error.message.includes("listings_price_bp_check")) {
       return routeJson(
@@ -139,6 +140,8 @@ async function handlePost(request: Request): Promise<Response> {
     if (error.message.includes("listings_price_mode_check")) {
       return routeJson({ ok: false, refusals: [{ field: "price_mode", reason: "badValue" }] }, 200);
     }
+    // The unexpected branch — the only one that is a server error (I4).
+    logRouteError(PATH, error.message);
     // INC-309 — every other door exception carries a reason the wizard can put
     // into words; the constraint (or message) travels as detail, never as text.
     const constraint = /constraint "([^"]+)"/.exec(error.message)?.[1];
