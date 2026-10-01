@@ -946,45 +946,16 @@ jobs:
           E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts \
             || echo "::warning::DEC-030 flake-ledger pass failed"
 
-          cp docs/tracking/e2e-last-failure.md /tmp/e2e-last-failure.md
-          cp docs/tracking/flake-ledger.md /tmp/flake-ledger.md 2>/dev/null || true
-          # Regenerate-after-fetch + retry, IDENTICAL to ci-status-report.yml:
-          # the file is derived state owned by this run, so rewriting it on top
-          # of whatever dev now holds can never conflict. A push failure is a
-          # ::warning, never a red — bookkeeping must not redden Actions.
-          # DEC-020: tracking commits land on DEV (main advances only via the
-          # promote job); the `[skip ci]` tag keeps them from re-triggering CI.
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          pushed=0
-          for attempt in 1 2 3; do
-            git fetch origin dev
-            git reset --hard origin/dev
-            mkdir -p docs/tracking
-            cp /tmp/e2e-last-failure.md docs/tracking/e2e-last-failure.md
-            git add docs/tracking/e2e-last-failure.md
-            # DEC-030 — the ledger is APPEND-ONLY against the freshly fetched
-            # dev copy: re-run the flake pass after the reset so a concurrent
-            # run's lines are never overwritten by this run's stale snapshot.
-            E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts \
-              || echo "::warning::DEC-030 flake-ledger re-append failed"
-            git add docs/tracking/flake-ledger.md || true
-            if git diff --cached --quiet; then
-              echo "No report change; nothing to commit."
-              pushed=1
-              break
-            fi
-            git commit -m "ci: e2e failure report + flake ledger [skip ci]"
-            if git push origin HEAD:dev; then
-              pushed=1
-              break
-            fi
-            echo "Report push rejected (attempt ${attempt}/3); refetching."
-            sleep 5
-          done
-          if [ "$pushed" -ne 1 ]; then
-            echo "::warning::E2E failure report push failed after retries"
-          fi
+          # DEC-098 — the report and the ledger publish to branch ci-evidence,
+          # never dev. A publish failure is a ::warning, never a red.
+          # DEC-030 — the ledger is APPEND-ONLY against the PUBLISHED copy: on
+          # every attempt the prepare hook takes the freshly fetched
+          # ci-evidence ledger and re-runs the flake pass on it, so a
+          # concurrent run's lines are never overwritten by a stale snapshot.
+          # When ci-evidence has no ledger yet, the first pass's file stands.
+          PUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \
+            bash scripts/publish-evidence.sh "ci: e2e failure report + flake ledger [skip ci]" \
+              docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md
           # The report is published; NOW the reporter's own health is raised.
           if [ "$selftest" -ne 0 ]; then
             echo "::error::E2E failure reporter self-test failed (exit ${selftest})"
