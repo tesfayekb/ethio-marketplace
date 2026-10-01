@@ -610,3 +610,4 @@
 - 2026-10-01 — INC-360: step-where.test "add buttons" rewritten to the staircase ruling (J); red on e765c012, green on HEAD.
 - 2026-10-01 — INC-361: staging construction/travel had empty name_am (approved am rows present, no test writer found); filled on staging with the production values; i18n-coverage failure message names each English label's slug.
 - 2026-10-01 — INC-359 restored the 2026-09-18 My Listings fix (6fea44fd): /post and /post/<id> derive the my-listings panel; PW-15 asserts tab + menu on a fresh /post load.
+- 2026-10-01 INC-365: i18n used-on maps regenerated after the shell-context move (A6 miss: `bun run i18n:usage` not run on that landing); shell-context move accepted as behaviour-neutral; whole-project lint 0 errors / 28 warnings (fast-refresh, to CI-T2).
