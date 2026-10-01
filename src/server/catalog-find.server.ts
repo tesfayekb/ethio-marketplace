@@ -12,6 +12,17 @@ export const CATALOG_FIND_MAX_BYTES = 2_048;
 
 export type CatalogFindRow = Database["public"]["Functions"]["catalog_find"]["Returns"][number];
 
+export interface CatalogFindTiming {
+  version: number;
+  find: number;
+  rebuild: number;
+}
+
+export interface CatalogFindAnswer {
+  rows: CatalogFindRow[];
+  timing: CatalogFindTiming;
+}
+
 interface CacheEntry {
   expiresAt: number;
   rows: CatalogFindRow[];
@@ -66,20 +77,29 @@ export function withinBudget(rows: CatalogFindRow[]): CatalogFindRow[] {
   return kept;
 }
 
-export async function catalogFind(query: string, lang: string): Promise<CatalogFindRow[]> {
+export async function catalogFind(query: string, lang: string): Promise<CatalogFindAnswer> {
   const client = publicClient();
+  const versionStarted = performance.now();
   const versionAnswer = await client.rpc("catalog_find_version");
   if (versionAnswer.error)
     throw new Error(`catalog finder version: ${versionAnswer.error.message}`);
+  const versionMs = performance.now() - versionStarted;
   const version = String(versionAnswer.data ?? "");
   const key = `${version}\u0000${lang}\u0000${query.toLocaleLowerCase()}`;
   const held = cache.get(key);
-  if (held && held.expiresAt > Date.now()) return held.rows;
+  if (held && held.expiresAt > Date.now()) {
+    return { rows: held.rows, timing: { version: versionMs, find: 0, rebuild: 0 } };
+  }
 
+  const findStarted = performance.now();
   const answer = await client.rpc("catalog_find", { q: query, lang, lim: CATALOG_FIND_MAX_ROWS });
   if (answer.error) throw new Error(`catalog finder: ${answer.error.message}`);
+  const findMs = performance.now() - findStarted;
   const rows = withinBudget(answer.data ?? []);
   cache.set(key, { rows, expiresAt: Date.now() + CATALOG_FIND_TTL_MS });
   if (cache.size > 256) cache.delete(cache.keys().next().value ?? "");
-  return rows;
+  // The current RPC may rebuild internally as a fallback. Its public contract
+  // cannot expose that sub-duration, so this stage remains explicit and zero
+  // until the S2 door separates refresh from lookup.
+  return { rows, timing: { version: versionMs, find: findMs, rebuild: 0 } };
 }
