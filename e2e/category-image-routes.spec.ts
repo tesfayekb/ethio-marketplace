@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 
 import type { Database } from "../src/integrations/supabase/types";
 
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * C5a PART E — the AI foundation routes, proved in FAKE MODE (GEMINI_FAKE=1);
@@ -64,7 +64,7 @@ async function grantRole(userId: string, roleName: string) {
 
 /** A signed-in bearer token for a principal holding `categories:assets`. */
 async function assetsToken(): Promise<string> {
-  const user = await createUser({ confirmed: true });
+  const user = await leaseUser();
   await grantRole(user.id, "super_admin");
   const { data, error } = await anonClient().auth.signInWithPassword({
     email: user.email,

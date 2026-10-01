@@ -12,7 +12,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import {
   RUN,
   rand,
@@ -82,14 +82,14 @@ test.describe("C2 categories console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const plain = await createUser({ confirmed: true });
+    const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await page.goto("/admin/categories");
     await waitForHydration(page);
     await expect(page.getByTestId("category-search")).toHaveCount(0);
     await expect(page.getByTestId("category-create-open")).toHaveCount(0);
 
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/categories");
@@ -100,7 +100,7 @@ test.describe("C2 categories console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/categories");
@@ -433,7 +433,7 @@ test.describe("C2 categories console", () => {
     // A super admin who has NOT stepped up: the create dialog submits, the
     // gate intercepts, and no row exists until the code is entered (F3/F5 —
     // a refused attempt leaves no trace).
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     await grantRole(user.id, "super_admin");
     await switchUser(page, user.email, user.password);
     await waitForHydration(page);
@@ -465,7 +465,7 @@ test.describe("C2 categories console", () => {
       expect(before.length).toBeGreaterThan(0);
 
       // A second super admin with NO enrolled factor.
-      const weak = await createUser({ confirmed: true });
+      const weak = await leaseUser();
       await grantRole(weak.id, "super_admin");
       await switchUser(page, weak.email, weak.password);
       await gotoReady(page, "/admin/categories");
@@ -582,7 +582,7 @@ test.describe("C2 categories console", () => {
   test("CT-9a roster shape: the parent column and a 25-row page (table twin)", async ({ page }) => {
     bandOnly(page, "desktop");
     await page.setViewportSize({ width: 1440, height: 900 });
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/categories");
@@ -620,7 +620,7 @@ test.describe("C2 categories console", () => {
   /** CT-9b — the SAME facts inside cards at 360: nothing is hidden there. */
   test("CT-9b roster shape: the parent line and pagination inside cards", async ({ page }) => {
     bandOnly(page, "mobile");
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/categories");
@@ -680,7 +680,7 @@ test.describe("C2 categories console", () => {
    */
   test("CT-11 roster controls: missing-assets filter and a device page size", async ({ page }) => {
     bandOnly(page, "any");
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/categories");
@@ -728,7 +728,7 @@ test.describe("C2 categories console", () => {
   test("CT-29 every ratified category renders its own glyph, not the fallback", async ({
     page,
   }) => {
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/categories");

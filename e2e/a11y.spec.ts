@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { createUser } from "./helpers/users";
+import { leaseUser } from "./helpers/users";
 import {
   destroyListingsOf,
   destroyPostableCategory,
@@ -69,7 +69,7 @@ test.describe("A11Y SMOKE (DEC-084, gating)", () => {
         await route.fallback({ headers: { ...route.request().headers(), "cf-ipcountry": "ET" } });
       });
     }
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     sellers.push(user.id);
     await signInViaSession(page, user.email, user.password);
     const leaf = await seedPostableCategory();

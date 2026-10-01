@@ -12,7 +12,7 @@ import {
   userRow,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser } from "./helpers/users";
 
 /**
  * Phase U1 — Users section.
@@ -174,7 +174,7 @@ async function expectActivity(page: Page, action: string, userId: string) {
 
 test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
-    const moderator = await createUser({ confirmed: true });
+    const moderator = await leaseUser();
     await grantRole(moderator.id, "moderator");
     await switchUser(page, moderator.email, moderator.password);
     await waitForHydration(page);
@@ -183,17 +183,19 @@ test.describe("U1 admin users", () => {
     await expect(page).toHaveURL(/\/admin\/?$/);
     await expect(page.getByText(en["admin.accessDenied"])).toBeVisible({ timeout: 15000 });
 
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     // INC-074: /auth is guarded for an authenticated session — sign out first.
     await switchUser(page, staff.email, staff.password);
     await page.goto("/admin/users");
     await waitForHydration(page);
+    // DEC-097: pooled accounts are old rows; J6 — find by search, never by position.
+    await page.getByTestId("users-search").fill(staff.email);
     await expect(userRow(page, staff.id)).toBeVisible({ timeout: 15000 });
   });
 
   test("AU-2 search and status filter", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
@@ -209,7 +211,7 @@ test.describe("U1 admin users", () => {
   });
 
   test("AU-3 detail: reason required, deactivate, audit row, reactivate", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
@@ -256,7 +258,7 @@ test.describe("U1 admin users", () => {
   });
 
   test("AU-7 crumb: Home > Admin > Users > <name>, Users navigates back", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
@@ -273,7 +275,7 @@ test.describe("U1 admin users", () => {
   });
 
   test("AU-8 own row: status controls are not offered on your own record", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
     await switchUser(page, staff.email, staff.password);
@@ -286,7 +288,7 @@ test.describe("U1 admin users", () => {
   });
 
   test("AU-4 roles: assign and remove, super_admin/user never offered", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "super_admin");
     const scratch = await createUser({ confirmed: true });
 
@@ -314,7 +316,7 @@ test.describe("U1 admin users", () => {
   });
 
   test("AU-5 seam: a deactivated account cannot write a listing", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
@@ -358,7 +360,7 @@ test.describe("U1 admin users", () => {
   });
 
   test("AU-6 negative: a base user cannot call the status RPC", async ({ page }) => {
-    const base = await createUser({ confirmed: true });
+    const base = await leaseUser();
     const victim = await createUser({ confirmed: true });
 
     await switchUser(page, base.email, base.password);
@@ -371,7 +373,7 @@ test.describe("U1 admin users", () => {
     expect(message ?? "").toContain("permission denied");
   });
   test("AU-9 edit: staff edits display name and alias, activity records it", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
     const alias = `u1g${Date.now().toString(36)}`;
@@ -399,7 +401,7 @@ test.describe("U1 admin users", () => {
   });
 
   test("AU-10 edit: a duplicate alias is refused inline and nothing changes", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     const holder = await createUser({ confirmed: true });
     const scratch = await createUser({ confirmed: true });
@@ -431,7 +433,7 @@ test.describe("U1 admin users", () => {
   });
 
   test("AU-11 own row: no edit form on your own record", async ({ page }) => {
-    const staff = await createUser({ confirmed: true });
+    const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
     await switchUser(page, staff.email, staff.password);

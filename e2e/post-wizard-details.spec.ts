@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { createUser } from "./helpers/users";
+import { leaseUser } from "./helpers/users";
 import {
   attributesOf,
   destroyListingsOf,
@@ -45,7 +45,7 @@ test.describe("POSTING WIZARD — WRITE-IN DETAILS", () => {
   }
 
   async function reachStep3(page: Page): Promise<{ set: WriteInSet; listingId: string }> {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);

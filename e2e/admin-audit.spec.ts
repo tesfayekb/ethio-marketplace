@@ -11,7 +11,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * Phase U3 — Audit & Security (AS-*) and impersonation v1 (IMP-*).
@@ -78,13 +78,13 @@ async function signInAsSuperAdmin(page: Page) {
 
 test.describe("U3 audit & security", () => {
   test("AS-1 gating: a plain user is refused, a moderator reads the log", async ({ page }) => {
-    const plain = await createUser({ confirmed: true });
+    const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await page.goto("/admin/audit");
     await waitForHydration(page);
     await expect(page.getByTestId("admin-audit")).toHaveCount(0);
 
-    const moderator = await createUser({ confirmed: true });
+    const moderator = await leaseUser();
     await grantRole(moderator.id, "moderator");
     await switchUser(page, moderator.email, moderator.password);
     await gotoReady(page, "/admin/audit");
@@ -137,7 +137,7 @@ test.describe("U3 audit & security", () => {
     { tag: "@private-identity" },
     async ({ page }) => {
       const { secret } = await signInAsSuperAdmin(page);
-      const target = await createUser({ confirmed: true });
+      const target = await leaseUser();
 
       await gotoReady(page, `/admin/users/${target.id}`);
       await expect(page.getByTestId("impersonation-starter")).toBeVisible();
@@ -164,7 +164,7 @@ test.describe("U3 audit & security", () => {
     { tag: "@private-identity" },
     async ({ page }) => {
       const { user, secret } = await signInAsSuperAdmin(page);
-      const target = await createUser({ confirmed: true });
+      const target = await leaseUser();
 
       await gotoReady(page, `/admin/users/${target.id}`);
       await page.getByTestId("impersonation-reason").fill("e2e audit evidence");
@@ -202,7 +202,7 @@ test.describe("U3 audit & security", () => {
       });
       expect(self ?? "").toContain("cannot impersonate yourself");
 
-      const other = await createUser({ confirmed: true });
+      const other = await leaseUser();
       await grantRole(other.id, "super_admin");
       const superTarget = await rpcFromBrowser(page, "begin_impersonation", {
         p_target: other.id,
@@ -210,11 +210,11 @@ test.describe("U3 audit & security", () => {
       });
       expect(superTarget ?? "").toContain("cannot impersonate a super admin");
 
-      const admin = await createUser({ confirmed: true });
+      const admin = await leaseUser();
       await grantRole(admin.id, "admin");
       await switchUser(page, admin.email, admin.password);
       await waitForHydration(page);
-      const victim = await createUser({ confirmed: true });
+      const victim = await leaseUser();
       const refused = await rpcFromBrowser(page, "begin_impersonation", {
         p_target: victim.id,
         p_reason: "e2e non-super caller",

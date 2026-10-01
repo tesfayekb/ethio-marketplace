@@ -15,7 +15,7 @@ import {
   userRow,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * Phase U2 — Roles & Permissions console (RP-1..RP-8).
@@ -145,7 +145,7 @@ test.describe("U2 roles console", () => {
   test("RP-1 gating: moderator refused, admin sees the list, signed-out deep link redirects", async ({
     page,
   }) => {
-    const moderator = await createUser({ confirmed: true });
+    const moderator = await leaseUser();
     await grantRole(moderator.id, "moderator");
     await switchUser(page, moderator.email, moderator.password);
     await page.goto("/admin/roles");
@@ -156,7 +156,7 @@ test.describe("U2 roles console", () => {
     // positive phase uses, never through a raw role-row-* testid.
     await expect(roleRow(page, "admin")).toHaveCount(0);
 
-    const admin = await createUser({ confirmed: true });
+    const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/roles");
@@ -259,7 +259,7 @@ test.describe("U2 roles console", () => {
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
 
-    const member = await createUser({ confirmed: true });
+    const member = await leaseUser();
     await grantRole(member.id, name);
 
     await gotoReady(page, `/admin/roles/${id}`);
@@ -398,7 +398,7 @@ test.describe("U2 roles console", () => {
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
 
-    const member = await createUser({ confirmed: true });
+    const member = await leaseUser();
     await grantRole(member.id, name);
 
     await gotoReady(page, `/admin/roles/${id}`);

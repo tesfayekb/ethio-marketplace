@@ -24,7 +24,7 @@ import {
   seedPostableCategory,
 } from "./helpers/posting";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * U6-B1 — THE PHOTO PIPELINE (PP-1..PP-9), REQ-036's acceptance.
@@ -66,7 +66,7 @@ test.describe("PHOTO PIPELINE", () => {
   });
 
   async function seller(page: import("@playwright/test").Page) {
-    const user = await createUser({ confirmed: true });
+    const user = await leaseUser();
     sellers.push(user.id);
     await signInViaSession(page, user.email, user.password);
     await gotoReady(page, "/");
@@ -226,7 +226,7 @@ test.describe("PHOTO PIPELINE", () => {
     const context = await browser.newContext();
     const other = await context.newPage();
     try {
-      const intruder = await createUser({ confirmed: true });
+      const intruder = await leaseUser();
       sellers.push(intruder.id);
       await signInViaSession(other, intruder.email, intruder.password);
       await gotoReady(other, "/");
