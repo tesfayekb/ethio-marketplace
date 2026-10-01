@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 316,
+  "scanned": 317,
   "dynamicCallSites": 202,
   "keys": {
     "account.deactivatedBanner": [
@@ -2753,10 +2753,6 @@
     ],
     "app.name": [
       "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug",
       "/dev/primitives",
       "/dev/tall"
     ],
@@ -2801,11 +2797,7 @@
     ],
     "auth.createAccount": [
       "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/auth",
-      "/c/$slug"
+      "/auth"
     ],
     "auth.email": [
       "/auth"
@@ -2896,31 +2888,19 @@
     ],
     "auth.signIn": [
       "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/auth",
-      "/c/$slug"
+      "/auth"
     ],
     "auth.signInButton": [
       "/auth"
     ],
     "auth.signOut": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "auth.signUpButton": [
       "/auth"
     ],
     "auth.signedInAs": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "auth.telegramSlot": [
       "/auth"
@@ -2946,9 +2926,6 @@
     ],
     "common.close": [
       "(every page)",
-      "/",
-      "/account",
-      "/admin",
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
@@ -2958,26 +2935,18 @@
       "/admin/roles/$roleId",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users/$userId",
-      "/c/$slug"
+      "/admin/users/$userId"
     ],
     "common.dismiss": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "common.goHome": [
       "(every page)"
     ],
     "common.loading": [
       "(every page)",
-      "/",
       "/account",
-      "/admin",
       "/admin/categories",
-      "/c/$slug",
       "/settings"
     ],
     "common.retry": [
@@ -3050,29 +3019,17 @@
       "/post/$listingId"
     ],
     "footer.rights": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "impersonation.backToUser": [
       "/admin/impersonation/$sessionId"
     ],
     "impersonation.banner": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "impersonation.endNow": [
       "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/admin/impersonation/$sessionId",
-      "/c/$slug"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.endsIn": [
       "/admin/impersonation/$sessionId"
@@ -3099,11 +3056,7 @@
       "/admin/impersonation/$sessionId"
     ],
     "impersonation.open": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "impersonation.profile.alias": [
       "/admin/impersonation/$sessionId"
@@ -3144,56 +3097,28 @@
     ],
     "impersonation.unknownTarget": [
       "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/admin/impersonation/$sessionId",
-      "/c/$slug"
+      "/admin/impersonation/$sessionId"
     ],
     "impersonation.viewAs": [
       "/admin/users/$userId"
     ],
     "language.label": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "location.anyArea": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "location.empty": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "location.guessAreaCaption": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "location.label": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "location.readFailed": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "mfa.addedOn": [
       "/settings"
@@ -3340,38 +3265,22 @@
       "/settings"
     ],
     "nav.home": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "nav.postListing": [
       "/account"
     ],
     "nav.profile": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "nav.signInSecurity": [
       "/account"
     ],
     "panel.account": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "panel.admin": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "panel.myListings": [
       "/account"
@@ -4481,18 +4390,10 @@
       "/dev/primitives"
     ],
     "session.idleWarning": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "session.staySignedIn": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "settings.cancel": [
       "/admin/attributes",
@@ -4550,11 +4451,7 @@
       "/settings"
     ],
     "settings.navLabel": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "settings.newEmail": [
       "/settings"
@@ -4603,137 +4500,61 @@
       "/settings"
     ],
     "shell.accountMenu": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.allCategories": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.breadcrumbLabel": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.categoriesEmpty": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.categoriesLabel": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.collapseRail": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.expandRail": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.mainNav": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.menuTitle": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.openMenu": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.panelLabel": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.placeholderBody": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.placeholderTitle": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.searchClose": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.searchLabel": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.searchPlaceholder": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.skipToContent": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.switchPanel": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.themeToggle": [
-      "(every page)",
-      "/",
-      "/account",
-      "/admin",
-      "/c/$slug"
+      "(every page)"
     ],
     "tier.featured": [
       "/",
