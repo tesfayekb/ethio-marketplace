@@ -970,6 +970,9 @@ test.describe("POSTING WIZARD", () => {
 
     // INC-359 (restored from 6fea44fd, operator walk 2026-09-18): /post belongs
     // to My Listings — the panel stays active and its menu stays visible.
+    // A fresh load, so the tab is derived from the route, not the click above.
+    await gotoReady(page, "/post");
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
     await expect(
       page.getByTestId("panel-tab-my-listings"),
       "PW-15: /post fell back to another panel; My Listings must own the posting pages",
