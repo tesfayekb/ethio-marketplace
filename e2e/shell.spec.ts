@@ -1576,9 +1576,11 @@ test.describe("U4h device language star", () => {
     page,
   }) => {
     const supabase = adminClient();
-
+    const seeded: string[] = [];
+    try {
     // Persona A — account prefers Amharic, device has never starred anything.
     const carried = await leaseUser();
+    seeded.push(carried.id);
     const { error: carryError } = await supabase
       .from("profiles")
       .update({ preferred_language: "am" })
@@ -1597,6 +1599,7 @@ test.describe("U4h device language star", () => {
     // English. The device wins; the account never overwrites an explicit star.
     await signOutViaUi(page);
     const overridden = await leaseUser();
+    seeded.push(overridden.id);
     const { error: prefError } = await supabase
       .from("profiles")
       .update({ preferred_language: "am" })
@@ -1615,6 +1618,16 @@ test.describe("U4h device language star", () => {
       expect(await fresh.evaluate(() => window.localStorage.getItem("ethio.lang.star"))).toBe("en");
     } finally {
       await context.close();
+    }
+    } finally {
+      // DEC-099 step 4: undo what this test wrote on its leased accounts.
+      if (seeded.length > 0) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ preferred_language: null })
+          .in("user_id", seeded);
+        if (error) throw new Error(`[e2e:shell] restoring preference: ${error.message}`);
+      }
     }
   });
 
