@@ -604,3 +604,9 @@
 - 2026-09-29 W7 Parts B–C (D37-2, INC-346): step 1 asks the catalog finder with name-match fallback and revalidated prefills; off-path levels ask again with Current choice / Keep it; PW-85–87 in post-wizard-finder.spec.ts.
 - 2026-09-30 — W6b-2: amount scale (thousand/million, string shift) and no example placeholder; INC-347 step-3 facts/narrowing reach the price-step basis; place step in two boxes with one-line plan and per-box red; location details for every category (set_listing_pin 60cedbed, mark 20260930180000); Esri tiles via /api/map/tiles with OSM fallback, outline via /api/geo/outline, pin sheet with sticky Save; PW-88–92.
 - 2026-10-01 — DEC-092 reverted by its own rule (AT-58 red on react-start 1.168.60, green on 1.168.26); TanStack pins back to 07e6a52 in 5432ea6. INC-355 border assertions: PW-78 and post-wizard-category.spec.ts:798 now expect the full destructive border; step-category.tsx empty group border full red.
+- 2026-10-01 — INC-359 restored place-step work (G, H asterisks, I, J, K; PW-97–PW-100) from side branch lovable-sync-1790806349 (tip 9f36b11b) onto dev.
+- 2026-10-01 — INC-357 N1 (c3761f92): a settled "Other" is never hidden; its write-in box shows so the door's demand can be met.
+- 2026-10-01 — PW-99: at 360 px each nested place level is a left rule only and every select is at least 200 px; red on 9f36b11b (innermost 186 px), green on HEAD.
+- 2026-10-01 — INC-360: step-where.test "add buttons" rewritten to the staircase ruling (J); red on e765c012, green on HEAD.
+- 2026-10-01 — INC-361: staging construction/travel had empty name_am (approved am rows present, no test writer found); filled on staging with the production values; i18n-coverage failure message names each English label's slug.
+- 2026-10-01 — INC-359 restored the 2026-09-18 My Listings fix (6fea44fd): /post and /post/<id> derive the my-listings panel; PW-15 asserts tab + menu on a fresh /post load.

@@ -208,14 +208,37 @@ describe("StepWhere — the ad's places and the item tick (W6b-1)", () => {
     expect(within(regionBox("r2")).getAllByTestId("post-where-row")).toHaveLength(1);
   });
 
-  it("puts each add button in its own box (R2)", async () => {
-    await mount();
-    const region = regionBox("r1");
-    const addCity = within(region).getByTestId("post-where-add-city");
-    expect(region.lastElementChild).toBe(addCity);
+  /**
+   * INC-360 — J (operator staircase ruling) superseded W6b-1 R2: "+ Add city"
+   * closes its region box after every city row; "+ Add region" is the last
+   * child of the LAST region box and sits in no other region box. The
+   * no-region-box state is not mountable here (the cookie prefill always
+   * opens r1, and its only city cannot be removed), so that branch is
+   * covered by the e2e staircase, not this test.
+   */
+  it("puts each add button where the staircase ruling places it (J)", async () => {
+    await mount({ cities: 3, regions: 3, countries: 2 });
+    fireEvent.click(within(primaryBox()).getByTestId("post-where-add-region"));
+    const pending = within(primaryBox())
+      .getAllByTestId("post-where-region-box")
+      .find((box) => box.getAttribute("data-region") === "")!;
+    fireEvent.change(within(pending).getByTestId("post-where-row-region"), {
+      target: { value: "r2" },
+    });
+
+    const r1 = regionBox("r1");
+    const addCity = within(r1).getByTestId("post-where-add-city");
+    const cityRows = within(r1).getAllByTestId("post-where-row");
+    for (const row of cityRows) {
+      expect(row.compareDocumentPosition(addCity) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+
+    const boxes = within(primaryBox()).getAllByTestId("post-where-region-box");
+    const last = boxes[boxes.length - 1]!;
     const addRegion = within(primaryBox()).getByTestId("post-where-add-region");
-    expect(region.contains(addRegion)).toBe(false);
-    expect(primaryBox().lastElementChild).toBe(addRegion);
+    expect(last.lastElementChild).toBe(addRegion);
+    for (const box of boxes.slice(0, -1)) expect(box.contains(addRegion)).toBe(false);
+
     expect(primaryBox().contains(screen.getByTestId("post-where-add-country"))).toBe(false);
   });
 
