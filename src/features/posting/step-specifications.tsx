@@ -1012,7 +1012,10 @@ export function StepSpecifications({
       const offered = visibleOptionsOf(def);
       if (offered.length !== 1) continue;
       const only = offered[0]?.value ?? "";
-      if (only === "" || same(next[def.attrKey], only)) continue;
+      // INC-357 (N1) — a settled "other" carries the seller's write-in
+      // (`{ value: "other", text }`); it already holds the one answer, so the
+      // fill must not flatten it back to a bare "other" and drop the text.
+      if (only === "" || selectedValue(next[def.attrKey]) === only) continue;
       next[def.attrKey] = only;
       changed = true;
     }

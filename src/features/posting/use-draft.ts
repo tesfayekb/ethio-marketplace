@@ -249,6 +249,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
     return JSON.stringify(rest);
   }, [bodyFor]);
   const lastSentSerialRef = useRef<string | null>(null);
+  /** INC-366 — the step of the last strict claim the door refused, if any. */
+  const refusedClaimRef = useRef<number | null>(null);
 
   /** ONE pass at the server with whatever is pending. Answers "did it take?". */
   const pass = useCallback(async (): Promise<boolean> => {
@@ -363,6 +365,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     // because the seller has not claimed the step is finished yet.
     if (strict) {
       setRefusals(answer.refusals);
+      refusedClaimRef.current = forStep;
       strictRef.current = null;
       // INC-315 — a judged-and-refused claim is answered; nothing stays
       // queued, so the next Next names its own step.
@@ -464,7 +467,13 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // refusals are the ones the seller is shown.
       strictRef.current = forStep;
       pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, forStep);
-      return flush();
+      // INC-366 — THE CLAIM'S OWN VERDICT DECIDES. When an autosave was in the
+      // air, ITS follow-up pass carried this claim and was refused; this run
+      // then found nothing queued and answered "took", so Next advanced past
+      // the refusal. A refused claim is a refusal, whichever pass carried it.
+      refusedClaimRef.current = null;
+      const took = await flush();
+      return took && refusedClaimRef.current === null;
     },
     [flush],
   );
