@@ -795,7 +795,8 @@ test.describe("POSTING WIZARD", () => {
     await gotoReady(page, "/post");
     const group = page.getByTestId("post-category-group");
     await expect(group).toHaveAttribute("data-empty", "1");
-    await expect(group).toHaveClass(/border-destructive\/40/);
+    // INC-355 — required + empty wears the FULL destructive border.
+    await expect(group).toHaveClass(/(^|\s)border-destructive(\s|$)/);
     await chooseBySearch(page, category.slug, category.id);
     const [draft] = await draftsOf(user.id);
     objects.push({ userId: user.id, listingId: String(draft?.id ?? "") });
