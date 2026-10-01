@@ -2,6 +2,7 @@
 
 - [x] N2-a — unit asked above a later-ordered row (PW-88)
 - [ ] S1
+- [x] INC-379 — reference-row helpers exclude scratch rows, fixed order
 - [ ] D + L + M (one migration, census first)
 - [ ] S2 / S3
 - [ ] T (with T4 / DEC-095)
