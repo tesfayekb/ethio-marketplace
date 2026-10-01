@@ -1577,6 +1577,7 @@ test.describe("U4h device language star", () => {
   }) => {
     const supabase = adminClient();
     const seeded: string[] = [];
+    let restoreError: string | null = null;
     try {
       // Persona A — account prefers Amharic, device has never starred anything.
       const carried = await leaseUser();
@@ -1632,9 +1633,10 @@ test.describe("U4h device language star", () => {
           .from("profiles")
           .update({ preferred_language: null })
           .in("user_id", seeded);
-        if (error) throw new Error(`[e2e:shell] restoring preference: ${error.message}`);
+        if (error) restoreError = error.message;
       }
     }
+    if (restoreError) throw new Error(`[e2e:shell] restoring preference: ${restoreError}`);
   });
 
   test("TR-28 hreflang alternates equal the anon publication gate", async ({ page }) => {

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
 import { fileURLToPath } from "node:url";
 
 import { POOL_EXEMPT_TABLES, POOL_RESET_TABLES } from "../../e2e/helpers/pool-reset-map";
