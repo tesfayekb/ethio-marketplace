@@ -1,78 +1,25 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 36806970357 passed
+last E2E run 36808648788 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36806970357
-- Commit: `2a466705b5af49b905a6f9507de4203aa482740f`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36808648788
+- Commit: `0a132c300c037cb6393986a96eb1d82dd0f6821a`
 - Attempt: 1
-- Written (UTC): 2026-10-01T02:56:31.464Z
+- Written (UTC): 2026-10-01T03:16:45.323Z
 - Post-test warnings: 8
-- Flaky (passed on retry, DEC-030, non-gating): 1
-
-## Flake ledger (DEC-030)
-
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
-
-- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away — Error: expect(locator).toBeVisible() failed
-
-## Flaky bodies (DEC-078)
-
-### admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away
-
-- Source: `shard 1`
-- Project: `mobile-360`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('data-table-cards').getByTestId('country-XW-card')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('country-XW-card')
-
-[dialog-dump findRow(XW)] open dialogs: none
-```
-
-Context:
-
-```text
-          - listitem [ref=e110]:
-            - generic [ref=e111]: About
-          - listitem [ref=e112]:
-            - generic [ref=e113]: How it works
-      - navigation "Help" [ref=e114]:
-        - heading "Help" [level=2] [ref=e115]
-        - list [ref=e116]:
-          - listitem [ref=e117]:
-            - generic [ref=e118]: Safety
-          - listitem [ref=e119]:
-            - generic [ref=e120]: Contact
-      - navigation "Legal" [ref=e121]:
-        - heading "Legal" [level=2] [ref=e122]
-        - list [ref=e123]:
-          - listitem [ref=e124]:
-            - generic [ref=e125]: Terms
-          - listitem [ref=e126]:
-            - generic [ref=e127]: Privacy
-    - paragraph [ref=e129]: © 2026 ethio.com — All rights reserved.
-```
-```
+- Flaky (passed on retry, DEC-030, non-gating): 0
 
 ## Server errors — census (DEC-083, non-gating)
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-105 line(s), 36 message(s): 1 off the allowlist, 35 allowlisted.
+107 line(s), 36 message(s): 1 off the allowlist, 35 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
+| `listing not found` | 5 | shard 3, shard 6 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -80,7 +27,6 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 ·
 | `definitions wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `export_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
 | `preview_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
-| `listing not found` | 3 | shard 3, shard 6 |
 | `categories file too large` (quiet) | 2 | shard 2, shard 5 |
 | `categories nulByte` (quiet) | 2 | shard 2, shard 5 |
 | `categories unknownColumn` (quiet) | 2 | shard 2, shard 5 |
@@ -114,7 +60,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 3 · Sources: shard 3, shard 6
+- Count: 5 · Sources: shard 3, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -132,59 +78,59 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-01T02:42:02.519Z | 9.3 min |
-| email | 2026-10-01T02:42:11.500Z | 0.2 min |
-| shard 1 | 2026-10-01T02:42:15.194Z | 14.0 min |
-| shard 2 | 2026-10-01T02:41:58.799Z | 9.1 min |
-| shard 3 | 2026-10-01T02:42:01.232Z | 9.3 min |
-| shard 4 | 2026-10-01T02:42:23.879Z | 13.3 min |
-| shard 5 | 2026-10-01T02:42:14.085Z | 10.2 min |
-| shard 6 | 2026-10-01T02:42:05.448Z | 9.8 min |
+| smoke | 2026-10-01T03:03:35.846Z | 9.4 min |
+| email | 2026-10-01T03:03:39.368Z | 0.2 min |
+| shard 1 | 2026-10-01T03:03:35.387Z | 12.9 min |
+| shard 2 | 2026-10-01T03:03:40.463Z | 10.9 min |
+| shard 3 | 2026-10-01T03:03:33.667Z | 8.5 min |
+| shard 4 | 2026-10-01T03:03:40.221Z | 12.5 min |
+| shard 5 | 2026-10-01T03:04:08.614Z | 10.1 min |
+| shard 6 | 2026-10-01T03:03:43.993Z | 10.7 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 252 | 13.1 min | smoke, shard 3, shard 6 |
-| `admin-attributes-library.spec.ts` | 40 | 8.2 min | shard 1, shard 4 |
+| `shell.spec.ts` | 252 | 13.2 min | smoke, shard 3, shard 6 |
 | `post-wizard-specs.spec.ts` | 52 | 8.2 min | shard 3, shard 6 |
-| `admin-attributes-editor.spec.ts` | 34 | 6.5 min | shard 1, shard 4 |
-| `post-wizard-place.spec.ts` | 34 | 5.1 min | shard 2, shard 5 |
-| `admin-attributes-links.spec.ts` | 22 | 5.0 min | shard 1, shard 4 |
+| `admin-attributes-library.spec.ts` | 40 | 7.7 min | shard 1, shard 4 |
+| `post-wizard-place.spec.ts` | 34 | 5.8 min | shard 2, shard 5 |
+| `admin-attributes-editor.spec.ts` | 34 | 5.5 min | shard 1, shard 4 |
 | `admin-categories-console.spec.ts` | 32 | 4.9 min | shard 1, shard 4 |
-| `admin-translations-console.spec.ts` | 36 | 4.8 min | shard 1, shard 5 |
 | `admin-categories-lifecycle.spec.ts` | 38 | 4.8 min | shard 1, shard 4 |
-| `admin-locations.spec.ts` | 34 | 4.7 min | shard 1, shard 4 |
-| `import-security.spec.ts` | 34 | 4.3 min | shard 2, shard 5 |
-| `post-wizard-pricing.spec.ts` | 26 | 4.2 min | shard 3, shard 6 |
+| `admin-translations-console.spec.ts` | 36 | 4.7 min | shard 1, shard 5 |
+| `admin-locations.spec.ts` | 34 | 4.6 min | shard 1, shard 4 |
+| `import-security.spec.ts` | 34 | 4.5 min | shard 2, shard 5 |
+| `post-wizard-category.spec.ts` | 40 | 4.4 min | shard 2, shard 5 |
+| `post-wizard-pricing.spec.ts` | 26 | 4.4 min | shard 3, shard 6 |
+| `admin-attributes-links.spec.ts` | 22 | 4.3 min | shard 1, shard 4 |
 | `admin-roles.spec.ts` | 24 | 4.1 min | shard 1, shard 4 |
-| `auth-signout.spec.ts` | 44 | 4.0 min | smoke, shard 2, shard 5 |
-| `post-wizard-category.spec.ts` | 40 | 3.9 min | shard 2, shard 5 |
-| `admin-attributes-import.spec.ts` | 32 | 3.9 min | shard 1, shard 4 |
-| `post-wizard-where.spec.ts` | 22 | 3.8 min | shard 3, shard 6 |
-| `post-wizard-resets.spec.ts` | 18 | 3.6 min | shard 3, shard 6 |
+| `auth-signout.spec.ts` | 44 | 4.1 min | smoke, shard 2, shard 5 |
+| `post-wizard-where.spec.ts` | 22 | 3.9 min | shard 3, shard 6 |
+| `post-wizard-resets.spec.ts` | 18 | 3.8 min | shard 3, shard 6 |
+| `admin-attributes-import.spec.ts` | 32 | 3.6 min | shard 1, shard 4 |
 | `admin-users.spec.ts` | 22 | 3.3 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 36 | 2.9 min | shard 3, shard 6 |
-| `admin-countries.spec.ts` | 16 | 2.8 min | shard 1, shard 4 |
-| `admin-translations-governance.spec.ts` | 8 | 2.3 min | shard 2, shard 5 |
-| `admin-translations-data.spec.ts` | 8 | 2.3 min | shard 2, shard 5 |
-| `photo-pipeline.spec.ts` | 20 | 2.0 min | shard 2, shard 5 |
-| `mfa-stepup.spec.ts` | 18 | 1.9 min | shard 2, shard 5 |
+| `posting-routes.spec.ts` | 36 | 2.6 min | shard 3, shard 6 |
+| `admin-translations-data.spec.ts` | 8 | 2.4 min | shard 2, shard 5 |
+| `admin-translations-governance.spec.ts` | 8 | 2.4 min | shard 2, shard 5 |
+| `photo-pipeline.spec.ts` | 20 | 2.3 min | shard 2, shard 5 |
+| `admin-countries.spec.ts` | 16 | 2.2 min | shard 1, shard 4 |
+| `mfa-stepup.spec.ts` | 18 | 2.0 min | shard 2, shard 5 |
 | `admin-audit.spec.ts` | 10 | 1.6 min | shard 1, shard 4 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
 | `admin-coverage.spec.ts` | 14 | 0.9 min | shard 1, shard 4 |
-| `admin-shell.spec.ts` | 10 | 0.8 min | shard 1, shard 5 |
 | `post-wizard-finder.spec.ts` | 6 | 0.8 min | shard 2, shard 5 |
+| `admin-shell.spec.ts` | 10 | 0.8 min | shard 1, shard 5 |
 | `admin-categories-images.spec.ts` | 2 | 0.6 min | shard 1, shard 4 |
 | `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
 | `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
 | `a11y.spec.ts` | 4 | 0.4 min | smoke |
-| `category-nav.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
+| `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
+| `settings.spec.ts` | 4 | 0.3 min | shard 3 |
 | `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
 | `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
-| `settings.spec.ts` | 4 | 0.3 min | shard 3 |
-| `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
+| `category-image-routes.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `rbac.spec.ts` | 6 | 0.3 min | shard 3, shard 6 |
 | `i18n-coverage.spec.ts` | 8 | 0.2 min | shard 2, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 0.2 min | shard 2, shard 5 |
-| `rbac.spec.ts` | 6 | 0.2 min | shard 3, shard 6 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
 | `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
@@ -196,18 +142,18 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-countries.spec.ts` › CO-4 open and close: opening publishes the market's tree, closing takes it away | mobile-360 | 54.1 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 35.0 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 33.7 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 33.1 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 33.1 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 31.8 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 30.9 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 30.1 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 30.0 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 29.5 s |
-| `admin-attributes-links.spec.ts` › AT-59 the link editor's Save reflects change, saved and error | desktop-1280 | 28.5 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 26.8 s |
-| `admin-attributes-editor.spec.ts` › AT-53 the allowed-values picker stores the map, reads it back, and withholds a target linked nowhere | desktop-1280 | 26.7 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 26.5 s |
-| `admin-attributes-library.spec.ts` › AT-4 card picker: two ranked attributes clear the amber flag | desktop-1280 | 26.3 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 34.9 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 33.7 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 33.4 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 31.2 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 30.8 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 30.6 s |
+| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 29.9 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 28.3 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 27.8 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 26.9 s |
+| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 26.5 s |
+| `admin-attributes-links.spec.ts` › AT-59 the link editor's Save reflects change, saved and error | desktop-1280 | 25.7 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 25.7 s |
+| `admin-translations-data.spec.ts` › TR-24 the Data scope machine-translates one row and then every untranslated one | mobile-360 | 25.6 s |
+| `admin-translations-governance.spec.ts` › TR-29 the catalog exports as CSV and a translated CSV imports back | mobile-360 | 25.6 s |
