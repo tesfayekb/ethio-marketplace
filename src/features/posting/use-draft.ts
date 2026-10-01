@@ -249,7 +249,13 @@ export function useDraft(initialListingId: string | null): UseDraft {
     return JSON.stringify(rest);
   }, [bodyFor]);
   const lastSentSerialRef = useRef<string | null>(null);
-  /** INC-366 — the step of the last strict claim the door refused, if any. */
+  /**
+   * INC-366/INC-367 — every strict claim (Next, rewind) carries its own token. A
+   * pass records the token it carried; a refusal is charged to THAT token only,
+   * so a late answer to an earlier claim can never block — or clear — a newer one.
+   */
+  const claimSeqRef = useRef(0);
+  const claimTokenRef = useRef(0);
   const refusedClaimRef = useRef<number | null>(null);
 
   /** ONE pass at the server with whatever is pending. Answers "did it take?". */
@@ -258,6 +264,9 @@ export function useDraft(initialListingId: string | null): UseDraft {
     if (forStep === null) return true;
     const claimed = strictRef.current;
     const strict = claimed !== null && forStep >= claimed;
+    const token = strict ? claimTokenRef.current : 0;
+    /** True while the claim this pass carries is still the newest claim. */
+    const current = () => token !== 0 && claimTokenRef.current === token;
     const serial = serialOf();
 
     // INC-227 — an autosave with nothing new to say says nothing at all.
@@ -284,7 +293,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     if (answer.ok) {
       setNextBlockedByTransport(false);
       lastSentSerialRef.current = serial;
-      if (strict) strictRef.current = null;
+      if (current()) strictRef.current = null;
       pausedUntilRef.current = null;
       setPauseSeconds(0);
       // Only what was actually SENT is settled. The step is cleared only while it
@@ -364,12 +373,16 @@ export function useDraft(initialListingId: string | null): UseDraft {
     // refusals; an autosave at the last completed step keeps them to itself,
     // because the seller has not claimed the step is finished yet.
     if (strict) {
-      setRefusals(answer.refusals);
-      refusedClaimRef.current = forStep;
-      strictRef.current = null;
-      // INC-315 — a judged-and-refused claim is answered; nothing stays
-      // queued, so the next Next names its own step.
-      pendingStepRef.current = null;
+      refusedClaimRef.current = token;
+      // INC-367 — a superseded claim's refusal is history: the newer claim keeps
+      // its queue, its strict flag and its own (later) verdict on screen.
+      if (current()) {
+        setRefusals(answer.refusals);
+        strictRef.current = null;
+        // INC-315 — a judged-and-refused claim is answered; nothing stays
+        // queued, so the next Next names its own step.
+        pendingStepRef.current = null;
+      }
     }
     setSaveState("idle");
     return false;
@@ -466,14 +479,18 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // INC-228 — the STRICT save: `Next` names the step on screen and its
       // refusals are the ones the seller is shown.
       strictRef.current = forStep;
+      claimSeqRef.current += 1;
+      const mine = claimSeqRef.current;
+      claimTokenRef.current = mine;
       pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, forStep);
       // INC-366 — THE CLAIM'S OWN VERDICT DECIDES. When an autosave was in the
       // air, ITS follow-up pass carried this claim and was refused; this run
       // then found nothing queued and answered "took", so Next advanced past
       // the refusal. A refused claim is a refusal, whichever pass carried it.
-      refusedClaimRef.current = null;
+      // INC-367 — only a refusal charged to THIS claim's token counts; an
+      // earlier claim answered late (still in the air) cannot block this one.
       const took = await flush();
-      return took && refusedClaimRef.current === null;
+      return took && refusedClaimRef.current !== mine;
     },
     [flush],
   );
@@ -482,6 +499,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
     async (forStep: number) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       strictRef.current = forStep;
+      claimSeqRef.current += 1;
+      claimTokenRef.current = claimSeqRef.current;
       pendingStepRef.current = forStep;
       draftStepRef.current = Math.min(draftStepRef.current, forStep);
       return flush();
