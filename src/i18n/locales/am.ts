@@ -2141,6 +2141,7 @@ export const am: Messages = {
   "post.where.itemHelp":
     "አማራጭ — ዕቃው ወይም አገልግሎቱ በትክክል ያለበት ቦታ፣ ማስታወቂያው የሚታይበት አይደለም። ምልክቱ ገዢዎች እንዲያገኙት ይረዳል።",
   "post.where.itemBoxTitle": "የዕቃው / የአገልግሎቱ ቦታ",
+  "post.where.itemBoxTitleOptional": "የዕቃው / የአገልግሎቱ ቦታ (አማራጭ)",
   "post.where.itemNone": "ዕቃው ወይም አገልግሎቱ ያለበትን ከተማ ምልክት ያድርጉ።",
   "post.where.planLine": "ከ{max} ከተሞች {used} · {regions} ክልል(ሎች)",
   "post.where.planLineUnknown": "{regions} ክልል(ሎች)",
