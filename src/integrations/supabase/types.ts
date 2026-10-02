@@ -190,6 +190,30 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_find_sweep_runs: {
+        Row: {
+          catalog_version: string
+          id: number
+          ran_at: string
+          rebuilt: boolean
+          rows_written: number | null
+        }
+        Insert: {
+          catalog_version: string
+          id?: number
+          ran_at?: string
+          rebuilt: boolean
+          rows_written?: number | null
+        }
+        Update: {
+          catalog_version?: string
+          id?: number
+          ran_at?: string
+          rebuilt?: boolean
+          rows_written?: number | null
+        }
+        Relationships: []
+      }
       catalog_find_terms: {
         Row: {
           term_norm: string
@@ -956,6 +980,7 @@ export type Database = {
           pin_lat: number | null
           pin_lng: number | null
           pin_precision: string | null
+          pin_zoom: number | null
           poster_expires_at: string | null
           price_amount: number | null
           price_bp: number | null
@@ -992,6 +1017,7 @@ export type Database = {
           pin_lat?: number | null
           pin_lng?: number | null
           pin_precision?: string | null
+          pin_zoom?: number | null
           poster_expires_at?: string | null
           price_amount?: number | null
           price_bp?: number | null
@@ -1028,6 +1054,7 @@ export type Database = {
           pin_lat?: number | null
           pin_lng?: number | null
           pin_precision?: string | null
+          pin_zoom?: number | null
           poster_expires_at?: string | null
           price_amount?: number | null
           price_bp?: number | null
@@ -2570,6 +2597,8 @@ export type Database = {
         }
         Returns: Json
       }
+      attr_answer_other_text: { Args: { p_val: Json }; Returns: string }
+      attr_answer_tokens: { Args: { p_val: Json }; Returns: string[] }
       attr_bound_ok: { Args: { p_bound: string }; Returns: boolean }
       attr_bound_value: { Args: { p_bound: string }; Returns: number }
       attr_bounds_targets: { Args: { p_options: Json }; Returns: string[] }
@@ -2589,6 +2618,7 @@ export type Database = {
         }
         Returns: string
       }
+      attr_contact_like: { Args: { p_text: string }; Returns: boolean }
       attr_dep_cycle: {
         Args: { p_id: string; p_parent: string }
         Returns: boolean
@@ -2703,7 +2733,18 @@ export type Database = {
       }
       catalog_find_rebuild: { Args: never; Returns: number }
       catalog_find_refresh: { Args: { p_force: boolean }; Returns: number }
+      catalog_find_sweep: { Args: never; Returns: number }
       catalog_find_version: { Args: never; Returns: string }
+      catalog_search: {
+        Args: {
+          lang: string
+          lim: number
+          p_rate_key: string
+          p_rate_limit?: number
+          q: string
+        }
+        Returns: Json
+      }
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       consume_catalog_find_rate: {
@@ -3047,6 +3088,7 @@ export type Database = {
           p_lng?: number
           p_precision?: string
           p_street?: string
+          p_zoom?: number
         }
         Returns: Json
       }
