@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36957876287
-- Commit: `a1e075fe8b507feb3ea3487dd9daa33b13550cb2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36961043936
+- Commit: `9f80e7e4e4c3a73c62e77019cf9c047be9a497b0`
 - Attempt: 1
-- Written (UTC): 2026-10-02T03:16:26.417Z
+- Written (UTC): 2026-10-02T03:57:58.952Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -35,10 +35,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36957876287
-  E2E_HEAD_COMMIT_MESSAGE: Added preview map zoom check
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36961043936
+  E2E_HEAD_COMMIT_MESSAGE: Added price "per" info to cards
 
-X-Lovable-Edit-ID: edt-4190cd2d-773c-4321-8575-ba8148a5104e
+X-Lovable-Edit-ID: edt-1b73932d-9a11-440d-967c-571209f938d4
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -52,7 +52,7 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (9/9 source(s) with usable results, 4 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (9/9 source(s) with usable results, 16 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "smoke=success email=success shards=failure"
 [36;1mecho "smoke=success email=success shards=failure"[0m
@@ -69,7 +69,7 @@ smoke=success email=success shards=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/d5312267-ad9c-47f0-bacd-aedcfa35d6b1' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/135e8959-d798-4903-9d33-e849e8b7434d' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
