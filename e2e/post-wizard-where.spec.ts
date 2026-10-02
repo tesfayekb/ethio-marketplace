@@ -821,4 +821,35 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(page.getByTestId("post-pin-remove")).toBeVisible();
     expect((await pinOf(listingId)).lat, "PW-100: no pin reached the row").not.toBeNull();
   });
+  /**
+   * PW-96 — Part L. The zoom the seller leaves the dropper at is the zoom stored
+   * (DB truth), and reopening the dropper opens at it.
+   */
+  test("PW-96 the saved pin keeps its zoom; the dropper reopens at it", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory({ capabilities: [] });
+    categories.push(category.slug);
+    const listingId = await openAtStep6(page, user.id, category.id);
+    await page.getByTestId("post-where-pin-open").click();
+    const map = page.getByTestId("post-pin-map");
+    await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
+    await map.click({ position: { x: 120, y: 90 } });
+    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    const before = Number(await map.getAttribute("data-zoom"));
+    await map.locator(".leaflet-control-zoom-out").click();
+    await expect(map).toHaveAttribute("data-zoom", String(before - 1));
+    await map.locator(".leaflet-control-zoom-out").click();
+    await expect(map).toHaveAttribute("data-zoom", String(before - 2));
+    const left = before - 2;
+    await page.getByTestId("post-pin-save").click();
+    await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
+    await expect.poll(async () => (await pinOf(listingId)).zoom, { timeout: 10_000 }).toBe(left);
+    await page.getByTestId("post-where-pin-open").click();
+    const reopened = page.getByTestId("post-pin-map");
+    await expect(reopened).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
+    await expect(reopened, "PW-96: the dropper did not reopen at the saved zoom").toHaveAttribute(
+      "data-zoom",
+      String(left),
+    );
+  });
 });

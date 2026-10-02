@@ -202,6 +202,9 @@ export function MapPinDropper({
           put(event.latlng.lat, event.latlng.lng, true);
         });
         // INC-281 — the box reports ready only once a tap can land.
+        // Part L — the zoom the seller is looking at, readable for PW-96.
+        box.setAttribute("data-zoom", String(map.getZoom()));
+        map.on("zoomend", () => box.setAttribute("data-zoom", String(map.getZoom())));
         box.setAttribute("data-ready", "1");
         if (saved !== null) put(saved.lat, saved.lng, false);
 
