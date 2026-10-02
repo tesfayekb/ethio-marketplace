@@ -817,7 +817,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                                 data-basis={basisValue ?? ""}
                               >
                                 <span>
-                                  {basisValue === null || (basisValue === "other" && basisLabel === null)
+                                  {basisValue === null ||
+                                  (basisValue === "other" && basisLabel === null)
                                     ? t("post.price.unitNotChosen")
                                     : t("post.price.unitChosenOn").replace(
                                         "{basis}",

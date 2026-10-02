@@ -20,7 +20,14 @@ function priceLabel(
   return period === undefined ? amount : `${amount} · ${t(period)}`;
 }
 
-const PERIOD_KEYS: Record<string, "post.price.period.hour" | "post.price.period.day" | "post.price.period.week" | "post.price.period.month" | "post.price.period.year"> = {
+const PERIOD_KEYS: Record<
+  string,
+  | "post.price.period.hour"
+  | "post.price.period.day"
+  | "post.price.period.week"
+  | "post.price.period.month"
+  | "post.price.period.year"
+> = {
   hour: "post.price.period.hour",
   day: "post.price.period.day",
   week: "post.price.period.week",
