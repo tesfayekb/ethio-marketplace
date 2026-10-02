@@ -1825,6 +1825,7 @@ export const am: Messages = {
   "post.category.searchLabel": "ምን ይሸጣሉ?",
   "post.category.searchPlaceholder": "ለምሳሌ ስልክ",
   "post.category.searchHint": "አንድ ቃል ይጻፉ፣ ወይም ከታች ያስሱ።",
+  "post.category.searching": "በመፈለግ ላይ…",
   "post.category.noHits": "ምንም አልተገኘም። ሌላ ቃል ይሞክሩ፣ ወይም ከታች ያስሱ።",
   "post.category.browseLabel": "ወይም ያስሱ",
   "post.category.folder": "ክፈት",

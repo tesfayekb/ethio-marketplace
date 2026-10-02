@@ -366,6 +366,71 @@ test.describe("POSTING WIZARD", () => {
    * mounts with a stored answer reads its list up front so the answer shows.
    * Scratch definitions only (G27), reaped by the afterEach (J3).
    */
+  /**
+   * PW-101 (free text) — Part D. A phone number typed into a scratch free-text
+   * answer is flagged at its own field before Next (the client mirror), and the
+   * door refuses it on Next: DB truth, the number never reaches the draft.
+   */
+  test("PW-101 a phone number in a free-text answer is refused at its field", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    const listingId = await reachStep3(page, user.id, category);
+    const phone = "+251 911 234 567";
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
+      .fill(phone);
+    const refusal = page.locator(
+      `[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`,
+    );
+    await expect(refusal, "PW-101: the phone number was not flagged as typed").toBeVisible();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await expect(refusal, "PW-101: the door's refusal left the field").toBeVisible();
+    expect(
+      (await attributesOf(listingId))[spec.text.attrKey],
+      "PW-101: the phone number reached the draft",
+    ).not.toBe(phone);
+  });
+
+  /**
+   * PW-93 — Part A. A number outside its definition's range turns red at its own
+   * field as it is typed, before Next; back inside the range, the refusal goes.
+   */
+  test("PW-93 a number outside its range is refused as it is typed", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    await reachStep3(page, user.id, category);
+    const control = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.number.attrKey}"]`,
+    );
+    const refusal = page.locator(
+      `[data-testid="post-attr-refusal"][data-attr="${spec.number.attrKey}"]`,
+    );
+    // The scratch number's range is 1–9.
+    await control.fill("12");
+    await expect(refusal, "PW-93: 12 was not refused as typed").toBeVisible();
+    await control.fill("0");
+    await expect(refusal, "PW-93: 0 was not refused as typed").toBeVisible();
+    await control.fill("5");
+    await expect(refusal, "PW-93: 5 is inside the range").toHaveCount(0);
+  });
+
   test("PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320)", async ({
     page,
   }) => {

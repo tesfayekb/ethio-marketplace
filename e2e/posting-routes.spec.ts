@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-import { gotoReady, signInViaSession } from "./helpers/ui";
+import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
@@ -566,6 +566,88 @@ test.describe("POSTING ROUTES", () => {
     });
     expect(short.status()).toBe(400);
   });
+  /**
+   * PR-19 — S2. A catalogue change committed through a server path (the category
+   * import route) refreshes the finder index after its commit returns: DB truth,
+   * before any search is made, the index already holds the scratch leaf.
+   */
+  test("PR-19 a category import commit refreshes the finder index before any search", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/categories");
+    const token = await bearerOf(page);
+    const headers = { Authorization: `Bearer ${token}` };
+    const exported = await page.request.get("/api/admin/categories/export", { headers });
+    expect(exported.status()).toBe(200);
+    const header = ((await exported.text()).replace(/^\uFEFF/, "").split(/\r?\n/)[0] ?? "").split(
+      ",",
+    );
+    // A new leaf under a scratch parent (an import never creates a root, CT-19).
+    const parentSlug = `e2e-pr19-${rand()}`;
+    const slug = `e2e-pr19-${rand()}`;
+    categories.push(slug, parentSlug);
+    const { data: parent, error: parentError } = await adminClient()
+      .from("categories")
+      .insert({ slug: parentSlug, name_en: parentSlug })
+      .select("id")
+      .single();
+    if (parentError || !parent) throw new Error(`[e2e:pr-19] parent: ${parentError?.message}`);
+    const { error: pointerError } = await adminClient()
+      .from("category_tree_pointers")
+      .insert({ parent_id: null, child_id: parent.id, display_order: 0 });
+    if (pointerError) throw new Error(`[e2e:pr-19] parent pointer: ${pointerError.message}`);
+    const values: Record<string, string> = {
+      parent_slug: parentSlug,
+      category_slug: slug,
+      name_en: slug,
+      display_order: "0",
+      is_active: "true",
+      allow_listings: "true",
+    };
+    const file = `\uFEFF${header.join(",")}\r\n${header.map((c) => values[c] ?? "").join(",")}\r\n`;
+    const post = async (body: Record<string, unknown>) => {
+      const response = await page.request.post("/api/admin/categories/import", {
+        headers,
+        data: body,
+      });
+      return {
+        status: response.status(),
+        payload: (await response.json()) as Record<string, unknown>,
+      };
+    };
+    const preview = await post({ mode: "preview", categories: file });
+    expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+    const commit = await post({
+      mode: "commit",
+      categories: file,
+      digest: preview.payload["digest"],
+    });
+    expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+    expect(
+      (commit.payload["counts"] as Record<string, number>).adds,
+      JSON.stringify(commit.payload),
+    ).toBe(1);
+
+    const supabase = adminClient();
+    const { data: row, error } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error || !row)
+      throw new Error(`[e2e:pr-19] the committed leaf is missing: ${error?.message}`);
+    // No search has been made: only the post-commit refresh can have indexed it.
+    const { data: indexed, error: indexError } = await supabase
+      .from("catalog_find_index")
+      .select("catalog_version")
+      .eq("category_id", row.id)
+      .limit(1);
+    if (indexError) throw new Error(`[e2e:pr-19] reading the index failed: ${indexError.message}`);
+    expect(indexed ?? [], "PR-19: the commit did not refresh the finder index").toHaveLength(1);
+  });
+
   /**
    * PR-17 — W6 INC-337 AT THE ROUTE. The draft door refuses region-only coverage
    * with `cityRequired` (even below step 6 — ruling 2026-09-29) and accepts a city

@@ -740,7 +740,7 @@ export async function saveListingNote(
   listingId: string,
   note: string | null,
   pin: { lat: number; lng: number; precision: string } | null,
-): Promise<boolean> {
+): Promise<"saved" | "contactInNote" | "failed"> {
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
     ...(pin === null ? {} : { p_lat: pin.lat, p_lng: pin.lng, p_precision: pin.precision }),
@@ -748,7 +748,8 @@ export async function saveListingNote(
   });
   if (error !== null) {
     console.error("[pin] set_listing_pin refused:", error.message);
-    return false;
+    // Part D — the door's own reason, shown at the field in its words.
+    return error.message.includes("contactInNote") ? "contactInNote" : "failed";
   }
-  return true;
+  return "saved";
 }

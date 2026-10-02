@@ -69,6 +69,19 @@ export async function findLeaves(
     .map((row) => ({ leafId: row["leaf_id"] as string, matches: shapeMatches(row["matches"]) }));
 }
 
+/**
+ * S3 / INC-362 — THE FINDER HAS NOT ANSWERED FOR THIS TERM YET. True while a
+ * term the finder will be asked about has no `ready` or `failed` answer of its
+ * own (debouncing, in flight, or a previous term's answer still held). While
+ * true, the screen shows the searching row, never "Nothing matched".
+ */
+export function finderPending(answer: FinderState, term: string): boolean {
+  const needle = term.trim();
+  if (needle.length < FINDER_MIN || needle.length > 64) return false;
+  if (answer.state === "ready" || answer.state === "failed") return answer.term !== needle;
+  return true;
+}
+
 /** The finder's answer for `term`, debounced and abortable. */
 export function useCatalogFinder(term: string, lang: string): FinderState {
   const [answer, setAnswer] = useState<FinderState>({ state: "idle" });

@@ -1177,3 +1177,8 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 - Tests: PW-88–PW-92 in `e2e/post-wizard-where.spec.ts`; `map/outline.test.ts`
   (scale, point-in-outline, sanitiser). Scratch categories carry `map_pin` by
   default (`seedPostableCategory`), so the existing pin specs keep their map.
+
+## Part D and Part A on screen (2026-10-02)
+
+- Free-text answers (no preset, or a `free:` preset) and the location details are checked as typed by `contact-like.ts`, the one client mirror of `attr_contact_like`; identity presets are never checked. The door's refusal (`contactInText`, `contactInNote`) is the authority.
+- A number answer outside its definition's own range is refused as typed with `outOfBounds`; option-narrowed ranges keep the model wording.

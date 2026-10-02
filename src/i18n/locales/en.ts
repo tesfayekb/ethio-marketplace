@@ -1904,6 +1904,7 @@ export const en = {
   "post.category.searchLabel": "What are you selling?",
   "post.category.searchPlaceholder": "e.g. phone",
   "post.category.searchHint": "Type a word, or browse below.",
+  "post.category.searching": "Searching…",
   "post.category.noHits": "Nothing matched. Try another word, or browse below.",
   "post.category.browseLabel": "Or browse",
   "post.category.folder": "Open",

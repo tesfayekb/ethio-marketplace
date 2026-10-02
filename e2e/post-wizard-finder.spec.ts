@@ -141,6 +141,42 @@ test.describe("POSTING WIZARD — the category finder (W7)", () => {
     await expect(hitOf(page, branch.leaf.id)).toBeVisible();
   });
 
+  /**
+   * PW-105 — S3 / INC-362. While the finder is still asked about the current
+   * term, the list shows the searching row and never "Nothing matched"; once the
+   * finder answers with nothing, "Nothing matched" shows.
+   */
+  test("PW-105 the searching row shows while the finder is asked; no-hits only after its answer", async ({
+    page,
+  }) => {
+    await seller(page);
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/catalog/find**", async (route) => {
+      await held;
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify({ ok: true, results: [] }),
+        contentType: "application/json",
+      });
+    });
+    await gotoReady(page, "/post");
+    await page.getByTestId("post-category-search").fill(`zq${rand()}`);
+    await expect(
+      page.getByTestId("post-category-searching"),
+      "PW-105: no searching row while the finder was asked",
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("post-category-nohits"),
+      "PW-105: no-hits showed before the finder answered",
+    ).toHaveCount(0);
+    release();
+    await expect(page.getByTestId("post-category-nohits")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-category-searching")).toHaveCount(0);
+  });
+
   test("PW-87 off the chosen path the step asks again, Keep it returns, a new leaf clears it", async ({
     page,
   }) => {

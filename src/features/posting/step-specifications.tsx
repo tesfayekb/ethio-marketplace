@@ -8,6 +8,7 @@ import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-
 import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches";
 import { Field, controlClass } from "./field";
 import { readPostingSchema, type AttrDef, type PostingSchema } from "./posting-service";
+import { contactRuleApplies, looksLikeContact } from "./contact-like";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 
@@ -1195,11 +1196,27 @@ export function StepSpecifications({
    * floor only appears here when an option put it there; a definition-only bound
    * is the door's to refuse.
    */
+  /** Part D — a phone number in free text is flagged as typed (advice; the door decides). */
+  const judgeText = (def: AttrDef, text: string) => {
+    setLocal((prev) => {
+      const rest = prev.filter((entry) => entry.field !== def.attrKey);
+      if (!contactRuleApplies(def.preset) || !looksLikeContact(text)) return rest;
+      return [...rest, { field: def.attrKey, reason: "contactInText" }];
+    });
+  };
+
   const judgeNumber = (def: AttrDef, value: number | null) => {
     const bound = boundsOf(def);
     setLocal((prev) => {
       const rest = prev.filter((entry) => entry.field !== def.attrKey);
-      if (value === null || !bound.narrowed) return rest;
+      if (value === null) return rest;
+      // Part A — a definition-only bound turns red as it is typed, in the
+      // door's own words (`outOfBounds`); the door stays the authority.
+      if (!bound.narrowed) {
+        const below = bound.min !== null && value < bound.min;
+        const above = bound.max !== null && value > bound.max;
+        return below || above ? [...rest, { field: def.attrKey, reason: "outOfBounds" }] : rest;
+      }
       if (bound.min !== null && value < bound.min) {
         return [
           ...rest,
@@ -1384,7 +1401,10 @@ export function StepSpecifications({
                 className={ctrl}
                 value={typeof value === "string" ? value : ""}
                 maxLength={def.maxLength ?? undefined}
-                onChange={(event) => write(def.attrKey, event.target.value)}
+                onChange={(event) => {
+                  judgeText(def, event.target.value);
+                  write(def.attrKey, event.target.value);
+                }}
               />
             )}
 

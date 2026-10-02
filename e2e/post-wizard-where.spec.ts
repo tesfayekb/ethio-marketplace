@@ -844,6 +844,13 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => (await pinOf(listingId)).zoom, { timeout: 10_000 }).toBe(left);
+    // The Where step's own preview map opens at the saved zoom too (exact pin).
+    const preview = page.getByTestId("listing-map-pin");
+    await expect(preview, "PW-96: the preview map did not open at the saved zoom").toHaveAttribute(
+      "data-zoom",
+      String(left),
+      { timeout: 20_000 },
+    );
     await page.getByTestId("post-where-pin-open").click();
     const reopened = page.getByTestId("post-pin-map");
     await expect(reopened).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
@@ -851,5 +858,37 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       "data-zoom",
       String(left),
     );
+  });
+
+  /**
+   * PW-101 (note) — Part D. A phone number in the location details is flagged at
+   * the field as it is typed and never saved; a street note with a house number
+   * is saved (DB truth).
+   */
+  test("PW-101 the location details refuse a phone number and keep a street note", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory({ capabilities: [] });
+    categories.push(category.slug);
+    const listingId = await openAtStep6(page, user.id, category.id);
+    const details = page.getByTestId("post-where-details");
+    await details.fill("+251 911 234 567");
+    await expect(
+      page.getByTestId("post-where-details-contact"),
+      "PW-101: the phone number was not flagged as typed",
+    ).toBeVisible();
+    await expect(details).toHaveAttribute("aria-invalid", "true");
+    await details.blur();
+    await expect(page.getByTestId("post-where-details-saved")).toHaveCount(0);
+
+    const street = "Bole Road, House 1234, 3rd floor";
+    await details.fill(street);
+    await expect(page.getByTestId("post-where-details-contact")).toHaveCount(0);
+    await details.blur();
+    await expect(page.getByTestId("post-where-details-saved")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await pinOf(listingId)).street, { timeout: 10_000 })
+      .toBe(street);
   });
 });
