@@ -584,9 +584,22 @@ test.describe("POSTING ROUTES", () => {
     const header = ((await exported.text()).replace(/^\uFEFF/, "").split(/\r?\n/)[0] ?? "").split(
       ",",
     );
+    // A new leaf under a scratch parent (an import never creates a root, CT-19).
+    const parentSlug = `e2e-pr19-${rand()}`;
     const slug = `e2e-pr19-${rand()}`;
-    categories.push(slug);
+    categories.push(slug, parentSlug);
+    const { data: parent, error: parentError } = await adminClient()
+      .from("categories")
+      .insert({ slug: parentSlug, name_en: parentSlug })
+      .select("id")
+      .single();
+    if (parentError || !parent) throw new Error(`[e2e:pr-19] parent: ${parentError?.message}`);
+    const { error: pointerError } = await adminClient()
+      .from("category_tree_pointers")
+      .insert({ parent_id: null, child_id: parent.id, display_order: 0 });
+    if (pointerError) throw new Error(`[e2e:pr-19] parent pointer: ${pointerError.message}`);
     const values: Record<string, string> = {
+      parent_slug: parentSlug,
       category_slug: slug,
       name_en: slug,
       display_order: "0",
@@ -612,7 +625,10 @@ test.describe("POSTING ROUTES", () => {
       digest: preview.payload["digest"],
     });
     expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
-    console.log("[e2e:pr-19] commit", JSON.stringify(commit.payload).slice(0, 600));
+    expect(
+      (commit.payload["counts"] as Record<string, number>).adds,
+      JSON.stringify(commit.payload),
+    ).toBe(1);
 
     const supabase = adminClient();
     const { data: row, error } = await supabase
