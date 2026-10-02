@@ -625,3 +625,6 @@
 - 2026-10-02 INC-384 — CT-8 measured the window verb while the editor dialog was still zooming in (42.285 = 44 × 0.961): `settled(page)` in e2e/helpers/ui.ts waits for every finite running animation; the category, country and location `openEditor` helpers and the coverage spec's opener end with it. No assertion changed.
 - 2026-10-02 INC-385 — recorded only: "[e2e:pool] reaping … failed: TypeError: fetch failed" is a staging transport failure seen at 15 call sites, not the pool; no retry added; DEC-099's count unchanged.
 - 2026-10-02 Visibility plan recorded (docs/governance/visibility-plan.md): sharing and own channels, search-engine rules R1–R9, the old site's Search Console data, other candidates; ACT-G1 to ACT-G4.
+- 2026-10-02 DEC-103 — `MAX_OPTIONS` rises from 400 to 1,500 (registry.ts; `model-cars` holds 618; the 1 MB file ceiling bounds the payload); gate.test.ts proves 1,500 accepted, 1,501 refused as tooManyOptions; dec-050-spec.md §9 point 3 notes the supersession.
+- 2026-10-02 DEC-104 — the e2e service client retries a dropped call (`e2e/helpers/net-retry.ts`, wired into `adminClient`); teardown prints the transport-retry line; unit test src/test/e2e-net-retry.test.ts. Fixes INC-385.
+- 2026-10-02 INC-386 — `e2e:local` sets GEMINI_FAKE=1, so local runs use the AI stand-in like CI.

@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
 
+import { netRetryLedgerFile } from "./helpers/net-retry";
 import { accountLedgerFile } from "./helpers/users";
 
 import { adminClient, processId, STATE_FILE, type E2EUser } from "./global-setup";
@@ -170,4 +171,41 @@ async function reportSignIns(
       }`,
     );
   }
+  reportTransportRetries();
+}
+
+/** DEC-104 — the transport-retry summary; printed even when the count is 0. */
+function reportTransportRetries(): void {
+  const byMethod = new Map<string, number>();
+  const byCode = new Map<string, number>();
+  let retries = 0;
+  let exhausted = 0;
+  try {
+    const file = netRetryLedgerFile();
+    if (existsSync(file)) {
+      for (const line of readFileSync(file, "utf8").split("\n")) {
+        const [kind, method, , code] = line.trim().split(" ");
+        if (!kind || !method || !code) continue;
+        if (kind === "exhausted") {
+          exhausted += 1;
+          continue;
+        }
+        retries += 1;
+        byMethod.set(method, (byMethod.get(method) ?? 0) + 1);
+        byCode.set(code, (byCode.get(code) ?? 0) + 1);
+      }
+      rmSync(file, { force: true });
+    }
+  } catch (error) {
+    console.warn(
+      `[e2e:teardown] WARNING could not read transport retries: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+  const fmt = (m: Map<string, number>) =>
+    m.size === 0 ? "none" : [...m].map(([k, v]) => `${k} ${v}`).join(", ");
+  console.log(
+    `[e2e:teardown] transport retries this run: ${retries} (by method: ${fmt(byMethod)}; by code: ${fmt(byCode)}; ran out: ${exhausted})`,
+  );
 }

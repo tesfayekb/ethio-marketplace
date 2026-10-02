@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { createClient } from "@supabase/supabase-js";
 
+import { retryingFetch } from "./helpers/net-retry";
 import migrationPreflight from "../scripts/e2e-migration-preflight";
 import { totp } from "./helpers/totp";
 import { mintEmail } from "./helpers/users";
@@ -159,6 +160,8 @@ export function adminClient() {
     throw new Error("Refusing to run E2E against ethio-prod. Point E2E_SUPABASE_URL at staging.");
   }
   return createClient(url, serviceRoleKey, {
+    // DEC-104 — a dropped call (fetch threw, no response) is retried.
+    global: { fetch: retryingFetch },
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

@@ -110,5 +110,6 @@ ESTIMATE 4 Lovable turns; +1 if L3's option editor needs its own landing. Each l
 1. Preset allowlist as in 1.5 — approve or amend.
 2. Year tokens limited to `year`, `year±N` (N ≤ 99) — approve.
 3. `MAX_OPTIONS` stays 400 (Electronics chose series; the cap held) — approve.
+   - 2026-10-02 — superseded by DEC-103: `MAX_OPTIONS` rises to 1,500 (`model-cars` holds 618; the 1 MB file ceiling still bounds the payload).
 4. R-header: files exported before P1 are re-exported, never guessed — approve.
 5. Knowledge v3.9 line on presets: install only if paid for by a trim, else it lives in the curation handoff and AGENTS.md — approve.

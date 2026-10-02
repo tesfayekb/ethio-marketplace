@@ -20,11 +20,12 @@ export const MAX_LABEL = 120;
 export const MAX_OPTION_VALUE = 64;
 export const MAX_OPTION_LABEL = 120;
 /**
- * The ratified library already carries a 211-option vocabulary (`brand`), so a
- * cap of 200 would refuse the platform's own export on the way back in. 400 is
- * the DoS ceiling, not a taxonomy opinion.
+ * DEC-103 — the option ceiling is a DoS bound, not a taxonomy opinion: it caps
+ * how many records one cell may make the gate split and check. The 1 MB file
+ * ceiling bounds the payload itself. Every vehicle make lists its models, so
+ * `model-cars` holds 618 options; 1,500 leaves room for that class.
  */
-export const MAX_OPTIONS = 400;
+export const MAX_OPTIONS = 1500;
 
 /** A translation key's ceiling; the catalog's longest is far under it. */
 export const MAX_KEY = 200;
