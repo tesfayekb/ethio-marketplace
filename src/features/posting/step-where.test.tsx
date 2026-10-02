@@ -355,3 +355,21 @@ describe("StepWhere — where the add controls and the marker sit (bundle 2 P2/P
     }
   });
 });
+
+/**
+ * Bundle 2 step 12 (P6) — the item / service location box is optional and
+ * says so: its heading carries the Optional key, and nothing inside it is
+ * starred, red or required.
+ */
+describe("StepWhere — the item location box is optional (bundle 2 P6)", () => {
+  it("P6 heading says Optional; nothing in the box is required or red", async () => {
+    await mount();
+    const box = screen.getByTestId("post-where-item-box");
+    expect(within(box).getByRole("heading")).toHaveTextContent("post.where.itemBoxTitleOptional");
+    expect(within(box).queryAllByTestId("post-required-mark")).toHaveLength(0);
+    expect(
+      box.querySelectorAll("[aria-required='true'],[required],[aria-invalid='true']"),
+    ).toHaveLength(0);
+    expect(box.querySelectorAll(".text-destructive,.border-destructive")).toHaveLength(0);
+  });
+});
