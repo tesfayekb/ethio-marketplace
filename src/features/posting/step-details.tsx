@@ -7,6 +7,7 @@ import { Field, controlClass } from "./field";
 import { requestAssist } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { ASSIST_TRIES, type Refusal } from "./types";
+import { looksLikeContact } from "./contact-like";
 import { checkText, mergeRefusals } from "./validate";
 
 /**
@@ -86,6 +87,17 @@ export function StepDetails({
       ...(found ? [found] : []),
     ]);
 
+  /** Step 4 — a phone number in the title or description is flagged as typed (the door decides). */
+  const judgeContact = (field: "title" | "description", text: string) => {
+    if (looksLikeContact(text)) note(field, { field, reason: "contactInText" });
+    else if (local.some((entry) => entry.field === field && entry.reason === "contactInText"))
+      note(field, null);
+  };
+
+  /** What a blur judges: the length rules first, then the phone rule, so leaving a box never hides it. */
+  const onLeave = (field: "title" | "description", found: Refusal | null, text: string) =>
+    note(field, found ?? (looksLikeContact(text) ? { field, reason: "contactInText" } : null));
+
   const titleRefusal = refusalFor(seen, "title");
   const descriptionRefusal = refusalFor(seen, "description");
 
@@ -153,12 +165,16 @@ export function StepDetails({
           maxLength={TITLE_MAX}
           placeholder={t("post.details.titlePlaceholder")}
           onBlur={(event) =>
-            note(
+            onLeave(
               "title",
               checkText("title", event.target.value, { required: true, max: TITLE_MAX }),
+              event.target.value,
             )
           }
-          onChange={(event) => onChange({ title: event.target.value }, false)}
+          onChange={(event) => {
+            judgeContact("title", event.target.value);
+            onChange({ title: event.target.value }, false);
+          }}
         />
       </Field>
 
@@ -182,15 +198,19 @@ export function StepDetails({
           maxLength={DESCRIPTION_MAX}
           placeholder={t("post.details.descriptionPlaceholder")}
           onBlur={(event) =>
-            note(
+            onLeave(
               "description",
               checkText("description", event.target.value, {
                 required: true,
                 max: DESCRIPTION_MAX,
               }),
+              event.target.value,
             )
           }
-          onChange={(event) => onChange({ description: event.target.value }, false)}
+          onChange={(event) => {
+            judgeContact("description", event.target.value);
+            onChange({ description: event.target.value }, false);
+          }}
         />
       </Field>
 

@@ -26,6 +26,7 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
 - [x] Step 1 (Part 0) — accepted as reported; totals, retries line and CI-5 cause reported at end-of-bundle run
 - [x] Step 2 client half — contact-like.ts R1–R6, 34-row test (door half rides the migration)
 - [ ] Step 3 — Other write-ins: client flags as typed (done); door rides the migration
+- [ ] Step 4 — title/description: client flags as typed and on blur (done); door rides the migration
 - [ ] Part R — attr_contact_like (INC-382 R1–R6); Other write-ins; title/description; notes keep contactInNote
 - [ ] Part S — sweep every 5 minutes
 - [ ] Part P — P1–P5; P4 directions; step 9a: location box headed "Optional", never required (one test)
