@@ -1901,6 +1901,8 @@ export const am: Messages = {
   "post.refusal.dependentMissing": "በመጀመሪያ ከዚህ በላይ ያለውን ዝርዝር ይመልሱ።",
   "post.refusal.inactiveOption": "ያ ምርጫ አሁን አይቀርብም።",
   "post.refusal.otherNeedsText": "ምን እንደሆነ ይግለጹ።",
+  "post.refusal.contactInText": "ስልክ ቁጥር አያስገቡ። ገዢዎች በመተግበሪያው ያገኙዎታል።",
+  "post.refusal.contactInNote": "በአካባቢ ዝርዝሩ ውስጥ ስልክ ቁጥር አያስገቡ።",
   "post.refusal.unknownOption": "ያ ምርጫ በዚህ ውስጥ አይቀርብም።",
   "post.refusal.unknownAttribute": "ያ ዝርዝር የዚህ ምድብ አካል አይደለም።",
   "post.refusal.notPositive": "ከዜሮ በላይ መጠን ያስገቡ።",

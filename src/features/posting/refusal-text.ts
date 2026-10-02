@@ -54,6 +54,9 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   dependentMissing: "post.refusal.dependentMissing",
   inactiveOption: "post.refusal.inactiveOption",
   otherNeedsText: "post.refusal.otherNeedsText",
+  // Part D — phone-like runs in free text and in the location details.
+  contactInText: "post.refusal.contactInText",
+  contactInNote: "post.refusal.contactInNote",
   unknownOption: "post.refusal.unknownOption",
   unknownAttribute: "post.refusal.unknownAttribute",
   notPositive: "post.refusal.notPositive",
