@@ -88,7 +88,12 @@ export function MapPinDropper({
   /** The location details (B3) — one value, also shown in the step's own box. */
   note: string;
   onNote: (note: string) => void;
-  onSave: (value: { lat: number; lng: number; precision: string; zoom: number }) => Promise<boolean>;
+  onSave: (value: {
+    lat: number;
+    lng: number;
+    precision: string;
+    zoom: number;
+  }) => Promise<boolean>;
   onClose: () => void;
 }) {
   const { t } = useI18n();

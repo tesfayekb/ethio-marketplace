@@ -47,7 +47,7 @@ export function MapPreview({
   precision: string | null;
   /** Part L — the saved zoom for an exact pin; an approximate pin keeps 13 (privacy). */
   zoom?: number | null;
-})  {
+}) {
   const { t } = useI18n();
   const boxRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
