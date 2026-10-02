@@ -4247,12 +4247,10 @@
       "/post/$listingId"
     ],
     "post.who.phoneCountryLabel": [
-      "/post",
-      "/post/$listingId"
+      "component: phone-number-field"
     ],
     "post.who.phoneCountryOption": [
-      "/post",
-      "/post/$listingId"
+      "component: phone-number-field"
     ],
     "post.who.readFailed": [
       "/post",
