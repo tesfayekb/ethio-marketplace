@@ -18,6 +18,17 @@
 - [ ] E census (incl. 7 "listing not found" lines, INC-364)
 - [ ] Final full DEC-023 run
 
+## Bundle 2 (2026-10-02, one migration)
+
+- [ ] Part 0 — DEC-023 log read; CI-5 cause
+- [ ] Part R — attr_contact_like (INC-382 R1–R6); Other write-ins; title/description; notes keep contactInNote
+- [ ] Part S — sweep every 5 minutes
+- [ ] Part P — P1–P5; P4 directions; step 9a: location box headed "Optional", never required (one test)
+- [ ] Part Q — Q1 country picker; Q2 phone2; Q3 last post's contact; Q4 carry pin/directions/details only when the category lacks own_place; clear carried values on a switch to own_place (seller's own pin stays)
+- [ ] Step 15a — own_place capability: cat_import_plan (8d182773) and categories_capabilities_check (fd11c7ab); no category row changed; tests: own_place blocks carry, without it carries, unknown token still refused
+- [ ] Part U — INC-387 suggest icon; attr_option_shape ceiling 150
+- [ ] End-of-bundle DEC-023 run
+
 ## INC-373 (2026-10-01)
 
 - [x] Revert package.json, bun.lock, routeTree.gen.ts to 2f600496 on dev; typecheck + AT-58 green locally
