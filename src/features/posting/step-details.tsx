@@ -168,6 +168,7 @@ export function StepDetails({
             onLeave(
               "title",
               checkText("title", event.target.value, { required: true, max: TITLE_MAX }),
+              event.target.value,
             )
           }
           onChange={(event) => {
@@ -203,6 +204,7 @@ export function StepDetails({
                 required: true,
                 max: DESCRIPTION_MAX,
               }),
+              event.target.value,
             )
           }
           onChange={(event) => {
