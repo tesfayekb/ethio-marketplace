@@ -438,7 +438,12 @@ test.describe("POSTING WIZARD", () => {
     const listingId = await seedActiveListing(category.id, user.id);
     const { error } = await adminClient()
       .from("listings")
-      .update({ price_mode: "fixed", price_amount: 500, price_currency: "ETB", price_period: "day" })
+      .update({
+        price_mode: "fixed",
+        price_amount: 500,
+        price_currency: "ETB",
+        price_period: "day",
+      })
       .eq("id", listingId);
     if (error) throw new Error(`PW-94: pricing the listing failed: ${error.message}`);
     await gotoReady(page, `/c/${category.slug}`);
