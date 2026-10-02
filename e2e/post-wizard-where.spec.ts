@@ -640,10 +640,14 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(map).toHaveAttribute("data-provider", "osm", { timeout: 20_000 });
     await expect(await uncovered("OpenStreetMap")).toContainText("OpenStreetMap");
   });
-  /** PW-98 — the tick on the city line: right of the city at ≥ 768, under it at 360. */
+  /**
+   * PW-98 — the tick under the city. Bundle 2 P3 (supersedes the 2026-09-30
+   * "right of the city at ≥ 768" line): at every width the marker is on its own
+   * lower line of the city box.
+   */
   async function tickOnCityLine(page: Page, label: string) {
     const tick = tickOf(page, "primary");
-    await page.getByTestId("post-where-city").scrollIntoViewIfNeeded();
+    await tick.scrollIntoViewIfNeeded();
     await expect(tick, `PW-98 ${label}: the tick is not visible`).toBeVisible();
     await expect(tick, `PW-98 ${label}: the tick is not checked`).toBeChecked();
     await expect(tick, `PW-98 ${label}: the tick is off screen`).toBeInViewport();
@@ -651,26 +655,15 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const box = await tick.boundingBox();
     expect(city && box, `PW-98 ${label}: no geometry`).toBeTruthy();
     if (city === null || box === null) return;
-    const wide = (page.viewportSize()?.width ?? 0) >= 768;
     // I — the DOM evidence the report pastes: geometry and the rendered line.
     console.log(
       `[PW-98 ${label}] city=${JSON.stringify(city)} tick=${JSON.stringify(box)} line=${await page
         .locator('[data-testid="post-where-row"][data-key="primary"]')
         .evaluate((el) => el.outerHTML.replace(/\s+/g, " ").slice(0, 600))}`,
     );
-    if (wide) {
-      expect(box.x, `PW-98 ${label}: the tick is not right of the city`).toBeGreaterThanOrEqual(
-        city.x + city.width - 1,
-      );
-      expect(
-        Math.abs(box.y + box.height / 2 - (city.y + city.height / 2)),
-        `PW-98 ${label}: not on the city line`,
-      ).toBeLessThan(city.height);
-    } else {
-      expect(box.y, `PW-98 ${label}: the tick is not under the city`).toBeGreaterThanOrEqual(
-        city.y + city.height - 1,
-      );
-    }
+    expect(box.y, `PW-98 ${label}: the tick is not under the city`).toBeGreaterThanOrEqual(
+      city.y + city.height - 1,
+    );
   }
 
   /**
@@ -704,8 +697,9 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   });
 
   /**
-   * PW-99 — J. The staircase: at ≥ 768 the region box is narrower than the
-   * country box and right-aligned; at 360 a left rule only, every select ≥ 200 px, no sideways scroll.
+   * PW-99 — J. The staircase. Bundle 2 P3 (supersedes "narrower and right-aligned"):
+   * country, region, city step in by the same amount; at 360 a left rule only,
+   * every select ≥ 200 px, no sideways scroll.
    */
   test("PW-99 the place boxes step in; every select stays at least 200 px", async ({ page }) => {
     const user = await signedInSeller(page);
@@ -736,16 +730,12 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     expect(cityRow.x, "PW-99: the city line is not indented past the region").toBeGreaterThan(
       regionBox.x,
     );
-    if ((page.viewportSize()?.width ?? 0) >= 768) {
-      expect(regionBox.width, "PW-99: the region box is not narrower").toBeLessThan(
-        country.width * 0.8,
-      );
-      const countryRight = country.x + country.width;
-      const regionRight = regionBox.x + regionBox.width;
-      expect(countryRight - regionRight, "PW-99: the region box is not right-aligned").toBeLessThan(
-        24,
-      );
-    }
+    const firstStep = regionBox.x - country.x;
+    const secondStep = cityRow.x - regionBox.x;
+    expect(
+      Math.abs(firstStep - secondStep),
+      `PW-99: the indent does not step evenly (${firstStep} vs ${secondStep})`,
+    ).toBeLessThanOrEqual(2);
     const widths = await page
       .getByTestId("post-where-shown-box")
       .locator("select")

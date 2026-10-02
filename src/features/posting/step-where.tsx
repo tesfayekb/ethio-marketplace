@@ -132,16 +132,21 @@ function boxClass(empty: boolean, refused: boolean, step = ""): string {
   // PW-99 ruling (2026-09-30) — below 768 px a nested level is a LEFT RULE only:
   // no side borders, no side padding beyond the rule's gap, so every select
   // keeps ≥ 200 px and the page never scrolls sideways. From 768 px it is a box.
+  // Bundle 2 P3 — the rule's gap matches the country box's own padding, so every
+  // level steps in by the same amount at 360 too.
   return (
-    `space-y-3 rounded-none border-0 border-s-2 py-1 ps-2 md:rounded-md md:border md:p-3 ` +
+    `space-y-3 rounded-none border-0 border-s-2 py-1 ps-1.5 md:rounded-md md:border md:p-3 ` +
     `${step} ${border}`
   );
 }
 
-/** J — region box: indented by its rule at 360; two-thirds, right-aligned from 768 px. */
-const REGION_STEP = "ms-1 md:ms-auto md:w-3/4";
-/** J — city line: one step further in than its region. */
-const CITY_STEP = "ms-1 md:ms-6";
+/**
+ * Bundle 2 P3 — the indent steps evenly: a region box sits one step inside its
+ * country box and a city box one step inside its region box, the same step each.
+ */
+const NEST_STEP = "ms-1 md:ms-6";
+const REGION_STEP = NEST_STEP;
+const CITY_STEP = NEST_STEP;
 
 async function readGuess(): Promise<GuessFacts> {
   try {
@@ -281,7 +286,7 @@ function CountryBox({
     >
       {market}
       {nodes.length > 0 &&
-        groups.map((group, index) => {
+        groups.map((group) => {
           const hasPrimary = group.rows.some((row) => row.key === PRIMARY);
           const cities = childrenOf(nodes, group.region, "city");
           const groupEmpty = !group.rows.some((row) => placeOf(row) !== null);
@@ -360,10 +365,10 @@ function CountryBox({
                       data-red={placeOf(row) === null ? "1" : "0"}
                       className={boxClass(placeOf(row) === null, false, CITY_STEP)}
                     >
-                      {/* I/J — the city line: the tick sits right of the city from 768 px, under it at 360. */}
-                      <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-3">
+                      {/* Bundle 2 P3 — the city line holds the city alone. */}
+                      <div className="space-y-2">
                         {cities.length > 0 && (
-                          <div className="space-y-1 md:min-w-48 md:flex-1">
+                          <div className="space-y-1">
                             <label htmlFor={cityId} className="text-sm font-medium text-foreground">
                               {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
                               {placeOf(row) === null && <RequiredMark />}
@@ -386,19 +391,6 @@ function CountryBox({
                             </select>
                           </div>
                         )}
-                        {/* W6b-1 R3 — the one tick, a radio group across every box. */}
-                        <label className="flex min-h-11 items-center gap-2 text-sm text-foreground md:max-w-40">
-                          <input
-                            type="radio"
-                            name="post-where-item"
-                            data-testid="post-where-item-tick"
-                            data-key={row.key}
-                            className="h-5 w-5 shrink-0 accent-primary"
-                            checked={row.key === itemKey}
-                            onChange={() => onTick(row.key)}
-                          />
-                          <span>{t("post.where.itemHere")}</span>
-                        </label>
                       </div>
                       {/* D19 — "All of <city>" is the CITY node offered beside its children. */}
                       {cityNode !== null && subCities.length > 0 && (
@@ -433,17 +425,37 @@ function CountryBox({
                           </select>
                         </div>
                       )}
-                      {canRemove && (
-                        <button
-                          type="button"
-                          data-testid="post-where-remove"
-                          data-id={placeOf(row) ?? ""}
-                          className="min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
-                          onClick={() => onRemove(row.key)}
-                        >
-                          {t("post.where.removePlace")}
-                        </button>
-                      )}
+                      {/* Bundle 2 P3 — the marker on its own lower line, Remove at its end. */}
+                      <div
+                        className="flex flex-wrap items-center justify-between gap-2"
+                        data-testid="post-where-item-line"
+                        data-key={row.key}
+                      >
+                        {/* W6b-1 R3 — the one tick, a radio group across every box. */}
+                        <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+                          <input
+                            type="radio"
+                            name="post-where-item"
+                            data-testid="post-where-item-tick"
+                            data-key={row.key}
+                            className="h-5 w-5 shrink-0 accent-primary"
+                            checked={row.key === itemKey}
+                            onChange={() => onTick(row.key)}
+                          />
+                          <span>{t("post.where.itemHere")}</span>
+                        </label>
+                        {canRemove && (
+                          <button
+                            type="button"
+                            data-testid="post-where-remove"
+                            data-id={placeOf(row) ?? ""}
+                            className="ms-auto min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
+                            onClick={() => onRemove(row.key)}
+                          >
+                            {t("post.where.removePlace")}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -462,13 +474,11 @@ function CountryBox({
                   </button>
                 </div>
               )}
-              {/* J — "+ Add region" at the bottom of the (last) region box. */}
-              {index === groups.length - 1 && addRegionButton}
             </div>
           );
         })}
-      {/* J — with no region box yet, "+ Add region" closes the country box. */}
-      {groups.length === 0 && addRegionButton}
+      {/* Bundle 2 P2 — "+ Add region" inside the country box, below its region boxes. */}
+      {addRegionButton}
     </div>
   );
 }

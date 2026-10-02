@@ -1189,3 +1189,7 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 - Choice answers are read through `answer-tokens.ts` only (Part O). A multi-choice Other is stored `{ value: "other", text }` inside the array, bare `"other"` while empty.
 - An `otherNeedsText` refusal moves the field's id to the write-in, so Next focuses it (single and multi).
 - INC-375 releases a forced Contact only when the basis changes while the price step is open; a goods basis changed on step 3 cannot tell a forced Contact from a chosen one without a stored flag.
+
+## Place step layout (bundle 2 P1–P3)
+
+Each region is a box inside its country box and each city a box inside its region box; every level steps in by the same amount. "Add city" closes its region box below its city boxes, "Add region" closes the country box below its region boxes, and "Add country" sits below the country boxes — no add control sits inside a box it adds a sibling of. In a city box the "the item or service is here" marker is on its own lower line, with Remove at the end of that line. Tests: PW-98, PW-99 (e2e), PW-110 (step-where.test.tsx).
