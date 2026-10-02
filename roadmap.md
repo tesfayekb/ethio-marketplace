@@ -4,7 +4,7 @@
 - [ ] S1
 - [x] DEC-099 / INC-380 — pool resets by census (map + guard)
 - [x] INC-379 — reference-row helpers exclude scratch rows, fixed order
-- [ ] D + L + M (one migration, census first) — migration a35e45fa applied; next: dropper zoom UI, PW-96, PW-101, post-commit rebuild calls, Other write-in ruling
+- [ ] Bundle 1 (D+L+M app side, S2/S3, A, B, Part O, INC-371, INC-375) — item 1 (saved zoom) code done, PW-96 pending; items 2–8 open
 - [ ] S2 / S3
 - [ ] T (with T4 / DEC-095)
 - [ ] A
