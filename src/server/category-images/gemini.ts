@@ -134,6 +134,7 @@ export async function suggestIconName(
               "Pick the single best lucide-react icon for an online marketplace category.",
               `Category name: ${name}.`,
               parentName ? `Parent section: ${parentName}.` : "",
+              `Allowed names: ${allowlist.join(", ")}.`,
               'Answer with JSON only: {"icon": "<one name from the allowed list>"}.',
             ]
               .filter(Boolean)
@@ -146,7 +147,9 @@ export async function suggestIconName(
       responseMimeType: "application/json",
       responseSchema: {
         type: "OBJECT",
-        properties: { icon: { type: "STRING", enum: [...allowlist] } },
+        // INC-387 — the list rides in the prompt; a 136-value schema enum is refused
+        // by the model (400 INVALID_ARGUMENT). The caller still validates the answer.
+        properties: { icon: { type: "STRING" } },
         required: ["icon"],
       },
     },
