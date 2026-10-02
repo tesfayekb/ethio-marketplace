@@ -353,6 +353,7 @@ Why: staging was minting about 4,000 users a day (one per test), and deleting a 
 
 - INC-379: helpers that read "any" reference row (locations, categories, attributes) exclude `e2e`-prefixed scratch rows and pick by a fixed order (slug / attr_key).
 - INC-383 / G28: every destroy helper throws with the database's message on a failed delete (category pointers first, both edges); a scratch root pointer sorts at display_order ≥ 2,000,000, after every real root; roster tests find a real row by `category-search` (`anchorRealRow`), never by its place on page one.
+- INC-384: no box is read while an animation runs; a helper that opens an overlay ends with `settled(page)` (e2e/helpers/ui.ts).
 
 ### DEC-099 — reset by census (INC-380)
 

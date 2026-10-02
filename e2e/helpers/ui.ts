@@ -46,6 +46,21 @@ export async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth);
 }
 
+/**
+ * INC-384 — NO BOX IS READ WHILE AN ANIMATION RUNS. Waits until every running
+ * animation or transition with a finite end has finished; infinite ones
+ * (spinners) are ignored and a cancelled one counts as finished.
+ */
+export async function settled(page: Page) {
+  await page.evaluate(async () => {
+    const finite = document.getAnimations().filter((a) => {
+      const end = a.effect?.getComputedTiming().endTime;
+      return a.playState === "running" && typeof end === "number" && Number.isFinite(end);
+    });
+    await Promise.all(finite.map((a) => a.finished.catch(() => undefined)));
+  });
+}
+
 /** Lifted verbatim from smoke-auth-i18n.spec.ts (P1-c hydration race fix). */
 export async function fillUntilStable(input: Locator, value: string, fieldName: string) {
   await expect(input, `${fieldName} field is not editable`).toBeEditable();
