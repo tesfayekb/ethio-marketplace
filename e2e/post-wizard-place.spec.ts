@@ -10,6 +10,7 @@ import {
   waitForServedTree,
   waitForTreeSlug,
 } from "./helpers/locations";
+import { seedActiveListing } from "./helpers/categories";
 import { adminClient, leaseUser } from "./helpers/users";
 import {
   activeCityOf,
@@ -503,6 +504,49 @@ test.describe("POSTING WIZARD", () => {
       (await contactPrefOf(listingId))["messages"],
       "PW-12: messages was not stored true",
     ).toBe(true);
+  });
+
+  test("PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    // Bundle 2 Q3 — the seller's last post, past the draft stage, with channels.
+    const lastId = await seedActiveListing(category.id, user.id);
+    const carried = {
+      messages: true,
+      phone: { show: true, value: "+251911234567" },
+      whatsapp: { show: false, value: "+251922345678" },
+    };
+    const { error } = await adminClient()
+      .from("listings")
+      .update({ contact_pref: carried })
+      .eq("id", lastId);
+    if (error)
+      throw new Error(`[e2e:pw112] seeding the last post's contact failed: ${error.message}`);
+
+    const listingId = await reachStep7(page, user.id, category);
+    await expect(
+      page.getByTestId("post-who-contact-carried"),
+      "PW-112: the line naming the last post never showed",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
+    await expect(page.getByTestId("post-who-show-phone")).toBeChecked();
+    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("922345678");
+    await expect(page.getByTestId("post-who-show-whatsapp")).not.toBeChecked();
+    // Written when the step opens: the seller changed nothing.
+    await expect
+      .poll(
+        async () => {
+          const pref = await contactPrefOf(listingId);
+          const phone = pref["phone"] as { show?: boolean; value?: string } | undefined;
+          const whatsapp = pref["whatsapp"] as { show?: boolean; value?: string } | undefined;
+          return `${phone?.show === true}:${phone?.value ?? ""}|${whatsapp?.show === true}:${whatsapp?.value ?? ""}`;
+        },
+        { message: "PW-112: the carried channels never reached the draft", timeout: 20_000 },
+      )
+      .toBe("true:+251911234567|false:+251922345678");
   });
 
   test("PW-13 review: the preview shows what was answered, and Publish lands in review — never live", async ({
