@@ -14,8 +14,19 @@ function priceLabel(
     return t("price.commission").replace("{percent}", formatCommission(listing.priceBp));
   if (listing.priceMode === "free") return t("price.free");
   if (listing.priceAmount === null) return t("price.contact");
-  return `${listing.priceCurrency ?? ""} ${listing.priceAmount}`.trim();
+  const amount = `${listing.priceCurrency ?? ""} ${listing.priceAmount}`.trim();
+  // B — a price says what it is per, with the same period keys the preview uses.
+  const period = PERIOD_KEYS[listing.pricePeriod];
+  return period === undefined ? amount : `${amount} · ${t(period)}`;
 }
+
+const PERIOD_KEYS: Record<string, "post.price.period.hour" | "post.price.period.day" | "post.price.period.week" | "post.price.period.month" | "post.price.period.year"> = {
+  hour: "post.price.period.hour",
+  day: "post.price.period.day",
+  week: "post.price.period.week",
+  month: "post.price.period.month",
+  year: "post.price.period.year",
+};
 
 /**
  * DEC-081 (D62-2) — NEGOTIABLE IS A FLAG, SHOWN AS A BADGE beside the price on

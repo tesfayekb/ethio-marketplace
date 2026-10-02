@@ -20,6 +20,8 @@ export interface FeedListing extends RankableListing {
   priceBp: number | null;
   /** DEC-081 — "Price is negotiable", shown as a badge. */
   priceNegotiable: boolean;
+  /** B — what the price runs per (DEC-067); "once" prints nothing. */
+  pricePeriod: string;
   /** U4d: the id is what the entity bundle is keyed by. */
   locationId: string | null;
   locationNameEn: string | null;
@@ -56,6 +58,7 @@ type ListingRow = {
   price_mode: string;
   price_bp: number | null;
   price_negotiable: boolean;
+  price_period: string;
   tier: string;
   published_at: string | null;
   category_id: string;
@@ -77,6 +80,7 @@ function toFeedListing(row: ListingRow): FeedListing {
     priceMode: row.price_mode,
     priceBp: row.price_bp,
     priceNegotiable: row.price_negotiable,
+    pricePeriod: row.price_period,
     locationId: row.locations?.id ?? null,
     locationNameEn: row.locations?.name_en ?? null,
     locationNameAm: row.locations?.name_am ?? null,
@@ -115,7 +119,7 @@ export function useFeed({
     let query = supabase
       .from("listings")
       .select(
-        "id,title,price_amount,price_currency,price_mode,price_bp,price_negotiable,tier,published_at,category_id,locations(id,name_en,name_am)",
+        "id,title,price_amount,price_currency,price_mode,price_bp,price_negotiable,price_period,tier,published_at,category_id,locations(id,name_en,name_am)",
       )
       .eq("status", "active");
 
