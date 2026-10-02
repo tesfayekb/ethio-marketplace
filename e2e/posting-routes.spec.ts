@@ -612,6 +612,7 @@ test.describe("POSTING ROUTES", () => {
       digest: preview.payload["digest"],
     });
     expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+    console.log("[e2e:pr-19] commit", JSON.stringify(commit.payload).slice(0, 600));
 
     const supabase = adminClient();
     const { data: row, error } = await supabase
