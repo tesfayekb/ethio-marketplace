@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36825601323
-- Commit: `5278b8da9af3a7421b05f96f9942f54c73a312ff`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/36974224259
+- Commit: `9f80e7e4e4c3a73c62e77019cf9c047be9a497b0`
 - Attempt: 1
-- Written (UTC): 2026-10-01T08:05:07.846Z
-- Passed: 925 · Skipped: 48 · Failed: 3
-- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 1
+- Written (UTC): 2026-10-02T08:25:48.214Z
+- Passed: 943 · Skipped: 48 · Failed: 9
+- Gating failures: 8 · Quarantined (@global-state, INC-117, non-gating): 1
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): nightly, full
 - Sources without results: none
@@ -14,7 +14,7 @@
 
 Logs read: nightly, full · unavailable: none
 
-102 line(s), 36 message(s): 1 off the allowlist, 35 allowlisted.
+99 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
@@ -26,7 +26,6 @@ Logs read: nightly, full · unavailable: none
 | `definitions wrongFile` (quiet) | 4 | full |
 | `export_failed permission denied` (quiet) | 4 | full |
 | `preview_failed permission denied` (quiet) | 4 | full |
-| `new row for relation <q> violates check constraint <q>` (quiet) | 3 | full |
 | `categories file too large` (quiet) | 2 | full |
 | `categories nulByte` (quiet) | 2 | full |
 | `categories unknownColumn` (quiet) | 2 | full |
@@ -55,7 +54,7 @@ Logs read: nightly, full · unavailable: none
 | `strings wrongFile` (quiet) | 2 | full |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 1 | full |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · new row for relation <q> violates check constraint <q> ×3 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed duplicate key value violates unique constraint <q> ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · category-images: no GEMINI_API_KEY — fake mode ×1
+Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed duplicate key value violates unique constraint <q> ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · category-images: no GEMINI_API_KEY — fake mode ×1
 
 Off the allowlist:
 
@@ -79,58 +78,58 @@ Results read: nightly, full · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-10-01T06:37:18.435Z | 0.6 min |
-| full | 2026-10-01T06:37:55.287Z | 87.2 min |
+| nightly | 2026-10-02T06:35:59.954Z | 3.5 min |
+| full | 2026-10-02T06:39:31.936Z | 106.3 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 126 | 6.2 min | full |
-| `admin-attributes-library.spec.ts` | 40 | 5.6 min | full |
-| `post-wizard-specs.spec.ts` | 52 | 4.5 min | full |
-| `post-wizard-place.spec.ts` | 34 | 4.2 min | full |
-| `admin-translations-console.spec.ts` | 38 | 4.2 min | full |
-| `admin-translations-governance.spec.ts` | 20 | 4.2 min | full |
-| `admin-locations.spec.ts` | 34 | 4.0 min | full |
-| `admin-categories-console.spec.ts` | 32 | 3.8 min | full |
-| `admin-roles.spec.ts` | 24 | 3.8 min | full |
-| `admin-attributes-editor.spec.ts` | 34 | 3.4 min | full |
-| `admin-categories-lifecycle.spec.ts` | 38 | 3.3 min | full |
-| `post-wizard-category.spec.ts` | 40 | 3.0 min | full |
-| `admin-attributes-links.spec.ts` | 22 | 3.0 min | full |
-| `post-wizard-where.spec.ts` | 22 | 2.9 min | full |
-| `admin-users.spec.ts` | 22 | 2.7 min | full |
+| `post-wizard-specs.spec.ts` | 60 | 6.9 min | full |
+| `shell.spec.ts` | 126 | 6.7 min | full |
+| `admin-categories-console.spec.ts` | 32 | 6.3 min | full |
+| `admin-attributes-library.spec.ts` | 40 | 6.0 min | full |
+| `post-wizard-place.spec.ts` | 34 | 5.5 min | full |
+| `admin-translations-console.spec.ts` | 38 | 4.5 min | full |
+| `admin-categories-lifecycle.spec.ts` | 38 | 4.5 min | full |
+| `admin-translations-governance.spec.ts` | 20 | 4.4 min | full |
+| `admin-locations.spec.ts` | 34 | 4.3 min | full |
+| `admin-roles.spec.ts` | 24 | 4.0 min | full |
+| `post-wizard-where.spec.ts` | 28 | 3.9 min | full |
+| `admin-attributes-editor.spec.ts` | 34 | 3.9 min | full |
+| `post-wizard-category.spec.ts` | 40 | 3.8 min | full |
+| `post-wizard-pricing.spec.ts` | 32 | 3.4 min | full |
+| `auth-resend-exhaustion.spec.ts` | 1 | 3.4 min | nightly |
+| `admin-attributes-links.spec.ts` | 22 | 3.2 min | full |
+| `admin-users.spec.ts` | 22 | 3.2 min | full |
+| `import-security.spec.ts` | 34 | 2.9 min | full |
 | `admin-categories-images.spec.ts` | 4 | 2.6 min | full |
-| `import-security.spec.ts` | 34 | 2.4 min | full |
-| `post-wizard-pricing.spec.ts` | 26 | 2.2 min | full |
-| `admin-countries.spec.ts` | 16 | 1.9 min | full |
-| `post-wizard-resets.spec.ts` | 18 | 1.9 min | full |
-| `auth-signout.spec.ts` | 22 | 1.8 min | full |
-| `admin-translations-data.spec.ts` | 8 | 1.7 min | full |
-| `admin-attributes-import.spec.ts` | 32 | 1.5 min | full |
-| `mfa-stepup.spec.ts` | 18 | 1.4 min | full |
-| `photo-pipeline.spec.ts` | 20 | 1.3 min | full |
-| `admin-audit.spec.ts` | 10 | 1.2 min | full |
-| `posting-routes.spec.ts` | 36 | 1.2 min | full |
+| `post-wizard-resets.spec.ts` | 18 | 2.5 min | full |
+| `photo-pipeline.spec.ts` | 20 | 2.4 min | full |
+| `auth-signout.spec.ts` | 22 | 2.2 min | full |
+| `admin-countries.spec.ts` | 16 | 2.1 min | full |
+| `posting-routes.spec.ts` | 38 | 2.0 min | full |
+| `admin-attributes-import.spec.ts` | 32 | 1.9 min | full |
+| `admin-translations-data.spec.ts` | 8 | 1.8 min | full |
+| `mfa-stepup.spec.ts` | 18 | 1.5 min | full |
+| `admin-audit.spec.ts` | 10 | 1.5 min | full |
 | `locations-tree.spec.ts` | 8 | 1.1 min | full |
-| `admin-coverage.spec.ts` | 14 | 0.7 min | full |
-| `admin-shell.spec.ts` | 10 | 0.6 min | full |
+| `admin-shell.spec.ts` | 10 | 0.9 min | full |
+| `admin-coverage.spec.ts` | 14 | 0.8 min | full |
+| `post-wizard-finder.spec.ts` | 8 | 0.7 min | full |
 | `i18n-bundle.spec.ts` | 4 | 0.6 min | full |
-| `auth-resend-exhaustion.spec.ts` | 1 | 0.5 min | nightly |
-| `post-wizard-finder.spec.ts` | 6 | 0.5 min | full |
+| `post-wizard-details.spec.ts` | 4 | 0.4 min | full |
+| `a11y.spec.ts` | 4 | 0.4 min | full |
 | `primitives-law.spec.ts` | 24 | 0.4 min | full |
-| `a11y.spec.ts` | 4 | 0.3 min | full |
-| `post-wizard-details.spec.ts` | 4 | 0.3 min | full |
-| `layout.spec.ts` | 10 | 0.2 min | full |
-| `auth-reset.spec.ts` | 6 | 0.2 min | full |
+| `category-image-routes.spec.ts` | 10 | 0.3 min | full |
+| `settings.spec.ts` | 4 | 0.3 min | full |
+| `layout.spec.ts` | 10 | 0.3 min | full |
 | `category-nav.spec.ts` | 10 | 0.2 min | full |
-| `settings.spec.ts` | 4 | 0.2 min | full |
 | `i18n-coverage.spec.ts` | 8 | 0.2 min | full |
-| `rbac.spec.ts` | 6 | 0.1 min | full |
+| `auth-reset.spec.ts` | 6 | 0.2 min | full |
+| `rbac.spec.ts` | 6 | 0.2 min | full |
 | `auth-signin-errors.spec.ts` | 5 | 0.1 min | full |
-| `category-image-routes.spec.ts` | 10 | 0.1 min | full |
 | `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | full |
-| `auth-callback.spec.ts` | 4 | 0.1 min | full |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | full |
+| `auth-callback.spec.ts` | 4 | 0.1 min | full |
 | `auth-google.spec.ts` | 2 | 0.0 min | full |
 | `geo.spec.ts` | 10 | 0.0 min | full |
 
@@ -138,28 +137,29 @@ Results read: nightly, full · unavailable: none
 
 | Test | Project | Duration |
 | --- | --- | --- |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 204.2 s |
 | `admin-categories-images.spec.ts` › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state | desktop-1280 | 120.4 s |
-| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 83.1 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 33.0 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 32.9 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 32.9 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 32.6 s |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 31.3 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 25.8 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 25.8 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 25.1 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 24.8 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 21.1 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 20.6 s |
-| `admin-categories-console.spec.ts` › CT-6 retirement: a retired category leaves the active tree and keeps its listings home | desktop-1280 | 20.4 s |
-| `admin-translations-governance.spec.ts` › TR-29 the catalog exports as CSV and a translated CSV imports back | desktop-1280 | 20.4 s |
+| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 89.2 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 33.3 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 33.1 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 33.0 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 33.0 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 26.2 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 26.1 s |
+| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 25.4 s |
+| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 25.1 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 24.8 s |
+| `admin-categories-console.spec.ts` › CT-11 roster controls: missing-assets filter and a device page size | desktop-1280 | 23.8 s |
+| `admin-categories-console.spec.ts` › CT-9a roster shape: the parent column and a 25-row page (table twin) | desktop-1280 | 23.8 s |
+| `admin-categories-console.spec.ts` › CT-2 roster: the ratified tree renders, search narrows it, nothing overflows | desktop-1280 | 23.7 s |
 
 ## Post-test errors: nightly
 
 nightly: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 3 user(s) owned by process 36825601323-nightly
+[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
+[e2e:teardown] deleted 4 user(s) owned by process 36974224259-nightly
 ```
 
 ## Post-test errors: full
@@ -167,29 +167,250 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 full: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] deleted 521 user(s) owned by process 36825601323-nightly
+[e2e:teardown] accounts signed in this run: 69 (pool 3, fresh 66)
+[e2e:teardown] deleted 96 user(s) owned by process 36974224259-nightly
 ```
 
-## auth-resend-exhaustion.spec.ts › A-3: three resends exhaust the per-visit limit
+## admin-categories-console.spec.ts › C2 categories console › CT-2 roster: the ratified tree renders, search narrows it, nothing overflows
 
-- Source: `nightly`
-- Project: `nightly-mobile-360`
+- Source: `full`
+- Project: `mobile-360`
 
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('heading', { name: 'Check your email' })
+Locator: getByTestId('data-table-cards').getByTestId('category-row-vehicles-card')
 Expected: visible
-Timeout: 15000ms
+Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 15000ms
-  - waiting for getByRole('heading', { name: 'Check your email' })
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('data-table-cards').getByTestId('category-row-vehicles-card')
 
 ```
 
-Context: context file not found for `auth-resend-exhaustion-A-3-three-resends-exhaust-the-per-visit-limit-nightly-mobile-360`
+Context:
+
+```text
+          - listitem [ref=e816]:
+            - generic [ref=e817]: About
+          - listitem [ref=e818]:
+            - generic [ref=e819]: How it works
+      - navigation "Help" [ref=e820]:
+        - heading "Help" [level=2] [ref=e821]
+        - list [ref=e822]:
+          - listitem [ref=e823]:
+            - generic [ref=e824]: Safety
+          - listitem [ref=e825]:
+            - generic [ref=e826]: Contact
+      - navigation "Legal" [ref=e827]:
+        - heading "Legal" [level=2] [ref=e828]
+        - list [ref=e829]:
+          - listitem [ref=e830]:
+            - generic [ref=e831]: Terms
+          - listitem [ref=e832]:
+            - generic [ref=e833]: Privacy
+    - paragraph [ref=e835]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## admin-categories-console.spec.ts › C2 categories console › CT-9b roster shape: the parent line and pagination inside cards
+
+- Source: `full`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('data-table-cards').getByTestId('category-row-vehicles-card')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('data-table-cards').getByTestId('category-row-vehicles-card')
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e816]:
+            - generic [ref=e817]: About
+          - listitem [ref=e818]:
+            - generic [ref=e819]: How it works
+      - navigation "Help" [ref=e820]:
+        - heading "Help" [level=2] [ref=e821]
+        - list [ref=e822]:
+          - listitem [ref=e823]:
+            - generic [ref=e824]: Safety
+          - listitem [ref=e825]:
+            - generic [ref=e826]: Contact
+      - navigation "Legal" [ref=e827]:
+        - heading "Legal" [level=2] [ref=e828]
+        - list [ref=e829]:
+          - listitem [ref=e830]:
+            - generic [ref=e831]: Terms
+          - listitem [ref=e832]:
+            - generic [ref=e833]: Privacy
+    - paragraph [ref=e835]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## admin-categories-console.spec.ts › C2 categories console › CT-11 roster controls: missing-assets filter and a device page size
+
+- Source: `full`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('data-table-cards').getByTestId('category-row-vehicles-card')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('data-table-cards').getByTestId('category-row-vehicles-card')
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e816]:
+            - generic [ref=e817]: About
+          - listitem [ref=e818]:
+            - generic [ref=e819]: How it works
+      - navigation "Help" [ref=e820]:
+        - heading "Help" [level=2] [ref=e821]
+        - list [ref=e822]:
+          - listitem [ref=e823]:
+            - generic [ref=e824]: Safety
+          - listitem [ref=e825]:
+            - generic [ref=e826]: Contact
+      - navigation "Legal" [ref=e827]:
+        - heading "Legal" [level=2] [ref=e828]
+        - list [ref=e829]:
+          - listitem [ref=e830]:
+            - generic [ref=e831]: Terms
+          - listitem [ref=e832]:
+            - generic [ref=e833]: Privacy
+    - paragraph [ref=e835]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## admin-categories-console.spec.ts › C2 categories console › CT-2 roster: the ratified tree renders, search narrows it, nothing overflows
+
+- Source: `full`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('table').getByTestId('category-row-vehicles')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByRole('table').getByTestId('category-row-vehicles')
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e1214]:
+            - generic [ref=e1215]: About
+          - listitem [ref=e1216]:
+            - generic [ref=e1217]: How it works
+      - navigation "Help" [ref=e1218]:
+        - heading "Help" [level=2] [ref=e1219]
+        - list [ref=e1220]:
+          - listitem [ref=e1221]:
+            - generic [ref=e1222]: Safety
+          - listitem [ref=e1223]:
+            - generic [ref=e1224]: Contact
+      - navigation "Legal" [ref=e1225]:
+        - heading "Legal" [level=2] [ref=e1226]
+        - list [ref=e1227]:
+          - listitem [ref=e1228]:
+            - generic [ref=e1229]: Terms
+          - listitem [ref=e1230]:
+            - generic [ref=e1231]: Privacy
+    - paragraph [ref=e1233]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## admin-categories-console.spec.ts › C2 categories console › CT-9a roster shape: the parent column and a 25-row page (table twin)
+
+- Source: `full`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('table').getByTestId('category-row-vehicles')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByRole('table').getByTestId('category-row-vehicles')
+
+```
+
+Context: context file not found for `admin-categories-console-C2-categories-console-CT-9a-roster-shape-the-parent-column-and-a-25-row-page-table-twin-desktop-1280`
+
+## admin-categories-console.spec.ts › C2 categories console › CT-11 roster controls: missing-assets filter and a device page size
+
+- Source: `full`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByRole('table').getByTestId('category-row-vehicles')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByRole('table').getByTestId('category-row-vehicles')
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e1214]:
+            - generic [ref=e1215]: About
+          - listitem [ref=e1216]:
+            - generic [ref=e1217]: How it works
+      - navigation "Help" [ref=e1218]:
+        - heading "Help" [level=2] [ref=e1219]
+        - list [ref=e1220]:
+          - listitem [ref=e1221]:
+            - generic [ref=e1222]: Safety
+          - listitem [ref=e1223]:
+            - generic [ref=e1224]: Contact
+      - navigation "Legal" [ref=e1225]:
+        - heading "Legal" [level=2] [ref=e1226]
+        - list [ref=e1227]:
+          - listitem [ref=e1228]:
+            - generic [ref=e1229]: Terms
+          - listitem [ref=e1230]:
+            - generic [ref=e1231]: Privacy
+    - paragraph [ref=e1233]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## admin-categories-images.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state
 
@@ -227,7 +448,51 @@ Context:
 ```
 ```
 
-## post-wizard-pricing.spec.ts › POSTING WIZARD › PW-58 a commission outside 0.01–100 % is refused in words, and a valid one advances (INC-301)
+## admin-categories-lifecycle.spec.ts › C2 categories console › CT-14 catch-all law: never a parent, refused server-side, no move verbs
+
+- Source: `full`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('data-table-cards').getByTestId('category-row-vehicles-card')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('data-table-cards').getByTestId('category-row-vehicles-card')
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e818]:
+            - generic [ref=e819]: About
+          - listitem [ref=e820]:
+            - generic [ref=e821]: How it works
+      - navigation "Help" [ref=e822]:
+        - heading "Help" [level=2] [ref=e823]
+        - list [ref=e824]:
+          - listitem [ref=e825]:
+            - generic [ref=e826]: Safety
+          - listitem [ref=e827]:
+            - generic [ref=e828]: Contact
+      - navigation "Legal" [ref=e829]:
+        - heading "Legal" [level=2] [ref=e830]
+        - list [ref=e831]:
+          - listitem [ref=e832]:
+            - generic [ref=e833]: Terms
+          - listitem [ref=e834]:
+            - generic [ref=e835]: Privacy
+    - paragraph [ref=e837]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## admin-categories-lifecycle.spec.ts › C2 categories console › CT-14 catch-all law: never a parent, refused server-side, no move verbs
 
 - Source: `full`
 - Project: `desktop-1280`
@@ -235,33 +500,46 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('post-step-6')
+Locator: getByRole('table').getByTestId('category-row-vehicles')
 Expected: visible
-Timeout: 10000ms
+Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-step-6')
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByRole('table').getByTestId('category-row-vehicles')
 
 ```
 
-Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-58-a-commission-outside-0-01-100-is-refused-in-words-and-a-valid-one-advances-INC-301-desktop-1280`
-
-## Server errors: nightly
-
-No `[ssr-error]` lines in the `nightly` log (or no log was uploaded).
-
-## Client errors: nightly
+Context:
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/auth/v1/signup?redirect_to=http%3A%2F%2F127.0.0.1%3A4173%2Fauth%2Fcallback ({"code":"unexpected_failure","message":"Error sending confirmation email"})
+          - listitem [ref=e1222]:
+            - generic [ref=e1223]: About
+          - listitem [ref=e1224]:
+            - generic [ref=e1225]: How it works
+      - navigation "Help" [ref=e1226]:
+        - heading "Help" [level=2] [ref=e1227]
+        - list [ref=e1228]:
+          - listitem [ref=e1229]:
+            - generic [ref=e1230]: Safety
+          - listitem [ref=e1231]:
+            - generic [ref=e1232]: Contact
+      - navigation "Legal" [ref=e1233]:
+        - heading "Legal" [level=2] [ref=e1234]
+        - list [ref=e1235]:
+          - listitem [ref=e1236]:
+            - generic [ref=e1237]: Terms
+          - listitem [ref=e1238]:
+            - generic [ref=e1239]: Privacy
+    - paragraph [ref=e1241]: © 2026 ethio.com — All rights reserved.
+```
 ```
 
 ## Server errors: full
 
 ```text
+[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
 [WebServer] [ssr-error] /api/admin/translations/import too many previews
 [WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
@@ -280,7 +558,6 @@ No `[ssr-error]` lines in the `nightly` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 [WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft new row for relation "listings" violates check constraint "listings_price_bp_check" ×2
 [WebServer] [ssr-error] /api/listings/draft listing not found
 ```
 
