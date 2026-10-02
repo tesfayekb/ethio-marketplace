@@ -2169,9 +2169,21 @@ export interface BasisSet {
   labelsAm: Record<string, string>;
 }
 
-export async function seedBasisSet(categoryId: string): Promise<BasisSet> {
+export async function seedBasisSet(
+  categoryId: string,
+  { withOther = false }: { withOther?: boolean } = {},
+): Promise<BasisSet> {
   const stem = `e2e_${Date.now().toString(36)}${rand()}`;
-  const tokens = ["hourly", "per_month", "quote", "commission", "per_quintal", "fixed"];
+  const tokens = [
+    "hourly",
+    "per_month",
+    "quote",
+    "commission",
+    "per_quintal",
+    "fixed",
+    // INC-371 — the catch-all unit, opt-in so the other basis tests keep six tokens.
+    ...(withOther ? ["other"] : []),
+  ];
   const labels: Record<string, string> = {};
   const labelsAm: Record<string, string> = {};
   // INC-297 — unit labels carry their own "per", as the real catalog's do.
@@ -2179,6 +2191,7 @@ export async function seedBasisSet(categoryId: string): Promise<BasisSet> {
     hourly: ["Per Hour", "በሰዓት"],
     per_month: ["Per Month", "በወር"],
     per_quintal: ["Per Quintal", "በኩንታል"],
+    other: ["Other", "ሌላ"],
   };
   for (const token of tokens) {
     labels[token] = perLabels[token]?.[0] ?? `${token} ${stem}`;

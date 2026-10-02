@@ -68,7 +68,11 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
         );
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
+    <article
+      data-testid="listing-card"
+      data-listing={listing.id}
+      className="flex flex-col overflow-hidden rounded-lg border border-border bg-card"
+    >
       {/*
         Photo area. Photos are stored but NOT surfaced until the EXIF-strip pass
         ships (RLS gates listing_photos on exif_stripped), so every card shows the
@@ -101,7 +105,9 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
         </div>
 
         <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
-          <span>{priceLabel(listing, t)}</span>
+          <span data-testid="listing-card-price" data-period={listing.pricePeriod}>
+            {priceLabel(listing, t)}
+          </span>
           {listing.priceNegotiable ? <NegotiableBadge /> : null}
         </p>
 
