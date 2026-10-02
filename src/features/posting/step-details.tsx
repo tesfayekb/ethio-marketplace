@@ -94,6 +94,10 @@ export function StepDetails({
       note(field, null);
   };
 
+  /** What a blur judges: the length rules first, then the phone rule, so leaving a box never hides it. */
+  const onLeave = (field: "title" | "description", found: Refusal | null, text: string) =>
+    note(field, found ?? (looksLikeContact(text) ? { field, reason: "contactInText" } : null));
+
   const titleRefusal = refusalFor(seen, "title");
   const descriptionRefusal = refusalFor(seen, "description");
 
@@ -161,7 +165,7 @@ export function StepDetails({
           maxLength={TITLE_MAX}
           placeholder={t("post.details.titlePlaceholder")}
           onBlur={(event) =>
-            note(
+            onLeave(
               "title",
               checkText("title", event.target.value, { required: true, max: TITLE_MAX }),
             )
@@ -193,7 +197,7 @@ export function StepDetails({
           maxLength={DESCRIPTION_MAX}
           placeholder={t("post.details.descriptionPlaceholder")}
           onBlur={(event) =>
-            note(
+            onLeave(
               "description",
               checkText("description", event.target.value, {
                 required: true,
