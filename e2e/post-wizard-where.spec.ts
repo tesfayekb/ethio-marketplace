@@ -1,7 +1,7 @@
 import type { Browser, Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
-import { gotoReady, signInViaSession } from "./helpers/ui";
+import { gotoReady, settled, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { adminClient, leaseUser } from "./helpers/users";
 import {
@@ -640,7 +640,11 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(map).toHaveAttribute("data-provider", "osm", { timeout: 20_000 });
     await expect(await uncovered("OpenStreetMap")).toContainText("OpenStreetMap");
   });
-  /** PW-98 — the tick on the city line: right of the city at ≥ 768, under it at 360. */
+  /**
+   * PW-98 — the tick under the city. Bundle 2 P3 (supersedes the 2026-09-30
+   * "right of the city at ≥ 768" line): at every width the marker is on its own
+   * lower line of the city box.
+   */
   async function tickOnCityLine(page: Page, label: string) {
     const tick = tickOf(page, "primary");
     await page.getByTestId("post-where-city").scrollIntoViewIfNeeded();
@@ -651,26 +655,15 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const box = await tick.boundingBox();
     expect(city && box, `PW-98 ${label}: no geometry`).toBeTruthy();
     if (city === null || box === null) return;
-    const wide = (page.viewportSize()?.width ?? 0) >= 768;
     // I — the DOM evidence the report pastes: geometry and the rendered line.
     console.log(
       `[PW-98 ${label}] city=${JSON.stringify(city)} tick=${JSON.stringify(box)} line=${await page
         .locator('[data-testid="post-where-row"][data-key="primary"]')
         .evaluate((el) => el.outerHTML.replace(/\s+/g, " ").slice(0, 600))}`,
     );
-    if (wide) {
-      expect(box.x, `PW-98 ${label}: the tick is not right of the city`).toBeGreaterThanOrEqual(
-        city.x + city.width - 1,
-      );
-      expect(
-        Math.abs(box.y + box.height / 2 - (city.y + city.height / 2)),
-        `PW-98 ${label}: not on the city line`,
-      ).toBeLessThan(city.height);
-    } else {
-      expect(box.y, `PW-98 ${label}: the tick is not under the city`).toBeGreaterThanOrEqual(
-        city.y + city.height - 1,
-      );
-    }
+    expect(box.y, `PW-98 ${label}: the tick is not under the city`).toBeGreaterThanOrEqual(
+      city.y + city.height - 1,
+    );
   }
 
   /**
@@ -704,8 +697,9 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   });
 
   /**
-   * PW-99 — J. The staircase: at ≥ 768 the region box is narrower than the
-   * country box and right-aligned; at 360 a left rule only, every select ≥ 200 px, no sideways scroll.
+   * PW-99 — J. The staircase. Bundle 2 P3 (supersedes "narrower and right-aligned"):
+   * country, region, city step in by the same amount; at 360 a left rule only,
+   * every select ≥ 200 px, no sideways scroll.
    */
   test("PW-99 the place boxes step in; every select stays at least 200 px", async ({ page }) => {
     const user = await signedInSeller(page);
@@ -736,16 +730,12 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     expect(cityRow.x, "PW-99: the city line is not indented past the region").toBeGreaterThan(
       regionBox.x,
     );
-    if ((page.viewportSize()?.width ?? 0) >= 768) {
-      expect(regionBox.width, "PW-99: the region box is not narrower").toBeLessThan(
-        country.width * 0.8,
-      );
-      const countryRight = country.x + country.width;
-      const regionRight = regionBox.x + regionBox.width;
-      expect(countryRight - regionRight, "PW-99: the region box is not right-aligned").toBeLessThan(
-        24,
-      );
-    }
+    const firstStep = regionBox.x - country.x;
+    const secondStep = cityRow.x - regionBox.x;
+    expect(
+      Math.abs(firstStep - secondStep),
+      `PW-99: the indent does not step evenly (${firstStep} vs ${secondStep})`,
+    ).toBeLessThanOrEqual(2);
     const widths = await page
       .getByTestId("post-where-shown-box")
       .locator("select")
@@ -779,6 +769,82 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow, "PW-99: the page scrolls sideways at 360").toBeLessThanOrEqual(0);
+  });
+
+  /**
+   * PW-110 — Bundle 2 P2/P3. Each add control sits inside the box it adds a child
+   * to, below that box's children, never inside a box it adds a sibling of; the
+   * marker line of a city box ends with Remove.
+   */
+  test("PW-110 add controls sit below the boxes they add to; Remove ends the marker line", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    await waitForTreeSlug(page, "ET", chain.city.slug);
+    await openAtStep6(page, user.id, category.id);
+    const region = page.getByTestId("post-where-region");
+    await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await region.selectOption(chain.region.id);
+    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+
+    const addCity = page.locator(
+      `[data-testid="post-where-add-city"][data-region="${chain.region.id}"]`,
+    );
+    if ((await addCity.count()) === 0) test.skip(true, "PW-110: the plan offers no second city");
+    await addCity.click();
+    await settled(page);
+
+    const shape = await page
+      .locator('[data-testid="post-where-country-box"][data-primary="1"]')
+      .evaluate((country) => {
+        const addRegion = country.querySelector('[data-testid="post-where-add-region"]');
+        const regionBoxes = [...country.querySelectorAll('[data-testid="post-where-region-box"]')];
+        const regionBox = regionBoxes[0] ?? null;
+        const addCityEl = regionBox?.querySelector('[data-testid="post-where-add-city"]') ?? null;
+        const cityBoxes = regionBox
+          ? [...regionBox.querySelectorAll('[data-testid="post-where-row"]')]
+          : [];
+        const addCountry = document.querySelector('[data-testid="post-where-add-country"]');
+        const after = (a: Element | null, b: Element | null) =>
+          a !== null &&
+          b !== null &&
+          !!(b.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);
+        const line = cityBoxes[0]?.querySelector('[data-testid="post-where-item-line"]') ?? null;
+        const lastInLine = line?.lastElementChild ?? null;
+        return {
+          addRegionInRegion:
+            addRegion !== null &&
+            addRegion.closest('[data-testid="post-where-region-box"]') !== null,
+          addRegionAfterRegions: addRegion === null || after(addRegion, regionBoxes.at(-1) ?? null),
+          addCityInCity:
+            addCityEl !== null && addCityEl.closest('[data-testid="post-where-row"]') !== null,
+          addCityAfterCities: addCityEl === null || after(addCityEl, cityBoxes.at(-1) ?? null),
+          addCountryInCountry:
+            addCountry !== null &&
+            addCountry.closest('[data-testid="post-where-country-box"]') !== null,
+          cities: cityBoxes.length,
+          lineEndsWithRemove: lastInLine?.getAttribute("data-testid") === "post-where-remove",
+          tickInLine:
+            line?.querySelector('[data-testid="post-where-item-tick"]') !== null && line !== null,
+        };
+      });
+    console.log(`[PW-110] ${JSON.stringify(shape)}`);
+    expect(shape.addRegionInRegion, "PW-110: Add region sits inside a region box").toBe(false);
+    expect(shape.addRegionAfterRegions, "PW-110: Add region is not below the region boxes").toBe(
+      true,
+    );
+    expect(shape.addCityInCity, "PW-110: Add city sits inside a city box").toBe(false);
+    expect(shape.addCityAfterCities, "PW-110: Add city is not below the city boxes").toBe(true);
+    expect(shape.addCountryInCountry, "PW-110: Add country sits inside a country box").toBe(false);
+    expect(shape.cities, "PW-110: the second city box did not open").toBe(2);
+    expect(shape.tickInLine, "PW-110: the marker is not on its own line").toBe(true);
+    expect(shape.lineEndsWithRemove, "PW-110: Remove does not end the marker line").toBe(true);
   });
 
   /**
