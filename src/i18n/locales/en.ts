@@ -2238,6 +2238,7 @@ export const en = {
   "post.where.itemHelp":
     "Optional — where the item or service actually is, not where the ad is shown. A pin helps buyers find it.",
   "post.where.itemBoxTitle": "Item / service location",
+  "post.where.itemBoxTitleOptional": "Item / service location (Optional)",
   "post.where.itemNone": "Tick the city where the item or service is.",
   "post.where.planLine": "{used} of {max} cities · {regions} region(s)",
   "post.where.planLineUnknown": "{regions} region(s)",

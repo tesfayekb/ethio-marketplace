@@ -1163,7 +1163,7 @@ export function StepWhere({
         aria-labelledby="post-where-item-title"
       >
         <h3 id="post-where-item-title" className="text-sm font-semibold text-foreground">
-          {t("post.where.itemBoxTitle")}
+          {t("post.where.itemBoxTitleOptional")}
         </h3>
         <p className="text-sm text-foreground" data-testid="post-where-item-name">
           {itemNode === null ? t("post.where.itemNone") : nameOf(itemNode)}
