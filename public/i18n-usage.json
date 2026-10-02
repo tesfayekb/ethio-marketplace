@@ -1022,6 +1022,13 @@
       "/admin/coverage",
       "/admin/places"
     ],
+    "admin.categories.field.iconFallbackNote": [
+      "/admin/attributes",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/coverage",
+      "/admin/places"
+    ],
     "admin.categories.field.iconHint": [
       "/admin/attributes",
       "/admin/categories",

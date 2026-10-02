@@ -1045,6 +1045,7 @@ export const en = {
   "admin.categories.field.iconChange": "Change",
   // C5l — two-step inline create: details (with countries + position), then image.
   "admin.categories.field.iconHint": "Suggested after you enter a name.",
+  "admin.categories.field.iconFallbackNote": "No suggestion found; the default icon is shown",
   "admin.categories.create.position": "Position",
   "admin.categories.create.positionEnd": "At the end (position {n})",
   "admin.categories.create.positionBefore": "Before {name}",

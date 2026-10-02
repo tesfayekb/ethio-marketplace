@@ -88,6 +88,7 @@ export function CategoryFormFields({
   iconOpen,
   onIconOpen,
   onNameBlur,
+  iconFallback,
   countries,
   positionOptions,
   positionEndLabel,
@@ -103,6 +104,8 @@ export function CategoryFormFields({
   iconOpen?: boolean;
   onIconOpen?: () => void;
   onNameBlur?: (name: string) => void;
+  /** Create only (bundle 2 step 18): the suggestion fell back to the default. */
+  iconFallback?: boolean;
   /** Create only (C5l): the inline Countries multi-select's options. */
   countries?: { code: string; nameEn: string }[];
   /** Create only (C5m): ACTIVE siblings of the chosen parent, in roster order. */
@@ -176,6 +179,11 @@ export function CategoryFormFields({
             </Button>
           )}
         </span>
+        {iconFallback === true && (
+          <p className="text-sm text-muted-foreground" data-testid={`${p}-icon-fallback`}>
+            {t("admin.categories.field.iconFallbackNote")}
+          </p>
+        )}
       </FormField>
 
       {mode === "create" ? (

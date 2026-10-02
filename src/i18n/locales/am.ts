@@ -994,6 +994,7 @@ export const am: Messages = {
   "admin.categories.field.iconChange": "ቀይር",
   // C5l — ሁለት-ደረጃ የመፍጠሪያ መስኮት: ዝርዝሮች (አገሮችና ቦታ ጋር)፣ ከዚያ ምስል።
   "admin.categories.field.iconHint": "ስም ካስገቡ በኋላ ይጠቆማል።",
+  "admin.categories.field.iconFallbackNote": "ምንም ጥቆማ አልተገኘም፤ ነባሪው አዶ ይታያል",
   "admin.categories.create.position": "ቦታ",
   "admin.categories.create.positionEnd": "በመጨረሻ (ቦታ {n})",
   "admin.categories.create.positionBefore": "ከ{name} በፊት",

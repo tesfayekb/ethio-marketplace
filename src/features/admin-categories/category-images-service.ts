@@ -10,7 +10,7 @@ import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
  *   generateCategoryImage() below still resolves the C5a GeneratedAssets shape
  *     { stage: "done", imageUrl, thumbUrl, ogUrl, prompt, timings }.
  *   POST /api/admin/categories/suggest-icon
- *     { icon: "<allowlisted name>", fake: boolean }
+ *     { icon: "<allowlisted name>", fallback: boolean, fake: boolean }
  *
  * Both routes gate on `categories:assets` server-side (F3) and expect a bearer
  * token, so every call attaches the live session's access token. F4 — no
@@ -216,12 +216,14 @@ export async function generateCategoryImage(input: {
 export async function suggestCategoryIcon(input: {
   name: string;
   parentName?: string | null;
-}): Promise<string> {
+}): Promise<{ icon: string; fallback: boolean }> {
   const payload = (await post("/api/admin/categories/suggest-icon", {
     name: input.name,
     ...(input.parentName ? { parentName: input.parentName } : {}),
-  })) as { icon?: string };
-  return payload.icon ?? "Package";
+  })) as { icon?: string; fallback?: boolean };
+  // Bundle 2 step 18 — a missing icon is a fallback too, never silent.
+  if (typeof payload.icon !== "string") return { icon: "Package", fallback: true };
+  return { icon: payload.icon, fallback: payload.fallback === true };
 }
 
 /**

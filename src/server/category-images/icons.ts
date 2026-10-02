@@ -30,3 +30,15 @@ export function validateIcon(candidate: unknown): string {
   if (typeof candidate !== "string") return FALLBACK_ICON;
   return NORMALISED.get(candidate.trim().toLowerCase()) ?? FALLBACK_ICON;
 }
+
+/**
+ * Bundle 2 step 18 — the same check, never silent: `fallback` is true when the
+ * answer was off the list, empty or not a name, so the editor can say so.
+ */
+export function checkIcon(candidate: unknown): { icon: string; fallback: boolean } {
+  if (typeof candidate !== "string") return { icon: FALLBACK_ICON, fallback: true };
+  const listed = NORMALISED.get(candidate.trim().toLowerCase());
+  return listed === undefined
+    ? { icon: FALLBACK_ICON, fallback: true }
+    : { icon: listed, fallback: false };
+}

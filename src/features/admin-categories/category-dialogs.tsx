@@ -176,6 +176,8 @@ export function CategoryEditorDialog({
   /** Set by a successful create — from here the SAME dialog is an editor. */
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /** Bundle 2 step 18 — the suggestion fell back to the default icon. */
+  const [iconFallback, setIconFallback] = useState(false);
   const [form, setForm] = useState<CategoryFormValues>(() =>
     category === null
       ? emptyCategoryForm()
@@ -238,7 +240,9 @@ export function CategoryEditorDialog({
     suggestTimer.current = setTimeout(() => {
       void suggestCategoryIcon({ name: name.trim(), parentName })
         .then((suggested) => {
-          if (!iconTouched.current) patch({ icon: suggested });
+          if (iconTouched.current) return;
+          patch({ icon: suggested.icon });
+          setIconFallback(suggested.fallback);
         })
         .catch(() => {
           /* no fallback value: save-time applies Package if still empty. */
@@ -333,12 +337,16 @@ export function CategoryEditorDialog({
             iconOpen={iconOpen}
             onIconOpen={() => setIconOpen(true)}
             onNameBlur={requestSuggestion}
+            iconFallback={iconFallback}
             countries={countries}
             positionOptions={positionOptions}
             positionEndLabel={positionEndLabel}
             positionCaption={positionCaption}
             onChange={(next) => {
-              if (next.icon !== undefined) iconTouched.current = true;
+              if (next.icon !== undefined) {
+                iconTouched.current = true;
+                setIconFallback(false);
+              }
               patch(next);
             }}
           />
