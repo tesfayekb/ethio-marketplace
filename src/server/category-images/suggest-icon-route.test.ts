@@ -20,7 +20,7 @@ vi.mock("@/server/category-images/gemini", () => ({
   },
 }));
 
-const { Route } = await import("./suggest-icon");
+const { Route } = await import("@/routes/api/admin/categories/suggest-icon");
 
 async function call(): Promise<Record<string, unknown>> {
   const handlers = (
