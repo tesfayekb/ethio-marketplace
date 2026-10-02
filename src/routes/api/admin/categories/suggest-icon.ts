@@ -3,7 +3,8 @@
  *
  * Text model, JSON mode, constrained to the server-side allowlist
  * (`src/server/category-images/icons.ts`). The model's answer is NEVER trusted:
- * `validateIcon` maps anything off-list to the `Package` fallback. Same gate as
+ * `checkIcon` maps anything off-list to the `Package` fallback and says so
+ * with `fallback: true` (bundle 2 step 18); a listed answer has `fallback: false`. Same gate as
  * the image route (`categories:assets`), same [ssr-error] logging, same honest
  * provider statuses.
  */
@@ -39,17 +40,17 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
           return json({ error: "invalid parentName" }, 400);
         }
 
-        const { ICON_ALLOWLIST, validateIcon } = await import("@/server/category-images/icons");
+        const { ICON_ALLOWLIST, checkIcon } = await import("@/server/category-images/icons");
         const { isFakeMode, suggestIconName, GeminiError } =
           await import("@/server/category-images/gemini");
 
         if (isFakeMode()) {
-          return json({ icon: validateIcon(FAKE_ICON), fake: true }, 200);
+          return json({ ...checkIcon(FAKE_ICON), fake: true }, 200);
         }
 
         try {
           const raw = await suggestIconName(name, parentName, ICON_ALLOWLIST);
-          return json({ icon: validateIcon(raw), fake: false }, 200);
+          return json({ ...checkIcon(raw), fake: false }, 200);
         } catch (error) {
           const message = error instanceof Error ? error.message : "unknown error";
           // PART B (F4): true cause + stable code before the generic body.
