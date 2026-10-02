@@ -31,8 +31,8 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
 - [x] Step 18 — INC-387: allowlist in the prompt text, no schema enum; server still validates; real call returned Sofa
 - [ ] Part R — attr_contact_like (INC-382 R1–R6); Other write-ins; title/description; notes keep contactInNote
 - [ ] Part S — sweep every 5 minutes
-- [ ] Part P — P1–P5; P4 directions; step 9a: location box headed "Optional", never required (one test)
-- [ ] Part Q — Q1 country picker; Q2 phone2; Q3 last post's contact; Q4 carry pin/directions/details only when the category lacks own_place; clear carried values on a switch to own_place (seller's own pin stays)
+- [ ] Part P — P1–P3 done; P6 (step 12) done, one test; P4 directions and P5 left; step 9a: location box headed "Optional", never required (one test)
+- [ ] Part Q — Q1 country picker (done, PW-111); Q2 phone2; Q3 last post's contact; Q4 carry pin/directions/details only when the category lacks own_place; clear carried values on a switch to own_place (seller's own pin stays)
 - [ ] Step 15a (DEC-105 approved; SQL drafted, rides the one migration) — own_place capability: cat_import_plan (8d182773) and categories_capabilities_check (fd11c7ab); no category row changed; tests: own_place blocks carry, without it carries, unknown token still refused
 - [ ] Part U — INC-387 suggest icon; attr_option_shape ceiling 150
 - [ ] End-of-bundle DEC-023 run
