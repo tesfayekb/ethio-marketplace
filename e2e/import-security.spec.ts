@@ -523,7 +523,7 @@ for (const family of FAMILIES) {
           }
           const idOf = (slug: string) => seeded.find((row) => row.slug === slug)!.id;
           const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
-            { parent_id: null, child_id: idOf(rootSlug), display_order: 0 },
+            { parent_id: null, child_id: idOf(rootSlug), display_order: 2_000_000 },
             { parent_id: idOf(rootSlug), child_id: idOf(childSlug), display_order: 0 },
           ]);
           if (pointerError) {

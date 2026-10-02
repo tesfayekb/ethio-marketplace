@@ -9,7 +9,9 @@ import {
   scratchSlug,
   bandOnly,
   surface,
+  anchorRealRow,
   categoryRow,
+  clearRosterSearch,
   findRow,
   dialogDump,
   actionsOf,
@@ -230,7 +232,9 @@ import {
 
     await signInAsSuperAdmin(page);
     await gotoReady(page, "/admin/categories");
-    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+    // G28 — the roster rendered a real root, found by search; then unscoped.
+    await anchorRealRow(page, "vehicles");
+    await clearRosterSearch(page);
 
     // (b) the create dialog's parent picker never offers it.
     await page.getByTestId("category-create-open").click();
@@ -301,7 +305,7 @@ import {
         if (error) throw new Error(`[e2e:c2] seeding ${slug} failed: ${error.message}`);
         const id = data.id as string;
 
-        let nextOrder = 900000;
+        let nextOrder = 2_000_000; // INC-383 — scratch roots sort after every real root
         if (parent !== null) {
           const existing = await supabase
             .from("category_tree_pointers")
@@ -486,7 +490,11 @@ import {
         const existing = await (parent === null
           ? query.is("parent_id", null)
           : query.eq("parent_id", parent));
-        const nextOrder = (existing.data?.[0]?.display_order ?? -1) + 1;
+        // INC-383 — a scratch root never sorts ahead of a real root (≥ 2,000,000).
+        const nextOrder = Math.max(
+          parent === null ? 2_000_000 : 0,
+          (existing.data?.[0]?.display_order ?? -1) + 1,
+        );
         const { error: pointerError } = await supabase
           .from("category_tree_pointers")
           .insert({ parent_id: parent, child_id: id, display_order: nextOrder });
@@ -773,9 +781,11 @@ test.describe("CAT-IE categories import/export", () => {
       .select("id")
       .single();
     if (error || !data) throw new Error(`[e2e:cat-ie] seeding ${slug} failed: ${error?.message}`);
-    const { error: pointerError } = await supabase
-      .from("category_tree_pointers")
-      .insert({ parent_id: parentId, child_id: data.id, display_order: 0 });
+    const { error: pointerError } = await supabase.from("category_tree_pointers").insert({
+      parent_id: parentId,
+      child_id: data.id,
+      display_order: parentId === null ? 2_000_000 : 0,
+    });
     if (pointerError) {
       throw new Error(`[e2e:cat-ie] pointer for ${slug} failed: ${pointerError.message}`);
     }
@@ -860,7 +870,8 @@ test.describe("CAT-IE categories import/export", () => {
 
       const renamed = `${childSlug}-renamed`;
       const categories = file([
-        line({ category_slug: parentSlug, name_en: parentSlug, display_order: "0" }),
+        // INC-383 — the scratch root's own stored order, so it is not a change.
+        line({ category_slug: parentSlug, name_en: parentSlug, display_order: "2000000" }),
         line({
           category_slug: childSlug,
           parent_slug: parentSlug,

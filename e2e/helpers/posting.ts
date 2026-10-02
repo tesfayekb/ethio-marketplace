@@ -168,12 +168,33 @@ export async function seedPostableCategory(
   return data;
 }
 
+/**
+ * INC-383 — a cleanup never fails silently: every step checks its error and
+ * throws with the database's message. Pointers go first, both edges, because
+ * category_tree_pointers carries no ON DELETE CASCADE.
+ */
+export function reapStep(label: string, error: { message: string } | null): void {
+  if (error) throw new Error(`[e2e:reap] ${label} failed: ${error.message}`);
+}
+
 export async function destroyPostableCategory(slug: string): Promise<void> {
   const supabase = adminClient();
-  const { data } = await supabase.from("categories").select("id").eq("slug", slug).maybeSingle();
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+  reapStep(`reading category ${slug}`, error);
   if (!data) return;
-  await supabase.from("listings").delete().eq("category_id", data.id);
-  await supabase.from("categories").delete().eq("id", data.id);
+  const listings = await supabase.from("listings").delete().eq("category_id", data.id);
+  reapStep(`listings of ${slug}`, listings.error);
+  const pointers = await supabase
+    .from("category_tree_pointers")
+    .delete()
+    .or(`child_id.eq.${data.id},parent_id.eq.${data.id}`);
+  reapStep(`pointers of ${slug}`, pointers.error);
+  const row = await supabase.from("categories").delete().eq("id", data.id);
+  reapStep(`category ${slug}`, row.error);
 }
 
 /**
@@ -236,7 +257,8 @@ export async function statusOf(listingId: string): Promise<string | null> {
 
 /** Deletes every listing a scratch seller made — the seller pool is reaped elsewhere. */
 export async function destroyListingsOf(sellerId: string): Promise<void> {
-  await adminClient().from("listings").delete().eq("seller_id", sellerId);
+  const { error } = await adminClient().from("listings").delete().eq("seller_id", sellerId);
+  reapStep(`listings of seller ${sellerId}`, error);
 }
 
 /** An attribute definition to read options for; reference data, never written. */
@@ -341,14 +363,20 @@ export async function seedCategoryBranch(
 
 /** Pointers first, then the rows — a branch never leaves an orphan edge (J3). */
 export async function destroyCategoryBranch(slugs: string[]): Promise<void> {
+  if (slugs.length === 0) return;
   const supabase = adminClient();
-  const { data } = await supabase.from("categories").select("id").in("slug", slugs);
+  const { data, error } = await supabase.from("categories").select("id").in("slug", slugs);
+  reapStep(`reading branch ${slugs.join(",")}`, error);
   const ids = (data ?? []).map((row) => row.id);
   if (ids.length === 0) return;
-  await supabase.from("category_tree_pointers").delete().in("child_id", ids);
-  await supabase.from("category_tree_pointers").delete().in("parent_id", ids);
-  await supabase.from("listings").delete().in("category_id", ids);
-  await supabase.from("categories").delete().in("id", ids);
+  const children = await supabase.from("category_tree_pointers").delete().in("child_id", ids);
+  reapStep("branch pointers (child)", children.error);
+  const parents = await supabase.from("category_tree_pointers").delete().in("parent_id", ids);
+  reapStep("branch pointers (parent)", parents.error);
+  const listings = await supabase.from("listings").delete().in("category_id", ids);
+  reapStep("branch listings", listings.error);
+  const rows = await supabase.from("categories").delete().in("id", ids);
+  reapStep("branch categories", rows.error);
 }
 
 /** DB truth: the draft the wizard created for this seller, if any. */
@@ -1361,10 +1389,15 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
 export async function destroySpecSet(attrKeys: string[]): Promise<void> {
   if (attrKeys.length === 0) return;
   const supabase = adminClient();
-  const { data } = await supabase.from("attributes").select("id").in("attr_key", attrKeys);
+  const { data, error: readError } = await supabase
+    .from("attributes")
+    .select("id")
+    .in("attr_key", attrKeys);
+  reapStep("reading the spec set", readError);
   const ids = (data ?? []).map((row) => row.id);
   if (ids.length === 0) return;
-  await supabase.from("category_attribute_links").delete().in("attribute_id", ids);
+  const links = await supabase.from("category_attribute_links").delete().in("attribute_id", ids);
+  reapStep("spec set links", links.error);
   const { error } = await supabase.from("attributes").delete().in("id", ids);
   if (error) throw new Error(`[e2e:c1b] destroying the spec set failed: ${error.message}`);
 }

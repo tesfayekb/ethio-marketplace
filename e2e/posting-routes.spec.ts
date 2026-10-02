@@ -8,6 +8,7 @@ import {
   anyAttributeId,
   bearerOf,
   completeDraft,
+  destroyCategoryBranch,
   destroyListingsOf,
   destroyPostableCategory,
   observedCountryOf,
@@ -56,6 +57,7 @@ test.describe("POSTING ROUTES", () => {
   const sellers: string[] = [];
   const specs: string[] = [];
   const places: string[] = [];
+  const branches: string[][] = [];
 
   test.afterEach(async () => {
     // J3 — an afterEach hook survives a body timeout; a `finally` inside the body
@@ -65,6 +67,7 @@ test.describe("POSTING ROUTES", () => {
     for (const slug of places.splice(0)) await destroyLocation(slug);
     // Links first: a category cannot be deleted while a definition link points at it.
     await destroySpecSet(specs.splice(0));
+    for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
   });
 
@@ -587,16 +590,18 @@ test.describe("POSTING ROUTES", () => {
     // A new leaf under a scratch parent (an import never creates a root, CT-19).
     const parentSlug = `e2e-pr19-${rand()}`;
     const slug = `e2e-pr19-${rand()}`;
-    categories.push(slug, parentSlug);
+    // INC-383 — reaped as one branch (pointers first, then rows) in afterEach.
+    branches.push([slug, parentSlug]);
     const { data: parent, error: parentError } = await adminClient()
       .from("categories")
       .insert({ slug: parentSlug, name_en: parentSlug })
       .select("id")
       .single();
     if (parentError || !parent) throw new Error(`[e2e:pr-19] parent: ${parentError?.message}`);
+    // INC-383 — a scratch root sorts after every real root (≥ 2,000,000).
     const { error: pointerError } = await adminClient()
       .from("category_tree_pointers")
-      .insert({ parent_id: null, child_id: parent.id, display_order: 0 });
+      .insert({ parent_id: null, child_id: parent.id, display_order: 2_000_000 });
     if (pointerError) throw new Error(`[e2e:pr-19] parent pointer: ${pointerError.message}`);
     const values: Record<string, string> = {
       parent_slug: parentSlug,

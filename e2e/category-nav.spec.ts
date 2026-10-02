@@ -98,7 +98,7 @@ test.describe("category selection navigates", () => {
   /**
    * C-5 (DEC-080) — THE RAIL FOLLOWS THE ROOT POINTERS. Two scratch roots whose
    * ROW order (9200 / 9199) is reversed against their parent-NULL pointers
-   * (9100 / 9101): the rail lists them in pointer order. Swapping the two
+   * (2,009,100 / 2,009,101 — after every real root, INC-383): the rail lists them in pointer order. Swapping the two
    * pointers' order moves the tree version, and a reload flips the rail.
    * Located by scratch slug, never by position (G28).
    */
@@ -133,8 +133,8 @@ test.describe("category selection navigates", () => {
       const { data: pointers, error: pointerError } = await supabase
         .from("category_tree_pointers")
         .insert([
-          { parent_id: null, child_id: id(first), display_order: 9100 },
-          { parent_id: null, child_id: id(second), display_order: 9101 },
+          { parent_id: null, child_id: id(first), display_order: 2_009_100 },
+          { parent_id: null, child_id: id(second), display_order: 2_009_101 },
         ])
         .select("id, child_id");
       if (pointerError || !pointers) {
@@ -166,8 +166,8 @@ test.describe("category selection navigates", () => {
 
       const pointerOf = (slug: string) => pointers.find((row) => row.child_id === id(slug))!.id;
       for (const [slug, order] of [
-        [first, 9101],
-        [second, 9100],
+        [first, 2_009_101],
+        [second, 2_009_100],
       ] as const) {
         const { error: swapError } = await supabase
           .from("category_tree_pointers")

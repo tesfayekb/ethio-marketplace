@@ -221,18 +221,24 @@ export async function destroyLocation(slug: string) {
   const descendants: string[] = [];
   let frontier = [row.id];
   for (let depth = 0; depth < 4 && frontier.length > 0; depth += 1) {
-    const { data } = await supabase.from("locations").select("id").in("parent_id", frontier);
+    const { data, error } = await supabase.from("locations").select("id").in("parent_id", frontier);
+    if (error) throw new Error(`[e2e:reap] descendants of ${slug} failed: ${error.message}`);
     frontier = (data ?? []).map((child) => child.id);
     descendants.push(...frontier);
   }
   // Deepest first: the ancestry guard refuses a parent while a child stands.
   for (const id of [...descendants.reverse(), row.id]) {
-    await supabase
+    const translations = await supabase
       .from("entity_translations")
       .delete()
       .eq("entity_type", "location")
       .eq("entity_id", id);
-    await supabase.from("locations").delete().eq("id", id);
+    if (translations.error) {
+      throw new Error(`[e2e:reap] translations of ${id} failed: ${translations.error.message}`);
+    }
+    const deleted = await supabase.from("locations").delete().eq("id", id);
+    if (deleted.error)
+      throw new Error(`[e2e:reap] location ${id} failed: ${deleted.error.message}`);
   }
 }
 

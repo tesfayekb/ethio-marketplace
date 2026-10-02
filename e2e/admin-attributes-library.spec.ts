@@ -982,7 +982,7 @@ test.describe("C3 attributes console", () => {
 
     // The parent is a ROOT (parent_id NULL) so both rows reach the roster walk.
     const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
-      { parent_id: null, child_id: parent.id, display_order: 900 },
+      { parent_id: null, child_id: parent.id, display_order: 2_000_900 },
       { parent_id: parent.id, child_id: child.id, display_order: 1 },
     ]);
     if (pointerError) throw new Error(`inheritance pointers failed: ${pointerError.message}`);
@@ -1252,8 +1252,8 @@ test.describe("C3 attributes console", () => {
     const { data: rootB, error: pointerError } = await supabase
       .from("category_tree_pointers")
       .insert([
-        { parent_id: null, child_id: catA.id, display_order: 902 },
-        { parent_id: null, child_id: catB.id, display_order: 903 },
+        { parent_id: null, child_id: catA.id, display_order: 2_000_902 },
+        { parent_id: null, child_id: catB.id, display_order: 2_000_903 },
         { parent_id: catA.id, child_id: catB.id, display_order: 1 },
       ])
       .select("id, parent_id, child_id");

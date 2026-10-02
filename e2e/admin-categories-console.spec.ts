@@ -19,7 +19,9 @@ import {
   TWIN_BOUNDARY,
   bandOnly,
   surface,
+  anchorRealRow,
   categoryRow,
+  clearRosterSearch,
   findRow,
   action,
   openEditor,
@@ -106,8 +108,9 @@ test.describe("C2 categories console", () => {
     await gotoReady(page, "/admin/categories");
 
     // Seed-before-navigate is satisfied by the ratified C1 taxonomy: assert a
-    // known root rendered BEFORE acting on the surface (J7).
-    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+    // known root rendered BEFORE acting on the surface (J7). G28 — found by
+    // search, never by its place on page one.
+    await anchorRealRow(page, "vehicles");
     await expectNoHorizontalOverflow(page);
 
     await page.getByTestId("category-search").fill("vehicl");
@@ -138,9 +141,11 @@ test.describe("C2 categories console", () => {
         .select("id")
         .single();
       if (error || !data) throw new Error(`[e2e:ct-31] seeding ${slug} failed: ${error?.message}`);
-      const { error: pointerError } = await supabase
-        .from("category_tree_pointers")
-        .insert({ parent_id: parentId, child_id: data.id, display_order: 0 });
+      const { error: pointerError } = await supabase.from("category_tree_pointers").insert({
+        parent_id: parentId,
+        child_id: data.id,
+        display_order: parentId === null ? 2_000_000 : 0,
+      });
       if (pointerError) {
         throw new Error(`[e2e:ct-31] pointer for ${slug} failed: ${pointerError.message}`);
       }
@@ -184,7 +189,9 @@ test.describe("C2 categories console", () => {
       await signInAsSuperAdmin(page);
       await gotoReady(page, "/admin/categories");
       await findRow(page, parentSlug);
-      await page.getByTestId("category-search").fill("");
+      // G28 (INC-383) — the roster is scoped to this test's own three rows; a
+      // scratch root sorts after every real root, so it is never on page one.
+      await page.getByTestId("category-search").fill(`e2e-cat-${stamp}`);
       await expect(categoryRow(page, parentSlug)).toBeVisible({ timeout: 20000 });
 
       // (a) the child is listed AFTER its parent, one level deeper, and says
@@ -586,7 +593,9 @@ test.describe("C2 categories console", () => {
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/categories");
-    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+    // G28 — the roster rendered a real root, found by search; then unscoped.
+    await anchorRealRow(page, "vehicles");
+    await clearRosterSearch(page);
 
     // Parent column: a root reads "—". A miss dumps the geometry that hid it.
     await expect(
@@ -624,12 +633,13 @@ test.describe("C2 categories console", () => {
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/categories");
-    const row = categoryRow(page, "vehicles");
-    await expect(row).toBeVisible({ timeout: 20000 });
+    // G28 — a real root is found by search, never by its place on page one.
+    const row = await anchorRealRow(page, "vehicles");
 
     // Structure, never English copy (J5): a root's parent block renders the
     // em-dash placeholder inside the card, so the parent field is present.
     await expect(row).toContainText("—");
+    await clearRosterSearch(page);
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–25");
 
     // C3c PART D — the same parent facts inside the card twin (DB truth).
@@ -684,7 +694,9 @@ test.describe("C2 categories console", () => {
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/categories");
-    await expect(categoryRow(page, "vehicles")).toBeVisible({ timeout: 20000 });
+    // G28 — the roster rendered a real root, found by search; then unscoped.
+    await anchorRealRow(page, "vehicles");
+    await clearRosterSearch(page);
 
     await page.getByTestId("category-page-size").selectOption("10");
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–10");
@@ -864,9 +876,11 @@ test.describe("C2 categories console", () => {
         .select("id")
         .single();
       if (error || !data) throw new Error(`[e2e:ct-32] seeding ${slug} failed: ${error?.message}`);
-      const { error: pointerError } = await supabase
-        .from("category_tree_pointers")
-        .insert({ parent_id: parentId, child_id: data.id, display_order: 0 });
+      const { error: pointerError } = await supabase.from("category_tree_pointers").insert({
+        parent_id: parentId,
+        child_id: data.id,
+        display_order: parentId === null ? 2_000_000 : 0,
+      });
       if (pointerError) {
         throw new Error(`[e2e:ct-32] pointer for ${slug} failed: ${pointerError.message}`);
       }
