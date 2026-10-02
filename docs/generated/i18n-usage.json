@@ -4055,7 +4055,7 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.where.itemBoxTitle": [
+    "post.where.itemBoxTitleOptional": [
       "/post",
       "/post/$listingId"
     ],
