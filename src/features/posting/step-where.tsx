@@ -132,8 +132,10 @@ function boxClass(empty: boolean, refused: boolean, step = ""): string {
   // PW-99 ruling (2026-09-30) — below 768 px a nested level is a LEFT RULE only:
   // no side borders, no side padding beyond the rule's gap, so every select
   // keeps ≥ 200 px and the page never scrolls sideways. From 768 px it is a box.
+  // Bundle 2 P3 — the rule's gap matches the country box's own padding, so every
+  // level steps in by the same amount at 360 too.
   return (
-    `space-y-3 rounded-none border-0 border-s-2 py-1 ps-2 md:rounded-md md:border md:p-3 ` +
+    `space-y-3 rounded-none border-0 border-s-2 py-1 ps-1.5 md:rounded-md md:border md:p-3 ` +
     `${step} ${border}`
   );
 }

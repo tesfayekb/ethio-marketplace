@@ -647,7 +647,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
    */
   async function tickOnCityLine(page: Page, label: string) {
     const tick = tickOf(page, "primary");
-    await page.getByTestId("post-where-city").scrollIntoViewIfNeeded();
+    await tick.scrollIntoViewIfNeeded();
     await expect(tick, `PW-98 ${label}: the tick is not visible`).toBeVisible();
     await expect(tick, `PW-98 ${label}: the tick is not checked`).toBeChecked();
     await expect(tick, `PW-98 ${label}: the tick is off screen`).toBeInViewport();
