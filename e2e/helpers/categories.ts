@@ -1,7 +1,13 @@
 import { type Locator, type Page } from "@playwright/test";
 
 import { expect, test } from "../fixtures";
-import { assertNoStringifiedLeak, gotoReady, stepUpIfPrompted, useJobSuperAdmin } from "./ui";
+import {
+  assertNoStringifiedLeak,
+  gotoReady,
+  settled,
+  stepUpIfPrompted,
+  useJobSuperAdmin,
+} from "./ui";
 
 import { adminClient } from "./users";
 
@@ -163,6 +169,7 @@ export async function openEditor(page: Page, slug: string) {
   await action(page, slug, "edit").click();
   await expect(page.getByTestId("category-edit-dialog")).toBeVisible({ timeout: 20000 });
   await expect(page.getByTestId("category-verb-bar")).toBeVisible();
+  await settled(page);
 }
 
 export async function grantRole(userId: string, roleName: string) {

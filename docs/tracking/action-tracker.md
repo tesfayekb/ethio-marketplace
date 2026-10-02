@@ -26,3 +26,7 @@
 - ACT — Console: pointer dialog shows a "Home" badge and a "Make home" action (admin_set_primary_pointer); admin_list_category_pointers exposes is_primary.
 - ACT — Study C22 step 2 — DONE 2026-09-27/28 (files 1–3; INC-303 repair; order re-import). Curator orphan pass — DONE (Cycles 23–24; auto-services deleted).
 - ACT — INC-298: Lovable support ticket with the Ray ID (operator).
+- ACT-G1 — Share buttons and link previews (visibility-plan §1). FUTURE; rides the public listing page (U7).
+- ACT-G2 — ethio.com's own Telegram channels fed by a bot (visibility-plan §1). FUTURE.
+- ACT-G3 — Search-engine rules R5–R8 enter the U7 spec; R9 enters the launch gate (visibility-plan §2).
+- ACT-G4 — The listing title built from the seller's answers joins the wizard's remaining work (R3).

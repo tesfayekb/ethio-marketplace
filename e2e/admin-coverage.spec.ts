@@ -7,6 +7,7 @@ import {
   awaitGuardedOutcome,
   expectNoHorizontalOverflow,
   gotoReady,
+  settled,
   stepUpIfPrompted,
   switchUser,
   useJobSuperAdmin,
@@ -52,6 +53,7 @@ function actionsOf(page: Page, plan: string): Locator {
 async function openEditor(page: Page, plan: string) {
   await actionsOf(page, plan).getByTestId(`coverage-edit-${plan}`).click();
   await expect(page.getByTestId("coverage-editor")).toBeVisible({ timeout: 20000 });
+  await settled(page);
 }
 
 /** DB truth (J4): the plan row read through the service client. */

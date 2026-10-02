@@ -1,7 +1,7 @@
 import { type Locator, type Page } from "@playwright/test";
 
 import { expect } from "../fixtures";
-import { assertNoStringifiedLeak } from "./ui";
+import { assertNoStringifiedLeak, settled } from "./ui";
 import { readAnchor, scratchCountryCode, seedCountry } from "./countries";
 import { adminClient } from "./users";
 
@@ -134,6 +134,7 @@ export async function openEditor(page: Page, key: string) {
       `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `openEditor(${key})`)}`,
     );
   }
+  await settled(page);
 }
 
 /** Opens the editor of `key` and clicks one of its verbs. */
