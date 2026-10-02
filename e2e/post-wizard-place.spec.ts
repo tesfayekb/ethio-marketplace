@@ -477,7 +477,16 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-who-show-phone")).toBeVisible();
 
     // A CHANNEL IS TWO ANSWERS: a value AND a switch.
+    // PW-111 (bundle 2 Q1) — a country picker sits in front of the number; a
+    // number typed with + moves it to the matching code, and a local number
+    // under that country is saved as "+" code digits.
     await page.getByTestId("post-who-value-phone").fill("+251911234567");
+    await expect(
+      page.getByTestId("post-who-value-phone-country"),
+      "PW-111: +251 did not move the picker to Ethiopia",
+    ).toHaveValue("ET");
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
+    await page.getByTestId("post-who-value-phone").fill("0911 234-567");
     await page.getByTestId("post-who-show-phone").check();
     await page.getByTestId("post-next").click();
     await expect

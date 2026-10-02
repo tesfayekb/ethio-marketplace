@@ -5,6 +5,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
+import { PhoneNumberField } from "./phone-number-field";
 import { readSellerIdentity, saveIdentity, type SellerIdentity } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
@@ -49,10 +50,11 @@ const CHANNEL_LABELS: Record<Channel, MessageKey> = {
   whatsapp: "post.who.channel.whatsapp",
 };
 
+/** Bundle 2 Q1 — the number hints name no country's number (new keys, D5). */
 const CHANNEL_HINTS: Record<Channel, MessageKey> = {
-  phone: "post.who.channel.phoneHint",
+  phone: "post.who.channel.numberHint",
   telegram: "post.who.channel.telegramHint",
-  whatsapp: "post.who.channel.whatsappHint",
+  whatsapp: "post.who.channel.numberHint",
 };
 
 const fieldClass =
@@ -216,6 +218,17 @@ export function StepWho({
   const messagesRefusal = refusalFor(refusals, "messages") ?? refusalFor(refusals, "contact_pref");
 
   const countries = useMemo(() => markets.markets, [markets.markets]);
+  const openMarketCodes = useMemo(() => countries.map((market) => market.code), [countries]);
+
+  /** What this screen sees when a channel box is left (U6-C1-R3a). */
+  const leaveChannel = (channel: Channel, value: string, show: boolean) => {
+    const field = `contact_pref.${channel}`;
+    const found = checkChannel(channel, value, show, field);
+    setLocal((prev) => [
+      ...prev.filter((entry) => entry.field !== field),
+      ...(found === null ? [] : [found]),
+    ]);
+  };
 
   /**
    * U6-C1-R2 — THE SUGGESTED SELLER NAME. A business is known by its business
@@ -500,22 +513,29 @@ export function StepWho({
                   side by side, so whether a buyer will see it is visible at a
                   glance rather than a switch further down the screen. */}
               <div className="flex items-center gap-3">
-                <input
-                  id={`post-who-value-${channel}`}
-                  data-testid={`post-who-value-${channel}`}
-                  className={`${fieldClass} grow`}
-                  value={current.value}
-                  inputMode={channel === "telegram" ? "text" : "tel"}
-                  onBlur={(event) => {
-                    const field = `contact_pref.${channel}`;
-                    const found = checkChannel(channel, event.target.value, current.show, field);
-                    setLocal((prev) => [
-                      ...prev.filter((entry) => entry.field !== field),
-                      ...(found === null ? [] : [found]),
-                    ]);
-                  }}
-                  onChange={(event) => setChannel(channel, { value: event.target.value.trim() })}
-                />
+                {channel === "telegram" ? (
+                  <input
+                    id={`post-who-value-${channel}`}
+                    data-testid={`post-who-value-${channel}`}
+                    className={`${fieldClass} grow`}
+                    value={current.value}
+                    inputMode="text"
+                    onBlur={(event) => leaveChannel(channel, event.target.value, current.show)}
+                    onChange={(event) => setChannel(channel, { value: event.target.value.trim() })}
+                  />
+                ) : (
+                  /* Bundle 2 Q1 — a country picker in front of the number. */
+                  <PhoneNumberField
+                    id={`post-who-value-${channel}`}
+                    testId={`post-who-value-${channel}`}
+                    value={current.value}
+                    defaultIso={country}
+                    openMarkets={openMarketCodes}
+                    fieldClass={fieldClass}
+                    onValue={(next) => setChannel(channel, { value: next })}
+                    onLeave={(next) => leaveChannel(channel, next, current.show)}
+                  />
+                )}
                 <label className="flex min-h-11 shrink-0 items-center gap-2 text-xs text-foreground">
                   <input
                     type="checkbox"

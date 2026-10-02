@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 319,
+  "scanned": 321,
   "dynamicCallSites": 203,
   "keys": {
     "account.deactivatedBanner": [
@@ -4236,6 +4236,14 @@
       "/post/$listingId"
     ],
     "post.who.nameHint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.phoneCountryLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.phoneCountryOption": [
       "/post",
       "/post/$listingId"
     ],

@@ -1193,3 +1193,7 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 ## Place step layout (bundle 2 P1–P3)
 
 Each region is a box inside its country box and each city a box inside its region box; every level steps in by the same amount. "Add city" closes its region box below its city boxes, "Add region" closes the country box below its region boxes, and "Add country" sits below the country boxes — no add control sits inside a box it adds a sibling of. In a city box the "the item or service is here" marker is on its own lower line, with Remove at the end of that line. Tests: PW-98, PW-99 (e2e), PW-110 (step-where.test.tsx).
+
+## Phone country picker (bundle 2 Q1)
+
+Phone and WhatsApp carry a country picker (names from Intl.DisplayNames, codes from `calling-codes.ts`): open markets first, then A–Z. It starts on the home country, else the posting market. Separators and leading zeros are removed; the saved value is `+` code digits; a `+`/`00` number moves the picker to the longest matching code, keeping the current country on a shared code. PW-111.
