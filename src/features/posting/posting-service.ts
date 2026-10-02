@@ -682,13 +682,16 @@ export async function savePin(
   lng: number,
   precision: string,
   street: string | null,
+  zoom: number | null = null,
 ): Promise<boolean> {
+  // Part L — an omitted zoom keeps the zoom the pin was saved at.
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
     p_lat: lat,
     p_lng: lng,
     p_precision: precision,
     p_street: street ?? undefined,
+    p_zoom: zoom ?? undefined,
   });
   if (error !== null) {
     console.error("[pin] set_listing_pin refused:", error.message);

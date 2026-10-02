@@ -1989,6 +1989,8 @@ export const en = {
   "post.refusal.dependentMissing": "Answer the detail above this one first.",
   "post.refusal.inactiveOption": "That choice is no longer offered.",
   "post.refusal.otherNeedsText": "Say what it is.",
+  "post.refusal.contactInText": "Leave phone numbers out. Buyers contact you through the app.",
+  "post.refusal.contactInNote": "Leave phone numbers out of the location details.",
   "post.refusal.unknownOption": "That choice is not offered here.",
   "post.refusal.unknownAttribute": "That detail is not part of this category.",
   "post.refusal.notPositive": "Enter an amount above zero.",
