@@ -21,7 +21,7 @@
 - [x] prettier roadmap.md (d9506a9c format:check red)
 - [x] DEC-097 (b)+(c) built; adoption pending 3 green CI runs — DEC-097 E2E account pool: (a) census reported; (b) pool lanes + lease reaper; (c) per-run signed-in count line; adopt after 3 green runs
 - [ ] D+L+M migration incl. S2 (rebuild after commit + pg_cron sweep with heartbeat, one round trip per search) and Part O readers via one shared helper
-- [ ] S2 re-time (stop if warm p95 > 300 ms), S3, DEC-096 stranded-turn detector, T(+T4), A, B, C, Part O, Part P, INC-371, INC-374, INC-375, E census, full DEC-023
+- [ ] S2 re-time (stop if warm p95 > 300 ms), S3, DEC-096 stranded-turn detector, T(+T4), A, B, C, Part O, Part P, INC-371, INC-374, INC-375, INC-381 — a second visibility key (a row shown only when two answers both match, e.g. pet = dog|cat AND product = food|treats); spec arrives with its prompt, E census, full DEC-023
 
 ## DEC-098 (2026-10-01)
 
