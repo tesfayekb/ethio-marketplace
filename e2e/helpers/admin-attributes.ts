@@ -107,13 +107,23 @@ export async function readLinks(categoryId: string) {
 export async function destroyAttribute(key: string) {
   const row = await readAttribute(key);
   if (!row) return;
-  await adminClient().from("category_attribute_links").delete().eq("attribute_id", row.id);
+  // INC-383 — every step checks its error; a failed reap is loud.
+  const fail = (step: string, error: { message: string } | null) => {
+    if (error) throw new Error(`[e2e:reap] ${step} of ${key} failed: ${error.message}`);
+  };
+  const links = await adminClient()
+    .from("category_attribute_links")
+    .delete()
+    .eq("attribute_id", row.id);
+  fail("links", links.error);
   // IE-4b — a scratch definition can now own an am translation row; it leaves
   // with the fixture (J3), because entity_translations carries no FK cascade.
-  await adminClient()
+  const translations = await adminClient()
     .from("entity_translations")
     .delete()
     .eq("entity_type", "attribute")
     .eq("entity_id", row.id);
-  await adminClient().from("attributes").delete().eq("id", row.id);
+  fail("translations", translations.error);
+  const deleted = await adminClient().from("attributes").delete().eq("id", row.id);
+  fail("attribute", deleted.error);
 }

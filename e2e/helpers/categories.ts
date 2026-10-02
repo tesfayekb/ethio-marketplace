@@ -98,6 +98,28 @@ export async function findRow(page: Page, slug: string): Promise<Locator> {
 }
 
 /**
+ * G28 (INC-383) — A REAL ROW IS FOUND BY SEARCH. A real root's place on page
+ * one is not an invariant (scratch rows from any run can sort anywhere), so a
+ * test that needs one narrows the roster with the roster search, asserts the
+ * row, and clears the search before any assertion about the whole roster.
+ */
+export async function anchorRealRow(page: Page, slug: string): Promise<Locator> {
+  await expect(page.getByTestId("category-search")).toBeVisible({ timeout: 20000 });
+  await page.getByTestId("category-search").fill(slug);
+  const row = categoryRow(page, slug);
+  await expect(row).toBeVisible({ timeout: 20000 });
+  return row;
+}
+
+/** Clears the roster search and waits for the unscoped first page. */
+export async function clearRosterSearch(page: Page): Promise<void> {
+  await page.getByTestId("category-search").fill("");
+  await expect(page.getByTestId("category-pagination-range")).toContainText(/^\D*1[–-]/, {
+    timeout: 20000,
+  });
+}
+
+/**
  * C2-GHOST PART B (INC-152) — THE CONFESSION CHANNEL. A row that never appears
  * is usually a GHOST DIALOG covering the roster, so every failure path names
  * each open dialog together with the opener that put it there
@@ -254,17 +276,28 @@ export async function destroyCategory(slug: string) {
   const supabase = adminClient();
   const row = await readCategory(slug);
   if (!row) return;
-  await supabase
+  // INC-383 — every step checks its error; a failed reap is loud.
+  const fail = (step: string, error: { message: string } | null) => {
+    if (error) throw new Error(`[e2e:reap] ${step} of ${slug} failed: ${error.message}`);
+  };
+  const pointers = await supabase
     .from("category_tree_pointers")
     .delete()
     .or(`child_id.eq.${row.id},parent_id.eq.${row.id}`);
-  await supabase.from("category_country_exclusions").delete().eq("category_id", row.id);
-  await supabase
+  fail("pointers", pointers.error);
+  const exclusions = await supabase
+    .from("category_country_exclusions")
+    .delete()
+    .eq("category_id", row.id);
+  fail("exclusions", exclusions.error);
+  const translations = await supabase
     .from("entity_translations")
     .delete()
     .eq("entity_type", "category")
     .eq("entity_id", row.id);
-  await supabase.from("categories").delete().eq("id", row.id);
+  fail("translations", translations.error);
+  const deleted = await supabase.from("categories").delete().eq("id", row.id);
+  fail("category", deleted.error);
 }
 
 /**

@@ -767,7 +767,7 @@ test.describe("C3 attributes console", () => {
       const child = cats.find((row) => row.slug === childSlug)!;
 
       const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
-        { parent_id: null, child_id: root.id, display_order: 901 },
+        { parent_id: null, child_id: root.id, display_order: 2_000_901 },
         { parent_id: root.id, child_id: child.id, display_order: 1 },
       ]);
       if (pointerError) throw new Error(`AT-46 pointers failed: ${pointerError.message}`);

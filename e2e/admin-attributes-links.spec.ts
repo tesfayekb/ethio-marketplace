@@ -470,7 +470,7 @@ test.describe("C3 attributes console", () => {
       childId = child.id;
       // The child's ONLY pointer is the parent, so the parent is primary (INH-1).
       const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
-        { parent_id: null, child_id: parent.id, display_order: 904 },
+        { parent_id: null, child_id: parent.id, display_order: 2_000_904 },
         { parent_id: parent.id, child_id: child.id, display_order: 1 },
       ]);
       if (pointerError) throw new Error(`AT-38 pointer failed: ${pointerError.message}`);
@@ -955,7 +955,7 @@ test.describe("C3 attributes console", () => {
       if (categoryError) throw new Error(`AT-62 seeding the category: ${categoryError.message}`);
       const pointed = await supabase
         .from("category_tree_pointers")
-        .insert({ parent_id: null, child_id: category!.id, display_order: 941 });
+        .insert({ parent_id: null, child_id: category!.id, display_order: 2_000_941 });
       if (pointed.error) throw new Error(`AT-62 seeding the pointer: ${pointed.error.message}`);
 
       const linked = await supabase.from("category_attribute_links").insert([

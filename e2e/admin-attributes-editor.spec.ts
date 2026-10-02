@@ -1676,7 +1676,7 @@ test.describe("C3 attributes console", () => {
       if (catError || !cat) throw new Error(`AT-58 category failed: ${catError?.message}`);
       const { error: pointerError } = await supabase
         .from("category_tree_pointers")
-        .insert({ parent_id: null, child_id: cat.id, display_order: 958 });
+        .insert({ parent_id: null, child_id: cat.id, display_order: 2_000_958 });
       if (pointerError) throw new Error(`AT-58 pointer failed: ${pointerError.message}`);
 
       const { error: linkError } = await supabase.from("category_attribute_links").insert([

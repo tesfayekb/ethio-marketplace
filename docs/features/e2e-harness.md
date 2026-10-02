@@ -352,6 +352,7 @@ Why: staging was minting about 4,000 users a day (one per test), and deleting a 
 - Decision rule: ADOPT after three consecutive full green runs with no flake-ledger entry traceable to a shared account, where each run's count is ≤ pool size + the minting tests. Otherwise revert to per-test minting.
 
 - INC-379: helpers that read "any" reference row (locations, categories, attributes) exclude `e2e`-prefixed scratch rows and pick by a fixed order (slug / attr_key).
+- INC-383 / G28: every destroy helper throws with the database's message on a failed delete (category pointers first, both edges); a scratch root pointer sorts at display_order ≥ 2,000,000, after every real root; roster tests find a real row by `category-search` (`anchorRealRow`), never by its place on page one.
 
 ### DEC-099 — reset by census (INC-380)
 
