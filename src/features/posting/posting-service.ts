@@ -217,6 +217,8 @@ export interface DraftRow {
   pinLat: number | null;
   pinLng: number | null;
   pinPrecision: string | null;
+  /** Part L — the zoom the pin was saved at (3–20), or null. */
+  pinZoom: number | null;
   streetAddress: string | null;
 }
 
@@ -237,7 +239,7 @@ export async function readDraft(
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,contact_pref,pin_lat,pin_lng,pin_precision,street_address",
+      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,contact_pref,pin_lat,pin_lng,pin_precision,pin_zoom,street_address",
     )
     .eq("id", listingId)
     .maybeSingle();
@@ -290,6 +292,7 @@ export async function readDraft(
       pinLat: data.pin_lat === null ? null : Number(data.pin_lat),
       pinLng: data.pin_lng === null ? null : Number(data.pin_lng),
       pinPrecision: data.pin_precision,
+      pinZoom: typeof data.pin_zoom === "number" ? data.pin_zoom : null,
       streetAddress: data.street_address,
     },
     photos: (photos ?? []).map((row) => ({

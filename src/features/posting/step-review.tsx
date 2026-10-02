@@ -113,7 +113,13 @@ export function StepReview({
   /** D22 — the plan's photo cap from the posting document; `null` = not read. */
   maxPhotos: number | null;
   /** U6-C1-R3b-4 — the saved pin, so the buyer's-eye preview draws what the door holds. */
-  pin?: { lat: number; lng: number; precision: string; street: string | null } | null;
+  pin?: {
+    lat: number;
+    lng: number;
+    precision: string;
+    street: string | null;
+    zoom?: number | null;
+  } | null;
   /** DEC-079 — the basis option's label in the UI language, or null (no basis). */
   basisLabel?: string | null;
   /** D62-2 — the leaf's pricing-basis key: its answer reads under Price, not Specifications. */
@@ -422,6 +428,7 @@ export function StepReview({
             pinLat: pin?.lat ?? null,
             pinLng: pin?.lng ?? null,
             pinPrecision: pin?.precision ?? null,
+            pinZoom: pin?.zoom ?? null,
           }}
         />
       )}
