@@ -85,3 +85,15 @@ describe("INC-316 — the icon column is judged against the allowlist", () => {
     expect(checkCell(rule, "")).toBeNull();
   });
 });
+
+describe("DEC-103 — the option ceiling is 1,500", () => {
+  const rule = { name: "options", klass: "editable", type: "options" } as const;
+  const cell = (n: number) =>
+    Array.from({ length: n }, (_, i) => `{"value":"m${i}","label_en":"Model ${i}"}`).join("|");
+  it("accepts a cell of 1,500 options", () => {
+    expect(checkCell(rule, cell(1500))).toBeNull();
+  });
+  it("refuses a cell of 1,501 options as tooManyOptions", () => {
+    expect(checkCell(rule, cell(1501))).toBe("tooManyOptions");
+  });
+});

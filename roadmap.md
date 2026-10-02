@@ -6,7 +6,7 @@
 - [x] INC-379 — reference-row helpers exclude scratch rows, fixed order
 - [x] INC-383 — PR-19 scratch-category leak; loud reaps; scratch roots ≥ 2,000,000; G28 roster search
 - [x] INC-384 — CT-8 read a box mid-zoom; `settled(page)` after every overlay opener
-- [x] INC-385 — no code — staging transport failure
+- [x] INC-385 — fixed by DEC-104
 - [ ] Bundle 1 (D+L+M app side, S2/S3, A, B, Part O, INC-371, INC-375) — items 1–8 done (PW-93..PW-109); S2 timing over target (edge p95 306 ms, DB p95 10.7 ms), stopped for ruling
 - [ ] S2 / S3
 - [ ] T (with T4 / DEC-095)
