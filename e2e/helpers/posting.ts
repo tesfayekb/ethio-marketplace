@@ -1711,10 +1711,11 @@ export async function pinOf(listingId: string): Promise<{
   lng: number | null;
   precision: string | null;
   street: string | null;
+  zoom: number | null;
 }> {
   const { data, error } = await adminClient()
     .from("listings")
-    .select("pin_lat,pin_lng,pin_precision,street_address")
+    .select("pin_lat,pin_lng,pin_precision,street_address,pin_zoom")
     .eq("id", listingId)
     .maybeSingle();
   if (error) throw new Error(`[e2e:r3b4] reading the pin failed: ${error.message}`);
@@ -1723,6 +1724,7 @@ export async function pinOf(listingId: string): Promise<{
     lng: data?.pin_lng === null || data?.pin_lng === undefined ? null : Number(data.pin_lng),
     precision: data?.pin_precision ?? null,
     street: data?.street_address ?? null,
+    zoom: typeof data?.pin_zoom === "number" ? data.pin_zoom : null,
   };
 }
 
