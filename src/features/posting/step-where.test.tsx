@@ -209,9 +209,9 @@ describe("StepWhere — the ad's places and the item tick (W6b-1)", () => {
   });
 
   /**
-   * INC-360 — J (operator staircase ruling) superseded W6b-1 R2: "+ Add city"
-   * closes its region box after every city row; "+ Add region" is the last
-   * child of the LAST region box and sits in no other region box. The
+   * INC-360 — J, as amended by bundle 2 P2: "+ Add city" closes its region box
+   * after every city row; "+ Add region" is the last child of the COUNTRY box,
+   * below its region boxes, and sits in no region box. The
    * no-region-box state is not mountable here (the cookie prefill always
    * opens r1, and its only city cannot be removed), so that branch is
    * covered by the e2e staircase, not this test.
@@ -236,8 +236,9 @@ describe("StepWhere — the ad's places and the item tick (W6b-1)", () => {
     const boxes = within(primaryBox()).getAllByTestId("post-where-region-box");
     const last = boxes[boxes.length - 1]!;
     const addRegion = within(primaryBox()).getByTestId("post-where-add-region");
-    expect(last.lastElementChild).toBe(addRegion);
-    for (const box of boxes.slice(0, -1)) expect(box.contains(addRegion)).toBe(false);
+    expect(primaryBox().lastElementChild).toBe(addRegion);
+    expect(last.compareDocumentPosition(addRegion) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    for (const box of boxes) expect(box.contains(addRegion)).toBe(false);
 
     expect(primaryBox().contains(screen.getByTestId("post-where-add-country"))).toBe(false);
   });
@@ -299,7 +300,7 @@ describe("StepWhere — where the add controls and the marker sit (bundle 2 P2/P
     Boolean(earlier.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING);
 
   it("PW-110 Add region closes the country box, below its region boxes, outside every region box", async () => {
-    await mount();
+    await mount({ cities: 3, regions: 3, countries: 2 });
     const country = primaryBox();
     const addRegion = within(country).getByTestId("post-where-add-region");
     expect(addRegion.closest('[data-testid="post-where-region-box"]')).toBeNull();
@@ -342,7 +343,9 @@ describe("StepWhere — where the add controls and the marker sit (bundle 2 P2/P
     for (const row of within(region).getAllByTestId("post-where-row")) {
       const line = within(row).getByTestId("post-where-item-line");
       const tick = within(line).getByTestId("post-where-item-tick");
-      const city = within(row).queryByRole("combobox");
+      const city = row.querySelector(
+        '[data-testid="post-where-city"], [data-testid="post-where-row-city"]',
+      );
       if (city !== null) {
         expect(city.closest('[data-testid="post-where-item-line"]')).toBeNull();
         expect(following(line, city)).toBe(true);
