@@ -1205,6 +1205,15 @@ export function StepSpecifications({
     });
   };
 
+  /** Step 3 — an Other write-in (single or multi) is flagged the same way; no preset governs it. */
+  const judgeOther = (def: AttrDef, text: string) => {
+    setLocal((prev) => {
+      const rest = prev.filter((entry) => entry.field !== def.attrKey);
+      if (!looksLikeContact(text)) return rest;
+      return [...rest, { field: def.attrKey, reason: "contactInText" }];
+    });
+  };
+
   const judgeNumber = (def: AttrDef, value: number | null) => {
     const bound = boundsOf(def);
     setLocal((prev) => {
@@ -1628,14 +1637,15 @@ export function StepSpecifications({
                 value={otherText(value)}
                 maxLength={120}
                 placeholder={t("post.specs.otherPlaceholder")}
-                onChange={(event) =>
+                onChange={(event) => {
+                  judgeOther(def, event.target.value);
                   write(
                     def.attrKey,
                     event.target.value === ""
                       ? { value: "other" }
                       : { value: "other", text: event.target.value },
-                  )
-                }
+                  );
+                }}
               />
             )}
 
@@ -1698,9 +1708,10 @@ export function StepSpecifications({
                 value={answerOtherText(value)}
                 maxLength={120}
                 placeholder={t("post.specs.otherPlaceholder")}
-                onChange={(event) =>
-                  write(def.attrKey, multiAnswer(chosenList(value), event.target.value))
-                }
+                onChange={(event) => {
+                  judgeOther(def, event.target.value);
+                  write(def.attrKey, multiAnswer(chosenList(value), event.target.value));
+                }}
               />
             )}
 
