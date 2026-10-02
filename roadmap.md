@@ -27,6 +27,7 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
 - [x] Step 2 client half — contact-like.ts R1–R6, 34-row test (door half rides the migration)
 - [ ] Step 3 — Other write-ins: client flags as typed (done); door rides the migration
 - [ ] Step 4 — title/description: client flags as typed and on blur (done); door rides the migration
+- [x] Steps 7–9 (P1–P3) — boxes nested, add controls below their boxes, marker line with Remove, even indent; PW-98/PW-99 amended, PW-110
 - [x] Step 18 — INC-387: allowlist in the prompt text, no schema enum; server still validates; real call returned Sofa
 - [ ] Part R — attr_contact_like (INC-382 R1–R6); Other write-ins; title/description; notes keep contactInNote
 - [ ] Part S — sweep every 5 minutes
