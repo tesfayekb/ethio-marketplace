@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37071327293
-- Commit: `712ef155a389689df519ac6795c3715b1d27ea64`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37071546597
+- Commit: `3b3a0a89fb418791766b5fe6d2edf9660d674e87`
 - Attempt: 1
-- Written (UTC): 2026-10-02T22:17:22.955Z
+- Written (UTC): 2026-10-02T22:21:05.907Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -12,13 +12,27 @@
 
 ## Server errors — census (DEC-083, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5 · unavailable: shard 6
 
-No `[ssr-error]` lines in any source (all 8 logs read).
+`shard 6`: log unavailable.
+
+5 line(s), 3 message(s): 0 off the allowlist, 3 allowlisted.
+
+| Message | Count | Sources |
+| --- | --- | --- |
+| `definitions badHeader` (quiet) | 2 | shard 1, shard 4 |
+| `preview_failed permission denied` (quiet) | 2 | shard 1, shard 4 |
+| `digest mismatch` (quiet) | 1 | shard 4 |
+
+Quiet (allowlisted): definitions badHeader ×2 · preview_failed permission denied ×2 · digest mismatch ×1
+
+Off the allowlist: none.
 
 ## Accessibility (DEC-084, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5 · unavailable: shard 6
+
+`shard 6`: log unavailable.
 
 5 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0
 
@@ -35,7 +49,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37071327293-email
+[e2e:teardown] deleted 4 user(s) owned by process 37071546597-email
 ```
 
 ## Server errors: smoke
@@ -56,7 +70,10 @@ No `[client-error]` lines in the `email` log (or no log was uploaded).
 
 ## Server errors: shard 1
 
-No `[ssr-error]` lines in the `shard 1` log (or no log was uploaded).
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+```
 
 ## Client errors: shard 1
 
@@ -80,7 +97,11 @@ No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 
 ## Server errors: shard 4
 
-No `[ssr-error]` lines in the `shard 4` log (or no log was uploaded).
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+```
 
 ## Client errors: shard 4
 
@@ -111,12 +132,12 @@ smoke: no results file — the process failed outside test results (setup/teardo
 [a11y] wizard-1 mobile-360 serious=0 critical=0
 [a11y] wizard-3 mobile-360 serious=0 critical=0
 [a11y] wizard-5 mobile-360 serious=0 critical=0
-  ✓    2 [mobile-360] › e2e/a11y.spec.ts:65:3 › A11Y SMOKE (DEC-084, gating) › A11Y-2 wizard steps 1, 3 and 5 for a scratch seller @a11y (14.2s)
-  ✓    3 [mobile-360] › e2e/auth-signout.spec.ts:58:3 › U0j sign-out hard reset › SO-1 admin: one click signs out and resets to the marketplace (8.2s)
-  ✓    4 [mobile-360] › e2e/auth-signout.spec.ts:78:3 › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface (6.0s)
-  ✓    5 [mobile-360] › e2e/auth-signout.spec.ts:90:3 › U0j sign-out hard reset › SO-3 live guard: a same-tab client sign-out evacuates /admin (6.0s)
-  ✓    6 [mobile-360] › e2e/auth-signout.spec.ts:112:3 › U0j sign-out hard reset › SO-3b reload path: a cleared token means /admin never renders on mount (4.8s)
-  ✓    7 [mobile-360] › e2e/auth-signout.spec.ts:137:3 › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI (7.3s)
+  ✓    2 [mobile-360] › e2e/a11y.spec.ts:65:3 › A11Y SMOKE (DEC-084, gating) › A11Y-2 wizard steps 1, 3 and 5 for a scratch seller @a11y (10.7s)
+  ✓    3 [mobile-360] › e2e/auth-signout.spec.ts:58:3 › U0j sign-out hard reset › SO-1 admin: one click signs out and resets to the marketplace (6.6s)
+  ✓    4 [mobile-360] › e2e/auth-signout.spec.ts:78:3 › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface (7.1s)
+  ✓    5 [mobile-360] › e2e/auth-signout.spec.ts:90:3 › U0j sign-out hard reset › SO-3 live guard: a same-tab client sign-out evacuates /admin (6.2s)
+  ✓    6 [mobile-360] › e2e/auth-signout.spec.ts:112:3 › U0j sign-out hard reset › SO-3b reload path: a cleared token means /admin never renders on mount (6.5s)
+  ✓    7 [mobile-360] › e2e/auth-signout.spec.ts:137:3 › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI (9.1s)
 ```
 
 ## email: no results file
@@ -127,12 +148,12 @@ email: no results file — the process failed outside test results (setup/teardo
 --- final 10 lines ---
 Running 1 test using 1 worker
 
-  ✓  1 [email-serial] › e2e/auth-signup.spec.ts:121:3 › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle (4.3s)
+  ✓  1 [email-serial] › e2e/auth-signup.spec.ts:121:3 › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle (3.5s)
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37071327293-email
+[e2e:teardown] deleted 4 user(s) owned by process 37071546597-email
 
-  1 passed (12.5s)
+  1 passed (13.5s)
 ```
 
 ## shard 1: no results file
@@ -140,16 +161,23 @@ Running 1 test using 1 worker
 shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
+--- error lines (1) ---
+[e2e:setup] EN baseline probe unavailable: TypeError: fetch failed (UND_ERR_HEADERS_OVERFLOW) after 4 attempts
 --- final 10 lines ---
-[e2e:setup] identity pool size = 2 (E2E_WORKERS=2)
-[e2e:setup] reaped 0 stale scratch role(s)
-[e2e:setup] reaped 0 stale scratch listing(s)
-[e2e:setup] photo reaper proof: ok
-[e2e:setup] photo backlog: 0 top-level seller folder(s)
-[e2e:setup] photo objects removed: 0 under 0 reaped listing(s); orphan-user folders: 0; orphan listing folders: 0; kept (live sellers): 0; more remain: no
-[e2e:setup] reaped 0 stale scratch categor(ies)
-[e2e:maintenance] pruned 2 audit rows, 0 objects
-[e2e:maintenance] RATIFIED-AM GAP: 28 rows: buses-vans, heavy-machinery, vehicle-parts, vehicle-hire, auto-services, gaming, printers-office, electronics-accessories, traditional-cloth, nail-hand-foot, industrial-equipment, other-commercial-equipment, appliances, logistics-cargo, personal-care-services, printing-photography, health-services, other-sports-leisure, steel-metals, wood-timber, plumbing, tiles-paint, roofing-doors, resorts-lodges, tours-tickets, other-agriculture-farming, other-pets-animals, other-babies-kids
+✓   17 [mobile-360] › e2e/admin-attributes-import.spec.ts:729:3 › C3 attributes console › AT-46 a direct card rank equal to an inherited rank is refused by the import and by the door, naming both origins (7.4s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37071546597-1-3078-3-wunyyk@ethio-e2e.invalid)
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+  ✓   18 [mobile-360] › e2e/admin-attributes-editor.spec.ts:796:3 › C3 attributes console › AT-50 per-option labels, aliases and the inactive switch land and read back (11.3s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071546597-1-3078-2-1rvdad@ethio-e2e.invalid)
+  ✓   19 [mobile-360] › e2e/admin-attributes-import.spec.ts:883:3 › C3 attributes console › AT-22 malformed files and dangerous cells are refused (6.4s)
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+  ✓   21 [mobile-360] › e2e/admin-attributes-import.spec.ts:1031:3 › C3 attributes console › AT-23 a categories:view-only operator sees no import control and is refused (6.8s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37071546597-1-3078-3-wunyyk@ethio-e2e.invalid)
+```
+
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
 ```
 
 ## shard 2: no results file
@@ -157,16 +185,18 @@ shard 1: no results file — the process failed outside test results (setup/tear
 shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
+--- error lines (1) ---
+[WebServer] Error in renderToReadableStream: ReferenceError: window is not defined ×4
 --- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37071327293-2-3046-3-hxpphr@ethio-e2e.invalid)
-  ✓    2 [mobile-360] › e2e/admin-translations-governance.spec.ts:457:3 › U4g bulk approval, order and orphans › TR-20m mobile exposes both reorder controls for the parked fence (4.7s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37071327293-2-3046-3-hxpphr@ethio-e2e.invalid)
-  ✓    1 [mobile-360] › e2e/admin-translations-data.spec.ts:186:3 › U4b translations console › TR-14 the Data scope edits and approves a location name (16.7s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071327293-2-3046-2-de3ghq@ethio-e2e.invalid)
-  ✓    3 [mobile-360] › e2e/admin-translations-governance.spec.ts:721:3 › U4g bulk approval, order and orphans › TR-29 the catalog exports as CSV and a translated CSV imports back (25.2s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37071327293-2-3046-3-hxpphr@ethio-e2e.invalid)
-  ✓    4 [mobile-360] › e2e/admin-translations-data.spec.ts:276:3 › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one (23.7s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071327293-2-3046-2-de3ghq@ethio-e2e.invalid)
+✓   26 [mobile-360] › e2e/auth-signin-errors.spec.ts:41:1 › B-3: wrong-password and unknown-email are indistinguishable (2.1s)
+  ✓   27 [mobile-360] › e2e/auth-signin-errors.spec.ts:60:1 › B-4: unconfirmed account cannot sign in (1.5s)
+  ✓   28 [mobile-360] › e2e/auth-signin-errors.spec.ts:79:1 › B-5: one sign-in after a 12h-expired prior session lands with a session (2.4s)
+  ✓   20 [mobile-360] › e2e/admin-users.spec.ts:213:3 › U1 admin users › AU-3 detail: reason required, deactivate, audit row, reactivate (19.3s)
+  ✓   29 [mobile-360] › e2e/auth-signout.spec.ts:58:3 › U0j sign-out hard reset › SO-1 admin: one click signs out and resets to the marketplace (6.5s)
+  ✓   30 [mobile-360] › e2e/admin-users.spec.ts:260:3 › U1 admin users › AU-7 crumb: Home > Admin > Users > <name>, Users navigates back (5.6s)
+  ✓   31 [mobile-360] › e2e/auth-signout.spec.ts:78:3 › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface (5.5s)
+  ✓   32 [mobile-360] › e2e/admin-users.spec.ts:277:3 › U1 admin users › AU-8 own row: status controls are not offered on your own record (5.2s)
+  ✓   33 [mobile-360] › e2e/auth-signout.spec.ts:90:3 › U0j sign-out hard reset › SO-3 live guard: a same-tab client sign-out evacuates /admin (5.9s)
 ```
 
 ## shard 3: no results file
@@ -175,15 +205,15 @@ shard 3: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-Running 171 tests using 2 workers, shard 3 of 6
-
-  ✓    1 [mobile-360] › e2e/post-wizard-pricing.spec.ts:229:3 › POSTING WIZARD › PW-10 pricing: currency comes before the amount, a locked period shows no line, and free hides the amount (14.0s)
-  ✓    2 [mobile-360] › e2e/post-wizard-resets.spec.ts:204:3 › POSTING WIZARD › PW-26 a category change drops the details the new category never asks, by name (15.1s)
-PW-72 bodies: []
-  ✓    3 [mobile-360] › e2e/post-wizard-pricing.spec.ts:349:3 › POSTING WIZARD › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages (16.6s)
-  ✓    4 [mobile-360] › e2e/post-wizard-resets.spec.ts:316:3 › POSTING WIZARD › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317) (16.3s)
-  ✓    5 [mobile-360] › e2e/post-wizard-pricing.spec.ts:380:3 › POSTING WIZARD › PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it (13.0s)
-  ✓    6 [mobile-360] › e2e/post-wizard-resets.spec.ts:372:3 › POSTING WIZARD › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) (16.0s)
+✓   17 [mobile-360] › e2e/post-wizard-pricing.spec.ts:566:3 › POSTING WIZARD › PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081) (12.6s)
+  ✓   18 [mobile-360] › e2e/post-wizard-resets.spec.ts:829:3 › POSTING WIZARD › PW-32 model-dependent details reset on a model change, seller-only details survive, and Undo restores (8.6s)
+  ✓   19 [mobile-360] › e2e/post-wizard-pricing.spec.ts:600:3 › POSTING WIZARD › PW-65 the currency list opens home first and USD second, with symbols (D62-2) (8.3s)
+  ✓   20 [mobile-360] › e2e/post-wizard-resets.spec.ts:957:3 › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332) (7.4s)
+  ✓   21 [mobile-360] › e2e/post-wizard-pricing.spec.ts:634:3 › POSTING WIZARD › PW-66 a pre-D62-2 'negotiable' price type saves step 1 and reaches step 3 with no refusal (INC-309) (5.4s)
+  ✓   22 [mobile-360] › e2e/post-wizard-specs.spec.ts:211:3 › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it (8.3s)
+  ✓   23 [mobile-360] › e2e/post-wizard-pricing.spec.ts:667:3 › POSTING WIZARD › PW-67 a commission basis chosen on step 5 is stored on the draft before the percentage is typed (INC-312) (11.6s)
+  ✓   24 [mobile-360] › e2e/post-wizard-specs.spec.ts:289:3 › POSTING WIZARD › PW-6 the AI assist fills the title and description from the entered details, and both stay editable (10.1s)
+  ✓   25 [mobile-360] › e2e/post-wizard-pricing.spec.ts:688:3 › POSTING WIZARD › PW-68 a Next refused on details does not pin the claim: Back then Next from photos reopens details (INC-315) (10.1s)
 ```
 
 ## shard 4: no results file
@@ -192,15 +222,21 @@ shard 4: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071327293-4-2845-2-0a5ugb@ethio-e2e.invalid)
-  ✓   13 [desktop-1280] › e2e/admin-attributes-import.spec.ts:479:3 › C3 attributes console › AT-21 a changed link commits and the batch undoes (6.7s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071327293-4-2845-2-0a5ugb@ethio-e2e.invalid)
-  ✓   11 [desktop-1280] › e2e/admin-attributes-editor.spec.ts:568:3 › C3 attributes console › AT-47 the editor shows the Number group for a number definition and the Text group for a text one, and saves the v2 cells (15.1s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37071327293-4-2845-3-emr3zl@ethio-e2e.invalid)
-  ✓   15 [desktop-1280] › e2e/admin-attributes-editor.spec.ts:657:3 › C3 attributes console › AT-48 the library's coverage column reads n/N for a select definition (4.2s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37071327293-4-2845-3-emr3zl@ethio-e2e.invalid)
-  ✓   14 [desktop-1280] › e2e/admin-attributes-import.spec.ts:548:3 › C3 attributes console › AT-44 the v2 definition cells commit, export and round-trip unchanged (7.6s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071327293-4-2845-2-0a5ugb@ethio-e2e.invalid)
+✓   22 [desktop-1280] › e2e/admin-attributes-import.spec.ts:1031:3 › C3 attributes console › AT-23 a categories:view-only operator sees no import control and is refused (7.8s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071546597-4-3062-2-i3mgfr@ethio-e2e.invalid)
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+  ✓   24 [desktop-1280] › e2e/admin-attributes-import.spec.ts:1092:3 › C3 attributes console › AT-24 a commit whose bytes changed since the preview is refused (3.8s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071546597-4-3062-2-i3mgfr@ethio-e2e.invalid)
+  ✓   23 [desktop-1280] › e2e/admin-attributes-editor.spec.ts:976:3 › C3 attributes console › AT-52 allowed values round-trip: a file creates an owner and its target together, the import accepts, the export echoes, undo removes (11.6s)
+  ✓   25 [desktop-1280] › e2e/admin-attributes-import.spec.ts:1122:3 › C3 attributes console › AT-25 an invalid option parent is refused (4.7s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071546597-4-3062-2-i3mgfr@ethio-e2e.invalid)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37071546597-4-3062-3-fht0vc@ethio-e2e.invalid)
+```
+
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
 ```
 
 ## shard 5: no results file
@@ -209,15 +245,15 @@ shard 5: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071327293-5-3053-2-rdbxaq@ethio-e2e.invalid)
-  ✓    6 [desktop-1280] › e2e/admin-translations-console.spec.ts:157:3 › U4b translations console › TR-4 scope: a translator outside the language is refused by the SERVER (9.4s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071327293-5-3053-2-rdbxaq@ethio-e2e.invalid)
-  ✓    7 [desktop-1280] › e2e/admin-translations-console.spec.ts:177:3 › U4b translations console › TR-5 filters live in the URL and survive a reload (3.3s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071327293-5-3053-2-rdbxaq@ethio-e2e.invalid)
-  ✓    8 [desktop-1280] › e2e/admin-translations-console.spec.ts:203:3 › U4b translations console › TR-6 coverage gate: empty and incomplete catalogs both refuse publication (4.7s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071327293-5-3053-2-rdbxaq@ethio-e2e.invalid)
-[e2e:l4c] get_my_translator_languages for pooled f4e24d50-7063-48a5-bb5b-8b9f22356a07: []
-  ✓    5 [desktop-1280] › e2e/admin-translations-data.spec.ts:276:3 › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one (26.2s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071546597-5-3043-2-i0xdnq@ethio-e2e.invalid)
+  ✓   20 [desktop-1280] › e2e/admin-translations-console.spec.ts:566:3 › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key (9.7s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071546597-5-3043-2-i0xdnq@ethio-e2e.invalid)
+[e2e:l4c] get_my_translator_languages for pooled fa5176fb-a3da-4e17-bcc9-3060d98c038c: []
+  ✓   21 [desktop-1280] › e2e/admin-translations-console.spec.ts:687:3 › U4b translations console › TR-13 the placeholder validator flags a machine write too (8.7s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37071546597-5-3043-2-i0xdnq@ethio-e2e.invalid)
+[e2e:l4c] get_my_translator_languages for pooled fa5176fb-a3da-4e17-bcc9-3060d98c038c: []
+  ✓   19 [desktop-1280] › e2e/admin-translations-governance.spec.ts:940:3 › U4g bulk approval, order and orphans › TR-32 an import is undoable while nothing has touched the rows (28.0s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37071546597-5-3043-3-6bmnkr@ethio-e2e.invalid)
 ```
 
 ## shard 6: no results file
@@ -225,14 +261,5 @@ shard 5: no results file — the process failed outside test results (setup/tear
 shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
---- final 10 lines ---
-✓    1 [desktop-1280] › e2e/post-wizard-specs.spec.ts:211:3 › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it (11.3s)
-  ✓    2 [desktop-1280] › e2e/post-wizard-resets.spec.ts:204:3 › POSTING WIZARD › PW-26 a category change drops the details the new category never asks, by name (13.1s)
-  ✓    3 [desktop-1280] › e2e/post-wizard-specs.spec.ts:289:3 › POSTING WIZARD › PW-6 the AI assist fills the title and description from the entered details, and both stay editable (13.2s)
-PW-72 bodies: []
-  ✓    4 [desktop-1280] › e2e/post-wizard-resets.spec.ts:316:3 › POSTING WIZARD › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317) (14.7s)
-  ✓    5 [desktop-1280] › e2e/post-wizard-specs.spec.ts:374:3 › POSTING WIZARD › PW-101 a phone number in a free-text answer is refused at its field (8.5s)
-  ✓    6 [desktop-1280] › e2e/post-wizard-resets.spec.ts:372:3 › POSTING WIZARD › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) (12.5s)
-  ✓    7 [desktop-1280] › e2e/post-wizard-specs.spec.ts:407:3 › POSTING WIZARD › PW-93 a number outside its range is refused as it is typed (8.1s)
-  ✓    9 [desktop-1280] › e2e/post-wizard-specs.spec.ts:468:3 › POSTING WIZARD › PW-106 an empty Other write-in is refused and focused on Next (INC-369) (11.3s)
+(no log tail was uploaded for this source)
 ```
