@@ -43,6 +43,18 @@ export function PhoneNumberField({
   /** The seller's own pick (or a +code read) outranks a late default. */
   const pickedRef = useRef(value !== "");
 
+  /** A value set from outside (the last post's contact, Q3) reopens split. */
+  useEffect(() => {
+    if (value === joinPhone(iso, national)) return;
+    if (value === "" && national === "") return;
+    const split = splitPhone(value, iso === "" ? defaultIso : iso);
+    if (value !== "") pickedRef.current = true;
+    setIso(split.iso);
+    setNational(split.national);
+    // Only an outside change of `value` reopens it; typing keeps them equal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
   useEffect(() => {
     if (pickedRef.current || defaultIso === "") return;
     setIso(defaultIso);

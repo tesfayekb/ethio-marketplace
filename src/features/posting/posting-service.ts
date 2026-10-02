@@ -362,6 +362,35 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
 }
 
 /**
+ * Bundle 2 step 15 (Q3) — the contact channels of the seller's last post, read
+ * as `readLastListingPlaces` reads it: the seller's own, past the draft stage
+ * (INC-330), newest first, this draft excluded. `null` when there is none;
+ * a failed read throws (F4), the caller logs it.
+ */
+export async function readLastListingContact(
+  excludeId: string | null,
+): Promise<Record<string, unknown> | null> {
+  const { data: session } = await supabase.auth.getSession();
+  const userId = session.session?.user.id ?? null;
+  if (userId === null) return null;
+  let query = supabase
+    .from("listings")
+    .select("id,contact_pref,created_at")
+    .eq("seller_id", userId)
+    .neq("status", "draft")
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (excludeId !== null) query = query.neq("id", excludeId);
+  const { data, error } = await query.maybeSingle();
+  if (error) throw new Error(error.message);
+  const pref = data?.contact_pref;
+  if (pref === null || pref === undefined || typeof pref !== "object" || Array.isArray(pref)) {
+    return null;
+  }
+  return pref as Record<string, unknown>;
+}
+
+/**
  * U6-C1b — ONE DEFINITION AS THE FORM NEEDS IT.
  *
  * The names are the door's own (`attr_key`, `attr_type`, `min_bound`), carried

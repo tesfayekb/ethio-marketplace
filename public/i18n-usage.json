@@ -4206,6 +4206,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.contactFromLastPost": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.countryConfirmed": [
       "/post",
       "/post/$listingId"

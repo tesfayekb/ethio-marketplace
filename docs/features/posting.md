@@ -1197,3 +1197,7 @@ Each region is a box inside its country box and each city a box inside its regio
 ## Phone country picker (bundle 2 Q1)
 
 Phone and WhatsApp carry a country picker (names from Intl.DisplayNames, codes from `calling-codes.ts`): open markets first, then A–Z. It starts on the home country, else the posting market. Separators and leading zeros are removed; the saved value is `+` code digits; a `+`/`00` number moves the picker to the longest matching code, keeping the current country on a shared code. PW-111.
+
+## Contact carried from the last post (bundle 2 Q3)
+
+A new post whose draft holds no channel value opens the contact step with the channels (values and show switches) of the seller's last own post past the draft stage, written to the draft at once, with a line saying where they came from. A draft with its own channel value is never overwritten. PW-112.

@@ -6,7 +6,12 @@ import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
 import { PhoneNumberField } from "./phone-number-field";
-import { readSellerIdentity, saveIdentity, type SellerIdentity } from "./posting-service";
+import {
+  readLastListingContact,
+  readSellerIdentity,
+  saveIdentity,
+  type SellerIdentity,
+} from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 import { checkChannel } from "./validate";
@@ -80,11 +85,18 @@ function channelOf(
   };
 }
 
+/** Bundle 2 Q3 — whether a draft's contact already holds a channel value. */
+function hasChannelValue(pref: Record<string, unknown>): boolean {
+  return CHANNELS.some((channel) => channelOf(pref, channel).value !== "");
+}
+
 export function StepWho({
+  listingId = null,
   contactPref,
   refusals,
   onChange,
 }: {
+  listingId?: string | null;
   contactPref: Record<string, unknown>;
   refusals: Refusal[];
   onChange: (contactPref: Record<string, unknown>, immediate: boolean) => void;
@@ -151,6 +163,43 @@ export function StepWho({
       cancelled = true;
     };
   }, []);
+
+  /**
+   * Bundle 2 step 15 (Q3) — a new post opens with the channels of the seller's
+   * last post (values and show switches, editable), written to the draft when
+   * the step first opens so a seller who changes nothing publishes with them.
+   * A draft that already holds a channel value is never overwritten.
+   */
+  const [carriedContact, setCarriedContact] = useState(false);
+  const carryAskedRef = useRef(false);
+  const contactRef = useRef(contactPref);
+  contactRef.current = contactPref;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  useEffect(() => {
+    if (carryAskedRef.current) return;
+    carryAskedRef.current = true;
+    if (hasChannelValue(contactRef.current)) return;
+    let cancelled = false;
+    readLastListingContact(listingId)
+      .then((last) => {
+        if (cancelled || last === null || !hasChannelValue(last)) return;
+        if (hasChannelValue(contactRef.current)) return;
+        const next: Record<string, unknown> = { ...contactRef.current, messages: true };
+        for (const channel of CHANNELS) {
+          const entry = channelOf(last, channel);
+          if (entry.value !== "") next[channel] = entry;
+        }
+        onChangeRef.current(next, true);
+        setCarriedContact(true);
+      })
+      .catch((error: unknown) => {
+        console.error("[post-who] last post's contact read failed", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [listingId]);
 
   const commit = useCallback(async (body: Parameters<typeof saveIdentity>[0]) => {
     const answer = await saveIdentity(body);
@@ -481,6 +530,11 @@ export function StepWho({
           <span>{t("post.who.channel.messages")}</span>
         </p>
         <p className="text-xs text-muted-foreground">{t("post.who.messagesAlways")}</p>
+        {carriedContact && (
+          <p className="text-sm text-muted-foreground" data-testid="post-who-contact-carried">
+            {t("post.who.contactFromLastPost")}
+          </p>
+        )}
         {messagesRefusal !== null && (
           <p className="text-sm text-destructive" data-testid="post-who-messages-refusal">
             {t(draftRefusalKey(messagesRefusal.reason))}
