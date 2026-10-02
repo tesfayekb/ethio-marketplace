@@ -10,6 +10,7 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { adminClient, leaseUser } from "./helpers/users";
+import { seedActiveListing } from "./helpers/categories";
 import {
   activeCityOf,
   postRoute,
@@ -399,6 +400,53 @@ test.describe("POSTING WIZARD", () => {
       "month",
     );
     await expect(amountLabel).toContainText("Price per Month");
+  });
+
+  /** INC-375 — a Contact forced by a basis is released when the basis stops forcing it. */
+  test("PW-109 a quote basis forces contact, and a changed basis releases it (INC-375)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, basis } = await basisLeaf();
+    await reachPricingWithBasis(page, user.id, category, basis, "quote");
+    await expect(page.getByTestId("post-price-amount")).toHaveCount(0);
+    await specControl(page, basis.basisKey).selectOption("hourly");
+    await expect(
+      page.getByTestId("post-price-amount"),
+      "PW-109: the forced contact was not released",
+    ).toBeVisible();
+  });
+
+  /** INC-371 — an Other unit is named by the seller's written unit, never "per other". */
+  test("PW-108 an Other basis names the seller's written unit (INC-371)", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const basis = await seedBasisSet(category.id, { withOther: true });
+    specs.push(basis.basisKey, basis.identityKey);
+    await reachPricingWithBasis(page, user.id, category, basis, "other");
+    await page
+      .locator(`[data-testid="post-attr-other"][data-attr="${basis.basisKey}"]`)
+      .fill("Tray");
+    await expect(page.locator('label[for="post-price-amount"]')).toContainText("Price per Tray");
+    await expect(page.getByTestId("post-step-5")).not.toContainText(/per other/i);
+  });
+
+  /** B — a card prints what its price runs per (the listing's own period). */
+  test("PW-94 a listing card prints its price period", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const listingId = await seedActiveListing(category.id, user.id);
+    const { error } = await adminClient()
+      .from("listings")
+      .update({ price_mode: "fixed", price_amount: 500, price_currency: "ETB", price_period: "day" })
+      .eq("id", listingId);
+    if (error) throw new Error(`PW-94: pricing the listing failed: ${error.message}`);
+    await gotoReady(page, `/c/${category.slug}`);
+    const price = page.locator(
+      `[data-testid="listing-card"][data-listing="${listingId}"] [data-testid="listing-card-price"]`,
+    );
+    await expect(price).toHaveAttribute("data-period", "day");
+    await expect(price).toContainText("Per day");
   });
 
   test("PW-57 a per-quintal basis keeps the period once and reviews as a price per quintal", async ({
