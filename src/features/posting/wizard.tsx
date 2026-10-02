@@ -25,6 +25,7 @@ import { StepSpecifications } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
 import { MobileStepStrip } from "./mobile-step-strip";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
+import { answerOtherText } from "./answer-tokens";
 import { basisNoun, basisToken, isUnitOfSaleKey } from "./price-basis";
 import { readPostingSchema, type AttrDef, type PlanCaps } from "./posting-service";
 import { useDraft, type DraftValues } from "./use-draft";
@@ -201,6 +202,13 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     basisValue === null
       ? null
       : (() => {
+          // INC-371 — an Other unit is named by the seller's own written unit.
+          if (basisValue === "other") {
+            const written = answerOtherText(
+              facts?.priceBasisKey != null ? draft.values.attributes[facts.priceBasisKey] : null,
+            ).trim();
+            return written === "" ? null : written;
+          }
           const found = basisOptions?.find((option) => option.value === basisValue);
           // INC-297 — the NOUN, derived once here: templates keep their own "per".
           return found === undefined ? basisValue : basisNoun(optionLabel(found, language));
@@ -813,7 +821,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                                     ? t("post.price.unitNotChosen")
                                     : t("post.price.unitChosenOn").replace(
                                         "{basis}",
-                                        basisLabel ?? basisValue,
+                                        basisLabel ?? (basisValue === "other" ? "…" : basisValue),
                                       )}
                                 </span>
                                 <button
