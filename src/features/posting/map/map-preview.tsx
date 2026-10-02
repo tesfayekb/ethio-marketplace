@@ -75,6 +75,8 @@ export function MapPreview({
           attributionControl: true,
         });
         mapRef.current = map;
+        // Part L — the zoom the preview opened at, readable for PW-96.
+        box.setAttribute("data-zoom", String(map.getZoom()));
         // W6b-2 C2 — the same provider and the same backup as the seller's map.
         const layers = addTileLayers(L, map, plan, "street");
         watchTiles(layers, (reason) => {

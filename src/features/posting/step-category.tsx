@@ -11,7 +11,7 @@ import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { entityName } from "@/i18n/entity";
 import { useI18n } from "@/i18n";
 
-import { useCatalogFinder, useMatchLine, type FinderMatch } from "./catalog-finder";
+import { finderPending, useCatalogFinder, useMatchLine, type FinderMatch } from "./catalog-finder";
 import { RequiredMark } from "./field";
 
 /**
@@ -167,6 +167,7 @@ export function StepCategory({
       : null;
   const hits = finderHits ?? localHits;
   const nameOnly = finder.state === "failed" && finder.term === term.trim();
+  const searching = finderPending(finder, term);
   const level = cursor === null ? rootsOf(tree) : childrenOf(tree, cursor);
   const trail = cursor === null ? [] : pathOf(tree, cursor);
   /**
@@ -281,7 +282,16 @@ export function StepCategory({
                 {t("post.category.nameMatchesOnly")}
               </li>
             )}
-            {hits.length === 0 && (
+            {hits.length === 0 && searching && (
+              <li
+                className="text-sm text-muted-foreground"
+                data-testid="post-category-searching"
+                role="status"
+              >
+                {t("post.category.searching")}
+              </li>
+            )}
+            {hits.length === 0 && !searching && (
               <li className="text-sm text-muted-foreground" data-testid="post-category-nohits">
                 {t("post.category.noHits")}
               </li>

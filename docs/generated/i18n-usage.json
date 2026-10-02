@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 317,
+  "scanned": 318,
   "dynamicCallSites": 202,
   "keys": {
     "account.deactivatedBanner": [
@@ -3413,6 +3413,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.category.searching": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.category.trailLabel": [
       "/post",
       "/post/$listingId"
@@ -3774,6 +3778,10 @@
       "/post/$listingId"
     ],
     "post.refusal.cityRequired": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.refusal.contactInNote": [
       "/post",
       "/post/$listingId"
     ],

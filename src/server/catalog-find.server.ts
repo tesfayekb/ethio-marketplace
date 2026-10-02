@@ -1,7 +1,5 @@
 import { createHash } from "node:crypto";
 
-import { createClient } from "@supabase/supabase-js";
-
 import type { Database } from "@/integrations/supabase/types";
 import { isE2E } from "@/lib/env-flags";
 
@@ -23,13 +21,6 @@ export interface CatalogFindAnswer {
   timing: CatalogFindTiming;
 }
 
-interface CacheEntry {
-  expiresAt: number;
-  rows: CatalogFindRow[];
-}
-
-const cache = new Map<string, CacheEntry>();
-
 export function clientAddress(request: Request): string {
   const testKey = request.headers.get("x-e2e-catalog-find-key")?.trim();
   if (isE2E && testKey) return `e2e:${testKey}`;
@@ -41,28 +32,9 @@ export function hashAddress(address: string): string {
   return createHash("sha256").update(address).digest("hex");
 }
 
-function publicClient() {
-  const url = process.env["SUPABASE_URL"] ?? "";
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
-  if (url === "" || key === "") throw new Error("supabase server env missing");
-  return createClient<Database>(url, key, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
-}
-
 async function adminClient() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
-}
-
-export async function consumeCatalogFindRate(request: Request): Promise<boolean> {
-  const client = await adminClient();
-  const { data, error } = await client.rpc("consume_catalog_find_rate", {
-    p_key: hashAddress(clientAddress(request)),
-    p_limit: isE2E ? 2 : CATALOG_FIND_LIMIT,
-  });
-  if (error) throw new Error(`catalog finder rate: ${error.message}`);
-  return (data as { allowed?: unknown } | null)?.allowed === true;
 }
 
 export function withinBudget(rows: CatalogFindRow[]): CatalogFindRow[] {
@@ -77,29 +49,45 @@ export function withinBudget(rows: CatalogFindRow[]): CatalogFindRow[] {
   return kept;
 }
 
-export async function catalogFind(query: string, lang: string): Promise<CatalogFindAnswer> {
-  const client = publicClient();
-  const versionStarted = performance.now();
-  const versionAnswer = await client.rpc("catalog_find_version");
-  if (versionAnswer.error)
-    throw new Error(`catalog finder version: ${versionAnswer.error.message}`);
-  const versionMs = performance.now() - versionStarted;
-  const version = String(versionAnswer.data ?? "");
-  const key = `${version}\u0000${lang}\u0000${query.toLocaleLowerCase()}`;
-  const held = cache.get(key);
-  if (held && held.expiresAt > Date.now()) {
-    return { rows: held.rows, timing: { version: versionMs, find: 0, rebuild: 0 } };
-  }
+/**
+ * S2 — one round trip per search: `catalog_search` runs the rate check, reads
+ * the catalogue version and answers from the CURRENT index in one call. It
+ * never rebuilds (INC-273); rebuilds happen after a catalogue commit
+ * (`refreshCatalogFindAfterCommit`) or in the hourly sweep.
+ */
+export async function catalogSearch(
+  request: Request,
+  query: string,
+  lang: string,
+): Promise<CatalogFindAnswer | null> {
+  const client = await adminClient();
+  const started = performance.now();
+  const { data, error } = await client.rpc("catalog_search", {
+    q: query,
+    lang,
+    lim: CATALOG_FIND_MAX_ROWS,
+    p_rate_key: hashAddress(clientAddress(request)),
+    p_rate_limit: isE2E ? 2 : CATALOG_FIND_LIMIT,
+  });
+  if (error) throw new Error(`catalog search: ${error.message}`);
+  const searchMs = performance.now() - started;
+  const answer = (data ?? {}) as { allowed?: unknown; rows?: unknown };
+  if (answer.allowed !== true) return null;
+  const rows = withinBudget(Array.isArray(answer.rows) ? (answer.rows as CatalogFindRow[]) : []);
+  return { rows, timing: { version: 0, find: searchMs, rebuild: 0 } };
+}
 
-  const findStarted = performance.now();
-  const answer = await client.rpc("catalog_find", { q: query, lang, lim: CATALOG_FIND_MAX_ROWS });
-  if (answer.error) throw new Error(`catalog finder: ${answer.error.message}`);
-  const findMs = performance.now() - findStarted;
-  const rows = withinBudget(answer.data ?? []);
-  cache.set(key, { rows, expiresAt: Date.now() + CATALOG_FIND_TTL_MS });
-  if (cache.size > 256) cache.delete(cache.keys().next().value ?? "");
-  // The current RPC may rebuild internally as a fallback. Its public contract
-  // cannot expose that sub-duration, so this stage remains explicit and zero
-  // until the S2 door separates refresh from lookup.
-  return { rows, timing: { version: versionMs, find: findMs, rebuild: 0 } };
+/**
+ * Called ONCE by a server path after its catalogue commit has returned — never
+ * inside that transaction. A failed refresh is logged; the commit stands and
+ * the hourly sweep catches the index up.
+ */
+export async function refreshCatalogFindAfterCommit(path: string): Promise<void> {
+  try {
+    const client = await adminClient();
+    const { error } = await client.rpc("catalog_find_refresh", { p_force: false });
+    if (error) console.error(`[ssr-error] ${path} catalog_find_refresh: ${error.message}`);
+  } catch (error) {
+    console.error(`[ssr-error] ${path} catalog_find_refresh: ${String(error)}`);
+  }
 }

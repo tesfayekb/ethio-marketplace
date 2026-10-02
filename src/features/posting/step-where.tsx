@@ -23,6 +23,7 @@ import {
   type LastPlaces,
 } from "./posting-service";
 import { RequiredMark } from "./field";
+import { looksLikeContact } from "./contact-like";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { PinPlace, PinValue } from "./map/map-pin-dropper";
 import { DETAILS_MAX, sanitizeDetails } from "./map/location-details";
@@ -570,7 +571,9 @@ export function StepWhere({
    * columns as they are. The door caps it at 200 and is the authority (F3).
    */
   const [note, setNote] = useState<string>(pin?.street ?? "");
-  const [noteState, setNoteState] = useState<"idle" | "busy" | "saved" | "failed" | "long">("idle");
+  const [noteState, setNoteState] = useState<
+    "idle" | "busy" | "saved" | "failed" | "long" | "contact"
+  >("idle");
   const [pinState, setPinState] = useState<"idle" | "saved" | "removed" | "failed">("idle");
   const noteRead = useRef(false);
   useEffect(() => {
@@ -1296,11 +1299,13 @@ export function StepWhere({
             id="post-where-details"
             data-testid="post-where-details"
             className={fieldClass}
+            aria-invalid={noteState === "contact" || noteState === "long" ? true : undefined}
             value={note}
             disabled={listingId === null}
             onChange={(event) => {
               setNote(event.target.value);
-              setNoteState("idle");
+              // Part D — flagged as typed; the door stays the authority (F3).
+              setNoteState(looksLikeContact(event.target.value) ? "contact" : "idle");
             }}
             onBlur={() => {
               if (listingId === null) return;
@@ -1309,9 +1314,14 @@ export function StepWhere({
                 setNoteState("long");
                 return;
               }
+              if (looksLikeContact(clean)) {
+                setNoteState("contact");
+                return;
+              }
               setNoteState("busy");
-              void saveListingNote(listingId, clean === "" ? null : clean, pin).then((ok) => {
-                setNoteState(ok ? "saved" : "failed");
+              void saveListingNote(listingId, clean === "" ? null : clean, pin).then((answer) => {
+                const ok = answer === "saved";
+                setNoteState(answer === "contactInNote" ? "contact" : answer);
                 if (ok && pin !== null)
                   onPinSaved?.({ ...pin, street: clean === "" ? null : clean });
               });
@@ -1330,6 +1340,15 @@ export function StepWhere({
               data-testid="post-where-details-long"
             >
               {fill(t("post.where.detailsTooLong"), { max: DETAILS_MAX })}
+            </p>
+          )}
+          {noteState === "contact" && (
+            <p
+              className="text-xs text-destructive"
+              role="alert"
+              data-testid="post-where-details-contact"
+            >
+              {t("post.refusal.contactInNote")}
             </p>
           )}
           {noteState === "failed" && (
