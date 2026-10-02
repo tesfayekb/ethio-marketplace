@@ -38,5 +38,7 @@ export function validateIcon(candidate: unknown): string {
 export function checkIcon(candidate: unknown): { icon: string; fallback: boolean } {
   if (typeof candidate !== "string") return { icon: FALLBACK_ICON, fallback: true };
   const listed = NORMALISED.get(candidate.trim().toLowerCase());
-  return listed === undefined ? { icon: FALLBACK_ICON, fallback: true } : { icon: listed, fallback: false };
+  return listed === undefined
+    ? { icon: FALLBACK_ICON, fallback: true }
+    : { icon: listed, fallback: false };
 }

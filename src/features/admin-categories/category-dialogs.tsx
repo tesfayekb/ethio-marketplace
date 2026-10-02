@@ -343,7 +343,10 @@ export function CategoryEditorDialog({
             positionEndLabel={positionEndLabel}
             positionCaption={positionCaption}
             onChange={(next) => {
-              if (next.icon !== undefined) iconTouched.current = true;
+              if (next.icon !== undefined) {
+                iconTouched.current = true;
+                setIconFallback(false);
+              }
               patch(next);
             }}
           />
