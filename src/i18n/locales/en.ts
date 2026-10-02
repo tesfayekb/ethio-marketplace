@@ -2160,6 +2160,7 @@ export const en = {
   "post.who.phoneCountryLabel": "Country code",
   "post.who.phoneCountryOption": "{name} +{code}",
   "post.who.messagesAlways": "Messages stay on — a buyer must be able to reach you.",
+  "post.who.contactFromLastPost": "From your last post — change anything here.",
   "post.who.showIt": "Show it on the listing",
   "post.who.countryLabel": "Your home country",
   "post.who.countryHint": "Where you live. This is asked once.",

@@ -867,6 +867,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                       )}
                       {draft.step === 7 && (
                         <StepWho
+                          listingId={draft.listingId}
                           contactPref={draft.values.contactPref}
                           refusals={draft.refusals}
                           onChange={(contactPref, immediate) =>

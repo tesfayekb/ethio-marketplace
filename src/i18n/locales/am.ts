@@ -2065,6 +2065,7 @@ export const am: Messages = {
   "post.who.phoneCountryLabel": "የአገር ኮድ",
   "post.who.phoneCountryOption": "{name} +{code}",
   "post.who.messagesAlways": "መልዕክቶች ሁሌም ክፍት ናቸው — ገዢ ማግኘት መቻል አለበት።",
+  "post.who.contactFromLastPost": "ከመጨረሻው ማስታወቂያዎ የተወሰደ — እዚህ መቀየር ይችላሉ።",
   "post.who.showIt": "በዝርዝሩ ላይ ይታይ",
   "post.who.countryLabel": "የሚኖሩበት አገር",
   "post.who.countryHint": "የሚኖሩበት። አንድ ጊዜ ብቻ ይጠየቃል።",
