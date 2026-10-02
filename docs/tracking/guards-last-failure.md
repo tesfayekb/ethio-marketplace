@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37075776773
-- Commit: `50aa46acb1b9a454af4b819badcedf61cf85dfc8`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37076355565
+- Commit: `261760e9aae01addb6d219c264f2ea8be26739c7`
 - Attempt: 1
-- Written (UTC): 2026-10-02T23:12:41.628Z
+- Written (UTC): 2026-10-02T23:20:15.646Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -32,10 +32,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37075776773
-  E2E_HEAD_COMMIT_MESSAGE: Added optional loc & country picker
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37076355565
+  E2E_HEAD_COMMIT_MESSAGE: Added icon fallback note
 
-X-Lovable-Edit-ID: edt-81dcd131-b446-40e3-b4d1-8d8216a34ac9
+X-Lovable-Edit-ID: edt-36ad80b0-528c-429d-a851-ab4625fcf659
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -69,7 +69,7 @@ smoke=cancelled email=success shards=cancelled
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/d61213e5-1855-436a-affe-d3bc48078e81' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/edb8e0a8-54c5-4b38-8b98-7c0a42dcf225' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
