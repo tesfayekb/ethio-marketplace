@@ -25,3 +25,9 @@ The marketplace landing must consume the returned `leaf_id` plus `matches` attri
 ## Operations
 
 `catalog_find_rebuild()` is the administrative repair door. It forces a serialized rebuild. Normal freshness comes from the lazy rebuild on the first stale read; a rebuild never runs inside, or fails, a catalog save. Never wire an index rebuild into a write path.
+
+## S2 / S3 (2026-10-02)
+
+- A search makes one database call, `catalog_search` (rate check, version, rows), and never rebuilds the index.
+- The category and attribute import routes call `catalog_find_refresh(false)` once after a commit or undo returns. Admin category and attribute saves and entity-translation approvals are browser calls; the hourly sweep catches them up.
+- While the finder has not answered for the current term, the category step shows the searching row, never "Nothing matched".

@@ -4,7 +4,7 @@
 - [ ] S1
 - [x] DEC-099 / INC-380 — pool resets by census (map + guard)
 - [x] INC-379 — reference-row helpers exclude scratch rows, fixed order
-- [ ] Bundle 1 (D+L+M app side, S2/S3, A, B, Part O, INC-371, INC-375) — item 1 + PW-96 done; items 2–8 open
+- [ ] Bundle 1 (D+L+M app side, S2/S3, A, B, Part O, INC-371, INC-375) — items 1–5 done (PW-96, PW-101, PR-19, PW-105, PW-93); items 6–8 open; S2 timing p95 needs a server-side measurement
 - [ ] S2 / S3
 - [ ] T (with T4 / DEC-095)
 - [ ] A
