@@ -288,3 +288,67 @@ describe("StepWhere — the ad's places and the item tick (W6b-1)", () => {
     expect(primaryBox()).toHaveAttribute("data-empty", "0");
   });
 });
+
+/**
+ * Bundle 2 P2/P3 (PW-110) — each add control sits inside the box it adds a child
+ * to, below that box's children, never inside a box it adds a sibling of; the
+ * marker sits on its own lower line of the city box, with Remove at its end.
+ */
+describe("StepWhere — where the add controls and the marker sit (bundle 2 P2/P3)", () => {
+  const following = (later: Element, earlier: Element) =>
+    Boolean(earlier.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+  it("PW-110 Add region closes the country box, below its region boxes, outside every region box", async () => {
+    await mount();
+    const country = primaryBox();
+    const addRegion = within(country).getByTestId("post-where-add-region");
+    expect(addRegion.closest('[data-testid="post-where-region-box"]')).toBeNull();
+    const regions = within(country).getAllByTestId("post-where-region-box");
+    expect(following(addRegion, regions.at(-1)!)).toBe(true);
+    fireEvent.click(addRegion);
+    const after = within(primaryBox()).getAllByTestId("post-where-region-box");
+    expect(after.length).toBe(regions.length + 1);
+    const moved = within(primaryBox()).getByTestId("post-where-add-region");
+    expect(moved.closest('[data-testid="post-where-region-box"]')).toBeNull();
+    expect(following(moved, after.at(-1)!)).toBe(true);
+  });
+
+  it("PW-110 Add city sits in its region box below its city boxes, outside every city box", async () => {
+    await mount();
+    const region = document.querySelector<HTMLElement>(
+      '[data-testid="post-where-region-box"][data-region="r1"]',
+    )!;
+    fireEvent.click(within(region).getByTestId("post-where-add-city"));
+    const addCity = within(region).getByTestId("post-where-add-city");
+    expect(addCity.closest('[data-testid="post-where-row"]')).toBeNull();
+    const rows = within(region).getAllByTestId("post-where-row");
+    expect(following(addCity, rows.at(-1)!)).toBe(true);
+  });
+
+  it("PW-110 Add country sits below the country boxes, outside every country box", async () => {
+    await mount();
+    const addCountry = screen.getByTestId("post-where-add-country");
+    expect(addCountry.closest('[data-testid="post-where-country-box"]')).toBeNull();
+    const boxes = screen.getAllByTestId("post-where-country-box");
+    expect(following(addCountry, boxes.at(-1)!)).toBe(true);
+  });
+
+  it("PW-110 the marker has its own line under the city, and Remove ends that line", async () => {
+    await mount();
+    const region = document.querySelector<HTMLElement>(
+      '[data-testid="post-where-region-box"][data-region="r1"]',
+    )!;
+    fireEvent.click(within(region).getByTestId("post-where-add-city"));
+    for (const row of within(region).getAllByTestId("post-where-row")) {
+      const line = within(row).getByTestId("post-where-item-line");
+      const tick = within(line).getByTestId("post-where-item-tick");
+      const city = within(row).queryByRole("combobox");
+      if (city !== null) {
+        expect(city.closest('[data-testid="post-where-item-line"]')).toBeNull();
+        expect(following(line, city)).toBe(true);
+      }
+      expect(tick).toBeTruthy();
+      expect(line.lastElementChild).toHaveAttribute("data-testid", "post-where-remove");
+    }
+  });
+});

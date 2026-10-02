@@ -1,7 +1,7 @@
 import type { Browser, Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
-import { gotoReady, settled, signInViaSession } from "./helpers/ui";
+import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { adminClient, leaseUser } from "./helpers/users";
 import {
@@ -769,82 +769,6 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow, "PW-99: the page scrolls sideways at 360").toBeLessThanOrEqual(0);
-  });
-
-  /**
-   * PW-110 — Bundle 2 P2/P3. Each add control sits inside the box it adds a child
-   * to, below that box's children, never inside a box it adds a sibling of; the
-   * marker line of a city box ends with Remove.
-   */
-  test("PW-110 add controls sit below the boxes they add to; Remove ends the marker line", async ({
-    page,
-  }) => {
-    const user = await signedInSeller(page);
-    const category = await seedPostableCategory();
-    categories.push(category.slug);
-    const chain = await seedScratchChain("ET");
-    places.push(chain.region.slug);
-    await waitForTreeSlug(page, "ET", chain.city.slug);
-    await openAtStep6(page, user.id, category.id);
-    const region = page.getByTestId("post-where-region");
-    await expect(region.locator(`option[value="${chain.region.id}"]`)).toHaveCount(1, {
-      timeout: 20_000,
-    });
-    await region.selectOption(chain.region.id);
-    await page.getByTestId("post-where-city").selectOption(chain.city.id);
-
-    const addCity = page.locator(
-      `[data-testid="post-where-add-city"][data-region="${chain.region.id}"]`,
-    );
-    if ((await addCity.count()) === 0) test.skip(true, "PW-110: the plan offers no second city");
-    await addCity.click();
-    await settled(page);
-
-    const shape = await page
-      .locator('[data-testid="post-where-country-box"][data-primary="1"]')
-      .evaluate((country) => {
-        const addRegion = country.querySelector('[data-testid="post-where-add-region"]');
-        const regionBoxes = [...country.querySelectorAll('[data-testid="post-where-region-box"]')];
-        const regionBox = regionBoxes[0] ?? null;
-        const addCityEl = regionBox?.querySelector('[data-testid="post-where-add-city"]') ?? null;
-        const cityBoxes = regionBox
-          ? [...regionBox.querySelectorAll('[data-testid="post-where-row"]')]
-          : [];
-        const addCountry = document.querySelector('[data-testid="post-where-add-country"]');
-        const after = (a: Element | null, b: Element | null) =>
-          a !== null &&
-          b !== null &&
-          !!(b.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);
-        const line = cityBoxes[0]?.querySelector('[data-testid="post-where-item-line"]') ?? null;
-        const lastInLine = line?.lastElementChild ?? null;
-        return {
-          addRegionInRegion:
-            addRegion !== null &&
-            addRegion.closest('[data-testid="post-where-region-box"]') !== null,
-          addRegionAfterRegions: addRegion === null || after(addRegion, regionBoxes.at(-1) ?? null),
-          addCityInCity:
-            addCityEl !== null && addCityEl.closest('[data-testid="post-where-row"]') !== null,
-          addCityAfterCities: addCityEl === null || after(addCityEl, cityBoxes.at(-1) ?? null),
-          addCountryInCountry:
-            addCountry !== null &&
-            addCountry.closest('[data-testid="post-where-country-box"]') !== null,
-          cities: cityBoxes.length,
-          lineEndsWithRemove: lastInLine?.getAttribute("data-testid") === "post-where-remove",
-          tickInLine:
-            line?.querySelector('[data-testid="post-where-item-tick"]') !== null && line !== null,
-        };
-      });
-    console.log(`[PW-110] ${JSON.stringify(shape)}`);
-    expect(shape.addRegionInRegion, "PW-110: Add region sits inside a region box").toBe(false);
-    expect(shape.addRegionAfterRegions, "PW-110: Add region is not below the region boxes").toBe(
-      true,
-    );
-    expect(shape.addCityInCity, "PW-110: Add city sits inside a city box").toBe(false);
-    expect(shape.addCityAfterCities, "PW-110: Add city is not below the city boxes").toBe(true);
-    expect(shape.addCountryInCountry, "PW-110: Add country sits inside a country box").toBe(false);
-    expect(shape.cities, "PW-110: the second city box did not open").toBe(2);
-    expect(shape.tickInLine, "PW-110: the marker is not on its own line").toBe(true);
-    expect(shape.lineEndsWithRemove, "PW-110: Remove does not end the marker line").toBe(true);
   });
 
   /**
