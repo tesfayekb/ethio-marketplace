@@ -431,6 +431,86 @@ test.describe("POSTING WIZARD", () => {
     await expect(refusal, "PW-93: 5 is inside the range").toHaveCount(0);
   });
 
+  /** Part O — a scratch single and multi choice, each offering an Other option. */
+  async function seedOtherPair(categoryId: string) {
+    const info = test.info();
+    const stem = `e2e_oth_${info.project.name.replace(/\W/g, "")}_${info.workerIndex}_${Date.now()}`;
+    const options = [`${stem}_a`, "other"].map((value) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+      active: true,
+    }));
+    const supabase = adminClient();
+    const keys = { single: `${stem}_one`, multi: `${stem}_many` };
+    const { data, error } = await supabase
+      .from("attributes")
+      .insert([
+        { attr_key: keys.single, name_en: `${stem} one`, attr_type: "single_select", options },
+        { attr_key: keys.multi, name_en: `${stem} many`, attr_type: "multi_select", options },
+      ])
+      .select("id, attr_key");
+    if (error || !data) throw new Error(`Part O: seeding failed: ${error?.message ?? "no rows"}`);
+    specs.push(keys.single, keys.multi);
+    const idOf = (key: string) => data.find((row) => row.attr_key === key)!.id;
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      { category_id: categoryId, attribute_id: idOf(keys.single), display_order: 1 },
+      { category_id: categoryId, attribute_id: idOf(keys.multi), display_order: 2 },
+    ]);
+    if (linkError) throw new Error(`Part O: linking failed: ${linkError.message}`);
+    return keys;
+  }
+
+  const otherBox = (page: Page, attrKey: string) =>
+    page.locator(`[data-testid="post-attr-other"][data-attr="${attrKey}"]`);
+
+  /** INC-369 — an empty Other write-in is red and takes focus on Next, single and multi. */
+  test("PW-106 an empty Other write-in is refused and focused on Next (INC-369)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const keys = await seedOtherPair(category.id);
+    await reachStep3(page, user.id, category);
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${keys.single}"]`)
+      .selectOption("other");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await expect(otherBox(page, keys.single), "PW-106: single Other not focused").toBeFocused();
+    await expect(otherBox(page, keys.single)).toHaveAttribute("aria-invalid", "true");
+
+    await otherBox(page, keys.single).fill("teff");
+    const checks = page.locator(`[data-testid="post-attr-checks"][data-attr="${keys.multi}"]`);
+    await checks.locator('[data-testid="post-attr-check"][data-value="other"]').check();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await expect(otherBox(page, keys.multi), "PW-106: multi Other not focused").toBeFocused();
+    await expect(otherBox(page, keys.multi)).toHaveAttribute("aria-invalid", "true");
+  });
+
+  /** INC-370 — a multi-choice Other gets a write-in box and its text reaches the draft. */
+  test("PW-107 a multi-choice Other carries its write-in to the draft (INC-370)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const keys = await seedOtherPair(category.id);
+    const listingId = await reachStep3(page, user.id, category);
+    const checks = page.locator(`[data-testid="post-attr-checks"][data-attr="${keys.multi}"]`);
+    await checks
+      .locator(`[data-testid="post-attr-check"][data-value="${keys.single.replace("_one", "_a")}"]`)
+      .check();
+    await expect(otherBox(page, keys.multi)).toHaveCount(0);
+    await checks.locator('[data-testid="post-attr-check"][data-value="other"]').check();
+    await otherBox(page, keys.multi).fill("barley");
+    await expect
+      .poll(async () => (await attributesOf(listingId))[keys.multi], {
+        message: "PW-107: the write-in never reached the draft",
+      })
+      .toEqual([keys.single.replace("_one", "_a"), { value: "other", text: "barley" }]);
+  });
+
   test("PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320)", async ({
     page,
   }) => {

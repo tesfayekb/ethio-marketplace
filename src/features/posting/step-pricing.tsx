@@ -175,8 +175,12 @@ export function StepPricing({
     onChange({ pricePeriod: facts.defaultPricePeriod }, false);
   }, [facts, derivedPeriod, values.pricePeriod, onChange]);
 
+  /** INC-375 — the type a basis last forced; released when the basis stops forcing it. */
+  const forcedBefore = useRef(forcedMode);
   /** A forced type is written as an ordinary change, clearing what it forbids. */
   useEffect(() => {
+    const previous = forcedBefore.current;
+    forcedBefore.current = forcedMode;
     if (forcedMode !== null && values.priceMode !== forcedMode) {
       onChange(
         {
@@ -191,6 +195,8 @@ export function StepPricing({
       );
     } else if (forcedMode === null && values.priceMode === "commission") {
       onChange({ priceMode: "fixed", priceBp: null }, false);
+    } else if (forcedMode === null && previous === "contact" && values.priceMode === "contact") {
+      onChange({ priceMode: "fixed" }, false);
     }
   }, [forcedMode, values.priceMode, onChange]);
 

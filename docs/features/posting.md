@@ -1182,3 +1182,10 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 
 - Free-text answers (no preset, or a `free:` preset) and the location details are checked as typed by `contact-like.ts`, the one client mirror of `attr_contact_like`; identity presets are never checked. The door's refusal (`contactInText`, `contactInNote`) is the authority.
 - A number answer outside its definition's own range is refused as typed with `outOfBounds`; option-narrowed ranges keep the model wording.
+
+## Bundle 1 items 6–8 (2026-10-02)
+
+- Cards print the listing's `price_period` with the preview's period keys; the feed read selects the column in its one query. A unit noun (per kg) on the card needs the basis label server-side and rides bundle 2.
+- Choice answers are read through `answer-tokens.ts` only (Part O). A multi-choice Other is stored `{ value: "other", text }` inside the array, bare `"other"` while empty.
+- An `otherNeedsText` refusal moves the field's id to the write-in, so Next focuses it (single and multi).
+- INC-375 releases a forced Contact only when the basis changes while the price step is open; a goods basis changed on step 3 cannot tell a forced Contact from a chosen one without a stored flag.

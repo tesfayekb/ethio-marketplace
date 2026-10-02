@@ -9,6 +9,7 @@ import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches"
 import { Field, controlClass } from "./field";
 import { readPostingSchema, type AttrDef, type PostingSchema } from "./posting-service";
 import { contactRuleApplies, looksLikeContact } from "./contact-like";
+import { answerOtherText, answerTokens, multiAnswer } from "./answer-tokens";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 
@@ -83,10 +84,9 @@ function otherText(raw: unknown): string {
   return "";
 }
 
+/** Part O — the tokens of a multi-choice answer, Other included (one reader). */
 function chosenList(raw: unknown): string[] {
-  return Array.isArray(raw)
-    ? raw.filter((entry): entry is string => typeof entry === "string")
-    : [];
+  return Array.isArray(raw) ? answerTokens(raw) : [];
 }
 
 /**
@@ -1279,6 +1279,8 @@ export function StepSpecifications({
     const held = options[def.attrKey] ?? IDLE;
     const refusal = refusalFor(seen, def.attrKey);
     const controlId = `post-attr-${def.attrKey}`;
+    /** INC-369 — an owed Other write-in takes the field's id, so Next focuses it. */
+    const otherOwed = refusal?.reason === "otherNeedsText";
     const value = values[def.attrKey];
     const chosen = selectedValue(value);
     const shown = visibleOptionsOf(def);
@@ -1520,7 +1522,7 @@ export function StepSpecifications({
 
             {def.attrType === "single_select" && !settledOther && (
               <select
-                id={controlId}
+                id={otherOwed && chosen === "other" ? undefined : controlId}
                 data-testid="post-attr-control"
                 data-attr={def.attrKey}
                 data-options={held.state}
@@ -1617,8 +1619,9 @@ export function StepSpecifications({
 
             {def.attrType === "single_select" && chosen === "other" && (
               <input
-                id={settledOther ? controlId : undefined}
+                id={settledOther || otherOwed ? controlId : undefined}
                 data-settled={settledOther ? "1" : "0"}
+                aria-invalid={otherOwed ? true : undefined}
                 data-testid="post-attr-other"
                 data-attr={def.attrKey}
                 className={ctrl}
@@ -1666,10 +1669,13 @@ export function StepSpecifications({
                           onChange={(event) =>
                             write(
                               def.attrKey,
-                              event.target.checked
-                                ? [...list, option.value]
-                                : list.filter((entry) => entry !== option.value),
-                              true,
+                              multiAnswer(
+                                event.target.checked
+                                  ? [...list, option.value]
+                                  : list.filter((entry) => entry !== option.value),
+                                answerOtherText(value),
+                              ),
+                              option.value !== "other",
                             )
                           }
                         />
@@ -1679,6 +1685,23 @@ export function StepSpecifications({
                   );
                 })}
               </ul>
+            )}
+
+            {/* INC-370 — a multi-choice Other gets its own write-in box. */}
+            {def.attrType === "multi_select" && chosenList(value).includes("other") && (
+              <input
+                id={otherOwed ? controlId : undefined}
+                aria-invalid={otherOwed ? true : undefined}
+                data-testid="post-attr-other"
+                data-attr={def.attrKey}
+                className={ctrl}
+                value={answerOtherText(value)}
+                maxLength={120}
+                placeholder={t("post.specs.otherPlaceholder")}
+                onChange={(event) =>
+                  write(def.attrKey, multiAnswer(chosenList(value), event.target.value))
+                }
+              />
             )}
 
             {/* INC-244 — a locked answer says whose answer it is. */}
