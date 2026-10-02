@@ -89,6 +89,8 @@ export interface DraftPin {
   lng: number;
   precision: string;
   street: string | null;
+  /** Part L — the zoom the seller left the dropper at; null when unknown. */
+  zoom?: number | null;
 }
 
 export interface UseDraft {
@@ -564,6 +566,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
                 lng: found.draft.pinLng,
                 precision: found.draft.pinPrecision ?? "exact",
                 street: found.draft.streetAddress,
+                zoom: found.draft.pinZoom,
               },
         );
         // D39 — open at the first UNFINISHED step of the walk (photos count as

@@ -422,6 +422,7 @@ export function StepReview({
             pinLat: pin?.lat ?? null,
             pinLng: pin?.lng ?? null,
             pinPrecision: pin?.precision ?? null,
+            pinZoom: pin?.zoom ?? null,
           }}
         />
       )}

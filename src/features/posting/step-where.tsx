@@ -1228,7 +1228,12 @@ export function StepWhere({
             {pin !== null && !pinOpen && (
               <div data-testid="post-where-pin-preview">
                 <Suspense fallback={null}>
-                  <MapPreview lat={pin.lat} lng={pin.lng} precision={pin.precision ?? null} />
+                  <MapPreview
+                    lat={pin.lat}
+                    lng={pin.lng}
+                    precision={pin.precision ?? null}
+                    zoom={pin.zoom ?? null}
+                  />
                 </Suspense>
               </div>
             )}
@@ -1267,6 +1272,7 @@ export function StepWhere({
                       value.lng,
                       value.precision,
                       street === "" ? null : street,
+                      value.zoom,
                     );
                     if (ok) {
                       onPinSaved?.({ ...value, street: street === "" ? null : street });

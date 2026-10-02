@@ -63,6 +63,7 @@ export interface PinValue {
   lng: number;
   precision: string;
   street: string | null;
+  zoom?: number | null;
 }
 
 /** The ticked place the map opens on. */
@@ -87,7 +88,7 @@ export function MapPinDropper({
   /** The location details (B3) — one value, also shown in the step's own box. */
   note: string;
   onNote: (note: string) => void;
-  onSave: (value: { lat: number; lng: number; precision: string }) => Promise<boolean>;
+  onSave: (value: { lat: number; lng: number; precision: string; zoom: number }) => Promise<boolean>;
   onClose: () => void;
 }) {
   const { t } = useI18n();
@@ -188,7 +189,7 @@ export function MapPinDropper({
           // INC-354 — the credit is drawn below the map, never under a control bar.
           attributionControl: false,
           center: saved === null ? fallbackCentre : [saved.lat, saved.lng],
-          zoom: saved === null ? (place.level === "sub_city" ? 16 : 14) : 16,
+          zoom: saved === null ? (place.level === "sub_city" ? 16 : 14) : (saved.zoom ?? 16),
         });
         mapRef.current = map;
         drawTiles("street");
@@ -304,7 +305,8 @@ export function MapPinDropper({
   async function save() {
     if (position === null) return;
     setState("busy");
-    const ok = await onSave({ lat: position.lat, lng: position.lng, precision });
+    const zoom = Math.min(20, Math.max(3, Math.round(mapRef.current?.getZoom() ?? 16)));
+    const ok = await onSave({ lat: position.lat, lng: position.lng, precision, zoom });
     setState(ok ? "idle" : "failed");
   }
 

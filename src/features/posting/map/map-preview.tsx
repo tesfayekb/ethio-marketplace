@@ -40,11 +40,14 @@ export function MapPreview({
   lat,
   lng,
   precision,
+  zoom = null,
 }: {
   lat: number;
   lng: number;
   precision: string | null;
-}) {
+  /** Part L — the saved zoom for an exact pin; an approximate pin keeps 13 (privacy). */
+  zoom?: number | null;
+})  {
   const { t } = useI18n();
   const boxRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
@@ -61,7 +64,7 @@ export function MapPreview({
         const centre: [number, number] = approx ? [snap(lat), snap(lng)] : [lat, lng];
         const map = L.map(box, {
           center: centre,
-          zoom: approx ? 13 : 16,
+          zoom: approx ? 13 : (zoom ?? 16),
           dragging: false,
           zoomControl: false,
           scrollWheelZoom: false,
@@ -95,7 +98,7 @@ export function MapPreview({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [lat, lng, approx]);
+  }, [lat, lng, approx, zoom]);
 
   return (
     <div className="space-y-1">

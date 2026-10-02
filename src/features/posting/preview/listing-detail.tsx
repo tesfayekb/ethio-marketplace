@@ -95,6 +95,8 @@ export interface ListingDetailView {
   pinLat?: number | null;
   pinLng?: number | null;
   pinPrecision?: string | null;
+  /** Part L — the saved zoom; an approximate pin ignores it. */
+  pinZoom?: number | null;
 }
 
 export function ListingDetail(view: ListingDetailView) {
@@ -311,6 +313,7 @@ export function ListingDetail(view: ListingDetailView) {
               lat={view.pinLat}
               lng={view.pinLng}
               precision={view.pinPrecision ?? "exact"}
+              zoom={view.pinZoom ?? null}
             />
           </Suspense>
         ) : (
