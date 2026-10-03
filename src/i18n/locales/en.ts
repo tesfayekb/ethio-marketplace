@@ -2252,6 +2252,11 @@ export const en = {
   "post.where.detailsSaved": "Location details saved.",
   "post.where.detailsTooLong": "Keep the location details to {max} characters.",
   "post.where.detailsFailed": "The location details were not saved. Try again.",
+  "post.where.directionsLabel": "Directions (optional)",
+  "post.where.directionsHelp": "Suite, floor or a landmark nearby. No phone numbers.",
+  "post.where.directionsSaved": "Directions saved.",
+  "post.where.directionsTooLong": "Keep the directions to {max} characters.",
+  "post.where.directionsFailed": "The directions were not saved. Try again.",
   // W6 (INC-337, R1/R4) — new keys.
   "post.refusal.cityRequired": "Choose a city.",
   "post.where.addCity": "Add a city",

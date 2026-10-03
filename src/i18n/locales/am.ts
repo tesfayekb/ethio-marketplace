@@ -2155,6 +2155,11 @@ export const am: Messages = {
   "post.where.detailsSaved": "የቦታ ዝርዝሩ ተቀምጧል።",
   "post.where.detailsTooLong": "የቦታ ዝርዝሩ ከ{max} ፊደላት አይብለጥ።",
   "post.where.detailsFailed": "የቦታ ዝርዝሩ አልተቀመጠም። እንደገና ይሞክሩ።",
+  "post.where.directionsLabel": "አቅጣጫ (አማራጭ)",
+  "post.where.directionsHelp": "ቢሮ ቁጥር፣ ፎቅ ወይም በአቅራቢያ ያለ ምልክት። ስልክ ቁጥር አይጻፉ።",
+  "post.where.directionsSaved": "አቅጣጫው ተቀምጧል።",
+  "post.where.directionsTooLong": "አቅጣጫው ከ{max} ፊደላት አይብለጥ።",
+  "post.where.directionsFailed": "አቅጣጫው አልተቀመጠም። እንደገና ይሞክሩ።",
   // W6 (INC-337, R1/R4) — new keys.
   "post.refusal.cityRequired": "ከተማ ይምረጡ።",
   "post.where.addCity": "ከተማ ጨምር",
