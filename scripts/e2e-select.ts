@@ -296,8 +296,7 @@ export function selectSpecs(changed: string[], opts: SelectOptions = {}): string
       for (const name of header[1].split(",").map((s) => s.trim())) {
         const area = AREAS.find((a) => a.name === name);
         if (!area) return "ALL"; // an unknown area name must never under-select
-        for (const glob of area.specs)
-          for (const s of specs) if (matches(glob, s)) selected.add(s);
+        for (const glob of area.specs) for (const s of specs) if (matches(glob, s)) selected.add(s);
       }
       continue;
     }
@@ -306,8 +305,7 @@ export function selectSpecs(changed: string[], opts: SelectOptions = {}): string
       const hits = AREAS.filter((a) => a.src.some((g) => matches(g, file)));
       if (hits.length === 0) return "ALL";
       for (const area of hits)
-        for (const glob of area.specs)
-          for (const s of specs) if (matches(glob, s)) selected.add(s);
+        for (const glob of area.specs) for (const s of specs) if (matches(glob, s)) selected.add(s);
       continue;
     }
     // Anything else (docs, scripts, config) selects nothing.
@@ -318,8 +316,7 @@ export function selectSpecs(changed: string[], opts: SelectOptions = {}): string
 
 /** Files changed against the base commit, including uncommitted work. */
 export function changedFiles(base?: string): string[] {
-  const ref =
-    base ?? execSync("git merge-base HEAD origin/main", { encoding: "utf8" }).trim();
+  const ref = base ?? execSync("git merge-base HEAD origin/main", { encoding: "utf8" }).trim();
   const tracked = execSync(`git diff --name-only ${ref}`, { encoding: "utf8" });
   const untracked = execSync("git ls-files --others --exclude-standard", {
     encoding: "utf8",

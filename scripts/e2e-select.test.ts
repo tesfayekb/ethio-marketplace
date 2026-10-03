@@ -11,9 +11,9 @@ describe("globToRegExp", () => {
     expect(matches("src/routes/api/attributes*", "src/routes/api/attributes.$id.options.ts")).toBe(
       true,
     );
-    expect(matches("src/routes/api/admin/*/import*", "src/routes/api/admin/categories/import.ts")).toBe(
-      true,
-    );
+    expect(
+      matches("src/routes/api/admin/*/import*", "src/routes/api/admin/categories/import.ts"),
+    ).toBe(true);
   });
 });
 
