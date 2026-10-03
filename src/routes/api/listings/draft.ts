@@ -1,11 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import type { Database } from "@/integrations/supabase/types";
-import { isE2E } from "@/lib/env-flags";
 import { geoGuess } from "@/server/geo/guess";
 import {
-  consumeRate,
-  envDial,
+  doorAnswer,
   logRouteError,
   readJsonBody,
   refusal,
@@ -21,9 +19,8 @@ import {
  *
  * THE ROUTE OWNS THREE THINGS AND NOTHING ELSE (F3 — the door is the authority):
  *
- *   1 the DIAL (DEC-071): `consume_rate_limit('draft', <user>, …)` runs FIRST,
- *     before a byte of the body is judged, so a flood costs one counter row and
- *     never a validation pass. `RATE_LIMIT_DRAFT_PER_HOUR` (default 30).
+ *   1 the DIAL is the door's own (INC-396): `submit_listing` calls
+ *     `rate_gate('draft')` first; the dial lives in `rate_dials`.
  *   2 the RESIDENCY FACT (DEC-068): the country comes from the EDGE
  *     (`geoGuess(request)`), never from the body, and `residency_country_for`
  *     writes it once — a later call from another country cannot move it. A null
@@ -75,26 +72,13 @@ async function handlePost(request: Request): Promise<Response> {
   const supabase = caller.supabase!;
   const userId = caller.userId!;
 
-  // 1 — the dial, before any work.
-  const rate = await consumeRate(
-    supabase,
-    "draft",
-    userId,
-    // INC-227 — 600/h: a wizard that autosaves every couple of seconds for an
-    // hour of honest work must not be throttled into a dead end. The E2E
-    // environment keeps its own low dial, which is what PR-7 proves.
-    // INC-227 — 600 an hour for a real seller (an autosave every few seconds must
-    // never become a dead end). The E2E build keeps the LOW dial so PR-7 can reach
-    // the ceiling in one test instead of six hundred calls.
-    envDial("RATE_LIMIT_DRAFT_PER_HOUR", isE2E ? 30 : 600),
-    "1 hour",
-  );
-  if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
-
   const body = await readJsonBody(request);
 
-  // 2 — the residency fact, from the edge, written once (DEC-068).
-  const { error: residencyError } = await supabase.rpc("residency_country_for", {
+  // 1 — the residency fact, from the edge, written once (DEC-068).
+  // INC-399 — closed to the browser roles; the server-only client writes it with
+  // the VERIFIED caller's id, never an id from the body.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error: residencyError } = await supabaseAdmin.rpc("residency_country_for", {
     p_user_id: userId,
     p_request_country: geoGuess(request).country as unknown as string,
   });
@@ -104,7 +88,7 @@ async function handlePost(request: Request): Promise<Response> {
     logRouteError(PATH, `residency: ${residencyError.message}`);
   }
 
-  // 3 — the door.
+  // 2 — the door (it counts the draft dial itself, INC-396).
   const args = {
     p_listing_id: text(body["listingId"]),
     p_step: step(body["step"]),
@@ -153,7 +137,7 @@ async function handlePost(request: Request): Promise<Response> {
       200,
     );
   }
-  return routeJson(data, 200);
+  return routeJson(doorAnswer(data), 200);
 }
 
 export const Route = createFileRoute("/api/listings/draft")({

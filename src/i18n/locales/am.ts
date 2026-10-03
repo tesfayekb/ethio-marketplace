@@ -2015,6 +2015,7 @@ export const am: Messages = {
   "post.specs.why": "ገዢዎች የሚያጣሩትና የሚፈልጉት በዚህ ዝርዝር ነው።",
   "post.specs.needCategory": "በመጀመሪያ ምድብ ይምረጡ።",
   "post.specs.none": "ይህ ምድብ ተጨማሪ ዝርዝር አይጠይቅም።",
+  "post.specs.rateLimited": "በአጭር ጊዜ ብዙ ምድቦችን ከፍተዋል። እባክዎ ጥቂት ቆይተው እንደገና ይሞክሩ።",
   "post.specs.loadFailed": "እነዚህ ዝርዝሮች መጫን አልቻሉም።",
   "post.specs.yearEcSuffix": "ዓ.ም",
   "post.specs.choose": "ይምረጡ",

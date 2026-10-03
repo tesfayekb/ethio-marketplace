@@ -81,7 +81,6 @@ async function handlePost(request: Request): Promise<Response> {
 
   // 2 — the dial, before a byte of the body is read.
   const rate = await consumeRate(
-    supabase,
     "upload",
     userId,
     envDial("RATE_LIMIT_UPLOAD_PER_HOUR", 60),

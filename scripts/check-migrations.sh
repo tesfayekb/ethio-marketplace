@@ -423,4 +423,55 @@ fi
 
 echo "Self-marking guard OK (floor $MARK_GUARD_FLOOR)."
 
+# Public-surface guard (bundle 3 step 8, INC-397): after M1, a grant of SELECT,
+# EXECUTE or ALL to anon, authenticated or PUBLIC must name an object listed in
+# scripts/public-surface-allowlist.txt with a reason. Statements are read whole
+# (split on ';'), so a grant spread over several lines is still seen.
+PUBLIC_SURFACE_FLOOR="${PUBLIC_SURFACE_FLOOR:-20261003215043}"
+PUBLIC_SURFACE_ALLOWLIST="${PUBLIC_SURFACE_ALLOWLIST:-$SCRIPT_DIR/public-surface-allowlist.txt}"
+
+public_surface_offenders() {
+  # $1 = file. Prints one "<file>: <object>" per unlisted browser grant.
+  tr '\n' ' ' < "$1" | tr ';' '\n' | awk -v file="$1" -v allow="$PUBLIC_SURFACE_ALLOWLIST" '
+    BEGIN {
+      while ((getline line < allow) > 0) {
+        if (line ~ /^[[:space:]]*(#|$)/) continue
+        split(line, part, "|"); n = part[1]; r = part[2]
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", n); gsub(/^[[:space:]]+|[[:space:]]+$/, "", r)
+        if (n != "" && r != "") ok[n] = 1
+      }
+    }
+    {
+      st = tolower($0)
+      if (st !~ /(^|[^a-z_])grant[[:space:]]/) next
+      if (st !~ /[[:space:]]to[[:space:]].*(anon|authenticated|public)/) next
+      if (st !~ /grant[[:space:]]+(select|execute|all)/) next
+      if (match(st, /public\.[a-z0-9_]+/) == 0) next
+      obj = substr(st, RSTART + 7, RLENGTH - 7)
+      if (!(obj in ok)) print file ": " obj
+    }'
+}
+
+if [ -z "$(public_surface_offenders "$FIXTURE_DIR/bad-public-grant-example.sql")" ]; then
+  echo "Public-surface guard self-test FAILED: the bad fixture passed."
+  exit 1
+fi
+
+surface_offenders=""
+while IFS= read -r -d '' file; do
+  base="$(basename "$file")"
+  stamp="${base%%_*}"
+  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$PUBLIC_SURFACE_FLOOR" ]]; then
+    continue
+  fi
+  surface_offenders+="$(public_surface_offenders "$file")"
+done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
+
+if [ -n "$surface_offenders" ]; then
+  echo "Public-surface guard FAILED: grants to anon/authenticated/PUBLIC on unlisted objects:"
+  printf '%s\n' "$surface_offenders"
+  exit 1
+fi
+echo "Public-surface guard OK (floor $PUBLIC_SURFACE_FLOOR)."
+
 echo "Migration guard OK."

@@ -29,8 +29,11 @@ import {
  * their door has hidden it here and everywhere this component is mounted (U7).
  */
 
-/** ~0.005° ≈ 550 m: the circle's centre can no longer name the point inside it. */
-const SNAP = 0.005;
+/**
+ * INC-389 — the same grid the door writes to `pin_show_*` for an approx pin
+ * (two decimals, 0.01° ≈ 1.1 km), so the seller sees what a buyer will see.
+ */
+const SNAP = 0.01;
 
 function snap(value: number): number {
   return Math.round(value / SNAP) * SNAP;

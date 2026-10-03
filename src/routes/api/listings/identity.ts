@@ -105,7 +105,6 @@ async function handlePost(request: Request): Promise<Response> {
   const userId = caller.userId!;
 
   const rate = await consumeRate(
-    supabase,
     "identity",
     userId,
     envDial("RATE_LIMIT_IDENTITY_PER_DAY", 20),

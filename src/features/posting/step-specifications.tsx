@@ -7,7 +7,7 @@ import { resolveBound, yearLabel } from "./attribute-display";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches";
 import { Field, controlClass } from "./field";
-import { readPostingSchema, type AttrDef, type PostingSchema } from "./posting-service";
+import { readPostingSchemaAnswer, type AttrDef, type PostingSchema } from "./posting-service";
 import { contactRuleApplies, looksLikeContact } from "./contact-like";
 import { answerOtherText, answerTokens, multiAnswer } from "./answer-tokens";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
@@ -219,6 +219,7 @@ export function StepSpecifications({
   const { t, entities, language } = useI18n();
   const [schema, setSchema] = useState<PostingSchema | null>(null);
   const [failed, setFailed] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
   const [options, setOptions] = useState<Record<string, OptionState>>({});
   /**
    * INC-240 — WHO WROTE THIS ANSWER. For every detail this screen filled in from
@@ -278,10 +279,12 @@ export function StepSpecifications({
      * conditional request the edge answers with 304 when nothing moved.
      */
     setOptions({});
-    void readPostingSchema(categoryId).then((read) => {
+    setRateLimited(false);
+    void readPostingSchemaAnswer(categoryId).then((read) => {
       if (cancelled) return;
-      setSchema(read);
-      setFailed(read === null);
+      setSchema(read.schema);
+      setFailed(read.schema === null);
+      setRateLimited(read.rateLimited);
     });
     return () => {
       cancelled = true;
@@ -1249,7 +1252,7 @@ export function StepSpecifications({
   if (failed) {
     return (
       <p className="text-sm text-destructive" data-testid="post-specs-error">
-        {t("post.specs.loadFailed")}
+        {t(rateLimited ? "post.specs.rateLimited" : "post.specs.loadFailed")}
       </p>
     );
   }

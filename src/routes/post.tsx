@@ -26,6 +26,7 @@ export const Route = createFileRoute("/post")({
   },
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex" },
       { title: "Post a listing — ethio.com" },
       {
         name: "description",

@@ -50,6 +50,7 @@ export const Route = createFileRoute("/auth")({
 
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex" },
       { title: "Sign in — ethio.com" },
       { name: "description", content: "Sign in or create your free ethio.com account." },
       { property: "og:title", content: "Sign in — ethio.com" },

@@ -452,9 +452,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   function lastContactRead(page: Page) {
     return page.waitForResponse(
       (response) =>
-        response.url().includes("/rest/v1/listings") &&
-        response.url().includes("contact_pref") &&
-        response.url().includes("created_at"),
+        // INC-389 — contact_pref is private; the owner-only door reads it.
+        response.url().includes("/rest/v1/rpc/my_last_listing_private"),
       { timeout: 30_000 },
     );
   }

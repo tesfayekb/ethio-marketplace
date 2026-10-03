@@ -1,0 +1,4 @@
+# Bundle 3 step 8 (INC-397) — the public surface. A migration stamped after M1
+# that grants SELECT or EXECUTE to anon, authenticated or PUBLIC fails the
+# migration guard unless the object is named here with a one-line reason.
+# Format: <object name, unqualified> | <reason>

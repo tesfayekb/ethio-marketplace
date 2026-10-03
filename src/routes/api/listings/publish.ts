@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
-  consumeRate,
-  envDial,
+  doorAnswer,
   logRouteError,
   readJsonBody,
   refusal,
@@ -21,7 +20,7 @@ import {
  * path to `active`, and until it lands a published listing waits in screening.
  * That is a NAMED DEFERRAL, stated in docs/features/listings.md.
  *
- * DEC-071 — the dial is `RATE_LIMIT_POST_PER_DAY` (default 10, window one day).
+ * INC-396 — the dial is the door's own: `publish_listing` calls `rate_gate('post')`.
  */
 
 const PATH = "/api/listings/publish";
@@ -31,16 +30,6 @@ async function handlePost(request: Request): Promise<Response> {
   const refused = refuseUserClient(PATH, caller);
   if (refused !== null) return refused;
   const supabase = caller.supabase!;
-  const userId = caller.userId!;
-
-  const rate = await consumeRate(
-    supabase,
-    "post",
-    userId,
-    envDial("RATE_LIMIT_POST_PER_DAY", 10),
-    "1 day",
-  );
-  if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
 
   const body = await readJsonBody(request);
   const listingId = typeof body["listingId"] === "string" ? body["listingId"] : "";
@@ -56,7 +45,7 @@ async function handlePost(request: Request): Promise<Response> {
   // here, on a listing that is already in `screening`. It alone may promote to
   // `active`; this route never will.
 
-  return routeJson(data, 200);
+  return routeJson(doorAnswer(data), 200);
 }
 
 export const Route = createFileRoute("/api/listings/publish")({

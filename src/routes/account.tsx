@@ -11,6 +11,7 @@ export const Route = createFileRoute("/account")({
   },
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex" },
       { title: "Account — ethio.com" },
       { name: "description", content: "Review your ethio.com account and listing activity." },
       { property: "og:title", content: "Account — ethio.com" },

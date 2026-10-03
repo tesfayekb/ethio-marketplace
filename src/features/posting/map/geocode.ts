@@ -85,8 +85,13 @@ export async function reverseStreet(lat: number, lng: number): Promise<ReverseAn
   };
 }
 
-/** The approximate circle's radius, in metres — the privacy promise, in one place. */
-export const APPROX_RADIUS_M = 500;
+/**
+ * The approximate circle's radius, in metres — the privacy promise, in one place.
+ * INC-389: an approx pin is shown at two decimals, which moves a point by up to
+ * 0.005° on each axis — about 786 m on the diagonal at the equator, less
+ * further north. 800 m keeps the real pin inside the drawn area for every pin.
+ */
+export const APPROX_RADIUS_M = 800;
 
 /**
  * W6b-2 C3 — a place's outline through OUR route (never Nominatim from here).

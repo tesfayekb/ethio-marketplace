@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
 
-import type { Database } from "@/integrations/supabase/types";
+import { userClientFromRequest } from "@/server/supabase/user-client";
 
 /**
  * U6-A2-C — THE LAZY OPTION LIST (DEC-053).
@@ -69,10 +68,6 @@ function logRouteError(id: string, error: unknown): void {
   console.error("[ssr-error]", `/api/attributes/${id}/options`, message);
 }
 
-function serverEnv(name: string): string {
-  return process.env[name] ?? "";
-}
-
 function fail(id: string, error: string, status: number): Response {
   if (status >= 500) logRouteError(id, error);
   return new Response(JSON.stringify({ error }), {
@@ -82,7 +77,8 @@ function fail(id: string, error: string, status: number): Response {
 }
 
 function respond(request: Request, entry: CacheEntry): Response {
-  const cacheControl = `public, max-age=${MAX_AGE}, stale-while-revalidate=${SWR}`;
+  // INC-397 — signed-in callers only, so no shared cache may hold the answer.
+  const cacheControl = `private, max-age=${MAX_AGE}, stale-while-revalidate=${SWR}`;
   if (request.headers.get("If-None-Match") === entry.etag) {
     return new Response(null, {
       status: 304,
@@ -103,17 +99,17 @@ function respond(request: Request, entry: CacheEntry): Response {
 async function handleGet(request: Request, id: string): Promise<Response> {
   if (!UUID_RE.test(id)) return fail(id, "unknown attribute", 404);
 
+  // INC-397 — the options are not handed out: the bearer is verified first, and
+  // the reads run as the caller (anon no longer holds EXECUTE).
+  const caller = await userClientFromRequest(request);
+  if (caller.reason !== null || caller.supabase === null) {
+    return fail(id, "not signed in", caller.reason === "serverEnv" ? 500 : 401);
+  }
+  const supabase = caller.supabase;
+
   const now = Date.now();
   const hit = cache.get(id);
   if (hit && now - hit.checkedAt < CACHE_TTL_MS) return respond(request, hit);
-
-  const url = serverEnv("SUPABASE_URL");
-  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return fail(id, "supabase server env missing", 500);
-
-  const supabase = createClient<Database>(url, publishable, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
 
   const version = await supabase.rpc("get_attribute_options_version", { p_attribute_id: id });
   if (version.error) return fail(id, version.error.message, 502);

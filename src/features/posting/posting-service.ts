@@ -231,6 +231,27 @@ export interface DraftPhotoRow {
   storagePath: string | null;
 }
 
+function numOrNull(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * INC-389 — the owner-only read of a listing's private columns. `null` when the
+ * listing is not the caller's (the door's refusal); any other failure throws (F4).
+ */
+async function readOwnPrivate(listingId: string): Promise<Record<string, unknown> | null> {
+  const { data, error } = await supabase.rpc("my_listing_private", { p_listing_id: listingId });
+  if (error) {
+    if (error.message.includes("not your listing")) return null;
+    throw new Error(error.message);
+  }
+  return data !== null && typeof data === "object" && !Array.isArray(data)
+    ? (data as Record<string, unknown>)
+    : null;
+}
+
 /**
  * The owner's own draft, read as the owner (RLS). `null` means the row is not
  * this account's — which the surface says in words, never as a blank screen.
@@ -241,12 +262,17 @@ export async function readDraft(
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,contact_pref,pin_lat,pin_lng,pin_precision,pin_zoom,street_address,directions",
+      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,pin_precision,pin_zoom,street_address,directions",
     )
     .eq("id", listingId)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return null;
+
+  // INC-389 — contact_pref and the true pin are private columns: the owner reads
+  // them through the owner-only door; a row that is not this account's is null.
+  const own = await readOwnPrivate(listingId);
+  if (own === null) return null;
 
   const { data: photos, error: photoError } = await supabase
     .from("listing_photos")
@@ -288,11 +314,13 @@ export async function readDraft(
       posterExpiresAt:
         typeof data.poster_expires_at === "string" ? data.poster_expires_at.slice(0, 10) : null,
       contactPref:
-        data.contact_pref !== null && typeof data.contact_pref === "object"
-          ? (data.contact_pref as Record<string, unknown>)
+        own["contact_pref"] !== null &&
+        typeof own["contact_pref"] === "object" &&
+        !Array.isArray(own["contact_pref"])
+          ? (own["contact_pref"] as Record<string, unknown>)
           : { messages: true },
-      pinLat: data.pin_lat === null ? null : Number(data.pin_lat),
-      pinLng: data.pin_lng === null ? null : Number(data.pin_lng),
+      pinLat: numOrNull(own["pin_lat"]),
+      pinLng: numOrNull(own["pin_lng"]),
       pinPrecision: data.pin_precision,
       pinZoom: typeof data.pin_zoom === "number" ? data.pin_zoom : null,
       streetAddress: data.street_address,
@@ -362,9 +390,7 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
     if (userId === null) return null;
     let query = supabase
       .from("listings")
-      .select(
-        "id,location_id,created_at,pin_lat,pin_lng,pin_precision,pin_zoom,street_address,directions",
-      )
+      .select("id,location_id,created_at,pin_precision,pin_zoom,street_address,directions")
       .eq("seller_id", userId)
       .neq("status", "draft")
       .not("location_id", "is", null)
@@ -389,12 +415,15 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
     const others = (rows ?? [])
       .filter((row) => row.location_id !== last.location_id && countryOf(row) === country)
       .map((row) => row.location_id);
+    const own = last.pin_precision === null ? null : await readOwnPrivate(last.id);
+    const lat = own === null ? null : numOrNull(own["pin_lat"]);
+    const lng = own === null ? null : numOrNull(own["pin_lng"]);
     const pin: LastPin | null =
-      last.pin_lat === null || last.pin_lng === null || last.pin_precision === null
+      lat === null || lng === null || last.pin_precision === null
         ? null
         : {
-            lat: Number(last.pin_lat),
-            lng: Number(last.pin_lng),
+            lat,
+            lng,
             precision: last.pin_precision,
             zoom: last.pin_zoom ?? null,
             street: last.street_address ?? null,
@@ -416,19 +445,14 @@ export async function readLastListingContact(
   excludeId: string | null,
 ): Promise<Record<string, unknown> | null> {
   const { data: session } = await supabase.auth.getSession();
-  const userId = session.session?.user.id ?? null;
-  if (userId === null) return null;
-  let query = supabase
-    .from("listings")
-    .select("id,contact_pref,created_at")
-    .eq("seller_id", userId)
-    .neq("status", "draft")
-    .order("created_at", { ascending: false })
-    .limit(1);
-  if (excludeId !== null) query = query.neq("id", excludeId);
-  const { data, error } = await query.maybeSingle();
+  if ((session.session?.user.id ?? null) === null) return null;
+  // INC-389 — contact_pref is private; the owner-only door reads the last post.
+  const { data, error } = await supabase.rpc("my_last_listing_private", {
+    p_exclude: excludeId ?? undefined,
+  });
   if (error) throw new Error(error.message);
-  const pref = data?.contact_pref;
+  const row = data !== null && typeof data === "object" && !Array.isArray(data) ? data : null;
+  const pref = (row as Record<string, unknown> | null)?.["contact_pref"];
   if (pref === null || pref === undefined || typeof pref !== "object" || Array.isArray(pref)) {
     return null;
   }
@@ -571,10 +595,30 @@ function shapeCondition(raw: unknown): { key: string; in: string[] } | null {
  * A failure is `null`; the caller shows its own caption rather than a stack.
  */
 export async function readPostingSchema(categoryId: string): Promise<PostingSchema | null> {
+  return (await readPostingSchemaAnswer(categoryId)).schema;
+}
+
+/**
+ * INC-397 — the door counts schema reads (`rate_gate('schema_read')`) and raises
+ * `rateLimited` past the dial; the details step says so in plain words instead
+ * of "could not be loaded". `schema` is null on any failure.
+ */
+export async function readPostingSchemaAnswer(
+  categoryId: string,
+): Promise<{ schema: PostingSchema | null; rateLimited: boolean }> {
   const { data, error } = await supabase.rpc("get_posting_schema", {
     p_category_id: categoryId,
   });
-  if (error || data === null) return null;
+  if (error) {
+    const rateLimited = error.message.includes("rateLimited");
+    if (!rateLimited) console.error("[posting] schema read failed:", error.message);
+    return { schema: null, rateLimited };
+  }
+  return { schema: shapePostingSchema(data), rateLimited: false };
+}
+
+function shapePostingSchema(data: unknown): PostingSchema | null {
+  if (data === null) return null;
   const payload = data as Record<string, unknown>;
   const definitions = Array.isArray(payload["attributes"])
     ? (payload["attributes"] as Record<string, unknown>[])
