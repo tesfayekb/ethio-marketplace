@@ -220,6 +220,7 @@ function CountryBox({
   onTick,
   onRegion,
   onRow,
+  onCity,
   onRemove,
   onAddCity,
   onAddSubCity,
@@ -239,6 +240,8 @@ function CountryBox({
   onTick: (key: string) => void;
   onRegion: (keys: string[], region: string | null) => void;
   onRow: (key: string, patch: Partial<Row>) => void;
+  /** W1 — a city box's city changes for its whole group; its extra sub-city rows go. */
+  onCity: (keys: string[], city: string | null) => void;
   onRemove: (key: string) => void;
   onAddCity: (country: string | null, region: string | null) => void;
   /** Bundle 2 P5 — another sub-city under the same city (counts as that one city). */
@@ -262,21 +265,56 @@ function CountryBox({
     if (found === undefined) groups.push({ key, region: row.region, rows: [row] });
     else found.rows.push(row);
   }
+  // W2 — a picker never offers what another box at its level already holds.
+  const takenRegions = groups.map((group) => group.region).filter((id) => id !== null);
+  const pendingRegions = groups.filter((group) => group.region === null).length;
+  const regionsLeft =
+    regions.filter((node) => !takenRegions.includes(node.id)).length > pendingRegions;
   const empty = !rows.some((row) => placeOf(row) !== null);
-  const addRegionButton = room.region &&
-    code !== null &&
-    nodes.length > 0 &&
-    regions.length > 0 && (
-      <button
-        type="button"
-        data-testid="post-where-add-region"
-        data-country={code}
-        className={addClass}
-        onClick={() => onAddRegion(code)}
-      >
-        {t("post.where.addRegion")}
-      </button>
-    );
+  const addRegionButton = room.region && code !== null && nodes.length > 0 && regionsLeft && (
+    <button
+      type="button"
+      data-testid="post-where-add-region"
+      data-country={code}
+      className={addClass}
+      onClick={() => onAddRegion(code)}
+    >
+      {t("post.where.addRegion")}
+    </button>
+  );
+
+  const tickLine = (row: Row, onRemoveRow: (() => void) | null) => (
+    <div
+      className="flex flex-wrap items-center justify-between gap-2"
+      data-testid="post-where-item-line"
+      data-key={row.key}
+    >
+      {/* W6b-1 R3 — the one tick, a radio group across every box. */}
+      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
+        <input
+          type="radio"
+          name="post-where-item"
+          data-testid="post-where-item-tick"
+          data-key={row.key}
+          className="h-5 w-5 shrink-0 accent-primary"
+          checked={row.key === itemKey}
+          onChange={() => onTick(row.key)}
+        />
+        <span>{t("post.where.itemHere")}</span>
+      </label>
+      {onRemoveRow !== null && (
+        <button
+          type="button"
+          data-testid="post-where-remove"
+          data-id={placeOf(row) ?? ""}
+          className="ms-auto min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
+          onClick={onRemoveRow}
+        >
+          {t("post.where.removePlace")}
+        </button>
+      )}
+    </div>
+  );
 
   return (
     <div
@@ -293,6 +331,21 @@ function CountryBox({
           const hasPrimary = group.rows.some((row) => row.key === PRIMARY);
           const cities = childrenOf(nodes, group.region, "city");
           const groupEmpty = !group.rows.some((row) => placeOf(row) !== null);
+          const regionOptions = regions.filter(
+            (node) => node.id === group.region || !takenRegions.includes(node.id),
+          );
+          // W1 — one city box per city: rows sharing a city are drawn together.
+          const cityGroups: { key: string; city: string | null; rows: Row[] }[] = [];
+          for (const row of group.rows) {
+            const key = row.city ?? `pending:${row.key}`;
+            const found = cityGroups.find((entry) => entry.key === key);
+            if (found === undefined) cityGroups.push({ key, city: row.city, rows: [row] });
+            else found.rows.push(row);
+          }
+          const takenCities = cityGroups.map((entry) => entry.city).filter((id) => id !== null);
+          const pendingCities = cityGroups.filter((entry) => entry.city === null).length;
+          const citiesLeft =
+            cities.filter((node) => !takenCities.includes(node.id)).length > pendingCities;
           return (
             <div
               key={group.key}
@@ -323,7 +376,7 @@ function CountryBox({
                   }
                 >
                   <option value="">{t("post.where.levelNone")}</option>
-                  {regions.map((node) => (
+                  {regionOptions.map((node) => (
                     <option key={node.id} value={node.id}>
                       {nameOf(node)}
                     </option>
@@ -354,19 +407,32 @@ function CountryBox({
 
               {/* W6b-1 R2 — a city box appears only after its region is chosen. */}
               {(group.region !== null || regions.length === 0) &&
-                group.rows.map((row) => {
-                  const isPrimary = row.key === PRIMARY;
-                  const subCities = childrenOf(nodes, row.city, "sub_city");
-                  const cityNode = nodes.find((node) => node.id === row.city) ?? null;
-                  const cityId = isPrimary ? "post-where-city" : `post-where-city-${row.key}`;
+                cityGroups.map((cityGroup) => {
+                  const head = cityGroup.rows[0]!;
+                  const keys = cityGroup.rows.map((row) => row.key);
+                  const isPrimary = keys.includes(PRIMARY);
+                  const subCities = childrenOf(nodes, cityGroup.city, "sub_city");
+                  const cityNode = nodes.find((node) => node.id === cityGroup.city) ?? null;
+                  const cityId = isPrimary ? "post-where-city" : `post-where-city-${head.key}`;
+                  const cityOptions = cities.filter(
+                    (node) => node.id === cityGroup.city || !takenCities.includes(node.id),
+                  );
+                  // W1 — sub-city boxes once a sub-city is chosen; "All of" stays on the city box.
+                  const subMode =
+                    cityNode !== null &&
+                    subCities.length > 0 &&
+                    (cityGroup.rows.length > 1 || head.subCity !== null);
+                  const subLeft = subCities.some(
+                    (node) => !cityGroup.rows.some((row) => row.subCity === node.id),
+                  );
                   return (
                     <div
-                      key={row.key}
+                      key={head.key}
                       data-testid="post-where-row"
-                      data-key={row.key}
-                      data-item={row.key === itemKey ? "1" : "0"}
-                      data-red={placeOf(row) === null ? "1" : "0"}
-                      className={boxClass(placeOf(row) === null, false, CITY_STEP)}
+                      data-key={head.key}
+                      data-item={keys.includes(itemKey) ? "1" : "0"}
+                      data-red={placeOf(head) === null ? "1" : "0"}
+                      className={boxClass(placeOf(head) === null, false, CITY_STEP)}
                     >
                       {/* Bundle 2 P3 — the city line holds the city alone. */}
                       <div className="space-y-2">
@@ -374,19 +440,17 @@ function CountryBox({
                           <div className="space-y-1">
                             <label htmlFor={cityId} className="text-sm font-medium text-foreground">
                               {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
-                              {placeOf(row) === null && <RequiredMark />}
+                              {placeOf(head) === null && <RequiredMark />}
                             </label>
                             <select
                               id={cityId}
                               data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
                               className={fieldClass}
-                              value={row.city ?? ""}
-                              onChange={(event) =>
-                                onRow(row.key, { city: event.target.value || null, subCity: null })
-                              }
+                              value={cityGroup.city ?? ""}
+                              onChange={(event) => onCity(keys, event.target.value || null)}
                             >
                               <option value="">{t("post.where.levelNone")}</option>
-                              {cities.map((node) => (
+                              {cityOptions.map((node) => (
                                 <option key={node.id} value={node.id}>
                                   {nameOf(node)}
                                 </option>
@@ -395,31 +459,31 @@ function CountryBox({
                           </div>
                         )}
                       </div>
-                      {/* D19 — "All of <city>" is the CITY node offered beside its children. */}
-                      {/* Bundle 2 P5 — the sub-city sits one indent further under its city.
+                      {/* D19 — "All of <city>" is the CITY node offered beside its children.
                           At 360 the step is a left rule only, so its select keeps 200 px. */}
-                      {cityNode !== null && subCities.length > 0 && (
+                      {cityNode !== null && subCities.length > 0 && !subMode && (
                         <div
                           className="space-y-1 border-s-2 border-border ps-0.5 sm:ms-4 sm:border-s-0 sm:ps-0"
                           data-testid="post-where-subcity-box"
+                          data-key={head.key}
                         >
                           <label
                             htmlFor={
-                              isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`
+                              isPrimary ? "post-where-subcity" : `post-where-subcity-${head.key}`
                             }
                             className="text-sm font-medium text-foreground"
                           >
                             {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
                           </label>
                           <select
-                            id={isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`}
+                            id={isPrimary ? "post-where-subcity" : `post-where-subcity-${head.key}`}
                             data-testid={
                               isPrimary ? "post-where-subcity" : "post-where-row-subcity"
                             }
                             className={fieldClass}
-                            value={row.subCity ?? ""}
+                            value=""
                             onChange={(event) =>
-                              onRow(row.key, { subCity: event.target.value || null })
+                              onRow(head.key, { subCity: event.target.value || null })
                             }
                           >
                             <option value="" data-testid="post-where-allof">
@@ -431,64 +495,93 @@ function CountryBox({
                               </option>
                             ))}
                           </select>
-                          {row.subCity !== null &&
-                            subCities.some(
-                              (node) =>
-                                !rows.some(
-                                  (other) => other.city === row.city && other.subCity === node.id,
-                                ),
-                            ) && (
-                              <div className="flex justify-end">
-                                <button
-                                  type="button"
-                                  data-testid="post-where-add-subcity"
-                                  data-city={row.city ?? ""}
-                                  className={addClass}
-                                  onClick={() => onAddSubCity(row)}
-                                >
-                                  {t("post.where.addSubCity")}
-                                </button>
-                              </div>
-                            )}
                         </div>
                       )}
-                      {/* Bundle 2 P3 — the marker on its own lower line, Remove at its end. */}
-                      <div
-                        className="flex flex-wrap items-center justify-between gap-2"
-                        data-testid="post-where-item-line"
-                        data-key={row.key}
-                      >
-                        {/* W6b-1 R3 — the one tick, a radio group across every box. */}
-                        <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-                          <input
-                            type="radio"
-                            name="post-where-item"
-                            data-testid="post-where-item-tick"
-                            data-key={row.key}
-                            className="h-5 w-5 shrink-0 accent-primary"
-                            checked={row.key === itemKey}
-                            onChange={() => onTick(row.key)}
-                          />
-                          <span>{t("post.where.itemHere")}</span>
-                        </label>
-                        {canRemove && (
-                          <button
-                            type="button"
-                            data-testid="post-where-remove"
-                            data-id={placeOf(row) ?? ""}
-                            className="ms-auto min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
-                            onClick={() => onRemove(row.key)}
-                          >
-                            {t("post.where.removePlace")}
-                          </button>
+                      {subMode &&
+                        cityNode !== null &&
+                        cityGroup.rows.map((row) => {
+                          const rowPrimary = row.key === PRIMARY;
+                          const single = cityGroup.rows.length === 1;
+                          const subId = rowPrimary
+                            ? "post-where-subcity"
+                            : `post-where-subcity-${row.key}`;
+                          const options = subCities.filter(
+                            (node) =>
+                              node.id === row.subCity ||
+                              !cityGroup.rows.some(
+                                (other) => other.key !== row.key && other.subCity === node.id,
+                              ),
+                          );
+                          return (
+                            <div
+                              key={row.key}
+                              className="space-y-1 rounded-md border border-border p-2 sm:ms-4"
+                              data-testid="post-where-subcity-box"
+                              data-key={row.key}
+                              data-item={row.key === itemKey ? "1" : "0"}
+                            >
+                              <label
+                                htmlFor={subId}
+                                className="text-sm font-medium text-foreground"
+                              >
+                                {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
+                              </label>
+                              <select
+                                id={subId}
+                                data-testid={
+                                  rowPrimary ? "post-where-subcity" : "post-where-row-subcity"
+                                }
+                                className={fieldClass}
+                                value={row.subCity ?? ""}
+                                onChange={(event) =>
+                                  onRow(row.key, { subCity: event.target.value || null })
+                                }
+                              >
+                                {single ? (
+                                  <option value="" data-testid="post-where-allof">
+                                    {fill(t("post.where.allOf"), { name: nameOf(cityNode) })}
+                                  </option>
+                                ) : (
+                                  <option value="">{t("post.where.levelNone")}</option>
+                                )}
+                                {options.map((node) => (
+                                  <option key={node.id} value={node.id}>
+                                    {nameOf(node)}
+                                  </option>
+                                ))}
+                              </select>
+                              {tickLine(
+                                row,
+                                single
+                                  ? () => onRow(row.key, { subCity: null })
+                                  : () => onRemove(row.key),
+                              )}
+                            </div>
+                          );
+                        })}
+                      {subMode &&
+                        subLeft &&
+                        cityGroup.rows.every((row) => row.subCity !== null) && (
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              data-testid="post-where-add-subcity"
+                              data-city={cityGroup.city ?? ""}
+                              className={addClass}
+                              onClick={() => onAddSubCity(head)}
+                            >
+                              {t("post.where.addSubCity")}
+                            </button>
+                          </div>
                         )}
-                      </div>
+                      {/* Bundle 2 P3 — the marker on its own lower line, Remove at its end. */}
+                      {!subMode && tickLine(head, canRemove ? () => onRemove(head.key) : null)}
                     </div>
                   );
                 })}
 
               {/* J — "+ Add city" at the right end, under the last city line. */}
-              {room.city && (group.region !== null || regions.length === 0) && (
+              {room.city && (group.region !== null || regions.length === 0) && citiesLeft && (
                 <div className="flex justify-end">
                   <button
                     type="button"
@@ -946,6 +1039,17 @@ export function StepWhere({
     if (key === PRIMARY) setPrefilled(false);
     patchRows([key], patch);
   };
+  const onCity = (keys: string[], city: string | null) => {
+    if (keys.includes(PRIMARY)) setPrefilled(false);
+    touched.current = true;
+    const keep = keys.includes(PRIMARY) ? PRIMARY : keys[0]!;
+    setRows((current) =>
+      current
+        .filter((row) => row.key === keep || !keys.includes(row.key))
+        .map((row) => (row.key === keep ? { ...row, city, subCity: null } : row)),
+    );
+    if (keys.includes(itemKey) && itemKey !== keep) setItemKey(keep);
+  };
   const onTick = (key: string) => {
     act();
     setItemKey(key);
@@ -1024,6 +1128,10 @@ export function StepWhere({
   const takenCountries = [country, ...otherGroups.map((group) => group.code)].filter(
     (code): code is string => code !== null,
   );
+  // W2 — "Add country" is not drawn when every open market is already a box.
+  const countriesLeft =
+    markets.markets.filter((market) => !takenCountries.includes(market.code)).length >
+    otherGroups.filter((group) => group.code === null).length;
 
   const nameOf = (node: TreeNode) =>
     entityName(
@@ -1192,6 +1300,7 @@ export function StepWhere({
             onTick={onTick}
             onRegion={onRegion}
             onRow={onRow}
+            onCity={onCity}
             onRemove={onRemove}
             onAddCity={onAddCity}
             onAddSubCity={onAddSubCity}
@@ -1212,6 +1321,7 @@ export function StepWhere({
               onCountry={onCountry}
               onRegion={onRegion}
               onRow={onRow}
+              onCity={onCity}
               onRemove={onRemove}
               onAddCity={onAddCity}
               onAddSubCity={onAddSubCity}
@@ -1219,7 +1329,7 @@ export function StepWhere({
             />
           ))}
 
-          {countryRoom && (
+          {countryRoom && countriesLeft && (
             <button
               type="button"
               data-testid="post-where-add-country"

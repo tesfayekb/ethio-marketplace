@@ -273,6 +273,49 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     ).toHaveAttribute("data-iso", "ET", { timeout: 20_000 });
   });
 
+  test("PW-123 Post another ad opens step 1 with no draft carried", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-publish").click();
+    await expect(page.getByTestId("post-in-review")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-review-mylistings")).toBeVisible();
+    await page.getByTestId("post-review-another").click();
+    await expect(page.getByTestId("post-step-1"), "PW-123: not on step 1").toBeVisible({
+      timeout: 20_000,
+    });
+    expect(new URL(page.url()).pathname, "PW-123: a draft address was carried").toBe("/post");
+  });
+
+  test("PW-124 the phone box shows an example and a length hint per country", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    const box = page.getByTestId("post-who-value-phone");
+    const hint = page.getByTestId("post-who-value-phone-length-hint");
+    await expect(page.getByTestId("post-who-value-phone-country")).toHaveAttribute(
+      "data-iso",
+      "ET",
+      { timeout: 20_000 },
+    );
+    await expect(box, "PW-124: no Ethiopian example").toHaveAttribute("placeholder", "911234567");
+    await pickPhoneCountry(page, "post-who-value-phone", "KE", "254");
+    await expect(box, "PW-124: the example did not follow the country").toHaveAttribute(
+      "placeholder",
+      "712123456",
+    );
+    await typePhone(page, "post-who-value-phone", "7121");
+    await expect(hint, "PW-124: no hint for a short number").toHaveAttribute("data-hint", "short");
+    await typePhone(page, "post-who-value-phone", "712123456");
+    await expect(hint, "PW-124: the hint stayed for a full number").toHaveCount(0);
+  });
+
   async function seedLastPin(lastId: string) {
     const { error } = await adminClient()
       .from("listings")
@@ -362,7 +405,27 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(page.getByTestId("post-where-subcity-box")).toBeVisible();
     await page.getByTestId("post-where-subcity").selectOption(chain.subCity.id);
     await page.getByTestId("post-where-add-subcity").click();
-    await page.getByTestId("post-where-row-subcity").selectOption(second.id);
+    // W1 — one city box holds both sub-city boxes.
+    const region = page.locator(
+      `[data-testid="post-where-region-box"][data-region="${chain.region.id}"]`,
+    );
+    await expect(region.getByTestId("post-where-row"), "PW-117: not one city box").toHaveCount(1);
+    const subBoxes = region.getByTestId("post-where-row").getByTestId("post-where-subcity-box");
+    await expect(subBoxes, "PW-117: not two sub-city boxes in the city box").toHaveCount(2);
+    // W2 — the second sub-city picker leaves out the first one's choice.
+    const secondPicker = subBoxes.nth(1).getByTestId("post-where-row-subcity");
+    await expect(
+      secondPicker.locator(`option[value="${chain.subCity.id}"]`),
+      "PW-117: the second picker offered the first sub-city again",
+    ).toHaveCount(0);
+    await secondPicker.selectOption(second.id);
+    await expect(
+      page.getByTestId("post-where-add-subcity"),
+      "PW-117: Add sub-city still drawn with nothing left",
+    ).toHaveCount(0);
+    // The tick can sit on either sub-city box.
+    await subBoxes.nth(1).getByTestId("post-where-item-tick").check();
+    await expect(subBoxes.nth(1)).toHaveAttribute("data-item", "1");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7"), "PW-117: Next did not pass").toBeVisible({
       timeout: 20_000,

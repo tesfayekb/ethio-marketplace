@@ -1,3 +1,4 @@
+import { lengthHint, phonePlanOf } from "./phone-plans";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
@@ -102,6 +103,10 @@ export function PhoneNumberField({
   const shownIso = iso !== "" && CALLING_CODES[iso] !== undefined ? iso : "";
   const shownCode = shownIso === "" ? "" : (CALLING_CODES[shownIso] ?? "");
 
+  // W4 — an example number and a length hint for the chosen country (blocks nothing).
+  const plan = shownIso === "" ? null : phonePlanOf(shownIso);
+  const hint = shownIso === "" ? null : lengthHint(shownIso, national);
+
   const close = (refocus: boolean) => {
     setOpen(false);
     setQuery("");
@@ -117,155 +122,172 @@ export function PhoneNumberField({
   };
 
   return (
-    <div
-      ref={wrapRef}
-      data-testid={`${testId}-row`}
-      className={
-        "relative flex min-h-11 min-w-[16.5rem] grow basis-0 items-stretch rounded-md border border-input bg-background " +
-        "focus-within:ring-2 focus-within:ring-ring"
-      }
-      onBlur={(event) => {
-        if (open && !wrapRef.current?.contains(event.relatedTarget as Node | null)) close(false);
-      }}
-    >
-      <button
-        type="button"
-        data-testid={`${testId}-country`}
-        data-iso={shownIso}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listId}
-        aria-label={
-          shownIso === ""
-            ? t("post.who.phoneCountryLabel")
-            : `${t("post.who.phoneCountryLabel")}: ${fill(t("post.who.phoneCountryChosen"), {
-                name: nameOf(shownIso),
-                code: shownCode,
-              })}`
+    <div className="min-w-[16.5rem] grow basis-0 space-y-1">
+      <div
+        ref={wrapRef}
+        data-testid={`${testId}-row`}
+        className={
+          "relative flex min-h-11 items-stretch rounded-md border border-input bg-background " +
+          "focus-within:ring-2 focus-within:ring-ring"
         }
-        className="flex w-24 shrink-0 items-center gap-1 rounded-s-md ps-3 pe-2 text-base text-foreground focus-visible:outline-none"
-        onClick={() => (open ? close(false) : setOpen(true))}
-      >
-        <span aria-hidden="true">{shownIso === "" ? "" : flagOf(shownIso)}</span>
-        <span dir="ltr" className="tabular-nums">
-          {shownCode === "" ? "" : `+${shownCode}`}
-        </span>
-        <ChevronDown
-          aria-hidden="true"
-          className="ms-auto h-4 w-4 shrink-0 text-muted-foreground"
-        />
-      </button>
-      <span aria-hidden="true" className="my-2 w-px shrink-0 bg-border" />
-      <input
-        ref={numberRef}
-        id={id}
-        data-testid={testId}
-        className="min-w-0 grow rounded-e-md bg-transparent px-3 py-2 text-base text-foreground focus-visible:outline-none"
-        inputMode="tel"
-        autoComplete="tel-national"
-        dir="ltr"
-        value={national}
-        onChange={(event) => {
-          const typed = event.target.value;
-          const international = readInternational(typed, iso);
-          if (international !== null) {
-            pickedRef.current = true;
-            setIso(international.iso);
-            setNational(international.rest);
-            onValue(joinPhone(international.iso, international.rest));
-            return;
-          }
-          if (typed !== "") pickedRef.current = true;
-          setNational(typed);
-          onValue(joinPhone(iso, typed));
-        }}
         onBlur={(event) => {
-          if (wrapRef.current?.contains(event.relatedTarget as Node | null)) return;
-          onLeave(joinPhone(iso, national));
+          if (open && !wrapRef.current?.contains(event.relatedTarget as Node | null)) close(false);
         }}
-      />
-      {open && (
-        <div
-          className={`absolute start-0 top-full ${Z_POPOVER} mt-1 w-72 max-w-[calc(100vw-2rem)] rounded-md border border-border bg-background shadow-md`}
+      >
+        <button
+          type="button"
+          data-testid={`${testId}-country`}
+          data-iso={shownIso}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-label={
+            shownIso === ""
+              ? t("post.who.phoneCountryLabel")
+              : `${t("post.who.phoneCountryLabel")}: ${fill(t("post.who.phoneCountryChosen"), {
+                  name: nameOf(shownIso),
+                  code: shownCode,
+                })}`
+          }
+          className="flex w-24 shrink-0 items-center gap-1 rounded-s-md ps-3 pe-2 text-base text-foreground focus-visible:outline-none"
+          onClick={() => (open ? close(false) : setOpen(true))}
         >
-          <input
-            ref={searchRef}
-            data-testid={`${testId}-country-search`}
-            role="combobox"
-            aria-expanded={true}
-            aria-controls={listId}
-            aria-label={t("post.who.phoneCountrySearch")}
-            aria-activedescendant={
-              matches[highlight] === undefined ? undefined : `${listId}-${matches[highlight]}`
-            }
-            autoComplete="off"
-            placeholder={t("post.who.phoneCountrySearch")}
-            className="min-h-11 w-full rounded-t-md border-b border-border bg-background px-3 text-base text-foreground focus-visible:outline-none"
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setHighlight(0);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "ArrowDown") {
-                event.preventDefault();
-                setHighlight((index) => Math.min(index + 1, Math.max(matches.length - 1, 0)));
-                return;
-              }
-              if (event.key === "ArrowUp") {
-                event.preventDefault();
-                setHighlight((index) => Math.max(index - 1, 0));
-                return;
-              }
-              if (event.key === "Enter") {
-                event.preventDefault();
-                const row = matches[highlight];
-                if (row !== undefined) choose(row);
-                return;
-              }
-              if (event.key === "Escape") {
-                event.preventDefault();
-                close(true);
-              }
-            }}
+          <span aria-hidden="true">{shownIso === "" ? "" : flagOf(shownIso)}</span>
+          <span dir="ltr" className="tabular-nums">
+            {shownCode === "" ? "" : `+${shownCode}`}
+          </span>
+          <ChevronDown
+            aria-hidden="true"
+            className="ms-auto h-4 w-4 shrink-0 text-muted-foreground"
           />
-          <ul
-            id={listId}
-            role="listbox"
-            data-testid={`${testId}-country-list`}
-            aria-label={t("post.who.phoneCountryLabel")}
-            className="max-h-64 overflow-y-auto"
+        </button>
+        <span aria-hidden="true" className="my-2 w-px shrink-0 bg-border" />
+        <input
+          ref={numberRef}
+          id={id}
+          data-testid={testId}
+          className="min-w-0 grow rounded-e-md bg-transparent px-3 py-2 text-base text-foreground focus-visible:outline-none"
+          inputMode="tel"
+          autoComplete="tel-national"
+          dir="ltr"
+          value={national}
+          placeholder={plan === null ? undefined : plan.example}
+          aria-describedby={hint === null ? undefined : `${id}-hint`}
+          onChange={(event) => {
+            const typed = event.target.value;
+            const international = readInternational(typed, iso);
+            if (international !== null) {
+              pickedRef.current = true;
+              setIso(international.iso);
+              setNational(international.rest);
+              onValue(joinPhone(international.iso, international.rest));
+              return;
+            }
+            if (typed !== "") pickedRef.current = true;
+            setNational(typed);
+            onValue(joinPhone(iso, typed));
+          }}
+          onBlur={(event) => {
+            if (wrapRef.current?.contains(event.relatedTarget as Node | null)) return;
+            onLeave(joinPhone(iso, national));
+          }}
+        />
+        {open && (
+          <div
+            className={`absolute start-0 top-full ${Z_POPOVER} mt-1 w-72 max-w-[calc(100vw-2rem)] rounded-md border border-border bg-background shadow-md`}
           >
-            {matches.length === 0 && (
-              <li className="px-3 py-2 text-sm text-muted-foreground">
-                {t("post.who.phoneCountryNone")}
-              </li>
-            )}
-            {matches.map((code, index) => (
-              <li key={code} role="presentation">
-                <button
-                  type="button"
-                  id={`${listId}-${code}`}
-                  role="option"
-                  aria-selected={code === shownIso}
-                  data-testid={`${testId}-country-option`}
-                  data-iso={code}
-                  className={`flex min-h-11 w-full items-center gap-2 px-3 text-start text-sm text-foreground ${
-                    index === highlight ? "bg-accent" : ""
-                  }`}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => choose(code)}
-                >
-                  <span aria-hidden="true">{flagOf(code)}</span>
-                  <span className="min-w-0 grow truncate">{nameOf(code)}</span>
-                  <span dir="ltr" className="shrink-0 tabular-nums text-muted-foreground">
-                    +{CALLING_CODES[code] ?? ""}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+            <input
+              ref={searchRef}
+              data-testid={`${testId}-country-search`}
+              role="combobox"
+              aria-expanded={true}
+              aria-controls={listId}
+              aria-label={t("post.who.phoneCountrySearch")}
+              aria-activedescendant={
+                matches[highlight] === undefined ? undefined : `${listId}-${matches[highlight]}`
+              }
+              autoComplete="off"
+              placeholder={t("post.who.phoneCountrySearch")}
+              className="min-h-11 w-full rounded-t-md border-b border-border bg-background px-3 text-base text-foreground focus-visible:outline-none"
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setHighlight(0);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowDown") {
+                  event.preventDefault();
+                  setHighlight((index) => Math.min(index + 1, Math.max(matches.length - 1, 0)));
+                  return;
+                }
+                if (event.key === "ArrowUp") {
+                  event.preventDefault();
+                  setHighlight((index) => Math.max(index - 1, 0));
+                  return;
+                }
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  const row = matches[highlight];
+                  if (row !== undefined) choose(row);
+                  return;
+                }
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  close(true);
+                }
+              }}
+            />
+            <ul
+              id={listId}
+              role="listbox"
+              data-testid={`${testId}-country-list`}
+              aria-label={t("post.who.phoneCountryLabel")}
+              className="max-h-64 overflow-y-auto"
+            >
+              {matches.length === 0 && (
+                <li className="px-3 py-2 text-sm text-muted-foreground">
+                  {t("post.who.phoneCountryNone")}
+                </li>
+              )}
+              {matches.map((code, index) => (
+                <li key={code} role="presentation">
+                  <button
+                    type="button"
+                    id={`${listId}-${code}`}
+                    role="option"
+                    aria-selected={code === shownIso}
+                    data-testid={`${testId}-country-option`}
+                    data-iso={code}
+                    className={`flex min-h-11 w-full items-center gap-2 px-3 text-start text-sm text-foreground ${
+                      index === highlight ? "bg-accent" : ""
+                    }`}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => choose(code)}
+                  >
+                    <span aria-hidden="true">{flagOf(code)}</span>
+                    <span className="min-w-0 grow truncate">{nameOf(code)}</span>
+                    <span dir="ltr" className="shrink-0 tabular-nums text-muted-foreground">
+                      +{CALLING_CODES[code] ?? ""}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+      {hint !== null && plan !== null && (
+        <p
+          id={`${id}-hint`}
+          data-testid={`${testId}-length-hint`}
+          data-hint={hint}
+          className="text-xs text-muted-foreground"
+        >
+          {fill(t(hint === "short" ? "post.who.phoneTooShort" : "post.who.phoneTooLong"), {
+            min: String(plan.min),
+            max: String(plan.max),
+          })}
+        </p>
       )}
     </div>
   );

@@ -35,6 +35,11 @@ const TREES: Record<string, TreeNode[]> = {
     node("c2", "r1", "city"),
     node("c3", "r2", "city"),
     node("s1", "c1", "sub_city"),
+    // W2 — enough room left that the add buttons stay drawn in the layout tests.
+    node("r3", "et", "region"),
+    node("c4", "r1", "city"),
+    node("c5", "r3", "city"),
+    node("s2", "c1", "sub_city"),
   ],
   KE: [node("ke", null, "country"), node("kr", "ke", "region"), node("kc", "kr", "city")],
 };
@@ -371,5 +376,60 @@ describe("StepWhere — the item location box is optional (bundle 2 P6)", () => 
       box.querySelectorAll("[aria-required='true'],[required],[aria-invalid='true']"),
     ).toHaveLength(0);
     expect(box.querySelectorAll(".text-destructive,.border-destructive")).toHaveLength(0);
+  });
+});
+
+describe("StepWhere — one city box per city, no repeats (walk round 2 W1/W2)", () => {
+  it("W1 two sub-cities of one city draw ONE city box holding two sub-city boxes", async () => {
+    await mount();
+    const region = document.querySelector<HTMLElement>(
+      '[data-testid="post-where-region-box"][data-region="r1"]',
+    )!;
+    fireEvent.change(within(region).getByTestId("post-where-subcity"), {
+      target: { value: "s1" },
+    });
+    fireEvent.click(within(region).getByTestId("post-where-add-subcity"));
+    const rows = within(region).getAllByTestId("post-where-row");
+    expect(rows).toHaveLength(1);
+    const subs = within(rows[0]!).getAllByTestId("post-where-subcity-box");
+    expect(subs).toHaveLength(2);
+    const second = within(subs[1]!).getByTestId("post-where-row-subcity") as HTMLSelectElement;
+    // W2 — the second sub-city picker leaves out the first one's choice.
+    expect([...second.options].map((option) => option.value)).toEqual(["", "s2"]);
+    fireEvent.change(second, { target: { value: "s2" } });
+    expect(screen.getByTestId("coverage")).toHaveTextContent("s1,s2");
+    // Nothing left: "Add sub-city" is gone; each sub-city box holds its own tick.
+    expect(within(region).queryByTestId("post-where-add-subcity")).toBeNull();
+    expect(within(subs[1]!).getByTestId("post-where-item-tick")).toBeInTheDocument();
+  });
+
+  it("W2 a city picker leaves out a city chosen in the region's other box; Add city hides", async () => {
+    await mount({ cities: 5, regions: 3, countries: 2 });
+    const region = () =>
+      document.querySelector<HTMLElement>(
+        '[data-testid="post-where-region-box"][data-region="r1"]',
+      )!;
+    fireEvent.click(within(region()).getByTestId("post-where-add-city"));
+    const picker = within(region()).getAllByTestId("post-where-row-city")[0] as HTMLSelectElement;
+    expect([...picker.options].map((option) => option.value)).toEqual(["", "c2", "c4"]);
+    fireEvent.change(picker, { target: { value: "c2" } });
+    fireEvent.click(within(region()).getByTestId("post-where-add-city"));
+    fireEvent.change(within(region()).getAllByTestId("post-where-row-city")[1]!, {
+      target: { value: "c4" },
+    });
+    expect(within(region()).queryByTestId("post-where-add-city")).toBeNull();
+  });
+
+  it("W2 a region picker leaves out regions already chosen; Add region hides", async () => {
+    await mount({ cities: 5, regions: 3, countries: 2 });
+    fireEvent.click(screen.getByTestId("post-where-add-region"));
+    const picker = screen.getByTestId("post-where-row-region") as HTMLSelectElement;
+    expect([...picker.options].map((option) => option.value)).toEqual(["", "r2", "r3"]);
+    fireEvent.change(picker, { target: { value: "r2" } });
+    fireEvent.click(screen.getByTestId("post-where-add-region"));
+    fireEvent.change(screen.getAllByTestId("post-where-row-region")[1]!, {
+      target: { value: "r3" },
+    });
+    expect(screen.queryByTestId("post-where-add-region")).toBeNull();
   });
 });

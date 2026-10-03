@@ -315,6 +315,15 @@ export function StepReview({
         >
           {t("post.review.myListings")}
         </Link>
+        {/* W3 — a fresh post at step 1; a full load so no draft state is carried. */}
+        <Link
+          to="/post"
+          reloadDocument
+          data-testid="post-review-another"
+          className="ms-2 inline-flex min-h-11 items-center rounded-md border border-input px-4 text-sm font-medium text-foreground"
+        >
+          {t("post.review.postAnother")}
+        </Link>
       </div>
     );
   }
