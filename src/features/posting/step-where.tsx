@@ -271,20 +271,17 @@ function CountryBox({
   const regionsLeft =
     regions.filter((node) => !takenRegions.includes(node.id)).length > pendingRegions;
   const empty = !rows.some((row) => placeOf(row) !== null);
-  const addRegionButton = room.region &&
-    code !== null &&
-    nodes.length > 0 &&
-    regionsLeft && (
-      <button
-        type="button"
-        data-testid="post-where-add-region"
-        data-country={code}
-        className={addClass}
-        onClick={() => onAddRegion(code)}
-      >
-        {t("post.where.addRegion")}
-      </button>
-    );
+  const addRegionButton = room.region && code !== null && nodes.length > 0 && regionsLeft && (
+    <button
+      type="button"
+      data-testid="post-where-add-region"
+      data-country={code}
+      className={addClass}
+      onClick={() => onAddRegion(code)}
+    >
+      {t("post.where.addRegion")}
+    </button>
+  );
 
   const tickLine = (row: Row, onRemoveRow: (() => void) | null) => (
     <div
@@ -523,7 +520,10 @@ function CountryBox({
                               data-key={row.key}
                               data-item={row.key === itemKey ? "1" : "0"}
                             >
-                              <label htmlFor={subId} className="text-sm font-medium text-foreground">
+                              <label
+                                htmlFor={subId}
+                                className="text-sm font-medium text-foreground"
+                              >
                                 {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
                               </label>
                               <select
