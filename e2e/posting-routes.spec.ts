@@ -469,56 +469,78 @@ test.describe("POSTING ROUTES", () => {
     const attributeId = await anyAttributeId();
     const path = `/api/attributes/${attributeId}/options`;
 
-    const first = await page.request.get(path);
+    // INC-397 — signed-in callers only; no bearer is a 401.
+    const anonymous = await page.request.get(path);
+    expect(anonymous.status(), "PR-6: the options route answered without a bearer").toBe(401);
+    const { token } = await seller(page);
+    const auth = { Authorization: `Bearer ${token}` };
+
+    const first = await page.request.get(path, { headers: auth });
     expect(first.status()).toBe(200);
     const etag = first.headers()["etag"] ?? "";
     expect(etag, "the options route published no ETag").not.toBe("");
     // INC-243 — the list is held for ONE minute, with five of stale-while-revalidate,
     // so a curator's file commit reaches an open form within the minute.
+    expect(first.headers()["cache-control"] ?? "").toContain("private");
     expect(first.headers()["cache-control"] ?? "").toContain("max-age=60");
     expect(first.headers()["cache-control"] ?? "").toContain("stale-while-revalidate=300");
 
-    const repeat = await page.request.get(path, { headers: { "If-None-Match": etag } });
+    const repeat = await page.request.get(path, { headers: { ...auth, "If-None-Match": etag } });
     expect(repeat.status()).toBe(304);
 
     // An id no attribute has is a 404, never an empty 200.
     const missing = await page.request.get(
       "/api/attributes/00000000-0000-0000-0000-000000000000/options",
+      { headers: auth },
     );
     expect(missing.status()).toBe(404);
   });
 
   test("PR-7 the draft dial refuses by name once the ceiling is reached", async ({ page }) => {
     test.setTimeout(120_000);
-    const { token } = await seller(page);
+    const { user, token } = await seller(page);
     const cat = await category();
-    // The dial is server env (`RATE_LIMIT_DRAFT_PER_HOUR`, default 30). The test
-    // cannot set the server's env, so it walks the ceiling with a BOUND and
-    // asserts the refusal's shape — never a sleep and never an unbounded loop.
-    const ceiling = Number(process.env["RATE_LIMIT_DRAFT_PER_HOUR"] ?? 30);
-    let refusal: Record<string, unknown> | null = null;
-    for (let attempt = 0; attempt < ceiling + 2; attempt += 1) {
-      const answer = await postRoute(
-        page,
-        DRAFT,
-        { step: 1, categoryId: cat.id },
-        { token, country: "ET" },
-      );
-      expect(answer.status).toBe(200);
-      const rate = reasonsOf(answer.payload).find((entry) => entry.reason === "rateLimited");
-      if (rate) {
-        refusal = answer.payload;
-        break;
+    // INC-396 — the dial lives in `rate_dials` and the door counts for itself.
+    // The test lowers it for its OWN scratch user through `rate_overrides`,
+    // removed in finally, and walks the ceiling with a BOUND.
+    const ceiling = 3;
+    const admin = adminClient();
+    const lowered = await admin
+      .from("rate_overrides")
+      .upsert({ user_id: user.id, action: "draft", max_count: ceiling });
+    if (lowered.error) throw new Error(`PR-7 override: ${lowered.error.message}`);
+    try {
+      let refusal: Record<string, unknown> | null = null;
+      for (let attempt = 0; attempt < ceiling + 2; attempt += 1) {
+        const answer = await postRoute(
+          page,
+          DRAFT,
+          { step: 1, categoryId: cat.id },
+          { token, country: "ET" },
+        );
+        expect(answer.status).toBe(200);
+        const rate = reasonsOf(answer.payload).find((entry) => entry.reason === "rateLimited");
+        if (rate) {
+          refusal = answer.payload;
+          break;
+        }
       }
+      expect(refusal, `the dial never refused within ${ceiling + 2} calls`).not.toBeNull();
+      const entry = (Array.isArray(refusal!["refusals"]) ? refusal!["refusals"][0] : {}) as Record<
+        string,
+        unknown
+      >;
+      expect(entry["field"]).toBe("rate");
+      // The refusal names WHEN it lifts, so a client can say so (C4/F4).
+      expect(String(entry["detail"] ?? ""), JSON.stringify(refusal)).not.toBe("");
+    } finally {
+      const removed = await admin
+        .from("rate_overrides")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("action", "draft");
+      if (removed.error) throw new Error(`PR-7 override cleanup: ${removed.error.message}`);
     }
-    expect(refusal, `the dial never refused within ${ceiling + 2} calls`).not.toBeNull();
-    const entry = (Array.isArray(refusal!["refusals"]) ? refusal!["refusals"][0] : {}) as Record<
-      string,
-      unknown
-    >;
-    expect(entry["field"]).toBe("rate");
-    // The refusal names WHEN it lifts, so a client can say so (C4/F4).
-    expect(String(entry["detail"] ?? ""), JSON.stringify(refusal)).not.toBe("");
   });
 
   test("PR-8 no bearer is 401 on every posting route", async ({ page }) => {
