@@ -247,8 +247,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
 
     const listingId = await openDraft(page, user.id, own.id, 5);
     await expect(page.getByTestId("post-where-prefilled")).toBeVisible({ timeout: 20_000 });
-    // Give the carry every chance to run, then read DB truth.
-    await page.waitForTimeout(3_000);
+    // The draft's own text read settles before any carry could run (the line shows).
+    await expect(page.getByTestId("post-where-directions")).toBeEditable();
     await expect(page.getByTestId("post-where-pin-carried")).toHaveCount(0);
     expect((await pinOf(listingId)).lat, "PW-116: an own_place leaf carried the pin").toBeNull();
     expect(await placeTextOf(listingId)).toEqual({ street: null, directions: null });
