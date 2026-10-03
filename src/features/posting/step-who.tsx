@@ -98,11 +98,14 @@ export function StepWho({
   contactPref,
   refusals,
   onChange,
+  itemCountry = null,
 }: {
   listingId?: string | null;
   contactPref: Record<string, unknown>;
   refusals: Refusal[];
   onChange: (contactPref: Record<string, unknown>, immediate: boolean) => void;
+  /** B3 — the country of the place marked "the item or service is here", if known. */
+  itemCountry?: string | null;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
@@ -176,6 +179,13 @@ export function StepWho({
   const [carriedContact, setCarriedContact] = useState(false);
   /** Bundle 2 Q2 — "Add another phone" reveals the second phone row. */
   const [phone2Open, setPhone2Open] = useState(false);
+  /** B4 — the first phone's country, so the second phone opens on it. */
+  const [firstPhoneIso, setFirstPhoneIso] = useState("");
+  /**
+   * B3 — an empty box's country: the item's place, else the seller's home
+   * country, else the posting market (`country` already holds home ▸ market).
+   */
+  const defaultIso = itemCountry ?? country;
   const carryAskedRef = useRef(false);
   const contactRef = useRef(contactPref);
   contactRef.current = contactPref;
@@ -584,7 +594,9 @@ export function StepWho({
               {/* U6-C1-R2 — ONE ROW PER CHANNEL: the number and the permission sit
                   side by side, so whether a buyer will see it is visible at a
                   glance rather than a switch further down the screen. */}
-              <div className="flex items-center gap-3">
+              {/* B2 — the group keeps the number box at least 160 px; when the row
+                  cannot also hold the switch, the switch wraps to its own line. */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 {channel === "telegram" ? (
                   <input
                     id={`post-who-value-${channel}`}
@@ -601,11 +613,13 @@ export function StepWho({
                     id={`post-who-value-${channel}`}
                     testId={`post-who-value-${channel}`}
                     value={current.value}
-                    defaultIso={country}
+                    defaultIso={
+                      channel === "phone2" && firstPhoneIso !== "" ? firstPhoneIso : defaultIso
+                    }
                     openMarkets={openMarketCodes}
-                    fieldClass={fieldClass}
                     onValue={(next) => setChannel(channel, { value: next })}
                     onLeave={(next) => leaveChannel(channel, next, current.show)}
+                    onCountry={channel === "phone" ? setFirstPhoneIso : undefined}
                   />
                 )}
                 <label className="flex min-h-11 shrink-0 items-center gap-2 text-xs text-foreground">
