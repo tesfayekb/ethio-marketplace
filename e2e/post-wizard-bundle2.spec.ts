@@ -81,7 +81,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     page: Page,
     userId: string,
     categoryId: string,
-    step: 5 | 6,
+    step: 3 | 5 | 6,
     coverage: string[] = [],
     prepare?: (listingId: string) => Promise<void>,
   ) {
@@ -356,5 +356,25 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(page.getByTestId("post-who-value-phone")).toHaveValue("");
     const pref = await contactPrefOf(listingId);
     expect(pref["phone"] ?? null, "PW-119: another seller's phone was carried").toBeNull();
+  });
+
+  test("PW-121 a phone number in the title or description is flagged at its field", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    await openDraft(page, user.id, leaf.id, 3);
+    for (const id of ["post-title", "post-description"]) {
+      const box = page.getByTestId(id);
+      const refusal = page
+        .locator('[data-testid="post-field"]')
+        .filter({ has: box })
+        .getByTestId("post-field-refusal");
+      await box.fill("call me on 0911 234 567");
+      await expect(refusal, `PW-121: ${id} did not flag the phone number`).toBeVisible();
+      await box.fill("Toyota Corolla 2008 1300 in very good condition");
+      await box.blur();
+      await expect(refusal, `PW-121: ${id} flagged a car's year and engine`).toHaveCount(0);
+    }
   });
 });

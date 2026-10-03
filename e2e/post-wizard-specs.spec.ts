@@ -464,6 +464,39 @@ test.describe("POSTING WIZARD", () => {
   const otherBox = (page: Page, attrKey: string) =>
     page.locator(`[data-testid="post-attr-other"][data-attr="${attrKey}"]`);
 
+  /**
+   * PW-120 — bundle 2 step 3. A phone number typed into an Other write-in, single
+   * and multi, is flagged at its own field as typed (the client mirror); a plain
+   * word clears it.
+   */
+  test("PW-120 a phone number in an Other write-in is flagged as typed, single and multi", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const keys = await seedOtherPair(category.id);
+    await reachStep3(page, user.id, category);
+    const refusalOf = (key: string) =>
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${key}"]`);
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${keys.single}"]`)
+      .selectOption("other");
+    await otherBox(page, keys.single).fill("+251 911 234 567");
+    await expect(refusalOf(keys.single), "PW-120: single Other not flagged").toBeVisible();
+    await otherBox(page, keys.single).fill("teff");
+    await expect(refusalOf(keys.single), "PW-120: a plain word stayed flagged").toHaveCount(0);
+
+    await page
+      .locator(
+        `[data-testid="post-attr-checks"][data-attr="${keys.multi}"] [data-testid="post-attr-check"][data-value="other"]`,
+      )
+      .check();
+    await otherBox(page, keys.multi).fill("0911 234 567");
+    await expect(refusalOf(keys.multi), "PW-120: multi Other not flagged").toBeVisible();
+    await otherBox(page, keys.multi).fill("barley");
+    await expect(refusalOf(keys.multi), "PW-120: a plain word stayed flagged").toHaveCount(0);
+  });
+
   /** INC-369 — an empty Other write-in is red and takes focus on Next, single and multi. */
   test("PW-106 an empty Other write-in is refused and focused on Next (INC-369)", async ({
     page,
