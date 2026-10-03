@@ -956,9 +956,14 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                       (refusal) =>
                         !(
                           draft.step === 7 &&
-                          ["contact_pref", "messages", "phone", "phone2", "telegram", "whatsapp"].includes(
-                            refusal.field,
-                          )
+                          [
+                            "contact_pref",
+                            "messages",
+                            "phone",
+                            "phone2",
+                            "telegram",
+                            "whatsapp",
+                          ].includes(refusal.field)
                         ),
                     )
                     .map((refusal) => (

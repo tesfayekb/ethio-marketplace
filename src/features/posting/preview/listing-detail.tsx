@@ -300,9 +300,9 @@ export function ListingDetail(view: ListingDetailView) {
                 ? t("post.who.channel.phone")
                 : channel === "phone2"
                   ? t("post.who.channel.phone2")
-                : channel === "telegram"
-                  ? t("post.who.channel.telegram")
-                  : t("post.who.channel.whatsapp")}
+                  : channel === "telegram"
+                    ? t("post.who.channel.telegram")
+                    : t("post.who.channel.whatsapp")}
             </li>
           ))}
         </ul>
