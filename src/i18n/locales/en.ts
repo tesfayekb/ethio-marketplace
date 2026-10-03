@@ -2163,6 +2163,8 @@ export const en = {
   "post.who.channel.numberHint": "Choose the country, then type the number.",
   "post.who.phoneCountryLabel": "Country code",
   "post.who.phoneCountrySearch": "Search country or code",
+  "post.who.phoneTooShort": "Shorter than usual for this country ({min}–{max} digits).",
+  "post.who.phoneTooLong": "Longer than usual for this country ({min}–{max} digits).",
   "post.who.phoneCountryNone": "No country matches",
   "post.who.phoneCountryChosen": "{name} +{code}",
   "post.who.phoneCountryOption": "{name} +{code}",
@@ -2187,6 +2189,7 @@ export const en = {
   "post.review.reviewBody":
     "Your listing is being checked. It usually takes a few minutes, and you'll see it in My listings when it goes live.",
   "post.review.myListings": "Go to My listings",
+  "post.review.postAnother": "Post another ad",
   // U6-C1-R1 — the required-field primitive, the one-control category step,
   // optional photos, the ordered price step and the review window.
   "post.field.required": "Required",

@@ -2068,6 +2068,8 @@ export const am: Messages = {
   "post.who.channel.numberHint": "አገሩን ይምረጡ፣ ከዚያ ቁጥሩን ይጻፉ።",
   "post.who.phoneCountryLabel": "የአገር ኮድ",
   "post.who.phoneCountrySearch": "አገር ወይም ኮድ ይፈልጉ",
+  "post.who.phoneTooShort": "ለዚህ አገር ከተለመደው ያጠረ ነው ({min}–{max} አሃዞች)።",
+  "post.who.phoneTooLong": "ለዚህ አገር ከተለመደው የረዘመ ነው ({min}–{max} አሃዞች)።",
   "post.who.phoneCountryNone": "የሚዛመድ አገር የለም",
   "post.who.phoneCountryChosen": "{name} +{code}",
   "post.who.phoneCountryOption": "{name} +{code}",
@@ -2091,6 +2093,7 @@ export const am: Messages = {
   "post.review.reviewTitle": "በግምገማ ላይ",
   "post.review.reviewBody": "ዝርዝርዎ በመመርመር ላይ ነው። አብዛኛውን ጊዜ ጥቂት ደቂቃዎች ይወስዳል፤ ሲወጣ በ«ዝርዝሮቼ» ውስጥ ያዩታል።",
   "post.review.myListings": "ወደ ዝርዝሮቼ ይሂዱ",
+  "post.review.postAnother": "ሌላ ማስታወቂያ ይለጥፉ",
   // U6-C1-R1
   "post.field.required": "ያስፈልጋል",
   "post.refusalSummary": "ለመቀጠል እነዚህን ይሙሉ፦",
