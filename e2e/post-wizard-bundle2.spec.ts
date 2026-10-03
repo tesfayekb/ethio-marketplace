@@ -4,6 +4,7 @@ import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { adminClient, leaseUser } from "./helpers/users";
+import { seedActiveListing } from "./helpers/categories";
 import {
   activeCityOf,
   bearerOf,
