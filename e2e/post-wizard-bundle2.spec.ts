@@ -107,7 +107,10 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     objects.push({ userId, listingId });
     if (prepare) await prepare(listingId);
     await gotoReady(page, `/post/${listingId}`);
-    await expect(page.getByTestId(`post-step-${step + 1}`)).toBeVisible({ timeout: 20_000 });
+    // A step-3 draft reopens on its photos (step 3); later drafts open one step on.
+    await expect(page.getByTestId(`post-step-${step === 3 ? 3 : step + 1}`)).toBeVisible({
+      timeout: 20_000,
+    });
     return listingId;
   }
 
@@ -364,6 +367,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const user = await signedInSeller(page);
     const leaf = await category();
     await openDraft(page, user.id, leaf.id, 3);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
     for (const id of ["post-title", "post-description"]) {
       const box = page.getByTestId(id);
       const refusal = page
