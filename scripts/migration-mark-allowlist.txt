@@ -27,3 +27,4 @@
 20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql | D37-1 declared mark 20260924028000, which precedes its filename stamp; the ledger row is recorded by the D37-1 closer (mark 20260924100000) | b318bbba
 20260924091805_37a1e9bc-3840-4190-a88c-28f4b8f9346a.sql | D37-1 declared mark 20260924091500, which precedes its filename stamp; the ledger row is recorded by the D37-1 closer (mark 20260924100000) | b318bbba
 20260928135721_6b0f6ae1-97f5-4fa4-aee8-4603737dbcae.sql | INC-321 declared mark 20260928100000, which precedes its filename stamp; the ledger row 20260928135721 is recorded by the corrective | 20260928140742
+20261003005802_7423f49a-182c-47a8-b92e-d6417ed57452.sql | bundle 2 declared mark 20261003000000, which precedes its filename stamp; the ledger row 20261003005802 is recorded by the corrective | 20261003012503

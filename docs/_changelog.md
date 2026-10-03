@@ -632,3 +632,4 @@
 - 2026-10-02 bundle 2 Q1/P6 — phone and WhatsApp get a country picker (calling-codes.ts, phone-number-field.tsx; saved as + code digits); the item location box is never required (step-where test). Old phone/WhatsApp hint keys retired for post.who.channel.numberHint.
 - 2026-10-02 bundle 2 step 18 — suggest-icon returns fallback: true|false (checkIcon); the category editor notes a fallback (admin.categories.field.iconFallbackNote, EN+AM). Route test in src/server/category-images/suggest-icon-route.test.ts.
 - 2026-10-02 bundle 2 Q3 — a new post's contact step opens with the last post's channels (readLastListingContact), written to the draft on open, line post.who.contactFromLastPost (EN+AM). PW-112.
+- 2026-10-03 bundle 2 corrective 5c25e616 — restores the volatility of six functions 7423f49a changed (ALTER only) and records 7423f49a's filename mark 20261003005802; mark 20261003030000.
