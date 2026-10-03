@@ -396,9 +396,13 @@ function CountryBox({
                         )}
                       </div>
                       {/* D19 — "All of <city>" is the CITY node offered beside its children. */}
-                      {/* Bundle 2 P5 — the sub-city sits one indent further under its city. */}
+                      {/* Bundle 2 P5 — the sub-city sits one indent further under its city.
+                          At 360 the step is a left rule only, so its select keeps 200 px. */}
                       {cityNode !== null && subCities.length > 0 && (
-                        <div className="ms-4 space-y-1" data-testid="post-where-subcity-box">
+                        <div
+                          className="space-y-1 border-s-2 border-border ps-0.5 sm:ms-4 sm:border-s-0 sm:ps-0"
+                          data-testid="post-where-subcity-box"
+                        >
                           <label
                             htmlFor={
                               isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`
