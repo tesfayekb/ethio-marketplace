@@ -118,3 +118,32 @@ export function countryDisplayName(iso: string, language: string): string {
     return iso;
   }
 }
+
+/**
+ * Bundle 2 B2 — the flag is the emoji built from the ISO code (two regional
+ * indicator letters); no image files. An unknown or malformed code has none.
+ */
+export function flagOf(iso: string): string {
+  if (!/^[A-Z]{2}$/.test(iso)) return "";
+  return String.fromCodePoint(...[...iso].map((letter) => 0x1f1e6 + letter.charCodeAt(0) - 65));
+}
+
+/**
+ * Bundle 2 B2 — the picker's search: by the shown name (any part, any case) or
+ * by the calling code ("+251", "00251" and "251" all match Ethiopia). The given
+ * order is kept, so open markets stay first.
+ */
+export function searchCountries(
+  order: readonly string[],
+  query: string,
+  nameOf: (iso: string) => string,
+): string[] {
+  const text = query.trim().toLocaleLowerCase();
+  if (text === "") return [...order];
+  const digits = text.replace(/^(\+|00)/, "").replace(/\D/g, "");
+  const numeric = /^(\+|00)?[\d\s-]+$/.test(text);
+  return order.filter((iso) => {
+    if (numeric) return (CALLING_CODES[iso] ?? "").startsWith(digits);
+    return nameOf(iso).toLocaleLowerCase().includes(text) || iso.toLocaleLowerCase() === text;
+  });
+}

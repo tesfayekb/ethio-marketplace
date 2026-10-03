@@ -40,6 +40,45 @@ async function placeTextOf(listingId: string) {
   return { street: data?.street_address ?? null, directions: data?.directions ?? null };
 }
 
+/**
+ * B1 (walk defect) — what the walk saw: the number box sits inside the viewport
+ * and is at least 160 px wide, the picker no wider than 120 px.
+ */
+async function expectPhoneRowUsable(page: Page, testId: string) {
+  const viewport = page.viewportSize();
+  const box = await page.getByTestId(testId).boundingBox();
+  const picker = await page.getByTestId(`${testId}-country`).boundingBox();
+  const shown = `number=${JSON.stringify(box)} picker=${JSON.stringify(picker)} viewport=${viewport?.width}`;
+  expect(box, `${testId}: the number box is not rendered (${shown})`).not.toBeNull();
+  expect(picker, `${testId}: the picker is not rendered (${shown})`).not.toBeNull();
+  if (box === null || picker === null || viewport === null) return;
+  expect(box.x, `${testId}: the number box starts off screen (${shown})`).toBeGreaterThanOrEqual(0);
+  expect(
+    box.x + box.width,
+    `${testId}: the number box ends off screen (${shown})`,
+  ).toBeLessThanOrEqual(viewport.width);
+  expect(box.width, `${testId}: the number box is under 160 px (${shown})`).toBeGreaterThanOrEqual(
+    160,
+  );
+  expect(picker.width, `${testId}: the picker is over 120 px (${shown})`).toBeLessThanOrEqual(120);
+}
+
+/** B1 — the number is entered as a person does: click the box, type on the keyboard. */
+async function typePhone(page: Page, testId: string, text: string) {
+  await page.getByTestId(testId).click();
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.press("Backspace");
+  await page.keyboard.type(text);
+}
+
+/** B2 — the country is picked from the searchable list, by its calling code. */
+async function pickPhoneCountry(page: Page, testId: string, iso: string, code: string) {
+  await page.getByTestId(`${testId}-country`).click();
+  await page.getByTestId(`${testId}-country-search`).fill(code);
+  await page.locator(`[data-testid="${testId}-country-option"][data-iso="${iso}"]`).click();
+  await expect(page.getByTestId(`${testId}-country`)).toHaveAttribute("data-iso", iso);
+}
+
 test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   const categories: string[] = [];
   const sellers: string[] = [];
@@ -186,10 +225,19 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
 
     await expect(page.getByTestId("post-who-channel-phone2")).toHaveCount(0);
+    // B4 — the second phone opens on the first phone's country.
+    await expectPhoneRowUsable(page, "post-who-value-phone");
+    await pickPhoneCountry(page, "post-who-value-phone", "ER", "+291");
+    await typePhone(page, "post-who-value-phone", "7123456");
     await page.getByTestId("post-who-add-phone2").click();
     await expect(page.getByTestId("post-who-channel-phone2")).toBeVisible();
-    await page.getByTestId("post-who-value-phone2-country").selectOption("ET");
-    await page.getByTestId("post-who-value-phone2").fill("922345678");
+    await expect(
+      page.getByTestId("post-who-value-phone2-country"),
+      "PW-114: the second phone did not open on the first phone's country",
+    ).toHaveAttribute("data-iso", "ER");
+    await expectPhoneRowUsable(page, "post-who-value-phone2");
+    await pickPhoneCountry(page, "post-who-value-phone2", "ET", "+251");
+    await typePhone(page, "post-who-value-phone2", "922345678");
     await page.getByTestId("post-who-value-phone2").blur();
     await page.getByTestId("post-who-show-phone2").check();
     await expect
@@ -203,6 +251,26 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
         { message: "PW-114: the second phone never reached the draft", timeout: 20_000 },
       )
       .toBe("true:+251922345678");
+  });
+
+  test("PW-122 an empty phone box opens on the country of the item's place", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    // The door accepts places in open markets only, so the item's place is an
+    // Ethiopian city and the seller's home country is moved away from it; the
+    // lease resets it (users.ts).
+    const { error } = await adminClient()
+      .from("profiles")
+      .update({ home_country_code: "US" })
+      .eq("user_id", user.id);
+    if (error) throw new Error(`[e2e:pw122] moving the home country failed: ${error.message}`);
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expectPhoneRowUsable(page, "post-who-value-phone");
+    await expect(
+      page.getByTestId("post-who-value-phone-country"),
+      "PW-122: the empty phone did not open on the item place's country",
+    ).toHaveAttribute("data-iso", "ET", { timeout: 20_000 });
   });
 
   async function seedLastPin(lastId: string) {

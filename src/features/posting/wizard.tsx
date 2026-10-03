@@ -27,7 +27,13 @@ import { MobileStepStrip } from "./mobile-step-strip";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { answerOtherText } from "./answer-tokens";
 import { basisNoun, basisToken, isUnitOfSaleKey } from "./price-basis";
-import { clearPin, readPostingSchema, type AttrDef, type PlanCaps } from "./posting-service";
+import {
+  clearPin,
+  readPlaceCountry,
+  readPostingSchema,
+  type AttrDef,
+  type PlanCaps,
+} from "./posting-service";
 import { useDraft, type DraftValues } from "./use-draft";
 
 /** D59 — the fields a category change resets, and Undo restores. */
@@ -109,6 +115,22 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const [facts, setFacts] = useState<CategoryFacts | null>(null);
   /** Bundle 2 Q4 — the draft's pin came from the last post (cleared for an own_place leaf). */
   const [pinCarried, setPinCarried] = useState(false);
+  /** B3 — the item place's country, for the contact step's empty phone boxes. */
+  const itemPlaceId = draft.values.coverage[0] ?? null;
+  const [itemCountry, setItemCountry] = useState<string | null>(null);
+  useEffect(() => {
+    if (itemPlaceId === null) {
+      setItemCountry(null);
+      return;
+    }
+    let cancelled = false;
+    void readPlaceCountry(itemPlaceId).then((code) => {
+      if (!cancelled) setItemCountry(code);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [itemPlaceId]);
   useEffect(() => {
     if (!pinCarried || draft.listingId === null) return;
     if (facts === null || !facts.capabilities.includes("own_place")) return;
@@ -890,6 +912,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           listingId={draft.listingId}
                           contactPref={draft.values.contactPref}
                           refusals={draft.refusals}
+                          itemCountry={itemCountry}
                           onChange={(contactPref, immediate) =>
                             draft.change({ contactPref }, immediate)
                           }
