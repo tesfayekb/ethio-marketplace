@@ -539,7 +539,8 @@ test.describe("POSTING ROUTES", () => {
         .delete()
         .eq("user_id", user.id)
         .eq("action", "draft");
-      if (removed.error) throw new Error(`PR-7 override cleanup: ${removed.error.message}`);
+      // J3 — a failed cleanup is loud, never silent.
+      expect(removed.error, "PR-7 override cleanup").toBeNull();
     }
   });
 
