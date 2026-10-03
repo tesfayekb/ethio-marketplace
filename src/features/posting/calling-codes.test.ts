@@ -41,7 +41,12 @@ describe("calling codes (bundle 2 Q1)", () => {
   });
   it("search matches the shown name or the calling code, keeping the order", () => {
     const order = ["ET", "ER", "GB", "US"];
-    const names: Record<string, string> = { ET: "Ethiopia", ER: "Eritrea", GB: "United Kingdom", US: "United States" };
+    const names: Record<string, string> = {
+      ET: "Ethiopia",
+      ER: "Eritrea",
+      GB: "United Kingdom",
+      US: "United States",
+    };
     const nameOf = (iso: string) => names[iso] ?? iso;
     expect(searchCountries(order, "+251", nameOf)).toEqual(["ET"]);
     expect(searchCountries(order, "00291", nameOf)).toEqual(["ER"]);

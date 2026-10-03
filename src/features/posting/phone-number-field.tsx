@@ -150,7 +150,10 @@ export function PhoneNumberField({
         <span dir="ltr" className="tabular-nums">
           {shownCode === "" ? "" : `+${shownCode}`}
         </span>
-        <ChevronDown aria-hidden="true" className="ms-auto h-4 w-4 shrink-0 text-muted-foreground" />
+        <ChevronDown
+          aria-hidden="true"
+          className="ms-auto h-4 w-4 shrink-0 text-muted-foreground"
+        />
       </button>
       <span aria-hidden="true" className="my-2 w-px shrink-0 bg-border" />
       <input
