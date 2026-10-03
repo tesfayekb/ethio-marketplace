@@ -4,6 +4,7 @@ import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { adminClient, leaseUser } from "./helpers/users";
+import { seedActiveListing } from "./helpers/categories";
 import {
   activeCityOf,
   bearerOf,
@@ -82,6 +83,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     categoryId: string,
     step: 5 | 6,
     coverage: string[] = [],
+    prepare?: (listingId: string) => Promise<void>,
   ) {
     const token = await bearerOf(page);
     const draft = await postRoute(
@@ -103,6 +105,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const listingId = String(draft.payload["listing_id"] ?? "");
     expect(listingId, "no draft id").not.toBe("");
     objects.push({ userId, listingId });
+    if (prepare) await prepare(listingId);
     await gotoReady(page, `/post/${listingId}`);
     await expect(page.getByTestId(`post-step-${step + 1}`)).toBeVisible({ timeout: 20_000 });
     return listingId;
@@ -293,5 +296,65 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     });
     const saved = await coverageOf(listingId);
     expect([...saved.placeIds].sort()).toEqual([chain.subCity.id, second.id].sort());
+  });
+
+  /** Step 15 — the browser's read of the seller's last post's channels. */
+  function lastContactRead(page: Page) {
+    return page.waitForResponse(
+      (response) =>
+        response.url().includes("/rest/v1/listings") &&
+        response.url().includes("contact_pref") &&
+        response.url().includes("created_at"),
+      { timeout: 30_000 },
+    );
+  }
+
+  test("PW-118 a draft's own channel is never overwritten by the last post's", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    const lastId = await lastPostAt(page, user.id, leaf.id, city.id);
+    const carried = { messages: true, phone: { show: true, value: "+251911234567" } };
+    const own = { messages: true, whatsapp: { show: true, value: "+251933456789" } };
+    const { error } = await adminClient()
+      .from("listings")
+      .update({ contact_pref: carried })
+      .eq("id", lastId);
+    if (error) throw new Error(`[e2e:pw118] seeding the last post failed: ${error.message}`);
+
+    const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id], async (id) => {
+      const { error: ownError } = await adminClient()
+        .from("listings")
+        .update({ contact_pref: own })
+        .eq("id", id);
+      if (ownError) throw new Error(`[e2e:pw118] seeding the draft failed: ${ownError.message}`);
+    });
+    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("933456789");
+    await expect(page.getByTestId("post-who-contact-carried")).toHaveCount(0);
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("");
+    const pref = await contactPrefOf(listingId);
+    expect(pref["whatsapp"], "PW-118: the draft's own channel changed").toEqual(own.whatsapp);
+    expect(pref["phone"] ?? null, "PW-118: the last post's phone was written").toBeNull();
+  });
+
+  test("PW-119 another seller's visible phone is never carried", async ({ page }) => {
+    const other = await leaseUser();
+    sellers.push(other.id);
+    const leaf = await category();
+    const otherId = await seedActiveListing(leaf.id, other.id);
+    const { error } = await adminClient()
+      .from("listings")
+      .update({ contact_pref: { messages: true, phone: { show: true, value: "+251944567890" } } })
+      .eq("id", otherId);
+    if (error) throw new Error(`[e2e:pw119] seeding the other seller failed: ${error.message}`);
+    const user = await signedInSeller(page);
+    const city = await activeCityOf("ET");
+    const read = lastContactRead(page);
+    const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    expect((await read).ok(), "PW-119: the last post's read failed").toBe(true);
+    await expect(page.getByTestId("post-who-contact-carried")).toHaveCount(0);
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("");
+    const pref = await contactPrefOf(listingId);
+    expect(pref["phone"] ?? null, "PW-119: another seller's phone was carried").toBeNull();
   });
 });
