@@ -197,7 +197,7 @@ export function matches(glob: string, path: string): boolean {
 function walk(dir: string, base: string, out: string[]): void {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
-    if (statSync(full).isDirectory()) walk(full, base, out);
+    if (statSync(full).isDirectory()) walk(full, posix.join(base, entry), out);
     else out.push(posix.join(base, entry));
   }
 }
