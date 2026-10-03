@@ -551,6 +551,7 @@ export function StepWhere({
   listingId = null,
   pin = null,
   onPinSaved,
+  onDirectionsSaved,
   maxCities = null,
   maxRegions = null,
   maxCountries = null,
@@ -604,7 +605,7 @@ export function StepWhere({
   });
   const noteRead = useRef(false);
   useEffect(() => {
-    if (listingId === null || listingId === undefined || noteRead.current) return;
+    if (listingId === null || noteRead.current) return;
     noteRead.current = true;
     let cancelled = false;
     readPlaceText(listingId).then(
@@ -1357,7 +1358,7 @@ export function StepWhere({
               setDirState(looksLikeContact(event.target.value) ? "contact" : "idle");
             }}
             onBlur={() => {
-              if (listingId === null || listingId === undefined) return;
+              if (listingId === null) return;
               const clean = sanitizeDetails(directions);
               if (clean.length > DETAILS_MAX) {
                 setDirState("long");
