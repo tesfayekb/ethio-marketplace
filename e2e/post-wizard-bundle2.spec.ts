@@ -256,15 +256,21 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   test("PW-122 an empty phone box opens on the country of the item's place", async ({ page }) => {
     const user = await signedInSeller(page);
     const leaf = await category();
-    // Staging holds no Eritrean city, so the item's place is a scratch chain (J3).
-    const chain = await seedScratchChain("ER");
-    places.push(chain.region.slug);
-    await openDraft(page, user.id, leaf.id, 6, [chain.city.id]);
+    // The door accepts places in open markets only, so the item's place is an
+    // Ethiopian city and the seller's home country is moved away from it; the
+    // lease resets it (users.ts).
+    const { error } = await adminClient()
+      .from("profiles")
+      .update({ home_country_code: "US" })
+      .eq("user_id", user.id);
+    if (error) throw new Error(`[e2e:pw122] moving the home country failed: ${error.message}`);
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
     await expectPhoneRowUsable(page, "post-who-value-phone");
     await expect(
       page.getByTestId("post-who-value-phone-country"),
       "PW-122: the empty phone did not open on the item place's country",
-    ).toHaveAttribute("data-iso", "ER", { timeout: 20_000 });
+    ).toHaveAttribute("data-iso", "ET", { timeout: 20_000 });
   });
 
   async function seedLastPin(lastId: string) {
