@@ -2109,6 +2109,7 @@ export const en = {
   "post.specs.why": "These details are what buyers filter and search by.",
   "post.specs.needCategory": "Choose a category first.",
   "post.specs.none": "This category asks for no extra details.",
+  "post.specs.rateLimited": "You have opened many categories in a short while. Please wait a little and try again.",
   "post.specs.loadFailed": "These details could not be loaded.",
   "post.specs.yearEcSuffix": "E.C.",
   "post.specs.choose": "Choose",

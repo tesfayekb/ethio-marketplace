@@ -597,10 +597,30 @@ function shapeCondition(raw: unknown): { key: string; in: string[] } | null {
  * A failure is `null`; the caller shows its own caption rather than a stack.
  */
 export async function readPostingSchema(categoryId: string): Promise<PostingSchema | null> {
+  return (await readPostingSchemaAnswer(categoryId)).schema;
+}
+
+/**
+ * INC-397 — the door counts schema reads (`rate_gate('schema_read')`) and raises
+ * `rateLimited` past the dial; the details step says so in plain words instead
+ * of "could not be loaded". `schema` is null on any failure.
+ */
+export async function readPostingSchemaAnswer(
+  categoryId: string,
+): Promise<{ schema: PostingSchema | null; rateLimited: boolean }> {
   const { data, error } = await supabase.rpc("get_posting_schema", {
     p_category_id: categoryId,
   });
-  if (error || data === null) return null;
+  if (error) {
+    const rateLimited = error.message.includes("rateLimited");
+    if (!rateLimited) console.error("[posting] schema read failed:", error.message);
+    return { schema: null, rateLimited };
+  }
+  return { schema: shapePostingSchema(data), rateLimited: false };
+}
+
+function shapePostingSchema(data: unknown): PostingSchema | null {
+  if (data === null) return null;
   const payload = data as Record<string, unknown>;
   const definitions = Array.isArray(payload["attributes"])
     ? (payload["attributes"] as Record<string, unknown>[])
