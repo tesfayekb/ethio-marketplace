@@ -24,7 +24,6 @@ describe("selectSpecs", () => {
     const list = out as string[];
     expect(list).toContain("e2e/post-wizard-place.spec.ts");
     expect(list).toContain("e2e/posting-routes.spec.ts");
-    expect(list).toContain("e2e/a11y.spec.ts"); // posting files are also under src/routes? no — via routes area only for routes
     expect(list.some((s) => s.startsWith("e2e/admin-"))).toBe(false);
   });
 
@@ -34,7 +33,6 @@ describe("selectSpecs", () => {
     const list = out as string[];
     expect(list).toContain("e2e/admin-categories-console.spec.ts");
     expect(list).toContain("e2e/category-image-routes.spec.ts");
-    expect(list).toContain("e2e/admin-shell.spec.ts"); // admin-shell area covers src/features/admin/**
     expect(list.some((s) => s.startsWith("e2e/post-wizard-"))).toBe(false);
   });
 

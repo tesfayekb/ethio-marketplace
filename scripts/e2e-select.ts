@@ -115,7 +115,12 @@ export const AREAS: Area[] = [
   {
     name: "auth",
     src: ["src/features/auth/**", "src/routes/auth.tsx", "src/routes/api/auth/**"],
-    specs: ["e2e/auth-*.spec.ts", "e2e/mfa-stepup.spec.ts", "e2e/smoke-auth-i18n.spec.ts"],
+    specs: [
+      "e2e/auth-*.spec.ts",
+      "e2e/mfa-stepup.spec.ts",
+      "e2e/smoke-auth-i18n.spec.ts",
+      "e2e/nightly/*.spec.ts",
+    ],
   },
   {
     name: "shell",
