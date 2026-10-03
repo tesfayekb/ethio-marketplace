@@ -36,6 +36,7 @@ type SettingsAction = { (): Promise<ActionOutcome> };
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex" },
       { title: "Account settings — ethio.com" },
       { name: "description", content: "Manage your ethio.com sign-in methods and security." },
       { property: "og:title", content: "Account settings — ethio.com" },
