@@ -2046,6 +2046,7 @@ export const en = {
   "post.where.level.sub_city": "Sub-city",
   "post.where.levelNone": "Choose one",
   "post.where.noRegions": "This market has no regions yet — the market itself is your area.",
+  "post.where.addSubCity": "Add sub-city",
   "post.where.allOf": "All of {name}",
   "post.where.planCaption": "Your plan: {cities} city",
   "post.where.planFull": "Your plan covers one city. Remove a place before adding another.",
