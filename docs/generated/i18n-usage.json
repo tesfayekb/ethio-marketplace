@@ -3560,6 +3560,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.pin.fromLastPost": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.pin.layerSatellite": [
       "/post",
       "/post/$listingId"

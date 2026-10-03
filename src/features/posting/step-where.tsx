@@ -551,6 +551,9 @@ export function StepWhere({
   listingId = null,
   pin = null,
   onPinSaved,
+  ownPlace = null,
+  pinCarried = false,
+  onPinCarried,
   onDirectionsSaved,
   maxCities = null,
   maxRegions = null,
@@ -566,6 +569,13 @@ export function StepWhere({
   pin?: PinValue | null;
   /** What the door wrote, so the wizard and the buyer preview read one source. */
   onPinSaved?: (pin: PinValue | null) => void;
+  /**
+   * Bundle 2 Q4 — whether the leaf holds `own_place` (null while unknown: no
+   * carry until it is known), and whether the pin on the draft was carried.
+   */
+  ownPlace?: boolean | null;
+  pinCarried?: boolean;
+  onPinCarried?: (carried: boolean) => void;
   /** Step 10 — the directions line the door holds, for the buyer preview. */
   onDirectionsSaved?: (directions: string | null) => void;
   /** INC-338 — the plan's own limits, from the posting schema; null = unknown. */
@@ -604,6 +614,8 @@ export function StepWhere({
     directions: null,
   });
   const noteRead = useRef(false);
+  /** Bundle 2 Q4 — the draft's own text lines are known (a carry never overwrites them). */
+  const [textKnown, setTextKnown] = useState(false);
   useEffect(() => {
     if (listingId === null || noteRead.current) return;
     noteRead.current = true;
@@ -617,6 +629,8 @@ export function StepWhere({
         if (found.directions !== null)
           setDirections((current) => (current === "" ? (found.directions ?? "") : current));
         onDirectionsSaved?.(found.directions);
+        // Only a successful read lets a carry run: unknown text is never overwritten.
+        setTextKnown(true);
       },
       () => {
         // Logged by the reader (F4); the lines stay empty and editable.
@@ -778,6 +792,66 @@ export function StepWhere({
   /** W6b-1 R3 — the ticked box; a tick whose box is gone falls to the first. */
   const itemRow = rows.find((row) => row.key === itemKey) ?? rows[0]!;
   const tickKey = itemRow.key;
+  const itemPlace = placeOf(itemRow);
+
+  /**
+   * Bundle 2 Q4 — THE PIN CARRIES OVER, PER CATEGORY. Once the last post's places
+   * are prefilled, a draft with no pin and no text lines of its own takes the
+   * last post's pin, zoom, directions and details — never for an own_place leaf,
+   * never over the draft's own, and only while the item place is the last one's.
+   */
+  const carryTried = useRef(false);
+  useEffect(() => {
+    if (carryTried.current || listingId === null || !textKnown || ownPlace !== false) return;
+    if (last === undefined || placeSeeded.current !== country) return;
+    carryTried.current = true;
+    const from = last?.pin ?? null;
+    if (from === null || !prefilled || itemPlace !== last?.itemId) return;
+    if (pin !== null || savedText.current.street !== null || savedText.current.directions !== null)
+      return;
+    const text = { street: from.street, directions: from.directions };
+    void savePin(listingId, from.lat, from.lng, from.precision, text, from.zoom).then((ok) => {
+      if (!ok) {
+        setPinState("failed");
+        return;
+      }
+      savedText.current = text;
+      setNote(from.street ?? "");
+      setDirections(from.directions ?? "");
+      onDirectionsSaved?.(from.directions);
+      onPinSaved?.({
+        lat: from.lat,
+        lng: from.lng,
+        precision: from.precision,
+        street: from.street,
+        zoom: from.zoom,
+      });
+      onPinCarried?.(true);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listingId, textKnown, ownPlace, last, country, prefilled, itemPlace, pin]);
+
+  /** Bundle 2 Q4 — a carried pin is cleared when the item place or the leaf no longer fits. */
+  const dropCarried = () => {
+    if (listingId === null) return;
+    void clearPin(listingId, { street: null, directions: null }).then((ok) => {
+      if (!ok) {
+        setPinState("failed");
+        return;
+      }
+      savedText.current = { street: null, directions: null };
+      setNote("");
+      setDirections("");
+      onDirectionsSaved?.(null);
+      onPinSaved?.(null);
+      onPinCarried?.(false);
+    });
+  };
+  useEffect(() => {
+    if (!pinCarried || last === undefined) return;
+    if (ownPlace === true || itemPlace !== (last?.itemId ?? null)) dropCarried();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinCarried, ownPlace, itemPlace, last]);
 
   /** The places the rows name; the TICKED place first (the door's p_coverage[1]). */
   const desired = useMemo(() => {
@@ -1237,6 +1311,14 @@ export function StepWhere({
               </p>
             )}
             <div className="flex flex-wrap gap-2">
+              {pinCarried && pin !== null && (
+                <p
+                  className="w-full text-xs text-muted-foreground"
+                  data-testid="post-where-pin-carried"
+                >
+                  {t("post.pin.fromLastPost")}
+                </p>
+              )}
               <button
                 type="button"
                 className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
@@ -1254,6 +1336,11 @@ export function StepWhere({
                   type="button"
                   className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
                   onClick={() => {
+                    if (pinCarried) {
+                      dropCarried();
+                      setPinState("removed");
+                      return;
+                    }
                     // PW-40 — Remove clears the details with the pin; the
                     // directions line is restated so it is kept (step 10).
                     const kept = savedText.current.directions;
@@ -1328,6 +1415,8 @@ export function StepWhere({
                     );
                     if (ok) {
                       savedText.current = text;
+                      // A pin the seller sets is the draft's own (Q4).
+                      onPinCarried?.(false);
                       onPinSaved?.({ ...value, street: street === "" ? null : street });
                       setPinState("saved");
                       setPinOpen(false);
