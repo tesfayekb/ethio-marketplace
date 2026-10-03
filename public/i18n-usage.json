@@ -4042,6 +4042,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.where.addSubCity": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.where.allOf": [
       "/post",
       "/post/$listingId"

@@ -222,6 +222,7 @@ function CountryBox({
   onRow,
   onRemove,
   onAddCity,
+  onAddSubCity,
   onAddRegion,
 }: {
   primary: boolean;
@@ -240,6 +241,8 @@ function CountryBox({
   onRow: (key: string, patch: Partial<Row>) => void;
   onRemove: (key: string) => void;
   onAddCity: (country: string | null, region: string | null) => void;
+  /** Bundle 2 P5 — another sub-city under the same city (counts as that one city). */
+  onAddSubCity: (from: Row) => void;
   onAddRegion: (country: string | null) => void;
 }) {
   const { t, entities } = useI18n();
@@ -393,8 +396,9 @@ function CountryBox({
                         )}
                       </div>
                       {/* D19 — "All of <city>" is the CITY node offered beside its children. */}
+                      {/* Bundle 2 P5 — the sub-city sits one indent further under its city. */}
                       {cityNode !== null && subCities.length > 0 && (
-                        <div className="space-y-1">
+                        <div className="ms-4 space-y-1" data-testid="post-where-subcity-box">
                           <label
                             htmlFor={
                               isPrimary ? "post-where-subcity" : `post-where-subcity-${row.key}`
@@ -423,6 +427,25 @@ function CountryBox({
                               </option>
                             ))}
                           </select>
+                          {row.subCity !== null &&
+                            subCities.some(
+                              (node) =>
+                                !rows.some(
+                                  (other) => other.city === row.city && other.subCity === node.id,
+                                ),
+                            ) && (
+                              <div className="flex justify-end">
+                                <button
+                                  type="button"
+                                  data-testid="post-where-add-subcity"
+                                  data-city={row.city ?? ""}
+                                  className={addClass}
+                                  onClick={() => onAddSubCity(row)}
+                                >
+                                  {t("post.where.addSubCity")}
+                                </button>
+                              </div>
+                            )}
                         </div>
                       )}
                       {/* Bundle 2 P3 — the marker on its own lower line, Remove at its end. */}
@@ -804,6 +827,8 @@ export function StepWhere({
   useEffect(() => {
     if (carryTried.current || listingId === null || !textKnown || ownPlace !== false) return;
     if (last === undefined || placeSeeded.current !== country) return;
+    // The prefill lands in the render after seeding; decide only once it shows.
+    if (last !== null && !prefilled) return;
     carryTried.current = true;
     const from = last?.pin ?? null;
     if (from === null || !prefilled || itemPlace !== last?.itemId) return;
@@ -901,7 +926,10 @@ export function StepWhere({
     rows.map((row) => `${countryKeyOf(row)}/${row.region ?? `pending:${row.key}`}`),
   ).size;
   const countriesUsed = new Set(rows.map(countryKeyOf)).size;
-  const cityRoom = maxCities !== null && rows.length < maxCities;
+  // Bundle 2 P5 — several sub-cities of one city count as that one city (the door's
+  // count(DISTINCT coalesce(city_id, id)), 13cb1b22:321).
+  const citiesUsed = new Set(rows.map((row) => row.city ?? `pending:${row.key}`)).size;
+  const cityRoom = maxCities !== null && citiesUsed < maxCities;
   const regionRoom = cityRoom && maxRegions !== null && regionsUsed < maxRegions;
   const countryRoom = regionRoom && maxCountries !== null && countriesUsed < maxCountries;
   const room: Room = { city: cityRoom, region: regionRoom };
@@ -955,6 +983,10 @@ export function StepWhere({
       ...current,
       { key: newKey(), country: code, region, city: null, subCity: null },
     ]);
+  };
+  const onAddSubCity = (from: Row) => {
+    act();
+    setRows((current) => [...current, { ...from, key: newKey(), subCity: null }]);
   };
   const onAddRegion = (code: string | null) => {
     act();
@@ -1158,6 +1190,7 @@ export function StepWhere({
             onRow={onRow}
             onRemove={onRemove}
             onAddCity={onAddCity}
+            onAddSubCity={onAddSubCity}
             onAddRegion={onAddRegion}
           />
 
@@ -1177,6 +1210,7 @@ export function StepWhere({
               onRow={onRow}
               onRemove={onRemove}
               onAddCity={onAddCity}
+              onAddSubCity={onAddSubCity}
               onAddRegion={onAddRegion}
             />
           ))}
