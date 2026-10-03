@@ -14,7 +14,7 @@
 - [ ] B
 - [x] Bundle 2 walk defect B (phone field: B1 tests red-first, B2 group + searchable picker, B3 default country, B4 second phone) — PW-12/111/112/114/122 green on 360 and 1280
 - [x] Bundle 2 walk round 2 (W1 city box, W2 no repeats, W3 post another ad, W4 phone example + length hint) — unit + PW-117/123/124 green on 360 and 1280
-- [ ] Walk round 2 red-first runs (PW-117/123/124 on the pre-change screen)
+- [x] Walk round 2 red-first runs (PW-117/123/124 on the pre-change screen) — 6/6 failed at their feature
 - [ ] Bundle 2 END OF BUNDLE run at 2 workers + report (after walk round 2)
 - [ ] C
 - [ ] Part O (INC-369, INC-370)
