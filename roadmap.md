@@ -12,6 +12,8 @@
 - [ ] T (with T4 / DEC-095)
 - [ ] A
 - [ ] B
+- [x] Bundle 2 walk defect B (phone field: B1 tests red-first, B2 group + searchable picker, B3 default country, B4 second phone) — PW-12/111/112/114/122 green on 360 and 1280
+- [ ] Bundle 2 END OF BUNDLE run at 2 workers + report (after walk defect B)
 - [ ] C
 - [ ] Part O (INC-369, INC-370)
 - [ ] Part P (P1–P5; P4 migration)

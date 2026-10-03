@@ -1201,3 +1201,7 @@ Phone and WhatsApp carry a country picker (names from Intl.DisplayNames, codes f
 ## Contact carried from the last post (bundle 2 Q3)
 
 A new post whose draft holds no channel value opens the contact step with the channels (values and show switches) of the seller's last own post past the draft stage, written to the draft at once, with a line saying where they came from. A draft with its own channel value is never overwritten. PW-112.
+
+## Phone field (bundle 2 walk defect B, 2026-10-03)
+
+One bordered group `[flag +code ▾] | [number]` (`phone-number-field.tsx`), used for Phone, the second phone and WhatsApp. Closed, the picker shows only the emoji flag (`flagOf`) and the calling code; open, a searchable list (name in the UI language or code, `searchCountries`; open markets first; arrows, Enter, Escape) in the currency control's pattern. The number box keeps at least 160 px; when the row cannot also hold the "show" switch, the switch wraps to its own line. An empty, untouched box opens on the item place's country (`coverage[0]`, read by `readPlaceCountry`), else the seller's home country, else the posting market; a typed, picked or carried number keeps its own country; the second phone opens on the first phone's country. What is saved (E.164) and the door are unchanged. One shared picker for currency and country waits for the wizard bundle. Tests: PW-12/111, PW-112, PW-114, PW-122.

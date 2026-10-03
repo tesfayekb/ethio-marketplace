@@ -633,3 +633,4 @@
 - 2026-10-02 bundle 2 step 18 — suggest-icon returns fallback: true|false (checkIcon); the category editor notes a fallback (admin.categories.field.iconFallbackNote, EN+AM). Route test in src/server/category-images/suggest-icon-route.test.ts.
 - 2026-10-02 bundle 2 Q3 — a new post's contact step opens with the last post's channels (readLastListingContact), written to the draft on open, line post.who.contactFromLastPost (EN+AM). PW-112.
 - 2026-10-03 bundle 2 corrective 5c25e616 — restores the volatility of six functions 7423f49a changed (ALTER only) and records 7423f49a's filename mark 20261003005802; mark 20261003030000.
+- 2026-10-03 bundle 2 walk defect B — the phone field is one group [flag +code ▾] | [number] with a searchable country list; empty boxes open on the item place's country ▸ home ▸ market; second phone opens on the first's; keys post.who.phoneCountrySearch/None/Chosen (EN+AM). PW-111/112/114 extended, PW-122 new.
