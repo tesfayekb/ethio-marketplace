@@ -149,10 +149,13 @@ import {
 
   /**
    * CI-5 (C5b PART C) — BULK FILL. Three seeded scratch rows without imagery
-   * are filled by one serial run; the progress caption reaches n/N and DB truth
-   * shows every row gained an image. The 25 cap is asserted as CODE truth
-   * (BULK_LIMIT is the slice bound) rather than by seeding 26 fixtures — the
-   * cheaper honest proof, stated here so the omission is not silent.
+   * are filled by one serial run; the summary shows n generated and 0 failed
+   * and DB truth shows every row gained an image. The transient progress
+   * caption is never asserted (it clears when the run ends, so a fast run
+   * leaves nothing to read); it is only recorded in the dump's trail. The 25
+   * cap is asserted as CODE truth (BULK_LIMIT is the slice bound) rather than
+   * by seeding 26 fixtures — the cheaper honest proof, stated here so the
+   * omission is not silent.
    */
   test(
     "CI-5 bulk fill: the missing-assets run fills every seeded row @global-state",
@@ -175,14 +178,19 @@ import {
       // "specs never assume a globally empty table; they scope their emptiness."
       // The bulk verb runs over the VISIBLE filtered/searched set, so this test
       // narrows the roster to exactly its own three seeded rows before running.
+      // The progress caption is transient (cleared when the run ends), so every
+      // read of it is bounded: a short timeout, never an unbounded wait on an
+      // element that may already be gone.
+      const readProgress = async () => {
+        const locator = page.getByTestId("category-bulk-progress");
+        if ((await locator.count()) === 0) return null;
+        return locator.textContent({ timeout: 2000 }).catch(() => null);
+      };
       const bulkDump = async (label: string) => {
-        const progress = await page
-          .getByTestId("category-bulk-progress")
-          .textContent()
-          .catch(() => null);
+        const progress = await readProgress();
         const summary = await page
           .getByTestId("category-bulk-summary")
-          .textContent()
+          .textContent({ timeout: 2000 })
           .catch(() => null);
         // C5f PART B — the failures list is part of the dump: with the service's
         // client-timeout stage, a hang reads as progress=3/3, failures carrying
@@ -262,34 +270,37 @@ import {
         }
 
         // The progress caption is transient (it clears when the run ends), so
-        // the highest value it reached is captured while polling.
-        let progressSeen = "";
+        // it is never asserted: what lasts is the summary and the DB truth.
+        // Whatever the caption shows while the summary poll runs is recorded
+        // in the trail for the dump, read without waiting.
         await step("category-bulk-generate", (locator) => locator.click());
 
         await lazily("summary", async () => {
           await expect
             .poll(
               async () => {
-                const line = await page
-                  .getByTestId("category-bulk-progress")
-                  .textContent()
-                  .catch(() => null);
-                if (line) progressSeen = line;
-                return (await page.getByTestId("category-bulk-summary").textContent()) ?? "";
+                const line = await readProgress();
+                if (line) trace(`progress ${line}`);
+                return (
+                  (await page
+                    .getByTestId("category-bulk-summary")
+                    .textContent({ timeout: 2000 })
+                    .catch(() => null)) ?? ""
+                );
               },
               { timeout: 60000 },
             )
             .toContain(`3 ${en["admin.categories.bulk.generated"]}`);
         });
-        // C5f PART B — the progress assert fails with the full dump too.
-        await lazily("progress-peak", async () => {
-          expect(progressSeen).toContain("3/3");
-        });
 
         await lazily("failures", async () => {
           await expect
             .poll(
-              async () => (await page.getByTestId("category-bulk-summary").textContent()) ?? "",
+              async () =>
+                (await page
+                  .getByTestId("category-bulk-summary")
+                  .textContent({ timeout: 2000 })
+                  .catch(() => null)) ?? "",
               {
                 timeout: 15000,
               },
