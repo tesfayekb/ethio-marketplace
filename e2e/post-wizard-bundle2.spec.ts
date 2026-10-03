@@ -107,7 +107,12 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     objects.push({ userId, listingId });
     if (prepare) await prepare(listingId);
     await gotoReady(page, `/post/${listingId}`);
-    await expect(page.getByTestId(`post-step-${step + 1}`)).toBeVisible({ timeout: 20_000 });
+    // A step-3 draft reopens on its photos, whatever number that screen carries.
+    const opened =
+      step === 3
+        ? page.locator('section[data-testid^="post-step-"]')
+        : page.getByTestId(`post-step-${step + 1}`);
+    await expect(opened).toBeVisible({ timeout: 20_000 });
     return listingId;
   }
 
