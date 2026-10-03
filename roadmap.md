@@ -37,7 +37,8 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
 - [ ] Part U — INC-387 suggest icon (done; fallback flag + editor note ruled and landed); attr_option_shape ceiling 150
 - [ ] Step 10 app side — Directions line, every set_listing_pin call restates street and directions, preview shows both (done; test owed: directions survive a pin move)
 - [ ] Step 14 app side — phone2 behind "Add another phone", shown with the phone (done; test owed)
-- [ ] Steps 5, 11, 16 app side; owed tests 3, 4, 5, 10, 11, 14, 15, 16, 17
+- [ ] Step 16 app side — pin/directions/details carry from the last post unless the leaf holds own_place; cleared on item-place change, Remove, or an own_place leaf (done; tests owed)
+- [ ] Steps 5 (verify), 11 app side; owed tests 3, 4, 5, 10, 11, 14, 15, 16, 17
 - [ ] End-of-bundle DEC-023 run
 
 ## INC-373 (2026-10-01)
