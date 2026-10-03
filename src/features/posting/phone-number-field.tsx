@@ -1,3 +1,4 @@
+import { lengthHint, phonePlanOf } from "./phone-plans";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
@@ -102,6 +103,10 @@ export function PhoneNumberField({
   const shownIso = iso !== "" && CALLING_CODES[iso] !== undefined ? iso : "";
   const shownCode = shownIso === "" ? "" : (CALLING_CODES[shownIso] ?? "");
 
+  // W4 — an example number and a length hint for the chosen country (blocks nothing).
+  const plan = shownIso === "" ? null : phonePlanOf(shownIso);
+  const hint = shownIso === "" ? null : lengthHint(shownIso, national);
+
   const close = (refocus: boolean) => {
     setOpen(false);
     setQuery("");
@@ -117,11 +122,12 @@ export function PhoneNumberField({
   };
 
   return (
+    <div className="min-w-[16.5rem] grow basis-0 space-y-1">
     <div
       ref={wrapRef}
       data-testid={`${testId}-row`}
       className={
-        "relative flex min-h-11 min-w-[16.5rem] grow basis-0 items-stretch rounded-md border border-input bg-background " +
+        "relative flex min-h-11 items-stretch rounded-md border border-input bg-background " +
         "focus-within:ring-2 focus-within:ring-ring"
       }
       onBlur={(event) => {
@@ -165,6 +171,8 @@ export function PhoneNumberField({
         autoComplete="tel-national"
         dir="ltr"
         value={national}
+        placeholder={plan === null ? undefined : plan.example}
+        aria-describedby={hint === null ? undefined : `${id}-hint`}
         onChange={(event) => {
           const typed = event.target.value;
           const international = readInternational(typed, iso);
@@ -267,6 +275,20 @@ export function PhoneNumberField({
           </ul>
         </div>
       )}
+    </div>
+    {hint !== null && plan !== null && (
+      <p
+        id={`${id}-hint`}
+        data-testid={`${testId}-length-hint`}
+        data-hint={hint}
+        className="text-xs text-muted-foreground"
+      >
+        {fill(t(hint === "short" ? "post.who.phoneTooShort" : "post.who.phoneTooLong"), {
+          min: String(plan.min),
+          max: String(plan.max),
+        })}
+      </p>
+    )}
     </div>
   );
 }
