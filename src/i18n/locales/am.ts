@@ -1984,6 +1984,7 @@ export const am: Messages = {
   "post.pin.save": "ምልክቱን አስቀምጥ",
   "post.pin.saving": "እያስቀመጠ ነው…",
   "post.pin.saved": "ምልክቱ ተቀምጧል።",
+  "post.pin.fromLastPost": "ካለፈው ማስታወቂያዎ",
   "post.pin.remove": "ምልክቱን አስወጥድ",
   "post.pin.removed": "ምልክቱ ተነሷል።",
   "post.pin.change": "የካርታ ምልክቱን ቀይር",

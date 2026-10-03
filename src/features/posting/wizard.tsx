@@ -27,7 +27,7 @@ import { MobileStepStrip } from "./mobile-step-strip";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { answerOtherText } from "./answer-tokens";
 import { basisNoun, basisToken, isUnitOfSaleKey } from "./price-basis";
-import { readPostingSchema, type AttrDef, type PlanCaps } from "./posting-service";
+import { clearPin, readPostingSchema, type AttrDef, type PlanCaps } from "./posting-service";
 import { useDraft, type DraftValues } from "./use-draft";
 
 /** D59 — the fields a category change resets, and Undo restores. */
@@ -107,6 +107,20 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    * door remains the authority (F3).
    */
   const [facts, setFacts] = useState<CategoryFacts | null>(null);
+  /** Bundle 2 Q4 — the draft's pin came from the last post (cleared for an own_place leaf). */
+  const [pinCarried, setPinCarried] = useState(false);
+  useEffect(() => {
+    if (!pinCarried || draft.listingId === null) return;
+    if (facts === null || !facts.capabilities.includes("own_place")) return;
+    const listingId = draft.listingId;
+    void clearPin(listingId, { street: null, directions: null }).then((ok) => {
+      if (!ok) return; // logged by the service (F4); the step shows the pin to remove
+      draft.setPin(null);
+      draft.setDirections(null);
+      setPinCarried(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinCarried, facts, draft.listingId]);
   /** D22 — the seller's plan caps, as the posting document reports them. */
   const [planCaps, setPlanCaps] = useState<PlanCaps | null>(null);
   /** DEC-079 — the leaf's ONE pricing-basis definition, from the same read. */
