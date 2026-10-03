@@ -1063,6 +1063,55 @@ test.describe("CAT-IE categories import/export", () => {
   });
 
   /**
+   * CT-34 — bundle 2 step 17 (DEC-105). own_place is an allowed capability token
+   * beside map_pin and bookable; an unknown token is still refused by name.
+   */
+  test("CT-34 own_place is accepted by the import and an unknown token is refused", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const parentSlug = scratchSlug();
+    const ownSlug = scratchSlug();
+    const badSlug = scratchSlug();
+    try {
+      await seedCategory(parentSlug, null);
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+      const preview = await importPost(page, token, {
+        mode: "preview",
+        categories: file([
+          line({
+            category_slug: ownSlug,
+            parent_slug: parentSlug,
+            name_en: ownSlug,
+            capabilities: "map_pin|own_place",
+          }),
+          line({
+            category_slug: badSlug,
+            parent_slug: parentSlug,
+            name_en: badSlug,
+            capabilities: "bookable|fly",
+          }),
+        ]),
+      });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const refusals = preview.payload["refusals"] as { reason: string; detail?: unknown }[];
+      const bad = refusals.filter((entry) => entry.reason === "badCapability");
+      expect(bad, JSON.stringify(refusals)).toHaveLength(1);
+      expect(bad[0]?.detail, "CT-34: the unknown token was not named").toBe("fly");
+      // PREVIEW WRITES NOTHING (F5).
+      expect(await readCategory(ownSlug)).toBeNull();
+      expect(await readCategory(badSlug)).toBeNull();
+    } finally {
+      await destroyCategory(ownSlug);
+      await destroyCategory(badSlug);
+      await destroyCategory(parentSlug);
+    }
+  });
+
+  /**
    * A scratch role carrying exactly the named permissions (J3): no ratified
    * role is ever touched, and the role is dropped in the caller's `finally`.
    */
