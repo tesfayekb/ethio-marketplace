@@ -65,6 +65,10 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
 - [x] Bundle 3 step 0: brief + reserved-names list saved (sha256 verified, 435 rows / 2,427 handles).
 - [x] Bundle 3 Part 0 (DEC-115): e2e-select.ts + e2e:changed + CI self-test step.
 - [ ] Bundle 3 Part A: step 4 census → M1 (steps 5-8) → app side.
+  - [x] M1 applied on prod + staging (marks 20261003220000, 20261003215042)
+  - [x] App side of steps 5–8 — posting-routes 38/38, post-wizard-bundle2 22/22 on staging
+  - [ ] Red-first tests of steps 5–7 (no EXECUTE on consume_rate_limit / rate_gate / residency_country_for; door dials; private columns; reveal); the rest of the posting specs
+  - [ ] Step 12 home-country check in publish_listing — not in M1; needs a corrective migration
 - [ ] Bundle 3 Part B: contact step (steps 10-12).
 - [ ] Bundle 3 Part C: seller name (steps 13-24, M2).
 - [ ] Bundle 3 Part D: place lists A-Z (step 25).
