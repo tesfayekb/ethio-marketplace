@@ -629,14 +629,13 @@ export function StepWhere({
         if (found.directions !== null)
           setDirections((current) => (current === "" ? (found.directions ?? "") : current));
         onDirectionsSaved?.(found.directions);
+        // Only a successful read lets a carry run: unknown text is never overwritten.
+        setTextKnown(true);
       },
-      (): void => {
+      () => {
         // Logged by the reader (F4); the lines stay empty and editable.
         if (!cancelled) setNoteState("failed");
       },
-    ).finally(() => {
-      if (!cancelled) setTextKnown(true);
-    });
     );
     return () => {
       cancelled = true;
