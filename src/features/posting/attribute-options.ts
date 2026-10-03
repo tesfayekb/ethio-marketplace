@@ -14,6 +14,7 @@
  */
 
 import { catalogText } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface AttrOption {
   value: string;
@@ -126,8 +127,12 @@ export async function loadAttributeOptions(attributeId: string): Promise<AttrOpt
   const held = cache.get(attributeId);
   if (held && Date.now() - held.at < TTL_MS) return held.options;
   try {
+    // INC-397 — the route answers signed-in callers only.
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token ?? null;
+    if (token === null) return held ? held.options : null;
     const response = await fetch(`/api/attributes/${attributeId}/options`, {
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
     });
     if (!response.ok) return held ? held.options : null;
     const payload = (await response.json()) as Record<string, unknown>;
