@@ -40,7 +40,6 @@ async function placeTextOf(listingId: string) {
   return { street: data?.street_address ?? null, directions: data?.directions ?? null };
 }
 
-
 /**
  * B1 (walk defect) — what the walk saw: the number box sits inside the viewport
  * and is at least 160 px wide, the picker no wider than 120 px.
@@ -54,8 +53,13 @@ async function expectPhoneRowUsable(page: Page, testId: string) {
   expect(picker, `${testId}: the picker is not rendered (${shown})`).not.toBeNull();
   if (box === null || picker === null || viewport === null) return;
   expect(box.x, `${testId}: the number box starts off screen (${shown})`).toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width, `${testId}: the number box ends off screen (${shown})`).toBeLessThanOrEqual(viewport.width);
-  expect(box.width, `${testId}: the number box is under 160 px (${shown})`).toBeGreaterThanOrEqual(160);
+  expect(
+    box.x + box.width,
+    `${testId}: the number box ends off screen (${shown})`,
+  ).toBeLessThanOrEqual(viewport.width);
+  expect(box.width, `${testId}: the number box is under 160 px (${shown})`).toBeGreaterThanOrEqual(
+    160,
+  );
   expect(picker.width, `${testId}: the picker is over 120 px (${shown})`).toBeLessThanOrEqual(120);
 }
 
@@ -247,6 +251,18 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
         { message: "PW-114: the second phone never reached the draft", timeout: 20_000 },
       )
       .toBe("true:+251922345678");
+  });
+
+  test("PW-122 an empty phone box opens on the country of the item's place", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ER");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expectPhoneRowUsable(page, "post-who-value-phone");
+    await expect(
+      page.getByTestId("post-who-value-phone-country"),
+      "PW-122: the empty phone did not open on the item place's country",
+    ).toHaveAttribute("data-iso", "ER", { timeout: 20_000 });
   });
 
   async function seedLastPin(lastId: string) {

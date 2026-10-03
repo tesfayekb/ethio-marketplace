@@ -53,7 +53,6 @@ import {
  * never English text (J5).
  */
 
-
 /**
  * B1 (walk defect) — what the walk saw: the number box sits inside the viewport
  * and is at least 160 px wide, the picker no wider than 120 px.
@@ -67,8 +66,13 @@ async function expectPhoneRowUsable(page: Page, testId: string) {
   expect(picker, `${testId}: the picker is not rendered (${shown})`).not.toBeNull();
   if (box === null || picker === null || viewport === null) return;
   expect(box.x, `${testId}: the number box starts off screen (${shown})`).toBeGreaterThanOrEqual(0);
-  expect(box.x + box.width, `${testId}: the number box ends off screen (${shown})`).toBeLessThanOrEqual(viewport.width);
-  expect(box.width, `${testId}: the number box is under 160 px (${shown})`).toBeGreaterThanOrEqual(160);
+  expect(
+    box.x + box.width,
+    `${testId}: the number box ends off screen (${shown})`,
+  ).toBeLessThanOrEqual(viewport.width);
+  expect(box.width, `${testId}: the number box is under 160 px (${shown})`).toBeGreaterThanOrEqual(
+    160,
+  );
   expect(picker.width, `${testId}: the picker is over 120 px (${shown})`).toBeLessThanOrEqual(120);
 }
 
@@ -79,7 +83,6 @@ async function typePhone(page: Page, testId: string, text: string) {
   await page.keyboard.press("Backspace");
   await page.keyboard.type(text);
 }
-
 
 test.describe("POSTING WIZARD", () => {
   const categories: string[] = [];
@@ -564,6 +567,7 @@ test.describe("POSTING WIZARD", () => {
     ).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
     await expect(page.getByTestId("post-who-show-phone")).toBeChecked();
+    await expectPhoneRowUsable(page, "post-who-value-phone");
     await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("922345678");
     await expect(page.getByTestId("post-who-show-whatsapp")).not.toBeChecked();
     // Written when the step opens: the seller changed nothing.
