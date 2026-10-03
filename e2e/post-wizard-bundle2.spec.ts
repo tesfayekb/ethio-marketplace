@@ -221,8 +221,16 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
 
     await expect(page.getByTestId("post-who-channel-phone2")).toHaveCount(0);
+    // B4 — the second phone opens on the first phone's country.
+    await expectPhoneRowUsable(page, "post-who-value-phone");
+    await pickPhoneCountry(page, "post-who-value-phone", "ER", "+291");
+    await typePhone(page, "post-who-value-phone", "7123456");
     await page.getByTestId("post-who-add-phone2").click();
     await expect(page.getByTestId("post-who-channel-phone2")).toBeVisible();
+    await expect(
+      page.getByTestId("post-who-value-phone2-country"),
+      "PW-114: the second phone did not open on the first phone's country",
+    ).toHaveAttribute("data-iso", "ER");
     await expectPhoneRowUsable(page, "post-who-value-phone2");
     await pickPhoneCountry(page, "post-who-value-phone2", "ET", "+251");
     await typePhone(page, "post-who-value-phone2", "922345678");
