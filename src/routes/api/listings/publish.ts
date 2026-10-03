@@ -30,7 +30,6 @@ async function handlePost(request: Request): Promise<Response> {
   const refused = refuseUserClient(PATH, caller);
   if (refused !== null) return refused;
   const supabase = caller.supabase!;
-  const userId = caller.userId!;
 
   const body = await readJsonBody(request);
   const listingId = typeof body["listingId"] === "string" ? body["listingId"] : "";
