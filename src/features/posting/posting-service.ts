@@ -220,6 +220,8 @@ export interface DraftRow {
   /** Part L — the zoom the pin was saved at (3–20), or null. */
   pinZoom: number | null;
   streetAddress: string | null;
+  /** Bundle 2 step 10 (P4) — the seller's directions line, kept with or without a pin. */
+  directions: string | null;
 }
 
 export interface DraftPhotoRow {
@@ -239,7 +241,7 @@ export async function readDraft(
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,contact_pref,pin_lat,pin_lng,pin_precision,pin_zoom,street_address",
+      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,contact_pref,pin_lat,pin_lng,pin_precision,pin_zoom,street_address,directions",
     )
     .eq("id", listingId)
     .maybeSingle();
@@ -294,6 +296,7 @@ export async function readDraft(
       pinPrecision: data.pin_precision,
       pinZoom: typeof data.pin_zoom === "number" ? data.pin_zoom : null,
       streetAddress: data.street_address,
+      directions: typeof data.directions === "string" ? data.directions : null,
     },
     photos: (photos ?? []).map((row) => ({
       id: row.id,
@@ -698,22 +701,41 @@ export function publishListing(listingId: string): Promise<DoorAnswer> {
 }
 
 /**
+ * Bundle 2 step 10 — THE TWO TEXT LINES the pin's door also writes. A call that
+ * leaves out `p_street` or `p_directions` CLEARS that column (7423f49a), so every
+ * call of `set_listing_pin` below states both from the draft's current values.
+ */
+export interface PlaceText {
+  street: string | null;
+  directions: string | null;
+}
+
+function textArgs(text: PlaceText) {
+  return {
+    p_street: text.street ?? undefined,
+    p_directions: text.directions ?? undefined,
+  };
+}
+
+/** The door's reason in the screen's words; anything else is a plain failure (F4). */
+function pinAnswer(message: string): "contactInNote" | "failed" {
+  console.error("[pin] set_listing_pin refused:", message);
+  return message.includes("contactInNote") ? "contactInNote" : "failed";
+}
+
+/**
  * U6-C1-R3b-4 — THE PIN'S OWN DOOR: `set_listing_pin`.
  *
- * SECURITY DEFINER, owner-gated, and the only way the four pin columns change.
- * The call carries the caller's own session, so a listing that is not this
- * account's is refused by the function, not by the screen — and NULL coordinates
- * clear all four columns in one statement, which is what "Remove the pin" means.
- *
- * The answer is a plain boolean because that is all the screen needs: a refusal
- * is a translated caption, and the refusal's own reason is logged by the door.
+ * SECURITY DEFINER, owner-gated, and the only way the pin columns change. The
+ * call carries the caller's own session, so a listing that is not this account's
+ * is refused by the function, not by the screen.
  */
 export async function savePin(
   listingId: string,
   lat: number,
   lng: number,
   precision: string,
-  street: string | null,
+  text: PlaceText,
   zoom: number | null = null,
 ): Promise<boolean> {
   // Part L — an omitted zoom keeps the zoom the pin was saved at.
@@ -722,63 +744,64 @@ export async function savePin(
     p_lat: lat,
     p_lng: lng,
     p_precision: precision,
-    p_street: street ?? undefined,
     p_zoom: zoom ?? undefined,
+    ...textArgs(text),
   });
   if (error !== null) {
-    console.error("[pin] set_listing_pin refused:", error.message);
+    pinAnswer(error.message);
     return false;
   }
   return true;
-}
-
-/** The same door with no coordinates, which is how the door spells "cleared". */
-export async function clearPin(listingId: string): Promise<boolean> {
-  // Every coordinate argument is omitted: the door's own DEFAULT NULL is what
-  // spells "clear", so the screen states no value it would then have to unstate.
-  const { error } = await supabase.rpc("set_listing_pin", {
-    p_listing_id: listingId,
-  });
-  if (error !== null) {
-    console.error("[pin] set_listing_pin refused:", error.message);
-    return false;
-  }
-  return true;
-}
-
-/** W6b-2 B3 — the draft's own location details (`street_address`), or null. */
-export async function readListingNote(listingId: string): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("listings")
-    .select("street_address")
-    .eq("id", listingId)
-    .maybeSingle();
-  if (error !== null) {
-    console.error("[pin] reading the location details failed:", error.message);
-    return null;
-  }
-  return typeof data?.street_address === "string" ? data.street_address : null;
 }
 
 /**
- * W6b-2 B3 — THE LOCATION DETAILS THROUGH THE PIN'S OWN DOOR. With a pin, the pin
- * is re-sent unchanged beside the note; without one, the coordinates are omitted
- * and the door (as re-declared in W6b-2) keeps the note alone.
+ * "Remove the pin": the coordinates are omitted (the door's DEFAULT NULL spells
+ * "clear"); the text lines the caller wants kept are restated.
  */
-export async function saveListingNote(
+export async function clearPin(listingId: string, text: PlaceText): Promise<boolean> {
+  const { error } = await supabase.rpc("set_listing_pin", {
+    p_listing_id: listingId,
+    ...textArgs(text),
+  });
+  if (error !== null) {
+    pinAnswer(error.message);
+    return false;
+  }
+  return true;
+}
+
+/** W6b-2 B3 / step 10 — the draft's own location details and directions. */
+export async function readPlaceText(listingId: string): Promise<PlaceText> {
+  const { data, error } = await supabase
+    .from("listings")
+    .select("street_address,directions")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error !== null) {
+    console.error("[pin] place text read failed:", error.message);
+    throw new Error(error.message);
+  }
+  return {
+    street: typeof data?.street_address === "string" ? data.street_address : null,
+    directions: typeof data?.directions === "string" ? data.directions : null,
+  };
+}
+
+/**
+ * W6b-2 B3 / step 10 — THE TEXT LINES THROUGH THE PIN'S OWN DOOR. With a pin,
+ * the pin is re-sent unchanged beside them (zoom omitted, so it is kept);
+ * without one, the coordinates are omitted and the door keeps the text alone.
+ */
+export async function savePlaceText(
   listingId: string,
-  note: string | null,
+  text: PlaceText,
   pin: { lat: number; lng: number; precision: string } | null,
 ): Promise<"saved" | "contactInNote" | "failed"> {
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
     ...(pin === null ? {} : { p_lat: pin.lat, p_lng: pin.lng, p_precision: pin.precision }),
-    p_street: note ?? undefined,
+    ...textArgs(text),
   });
-  if (error !== null) {
-    console.error("[pin] set_listing_pin refused:", error.message);
-    // Part D — the door's own reason, shown at the field in its words.
-    return error.message.includes("contactInNote") ? "contactInNote" : "failed";
-  }
+  if (error !== null) return pinAnswer(error.message);
   return "saved";
 }
