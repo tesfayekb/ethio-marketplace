@@ -1956,6 +1956,7 @@ export const am: Messages = {
   "post.where.level.sub_city": "ክፍለ ከተማ",
   "post.where.levelNone": "አንዱን ይምረጡ",
   "post.where.noRegions": "በዚህ ገበያ እስካሁን ክልሎች የሉም — ገበያው ራሱ አካባቢዎ ነው።",
+  "post.where.addSubCity": "ንዑስ ከተማ ጨምር",
   "post.where.allOf": "ሙሉ {name}",
   "post.where.planCaption": "የእርስዎ ዕቅድ፦ {cities} ከተማ",
   "post.where.planFull": "የእርስዎ ዕቅድ አንድ ከተማ ይሸፍናል። ሌላ ከመጨመር በፊት አንዱን ያንሱ።",
