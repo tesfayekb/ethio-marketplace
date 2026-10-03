@@ -1,5 +1,7 @@
 # Roadmap (queue per brief 2026-10-01)
 
+Bundle 3 brief: docs/governance/briefs/bundle-3.md (read first every turn).
+
 - [x] N2-a — unit asked above a later-ordered row (PW-88)
 - [ ] S1
 - [x] DEC-099 / INC-380 — pool resets by census (map + guard)
