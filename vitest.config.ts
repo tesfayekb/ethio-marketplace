@@ -26,7 +26,9 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.test.{ts,tsx}"],
+    // scripts/** joins for DEC-115: the e2e selector's unit tests live beside
+    // the script (scripts/e2e-select.test.ts). e2e/** stays excluded.
+    include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.ts"],
     exclude: ["e2e/**", "node_modules/**", "dist/**", ".output/**"],
     restoreMocks: true,
   },
