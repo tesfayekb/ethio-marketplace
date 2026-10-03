@@ -890,6 +890,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           listingId={draft.listingId}
                           contactPref={draft.values.contactPref}
                           refusals={draft.refusals}
+                          itemCountry={itemCountry}
                           onChange={(contactPref, immediate) =>
                             draft.change({ contactPref }, immediate)
                           }

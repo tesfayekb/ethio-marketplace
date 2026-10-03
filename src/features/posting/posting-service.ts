@@ -329,6 +329,24 @@ export interface LastPin {
 }
 
 /**
+ * B3 — the country of one place (the item's own, `coverage[0]`), from the same
+ * public `locations` read the last-places prefill uses. `null` when unknown;
+ * a failed read is logged and the contact step falls back to home ▸ market.
+ */
+export async function readPlaceCountry(placeId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("locations")
+    .select("country_code")
+    .eq("id", placeId)
+    .maybeSingle();
+  if (error) {
+    console.error("[posting] reading the item place's country failed", error.message);
+    return null;
+  }
+  return typeof data?.country_code === "string" ? data.country_code : null;
+}
+
+/**
  * W6b-1 R4 — THE LAST POST'S PLACES, for a NEW post's prefill. Filtered by
  * `seller_id` explicitly (INC-330): RLS also shows every ACTIVE listing, so the
  * filter — not the policy — keeps another seller's places out. A draft is not a
