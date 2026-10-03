@@ -7,7 +7,8 @@
  *
  * The census rule for tables (src/test/pool-reset-map.test.ts applies it to
  * src/integrations/supabase/types.ts): a public table whose Row has a column
- * named user_id, seller_id, actor_id, target_id, actor, reviewer or *_by.
+ * named user_id, seller_id, viewer_id, actor_id, target_id, actor, reviewer
+ * or *_by.
  * A new table matching that rule fails the guard until it is placed here.
  */
 
@@ -20,6 +21,8 @@ export const POOL_RESET_TABLES = {
   translator_languages: "every language assignment removed (INC-380)",
   impersonation_sessions: "open sessions naming the account as actor or target are ended",
   rate_limits: "rows keyed by the user id and by its listing ids deleted",
+  rate_overrides: "user_id rows deleted (a test's lowered dial never outlives it)",
+  contact_reveals: "viewer_id rows deleted; rows on the account's listings cascade",
 } as const;
 
 export const POOL_EXEMPT_TABLES = {
