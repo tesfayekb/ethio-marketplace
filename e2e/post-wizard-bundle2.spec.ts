@@ -256,8 +256,10 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   test("PW-122 an empty phone box opens on the country of the item's place", async ({ page }) => {
     const user = await signedInSeller(page);
     const leaf = await category();
-    const city = await activeCityOf("ER");
-    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    // Staging holds no Eritrean city, so the item's place is a scratch chain (J3).
+    const chain = await seedScratchChain("ER");
+    places.push(chain.region.slug);
+    await openDraft(page, user.id, leaf.id, 6, [chain.city.id]);
     await expectPhoneRowUsable(page, "post-who-value-phone");
     await expect(
       page.getByTestId("post-who-value-phone-country"),
