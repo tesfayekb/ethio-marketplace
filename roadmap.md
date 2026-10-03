@@ -40,8 +40,8 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
 - [ ] Step 16 app side — pin/directions/details carry from the last post unless the leaf holds own_place; cleared on item-place change, Remove, or an own_place leaf (done; tests owed)
 - [ ] Step 11 app side — sub-city indented under its city; "Add sub-city" adds another under the same city; city room counts distinct cities (done; test owed)
 - [x] Browser proofs PW-113 (directions + step 5 + pin move), PW-114 (phone2), PW-115/116 (carry / own_place), PW-117 (two sub-cities) — 10 passed on both projects; red-first runs against the pre-change screens still owed
-- [ ] Owed test 17 (import refuses an unknown token; needs the bundle 2 migration); step 3 (PW-120), step 4 (PW-121), step 15 (PW-118, PW-119) done
-- [ ] End-of-bundle DEC-023 run
+- [x] Owed tests: step 3 (PW-120), 4 (PW-121), 10 (PW-113), 15 (PW-118, PW-119), 17 (CT-34); failing-first runs PW-113..PW-121 red on the pre-bundle-2 app
+- [ ] End-of-bundle DEC-023 run — 971 passed of 1022 (49 skipped); open: CI-5 (@global-state, quarantined): the run finishes before the test sees 3/3
 
 ## INC-373 (2026-10-01)
 
