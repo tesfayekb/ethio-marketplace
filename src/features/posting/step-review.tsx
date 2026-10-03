@@ -73,6 +73,7 @@ const PRICE_MODE_KEYS: Record<string, MessageKey> = {
 /** The channels a listing may show, for the review line. */
 const CHANNEL_KEYS: { key: string; nameKey: MessageKey }[] = [
   { key: "phone", nameKey: "post.who.channel.phone" },
+  { key: "phone2", nameKey: "post.who.channel.phone2" },
   { key: "telegram", nameKey: "post.who.channel.telegram" },
   { key: "whatsapp", nameKey: "post.who.channel.whatsapp" },
 ];

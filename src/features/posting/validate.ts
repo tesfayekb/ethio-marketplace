@@ -22,7 +22,8 @@ export const TELEGRAM_RE = /^[A-Za-z0-9_]{5,32}$/;
 export const YOUTUBE_RE =
   /^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)[\w-]{6,}|youtu\.be\/[\w-]{6,})/;
 
-export type Channel = "phone" | "telegram" | "whatsapp";
+/** Bundle 2 Q2 — `phone2`, the optional second phone, follows the phone rule. */
+export type Channel = "phone" | "phone2" | "telegram" | "whatsapp";
 
 /** A refusal in the doors' words, or `null` when this screen sees nothing wrong. */
 function refusal(field: string, reason: string, detail?: string): Refusal {
@@ -52,11 +53,11 @@ export function checkContactPref(pref: Record<string, unknown>): Refusal[] {
   const out: Refusal[] = [];
   if (pref["messages"] !== true) out.push(refusal("contact_pref.messages", "messagesRequired"));
   for (const key of Object.keys(pref)) {
-    if (!["messages", "phone", "telegram", "whatsapp"].includes(key)) {
+    if (!["messages", "phone", "phone2", "telegram", "whatsapp"].includes(key)) {
       out.push(refusal(`contact_pref.${key}`, "unknownKey"));
     }
   }
-  for (const channel of ["phone", "telegram", "whatsapp"] as const) {
+  for (const channel of ["phone", "phone2", "telegram", "whatsapp"] as const) {
     const entry = pref[channel];
     if (entry === undefined) continue;
     if (entry === null || typeof entry !== "object") {

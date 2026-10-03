@@ -2058,6 +2058,8 @@ export const am: Messages = {
   "post.who.channelsLabel": "ገዢዎች የሚያገኙዎት መንገድ",
   "post.who.channel.messages": "በethio.com መልዕክቶች",
   "post.who.channel.phone": "የስልክ ቁጥር",
+  "post.who.channel.phone2": "ሁለተኛ የስልክ ቁጥር",
+  "post.who.addPhone2": "ሌላ ስልክ ጨምር",
   "post.who.channel.telegram": "ቴሌግራም",
   "post.who.channel.telegramHint": "በ@ የሚጀምር መለያዎ።",
   "post.who.channel.whatsapp": "ዋትስአፕ",

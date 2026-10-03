@@ -2153,6 +2153,8 @@ export const en = {
   "post.who.channelsLabel": "How buyers reach you",
   "post.who.channel.messages": "Messages on ethio.com",
   "post.who.channel.phone": "Phone number",
+  "post.who.channel.phone2": "Second phone number",
+  "post.who.addPhone2": "Add another phone",
   "post.who.channel.telegram": "Telegram",
   "post.who.channel.telegramHint": "Your handle, starting with @.",
   "post.who.channel.whatsapp": "WhatsApp",

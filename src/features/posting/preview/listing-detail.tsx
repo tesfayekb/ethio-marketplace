@@ -143,7 +143,7 @@ export function ListingDetail(view: ListingDetailView) {
                   period: isPeriod(view.pricePeriod) ? t(PERIOD_KEYS[view.pricePeriod]) : "",
                 }).trim();
 
-  const channels = (["phone", "telegram", "whatsapp"] as const).filter((channel) => {
+  const channels = (["phone", "phone2", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = view.contactPref[channel];
     return (
       entry !== null && typeof entry === "object" && (entry as { show?: unknown }).show === true
@@ -298,6 +298,8 @@ export function ListingDetail(view: ListingDetailView) {
             <li key={channel} data-testid="listing-detail-channel" data-channel={channel}>
               {channel === "phone"
                 ? t("post.who.channel.phone")
+                : channel === "phone2"
+                  ? t("post.who.channel.phone2")
                 : channel === "telegram"
                   ? t("post.who.channel.telegram")
                   : t("post.who.channel.whatsapp")}
