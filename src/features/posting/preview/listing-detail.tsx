@@ -97,6 +97,9 @@ export interface ListingDetailView {
   pinPrecision?: string | null;
   /** Part L — the saved zoom; an approximate pin ignores it. */
   pinZoom?: number | null;
+  /** Bundle 2 step 10 — the directions line, then the location details. */
+  directions?: string | null;
+  streetAddress?: string | null;
 }
 
 export function ListingDetail(view: ListingDetailView) {
@@ -302,6 +305,24 @@ export function ListingDetail(view: ListingDetailView) {
           ))}
         </ul>
       </section>
+
+      {/* Step 10 (P4) — directions above the location details, as text (F2). */}
+      {(view.directions || view.streetAddress) && (
+        <dl className="space-y-1 text-sm" data-testid="listing-detail-place-text">
+          {view.directions ? (
+            <div data-testid="listing-detail-directions">
+              <dt className="text-xs text-muted-foreground">{t("post.where.directionsLabel")}</dt>
+              <dd className="text-foreground">{view.directions}</dd>
+            </div>
+          ) : null}
+          {view.streetAddress ? (
+            <div data-testid="listing-detail-details">
+              <dt className="text-xs text-muted-foreground">{t("post.where.detailsLabel")}</dt>
+              <dd className="text-foreground">{view.streetAddress}</dd>
+            </div>
+          ) : null}
+        </dl>
+      )}
 
       {/* ------------------------------- the map ---------------------------- */}
       <div data-testid="listing-detail-map">

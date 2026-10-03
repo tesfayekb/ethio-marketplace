@@ -128,6 +128,9 @@ export interface UseDraft {
   pin: DraftPin | null;
   /** What the pin's own door just wrote, so the screen and the row agree. */
   setPin: (pin: DraftPin | null) => void;
+  /** Bundle 2 step 10 — the directions line the door holds (pin or no pin). */
+  directions: string | null;
+  setDirections: (directions: string | null) => void;
   loading: boolean;
   /** A resume that cannot be honoured says why, in words. */
   loadError: "notFound" | "failed" | null;
@@ -151,6 +154,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [loadError, setLoadError] = useState<"notFound" | "failed" | null>(null);
   const [photoNonce, setPhotoNonce] = useState(0);
   const [pin, setPin] = useState<DraftPin | null>(null);
+  const [directions, setDirections] = useState<string | null>(null);
 
   // Refs, not state: the save machinery must not re-run an effect to work, and
   // the latest values must be readable from inside a timer (I3).
@@ -558,6 +562,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
         draftStepRef.current = found.draft.draftStep;
         setDraftStep(found.draft.draftStep);
         setPhotos(found.photos);
+        setDirections(found.draft.directions);
         setPin(
           found.draft.pinLat === null || found.draft.pinLng === null
             ? null
@@ -635,6 +640,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
       reloadPhotos,
       pin,
       setPin,
+      directions,
+      setDirections,
       loading,
       loadError,
     }),
@@ -655,6 +662,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       photos,
       reloadPhotos,
       pin,
+      directions,
       loading,
       loadError,
     ],

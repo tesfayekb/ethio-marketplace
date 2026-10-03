@@ -94,6 +94,7 @@ export function StepReview({
   onGoTo,
   maxPhotos,
   pin = null,
+  directions = null,
   basisLabel = null,
   basisKey = null,
 }: {
@@ -120,6 +121,8 @@ export function StepReview({
     street: string | null;
     zoom?: number | null;
   } | null;
+  /** Bundle 2 step 10 — the directions line, shown above the location details. */
+  directions?: string | null;
   /** DEC-079 — the basis option's label in the UI language, or null (no basis). */
   basisLabel?: string | null;
   /** D62-2 — the leaf's pricing-basis key: its answer reads under Price, not Specifications. */
@@ -429,6 +432,8 @@ export function StepReview({
             pinLng: pin?.lng ?? null,
             pinPrecision: pin?.precision ?? null,
             pinZoom: pin?.zoom ?? null,
+            directions,
+            streetAddress: pin?.street ?? null,
           }}
         />
       )}

@@ -860,6 +860,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           listingId={draft.listingId}
                           pin={draft.pin}
                           onPinSaved={(pin) => draft.setPin(pin)}
+                          onDirectionsSaved={(directions) => draft.setDirections(directions)}
                           maxCities={planCaps?.maxCities ?? null}
                           maxRegions={planCaps?.maxRegions ?? null}
                           maxCountries={planCaps?.maxCountries ?? null}
@@ -886,6 +887,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           refusals={draft.refusals}
                           maxPhotos={planCaps?.maxPhotos ?? null}
                           pin={draft.pin}
+                          directions={draft.directions}
                           basisLabel={basisLabel}
                           basisKey={basisKey}
                           onChangeExpiry={(posterExpiresAt) =>
