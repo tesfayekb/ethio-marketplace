@@ -180,6 +180,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(page.getByTestId("post-who-channel-phone2")).toHaveCount(0);
     await page.getByTestId("post-who-add-phone2").click();
     await expect(page.getByTestId("post-who-channel-phone2")).toBeVisible();
+    await page.getByTestId("post-who-value-phone2-country").selectOption("ET");
     await page.getByTestId("post-who-value-phone2").fill("922345678");
     await page.getByTestId("post-who-value-phone2").blur();
     await page.getByTestId("post-who-show-phone2").check();
