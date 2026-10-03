@@ -315,6 +315,17 @@ export interface LastPlaces {
   itemId: string;
   /** Every place it showed in, item place first, in the item place's market only. */
   placeIds: string[];
+  /** Bundle 2 Q4 — the last post's pin and its two text lines; null when it had no pin. */
+  pin: LastPin | null;
+}
+
+export interface LastPin {
+  lat: number;
+  lng: number;
+  precision: string;
+  zoom: number | null;
+  street: string | null;
+  directions: string | null;
 }
 
 /**
@@ -333,7 +344,9 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
     if (userId === null) return null;
     let query = supabase
       .from("listings")
-      .select("id,location_id,created_at")
+      .select(
+        "id,location_id,created_at,pin_lat,pin_lng,pin_precision,pin_zoom,street_address,directions",
+      )
       .eq("seller_id", userId)
       .neq("status", "draft")
       .not("location_id", "is", null)
@@ -358,7 +371,18 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
     const others = (rows ?? [])
       .filter((row) => row.location_id !== last.location_id && countryOf(row) === country)
       .map((row) => row.location_id);
-    return { country, itemId: last.location_id, placeIds: [last.location_id, ...others] };
+    const pin: LastPin | null =
+      last.pin_lat === null || last.pin_lng === null || last.pin_precision === null
+        ? null
+        : {
+            lat: Number(last.pin_lat),
+            lng: Number(last.pin_lng),
+            precision: last.pin_precision,
+            zoom: last.pin_zoom ?? null,
+            street: last.street_address ?? null,
+            directions: last.directions ?? null,
+          };
+    return { country, itemId: last.location_id, placeIds: [last.location_id, ...others], pin };
   } catch {
     return null;
   }
