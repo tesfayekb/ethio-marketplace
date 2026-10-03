@@ -426,12 +426,26 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     // The tick can sit on either sub-city box.
     await subBoxes.nth(1).getByTestId("post-where-item-tick").check();
     await expect(subBoxes.nth(1)).toHaveAttribute("data-item", "1");
+    await expect
+      .poll(async () => [...(await coverageOf(listingId)).placeIds].sort(), { timeout: 15_000 })
+      .toEqual([chain.subCity.id, second.id].sort());
+    // R3 — Remove on one sub-city box removes that place; the other stays saved.
+    await subBoxes.nth(0).getByTestId("post-where-remove").click();
+    await expect(subBoxes, "PW-117: Remove did not remove one sub-city box").toHaveCount(1);
+    await expect
+      .poll(async () => [...(await coverageOf(listingId)).placeIds], { timeout: 15_000 })
+      .toEqual([second.id]);
+    // R3 — with one place, no Remove is drawn.
+    await expect(
+      page.getByTestId("post-where-remove"),
+      "PW-117: a lone place offered Remove",
+    ).toHaveCount(0);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7"), "PW-117: Next did not pass").toBeVisible({
       timeout: 20_000,
     });
     const saved = await coverageOf(listingId);
-    expect([...saved.placeIds].sort()).toEqual([chain.subCity.id, second.id].sort());
+    expect([...saved.placeIds]).toEqual([second.id]);
   });
 
   /** Step 15 — the browser's read of the seller's last post's channels. */

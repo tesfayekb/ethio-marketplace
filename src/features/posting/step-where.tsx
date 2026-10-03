@@ -550,12 +550,9 @@ function CountryBox({
                                   </option>
                                 ))}
                               </select>
-                              {tickLine(
-                                row,
-                                single
-                                  ? () => onRow(row.key, { subCity: null })
-                                  : () => onRemove(row.key),
-                              )}
+                              {/* W6b-1 R3 — Remove only while the step holds more than one
+                                  place; a lone sub-city is undone via "All of <city>". */}
+                              {tickLine(row, canRemove ? () => onRemove(row.key) : null)}
                             </div>
                           );
                         })}
