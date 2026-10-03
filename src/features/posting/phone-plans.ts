@@ -94,10 +94,12 @@ export function phonePlanOf(iso: string): PhonePlan | null {
  * length; null when there are no digits, no plan, or the length is usual.
  */
 export function lengthHint(iso: string, national: string): "short" | "long" | null {
-  const digits = national.replace(/\D/g, "").replace(/^0+/, "");
+  const typed = national.replace(/\D/g, "");
   const plan = phonePlanOf(iso);
-  if (digits.length === 0 || plan === null) return null;
-  if (digits.length < plan.min) return "short";
-  if (digits.length > plan.max) return "long";
-  return null;
+  if (typed.length === 0 || plan === null) return null;
+  const fits = (digits: string) => digits.length >= plan.min && digits.length <= plan.max;
+  // A trunk 0 typed in front ("0911…") is not part of the national number; some
+  // plans (e.g. CG, IT) start with a significant 0, so try as typed first.
+  if (fits(typed) || (typed.startsWith("0") && fits(typed.slice(1)))) return null;
+  return typed.length < plan.min ? "short" : "long";
 }
