@@ -971,6 +971,7 @@ export type Database = {
           cover_photo_id: string | null
           created_at: string
           description: string
+          directions: string | null
           draft_step: number
           draft_updated_at: string
           expires_at: string | null
@@ -1008,6 +1009,7 @@ export type Database = {
           cover_photo_id?: string | null
           created_at?: string
           description: string
+          directions?: string | null
           draft_step?: number
           draft_updated_at?: string
           expires_at?: string | null
@@ -1045,6 +1047,7 @@ export type Database = {
           cover_photo_id?: string | null
           created_at?: string
           description?: string
+          directions?: string | null
           draft_step?: number
           draft_updated_at?: string
           expires_at?: string | null
@@ -3083,6 +3086,7 @@ export type Database = {
       }
       set_listing_pin: {
         Args: {
+          p_directions?: string
           p_lat?: number
           p_listing_id: string
           p_lng?: number
