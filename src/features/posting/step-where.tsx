@@ -427,7 +427,7 @@ function CountryBox({
                   );
                   return (
                     <div
-                      key={cityGroup.key}
+                      key={head.key}
                       data-testid="post-where-row"
                       data-key={head.key}
                       data-item={keys.includes(itemKey) ? "1" : "0"}
