@@ -62,6 +62,7 @@ const FIELD_STEPS: Record<string, number> = {
   telegram: 7,
   whatsapp: 7,
   alias: 7,
+  home_country_code: 7,
 };
 
 /** The price modes that ARE the answer, with no figure behind them (DEC-067). */

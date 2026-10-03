@@ -12,6 +12,7 @@ import {
   destroyListingsOf,
   destroyPostableCategory,
   observedCountryOf,
+  confirmHomeCountry,
   postRoute,
   rand,
   reasonsOf,
@@ -387,6 +388,15 @@ test.describe("POSTING ROUTES", () => {
     const listingId = String(draft.payload["listing_id"] ?? "");
     expect(listingId).not.toBe("");
 
+    // Bundle 3 step 12 — refused at home_country_code until the seller confirms
+    // it; the positive control is the same publish after confirming.
+    const unconfirmed = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+    expect(reasonsOf(unconfirmed.payload), JSON.stringify(unconfirmed.payload)).toContainEqual({
+      field: "home_country_code",
+      reason: "required",
+    });
+    expect(await statusOf(listingId)).toBe("draft");
+    await confirmHomeCountry(page, token);
     const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
     expect(published.status).toBe(200);
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
@@ -826,5 +836,116 @@ test.describe("POSTING ROUTES", () => {
     const answered = await save({ [brandKey]: `${stem}_b1`, [modelKey]: `${stem}_m1` });
     expect(answered.status, JSON.stringify(answered.payload)).toBe(200);
     expect(answered.payload["ok"], JSON.stringify(answered.payload)).toBe(true);
+  });
+
+  /** A PostgREST call as the browser would make it (publishable key, optional bearer). */
+  async function rest(
+    page: import("@playwright/test").Page,
+    path: string,
+    options: { token?: string; body?: Record<string, unknown> } = {},
+  ): Promise<{ status: number; code: string; body: unknown }> {
+    const url = process.env["E2E_SUPABASE_URL"] ?? "";
+    const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"] ?? "";
+    const headers: Record<string, string> = { apikey: key, "Content-Type": "application/json" };
+    if (options.token) headers["Authorization"] = `Bearer ${options.token}`;
+    const response =
+      options.body === undefined
+        ? await page.request.get(`${url}/rest/v1/${path}`, { headers })
+        : await page.request.post(`${url}/rest/v1/${path}`, { headers, data: options.body });
+    const body: unknown = await response.json().catch(() => null);
+    const code =
+      body !== null && typeof body === "object" && "code" in body ? String(body.code) : "";
+    return { status: response.status(), code, body };
+  }
+
+  test("PR-20 step 5: the counters are server-only; the server path still counts", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const denied = [
+      ["consume_rate_limit", { p_action: "draft", p_key: user.id, p_limit: 1, p_window: "1 hour" }],
+      ["rate_gate", { p_action: "draft" }],
+      ["residency_country_for", { p_user_id: user.id, p_request_country: "ET" }],
+    ] as const;
+    for (const [fn, body] of denied) {
+      const answer = await rest(page, `rpc/${fn}`, { token, body: { ...body } });
+      expect(answer.code, `PR-20: a seller called ${fn}: ${JSON.stringify(answer.body)}`).toBe(
+        "42501",
+      );
+    }
+    // Positive control: the server-only client reaches the same counter.
+    const admin = adminClient();
+    const key = `e2e-pr20-${rand()}`;
+    try {
+      const counted = await admin.rpc("consume_rate_limit", {
+        p_action: "e2e-pr20",
+        p_key: key,
+        p_limit: 1,
+        p_window: "1 hour",
+      });
+      expect(counted.error, "PR-20: the server could not count").toBeNull();
+    } finally {
+      const removed = await admin.from("rate_limits").delete().eq("key", key);
+      expect(removed.error, "PR-20 cleanup").toBeNull();
+    }
+  });
+
+  test("PR-21 step 7: private columns are owner-only, through my_listing_private", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    const cat = await category();
+    const draft = await postRoute(
+      page,
+      DRAFT,
+      { step: 1, categoryId: cat.id },
+      { token, country: "ET" },
+    );
+    expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
+    const listingId = String(draft.payload["listing_id"] ?? "");
+
+    for (const column of ["contact_pref", "pin_lat", "pin_lng", "home_country_code"]) {
+      const asOwner = await rest(page, `listings?select=${column}&id=eq.${listingId}`, { token });
+      expect(asOwner.code, `PR-21: the owner read ${column} from the table`).toBe("42501");
+      const asAnon = await rest(page, `listings?select=${column}&limit=1`);
+      expect(asAnon.code, `PR-21: anon read ${column}`).toBe("42501");
+    }
+    // Positive controls: public columns still read; the owner RPC answers.
+    const open = await rest(page, `listings?select=id,status&id=eq.${listingId}`, { token });
+    expect(open.status, JSON.stringify(open.body)).toBe(200);
+    const own = await rest(page, "rpc/my_listing_private", {
+      token,
+      body: { p_listing_id: listingId },
+    });
+    expect(own.status, JSON.stringify(own.body)).toBe(200);
+    expect(own.body as Record<string, unknown>).toHaveProperty("contact_pref");
+    expect(own.body as Record<string, unknown>).not.toHaveProperty("home_country_code");
+
+    // Another seller is refused by the same RPC.
+    const other = await page.context().browser()!.newPage();
+    try {
+      const second = await seller(other);
+      const foreign = await rest(other, "rpc/my_listing_private", {
+        token: second.token,
+        body: { p_listing_id: listingId },
+      });
+      expect(JSON.stringify(foreign.body)).toContain("not your listing");
+    } finally {
+      await other.close();
+    }
+  });
+
+  test("PR-22 step 8: attribute tables leave the browser; categories still read", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    for (const table of ["attributes", "category_attribute_links"]) {
+      const anon = await rest(page, `${table}?select=id&limit=1`);
+      expect(anon.code, `PR-22: anon read ${table}`).toBe("42501");
+      const signed = await rest(page, `${table}?select=id&limit=1`, { token });
+      expect(signed.code, `PR-22: a seller read ${table}`).toBe("42501");
+    }
+    const categoriesRead = await rest(page, "categories?select=id,slug,is_active&limit=1");
+    expect(categoriesRead.status, JSON.stringify(categoriesRead.body)).toBe(200);
   });
 });

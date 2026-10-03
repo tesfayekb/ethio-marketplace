@@ -68,6 +68,21 @@ export async function postRoute(
   return { status: response.status(), payload };
 }
 
+/**
+ * Bundle 3 step 12 — publish_listing refuses a seller whose home country is not
+ * confirmed. Every test that publishes confirms it first, through the real
+ * identity door (the same call the contact step makes).
+ */
+export async function confirmHomeCountry(page: Page, token: string, country = "ET"): Promise<void> {
+  const answer = await postRoute(
+    page,
+    "/api/listings/identity",
+    { homeCountryCode: country },
+    { token, country },
+  );
+  expect(answer.payload["ok"], `[e2e:home-country] ${JSON.stringify(answer.payload)}`).toBe(true);
+}
+
 /** The refusal reasons a door answer carries, in order (structure, never English). */
 export function reasonsOf(payload: Record<string, unknown>): { field: string; reason: string }[] {
   const list = Array.isArray(payload["refusals"]) ? payload["refusals"] : [];

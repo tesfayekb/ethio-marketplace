@@ -2081,6 +2081,8 @@ export const am: Messages = {
   "post.who.countryHint": "የሚኖሩበት። አንድ ጊዜ ብቻ ይጠየቃል።",
   "post.who.countryConfirmed": "ተረጋግጧል። ለመቀየር ድጋፍን ያግኙ።",
   "post.who.countryNone": "አገር ይምረጡ",
+  "post.who.countryConfirm": "ይህን አገር ያረጋግጡ",
+  "post.who.countryRequired": "ከመለጠፍዎ በፊት የትውልድ አገርዎን ያረጋግጡ።",
   // U6-C2b — ደረጃ 8፦ ማረጋገጥና ማውጣት።
   "post.review.why": "ገዢ የሚያየው ይህ ነው። ይፈትሹ፣ ከዚያ ያውጡ።",
   "post.review.noTitle": "እስካሁን አርዕስት የለም",

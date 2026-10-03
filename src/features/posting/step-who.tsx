@@ -157,9 +157,13 @@ export function StepWho({
       setLastName(found.lastName ?? "");
       // A confirmed home country cannot be changed here (`countryAlreadyConfirmed`);
       // an unset one is FILLED IN from the seller's own saved area and confirmed.
-      if (found.homeCountryCode !== null) {
+      // Bundle 3 step 12 — only a CONFIRMED country locks; a guessed one is
+      // offered and the seller confirms it (publish_listing requires that).
+      if (found.homeCountryCode !== null && found.homeCountryConfirmed) {
         setCountry(found.homeCountryCode);
         setCountryLocked(true);
+      } else if (found.homeCountryCode !== null) {
+        setCountry(found.homeCountryCode);
       } else {
         setCountry(readAreaCookie()?.country ?? "");
       }
@@ -223,6 +227,15 @@ export function StepWho({
     return answer;
   }, []);
 
+  /** Step 12 — a country the seller picks or confirms is saved as confirmed. */
+  const confirmCountry = useCallback(
+    async (code: string) => {
+      const answer = await commit({ homeCountryCode: code });
+      if (aliveRef.current && answer.ok) setCountryLocked(true);
+    },
+    [commit],
+  );
+
   /** The live availability check: shape first, then the door (decision 2). */
   const checkAlias = useCallback(
     (next: string) => {
@@ -274,7 +287,8 @@ export function StepWho({
   const businessRefusal = refusalFor(identityRefusals, "business_name");
   const firstRefusal = refusalFor(identityRefusals, "first_name");
   const lastRefusal = refusalFor(identityRefusals, "last_name");
-  const countryRefusal = refusalFor(identityRefusals, "home_country_code");
+  const countryRefusal =
+    refusalFor(identityRefusals, "home_country_code") ?? refusalFor(refusals, "home_country_code");
   /** The door names a channel refusal on the channel's own key. */
   const draftRefusalOf = (field: string) => refusalFor(refusals, field);
   /** What this screen saw on blur, in the doors' own words (U6-C1-R3a). */
@@ -657,7 +671,7 @@ export function StepWho({
           onChange={(event) => {
             const code = event.target.value;
             setCountry(code);
-            if (code !== "") void commit({ homeCountryCode: code });
+            if (code !== "") void confirmCountry(code);
           }}
         >
           <option value="">{t("post.who.countryNone")}</option>
@@ -673,9 +687,24 @@ export function StepWho({
             </option>
           ))}
         </select>
+        {!countryLocked && country !== "" && (
+          <button
+            type="button"
+            data-testid="post-who-country-confirm"
+            className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground"
+            onClick={() => void confirmCountry(country)}
+          >
+            {t("post.who.countryConfirm")}
+          </button>
+        )}
         <p className="text-xs text-muted-foreground">
           {countryLocked ? t("post.who.countryConfirmed") : t("post.who.countryHint")}
         </p>
+        {!countryLocked && countryRefusal === null && (
+          <p className="text-sm text-muted-foreground" data-testid="post-who-country-required">
+            {t("post.who.countryRequired")}
+          </p>
+        )}
         {countryRefusal !== null && (
           <p className="text-sm text-destructive" data-testid="post-who-country-refusal">
             {t(draftRefusalKey(countryRefusal.reason))}
