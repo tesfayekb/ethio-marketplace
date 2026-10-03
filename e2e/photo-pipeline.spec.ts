@@ -16,7 +16,8 @@ import {
   scanForMetadata,
   uploadPhoto,
 } from "./helpers/photos";
-import { leaseSeller,
+import {
+  leaseSeller,
   bearerOf,
   destroyListingsOf,
   destroyPostableCategory,

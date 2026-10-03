@@ -5,7 +5,8 @@ import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { adminClient } from "./helpers/users";
 import { seedActiveListing } from "./helpers/categories";
-import { leaseSeller,
+import {
+  leaseSeller,
   activeCityOf,
   bearerOf,
   completeDraft,

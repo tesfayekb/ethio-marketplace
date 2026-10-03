@@ -4,7 +4,8 @@ import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { adminClient } from "./helpers/users";
-import { leaseSeller,
+import {
+  leaseSeller,
   bearerOf,
   completeDraft,
   coverageOf,

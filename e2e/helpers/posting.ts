@@ -90,9 +90,7 @@ export async function confirmHomeCountry(page: Page, token: string, country = "E
  * country control pass `{ homeConfirmed: false }`. Written through the service
  * client; the next lease returns both rows to their defaults (pool-reset-map).
  */
-export async function leaseSeller(
-  options: { homeConfirmed?: boolean } = {},
-): Promise<TestUser> {
+export async function leaseSeller(options: { homeConfirmed?: boolean } = {}): Promise<TestUser> {
   const user = await leaseUser();
   if (options.homeConfirmed === false) return user;
   const fact = { home_country_code: "ET", country_source: "user_confirmed" };

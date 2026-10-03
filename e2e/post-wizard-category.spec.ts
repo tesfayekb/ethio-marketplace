@@ -10,7 +10,8 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { adminClient, createUser } from "./helpers/users";
-import { leaseSeller,
+import {
+  leaseSeller,
   seedCatchAllLeaf,
   activeCityOf,
   attributesOf,

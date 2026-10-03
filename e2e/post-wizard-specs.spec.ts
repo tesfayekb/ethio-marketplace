@@ -5,7 +5,8 @@ import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
 import { destroyLocation } from "./helpers/locations";
 import { adminClient } from "./helpers/users";
-import { leaseSeller,
+import {
+  leaseSeller,
   seedPhoneSet,
   seedConditionalPair,
   attributesOf,

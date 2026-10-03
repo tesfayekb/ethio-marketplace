@@ -2,8 +2,8 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { leaseUser } from "./helpers/users";
-import { leaseSeller,
+import {
+  leaseSeller,
   attributesOf,
   destroyListingsOf,
   destroyPostableCategory,

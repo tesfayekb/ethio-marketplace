@@ -12,7 +12,8 @@ import {
 } from "./helpers/locations";
 import { seedActiveListing } from "./helpers/categories";
 import { adminClient } from "./helpers/users";
-import { leaseSeller,
+import {
+  leaseSeller,
   activeCityOf,
   attributesOf,
   bearerOf,

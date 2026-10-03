@@ -3,7 +3,8 @@ import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
-import { leaseSeller,
+import {
+  leaseSeller,
   activeCityOf,
   anyAttributeId,
   bearerOf,

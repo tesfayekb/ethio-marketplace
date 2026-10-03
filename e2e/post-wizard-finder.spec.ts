@@ -1,8 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
-import { leaseUser } from "./helpers/users";
-import { leaseSeller,
+import {
+  leaseSeller,
   attributesOf,
   destroyCategoryBranch,
   destroyListingsOf,
