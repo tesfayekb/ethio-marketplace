@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37088981953
-- Commit: `ce64a6399105099d756373aa4124c5dbbaa95dfe`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37089390987
+- Commit: `df2080a9b76cb51a7acd0599ce943aef99db68c9`
 - Attempt: 1
-- Written (UTC): 2026-10-03T02:19:57.705Z
+- Written (UTC): 2026-10-03T02:23:43.521Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -14,29 +14,24 @@
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-28 line(s), 11 message(s): 1 off the allowlist, 10 allowlisted.
+10 line(s), 6 message(s): 1 off the allowlist, 5 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
-| `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `definitions badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `definitions wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `digest mismatch` (quiet) | 3 | shard 1, shard 2, shard 4 |
-| `commit_failed duplicate key value violates unique constraint <q>` (quiet) | 2 | shard 1, shard 4 |
-| `definitions nulByte` (quiet) | 2 | shard 2, shard 5 |
-| `definitions tooManyRows` (quiet) | 2 | shard 2, shard 5 |
-| `definitions unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `export_failed permission denied` (quiet) | 2 | shard 4 |
+| `definitions badHeader` (quiet) | 2 | shard 1, shard 4 |
+| `digest mismatch` (quiet) | 2 | shard 1, shard 4 |
+| `listing not found` | 2 | shard 3 |
 | `preview_failed permission denied` (quiet) | 2 | shard 1, shard 4 |
-| `listing not found` | 1 | shard 6 |
+| `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 1 | shard 4 |
+| `definitions wrongFile` (quiet) | 1 | shard 4 |
 
-Quiet (allowlisted): category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · digest mismatch ×3 · commit_failed duplicate key value violates unique constraint <q> ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · export_failed permission denied ×2 · preview_failed permission denied ×2
+Quiet (allowlisted): definitions badHeader ×2 · digest mismatch ×2 · preview_failed permission denied ×2 · category-images: no GEMINI_API_KEY — fake mode ×1 · definitions wrongFile ×1
 
 Off the allowlist:
 
 ### listing not found
 
-- Count: 1 · Sources: shard 6
+- Count: 2 · Sources: shard 3
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -61,7 +56,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37088981953-email
+[e2e:teardown] deleted 4 user(s) owned by process 37089390987-email
 ```
 
 ## Server errors: smoke
@@ -86,9 +81,6 @@ No `[client-error]` lines in the `email` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
 [WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
 [WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
 ```
 
 ## Client errors: shard 1
@@ -97,15 +89,7 @@ No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Server errors: shard 2
 
-```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] /api/admin/attributes/import definitions unknownColumn
-[WebServer] [ssr-error] /api/admin/attributes/import definitions tooManyRows
-[WebServer] [ssr-error] /api/admin/attributes/import definitions nulByte
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-```
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
 
 ## Client errors: shard 2
 
@@ -113,7 +97,9 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 
 ## Server errors: shard 3
 
-No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+```text
+[WebServer] [ssr-error] /api/listings/draft listing not found ×2
+```
 
 ## Client errors: shard 3
 
@@ -127,8 +113,6 @@ No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
 [WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
 ```
 
 ## Client errors: shard 4
@@ -137,14 +121,7 @@ No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 
 ## Server errors: shard 5
 
-```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] /api/admin/attributes/import definitions unknownColumn
-[WebServer] [ssr-error] /api/admin/attributes/import definitions tooManyRows
-[WebServer] [ssr-error] /api/admin/attributes/import definitions nulByte
-```
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
 
 ## Client errors: shard 5
 
@@ -152,9 +129,7 @@ No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
 
 ## Server errors: shard 6
 
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
 
 ## Client errors: shard 6
 
@@ -166,15 +141,15 @@ smoke: no results file — the process failed outside test results (setup/teardo
 
 ```text
 --- final 10 lines ---
-✓   67 [mobile-360] › e2e/shell.spec.ts:1822:3 › L4b location picker › LS-4 a closed market is not guessed (528ms)
-  ✓   68 [mobile-360] › e2e/shell.spec.ts:1841:3 › L4b location picker › LS-5 no header and no cookie: no guess, and the markets route caches (495ms)
-  ✓   69 [mobile-360] › e2e/shell.spec.ts:1939:3 › L4b location picker › LS-6 the nearest curated metro wins by geometry (11.4s)
-  ✓   70 [mobile-360] › e2e/shell.spec.ts:1968:3 › L4b location picker › LS-7 a region code alone selects the region (14.8s)
-  ✓   71 [mobile-360] › e2e/shell.spec.ts:1996:3 › L4b location picker › LS-8 a city name alone selects that city (16.2s)
-  ✓   72 [mobile-360] › e2e/shell.spec.ts:2018:3 › L4b location picker › LS-9 coordinates far from every metro stop at the market (14.9s)
-  ✓   73 [mobile-360] › e2e/shell.spec.ts:2046:3 › L4b location picker › LS-10 a saved area beats the deepest guess (18.7s)
-  ✓   74 [mobile-360] › e2e/shell.spec.ts:2089:3 › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node (34.3s)
-  ✓   75 [mobile-360] › e2e/shell.spec.ts:2256:3 › L4b location picker › LS-12 a market whose every level has one option resolves to the deepest place (10.4s)
+-   29 [mobile-360] › e2e/shell.spec.ts:580:3 › corner-block grid › every rail row carries a leading icon on one gutter
+  -   30 [mobile-360] › e2e/shell.spec.ts:600:3 › corner-block grid › category rows carry DISTINCT icons, not one repeated glyph
+  -   31 [mobile-360] › e2e/shell.spec.ts:618:3 › corner-block grid › the rail collapses to icons, shows a tooltip, and remembers the choice
+  -   32 [mobile-360] › e2e/shell.spec.ts:672:3 › corner-block grid › exactly one collapse toggle, and the wordmark moves into the bar when collapsed
+  -   33 [mobile-360] › e2e/shell.spec.ts:710:3 › corner-block grid › the rail sign-out is absent for a logged-out visitor
+  -   34 [mobile-360] › e2e/shell.spec.ts:721:3 › tablet chrome (md = 768px) › tablets get the persistent rail and the FULL controls
+  -   35 [mobile-360] › e2e/shell.spec.ts:751:3 › tablet chrome (md = 768px) › the top bar is ONE band: logo-cell height AND background, location row separate
+  ✓   36 [mobile-360] › e2e/shell.spec.ts:784:3 › dark mode › the toggle flips the mode and the surfaces actually change (857ms)
+  ✓   37 [mobile-360] › e2e/shell.spec.ts:807:3 › mobile chrome › rail is a drawer behind the hamburger (628ms)
 ```
 
 ## email: no results file
@@ -185,12 +160,12 @@ email: no results file — the process failed outside test results (setup/teardo
 --- final 10 lines ---
 Running 1 test using 1 worker
 
-  ✓  1 [email-serial] › e2e/auth-signup.spec.ts:121:3 › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle (4.3s)
+  ✓  1 [email-serial] › e2e/auth-signup.spec.ts:121:3 › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle (4.4s)
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37088981953-email
+[e2e:teardown] deleted 4 user(s) owned by process 37089390987-email
 
-  1 passed (9.4s)
+  1 passed (11.4s)
 ```
 
 ## shard 1: no results file
@@ -201,24 +176,21 @@ shard 1: no results file — the process failed outside test results (setup/tear
 --- error lines (1) ---
 [e2e:setup] EN baseline probe unavailable: TypeError: fetch failed (UND_ERR_HEADERS_OVERFLOW) after 4 attempts
 --- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37088981953-1-3048-3-erwkts@ethio-e2e.invalid)
-  ✓   48 [mobile-360] › e2e/admin-attributes-links.spec.ts:676:3 › C3 attributes console › AT-59 the link editor's Save reflects change, saved and error (24.9s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37088981953-1-3048-2-1vcg3g@ethio-e2e.invalid)
-  ✓   50 [mobile-360] › e2e/admin-attributes-library.spec.ts:471:3 › C3 attributes console › AT-10 Used by names the category the attribute was assigned to (DB truth) (12.0s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37088981953-1-3048-3-erwkts@ethio-e2e.invalid)
-  ✓   51 [mobile-360] › e2e/admin-attributes-links.spec.ts:781:3 › C3 attributes console › AT-60 a links file reorders three links and the posting read follows (15.4s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37088981953-1-3048-2-1vcg3g@ethio-e2e.invalid)
-  ✓   52 [mobile-360] › e2e/admin-attributes-library.spec.ts:503:3 › C3 attributes console › AT-11 remove from category unlinks it and the chip disappears (DB truth) (18.7s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37088981953-1-3048-3-erwkts@ethio-e2e.invalid)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37089390987-1-2861-2-lqcb1f@ethio-e2e.invalid)
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+  ✓   20 [mobile-360] › e2e/admin-attributes-import.spec.ts:1031:3 › C3 attributes console › AT-23 a categories:view-only operator sees no import control and is refused (5.0s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37089390987-1-2861-3-dcq0wc@ethio-e2e.invalid)
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+  ✓   22 [mobile-360] › e2e/admin-attributes-import.spec.ts:1092:3 › C3 attributes console › AT-24 a commit whose bytes changed since the preview is refused (2.1s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37089390987-1-2861-3-dcq0wc@ethio-e2e.invalid)
+  ✓   23 [mobile-360] › e2e/admin-attributes-import.spec.ts:1122:3 › C3 attributes console › AT-25 an invalid option parent is refused (2.5s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37089390987-1-2861-3-dcq0wc@ethio-e2e.invalid)
 ```
 
 ```text
 [WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
 [WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
 [WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
 ```
 
 ## shard 2: no results file
@@ -226,28 +198,16 @@ shard 1: no results file — the process failed outside test results (setup/tear
 shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
---- error lines (1) ---
-[WebServer] Error in renderToReadableStream: ReferenceError: window is not defined ×4
 --- final 10 lines ---
-✓   73 [mobile-360] › e2e/layout.spec.ts:54:1 › LY-3 wizard actions are sticky only below md (2.3s)
-  ✓   74 [mobile-360] › e2e/layout.spec.ts:63:1 › LY-4 wizard aside is desktop-only (1.3s)
-  ✓   75 [mobile-360] › e2e/layout.spec.ts:71:1 › LY-5 Account tab opens the overview and profile card (2.1s)
-  ✓   76 [mobile-360] › e2e/locations-tree.spec.ts:66:3 › L1c · public per-country location tree › LR-1 the open market answers, anchor first, and honours If-None-Match (391ms)
-  ✓   77 [mobile-360] › e2e/locations-tree.spec.ts:94:3 › L1c · public per-country location tree › LR-2 a closed market is 404 and a malformed code is 400 (371ms)
-  ✓   70 [mobile-360] › e2e/import-security.spec.ts:414:5 › IMPORT-GATE attributes › IG-2 attributes: dangerous cells refuse their own row and name the reason (15.1s)
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-  ✓   78 [mobile-360] › e2e/locations-tree.spec.ts:104:3 › L1c · public per-country location tree › LR-3 a row disappears when an ancestor is retired, and the version moves (31.8s)
-  ✓   80 [mobile-360] › e2e/locations-tree.spec.ts:219:3 › L1c · public per-country location tree › LR-4 the payload carries the eleven read fields and nothing else (93ms)
-```
-
-```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] /api/admin/attributes/import definitions unknownColumn
-[WebServer] [ssr-error] /api/admin/attributes/import definitions tooManyRows
-[WebServer] [ssr-error] /api/admin/attributes/import definitions nulByte
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37089390987-2-3055-2-zln7gx@ethio-e2e.invalid)
+  ✓    3 [mobile-360] › e2e/admin-translations-governance.spec.ts:721:3 › U4g bulk approval, order and orphans › TR-29 the catalog exports as CSV and a translated CSV imports back (18.8s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37089390987-2-3055-3-skvrok@ethio-e2e.invalid)
+  ✓    4 [mobile-360] › e2e/admin-translations-data.spec.ts:276:3 › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one (21.9s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37089390987-2-3055-2-zln7gx@ethio-e2e.invalid)
+  ✓    5 [mobile-360] › e2e/admin-translations-governance.spec.ts:940:3 › U4g bulk approval, order and orphans › TR-32 an import is undoable while nothing has touched the rows (26.5s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37089390987-2-3055-3-skvrok@ethio-e2e.invalid)
+  ✓    6 [mobile-360] › e2e/admin-translations-data.spec.ts:452:3 › U4b translations console › TR-26 the Data scope approves every machine-filled content name (18.5s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37089390987-2-3055-2-zln7gx@ethio-e2e.invalid)
 ```
 
 ## shard 3: no results file
@@ -256,15 +216,19 @@ shard 3: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-✓   50 [mobile-360] › e2e/post-wizard-specs.spec.ts:1059:3 › POSTING WIZARD › PW-18 specifications survive a step Back (10.8s)
-[PW-98 fresh] city={"x":90,"y":212,"width":204,"height":44} tick={"x":90,"y":360,"width":20,"height":20} line=<div data-testid="post-where-row" data-key="primary" data-item="1" data-red="0" class="space-y-3 rounded-none border-0 border-s-2 py-1 ps-1.5 md:rounded-md md:border md:p-3 ms-1 md:ms-6 border-input"><div class="space-y-2"><div class="space-y-1"><label for="post-where-city" class="text-sm font-medium text-foreground">City</label><select id="post-where-city" data-testid="post-where-city" class="min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><option value="">Choose one</opti
-[PW-98 prefilled] city={"x":90,"y":212,"width":204,"height":44} tick={"x":90,"y":360,"width":20,"height":20} line=<div data-testid="post-where-row" data-key="primary" data-item="1" data-red="0" class="space-y-3 rounded-none border-0 border-s-2 py-1 ps-1.5 md:rounded-md md:border md:p-3 ms-1 md:ms-6 border-input"><div class="space-y-2"><div class="space-y-1"><label for="post-where-city" class="text-sm font-medium text-foreground">City</label><select id="post-where-city" data-testid="post-where-city" class="min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><option value="">Choose one</opti
-  ✓   51 [mobile-360] › e2e/post-wizard-specs.spec.ts:1107:3 › POSTING WIZARD › PW-19 the seller's own phrase survives into the suggestion (8.1s)
-  ✓   49 [mobile-360] › e2e/post-wizard-where.spec.ts:673:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-98 the item tick sits on the city line, fresh and prefilled (22.6s)
-  ✓   52 [mobile-360] › e2e/post-wizard-specs.spec.ts:1133:3 › POSTING WIZARD › PW-21 a child detail shows only the chosen parent's options and clears on change (13.3s)
-  ✓   53 [mobile-360] › e2e/post-wizard-where.spec.ts:704:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-99 the place boxes step in; every select stays at least 200 px (13.2s)
-  ✓   55 [mobile-360] › e2e/post-wizard-where.spec.ts:778:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-100 every category offers the map; after Save the preview shows the pin (9.6s)
-  ✓   54 [mobile-360] › e2e/post-wizard-specs.spec.ts:1183:3 › POSTING WIZARD › PW-22 a link's allowed options narrow the picker and its default prefills (12.2s)
+[WebServer] [ssr-error] /api/listings/draft listing not found
+  ✓    6 [mobile-360] › e2e/post-wizard-pricing.spec.ts:380:3 › POSTING WIZARD › PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it (13.1s)
+  ✓    5 [mobile-360] › e2e/post-wizard-resets.spec.ts:372:3 › POSTING WIZARD › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) (19.8s)
+[WebServer] [ssr-error] /api/listings/draft listing not found
+  ✓    7 [mobile-360] › e2e/post-wizard-pricing.spec.ts:406:3 › POSTING WIZARD › PW-109 a quote basis forces contact, and a changed basis releases it (INC-375) (13.4s)
+  ✓    9 [mobile-360] › e2e/post-wizard-pricing.spec.ts:421:3 › POSTING WIZARD › PW-108 an Other basis names the seller's written unit (INC-371) (12.6s)
+  ✓    8 [mobile-360] › e2e/post-wizard-resets.spec.ts:494:3 › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) (22.0s)
+  ✓   10 [mobile-360] › e2e/post-wizard-pricing.spec.ts:435:3 › POSTING WIZARD › PW-94 a listing card prints its price period (7.1s)
+  ✓   12 [mobile-360] › e2e/post-wizard-pricing.spec.ts:457:3 › POSTING WIZARD › PW-57 a per-quintal basis keeps the period once and reviews as a price per quintal (12.5s)
+```
+
+```text
+[WebServer] [ssr-error] /api/listings/draft listing not found ×2
 ```
 
 ## shard 4: no results file
@@ -273,15 +237,15 @@ shard 4: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37088981953-4-2871-3-sdzw71@ethio-e2e.invalid)
-  ✓   58 [desktop-1280] › e2e/admin-attributes-library.spec.ts:665:3 › C3 attributes console › AT-14 a categories:view-only user reads the library and every write door refuses (8.0s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37088981953-4-2871-2-qdyccs@ethio-e2e.invalid)
-  ✓   60 [desktop-1280] › e2e/admin-attributes-library.spec.ts:788:3 › C3 attributes console › AT-15 the export downloads both files with their exact columns, inheritance and formula safety (11.2s)
-  ✓   59 [desktop-1280] › e2e/admin-attributes-links.spec.ts:1137:3 › C3 attributes console › AT-40 the import dialog reaches Applied and undoes (18.8s)
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied
-  ✓   61 [desktop-1280] › e2e/admin-attributes-library.spec.ts:909:3 › C3 attributes console › AT-16 a user without categories:view gets 403 and sees no export control (8.0s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37088981953-4-2871-2-qdyccs@ethio-e2e.invalid)
+✓   32 [desktop-1280] › e2e/admin-attributes-editor.spec.ts:1261:3 › C3 attributes console › AT-54 the import dialog previews a definitions-only run and discards it (3.4s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37089390987-4-3126-3-5kbfvz@ethio-e2e.invalid)
+  ✓   31 [desktop-1280] › e2e/admin-attributes-library.spec.ts:66:3 › C3 attributes console › AT-2 definitions: a scratch attribute is created and renamed (DB truth) (14.3s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37089390987-4-3126-2-4wooga@ethio-e2e.invalid)
+  ✓   33 [desktop-1280] › e2e/admin-attributes-editor.spec.ts:1307:3 › C3 attributes console › AT-55 the option search and parent filter narrow the rows, and a save after filtering keeps every stored record (10.0s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37089390987-4-3126-3-5kbfvz@ethio-e2e.invalid)
+[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+  ✓   35 [desktop-1280] › e2e/admin-attributes-editor.spec.ts:1413:3 › C3 attributes console › AT-56 the constraint pickers offer only co-linked targets (4.8s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37089390987-4-3126-3-5kbfvz@ethio-e2e.invalid)
 ```
 
 ```text
@@ -290,8 +254,6 @@ shard 4: no results file — the process failed outside test results (setup/tear
 [WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
 [WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
 ```
 
 ## shard 5: no results file
@@ -300,24 +262,15 @@ shard 5: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37088981953-5-3258-3-eyeqpp@ethio-e2e.invalid)
-  ✓   71 [desktop-1280] › e2e/layout.spec.ts:18:1 › LY-1 wide pages use most of the desktop content width (4.9s)
-  -   73 [desktop-1280] › e2e/layout.spec.ts:35:1 › LY-2 mobile pages do not overflow
-  ✓   74 [desktop-1280] › e2e/layout.spec.ts:54:1 › LY-3 wizard actions are sticky only below md (2.2s)
-  ✓   75 [desktop-1280] › e2e/layout.spec.ts:63:1 › LY-4 wizard aside is desktop-only (1.6s)
-  ✓   76 [desktop-1280] › e2e/layout.spec.ts:71:1 › LY-5 Account tab opens the overview and profile card (1.9s)
-  ✓   77 [desktop-1280] › e2e/locations-tree.spec.ts:66:3 › L1c · public per-country location tree › LR-1 the open market answers, anchor first, and honours If-None-Match (494ms)
-  ✓   78 [desktop-1280] › e2e/locations-tree.spec.ts:94:3 › L1c · public per-country location tree › LR-2 a closed market is 404 and a malformed code is 400 (291ms)
-  ✓   72 [desktop-1280] › e2e/import-security.spec.ts:414:5 › IMPORT-GATE attributes › IG-2 attributes: dangerous cells refuse their own row and name the reason (15.2s)
-```
-
-```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] /api/admin/attributes/import definitions unknownColumn
-[WebServer] [ssr-error] /api/admin/attributes/import definitions tooManyRows
-[WebServer] [ssr-error] /api/admin/attributes/import definitions nulByte
+✓   19 [desktop-1280] › e2e/admin-translations-console.spec.ts:566:3 › U4b translations console › TR-12 bulk AI fill translates every untranslated scratch key (7.7s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37089390987-5-2908-2-bsezbv@ethio-e2e.invalid)
+[e2e:l4c] get_my_translator_languages for pooled a05c64bb-626f-4dcc-a921-07b6d798339d: []
+  ✓   21 [desktop-1280] › e2e/admin-translations-console.spec.ts:687:3 › U4b translations console › TR-13 the placeholder validator flags a machine write too (8.4s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37089390987-5-2908-2-bsezbv@ethio-e2e.invalid)
+[e2e:l4c] get_my_translator_languages for pooled a05c64bb-626f-4dcc-a921-07b6d798339d: []
+  ✓   20 [desktop-1280] › e2e/admin-translations-governance.spec.ts:940:3 › U4g bulk approval, order and orphans › TR-32 an import is undoable while nothing has touched the rows (26.9s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37089390987-5-2908-3-s3wnwo@ethio-e2e.invalid)
+  ✓   22 [desktop-1280] › e2e/admin-translations-console.spec.ts:741:3 › U4b translations console › TR-23 machine translation keeps placeholders, and the editor repairs a mangled one (20.6s)
 ```
 
 ## shard 6: no results file
@@ -326,17 +279,13 @@ shard 6: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-✓   76 [desktop-1280] › e2e/posting-routes.spec.ts:333:3 › POSTING ROUTES › PR-15 a save on a deleted draft is a refusal, never a 5xx or a null revision (INC-324) (8.3s)
-  ✓   77 [desktop-1280] › e2e/shell-table-law.spec.ts:34:3 › shell table law › admin tables never overflow horizontally (3.3s)
-  ✓   79 [desktop-1280] › e2e/shell.spec.ts:142:3 › app shell › mounts with header, rail slot and footer, logged out (602ms)
-  ✓   80 [desktop-1280] › e2e/shell.spec.ts:168:3 › app shell › feed renders its empty state (1.1s)
-  ✓   81 [desktop-1280] › e2e/shell.spec.ts:197:3 › app shell › language toggle renders Amharic (Ge'ez path) (1.3s)
-  ✓   82 [desktop-1280] › e2e/shell.spec.ts:225:3 › app shell › the vertical stack is ordered: top bar, location row, breadcrumbs, body (538ms)
-  ✓   78 [desktop-1280] › e2e/posting-routes.spec.ts:375:3 › POSTING ROUTES › PR-3 a complete draft publishes to screening and never to active (5.0s)
-INC-283: picks resolved region=addis-ababa city=addis-ababa
-  ✓   83 [desktop-1280] › e2e/shell.spec.ts:244:3 › app shell › the location row cascades Country -> Region -> City, city selectable (1.7s)
-```
+Running 152 tests using 2 workers, shard 6 of 6
 
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found
+  ✓    2 [desktop-1280] › e2e/post-wizard-specs.spec.ts:211:3 › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it (12.2s)
+  ✓    1 [desktop-1280] › e2e/post-wizard-resets.spec.ts:204:3 › POSTING WIZARD › PW-26 a category change drops the details the new category never asks, by name (14.0s)
+  ✓    3 [desktop-1280] › e2e/post-wizard-specs.spec.ts:289:3 › POSTING WIZARD › PW-6 the AI assist fills the title and description from the entered details, and both stay editable (13.6s)
+PW-72 bodies: []
+  ✓    4 [desktop-1280] › e2e/post-wizard-resets.spec.ts:316:3 › POSTING WIZARD › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317) (18.7s)
+  ✓    5 [desktop-1280] › e2e/post-wizard-specs.spec.ts:374:3 › POSTING WIZARD › PW-101 a phone number in a free-text answer is refused at its field (11.6s)
+  ✓    7 [desktop-1280] › e2e/post-wizard-specs.spec.ts:407:3 › POSTING WIZARD › PW-93 a number outside its range is refused as it is typed (11.1s)
 ```
