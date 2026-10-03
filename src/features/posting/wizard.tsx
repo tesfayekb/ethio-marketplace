@@ -875,7 +875,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           pin={draft.pin}
                           onPinSaved={(pin) => draft.setPin(pin)}
                           onDirectionsSaved={(directions) => draft.setDirections(directions)}
-                          ownPlace={facts === null ? null : facts.capabilities.includes("own_place")}
+                          ownPlace={
+                            facts === null ? null : facts.capabilities.includes("own_place")
+                          }
                           pinCarried={pinCarried}
                           onPinCarried={setPinCarried}
                           maxCities={planCaps?.maxCities ?? null}
