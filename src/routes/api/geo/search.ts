@@ -50,12 +50,7 @@ async function handleGet(request: Request): Promise<Response> {
   const refused = refuseUserClient(PATH, caller);
   if (refused !== null) return refused;
 
-  const rate = await consumeRate(
-    "geocode",
-    caller.userId!,
-    GEOCODE_PER_HOUR,
-    "1 hour",
-  );
+  const rate = await consumeRate("geocode", caller.userId!, GEOCODE_PER_HOUR, "1 hour");
   if (!rate.allowed) return refusal("geocode", "rateLimited", rate.resetsAt ?? undefined);
 
   const query = (new URL(request.url).searchParams.get("q") ?? "").trim();

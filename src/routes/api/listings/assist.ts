@@ -260,12 +260,7 @@ async function handlePost(request: Request): Promise<Response> {
   // THE PER-LISTING BUDGET, spent before any provider call is made (F5: gate first).
   let triesLeft: number | null = null;
   if (listingId !== "") {
-    const budget = await consumeRate(
-      "assist:listing",
-      listingId,
-      ASSIST_TRIES,
-      ASSIST_WINDOW,
-    );
+    const budget = await consumeRate("assist:listing", listingId, ASSIST_TRIES, ASSIST_WINDOW);
     if (!budget.allowed) return refusal("assist", "assistBudgetSpent");
     // INC-299 — the count comes from the rate-limit answer, never a table read.
     triesLeft = budget.remaining;

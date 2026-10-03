@@ -390,9 +390,7 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
     if (userId === null) return null;
     let query = supabase
       .from("listings")
-      .select(
-        "id,location_id,created_at,pin_precision,pin_zoom,street_address,directions",
-      )
+      .select("id,location_id,created_at,pin_precision,pin_zoom,street_address,directions")
       .eq("seller_id", userId)
       .neq("status", "draft")
       .not("location_id", "is", null)
