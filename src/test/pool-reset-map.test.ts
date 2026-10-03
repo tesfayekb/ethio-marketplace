@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { POOL_EXEMPT_TABLES, POOL_RESET_TABLES } from "../../e2e/helpers/pool-reset-map";
 
 /** DEC-099 — every table holding a user id is declared RESET or EXEMPT. */
-const USER_COLUMN = /^(user_id|seller_id|actor_id|target_id|actor|reviewer|\w+_by)$/;
+const USER_COLUMN = /^(user_id|seller_id|viewer_id|actor_id|target_id|actor|reviewer|\w+_by)$/;
 
 function tablesWithUserColumn(): string[] {
   const source = readFileSync(resolve(process.cwd(), "src/integrations/supabase/types.ts"), "utf8");

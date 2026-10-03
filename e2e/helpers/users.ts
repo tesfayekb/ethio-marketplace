@@ -258,6 +258,10 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
   if (listings.error) fail("listings", listings.error.message);
   const limits = await supabase.from("rate_limits").delete().eq("key", id);
   if (limits.error) fail("rate limits", limits.error.message);
+  const overrides = await supabase.from("rate_overrides").delete().eq("user_id", id);
+  if (overrides.error) fail("rate overrides", overrides.error.message);
+  const reveals = await supabase.from("contact_reveals").delete().eq("viewer_id", id);
+  if (reveals.error) fail("contact reveals", reveals.error.message);
 
   const base = await supabase.from("roles").select("id").eq("name", "user").single();
   if (base.error || !base.data) fail("base role", base.error?.message ?? "no row");

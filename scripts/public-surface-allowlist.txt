@@ -2,3 +2,6 @@
 # that grants SELECT or EXECUTE to anon, authenticated or PUBLIC fails the
 # migration guard unless the object is named here with a one-line reason.
 # Format: <object name, unqualified> | <reason>
+publish_listing | the seller's publish door; gates on auth.uid() ownership inside (M1b)
+my_listing_private | owner-only read; raises "not your listing" for any other caller (M1b)
+my_last_listing_private | owner-only read keyed by auth.uid() (M1b)
