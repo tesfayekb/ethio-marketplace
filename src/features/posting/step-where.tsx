@@ -827,6 +827,8 @@ export function StepWhere({
   useEffect(() => {
     if (carryTried.current || listingId === null || !textKnown || ownPlace !== false) return;
     if (last === undefined || placeSeeded.current !== country) return;
+    // The prefill lands in the render after seeding; decide only once it shows.
+    if (last !== null && !prefilled) return;
     carryTried.current = true;
     const from = last?.pin ?? null;
     if (from === null || !prefilled || itemPlace !== last?.itemId) return;
