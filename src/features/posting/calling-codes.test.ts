@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  flagOf,
   joinPhone,
   matchCountry,
   orderCountries,
   readInternational,
+  searchCountries,
   splitPhone,
 } from "./calling-codes";
 
@@ -32,5 +34,18 @@ describe("calling codes (bundle 2 Q1)", () => {
     const order = orderCountries(["ET", "ER"], (iso) => iso, "en");
     expect(order.slice(0, 3)).toEqual(["ET", "ER", "AD"]);
     expect(order.filter((iso) => iso === "ET")).toHaveLength(1);
+  });
+  it("the flag is the emoji of the ISO code, none for a malformed code", () => {
+    expect(flagOf("ET")).toBe("\u{1F1EA}\u{1F1F9}");
+    expect(flagOf("e")).toBe("");
+  });
+  it("search matches the shown name or the calling code, keeping the order", () => {
+    const order = ["ET", "ER", "GB", "US"];
+    const names: Record<string, string> = { ET: "Ethiopia", ER: "Eritrea", GB: "United Kingdom", US: "United States" };
+    const nameOf = (iso: string) => names[iso] ?? iso;
+    expect(searchCountries(order, "+251", nameOf)).toEqual(["ET"]);
+    expect(searchCountries(order, "00291", nameOf)).toEqual(["ER"]);
+    expect(searchCountries(order, "united", nameOf)).toEqual(["GB", "US"]);
+    expect(searchCountries(order, "", nameOf)).toEqual(order);
   });
 });
