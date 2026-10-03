@@ -147,17 +147,19 @@ export interface RateVerdict {
 }
 
 /**
- * DEC-071 — the rate-limit primitive, consumed BEFORE any work: the dial and the
- * window belong to the route, the counting belongs to the database.
+ * DEC-071 / INC-396 — the rate-limit primitive, consumed BEFORE any work: the dial
+ * and the window belong to the route, the counting belongs to the database.
+ * `consume_rate_limit` is closed to the browser roles (M1), so the count runs
+ * through the server-only client. Call it only after the caller is verified.
  */
 export async function consumeRate(
-  supabase: SupabaseClient<Database>,
   action: string,
   key: string,
   limit: number,
   window: string,
 ): Promise<RateVerdict> {
-  const { data, error } = await supabase.rpc("consume_rate_limit", {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.rpc("consume_rate_limit", {
     p_action: action,
     p_key: key,
     p_limit: limit,
@@ -172,5 +174,25 @@ export async function consumeRate(
       typeof verdict.remaining === "number" && Number.isFinite(verdict.remaining)
         ? verdict.remaining
         : null,
+  };
+}
+
+/**
+ * INC-396 — the doors count for themselves (`rate_gate`) and name the reset as
+ * `resets_at`; the client has always read a route refusal's `detail`. This keeps
+ * what the client receives unchanged.
+ */
+export function doorAnswer(data: unknown): unknown {
+  if (data === null || typeof data !== "object") return data;
+  const refusals = (data as { refusals?: unknown }).refusals;
+  if (!Array.isArray(refusals)) return data;
+  return {
+    ...(data as Record<string, unknown>),
+    refusals: refusals.map((entry: unknown) => {
+      if (entry === null || typeof entry !== "object") return entry;
+      const { resets_at: resetsAt, ...rest } = entry as Record<string, unknown>;
+      if (rest["reason"] !== "rateLimited") return entry;
+      return typeof resetsAt === "string" ? { ...rest, detail: resetsAt } : rest;
+    }),
   };
 }

@@ -77,7 +77,6 @@ async function handlePost(request: Request): Promise<Response> {
 
   // 1 — the dial, before any work.
   const rate = await consumeRate(
-    supabase,
     "draft",
     userId,
     // INC-227 — 600/h: a wizard that autosaves every couple of seconds for an

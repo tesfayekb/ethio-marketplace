@@ -52,7 +52,6 @@ async function handleGet(request: Request): Promise<Response> {
   }
 
   const rate = await consumeRate(
-    caller.supabase!,
     "geocode",
     caller.userId!,
     GEOCODE_PER_HOUR,

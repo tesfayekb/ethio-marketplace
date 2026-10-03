@@ -51,7 +51,6 @@ async function handleGet(request: Request): Promise<Response> {
   if (refused !== null) return refused;
 
   const rate = await consumeRate(
-    caller.supabase!,
     "geocode",
     caller.userId!,
     GEOCODE_PER_HOUR,

@@ -231,7 +231,6 @@ async function handlePost(request: Request): Promise<Response> {
   const userId = caller.userId!;
 
   const rate = await consumeRate(
-    supabase,
     "assist",
     userId,
     envDial("RATE_LIMIT_ASSIST_PER_HOUR", 30),
@@ -262,7 +261,6 @@ async function handlePost(request: Request): Promise<Response> {
   let triesLeft: number | null = null;
   if (listingId !== "") {
     const budget = await consumeRate(
-      supabase,
       "assist:listing",
       listingId,
       ASSIST_TRIES,
