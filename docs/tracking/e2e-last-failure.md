@@ -1,25 +1,57 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37157449618
-- Commit: `fb53f29460d7d76de16b29d4d171dc452f7cf1c6`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37158256389
+- Commit: `a4f399bde84ba048eefbd1776fb1408b68eabf63`
 - Attempt: 1
-- Written (UTC): 2026-10-03T22:24:30.956Z
-- Passed: 184 · Skipped: 31 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): smoke, email, changed
-- Sources without results: shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Written (UTC): 2026-10-03T22:46:47.676Z
+- Passed: 1118 · Skipped: 75 · Failed: 28
+- Gating failures: 28 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 1
+- Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
+- Sources without results: none
+
+## Flake ledger (DEC-030)
+
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
+
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 6` · shell.spec.ts › L4b location picker › LS-6 the nearest curated metro wins by geometry — Error: expect(locator).toHaveText(expected) failed
+
+## Flaky bodies (DEC-078)
+
+### shell.spec.ts › L4b location picker › LS-6 the nearest curated metro wins by geometry
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toHaveText(expected) failed
+
+Locator: getByTestId('location-level-city')
+Expected pattern: /Escratch Guess City jwqqx/
+Received string:  "Escratch Guess City iibrqx"
+Timeout: 10000ms
+
+Call log:
+  - Expect "toHaveText" with timeout 10000ms
+  - waiting for getByTestId('location-level-city')
+    12 × locator resolved to <button type="button" id="radix-_r_4_" aria-label="City" data-state="closed" aria-haspopup="menu" aria-expanded="false" data-testid="location-level-city" class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring font-medium text-foreground">…</button>
+       - unexpected value "Escratch Guess City iibrqx"
+
+```
+
+Context: context file not found for `shell-L4b-location-picker-LS-6-the-nearest-curated-metro-wins-by-geometry-desktop-1280`
 
 ## Server errors — census (DEC-083, non-gating)
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
-111 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+112 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
-| `listing not found` | 11 | shard 3, shard 6, changed |
+| `listing not found` | 12 | shard 3, shard 5, shard 6, changed |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -60,7 +92,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 11 · Sources: shard 3, shard 6, changed
+- Count: 12 · Sources: shard 3, shard 5, shard 6, changed
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -74,43 +106,92 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 
 ## Timing (DEC-087, non-gating)
 
-Results read: smoke, email, changed · unavailable: shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-03T22:10:07.687Z | 13.0 min |
-| email | 2026-10-03T22:10:06.583Z | 0.2 min |
-| changed | 2026-10-03T22:10:12.879Z | 6.3 min |
+| smoke | 2026-10-03T22:25:59.590Z | 12.6 min |
+| email | 2026-10-03T22:26:03.034Z | 0.2 min |
+| shard 1 | 2026-10-03T22:25:44.727Z | 17.8 min |
+| shard 2 | 2026-10-03T22:25:57.188Z | 20.5 min |
+| shard 3 | 2026-10-03T22:25:54.888Z | 18.3 min |
+| shard 4 | 2026-10-03T22:26:21.342Z | 19.4 min |
+| shard 5 | 2026-10-03T22:25:53.001Z | 19.6 min |
+| shard 6 | 2026-10-03T22:25:43.827Z | 13.4 min |
+| changed | 2026-10-03T22:25:51.069Z | 9.4 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 126 | 8.3 min | smoke |
-| `posting-routes.spec.ts` | 38 | 6.2 min | changed |
-| `post-wizard-bundle2.spec.ts` | 22 | 5.9 min | changed |
-| `auth-signout.spec.ts` | 22 | 3.7 min | smoke |
-| `a11y.spec.ts` | 4 | 0.6 min | smoke |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.2 min | smoke |
+| `post-wizard-specs.spec.ts` | 62 | 18.1 min | shard 3, shard 6 |
+| `post-wizard-bundle2.spec.ts` | 44 | 17.6 min | shard 2, shard 5, changed |
+| `shell.spec.ts` | 252 | 15.8 min | smoke, shard 3, shard 6 |
+| `posting-routes.spec.ts` | 76 | 14.2 min | shard 3, shard 6, changed |
+| `admin-attributes-library.spec.ts` | 40 | 10.9 min | shard 1, shard 4 |
+| `post-wizard-place.spec.ts` | 36 | 10.4 min | shard 2, shard 5 |
+| `post-wizard-category.spec.ts` | 40 | 10.2 min | shard 2, shard 5 |
+| `post-wizard-where.spec.ts` | 28 | 10.0 min | shard 3, shard 6 |
+| `post-wizard-pricing.spec.ts` | 32 | 8.9 min | shard 3, shard 5 |
+| `auth-signout.spec.ts` | 44 | 8.8 min | smoke, shard 2, shard 5 |
+| `admin-attributes-editor.spec.ts` | 34 | 8.2 min | shard 1, shard 4 |
+| `import-security.spec.ts` | 34 | 7.5 min | shard 2, shard 5 |
+| `admin-users.spec.ts` | 22 | 7.0 min | shard 2, shard 5 |
+| `admin-categories-console.spec.ts` | 32 | 6.9 min | shard 1, shard 4 |
+| `admin-attributes-links.spec.ts` | 22 | 6.7 min | shard 1, shard 4 |
+| `admin-categories-lifecycle.spec.ts` | 40 | 6.7 min | shard 1, shard 4 |
+| `post-wizard-resets.spec.ts` | 18 | 6.4 min | shard 3, shard 6 |
+| `photo-pipeline.spec.ts` | 20 | 6.0 min | shard 2, shard 5 |
+| `admin-attributes-import.spec.ts` | 32 | 5.5 min | shard 1, shard 4 |
+| `admin-locations.spec.ts` | 34 | 5.2 min | shard 1, shard 4 |
+| `admin-translations-console.spec.ts` | 36 | 4.8 min | shard 1, shard 4 |
+| `admin-roles.spec.ts` | 24 | 4.5 min | shard 1, shard 4 |
+| `admin-audit.spec.ts` | 10 | 2.9 min | shard 1, shard 4 |
+| `admin-translations-data.spec.ts` | 8 | 2.9 min | shard 2, shard 5 |
+| `mfa-stepup.spec.ts` | 18 | 2.8 min | shard 2, shard 5 |
+| `admin-translations-governance.spec.ts` | 8 | 2.8 min | shard 2, shard 5 |
+| `admin-countries.spec.ts` | 16 | 2.7 min | shard 1, shard 4 |
+| `post-wizard-finder.spec.ts` | 8 | 1.5 min | shard 2, shard 5 |
+| `category-image-routes.spec.ts` | 10 | 1.4 min | shard 2, shard 5 |
+| `admin-shell.spec.ts` | 10 | 1.3 min | shard 1, shard 4 |
+| `admin-coverage.spec.ts` | 14 | 1.3 min | shard 1, shard 4 |
+| `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
+| `post-wizard-details.spec.ts` | 4 | 1.0 min | shard 2, shard 5 |
+| `i18n-coverage.spec.ts` | 8 | 0.8 min | shard 2, shard 5 |
+| `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
+| `category-nav.spec.ts` | 10 | 0.6 min | shard 2, shard 5 |
+| `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
+| `rbac.spec.ts` | 6 | 0.6 min | shard 3, shard 6 |
+| `a11y.spec.ts` | 4 | 0.5 min | smoke |
+| `settings.spec.ts` | 4 | 0.5 min | shard 3 |
+| `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
+| `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
+| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
+| `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
 | `auth-signup.spec.ts` | 1 | 0.1 min | email |
+| `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
+| `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 31.1 s |
-| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | desktop-1280 | 30.7 s |
-| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | mobile-360 | 27.9 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 24.3 s |
-| `post-wizard-bundle2.spec.ts` › PW-119 another seller's visible phone is never carried | desktop-1280 | 23.3 s |
-| `posting-routes.spec.ts` › PR-17 the draft route refuses a region-only place and accepts a city and a sub-city | desktop-1280 | 21.7 s |
-| `post-wizard-bundle2.spec.ts` › PW-123 Post another ad opens step 1 with no draft carried | desktop-1280 | 21.4 s |
-| `shell.spec.ts` › LS-10 a saved area beats the deepest guess | desktop-1280 | 21.4 s |
-| `post-wizard-bundle2.spec.ts` › PW-115 without own_place the last post's pin, directions and details carry over | desktop-1280 | 20.3 s |
-| `auth-signout.spec.ts` › SP-6 stale stamps from a previous session never sign the new one out | mobile-360 | 20.2 s |
-| `post-wizard-bundle2.spec.ts` › PW-119 another seller's visible phone is never carried | mobile-360 | 18.8 s |
-| `shell.spec.ts` › LS-2 a pick is remembered, clearing forgets it | mobile-360 | 18.7 s |
-| `post-wizard-bundle2.spec.ts` › PW-123 Post another ad opens step 1 with no draft carried | mobile-360 | 17.7 s |
-| `post-wizard-bundle2.spec.ts` › PW-118 a draft's own channel is never overwritten by the last post's | mobile-360 | 17.6 s |
-| `shell.spec.ts` › LS-2 a pick is remembered, clearing forgets it | desktop-1280 | 17.2 s |
+| `post-wizard-category.spec.ts` › PW-48 a catch-all leaf can be chosen and its listing lands in review | desktop-1280 | 77.9 s |
+| `post-wizard-bundle2.spec.ts` › PW-123 Post another ad opens step 1 with no draft carried | desktop-1280 | 76.9 s |
+| `post-wizard-category.spec.ts` › PW-48 a catch-all leaf can be chosen and its listing lands in review | mobile-360 | 74.6 s |
+| `post-wizard-place.spec.ts` › PW-13 review: the preview shows what was answered, and Publish lands in review — never live | desktop-1280 | 74.3 s |
+| `post-wizard-bundle2.spec.ts` › PW-123 Post another ad opens step 1 with no draft carried | mobile-360 | 72.0 s |
+| `post-wizard-place.spec.ts` › PW-13 review: the preview shows what was answered, and Publish lands in review — never live | mobile-360 | 71.9 s |
+| `post-wizard-bundle2.spec.ts` › PW-123 Post another ad opens step 1 with no draft carried | desktop-1280 | 70.1 s |
+| `post-wizard-bundle2.spec.ts` › PW-123 Post another ad opens step 1 with no draft carried | mobile-360 | 68.9 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 60.4 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 48.1 s |
+| `post-wizard-where.spec.ts` › PW-98 the item tick sits on the city line, fresh and prefilled | desktop-1280 | 46.2 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 45.3 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 43.2 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 41.6 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 39.2 s |
 
 ## Post-test errors: smoke
 
@@ -119,7 +200,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37157449618-smoke
+[e2e:teardown] deleted 3 user(s) owned by process 37158256389-smoke
 ```
 
 ## Post-test errors: email
@@ -129,7 +210,67 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37157449618-email
+[e2e:teardown] deleted 4 user(s) owned by process 37158256389-email
+```
+
+## Post-test errors: shard 1
+
+shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 12 (pool 5, fresh 7)
+[e2e:teardown] transport retries this run: 12 (by method: GET 12; by code: UND_ERR_HEADERS_OVERFLOW 12; ran out: 4)
+[e2e:teardown] deleted 8 user(s) owned by process 37158256389-1
+```
+
+## Post-test errors: shard 2
+
+shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 35 (pool 4, fresh 31)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 47 user(s) owned by process 37158256389-2
+```
+
+## Post-test errors: shard 3
+
+shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 6 (pool 3, fresh 3)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 4 user(s) owned by process 37158256389-3
+```
+
+## Post-test errors: shard 4
+
+shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 13 (pool 5, fresh 8)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 8 user(s) owned by process 37158256389-4
+```
+
+## Post-test errors: shard 5
+
+shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 30 (pool 4, fresh 26)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 40 user(s) owned by process 37158256389-5
+```
+
+## Post-test errors: shard 6
+
+shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 4 user(s) owned by process 37158256389-6
 ```
 
 ## Post-test errors: changed
@@ -139,29 +280,596 @@ changed: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37157449618-changed
+[e2e:teardown] deleted 3 user(s) owned by process 37158256389-changed
 ```
 
-## Server errors: shard 1
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried
+
+- Source: `shard 2`
+- Project: `mobile-360`
 
 ```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-in-review')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-in-review')
+
 ```
 
-## Client errors: shard 1
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-123-Post-another-ad-opens-step-1-with-no-draft-carried-mobile-360`
 
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-115-without-own_place-the-last-post-s-pin-directions-and-details-carry-over-mobile-360`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-116-an-own_place-category-never-carries-the-last-post-s-pin-mobile-360`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-118-a-draft-s-own-channel-is-never-overwritten-by-the-last-post-s-mobile-360`
+
+## post-wizard-category.spec.ts › POSTING WIZARD › PW-48 a catch-all leaf can be chosen and its listing lands in review
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: PW-48: publishing into a catch-all leaf did not land on the in-review screen
+
+expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-in-review')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - PW-48: publishing into a catch-all leaf did not land on the in-review screen with timeout 20000ms
+  - waiting for getByTestId('post-in-review')
+
+```
+
+Context: context file not found for `post-wizard-category-POSTING-WIZARD-PW-48-a-catch-all-leaf-can-be-chosen-and-its-listing-lands-in-review-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-13 review: the preview shows what was answered, and Publish lands in review — never live
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: PW-13: publishing did not land on the in-review screen
+
+expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-in-review')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - PW-13: publishing did not land on the in-review screen with timeout 20000ms
+  - waiting for getByTestId('post-in-review')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-review-the-preview-shows-what-was-answered-and-Publish-lands-in-review-never-live-mobile-360`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-84 a new post opens on the seller's own last post, never another seller's
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-84-a-new-post-opens-on-the-seller-s-own-last-post-never-another-seller-s-mobile-360`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-98 the item tick sits on the city line, fresh and prefilled
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-98-the-item-tick-sits-on-the-city-line-fresh-and-prefilled-mobile-360`
+
+## posting-routes.spec.ts › POSTING ROUTES › PR-3 a complete draft publishes to screening and never to active
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context:
+
+```text
+          - listitem [ref=e94]:
+            - generic [ref=e95]: About
+          - listitem [ref=e96]:
+            - generic [ref=e97]: How it works
+      - navigation "Help" [ref=e98]:
+        - heading "Help" [level=2] [ref=e99]
+        - list [ref=e100]:
+          - listitem [ref=e101]:
+            - generic [ref=e102]: Safety
+          - listitem [ref=e103]:
+            - generic [ref=e104]: Contact
+      - navigation "Legal" [ref=e105]:
+        - heading "Legal" [level=2] [ref=e106]
+        - list [ref=e107]:
+          - listitem [ref=e108]:
+            - generic [ref=e109]: Terms
+          - listitem [ref=e110]:
+            - generic [ref=e111]: Privacy
+    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-in-review')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-in-review')
+
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-123-Post-another-ad-opens-step-1-with-no-draft-carried-desktop-1280`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-115-without-own_place-the-last-post-s-pin-directions-and-details-carry-over-desktop-1280`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-116-an-own_place-category-never-carries-the-last-post-s-pin-desktop-1280`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-118-a-draft-s-own-channel-is-never-overwritten-by-the-last-post-s-desktop-1280`
+
+## post-wizard-category.spec.ts › POSTING WIZARD › PW-48 a catch-all leaf can be chosen and its listing lands in review
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: PW-48: publishing into a catch-all leaf did not land on the in-review screen
+
+expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-in-review')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - PW-48: publishing into a catch-all leaf did not land on the in-review screen with timeout 20000ms
+  - waiting for getByTestId('post-in-review')
+
+```
+
+Context: context file not found for `post-wizard-category-POSTING-WIZARD-PW-48-a-catch-all-leaf-can-be-chosen-and-its-listing-lands-in-review-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-13 review: the preview shows what was answered, and Publish lands in review — never live
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: PW-13: publishing did not land on the in-review screen
+
+expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-in-review')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - PW-13: publishing did not land on the in-review screen with timeout 20000ms
+  - waiting for getByTestId('post-in-review')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-review-the-preview-shows-what-was-answered-and-Publish-lands-in-review-never-live-desktop-1280`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-84 a new post opens on the seller's own last post, never another seller's
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-84-a-new-post-opens-on-the-seller-s-own-last-post-never-another-seller-s-desktop-1280`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-98 the item tick sits on the city line, fresh and prefilled
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-98-the-item-tick-sits-on-the-city-line-fresh-and-prefilled-desktop-1280`
+
+## posting-routes.spec.ts › POSTING ROUTES › PR-3 a complete draft publishes to screening and never to active
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context:
+
+```text
+          - listitem [ref=e287]:
+            - generic [ref=e288]: About
+          - listitem [ref=e289]:
+            - generic [ref=e290]: How it works
+      - navigation "Help" [ref=e291]:
+        - heading "Help" [level=2] [ref=e292]
+        - list [ref=e293]:
+          - listitem [ref=e294]:
+            - generic [ref=e295]: Safety
+          - listitem [ref=e296]:
+            - generic [ref=e297]: Contact
+      - navigation "Legal" [ref=e298]:
+        - heading "Legal" [level=2] [ref=e299]
+        - list [ref=e300]:
+          - listitem [ref=e301]:
+            - generic [ref=e302]: Terms
+          - listitem [ref=e303]:
+            - generic [ref=e304]: Privacy
+    - paragraph [ref=e306]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-in-review')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-in-review')
+
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-123-Post-another-ad-opens-step-1-with-no-draft-carried-mobile-360`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-115-without-own_place-the-last-post-s-pin-directions-and-details-carry-over-mobile-360`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-116-an-own_place-category-never-carries-the-last-post-s-pin-mobile-360`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-118-a-draft-s-own-channel-is-never-overwritten-by-the-last-post-s-mobile-360`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-in-review')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-in-review')
+
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-123-Post-another-ad-opens-step-1-with-no-draft-carried-desktop-1280`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-115-without-own_place-the-last-post-s-pin-directions-and-details-carry-over-desktop-1280`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-116-an-own_place-category-never-carries-the-last-post-s-pin-desktop-1280`
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-118-a-draft-s-own-channel-is-never-overwritten-by-the-last-post-s-desktop-1280`
+
+## posting-routes.spec.ts › POSTING ROUTES › PR-3 a complete draft publishes to screening and never to active
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context:
+
+```text
+          - listitem [ref=e94]:
+            - generic [ref=e95]: About
+          - listitem [ref=e96]:
+            - generic [ref=e97]: How it works
+      - navigation "Help" [ref=e98]:
+        - heading "Help" [level=2] [ref=e99]
+        - list [ref=e100]:
+          - listitem [ref=e101]:
+            - generic [ref=e102]: Safety
+          - listitem [ref=e103]:
+            - generic [ref=e104]: Contact
+      - navigation "Legal" [ref=e105]:
+        - heading "Legal" [level=2] [ref=e106]
+        - list [ref=e107]:
+          - listitem [ref=e108]:
+            - generic [ref=e109]: Terms
+          - listitem [ref=e110]:
+            - generic [ref=e111]: Privacy
+    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## posting-routes.spec.ts › POSTING ROUTES › PR-3 a complete draft publishes to screening and never to active
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "screening"
+Received: undefined
+```
+
+Context:
+
+```text
+          - listitem [ref=e287]:
+            - generic [ref=e288]: About
+          - listitem [ref=e289]:
+            - generic [ref=e290]: How it works
+      - navigation "Help" [ref=e291]:
+        - heading "Help" [level=2] [ref=e292]
+        - list [ref=e293]:
+          - listitem [ref=e294]:
+            - generic [ref=e295]: Safety
+          - listitem [ref=e296]:
+            - generic [ref=e297]: Contact
+      - navigation "Legal" [ref=e298]:
+        - heading "Legal" [level=2] [ref=e299]
+        - list [ref=e300]:
+          - listitem [ref=e301]:
+            - generic [ref=e302]: Terms
+          - listitem [ref=e303]:
+            - generic [ref=e304]: Privacy
+    - paragraph [ref=e306]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors: shard 2
 
@@ -190,43 +898,23 @@ No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Client errors: shard 2
 
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+```text
+[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×4
+```
 
 ## Server errors: shard 3
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×6
+[WebServer] [ssr-error] /api/listings/draft listing not found ×5
 ```
 
 ## Client errors: shard 3
 
 No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 
-## Server errors: shard 4
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
 ## Server errors: shard 5
 
 ```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
 [WebServer] [ssr-error] /api/admin/translations/import too many previews
@@ -246,208 +934,31 @@ No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 [WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
+[WebServer] [ssr-error] /api/listings/draft listing not found
 ```
 
 ## Client errors: shard 5
 
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+```text
+[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×3
+```
 
 ## Server errors: shard 6
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
+[WebServer] [ssr-error] /api/listings/draft listing not found ×4
 ```
 
 ## Client errors: shard 6
 
 No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
 
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+## Server errors: changed
 
 ```text
---- error lines (1) ---
-[e2e:setup] EN baseline probe unavailable: TypeError: fetch failed (UND_ERR_HEADERS_OVERFLOW) after 4 attempts
---- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37157449618-1-3128-3-7ilwle@ethio-e2e.invalid)
-  ✓  119 [mobile-360] › e2e/admin-coverage.spec.ts:207:3 › L2b coverage console › CV-7 photo cap: the plan's photo cap round-trips through the door (D22) (3.6s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37157449618-1-3128-2-i5teki@ethio-e2e.invalid)
-  ✓  120 [mobile-360] › e2e/admin-locations.spec.ts:142:3 › L2a locations console › LT-2 roster: the seeded ET tree renders, an alias narrows the search, the level filter scopes, nothing overflows (4.1s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37157449618-1-3128-3-7ilwle@ethio-e2e.invalid)
-  ✓  121 [mobile-360] › e2e/admin-coverage.spec.ts:249:3 › L2b coverage console › CV-4 refusal: a limit below one is refused by name and nothing is saved (2.5s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37157449618-1-3128-2-i5teki@ethio-e2e.invalid)
-  ✓  123 [mobile-360] › e2e/admin-coverage.spec.ts:271:3 › L2b coverage console › CV-5 add: a scratch plan is created through the door and seen in the roster (7.9s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37157449618-1-3128-2-i5teki@ethio-e2e.invalid)
+[WebServer] [ssr-error] /api/listings/draft listing not found ×2
 ```
 
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
+## Client errors: changed
 
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- error lines (1) ---
-[WebServer] Error in renderToReadableStream: ReferenceError: window is not defined ×4
---- final 10 lines ---
-✓  155 [mobile-360] › e2e/post-wizard-category.spec.ts:1294:3 › POSTING WIZARD › PW-48 a catch-all leaf can be chosen and its listing lands in review (20.9s)
-  ✓  157 [mobile-360] › e2e/post-wizard-place.spec.ts:921:3 › POSTING WIZARD › PW-20 where: the default place lists itself, is ticked, and a lone city box offers no Remove (12.4s)
-  ✓  158 [mobile-360] › e2e/post-wizard-place.spec.ts:1006:3 › POSTING WIZARD › PW-33 a region alone never lists itself; its city does (W6 R2) (10.7s)
-  ✓  159 [mobile-360] › e2e/post-wizard-place.spec.ts:1052:3 › POSTING WIZARD › PW-80 a city is required: marked before Next, refused and scrolled to on Next, cleared by a city (22.7s)
-  ✓  160 [mobile-360] › e2e/post-wizard-place.spec.ts:1144:3 › POSTING WIZARD › PW-81 a prefilled city counts as chosen: no mark, Next passes untouched (19.6s)
-  ✓  161 [mobile-360] › e2e/post-wizard-place.spec.ts:1183:3 › POSTING WIZARD › PW-82 the add buttons follow the plan's own limits (12.0s)
-  ✓  162 [mobile-360] › e2e/post-wizard-place.spec.ts:1250:3 › POSTING WIZARD › PW-37 a tap on the map places a pin and the door stores it as exact (8.6s)
-  ✓  163 [mobile-360] › e2e/post-wizard-place.spec.ts:1283:3 › POSTING WIZARD › PW-38 a place search moves the pin and fills the street line (9.8s)
-  ✓  164 [mobile-360] › e2e/post-wizard-place.spec.ts:1317:3 › POSTING WIZARD › PW-39 an approximate pin is stored as approx and drawn as an area, never a point (11.2s)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓  132 [mobile-360] › e2e/shell.spec.ts:784:3 › dark mode › the toggle flips the mode and the surfaces actually change (1.1s)
-  ✓  133 [mobile-360] › e2e/shell.spec.ts:807:3 › mobile chrome › rail is a drawer behind the hamburger (902ms)
-  ✓  134 [mobile-360] › e2e/shell.spec.ts:823:3 › mobile chrome › the drawer switcher NAVIGATES to the panel's home (U0e) (5.7s)
-  ✓  135 [mobile-360] › e2e/shell.spec.ts:850:3 › mobile chrome › the drawer logo block matches the top bar's divider and height (821ms)
-  ✓  136 [mobile-360] › e2e/shell.spec.ts:868:3 › mobile chrome › the rail-collapse toggle does not exist on mobile (698ms)
-  ✓  137 [mobile-360] › e2e/shell.spec.ts:877:3 › mobile chrome › no Settings item leaks into the mobile category drawer (825ms)
-  ✓  138 [mobile-360] › e2e/shell.spec.ts:886:3 › mobile chrome › search opens a full-width row BELOW the bar (726ms)
-  ✓  139 [mobile-360] › e2e/shell.spec.ts:900:3 › mobile chrome › no horizontal overflow and text stays legible at 360 (619ms)
-  ✓  140 [mobile-360] › e2e/shell.spec.ts:918:3 › mobile chrome › primary touch targets are at least 44px (897ms)
-```
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×6
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37157449618-4-2859-3-tseau3@ethio-e2e.invalid)
-  ✓  127 [desktop-1280] › e2e/admin-roles.spec.ts:178:3 › U2 roles console › RP-2 create: a super admin creates a custom role through step-up (7.8s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37157449618-4-2859-3-tseau3@ethio-e2e.invalid)
-  ✓  126 [desktop-1280] › e2e/admin-locations.spec.ts:219:3 › L2a locations console › LT-3 create chain: region → city → sub-city are born retired with their ancestry filled, and activate top-down (21.0s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37157449618-4-2859-2-ljoxr1@ethio-e2e.invalid)
-  ✓  128 [desktop-1280] › e2e/admin-roles.spec.ts:191:3 › U2 roles console › RP-3 matrix: grant then revoke a benign permission, persisted across reload (17.3s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37157449618-4-2859-3-tseau3@ethio-e2e.invalid)
-  ✓  130 [desktop-1280] › e2e/admin-roles.spec.ts:221:3 › U2 roles console › RP-4 system lock: super_admin role is read-only in UI and refused by the RPCs (2.1s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37157449618-4-2859-3-tseau3@ethio-e2e.invalid)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓  127 [desktop-1280] › e2e/post-wizard-category.spec.ts:956:3 › POSTING WIZARD › PW-15 the posting entry lives in My Listings, not in Account (9.8s)
-  ✓  129 [desktop-1280] › e2e/post-wizard-category.spec.ts:1000:3 › POSTING WIZARD › PW-29 the photos caption counts against the plan's cap (11.7s)
-  ✓  128 [desktop-1280] › e2e/post-wizard-place.spec.ts:268:3 › POSTING WIZARD › PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan (20.1s)
-  ✓  130 [desktop-1280] › e2e/post-wizard-category.spec.ts:1035:3 › POSTING WIZARD › PW-36 a category surfaced under a second root appears under it in the tree (8.4s)
-  ✓  132 [desktop-1280] › e2e/post-wizard-category.spec.ts:1073:3 › POSTING WIZARD › PW-46 a category created with a secondary parent reaches the tree inside the cache window (10.5s)
-  ✓  131 [desktop-1280] › e2e/post-wizard-place.spec.ts:441:3 › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored (19.2s)
-  ✓  133 [desktop-1280] › e2e/post-wizard-category.spec.ts:1139:3 › POSTING WIZARD › PW-47 a level lists the host's own children first, guests next and other- last (10.3s)
-  ✓  134 [desktop-1280] › e2e/post-wizard-place.spec.ts:543:3 › POSTING WIZARD › PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged (12.3s)
-  ✓  135 [desktop-1280] › e2e/post-wizard-category.spec.ts:1202:3 › POSTING WIZARD › PW-44 a dependent list on a surfaced leaf narrows by its parent (10.1s)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓  141 [desktop-1280] › e2e/shell.spec.ts:1754:3 › L4b location picker › LS-1 the cascade reaches a sub-city (9.3s)
-  ✓  142 [desktop-1280] › e2e/shell.spec.ts:1772:3 › L4b location picker › LS-2 a pick is remembered, clearing forgets it (15.3s)
-  ✓  143 [desktop-1280] › e2e/shell.spec.ts:1805:3 › L4b location picker › LS-3 an open market is guessed from the edge country, never saved (838ms)
-  ✓  144 [desktop-1280] › e2e/shell.spec.ts:1822:3 › L4b location picker › LS-4 a closed market is not guessed (900ms)
-  ✓  145 [desktop-1280] › e2e/shell.spec.ts:1841:3 › L4b location picker › LS-5 no header and no cookie: no guess, and the markets route caches (719ms)
-  ✓  146 [desktop-1280] › e2e/shell.spec.ts:1939:3 › L4b location picker › LS-6 the nearest curated metro wins by geometry (8.6s)
-  ✓  147 [desktop-1280] › e2e/shell.spec.ts:1968:3 › L4b location picker › LS-7 a region code alone selects the region (15.6s)
-  ✓  148 [desktop-1280] › e2e/shell.spec.ts:1996:3 › L4b location picker › LS-8 a city name alone selects that city (15.2s)
-  ✓  149 [desktop-1280] › e2e/shell.spec.ts:2018:3 › L4b location picker › LS-9 coordinates far from every metro stop at the market (14.8s)
-```
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
-```
+No `[client-error]` lines in the `changed` log (or no log was uploaded).
