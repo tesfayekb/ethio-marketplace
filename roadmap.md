@@ -35,6 +35,9 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
 - [ ] Part Q — Q1 country picker (done, PW-111); Q2 phone2; Q3 last post's contact (done, PW-112); Q4 carry pin/directions/details only when the category lacks own_place; clear carried values on a switch to own_place (seller's own pin stays)
 - [ ] Step 15a (DEC-105 approved; SQL drafted, rides the one migration) — own_place capability: cat_import_plan (8d182773) and categories_capabilities_check (fd11c7ab); no category row changed; tests: own_place blocks carry, without it carries, unknown token still refused
 - [ ] Part U — INC-387 suggest icon (done; fallback flag + editor note ruled and landed); attr_option_shape ceiling 150
+- [ ] Step 10 app side — Directions line, every set_listing_pin call restates street and directions, preview shows both (done; test owed: directions survive a pin move)
+- [ ] Step 14 app side — phone2 behind "Add another phone", shown with the phone (done; test owed)
+- [ ] Steps 5, 11, 16 app side; owed tests 3, 4, 5, 10, 11, 14, 15, 16, 17
 - [ ] End-of-bundle DEC-023 run
 
 ## INC-373 (2026-10-01)

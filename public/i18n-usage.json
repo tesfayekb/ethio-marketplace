@@ -4062,6 +4062,26 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.where.directionsFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.directionsHelp": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.directionsLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.directionsSaved": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.directionsTooLong": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.where.itemBoxTitleOptional": [
       "/post",
       "/post/$listingId"
@@ -4158,6 +4178,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.addPhone2": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.aliasChecking": [
       "/post",
       "/post/$listingId"
@@ -4191,6 +4215,10 @@
       "/post/$listingId"
     ],
     "post.who.channel.phone": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.channel.phone2": [
       "/post",
       "/post/$listingId"
     ],

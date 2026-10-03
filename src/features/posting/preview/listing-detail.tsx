@@ -97,6 +97,9 @@ export interface ListingDetailView {
   pinPrecision?: string | null;
   /** Part L — the saved zoom; an approximate pin ignores it. */
   pinZoom?: number | null;
+  /** Bundle 2 step 10 — the directions line, then the location details. */
+  directions?: string | null;
+  streetAddress?: string | null;
 }
 
 export function ListingDetail(view: ListingDetailView) {
@@ -140,7 +143,7 @@ export function ListingDetail(view: ListingDetailView) {
                   period: isPeriod(view.pricePeriod) ? t(PERIOD_KEYS[view.pricePeriod]) : "",
                 }).trim();
 
-  const channels = (["phone", "telegram", "whatsapp"] as const).filter((channel) => {
+  const channels = (["phone", "phone2", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = view.contactPref[channel];
     return (
       entry !== null && typeof entry === "object" && (entry as { show?: unknown }).show === true
@@ -295,13 +298,33 @@ export function ListingDetail(view: ListingDetailView) {
             <li key={channel} data-testid="listing-detail-channel" data-channel={channel}>
               {channel === "phone"
                 ? t("post.who.channel.phone")
-                : channel === "telegram"
-                  ? t("post.who.channel.telegram")
-                  : t("post.who.channel.whatsapp")}
+                : channel === "phone2"
+                  ? t("post.who.channel.phone2")
+                  : channel === "telegram"
+                    ? t("post.who.channel.telegram")
+                    : t("post.who.channel.whatsapp")}
             </li>
           ))}
         </ul>
       </section>
+
+      {/* Step 10 (P4) — directions above the location details, as text (F2). */}
+      {(view.directions || view.streetAddress) && (
+        <dl className="space-y-1 text-sm" data-testid="listing-detail-place-text">
+          {view.directions ? (
+            <div data-testid="listing-detail-directions">
+              <dt className="text-xs text-muted-foreground">{t("post.where.directionsLabel")}</dt>
+              <dd className="text-foreground">{view.directions}</dd>
+            </div>
+          ) : null}
+          {view.streetAddress ? (
+            <div data-testid="listing-detail-details">
+              <dt className="text-xs text-muted-foreground">{t("post.where.detailsLabel")}</dt>
+              <dd className="text-foreground">{view.streetAddress}</dd>
+            </div>
+          ) : null}
+        </dl>
+      )}
 
       {/* ------------------------------- the map ---------------------------- */}
       <div data-testid="listing-detail-map">

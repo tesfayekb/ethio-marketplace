@@ -123,7 +123,7 @@ export function ListingPreview({
                   period: isPeriod(pricePeriod) ? t(PERIOD_KEYS[pricePeriod]) : "",
                 }).trim();
 
-  const shown = (["phone", "telegram", "whatsapp"] as const).filter((channel) => {
+  const shown = (["phone", "phone2", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = contactPref[channel];
     return (
       entry !== null && typeof entry === "object" && (entry as { show?: unknown }).show === true

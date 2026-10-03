@@ -46,11 +46,13 @@ import { checkChannel } from "./validate";
 
 const ALIAS_RE = /^[a-z0-9_]{3,30}$/;
 const ALIAS_DEBOUNCE_MS = 700;
-const CHANNELS = ["phone", "telegram", "whatsapp"] as const;
+/** Bundle 2 Q2 — `phone2` is the optional second phone, revealed on request. */
+const CHANNELS = ["phone", "phone2", "telegram", "whatsapp"] as const;
 type Channel = (typeof CHANNELS)[number];
 
 const CHANNEL_LABELS: Record<Channel, MessageKey> = {
   phone: "post.who.channel.phone",
+  phone2: "post.who.channel.phone2",
   telegram: "post.who.channel.telegram",
   whatsapp: "post.who.channel.whatsapp",
 };
@@ -58,6 +60,7 @@ const CHANNEL_LABELS: Record<Channel, MessageKey> = {
 /** Bundle 2 Q1 — the number hints name no country's number (new keys, D5). */
 const CHANNEL_HINTS: Record<Channel, MessageKey> = {
   phone: "post.who.channel.numberHint",
+  phone2: "post.who.channel.numberHint",
   telegram: "post.who.channel.telegramHint",
   whatsapp: "post.who.channel.numberHint",
 };
@@ -171,6 +174,8 @@ export function StepWho({
    * A draft that already holds a channel value is never overwritten.
    */
   const [carriedContact, setCarriedContact] = useState(false);
+  /** Bundle 2 Q2 — "Add another phone" reveals the second phone row. */
+  const [phone2Open, setPhone2Open] = useState(false);
   const carryAskedRef = useRef(false);
   const contactRef = useRef(contactPref);
   contactRef.current = contactPref;
@@ -543,6 +548,19 @@ export function StepWho({
 
         {CHANNELS.map((channel) => {
           const current = channelOf(contactPref, channel);
+          if (channel === "phone2" && !phone2Open && current.value === "" && !current.show) {
+            return (
+              <button
+                key={channel}
+                type="button"
+                className={smallButtonClass}
+                data-testid="post-who-add-phone2"
+                onClick={() => setPhone2Open(true)}
+              >
+                {t("post.who.addPhone2")}
+              </button>
+            );
+          }
           /**
            * U6-C1-R3a / STEP 8 — the door's refusal first, then what this screen
            * saw on blur (same shapes, same words). The identity route now asks

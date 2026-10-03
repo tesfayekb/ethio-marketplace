@@ -17,8 +17,8 @@ import type { MessageKey } from "@/i18n";
 import {
   clearPin,
   readLastListingPlaces,
-  readListingNote,
-  saveListingNote,
+  readPlaceText,
+  savePlaceText,
   savePin,
   type LastPlaces,
 } from "./posting-service";
@@ -551,6 +551,7 @@ export function StepWhere({
   listingId = null,
   pin = null,
   onPinSaved,
+  onDirectionsSaved,
   maxCities = null,
   maxRegions = null,
   maxCountries = null,
@@ -565,6 +566,8 @@ export function StepWhere({
   pin?: PinValue | null;
   /** What the door wrote, so the wizard and the buyer preview read one source. */
   onPinSaved?: (pin: PinValue | null) => void;
+  /** Step 10 — the directions line the door holds, for the buyer preview. */
+  onDirectionsSaved?: (directions: string | null) => void;
   /** INC-338 — the plan's own limits, from the posting schema; null = unknown. */
   maxCities?: number | null;
   maxRegions?: number | null;
@@ -585,17 +588,45 @@ export function StepWhere({
     "idle" | "busy" | "saved" | "failed" | "long" | "contact"
   >("idle");
   const [pinState, setPinState] = useState<"idle" | "saved" | "removed" | "failed">("idle");
+  /**
+   * Bundle 2 step 10 (P4) — THE DIRECTIONS LINE (`listings.directions`): optional,
+   * capped and sanitised as the note is, refused with contactInNote. It rides the
+   * pin's own door like the note, and every call of that door restates it — a
+   * call that left it out would clear it.
+   */
+  const [directions, setDirections] = useState<string>("");
+  const [dirState, setDirState] = useState<
+    "idle" | "busy" | "saved" | "failed" | "long" | "contact"
+  >("idle");
+  /** The values the door last held, so a save of one line never clears the other. */
+  const savedText = useRef<{ street: string | null; directions: string | null }>({
+    street: pin?.street ?? null,
+    directions: null,
+  });
   const noteRead = useRef(false);
   useEffect(() => {
     if (listingId === null || noteRead.current) return;
     noteRead.current = true;
     let cancelled = false;
-    void readListingNote(listingId).then((found) => {
-      if (!cancelled && found !== null) setNote((current) => (current === "" ? found : current));
-    });
+    readPlaceText(listingId).then(
+      (found) => {
+        if (cancelled) return;
+        savedText.current = found;
+        if (found.street !== null)
+          setNote((current) => (current === "" ? (found.street ?? "") : current));
+        if (found.directions !== null)
+          setDirections((current) => (current === "" ? (found.directions ?? "") : current));
+        onDirectionsSaved?.(found.directions);
+      },
+      () => {
+        // Logged by the reader (F4); the lines stay empty and editable.
+        if (!cancelled) setNoteState("failed");
+      },
+    );
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listingId]);
 
   /**
@@ -1223,8 +1254,12 @@ export function StepWhere({
                   type="button"
                   className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
                   onClick={() => {
-                    void clearPin(listingId).then((ok) => {
+                    // PW-40 — Remove clears the details with the pin; the
+                    // directions line is restated so it is kept (step 10).
+                    const kept = savedText.current.directions;
+                    void clearPin(listingId, { street: null, directions: kept }).then((ok) => {
                       if (ok) {
+                        savedText.current = { street: null, directions: kept };
                         onPinSaved?.(null);
                         setNote("");
                       }
@@ -1279,15 +1314,20 @@ export function StepWhere({
                   onClose={() => setPinOpen(false)}
                   onSave={async (value) => {
                     const street = sanitizeDetails(note);
+                    const text = {
+                      street: street === "" ? null : street,
+                      directions: savedText.current.directions,
+                    };
                     const ok = await savePin(
                       listingId,
                       value.lat,
                       value.lng,
                       value.precision,
-                      street === "" ? null : street,
+                      text,
                       value.zoom,
                     );
                     if (ok) {
+                      savedText.current = text;
                       onPinSaved?.({ ...value, street: street === "" ? null : street });
                       setPinState("saved");
                       setPinOpen(false);
@@ -1299,6 +1339,83 @@ export function StepWhere({
             )}
           </div>
         )}
+
+        {/* Bundle 2 step 10 (P4) — the directions line, above the details. */}
+        <div className="space-y-1">
+          <label htmlFor="post-where-directions" className="text-sm font-medium text-foreground">
+            {t("post.where.directionsLabel")}
+          </label>
+          <input
+            id="post-where-directions"
+            data-testid="post-where-directions"
+            className={fieldClass}
+            aria-invalid={dirState === "contact" || dirState === "long" ? true : undefined}
+            value={directions}
+            disabled={listingId === null}
+            onChange={(event) => {
+              setDirections(event.target.value);
+              // Flagged as typed; the door stays the authority (F3).
+              setDirState(looksLikeContact(event.target.value) ? "contact" : "idle");
+            }}
+            onBlur={() => {
+              if (listingId === null) return;
+              const clean = sanitizeDetails(directions);
+              if (clean.length > DETAILS_MAX) {
+                setDirState("long");
+                return;
+              }
+              if (looksLikeContact(clean)) {
+                setDirState("contact");
+                return;
+              }
+              const text = {
+                street: savedText.current.street,
+                directions: clean === "" ? null : clean,
+              };
+              setDirState("busy");
+              void savePlaceText(listingId, text, pin).then((answer) => {
+                if (answer === "saved") {
+                  savedText.current = text;
+                  onDirectionsSaved?.(text.directions);
+                }
+                setDirState(answer === "contactInNote" ? "contact" : answer);
+              });
+            }}
+          />
+          <p className="text-xs text-muted-foreground">{t("post.where.directionsHelp")}</p>
+          {dirState === "saved" && (
+            <p className="text-xs text-muted-foreground" data-testid="post-where-directions-saved">
+              {t("post.where.directionsSaved")}
+            </p>
+          )}
+          {dirState === "long" && (
+            <p
+              className="text-xs text-destructive"
+              role="alert"
+              data-testid="post-where-directions-long"
+            >
+              {fill(t("post.where.directionsTooLong"), { max: DETAILS_MAX })}
+            </p>
+          )}
+          {dirState === "contact" && (
+            <p
+              className="text-xs text-destructive"
+              role="alert"
+              data-testid="post-where-directions-contact"
+            >
+              {t("post.refusal.contactInNote")}
+            </p>
+          )}
+          {dirState === "failed" && (
+            <p
+              className="text-xs text-destructive"
+              role="alert"
+              data-testid="post-where-directions-failed"
+            >
+              {t("post.where.directionsFailed")}
+            </p>
+          )}
+        </div>
 
         {/* W6b-2 B3 — the location details, for every category. */}
         <div className="space-y-1">
@@ -1328,9 +1445,14 @@ export function StepWhere({
                 setNoteState("contact");
                 return;
               }
+              const text = {
+                street: clean === "" ? null : clean,
+                directions: savedText.current.directions,
+              };
               setNoteState("busy");
-              void saveListingNote(listingId, clean === "" ? null : clean, pin).then((answer) => {
+              void savePlaceText(listingId, text, pin).then((answer) => {
                 const ok = answer === "saved";
+                if (ok) savedText.current = text;
                 setNoteState(answer === "contactInNote" ? "contact" : answer);
                 if (ok && pin !== null)
                   onPinSaved?.({ ...pin, street: clean === "" ? null : clean });
