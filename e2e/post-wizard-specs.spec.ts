@@ -4,8 +4,8 @@ import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
 import { destroyLocation } from "./helpers/locations";
-import { adminClient, leaseUser } from "./helpers/users";
-import {
+import { adminClient } from "./helpers/users";
+import { leaseSeller,
   seedPhoneSet,
   seedConditionalPair,
   attributesOf,
@@ -117,7 +117,7 @@ test.describe("POSTING WIZARD", () => {
   }
 
   async function seller(page: import("@playwright/test").Page) {
-    const user = await leaseUser();
+    const user = await leaseSeller();
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);

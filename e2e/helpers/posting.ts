@@ -1,6 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 
-import { adminClient } from "./users";
+import { adminClient, leaseUser, type TestUser } from "./users";
 
 /**
  * U6-A2-C — THE POSTING ROUTES' FIXTURES (J1–J9).
@@ -81,6 +81,26 @@ export async function confirmHomeCountry(page: Page, token: string, country = "E
     { token, country },
   );
   expect(answer.payload["ok"], `[e2e:home-country] ${JSON.stringify(answer.payload)}`).toBe(true);
+}
+
+/**
+ * Bundle 3 RULINGS 2 item 1 — THE posting seller: a leased account whose home
+ * country is confirmed (ET), as publish_listing requires. Every posting spec's
+ * seller setup uses it; only the tests that prove the refusal or exercise the
+ * country control pass `{ homeConfirmed: false }`. Written through the service
+ * client; the next lease returns both rows to their defaults (pool-reset-map).
+ */
+export async function leaseSeller(
+  options: { homeConfirmed?: boolean } = {},
+): Promise<TestUser> {
+  const user = await leaseUser();
+  if (options.homeConfirmed === false) return user;
+  const fact = { home_country_code: "ET", country_source: "user_confirmed" };
+  for (const table of ["user_directory", "profiles"] as const) {
+    const { error } = await adminClient().from(table).update(fact).eq("user_id", user.id);
+    if (error) throw new Error(`[e2e:seller] confirming ${table} failed: ${error.message}`);
+  }
+  return user;
 }
 
 /** The refusal reasons a door answer carries, in order (structure, never English). */

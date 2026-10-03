@@ -1,9 +1,9 @@
 import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient } from "./helpers/users";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
-import {
+import { leaseSeller,
   activeCityOf,
   anyAttributeId,
   bearerOf,
@@ -72,8 +72,11 @@ test.describe("POSTING ROUTES", () => {
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
   });
 
-  async function seller(page: import("@playwright/test").Page) {
-    const user = await leaseUser();
+  async function seller(
+    page: import("@playwright/test").Page,
+    options: { homeConfirmed?: boolean } = {},
+  ) {
+    const user = await leaseSeller(options);
     sellers.push(user.id);
     await signInViaSession(page, user.email, user.password);
     await gotoReady(page, "/");
@@ -374,7 +377,8 @@ test.describe("POSTING ROUTES", () => {
   });
 
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
-    const { token } = await seller(page);
+    // Proves the home-country refusal first, so its seller starts unconfirmed.
+    const { token } = await seller(page, { homeConfirmed: false });
     const cat = await category();
     const city = await activeCityOf("ET");
 

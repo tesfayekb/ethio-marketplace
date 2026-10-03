@@ -3,8 +3,8 @@ import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
-import { adminClient, leaseUser } from "./helpers/users";
-import {
+import { adminClient } from "./helpers/users";
+import { leaseSeller,
   bearerOf,
   completeDraft,
   coverageOf,
@@ -15,7 +15,6 @@ import {
   draftsOf,
   pinOf,
   pricingOf,
-  confirmHomeCountry,
   postRoute,
   rand,
   seedPostableCategory,
@@ -83,7 +82,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   }
 
   async function signedInSeller(page: Page) {
-    const user = await leaseUser();
+    const user = await leaseSeller();
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);
@@ -130,7 +129,6 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     );
     expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
     const listingId = String(draft.payload["listing_id"] ?? "");
-    await confirmHomeCountry(page, token);
     const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
     return listingId;
@@ -251,7 +249,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const context = await browser.newContext();
     const other = await context.newPage();
     try {
-      const user = await leaseUser();
+      const user = await leaseSeller();
       sellers.push(user.id);
       await asEdge(other);
       await signInViaSession(other, user.email, user.password);

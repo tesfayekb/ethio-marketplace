@@ -3,9 +3,9 @@ import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient } from "./helpers/users";
 import { seedActiveListing } from "./helpers/categories";
-import {
+import { leaseSeller,
   activeCityOf,
   bearerOf,
   completeDraft,
@@ -14,7 +14,6 @@ import {
   destroyListingsOf,
   destroyPostableCategory,
   pinOf,
-  confirmHomeCountry,
   postRoute,
   rand,
   seedPostableCategory,
@@ -102,8 +101,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     }
   }
 
-  async function signedInSeller(page: Page) {
-    const user = await leaseUser();
+  async function signedInSeller(page: Page, options: { homeConfirmed?: boolean } = {}) {
+    const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);
@@ -167,7 +166,6 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     );
     expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
     const listingId = String(draft.payload["listing_id"] ?? "");
-    await confirmHomeCountry(page, token);
     const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
     objects.push({ userId, listingId });
@@ -276,7 +274,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   });
 
   test("PW-123 Post another ad opens step 1 with no draft carried", async ({ page }) => {
-    const user = await signedInSeller(page);
+    // Exercises the country control, so its seller's home country is unconfirmed.
+    const user = await signedInSeller(page, { homeConfirmed: false });
     const leaf = await category();
     const city = await activeCityOf("ET");
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
@@ -494,7 +493,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   });
 
   test("PW-119 another seller's visible phone is never carried", async ({ page }) => {
-    const other = await leaseUser();
+    const other = await leaseSeller();
     sellers.push(other.id);
     const leaf = await category();
     const otherId = await seedActiveListing(leaf.id, other.id);

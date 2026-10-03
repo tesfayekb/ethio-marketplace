@@ -11,8 +11,8 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { seedActiveListing } from "./helpers/categories";
-import { adminClient, leaseUser } from "./helpers/users";
-import {
+import { adminClient } from "./helpers/users";
+import { leaseSeller,
   activeCityOf,
   attributesOf,
   bearerOf,
@@ -154,7 +154,7 @@ test.describe("POSTING WIZARD", () => {
   }
 
   async function seller(page: import("@playwright/test").Page) {
-    const user = await leaseUser();
+    const user = await leaseSeller();
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);

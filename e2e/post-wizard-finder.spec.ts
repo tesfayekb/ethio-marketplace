@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
 import { leaseUser } from "./helpers/users";
-import {
+import { leaseSeller,
   attributesOf,
   destroyCategoryBranch,
   destroyListingsOf,
@@ -42,7 +42,7 @@ test.describe("POSTING WIZARD — the category finder (W7)", () => {
   });
 
   async function seller(page: Page) {
-    const user = await leaseUser();
+    const user = await leaseSeller();
     sellers.push(user.id);
     for (const glob of ["**/api/listings/**", "**/api/geo"]) {
       await page.route(glob, async (route) => {

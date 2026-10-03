@@ -16,7 +16,7 @@ import {
   scanForMetadata,
   uploadPhoto,
 } from "./helpers/photos";
-import {
+import { leaseSeller,
   bearerOf,
   destroyListingsOf,
   destroyPostableCategory,
@@ -66,7 +66,7 @@ test.describe("PHOTO PIPELINE", () => {
   });
 
   async function seller(page: import("@playwright/test").Page) {
-    const user = await leaseUser();
+    const user = await leaseSeller();
     sellers.push(user.id);
     await signInViaSession(page, user.email, user.password);
     await gotoReady(page, "/");
