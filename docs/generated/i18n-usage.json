@@ -4246,6 +4246,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.countryConfirm": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.countryConfirmed": [
       "/post",
       "/post/$listingId"
@@ -4259,6 +4263,10 @@
       "/post/$listingId"
     ],
     "post.who.countryNone": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.countryRequired": [
       "/post",
       "/post/$listingId"
     ],

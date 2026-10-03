@@ -708,6 +708,8 @@ export interface SellerIdentity {
   lastName: string | null;
   contactPrefs: Record<string, unknown>;
   homeCountryCode: string | null;
+  /** Bundle 3 step 12 — the seller confirmed it; publishing requires this. */
+  homeCountryConfirmed: boolean;
   /** U6-C1-R2 — the account's own name, the source of the SUGGESTED alias. */
   displayName: string | null;
 }
@@ -719,7 +721,7 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "seller_alias,seller_type,business_name,first_name,last_name,contact_prefs,home_country_code,display_name",
+      "seller_alias,seller_type,business_name,first_name,last_name,contact_prefs,home_country_code,country_source,display_name",
     )
     .eq("user_id", userId)
     .maybeSingle();
@@ -733,6 +735,7 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
       lastName: null,
       contactPrefs: {},
       homeCountryCode: null,
+      homeCountryConfirmed: false,
       displayName: null,
     };
   }
@@ -747,6 +750,7 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
         ? (data.contact_prefs as Record<string, unknown>)
         : {},
     homeCountryCode: data.home_country_code ?? null,
+    homeCountryConfirmed: data.country_source === "user_confirmed",
     displayName: data.display_name ?? null,
   };
 }

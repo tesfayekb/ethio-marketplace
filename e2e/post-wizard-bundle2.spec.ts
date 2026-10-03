@@ -14,6 +14,7 @@ import {
   destroyListingsOf,
   destroyPostableCategory,
   pinOf,
+  confirmHomeCountry,
   postRoute,
   rand,
   seedPostableCategory,
@@ -166,6 +167,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     );
     expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
     const listingId = String(draft.payload["listing_id"] ?? "");
+    await confirmHomeCountry(page, token);
     const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
     objects.push({ userId, listingId });
@@ -280,6 +282,11 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
     await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    // Bundle 3 step 12 — the guessed home country is confirmed on the contact step.
+    await expect(page.getByTestId("post-who-country-required")).toBeVisible();
+    await page.getByTestId("post-who-country-confirm").click();
+    await expect(page.getByTestId("post-who-country")).toBeDisabled({ timeout: 20_000 });
+    await expect(page.getByTestId("post-who-country-required")).toHaveCount(0);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-publish").click();

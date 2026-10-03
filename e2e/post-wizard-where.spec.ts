@@ -15,6 +15,7 @@ import {
   draftsOf,
   pinOf,
   pricingOf,
+  confirmHomeCountry,
   postRoute,
   rand,
   seedPostableCategory,
@@ -129,6 +130,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     );
     expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
     const listingId = String(draft.payload["listing_id"] ?? "");
+    await confirmHomeCountry(page, token);
     const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
     return listingId;
