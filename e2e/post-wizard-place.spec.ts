@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { join } from "node:path";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
@@ -52,6 +53,34 @@ import {
  * Anchors are structural: `data-testid` plus `data-state` / `data-category`,
  * never English text (J5).
  */
+
+
+/**
+ * B1 (walk defect) — what the walk saw: the number box sits inside the viewport
+ * and is at least 160 px wide, the picker no wider than 120 px.
+ */
+async function expectPhoneRowUsable(page: Page, testId: string) {
+  const viewport = page.viewportSize();
+  const box = await page.getByTestId(testId).boundingBox();
+  const picker = await page.getByTestId(`${testId}-country`).boundingBox();
+  const shown = `number=${JSON.stringify(box)} picker=${JSON.stringify(picker)} viewport=${viewport?.width}`;
+  expect(box, `${testId}: the number box is not rendered (${shown})`).not.toBeNull();
+  expect(picker, `${testId}: the picker is not rendered (${shown})`).not.toBeNull();
+  if (box === null || picker === null || viewport === null) return;
+  expect(box.x, `${testId}: the number box starts off screen (${shown})`).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width, `${testId}: the number box ends off screen (${shown})`).toBeLessThanOrEqual(viewport.width);
+  expect(box.width, `${testId}: the number box is under 160 px (${shown})`).toBeGreaterThanOrEqual(160);
+  expect(picker.width, `${testId}: the picker is over 120 px (${shown})`).toBeLessThanOrEqual(120);
+}
+
+/** B1 — the number is entered as a person does: click the box, type on the keyboard. */
+async function typePhone(page: Page, testId: string, text: string) {
+  await page.getByTestId(testId).click();
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.press("Backspace");
+  await page.keyboard.type(text);
+}
+
 
 test.describe("POSTING WIZARD", () => {
   const categories: string[] = [];
@@ -481,13 +510,16 @@ test.describe("POSTING WIZARD", () => {
     // PW-111 (bundle 2 Q1) — a country picker sits in front of the number; a
     // number typed with + moves it to the matching code, and a local number
     // under that country is saved as "+" code digits.
-    await page.getByTestId("post-who-value-phone").fill("+251911234567");
+    for (const channel of ["phone", "whatsapp"]) {
+      await expectPhoneRowUsable(page, `post-who-value-${channel}`);
+    }
+    await typePhone(page, "post-who-value-phone", "+251911234567");
     await expect(
       page.getByTestId("post-who-value-phone-country"),
       "PW-111: +251 did not move the picker to Ethiopia",
-    ).toHaveValue("ET");
+    ).toHaveAttribute("data-iso", "ET");
     await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
-    await page.getByTestId("post-who-value-phone").fill("0911 234-567");
+    await typePhone(page, "post-who-value-phone", "0911 234-567");
     await page.getByTestId("post-who-show-phone").check();
     await page.getByTestId("post-next").click();
     await expect
