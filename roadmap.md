@@ -62,3 +62,9 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
 
 - [x] stage 1: reporters publish to ci-evidence
 - [ ] stage 2 after ADOPT: remove the six evidence files from dev with their paths-ignore and .prettierignore lines; DEC-096 detector
+- [x] Bundle 3 step 0: brief + reserved-names list saved (sha256 verified, 435 rows / 2,427 handles).
+- [x] Bundle 3 Part 0 (DEC-115): e2e-select.ts + e2e:changed + CI self-test step.
+- [ ] Bundle 3 Part A: step 4 census → M1 (steps 5-8) → app side.
+- [ ] Bundle 3 Part B: contact step (steps 10-12).
+- [ ] Bundle 3 Part C: seller name (steps 13-24, M2).
+- [ ] Bundle 3 Part D: place lists A-Z (step 25).

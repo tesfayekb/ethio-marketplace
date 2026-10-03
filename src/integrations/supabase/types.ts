@@ -561,6 +561,32 @@ export type Database = {
           },
         ]
       }
+      contact_reveals: {
+        Row: {
+          day: string
+          listing_id: string
+          viewer_id: string
+        }
+        Insert: {
+          day: string
+          listing_id: string
+          viewer_id: string
+        }
+        Update: {
+          day?: string
+          listing_id?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_reveals_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       countries: {
         Row: {
           code: string
@@ -981,6 +1007,8 @@ export type Database = {
           pin_lat: number | null
           pin_lng: number | null
           pin_precision: string | null
+          pin_show_lat: number | null
+          pin_show_lng: number | null
           pin_zoom: number | null
           poster_expires_at: string | null
           price_amount: number | null
@@ -1019,6 +1047,8 @@ export type Database = {
           pin_lat?: number | null
           pin_lng?: number | null
           pin_precision?: string | null
+          pin_show_lat?: number | null
+          pin_show_lng?: number | null
           pin_zoom?: number | null
           poster_expires_at?: string | null
           price_amount?: number | null
@@ -1057,6 +1087,8 @@ export type Database = {
           pin_lat?: number | null
           pin_lng?: number | null
           pin_precision?: string | null
+          pin_show_lat?: number | null
+          pin_show_lng?: number | null
           pin_zoom?: number | null
           poster_expires_at?: string | null
           price_amount?: number | null
@@ -1392,6 +1424,24 @@ export type Database = {
           },
         ]
       }
+      rate_dials: {
+        Row: {
+          action: string
+          max_count: number
+          window_seconds: number
+        }
+        Insert: {
+          action: string
+          max_count: number
+          window_seconds: number
+        }
+        Update: {
+          action?: string
+          max_count?: number
+          window_seconds?: number
+        }
+        Relationships: []
+      }
       rate_limits: {
         Row: {
           action: string
@@ -1412,6 +1462,32 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      rate_overrides: {
+        Row: {
+          action: string
+          max_count: number
+          user_id: string
+        }
+        Insert: {
+          action: string
+          max_count: number
+          user_id: string
+        }
+        Update: {
+          action?: string
+          max_count?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_overrides_action_fkey"
+            columns: ["action"]
+            isOneToOne: false
+            referencedRelation: "rate_dials"
+            referencedColumns: ["action"]
+          },
+        ]
       }
       resources: {
         Row: {
@@ -2970,6 +3046,7 @@ export type Database = {
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
+      listing_reveal_count: { Args: { p_listing_id: string }; Returns: number }
       loc_export_row: { Args: { p_id: string }; Returns: Json }
       loc_id_of_key: { Args: { p_key: string }; Returns: string }
       loc_import_plan: {
@@ -3013,6 +3090,8 @@ export type Database = {
         Args: { p_sources: string[]; p_target: string }
         Returns: Json
       }
+      my_last_listing_private: { Args: { p_exclude?: string }; Returns: Json }
+      my_listing_private: { Args: { p_listing_id: string }; Returns: Json }
       next_language_sort: { Args: never; Returns: number }
       plan_caps: { Args: { p_plan: string }; Returns: Json }
       plan_photo_cap: { Args: { p_plan: string }; Returns: number }
@@ -3033,6 +3112,7 @@ export type Database = {
         Returns: undefined
       }
       publish_listing: { Args: { p_listing_id: string }; Returns: Json }
+      rate_gate: { Args: { p_action: string }; Returns: Json }
       register_listing_photo: {
         Args: {
           p_bytes: number
@@ -3059,6 +3139,7 @@ export type Database = {
         Args: { p_request_country: string; p_user_id: string }
         Returns: string
       }
+      reveal_listing_contact: { Args: { p_listing_id: string }; Returns: Json }
       revoke_role: {
         Args: { p_role_name: string; p_target_user: string }
         Returns: undefined
