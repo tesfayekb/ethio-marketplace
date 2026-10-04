@@ -2083,6 +2083,7 @@ export const en = {
   "post.pin.saving": "Saving…",
   "post.pin.saved": "Pin saved.",
   "post.pin.fromLastPost": "From your last post",
+  "post.pin.clearedCityChanged": "The map pin was removed because the city changed.",
   "post.pin.remove": "Remove the pin",
   "post.pin.removed": "Pin removed.",
   "post.pin.change": "Change the map pin",

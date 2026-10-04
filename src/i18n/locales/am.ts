@@ -1992,6 +1992,7 @@ export const am: Messages = {
   "post.pin.saving": "እያስቀመጠ ነው…",
   "post.pin.saved": "ምልክቱ ተቀምጧል።",
   "post.pin.fromLastPost": "ካለፈው ማስታወቂያዎ",
+  "post.pin.clearedCityChanged": "ከተማው ስለተቀየረ የካርታው ምልክት ተነስቷል።",
   "post.pin.remove": "ምልክቱን አስወጥድ",
   "post.pin.removed": "ምልክቱ ተነሷል።",
   "post.pin.change": "የካርታ ምልክቱን ቀይር",
