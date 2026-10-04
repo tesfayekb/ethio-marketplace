@@ -499,8 +499,9 @@ export function StepReview({
        * about how long the listing runs when they are looking at the finished
        * listing, not while naming a price. "From" is a FACT, not a field: the
        * door has no start date — a listing goes live the moment screening passes
-       * — so offering to edit it would be a promise nothing keeps (F4). "Until"
-       * is the category's window end by default and is editable within it.
+       * — so offering to edit it would be a promise nothing keeps (F4). The end
+       * is open unless the seller sets a date or the category holds a limit
+       * (DEC-117); the door keeps the earlier of the two.
        */}
       <div
         className="space-y-2 rounded-md border border-border p-3"
