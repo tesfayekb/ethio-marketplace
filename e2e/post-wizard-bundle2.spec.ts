@@ -347,7 +347,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       "PW-132: the general shape message shows beside the Latin line",
     ).toHaveCount(0);
     await box.clear();
-    await box.pressSequentially("abebe_shop", { delay: 40 });
+    const freeName = `selam${Math.random().toString(36).slice(2, 8).replace(/[^a-z]/g, "q")}`;
+    await box.pressSequentially(freeName, { delay: 40 });
     await expect(
       page.getByTestId("post-who-alias-ok"),
       "PW-132: a free Latin name was not confirmed",
