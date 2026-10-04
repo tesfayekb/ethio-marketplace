@@ -2280,7 +2280,10 @@ export const en = {
   "post.who.aliasChangeFirst":
     "This is your first public name. You can correct it within 24 hours; after that, once every 30 days.",
   "post.who.aliasChangeRule": "You can change your public name once every 30 days.",
-  "post.who.aliasCorrectionUntil": "You can correct your new name until {when}.",
+  "post.who.aliasCorrectionWindow":
+    "You can correct this name until {when}. After that, one change every 30 days.",
+  "post.who.aliasBuyerLine":
+    "This is the name buyers see on your ads and in messages. Your real name is never shown.",
   "post.who.aliasNextChange": "You can change your name again on {date}.",
   "post.refusal.countryTooSoon":
     "You can change your home country once every 30 days. Next change allowed on {date}.",

@@ -2173,7 +2173,8 @@ export const am: Messages = {
   "post.who.aliasChangeFirst":
     "ይህ የመጀመሪያ ህዝባዊ ስምዎ ነው። በ24 ሰዓት ውስጥ ማስተካከል ይችላሉ፤ ከዚያ በኋላ በየ30 ቀኑ አንድ ጊዜ።",
   "post.who.aliasChangeRule": "ህዝባዊ ስምዎን በየ30 ቀኑ አንድ ጊዜ መቀየር ይችላሉ።",
-  "post.who.aliasCorrectionUntil": "አዲሱን ስምዎ እስከ {when} ማስተካከል ይችላሉ።",
+  "post.who.aliasCorrectionWindow": "ይህን ስም እስከ {when} ማስተካከል ይችላሉ። ከዚያ በኋላ በየ30 ቀኑ አንድ ጊዜ መቀየር ይችላሉ።",
+  "post.who.aliasBuyerLine": "ይህ ገዢዎች በማስታወቂያዎችዎ እና በመልዕክቶች ላይ የሚያዩት ስም ነው። እውነተኛ ስምዎ በፍጹም አይታይም።",
   "post.who.aliasNextChange": "ስምዎን እንደገና መቀየር የሚችሉት በ{date} ነው።",
   "post.refusal.countryTooSoon":
     "የመኖሪያ አገርዎን በየ30 ቀኑ አንድ ጊዜ ብቻ መቀየር ይችላሉ። ቀጣዩ ለውጥ የሚፈቀደው በ{date} ነው።",
