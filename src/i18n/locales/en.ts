@@ -2132,6 +2132,7 @@ export const en = {
   "post.details.why": "A clear title and honest description sell faster than any claim.",
   "post.details.titleLabel": "Title",
   "post.details.titlePlaceholder": "e.g. Samsung fridge, working, one owner",
+  "post.details.titleBuilt": "Written from your answers. Change it as you like.",
   "post.details.descriptionLabel": "Description",
   "post.details.descriptionPlaceholder":
     "What it is, its condition, and anything a buyer should know.",
