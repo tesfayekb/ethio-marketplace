@@ -207,8 +207,9 @@ interface Room {
 /**
  * ONE COUNTRY BOX: its region boxes, their city rows, and "Add a region".
  * The item's own box receives its market control through `market`.
+ * Exported for its Part D component test only.
  */
-function CountryBox({
+export function CountryBox({
   primary,
   code,
   nodes,

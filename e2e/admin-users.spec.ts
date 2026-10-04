@@ -172,6 +172,15 @@ async function expectActivity(page: Page, action: string, userId: string) {
   }
 }
 
+/** AU-12 — removes a scratch user and its alias history; throws on failure (J3). */
+async function destroyScratchWithAliases(userId: string) {
+  const supabase = adminClient();
+  const history = await supabase.from("alias_history").delete().eq("user_id", userId);
+  if (history.error) throw new Error(`[AU-12] alias_history cleanup: ${history.error.message}`);
+  const gone = await supabase.auth.admin.deleteUser(userId);
+  if (gone.error) throw new Error(`[AU-12] scratch user cleanup: ${gone.error.message}`);
+}
+
 test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
     const moderator = await leaseUser();
@@ -430,6 +439,76 @@ test.describe("U1 admin users", () => {
     await page.reload();
     await waitForHydration(page);
     await expect(page.getByTestId("edit-seller-alias")).toHaveValue("", { timeout: 15000 });
+  });
+
+  /**
+   * AU-12 — bundle 3 step 22. A reserved name (a protected handle, rule d)
+   * is refused for want of a reason; a reason under ten characters is still
+   * refused; ten or more sets it, and audit_log holds 'user.alias_assigned'
+   * with the reason and the rule. The handle differs per project so the two
+   * projects never contend for one name; the scratch user is removed in
+   * finally (its alias_history rows with it).
+   */
+  test("AU-12 edit: a reserved name needs a reason of ten characters", async ({
+    page,
+  }, testInfo) => {
+    const staff = await leaseUser();
+    await grantRole(staff.id, "admin");
+    const scratch = await createUser({ confirmed: true });
+    const alias = testInfo.project.name.includes("mobile") ? "awashbank" : "dashenbank";
+    const reason = "Verified bank account e2e";
+    const supabase = adminClient();
+    try {
+      await switchUser(page, staff.email, staff.password);
+      const secret = await enrollAndStepUp(page);
+      await page.goto(`/admin/users/${scratch.id}`);
+      await waitForHydration(page);
+
+      await page.getByTestId("edit-seller-alias").fill(alias);
+      await page.getByTestId("edit-save").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("edit-error")).toHaveText(
+        en["admin.users.edit.errorAliasReason"],
+        { timeout: 15000 },
+      );
+      await expect(page.getByTestId("edit-alias-reason")).toBeVisible();
+
+      await page.getByTestId("edit-alias-reason").fill("too short");
+      await page.getByTestId("edit-save").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("edit-error")).toHaveText(
+        en["admin.users.edit.errorAliasReason"],
+        { timeout: 15000 },
+      );
+      const unchanged = await supabase
+        .from("profiles")
+        .select("seller_alias")
+        .eq("user_id", scratch.id)
+        .single();
+      expect(unchanged.data?.seller_alias ?? null).toBeNull();
+
+      await page.getByTestId("edit-alias-reason").fill(reason);
+      await page.getByTestId("edit-save").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("edit-saved")).toBeVisible({ timeout: 15000 });
+
+      const profile = await supabase
+        .from("profiles")
+        .select("seller_alias")
+        .eq("user_id", scratch.id)
+        .single();
+      expect(profile.data?.seller_alias).toBe(alias);
+      const audit = await supabase
+        .from("audit_log")
+        .select("meta")
+        .eq("action", "user.alias_assigned")
+        .eq("entity_id", scratch.id);
+      if (audit.error) throw new Error(`[AU-12] audit read failed: ${audit.error.message}`);
+      expect(audit.data).toHaveLength(1);
+      expect(audit.data[0]!.meta).toMatchObject({ alias, rule: "d", reason });
+    } finally {
+      await destroyScratchWithAliases(scratch.id);
+    }
   });
 
   test("AU-11 own row: no edit form on your own record", async ({ page }) => {
