@@ -462,7 +462,8 @@ export function StepWho({
        */
       const missing: Refusal[] = [];
       if (sellerType === "business") {
-        if (businessName.trim() === "") missing.push({ field: "business_name", reason: "required" });
+        if (businessName.trim() === "")
+          missing.push({ field: "business_name", reason: "required" });
       } else {
         if (firstName.trim() === "") missing.push({ field: "first_name", reason: "required" });
         if (lastName.trim() === "") missing.push({ field: "last_name", reason: "required" });
@@ -883,7 +884,6 @@ export function StepWho({
               </div>
             )}
           </div>
-
         </>
       )}
 
