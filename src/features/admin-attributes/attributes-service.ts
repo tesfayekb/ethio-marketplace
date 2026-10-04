@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { shapeCondition, type VisibleWhen } from "@/features/posting/visible-when";
 import type { Json } from "@/integrations/supabase/types";
 
 import type { NumberFieldsValue, TextFieldsValue } from "./components/attribute-v2-fields";
@@ -345,22 +346,8 @@ export interface AttributeLink {
   visibleWhen: VisibleWhen | null;
 }
 
-export interface VisibleWhen {
-  key: string;
-  in: string[];
-}
+export type { VisibleWhen };
 export type LinkCellName = "allowed_options" | "default_value" | "visible_when";
-
-function toVisibleWhen(value: unknown): VisibleWhen | null {
-  if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
-  const row = value as Record<string, unknown>;
-  return typeof row["key"] === "string" && Array.isArray(row["in"])
-    ? {
-        key: row["key"],
-        in: row["in"].filter((entry): entry is string => typeof entry === "string"),
-      }
-    : null;
-}
 
 export async function listCategoryLinks(categoryId: string): Promise<AttributeLink[]> {
   const { data, error } = await supabase.rpc("admin_list_category_attribute_links", {
@@ -381,7 +368,7 @@ export async function listCategoryLinks(categoryId: string): Promise<AttributeLi
     dependsOnKey: row.depends_on_key ?? null,
     allowedOptions: row.allowed_options ?? null,
     defaultValue: row.default_value ?? null,
-    visibleWhen: toVisibleWhen(row.visible_when),
+    visibleWhen: shapeCondition(row.visible_when),
   }));
 }
 
@@ -564,7 +551,7 @@ export async function listEffectiveCategoryLinks(categoryId: string): Promise<Ef
     dependsOnKey: row.depends_on_key ?? null,
     allowedOptions: row.allowed_options ?? null,
     defaultValue: row.default_value ?? null,
-    visibleWhen: toVisibleWhen(row.visible_when),
+    visibleWhen: shapeCondition(row.visible_when),
     inherited: row.inherited === true,
     originId: row.origin_id,
     originSlug: row.origin_slug,

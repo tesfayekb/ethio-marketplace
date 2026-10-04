@@ -77,8 +77,3 @@ export function conditionMet(
   return condition.and === undefined || pairMet(condition.and, values);
 }
 
-/** The keys a condition reads (one or two), for "which answers drive this row". */
-export function conditionKeys(condition: VisibleWhen | null): string[] {
-  if (condition === null) return [];
-  return condition.and === undefined ? [condition.key] : [condition.key, condition.and.key];
-}
