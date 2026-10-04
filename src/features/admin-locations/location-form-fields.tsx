@@ -191,15 +191,22 @@ export function LocationFormFields({
         </span>
       </FormField>
 
-      <FormField label={t("admin.locations.field.order")} htmlFor={`${p}-order`}>
-        <Input
-          id={`${p}-order`}
-          data-testid={`${p}-order`}
-          inputMode="numeric"
-          value={values.displayOrder}
-          onChange={(event) => onChange({ displayOrder: event.target.value })}
-        />
-      </FormField>
+      {/*
+       * Bundle 3 Part D — regions, cities and sub-cities are listed A to Z by
+       * name, so their order field leaves the screen; the stored value still
+       * round-trips unchanged (INC-188). A country row keeps it.
+       */}
+      {level === "country" ? (
+        <FormField label={t("admin.locations.field.order")} htmlFor={`${p}-order`}>
+          <Input
+            id={`${p}-order`}
+            data-testid={`${p}-order`}
+            inputMode="numeric"
+            value={values.displayOrder}
+            onChange={(event) => onChange({ displayOrder: event.target.value })}
+          />
+        </FormField>
+      ) : null}
     </>
   );
 }
