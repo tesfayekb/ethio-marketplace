@@ -261,13 +261,6 @@ export function StepReview({
     .concat(t("post.who.channel.messages"))
     .join(" · ");
 
-  const sellerName =
-    identity === null
-      ? ""
-      : identity.sellerType === "business" && (identity.businessName ?? "") !== ""
-        ? `${identity.businessName} (${identity.alias ?? ""})`.replace(" ()", "")
-        : (identity.alias ?? "");
-
   const sections: {
     step: number;
     nameKey: MessageKey;
@@ -308,9 +301,9 @@ export function StepReview({
     {
       step: 7,
       nameKey: "post.step.contact",
-      // D17 — the seller block names WHO is selling before HOW to reach them: a
-      // business by its business name, a person by the public alias.
-      value: [sellerName, channelLine].filter((part) => part !== "").join(" · "),
+      // D17 — the seller block names WHO is selling (the shared seller line,
+      // step 20) and then HOW to reach them.
+      value: channelLine,
       seller: true,
     },
   ];
