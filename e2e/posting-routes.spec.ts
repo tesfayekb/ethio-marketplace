@@ -1080,7 +1080,7 @@ test.describe("POSTING ROUTES", () => {
     const draftA = await postRoute(
       page,
       DRAFT,
-      completeDraft({ categoryId: cat.id, cityId: city.id, title: `e2e posting ${rand()}` }),
+      completeDraft({ categoryId: cat.id, cityId: city.id, title: `e2e posting ${rand()}`, step: 7 }),
       { token: unnamed.token, country: "ET" },
     );
     const listingA = String(draftA.payload["listing_id"] ?? "");
@@ -1106,7 +1106,7 @@ test.describe("POSTING ROUTES", () => {
     const draftB = await postRoute(
       page,
       DRAFT,
-      completeDraft({ categoryId: cat.id, cityId: city.id, title: `e2e posting ${rand()}` }),
+      completeDraft({ categoryId: cat.id, cityId: city.id, title: `e2e posting ${rand()}`, step: 7 }),
       { token: person.token, country: "ET" },
     );
     const listingB = String(draftB.payload["listing_id"] ?? "");
