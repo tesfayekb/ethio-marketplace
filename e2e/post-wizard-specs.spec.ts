@@ -190,6 +190,17 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-next").click();
   }
 
+  /**
+   * DEC-109 — from the price page (4), a free price passes it and Next opens the
+   * title page (5). Only walks that use the title or description go on.
+   */
+  async function onToTitle(page: import("@playwright/test").Page) {
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+  }
+
   async function reachStep3(
     page: import("@playwright/test").Page,
     userId: string,
@@ -275,7 +286,7 @@ test.describe("POSTING WIZARD", () => {
       .fill("e2e text answer");
     await picker.selectOption(spec.optionValues[0] ?? "");
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
       .poll(async () => (await attributesOf(listingId))[spec.text.attrKey], {
         message: "PW-5: the answers never reached the draft",
@@ -306,7 +317,7 @@ test.describe("POSTING WIZARD", () => {
       .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
       .fill("e2e assist facts");
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await onToTitle(page);
 
     // Nothing is written until the seller asks; Next now sends and the door
     // refuses the empty title, which the summary names (U6-C1-R1).
@@ -605,8 +616,8 @@ test.describe("POSTING WIZARD", () => {
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
 
-    // D39 — Back walks 5 → 4 → 2 → 3.
-    for (const step of [4, 2, 3]) {
+    // D39/DEC-109 — Back from the price page (4) walks 4 → 2 → 3.
+    for (const step of [2, 3]) {
       await page.getByTestId("post-back").click();
       await expect(page.getByTestId(`post-step-${step}`)).toBeVisible();
     }
@@ -626,7 +637,7 @@ test.describe("POSTING WIZARD", () => {
     const category = await leaf();
     await reachStep3(page, user.id, category);
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await onToTitle(page);
     const title = page.getByTestId("post-title");
     await title.fill("");
     // The on-blur judgement lands first, so the layout is settled before Next.
@@ -656,7 +667,7 @@ test.describe("POSTING WIZARD", () => {
       const category = await leaf();
       await reachStep3(page, user.id, category);
       await nextThroughPhotos(page);
-      await expect(page.getByTestId("post-step-5")).toBeVisible();
+      await onToTitle(page);
       const title = page.getByTestId("post-title");
       // The typing autosave (INC-228) is let finish first, as a seller pausing
       // would: PW-77's subject is where the refused field lands, not the queue.
@@ -947,7 +958,7 @@ test.describe("POSTING WIZARD", () => {
       await assertKept("before");
       await nextThroughPhotos(page);
       await expect(page.getByTestId("post-step-4")).toBeVisible();
-      for (const step of [4, 2, 3]) {
+      for (const step of [2, 3]) {
         await page.getByTestId("post-back").click();
         await expect(page.getByTestId(`post-step-${step}`)).toBeVisible();
       }
@@ -1004,7 +1015,7 @@ test.describe("POSTING WIZARD", () => {
       .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
       .fill("x");
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await onToTitle(page);
     await expect(
       page
         .locator('[data-testid="post-field"][data-field="post-title"]')
@@ -1104,7 +1115,7 @@ test.describe("POSTING WIZARD", () => {
     await text.fill("e2e back text");
     await number.fill("7");
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
 
     await page.getByTestId("post-back").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible();
@@ -1135,7 +1146,7 @@ test.describe("POSTING WIZARD", () => {
     const category = await leaf();
     await reachStep3(page, user.id, category);
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await onToTitle(page);
 
     const phrase = "gray and very strong";
     await page.getByTestId("post-description").fill(`${phrase} steel door`);
@@ -1245,7 +1256,7 @@ test.describe("POSTING WIZARD", () => {
 
     // J4 — DB truth: the default the screen showed is what the door recorded.
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
       .poll(async () => (await attributesOf(listingId))[fold.unit.attrKey], {
         message: "PW-22: the prefilled default never reached the draft",
@@ -1288,7 +1299,7 @@ test.describe("POSTING WIZARD", () => {
     await fuel.selectOption(set.fuelValues.petrol);
     await expect(charging).toHaveCount(0);
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
     await expect
       .poll(async () => Object.keys(await attributesOf(listingId)).includes(set.charging.attrKey), {
         message: "PW-28: an unasked answer reached the draft",
@@ -1342,7 +1353,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(dual, "PW-9: a fact ticked the attestation for the seller").not.toBeChecked();
 
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
       .poll(async () => (await attributesOf(listingId))[fold.year.attrKey], {
         message: "PW-9: the prefilled year never reached the draft",
@@ -1908,7 +1919,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(power, "PW-43: a hidden sibling stayed on screen").toHaveCount(0);
     await expect(volt, "PW-43: a hidden deeper detail stayed on screen").toHaveCount(0);
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
     await expect
       .poll(
         async () => {
