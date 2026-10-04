@@ -604,6 +604,14 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-review-preview").getByTestId("listing-photos-soon-ribbon"),
       "PW-141: no ribbon on the review card",
     ).toHaveCount(1);
+    // The buyer's detail (turn 6 item 6).
+    await page.getByTestId("post-preview-open").click();
+    await expect(
+      page.getByTestId("post-preview-sheet").getByTestId("listing-photos-soon-ribbon"),
+      "PW-141: no ribbon on the buyer's detail",
+    ).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-preview-close").click();
+
 
     // A photo is added: the tick and the ribbon go, and nothing is written.
     await page.getByTestId("post-back").click();
