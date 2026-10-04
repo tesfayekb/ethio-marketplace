@@ -1,15 +1,16 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37181454628
-- Commit: `b432691bc196d13ee6aecc5d2bb5658751191ec0`
-- Attempt: 1
-- Written (UTC): 2026-10-04T05:59:57.214Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37181051989
+- Commit: `2c252e8a63ccdb6dd72e86abaeb0147ce58268eb`
+- Attempt: 4
+- Written (UTC): 2026-10-04T06:00:24.986Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
 ### Evidence lines
 
 ```text
+##[error]INC-100 BROKEN ARTIFACT CONTRACT — attempt 4 downloaded ZERO results.json files; the report's zeros describe the download, not the suite.
 [36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
 [36;1mPUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \[0m
 [36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
@@ -32,10 +33,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37181454628
-  E2E_HEAD_COMMIT_MESSAGE: Added M4c fix for M4b
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37181051989
+  E2E_HEAD_COMMIT_MESSAGE: Applied M4b migration file
 
-X-Lovable-Edit-ID: edt-2a481fe8-5794-4ef8-af28-ec709babdeea
+X-Lovable-Edit-ID: edt-ca262936-7890-4693-bb47-61c837ac8655
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -69,7 +70,7 @@ smoke=cancelled email=cancelled shards=cancelled
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/9794cc5a-1af9-43ef-b544-18c200ed47c0' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/8e85eb2b-5465-433e-b560-f73705a52053' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
