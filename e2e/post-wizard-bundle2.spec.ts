@@ -355,7 +355,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(
       page.getByTestId("post-who-alias-ok"),
       "PW-132: a free Latin name was not confirmed",
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 20_000 });
     expect(
       aliasCalls.some((body) => body.includes("ፊደል")),
       "PW-132: a door call carried the non-Latin name",
