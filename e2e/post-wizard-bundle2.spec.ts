@@ -365,7 +365,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       page.getByTestId("post-who-country-confirm"),
       "PW-127: picking from the list confirmed the country",
     ).toBeVisible();
-    await page.waitForTimeout(3_000);
+    // The old screen saved the pick at once; let any such request finish first.
+    await page.waitForLoadState("networkidle");
     const { data: before, error } = await adminClient()
       .from("user_directory")
       .select("country_source")
@@ -412,7 +413,12 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     );
     await typePhone(page, "post-who-value-phone", "0911234567");
     await page.getByTestId("post-who-value-phone").blur();
-    await page.waitForTimeout(4_000);
+    // A tap on the switch saves the step at once: that save must carry no number.
+    const saved = page.waitForResponse(
+      (response) => response.url().includes(DRAFT) && response.request().method() === "POST",
+    );
+    await page.getByTestId("post-who-show-phone").check();
+    await saved;
     const phoneOf = async () =>
       ((await contactPrefOf(listingId))["phone"] as { value?: string } | undefined)?.value ?? "";
     expect(await phoneOf(), "PW-128: a number was saved before the library read it").toBe("");
