@@ -2162,7 +2162,8 @@ export const en = {
   "post.who.channel.phone2": "Second phone number",
   "post.who.addPhone2": "Add another phone",
   "post.who.channel.telegram": "Telegram",
-  "post.who.channel.telegramHint": "Your handle, starting with @.",
+  "post.who.channel.telegramHintV2":
+    "Your Telegram username, for example @abebe_shop. In Telegram: Settings, then Username.",
   "post.who.channel.whatsapp": "WhatsApp",
   "post.who.channel.numberHint": "Choose the country, then type the number.",
   "post.who.phoneCountryLabel": "Country code",
@@ -2177,9 +2178,13 @@ export const en = {
   "post.who.showIt": "Show it on the listing",
   "post.who.countryLabel": "Your home country",
   "post.who.countryHint": "Where you live. This is asked once.",
-  "post.who.countryConfirmed": "Confirmed. Contact support to change it.",
-  "post.who.countryNone": "Choose a country",
   "post.who.countryConfirm": "Confirm this country",
+  "post.who.countryChange": "Change",
+  "post.who.countryConfirmTitle":
+    "Confirm {country} as your home country? You can change it once every 30 days.",
+  "post.who.countryConfirmYes": "Confirm",
+  "post.who.countryConfirmGo": "Go back",
+  "post.who.countryNone": "Choose a country",
   "post.who.countryRequired": "Confirm your home country before you post.",
   // U6-C2b — step 8: review and publish.
   "post.review.why": "This is what a buyer will see. Check it, then publish.",
@@ -2257,6 +2262,13 @@ export const en = {
   "post.who.aliasAvailable": "This name is free. It becomes yours when you save this step.",
   "post.who.aliasSuggestions": "Free names you can use:",
   "post.who.aliasLatinOnly": "Please use Latin letters (a–z) for your seller name.",
+  "post.who.aliasChangeFirst":
+    "This is your first public name. You can correct it within 24 hours; after that, once every 30 days.",
+  "post.who.aliasChangeRule": "You can change your public name once every 30 days.",
+  "post.who.aliasCorrectionUntil": "You can correct your new name until {when}.",
+  "post.who.aliasNextChange": "You can change your name again on {date}.",
+  "post.refusal.countryTooSoon":
+    "You can change your home country once every 30 days. Next change allowed on {date}.",
   "post.refusal.aliasImitatesBrand": "That name looks like {name}. Please choose another.",
   "post.refusal.assistBudgetSpent": "You have used all the writing tries for this listing.",
   "post.where.addBack": "Add it back",

@@ -3802,6 +3802,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.refusal.countryTooSoon": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.refusalSummary": [
       "/post",
       "/post/$listingId"
@@ -4208,7 +4212,19 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.aliasChangeFirst": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.aliasChangeRule": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.aliasChecking": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.aliasCorrectionUntil": [
       "/post",
       "/post/$listingId"
     ],
@@ -4217,6 +4233,10 @@
       "/post/$listingId"
     ],
     "post.who.aliasLatinOnly": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.aliasNextChange": [
       "/post",
       "/post/$listingId"
     ],
@@ -4260,11 +4280,23 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.countryChange": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.countryConfirm": [
       "/post",
       "/post/$listingId"
     ],
-    "post.who.countryConfirmed": [
+    "post.who.countryConfirmGo": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.countryConfirmTitle": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.countryConfirmYes": [
       "/post",
       "/post/$listingId"
     ],

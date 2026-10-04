@@ -22,6 +22,20 @@ export const TELEGRAM_RE = /^[A-Za-z0-9_]{5,32}$/;
 export const YOUTUBE_RE =
   /^https?:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)[\w-]{6,}|youtu\.be\/[\w-]{6,})/;
 
+/**
+ * Walk fix 7 — ONE TELEGRAM SHAPE, as typed. A pasted `t.me/` link, a bare
+ * handle and an `@handle` all become `@handle`; the door's own rule (5–32 of
+ * a–z 0–9 _ after the @, at most 33 characters with it) judges the result, so
+ * an over-long or badly shaped handle is refused at the box as it is typed.
+ */
+export function normalizeTelegram(value: string): string {
+  const stripped = value
+    .trim()
+    .replace(/^(?:https?:\/\/)?(?:www\.)?t\.me\//i, "")
+    .replace(/^@+/, "");
+  return stripped === "" ? "" : `@${stripped}`;
+}
+
 /** Bundle 2 Q2 — `phone2`, the optional second phone, follows the phone rule. */
 export type Channel = "phone" | "phone2" | "telegram" | "whatsapp";
 

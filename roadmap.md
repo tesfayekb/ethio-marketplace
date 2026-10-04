@@ -76,3 +76,4 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
   - [x] Step 13/17 censuses (2026-10-04): door alias rule 5631bf8d:608-614 (shape ^[a-z0-9_]{3,30}$, 32 reserved exact); route AI check identity.ts:62-119 passes on AI failure; admin_update_profile a3ef929c:60-64 (taken only); index 479720fb:28; ALIAS_RE step-who.tsx:50, suggestion :338 (display_name fallback); 2 of 2 live aliases fail new shape (kept); fold of reserved file = 2,162 handles; brand options = 633 folded names in 40 lists (877 options), brand_name preset 0 attributes; audit table audit_log; heartbeat table catalog_find_sweep_runs is catalogue-shaped
   - [ ] M2 draft (steps 14-24) -> staging stop
 - [ ] Bundle 3 Part D: place lists A-Z (step 25).
+- [x] Bundle 3 walk fixes (M4) — app side + migration on prod (mark 20261004040000); staging apply + CI run owed before the M4 report

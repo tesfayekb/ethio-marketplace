@@ -43,6 +43,12 @@ export function foldAlias(value: string): string {
     .replace(/rn/g, "m");
 }
 
+/**
+ * Walk fix 4 — a name with non-ASCII letters is answered ON SCREEN, in the
+ * seller's language, with no round trip and no suggestions call.
+ */
+export const NON_LATIN_RE = /[^ -~]/;
+
 /** Step 14 — 5 to 30 of a–z 0–9 _, a letter first, ≥3 letters, no 7-digit run, no edge or double _. */
 export function aliasShapeOk(value: string): boolean {
   return (

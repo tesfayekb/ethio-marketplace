@@ -10,18 +10,23 @@ import type { MessageKey } from "@/i18n";
 import { RequiredMark } from "./field";
 import { PhoneNumberField } from "./phone-number-field";
 import { loadPhoneLib, type PhoneLib } from "./phone-parse";
-import { ALIAS_RULE_REASON, aliasRuleLocal } from "./alias-rules";
+import { ALIAS_RULE_REASON, NON_LATIN_RE, aliasRuleLocal } from "./alias-rules";
 import {
+  changeHomeCountry,
   checkAlias as checkAliasDoor,
+  readCountries,
   readLastListingContact,
   readSellerIdentity,
+  readSellerLine,
   saveIdentity,
   suggestAliases,
+  type CountryRow,
   type SellerIdentity,
+  type SellerLineFacts,
 } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
-import { checkChannel } from "./validate";
+import { checkChannel, normalizeTelegram } from "./validate";
 
 /**
  * U6-C2b — STEP 7: WHO IS SELLING, AND HOW A BUYER REACHES THEM (spec §4 B2).
@@ -67,7 +72,8 @@ const CHANNEL_LABELS: Record<Channel, MessageKey> = {
 const CHANNEL_HINTS: Record<Channel, MessageKey> = {
   phone: "post.who.channel.numberHint",
   phone2: "post.who.channel.numberHint",
-  telegram: "post.who.channel.telegramHint",
+  // Walk fix 7 — one shape, "@handle", said in the hint (new key, D5).
+  telegram: "post.who.channel.telegramHintV2",
   whatsapp: "post.who.channel.numberHint",
 };
 
@@ -116,6 +122,7 @@ export function StepWho({
   nextTried = 0,
   onBlocked,
   saveRef,
+  categoryId = null,
 }: {
   listingId?: string | null;
   contactPref: Record<string, unknown>;
@@ -136,6 +143,8 @@ export function StepWho({
    * leaves the step, and a checked name is claimed only then. False keeps the step.
    */
   saveRef?: { current: (() => Promise<boolean>) | null };
+  /** Walk fix 2 (M4) — the draft's category, so suggestions can use its word. */
+  categoryId?: string | null;
 }) {
   const { t, entities, language } = useI18n();
   const markets = useOpenMarkets();
@@ -160,6 +169,15 @@ export function StepWho({
   const [countryLocked, setCountryLocked] = useState(false);
   /** Refusals the identity door named, kept apart from the draft's own. */
   const [identityRefusals, setIdentityRefusals] = useState<Refusal[]>([]);
+  /** Walk fix 3 — the change rule's dates, from `my_seller_line()` (M4). */
+  const [lineFacts, setLineFacts] = useState<SellerLineFacts | null>(null);
+  /** Walk fix 6 — every country in the table; open markets lead the list. */
+  const [allCountries, setAllCountries] = useState<CountryRow[]>([]);
+  /** Walk fix 5 — the confirmed box opens for a change; choosing only selects. */
+  const [countryChanging, setCountryChanging] = useState(false);
+  /** Walk fix 5 — the "Confirm this country" dialog; only Confirm saves. */
+  const [countryConfirming, setCountryConfirming] = useState(false);
+  const [countryChangeRefusal, setCountryChangeRefusal] = useState<Refusal | null>(null);
 
   /** Step 11 — the phone library, loaded when this step opens; a failure offers a retry. */
   const [phoneLib, setPhoneLib] = useState<PhoneLib | null>(null);
@@ -222,6 +240,22 @@ export function StepWho({
       }
       setEditing(found.alias === null);
     });
+    // Walk fix 3 — the change rule's dates, for the state line under the name.
+    void readSellerLine()
+      .then((facts) => {
+        if (!cancelled) setLineFacts(facts);
+      })
+      .catch((error: unknown) => {
+        console.error("[post-who] seller line read failed", error);
+      });
+    // Walk fix 6 — every country in the table, not only the open markets.
+    void readCountries()
+      .then((rows) => {
+        if (!cancelled) setAllCountries(rows);
+      })
+      .catch((error: unknown) => {
+        console.error("[post-who] countries read failed", error);
+      });
     return () => {
       cancelled = true;
     };
@@ -280,25 +314,38 @@ export function StepWho({
     return answer;
   }, []);
 
-  /** Step 12 — a country the seller picks or confirms is saved as confirmed. */
-  const confirmCountry = useCallback(
-    async (code: string) => {
-      const answer = await commit({ homeCountryCode: code });
-      if (aliveRef.current && answer.ok) setCountryLocked(true);
-    },
-    [commit],
-  );
+  /**
+   * Walk fix 5 — choosing only SELECTS. The confirm button opens the "Confirm
+   * this country" dialog; only its Confirm saves, through `change_home_country`
+   * (M4), which confirms a first country or changes a confirmed one inside the
+   * 30-day rule and refuses `countryTooSoon` with the next date.
+   */
+  const doConfirmCountry = useCallback(async () => {
+    const answer = await changeHomeCountry(country);
+    if (!aliveRef.current) return;
+    setCountryConfirming(false);
+    if (answer.ok) {
+      setCountryLocked(true);
+      setCountryChanging(false);
+      setCountryChangeRefusal(null);
+      return;
+    }
+    setCountryChangeRefusal(
+      answer.refusals[0] ?? { field: "home_country_code", reason: "badValue" },
+    );
+  }, [country]);
 
   /** Step 21 — after a refusal, three free names from the seller's own names. */
   const offerSuggestions = useCallback(() => {
-    void suggestAliases(
-      sellerType === "business"
+    void suggestAliases({
+      ...(sellerType === "business"
         ? { businessName }
-        : { firstName: firstName.trim() || null, lastName: lastName.trim() || null },
-    ).then((list) => {
+        : { firstName: firstName.trim() || null, lastName: lastName.trim() || null }),
+      categoryId,
+    }).then((list) => {
       if (aliveRef.current) setSuggestions(list.slice(0, 3));
     });
-  }, [sellerType, businessName, firstName, lastName]);
+  }, [sellerType, businessName, firstName, lastName, categoryId]);
 
   /**
    * The live check (bundle 3 step 19): the mirror's rules a–c first, then the
@@ -314,6 +361,17 @@ export function StepWho({
       }
       if (next === checkedAliasRef.current) {
         setAliasState("ok");
+        return;
+      }
+      /**
+       * Walk fix 4 — a non-Latin name is answered HERE, in the seller's
+       * language, in place of the general shape message; no suggestions call
+       * is made for a name the door could never take.
+       */
+      if (NON_LATIN_RE.test(next)) {
+        setAliasCheckRefusal({ field: "alias", reason: "aliasLatinOnly" });
+        setAliasState("refused");
+        setSuggestions([]);
         return;
       }
       const local = aliasRuleLocal(next);
@@ -413,8 +471,37 @@ export function StepWho({
   const [local, setLocal] = useState<Refusal[]>([]);
   const messagesRefusal = refusalFor(refusals, "messages") ?? refusalFor(refusals, "contact_pref");
 
-  const countries = useMemo(() => markets.markets, [markets.markets]);
-  const openMarketCodes = useMemo(() => countries.map((market) => market.code), [countries]);
+  /**
+   * Walk fix 6 — every country in the table: the open markets first, in their
+   * own order, then every other country A–Z by the shown name.
+   */
+  const countries = useMemo(() => {
+    const marketCodes = new Set(markets.markets.map((market) => market.code));
+    const rest = allCountries
+      .filter((row) => !marketCodes.has(row.code))
+      .sort((a, b) => a.nameEn.localeCompare(b.nameEn, language));
+    return [
+      ...markets.markets.map((market) => ({
+        code: market.code,
+        nameEn: market.nameEn,
+        anchorId: market.anchorId,
+      })),
+      ...rest.map((row) => ({ code: row.code, nameEn: row.nameEn, anchorId: null })),
+    ];
+  }, [markets.markets, allCountries, language]);
+  const openMarketCodes = useMemo(() => markets.markets.map((market) => market.code), [markets]);
+  /** The shown name of the picked country, for the confirm dialog. */
+  const countryName = useMemo(() => {
+    const found = countries.find((entry) => entry.code === country);
+    if (found === undefined) return country;
+    return found.anchorId === null
+      ? found.nameEn
+      : entityName(
+          "location",
+          { id: found.anchorId, nameEn: found.nameEn, nameAm: null },
+          entities,
+        );
+  }, [countries, country, entities]);
 
   /** What this screen sees when a channel box is left (U6-C1-R3a). */
   const leaveChannel = (channel: Channel, value: string, show: boolean) => {
@@ -487,26 +574,50 @@ export function StepWho({
                 {t("post.who.aliasAvailable")}
               </p>
             )}
-            {/[^ -~]/.test(alias) && (
-              <p className="text-xs text-muted-foreground" data-testid="post-who-alias-latin">
+            {/* Walk fix 4 — the Latin line IS the refusal for a non-Latin name,
+                shown in place of the general shape message. */}
+            {aliasState === "refused" && shownAliasRefusal?.reason === "aliasLatinOnly" && (
+              <p className="text-sm text-destructive" data-testid="post-who-alias-latin">
                 {t("post.who.aliasLatinOnly")}
               </p>
             )}
-            {aliasState === "refused" && shownAliasRefusal !== null && (
-              <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
-                {/* U6-C1-R2 — the imitation check names WHAT the alias resembles,
-                    so the seller can tell a coincidence from a rejection. */}
-                {shownAliasRefusal.reason === "aliasImitatesBrand"
-                  ? fill(t("post.refusal.aliasImitatesBrand"), {
-                      name: shownAliasRefusal.detail ?? "",
-                    })
-                  : shownAliasRefusal.reason === "aliasTooSoon"
-                    ? fill(t("post.refusal.aliasTooSoon"), {
-                        date: formatDay(shownAliasRefusal.detail ?? "", language),
+            {aliasState === "refused" &&
+              shownAliasRefusal !== null &&
+              shownAliasRefusal.reason !== "aliasLatinOnly" && (
+                <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
+                  {/* U6-C1-R2 — the imitation check names WHAT the alias resembles,
+                      so the seller can tell a coincidence from a rejection. */}
+                  {shownAliasRefusal.reason === "aliasImitatesBrand"
+                    ? fill(t("post.refusal.aliasImitatesBrand"), {
+                        name: shownAliasRefusal.detail ?? "",
                       })
-                    : t(draftRefusalKey(shownAliasRefusal.reason))}
-              </p>
-            )}
+                    : shownAliasRefusal.reason === "aliasTooSoon"
+                      ? fill(t("post.refusal.aliasTooSoon"), {
+                          date: formatDay(shownAliasRefusal.detail ?? "", language),
+                        })
+                      : t(draftRefusalKey(shownAliasRefusal.reason))}
+                </p>
+              )}
+            {/* Walk fix 3 — ONE STATE LINE under the name box: the change rule
+                in one of four states, from `my_seller_line()` (M4). */}
+            <p className="text-xs text-muted-foreground" data-testid="post-who-alias-change-rule">
+              {identity !== null && identity.alias === null
+                ? t("post.who.aliasChangeFirst")
+                : lineFacts !== null &&
+                    lineFacts.correctionUntil !== null &&
+                    new Date(lineFacts.correctionUntil).getTime() > Date.now()
+                  ? fill(t("post.who.aliasCorrectionUntil"), {
+                      when: new Intl.DateTimeFormat(language, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format(new Date(lineFacts.correctionUntil)),
+                    })
+                  : lineFacts !== null && lineFacts.nextChangeAt !== null
+                    ? fill(t("post.who.aliasNextChange"), {
+                        date: formatDay(lineFacts.nextChangeAt, language),
+                      })
+                    : t("post.who.aliasChangeRule")}
+            </p>
             {/* THE SUGGESTION: a business's own name, or the account's name — the
                 seller's to take in one tap, never written for them. */}
             {aliasState === "refused" && suggestions.length > 0 && (
@@ -743,14 +854,21 @@ export function StepWho({
                   cannot also hold the switch, the switch wraps to its own line. */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 {channel === "telegram" ? (
+                  /* Walk fix 7 — one shape, "@handle", as wide as the phone
+                     boxes; a pasted t.me/ link or bare handle is normalized as
+                     typed, and the box judges it as typed. */
                   <input
                     id={`post-who-value-${channel}`}
                     data-testid={`post-who-value-${channel}`}
-                    className={`${fieldClass} grow`}
+                    className={`${fieldClass} min-w-[16.5rem] grow basis-0`}
                     value={current.value}
                     inputMode="text"
                     onBlur={(event) => leaveChannel(channel, event.target.value, current.show)}
-                    onChange={(event) => setChannel(channel, { value: event.target.value.trim() })}
+                    onChange={(event) => {
+                      const next = normalizeTelegram(event.target.value);
+                      setChannel(channel, { value: next });
+                      leaveChannel(channel, next, current.show);
+                    }}
                   />
                 ) : (
                   /* Bundle 2 Q1 — a country picker in front of the number. */
@@ -807,16 +925,23 @@ export function StepWho({
           {t("post.who.countryLabel")}
           {!countryLocked && <RequiredMark />}
         </label>
+        {/*
+         * Walk fix 5 — the confirmed box shows the country and a CHANGE button;
+         * choosing from the list only SELECTS; the confirm button opens the
+         * dialog, and only the dialog's Confirm saves. The line "Confirmed.
+         * Contact support to change it." is gone: a change is possible here,
+         * inside the 30-day rule the door enforces.
+         */}
         <select
           id="post-who-country"
           data-testid="post-who-country"
           className={fieldClass}
           value={country}
-          disabled={countryLocked || markets.isLoading}
+          disabled={markets.isLoading || (countryLocked && !countryChanging)}
           onChange={(event) => {
-            const code = event.target.value;
-            // Rulings 3 item 3 — choosing only selects; the button confirms.
-            setCountry(code);
+            // Rulings 3 item 3 — choosing only selects; the dialog confirms.
+            setCountry(event.target.value);
+            setCountryChangeRefusal(null);
           }}
         >
           <option value="">{t("post.who.countryNone")}</option>
@@ -832,27 +957,74 @@ export function StepWho({
             </option>
           ))}
         </select>
-        {!countryLocked && country !== "" && (
+        {countryLocked && !countryChanging && (
+          <button
+            type="button"
+            data-testid="post-who-country-change"
+            className={smallButtonClass}
+            onClick={() => {
+              setCountryChanging(true);
+              setCountryChangeRefusal(null);
+            }}
+          >
+            {t("post.who.countryChange")}
+          </button>
+        )}
+        {(!countryLocked || countryChanging) && country !== "" && !countryConfirming && (
           <button
             type="button"
             data-testid="post-who-country-confirm"
             className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground"
-            onClick={() => void confirmCountry(country)}
+            onClick={() => setCountryConfirming(true)}
           >
             {t("post.who.countryConfirm")}
           </button>
         )}
-        <p className="text-xs text-muted-foreground">
-          {countryLocked ? t("post.who.countryConfirmed") : t("post.who.countryWhereHint")}
-        </p>
+        {countryConfirming && (
+          <div
+            className="space-y-2 rounded-md border border-border p-3"
+            data-testid="post-who-country-dialog"
+          >
+            <p className="text-sm text-foreground">
+              {fill(t("post.who.countryConfirmTitle"), { country: countryName })}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                data-testid="post-who-country-yes"
+                className="min-h-11 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
+                onClick={() => void doConfirmCountry()}
+              >
+                {t("post.who.countryConfirmYes")}
+              </button>
+              <button
+                type="button"
+                data-testid="post-who-country-go"
+                className={smallButtonClass}
+                onClick={() => setCountryConfirming(false)}
+              >
+                {t("post.who.countryConfirmGo")}
+              </button>
+            </div>
+          </div>
+        )}
+        {!countryLocked && (
+          <p className="text-xs text-muted-foreground">{t("post.who.countryWhereHint")}</p>
+        )}
         {!countryLocked && countryRefusal === null && !showRequired && (
           <p className="text-sm text-muted-foreground" data-testid="post-who-country-required">
             {t("post.who.countryRequired")}
           </p>
         )}
-        {(countryRefusal !== null || (showRequired && !countryLocked)) && (
+        {(countryChangeRefusal !== null ||
+          countryRefusal !== null ||
+          (showRequired && !countryLocked)) && (
           <p className="text-sm text-destructive" data-testid="post-who-country-refusal">
-            {t(draftRefusalKey(countryRefusal?.reason ?? "required"))}
+            {(countryChangeRefusal ?? countryRefusal)?.reason === "countryTooSoon"
+              ? fill(t("post.refusal.countryTooSoon"), {
+                  date: formatDay((countryChangeRefusal ?? countryRefusal)?.detail ?? "", language),
+                })
+              : t(draftRefusalKey((countryChangeRefusal ?? countryRefusal)?.reason ?? "required"))}
           </p>
         )}
       </div>

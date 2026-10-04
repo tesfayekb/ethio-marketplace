@@ -40,6 +40,8 @@ async function handlePost(request: Request): Promise<Response> {
           p_business_name: text(body["businessName"]) ?? undefined,
           p_first_name: text(body["firstName"]) ?? undefined,
           p_last_name: text(body["lastName"]) ?? undefined,
+          // Walk fix 2 (M4) — the draft's category, for the category word.
+          p_category_id: text(body["categoryId"]) ?? undefined,
         })
       : await supabase.rpc("check_seller_alias", { p_alias: text(body["alias"]) ?? "" });
   if (error) {

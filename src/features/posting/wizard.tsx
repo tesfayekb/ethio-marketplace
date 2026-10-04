@@ -952,6 +952,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           nextTried={whoTried}
                           onBlocked={onWhoGate}
                           saveRef={whoSaveRef}
+                          categoryId={draft.values.categoryId}
                         />
                       )}
                       {draft.step === 8 && (

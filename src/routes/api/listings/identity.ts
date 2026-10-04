@@ -135,6 +135,29 @@ async function handlePost(request: Request): Promise<Response> {
   const supabase = caller.supabase!;
 
   const body = await readJsonBody(request);
+
+  /**
+   * Walk fix 5 (M4) — THE COUNTRY CHANGE IS ITS OWN DOOR. A first country
+   * confirms (stamping nothing); a confirmed one changes inside the 30-day
+   * rule, else the door refuses `countryTooSoon` with the next date. The
+   * observed country is never touched by this route (DEC-068).
+   */
+  const countryChange = text(body["homeCountryChange"]);
+  if (countryChange !== null) {
+    // M4 creates the door; the generated types catch up when it applies.
+    const { data, error } = await supabase.rpc(
+      "change_home_country" as never,
+      {
+        p_country: countryChange,
+      } as never,
+    );
+    if (error) {
+      logRouteError(PATH, error.message);
+      return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
+    }
+    return routeJson(doorAnswer(data), 200);
+  }
+
   const alias = text(body["alias"]);
   let unchecked = false;
   if (alias !== null) {
