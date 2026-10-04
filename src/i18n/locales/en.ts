@@ -2162,7 +2162,8 @@ export const en = {
   "post.who.channel.phone2": "Second phone number",
   "post.who.addPhone2": "Add another phone",
   "post.who.channel.telegram": "Telegram",
-  "post.who.channel.telegramHint": "Your handle, starting with @.",
+  "post.who.channel.telegramHintV2":
+    "Your Telegram username, for example @abebe_shop. In Telegram: Settings, then Username.",
   "post.who.channel.whatsapp": "WhatsApp",
   "post.who.channel.numberHint": "Choose the country, then type the number.",
   "post.who.phoneCountryLabel": "Country code",
@@ -2177,7 +2178,12 @@ export const en = {
   "post.who.showIt": "Show it on the listing",
   "post.who.countryLabel": "Your home country",
   "post.who.countryHint": "Where you live. This is asked once.",
-  "post.who.countryConfirmed": "Confirmed. Contact support to change it.",
+  "post.who.countryConfirm": "Confirm this country",
+  "post.who.countryChange": "Change",
+  "post.who.countryConfirmTitle":
+    "Confirm {country} as your home country? You can change it once every 30 days.",
+  "post.who.countryConfirmYes": "Confirm",
+  "post.who.countryConfirmGo": "Go back",
   "post.who.countryNone": "Choose a country",
   "post.who.countryConfirm": "Confirm this country",
   "post.who.countryRequired": "Confirm your home country before you post.",
