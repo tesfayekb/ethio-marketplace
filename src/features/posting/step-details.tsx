@@ -243,9 +243,16 @@ export function StepDetails({
         required
         refusal={titleRefusal}
         hint={
-          <p className="text-xs text-muted-foreground">
-            {fill(t("post.details.count"), { count: title.length, max: TITLE_MAX })}
-          </p>
+          <>
+            {showBuiltCaption && (
+              <p className="text-xs text-muted-foreground" data-testid="post-title-built">
+                {t("post.details.titleBuilt")}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {fill(t("post.details.count"), { count: title.length, max: TITLE_MAX })}
+            </p>
+          </>
         }
       >
         <input
