@@ -39,6 +39,7 @@ export function PhoneNumberField({
   onValue,
   onLeave,
   onCountry,
+  onPending,
   lib,
 }: {
   id: string;
@@ -50,6 +51,8 @@ export function PhoneNumberField({
   onLeave: (next: string) => void;
   /** The country the picker shows, reported so a sibling can open on it (B4). */
   onCountry?: (iso: string) => void;
+  /** INC-407 — typed text the library has not read yet (nothing is saved for it). */
+  onPending?: (pending: boolean) => void;
   /** Step 11 — the loaded phone library (null while it loads or after a failure). */
   lib: PhoneLib | null;
 }) {
@@ -65,13 +68,24 @@ export function PhoneNumberField({
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const numberRef = useRef<HTMLInputElement | null>(null);
-  /** Step 11 — what is saved for a country and the box's text. */
-  const saveOf = (code: string, text: string) =>
-    lib === null
-      ? typedDigits(text) === ""
-        ? ""
-        : `+${CALLING_CODES[code] ?? ""}${typedDigits(text)}`
-      : readPhone(lib, code, text).value;
+  /**
+   * Step 11 / INC-407 — what is saved for a country and the box's text. Only the
+   * library reads a number: until it is here, typed text saves nothing (null),
+   * and an emptied box still saves "".
+   */
+  const saveOf = (code: string, text: string): string | null =>
+    typedDigits(text) === "" ? "" : lib === null ? null : readPhone(lib, code, text).value;
+  const [pending, setPending] = useState(false);
+  const emit = (code: string, text: string) => {
+    const next = saveOf(code, text);
+    setPending(next === null);
+    if (next !== null) onValue(next);
+  };
+  const onPendingRef = useRef(onPending);
+  onPendingRef.current = onPending;
+  useEffect(() => {
+    onPendingRef.current?.(pending);
+  }, [pending]);
   const onCountryRef = useRef(onCountry);
   onCountryRef.current = onCountry;
 
@@ -87,11 +101,19 @@ export function PhoneNumberField({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  /** Step 11 — a carried or saved number reopens grouped once the library is here. */
+  /**
+   * Step 11 — a carried or saved number reopens grouped once the library is here;
+   * INC-407 — text typed while it loaded is read now, shown grouped and saved.
+   */
   useEffect(() => {
     if (lib === null || national === "") return;
     const read = readPhone(lib, iso, national);
     if (read.parsed) setNational(read.shown);
+    if (pending) {
+      setPending(false);
+      onValue(read.value);
+      onLeave(read.value);
+    }
     // Runs when the library arrives, not on every keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lib]);
@@ -137,7 +159,7 @@ export function PhoneNumberField({
   const choose = (code: string) => {
     pickedRef.current = true;
     setIso(code);
-    onValue(saveOf(code, national));
+    emit(code, national);
     close(true);
   };
 
@@ -200,17 +222,18 @@ export function PhoneNumberField({
               pickedRef.current = true;
               setIso(international.iso);
               setNational(international.rest);
-              onValue(saveOf(international.iso, international.rest));
+              emit(international.iso, international.rest);
               return;
             }
             if (typed !== "") pickedRef.current = true;
             setNational(typed);
-            onValue(saveOf(iso, typed));
+            emit(iso, typed);
           }}
           onBlur={(event) => {
             if (wrapRef.current?.contains(event.relatedTarget as Node | null)) return;
             if (lib === null) {
-              onLeave(saveOf(iso, national));
+              // INC-407 — nothing to judge until the library has read the text.
+              if (typedDigits(national) === "") onLeave("");
               return;
             }
             const read = readPhone(lib, iso, national);
