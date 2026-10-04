@@ -767,6 +767,9 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const leaf = await category();
     // A pin set by hand (not carried) in city A, with both text lines.
     const listingId = await openDraft(page, user.id, leaf.id, 6, [chain.city.id], seedLastPin);
+    // The draft reopens on contact; the place page is one step back.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
 
     await expect(page.getByTestId("post-where-city")).toHaveValue(chain.city.id, {
       timeout: 20_000,
