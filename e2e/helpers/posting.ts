@@ -2440,7 +2440,8 @@ export async function seedUnitFactSet(
   const typeValue = `${stem}_milk`;
   const basisKey = `unit_of_sale-${stem}`;
   // N2-a — a later-ordered row, so a test can prove the unit is asked first.
-  const quantityKey = `${stem}_quantity`;
+  // The door's quantity family is `quantity_available` (as the unit is `unit_of_sale`).
+  const quantityKey = `quantity_available-${stem}`;
   const tokens = ["per_kg", "per_litre", "per_piece", "per_pack"];
   const supabase = adminClient();
   const { data, error } = await supabase
