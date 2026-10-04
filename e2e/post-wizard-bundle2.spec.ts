@@ -323,6 +323,54 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(hint, "PW-124: the hint stayed for a full number").toHaveCount(0);
   });
 
+  test("PW-125 the phone box keeps digits only and saves the number as read", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    const box = page.getByTestId("post-who-value-phone");
+    await expect(page.getByTestId("post-who-value-phone-country")).toHaveAttribute(
+      "data-iso",
+      "ET",
+      { timeout: 20_000 },
+    );
+    // Bundle 3 step 11 — letters typed on the keyboard never appear.
+    await typePhone(page, "post-who-value-phone", "09ab11-23c4567");
+    await expect(box, "PW-125: a letter stayed in the box").toHaveValue("0911-234567");
+    await box.blur();
+    // The judge row ET "0911234567": saved +251911234567, shown "91 123 4567".
+    await expect(box, "PW-125: the number was not shown grouped").toHaveValue("91 123 4567");
+    await page.getByTestId("post-who-show-phone").check();
+    await expect
+      .poll(
+        async () => ((await contactPrefOf(listingId))["phone"] as { value?: string })?.value ?? "",
+        { message: "PW-125: the read number never reached the draft", timeout: 20_000 },
+      )
+      .toBe("+251911234567");
+  });
+
+  test("PW-126 a carried number reopens grouped", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id], async (listingId) => {
+      const { error } = await adminClient()
+        .from("listings")
+        .update({ contact_pref: { messages: true, phone: { value: "+447400123456", show: true } } })
+        .eq("id", listingId);
+      if (error) throw new Error(`[e2e:pw126] seeding the phone failed: ${error.message}`);
+    });
+    await expect(page.getByTestId("post-who-value-phone-country")).toHaveAttribute(
+      "data-iso",
+      "GB",
+      { timeout: 20_000 },
+    );
+    await expect(
+      page.getByTestId("post-who-value-phone"),
+      "PW-126: the carried number did not reopen grouped",
+    ).toHaveValue("7400 123456", { timeout: 20_000 });
+  });
+
   async function seedLastPin(lastId: string) {
     const { error } = await adminClient()
       .from("listings")
