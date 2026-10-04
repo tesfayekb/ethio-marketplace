@@ -44,7 +44,8 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] Step 0 — brief saved (sha256 9ba52ecf… matches), truth pass above
 - [ ] Censuses (steps 1, 6, 9, 16, 20, 22, 23, 24)
 - [ ] M5 (step 25) → apply on ethio-prod → stop
-- [ ] Screens A + B (one turn) → C → D → E → F
+- [x] Screens A + B — done (steps 1–11; PW-135, PW-136–139, price/deal-line and picker unit tests)
+- [ ] Parts C → D → E → F
 - [ ] M6 (step 30) → stop → screens of Part G
 - [ ] Part H (docs, final report)
 - [x] INC-427 contact-step identity read wiped typed names (fixed bundle 4 turn 3; PW-134)
