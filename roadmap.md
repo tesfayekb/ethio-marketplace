@@ -1,79 +1,49 @@
-# Roadmap (queue per brief 2026-10-01)
+# Roadmap
 
-Bundle 3 brief: docs/governance/briefs/bundle-3.md (read first every turn).
+Bundle 4 brief: docs/governance/briefs/bundle-4.md (read first every turn).
 
-- [x] N2-a — unit asked above a later-ordered row (PW-88)
-- [ ] S1
-- [x] DEC-099 / INC-380 — pool resets by census (map + guard)
-- [x] INC-379 — reference-row helpers exclude scratch rows, fixed order
-- [x] INC-383 — PR-19 scratch-category leak; loud reaps; scratch roots ≥ 2,000,000; G28 roster search
-- [x] INC-384 — CT-8 read a box mid-zoom; `settled(page)` after every overlay opener
-- [x] INC-385 — fixed by DEC-104
-- [ ] Bundle 1 (D+L+M app side, S2/S3, A, B, Part O, INC-371, INC-375) — items 1–8 done (PW-93..PW-109); S2 timing over target (edge p95 306 ms, DB p95 10.7 ms), stopped for ruling
-- [ ] S2 / S3
-- [ ] T (with T4 / DEC-095)
-- [ ] A
-- [ ] B
-- [x] Bundle 2 walk defect B (phone field: B1 tests red-first, B2 group + searchable picker, B3 default country, B4 second phone) — PW-12/111/112/114/122 green on 360 and 1280
-- [x] Bundle 2 walk round 2 (W1 city box, W2 no repeats, W3 post another ad, W4 phone example + length hint) — unit + PW-117/123/124 green on 360 and 1280
-- [x] Walk round 2 red-first runs (PW-117/123/124 on the pre-change screen) — 6/6 failed at their feature
-- [x] PW-83 fix: sub-city Remove only while more than one place (ruling 1, 2026-10-03)
-- [x] Bundle 2 END OF BUNDLE run — the brief's list in parts, 2 workers, all green (2026-10-03)
-- [ ] C
-- [ ] Part O (INC-369, INC-370)
-- [ ] Part P (P1–P5; P4 migration)
-- [ ] E census (incl. 7 "listing not found" lines, INC-364)
-- [ ] Final full DEC-023 run
+## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
-## Bundle 2 (2026-10-02, one migration)
+Done = the file and the test that prove it. Not done = no proof found; nothing built unless bundle 4 names it.
 
-Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
+- [ ] S1 — not done (no test names it)
+- [ ] Bundle 1 (D+L+M app side …) — not done: S2 timing over target (edge p95 306 ms), stopped for ruling, no ruling since
+- [ ] S2 / S3 — not done
+- [ ] T (with T4 / DEC-095) — not done (DEC-095 token is bundle 4 step 29)
+- [ ] A — not done (no proof found)
+- [ ] B — not done (no proof found)
+- [ ] C — not done (no proof found)
+- [ ] Part O (INC-369, INC-370) — not done
+- [x] Part P (P1–P5; P4 migration) — done: step-where.tsx; migration 7423f49a (directions, set_listing_pin); PW-98/99/110, PW-113 (P4), PW-117 (P5) in e2e/post-wizard-bundle2.spec.ts
+- [ ] E census (incl. 7 "listing not found" lines, INC-364) — not done (CI census still shows 6 "listing not found" lines)
+- [ ] Final full DEC-023 run — not done
+- [x] Bundle 2 step 3 — done: door attr_contact_like in 7423f49a; PW-120 (e2e/post-wizard-specs.spec.ts)
+- [x] Bundle 2 step 4 — done: door in 7423f49a; PW-121 (e2e/post-wizard-bundle2.spec.ts)
+- [x] Part R — done: src/features/posting/contact-like.ts + contact-like.test.ts; door 7423f49a; PW-120, PW-121
+- [x] Part S — done: 7423f49a:1607 schedules catalog-find-sweep '*/5 * * * *', in-file ASSERT :1745
+- [x] Part P (bundle 2) — done: as Part P above; step 9a in step-where.tsx
+- [x] Part Q — done: Q1 PW-111, Q2 PW-114, Q3 PW-112, Q4 PW-115/PW-116 (e2e/post-wizard-bundle2.spec.ts)
+- [x] Step 15a (own_place) — done: 7423f49a:889–894; CT-34 (e2e/admin-categories-lifecycle.spec.ts)
+- [x] Part U — done: src/server/category-images/suggest-icon-route.test.ts; attr_option_shape ceiling 150 at 7423f49a:1526
+- [x] Step 10 app side — done: PW-113
+- [x] Step 14 app side — done: PW-114
+- [x] Step 16 app side — done: PW-115, PW-116
+- [x] Step 11 app side — done: PW-117
+- [x] Bundle 2 end-of-bundle run — done: CI-5 fixed in e2e/admin-categories-images.spec.ts, 10/10 at 2 workers; CI green
+- [ ] D+L+M migration incl. S2 and Part O readers — not done: Part O readers not built
+- [ ] S2 re-time, S3, DEC-096 detector, T(+T4), A, B, C, Part O, Part P, INC-371, INC-374, INC-375, INC-381, E census, full DEC-023 — not done (INC-374 = bundle 4 step 27, INC-381 = step 26)
+- [ ] DEC-098 stage 2 — not done (awaits ADOPT)
+- [x] Bundle 3 Part A red-first tests — done: PR-20, PR-21, PR-22 (e2e/posting-routes.spec.ts)
+- [x] Bundle 3 step 12 home-country check — done: M1b 2a467fcc:50; PR-3
+- [x] Bundle 3 Part A — done (M1, M1b, tests above)
+- [x] Bundle 3 Part C / M2 — done: 18556a32; PW-130, PW-131, AU-12
+- [x] Bundle 3 Part D — done: src/lib/place-order.test.ts, src/features/posting/step-where-order.test.tsx
 
-- [x] Step 0 — brief saved to docs/governance/briefs/bundle-2.md
-- [x] Step 1 (Part 0) — accepted as reported; totals, retries line and CI-5 cause reported at end-of-bundle run
-- [x] Step 2 client half — contact-like.ts R1–R6, 34-row test (door half rides the migration)
-- [ ] Step 3 — Other write-ins: client flags as typed (done); door rides the migration
-- [ ] Step 4 — title/description: client flags as typed and on blur (done); door rides the migration
-- [x] Steps 7–9 (P1–P3) — boxes nested, add controls below their boxes, marker line with Remove, even indent; PW-98/PW-99 amended, PW-110
-- [x] Step 18 — INC-387: allowlist in the prompt text, no schema enum; server still validates; real call returned Sofa
-- [ ] Part R — attr_contact_like (INC-382 R1–R6); Other write-ins; title/description; notes keep contactInNote
-- [ ] Part S — sweep every 5 minutes
-- [ ] Part P — P1–P3 done; P6 (step 12) done, one test; P4 directions and P5 left; step 9a: location box headed "Optional", never required (one test)
-- [ ] Part Q — Q1 country picker (done, PW-111); Q2 phone2; Q3 last post's contact (done, PW-112); Q4 carry pin/directions/details only when the category lacks own_place; clear carried values on a switch to own_place (seller's own pin stays)
-- [ ] Step 15a (DEC-105 approved; SQL drafted, rides the one migration) — own_place capability: cat_import_plan (8d182773) and categories_capabilities_check (fd11c7ab); no category row changed; tests: own_place blocks carry, without it carries, unknown token still refused
-- [ ] Part U — INC-387 suggest icon (done; fallback flag + editor note ruled and landed); attr_option_shape ceiling 150
-- [ ] Step 10 app side — Directions line, every set_listing_pin call restates street and directions, preview shows both (done; test owed: directions survive a pin move)
-- [ ] Step 14 app side — phone2 behind "Add another phone", shown with the phone (done; test owed)
-- [ ] Step 16 app side — pin/directions/details carry from the last post unless the leaf holds own_place; cleared on item-place change, Remove, or an own_place leaf (done; tests owed)
-- [ ] Step 11 app side — sub-city indented under its city; "Add sub-city" adds another under the same city; city room counts distinct cities (done; test owed)
-- [x] Browser proofs PW-113 (directions + step 5 + pin move), PW-114 (phone2), PW-115/116 (carry / own_place), PW-117 (two sub-cities) — 10 passed on both projects; red-first runs against the pre-change screens still owed
-- [x] Owed tests: step 3 (PW-120), 4 (PW-121), 10 (PW-113), 15 (PW-118, PW-119), 17 (CT-34); failing-first runs PW-113..PW-121 red on the pre-bundle-2 app
-- [ ] End-of-bundle DEC-023 run — 971 passed of 1022 (49 skipped); open: CI-5 (@global-state, quarantined): the run finishes before the test sees 3/3
+## Bundle 4
 
-## INC-373 (2026-10-01)
-
-- [x] Revert package.json, bun.lock, routeTree.gen.ts to 2f600496 on dev; typecheck + AT-58 green locally
-- [x] prettier roadmap.md (d9506a9c format:check red)
-- [x] DEC-097 (b)+(c) built; adoption pending 3 green CI runs — DEC-097 E2E account pool: (a) census reported; (b) pool lanes + lease reaper; (c) per-run signed-in count line; adopt after 3 green runs
-- [ ] D+L+M migration incl. S2 (rebuild after commit + pg_cron sweep with heartbeat, one round trip per search) and Part O readers via one shared helper
-- [ ] S2 re-time (stop if warm p95 > 300 ms), S3, DEC-096 stranded-turn detector, T(+T4), A, B, C, Part O, Part P, INC-371, INC-374, INC-375, INC-381 — a second visibility key (a row shown only when two answers both match, e.g. pet = dog|cat AND product = food|treats); spec arrives with its prompt, E census, full DEC-023
-
-## DEC-098 (2026-10-01)
-
-- [x] stage 1: reporters publish to ci-evidence
-- [ ] stage 2 after ADOPT: remove the six evidence files from dev with their paths-ignore and .prettierignore lines; DEC-096 detector
-- [x] Bundle 3 step 0: brief + reserved-names list saved (sha256 verified, 435 rows / 2,427 handles).
-- [x] Bundle 3 Part 0 (DEC-115): e2e-select.ts + e2e:changed + CI self-test step.
-- [ ] Bundle 3 Part A: step 4 census → M1 (steps 5-8) → app side.
-  - [x] M1 applied on prod + staging (marks 20261003220000, 20261003215042)
-  - [x] App side of steps 5–8 — posting-routes 38/38, post-wizard-bundle2 22/22 on staging
-  - [ ] Red-first tests of steps 5–7 (no EXECUTE on consume_rate_limit / rate_gate / residency_country_for; door dials; private columns; reveal); the rest of the posting specs
-  - [ ] Step 12 home-country check in publish_listing — not in M1; needs a corrective migration
-- [x] Bundle 3 Part B: contact step (steps 10-12) — PW-125/126 green; red-first for PW-125/126 owed.
-- [x] Rulings 3 item 3 — country pick only selects; Next refuses at the control until confirmed (PW-127 red on 74eb1f88, green)
-- [x] Rulings 3 item 4 / INC-407 — phone box saves nothing until the library reads it; failed load + typed text holds Next at the box (PW-128 red on 74eb1f88 with +2510911234567, green)
-- [ ] Bundle 3 Part C: seller name (steps 13-24, M2).
-  - [x] Step 13/17 censuses (2026-10-04): door alias rule 5631bf8d:608-614 (shape ^[a-z0-9_]{3,30}$, 32 reserved exact); route AI check identity.ts:62-119 passes on AI failure; admin_update_profile a3ef929c:60-64 (taken only); index 479720fb:28; ALIAS_RE step-who.tsx:50, suggestion :338 (display_name fallback); 2 of 2 live aliases fail new shape (kept); fold of reserved file = 2,162 handles; brand options = 633 folded names in 40 lists (877 options), brand_name preset 0 attributes; audit table audit_log; heartbeat table catalog_find_sweep_runs is catalogue-shaped
-  - [ ] M2 draft (steps 14-24) -> staging stop
-- [ ] Bundle 3 Part D: place lists A-Z (step 25).
-- [x] Bundle 3 walk fixes (M4) — app side + migration on prod (mark 20261004040000); staging apply + CI run owed before the M4 report
+- [x] Step 0 — brief saved (sha256 9ba52ecf… matches), truth pass above
+- [ ] Censuses (steps 1, 6, 9, 16, 20, 22, 23, 24)
+- [ ] M5 (step 25) → apply on ethio-prod → stop
+- [ ] Screens A + B (one turn) → C → D → E → F
+- [ ] M6 (step 30) → stop → screens of Part G
+- [ ] Part H (docs, final report)
