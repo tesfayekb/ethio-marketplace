@@ -440,6 +440,7 @@ export function StepWho({
           if (aliasState !== "refused") checkAlias(next);
           return false;
         }
+      }
       /**
        * Bundle 4 step 23 (INC-424, ruling item 3) — the contact details live on
        * the profile. ONE identity call carries what differs from the profile:
