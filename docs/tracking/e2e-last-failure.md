@@ -1,26 +1,74 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37211897860
-- Commit: `e5127367080bde2afcd5d9e8c529807a9646fcbb`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37213029341
+- Commit: `f183e2a68b83f512f2dd1255eb5d2df26eacaa33`
 - Attempt: 1
-- Written (UTC): 2026-10-04T15:28:31.924Z
-- Passed: 198 · Skipped: 31 · Failed: 14
-- Gating failures: 14 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): smoke, email, changed
-- Sources without results: shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Written (UTC): 2026-10-04T15:54:28.251Z
+- Passed: 1001 · Skipped: 75 · Failed: 97
+- Gating failures: 97 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 1
+- Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Sources without results: none
+
+## Flake ledger (DEC-030)
+
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
+
+- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-locations.spec.ts › L2a locations console › LT-13 all countries: the picker opens on every market, the roster spans them, and the transfer group carries no scope — Error: expect(received).toBe(expected) // Object.is equality
+
+## Flaky bodies (DEC-078)
+
+### admin-locations.spec.ts › L2a locations console › LT-13 all countries: the picker opens on every market, the roster spans them, and the transfer group carries no scope
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+
+Call Log:
+- Timeout 20000ms exceeded while waiting on the predicate
+```
+
+Context:
+
+```text
+          - listitem [ref=e470]:
+            - generic [ref=e471]: About
+          - listitem [ref=e472]:
+            - generic [ref=e473]: How it works
+      - navigation "Help" [ref=e474]:
+        - heading "Help" [level=2] [ref=e475]
+        - list [ref=e476]:
+          - listitem [ref=e477]:
+            - generic [ref=e478]: Safety
+          - listitem [ref=e479]:
+            - generic [ref=e480]: Contact
+      - navigation "Legal" [ref=e481]:
+        - heading "Legal" [level=2] [ref=e482]
+        - list [ref=e483]:
+          - listitem [ref=e484]:
+            - generic [ref=e485]: Terms
+          - listitem [ref=e486]:
+            - generic [ref=e487]: Privacy
+    - paragraph [ref=e489]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors — census (DEC-083, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-106 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+103 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
-| `listing not found` | 6 | shard 3, shard 6, changed |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -28,6 +76,7 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 | `definitions wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `export_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
 | `preview_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
+| `listing not found` | 3 | shard 3, shard 6 |
 | `categories file too large` (quiet) | 2 | shard 2, shard 5 |
 | `categories nulByte` (quiet) | 2 | shard 2, shard 5 |
 | `categories unknownColumn` (quiet) | 2 | shard 2, shard 5 |
@@ -60,7 +109,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 6 · Sources: shard 3, shard 6, changed
+- Count: 3 · Sources: shard 3, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -68,49 +117,97 @@ Off the allowlist:
 
 ## Accessibility (DEC-084, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-8 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0
+10 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0 · wizard-5 desktop-1280 serious=0 critical=0
 
 ## Timing (DEC-087, non-gating)
 
-Results read: smoke, email, changed · unavailable: shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-04T15:10:55.686Z | 14.8 min |
-| email | 2026-10-04T15:11:02.015Z | 0.2 min |
-| changed | 2026-10-04T15:10:57.937Z | 11.5 min |
+| smoke | 2026-10-04T15:29:52.262Z | 11.9 min |
+| email | 2026-10-04T15:29:59.955Z | 0.2 min |
+| shard 1 | 2026-10-04T15:30:34.545Z | 19.6 min |
+| shard 2 | 2026-10-04T15:29:55.291Z | 22.9 min |
+| shard 3 | 2026-10-04T15:29:52.913Z | 20.0 min |
+| shard 4 | 2026-10-04T15:29:55.547Z | 15.8 min |
+| shard 5 | 2026-10-04T15:29:57.427Z | 24.1 min |
+| shard 6 | 2026-10-04T15:29:57.688Z | 21.9 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `post-wizard-bundle2.spec.ts` | 40 | 12.7 min | changed |
-| `posting-routes.spec.ts` | 48 | 9.1 min | changed |
-| `shell.spec.ts` | 126 | 8.0 min | smoke |
-| `auth-signout.spec.ts` | 22 | 4.1 min | smoke |
-| `a11y.spec.ts` | 4 | 2.3 min | smoke |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | smoke |
+| `post-wizard-specs.spec.ts` | 62 | 32.7 min | shard 3, shard 6 |
+| `post-wizard-place.spec.ts` | 36 | 19.6 min | shard 2, shard 5 |
+| `shell.spec.ts` | 252 | 15.2 min | smoke, shard 3, shard 6 |
+| `post-wizard-where.spec.ts` | 28 | 12.7 min | shard 3, shard 6 |
+| `post-wizard-category.spec.ts` | 40 | 11.3 min | shard 2, shard 5 |
+| `post-wizard-resets.spec.ts` | 18 | 10.6 min | shard 3, shard 6 |
+| `admin-attributes-library.spec.ts` | 40 | 9.0 min | shard 1, shard 4 |
+| `posting-routes.spec.ts` | 48 | 7.9 min | shard 3, shard 6 |
+| `post-wizard-bundle2.spec.ts` | 22 | 7.9 min | shard 2, shard 5 |
+| `post-wizard-pricing.spec.ts` | 32 | 7.4 min | shard 3, shard 5 |
+| `auth-signout.spec.ts` | 44 | 7.1 min | smoke, shard 2, shard 5 |
+| `admin-categories-lifecycle.spec.ts` | 40 | 6.8 min | shard 1, shard 4 |
+| `admin-categories-console.spec.ts` | 32 | 6.8 min | shard 1, shard 4 |
+| `admin-attributes-editor.spec.ts` | 34 | 6.6 min | shard 1, shard 4 |
+| `admin-locations.spec.ts` | 34 | 6.1 min | shard 1, shard 4 |
+| `admin-users.spec.ts` | 24 | 6.0 min | shard 2, shard 5 |
+| `import-security.spec.ts` | 34 | 5.7 min | shard 2, shard 5 |
+| `admin-translations-console.spec.ts` | 36 | 5.2 min | shard 1, shard 4 |
+| `admin-attributes-links.spec.ts` | 22 | 5.1 min | shard 1, shard 4 |
+| `admin-roles.spec.ts` | 24 | 4.9 min | shard 1, shard 4 |
+| `admin-attributes-import.spec.ts` | 32 | 4.1 min | shard 1, shard 4 |
+| `photo-pipeline.spec.ts` | 20 | 4.0 min | shard 2, shard 5 |
+| `admin-countries.spec.ts` | 16 | 2.7 min | shard 1, shard 4 |
+| `admin-audit.spec.ts` | 10 | 2.7 min | shard 1, shard 4 |
+| `admin-translations-governance.spec.ts` | 8 | 2.5 min | shard 2, shard 5 |
+| `admin-translations-data.spec.ts` | 8 | 2.5 min | shard 2, shard 5 |
+| `mfa-stepup.spec.ts` | 18 | 2.4 min | shard 2, shard 5 |
+| `post-wizard-finder.spec.ts` | 8 | 1.7 min | shard 2, shard 5 |
+| `admin-shell.spec.ts` | 10 | 1.5 min | shard 1, shard 4 |
+| `admin-coverage.spec.ts` | 14 | 1.4 min | shard 1, shard 4 |
+| `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
+| `post-wizard-details.spec.ts` | 4 | 1.0 min | shard 2, shard 5 |
+| `category-image-routes.spec.ts` | 10 | 0.7 min | shard 2, shard 5 |
+| `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
+| `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
+| `a11y.spec.ts` | 4 | 0.5 min | smoke |
+| `i18n-coverage.spec.ts` | 8 | 0.4 min | shard 2, shard 5 |
+| `settings.spec.ts` | 4 | 0.4 min | shard 3 |
+| `rbac.spec.ts` | 6 | 0.4 min | shard 3, shard 6 |
+| `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
+| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
+| `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
+| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
 | `auth-signup.spec.ts` | 1 | 0.1 min | email |
+| `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
+| `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `post-wizard-bundle2.spec.ts` › PW-123 Post another ad opens step 1 with no draft carried | mobile-360 | 75.5 s |
-| `post-wizard-bundle2.spec.ts` › PW-123 Post another ad opens step 1 with no draft carried | desktop-1280 | 71.9 s |
-| `a11y.spec.ts` › A11Y-2 wizard steps 1, 3 and 5 for a scratch seller @a11y | desktop-1280 | 71.2 s |
-| `a11y.spec.ts` › A11Y-2 wizard steps 1, 3 and 5 for a scratch seller @a11y | mobile-360 | 62.8 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 30.6 s |
-| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | mobile-360 | 27.8 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 26.3 s |
-| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | desktop-1280 | 25.9 s |
-| `posting-routes.spec.ts` › PR-24 a seller is named before an ad is published (INC-423) | mobile-360 | 25.7 s |
-| `posting-routes.spec.ts` › PR-24 a seller is named before an ad is published (INC-423) | desktop-1280 | 25.5 s |
-| `posting-routes.spec.ts` › PR-3 a complete draft publishes to screening and never to active | desktop-1280 | 23.7 s |
-| `post-wizard-bundle2.spec.ts` › PW-128 a number typed before the phone library arrives is saved only once read | mobile-360 | 23.2 s |
-| `posting-routes.spec.ts` › PR-18 the draft route accepts a 5000-character description and refuses 5001 | mobile-360 | 22.9 s |
-| `posting-routes.spec.ts` › PR-3 a complete draft publishes to screening and never to active | mobile-360 | 22.7 s |
-| `post-wizard-bundle2.spec.ts` › PW-116 an own_place category never carries the last post's pin | mobile-360 | 22.6 s |
+| `post-wizard-category.spec.ts` › PW-48 a catch-all leaf can be chosen and its listing lands in review | mobile-360 | 81.7 s |
+| `post-wizard-category.spec.ts` › PW-48 a catch-all leaf can be chosen and its listing lands in review | desktop-1280 | 80.2 s |
+| `post-wizard-where.spec.ts` › PW-104 a unit settled by the type is held by the price page's unit | desktop-1280 | 74.1 s |
+| `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, big model list) | desktop-1280 | 74.0 s |
+| `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, small model list) | desktop-1280 | 71.7 s |
+| `post-wizard-specs.spec.ts` › PW-75 the required mark is uniform across steps (D72) | desktop-1280 | 71.6 s |
+| `post-wizard-specs.spec.ts` › PW-75 the required mark is uniform across steps (D72) | mobile-360 | 71.4 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | desktop-1280 | 70.7 s |
+| `post-wizard-specs.spec.ts` › PW-28 a conditional detail appears only when its condition is met | desktop-1280 | 69.8 s |
+| `post-wizard-resets.spec.ts` › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) | desktop-1280 | 69.0 s |
+| `post-wizard-where.spec.ts` › PW-88 a step-3 answer's fact and narrowing reach the unit asked on the price page | mobile-360 | 69.0 s |
+| `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, big model list) | mobile-360 | 68.6 s |
+| `post-wizard-resets.spec.ts` › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) | mobile-360 | 67.6 s |
+| `post-wizard-where.spec.ts` › PW-88 a step-3 answer's fact and narrowing reach the unit asked on the price page | desktop-1280 | 67.1 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 65.2 s |
 
 ## Post-test errors: smoke
 
@@ -119,7 +216,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37211897860-smoke
+[e2e:teardown] deleted 3 user(s) owned by process 37213029341-smoke
 ```
 
 ## Post-test errors: email
@@ -129,77 +226,87 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37211897860-email
+[e2e:teardown] deleted 4 user(s) owned by process 37213029341-email
 ```
 
-## Post-test errors: changed
+## Post-test errors: shard 1
 
-changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 8 (pool 6, fresh 2)
+[e2e:teardown] accounts signed in this run: 12 (pool 5, fresh 7)
+[e2e:teardown] transport retries this run: 12 (by method: GET 12; by code: UND_ERR_HEADERS_OVERFLOW 12; ran out: 4)
+[e2e:teardown] deleted 8 user(s) owned by process 37213029341-1
+```
+
+## Post-test errors: shard 2
+
+shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 35 (pool 4, fresh 31)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37211897860-changed
+[e2e:teardown] deleted 47 user(s) owned by process 37213029341-2
 ```
 
-## a11y.spec.ts › A11Y SMOKE (DEC-084, gating) › A11Y-2 wizard steps 1, 3 and 5 for a scratch seller @a11y
+## Post-test errors: shard 3
 
-- Source: `smoke`
-- Project: `mobile-360`
+shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-5')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('post-step-5')
-
+[e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 4 user(s) owned by process 37213029341-3
 ```
 
-Context: context file not found for `a11y-A11Y-SMOKE-DEC-084-gating-A11Y-2-wizard-steps-1-3-and-5-for-a-scratch-seller-a11y-mobile-360`
+## Post-test errors: shard 4
 
-## a11y.spec.ts › A11Y SMOKE (DEC-084, gating) › A11Y-2 wizard steps 1, 3 and 5 for a scratch seller @a11y
-
-- Source: `smoke`
-- Project: `desktop-1280`
+shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-5')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('post-step-5')
-
+[e2e:teardown] accounts signed in this run: 13 (pool 5, fresh 8)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 8 user(s) owned by process 37213029341-4
 ```
 
-Context: context file not found for `a11y-A11Y-SMOKE-DEC-084-gating-A11Y-2-wizard-steps-1-3-and-5-for-a-scratch-seller-a11y-desktop-1280`
+## Post-test errors: shard 5
+
+shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 30 (pool 4, fresh 26)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 40 user(s) owned by process 37213029341-5
+```
+
+## Post-test errors: shard 6
+
+shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 4 user(s) owned by process 37213029341-6
+```
 
 ## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried
 
-- Source: `changed`
+- Source: `shard 2`
 - Project: `mobile-360`
 
 ```text
-Error: expect(locator).toBeVisible() failed
+Error: expect(locator).toBeDisabled() failed
 
-Locator: getByTestId('post-in-review')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
+Locator:  getByTestId('post-who-country')
+Expected: disabled
+Received: enabled
+Timeout:  20000ms
 
 Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('post-in-review')
+  - Expect "toBeDisabled" with timeout 20000ms
+  - waiting for getByTestId('post-who-country')
+    24 × locator resolved to <select id="post-who-country" data-testid="post-who-country" class="min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">…</select>
+       - unexpected value "enabled"
 
 ```
 
@@ -207,7 +314,7 @@ Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2
 
 ## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over
 
-- Source: `changed`
+- Source: `shard 2`
 - Project: `mobile-360`
 
 ```text
@@ -223,7 +330,7 @@ Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2
 
 ## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin
 
-- Source: `changed`
+- Source: `shard 2`
 - Project: `mobile-360`
 
 ```text
@@ -239,7 +346,7 @@ Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2
 
 ## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's
 
-- Source: `changed`
+- Source: `shard 2`
 - Project: `mobile-360`
 
 ```text
@@ -253,13 +360,82 @@ Received: false
 
 Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-118-a-draft-s-own-channel-is-never-overwritten-by-the-last-post-s-mobile-360`
 
-## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-121 a phone number in the title or description is flagged at its field
 
-- Source: `changed`
-- Project: `desktop-1280`
+- Source: `shard 2`
+- Project: `mobile-360`
 
 ```text
 Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-title')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-title')
+
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-121-a-phone-number-in-the-title-or-description-is-flagged-at-its-field-mobile-360`
+
+## post-wizard-category.spec.ts › POSTING WIZARD › PW-54 the wizard walks category, specifications, photos, details and resumes at the first unfinished step
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: PW-54: details did not follow
+
+expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - PW-54: details did not follow with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-category-POSTING-WIZARD-PW-54-the-wizard-walks-category-specifications-photos-details-and-resumes-at-the-first-unfinished-step-mobile-360`
+
+## post-wizard-category.spec.ts › POSTING WIZARD › PW-27 the mobile strip walks back to a step already done, and no further
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: PW-27: the strip would not go back to a step already done
+
+expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - PW-27: the strip would not go back to a step already done with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
+```
+
+Context: context file not found for `post-wizard-category-POSTING-WIZARD-PW-27-the-mobile-strip-walks-back-to-a-step-already-done-and-no-further-mobile-360`
+
+## post-wizard-category.spec.ts › POSTING WIZARD › PW-48 a catch-all leaf can be chosen and its listing lands in review
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: PW-48: publishing into a catch-all leaf did not land on the in-review screen
+
+expect(locator).toBeVisible() failed
 
 Locator: getByTestId('post-in-review')
 Expected: visible
@@ -267,8 +443,918 @@ Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 20000ms
+  - PW-48: publishing into a catch-all leaf did not land on the in-review screen with timeout 20000ms
   - waiting for getByTestId('post-in-review')
+
+```
+
+Context: context file not found for `post-wizard-category-POSTING-WIZARD-PW-48-a-catch-all-leaf-can-be-chosen-and-its-listing-lands-in-review-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-12-who-the-alias-is-checked-against-the-door-messages-cannot-be-switched-off-and-a-shown-channel-is-stored-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-112-who-a-new-post-opens-with-the-last-post-s-channels-stored-on-the-draft-unchanged-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-13 review: the preview shows what was answered, and Publish lands in review — never live
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-review-the-preview-shows-what-was-answered-and-Publish-lands-in-review-never-live-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-30-review-and-buyer-preview-render-option-labels-units-multi-values-and-booleans-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-31 the market select waits for the prefill chain and never preselects
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-31-the-market-select-waits-for-the-prefill-chain-and-never-preselects-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-20 where: the default place lists itself, is ticked, and a lone city box offers no Remove
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-20-where-the-default-place-lists-itself-is-ticked-and-a-lone-city-box-offers-no-Remove-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-33 a region alone never lists itself; its city does (W6 R2)
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-33-a-region-alone-never-lists-itself-its-city-does-W6-R2-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-80 a city is required: marked before Next, refused and scrolled to on Next, cleared by a city
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-80-a-city-is-required-marked-before-Next-refused-and-scrolled-to-on-Next-cleared-by-a-city-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-81 a prefilled city counts as chosen: no mark, Next passes untouched
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-81-a-prefilled-city-counts-as-chosen-no-mark-Next-passes-untouched-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-82 the add buttons follow the plan's own limits
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-82-the-add-buttons-follow-the-plan-s-own-limits-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-37 a tap on the map places a pin and the door stores it as exact
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-37-a-tap-on-the-map-places-a-pin-and-the-door-stores-it-as-exact-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-38 a place search moves the pin and fills the street line
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-38-a-place-search-moves-the-pin-and-fills-the-street-line-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-39 an approximate pin is stored as approx and drawn as an area, never a point
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-39-an-approximate-pin-is-stored-as-approx-and-drawn-as-an-area-never-a-point-mobile-360`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-40 removing the pin clears all four columns
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-40-removing-the-pin-clears-all-four-columns-mobile-360`
+
+## post-wizard-pricing.spec.ts › POSTING WIZARD › PW-58 a commission outside 0.01–100 % is refused in words, and a valid one advances (INC-301)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-58-a-commission-outside-0-01-100-is-refused-in-words-and-a-valid-one-advances-INC-301-mobile-360`
+
+## post-wizard-resets.spec.ts › POSTING WIZARD › PW-26 a category change drops the details the new category never asks, by name
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-26-a-category-change-drops-the-details-the-new-category-never-asks-by-name-mobile-360`
+
+## post-wizard-resets.spec.ts › POSTING WIZARD › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-73-the-door-s-currency-fill-is-mirrored-so-Undo-restores-a-complete-price-INC-321-mobile-360`
+
+## post-wizard-resets.spec.ts › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-61-a-category-change-resets-details-title-description-and-price-and-Undo-within-ten-seconds-restores-them-D59-mobile-360`
+
+## post-wizard-resets.spec.ts › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-79-clearing-the-title-and-tapping-Next-at-once-still-registers-the-tap-INC-332-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-5-the-specification-form-is-generated-its-options-load-on-the-first-tap-and-an-empty-required-detail-is-refused-under-it-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-6 the AI assist fills the title and description from the entered details, and both stay editable
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-6-the-AI-assist-fills-the-title-and-description-from-the-entered-details-and-both-stay-editable-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-69-a-lazy-model-list-shows-its-stored-answer-on-re-entry-with-no-tap-INC-320-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-70 a strict refusal focuses the first refused field (D70)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-70-a-strict-refusal-focuses-the-first-refused-field-D70-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, no-preference)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-77-the-first-refused-field-s-label-lands-below-the-header-D2-no-preference-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, reduce)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-77-the-first-refused-field-s-label-lands-below-the-header-D2-reduce-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-74 a step-3 round trip keeps every answer (INC-329, small model list)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-74-a-step-3-round-trip-keeps-every-answer-INC-329-small-model-list-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-74 a step-3 round trip keeps every answer (INC-329, big model list)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-74-a-step-3-round-trip-keeps-every-answer-INC-329-big-model-list-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-75 the required mark is uniform across steps (D72)
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-75-the-required-mark-is-uniform-across-steps-D72-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-18 specifications survive a step Back
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-18-specifications-survive-a-step-Back-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-19 the seller's own phrase survives into the suggestion
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-19-the-seller-s-own-phrase-survives-into-the-suggestion-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-22 a link's allowed options narrow the picker and its default prefills
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-22-a-link-s-allowed-options-narrow-the-picker-and-its-default-prefills-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-28 a conditional detail appears only when its condition is met
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-28-a-conditional-detail-appears-only-when-its-condition-is-met-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-9 an option's facts prefill the siblings they name
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-9-an-option-s-facts-prefill-the-siblings-they-name-mobile-360`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-43 a fact prefills a sibling the same selection unhides
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-43-a-fact-prefills-a-sibling-the-same-selection-unhides-mobile-360`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-84 a new post opens on the seller's own last post, never another seller's
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"alias","reason":"required"},{"field":"first_name","reason":"required"},{"field":"last_name","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-84-a-new-post-opens-on-the-seller-s-own-last-post-never-another-seller-s-mobile-360`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-88 a step-3 answer's fact and narrowing reach the unit asked on the price page
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: locator('[data-testid="post-attr-control"][data-attr="e2e_mutzguo26qjh6i_quantity"]')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mutzguo26qjh6i_quantity"]')
+
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-88-a-step-3-answer-s-fact-and-narrowing-reach-the-unit-asked-on-the-price-page-mobile-360`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-104 a unit settled by the type is held by the price page's unit
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: PW-104: the price page does not hold the settled unit
+
+expect(locator).toHaveValue(expected) failed
+
+Locator: locator('[data-testid="post-attr-control"][data-attr="unit_of_sale-e2e_mutzib15gc0f1m"]')
+Expected: "per_kg"
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - PW-104: the price page does not hold the settled unit with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="unit_of_sale-e2e_mutzib15gc0f1m"]')
+
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-104-a-unit-settled-by-the-type-is-held-by-the-price-page-s-unit-mobile-360`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-89 thousand / million: the full amount is stored and shown
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-89-thousand-million-the-full-amount-is-stored-and-shown-mobile-360`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-98 the item tick sits on the city line, fresh and prefilled
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"alias","reason":"required"},{"field":"first_name","reason":"required"},{"field":"last_name","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-98-the-item-tick-sits-on-the-city-line-fresh-and-prefilled-mobile-360`
+
+## posting-routes.spec.ts › POSTING ROUTES › PR-3 a complete draft publishes to screening and never to active
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"},{"field":"alias","reason":"required"},{"field":"first_name","reason":"required"},{"field":"last_name","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+```
+
+Context:
+
+```text
+          - listitem [ref=e94]:
+            - generic [ref=e95]: About
+          - listitem [ref=e96]:
+            - generic [ref=e97]: How it works
+      - navigation "Help" [ref=e98]:
+        - heading "Help" [level=2] [ref=e99]
+        - list [ref=e100]:
+          - listitem [ref=e101]:
+            - generic [ref=e102]: Safety
+          - listitem [ref=e103]:
+            - generic [ref=e104]: Contact
+      - navigation "Legal" [ref=e105]:
+        - heading "Legal" [level=2] [ref=e106]
+        - list [ref=e107]:
+          - listitem [ref=e108]:
+            - generic [ref=e109]: Terms
+          - listitem [ref=e110]:
+            - generic [ref=e111]: Privacy
+    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## posting-routes.spec.ts › POSTING ROUTES › PR-18 the draft route accepts a 5000-character description and refuses 5001
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(received).toContainEqual(expected) // deep equality
+
+Expected value: {"field": "description", "reason": "tooLong"}
+Received array: [{"field": "price_amount", "reason": "required"}]
+```
+
+Context:
+
+```text
+          - listitem [ref=e112]:
+            - generic [ref=e113]: About
+          - listitem [ref=e114]:
+            - generic [ref=e115]: How it works
+      - navigation "Help" [ref=e116]:
+        - heading "Help" [level=2] [ref=e117]
+        - list [ref=e118]:
+          - listitem [ref=e119]:
+            - generic [ref=e120]: Safety
+          - listitem [ref=e121]:
+            - generic [ref=e122]: Contact
+      - navigation "Legal" [ref=e123]:
+        - heading "Legal" [level=2] [ref=e124]
+        - list [ref=e125]:
+          - listitem [ref=e126]:
+            - generic [ref=e127]: Terms
+          - listitem [ref=e128]:
+            - generic [ref=e129]: Privacy
+    - paragraph [ref=e131]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeDisabled() failed
+
+Locator:  getByTestId('post-who-country')
+Expected: disabled
+Received: enabled
+Timeout:  20000ms
+
+Call log:
+  - Expect "toBeDisabled" with timeout 20000ms
+  - waiting for getByTestId('post-who-country')
+    24 × locator resolved to <select id="post-who-country" data-testid="post-who-country" class="min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">…</select>
+       - unexpected value "enabled"
 
 ```
 
@@ -276,7 +1362,7 @@ Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2
 
 ## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over
 
-- Source: `changed`
+- Source: `shard 5`
 - Project: `desktop-1280`
 
 ```text
@@ -292,7 +1378,7 @@ Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2
 
 ## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin
 
-- Source: `changed`
+- Source: `shard 5`
 - Project: `desktop-1280`
 
 ```text
@@ -308,7 +1394,7 @@ Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2
 
 ## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's
 
-- Source: `changed`
+- Source: `shard 5`
 - Project: `desktop-1280`
 
 ```text
@@ -322,13 +1408,794 @@ Received: false
 
 Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-118-a-draft-s-own-channel-is-never-overwritten-by-the-last-post-s-desktop-1280`
 
-## posting-routes.spec.ts › POSTING ROUTES › PR-3 a complete draft publishes to screening and never to active
+## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-121 a phone number in the title or description is flagged at its field
 
-- Source: `changed`
-- Project: `mobile-360`
+- Source: `shard 5`
+- Project: `desktop-1280`
 
 ```text
-Error: {"ok":false,"refusals":[{"field":"home_country_code","reason":"required"},{"field":"alias","reason":"required"},{"field":"first_name","reason":"required"},{"field":"last_name","reason":"required"}]}
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-title')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-title')
+
+```
+
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-121-a-phone-number-in-the-title-or-description-is-flagged-at-its-field-desktop-1280`
+
+## post-wizard-category.spec.ts › POSTING WIZARD › PW-54 the wizard walks category, specifications, photos, details and resumes at the first unfinished step
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: PW-54: details did not follow
+
+expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - PW-54: details did not follow with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-category-POSTING-WIZARD-PW-54-the-wizard-walks-category-specifications-photos-details-and-resumes-at-the-first-unfinished-step-desktop-1280`
+
+## post-wizard-category.spec.ts › POSTING WIZARD › PW-48 a catch-all leaf can be chosen and its listing lands in review
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: PW-48: publishing into a catch-all leaf did not land on the in-review screen
+
+expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-in-review')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - PW-48: publishing into a catch-all leaf did not land on the in-review screen with timeout 20000ms
+  - waiting for getByTestId('post-in-review')
+
+```
+
+Context: context file not found for `post-wizard-category-POSTING-WIZARD-PW-48-a-catch-all-leaf-can-be-chosen-and-its-listing-lands-in-review-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-12-who-the-alias-is-checked-against-the-door-messages-cannot-be-switched-off-and-a-shown-channel-is-stored-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-112-who-a-new-post-opens-with-the-last-post-s-channels-stored-on-the-draft-unchanged-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-13 review: the preview shows what was answered, and Publish lands in review — never live
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-review-the-preview-shows-what-was-answered-and-Publish-lands-in-review-never-live-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-30-review-and-buyer-preview-render-option-labels-units-multi-values-and-booleans-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-31 the market select waits for the prefill chain and never preselects
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-31-the-market-select-waits-for-the-prefill-chain-and-never-preselects-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-20 where: the default place lists itself, is ticked, and a lone city box offers no Remove
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-20-where-the-default-place-lists-itself-is-ticked-and-a-lone-city-box-offers-no-Remove-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-33 a region alone never lists itself; its city does (W6 R2)
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-33-a-region-alone-never-lists-itself-its-city-does-W6-R2-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-80 a city is required: marked before Next, refused and scrolled to on Next, cleared by a city
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-80-a-city-is-required-marked-before-Next-refused-and-scrolled-to-on-Next-cleared-by-a-city-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-81 a prefilled city counts as chosen: no mark, Next passes untouched
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-81-a-prefilled-city-counts-as-chosen-no-mark-Next-passes-untouched-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-82 the add buttons follow the plan's own limits
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-82-the-add-buttons-follow-the-plan-s-own-limits-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-37 a tap on the map places a pin and the door stores it as exact
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-37-a-tap-on-the-map-places-a-pin-and-the-door-stores-it-as-exact-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-38 a place search moves the pin and fills the street line
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-38-a-place-search-moves-the-pin-and-fills-the-street-line-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-39 an approximate pin is stored as approx and drawn as an area, never a point
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-39-an-approximate-pin-is-stored-as-approx-and-drawn-as-an-area-never-a-point-desktop-1280`
+
+## post-wizard-place.spec.ts › POSTING WIZARD › PW-40 removing the pin clears all four columns
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-40-removing-the-pin-clears-all-four-columns-desktop-1280`
+
+## post-wizard-pricing.spec.ts › POSTING WIZARD › PW-58 a commission outside 0.01–100 % is refused in words, and a valid one advances (INC-301)
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-6')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-6')
+
+```
+
+Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-58-a-commission-outside-0-01-100-is-refused-in-words-and-a-valid-one-advances-INC-301-desktop-1280`
+
+## post-wizard-resets.spec.ts › POSTING WIZARD › PW-26 a category change drops the details the new category never asks, by name
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-26-a-category-change-drops-the-details-the-new-category-never-asks-by-name-desktop-1280`
+
+## post-wizard-resets.spec.ts › POSTING WIZARD › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-73-the-door-s-currency-fill-is-mirrored-so-Undo-restores-a-complete-price-INC-321-desktop-1280`
+
+## post-wizard-resets.spec.ts › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-61-a-category-change-resets-details-title-description-and-price-and-Undo-within-ten-seconds-restores-them-D59-desktop-1280`
+
+## post-wizard-resets.spec.ts › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-79-clearing-the-title-and-tapping-Next-at-once-still-registers-the-tap-INC-332-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-5-the-specification-form-is-generated-its-options-load-on-the-first-tap-and-an-empty-required-detail-is-refused-under-it-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-6 the AI assist fills the title and description from the entered details, and both stay editable
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-6-the-AI-assist-fills-the-title-and-description-from-the-entered-details-and-both-stay-editable-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-69-a-lazy-model-list-shows-its-stored-answer-on-re-entry-with-no-tap-INC-320-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-70 a strict refusal focuses the first refused field (D70)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-70-a-strict-refusal-focuses-the-first-refused-field-D70-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, no-preference)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-77-the-first-refused-field-s-label-lands-below-the-header-D2-no-preference-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, reduce)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-77-the-first-refused-field-s-label-lands-below-the-header-D2-reduce-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-74 a step-3 round trip keeps every answer (INC-329, small model list)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-74-a-step-3-round-trip-keeps-every-answer-INC-329-small-model-list-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-74 a step-3 round trip keeps every answer (INC-329, big model list)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-74-a-step-3-round-trip-keeps-every-answer-INC-329-big-model-list-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-75 the required mark is uniform across steps (D72)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-75-the-required-mark-is-uniform-across-steps-D72-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-18 specifications survive a step Back
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-18-specifications-survive-a-step-Back-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-19 the seller's own phrase survives into the suggestion
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-19-the-seller-s-own-phrase-survives-into-the-suggestion-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-22 a link's allowed options narrow the picker and its default prefills
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-22-a-link-s-allowed-options-narrow-the-picker-and-its-default-prefills-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-28 a conditional detail appears only when its condition is met
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-28-a-conditional-detail-appears-only-when-its-condition-is-met-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-9 an option's facts prefill the siblings they name
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-9-an-option-s-facts-prefill-the-siblings-they-name-desktop-1280`
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-43 a fact prefills a sibling the same selection unhides
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-5')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-step-5')
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-43-a-fact-prefills-a-sibling-the-same-selection-unhides-desktop-1280`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-84 a new post opens on the seller's own last post, never another seller's
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"alias","reason":"required"},{"field":"first_name","reason":"required"},{"field":"last_name","reason":"required"}]}
 
 expect(received).toBe(expected) // Object.is equality
 
@@ -336,71 +2203,92 @@ Expected: true
 Received: false
 ```
 
-Context:
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-84-a-new-post-opens-on-the-seller-s-own-last-post-never-another-seller-s-desktop-1280`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-88 a step-3 answer's fact and narrowing reach the unit asked on the price page
+
+- Source: `shard 6`
+- Project: `desktop-1280`
 
 ```text
-          - listitem [ref=e112]:
-            - generic [ref=e113]: About
-          - listitem [ref=e114]:
-            - generic [ref=e115]: How it works
-      - navigation "Help" [ref=e116]:
-        - heading "Help" [level=2] [ref=e117]
-        - list [ref=e118]:
-          - listitem [ref=e119]:
-            - generic [ref=e120]: Safety
-          - listitem [ref=e121]:
-            - generic [ref=e122]: Contact
-      - navigation "Legal" [ref=e123]:
-        - heading "Legal" [level=2] [ref=e124]
-        - list [ref=e125]:
-          - listitem [ref=e126]:
-            - generic [ref=e127]: Terms
-          - listitem [ref=e128]:
-            - generic [ref=e129]: Privacy
-    - paragraph [ref=e131]: © 2026 ethio.com — All rights reserved.
-```
+Error: expect(locator).toBeVisible() failed
+
+Locator: locator('[data-testid="post-attr-control"][data-attr="e2e_mutzi4k8djbd84_quantity"]')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mutzi4k8djbd84_quantity"]')
+
 ```
 
-## posting-routes.spec.ts › POSTING ROUTES › PR-18 the draft route accepts a 5000-character description and refuses 5001
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-88-a-step-3-answer-s-fact-and-narrowing-reach-the-unit-asked-on-the-price-page-desktop-1280`
 
-- Source: `changed`
-- Project: `mobile-360`
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-104 a unit settled by the type is held by the price page's unit
+
+- Source: `shard 6`
+- Project: `desktop-1280`
 
 ```text
-Error: expect(received).toContainEqual(expected) // deep equality
+Error: PW-104: the price page does not hold the settled unit
 
-Expected value: {"field": "description", "reason": "tooLong"}
-Received array: [{"field": "price_amount", "reason": "required"}]
+expect(locator).toHaveValue(expected) failed
+
+Locator: locator('[data-testid="post-attr-control"][data-attr="unit_of_sale-e2e_mutzjogqp6toda"]')
+Expected: "per_kg"
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - PW-104: the price page does not hold the settled unit with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="unit_of_sale-e2e_mutzjogqp6toda"]')
+
 ```
 
-Context:
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-104-a-unit-settled-by-the-type-is-held-by-the-price-page-s-unit-desktop-1280`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-89 thousand / million: the full amount is stored and shown
+
+- Source: `shard 6`
+- Project: `desktop-1280`
 
 ```text
-          - listitem [ref=e112]:
-            - generic [ref=e113]: About
-          - listitem [ref=e114]:
-            - generic [ref=e115]: How it works
-      - navigation "Help" [ref=e116]:
-        - heading "Help" [level=2] [ref=e117]
-        - list [ref=e118]:
-          - listitem [ref=e119]:
-            - generic [ref=e120]: Safety
-          - listitem [ref=e121]:
-            - generic [ref=e122]: Contact
-      - navigation "Legal" [ref=e123]:
-        - heading "Legal" [level=2] [ref=e124]
-        - list [ref=e125]:
-          - listitem [ref=e126]:
-            - generic [ref=e127]: Terms
-          - listitem [ref=e128]:
-            - generic [ref=e129]: Privacy
-    - paragraph [ref=e131]: © 2026 ethio.com — All rights reserved.
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-4')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-4')
+
 ```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-89-thousand-million-the-full-amount-is-stored-and-shown-desktop-1280`
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-98 the item tick sits on the city line, fresh and prefilled
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: {"ok":false,"refusals":[{"field":"alias","reason":"required"},{"field":"first_name","reason":"required"},{"field":"last_name","reason":"required"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
 ```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-98-the-item-tick-sits-on-the-city-line-fresh-and-prefilled-desktop-1280`
 
 ## posting-routes.spec.ts › POSTING ROUTES › PR-3 a complete draft publishes to screening and never to active
 
-- Source: `changed`
+- Source: `shard 6`
 - Project: `desktop-1280`
 
 ```text
@@ -415,31 +2303,31 @@ Received: false
 Context:
 
 ```text
-          - listitem [ref=e327]:
-            - generic [ref=e328]: About
-          - listitem [ref=e329]:
-            - generic [ref=e330]: How it works
-      - navigation "Help" [ref=e331]:
-        - heading "Help" [level=2] [ref=e332]
-        - list [ref=e333]:
-          - listitem [ref=e334]:
-            - generic [ref=e335]: Safety
-          - listitem [ref=e336]:
-            - generic [ref=e337]: Contact
-      - navigation "Legal" [ref=e338]:
-        - heading "Legal" [level=2] [ref=e339]
-        - list [ref=e340]:
+          - listitem [ref=e339]:
+            - generic [ref=e340]: About
           - listitem [ref=e341]:
-            - generic [ref=e342]: Terms
-          - listitem [ref=e343]:
-            - generic [ref=e344]: Privacy
-    - paragraph [ref=e346]: © 2026 ethio.com — All rights reserved.
+            - generic [ref=e342]: How it works
+      - navigation "Help" [ref=e343]:
+        - heading "Help" [level=2] [ref=e344]
+        - list [ref=e345]:
+          - listitem [ref=e346]:
+            - generic [ref=e347]: Safety
+          - listitem [ref=e348]:
+            - generic [ref=e349]: Contact
+      - navigation "Legal" [ref=e350]:
+        - heading "Legal" [level=2] [ref=e351]
+        - list [ref=e352]:
+          - listitem [ref=e353]:
+            - generic [ref=e354]: Terms
+          - listitem [ref=e355]:
+            - generic [ref=e356]: Privacy
+    - paragraph [ref=e358]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
 ## posting-routes.spec.ts › POSTING ROUTES › PR-18 the draft route accepts a 5000-character description and refuses 5001
 
-- Source: `changed`
+- Source: `shard 6`
 - Project: `desktop-1280`
 
 ```text
@@ -452,58 +2340,27 @@ Received array: [{"field": "price_amount", "reason": "required"}]
 Context:
 
 ```text
-          - listitem [ref=e358]:
-            - generic [ref=e359]: About
-          - listitem [ref=e360]:
-            - generic [ref=e361]: How it works
-      - navigation "Help" [ref=e362]:
-        - heading "Help" [level=2] [ref=e363]
-        - list [ref=e364]:
+          - listitem [ref=e363]:
+            - generic [ref=e364]: About
           - listitem [ref=e365]:
-            - generic [ref=e366]: Safety
-          - listitem [ref=e367]:
-            - generic [ref=e368]: Contact
-      - navigation "Legal" [ref=e369]:
-        - heading "Legal" [level=2] [ref=e370]
-        - list [ref=e371]:
+            - generic [ref=e366]: How it works
+      - navigation "Help" [ref=e367]:
+        - heading "Help" [level=2] [ref=e368]
+        - list [ref=e369]:
+          - listitem [ref=e370]:
+            - generic [ref=e371]: Safety
           - listitem [ref=e372]:
-            - generic [ref=e373]: Terms
-          - listitem [ref=e374]:
-            - generic [ref=e375]: Privacy
-    - paragraph [ref=e377]: © 2026 ethio.com — All rights reserved.
+            - generic [ref=e373]: Contact
+      - navigation "Legal" [ref=e374]:
+        - heading "Legal" [level=2] [ref=e375]
+        - list [ref=e376]:
+          - listitem [ref=e377]:
+            - generic [ref=e378]: Terms
+          - listitem [ref=e379]:
+            - generic [ref=e380]: Privacy
+    - paragraph [ref=e382]: © 2026 ethio.com — All rights reserved.
 ```
 ```
-
-## Server errors: smoke
-
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
-
-## Client errors: smoke
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-```
-
-## Server errors: shard 1
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## Client errors: shard 1
-
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
 ## Server errors: shard 2
 
@@ -533,7 +2390,7 @@ No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 ## Client errors: shard 2
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×4
+[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×3
 ```
 
 ## Server errors: shard 3
@@ -545,29 +2402,8 @@ No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 ## Client errors: shard 3
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×40
+[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×26
 ```
-
-## Server errors: shard 4
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 
 ## Server errors: shard 5
 
@@ -597,351 +2433,17 @@ No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 ## Client errors: shard 5
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×11
+[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×21
 ```
 
 ## Server errors: shard 6
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
+[WebServer] [ssr-error] /api/listings/draft listing not found ×2
 ```
 
 ## Client errors: shard 6
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×15
-[client-error] console.error: [client-error] gate fetch threw
-```
-
-## Server errors: changed
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×2
-```
-
-## Client errors: changed
-
-```text
-[client-error] console.error: [client-error] gate fetch threw
-console.error: [client-error] gate fetch threw
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- error lines (1) ---
-[e2e:setup] EN baseline probe unavailable: TypeError: fetch failed (UND_ERR_HEADERS_OVERFLOW) after 4 attempts
---- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37211897860-1-3061-3-lz8lzs@ethio-e2e.invalid)
-  ✓  124 [mobile-360] › e2e/admin-coverage.spec.ts:300:3 › L2b coverage console › CV-6 geometry: nothing overflows and the editor's controls are on screen (2.7s)
-[e2e:u2] RP-1 baseline intact: moderator holds no roles:* grant
-  ✓  120 [mobile-360] › e2e/admin-locations.spec.ts:219:3 › L2a locations console › LT-3 create chain: region → city → sub-city are born retired with their ancestry filled, and activate top-down (22.7s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37211897860-1-3061-2-lplnpa@ethio-e2e.invalid)
-  ✓  125 [mobile-360] › e2e/admin-roles.spec.ts:145:3 › U2 roles console › RP-1 gating: moderator refused, admin sees the list, signed-out deep link redirects (13.4s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37211897860-1-3061-3-lz8lzs@ethio-e2e.invalid)
-  ✓  127 [mobile-360] › e2e/admin-roles.spec.ts:178:3 › U2 roles console › RP-2 create: a super admin creates a custom role through step-up (8.4s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37211897860-1-3061-3-lz8lzs@ethio-e2e.invalid)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- error lines (21) ---
-[WebServer] Error in renderToReadableStream: ReferenceError: window is not defined ×4
-  ✘  123 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:420:3 › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried (35.3s)
-  ✘  128 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:420:3 › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried (retry #1) (36.5s)
-  ✘  141 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:626:3 › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over (6.0s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  139 [mobile-360] › e2e/post-wizard-category.spec.ts:898:3 › POSTING WIZARD › PW-27 the mobile strip walks back to a step already done, and no further (23.8s)
-  ✘  142 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:626:3 › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over (retry #1) (8.6s)
-  ✘  144 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:652:3 › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin (11.0s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  143 [mobile-360] › e2e/post-wizard-category.spec.ts:898:3 › POSTING WIZARD › PW-27 the mobile strip walks back to a step already done, and no further (retry #1) (21.7s)
-  ✘  145 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:652:3 › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin (retry #1) (9.4s)
-  ✘  150 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:753:3 › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's (11.9s)
-  ✘  152 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:753:3 › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's (retry #1) (15.7s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  158 [mobile-360] › e2e/post-wizard-category.spec.ts:1295:3 › POSTING WIZARD › PW-48 a catch-all leaf can be chosen and its listing lands in review (25.1s)
-  ✘  161 [mobile-360] › e2e/post-wizard-category.spec.ts:1295:3 › POSTING WIZARD › PW-48 a catch-all leaf can be chosen and its listing lands in review (retry #1) (21.7s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  164 [mobile-360] › e2e/post-wizard-place.spec.ts:269:3 › POSTING WIZARD › PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan (22.5s)
-  ✘  168 [mobile-360] › e2e/post-wizard-place.spec.ts:269:3 › POSTING WIZARD › PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan (retry #1) (23.4s)
-  ✘  169 [mobile-360] › e2e/post-wizard-place.spec.ts:442:3 › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored (17.8s)
-  ✘  170 [mobile-360] › e2e/post-wizard-place.spec.ts:442:3 › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored (retry #1) (16.4s)
---- final 10 lines ---
-✓  163 [mobile-360] › e2e/post-wizard-finder.spec.ts:69:3 › POSTING WIZARD — the category finder (W7) › PW-85 an option label, an alias and an Amharic alias each find the leaf, and the choice prefills the option (17.0s)
-  ✓  165 [mobile-360] › e2e/post-wizard-finder.spec.ts:125:3 › POSTING WIZARD — the category finder (W7) › PW-86 a failing finder leaves the name matches on screen, with the notice (5.8s)
-  ✓  166 [mobile-360] › e2e/post-wizard-finder.spec.ts:149:3 › POSTING WIZARD — the category finder (W7) › PW-105 the searching row shows while the finder is asked; no-hits only after its answer (4.8s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  164 [mobile-360] › e2e/post-wizard-place.spec.ts:269:3 › POSTING WIZARD › PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan (22.5s)
-  ✓  167 [mobile-360] › e2e/post-wizard-finder.spec.ts:180:3 › POSTING WIZARD — the category finder (W7) › PW-87 off the chosen path the step asks again, Keep it returns, a new leaf clears it (10.9s)
-  ✘  168 [mobile-360] › e2e/post-wizard-place.spec.ts:269:3 › POSTING WIZARD › PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan (retry #1) (23.4s)
-  ✘  169 [mobile-360] › e2e/post-wizard-place.spec.ts:442:3 › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored (17.8s)
-  ✘  170 [mobile-360] › e2e/post-wizard-place.spec.ts:442:3 › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored (retry #1) (16.4s)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-```
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×4
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- error lines (30) ---
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘    1 [mobile-360] › e2e/post-wizard-pricing.spec.ts:230:3 › POSTING WIZARD › PW-10 pricing: currency comes before the amount, a locked period shows no line, and free hides the amount (22.5s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘    3 [mobile-360] › e2e/post-wizard-resets.spec.ts:317:3 › POSTING WIZARD › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317) (21.1s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘    4 [mobile-360] › e2e/post-wizard-pricing.spec.ts:230:3 › POSTING WIZARD › PW-10 pricing: currency comes before the amount, a locked period shows no line, and free hides the amount (retry #1) (19.6s)
-  ✘    5 [mobile-360] › e2e/post-wizard-resets.spec.ts:317:3 › POSTING WIZARD › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317) (retry #1) (24.4s)
-  ✘    6 [mobile-360] › e2e/post-wizard-pricing.spec.ts:350:3 › POSTING WIZARD › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages (27.5s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘    7 [mobile-360] › e2e/post-wizard-resets.spec.ts:373:3 › POSTING WIZARD › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) (29.5s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘    8 [mobile-360] › e2e/post-wizard-pricing.spec.ts:350:3 › POSTING WIZARD › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages (retry #1) (28.8s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘    9 [mobile-360] › e2e/post-wizard-resets.spec.ts:373:3 › POSTING WIZARD › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) (retry #1) (30.2s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   10 [mobile-360] › e2e/post-wizard-pricing.spec.ts:381:3 › POSTING WIZARD › PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it (28.9s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   11 [mobile-360] › e2e/post-wizard-resets.spec.ts:495:3 › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) (29.6s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   12 [mobile-360] › e2e/post-wizard-pricing.spec.ts:381:3 › POSTING WIZARD › PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it (retry #1) (27.3s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   13 [mobile-360] › e2e/post-wizard-resets.spec.ts:495:3 › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) (retry #1) (31.6s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   14 [mobile-360] › e2e/post-wizard-pricing.spec.ts:407:3 › POSTING WIZARD › PW-109 a quote basis forces contact, and a changed basis releases it (INC-375) (27.3s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   16 [mobile-360] › e2e/post-wizard-pricing.spec.ts:407:3 › POSTING WIZARD › PW-109 a quote basis forces contact, and a changed basis releases it (INC-375) (retry #1) (32.3s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   15 [mobile-360] › e2e/post-wizard-resets.spec.ts:543:3 › POSTING WIZARD › PW-61 after ten seconds the Undo is gone and the reset stands (D59) (35.5s)
-  ✘   17 [mobile-360] › e2e/post-wizard-pricing.spec.ts:422:3 › POSTING WIZARD › PW-108 an Other basis names the seller's written unit (INC-371) (22.4s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
---- final 10 lines ---
-✘   77 [mobile-360] › e2e/post-wizard-where.spec.ts:365:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-104 a unit settled by the type is named on step 5 and changed on step 3 (retry #1) (28.8s)
-  ✓   81 [mobile-360] › e2e/post-wizard-specs.spec.ts:1547:3 › POSTING WIZARD › PW-58 under Amharic a year reads with its Ethiopian years, the same on the picker and the review (D45) (8.6s)
-  ✓   83 [mobile-360] › e2e/post-wizard-specs.spec.ts:1600:3 › POSTING WIZARD › PW-34 a colour detail offers stemmed swatches, and an unmapped list shows no tray (6.8s)
-  ✓   84 [mobile-360] › e2e/post-wizard-specs.spec.ts:1671:3 › POSTING WIZARD › PW-45 a declared swatch renders one ink, a two-tone and a pattern tile (8.0s)
-  ✘   82 [mobile-360] › e2e/post-wizard-where.spec.ts:396:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-89 thousand / million: the full amount is stored and shown (27.0s)
-  ✓   85 [mobile-360] › e2e/post-wizard-specs.spec.ts:1740:3 › POSTING WIZARD › PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44) (8.4s)
-  ✓   86 [mobile-360] › e2e/post-wizard-specs.spec.ts:1801:3 › POSTING WIZARD › PW-42 Amharic catalog text falls back field by field (6.7s)
-  ✓   88 [mobile-360] › e2e/post-wizard-specs.spec.ts:1876:3 › POSTING WIZARD › PW-43 a fact prefills a sibling the same selection unhides (7.9s)
-  ✓   89 [mobile-360] › e2e/post-wizard-specs.spec.ts:1938:3 › POSTING WIZARD › PW-49 a prefill-only fact keeps its input while a settled one does not (7.0s)
-```
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×40
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37211897860-4-3111-3-nmjxb7@ethio-e2e.invalid)
-  ✓  139 [desktop-1280] › e2e/admin-roles.spec.ts:396:3 › U2 roles console › RP-10 members link preselects the role filter via the URL (12.6s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37211897860-4-3111-3-nmjxb7@ethio-e2e.invalid)
-  ✓  138 [desktop-1280] › e2e/admin-locations.spec.ts:563:3 › L2a locations console › LT-7 import round trip: a three-row file previews, commits, exports, deletes and undoes with the original ids (21.6s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37211897860-4-3111-2-ddtwvn@ethio-e2e.invalid)
-  ✓  140 [desktop-1280] › e2e/admin-roles.spec.ts:418:3 › U2 roles console › RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC (8.7s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37211897860-4-3111-3-nmjxb7@ethio-e2e.invalid)
-  ✓  141 [desktop-1280] › e2e/admin-locations.spec.ts:697:3 › L2a locations console › LT-7b the editor round-trips a row without dropping a stored field (8.9s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37211897860-4-3111-2-ddtwvn@ethio-e2e.invalid)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- error lines (30) ---
-  ✘  105 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:420:3 › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried (34.2s)
-  ✘  111 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:420:3 › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried (retry #1) (34.7s)
-  ✘  123 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:626:3 › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over (9.6s)
-  ✘  126 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:626:3 › POSTING WIZARD — bundle 2 place and contact › PW-115 without own_place the last post's pin, directions and details carry over (retry #1) (11.0s)
-  ✘  128 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:652:3 › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin (11.9s)
-  ✘  131 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:652:3 › POSTING WIZARD — bundle 2 place and contact › PW-116 an own_place category never carries the last post's pin (retry #1) (20.3s)
-  ✘  135 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:753:3 › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's (9.9s)
-  ✘  137 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:753:3 › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's (retry #1) (9.7s)
-  ✘  138 [desktop-1280] › e2e/post-wizard-category.spec.ts:1295:3 › POSTING WIZARD › PW-48 a catch-all leaf can be chosen and its listing lands in review (20.3s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  141 [desktop-1280] › e2e/post-wizard-category.spec.ts:1295:3 › POSTING WIZARD › PW-48 a catch-all leaf can be chosen and its listing lands in review (retry #1) (24.1s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  147 [desktop-1280] › e2e/post-wizard-place.spec.ts:269:3 › POSTING WIZARD › PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan (21.9s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  151 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:230:3 › POSTING WIZARD › PW-10 pricing: currency comes before the amount, a locked period shows no line, and free hides the amount (19.2s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  150 [desktop-1280] › e2e/post-wizard-place.spec.ts:269:3 › POSTING WIZARD › PW-11 where: the market is prefilled from the edge, a city with sub-cities offers all of it, and a second place is refused by the plan (retry #1) (21.1s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  152 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:230:3 › POSTING WIZARD › PW-10 pricing: currency comes before the amount, a locked period shows no line, and free hides the amount (retry #1) (18.4s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  153 [desktop-1280] › e2e/post-wizard-place.spec.ts:442:3 › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored (18.2s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  154 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:350:3 › POSTING WIZARD › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages (19.4s)
-  ✘  155 [desktop-1280] › e2e/post-wizard-place.spec.ts:442:3 › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored (retry #1) (18.4s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  157 [desktop-1280] › e2e/post-wizard-place.spec.ts:530:3 › POSTING WIZARD › PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged (18.4s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  156 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:350:3 › POSTING WIZARD › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages (retry #1) (19.6s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  158 [desktop-1280] › e2e/post-wizard-place.spec.ts:530:3 › POSTING WIZARD › PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged (retry #1) (17.9s)
---- final 10 lines ---
-✘  155 [desktop-1280] › e2e/post-wizard-place.spec.ts:442:3 › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored (retry #1) (18.4s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  157 [desktop-1280] › e2e/post-wizard-place.spec.ts:530:3 › POSTING WIZARD › PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged (18.4s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  156 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:350:3 › POSTING WIZARD › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages (retry #1) (19.6s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  158 [desktop-1280] › e2e/post-wizard-place.spec.ts:530:3 › POSTING WIZARD › PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged (retry #1) (17.9s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘  159 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:381:3 › POSTING WIZARD › PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it (19.0s)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-```
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×11
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- error lines (30) ---
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘    4 [desktop-1280] › e2e/post-wizard-resets.spec.ts:317:3 › POSTING WIZARD › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317) (20.5s)
-  ✘    3 [desktop-1280] › e2e/post-wizard-specs.spec.ts:290:3 › POSTING WIZARD › PW-6 the AI assist fills the title and description from the entered details, and both stay editable (21.8s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘    5 [desktop-1280] › e2e/post-wizard-resets.spec.ts:317:3 › POSTING WIZARD › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317) (retry #1) (23.1s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘    6 [desktop-1280] › e2e/post-wizard-specs.spec.ts:290:3 › POSTING WIZARD › PW-6 the AI assist fills the title and description from the entered details, and both stay editable (retry #1) (26.4s)
-  ✘    7 [desktop-1280] › e2e/post-wizard-resets.spec.ts:373:3 › POSTING WIZARD › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) (27.7s)
-  ✘   10 [desktop-1280] › e2e/post-wizard-resets.spec.ts:373:3 › POSTING WIZARD › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) (retry #1) (24.7s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   13 [desktop-1280] › e2e/post-wizard-resets.spec.ts:495:3 › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) (28.3s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   15 [desktop-1280] › e2e/post-wizard-specs.spec.ts:548:3 › POSTING WIZARD › PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320) (26.4s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   16 [desktop-1280] › e2e/post-wizard-resets.spec.ts:495:3 › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) (retry #1) (28.4s)
-  ✘   17 [desktop-1280] › e2e/post-wizard-specs.spec.ts:548:3 › POSTING WIZARD › PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320) (retry #1) (26.3s)
-  ✘   18 [desktop-1280] › e2e/post-wizard-resets.spec.ts:543:3 › POSTING WIZARD › PW-61 after ten seconds the Undo is gone and the reset stands (D59) (32.3s)
-  ✘   19 [desktop-1280] › e2e/post-wizard-specs.spec.ts:628:3 › POSTING WIZARD › PW-70 a strict refusal focuses the first refused field (D70) (28.5s)
-  ✘   20 [desktop-1280] › e2e/post-wizard-resets.spec.ts:543:3 › POSTING WIZARD › PW-61 after ten seconds the Undo is gone and the reset stands (D59) (retry #1) (28.1s)
-  ✘   21 [desktop-1280] › e2e/post-wizard-specs.spec.ts:628:3 › POSTING WIZARD › PW-70 a strict refusal focuses the first refused field (D70) (retry #1) (24.7s)
-  ✘   24 [desktop-1280] › e2e/post-wizard-specs.spec.ts:655:5 › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, no-preference) (27.9s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   26 [desktop-1280] › e2e/post-wizard-resets.spec.ts:958:3 › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332) (23.7s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   27 [desktop-1280] › e2e/post-wizard-specs.spec.ts:655:5 › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, no-preference) (retry #1) (31.9s)
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-  ✘   28 [desktop-1280] › e2e/post-wizard-resets.spec.ts:958:3 › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332) (retry #1) (22.4s)
-  ✘   29 [desktop-1280] › e2e/post-wizard-specs.spec.ts:655:5 › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, reduce) (29.5s)
-  ✘   32 [desktop-1280] › e2e/post-wizard-where.spec.ts:200:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-84 a new post opens on the seller's own last post, never another seller's (21.0s)
-  ✘   31 [desktop-1280] › e2e/post-wizard-specs.spec.ts:655:5 › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, reduce) (retry #1) (31.0s)
---- final 10 lines ---
-✓  161 [desktop-1280] › e2e/posting-routes.spec.ts:866:3 › POSTING ROUTES › PR-20 step 5: the counters are server-only; the server path still counts (4.2s)
-  ✓  159 [desktop-1280] › e2e/shell.spec.ts:1772:3 › L4b location picker › LS-2 a pick is remembered, clearing forgets it (15.6s)
-  ✓  163 [desktop-1280] › e2e/shell.spec.ts:1805:3 › L4b location picker › LS-3 an open market is guessed from the edge country, never saved (671ms)
-  ✓  164 [desktop-1280] › e2e/shell.spec.ts:1822:3 › L4b location picker › LS-4 a closed market is not guessed (659ms)
-  ✓  165 [desktop-1280] › e2e/shell.spec.ts:1841:3 › L4b location picker › LS-5 no header and no cookie: no guess, and the markets route caches (611ms)
-  ✓  162 [desktop-1280] › e2e/posting-routes.spec.ts:898:3 › POSTING ROUTES › PR-21 step 7: private columns are owner-only, through my_listing_private (9.5s)
-  ✓  167 [desktop-1280] › e2e/posting-routes.spec.ts:943:3 › POSTING ROUTES › PR-22 step 8: attribute tables leave the browser; categories still read (4.2s)
-  ✓  166 [desktop-1280] › e2e/shell.spec.ts:1939:3 › L4b location picker › LS-6 the nearest curated metro wins by geometry (11.6s)
-  ✓  168 [desktop-1280] › e2e/posting-routes.spec.ts:1008:3 › POSTING ROUTES › PR-23 an ad has no end unless the seller sets a date or the category holds a limit (DEC-117) (5.9s)
-```
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
-```
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×15
-[client-error] console.error: [client-error] gate fetch threw
+[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×44
 ```
