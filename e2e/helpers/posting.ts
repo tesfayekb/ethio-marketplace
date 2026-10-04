@@ -315,10 +315,12 @@ export function completeDraft(params: {
   categoryId: string;
   cityId: string;
   title: string;
+  /** M5: a step-8 save is judged like a review; nameless sellers save at 7. */
+  step?: number;
 }): Record<string, unknown> {
   return {
     listingId: params.listingId ?? null,
-    step: 8,
+    step: params.step ?? 8,
     categoryId: params.categoryId,
     title: params.title,
     description: "e2e posting-routes draft body",

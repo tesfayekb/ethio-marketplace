@@ -404,21 +404,28 @@ export function StepWho({
     if (!saveRef) return;
     saveRef.current = async () => {
       const next = alias.trim().toLowerCase();
-      if (next === "" || next === checkedAliasRef.current) return true;
-      if (aliasState !== "ok") {
-        if (aliasState !== "refused") checkAlias(next);
-        return false;
-      }
-      const answer = await commit({ alias: next });
-      if (!aliveRef.current) return answer.ok;
-      if (answer.ok) {
+      if (next !== "" && next !== checkedAliasRef.current) {
+        if (aliasState !== "ok") {
+          if (aliasState !== "refused") checkAlias(next);
+          return false;
+        }
+        const answer = await commit({ alias: next });
+        if (!aliveRef.current) return answer.ok;
+        if (!answer.ok) {
+          setAliasCheckRefusal(refusalFor(answer.refusals, "alias"));
+          setAliasState("refused");
+          offerSuggestions();
+          return false;
+        }
         checkedAliasRef.current = next;
-        return true;
       }
-      setAliasCheckRefusal(refusalFor(answer.refusals, "alias"));
-      setAliasState("refused");
-      offerSuggestions();
-      return false;
+      /**
+       * Bundle 4 step 23 (INC-424) — the contact details live on the profile:
+       * leaving the step saves them there through the same door, and a refusal
+       * lands on the channel's own control (`contact_pref.<channel>`).
+       */
+      const contactAnswer = await commit({ contactPref: contactRef.current });
+      return contactAnswer.ok;
     };
     return () => {
       saveRef.current = null;
