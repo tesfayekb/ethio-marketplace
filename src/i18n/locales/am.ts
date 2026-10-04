@@ -2155,6 +2155,8 @@ export const am: Messages = {
   "post.review.summaryLabel": "የሚለጥፉት ነገር",
   "post.review.edit": "አስተካክል",
   "post.review.placesCount": "{count} ቦታ(ዎች)",
+  "post.seller.previously": "ቀደም ሲል {name}",
+  "post.seller.memberSince": "አባል ከ{date} ጀምሮ",
   "post.review.notGiven": "አልተሰጠም",
   "post.refusal.belowModelYear": "ይህ ይህ ሞዴል ከተሠራበት ዓመት በፊት ነው።",
   "post.refusal.aboveModelYear": "ይህ ይህ ሞዴል ከተሠራበት ዓመት በኋላ ነው።",

@@ -1,5 +1,5 @@
-import { useI18n } from "@/i18n/use-i18n";
-import { fill } from "@/i18n/fill";
+import { useI18n } from "@/i18n";
+import { fill } from "./refusal-text";
 
 /**
  * Bundle 3 step 20 — THE SELLER LINE, drawn in one place.

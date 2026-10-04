@@ -17,11 +17,14 @@ import {
   publishListing,
   readPostingSchema,
   readSellerIdentity,
+  readSellerLine,
+  type SellerLineFacts,
   type AttrDef,
   type DraftPhotoRow,
   type SellerIdentity,
 } from "./posting-service";
 import { PreviewSheet } from "./preview/preview-sheet";
+import { SellerLine } from "./seller-line";
 import type { DraftValues } from "./use-draft";
 import type { Refusal } from "./types";
 
@@ -135,6 +138,8 @@ export function StepReview({
   const [attributeOptions, setAttributeOptions] = useState<Record<string, AttrOption[]>>({});
   /** U6-C1-R3b-1 — the seller block the buyer's-eye preview and the summary show. */
   const [identity, setIdentity] = useState<SellerIdentity | null>(null);
+  /** Bundle 3 step 20 — "previously" and member since, from `my_seller_line()`. */
+  const [line, setLine] = useState<SellerLineFacts | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [refusals, setRefusals] = useState<Refusal[]>([]);
@@ -146,6 +151,15 @@ export function StepReview({
     void readSellerIdentity().then((found) => {
       if (!cancelled) setIdentity(found);
     });
+    readSellerLine().then(
+      (found) => {
+        if (!cancelled) setLine(found);
+      },
+      (error: unknown) => {
+        // F4 — logged; the line then shows the name alone.
+        console.error("[seller-line] read failed", error);
+      },
+    );
     return () => {
       cancelled = true;
     };
@@ -260,6 +274,8 @@ export function StepReview({
     value: string;
     sub?: string;
     negotiable?: boolean;
+    /** Step 20 — the shared seller line is drawn under this section. */
+    seller?: boolean;
   }[] = [
     { step: 1, nameKey: "post.step.category", value: categoryPath },
     {
@@ -295,6 +311,7 @@ export function StepReview({
       // D17 — the seller block names WHO is selling before HOW to reach them: a
       // business by its business name, a person by the public alias.
       value: [sellerName, channelLine].filter((part) => part !== "").join(" · "),
+      seller: true,
     },
   ];
 
@@ -354,6 +371,19 @@ export function StepReview({
                 <dd className="break-words text-sm text-foreground" data-testid="post-review-value">
                   {section.value === "" ? t("post.review.notGiven") : section.value}
                 </dd>
+                {section.seller === true && identity !== null && (
+                  <dd data-testid="post-review-seller">
+                    <SellerLine
+                      alias={identity.alias}
+                      businessName={
+                        identity.sellerType === "business" ? (identity.businessName ?? null) : null
+                      }
+                      previousAlias={line?.previousAlias ?? null}
+                      memberSince={line?.memberSince ?? null}
+                      testId="post-review-seller"
+                    />
+                  </dd>
+                )}
                 {section.negotiable === true && (
                   <dd>
                     <NegotiableBadge />
@@ -439,6 +469,8 @@ export function StepReview({
             sellerAlias: identity?.alias ?? null,
             sellerBusinessName:
               identity?.sellerType === "business" ? (identity?.businessName ?? null) : null,
+            sellerPreviousAlias: line?.previousAlias ?? null,
+            sellerMemberSince: line?.memberSince ?? null,
             pinLat: pin?.lat ?? null,
             pinLng: pin?.lng ?? null,
             pinPrecision: pin?.precision ?? null,

@@ -2260,6 +2260,8 @@ export const en = {
   "post.review.summaryLabel": "What you are posting",
   "post.review.edit": "Edit",
   "post.review.placesCount": "{count} place(s)",
+  "post.seller.previously": "Previously {name}",
+  "post.seller.memberSince": "Member since {date}",
   "post.review.notGiven": "Not given",
   "post.refusal.belowModelYear": "That is earlier than this model was made.",
   "post.refusal.aboveModelYear": "That is later than this model was made.",
