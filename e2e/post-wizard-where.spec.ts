@@ -294,8 +294,8 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     return listingId;
   }
 
-  /** Step 3 → photos → details → step 5. */
-  async function walkOnToStep5(page: Page) {
+  /** Step 3 → photos → the price page (step 4, DEC-109). */
+  async function walkOnToPrice(page: Page) {
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-next").click();
@@ -307,7 +307,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
    * on step 3. After the type is chosen, "How it's sold" shows the type's fact
    * (per_litre) and offers no per_kg; step 5 names the chosen unit read-only.
    */
-  test("PW-88 a step-3 answer's fact and narrowing reach the unit asked on step 3", async ({
+  test("PW-88 a step-3 answer's fact and narrowing reach the unit asked on the price page", async ({
     page,
   }) => {
     const user = await signedInSeller(page);
@@ -321,6 +321,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       timeout: 20_000,
     });
     await type.selectOption(set.typeValue);
+    // DEC-109 — the unit and the quantity are asked on the price page (step 4),
+    // narrowed there by the step-3 answer.
+    await expect(control(page, set.basisKey), "PW-88: the unit is still asked on step 3").toHaveCount(0);
+    await walkOnToPrice(page);
     const basis = control(page, set.basisKey);
     await expect(basis, "PW-88: the unit does not show the type's fact").toHaveValue("per_litre", {
       timeout: 20_000,
@@ -329,20 +333,11 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       basis.locator('option[value="per_kg"]'),
       "PW-88: the unit still offers per_kg",
     ).toHaveCount(0);
-    // N2-a — the unit is asked before quantity: "How it's sold" renders above
-    // the later-ordered row on step 3.
     await expect(control(page, set.quantityKey)).toBeVisible({ timeout: 20_000 });
     const unitBox = await basis.boundingBox();
     const quantityBox = await control(page, set.quantityKey).boundingBox();
     expect(unitBox && quantityBox, "PW-88: unit or quantity row not rendered").toBeTruthy();
     expect(unitBox!.y, "PW-88: the unit is not asked above quantity").toBeLessThan(quantityBox!.y);
-    await walkOnToStep5(page);
-    await expect(page.getByTestId("post-price-basis")).toHaveCount(0);
-    await expect(page.getByTestId("post-price-unit-chosen")).toHaveAttribute(
-      "data-basis",
-      "per_litre",
-      { timeout: 20_000 },
-    );
     await page.getByTestId("post-price-mode-free").click();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
@@ -362,7 +357,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
    * PW-104 — N2: a goods unit settled by the type (Gesho → Per Kg) is filled on
    * step 3, and step 5 names it read-only with a way back to step 3.
    */
-  test("PW-104 a unit settled by the type is named on step 5 and changed on step 3", async ({
+  test("PW-104 a unit settled by the type is held by the price page's unit", async ({
     page,
   }) => {
     const user = await signedInSeller(page);
@@ -376,14 +371,11 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       timeout: 20_000,
     });
     await type.selectOption(set.typeValue);
-    await walkOnToStep5(page);
-    await expect(page.getByTestId("post-price-basis")).toHaveCount(0);
+    await walkOnToPrice(page);
     await expect(
-      page.getByTestId("post-price-unit-chosen"),
-      "PW-104: step 5 does not name the settled unit",
-    ).toHaveAttribute("data-basis", "per_kg", { timeout: 20_000 });
-    await page.getByTestId("post-price-unit-change").click();
-    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+      control(page, set.basisKey),
+      "PW-104: the price page does not hold the settled unit",
+    ).toHaveValue("per_kg", { timeout: 20_000 });
     await expect
       .poll(async () => (await attributesOf(listingId))[set.basisKey], {
         message: "PW-104: the settled unit was not stored",
