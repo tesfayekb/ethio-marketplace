@@ -201,6 +201,8 @@ export function StepWho({
   const aliveRef = useRef(true);
   const aliasTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const checkedAliasRef = useRef("");
+  /** INC-427 (b) — what the alias box holds now, for the check's answer to compare. */
+  const aliasBoxRef = useRef("");
 
   useEffect(() => {
     aliveRef.current = true;
@@ -397,6 +399,8 @@ export function StepWho({
         void (async () => {
           const answer = await checkAliasDoor(next);
           if (!aliveRef.current) return;
+          // INC-427 (b) — an answer counts only for the name still in the box.
+          if (aliasBoxRef.current.trim().toLowerCase() !== next) return;
           if (answer.ok) {
             setAliasState("ok");
             return;
@@ -559,7 +563,16 @@ export function StepWho({
         </div>
       )}
 
-      {(editing || identity === null) && (
+      {/* INC-427 (a) — no identity box is drawn while the stored identity is
+          being read: the read's answer would overwrite what was typed. The
+          read-failed path keeps its boxes. */}
+      {identityPending && (
+        <p className="text-sm text-muted-foreground" data-testid="post-who-identity-loading">
+          {t("post.who.identityLoading")}
+        </p>
+      )}
+
+      {(editing || identityFailed) && (
         <>
           {/* --------------------------- the alias ---------------------------- */}
           <div className="space-y-1">
