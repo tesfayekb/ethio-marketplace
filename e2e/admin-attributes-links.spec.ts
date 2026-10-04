@@ -1211,4 +1211,184 @@ test.describe("C3 attributes console", () => {
       await destroyCategory(slug);
     }
   });
+
+  /* ---------------- INC-381: a condition with two pairs (step 26) --------------- */
+
+  /** Two scratch selects and a conditioned text row, linked to one scratch leaf. */
+  async function seedTwoPairLeaf(tag: string) {
+    const supabase = adminClient();
+    const k1 = `e2e_attr_${rand()}`;
+    const k2 = `e2e_attr_${rand()}`;
+    const child = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-andpair-${rand()}`;
+    const select = (key: string, values: string[]) => ({
+      attr_key: key,
+      name_en: key,
+      attr_type: "single_select",
+      options: values.map((value) => ({ value, label_en: value })),
+    });
+    const { data: defs, error } = await supabase
+      .from("attributes")
+      .insert([
+        select(k1, ["a", "b", "x"]),
+        select(k2, ["c", "d", "y"]),
+        { attr_key: child, name_en: child, attr_type: "text" },
+      ])
+      .select("id, attr_key");
+    if (error || !defs) throw new Error(`${tag} seeding the definitions: ${error?.message}`);
+    const { data: category, error: categoryError } = await supabase
+      .from("categories")
+      .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+      .select("id")
+      .single();
+    if (categoryError) throw new Error(`${tag} seeding the category: ${categoryError.message}`);
+    const pointed = await supabase
+      .from("category_tree_pointers")
+      .insert({ parent_id: null, child_id: category!.id, display_order: 2_000_942 });
+    if (pointed.error) throw new Error(`${tag} seeding the pointer: ${pointed.error.message}`);
+    const order = [k1, k2, child];
+    const linked = await supabase.from("category_attribute_links").insert(
+      order.map((key, index) => ({
+        category_id: category!.id,
+        attribute_id: defs.find((row) => row.attr_key === key)!.id,
+        is_required: false,
+        is_filterable: false,
+        display_order: index,
+      })),
+    );
+    if (linked.error) throw new Error(`${tag} seeding the links: ${linked.error.message}`);
+    const conditionOf = async (): Promise<unknown> => {
+      const { data } = await supabase
+        .from("category_attribute_links")
+        .select("visible_when")
+        .eq("category_id", category!.id)
+        .eq("attribute_id", defs.find((row) => row.attr_key === child)!.id)
+        .single();
+      return data?.visible_when ?? null;
+    };
+    const destroy = async () => {
+      await supabase.from("category_attribute_links").delete().eq("category_id", category!.id);
+      await destroyCategory(slug);
+      for (const key of order) await destroyAttribute(key);
+    };
+    return { k1, k2, child, slug, categoryId: category!.id as string, conditionOf, destroy };
+  }
+
+  /**
+   * AT-65 (INC-381) — THE LINKS FILE CARRIES TWO PAIRS. M6 taught the planner
+   * `k1=a|b&k2=c|d`; this is the proof of the file text: preview, commit and
+   * undo through the real route, then an export that re-imports as zero changes.
+   */
+  test("AT-65 a two-pair condition imports, exports and re-imports unchanged", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const leaf = await seedTwoPairLeaf("AT-65");
+    try {
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const header = `${LINK_HEADER},allowed_options,default_value,visible_when,display_order`;
+      const condition = `${leaf.k1}=a|b&${leaf.k2}=c|d`;
+      const links =
+        `${header}\r\n` +
+        `${leaf.slug},${leaf.slug},${leaf.child},false,false,,${leaf.slug},,,${condition},2\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", links });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect((preview.payload["refusals"] ?? []) as unknown[]).toHaveLength(0);
+      expect(
+        (preview.payload["counts"] as Record<string, number>).changes,
+        `AT-65 the condition was not planned as a change: ${JSON.stringify(preview.payload)}`,
+      ).toBe(1);
+      expect(await leaf.conditionOf(), "AT-65 a preview wrote").toBeNull();
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        links,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+      const stored = {
+        key: leaf.k1,
+        in: ["a", "b"],
+        and: { key: leaf.k2, in: ["c", "d"] },
+      };
+      expect(await leaf.conditionOf(), "AT-65 the commit stored another shape").toEqual(stored);
+
+      const exported = await page.request.get(
+        `/api/admin/attributes/export?file=links&scope=${leaf.slug}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      expect(exported.status(), "AT-65 the scoped links export failed").toBe(200);
+      const file = await exported.text();
+      const childRow = file.split("\r\n").find((line) => line.includes(leaf.child)) ?? "";
+      expect(childRow, `AT-65 the export wrote another text: ${childRow}`).toContain(condition);
+
+      const again = await importPost(page, token, { mode: "preview", links: file });
+      expect(again.status, JSON.stringify(again.payload)).toBe(200);
+      expect((again.payload["refusals"] ?? []) as unknown[]).toHaveLength(0);
+      const counts = again.payload["counts"] as Record<string, number>;
+      expect(
+        [counts.adds, counts.changes],
+        `AT-65 the round trip was not a no-op: ${JSON.stringify(again.payload)}`,
+      ).toEqual([0, 0]);
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await leaf.conditionOf(), "AT-65 undo kept the condition").toBeNull();
+    } finally {
+      await leaf.destroy();
+    }
+  });
+
+  /**
+   * AT-66 (INC-381) — THE LINK EDITOR WRITES THE "AND" LINE and reads it back as
+   * saved when the dialog is opened again.
+   */
+  test("AT-66 the link editor saves and reopens a two-pair condition", async ({ page }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const leaf = await seedTwoPairLeaf("AT-66");
+    try {
+      const open = async () => {
+        await gotoReady(page, "/admin/categories");
+        await findRow(page, leaf.slug);
+        await openEditor(page, leaf.slug);
+        await action(page, leaf.slug, "attributes").click();
+        await expect(page.getByTestId("category-attributes-dialog")).toBeVisible({
+          timeout: 20_000,
+        });
+      };
+      await open();
+      const id = leaf.child;
+      await page.getByTestId(`category-attribute-condition-key-${id}`).selectOption(leaf.k1);
+      await page.getByTestId(`category-attribute-condition-${id}-a`).click();
+      await page.getByTestId(`category-attribute-condition-and-key-${id}`).selectOption(leaf.k2);
+      await page.getByTestId(`category-attribute-condition-and-${id}-d`).click();
+      await page.getByTestId(`category-attribute-save-condition-${id}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId(`category-attribute-cell-saved-condition-${id}`)).toBeVisible({
+        timeout: 20_000,
+      });
+      await expect
+        .poll(leaf.conditionOf, { timeout: 20_000 })
+        .toEqual({ key: leaf.k1, in: ["a"], and: { key: leaf.k2, in: ["d"] } });
+
+      await page.reload();
+      await open();
+      await expect(page.getByTestId(`category-attribute-condition-key-${id}`)).toHaveValue(leaf.k1);
+      await expect(page.getByTestId(`category-attribute-condition-${id}-a`)).toBeChecked();
+      await expect(page.getByTestId(`category-attribute-condition-and-key-${id}`)).toHaveValue(
+        leaf.k2,
+      );
+      await expect(page.getByTestId(`category-attribute-condition-and-${id}-d`)).toBeChecked();
+      await expect(page.getByTestId(`category-attribute-condition-and-${id}-c`)).not.toBeChecked();
+      await expect(page.getByTestId(`category-attribute-save-condition-${id}`)).toBeDisabled();
+    } finally {
+      await leaf.destroy();
+    }
+  });
 });

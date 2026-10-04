@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 
 import { controlClass, Field } from "./field";
 import { ListingPreview } from "./listing-preview";
-import { attributeDisplayValue } from "./attribute-display";
+import { attributeDisplayValue, rangeDisplayValue, settledRanges } from "./attribute-display";
 import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { entityName } from "@/i18n/entity";
 import { formatCommission } from "./price-basis";
@@ -245,6 +245,24 @@ export function StepReview({
         ),
     )
     .map(describe)
+    // INC-374 — a number the chosen model settles reads as its range.
+    .concat(
+      Object.entries(
+        settledRanges(
+          definitions,
+          values.attributes,
+          (definition) => attributeOptions[definition.attrKey] ?? [],
+        ),
+      ).map(([key, range]) => {
+        const def = definitions.find((entry) => entry.attrKey === key)!;
+        const name = entityName(
+          "attribute",
+          { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
+          entities,
+        );
+        return `${name}: ${rangeDisplayValue(def, range, language)}`;
+      }),
+    )
     .join(" · ");
   /** D62-2 — the basis answer, said under Price (the step that now asks it). */
   const basisLine =

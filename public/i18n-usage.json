@@ -385,6 +385,9 @@
     "admin.attributes.link.alwaysVisible": [
       "/admin/categories"
     ],
+    "admin.attributes.link.andWhen": [
+      "/admin/categories"
+    ],
     "admin.attributes.link.defaultValue": [
       "/admin/categories"
     ],

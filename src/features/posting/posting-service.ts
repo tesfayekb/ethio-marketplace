@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 import type { CategoryFacts, DoorAnswer, Refusal } from "./types";
+import { shapeCondition, type VisibleWhen } from "./visible-when";
 
 /**
  * U6-C1a — THE WIZARD'S ONLY WAY TO THE SERVER.
@@ -573,13 +574,14 @@ export interface AttrDef {
   allowedOptions: string[] | null;
   defaultValue: unknown;
   /**
-   * D24 (M-MAINT-3) — THE CONDITION THIS DETAIL HANGS ON: `{ key, in }` names a
+   * D24 (M-MAINT-3, INC-381) — THE CONDITION THIS DETAIL HANGS ON: `{ key, in }`
+   * (with an optional `and` pair) names a
    * SIBLING detail in the same category and the answers that make this one apply.
    * `null` = always asked. `validate_listing_attributes` treats an unmet link as
    * absent for `required` and DROPS any value sent for it, so the form's hiding
    * is a mirror of the door, never the authority (F3).
    */
-  visibleWhen: { key: string; in: string[] } | null;
+  visibleWhen: VisibleWhen | null;
   /**
    * D46 — the link's card rank as `get_posting_schema` serves it (`card_rank`);
    * rank 1 is the leaf's identity. `null` = not a card.
@@ -671,19 +673,6 @@ function shapeDeal(raw: unknown): CategoryFacts["deal"] {
     quantity: list("quantity"),
     terms: list("terms"),
   };
-}
-
-/** D24 — a condition is used ONLY when it carries both halves; anything else is
- * "always asked", so a malformed row can never hide a question silently. */
-function shapeCondition(raw: unknown): { key: string; in: string[] } | null {
-  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const row = raw as Record<string, unknown>;
-  const key = typeof row["key"] === "string" ? row["key"] : "";
-  const values = Array.isArray(row["in"])
-    ? (row["in"] as unknown[]).filter((entry): entry is string => typeof entry === "string")
-    : [];
-  if (key === "" || values.length === 0) return null;
-  return { key, in: values };
 }
 
 /**
