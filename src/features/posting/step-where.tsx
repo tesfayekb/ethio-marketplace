@@ -970,9 +970,26 @@ export function StepWhere({
     if (last !== null && !prefilled) return;
     carryTried.current = true;
     const from = last?.pin ?? null;
-    if (from === null || !prefilled || itemPlace !== last?.itemId) return;
+    const lines = last?.lines ?? null;
+    if ((from === null && lines === null) || !prefilled || itemPlace !== last?.itemId) return;
     if (pin !== null || savedText.current.street !== null || savedText.current.directions !== null)
       return;
+    if (from === null && lines !== null) {
+      // A saved place with lines but no pin carries its lines alone.
+      void clearPin(listingId, lines).then((ok) => {
+        if (!ok) {
+          setPinState("failed");
+          return;
+        }
+        savedText.current = lines;
+        setNote(lines.street ?? "");
+        setDirections(lines.directions ?? "");
+        onDirectionsSaved?.(lines.directions);
+        onPinCarried?.(true);
+      });
+      return;
+    }
+    if (from === null) return;
     const text = { street: from.street, directions: from.directions };
     void savePin(listingId, from.lat, from.lng, from.precision, text, from.zoom).then((ok) => {
       if (!ok) {

@@ -348,6 +348,11 @@ export interface LastPlaces {
   placeIds: string[];
   /** Bundle 2 Q4 — the last post's pin and its two text lines; null when it had no pin. */
   pin: LastPin | null;
+  /**
+   * Bundle 4 step 18 (turn 6 item 5) — a saved place's street line and
+   * directions when it holds no pin; absent for a last post.
+   */
+  lines?: { street: string | null; directions: string | null };
 }
 
 export interface LastPin {
@@ -485,6 +490,9 @@ export async function sellerPlaceAsLast(place: SellerPlace): Promise<LastPlaces 
       place.pin === null
         ? null
         : { ...place.pin, street: place.street, directions: place.directions },
+    ...(place.pin === null && (place.street !== null || place.directions !== null)
+      ? { lines: { street: place.street, directions: place.directions } }
+      : {}),
   };
 }
 
