@@ -37,20 +37,30 @@ function logSsrError(request: Request, error: unknown) {
 
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
-async function normalizeCatastrophicSsrResponse(
+//
+// INC-421 — READ THE ORIGINAL, RETURN A FRESH RESPONSE. This function must
+// read the body to recognise the swallowed shape, and in this stack reading
+// a CLONE (`response.clone().text()`) leaves the ORIGINAL body disturbed:
+// the wire answer then went out with `Content-Length: 0` and every 5xx JSON
+// answer (56 call sites) reached the client empty. Reading the original and
+// re-creating the Response with the same bytes, status and headers keeps
+// every route's 5xx body intact — no route's status changes.
+export async function normalizeCatastrophicSsrResponse(
   request: Request,
   response: Response,
 ): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) return response;
-  // TEMP INC-421 experiment — removed before commit.
-  if (process.env["INC421_NOCLONE"] === "1") return response;
 
-  const body = await response.clone().text();
-  // TEMP INC-421 measurement — removed before commit.
-  console.error(`[inc421-normalize] ${response.status} len=${body.length} body=${body.slice(0, 200)}`);
-  if (!isH3SwallowedErrorBody(body)) return response;
+  const body = await response.text();
+  if (!isH3SwallowedErrorBody(body)) {
+    return new Response(body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  }
 
   const error = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
   logSsrError(request, error);
@@ -74,20 +84,7 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      // TEMP INC-421 measurement — removed before commit. Headers only:
-      // reading a clone of a streamed body breaks the client copy (proven).
-      if (request.url.includes("/api/")) {
-        console.error(
-          `[inc421-point-1] ${request.method} ${response.status} cl=${response.headers.get("content-length")} ct=${response.headers.get("content-type")} te=${response.headers.get("transfer-encoding")} ${new URL(request.url).pathname}`,
-        );
-      }
-      const out = await normalizeCatastrophicSsrResponse(request, response);
-      if (request.url.includes("/api/")) {
-        console.error(
-          `[inc421-point-2] ${out.status} cl=${out.headers.get("content-length")} ct=${out.headers.get("content-type")} te=${out.headers.get("transfer-encoding")} ${new URL(request.url).pathname}`,
-        );
-      }
-      return out;
+      return await normalizeCatastrophicSsrResponse(request, response);
     } catch (error) {
       logSsrError(request, error);
       return new Response(renderErrorPage(error), {
