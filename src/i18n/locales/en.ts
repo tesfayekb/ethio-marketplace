@@ -2263,6 +2263,13 @@ export const en = {
   "post.who.aliasAvailable": "This name is free. It becomes yours when you save this step.",
   "post.who.aliasSuggestions": "Free names you can use:",
   "post.who.aliasLatinOnly": "Please use Latin letters (a–z) for your seller name.",
+  "post.who.aliasChangeFirst":
+    "This is your first public name. You can correct it within 24 hours; after that, once every 30 days.",
+  "post.who.aliasChangeRule": "You can change your public name once every 30 days.",
+  "post.who.aliasCorrectionUntil": "You can correct your new name until {when}.",
+  "post.who.aliasNextChange": "You can change your name again on {date}.",
+  "post.refusal.countryTooSoon":
+    "You can change your home country once every 30 days. Next change allowed on {date}.",
   "post.refusal.aliasImitatesBrand": "That name looks like {name}. Please choose another.",
   "post.refusal.assistBudgetSpent": "You have used all the writing tries for this listing.",
   "post.where.addBack": "Add it back",
