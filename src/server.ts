@@ -70,18 +70,17 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      // TEMP INC-421 measurement — removed before commit.
+      // TEMP INC-421 measurement — removed before commit. Headers only:
+      // reading a clone of a streamed body breaks the client copy (proven).
       if (request.url.includes("/api/")) {
-        const body1 = await response.clone().text();
         console.error(
-          `[inc421-point-1] ${request.method} ${response.status} len=${body1.length} ${new URL(request.url).pathname} body=${body1.slice(0, 300)}`,
+          `[inc421-point-1] ${request.method} ${response.status} cl=${response.headers.get("content-length")} ct=${response.headers.get("content-type")} te=${response.headers.get("transfer-encoding")} ${new URL(request.url).pathname}`,
         );
       }
       const out = await normalizeCatastrophicSsrResponse(request, response);
       if (request.url.includes("/api/")) {
-        const body2 = await out.clone().text();
         console.error(
-          `[inc421-point-2] ${out.status} len=${body2.length} ${new URL(request.url).pathname}`,
+          `[inc421-point-2] ${out.status} cl=${out.headers.get("content-length")} ct=${out.headers.get("content-type")} te=${out.headers.get("transfer-encoding")} ${new URL(request.url).pathname}`,
         );
       }
       return out;
