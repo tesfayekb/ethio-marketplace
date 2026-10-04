@@ -71,6 +71,15 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   // `listing_contact_refusals`): the identity door answers here.
   aliasReserved: "post.refusal.aliasReserved",
   aliasTaken: "post.refusal.aliasTaken",
+  // Bundle 3 step 18 — one reason and one message per seller-name rule.
+  aliasShape: "post.refusal.aliasShape",
+  aliasEthio: "post.refusal.aliasEthio",
+  aliasRole: "post.refusal.aliasRole",
+  aliasClaim: "post.refusal.aliasClaim",
+  aliasTooSoon: "post.refusal.aliasTooSoon",
+  businessEthio: "post.refusal.businessEthio",
+  businessReserved: "post.refusal.businessReserved",
+  businessClaim: "post.refusal.businessClaim",
   badLength: "post.refusal.badLength",
   badHandle: "post.refusal.badHandle",
   showNeedsValue: "post.refusal.showNeedsValue",

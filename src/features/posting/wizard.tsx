@@ -154,6 +154,10 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const [whoGate, setWhoGate] = useState<"pending" | "blocked" | "open">("pending");
   /** Rulings 4 item 4 — a Next pressed while the identity is still being read waits for it. */
   const [whoQueued, setWhoQueued] = useState(false);
+  /** Bundle 3 step 19 — the contact step's claim, run before Next leaves it. */
+  const [whoSaveRef] = useState<{ current: (() => Promise<boolean>) | null }>(() => ({
+    current: null,
+  }));
   const [whoTried, setWhoTried] = useState(0);
   /**
    * U6-C1-R3b-1 STEP 2b — WHAT A CATEGORY CHANGE COST.
@@ -421,6 +425,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
 
   function goNext() {
     void (async () => {
+      if (draft.step === 7 && whoSaveRef.current !== null && !(await whoSaveRef.current())) return;
       const saved = await draft.saveAt(draft.step);
       if (!saved) return;
       if (returnToReview) {
@@ -946,6 +951,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           }
                           nextTried={whoTried}
                           onBlocked={onWhoGate}
+                          saveRef={whoSaveRef}
                         />
                       )}
                       {draft.step === 8 && (

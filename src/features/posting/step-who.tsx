@@ -137,7 +137,7 @@ export function StepWho({
    */
   saveRef?: { current: (() => Promise<boolean>) | null };
 }) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const markets = useOpenMarkets();
 
   const [identity, setIdentity] = useState<SellerIdentity | null>(null);
@@ -503,7 +503,7 @@ export function StepWho({
                     })
                   : shownAliasRefusal.reason === "aliasTooSoon"
                     ? fill(t("post.refusal.aliasTooSoon"), {
-                        date: formatDay(shownAliasRefusal.detail ?? "", lang),
+                        date: formatDay(shownAliasRefusal.detail ?? "", language),
                       })
                     : t(draftRefusalKey(shownAliasRefusal.reason))}
               </p>
