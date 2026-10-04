@@ -906,6 +906,24 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_expiry_sweep_runs: {
+        Row: {
+          expired: number
+          id: number
+          ran_at: string
+        }
+        Insert: {
+          expired: number
+          id?: number
+          ran_at?: string
+        }
+        Update: {
+          expired?: number
+          id?: number
+          ran_at?: string
+        }
+        Relationships: []
+      }
       listing_locations: {
         Row: {
           created_at: string
@@ -1041,6 +1059,7 @@ export type Database = {
       }
       listings: {
         Row: {
+          attested_at: string | null
           attributes: Json
           category_id: string
           contact_pref: Json
@@ -1054,6 +1073,7 @@ export type Database = {
           home_country_code: string
           id: string
           location_id: string | null
+          photos_soon: boolean
           pin_lat: number | null
           pin_lng: number | null
           pin_precision: string | null
@@ -1067,6 +1087,8 @@ export type Database = {
           price_mode: string
           price_negotiable: boolean
           price_period: string
+          price_unit: string | null
+          price_unit_text: string | null
           published_at: string | null
           published_first_at: string | null
           renewed_count: number
@@ -1081,6 +1103,7 @@ export type Database = {
           video_url: string | null
         }
         Insert: {
+          attested_at?: string | null
           attributes?: Json
           category_id: string
           contact_pref?: Json
@@ -1094,6 +1117,7 @@ export type Database = {
           home_country_code: string
           id?: string
           location_id?: string | null
+          photos_soon?: boolean
           pin_lat?: number | null
           pin_lng?: number | null
           pin_precision?: string | null
@@ -1107,6 +1131,8 @@ export type Database = {
           price_mode?: string
           price_negotiable?: boolean
           price_period?: string
+          price_unit?: string | null
+          price_unit_text?: string | null
           published_at?: string | null
           published_first_at?: string | null
           renewed_count?: number
@@ -1121,6 +1147,7 @@ export type Database = {
           video_url?: string | null
         }
         Update: {
+          attested_at?: string | null
           attributes?: Json
           category_id?: string
           contact_pref?: Json
@@ -1134,6 +1161,7 @@ export type Database = {
           home_country_code?: string
           id?: string
           location_id?: string | null
+          photos_soon?: boolean
           pin_lat?: number | null
           pin_lng?: number | null
           pin_precision?: string | null
@@ -1147,6 +1175,8 @@ export type Database = {
           price_mode?: string
           price_negotiable?: boolean
           price_period?: string
+          price_unit?: string | null
+          price_unit_text?: string | null
           published_at?: string | null
           published_first_at?: string | null
           renewed_count?: number
@@ -1327,6 +1357,39 @@ export type Database = {
         Update: {
           marked_at?: string
           version?: string
+        }
+        Relationships: []
+      }
+      name_folds: {
+        Row: {
+          fold: string
+          kind: string
+        }
+        Insert: {
+          fold: string
+          kind: string
+        }
+        Update: {
+          fold?: string
+          kind?: string
+        }
+        Relationships: []
+      }
+      name_folds_runs: {
+        Row: {
+          id: number
+          ran_at: string
+          rows: number
+        }
+        Insert: {
+          id?: number
+          ran_at?: string
+          rows: number
+        }
+        Update: {
+          id?: number
+          ran_at?: string
+          rows?: number
         }
         Relationships: []
       }
@@ -1766,6 +1829,60 @@ export type Database = {
           refused_count?: number
         }
         Relationships: []
+      }
+      seller_places: {
+        Row: {
+          directions: string | null
+          home_country_code: string | null
+          location_id: string
+          pin_lat: number | null
+          pin_lng: number | null
+          pin_precision: string | null
+          pin_zoom: number | null
+          street_address: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          directions?: string | null
+          home_country_code?: string | null
+          location_id: string
+          pin_lat?: number | null
+          pin_lng?: number | null
+          pin_precision?: string | null
+          pin_zoom?: number | null
+          street_address?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          directions?: string | null
+          home_country_code?: string | null
+          location_id?: string
+          pin_lat?: number | null
+          pin_lng?: number | null
+          pin_precision?: string | null
+          pin_zoom?: number | null
+          street_address?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_places_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "seller_places_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       site_words: {
         Row: {
@@ -2977,6 +3094,7 @@ export type Database = {
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
       change_home_country: { Args: { p_country: string }; Returns: Json }
       check_seller_alias: { Args: { p_alias: string }; Returns: Json }
+      clear_seller_place: { Args: never; Returns: Json }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       consume_catalog_find_rate: {
         Args: { p_key: string; p_limit?: number }
@@ -2992,6 +3110,11 @@ export type Database = {
         Returns: Json
       }
       country_export_row: { Args: { p_code: string }; Returns: Json }
+      deal_group: {
+        Args: { p_has_unit: boolean; p_key: string }
+        Returns: string
+      }
+      deal_keys: { Args: { p_category_id: string }; Returns: string[] }
       delete_draft: { Args: { p_listing_id: string }; Returns: Json }
       e2e_migration_ledger: { Args: never; Returns: string[] }
       edit_listing: {
@@ -3245,11 +3368,14 @@ export type Database = {
       my_last_listing_private: { Args: { p_exclude?: string }; Returns: Json }
       my_listing_private: { Args: { p_listing_id: string }; Returns: Json }
       my_seller_line: { Args: never; Returns: Json }
+      my_seller_place: { Args: never; Returns: Json }
       name_brand_folds: { Args: never; Returns: string[] }
       name_claim_folds: { Args: never; Returns: string[] }
       name_fold: { Args: { p: string }; Returns: string }
       name_fold_am: { Args: { p: string }; Returns: string }
       name_fold_latin: { Args: { p: string }; Returns: string }
+      name_folds_protected: { Args: { p: string }; Returns: boolean }
+      name_folds_rebuild: { Args: never; Returns: number }
       name_protected_folds: { Args: never; Returns: string[] }
       name_second_fold: { Args: { p_value: string }; Returns: string }
       next_language_sort: { Args: never; Returns: number }
@@ -3259,6 +3385,10 @@ export type Database = {
         Args: { p_attr_key: string; p_category_id: string; p_links: Json }
         Returns: string
       }
+      price_basis_in_force: {
+        Args: { p_attrs: Json; p_category_id: string; p_prior: Json }
+        Returns: Json
+      }
       price_basis_keys: { Args: { p_category_id: string }; Returns: string[] }
       price_shape_for_basis: {
         Args: { p_value: string }
@@ -3267,6 +3397,7 @@ export type Database = {
           period: string
         }[]
       }
+      price_unit_labels: { Args: never; Returns: Json }
       promote_to_super_admin: {
         Args: { p_target_user: string }
         Returns: undefined
@@ -3316,6 +3447,7 @@ export type Database = {
         }
         Returns: Json
       }
+      save_seller_place: { Args: { p_listing_id: string }; Returns: Json }
       seller_name_sweep: { Args: never; Returns: number }
       seller_plan: { Args: { p_user_id: string }; Returns: string }
       set_cover_photo: {
@@ -3325,6 +3457,10 @@ export type Database = {
       set_language_order_impl: {
         Args: { p_codes: string[] }
         Returns: undefined
+      }
+      set_listing_photos_soon: {
+        Args: { p_listing_id: string; p_on: boolean }
+        Returns: Json
       }
       set_listing_pin: {
         Args: {
