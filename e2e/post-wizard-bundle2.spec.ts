@@ -630,7 +630,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   test("PW-115 without own_place the last post's pin, directions and details carry over", async ({
     page,
   }) => {
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { alias: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
     const lastId = await lastPostAt(page, user.id, leaf.id, city.id);
@@ -654,7 +654,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   });
 
   test("PW-116 an own_place category never carries the last post's pin", async ({ page }) => {
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { alias: true });
     const plain = await category();
     const own = await category(["map_pin", "own_place"]);
     const city = await activeCityOf("ET");
@@ -755,7 +755,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   }
 
   test("PW-118 a draft's own channel is never overwritten by the last post's", async ({ page }) => {
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { alias: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
     const lastId = await lastPostAt(page, user.id, leaf.id, city.id);
