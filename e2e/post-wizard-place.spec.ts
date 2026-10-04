@@ -504,7 +504,7 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-who-value-phone-country"),
       "PW-111: +251 did not move the picker to Ethiopia",
     ).toHaveAttribute("data-iso", "ET");
-    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("91 123 4567");
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
     await typePhone(page, "post-who-value-phone", "0911 234-567");
     await page.getByTestId("post-who-show-phone").check();
     await page.getByTestId("post-next").click();
