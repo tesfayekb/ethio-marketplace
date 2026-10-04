@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * Bundle 3 Part D — the place step's region picker lists A to Z by the shown
  * name in the reader's language, never in the stored order. The tree's stored
- * order (Tigray, Amhara, Oromia) disagrees with both the English and the
+ * order (Oromia, Tigray, Amhara) disagrees with both the English and the
  * Amharic alphabetical orders.
  */
 
@@ -31,12 +31,12 @@ const node = (id: string, parentId: string | null, level: string, nameEn: string
   isoCode: null,
 });
 
-// Stored order: Tigray, Amhara, Oromia.
+// Stored order: Oromia, Tigray, Amhara.
 const nodes = [
   node("et", null, "country", "Ethiopia"),
+  node("r-or", "et", "region", "Oromia"),
   node("r-ti", "et", "region", "Tigray"),
   node("r-am", "et", "region", "Amhara"),
-  node("r-or", "et", "region", "Oromia"),
 ];
 
 function regionNames(): string[] {
@@ -86,10 +86,6 @@ describe("place step region picker order", () => {
     state.language = "am";
     state.names = { "r-ti": "ትግራይ", "r-am": "አማራ", "r-or": "ኦሮሚያ" };
     draw();
-    // ት (t) before አ (glottal) before ኦ in the Ethiopic block's collation.
-    expect(regionNames()).toEqual(
-      ["ትግራይ", "አማራ", "ኦሮሚያ"].sort(new Intl.Collator("am").compare),
-    );
-    expect(regionNames()).not.toEqual(["ትግራይ", "አማራ", "ኦሮሚያ"].slice().reverse());
+    expect(regionNames()).toEqual(["ትግራይ", "አማራ", "ኦሮሚያ"]);
   });
 });
