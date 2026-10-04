@@ -953,4 +953,182 @@ test.describe("POSTING ROUTES", () => {
     const categoriesRead = await rest(page, "categories?select=id,slug,is_active&limit=1");
     expect(categoriesRead.status, JSON.stringify(categoriesRead.body)).toBe(200);
   });
+
+  /** Bundle 4 step 22 — names a seller as the contact step does, through the identity route. */
+  async function nameSeller(
+    page: import("@playwright/test").Page,
+    token: string,
+    names: {
+      alias?: string;
+      sellerType?: string;
+      firstName?: string;
+      businessName?: string;
+      lastName?: string;
+    },
+  ) {
+    const answer = await postRoute(page, IDENTITY, names, { token, country: "ET" });
+    expect(answer.payload["ok"], `naming refused: ${JSON.stringify(answer.payload)}`).toBe(true);
+  }
+
+  /** A letters-only free public name (the alias shape refuses long digit runs). */
+  function freeAlias(): string {
+    return `eseller_${rand().replace(/[0-9]/g, "q")}`;
+  }
+
+  async function listingTimes(listingId: string) {
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("expires_at,poster_expires_at,status")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:pr-23] reading the listing failed: ${error.message}`);
+    return data;
+  }
+
+  async function publishedDraft(
+    page: import("@playwright/test").Page,
+    token: string,
+    categoryId: string,
+    cityId: string,
+    extra: Record<string, unknown> = {},
+  ) {
+    const draft = await postRoute(
+      page,
+      DRAFT,
+      { ...completeDraft({ categoryId, cityId, title: `e2e posting ${rand()}` }), ...extra },
+      { token, country: "ET" },
+    );
+    expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
+    const listingId = String(draft.payload["listing_id"] ?? "");
+    const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    return listingId;
+  }
+
+  test("PR-23 an ad has no end unless the seller sets a date or the category holds a limit (DEC-117)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    await nameSeller(page, token, {
+      alias: freeAlias(),
+      sellerType: "person",
+      firstName: "Abebe",
+      lastName: "Kebede",
+    });
+    const cat = await category();
+    const city = await activeCityOf("ET");
+
+    // (a) no limit, no date → activated with no end.
+    const open = await publishedDraft(page, token, cat.id, city.id);
+    const opened = await adminClient().rpc("transition_listing", {
+      p_listing_id: open,
+      p_new_status: "active",
+    });
+    expect(opened.error, JSON.stringify(opened.error)).toBeNull();
+    expect(
+      (await listingTimes(open))?.expires_at,
+      "PR-23: an ad with no limit got an end",
+    ).toBeNull();
+
+    // (b) the seller's own date is the end; (c) 90 days ahead is accepted.
+    const date = new Date(Date.now() + 90 * 86_400_000).toISOString();
+    const dated = await publishedDraft(page, token, cat.id, city.id, { posterExpiresAt: date });
+    const activated = await adminClient().rpc("transition_listing", {
+      p_listing_id: dated,
+      p_new_status: "active",
+    });
+    expect(activated.error, JSON.stringify(activated.error)).toBeNull();
+    const times = await listingTimes(dated);
+    expect(
+      new Date(String(times?.expires_at)).getTime(),
+      "PR-23: the seller's date did not decide the end",
+    ).toBe(new Date(date).getTime());
+
+    // (d) one sweep run writes its row and expires an ad whose date has passed.
+    const passed = await adminClient()
+      .from("listings")
+      .update({ expires_at: new Date(Date.now() - 60_000).toISOString() })
+      .eq("id", dated)
+      .eq("seller_id", user.id);
+    expect(passed.error).toBeNull();
+    const before = await adminClient()
+      .from("listing_expiry_sweep_runs")
+      .select("id", { count: "exact", head: true });
+    expect(before.error, `PR-23: no sweep ledger: ${before.error?.message}`).toBeNull();
+    const swept = await adminClient().rpc("expire_stale_listings");
+    expect(swept.error, JSON.stringify(swept.error)).toBeNull();
+    const after = await adminClient()
+      .from("listing_expiry_sweep_runs")
+      .select("id", { count: "exact", head: true });
+    expect(after.count ?? 0, "PR-23: the sweep wrote no run row").toBeGreaterThan(
+      before.count ?? 0,
+    );
+    expect(await statusOf(dated)).toBe("expired");
+  });
+
+  test("PR-24 a seller is named before an ad is published (INC-423)", async ({ page }) => {
+    const cat = await category();
+    const city = await activeCityOf("ET");
+
+    // No public name → refused at alias.
+    const unnamed = await seller(page);
+    await nameSeller(page, unnamed.token, {
+      sellerType: "person",
+      firstName: "Abebe",
+      lastName: "Kebede",
+    });
+    const draftA = await postRoute(
+      page,
+      DRAFT,
+      completeDraft({ categoryId: cat.id, cityId: city.id, title: `e2e posting ${rand()}` }),
+      { token: unnamed.token, country: "ET" },
+    );
+    const listingA = String(draftA.payload["listing_id"] ?? "");
+    const refusedA = await postRoute(
+      page,
+      PUBLISH,
+      { listingId: listingA },
+      { token: unnamed.token, country: "ET" },
+    );
+    expect(reasonsOf(refusedA.payload), JSON.stringify(refusedA.payload)).toContainEqual({
+      field: "alias",
+      reason: "required",
+    });
+    expect(await statusOf(listingA)).toBe("draft");
+
+    // A person with no first name → refused at first_name.
+    const person = await seller(page);
+    await nameSeller(page, person.token, {
+      alias: freeAlias(),
+      sellerType: "person",
+      lastName: "Kebede",
+    });
+    const draftB = await postRoute(
+      page,
+      DRAFT,
+      completeDraft({ categoryId: cat.id, cityId: city.id, title: `e2e posting ${rand()}` }),
+      { token: person.token, country: "ET" },
+    );
+    const listingB = String(draftB.payload["listing_id"] ?? "");
+    const refusedB = await postRoute(
+      page,
+      PUBLISH,
+      { listingId: listingB },
+      { token: person.token, country: "ET" },
+    );
+    expect(reasonsOf(refusedB.payload), JSON.stringify(refusedB.payload)).toContainEqual({
+      field: "first_name",
+      reason: "required",
+    });
+    expect(await statusOf(listingB)).toBe("draft");
+
+    // A business with its name and no first or last name publishes.
+    const business = await seller(page);
+    await nameSeller(page, business.token, {
+      alias: freeAlias(),
+      sellerType: "business",
+      businessName: `Selam Coffee ${rand().replace(/[0-9]/g, "q")}`,
+    });
+    await publishedDraft(page, business.token, cat.id, city.id);
+  });
 });
