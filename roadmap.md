@@ -49,3 +49,4 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [ ] M6 (step 30) → stop → screens of Part G
 - [ ] Part H (docs, final report)
 - [x] INC-427 contact-step identity read wiped typed names (fixed bundle 4 turn 3; PW-134)
+- [ ] Photo clean-up bundle: when the card receives the ad's photo through listing-picture, the photos-soon ribbon hides by the existing rule (bundle 4 turn 6 item 7; no change before then).
