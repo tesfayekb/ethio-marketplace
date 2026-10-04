@@ -14,6 +14,7 @@ import {
   coverageOf,
   destroyListingsOf,
   destroyPostableCategory,
+  identityOf,
   pinOf,
   postRoute,
   rand,
@@ -254,6 +255,65 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     release();
     await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-who-country-refusal")).toHaveCount(0);
+  });
+
+  /**
+   * PW-130 (bundle 3 steps 18, 19, 21) — a refused name says why and offers three
+   * free names built from the seller's own Latin names; checking claims nothing,
+   * and the tapped name is claimed when the step is saved.
+   */
+  test("PW-130 a refused seller name offers three free names, claimed on save", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    const before = (await identityOf(user.id)).alias;
+    const last = `zq${rand().replace(/[0-9]/g, "x")}`;
+    await page.getByTestId("post-who-first").fill("Abebe");
+    await page.getByTestId("post-who-last").fill(last);
+    await page.getByTestId("post-who-alias").fill("abebe_support");
+    await expect(
+      page.getByTestId("post-who-alias-refusal"),
+      "PW-130: a role word was not refused on screen",
+    ).toBeVisible();
+    const offered = page.getByTestId("post-who-alias-suggestion");
+    await expect(offered, "PW-130: the refusal did not offer three names").toHaveCount(3, {
+      timeout: 20_000,
+    });
+    const picked = (await offered.first().textContent())?.trim() ?? "";
+    expect(picked, "PW-130: the first suggestion is not built from the names").toContain("abebe");
+    await offered.first().click();
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    expect((await identityOf(user.id)).alias, "PW-130: checking claimed the name").toBe(before);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    expect((await identityOf(user.id)).alias, "PW-130: saving did not claim the name").toBe(picked);
+  });
+
+  /**
+   * PW-131 (bundle 3 step 19) — the imitation check is the identity route's second
+   * layer: a name the check door answers free is still refused when the step is
+   * saved if it imitates a brand (fake mode: "cocacola"), and the step stays.
+   */
+  test("PW-131 an imitating name is refused when the step is saved", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    const before = (await identityOf(user.id)).alias;
+    await page.getByTestId("post-who-alias").fill(`cocacola_${rand()}`.slice(0, 30));
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-who-alias-refusal"),
+      "PW-131: the imitation was not refused on save",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    expect((await identityOf(user.id)).alias, "PW-131: a refused name reached the profile").toBe(
+      before,
+    );
   });
 
   test("PW-114 a second phone appears on request and is stored as phone2", async ({ page }) => {
