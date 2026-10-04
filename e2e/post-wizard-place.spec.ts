@@ -572,7 +572,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-who-value-phone")).toHaveValue("91 123 4567");
     await expect(page.getByTestId("post-who-show-phone")).toBeChecked();
     await expectPhoneRowUsable(page, "post-who-value-phone");
-    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("922345678");
+    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("92 234 5678");
     await expect(page.getByTestId("post-who-show-whatsapp")).not.toBeChecked();
     // Written when the step opens: the seller changed nothing.
     await expect
