@@ -4316,6 +4316,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.identityLoading": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.lastNameLabel": [
       "/post",
       "/post/$listingId"
