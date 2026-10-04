@@ -327,7 +327,16 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const leaf = await category();
     const city = await activeCityOf("ET");
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
-    await page.getByTestId("post-who-alias").pressSequentially("ፊደል", { delay: 40 });
+    // Ruling 1 — no sleep: record every alias-door call, then prove by truth
+    // that none carried the non-Latin text once a Latin name is confirmed ok.
+    const aliasCalls: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/api/listings/alias")) {
+        aliasCalls.push(request.postData() ?? "");
+      }
+    });
+    const box = page.getByTestId("post-who-alias");
+    await box.pressSequentially("ፊደል", { delay: 40 });
     const latin = page.getByTestId("post-who-alias-latin");
     await expect(latin, "PW-132: no Latin line for a non-Latin name").toBeVisible();
     await expect(latin, "PW-132: the Latin line is not the refusal").toHaveClass(
@@ -337,12 +346,20 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       page.getByTestId("post-who-alias-refusal"),
       "PW-132: the general shape message shows beside the Latin line",
     ).toHaveCount(0);
-    // Longer than the check debounce: a suggestions call would have landed by now.
-    await page.waitForTimeout(1_500);
+    await box.clear();
+    const freeName = `selam${Math.random()
+      .toString(36)
+      .slice(2, 8)
+      .replace(/[^a-z]/g, "q")}`;
+    await box.pressSequentially(freeName, { delay: 40 });
     await expect(
-      page.getByTestId("post-who-alias-suggestion"),
-      "PW-132: suggestions were asked for a non-Latin name",
-    ).toHaveCount(0);
+      page.getByTestId("post-who-alias-ok"),
+      "PW-132: a free Latin name was not confirmed",
+    ).toBeVisible();
+    expect(
+      aliasCalls.some((body) => body.includes("ፊደል")),
+      "PW-132: a door call carried the non-Latin name",
+    ).toBe(false);
   });
 
   test("PW-114 a second phone appears on request and is stored as phone2", async ({ page }) => {

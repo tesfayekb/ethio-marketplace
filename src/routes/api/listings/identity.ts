@@ -144,13 +144,9 @@ async function handlePost(request: Request): Promise<Response> {
    */
   const countryChange = text(body["homeCountryChange"]);
   if (countryChange !== null) {
-    // M4 creates the door; the generated types catch up when it applies.
-    const { data, error } = await supabase.rpc(
-      "change_home_country" as never,
-      {
-        p_country: countryChange,
-      } as never,
-    );
+    const { data, error } = await supabase.rpc("change_home_country", {
+      p_country: countryChange,
+    });
     if (error) {
       logRouteError(PATH, error.message);
       return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);

@@ -7,6 +7,7 @@ import {
   useRouterState,
   HeadContent,
   Scripts,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie, getRequest, getRequestUrl } from "@tanstack/react-start/server";
@@ -167,11 +168,14 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorContent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorContent({ error, reset }: ErrorComponentProps) {
   const { t } = useI18n();
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    // The router hands `unknown`; narrow before reading the message.
+    reportLovableError(error instanceof Error ? error : new Error(String(error)), {
+      boundary: "tanstack_root_error_component",
+    });
   }, [error]);
 
   return (
@@ -203,7 +207,7 @@ function ErrorContent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   return (
     <I18nProvider>
