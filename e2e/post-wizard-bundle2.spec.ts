@@ -899,6 +899,33 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       .toBeNull();
   });
 
+  test("PW-146 a saved place with a street line but no pin carries its lines to a new draft (bundle 4 step 18, turn 6 item 5)", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    const street = `e2e-street-${rand()}`;
+    const directions = `e2e-dir-${rand()}`;
+    const { error } = await adminClient().from("seller_places").upsert({
+      user_id: user.id,
+      location_id: city.id,
+      street_address: street,
+      directions,
+      home_country_code: "ET",
+    });
+    if (error) throw new Error(`[e2e:b4] seeding the saved place failed: ${error.message}`);
+
+    const draftId = await openDraft(page, user.id, leaf.id, 5);
+    await expect
+      .poll(async () => placeTextOf(draftId), {
+        message: "PW-146: the saved street line and directions did not carry",
+        timeout: 20_000,
+      })
+      .toEqual({ street, directions });
+    expect((await pinOf(draftId)).zoom, "PW-146: a pin appeared from nowhere").toBeNull();
+  });
+
   test("PW-117 two sub-cities of one city both save and count as that one city", async ({
     page,
   }) => {
