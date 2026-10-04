@@ -1111,10 +1111,13 @@ test.describe("POSTING WIZARD", () => {
       )
       .toBe(`${builtTitle} own`);
     // Back to the specifications page, change the answer, forward again.
-    // Title → price → photos → specifications.
-    for (let hop = 0; hop < 3 && (await specControl(page, set.typeKey).count()) === 0; hop += 1) {
+    // Title → price → photos → specifications, one step per press.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-4")).toHaveCount(0, { timeout: 20_000 });
+    if ((await specControl(page, set.typeKey).count()) === 0) {
       await page.getByTestId("post-back").click();
-      await page.waitForTimeout(500);
     }
     await expect(specControl(page, set.typeKey)).toBeVisible({ timeout: 20_000 });
     await specControl(page, set.typeKey).selectOption(
