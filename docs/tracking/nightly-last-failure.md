@@ -1,76 +1,26 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37103440920
-- Commit: `0a074bcb008e3a21261bbce7aaaeb853d63847f4`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37188134063
+- Commit: `c65952658146f98b037c51bde1c2a08d13597274`
 - Attempt: 1
-- Written (UTC): 2026-10-03T08:07:20.775Z
-- Passed: 973 · Skipped: 48 · Failed: 1
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 1
+- Written (UTC): 2026-10-04T08:12:54.472Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): nightly, full
-- Sources without results: none
+- Sources without results: nightly, full
 
 ## Server errors — census (DEC-083, non-gating)
 
 Logs read: nightly, full · unavailable: none
 
-99 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
-
-| Message | Count | Sources |
-| --- | --- | --- |
-| `digest mismatch` (quiet) | 12 | full |
-| `too many previews` (quiet) | 10 | full |
-| `categories badHeader` (quiet) | 4 | full |
-| `categories wrongFile` (quiet) | 4 | full |
-| `definitions badHeader` (quiet) | 4 | full |
-| `definitions wrongFile` (quiet) | 4 | full |
-| `export_failed permission denied` (quiet) | 4 | full |
-| `preview_failed permission denied` (quiet) | 4 | full |
-| `categories file too large` (quiet) | 2 | full |
-| `categories nulByte` (quiet) | 2 | full |
-| `categories unknownColumn` (quiet) | 2 | full |
-| `commit_failed duplicate key value violates unique constraint <q>` (quiet) | 2 | full |
-| `commit_failed step-up required: no verified factor` (quiet) | 2 | full |
-| `countries badHeader` (quiet) | 2 | full |
-| `countries nulByte` (quiet) | 2 | full |
-| `countries tooManyRows` (quiet) | 2 | full |
-| `countries unknownColumn` (quiet) | 2 | full |
-| `countries wrongFile` (quiet) | 2 | full |
-| `definitions nulByte` (quiet) | 2 | full |
-| `definitions tooManyRows` (quiet) | 2 | full |
-| `definitions unknownColumn` (quiet) | 2 | full |
-| `links unknownColumn` (quiet) | 2 | full |
-| `listing not found` | 2 | full |
-| `locations badHeader` (quiet) | 2 | full |
-| `locations file too large` (quiet) | 2 | full |
-| `locations nulByte` (quiet) | 2 | full |
-| `locations unknownColumn` (quiet) | 2 | full |
-| `locations wrongFile` (quiet) | 2 | full |
-| `strings badHeader` (quiet) | 2 | full |
-| `strings emptyFile` (quiet) | 2 | full |
-| `strings nulByte` (quiet) | 2 | full |
-| `strings tooManyRows` (quiet) | 2 | full |
-| `strings unknownColumn` (quiet) | 2 | full |
-| `strings wrongFile` (quiet) | 2 | full |
-| `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 1 | full |
-
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed duplicate key value violates unique constraint <q> ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · category-images: no GEMINI_API_KEY — fake mode ×1
-
-Off the allowlist:
-
-### listing not found
-
-- Count: 2 · Sources: full
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
+No `[ssr-error]` lines in any source (all 2 logs read).
 
 ## Accessibility (DEC-084, non-gating)
 
 Logs read: nightly, full · unavailable: none
 
-10 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0 · wizard-5 desktop-1280 serious=0 critical=0
+No `[a11y]` lines in any source (all 2 logs read).
 
 ## Timing (DEC-087, non-gating)
 
@@ -78,90 +28,36 @@ Results read: nightly, full · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-10-03T06:34:09.579Z | 3.5 min |
-| full | 2026-10-03T06:37:38.753Z | 89.7 min |
+| nightly | 2026-10-04T08:12:51.924Z | 0.0 min |
+| full | 2026-10-04T08:12:53.747Z | 0.0 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 126 | 6.2 min | full |
-| `post-wizard-specs.spec.ts` | 62 | 5.5 min | full |
-| `admin-attributes-library.spec.ts` | 40 | 5.3 min | full |
-| `post-wizard-place.spec.ts` | 36 | 4.8 min | full |
-| `admin-translations-console.spec.ts` | 38 | 4.1 min | full |
-| `admin-locations.spec.ts` | 34 | 3.9 min | full |
-| `admin-categories-console.spec.ts` | 32 | 3.8 min | full |
-| `admin-roles.spec.ts` | 24 | 3.7 min | full |
-| `admin-translations-governance.spec.ts` | 20 | 3.7 min | full |
-| `post-wizard-where.spec.ts` | 28 | 3.7 min | full |
-| `auth-resend-exhaustion.spec.ts` | 1 | 3.4 min | nightly |
-| `admin-categories-lifecycle.spec.ts` | 40 | 3.3 min | full |
-| `admin-attributes-editor.spec.ts` | 34 | 3.3 min | full |
-| `post-wizard-category.spec.ts` | 40 | 3.2 min | full |
-| `admin-attributes-links.spec.ts` | 22 | 2.9 min | full |
-| `admin-users.spec.ts` | 22 | 2.7 min | full |
-| `post-wizard-pricing.spec.ts` | 32 | 2.7 min | full |
-| `admin-categories-images.spec.ts` | 4 | 2.5 min | full |
-| `import-security.spec.ts` | 34 | 2.1 min | full |
-| `post-wizard-resets.spec.ts` | 18 | 2.0 min | full |
-| `auth-signout.spec.ts` | 22 | 1.9 min | full |
-| `admin-countries.spec.ts` | 16 | 1.8 min | full |
-| `admin-translations-data.spec.ts` | 8 | 1.6 min | full |
-| `photo-pipeline.spec.ts` | 20 | 1.5 min | full |
-| `admin-attributes-import.spec.ts` | 32 | 1.5 min | full |
-| `posting-routes.spec.ts` | 38 | 1.5 min | full |
-| `admin-audit.spec.ts` | 10 | 1.3 min | full |
-| `mfa-stepup.spec.ts` | 18 | 1.2 min | full |
-| `post-wizard-bundle2.spec.ts` | 16 | 1.1 min | full |
-| `locations-tree.spec.ts` | 8 | 1.1 min | full |
-| `admin-shell.spec.ts` | 10 | 0.7 min | full |
-| `admin-coverage.spec.ts` | 14 | 0.7 min | full |
-| `post-wizard-finder.spec.ts` | 8 | 0.6 min | full |
-| `i18n-bundle.spec.ts` | 4 | 0.6 min | full |
-| `post-wizard-details.spec.ts` | 4 | 0.3 min | full |
-| `a11y.spec.ts` | 4 | 0.3 min | full |
-| `primitives-law.spec.ts` | 24 | 0.3 min | full |
-| `settings.spec.ts` | 4 | 0.2 min | full |
-| `layout.spec.ts` | 10 | 0.2 min | full |
-| `category-image-routes.spec.ts` | 10 | 0.2 min | full |
-| `rbac.spec.ts` | 6 | 0.2 min | full |
-| `i18n-coverage.spec.ts` | 8 | 0.2 min | full |
-| `auth-reset.spec.ts` | 6 | 0.2 min | full |
-| `category-nav.spec.ts` | 10 | 0.2 min | full |
-| `auth-signin-errors.spec.ts` | 5 | 0.1 min | full |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | full |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | full |
-| `auth-callback.spec.ts` | 4 | 0.1 min | full |
-| `auth-google.spec.ts` | 2 | 0.0 min | full |
-| `geo.spec.ts` | 10 | 0.0 min | full |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 204.1 s |
-| `admin-categories-images.spec.ts` › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state | desktop-1280 | 120.3 s |
-| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 55.5 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 32.8 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 32.8 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 32.3 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 32.2 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 25.2 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 25.1 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 24.4 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 24.4 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 21.1 s |
-| `post-wizard-where.spec.ts` › PW-98 the item tick sits on the city line, fresh and prefilled | mobile-360 | 20.4 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 20.3 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 20.2 s |
 
 ## Post-test errors: nightly
 
 nightly: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
+[e2e:teardown] accounts signed in this run: 0 (pool 0, fresh 0)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37103440920-nightly
+[e2e:teardown] deleted 0 user(s) owned by process 37188134063-nightly
+Error: STAGING BEHIND: apply 20261004072852_d59800cd-96f3-4a6a-a010-597b97e29208.sql to ethio-staging before E2E can pass
+   at ../../scripts/e2e-migration-preflight.ts:291
+  289 |     console.error("[e2e:preflight] missing migration file(s):");
+  290 |     for (const file of missing) console.error(`  - ${file}`);
+> 291 |     throw new Error(`STAGING BEHIND: apply ${newestMissing} to ethio-staging before E2E can pass`);
+      |           ^
+  292 |   }
+  293 |
+  294 |   console.log(`[e2e:preflight] migration parity OK via ${mechanism} (newest: ${newest}).`);
+    at migrationPreflight (/home/runner/work/ethio-marketplace/ethio-marketplace/scripts/e2e-migration-preflight.ts:291:11)
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:390:3)
 ```
 
 ## Post-test errors: full
@@ -169,72 +65,70 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 full: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 69 (pool 3, fresh 66)
+[e2e:teardown] accounts signed in this run: 0 (pool 0, fresh 0)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 96 user(s) owned by process 37103440920-nightly
+[e2e:teardown] deleted 0 user(s) owned by process 37188134063-nightly
+Error: STAGING BEHIND: apply 20261004072852_d59800cd-96f3-4a6a-a010-597b97e29208.sql to ethio-staging before E2E can pass
+   at ../scripts/e2e-migration-preflight.ts:291
+  289 |     console.error("[e2e:preflight] missing migration file(s):");
+  290 |     for (const file of missing) console.error(`  - ${file}`);
+> 291 |     throw new Error(`STAGING BEHIND: apply ${newestMissing} to ethio-staging before E2E can pass`);
+      |           ^
+  292 |   }
+  293 |
+  294 |   console.log(`[e2e:preflight] migration parity OK via ${mechanism} (newest: ${newest}).`);
+    at migrationPreflight (/home/runner/work/ethio-marketplace/ethio-marketplace/scripts/e2e-migration-preflight.ts:291:11)
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:390:3)
 ```
 
-## admin-categories-images.spec.ts › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state
+## Server errors: nightly
 
-- Class: **quarantined global-state** (INC-117, non-gating)
+No `[ssr-error]` lines in the `nightly` log (or no log was uploaded).
 
-- Source: `full`
-- Project: `desktop-1280`
+## Client errors: nightly
 
-```text
-Test timeout of 120000ms exceeded.
-```
-
-Context:
-
-```text
-          - listitem [ref=e230]:
-            - generic [ref=e231]: About
-          - listitem [ref=e232]:
-            - generic [ref=e233]: How it works
-      - navigation "Help" [ref=e234]:
-        - heading "Help" [level=2] [ref=e235]
-        - list [ref=e236]:
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Safety
-          - listitem [ref=e239]:
-            - generic [ref=e240]: Contact
-      - navigation "Legal" [ref=e241]:
-        - heading "Legal" [level=2] [ref=e242]
-        - list [ref=e243]:
-          - listitem [ref=e244]:
-            - generic [ref=e245]: Terms
-          - listitem [ref=e246]:
-            - generic [ref=e247]: Privacy
-    - paragraph [ref=e249]: © 2026 ethio.com — All rights reserved.
-```
-```
+No `[client-error]` lines in the `nightly` log (or no log was uploaded).
 
 ## Server errors: full
 
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
+No `[ssr-error]` lines in the `full` log (or no log was uploaded).
 
 ## Client errors: full
 
 No `[client-error]` lines in the `full` log (or no log was uploaded).
+
+## nightly: results file with zero tests
+
+nightly: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: STAGING BEHIND: apply 20261004072852_d59800cd-96f3-4a6a-a010-597b97e29208.sql to ethio-staging before E2E can pass
+--- final 10 lines ---
+292 |   }
+  293 |
+  294 |   console.log(`[e2e:preflight] migration parity OK via ${mechanism} (newest: ${newest}).`);
+    at migrationPreflight (/home/runner/work/ethio-marketplace/ethio-marketplace/scripts/e2e-migration-preflight.ts:291:11)
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:390:3)
+[e2e:teardown] accounts signed in this run: 0 (pool 0, fresh 0)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 0 user(s) owned by process 37188134063-nightly
+```
+
+## full: results file with zero tests
+
+full: SOURCE PRODUCED NO TESTS — the runner died before executing (webServer/setup): its results.json parsed but recorded zero tests.
+
+```text
+--- error lines (1) ---
+Error: STAGING BEHIND: apply 20261004072852_d59800cd-96f3-4a6a-a010-597b97e29208.sql to ethio-staging before E2E can pass
+--- final 10 lines ---
+292 |   }
+  293 |
+  294 |   console.log(`[e2e:preflight] migration parity OK via ${mechanism} (newest: ${newest}).`);
+    at migrationPreflight (/home/runner/work/ethio-marketplace/ethio-marketplace/scripts/e2e-migration-preflight.ts:291:11)
+    at globalSetup (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:390:3)
+[e2e:teardown] accounts signed in this run: 0 (pool 0, fresh 0)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 0 user(s) owned by process 37188134063-nightly
+```
