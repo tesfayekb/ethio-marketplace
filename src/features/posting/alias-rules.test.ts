@@ -37,6 +37,18 @@ const REFUSED: [string, "a" | "b" | "c" | "d" | "e"][] = [
   ["12345abc", "a"],
 ];
 
+const M2 = "supabase/migrations/20261004011235_18556a32-8f3e-4da5-a645-e73223e74e13.sql";
+
+/** The three space-separated lists M2 seeds into site_words, by kind. */
+function seededWords(kind: "site" | "role" | "function"): string[] {
+  const sql = readFileSync(M2, "utf8");
+  const match = new RegExp(
+    `string_to_array\\('([a-z0-9 ]+)', ' '\\)\\) w, '${kind}'|SELECT w, '${kind}' FROM unnest\\(string_to_array\\('([a-z0-9 ]+)'`,
+  ).exec(sql);
+  const list = match?.[1] ?? match?.[2] ?? "";
+  return list.split(" ").filter((word) => word !== "");
+}
+
 const PASS = [
   "badminton_shop",
   "selam_telebirr",
@@ -69,13 +81,8 @@ describe("seller-name mirror (bundle 3 step 18)", () => {
   });
 
   it("role and function words are the ones M2 seeds", () => {
-    const sql = readFileSync(
-      "supabase/migrations/20261004011235_18556a32-8f3e-4da5-a645-e73223e74e13.sql",
-      "utf8",
-    );
-    for (const word of [...ROLE_WORDS, ...FUNCTION_WORDS]) {
-      expect(sql, word).toMatch(new RegExp(`'${word}'`));
-    }
+    expect([...ROLE_WORDS]).toEqual(seededWords("role"));
+    expect([...FUNCTION_WORDS]).toEqual(seededWords("function"));
   });
 });
 
@@ -85,15 +92,8 @@ describe("scripts/site-words.txt (bundle 3 step 23)", () => {
       .split("\n")
       .map((line) => line.trim())
       .filter((line) => line !== "");
-    const sql = readFileSync(
-      "supabase/migrations/20261004011235_18556a32-8f3e-4da5-a645-e73223e74e13.sql",
-      "utf8",
-    );
-    const seeded = new Set<string>();
-    for (const match of sql.matchAll(/\('([a-z0-9]+)',\s*'(site|role|function)'\)/g)) {
-      seeded.add(match[1]!);
-    }
-    expect(seeded.size).toBeGreaterThan(300);
-    expect(new Set(file)).toEqual(seeded);
+    const seeded = [...seededWords("site"), ...seededWords("role"), ...seededWords("function")];
+    expect(seeded.length).toBe(331);
+    expect([...file].sort()).toEqual([...new Set(seeded)].sort());
   });
 });
