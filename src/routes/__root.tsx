@@ -170,12 +170,13 @@ function NotFoundComponent() {
 
 function ErrorContent({ error, reset }: ErrorComponentProps) {
   const { t } = useI18n();
-  // The router hands `unknown`; narrow before reading the message.
-  const caught = error instanceof Error ? error : new Error(String(error));
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(caught, { boundary: "tanstack_root_error_component" });
-  }, [caught]);
+    // The router hands `unknown`; narrow before reading the message.
+    reportLovableError(error instanceof Error ? error : new Error(String(error)), {
+      boundary: "tanstack_root_error_component",
+    });
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
