@@ -453,12 +453,22 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const user = await signedInSeller(page, { named: true, alias: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
+    // Truth, not a sleep: every suggestion ask the screen sends.
+    let asks = 0;
+    page.on("request", (request) => {
+      if (
+        request.url().includes("/api/listings/alias") &&
+        (request.postData() ?? "").includes('"suggest":true')
+      ) {
+        asks += 1;
+      }
+    });
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
     await expect(page.getByTestId("post-who-saved-alias")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-who-edit").click();
     const aliasBox = page.getByTestId("post-who-alias");
     await expect(aliasBox).not.toHaveValue("", { timeout: 20_000 });
-    await page.waitForTimeout(1_500); // longer than the 350 ms debounce: nothing may arrive.
+    expect(asks, "PW-150: a saved name asked for suggestions").toBe(0);
     await expect(
       page.getByTestId("post-who-alias-suggestion"),
       "PW-150: a saved name was offered suggestions",
