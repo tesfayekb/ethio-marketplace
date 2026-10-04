@@ -229,7 +229,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-10 pricing: currency comes before the amount, a locked period shows no line, and free hides the amount", async ({
     page,
   }) => {
-    const user = await seller(page, { named: true });
+    const user = await seller(page, { named: true, alias: true });
     // DEC-067 — a category that charges by the month, locked, with a short window.
     const category = await seedPostableCategory({
       defaultPricePeriod: "month",
@@ -353,7 +353,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages", async ({
     page,
   }) => {
-    const user = await seller(page, { named: true });
+    const user = await seller(page, { named: true, alias: true });
     const { category, basis } = await basisLeaf();
     const listingId = await reachPricingWithBasis(page, user.id, category, basis, "commission");
 
@@ -461,7 +461,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-57 a per-quintal basis keeps the period once and reviews as a price per quintal", async ({
     page,
   }) => {
-    const user = await seller(page, { named: true });
+    const user = await seller(page, { named: true, alias: true });
     const { category, basis } = await basisLeaf();
     const listingId = await reachPricingWithBasis(page, user.id, category, basis, "per_quintal");
 
@@ -571,7 +571,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081)", async ({
     page,
   }) => {
-    const user = await seller(page, { named: true });
+    const user = await seller(page, { named: true, alias: true });
     const { category, basis } = await basisLeaf();
     const listingId = await reachPricingWithBasis(page, user.id, category, basis, "per_quintal");
     await expect(page.getByTestId("post-price-mode-negotiable")).toHaveCount(0);
@@ -961,7 +961,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-137 Pieces per Pack shows with per pack and goes, with its value, on another unit; the size and terms lines read under the price (bundle 4 steps 9, 10)", async ({
     page,
   }) => {
-    const user = await seller(page, { named: true });
+    const user = await seller(page, { named: true, alias: true });
     const { category, set } = await dealLeaf();
     const listingId = await dealToPrice(page, user.id, category, set);
     // The deal rows are not asked on the specifications page.
