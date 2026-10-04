@@ -115,7 +115,11 @@ export function StepWho({
   /** Rulings 3 — how many times Next was refused here; > 0 shows the refusals at their controls. */
   nextTried?: number;
   /** Rulings 3 — whether Next must refuse on this step (unconfirmed country, unread phone). */
-  onBlocked?: (blocked: boolean) => void;
+  /**
+   * Rulings 4 item 4 — Next must not judge before the identity is read:
+   * "pending" while the read is outstanding, then "blocked" or "open".
+   */
+  onBlocked?: (gate: "pending" | "blocked" | "open") => void;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
@@ -321,11 +325,13 @@ export function StepWho({
   }, []);
   const unreadPhone = phoneLibFailed && pendingPhones.length > 0;
   const blocked = !countryLocked || unreadPhone;
+  const identityPending = identity === null && !identityFailed;
+  const gate = identityPending ? "pending" : blocked ? "blocked" : "open";
   const onBlockedRef = useRef(onBlocked);
   onBlockedRef.current = onBlocked;
   useEffect(() => {
-    onBlockedRef.current?.(blocked);
-  }, [blocked]);
+    onBlockedRef.current?.(gate);
+  }, [gate]);
   const showRequired = nextTried > 0;
 
   const aliasRefusal = refusalFor(identityRefusals, "alias");

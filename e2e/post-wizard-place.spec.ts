@@ -524,7 +524,7 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-who-value-phone-country"),
       "PW-111: +251 did not move the picker to Ethiopia",
     ).toHaveAttribute("data-iso", "ET");
-    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("91 123 4567");
     await typePhone(page, "post-who-value-phone", "0911 234-567");
     await page.getByTestId("post-who-show-phone").check();
     await page.getByTestId("post-next").click();
@@ -569,10 +569,10 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-who-contact-carried"),
       "PW-112: the line naming the last post never showed",
     ).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("91 123 4567");
     await expect(page.getByTestId("post-who-show-phone")).toBeChecked();
     await expectPhoneRowUsable(page, "post-who-value-phone");
-    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("922345678");
+    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("92 234 5678");
     await expect(page.getByTestId("post-who-show-whatsapp")).not.toBeChecked();
     // Written when the step opens: the seller changed nothing.
     await expect

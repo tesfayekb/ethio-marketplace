@@ -2,8 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import type { Database } from "@/integrations/supabase/types";
 import {
-  consumeRate,
-  envDial,
   logRouteError,
   readJsonBody,
   refusal,
@@ -26,7 +24,9 @@ import {
  * The DECLARED home country is the seller's own claim and never touches the
  * OBSERVED fact the draft route writes from the edge (DEC-068).
  *
- * DEC-071 — the dial is `RATE_LIMIT_IDENTITY_PER_DAY` (default 20, one day).
+ * Bundle 3 rulings 4 item 5 — the DOOR alone counts the `identity` bucket
+ * (M1b dial, `save_posting_identity`); the route no longer consumes a second
+ * count from the same bucket, which made the effective limit half the dial.
  */
 
 const PATH = "/api/listings/identity";
@@ -102,15 +102,6 @@ async function handlePost(request: Request): Promise<Response> {
   const refused = refuseUserClient(PATH, caller);
   if (refused !== null) return refused;
   const supabase = caller.supabase!;
-  const userId = caller.userId!;
-
-  const rate = await consumeRate(
-    "identity",
-    userId,
-    envDial("RATE_LIMIT_IDENTITY_PER_DAY", 20),
-    "1 day",
-  );
-  if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
 
   const body = await readJsonBody(request);
   const alias = text(body["alias"]);

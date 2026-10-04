@@ -219,6 +219,43 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     ).toBe("Behind the blue gate, 2nd floor");
   });
 
+  /**
+   * PW-129 (bundle 3 rulings 4 item 4) — Next on the contact step never judges
+   * before the seller's identity has been read: the read is held back, Next is
+   * pressed, nothing is refused; the read is released and Next moves on.
+   */
+  test("PW-129 Next waits for the identity read instead of refusing", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    let release: () => void = () => {};
+    const released = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let held = 0;
+    await page.route("**/rest/v1/profiles?*", async (route) => {
+      const url = route.request().url();
+      if (route.request().method() === "GET" && url.includes("seller_alias")) {
+        held += 1;
+        await released;
+      }
+      await route.continue();
+    });
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expect.poll(() => held, { message: "PW-129: the identity read was never held" }).toBe(1);
+
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-who-country-refusal"),
+      "PW-129: Next refused a confirmed seller before the identity was read",
+    ).toHaveCount(0);
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+
+    release();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-who-country-refusal")).toHaveCount(0);
+  });
+
   test("PW-114 a second phone appears on request and is stored as phone2", async ({ page }) => {
     const user = await signedInSeller(page);
     const leaf = await category();
@@ -283,10 +320,10 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
     // Bundle 3 step 12 — the guessed home country is confirmed on the contact step.
-    await expect(page.getByTestId("post-who-country-required")).toBeVisible();
+    await expect(page.getByTestId("post-who-country-refusal")).toBeVisible();
     await page.getByTestId("post-who-country-confirm").click();
     await expect(page.getByTestId("post-who-country")).toBeDisabled({ timeout: 20_000 });
-    await expect(page.getByTestId("post-who-country-required")).toHaveCount(0);
+    await expect(page.getByTestId("post-who-country-refusal")).toHaveCount(0);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-publish").click();
