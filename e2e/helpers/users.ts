@@ -418,13 +418,21 @@ export async function releaseStaleScratchAlias(alias: string): Promise<string[]>
       .update({ seller_alias: null })
       .eq("user_id", id)
       .ilike("seller_alias", fold);
-    if (cleared.error) throw new Error(`[e2e:alias] clearing ${id} failed: ${cleared.error.message}`);
-    const rows = await supabase.from("alias_history").delete().eq("user_id", id).eq("alias_fold", fold);
-    if (rows.error) throw new Error(`[e2e:alias] history delete ${id} failed: ${rows.error.message}`);
+    if (cleared.error)
+      throw new Error(`[e2e:alias] clearing ${id} failed: ${cleared.error.message}`);
+    const rows = await supabase
+      .from("alias_history")
+      .delete()
+      .eq("user_id", id)
+      .eq("alias_fold", fold);
+    if (rows.error)
+      throw new Error(`[e2e:alias] history delete ${id} failed: ${rows.error.message}`);
     released.push(id);
   }
   if (released.length > 0) {
-    console.log(`[e2e:alias] released "${alias}" from stale scratch account(s) ${released.join(", ")}`);
+    console.log(
+      `[e2e:alias] released "${alias}" from stale scratch account(s) ${released.join(", ")}`,
+    );
   }
   return released;
 }

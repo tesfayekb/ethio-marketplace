@@ -371,7 +371,8 @@ export async function seedGuessFixture(countryCode: string, point: { lat: number
     const parent = row.parent_id
       ? await supabase.from("locations").select("slug").eq("id", row.parent_id).maybeSingle()
       : null;
-    if (parent?.error) throw new Error(`[e2e:l4b2] stale parent read failed: ${parent.error.message}`);
+    if (parent?.error)
+      throw new Error(`[e2e:l4b2] stale parent read failed: ${parent.error.message}`);
     const parentSlug = parent?.data?.slug;
     await destroyLocation(parentSlug?.startsWith("e2e-") ? parentSlug : row.slug);
   }
