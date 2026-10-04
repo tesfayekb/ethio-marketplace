@@ -10,10 +10,13 @@ import type { MessageKey } from "@/i18n";
 import { RequiredMark } from "./field";
 import { PhoneNumberField } from "./phone-number-field";
 import { loadPhoneLib, type PhoneLib } from "./phone-parse";
+import { ALIAS_RULE_REASON, aliasRuleLocal } from "./alias-rules";
 import {
+  checkAlias as checkAliasDoor,
   readLastListingContact,
   readSellerIdentity,
   saveIdentity,
+  suggestAliases,
   type SellerIdentity,
 } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
@@ -48,7 +51,6 @@ import { checkChannel } from "./validate";
  * subset and leaves the fields it was not given alone.
  */
 
-const ALIAS_RE = /^[a-z0-9_]{3,30}$/;
 const ALIAS_DEBOUNCE_MS = 700;
 /** Bundle 2 Q2 — `phone2` is the optional second phone, revealed on request. */
 const CHANNELS = ["phone", "phone2", "telegram", "whatsapp"] as const;
@@ -77,7 +79,15 @@ const smallButtonClass =
   "inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm font-medium " +
   "text-foreground hover:bg-accent";
 
-type AliasState = "idle" | "checking" | "ok" | "refused" | "badShape";
+type AliasState = "idle" | "checking" | "ok" | "refused";
+
+/** A door timestamp as a day in the reader's language; the raw value if unreadable. */
+function formatDay(value: string, lang: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat(lang, { dateStyle: "medium" }).format(date);
+}
 
 function channelOf(
   pref: Record<string, unknown>,
@@ -105,6 +115,7 @@ export function StepWho({
   itemCountry = null,
   nextTried = 0,
   onBlocked,
+  saveRef,
 }: {
   listingId?: string | null;
   contactPref: Record<string, unknown>;
@@ -120,8 +131,13 @@ export function StepWho({
    * "pending" while the read is outstanding, then "blocked" or "open".
    */
   onBlocked?: (gate: "pending" | "blocked" | "open") => void;
+  /**
+   * Bundle 3 step 19 — checking is not claiming: the wizard calls this before it
+   * leaves the step, and a checked name is claimed only then. False keeps the step.
+   */
+  saveRef?: { current: (() => Promise<boolean>) | null };
 }) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const markets = useOpenMarkets();
 
   const [identity, setIdentity] = useState<SellerIdentity | null>(null);
@@ -131,6 +147,10 @@ export function StepWho({
 
   const [alias, setAlias] = useState("");
   const [aliasState, setAliasState] = useState<AliasState>("idle");
+  /** The check door's (or the mirror's) refusal for the typed name; nothing is saved. */
+  const [aliasCheckRefusal, setAliasCheckRefusal] = useState<Refusal | null>(null);
+  /** Step 21 — three free names, offered after every refusal. */
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [sellerType, setSellerType] = useState("person");
   const [businessName, setBusinessName] = useState("");
   /** D17 — the account's own name, apart from the public alias. */
@@ -269,38 +289,83 @@ export function StepWho({
     [commit],
   );
 
-  /** The live availability check: shape first, then the door (decision 2). */
+  /** Step 21 — after a refusal, three free names from the seller's own names. */
+  const offerSuggestions = useCallback(() => {
+    void suggestAliases(
+      sellerType === "business"
+        ? { businessName }
+        : { firstName: firstName.trim() || null, lastName: lastName.trim() || null },
+    ).then((list) => {
+      if (aliveRef.current) setSuggestions(list.slice(0, 3));
+    });
+  }, [sellerType, businessName, firstName, lastName]);
+
+  /**
+   * The live check (bundle 3 step 19): the mirror's rules a–c first, then the
+   * check door, which writes nothing. The name is claimed when the step is saved.
+   */
   const checkAlias = useCallback(
     (next: string) => {
       if (aliasTimerRef.current) clearTimeout(aliasTimerRef.current);
+      setAliasCheckRefusal(null);
       if (next === "") {
         setAliasState("idle");
-        return;
-      }
-      if (!ALIAS_RE.test(next)) {
-        setAliasState("badShape");
         return;
       }
       if (next === checkedAliasRef.current) {
         setAliasState("ok");
         return;
       }
+      const local = aliasRuleLocal(next);
+      if (local !== null) {
+        setAliasCheckRefusal({ field: "alias", reason: ALIAS_RULE_REASON[local] });
+        setAliasState("refused");
+        offerSuggestions();
+        return;
+      }
       setAliasState("checking");
       aliasTimerRef.current = setTimeout(() => {
         void (async () => {
-          const answer = await commit({ alias: next });
+          const answer = await checkAliasDoor(next);
           if (!aliveRef.current) return;
           if (answer.ok) {
-            checkedAliasRef.current = next;
             setAliasState("ok");
             return;
           }
+          setAliasCheckRefusal(answer.refusals[0] ?? { field: "alias", reason: "badValue" });
           setAliasState("refused");
+          offerSuggestions();
         })();
       }, ALIAS_DEBOUNCE_MS);
     },
-    [commit],
+    [offerSuggestions],
   );
+
+  /** Bundle 3 step 19 — the claim: a checked, changed name is saved as the step is left. */
+  useEffect(() => {
+    if (!saveRef) return;
+    saveRef.current = async () => {
+      const next = alias.trim().toLowerCase();
+      if (next === "" || next === checkedAliasRef.current) return true;
+      if (aliasState !== "ok") {
+        if (aliasState !== "refused") checkAlias(next);
+        return false;
+      }
+      const answer = await commit({ alias: next });
+      if (!aliveRef.current) return answer.ok;
+      if (answer.ok) {
+        checkedAliasRef.current = next;
+        return true;
+      }
+      setAliasCheckRefusal(refusalFor(answer.refusals, "alias"));
+      setAliasState("refused");
+      offerSuggestions();
+      return false;
+    };
+    return () => {
+      saveRef.current = null;
+    };
+  }, [saveRef, alias, aliasState, commit, checkAlias, offerSuggestions]);
 
   const setChannel = (channel: Channel, patch: { show?: boolean; value?: string }) => {
     // Read the latest pref, so two phones read in the same tick never clobber each other.
@@ -335,6 +400,7 @@ export function StepWho({
   const showRequired = nextTried > 0;
 
   const aliasRefusal = refusalFor(identityRefusals, "alias");
+  const shownAliasRefusal = aliasCheckRefusal ?? aliasRefusal;
   const typeRefusal = refusalFor(identityRefusals, "seller_type");
   const businessRefusal = refusalFor(identityRefusals, "business_name");
   const firstRefusal = refusalFor(identityRefusals, "first_name");
@@ -359,21 +425,6 @@ export function StepWho({
       ...(found === null ? [] : [found]),
     ]);
   };
-
-  /**
-   * U6-C1-R2 — THE SUGGESTED SELLER NAME. A business is known by its business
-   * name; a person by the name on their account. The suggestion is squeezed into
-   * the alias SHAPE the door accepts, and offered — the seller still taps it.
-   */
-  const suggestedAlias = useMemo(() => {
-    const source = sellerType === "business" ? businessName : (identity?.displayName ?? "");
-    const shaped = source
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "")
-      .slice(0, 30);
-    return ALIAS_RE.test(shaped) ? shaped : null;
-  }, [sellerType, businessName, identity]);
 
   return (
     <div className="space-y-5" data-testid="post-who">
@@ -425,7 +476,7 @@ export function StepWho({
                 checkAlias(next);
               }}
             />
-            <p className="text-xs text-muted-foreground">{t("post.who.aliasHint")}</p>
+            <p className="text-xs text-muted-foreground">{t("post.who.aliasRules")}</p>
             {aliasState === "checking" && (
               <p className="text-xs text-muted-foreground" data-testid="post-who-alias-checking">
                 {t("post.who.aliasChecking")}
@@ -433,44 +484,50 @@ export function StepWho({
             )}
             {aliasState === "ok" && (
               <p className="text-xs text-foreground" data-testid="post-who-alias-ok">
-                {t("post.who.aliasFree")}
+                {t("post.who.aliasAvailable")}
               </p>
             )}
-            {aliasState === "badShape" && (
-              <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
-                {t("post.refusal.badShape")}
+            {/[^ -~]/.test(alias) && (
+              <p className="text-xs text-muted-foreground" data-testid="post-who-alias-latin">
+                {t("post.who.aliasLatinOnly")}
               </p>
             )}
-            {aliasState === "refused" && aliasRefusal !== null && (
+            {aliasState === "refused" && shownAliasRefusal !== null && (
               <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
                 {/* U6-C1-R2 — the imitation check names WHAT the alias resembles,
                     so the seller can tell a coincidence from a rejection. */}
-                {aliasRefusal.reason === "aliasImitatesBrand"
+                {shownAliasRefusal.reason === "aliasImitatesBrand"
                   ? fill(t("post.refusal.aliasImitatesBrand"), {
-                      name: aliasRefusal.detail ?? "",
+                      name: shownAliasRefusal.detail ?? "",
                     })
-                  : t(draftRefusalKey(aliasRefusal.reason))}
+                  : shownAliasRefusal.reason === "aliasTooSoon"
+                    ? fill(t("post.refusal.aliasTooSoon"), {
+                        date: formatDay(shownAliasRefusal.detail ?? "", language),
+                      })
+                    : t(draftRefusalKey(shownAliasRefusal.reason))}
               </p>
             )}
             {/* THE SUGGESTION: a business's own name, or the account's name — the
                 seller's to take in one tap, never written for them. */}
-            {suggestedAlias !== null && suggestedAlias !== alias && (
-              <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span data-testid="post-who-alias-suggested">
-                  {fill(t("post.who.aliasSuggested"), { alias: suggestedAlias })}
-                </span>
-                <button
-                  type="button"
-                  data-testid="post-who-alias-use"
-                  className={smallButtonClass}
-                  onClick={() => {
-                    setAlias(suggestedAlias);
-                    checkAlias(suggestedAlias);
-                  }}
-                >
-                  {t("post.who.aliasUseIt")}
-                </button>
-              </p>
+            {aliasState === "refused" && suggestions.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <span>{t("post.who.aliasSuggestions")}</span>
+                {suggestions.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    data-testid="post-who-alias-suggestion"
+                    data-name={name}
+                    className={smallButtonClass}
+                    onClick={() => {
+                      setAlias(name);
+                      checkAlias(name);
+                    }}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 

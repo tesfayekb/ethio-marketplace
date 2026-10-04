@@ -2147,9 +2147,7 @@ export const en = {
   "post.who.savedHint": "This is the name buyers will see.",
   "post.who.edit": "Change these",
   "post.who.aliasLabel": "Your seller name",
-  "post.who.aliasHint": "Small letters, numbers and _ only, 3 to 30 characters.",
   "post.who.aliasChecking": "Checking…",
-  "post.who.aliasFree": "This name is yours.",
   "post.who.typeLabel": "Are you selling as",
   "post.who.typePerson": "A person",
   "post.who.typeBusiness": "A business",
@@ -2221,8 +2219,6 @@ export const en = {
   "post.assist.use": "Use this one",
   "post.assist.again": "Write another version",
   "post.assist.suggestionNumber": "Version {number}",
-  "post.who.aliasSuggested": "Suggested: {alias}",
-  "post.who.aliasUseIt": "Use it",
   "post.who.firstNameLabel": "First name",
   "post.who.lastNameLabel": "Last name",
   "post.who.nameHint": "Buyers see your seller name, not this. We keep it for your account.",
@@ -2239,6 +2235,24 @@ export const en = {
   "post.who.phoneLibFailed": "The phone box could not be loaded.",
   "post.who.phoneLibRetry": "Try again",
   "post.who.showOnListing": "Show on the listing",
+  "post.refusal.aliasShape":
+    "Use 5 to 30 small letters, numbers or _, starting with a letter and with at least three letters.",
+  "post.refusal.aliasEthio":
+    'A seller name cannot contain "ethio"; it would look like ethio.com itself.',
+  "post.refusal.aliasRole":
+    "That name uses a word like admin, support or official, which could mislead buyers.",
+  "post.refusal.aliasClaim":
+    "That name presents a known brand or company as yours. Choose a name of your own.",
+  "post.refusal.aliasTooSoon":
+    "You changed your name recently. The next change is possible from {date}.",
+  "post.refusal.businessEthio":
+    'A business name cannot contain "ethio" or "ኢትዮ"; it would look like ethio.com itself.',
+  "post.refusal.businessReserved": "That business name belongs to a known brand or company.",
+  "post.refusal.businessClaim": "That business name presents a known brand or company as yours.",
+  "post.who.aliasRules": "5 to 30 small Latin letters, numbers or _. Start with a letter.",
+  "post.who.aliasAvailable": "This name is free. It becomes yours when you save this step.",
+  "post.who.aliasSuggestions": "Free names you can use:",
+  "post.who.aliasLatinOnly": "Please use Latin letters (a–z) for your seller name.",
   "post.refusal.aliasImitatesBrand": "That name looks like {name}. Please choose another.",
   "post.refusal.assistBudgetSpent": "You have used all the writing tries for this listing.",
   "post.where.addBack": "Add it back",

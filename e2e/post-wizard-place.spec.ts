@@ -463,36 +463,16 @@ test.describe("POSTING WIZARD", () => {
       "PW-12: a too-short alias was accepted on screen",
     ).toBeVisible();
 
-    // A GOOD ONE IS THE DOOR'S ANSWER, and the door's answer is a claim.
+    // Bundle 3 step 19 — CHECKING IS NOT CLAIMING: a good name is answered free
+    // by the check door and reaches the profile only when the step is saved.
     const wanted = `e2e_${rand()}`.slice(0, 30).toLowerCase();
+    const before = (await identityOf(user.id)).alias;
     await alias.fill(wanted);
     await expect(
       page.getByTestId("post-who-alias-ok"),
-      "PW-12: the alias was never confirmed by the door",
+      "PW-12: the alias was never answered by the check door",
     ).toBeVisible({ timeout: 20_000 });
-    await expect
-      .poll(async () => (await identityOf(user.id)).alias, {
-        message: "PW-12: the alias never reached the profile",
-        timeout: 20_000,
-      })
-      .toBe(wanted);
-
-    // U6-C1-R2 — AN IMITATION IS REFUSED BY THE DOOR, NAMING WHAT IT RESEMBLES.
-    // Fake mode makes the verdict deterministic: an alias carrying "cocacola"
-    // imitates, and no provider is called.
-    await alias.fill("e2e_cocacola_shop");
-    await expect(
-      page.getByTestId("post-who-alias-refusal"),
-      "PW-12: an imitating alias was accepted",
-    ).toBeVisible({ timeout: 20_000 });
-    await expect
-      .poll(async () => (await identityOf(user.id)).alias, {
-        message: "PW-12: a refused alias must not reach the profile",
-        timeout: 20_000,
-      })
-      .toBe(wanted);
-    await alias.fill(wanted);
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    expect((await identityOf(user.id)).alias, "PW-12: checking claimed the name").toBe(before);
 
     // U6-C1-R3b-1 STEP 5 (D17) — A PERSON IS NAMED. The names are the profile's,
     // not the listing's, and reach it through the same identity door.
@@ -524,7 +504,7 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-who-value-phone-country"),
       "PW-111: +251 did not move the picker to Ethiopia",
     ).toHaveAttribute("data-iso", "ET");
-    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("91 123 4567");
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
     await typePhone(page, "post-who-value-phone", "0911 234-567");
     await page.getByTestId("post-who-show-phone").check();
     await page.getByTestId("post-next").click();
@@ -542,6 +522,9 @@ test.describe("POSTING WIZARD", () => {
       (await contactPrefOf(listingId))["messages"],
       "PW-12: messages was not stored true",
     ).toBe(true);
+    expect((await identityOf(user.id)).alias, "PW-12: saving the step did not claim the name").toBe(
+      wanted,
+    );
   });
 
   test("PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged", async ({

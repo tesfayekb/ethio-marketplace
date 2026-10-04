@@ -780,6 +780,30 @@ export function saveIdentity(body: {
 }
 
 /**
+ * Bundle 3 step 19 — `POST /api/listings/alias`: `check_seller_alias` answers ok
+ * or the refusal and writes nothing; the name is claimed by `saveIdentity` when
+ * the contact step is saved.
+ */
+export function checkAlias(alias: string): Promise<DoorAnswer> {
+  return call("/api/listings/alias", JSON.stringify({ alias }), {
+    "Content-Type": "application/json",
+  });
+}
+
+/** Bundle 3 step 21 — three free names from the business name, else first and last name. */
+export async function suggestAliases(body: {
+  businessName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+}): Promise<string[]> {
+  const answer = await call("/api/listings/alias", JSON.stringify({ ...body, suggest: true }), {
+    "Content-Type": "application/json",
+  });
+  const list = answer.ok ? answer.payload["suggestions"] : null;
+  return Array.isArray(list) ? list.filter((x): x is string => typeof x === "string") : [];
+}
+
+/**
  * `POST /api/listings/publish` — `publish_listing`, which moves a complete draft
  * to SCREENING. Nothing goes live from here: D1 is the gateway that decides, and
  * "in review" is the honest word for what the seller has just done (DEC-065).

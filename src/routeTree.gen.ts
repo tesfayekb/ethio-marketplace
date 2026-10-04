@@ -43,6 +43,7 @@ import { Route as ApiListingsPublishRouteImport } from './routes/api/listings/pu
 import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/identity'
 import { Route as ApiListingsDraftRouteImport } from './routes/api/listings/draft'
 import { Route as ApiListingsAssistRouteImport } from './routes/api/listings/assist'
+import { Route as ApiListingsAliasRouteImport } from './routes/api/listings/alias'
 import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
 import { Route as ApiGeoSearchRouteImport } from './routes/api/geo/search'
 import { Route as ApiGeoReverseRouteImport } from './routes/api/geo/reverse'
@@ -235,6 +236,11 @@ const ApiListingsAssistRoute = ApiListingsAssistRouteImport.update({
   path: '/api/listings/assist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiListingsAliasRoute = ApiListingsAliasRouteImport.update({
+  id: '/api/listings/alias',
+  path: '/api/listings/alias',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiI18nLangRoute = ApiI18nLangRouteImport.update({
   id: '/api/i18n/$lang',
   path: '/api/i18n/$lang',
@@ -387,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
+  '/api/listings/alias': typeof ApiListingsAliasRoute
   '/api/listings/assist': typeof ApiListingsAssistRoute
   '/api/listings/draft': typeof ApiListingsDraftRoute
   '/api/listings/identity': typeof ApiListingsIdentityRoute
@@ -443,6 +450,7 @@ export interface FileRoutesByTo {
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
+  '/api/listings/alias': typeof ApiListingsAliasRoute
   '/api/listings/assist': typeof ApiListingsAssistRoute
   '/api/listings/draft': typeof ApiListingsDraftRoute
   '/api/listings/identity': typeof ApiListingsIdentityRoute
@@ -501,6 +509,7 @@ export interface FileRoutesById {
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
   '/api/i18n/$lang': typeof ApiI18nLangRoute
+  '/api/listings/alias': typeof ApiListingsAliasRoute
   '/api/listings/assist': typeof ApiListingsAssistRoute
   '/api/listings/draft': typeof ApiListingsDraftRoute
   '/api/listings/identity': typeof ApiListingsIdentityRoute
@@ -560,6 +569,7 @@ export interface FileRouteTypes {
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/i18n/$lang'
+    | '/api/listings/alias'
     | '/api/listings/assist'
     | '/api/listings/draft'
     | '/api/listings/identity'
@@ -616,6 +626,7 @@ export interface FileRouteTypes {
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/i18n/$lang'
+    | '/api/listings/alias'
     | '/api/listings/assist'
     | '/api/listings/draft'
     | '/api/listings/identity'
@@ -673,6 +684,7 @@ export interface FileRouteTypes {
     | '/api/geo/reverse'
     | '/api/geo/search'
     | '/api/i18n/$lang'
+    | '/api/listings/alias'
     | '/api/listings/assist'
     | '/api/listings/draft'
     | '/api/listings/identity'
@@ -712,6 +724,7 @@ export interface RootRouteChildren {
   ApiCatalogFindRoute: typeof ApiCatalogFindRoute
   ApiCategoriesTreeRoute: typeof ApiCategoriesTreeRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
+  ApiListingsAliasRoute: typeof ApiListingsAliasRoute
   ApiListingsAssistRoute: typeof ApiListingsAssistRoute
   ApiListingsDraftRoute: typeof ApiListingsDraftRoute
   ApiListingsIdentityRoute: typeof ApiListingsIdentityRoute
@@ -971,6 +984,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiListingsAssistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/listings/alias': {
+      id: '/api/listings/alias'
+      path: '/api/listings/alias'
+      fullPath: '/api/listings/alias'
+      preLoaderRoute: typeof ApiListingsAliasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/i18n/$lang': {
       id: '/api/i18n/$lang'
       path: '/api/i18n/$lang'
@@ -1207,6 +1227,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCatalogFindRoute: ApiCatalogFindRoute,
   ApiCategoriesTreeRoute: ApiCategoriesTreeRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,
+  ApiListingsAliasRoute: ApiListingsAliasRoute,
   ApiListingsAssistRoute: ApiListingsAssistRoute,
   ApiListingsDraftRoute: ApiListingsDraftRoute,
   ApiListingsIdentityRoute: ApiListingsIdentityRoute,

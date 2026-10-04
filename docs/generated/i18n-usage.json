@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 323,
+  "scanned": 325,
   "dynamicCallSites": 206,
   "keys": {
     "account.deactivatedBanner": [
@@ -3784,7 +3784,7 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.refusal.badShape": [
+    "post.refusal.aliasTooSoon": [
       "/post",
       "/post/$listingId"
     ],
@@ -4190,15 +4190,11 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.aliasAvailable": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.aliasChecking": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.who.aliasFree": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.who.aliasHint": [
       "/post",
       "/post/$listingId"
     ],
@@ -4206,11 +4202,15 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.who.aliasSuggested": [
+    "post.who.aliasLatinOnly": [
       "/post",
       "/post/$listingId"
     ],
-    "post.who.aliasUseIt": [
+    "post.who.aliasRules": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.who.aliasSuggestions": [
       "/post",
       "/post/$listingId"
     ],
