@@ -18,6 +18,11 @@ import type { MessageKey } from "@/i18n";
 import {
   clearPin,
   readLastListingPlaces,
+  readSellerPlace,
+  sellerPlaceAsLast,
+  saveSellerPlace,
+  clearSellerPlace,
+  type SellerPlace,
   readPlaceText,
   savePlaceText,
   savePin,
@@ -788,6 +793,10 @@ export function StepWhere({
   const [last, setLast] = useState<LastPlaces | null | undefined>(() =>
     coverage.length > 0 ? null : undefined,
   );
+  /** Bundle 4 step 18 — the saved shop or office: `undefined` while read. */
+  const [sellerPlace, setSellerPlace] = useState<SellerPlace | null | undefined>(undefined);
+  const [shopBusy, setShopBusy] = useState(false);
+  const [shopFailed, setShopFailed] = useState(false);
   /** The seller has acted on this step; before that, nothing on screen overwrites a saved answer. */
   const touched = useRef(false);
 
@@ -809,13 +818,44 @@ export function StepWhere({
     };
   }, []);
 
+  /** Step 18 — a draft with its own places still reads the saved place, for the tick. */
+  useEffect(() => {
+    if (last === undefined) return;
+    let cancelled = false;
+    readSellerPlace()
+      .then((place) => {
+        if (!cancelled) setSellerPlace(place);
+      })
+      .catch((error: unknown) => {
+        console.error("[seller-place] read failed", error);
+        if (!cancelled) setSellerPlace(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // Read once per mount, only when the last-post read below is skipped.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /** W6b-1 R4 — the last post's places are read ONCE, before any prefill settles. */
   useEffect(() => {
     if (last !== undefined) return;
     let cancelled = false;
-    void readLastListingPlaces(listingId).then((found) => {
+    // Bundle 4 step 18 — the seller's saved shop or office comes first, else
+    // the last post's places as before. A failed saved-place read is logged.
+    void (async () => {
+      let saved: LastPlaces | null = null;
+      try {
+        const place = await readSellerPlace();
+        if (!cancelled) setSellerPlace(place);
+        if (place !== null) saved = await sellerPlaceAsLast(place);
+      } catch (error) {
+        console.error("[seller-place] read failed", error);
+        if (!cancelled) setSellerPlace(null);
+      }
+      const found = saved ?? (await readLastListingPlaces(listingId));
       if (!cancelled) setLast(found);
-    });
+    })();
     return () => {
       cancelled = true;
     };
@@ -1569,6 +1609,50 @@ export function StepWhere({
               <p className="text-sm text-destructive" data-testid="post-pin-error">
                 {t("post.pin.saveFailed")}
               </p>
+            )}
+            {(pin !== null || note.trim() !== "") && sellerPlace !== undefined && (
+              <div className="space-y-1">
+                <label className="flex min-h-11 items-center gap-3 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    className="size-5"
+                    data-testid="post-where-shop"
+                    disabled={shopBusy}
+                    checked={
+                      sellerPlace !== null &&
+                      sellerPlace.locationId === itemPlace &&
+                      (sellerPlace.pin?.lat.toFixed(5) ?? null) === (pin?.lat.toFixed(5) ?? null) &&
+                      (sellerPlace.pin?.lng.toFixed(5) ?? null) === (pin?.lng.toFixed(5) ?? null) &&
+                      sellerPlace.street === savedText.current.street &&
+                      sellerPlace.directions === savedText.current.directions
+                    }
+                    onChange={(event) => {
+                      const on = event.target.checked;
+                      setShopBusy(true);
+                      setShopFailed(false);
+                      void (on ? saveSellerPlace(listingId) : clearSellerPlace())
+                        .then(async (ok) => {
+                          if (!ok) {
+                            setShopFailed(true);
+                            return;
+                          }
+                          setSellerPlace(on ? await readSellerPlace() : null);
+                        })
+                        .catch((error: unknown) => {
+                          console.error("[seller-place] reread failed", error);
+                          setShopFailed(true);
+                        })
+                        .finally(() => setShopBusy(false));
+                    }}
+                  />
+                  {t("post.where.shopTick")}
+                </label>
+                {shopFailed && (
+                  <p className="text-sm text-destructive" data-testid="post-where-shop-error">
+                    {t("post.where.shopFailed")}
+                  </p>
+                )}
+              </div>
             )}
             {pinOpen && (
               <Suspense

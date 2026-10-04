@@ -134,7 +134,11 @@ export async function loadAttributeOptions(attributeId: string): Promise<AttrOpt
     const response = await fetch(`/api/attributes/${attributeId}/options`, {
       headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
     });
-    if (!response.ok) return held ? held.options : null;
+    if (!response.ok) {
+      // F4 — never silent: a refused read (429 = rateLimited) is logged.
+      console.error("[attr-options] read refused", attributeId, response.status);
+      return held ? held.options : null;
+    }
     const payload = (await response.json()) as Record<string, unknown>;
     const list = Array.isArray(payload["options"]) ? payload["options"] : null;
     if (list === null) return held ? held.options : null;

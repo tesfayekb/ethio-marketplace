@@ -127,6 +127,9 @@ async function handleGet(request: Request, id: string): Promise<Response> {
   const { data, error } = await supabase.rpc("get_attribute_options", { p_attribute_id: id });
   if (error) {
     if (error.message.includes("attributeNotFound")) return fail(id, "unknown attribute", 404);
+    // Bundle 4 step 20 — the door meters reads (rate_gate('options_read')); a
+    // refusal is the caller's limit, answered in plain words, as the schema read is.
+    if (error.message.includes("rateLimited")) return fail(id, "rateLimited", 429);
     return fail(id, error.message, 502);
   }
 

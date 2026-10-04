@@ -4217,6 +4217,14 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.where.shopFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.shopTick": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.where.showHeading": [
       "/post",
       "/post/$listingId"
