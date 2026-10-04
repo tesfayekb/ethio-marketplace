@@ -1706,6 +1706,7 @@ test.describe("POSTING WIZARD", () => {
     const listingId = await reachStep3(page, user.id, category);
     const control = (attrKey: string) =>
       page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+    await control(model).focus();
     await control(model).selectOption(m2);
     await expect(control(battery), "PW-153: an unsettled model did not ask").toBeVisible({
       timeout: 20_000,
