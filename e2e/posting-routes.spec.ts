@@ -75,7 +75,7 @@ test.describe("POSTING ROUTES", () => {
 
   async function seller(
     page: import("@playwright/test").Page,
-    options: { homeConfirmed?: boolean } = {},
+    options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {},
   ) {
     const user = await leaseSeller(options);
     sellers.push(user.id);
@@ -378,15 +378,21 @@ test.describe("POSTING ROUTES", () => {
   });
 
   test("PR-3 a complete draft publishes to screening and never to active", async ({ page }) => {
-    // Proves the home-country refusal first, so its seller starts unconfirmed.
-    const { token } = await seller(page, { homeConfirmed: false });
+    // Proves the home-country refusal first, so its seller starts unconfirmed;
+    // M5 refuses a step-8 save for that seller, so the draft is saved at step 7.
+    const { token } = await seller(page, { homeConfirmed: false, alias: true });
     const cat = await category();
     const city = await activeCityOf("ET");
 
     const draft = await postRoute(
       page,
       DRAFT,
-      completeDraft({ categoryId: cat.id, cityId: city.id, title: `e2e posting ${rand()}` }),
+      completeDraft({
+        categoryId: cat.id,
+        cityId: city.id,
+        title: `e2e posting ${rand()}`,
+        step: 7,
+      }),
       { token, country: "ET" },
     );
     expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);

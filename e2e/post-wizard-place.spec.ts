@@ -154,8 +154,8 @@ test.describe("POSTING WIZARD", () => {
     });
   }
 
-  async function seller(page: import("@playwright/test").Page) {
-    const user = await leaseSeller();
+  async function seller(page: import("@playwright/test").Page, options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {}) {
+    const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);
@@ -578,13 +578,8 @@ test.describe("POSTING WIZARD", () => {
   test("PW-13 review: the preview shows what was answered, and Publish lands in review — never live", async ({
     page,
   }) => {
-    const user = await seller(page);
-    // M5 (bundle 4 step 22) — publishing needs a named seller; own row only (J3).
-    const named = await adminClient()
-      .from("profiles")
-      .update({ first_name: "Abebe", last_name: "Kebede" })
-      .eq("user_id", user.id);
-    if (named.error) throw new Error(`[e2e:pw13] naming the seller failed: ${named.error.message}`);
+    // M5 (bundle 4 step 22) — publishing needs a named seller; the alias is typed on screen.
+    const user = await seller(page, { named: true });
     const category = await seedPostableCategory();
     categories.push(category.slug);
     const listingId = await reachStep7(page, user.id, category);

@@ -82,8 +82,8 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     }
   }
 
-  async function signedInSeller(page: Page) {
-    const user = await leaseSeller();
+  async function signedInSeller(page: Page, options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {}) {
+    const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);
@@ -210,7 +210,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await waitForTreeSlug(page, "ET", mine.subCity.slug);
     await waitForTreeSlug(page, "ET", theirs.city.slug);
 
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { alias: true });
     const prior = await publishedAt(page, category.id, mine.subCity.id);
     objects.push({ userId: user.id, listingId: prior });
 
@@ -250,7 +250,8 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const context = await browser.newContext();
     const other = await context.newPage();
     try {
-      const user = await leaseSeller();
+      // M5 — this seller publishes through the route, so carries a public name.
+      const user = await leaseSeller({ alias: true });
       sellers.push(user.id);
       await asEdge(other);
       await signInViaSession(other, user.email, user.password);
@@ -674,7 +675,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const chain = await seedScratchChain("ET");
     places.push(chain.region.slug);
     await waitForTreeSlug(page, "ET", chain.city.slug);
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { alias: true });
 
     await openAtStep6(page, user.id, category.id);
     const region = page.getByTestId("post-where-region");

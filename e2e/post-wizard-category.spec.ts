@@ -126,8 +126,8 @@ test.describe("POSTING WIZARD", () => {
     });
   }
 
-  async function seller(page: import("@playwright/test").Page) {
-    const user = await leaseSeller();
+  async function seller(page: import("@playwright/test").Page, options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {}) {
+    const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);
@@ -1293,7 +1293,8 @@ test.describe("POSTING WIZARD", () => {
    * screening — never live (the owner's door can only ever hand it to review).
    */
   test("PW-48 a catch-all leaf can be chosen and its listing lands in review", async ({ page }) => {
-    const user = await seller(page);
+    // M5 — publishing needs a named seller; the alias is typed on screen.
+    const user = await seller(page, { named: true });
     const { parent, leaf: other } = await seedCatchAllLeaf();
     branches.push(parent.slug, other.slug);
 
