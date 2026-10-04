@@ -32,3 +32,4 @@
 20261004010309_60b466e2-a6fd-4b69-9029-d8f067fbe437.sql | comment-only file applied in error before M2 (executes nothing); its ledger row 20261004010309 is recorded by M2 | 20261004011235
 20261004055007_5118f016-fe53-417c-8b4a-05ed5604676d.sql | M4b landed without its self-mark; its ledger row 20261004055007 is recorded by the M4c healer (756bcd49, mark 20261004070000) | 20261004055819
 20261004072852_d59800cd-96f3-4a6a-a010-597b97e29208.sql | comment-only file applied in error before M5 (executes nothing); its ledger row 20261004072852 is recorded by M5 | 20261004144146
+20261004144146_923dd4cb-91bb-43a1-9c0d-e4b418c23c23.sql | M5 declares mark 20261004090000, earlier than its filename stamp; the M5b healer (02084273, mark 20261004160000) writes a mark after it | 20261004144628
