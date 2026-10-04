@@ -150,6 +150,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const [basisOptions, setBasisOptions] = useState<AttrOption[] | null>(null);
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
   const [returnToReview, setReturnToReview] = useState(false);
+  /** Rulings 3 — the contact step's own hold on Next, and how often it refused. */
+  const [whoBlocked, setWhoBlocked] = useState(false);
+  const [whoTried, setWhoTried] = useState(0);
   /**
    * U6-C1-R3b-1 STEP 2b — WHAT A CATEGORY CHANGE COST.
    *
