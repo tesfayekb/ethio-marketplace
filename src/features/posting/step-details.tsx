@@ -1,14 +1,36 @@
 import { Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useI18n } from "@/i18n";
 
+import { loadAttributeOptions, type AttrOption } from "./attribute-options";
+import { buildTitle } from "./build-title";
 import { Field, controlClass } from "./field";
-import { requestAssist } from "./posting-service";
+import { requestAssist, type AttrDef } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { ASSIST_TRIES, type Refusal } from "./types";
 import { looksLikeContact } from "./contact-like";
 import { checkText, mergeRefusals } from "./validate";
+
+/** Step 12 — the built title last written into the box, remembered per draft. */
+const builtKey = (listingId: string) => `post-built-title:${listingId}`;
+/** Step 12 — set once the seller edits the title: it is theirs from then on. */
+const ownKey = (listingId: string) => `post-built-title-own:${listingId}`;
+function readSession(key: string): string | null {
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function writeSession(key: string, value: string | null) {
+  try {
+    if (value === null) window.sessionStorage.removeItem(key);
+    else window.sessionStorage.setItem(key, value);
+  } catch {
+    // Storage refused (private mode): the built title still fills once, it just isn't remembered.
+  }
+}
 
 /**
  * U6-C1b / U6-C1-R2 — STEP 4: TITLE, DESCRIPTION AND THE WRITING HELP (DEC-072).

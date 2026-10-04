@@ -1002,6 +1002,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           categoryPath={categoryPath}
                           photoUrls={assistPhotoUrls}
                           attributes={draft.values.attributes}
+                          definitions={definitions}
+                          dealKeys={dealExclude}
                           title={draft.values.title}
                           description={draft.values.description}
                           refusals={draft.refusals}
