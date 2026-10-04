@@ -282,9 +282,10 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(offered, "PW-130: the refusal did not offer three names").toHaveCount(3, {
       timeout: 20_000,
     });
-    const picked = (await offered.first().textContent())?.trim() ?? "";
+    const names = (await offered.allTextContents()).map((name) => name.trim());
+    const picked = names[0] ?? "";
     expect(picked, "PW-130: the first suggestion is not built from the names").toContain("abebe");
-    await offered.first().click();
+    await page.locator(`[data-testid="post-who-alias-suggestion"][data-name="${picked}"]`).click();
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
     expect((await identityOf(user.id)).alias, "PW-130: checking claimed the name").toBe(before);
     await page.getByTestId("post-next").click();

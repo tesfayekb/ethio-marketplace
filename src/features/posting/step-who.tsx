@@ -517,6 +517,7 @@ export function StepWho({
                     key={name}
                     type="button"
                     data-testid="post-who-alias-suggestion"
+                    data-name={name}
                     className={smallButtonClass}
                     onClick={() => {
                       setAlias(name);
