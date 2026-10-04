@@ -9,82 +9,67 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AccountRouteImport } from './routes/account'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as PostRouteImport } from './routes/post'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PostRouteImport } from './routes/post'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
-import { Route as AdminAuditRouteImport } from './routes/admin.audit'
-import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
-import { Route as AdminCountriesRouteImport } from './routes/admin.countries'
-import { Route as AdminCoverageRouteImport } from './routes/admin.coverage'
-import { Route as AdminImagesRouteImport } from './routes/admin.images'
-import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
-import { Route as AdminPlacesRouteImport } from './routes/admin.places'
-import { Route as AdminRolesRouteImport } from './routes/admin.roles'
-import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
-import { Route as AdminUsersRouteImport } from './routes/admin.users'
-import { Route as ApiGeoRouteImport } from './routes/api/geo'
-import { Route as ApiLocationsRouteImport } from './routes/api/locations'
-import { Route as ApiProbe500RouteImport } from './routes/api/probe-500'
-import { Route as ApiTranslateRouteImport } from './routes/api/translate'
-import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
-import { Route as AuthResetRouteImport } from './routes/auth_.reset'
-import { Route as CSlugRouteImport } from './routes/c.$slug'
-import { Route as DevPrimitivesRouteImport } from './routes/dev.primitives'
-import { Route as DevTallRouteImport } from './routes/dev.tall'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
-import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
-import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
-import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
-import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
-import { Route as ApiCatalogFindRouteImport } from './routes/api/catalog.find'
-import { Route as ApiCategoriesTreeRouteImport } from './routes/api/categories.tree'
-import { Route as ApiGeoOutlineRouteImport } from './routes/api/geo/outline'
-import { Route as ApiGeoReverseRouteImport } from './routes/api/geo/reverse'
-import { Route as ApiGeoSearchRouteImport } from './routes/api/geo/search'
-import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
-import { Route as ApiListingsAliasRouteImport } from './routes/api/listings/alias'
-import { Route as ApiListingsAssistRouteImport } from './routes/api/listings/assist'
-import { Route as ApiListingsDraftRouteImport } from './routes/api/listings/draft'
-import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/identity'
-import { Route as ApiListingsPublishRouteImport } from './routes/api/listings/publish'
-import { Route as ApiLocationsCountryRouteImport } from './routes/api/locations.$country'
-import { Route as ApiMapTilesRouteImport } from './routes/api/map/tiles'
+import { Route as DevTallRouteImport } from './routes/dev.tall'
+import { Route as DevPrimitivesRouteImport } from './routes/dev.primitives'
+import { Route as CSlugRouteImport } from './routes/c.$slug'
+import { Route as AuthResetRouteImport } from './routes/auth_.reset'
+import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
+import { Route as ApiTranslateRouteImport } from './routes/api/translate'
+import { Route as ApiProbe500RouteImport } from './routes/api/probe-500'
+import { Route as ApiLocationsRouteImport } from './routes/api/locations'
+import { Route as ApiGeoRouteImport } from './routes/api/geo'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
+import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as AdminPlacesRouteImport } from './routes/admin.places'
+import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
+import { Route as AdminImagesRouteImport } from './routes/admin.images'
+import { Route as AdminCoverageRouteImport } from './routes/admin.coverage'
+import { Route as AdminCountriesRouteImport } from './routes/admin.countries'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
 import { Route as ApiUploadPhotoRouteImport } from './routes/api/upload/photo'
-import { Route as ApiAdminAttributesExportRouteImport } from './routes/api/admin/attributes/export'
-import { Route as ApiAdminAttributesImportRouteImport } from './routes/api/admin/attributes/import'
-import { Route as ApiAdminCategoriesExportRouteImport } from './routes/api/admin/categories/export'
-import { Route as ApiAdminCategoriesGenerateImageRouteImport } from './routes/api/admin/categories/generate-image'
-import { Route as ApiAdminCategoriesImportRouteImport } from './routes/api/admin/categories/import'
-import { Route as ApiAdminCategoriesSuggestIconRouteImport } from './routes/api/admin/categories/suggest-icon'
-import { Route as ApiAdminLocationsExportRouteImport } from './routes/api/admin/locations/export'
-import { Route as ApiAdminLocationsImportRouteImport } from './routes/api/admin/locations/import'
-import { Route as ApiAdminTranslationsImportRouteImport } from './routes/api/admin/translations/import'
-import { Route as ApiAttributesIdOptionsRouteImport } from './routes/api/attributes.$id.options'
+import { Route as ApiMapTilesRouteImport } from './routes/api/map/tiles'
+import { Route as ApiLocationsCountryRouteImport } from './routes/api/locations.$country'
+import { Route as ApiListingsPublishRouteImport } from './routes/api/listings/publish'
+import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/identity'
+import { Route as ApiListingsDraftRouteImport } from './routes/api/listings/draft'
+import { Route as ApiListingsAssistRouteImport } from './routes/api/listings/assist'
+import { Route as ApiListingsAliasRouteImport } from './routes/api/listings/alias'
+import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
+import { Route as ApiGeoSearchRouteImport } from './routes/api/geo/search'
+import { Route as ApiGeoReverseRouteImport } from './routes/api/geo/reverse'
+import { Route as ApiGeoOutlineRouteImport } from './routes/api/geo/outline'
+import { Route as ApiCategoriesTreeRouteImport } from './routes/api/categories.tree'
+import { Route as ApiCatalogFindRouteImport } from './routes/api/catalog.find'
+import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
+import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
+import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
+import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 import { Route as ApiListingsPhotosIdRouteImport } from './routes/api/listings/photos.$id'
+import { Route as ApiAttributesIdOptionsRouteImport } from './routes/api/attributes.$id.options'
+import { Route as ApiAdminTranslationsImportRouteImport } from './routes/api/admin/translations/import'
+import { Route as ApiAdminLocationsImportRouteImport } from './routes/api/admin/locations/import'
+import { Route as ApiAdminLocationsExportRouteImport } from './routes/api/admin/locations/export'
+import { Route as ApiAdminCategoriesSuggestIconRouteImport } from './routes/api/admin/categories/suggest-icon'
+import { Route as ApiAdminCategoriesImportRouteImport } from './routes/api/admin/categories/import'
+import { Route as ApiAdminCategoriesGenerateImageRouteImport } from './routes/api/admin/categories/generate-image'
+import { Route as ApiAdminCategoriesExportRouteImport } from './routes/api/admin/categories/export'
+import { Route as ApiAdminAttributesImportRouteImport } from './routes/api/admin/attributes/import'
+import { Route as ApiAdminAttributesExportRouteImport } from './routes/api/admin/attributes/export'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AccountRoute = AccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PostRoute = PostRouteImport.update({
@@ -92,9 +77,24 @@ const PostRoute = PostRouteImport.update({
   path: '/post',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -102,99 +102,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminAttributesRoute = AdminAttributesRouteImport.update({
-  id: '/attributes',
-  path: '/attributes',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAuditRoute = AdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCountriesRoute = AdminCountriesRouteImport.update({
-  id: '/countries',
-  path: '/countries',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCoverageRoute = AdminCoverageRouteImport.update({
-  id: '/coverage',
-  path: '/coverage',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminImagesRoute = AdminImagesRouteImport.update({
-  id: '/images',
-  path: '/images',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminLocationsRoute = AdminLocationsRouteImport.update({
-  id: '/locations',
-  path: '/locations',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPlacesRoute = AdminPlacesRouteImport.update({
-  id: '/places',
-  path: '/places',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminRolesRoute = AdminRolesRouteImport.update({
-  id: '/roles',
-  path: '/roles',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
-  id: '/translations',
-  path: '/translations',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRoute,
-} as any)
-const ApiGeoRoute = ApiGeoRouteImport.update({
-  id: '/api/geo',
-  path: '/api/geo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiLocationsRoute = ApiLocationsRouteImport.update({
-  id: '/api/locations',
-  path: '/api/locations',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiProbe500Route = ApiProbe500RouteImport.update({
-  id: '/api/probe-500',
-  path: '/api/probe-500',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTranslateRoute = ApiTranslateRouteImport.update({
-  id: '/api/translate',
-  path: '/api/translate',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth_/callback',
-  path: '/auth/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthResetRoute = AuthResetRouteImport.update({
-  id: '/auth_/reset',
-  path: '/auth/reset',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CSlugRoute = CSlugRouteImport.update({
-  id: '/c/$slug',
-  path: '/c/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DevPrimitivesRoute = DevPrimitivesRouteImport.update({
-  id: '/dev/primitives',
-  path: '/dev/primitives',
+const PostListingIdRoute = PostListingIdRouteImport.update({
+  id: '/post_/$listingId',
+  path: '/post/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevTallRoute = DevTallRouteImport.update({
@@ -202,85 +112,109 @@ const DevTallRoute = DevTallRouteImport.update({
   path: '/dev/tall',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PostListingIdRoute = PostListingIdRouteImport.update({
-  id: '/post_/$listingId',
-  path: '/post/$listingId',
+const DevPrimitivesRoute = DevPrimitivesRouteImport.update({
+  id: '/dev/primitives',
+  path: '/dev/primitives',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminImpersonationSessionIdRoute =
-  AdminImpersonationSessionIdRouteImport.update({
-    id: '/impersonation_/$sessionId',
-    path: '/impersonation/$sessionId',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminRolesRoleIdRoute = AdminRolesRoleIdRouteImport.update({
-  id: '/roles_/$roleId',
-  path: '/roles/$roleId',
+const CSlugRoute = CSlugRouteImport.update({
+  id: '/c/$slug',
+  path: '/c/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetRoute = AuthResetRouteImport.update({
+  id: '/auth_/reset',
+  path: '/auth/reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth_/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTranslateRoute = ApiTranslateRouteImport.update({
+  id: '/api/translate',
+  path: '/api/translate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProbe500Route = ApiProbe500RouteImport.update({
+  id: '/api/probe-500',
+  path: '/api/probe-500',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLocationsRoute = ApiLocationsRouteImport.update({
+  id: '/api/locations',
+  path: '/api/locations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGeoRoute = ApiGeoRouteImport.update({
+  id: '/api/geo',
+  path: '/api/geo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminTranslationsLangRoute = AdminTranslationsLangRouteImport.update({
-  id: '/translations_/$lang',
-  path: '/translations/$lang',
+const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
+  id: '/translations',
+  path: '/translations',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
-  id: '/users_/$userId',
-  path: '/users/$userId',
+const AdminRolesRoute = AdminRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
   getParentRoute: () => AdminRoute,
 } as any)
-const ApiCatalogFindRoute = ApiCatalogFindRouteImport.update({
-  id: '/api/catalog/find',
-  path: '/api/catalog/find',
+const AdminPlacesRoute = AdminPlacesRouteImport.update({
+  id: '/places',
+  path: '/places',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLocationsRoute = AdminLocationsRouteImport.update({
+  id: '/locations',
+  path: '/locations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminImagesRoute = AdminImagesRouteImport.update({
+  id: '/images',
+  path: '/images',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCoverageRoute = AdminCoverageRouteImport.update({
+  id: '/coverage',
+  path: '/coverage',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCountriesRoute = AdminCountriesRouteImport.update({
+  id: '/countries',
+  path: '/countries',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAttributesRoute = AdminAttributesRouteImport.update({
+  id: '/attributes',
+  path: '/attributes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const ApiUploadPhotoRoute = ApiUploadPhotoRouteImport.update({
+  id: '/api/upload/photo',
+  path: '/api/upload/photo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCategoriesTreeRoute = ApiCategoriesTreeRouteImport.update({
-  id: '/api/categories/tree',
-  path: '/api/categories/tree',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGeoOutlineRoute = ApiGeoOutlineRouteImport.update({
-  id: '/outline',
-  path: '/outline',
-  getParentRoute: () => ApiGeoRoute,
-} as any)
-const ApiGeoReverseRoute = ApiGeoReverseRouteImport.update({
-  id: '/reverse',
-  path: '/reverse',
-  getParentRoute: () => ApiGeoRoute,
-} as any)
-const ApiGeoSearchRoute = ApiGeoSearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => ApiGeoRoute,
-} as any)
-const ApiI18nLangRoute = ApiI18nLangRouteImport.update({
-  id: '/api/i18n/$lang',
-  path: '/api/i18n/$lang',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiListingsAliasRoute = ApiListingsAliasRouteImport.update({
-  id: '/api/listings/alias',
-  path: '/api/listings/alias',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiListingsAssistRoute = ApiListingsAssistRouteImport.update({
-  id: '/api/listings/assist',
-  path: '/api/listings/assist',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiListingsDraftRoute = ApiListingsDraftRouteImport.update({
-  id: '/api/listings/draft',
-  path: '/api/listings/draft',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiListingsIdentityRoute = ApiListingsIdentityRouteImport.update({
-  id: '/api/listings/identity',
-  path: '/api/listings/identity',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiListingsPublishRoute = ApiListingsPublishRouteImport.update({
-  id: '/api/listings/publish',
-  path: '/api/listings/publish',
+const ApiMapTilesRoute = ApiMapTilesRouteImport.update({
+  id: '/api/map/tiles',
+  path: '/api/map/tiles',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiLocationsCountryRoute = ApiLocationsCountryRouteImport.update({
@@ -288,60 +222,90 @@ const ApiLocationsCountryRoute = ApiLocationsCountryRouteImport.update({
   path: '/$country',
   getParentRoute: () => ApiLocationsRoute,
 } as any)
-const ApiMapTilesRoute = ApiMapTilesRouteImport.update({
-  id: '/api/map/tiles',
-  path: '/api/map/tiles',
+const ApiListingsPublishRoute = ApiListingsPublishRouteImport.update({
+  id: '/api/listings/publish',
+  path: '/api/listings/publish',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiUploadPhotoRoute = ApiUploadPhotoRouteImport.update({
-  id: '/api/upload/photo',
-  path: '/api/upload/photo',
+const ApiListingsIdentityRoute = ApiListingsIdentityRouteImport.update({
+  id: '/api/listings/identity',
+  path: '/api/listings/identity',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAdminAttributesExportRoute =
-  ApiAdminAttributesExportRouteImport.update({
-    id: '/api/admin/attributes/export',
-    path: '/api/admin/attributes/export',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiAdminAttributesImportRoute =
-  ApiAdminAttributesImportRouteImport.update({
-    id: '/api/admin/attributes/import',
-    path: '/api/admin/attributes/import',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiAdminCategoriesExportRoute =
-  ApiAdminCategoriesExportRouteImport.update({
-    id: '/api/admin/categories/export',
-    path: '/api/admin/categories/export',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiAdminCategoriesGenerateImageRoute =
-  ApiAdminCategoriesGenerateImageRouteImport.update({
-    id: '/api/admin/categories/generate-image',
-    path: '/api/admin/categories/generate-image',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiAdminCategoriesImportRoute =
-  ApiAdminCategoriesImportRouteImport.update({
-    id: '/api/admin/categories/import',
-    path: '/api/admin/categories/import',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiAdminCategoriesSuggestIconRoute =
-  ApiAdminCategoriesSuggestIconRouteImport.update({
-    id: '/api/admin/categories/suggest-icon',
-    path: '/api/admin/categories/suggest-icon',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiAdminLocationsExportRoute = ApiAdminLocationsExportRouteImport.update({
-  id: '/api/admin/locations/export',
-  path: '/api/admin/locations/export',
+const ApiListingsDraftRoute = ApiListingsDraftRouteImport.update({
+  id: '/api/listings/draft',
+  path: '/api/listings/draft',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAdminLocationsImportRoute = ApiAdminLocationsImportRouteImport.update({
-  id: '/api/admin/locations/import',
-  path: '/api/admin/locations/import',
+const ApiListingsAssistRoute = ApiListingsAssistRouteImport.update({
+  id: '/api/listings/assist',
+  path: '/api/listings/assist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiListingsAliasRoute = ApiListingsAliasRouteImport.update({
+  id: '/api/listings/alias',
+  path: '/api/listings/alias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiI18nLangRoute = ApiI18nLangRouteImport.update({
+  id: '/api/i18n/$lang',
+  path: '/api/i18n/$lang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGeoSearchRoute = ApiGeoSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => ApiGeoRoute,
+} as any)
+const ApiGeoReverseRoute = ApiGeoReverseRouteImport.update({
+  id: '/reverse',
+  path: '/reverse',
+  getParentRoute: () => ApiGeoRoute,
+} as any)
+const ApiGeoOutlineRoute = ApiGeoOutlineRouteImport.update({
+  id: '/outline',
+  path: '/outline',
+  getParentRoute: () => ApiGeoRoute,
+} as any)
+const ApiCategoriesTreeRoute = ApiCategoriesTreeRouteImport.update({
+  id: '/api/categories/tree',
+  path: '/api/categories/tree',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCatalogFindRoute = ApiCatalogFindRouteImport.update({
+  id: '/api/catalog/find',
+  path: '/api/catalog/find',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
+  id: '/users_/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTranslationsLangRoute = AdminTranslationsLangRouteImport.update({
+  id: '/translations_/$lang',
+  path: '/translations/$lang',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRolesRoleIdRoute = AdminRolesRoleIdRouteImport.update({
+  id: '/roles_/$roleId',
+  path: '/roles/$roleId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminImpersonationSessionIdRoute =
+  AdminImpersonationSessionIdRouteImport.update({
+    id: '/impersonation_/$sessionId',
+    path: '/impersonation/$sessionId',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const ApiListingsPhotosIdRoute = ApiListingsPhotosIdRouteImport.update({
+  id: '/api/listings/photos/$id',
+  path: '/api/listings/photos/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAttributesIdOptionsRoute = ApiAttributesIdOptionsRouteImport.update({
+  id: '/api/attributes/$id/options',
+  path: '/api/attributes/$id/options',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminTranslationsImportRoute =
@@ -350,16 +314,52 @@ const ApiAdminTranslationsImportRoute =
     path: '/api/admin/translations/import',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiAttributesIdOptionsRoute = ApiAttributesIdOptionsRouteImport.update({
-  id: '/api/attributes/$id/options',
-  path: '/api/attributes/$id/options',
+const ApiAdminLocationsImportRoute = ApiAdminLocationsImportRouteImport.update({
+  id: '/api/admin/locations/import',
+  path: '/api/admin/locations/import',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiListingsPhotosIdRoute = ApiListingsPhotosIdRouteImport.update({
-  id: '/api/listings/photos/$id',
-  path: '/api/listings/photos/$id',
+const ApiAdminLocationsExportRoute = ApiAdminLocationsExportRouteImport.update({
+  id: '/api/admin/locations/export',
+  path: '/api/admin/locations/export',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminCategoriesSuggestIconRoute =
+  ApiAdminCategoriesSuggestIconRouteImport.update({
+    id: '/api/admin/categories/suggest-icon',
+    path: '/api/admin/categories/suggest-icon',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminCategoriesImportRoute =
+  ApiAdminCategoriesImportRouteImport.update({
+    id: '/api/admin/categories/import',
+    path: '/api/admin/categories/import',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminCategoriesGenerateImageRoute =
+  ApiAdminCategoriesGenerateImageRouteImport.update({
+    id: '/api/admin/categories/generate-image',
+    path: '/api/admin/categories/generate-image',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminCategoriesExportRoute =
+  ApiAdminCategoriesExportRouteImport.update({
+    id: '/api/admin/categories/export',
+    path: '/api/admin/categories/export',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminAttributesImportRoute =
+  ApiAdminAttributesImportRouteImport.update({
+    id: '/api/admin/attributes/import',
+    path: '/api/admin/attributes/import',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAdminAttributesExportRoute =
+  ApiAdminAttributesExportRouteImport.update({
+    id: '/api/admin/attributes/export',
+    path: '/api/admin/attributes/export',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -759,32 +759,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/account': {
-      id: '/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/post': {
@@ -794,11 +773,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -808,137 +808,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/attributes': {
-      id: '/admin/attributes'
-      path: '/attributes'
-      fullPath: '/admin/attributes'
-      preLoaderRoute: typeof AdminAttributesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/audit': {
-      id: '/admin/audit'
-      path: '/audit'
-      fullPath: '/admin/audit'
-      preLoaderRoute: typeof AdminAuditRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/categories': {
-      id: '/admin/categories'
-      path: '/categories'
-      fullPath: '/admin/categories'
-      preLoaderRoute: typeof AdminCategoriesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/countries': {
-      id: '/admin/countries'
-      path: '/countries'
-      fullPath: '/admin/countries'
-      preLoaderRoute: typeof AdminCountriesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/coverage': {
-      id: '/admin/coverage'
-      path: '/coverage'
-      fullPath: '/admin/coverage'
-      preLoaderRoute: typeof AdminCoverageRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/images': {
-      id: '/admin/images'
-      path: '/images'
-      fullPath: '/admin/images'
-      preLoaderRoute: typeof AdminImagesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/locations': {
-      id: '/admin/locations'
-      path: '/locations'
-      fullPath: '/admin/locations'
-      preLoaderRoute: typeof AdminLocationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/places': {
-      id: '/admin/places'
-      path: '/places'
-      fullPath: '/admin/places'
-      preLoaderRoute: typeof AdminPlacesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/roles': {
-      id: '/admin/roles'
-      path: '/roles'
-      fullPath: '/admin/roles'
-      preLoaderRoute: typeof AdminRolesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/translations': {
-      id: '/admin/translations'
-      path: '/translations'
-      fullPath: '/admin/translations'
-      preLoaderRoute: typeof AdminTranslationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/api/geo': {
-      id: '/api/geo'
-      path: '/api/geo'
-      fullPath: '/api/geo'
-      preLoaderRoute: typeof ApiGeoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/locations': {
-      id: '/api/locations'
-      path: '/api/locations'
-      fullPath: '/api/locations'
-      preLoaderRoute: typeof ApiLocationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/probe-500': {
-      id: '/api/probe-500'
-      path: '/api/probe-500'
-      fullPath: '/api/probe-500'
-      preLoaderRoute: typeof ApiProbe500RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/translate': {
-      id: '/api/translate'
-      path: '/api/translate'
-      fullPath: '/api/translate'
-      preLoaderRoute: typeof ApiTranslateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth_/callback': {
-      id: '/auth_/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth_/reset': {
-      id: '/auth_/reset'
-      path: '/auth/reset'
-      fullPath: '/auth/reset'
-      preLoaderRoute: typeof AuthResetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/c/$slug': {
-      id: '/c/$slug'
-      path: '/c/$slug'
-      fullPath: '/c/$slug'
-      preLoaderRoute: typeof CSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dev/primitives': {
-      id: '/dev/primitives'
-      path: '/dev/primitives'
-      fullPath: '/dev/primitives'
-      preLoaderRoute: typeof DevPrimitivesRouteImport
+    '/post_/$listingId': {
+      id: '/post_/$listingId'
+      path: '/post/$listingId'
+      fullPath: '/post/$listingId'
+      preLoaderRoute: typeof PostListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dev/tall': {
@@ -948,116 +822,151 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevTallRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/post_/$listingId': {
-      id: '/post_/$listingId'
-      path: '/post/$listingId'
-      fullPath: '/post/$listingId'
-      preLoaderRoute: typeof PostListingIdRouteImport
+    '/dev/primitives': {
+      id: '/dev/primitives'
+      path: '/dev/primitives'
+      fullPath: '/dev/primitives'
+      preLoaderRoute: typeof DevPrimitivesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/impersonation_/$sessionId': {
-      id: '/admin/impersonation_/$sessionId'
-      path: '/impersonation/$sessionId'
-      fullPath: '/admin/impersonation/$sessionId'
-      preLoaderRoute: typeof AdminImpersonationSessionIdRouteImport
+    '/c/$slug': {
+      id: '/c/$slug'
+      path: '/c/$slug'
+      fullPath: '/c/$slug'
+      preLoaderRoute: typeof CSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth_/reset': {
+      id: '/auth_/reset'
+      path: '/auth/reset'
+      fullPath: '/auth/reset'
+      preLoaderRoute: typeof AuthResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth_/callback': {
+      id: '/auth_/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/translate': {
+      id: '/api/translate'
+      path: '/api/translate'
+      fullPath: '/api/translate'
+      preLoaderRoute: typeof ApiTranslateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/probe-500': {
+      id: '/api/probe-500'
+      path: '/api/probe-500'
+      fullPath: '/api/probe-500'
+      preLoaderRoute: typeof ApiProbe500RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/locations': {
+      id: '/api/locations'
+      path: '/api/locations'
+      fullPath: '/api/locations'
+      preLoaderRoute: typeof ApiLocationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/geo': {
+      id: '/api/geo'
+      path: '/api/geo'
+      fullPath: '/api/geo'
+      preLoaderRoute: typeof ApiGeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/roles_/$roleId': {
-      id: '/admin/roles_/$roleId'
-      path: '/roles/$roleId'
-      fullPath: '/admin/roles/$roleId'
-      preLoaderRoute: typeof AdminRolesRoleIdRouteImport
+    '/admin/translations': {
+      id: '/admin/translations'
+      path: '/translations'
+      fullPath: '/admin/translations'
+      preLoaderRoute: typeof AdminTranslationsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/translations_/$lang': {
-      id: '/admin/translations_/$lang'
-      path: '/translations/$lang'
-      fullPath: '/admin/translations/$lang'
-      preLoaderRoute: typeof AdminTranslationsLangRouteImport
+    '/admin/roles': {
+      id: '/admin/roles'
+      path: '/roles'
+      fullPath: '/admin/roles'
+      preLoaderRoute: typeof AdminRolesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/users_/$userId': {
-      id: '/admin/users_/$userId'
-      path: '/users/$userId'
-      fullPath: '/admin/users/$userId'
-      preLoaderRoute: typeof AdminUsersUserIdRouteImport
+    '/admin/places': {
+      id: '/admin/places'
+      path: '/places'
+      fullPath: '/admin/places'
+      preLoaderRoute: typeof AdminPlacesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/api/catalog/find': {
-      id: '/api/catalog/find'
-      path: '/api/catalog/find'
-      fullPath: '/api/catalog/find'
-      preLoaderRoute: typeof ApiCatalogFindRouteImport
+    '/admin/locations': {
+      id: '/admin/locations'
+      path: '/locations'
+      fullPath: '/admin/locations'
+      preLoaderRoute: typeof AdminLocationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/images': {
+      id: '/admin/images'
+      path: '/images'
+      fullPath: '/admin/images'
+      preLoaderRoute: typeof AdminImagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/coverage': {
+      id: '/admin/coverage'
+      path: '/coverage'
+      fullPath: '/admin/coverage'
+      preLoaderRoute: typeof AdminCoverageRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/countries': {
+      id: '/admin/countries'
+      path: '/countries'
+      fullPath: '/admin/countries'
+      preLoaderRoute: typeof AdminCountriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/attributes': {
+      id: '/admin/attributes'
+      path: '/attributes'
+      fullPath: '/admin/attributes'
+      preLoaderRoute: typeof AdminAttributesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/api/upload/photo': {
+      id: '/api/upload/photo'
+      path: '/api/upload/photo'
+      fullPath: '/api/upload/photo'
+      preLoaderRoute: typeof ApiUploadPhotoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/categories/tree': {
-      id: '/api/categories/tree'
-      path: '/api/categories/tree'
-      fullPath: '/api/categories/tree'
-      preLoaderRoute: typeof ApiCategoriesTreeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/geo/outline': {
-      id: '/api/geo/outline'
-      path: '/outline'
-      fullPath: '/api/geo/outline'
-      preLoaderRoute: typeof ApiGeoOutlineRouteImport
-      parentRoute: typeof ApiGeoRoute
-    }
-    '/api/geo/reverse': {
-      id: '/api/geo/reverse'
-      path: '/reverse'
-      fullPath: '/api/geo/reverse'
-      preLoaderRoute: typeof ApiGeoReverseRouteImport
-      parentRoute: typeof ApiGeoRoute
-    }
-    '/api/geo/search': {
-      id: '/api/geo/search'
-      path: '/search'
-      fullPath: '/api/geo/search'
-      preLoaderRoute: typeof ApiGeoSearchRouteImport
-      parentRoute: typeof ApiGeoRoute
-    }
-    '/api/i18n/$lang': {
-      id: '/api/i18n/$lang'
-      path: '/api/i18n/$lang'
-      fullPath: '/api/i18n/$lang'
-      preLoaderRoute: typeof ApiI18nLangRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/listings/alias': {
-      id: '/api/listings/alias'
-      path: '/api/listings/alias'
-      fullPath: '/api/listings/alias'
-      preLoaderRoute: typeof ApiListingsAliasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/listings/assist': {
-      id: '/api/listings/assist'
-      path: '/api/listings/assist'
-      fullPath: '/api/listings/assist'
-      preLoaderRoute: typeof ApiListingsAssistRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/listings/draft': {
-      id: '/api/listings/draft'
-      path: '/api/listings/draft'
-      fullPath: '/api/listings/draft'
-      preLoaderRoute: typeof ApiListingsDraftRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/listings/identity': {
-      id: '/api/listings/identity'
-      path: '/api/listings/identity'
-      fullPath: '/api/listings/identity'
-      preLoaderRoute: typeof ApiListingsIdentityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/listings/publish': {
-      id: '/api/listings/publish'
-      path: '/api/listings/publish'
-      fullPath: '/api/listings/publish'
-      preLoaderRoute: typeof ApiListingsPublishRouteImport
+    '/api/map/tiles': {
+      id: '/api/map/tiles'
+      path: '/api/map/tiles'
+      fullPath: '/api/map/tiles'
+      preLoaderRoute: typeof ApiMapTilesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/locations/$country': {
@@ -1067,81 +976,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLocationsCountryRouteImport
       parentRoute: typeof ApiLocationsRoute
     }
-    '/api/map/tiles': {
-      id: '/api/map/tiles'
-      path: '/api/map/tiles'
-      fullPath: '/api/map/tiles'
-      preLoaderRoute: typeof ApiMapTilesRouteImport
+    '/api/listings/publish': {
+      id: '/api/listings/publish'
+      path: '/api/listings/publish'
+      fullPath: '/api/listings/publish'
+      preLoaderRoute: typeof ApiListingsPublishRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/upload/photo': {
-      id: '/api/upload/photo'
-      path: '/api/upload/photo'
-      fullPath: '/api/upload/photo'
-      preLoaderRoute: typeof ApiUploadPhotoRouteImport
+    '/api/listings/identity': {
+      id: '/api/listings/identity'
+      path: '/api/listings/identity'
+      fullPath: '/api/listings/identity'
+      preLoaderRoute: typeof ApiListingsIdentityRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/attributes/export': {
-      id: '/api/admin/attributes/export'
-      path: '/api/admin/attributes/export'
-      fullPath: '/api/admin/attributes/export'
-      preLoaderRoute: typeof ApiAdminAttributesExportRouteImport
+    '/api/listings/draft': {
+      id: '/api/listings/draft'
+      path: '/api/listings/draft'
+      fullPath: '/api/listings/draft'
+      preLoaderRoute: typeof ApiListingsDraftRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/attributes/import': {
-      id: '/api/admin/attributes/import'
-      path: '/api/admin/attributes/import'
-      fullPath: '/api/admin/attributes/import'
-      preLoaderRoute: typeof ApiAdminAttributesImportRouteImport
+    '/api/listings/assist': {
+      id: '/api/listings/assist'
+      path: '/api/listings/assist'
+      fullPath: '/api/listings/assist'
+      preLoaderRoute: typeof ApiListingsAssistRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/categories/export': {
-      id: '/api/admin/categories/export'
-      path: '/api/admin/categories/export'
-      fullPath: '/api/admin/categories/export'
-      preLoaderRoute: typeof ApiAdminCategoriesExportRouteImport
+    '/api/listings/alias': {
+      id: '/api/listings/alias'
+      path: '/api/listings/alias'
+      fullPath: '/api/listings/alias'
+      preLoaderRoute: typeof ApiListingsAliasRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/categories/generate-image': {
-      id: '/api/admin/categories/generate-image'
-      path: '/api/admin/categories/generate-image'
-      fullPath: '/api/admin/categories/generate-image'
-      preLoaderRoute: typeof ApiAdminCategoriesGenerateImageRouteImport
+    '/api/i18n/$lang': {
+      id: '/api/i18n/$lang'
+      path: '/api/i18n/$lang'
+      fullPath: '/api/i18n/$lang'
+      preLoaderRoute: typeof ApiI18nLangRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/categories/import': {
-      id: '/api/admin/categories/import'
-      path: '/api/admin/categories/import'
-      fullPath: '/api/admin/categories/import'
-      preLoaderRoute: typeof ApiAdminCategoriesImportRouteImport
+    '/api/geo/search': {
+      id: '/api/geo/search'
+      path: '/search'
+      fullPath: '/api/geo/search'
+      preLoaderRoute: typeof ApiGeoSearchRouteImport
+      parentRoute: typeof ApiGeoRoute
+    }
+    '/api/geo/reverse': {
+      id: '/api/geo/reverse'
+      path: '/reverse'
+      fullPath: '/api/geo/reverse'
+      preLoaderRoute: typeof ApiGeoReverseRouteImport
+      parentRoute: typeof ApiGeoRoute
+    }
+    '/api/geo/outline': {
+      id: '/api/geo/outline'
+      path: '/outline'
+      fullPath: '/api/geo/outline'
+      preLoaderRoute: typeof ApiGeoOutlineRouteImport
+      parentRoute: typeof ApiGeoRoute
+    }
+    '/api/categories/tree': {
+      id: '/api/categories/tree'
+      path: '/api/categories/tree'
+      fullPath: '/api/categories/tree'
+      preLoaderRoute: typeof ApiCategoriesTreeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/categories/suggest-icon': {
-      id: '/api/admin/categories/suggest-icon'
-      path: '/api/admin/categories/suggest-icon'
-      fullPath: '/api/admin/categories/suggest-icon'
-      preLoaderRoute: typeof ApiAdminCategoriesSuggestIconRouteImport
+    '/api/catalog/find': {
+      id: '/api/catalog/find'
+      path: '/api/catalog/find'
+      fullPath: '/api/catalog/find'
+      preLoaderRoute: typeof ApiCatalogFindRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/locations/export': {
-      id: '/api/admin/locations/export'
-      path: '/api/admin/locations/export'
-      fullPath: '/api/admin/locations/export'
-      preLoaderRoute: typeof ApiAdminLocationsExportRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/users_/$userId': {
+      id: '/admin/users_/$userId'
+      path: '/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AdminUsersUserIdRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/api/admin/locations/import': {
-      id: '/api/admin/locations/import'
-      path: '/api/admin/locations/import'
-      fullPath: '/api/admin/locations/import'
-      preLoaderRoute: typeof ApiAdminLocationsImportRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/translations_/$lang': {
+      id: '/admin/translations_/$lang'
+      path: '/translations/$lang'
+      fullPath: '/admin/translations/$lang'
+      preLoaderRoute: typeof AdminTranslationsLangRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/api/admin/translations/import': {
-      id: '/api/admin/translations/import'
-      path: '/api/admin/translations/import'
-      fullPath: '/api/admin/translations/import'
-      preLoaderRoute: typeof ApiAdminTranslationsImportRouteImport
+    '/admin/roles_/$roleId': {
+      id: '/admin/roles_/$roleId'
+      path: '/roles/$roleId'
+      fullPath: '/admin/roles/$roleId'
+      preLoaderRoute: typeof AdminRolesRoleIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/impersonation_/$sessionId': {
+      id: '/admin/impersonation_/$sessionId'
+      path: '/impersonation/$sessionId'
+      fullPath: '/admin/impersonation/$sessionId'
+      preLoaderRoute: typeof AdminImpersonationSessionIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/api/listings/photos/$id': {
+      id: '/api/listings/photos/$id'
+      path: '/api/listings/photos/$id'
+      fullPath: '/api/listings/photos/$id'
+      preLoaderRoute: typeof ApiListingsPhotosIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/attributes/$id/options': {
@@ -1151,11 +1095,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAttributesIdOptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/listings/photos/$id': {
-      id: '/api/listings/photos/$id'
-      path: '/api/listings/photos/$id'
-      fullPath: '/api/listings/photos/$id'
-      preLoaderRoute: typeof ApiListingsPhotosIdRouteImport
+    '/api/admin/translations/import': {
+      id: '/api/admin/translations/import'
+      path: '/api/admin/translations/import'
+      fullPath: '/api/admin/translations/import'
+      preLoaderRoute: typeof ApiAdminTranslationsImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/locations/import': {
+      id: '/api/admin/locations/import'
+      path: '/api/admin/locations/import'
+      fullPath: '/api/admin/locations/import'
+      preLoaderRoute: typeof ApiAdminLocationsImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/locations/export': {
+      id: '/api/admin/locations/export'
+      path: '/api/admin/locations/export'
+      fullPath: '/api/admin/locations/export'
+      preLoaderRoute: typeof ApiAdminLocationsExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/categories/suggest-icon': {
+      id: '/api/admin/categories/suggest-icon'
+      path: '/api/admin/categories/suggest-icon'
+      fullPath: '/api/admin/categories/suggest-icon'
+      preLoaderRoute: typeof ApiAdminCategoriesSuggestIconRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/categories/import': {
+      id: '/api/admin/categories/import'
+      path: '/api/admin/categories/import'
+      fullPath: '/api/admin/categories/import'
+      preLoaderRoute: typeof ApiAdminCategoriesImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/categories/generate-image': {
+      id: '/api/admin/categories/generate-image'
+      path: '/api/admin/categories/generate-image'
+      fullPath: '/api/admin/categories/generate-image'
+      preLoaderRoute: typeof ApiAdminCategoriesGenerateImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/categories/export': {
+      id: '/api/admin/categories/export'
+      path: '/api/admin/categories/export'
+      fullPath: '/api/admin/categories/export'
+      preLoaderRoute: typeof ApiAdminCategoriesExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/attributes/import': {
+      id: '/api/admin/attributes/import'
+      path: '/api/admin/attributes/import'
+      fullPath: '/api/admin/attributes/import'
+      preLoaderRoute: typeof ApiAdminAttributesImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/attributes/export': {
+      id: '/api/admin/attributes/export'
+      path: '/api/admin/attributes/export'
+      fullPath: '/api/admin/attributes/export'
+      preLoaderRoute: typeof ApiAdminAttributesExportRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
