@@ -1918,6 +1918,7 @@ export type Database = {
           country_source: string
           created_at: string
           handle: string | null
+          home_country_changed_at: string | null
           home_country_code: string | null
           observed_at: string | null
           observed_country_code: string | null
@@ -1929,6 +1930,7 @@ export type Database = {
           country_source?: string
           created_at?: string
           handle?: string | null
+          home_country_changed_at?: string | null
           home_country_code?: string | null
           observed_at?: string | null
           observed_country_code?: string | null
@@ -1940,6 +1942,7 @@ export type Database = {
           country_source?: string
           created_at?: string
           handle?: string | null
+          home_country_changed_at?: string | null
           home_country_code?: string | null
           observed_at?: string | null
           observed_country_code?: string | null
@@ -2972,6 +2975,7 @@ export type Database = {
         Returns: Json
       }
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
+      change_home_country: { Args: { p_country: string }; Returns: Json }
       check_seller_alias: { Args: { p_alias: string }; Returns: Json }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       consume_catalog_find_rate: {
@@ -3247,6 +3251,7 @@ export type Database = {
       name_fold_am: { Args: { p: string }; Returns: string }
       name_fold_latin: { Args: { p: string }; Returns: string }
       name_protected_folds: { Args: never; Returns: string[] }
+      name_second_fold: { Args: { p_value: string }; Returns: string }
       next_language_sort: { Args: never; Returns: number }
       plan_caps: { Args: { p_plan: string }; Returns: Json }
       plan_photo_cap: { Args: { p_plan: string }; Returns: number }
@@ -3359,6 +3364,7 @@ export type Database = {
       suggest_seller_aliases: {
         Args: {
           p_business_name?: string
+          p_category_id?: string
           p_first_name?: string
           p_last_name?: string
         }
