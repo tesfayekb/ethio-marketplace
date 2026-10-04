@@ -349,6 +349,83 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       .toBe("+251911234567");
   });
 
+  test("PW-127 picking a home country only selects; Next refuses until it is confirmed", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page, { homeConfirmed: false });
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    const select = page.getByTestId("post-who-country");
+    await expect(select).toBeEnabled({ timeout: 20_000 });
+    await select.selectOption("");
+    await select.selectOption("ET");
+    // Rulings 3 item 3 — choosing from the list never confirms.
+    await expect(
+      page.getByTestId("post-who-country-confirm"),
+      "PW-127: picking from the list confirmed the country",
+    ).toBeVisible();
+    await page.waitForTimeout(3_000);
+    const { data: before, error } = await adminClient()
+      .from("user_directory")
+      .select("country_source")
+      .eq("user_id", user.id)
+      .single();
+    if (error) throw new Error(`[e2e:pw127] reading the directory failed: ${error.message}`);
+    expect(before.country_source, "PW-127: the pick was saved as confirmed").not.toBe(
+      "user_confirmed",
+    );
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-who-country-refusal"),
+      "PW-127: Next did not refuse at the country",
+    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    await page.getByTestId("post-who-country-confirm").click();
+    await expect(select).toBeDisabled({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8"), "PW-127: confirmed, still held").toBeVisible({
+      timeout: 20_000,
+    });
+  });
+
+  test("PW-128 a number typed before the phone library arrives is saved only once read", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    // INC-407 — hold the library back until the seller has typed and left the box.
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(/libphonenumber/, async (route) => {
+      await held;
+      await route.continue();
+    });
+    const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expect(page.getByTestId("post-who-value-phone-country")).toHaveAttribute(
+      "data-iso",
+      "ET",
+      { timeout: 20_000 },
+    );
+    await typePhone(page, "post-who-value-phone", "0911234567");
+    await page.getByTestId("post-who-value-phone").blur();
+    await page.waitForTimeout(4_000);
+    const phoneOf = async () =>
+      ((await contactPrefOf(listingId))["phone"] as { value?: string } | undefined)?.value ?? "";
+    expect(await phoneOf(), "PW-128: a number was saved before the library read it").toBe("");
+    release();
+    await expect
+      .poll(phoneOf, {
+        message: "PW-128: the read number never reached the draft",
+        timeout: 20_000,
+      })
+      .toBe("+251911234567");
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("91 123 4567");
+  });
+
   test("PW-126 a carried number reopens grouped", async ({ page }) => {
     const user = await signedInSeller(page);
     const leaf = await category();
