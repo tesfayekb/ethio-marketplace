@@ -2128,8 +2128,7 @@ export const am: Messages = {
   "post.review.activeFromLabel": "ከመቼ ጀምሮ",
   "post.review.activeFromFact": "ግምገማውን እንዳለፈ ወዲያውኑ።",
   "post.review.staysUp": "እስኪያነሱት ድረስ ይቆያል።",
-  "post.review.statement":
-    "በማተም ይህን የመሸጥ መብት እንዳለዎት እና ማስታወቂያው የethio.com ደንቦችን እንደሚከተል ያረጋግጣሉ።",
+  "post.review.statement": "በማተም ይህን የመሸጥ መብት እንዳለዎት እና ማስታወቂያው የethio.com ደንቦችን እንደሚከተል ያረጋግጣሉ።",
   "post.review.staysUpDays": "ለ{days} ቀናት ይቆያል። ማደስ ይችላሉ።",
   "post.review.takeDownSwitch": "በተወሰነ ቀን አንሳው",
   "post.review.takeDownOn": "የሚነሳበት ቀን",
