@@ -2185,7 +2185,6 @@ export const en = {
   "post.who.countryConfirmYes": "Confirm",
   "post.who.countryConfirmGo": "Go back",
   "post.who.countryNone": "Choose a country",
-  "post.who.countryConfirm": "Confirm this country",
   "post.who.countryRequired": "Confirm your home country before you post.",
   // U6-C2b — step 8: review and publish.
   "post.review.why": "This is what a buyer will see. Check it, then publish.",
