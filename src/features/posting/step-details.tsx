@@ -70,6 +70,8 @@ export function StepDetails({
   attributes,
   definitions = [],
   dealKeys = null,
+  negotiable = false,
+  period = null,
   photoUrls,
   title,
   description,
@@ -85,6 +87,9 @@ export function StepDetails({
   definitions?: AttrDef[];
   /** Step 12 — the deal rows' keys: never part of a built title. */
   dealKeys?: string[] | null;
+  /** Step 13 — the negotiable switch and the period, sent to the writing helper as facts. */
+  negotiable?: boolean;
+  period?: string | null;
   /** The first three stored photos (card variant), passed to the assistant. */
   photoUrls: string[];
   title: string;
@@ -205,6 +210,8 @@ export function StepDetails({
       categoryId,
       categoryPath,
       attrs: attributes,
+      negotiable,
+      period,
       locale: language,
       photoUrls: photoUrls.slice(0, 3),
       title,

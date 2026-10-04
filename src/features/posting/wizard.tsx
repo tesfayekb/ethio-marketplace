@@ -1004,6 +1004,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           attributes={draft.values.attributes}
                           definitions={definitions}
                           dealKeys={dealExclude}
+                          negotiable={draft.values.priceNegotiable}
+                          period={draft.values.pricePeriod}
                           title={draft.values.title}
                           description={draft.values.description}
                           refusals={draft.refusals}
