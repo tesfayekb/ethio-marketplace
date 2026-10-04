@@ -1018,4 +1018,87 @@ test.describe("POSTING WIZARD", () => {
       "PW-79: the page did not scroll to the title",
     ).toBeInViewport();
   });
+
+  /**
+   * INC-381 (PW-152) — A ROW ASKED ONLY WHEN TWO ANSWERS BOTH MATCH. The form
+   * shows the conditioned detail only with k1 ∈ {a} and k2 ∈ {c}; when the second
+   * answer moves away the row hides and its stored value is dropped (the door
+   * drops it too). Scratch category and definitions only (G27), reaped by the
+   * afterEach (J3).
+   */
+  test("PW-152 a two-pair condition shows its row only when both answers match", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const supabase = adminClient();
+    const stem = `e2e_and_${Date.now()}_${rand()}`;
+    const option = (value: string) => ({ value, label_en: `${value} label` });
+    const [a, x, c, y] = [`${stem}_a`, `${stem}_x`, `${stem}_c`, `${stem}_y`];
+    const k1 = `${stem}_k1`;
+    const k2 = `${stem}_k2`;
+    const child = `${stem}_n`;
+    const { data, error } = await supabase
+      .from("attributes")
+      .insert([
+        { attr_key: k1, name_en: k1, attr_type: "single_select", options: [option(a), option(x)] },
+        { attr_key: k2, name_en: k2, attr_type: "single_select", options: [option(c), option(y)] },
+        { attr_key: child, name_en: child, attr_type: "number", decimals: 0 },
+      ])
+      .select("id, attr_key");
+    if (error || !data) throw new Error(`[e2e:PW-152] seeding failed: ${error?.message}`);
+    specs.push(...data.map((row) => row.attr_key));
+    const idOf = (key: string) => data.find((row) => row.attr_key === key)!.id;
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      { category_id: category.id, attribute_id: idOf(k1), is_required: false, display_order: 100 },
+      { category_id: category.id, attribute_id: idOf(k2), is_required: false, display_order: 101 },
+      {
+        category_id: category.id,
+        attribute_id: idOf(child),
+        is_required: false,
+        display_order: 102,
+        visible_when: { key: k1, in: [a], and: { key: k2, in: [c] } },
+      },
+    ]);
+    if (linkError) throw new Error(`[e2e:PW-152] linking failed: ${linkError.message}`);
+
+    const listingId = await reachStep3(page, user.id, category);
+    const control = (attrKey: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+
+    // NEITHER, FIRST ONLY, SECOND ONLY: hidden.
+    await expect(control(k1)).toBeVisible({ timeout: 20_000 });
+    await expect(control(child), "PW-152: shown with neither answer").toHaveCount(0);
+    await control(k1).selectOption(a);
+    await expect(control(child), "PW-152: shown with the first answer only").toHaveCount(0);
+    await control(k1).selectOption(x);
+    await control(k2).selectOption(c);
+    await expect(control(child), "PW-152: shown with the second answer only").toHaveCount(0);
+
+    // BOTH: shown, and its answer is stored.
+    await control(k1).selectOption(a);
+    await expect(control(child), "PW-152: hidden with both answers").toBeVisible({
+      timeout: 20_000,
+    });
+    await control(child).fill("7");
+    await control(child).blur();
+    await expect
+      .poll(async () => (await attributesOf(listingId))[child], {
+        message: "PW-152: the answer never landed",
+        timeout: 20_000,
+      })
+      .toBe(7);
+
+    // THE SECOND ANSWER MOVES AWAY: hidden, and the stored value is dropped.
+    await control(k2).selectOption(y);
+    await expect(control(child), "PW-152: still shown after the second answer moved").toHaveCount(
+      0,
+    );
+    await expect
+      .poll(async () => child in (await attributesOf(listingId)), {
+        message: "PW-152: the hidden row kept its stored value",
+        timeout: 20_000,
+      })
+      .toBe(false);
+  });
 });
