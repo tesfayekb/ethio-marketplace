@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { readAreaCookie, useOpenMarkets } from "@/components/shell/location-data";
+import { Check } from "lucide-react";
+
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
 import { PhoneNumberField } from "./phone-number-field";
+import { loadPhoneLib, type PhoneLib } from "./phone-parse";
 import {
   readLastListingContact,
   readSellerIdentity,
@@ -126,6 +129,25 @@ export function StepWho({
   const [countryLocked, setCountryLocked] = useState(false);
   /** Refusals the identity door named, kept apart from the draft's own. */
   const [identityRefusals, setIdentityRefusals] = useState<Refusal[]>([]);
+
+  /** Step 11 — the phone library, loaded when this step opens; a failure offers a retry. */
+  const [phoneLib, setPhoneLib] = useState<PhoneLib | null>(null);
+  const [phoneLibFailed, setPhoneLibFailed] = useState(false);
+  const loadLib = useCallback(() => {
+    setPhoneLibFailed(false);
+    loadPhoneLib().then(
+      (lib) => {
+        if (aliveRef.current) setPhoneLib(lib);
+      },
+      (error: unknown) => {
+        console.error("[phone-lib] load failed", error);
+        if (aliveRef.current) setPhoneLibFailed(true);
+      },
+    );
+  }, []);
+  useEffect(() => {
+    loadLib();
+  }, [loadLib]);
 
   const aliveRef = useRef(true);
   const aliasTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -548,17 +570,36 @@ export function StepWho({
       {/* ---------------------------- the channels --------------------------- */}
       <div className="space-y-3">
         <p className="text-sm font-medium text-foreground">{t("post.who.channelsLabel")}</p>
-        <p className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-          <input
-            type="checkbox"
-            checked
-            disabled
-            data-testid="post-who-channel-messages"
-            aria-label={t("post.who.channel.messages")}
-          />
-          <span>{t("post.who.channel.messages")}</span>
-        </p>
-        <p className="text-xs text-muted-foreground">{t("post.who.messagesAlways")}</p>
+{/* Bundle 3 step 10 — messages: one highlighted box, always on. */}
+        <div
+          className="space-y-1 rounded-md border-2 border-primary p-3"
+          data-testid="post-who-channel-messages"
+        >
+          <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Check aria-hidden="true" className="h-4 w-4 shrink-0 text-primary" />
+            <span>{t("post.who.channel.messages")}</span>
+            <span className="ms-auto rounded-sm bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+              {t("post.who.messagesOnBadge")}
+            </span>
+          </p>
+          <p className="text-xs text-muted-foreground">{t("post.who.messagesEveryBuyer")}</p>
+          <p className="text-xs text-muted-foreground">{t("post.who.messagesCannotOff")}</p>
+        </div>
+        <p className="text-sm font-medium text-foreground">{t("post.who.optionalHeading")}</p>
+        <p className="text-xs text-muted-foreground">{t("post.who.optionalLine")}</p>
+        {phoneLibFailed && (
+          <p className="flex flex-wrap items-center gap-2 text-sm text-destructive" data-testid="post-who-phone-lib-failed">
+            <span>{t("post.who.phoneLibFailed")}</span>
+            <button
+              type="button"
+              className={smallButtonClass}
+              data-testid="post-who-phone-lib-retry"
+              onClick={loadLib}
+            >
+              {t("post.who.phoneLibRetry")}
+            </button>
+          </p>
+        )}
         {carriedContact && (
           <p className="text-sm text-muted-foreground" data-testid="post-who-contact-carried">
             {t("post.who.contactFromLastPost")}
@@ -634,6 +675,7 @@ export function StepWho({
                     onValue={(next) => setChannel(channel, { value: next })}
                     onLeave={(next) => leaveChannel(channel, next, current.show)}
                     onCountry={channel === "phone" ? setFirstPhoneIso : undefined}
+                    lib={phoneLib}
                   />
                 )}
                 <label className="flex min-h-11 shrink-0 items-center gap-2 text-xs text-foreground">
@@ -643,7 +685,7 @@ export function StepWho({
                     checked={current.show}
                     onChange={(event) => setChannel(channel, { show: event.target.checked })}
                   />
-                  <span>{t("post.who.showOnListing")}</span>
+                  <span>{t("post.who.showToSignedIn")}</span>
                 </label>
               </div>
               <p className="text-xs text-muted-foreground">{t(CHANNEL_HINTS[channel])}</p>
@@ -698,7 +740,7 @@ export function StepWho({
           </button>
         )}
         <p className="text-xs text-muted-foreground">
-          {countryLocked ? t("post.who.countryConfirmed") : t("post.who.countryHint")}
+          {countryLocked ? t("post.who.countryConfirmed") : t("post.who.countryWhereHint")}
         </p>
         {!countryLocked && countryRefusal === null && (
           <p className="text-sm text-muted-foreground" data-testid="post-who-country-required">
