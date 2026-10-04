@@ -235,12 +235,12 @@ export function CategoryFormFields({
 
       {extra}
 
-      <FormField label={t("admin.categories.field.expiryDays")} htmlFor={`${p}-expiry`}>
+      <FormField label={t("admin.categories.field.lifetimeDays")} htmlFor={`${p}-expiry`}>
         <Input
           id={`${p}-expiry`}
           data-testid={`${p}-expiry`}
           inputMode="numeric"
-          placeholder={t("admin.categories.field.expiryNone")}
+          placeholder={t("admin.categories.field.lifetimeNone")}
           value={values.expiryDays}
           onChange={(event) => onChange({ expiryDays: event.target.value })}
         />
