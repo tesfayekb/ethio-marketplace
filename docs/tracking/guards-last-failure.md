@@ -1,70 +1,70 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37177199928
-- Commit: `3abfd1dacbf6677fa30e6fea683519eb244740a9`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37177765723
+- Commit: `d043db42b968e34f32ea4808383096c07409cde2`
 - Attempt: 1
-- Written (UTC): 2026-10-04T04:43:51.394Z
+- Written (UTC): 2026-10-04T05:06:21.421Z
 
 ## Build, typecheck, lint — failure
 
 ### Evidence lines
 
 ```text
-✖ 29 problems (1 error, 28 warnings)
-##[error]Process completed with exit code 1.
+src/routes/__root.tsx(264,3): error TS2322: Type '({ error, reset }: { error: Error; reset: () => void; }) => Element' is not assignable to type 'false | ErrorRouteComponent | null | undefined'.
+##[error]Process completed with exit code 2.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-  28:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
++ @tanstack/react-query@5.101.1
++ @tanstack/react-router@1.170.41
++ @tanstack/react-start@1.168.60
++ @tanstack/router-plugin@1.168.42
++ @types/pngjs@6.0.5
++ class-variance-authority@0.7.1
++ clsx@2.1.1
++ cmdk@1.1.1
++ date-fns@4.1.0
++ embla-carousel-react@8.6.0
++ input-otp@1.4.2
++ jpeg-js@0.4.4
++ leaflet@1.9.4
++ libphonenumber-js@1.11.18
++ lucide-react@0.575.0
++ pngjs@7.0.0
++ react@19.2.5
++ react-day-picker@9.14.0
++ react-dom@19.2.5
++ react-hook-form@7.73.1
++ react-resizable-panels@4.10.0
++ recharts@2.15.4
++ sonner@2.0.7
++ tailwind-merge@3.5.0
++ tailwindcss@4.2.4
++ tw-animate-css@1.4.0
++ vaul@1.1.2
++ vite-tsconfig-paths@6.1.1
++ zod@3.25.76
 
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/admin-countries/country-dialogs.tsx
-   23:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  170:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/admin-coverage/coverage-dialogs.tsx
-   22:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  156:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/admin-locations/location-dialogs.tsx
-   36:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  111:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/admin-locations/location-form-fields.tsx
-  36:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  49:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/admin/admin-context.tsx
-  32:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/posting/field.tsx
-  100:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  119:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  245:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  254:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/posting/step-pricing.tsx
-  76:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/posting/step-specifications.tsx
-  176:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/i18n/provider.tsx
-   67:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-  584:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-/home/runner/work/ethio-marketplace/ethio-marketplace/src/providers/theme-provider.tsx
-  29:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
-
-✖ 29 problems (1 error, 28 warnings)
-
-error: script "lint" exited with code 1
-##[error]Process completed with exit code 1.
+550 packages installed [4.32s]
+##[group]Run bun run typecheck
+[36;1mbun run typecheck[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+$ tsc --noEmit
+src/routes/__root.tsx(264,3): error TS2322: Type '({ error, reset }: { error: Error; reset: () => void; }) => Element' is not assignable to type 'false | ErrorRouteComponent | null | undefined'.
+  Type '({ error, reset }: { error: Error; reset: () => void; }) => Element' is not assignable to type '((props: ErrorComponentProps) => any) & { preload?: (() => Promise<void> | undefined) | undefined; }'.
+    Type '({ error, reset }: { error: Error; reset: () => void; }) => Element' is not assignable to type '(props: ErrorComponentProps) => any'.
+      Types of parameters '__0' and 'props' are incompatible.
+        Type 'ErrorComponentProps' is not assignable to type '{ error: Error; reset: () => void; }'.
+          Types of property 'error' are incompatible.
+            Type 'unknown' is not assignable to type 'Error'.
+##[error]Process completed with exit code 2.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/861568d4-55e2-447e-8b08-6613a094d98c' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/d9e2d5ff-3f2c-4bf0-a80a-34e2543e561a' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -106,10 +106,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37177199928
-  E2E_HEAD_COMMIT_MESSAGE: Updated confirm flow specs
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37177765723
+  E2E_HEAD_COMMIT_MESSAGE: Confirmed CI green post-fixes
 
-X-Lovable-Edit-ID: edt-be8efc2b-1bd7-46f7-88fa-551c6a05a5ec
+X-Lovable-Edit-ID: edt-6a716152-19f5-4f1a-b790-6f34db20e51e
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -123,27 +123,27 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-context download: 0 context files found.
-  glob: shard-contexts/**/error-context.md
-  searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (2/9 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (9/9 source(s) with usable results, 5 context file(s) found).
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
-##[group]Run echo "smoke=cancelled email=success shards=cancelled"
-[36;1mecho "smoke=cancelled email=success shards=cancelled"[0m
-[36;1mif [ "cancelled" != "success" ] || [ "cancelled" != "success" ] || [ "success" != "success" ]; then[0m
+##[group]Run echo "smoke=success email=success shards=failure"
+[36;1mecho "smoke=success email=success shards=failure"[0m
+[36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
 [36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit 1[0m
 [36;1mfi[0m
 [36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=cancelled email=success shards=cancelled
+smoke=success email=success shards=failure
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/d6236c0b-5a5d-497c-9fbd-c9e8b463ca18' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/1537b969-ae04-4687-a3ae-b83f0fb57e7e' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
