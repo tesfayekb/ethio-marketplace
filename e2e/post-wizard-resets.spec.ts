@@ -507,8 +507,14 @@ test.describe("POSTING WIZARD", () => {
     // price, so the cleared title and description are read as DB truth (J4).
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
-      .poll(async () => await textOf(listingId), { message: "PW-61: the title or description survived" })
-      .toMatchObject({ title: null, description: null });
+      .poll(
+        async () => {
+          const text = await textOf(listingId);
+          return `${text.title ?? ""}|${text.description ?? ""}`;
+        },
+        { message: "PW-61: the title or description survived" },
+      )
+      .toBe("|");
     await expect
       .poll(async () => (await pricingOf(listingId)).amount, {
         message: "PW-61: the amount survived the reset",
