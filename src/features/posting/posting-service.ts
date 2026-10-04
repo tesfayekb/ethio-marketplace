@@ -719,6 +719,13 @@ export interface SellerLineFacts {
   alias: string | null;
   previousAlias: string | null;
   memberSince: string | null;
+  /**
+   * Walk fix 3 (M4) — the change rule's two dates: the next allowed change,
+   * and the end of the 24-hour correction window after a change. Both are
+   * null before M4 and for a seller who has never named themselves.
+   */
+  nextChangeAt: string | null;
+  correctionUntil: string | null;
 }
 
 /**
@@ -739,6 +746,8 @@ export async function readSellerLine(): Promise<SellerLineFacts | null> {
     alias: text("alias"),
     previousAlias: text("previous_alias"),
     memberSince: text("member_since"),
+    nextChangeAt: text("next_change_at"),
+    correctionUntil: text("correction_until"),
   };
 }
 
@@ -818,17 +827,56 @@ export function checkAlias(alias: string): Promise<DoorAnswer> {
   });
 }
 
-/** Bundle 3 step 21 — three free names from the business name, else first and last name. */
+/**
+ * Bundle 3 step 21 — three free names from the business name, else first and
+ * last name. Walk fix 2 (M4) — the draft's category travels too, so a seller
+ * without a Latin name is offered the category word instead of nothing.
+ */
 export async function suggestAliases(body: {
   businessName?: string | null;
   firstName?: string | null;
   lastName?: string | null;
+  categoryId?: string | null;
 }): Promise<string[]> {
   const answer = await call("/api/listings/alias", JSON.stringify({ ...body, suggest: true }), {
     "Content-Type": "application/json",
   });
   const list = answer.ok ? answer.payload["suggestions"] : null;
   return Array.isArray(list) ? list.filter((x): x is string => typeof x === "string") : [];
+}
+
+/**
+ * Walk fix 5 (M4) — `change_home_country`: confirms a first country (stamping
+ * nothing) or changes a confirmed one inside the 30-day rule; a change too
+ * soon is refused `countryTooSoon` with the next allowed date as the detail.
+ */
+export function changeHomeCountry(code: string): Promise<DoorAnswer> {
+  return call("/api/listings/identity", JSON.stringify({ homeCountryChange: code }), {
+    "Content-Type": "application/json",
+  });
+}
+
+/**
+ * Walk fix 6 — every row of the countries table, for the home-country list.
+ * The screen orders them: open markets first, then A–Z by the shown name.
+ */
+export interface CountryRow {
+  code: string;
+  nameEn: string;
+  isActive: boolean;
+}
+
+export async function readCountries(): Promise<CountryRow[]> {
+  const { data, error } = await supabase
+    .from("countries")
+    .select("code,name_en,is_active")
+    .order("name_en");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    code: row.code,
+    nameEn: row.name_en,
+    isActive: row.is_active,
+  }));
 }
 
 /**

@@ -85,6 +85,10 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   showNeedsValue: "post.refusal.showNeedsValue",
   unknownCountry: "post.refusal.unknownCountry",
   countryAlreadyConfirmed: "post.refusal.countryAlreadyConfirmed",
+  // Walk fixes 4 and 5 — the Latin line is the refusal; a country change inside
+  // the 30-day window carries the next allowed date as its detail.
+  aliasLatinOnly: "post.who.aliasLatinOnly",
+  countryTooSoon: "post.refusal.countryTooSoon",
   // U6-C1-R2 — the writing budget and the alias imitation check.
   assistBudgetSpent: "post.refusal.assistBudgetSpent",
   aliasImitatesBrand: "post.refusal.aliasImitatesBrand",
