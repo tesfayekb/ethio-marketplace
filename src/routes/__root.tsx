@@ -167,8 +167,10 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorContent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorContent({ error, reset }: ErrorComponentProps) {
   const { t } = useI18n();
+  // The router hands `unknown`; narrow before reading the message.
+  const caught = error instanceof Error ? error : new Error(String(error));
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
