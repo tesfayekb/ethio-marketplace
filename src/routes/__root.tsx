@@ -7,6 +7,7 @@ import {
   useRouterState,
   HeadContent,
   Scripts,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getCookie, getRequest, getRequestUrl } from "@tanstack/react-start/server";
