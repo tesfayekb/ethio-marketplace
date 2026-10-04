@@ -741,6 +741,72 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     expect(await placeTextOf(listingId)).toEqual({ street: null, directions: null });
   });
 
+  test("PW-142 the pin, street and directions go when the city changes, not when the sub-city does (bundle 4 step 17, INC-393)", async ({
+    page,
+  }) => {
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    const { data: other, error } = await adminClient()
+      .from("locations")
+      .insert({
+        parent_id: chain.region.id,
+        level: "city",
+        country_code: "ET",
+        slug: `e2e-scratch-b4city-${rand()}`.toLowerCase(),
+        name_en: `e2e-scratch-b4city-${rand()}`.toLowerCase(),
+        is_active: true,
+        source: "admin",
+        center_lat: 9.05,
+        center_lng: 38.76,
+      })
+      .select("id, slug")
+      .single();
+    if (error || !other) throw new Error(`[e2e:b4] second city failed: ${error?.message}`);
+    const user = await signedInSeller(page);
+    await waitForTreeSlug(page, "ET", other.slug);
+    const leaf = await category();
+    // A pin set by hand (not carried) in city A, with both text lines.
+    const listingId = await openDraft(page, user.id, leaf.id, 6, [chain.city.id], seedLastPin);
+    // The draft reopens on contact; the place page is one step back.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+
+    await expect(page.getByTestId("post-where-city")).toHaveValue(chain.city.id, {
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId("post-pin-position")).toHaveAttribute("data-lat", /9\.030/);
+    await expect(page.getByTestId("post-where-subcity-box")).toBeVisible();
+    await page.getByTestId("post-where-subcity").selectOption(chain.subCity.id);
+    // The sub-city save lands; the pin is still the draft's.
+    await expect
+      .poll(async () => (await pinOf(listingId)).lat, {
+        message: "PW-142: a sub-city change cleared the pin",
+        timeout: 10_000,
+      })
+      .not.toBeNull();
+    expect(await placeTextOf(listingId), "PW-142: a sub-city change cleared the text").toEqual({
+      street: "e2e carried details",
+      directions: "e2e carried directions",
+    });
+    await expect(page.getByTestId("post-where-pin-city-cleared")).toHaveCount(0);
+
+    await page.getByTestId("post-where-city").selectOption(other.id);
+    await expect(
+      page.getByTestId("post-where-pin-city-cleared"),
+      "PW-142: no line saying the pin went",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await pinOf(listingId)).lat, {
+        message: "PW-142: the pin stayed in the old city",
+        timeout: 20_000,
+      })
+      .toBeNull();
+    expect(await placeTextOf(listingId), "PW-142: the text stayed in the old city").toEqual({
+      street: null,
+      directions: null,
+    });
+  });
+
   test("PW-117 two sub-cities of one city both save and count as that one city", async ({
     page,
   }) => {

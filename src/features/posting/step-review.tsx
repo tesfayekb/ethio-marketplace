@@ -6,6 +6,8 @@ import { readAreaCookie } from "@/components/shell/location-data";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
+import { Switch } from "@/components/ui/switch";
+
 import { controlClass, Field } from "./field";
 import { ListingPreview } from "./listing-preview";
 import { attributeDisplayValue } from "./attribute-display";
@@ -115,8 +117,8 @@ export function StepReview({
   illustrationUrl: string | null;
   /** Bundle 4 step 15 — "Photos coming soon" as the door holds it. */
   photosSoon?: boolean;
-  /** The category's poster window; the door falls back to 60 days when unset. */
-  expiryDays: number;
+  /** The category's listing lifetime in days; `null` = no limit, the ad has no end (DEC-117). */
+  expiryDays: number | null;
   /** The draft door's own refusals, so `posterExpiry*` lands on this field. */
   refusals: Refusal[];
   onChangeExpiry: (value: string) => void;
@@ -151,6 +153,8 @@ export function StepReview({
   const [publishing, setPublishing] = useState(false);
   const [refusals, setRefusals] = useState<Refusal[]>([]);
   const [failed, setFailed] = useState(false);
+  // Step 16 — the date box shows while the switch is on; a saved date opens it.
+  const [dateOn, setDateOn] = useState(values.posterExpiresAt !== "");
   const [inReview, setInReview] = useState(false);
 
   useEffect(() => {
@@ -495,8 +499,9 @@ export function StepReview({
        * about how long the listing runs when they are looking at the finished
        * listing, not while naming a price. "From" is a FACT, not a field: the
        * door has no start date — a listing goes live the moment screening passes
-       * — so offering to edit it would be a promise nothing keeps (F4). "Until"
-       * is the category's window end by default and is editable within it.
+       * — so offering to edit it would be a promise nothing keeps (F4). The end
+       * is open unless the seller sets a date or the category holds a limit
+       * (DEC-117); the door keeps the earlier of the two.
        */}
       <div
         className="space-y-2 rounded-md border border-border p-3"
@@ -508,31 +513,56 @@ export function StepReview({
             {t("post.review.activeFromFact")}
           </p>
         </div>
-        <Field
-          id="post-active-until"
-          label={t("post.review.activeUntilLabel")}
-          required={false}
-          refusal={
-            refusalFor(doorRefusals, "poster_expires_at") ??
-            refusalFor(refusals, "poster_expires_at")
-          }
-          hint={
-            <p className="text-xs text-muted-foreground">
-              {fill(t("post.review.activeWindowHint"), { days: expiryDays })}
-            </p>
-          }
-        >
-          <input
-            id="post-active-until"
-            data-testid="post-active-until"
-            type="date"
-            className={controlClass(false)}
-            value={values.posterExpiresAt === "" ? isoDay(expiryDays) : values.posterExpiresAt}
-            min={isoDay(1)}
-            max={isoDay(expiryDays)}
-            onChange={(event) => onChangeExpiry(event.target.value)}
+        {/* Bundle 4 step 16 / DEC-117 — an ad has no end unless the seller sets
+            a date or its category holds a limit; the door takes the earlier. */}
+        <p className="text-sm text-muted-foreground" data-testid="post-active-until-line">
+          {expiryDays === null
+            ? t("post.review.staysUp")
+            : fill(t("post.review.staysUpDays"), { days: expiryDays })}
+        </p>
+        <div className="flex min-h-11 items-center justify-between gap-3">
+          <label htmlFor="post-take-down-switch" className="text-sm font-medium text-foreground">
+            {t("post.review.takeDownSwitch")}
+          </label>
+          <Switch
+            id="post-take-down-switch"
+            data-testid="post-take-down-switch"
+            checked={dateOn}
+            onCheckedChange={(on) => {
+              setDateOn(on);
+              if (!on) onChangeExpiry("");
+            }}
           />
-        </Field>
+        </div>
+        {dateOn && (
+          <Field
+            id="post-active-until"
+            label={t("post.review.takeDownOn")}
+            required={false}
+            refusal={
+              refusalFor(doorRefusals, "poster_expires_at") ??
+              refusalFor(refusals, "poster_expires_at")
+            }
+            hint={
+              expiryDays === null ? undefined : (
+                <p className="text-xs text-muted-foreground">
+                  {fill(t("post.review.lifetimeCapHint"), { days: expiryDays })}
+                </p>
+              )
+            }
+          >
+            <input
+              id="post-active-until"
+              data-testid="post-active-until"
+              type="date"
+              className={controlClass(false)}
+              value={values.posterExpiresAt}
+              min={isoDay(1)}
+              max={expiryDays === null ? undefined : isoDay(expiryDays)}
+              onChange={(event) => onChangeExpiry(event.target.value)}
+            />
+          </Field>
+        )}
       </div>
 
       {failed && (

@@ -1065,7 +1065,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           photos={draft.photos}
                           illustrationUrl={illustrationUrl}
                           photosSoon={draft.photosSoon}
-                          expiryDays={facts?.expiryDays ?? 60}
+                          expiryDays={facts?.expiryDays ?? null}
                           refusals={draft.refusals}
                           maxPhotos={planCaps?.maxPhotos ?? null}
                           pin={draft.pin}

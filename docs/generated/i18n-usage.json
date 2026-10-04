@@ -994,20 +994,6 @@
       "/admin/coverage",
       "/admin/places"
     ],
-    "admin.categories.field.expiryDays": [
-      "/admin/attributes",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/coverage",
-      "/admin/places"
-    ],
-    "admin.categories.field.expiryNone": [
-      "/admin/attributes",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/coverage",
-      "/admin/places"
-    ],
     "admin.categories.field.icon": [
       "/admin/attributes",
       "/admin/categories",
@@ -1030,6 +1016,20 @@
       "/admin/places"
     ],
     "admin.categories.field.iconHint": [
+      "/admin/attributes",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/coverage",
+      "/admin/places"
+    ],
+    "admin.categories.field.lifetimeDays": [
+      "/admin/attributes",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/coverage",
+      "/admin/places"
+    ],
+    "admin.categories.field.lifetimeNone": [
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
@@ -3581,6 +3581,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.pin.clearedCityChanged": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.pin.fromLastPost": [
       "/post",
       "/post/$listingId"
@@ -3829,14 +3833,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.review.activeUntilLabel": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.review.activeWindowHint": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.review.channels": [
       "/post",
       "/post/$listingId"
@@ -3846,6 +3842,10 @@
       "/post/$listingId"
     ],
     "post.review.fixStep": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.lifetimeCapHint": [
       "/post",
       "/post/$listingId"
     ],
@@ -3916,7 +3916,23 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.review.staysUp": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.staysUpDays": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.review.summaryLabel": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.takeDownOn": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.review.takeDownSwitch": [
       "/post",
       "/post/$listingId"
     ],

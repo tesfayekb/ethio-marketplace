@@ -955,8 +955,8 @@ export function StepWhere({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listingId, textKnown, ownPlace, last, country, prefilled, itemPlace, pin]);
 
-  /** Bundle 2 Q4 — a carried pin is cleared when the item place or the leaf no longer fits. */
-  const dropCarried = () => {
+  /** Bundle 2 Q4 — a carried pin is cleared when the leaf no longer fits. */
+  const dropCarried = (onDone?: () => void) => {
     if (listingId === null) return;
     void clearPin(listingId, { street: null, directions: null }).then((ok) => {
       if (!ok) {
@@ -969,13 +969,38 @@ export function StepWhere({
       onDirectionsSaved?.(null);
       onPinSaved?.(null);
       onPinCarried?.(false);
+      onDone?.();
     });
   };
   useEffect(() => {
     if (!pinCarried || last === undefined) return;
-    if (ownPlace === true || itemPlace !== (last?.itemId ?? null)) dropCarried();
+    if (ownPlace === true) dropCarried();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pinCarried, ownPlace, itemPlace, last]);
+  }, [pinCarried, ownPlace, last]);
+
+  /**
+   * Bundle 4 step 17 (INC-393) — the pin, the street line and the directions
+   * belong to the city of the ad's first place. When that city changes or is
+   * removed, all three are cleared, carried or set by hand, and one line says
+   * so. A sub-city of the same city changes nothing. A city first appearing
+   * (null → city, the seeding) is not a change.
+   */
+  const itemCity = itemRow.city;
+  const lastCity = useRef<string | null>(null);
+  const [cityCleared, setCityCleared] = useState(false);
+  useEffect(() => {
+    const before = lastCity.current;
+    lastCity.current = itemCity;
+    if (before === null || before === itemCity) return;
+    const holds =
+      pin !== null || savedText.current.street !== null || savedText.current.directions !== null;
+    if (!holds) return;
+    dropCarried(() => setCityCleared(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemCity]);
+  useEffect(() => {
+    if (pin !== null) setCityCleared(false);
+  }, [pin]);
 
   /** The places the rows name; the TICKED place first (the door's p_coverage[1]). */
   const desired = useMemo(() => {
@@ -1458,6 +1483,14 @@ export function StepWhere({
                       lat: pin.lat.toFixed(5),
                       lng: pin.lng.toFixed(5),
                     })}
+              </p>
+            )}
+            {cityCleared && pin === null && (
+              <p
+                className="text-xs text-muted-foreground"
+                data-testid="post-where-pin-city-cleared"
+              >
+                {t("post.pin.clearedCityChanged")}
               </p>
             )}
             <div className="flex flex-wrap gap-2">
