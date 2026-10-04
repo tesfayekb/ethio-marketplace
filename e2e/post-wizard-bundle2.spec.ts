@@ -317,6 +317,34 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     );
   });
 
+  /**
+   * PW-132 (walk fix 4) — a non-Latin name typed BY KEYBOARD shows the Latin
+   * line AS the refusal at the box, in place of the general shape message, and
+   * no suggestions are asked for such a name.
+   */
+  test("PW-132 a non-Latin seller name shows the Latin line as the refusal", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await page.getByTestId("post-who-alias").pressSequentially("ፊደል", { delay: 40 });
+    const latin = page.getByTestId("post-who-alias-latin");
+    await expect(latin, "PW-132: no Latin line for a non-Latin name").toBeVisible();
+    await expect(latin, "PW-132: the Latin line is not the refusal").toHaveClass(
+      /text-destructive/,
+    );
+    await expect(
+      page.getByTestId("post-who-alias-refusal"),
+      "PW-132: the general shape message shows beside the Latin line",
+    ).toHaveCount(0);
+    // Longer than the check debounce: a suggestions call would have landed by now.
+    await page.waitForTimeout(1_500);
+    await expect(
+      page.getByTestId("post-who-alias-suggestion"),
+      "PW-132: suggestions were asked for a non-Latin name",
+    ).toHaveCount(0);
+  });
+
   test("PW-114 a second phone appears on request and is stored as phone2", async ({ page }) => {
     const user = await signedInSeller(page);
     const leaf = await category();
