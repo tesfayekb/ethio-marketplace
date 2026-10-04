@@ -45,7 +45,7 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [ ] Censuses (steps 1, 6, 9, 16, 20, 22, 23, 24)
 - [ ] M5 (step 25) → apply on ethio-prod → stop
 - [x] Screens A + B — done (steps 1–11; PW-135, PW-136–139, price/deal-line and picker unit tests)
-- [ ] Parts C → D → E → F
+- [ ] Parts C → D → E → F — C, D, E done (PW-140–143, PR-25); F open
 - [ ] M6 (step 30) → stop → screens of Part G
 - [ ] Part H (docs, final report)
 - [x] INC-427 contact-step identity read wiped typed names (fixed bundle 4 turn 3; PW-134)

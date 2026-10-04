@@ -597,6 +597,11 @@ export function StepReview({
         );
       })}
 
+      {/* Bundle 4 step 19 — the seller's statement; no tick, no link (no rules page yet).
+          publish_listing stamps attested_at on every successful publish. */}
+      <p className="text-xs text-muted-foreground" data-testid="post-publish-statement">
+        {t("post.review.statement")}
+      </p>
       <button
         type="button"
         data-testid="post-publish"

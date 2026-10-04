@@ -439,6 +439,75 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
 }
 
 /**
+ * Bundle 4 step 18 — "This is also my shop or office": the seller's saved place,
+ * through the owner-only doors (the table has no client access). `null` = none.
+ * A failed read throws (F4); the caller logs it and falls back to the last post.
+ */
+export interface SellerPlace {
+  locationId: string;
+  pin: { lat: number; lng: number; precision: string; zoom: number | null } | null;
+  street: string | null;
+  directions: string | null;
+}
+
+export async function readSellerPlace(): Promise<SellerPlace | null> {
+  const { data, error } = await supabase.rpc("my_seller_place");
+  if (error) throw new Error(error.message);
+  const row =
+    data !== null && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : null;
+  if (row === null || typeof row["location_id"] !== "string") return null;
+  const lat = numOrNull(row["pin_lat"]);
+  const lng = numOrNull(row["pin_lng"]);
+  const precision = typeof row["pin_precision"] === "string" ? row["pin_precision"] : null;
+  const text = (key: string) => (typeof row[key] === "string" ? (row[key] as string) : null);
+  return {
+    locationId: row["location_id"],
+    pin:
+      lat === null || lng === null || precision === null
+        ? null
+        : { lat, lng, precision, zoom: numOrNull(row["pin_zoom"]) },
+    street: text("street_address"),
+    directions: text("directions"),
+  };
+}
+
+/** The saved place as the prefill reads a last post: one place, its pin and lines. */
+export async function sellerPlaceAsLast(place: SellerPlace): Promise<LastPlaces | null> {
+  const country = await readPlaceCountry(place.locationId);
+  if (country === null) return null;
+  return {
+    country,
+    itemId: place.locationId,
+    placeIds: [place.locationId],
+    pin:
+      place.pin === null
+        ? null
+        : { ...place.pin, street: place.street, directions: place.directions },
+  };
+}
+
+/** Ticking saves the listing's first place, pin and lines; `false` = refused (logged). */
+export async function saveSellerPlace(listingId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("save_seller_place", { p_listing_id: listingId });
+  const ok =
+    error === null &&
+    data !== null &&
+    typeof data === "object" &&
+    (data as Record<string, unknown>)["ok"] === true;
+  if (!ok) console.error("[seller-place] save refused:", error?.message ?? JSON.stringify(data));
+  return ok;
+}
+
+/** Unticking clears the saved place; `false` = refused (logged). */
+export async function clearSellerPlace(): Promise<boolean> {
+  const { error } = await supabase.rpc("clear_seller_place");
+  if (error !== null) console.error("[seller-place] clear refused:", error.message);
+  return error === null;
+}
+
+/**
  * Bundle 2 step 15 (Q3) — the contact channels of the seller's last post, read
  * as `readLastListingPlaces` reads it: the seller's own, past the draft stage
  * (INC-330), newest first, this draft excluded. `null` when there is none;

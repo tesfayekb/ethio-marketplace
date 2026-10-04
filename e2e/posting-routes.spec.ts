@@ -1156,4 +1156,37 @@ test.describe("POSTING ROUTES", () => {
     });
     await publishedDraft(page, business.token, cat.id, city.id);
   });
+
+  test("PR-25 a successful publish stamps the seller's statement (bundle 4 step 19)", async ({
+    page,
+  }) => {
+    const cat = await category();
+    const city = await activeCityOf("ET");
+    const named = await seller(page, { named: true, alias: true });
+    const draft = await postRoute(
+      page,
+      DRAFT,
+      completeDraft({ categoryId: cat.id, cityId: city.id, title: `e2e posting ${rand()}` }),
+      { token: named.token, country: "ET" },
+    );
+    const listingId = String(draft.payload["listing_id"] ?? "");
+    const stamp = async () => {
+      const { data, error } = await adminClient()
+        .from("listings")
+        .select("attested_at")
+        .eq("id", listingId)
+        .maybeSingle();
+      if (error) throw new Error(`[e2e:pr25] reading attested_at failed: ${error.message}`);
+      return data?.attested_at ?? null;
+    };
+    expect(await stamp(), "PR-25: a draft already carried the stamp").toBeNull();
+    const published = await postRoute(
+      page,
+      PUBLISH,
+      { listingId },
+      { token: named.token, country: "ET" },
+    );
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    expect(await stamp(), "PR-25: publish left no stamp").not.toBeNull();
+  });
 });

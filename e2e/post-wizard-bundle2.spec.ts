@@ -32,6 +32,16 @@ import {
 const DRAFT = "/api/listings/draft";
 const PUBLISH = "/api/listings/publish";
 
+async function sellerPlaceOf(userId: string) {
+  const { data, error } = await adminClient()
+    .from("seller_places")
+    .select("location_id,pin_zoom")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:b4] reading the saved place failed: ${error.message}`);
+  return data;
+}
+
 async function placeTextOf(listingId: string) {
   const { data, error } = await adminClient()
     .from("listings")
@@ -805,6 +815,88 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       street: null,
       directions: null,
     });
+  });
+
+  test("PW-143 'also my shop or office' saves the place, a new draft opens with it, and unticking clears it (bundle 4 step 18)", async ({
+    page,
+    browser,
+  }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    const firstId = await openDraft(page, user.id, leaf.id, 6, [city.id], seedLastPin);
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+
+    const tick = page.getByTestId("post-where-shop");
+    await expect(tick, "PW-143: no tick with a pin on the page").toBeVisible({ timeout: 20_000 });
+    await expect(tick).not.toBeChecked();
+    await tick.click();
+    await expect
+      .poll(async () => (await sellerPlaceOf(user.id))?.pin_zoom ?? null, {
+        message: "PW-143: ticking saved no row",
+        timeout: 15_000,
+      })
+      .toBe(15);
+    expect(firstId).not.toBe("");
+
+    // Another seller reads nothing, and the table itself is closed to the browser.
+    const other = await browser.newContext();
+    try {
+      const otherPage = await other.newPage();
+      const stranger = await leaseSeller();
+      sellers.push(stranger.id);
+      await signInViaSession(otherPage, stranger.email, stranger.password);
+      const seen = await otherPage.evaluate(async () => {
+        const client = (
+          window as unknown as {
+            __ethioSupabase: {
+              rpc: (name: string) => Promise<{ data: unknown; error: unknown }>;
+              from: (table: string) => {
+                select: (
+                  cols: string,
+                ) => Promise<{ data: unknown; error: { message: string } | null }>;
+              };
+            };
+          }
+        ).__ethioSupabase;
+        const mine = await client.rpc("my_seller_place");
+        const direct = await client.from("seller_places").select("user_id");
+        return {
+          mine: mine.data,
+          directError: direct.error?.message ?? null,
+          directRows: direct.data,
+        };
+      });
+      expect(seen.mine, "PW-143: another seller read a saved place").toBeNull();
+      expect(
+        seen.directError !== null ||
+          (Array.isArray(seen.directRows) && seen.directRows.length === 0),
+        `PW-143: a direct select was not refused: ${JSON.stringify(seen)}`,
+      ).toBe(true);
+    } finally {
+      await other.close();
+    }
+
+    // A new draft opens on the saved place and pin.
+    const nextId = await openDraft(page, user.id, leaf.id, 5);
+    await expect
+      .poll(async () => (await pinOf(nextId)).zoom, {
+        message: "PW-143: the new draft did not open with the saved pin",
+        timeout: 20_000,
+      })
+      .toBe(15);
+    await expect(
+      page.getByTestId("post-where-shop"),
+      "PW-143: the tick did not reopen ticked",
+    ).toBeChecked({ timeout: 20_000 });
+    await page.getByTestId("post-where-shop").click();
+    await expect
+      .poll(async () => sellerPlaceOf(user.id), {
+        message: "PW-143: unticking left the row",
+        timeout: 15_000,
+      })
+      .toBeNull();
   });
 
   test("PW-117 two sub-cities of one city both save and count as that one city", async ({

@@ -2084,6 +2084,8 @@ export const en = {
   "post.pin.saved": "Pin saved.",
   "post.pin.fromLastPost": "From your last post",
   "post.pin.clearedCityChanged": "The map pin was removed because the city changed.",
+  "post.where.shopTick": "This is also my shop or office. Use it for my next ads.",
+  "post.where.shopFailed": "We could not save that. Please try again.",
   "post.pin.remove": "Remove the pin",
   "post.pin.removed": "Pin removed.",
   "post.pin.change": "Change the map pin",
@@ -2225,6 +2227,8 @@ export const en = {
   "post.review.activeFromLabel": "Active from",
   "post.review.activeFromFact": "As soon as it passes review.",
   "post.review.staysUp": "Stays up until you take it down.",
+  "post.review.statement":
+    "By publishing you confirm that you have the right to sell this, and that the ad follows the rules of ethio.com.",
   "post.review.staysUpDays": "Stays up for {days} days. You can renew it.",
   "post.review.takeDownSwitch": "Take it down on a date",
   "post.review.takeDownOn": "Take it down on",

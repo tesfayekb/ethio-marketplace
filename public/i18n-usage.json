@@ -3916,6 +3916,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.review.statement": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.review.staysUp": [
       "/post",
       "/post/$listingId"
@@ -4214,6 +4218,14 @@
       "/post/$listingId"
     ],
     "post.where.removePlace": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.shopFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.shopTick": [
       "/post",
       "/post/$listingId"
     ],
