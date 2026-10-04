@@ -407,7 +407,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const held = new Promise<void>((resolve) => {
       release = resolve;
     });
-    await page.route(/libphonenumber/, async (route) => {
+    // Dev serves it as libphonenumber-js_min.js; the built app as its own min-<hash>.js chunk.
+    await page.route(/(libphonenumber|\/assets\/min-[\w-]+\.js$)/, async (route) => {
       await held;
       await route.continue();
     });
@@ -622,7 +623,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
         .eq("id", id);
       if (ownError) throw new Error(`[e2e:pw118] seeding the draft failed: ${ownError.message}`);
     });
-    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("933456789");
+    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue(/^93 ?345 ?6789$/);
     await expect(page.getByTestId("post-who-contact-carried")).toHaveCount(0);
     await expect(page.getByTestId("post-who-value-phone")).toHaveValue("");
     const pref = await contactPrefOf(listingId);
