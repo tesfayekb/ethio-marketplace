@@ -55,6 +55,11 @@ jobs:
       # area glob may go stale (match nothing).
       - name: e2e selector self-test
         run: bun run scripts/e2e-select.ts --self-test
+      # Bundle 3 step 23 (DEC-108): no root page may look like a seller name.
+      - name: Root route names (with self-test)
+        run: |
+          bun run scripts/check-root-routes.ts --self-test
+          bun run scripts/check-root-routes.ts
       - name: Build
         run: bun run build
       - name: Bundle report
