@@ -1150,7 +1150,9 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       const mark = calls.length;
       await page.getByTestId("post-next").click();
       await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
-      expect(calls.length - mark, `PW-144: pass ${pass} with nothing changed called identity`).toBe(0);
+      expect(calls.length - mark, `PW-144: pass ${pass} with nothing changed called identity`).toBe(
+        0,
+      );
     }
   });
 });
