@@ -366,6 +366,14 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(offered, "PW-130: the refusal did not offer three names").toHaveCount(3, {
       timeout: 20_000,
     });
+    // Step 21 — the box opened empty, so names were already offered; wait for
+    // the refusal's own ask, built from the typed names.
+    await expect
+      .poll(async () => (await offered.allTextContents()).join(","), {
+        message: "PW-130: no suggestion built from the names",
+        timeout: 20_000,
+      })
+      .toContain("abebe");
     const names = (await offered.allTextContents()).map((name) => name.trim());
     const picked = names[0] ?? "";
     expect(picked, "PW-130: the first suggestion is not built from the names").toContain("abebe");
@@ -392,20 +400,25 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const aliasY = (await aliasBox.boundingBox())?.y ?? 0;
     expect(firstY, "PW-147: the name boxes are not above the public name").toBeLessThan(aliasY);
     await expect(page.getByTestId("post-who-alias-buyer-line")).toBeVisible();
+    // On open, with no names yet, the door answers from the category word.
+    await expect(
+      page.getByTestId("post-who-alias-suggestion"),
+      "PW-147: the step opened with no names offered",
+    ).toHaveCount(3, { timeout: 20_000 });
     const last = `zq${rand().replace(/[0-9]/g, "x")}`;
     await first.fill("Abebe");
     await first.blur();
     await page.getByTestId("post-who-last").fill(last);
     await page.getByTestId("post-who-last").blur();
     const offered = page.getByTestId("post-who-alias-suggestion");
-    await expect(offered, "PW-147: an empty box offered no three names").toHaveCount(3, {
-      timeout: 20_000,
-    });
+    await expect
+      .poll(async () => (await offered.allTextContents()).join(","), {
+        message: "PW-147: leaving the name boxes offered no names built from them",
+        timeout: 20_000,
+      })
+      .toContain("abebe");
+    await expect(offered).toHaveCount(3);
     const names = (await offered.allTextContents()).map((name) => name.trim());
-    expect(
-      names.some((name) => name.includes("abebe")),
-      `PW-147: no suggestion built from the names: ${names.join(", ")}`,
-    ).toBe(true);
     const picked = names[0] ?? "";
     await page.locator(`[data-testid="post-who-alias-suggestion"][data-name="${picked}"]`).click();
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
