@@ -1045,6 +1045,8 @@ export const en = {
   "admin.categories.field.orderManaged": "Managed by Move up/down.",
   "admin.categories.field.expiryDays": "Listing expiry (days)",
   "admin.categories.field.expiryNone": "No expiry",
+  "admin.categories.field.lifetimeDays": "Listing lifetime (days)",
+  "admin.categories.field.lifetimeNone": "No end",
   "admin.categories.field.allowListings": "Accepts listings",
   "admin.categories.field.priceEnabled": "Price field enabled",
   "admin.categories.field.iconChange": "Change",
@@ -2225,6 +2227,11 @@ export const en = {
   "post.review.activeUntilLabel": "Active until",
   "post.review.activeFromFact": "As soon as it passes review.",
   "post.review.activeWindowHint": "Any day within this category's {days}-day window.",
+  "post.review.staysUp": "Stays up until you take it down.",
+  "post.review.staysUpDays": "Stays up for {days} days. You can renew it.",
+  "post.review.takeDownSwitch": "Take it down on a date",
+  "post.review.takeDownOn": "Take it down on",
+  "post.review.lifetimeCapHint": "Ads in this category run for at most {days} days.",
 
   // ---- U6-C1-R2 — the second operator walk's corrections -------------------
   "post.photos.helper": "Up to {max} photos · JPG, PNG or WebP · up to 6 MB · at least 480 px wide",

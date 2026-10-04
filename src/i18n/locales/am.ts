@@ -994,6 +994,8 @@ export const am: Messages = {
   "admin.categories.field.orderManaged": "በ«ወደ ላይ አንቀሳቅስ/ወደ ታች አንቀሳቅስ» ይተዳደራል።",
   "admin.categories.field.expiryDays": "የዝርዝር ማብቂያ (ቀናት)",
   "admin.categories.field.expiryNone": "ማብቂያ የለም",
+  "admin.categories.field.lifetimeDays": "የማስታወቂያ ዕድሜ (ቀናት)",
+  "admin.categories.field.lifetimeNone": "ፍጻሜ የለም",
   "admin.categories.field.allowListings": "ዝርዝሮችን ይቀበላል",
   "admin.categories.field.priceEnabled": "የዋጋ መስክ ነቅቷል",
   "admin.categories.field.iconChange": "ቀይር",
@@ -2126,6 +2128,11 @@ export const am: Messages = {
   "post.review.activeUntilLabel": "እስከ መቼ",
   "post.review.activeFromFact": "ግምገማውን እንዳለፈ ወዲያውኑ።",
   "post.review.activeWindowHint": "በዚህ ምድብ {days} ቀን መስኮት ውስጥ ያለ ማንኛውም ቀን።",
+  "post.review.staysUp": "እስኪያነሱት ድረስ ይቆያል።",
+  "post.review.staysUpDays": "ለ{days} ቀናት ይቆያል። ማደስ ይችላሉ።",
+  "post.review.takeDownSwitch": "በተወሰነ ቀን አንሳው",
+  "post.review.takeDownOn": "የሚነሳበት ቀን",
+  "post.review.lifetimeCapHint": "በዚህ ምድብ ማስታወቂያዎች ቢበዛ ለ{days} ቀናት ይቆያሉ።",
 
   // ---- U6-C1-R2 — የሁለተኛው ግምገማ እርማቶች ------------------------------------
   "post.photos.helper": "እስከ {max} ፎቶዎች · JPG፣ PNG ወይም WebP · እስከ 6 ሜባ · ቢያንስ 480 ፒክስል ስፋት",

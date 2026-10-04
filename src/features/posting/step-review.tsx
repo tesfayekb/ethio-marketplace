@@ -153,6 +153,8 @@ export function StepReview({
   const [publishing, setPublishing] = useState(false);
   const [refusals, setRefusals] = useState<Refusal[]>([]);
   const [failed, setFailed] = useState(false);
+  // Step 16 — the date box shows while the switch is on; a saved date opens it.
+  const [dateOn, setDateOn] = useState(values.posterExpiresAt !== "");
   const [inReview, setInReview] = useState(false);
 
   useEffect(() => {
