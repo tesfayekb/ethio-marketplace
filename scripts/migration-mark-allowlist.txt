@@ -29,3 +29,4 @@
 20260928135721_6b0f6ae1-97f5-4fa4-aee8-4603737dbcae.sql | INC-321 declared mark 20260928100000, which precedes its filename stamp; the ledger row 20260928135721 is recorded by the corrective | 20260928140742
 20261003005802_7423f49a-182c-47a8-b92e-d6417ed57452.sql | bundle 2 declared mark 20261003000000, which precedes its filename stamp; the ledger row 20261003005802 is recorded by the corrective | 20261003012503
 20261003215042_bb808e1a-2900-4781-941f-6143829efb93.sql | M1 follow-up (deny-all policies only); M1 (b9aa66a4) carries the bundle's mark 20261003220000
+20261004010309_60b466e2-a6fd-4b69-9029-d8f067fbe437.sql | comment-only file applied in error before M2 (executes nothing); its ledger row 20261004010309 is recorded by M2 | 20261004011235
