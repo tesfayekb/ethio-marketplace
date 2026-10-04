@@ -406,7 +406,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       names.some((name) => name.includes("abebe")),
       `PW-147: no suggestion built from the names: ${names.join(", ")}`,
     ).toBe(true);
-    await offered.first().click();
+    const picked = names[0] ?? "";
+    await page.locator(`[data-testid="post-who-alias-suggestion"][data-name="${picked}"]`).click();
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-who-alias-suggestions")).toHaveCount(0);
   });
