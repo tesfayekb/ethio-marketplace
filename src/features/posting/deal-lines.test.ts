@@ -6,7 +6,15 @@ import type { AttrDef } from "./posting-service";
 
 const t = (key: MessageKey) => (en as Record<string, string>)[key] ?? key;
 const def = (attrKey: string, nameEn: string, unit: string | null, attrType = "number") =>
-  ({ attributeId: `id-${attrKey}`, attrKey, attrType, nameEn, nameAm: null, unit, format: null }) as unknown as AttrDef;
+  ({
+    attributeId: `id-${attrKey}`,
+    attrKey,
+    attrType,
+    nameEn,
+    nameAm: null,
+    unit,
+    format: null,
+  }) as unknown as AttrDef;
 
 const definitions = [
   def("pack_quantity", "Pieces per Pack", "pieces"),
@@ -22,7 +30,16 @@ const deal = {
 };
 const entities = { lang: "en", map: {} } as never;
 const run = (attributes: Record<string, unknown>, unit: string | null) =>
-  dealLines({ deal, attributes, definitions, attributeOptions: {}, unit, language: "en", entities, t });
+  dealLines({
+    deal,
+    attributes,
+    definitions,
+    attributeOptions: {},
+    unit,
+    language: "en",
+    entities,
+    t,
+  });
 
 describe("bundle 4 step 10 — the deal lines under the price", () => {
   it("the size is one line, named by the unit", () => {
