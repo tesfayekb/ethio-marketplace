@@ -172,6 +172,15 @@ async function expectActivity(page: Page, action: string, userId: string) {
   }
 }
 
+/** AU-12 — removes a scratch user and its alias history; throws on failure (J3). */
+async function destroyScratchWithAliases(userId: string) {
+  const supabase = adminClient();
+  const history = await supabase.from("alias_history").delete().eq("user_id", userId);
+  if (history.error) throw new Error(`[AU-12] alias_history cleanup: ${history.error.message}`);
+  const gone = await supabase.auth.admin.deleteUser(userId);
+  if (gone.error) throw new Error(`[AU-12] scratch user cleanup: ${gone.error.message}`);
+}
+
 test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
     const moderator = await leaseUser();
@@ -498,10 +507,7 @@ test.describe("U1 admin users", () => {
       expect(audit.data).toHaveLength(1);
       expect(audit.data[0]!.meta).toMatchObject({ alias, rule: "d", reason });
     } finally {
-      const history = await supabase.from("alias_history").delete().eq("user_id", scratch.id);
-      if (history.error) throw new Error(`[AU-12] alias_history cleanup: ${history.error.message}`);
-      const gone = await supabase.auth.admin.deleteUser(scratch.id);
-      if (gone.error) throw new Error(`[AU-12] scratch user cleanup: ${gone.error.message}`);
+      await destroyScratchWithAliases(scratch.id);
     }
   });
 
