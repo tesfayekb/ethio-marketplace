@@ -302,7 +302,6 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       .waitFor({ state: "visible", timeout: 3_000 })
       .then(() => true)
       .catch(() => false);
-    console.log(`[PW-134] early=${early} held=${held} ids=${await page.locator('[data-testid^="post-who"]').evaluateAll((n) => n.map((e) => e.getAttribute('data-testid')).join(','))}`);
     if (early) {
       await typeNames();
       release();
