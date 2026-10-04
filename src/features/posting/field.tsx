@@ -97,8 +97,14 @@ const FIELD_STEPS: Record<string, number> = {
 };
 
 /** Which step a refused field belongs to, or `null` when no step claims it. */
-export function stepOfField(field: string, specFields: readonly string[] = []): number | null {
+export function stepOfField(
+  field: string,
+  specFields: readonly string[] = [],
+  priceFields: readonly string[] = [],
+): number | null {
   if (specFields.includes(field)) return 3;
+  // DEC-109 — a detail drawn on the price page belongs to step 4.
+  if (priceFields.includes(field)) return 4;
   return FIELD_STEPS[field] ?? null;
 }
 
@@ -255,9 +261,10 @@ export function focusFirstRefusal(
   refusals: Refusal[],
   step: number,
   specFields: readonly string[] = [],
+  priceFields: readonly string[] = [],
 ): void {
   const targets = summaryRefusals(refusals)
-    .filter((refusal) => stepOfField(refusal.field, specFields) === step)
+    .filter((refusal) => stepOfField(refusal.field, specFields, priceFields) === step)
     .map((refusal) => fieldTarget(refusal.field))
     .filter((target): target is HTMLElement => target !== null);
   if (targets.length === 0) return;
@@ -280,6 +287,7 @@ export function RefusalSummary({
   refusals,
   step,
   specFields = [],
+  priceFields = [],
   onGoTo,
 }: {
   refusals: Refusal[];
@@ -287,6 +295,8 @@ export function RefusalSummary({
   step: number;
   /** The detail keys step 3 renders, so an attribute refusal finds its step. */
   specFields?: readonly string[];
+  /** DEC-109 — the detail keys the price page renders. */
+  priceFields?: readonly string[];
   onGoTo?: (step: number) => void;
 }) {
   const { t } = useI18n();
@@ -294,7 +304,7 @@ export function RefusalSummary({
   if (shown.length === 0) return null;
   const named = shown.map((refusal) => {
     const key = FIELD_LABEL_KEYS[refusal.field];
-    const owner = stepOfField(refusal.field, specFields);
+    const owner = stepOfField(refusal.field, specFields, priceFields);
     const label = key === undefined ? refusal.field : t(key);
     return { field: refusal.field, label, owner };
   });

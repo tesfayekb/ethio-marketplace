@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { catalogText, useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
@@ -191,6 +191,7 @@ export function StepSpecifications({
   exclude = null,
   groups = null,
   testId = "post-price-basis",
+  around = null,
 }: {
   categoryId: string | null;
   values: Record<string, unknown>;
@@ -215,6 +216,12 @@ export function StepSpecifications({
   groups?: readonly DealGroup[] | null;
   /** The `only` copy's wrapper id; the price page mounts two copies. */
   testId?: string;
+  /**
+   * DEC-109 — the price page's one copy draws `node` (the price controls) after
+   * the group `after`, so its rows and the price share one read and one report.
+   * The node is drawn whatever the rows' state: loading, failed or empty.
+   */
+  around?: { after: string; node: ReactNode } | null;
 }) {
   const { t, entities, language } = useI18n();
   const [schema, setSchema] = useState<PostingSchema | null>(null);
@@ -1249,6 +1256,21 @@ export function StepSpecifications({
     return <p className="text-sm text-muted-foreground">{t("post.specs.needCategory")}</p>;
   }
 
+  if (around !== null && (failed || schema === null)) {
+    return (
+      <div className="space-y-5" data-testid={testId} data-options="0">
+        {failed ? (
+          <p className="text-sm text-destructive" data-testid="post-specs-error">
+            {t(rateLimited ? "post.specs.rateLimited" : "post.specs.loadFailed")}
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
+        )}
+        {around.node}
+      </div>
+    );
+  }
+
   if (failed) {
     return (
       <p className="text-sm text-destructive" data-testid="post-specs-error">
@@ -1263,7 +1285,7 @@ export function StepSpecifications({
 
   const drawnRows = asked.filter((def) => drawn(def.attrKey));
   // D62-2 — the price step's copy draws its one row or nothing at all.
-  if (only !== null && drawnRows.length === 0) return null;
+  if (only !== null && drawnRows.length === 0) return around === null ? null : <>{around.node}</>;
 
   if (only === null && drawnRows.length === 0) {
     return (
@@ -1869,17 +1891,21 @@ export function StepSpecifications({
           : groups.map((group) => {
               // DEC-109 — a group with no visible row draws nothing, heading included.
               const rows = drawnRows.filter((def) => group.keys.includes(def.attrKey));
-              if (rows.length === 0) return null;
+              const after = around !== null && around.after === group.id ? around.node : null;
+              if (rows.length === 0)
+                return after === null ? null : <Fragment key={group.id}>{after}</Fragment>;
               return (
-                <section
-                  key={group.id}
-                  className="space-y-4"
-                  data-testid={`post-price-group-${group.id}`}
-                  aria-label={t(group.headingKey)}
-                >
-                  <h3 className="text-sm font-semibold text-foreground">{t(group.headingKey)}</h3>
-                  {rows.map(renderDef)}
-                </section>
+                <Fragment key={group.id}>
+                  <section
+                    className="space-y-4"
+                    data-testid={`post-price-group-${group.id}`}
+                    aria-label={t(group.headingKey)}
+                  >
+                    <h3 className="text-sm font-semibold text-foreground">{t(group.headingKey)}</h3>
+                    {rows.map(renderDef)}
+                  </section>
+                  {after}
+                </Fragment>
               );
             })}
       </div>
