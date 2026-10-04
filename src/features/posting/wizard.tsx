@@ -151,7 +151,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
   const [returnToReview, setReturnToReview] = useState(false);
   /** Rulings 3 — the contact step's own hold on Next, and how often it refused. */
-  const [whoBlocked, setWhoBlocked] = useState(false);
+  const [whoGate, setWhoGate] = useState<"pending" | "blocked" | "open">("pending");
+  /** Rulings 4 item 4 — a Next pressed while the identity is still being read waits for it. */
+  const [whoQueued, setWhoQueued] = useState(false);
   const [whoTried, setWhoTried] = useState(0);
   /**
    * U6-C1-R3b-1 STEP 2b — WHAT A CATEGORY CHANGE COST.
@@ -726,10 +728,25 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           disabled={needsLeaf}
                           onClick={() => {
                             // Rulings 3 — the contact step refuses at its own controls.
-                            if (draft.step === 7 && whoBlocked) {
+                            if (draft.step === 7 && whoGate === "pending") {
+                              setWhoQueued(true);
+                              return;
+                            }
+                            if (draft.step === 7 && whoGate === "blocked") {
                               setWhoTried((n) => n + 1);
                               return;
                             }
+                            goNext();
+                          }}
+                        >
+                          {t("post.action.next")}
+                        </button>
+                      ) : null}
+                      {/* WHO-NEXT-SPLIT */}
+                      {false && (
+                        <button
+                          type="button"
+                          onClick={() => {
                             void (async () => {
                               const saved = await draft.saveAt(draft.step);
                               if (!saved) return;
@@ -925,7 +942,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             draft.change({ contactPref }, immediate)
                           }
                           nextTried={whoTried}
-                          onBlocked={setWhoBlocked}
+                          onBlocked={setWhoGate}
                         />
                       )}
                       {draft.step === 8 && (
