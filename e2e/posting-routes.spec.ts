@@ -749,7 +749,16 @@ test.describe("POSTING ROUTES", () => {
       postRoute(
         page,
         DRAFT,
-        { step: 4, categoryId: cat.id, title: "e2e pr18", description, attributes: {} },
+        // DEC-109 — the description is judged at step 5, after the price page (4),
+        // so the body carries a price the door accepts (free).
+        {
+          step: 5,
+          categoryId: cat.id,
+          title: "e2e pr18",
+          description,
+          attributes: {},
+          priceMode: "free",
+        },
         { token, country: "ET" },
       );
     const accepted = await save("a".repeat(5000));
