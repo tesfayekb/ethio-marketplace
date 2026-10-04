@@ -556,6 +556,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-141 Photos coming soon: the tick shows only with no photo, is saved, draws the ribbon, and goes when a photo is added (bundle 4 steps 14, 15)", async ({
     page,
   }) => {
+    test.setTimeout(180_000);
     const user = await seller(page);
     const category = await leaf();
     await gotoReady(page, "/post");
@@ -604,6 +605,31 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-review-preview").getByTestId("listing-photos-soon-ribbon"),
       "PW-141: no ribbon on the review card",
     ).toHaveCount(1);
+    // The buyer's detail (turn 6 item 6), opened from the review page.
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-title").fill("e2e pw141 listing title");
+    await page.getByTestId("post-description").fill("e2e pw141 listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+    await chooseOneCity(page);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-preview-open").click();
+    await expect(
+      page.getByTestId("post-preview-sheet").getByTestId("listing-photos-soon-ribbon"),
+      "PW-141: no ribbon on the buyer's detail",
+    ).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-preview-close").click();
+    for (const step of [7, 6, 5, 4]) {
+      await page.getByTestId("post-back").click();
+      await expect(page.getByTestId(`post-step-${step}`)).toBeVisible({ timeout: 20_000 });
+    }
 
     // A photo is added: the tick and the ribbon go, and nothing is written.
     await page.getByTestId("post-back").click();
