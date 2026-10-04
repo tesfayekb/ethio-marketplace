@@ -742,26 +742,6 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           {t("post.action.next")}
                         </button>
                       ) : null}
-                      {/* WHO-NEXT-SPLIT */}
-                      {false && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            void (async () => {
-                              const saved = await draft.saveAt(draft.step);
-                              if (!saved) return;
-                              if (returnToReview) {
-                                setReturnToReview(false);
-                                draft.goTo(TOTAL_STEPS);
-                                return;
-                              }
-                              draft.goTo(nextOf(draft.step));
-                            })();
-                          }}
-                        >
-                          {t("post.action.next")}
-                        </button>
-                      ) : null}
                     </div>
                     {/* D58 — a Next whose save never reached the door says so HERE. */}
                     {draft.nextBlockedByTransport && (
