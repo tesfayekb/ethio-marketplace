@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37174910086
-- Commit: `3ba5aee79aef050e0027b5a7c57c681b71218c34`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37177199928
+- Commit: `3abfd1dacbf6677fa30e6fea683519eb244740a9`
 - Attempt: 1
-- Written (UTC): 2026-10-04T04:07:02.234Z
+- Written (UTC): 2026-10-04T04:43:51.394Z
 
 ## Build, typecheck, lint — failure
 
@@ -64,7 +64,7 @@ error: script "lint" exited with code 1
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/265673df-444d-451b-b08e-4a2fe4148995' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/861568d4-55e2-447e-8b08-6613a094d98c' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -96,6 +96,9 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1m  exit "$reporter"[0m
+[36;1mfi[0m
+[36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
   E2E_RESULTS_DIR: shard-results
@@ -103,10 +106,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37174910086
-  E2E_HEAD_COMMIT_MESSAGE: Applied M4 walk scope fixes
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37177199928
+  E2E_HEAD_COMMIT_MESSAGE: Updated confirm flow specs
 
-X-Lovable-Edit-ID: edt-b8399463-f88a-431d-adad-85bb99896a4f
+X-Lovable-Edit-ID: edt-be8efc2b-1bd7-46f7-88fa-551c6a05a5ec
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -123,27 +126,24 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (9/9 source(s) with usable results, 0 context file(s) found).
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
+Wrote docs/tracking/e2e-last-failure.md (2/9 source(s) with usable results, 0 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
-##[group]Run echo "smoke=success email=success shards=failure"
-[36;1mecho "smoke=success email=success shards=failure"[0m
-[36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
+##[group]Run echo "smoke=cancelled email=success shards=cancelled"
+[36;1mecho "smoke=cancelled email=success shards=cancelled"[0m
+[36;1mif [ "cancelled" != "success" ] || [ "cancelled" != "success" ] || [ "success" != "success" ]; then[0m
 [36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit 1[0m
 [36;1mfi[0m
 [36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=success email=success shards=failure
+smoke=cancelled email=success shards=cancelled
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/0885ea89-ff4e-4cdc-acbe-e0e53b1d537f' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/d6236c0b-5a5d-497c-9fbd-c9e8b463ca18' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
