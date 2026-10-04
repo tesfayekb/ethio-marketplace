@@ -70,7 +70,21 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(request, response);
+      // TEMP INC-421 measurement — removed before commit.
+      if (request.url.includes("/api/")) {
+        const body1 = await response.clone().text();
+        console.error(
+          `[inc421-point-1] ${response.status} len=${body1.length} ${new URL(request.url).pathname}`,
+        );
+      }
+      const out = await normalizeCatastrophicSsrResponse(request, response);
+      if (request.url.includes("/api/")) {
+        const body2 = await out.clone().text();
+        console.error(
+          `[inc421-point-2] ${out.status} len=${body2.length} ${new URL(request.url).pathname}`,
+        );
+      }
+      return out;
     } catch (error) {
       logSsrError(request, error);
       return new Response(renderErrorPage(error), {
