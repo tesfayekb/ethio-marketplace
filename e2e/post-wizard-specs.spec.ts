@@ -1650,6 +1650,98 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * INC-374 (PW-153) — A RANGE THAT SETTLES THE QUESTION. A model whose bounds
+   * for a required number carry `"settled": true` takes the row off the form;
+   * the review and the buyer sheet read "<min>–<max> <unit>"; another model
+   * without `settled` asks the row again. Scratch definitions only (G27).
+   */
+  test("PW-153 a settled range hides its number and the review and buyer sheet show the range", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const supabase = adminClient();
+    const stem = `e2e_settle_${Date.now()}_${rand()}`;
+    const model = `${stem}_model`;
+    const battery = `${stem}_mah`;
+    const [m1, m2] = [`${stem}_m1`, `${stem}_m2`];
+    const { data, error } = await supabase
+      .from("attributes")
+      .insert([
+        {
+          attr_key: model,
+          name_en: model,
+          attr_type: "single_select",
+          options: [
+            {
+              value: m1,
+              label_en: `${m1} label`,
+              bounds: { [battery]: { min: 4056, max: 4288, settled: true } },
+            },
+            { value: m2, label_en: `${m2} label`, bounds: { [battery]: { min: 3000, max: 5000 } } },
+          ],
+        },
+        { attr_key: battery, name_en: battery, attr_type: "number", decimals: 0, unit: "mAh" },
+      ])
+      .select("id, attr_key");
+    if (error || !data) throw new Error(`[e2e:PW-153] seeding failed: ${error?.message}`);
+    specs.push(...data.map((row) => row.attr_key));
+    const idOf = (key: string) => data.find((row) => row.attr_key === key)!.id;
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      {
+        category_id: category.id,
+        attribute_id: idOf(model),
+        is_required: true,
+        display_order: 100,
+      },
+      {
+        category_id: category.id,
+        attribute_id: idOf(battery),
+        is_required: true,
+        display_order: 101,
+      },
+    ]);
+    if (linkError) throw new Error(`[e2e:PW-153] linking failed: ${linkError.message}`);
+
+    const listingId = await reachStep3(page, user.id, category);
+    const control = (attrKey: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+    await control(model).selectOption(m2);
+    await expect(control(battery), "PW-153: an unsettled model did not ask").toBeVisible({
+      timeout: 20_000,
+    });
+    await control(model).selectOption(m1);
+    await expect(control(battery), "PW-153: the settled row was still asked").toHaveCount(0, {
+      timeout: 20_000,
+    });
+    await control(model).selectOption(m2);
+    await expect(control(battery), "PW-153: another model did not ask again").toBeVisible({
+      timeout: 20_000,
+    });
+    await control(model).selectOption(m1);
+    await expect
+      .poll(async () => (await attributesOf(listingId))[model], { timeout: 20_000 })
+      .toBe(m1);
+    expect(battery in (await attributesOf(listingId)), "PW-153: a settled number was stored").toBe(
+      false,
+    );
+
+    await openAtReview(page, listingId, user.id, "PW-153");
+    await expect(
+      page.getByTestId("post-review-preview").locator(`[data-key="${battery}"]`),
+      "PW-153: the review did not show the range",
+    ).toHaveText("4056–4288 mAh", { timeout: 20_000 });
+    await page.getByTestId("post-preview-open").click();
+    await expect(
+      page
+        .getByTestId("post-preview-sheet")
+        .locator(`[data-testid="listing-detail-spec"][data-key="${battery}"]`),
+      "PW-153: the buyer sheet did not show the range",
+    ).toHaveText("4056–4288 mAh", { timeout: 20_000 });
+    await page.getByTestId("post-preview-close").click();
+  });
+
+  /**
    * U6-C1-R3b-3c STEP 3 (D26) — A COLOUR IS SEEN.
    *
    * "black" is a word in a list; a colour is a colour. A parent-prefixed value
