@@ -220,10 +220,6 @@ test.describe("POSTING WIZARD", () => {
     const listingId = await reachStep3(page, userId, category);
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e c2a listing title");
-    await page.getByTestId("post-description").fill("e2e c2a listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
     return listingId;
   }
 
@@ -279,6 +275,10 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-price-amount")).toBeVisible();
     await page.getByTestId("post-price-amount").fill("25000");
     await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e c2a listing title");
+    await page.getByTestId("post-description").fill("e2e c2a listing description");
+    await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
     await expect
       .poll(async () => (await pricingOf(listingId)).amount, {
@@ -320,10 +320,6 @@ test.describe("POSTING WIZARD", () => {
     await specControl(page, basis.identityKey).selectOption(basis.identityValue);
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e d31c listing title");
-    await page.getByTestId("post-description").fill("e2e d31c listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await expect(page.getByTestId("post-price-basis")).toHaveAttribute("data-options", "1", {
       timeout: 20_000,
     });
@@ -333,6 +329,10 @@ test.describe("POSTING WIZARD", () => {
 
   /** From step 5 (Next already valid) through place and contact to review. */
   async function pricingToReview(page: Page) {
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e d31c listing title");
+    await page.getByTestId("post-description").fill("e2e d31c listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
     await chooseOneCity(page);
@@ -344,7 +344,7 @@ test.describe("POSTING WIZARD", () => {
 
   const reviewPrice = (page: Page) =>
     page.locator(
-      '[data-testid="post-review-section"][data-step="5"] [data-testid="post-review-value"]',
+      '[data-testid="post-review-section"][data-step="4"] [data-testid="post-review-value"]',
     );
 
   test("PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages", async ({
@@ -429,7 +429,7 @@ test.describe("POSTING WIZARD", () => {
       .locator(`[data-testid="post-attr-other"][data-attr="${basis.basisKey}"]`)
       .fill("Tray");
     await expect(page.locator('label[for="post-price-amount"]')).toContainText("Price per Tray");
-    await expect(page.getByTestId("post-step-5")).not.toContainText(/per other/i);
+    await expect(page.getByTestId("post-step-4")).not.toContainText(/per other/i);
   });
 
   /** B — a card prints what its price runs per (the listing's own period). */
@@ -467,7 +467,7 @@ test.describe("POSTING WIZARD", () => {
       "once",
     );
     await page.getByTestId("post-price-amount").fill("3200");
-    await expect(page.getByTestId("post-step-5")).not.toContainText(/per Per/i);
+    await expect(page.getByTestId("post-step-4")).not.toContainText(/per Per/i);
     await pricingToReview(page);
     await expect
       .poll(async () => (await pricingOf(listingId)).amount, {
@@ -489,7 +489,7 @@ test.describe("POSTING WIZARD", () => {
     const said = page.locator('[role="alert"][data-field="post-price-commission"]');
 
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect(said).toHaveText("Enter your commission percentage.");
 
     for (const typed of ["0", "150"]) {
@@ -540,10 +540,6 @@ test.describe("POSTING WIZARD", () => {
     await specControl(page, basis.identityKey).selectOption(basis.identityValue);
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e d62 listing title");
-    await page.getByTestId("post-description").fill("e2e d62 listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await expect(
       specControl(page, basis.basisKey),
       "PW-63: no basis on the price step",
@@ -554,7 +550,7 @@ test.describe("POSTING WIZARD", () => {
       page.locator(`[data-testid="post-attr-refusal"][data-attr="${basis.basisKey}"]`),
       "PW-63: the required basis was not refused under its control",
     ).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     expect(await draftStepOf(listingId), "PW-63: the draft moved past pricing").toBeLessThan(6);
 
     await specControl(page, basis.basisKey).selectOption("hourly");
@@ -579,13 +575,13 @@ test.describe("POSTING WIZARD", () => {
       .toBe(true);
     await expect(
       page
-        .locator('[data-testid="post-review-section"][data-step="5"]')
+        .locator('[data-testid="post-review-section"][data-step="4"]')
         .getByTestId("price-negotiable-badge"),
       "PW-64: review shows no Negotiable badge",
     ).toBeVisible();
 
-    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     await page.getByTestId("post-price-mode-contact").click();
     await expect(
       page.getByTestId("post-price-negotiable"),
@@ -614,10 +610,6 @@ test.describe("POSTING WIZARD", () => {
     await reachStep3(page, user.id, category);
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e d62 currency title");
-    await page.getByTestId("post-description").fill("e2e d62 currency description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
 
     await expect(page.getByTestId("post-price-currency")).toHaveAttribute("data-code", "ETB", {
       timeout: 20_000,
@@ -686,14 +678,18 @@ test.describe("POSTING WIZARD", () => {
       .toBe(1250);
   });
 
-  test("PW-68 a Next refused on details does not pin the claim: Back then Next from photos reopens details (INC-315)", async ({
+  test("PW-68 a Next refused on details does not pin the claim: Back then Next from price reopens details (INC-315)", async ({
     page,
   }) => {
     const user = await seller(page);
     const category = await leaf();
     await reachStep3(page, user.id, category);
     await nextThroughPhotos(page);
+    // DEC-109 — photos lead to the price; details follow it.
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
 
     await page.getByTestId("post-next").click();
     const summary = page.getByTestId("post-refusal-summary");
@@ -701,13 +697,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(summary).toContainText("Title");
 
     await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("post-refusal-summary")).toHaveCount(0);
-
-    await page.getByTestId("post-title").fill("e2e w1 listing title");
-    await page.getByTestId("post-description").fill("e2e w1 listing description");
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
   });
@@ -865,6 +855,11 @@ test.describe("POSTING WIZARD", () => {
   ) {
     const listingId = await reachStep5(page, userId, category);
     await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-refusal-summary")).toHaveCount(0);
+    await page.getByTestId("post-title").fill("e2e w1 listing title");
+    await page.getByTestId("post-description").fill("e2e w1 listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
 

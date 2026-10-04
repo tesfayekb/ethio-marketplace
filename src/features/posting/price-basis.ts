@@ -1,4 +1,5 @@
 import type { PricePeriod } from "./types";
+import { conditionMet, type VisibleWhen } from "./visible-when";
 
 /**
  * DEC-079 / D31 — THE PRICING BASIS DECIDES THE PRICE'S SHAPE.
@@ -109,4 +110,32 @@ export const UNIT_OF_SALE_KEY = /^unit_of_sale(-|$)/;
 
 export function isUnitOfSaleKey(key: string | null): boolean {
   return key !== null && UNIT_OF_SALE_KEY.test(key);
+}
+
+/** The `pricing_type` family: a rent or hire period (DEC-109). */
+const PRICING_TYPE_KEY = /^pricing_type(-|$)/;
+
+/**
+ * DEC-109 step 7 — THE BASIS IN FORCE, the client mirror of
+ * `public.price_basis_in_force` (M5). Candidates are the category's basis keys
+ * (the door's `deal.basis` list) whose link condition is met under the answers;
+ * a link with no condition is always a candidate. One candidate: that key.
+ * Several: the one `pricing_type` key when exactly one exists (a rent period
+ * outranks a unit of sale), otherwise ambiguous. None: null. The door judges
+ * `priceBasisAmbiguous` itself (F3).
+ */
+export function basisInForce(
+  definitions: readonly { attrKey: string; visibleWhen: VisibleWhen | null }[],
+  answers: Record<string, unknown>,
+  basisKeys: readonly string[],
+): { key: string | null; ambiguous: boolean } {
+  const candidates = basisKeys.filter((key) => {
+    const def = definitions.find((entry) => entry.attrKey === key);
+    return def !== undefined && conditionMet(def, answers);
+  });
+  if (candidates.length === 0) return { key: null, ambiguous: false };
+  if (candidates.length === 1) return { key: candidates[0], ambiguous: false };
+  const periods = candidates.filter((key) => PRICING_TYPE_KEY.test(key));
+  if (periods.length === 1) return { key: periods[0], ambiguous: false };
+  return { key: null, ambiguous: true };
 }

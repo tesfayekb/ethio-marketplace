@@ -90,11 +90,7 @@ test.describe("A11Y SMOKE (DEC-084, gating)", () => {
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e a11y listing title");
-    await page.getByTestId("post-description").fill("e2e a11y listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
     await audit(page, "wizard-5");
   });
 });

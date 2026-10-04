@@ -36,7 +36,7 @@ export interface DraftValues {
   title: string;
   description: string;
   videoUrl: string;
-  /** U6-C2a step 5 — the door's own vocabulary (DEC-067, D13). */
+  /** U6-C2a price step (4) — the door's own vocabulary (DEC-067, D13). */
   priceMode: string;
   priceAmount: number | null;
   priceCurrency: string | null;

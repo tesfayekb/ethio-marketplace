@@ -259,10 +259,6 @@ test.describe("POSTING WIZARD", () => {
     const listingId = await reachStep3(page, userId, category);
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e c2a listing title");
-    await page.getByTestId("post-description").fill("e2e c2a listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
     return listingId;
   }
 
@@ -291,6 +287,10 @@ test.describe("POSTING WIZARD", () => {
     // Step 5 is not this test's subject: `free` is the one mode that asks for
     // nothing, so the price step is answered honestly and left behind.
     await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e c2a listing title");
+    await page.getByTestId("post-description").fill("e2e c2a listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
 
@@ -447,13 +447,10 @@ test.describe("POSTING WIZARD", () => {
     categories.push(category.slug);
     const listingId = await reachStep7(page, user.id, category);
 
-    // MESSAGES IS A FACT, NOT A CHOICE (`listing_contact_refusals`). Bundle 3
-    // step 10: one always-on box, with no control that could switch it off.
+    // MESSAGES IS A FACT, NOT A CHOICE (`listing_contact_refusals`).
     const messages = page.getByTestId("post-who-channel-messages");
-    await expect(messages, "PW-12: the messages box is missing").toBeVisible();
-    await expect(messages.locator("input, button"), "PW-12: messages could be changed").toHaveCount(
-      0,
-    );
+    await expect(messages, "PW-12: messages was switched off").toBeChecked();
+    await expect(messages, "PW-12: messages could be changed").toBeDisabled();
 
     // A PLAINLY WRONG ALIAS COSTS NO ROUND TRIP: the shape is mirrored.
     const alias = page.getByTestId("post-who-alias");
@@ -463,16 +460,36 @@ test.describe("POSTING WIZARD", () => {
       "PW-12: a too-short alias was accepted on screen",
     ).toBeVisible();
 
-    // Bundle 3 step 19 — CHECKING IS NOT CLAIMING: a good name is answered free
-    // by the check door and reaches the profile only when the step is saved.
+    // A GOOD ONE IS THE DOOR'S ANSWER, and the door's answer is a claim.
     const wanted = `e2e_${rand()}`.slice(0, 30).toLowerCase();
-    const before = (await identityOf(user.id)).alias;
     await alias.fill(wanted);
     await expect(
       page.getByTestId("post-who-alias-ok"),
-      "PW-12: the alias was never answered by the check door",
+      "PW-12: the alias was never confirmed by the door",
     ).toBeVisible({ timeout: 20_000 });
-    expect((await identityOf(user.id)).alias, "PW-12: checking claimed the name").toBe(before);
+    await expect
+      .poll(async () => (await identityOf(user.id)).alias, {
+        message: "PW-12: the alias never reached the profile",
+        timeout: 20_000,
+      })
+      .toBe(wanted);
+
+    // U6-C1-R2 — AN IMITATION IS REFUSED BY THE DOOR, NAMING WHAT IT RESEMBLES.
+    // Fake mode makes the verdict deterministic: an alias carrying "cocacola"
+    // imitates, and no provider is called.
+    await alias.fill("e2e_cocacola_shop");
+    await expect(
+      page.getByTestId("post-who-alias-refusal"),
+      "PW-12: an imitating alias was accepted",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await identityOf(user.id)).alias, {
+        message: "PW-12: a refused alias must not reach the profile",
+        timeout: 20_000,
+      })
+      .toBe(wanted);
+    await alias.fill(wanted);
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
 
     // U6-C1-R3b-1 STEP 5 (D17) — A PERSON IS NAMED. The names are the profile's,
     // not the listing's, and reach it through the same identity door.
@@ -522,9 +539,6 @@ test.describe("POSTING WIZARD", () => {
       (await contactPrefOf(listingId))["messages"],
       "PW-12: messages was not stored true",
     ).toBe(true);
-    expect((await identityOf(user.id)).alias, "PW-12: saving the step did not claim the name").toBe(
-      wanted,
-    );
   });
 
   test("PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged", async ({
@@ -552,10 +566,10 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-who-contact-carried"),
       "PW-112: the line naming the last post never showed",
     ).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("91 123 4567");
+    await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
     await expect(page.getByTestId("post-who-show-phone")).toBeChecked();
     await expectPhoneRowUsable(page, "post-who-value-phone");
-    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("92 234 5678");
+    await expect(page.getByTestId("post-who-value-whatsapp")).toHaveValue("922345678");
     await expect(page.getByTestId("post-who-show-whatsapp")).not.toBeChecked();
     // Written when the step opens: the seller changed nothing.
     await expect
@@ -586,8 +600,8 @@ test.describe("POSTING WIZARD", () => {
 
     // U6-C1-R2 — A REAL REVIEW PAGE: one section per step, each with its own Edit.
     await expect(page.locator('[data-testid="post-review-section"]')).toHaveCount(7);
-    await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await page.getByTestId("post-title").fill("e2e r2 edited title");
     // Next from an EDIT returns to review, never onward into the wizard.
     await page.getByTestId("post-next").click();
@@ -604,8 +618,8 @@ test.describe("POSTING WIZARD", () => {
 
     // U6-C1-R3b-1 STEP 2a — BACK TO REVIEW WITHOUT A JUDGEMENT: the edit step
     // offers its own way home, and it does not go through the door.
-    await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     const back = page.getByTestId("post-back-to-review");
     await expect(back, "PW-13: an edit offered no way back to review").toBeVisible();
     await back.click();
@@ -728,7 +742,7 @@ test.describe("POSTING WIZARD", () => {
     }
     mark("specifications answered");
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await page.getByTestId("post-title").fill("e2e labelled title");
     await page.getByTestId("post-description").fill("e2e labelled description");
     await page.getByTestId("post-next").click();
@@ -1556,11 +1570,11 @@ test.describe("POSTING WIZARD", () => {
 
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e pin listing title");
-    await page.getByTestId("post-description").fill("e2e pin listing description");
+    await page.getByTestId("post-price-mode-free").click();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-5")).toBeVisible();
-    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-title").fill("e2e pin listing title");
+    await page.getByTestId("post-description").fill("e2e pin listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
     await chooseOneCity(page);
