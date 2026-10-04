@@ -44,6 +44,8 @@ async function normalizeCatastrophicSsrResponse(
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) return response;
+  // TEMP INC-421 experiment — removed before commit.
+  if (process.env["INC421_NOCLONE"] === "1") return response;
 
   const body = await response.clone().text();
   // TEMP INC-421 measurement — removed before commit.
