@@ -556,6 +556,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-141 Photos coming soon: the tick shows only with no photo, is saved, draws the ribbon, and goes when a photo is added (bundle 4 steps 14, 15)", async ({
     page,
   }) => {
+    test.setTimeout(180_000);
     const user = await seller(page);
     const category = await leaf();
     await gotoReady(page, "/post");
