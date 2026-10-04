@@ -1,7 +1,12 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { Z_POPOVER } from "@/components/layout/layers";
+import {
+  PickerOption,
+  pickerPopClass,
+  usePickerKeys,
+  usePickerPlacement,
+} from "@/components/searchable-picker";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
@@ -135,14 +140,6 @@ export function StepPricing({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const [highlight, setHighlight] = useState(0);
-  /**
-   * INC-280 — WHERE THE LIST OPENS. Downward by default; upward only when the
-   * room below (the viewport, or the sticky action bar's top when it is sticky)
-   * cannot hold the list and the room above is larger. Decided when the list
-   * opens and on resize while open — never by scrolling or moving focus.
-   */
-  const [placement, setPlacement] = useState<"up" | "down">("down");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const guessRef = useRef<string | null>(null);
   /** The preselect is resolved ONCE per visit, never re-raced by a re-render. */
@@ -328,27 +325,8 @@ export function StepPricing({
 
   const rowCount = matches.length + (moreHidden ? 1 : 0);
 
-  useEffect(() => {
-    if (!open) return;
-    const place = () => {
-      const input = inputRef.current;
-      if (input === null) return;
-      const rect = input.getBoundingClientRect();
-      const bar = document.querySelector<HTMLElement>('[data-testid="form-layout-actions"]');
-      const barTop =
-        bar !== null && window.getComputedStyle(bar).position === "sticky"
-          ? bar.getBoundingClientRect().top
-          : window.innerHeight;
-      const roomBelow = Math.min(barTop, window.innerHeight) - rect.bottom - 4;
-      const roomAbove = rect.top - 4;
-      const listHeight = Math.min(256, 44 * rowCount + 2);
-      const next = roomBelow >= listHeight ? "down" : roomAbove > roomBelow ? "up" : "down";
-      setPlacement((prev) => (prev === next ? prev : next));
-    };
-    place();
-    window.addEventListener("resize", place);
-    return () => window.removeEventListener("resize", place);
-  }, [open, rowCount]);
+  // INC-280 — where the list opens: the shared picker's one opening rule (step 11).
+  const placement = usePickerPlacement(inputRef, open, rowCount);
 
   const chosen = currencies.currencies.find((row) => row.code === values.priceCurrency) ?? null;
 
@@ -358,6 +336,20 @@ export function StepPricing({
     setOpen(false);
     setHighlight(0);
   };
+  // Bundle 4 step 11 — the shared picker's one keyboard behaviour.
+  const {
+    highlight,
+    setHighlight,
+    onKeyDown: pickerKeys,
+  } = usePickerKeys({
+    count: matches.length,
+    onPick: (index) => {
+      const row = matches[index];
+      if (row !== undefined) choose(row.code);
+    },
+    onEscape: () => setOpen(false),
+    onOpen: () => setOpen(true),
+  });
 
   /**
    * W6b-2 A2 — the box holds what the seller TYPED; the scale (— · thousand ·
@@ -482,26 +474,7 @@ export function StepPricing({
                   setOpen(true);
                   setHighlight(0);
                 }}
-                onKeyDown={(event) => {
-                  if (event.key === "ArrowDown") {
-                    event.preventDefault();
-                    setOpen(true);
-                    setHighlight((index) => Math.min(index + 1, Math.max(matches.length - 1, 0)));
-                    return;
-                  }
-                  if (event.key === "ArrowUp") {
-                    event.preventDefault();
-                    setHighlight((index) => Math.max(index - 1, 0));
-                    return;
-                  }
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    const row = matches[highlight];
-                    if (row !== undefined) choose(row.code);
-                    return;
-                  }
-                  if (event.key === "Escape") setOpen(false);
-                }}
+                onKeyDown={pickerKeys}
               />
               {/* U6-C1-R2 — THE AFFORDANCE: a chevron, so the box reads as a list
                   to open rather than a plain text field. Decorative only — the
@@ -526,26 +499,21 @@ export function StepPricing({
                   role="listbox"
                   data-placement={placement}
                   className={
-                    `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full mb-1" : "top-full mt-1"} max-h-64 w-full overflow-y-auto rounded-md border ` +
+                    `${pickerPopClass(placement)} max-h-64 w-full overflow-y-auto rounded-md border ` +
                     "border-border bg-background shadow-md"
                   }
                 >
                   {matches.map((row, index) => (
                     <li key={row.code}>
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={row.code === values.priceCurrency}
-                        data-testid="post-price-currency-option"
-                        data-code={row.code}
-                        className={`flex min-h-11 w-full items-center px-3 text-start text-sm ${
-                          index === highlight ? "bg-accent" : ""
-                        }`}
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => choose(row.code)}
+                      <PickerOption
+                        selected={row.code === values.priceCurrency}
+                        highlighted={index === highlight}
+                        testId="post-price-currency-option"
+                        data={{ code: row.code }}
+                        onPick={() => choose(row.code)}
                       >
                         {currencyText(row)}
-                      </button>
+                      </PickerOption>
                     </li>
                   ))}
                   {/* THE WAY OUT OF THE SHORT LIST: one row, at the end, revealing

@@ -2,7 +2,12 @@ import { lengthHint, phonePlanOf } from "./phone-plans";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
-import { Z_POPOVER } from "@/components/layout/layers";
+import {
+  PickerOption,
+  pickerPopClass,
+  usePickerKeys,
+  usePickerPlacement,
+} from "@/components/searchable-picker";
 import { useI18n } from "@/i18n";
 
 import {
@@ -62,7 +67,6 @@ export function PhoneNumberField({
   const [national, setNational] = useState(() => splitPhone(value, defaultIso).national);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [highlight, setHighlight] = useState(0);
   /** The seller's own pick (or a +code read, or a carried value) outranks a late default. */
   const pickedRef = useRef(value !== "");
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -162,6 +166,16 @@ export function PhoneNumberField({
     emit(code, national);
     close(true);
   };
+  // Bundle 4 step 11 — the shared picker's keyboard behaviour and opening rule.
+  const { highlight, setHighlight, onKeyDown } = usePickerKeys({
+    count: matches.length,
+    onPick: (index) => {
+      const row = matches[index];
+      if (row !== undefined) choose(row);
+    },
+    onEscape: () => close(true),
+  });
+  const placement = usePickerPlacement(wrapRef, open, matches.length + 1);
 
   return (
     <div className="min-w-[16.5rem] grow basis-0 space-y-1">
@@ -243,7 +257,8 @@ export function PhoneNumberField({
         />
         {open && (
           <div
-            className={`absolute start-0 top-full ${Z_POPOVER} mt-1 w-72 max-w-[calc(100vw-2rem)] rounded-md border border-border bg-background shadow-md`}
+            data-placement={placement}
+            className={`${pickerPopClass(placement)} start-0 w-72 max-w-[calc(100vw-2rem)] rounded-md border border-border bg-background shadow-md`}
           >
             <input
               ref={searchRef}
@@ -263,28 +278,7 @@ export function PhoneNumberField({
                 setQuery(event.target.value);
                 setHighlight(0);
               }}
-              onKeyDown={(event) => {
-                if (event.key === "ArrowDown") {
-                  event.preventDefault();
-                  setHighlight((index) => Math.min(index + 1, Math.max(matches.length - 1, 0)));
-                  return;
-                }
-                if (event.key === "ArrowUp") {
-                  event.preventDefault();
-                  setHighlight((index) => Math.max(index - 1, 0));
-                  return;
-                }
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  const row = matches[highlight];
-                  if (row !== undefined) choose(row);
-                  return;
-                }
-                if (event.key === "Escape") {
-                  event.preventDefault();
-                  close(true);
-                }
-              }}
+              onKeyDown={onKeyDown}
             />
             <ul
               id={listId}
@@ -300,25 +294,21 @@ export function PhoneNumberField({
               )}
               {matches.map((code, index) => (
                 <li key={code} role="presentation">
-                  <button
-                    type="button"
+                  <PickerOption
                     id={`${listId}-${code}`}
-                    role="option"
-                    aria-selected={code === shownIso}
-                    data-testid={`${testId}-country-option`}
-                    data-iso={code}
-                    className={`flex min-h-11 w-full items-center gap-2 px-3 text-start text-sm text-foreground ${
-                      index === highlight ? "bg-accent" : ""
-                    }`}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => choose(code)}
+                    selected={code === shownIso}
+                    highlighted={index === highlight}
+                    testId={`${testId}-country-option`}
+                    data={{ iso: code }}
+                    className="gap-2"
+                    onPick={() => choose(code)}
                   >
                     <span aria-hidden="true">{flagOf(code)}</span>
                     <span className="min-w-0 grow truncate">{nameOf(code)}</span>
                     <span dir="ltr" className="shrink-0 tabular-nums text-muted-foreground">
                       +{CALLING_CODES[code] ?? ""}
                     </span>
-                  </button>
+                  </PickerOption>
                 </li>
               ))}
             </ul>

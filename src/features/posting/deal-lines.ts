@@ -29,6 +29,24 @@ export function dealLines(input: {
     if (value === undefined || value === null || value === "") return null;
     const def = definitions.find((entry) => entry.attrKey === key);
     if (def === undefined) return null;
+    // Turn 5 item 2 — a choice whose option label is not held prints nothing;
+    // a raw token is never printed.
+    if (
+      def.attrType === "single_select" ||
+      def.attrType === "select" ||
+      def.attrType === "multi_select"
+    ) {
+      const held = new Set((attributeOptions[key] ?? []).map((option) => option.value));
+      const entries = Array.isArray(value) ? value : [value];
+      const unlabelled = entries.some((entry) => {
+        if (entry !== null && typeof entry === "object" && !Array.isArray(entry)) {
+          const other = entry as { value?: unknown; text?: unknown };
+          if (other.value === "other" && typeof other.text === "string") return false;
+        }
+        return !held.has(String(entry));
+      });
+      if (unlabelled) return null;
+    }
     return {
       name: entityName(
         "attribute",

@@ -573,6 +573,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 pricePeriod={draft.values.pricePeriod}
                 priceBp={draft.values.priceBp}
                 basisLabel={basisLabel}
+                deal={deal}
+                dealDefinitions={definitions}
                 priceNegotiable={draft.values.priceNegotiable}
                 attributes={draft.values.attributes}
                 definitions={[]}
