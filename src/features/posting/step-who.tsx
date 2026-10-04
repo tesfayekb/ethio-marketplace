@@ -283,21 +283,32 @@ export function StepWho({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   useEffect(() => {
-    if (carryAskedRef.current) return;
+    if (carryAskedRef.current || (identity === null && !identityFailed)) return;
     carryAskedRef.current = true;
     if (hasChannelValue(contactRef.current)) return;
     let cancelled = false;
+    const apply = (source: Record<string, unknown>) => {
+      const next: Record<string, unknown> = { ...contactRef.current, messages: true };
+      for (const channel of CHANNELS) {
+        const entry = channelOf(source, channel);
+        if (entry.value !== "") next[channel] = entry;
+      }
+      onChangeRef.current(next, true);
+      setCarriedContact(true);
+    };
+    /**
+     * Bundle 4 step 23 (INC-424) — the contact details live on the profile and
+     * open the step; the last post's channels remain the fallback.
+     */
+    if (identity !== null && hasChannelValue(identity.contactPrefs)) {
+      apply(identity.contactPrefs);
+      return;
+    }
     readLastListingContact(listingId)
       .then((last) => {
         if (cancelled || last === null || !hasChannelValue(last)) return;
         if (hasChannelValue(contactRef.current)) return;
-        const next: Record<string, unknown> = { ...contactRef.current, messages: true };
-        for (const channel of CHANNELS) {
-          const entry = channelOf(last, channel);
-          if (entry.value !== "") next[channel] = entry;
-        }
-        onChangeRef.current(next, true);
-        setCarriedContact(true);
+        apply(last);
       })
       .catch((error: unknown) => {
         console.error("[post-who] last post's contact read failed", error);
@@ -305,7 +316,7 @@ export function StepWho({
     return () => {
       cancelled = true;
     };
-  }, [listingId]);
+  }, [listingId, identity, identityFailed]);
 
   const commit = useCallback(async (body: Parameters<typeof saveIdentity>[0]) => {
     const answer = await saveIdentity(body);
