@@ -656,3 +656,4 @@
 - 2026-10-04 · bundle 4 step 23 (ruling item 3): the contact step makes one identity call carrying name and channels only when they differ from the profile, none otherwise (PW-144, same-channels.test.ts); step 24 ALIAS_DEBOUNCE_MS 700 → 350.
 - 2026-10-04 — Bundle 4 turn 6: INC-428 AU-12 releases its reserved handle from stale scratch accounts (> 10 min, e2e namespace only) before typing; LS-6 class — seedGuessFixture clears stale scratch rows at its own map point first; step 20 — an over-limit options read shows post.specs.rateLimited under the opened control and a second open reloads (PW-145).
 - 2026-10-04 Bundle 4 step 18 (turn 6 item 5): a saved place with a street line but no pin now carries its street line and directions to a new draft (PW-146).
+- 2026-10-04 Bundle 4 turn 6 item 6: PW-142 proved red with the city-change rule switched off (both sizes, 'no line saying the pin went'), then green; PW-141 now also checks the ribbon on the buyer's detail.
