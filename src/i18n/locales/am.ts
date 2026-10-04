@@ -357,7 +357,8 @@ export const am: Messages = {
   "admin.users.edit.description": "በሠራተኞች የተደረጉ እርማቶች በዚህ ተጠቃሚ እንቅስቃሴ ውስጥ ይመዘገባሉ።",
   "admin.users.edit.displayName": "የሚታይ ስም",
   "admin.users.edit.aliasReason": "የዚህ ስም ምክንያት",
-  "admin.users.edit.aliasReasonHelp": "ይህ ስም የስያሜ ደንብ ይጥሳል። ለምን እንደተፈቀደ ይግለጹ (ቢያንስ 10 ቁምፊዎች)፤ ምክንያቱ በኦዲት መዝገብ ይቀመጣል።",
+  "admin.users.edit.aliasReasonHelp":
+    "ይህ ስም የስያሜ ደንብ ይጥሳል። ለምን እንደተፈቀደ ይግለጹ (ቢያንስ 10 ቁምፊዎች)፤ ምክንያቱ በኦዲት መዝገብ ይቀመጣል።",
   "admin.users.edit.errorAliasReason": "ይህ ስም ከመቀመጡ በፊት ምክንያት ያስፈልገዋል።",
   "admin.users.edit.alias": "የሻጭ ስም",
   "admin.users.edit.aliasHelp": "ከ3–30 ቁምፊዎች፦ ፊደላት፣ ቁጥሮች፣ ክፍተት፣ ነጥብ፣ ሰረዝ ወይም ከስር ሰረዝ።",

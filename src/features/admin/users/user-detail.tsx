@@ -15,7 +15,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { profileEditErrorKey, UNASSIGNABLE_ROLES } from "./admin-users-service";
+import { needsAliasReason, profileEditErrorKey, UNASSIGNABLE_ROLES } from "./admin-users-service";
 import {
   useAdminRoles,
   useAdminUser,

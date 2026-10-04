@@ -363,7 +363,8 @@ export const en = {
   "admin.users.edit.description": "Corrections made by staff are recorded in this user's activity.",
   "admin.users.edit.displayName": "Display name",
   "admin.users.edit.aliasReason": "Reason for this name",
-  "admin.users.edit.aliasReasonHelp": "This name breaks a naming rule. Say why it is allowed (at least 10 characters); the reason is kept in the audit log.",
+  "admin.users.edit.aliasReasonHelp":
+    "This name breaks a naming rule. Say why it is allowed (at least 10 characters); the reason is kept in the audit log.",
   "admin.users.edit.errorAliasReason": "This name needs a reason before it can be set.",
   "admin.users.edit.alias": "Seller alias",
   "admin.users.edit.aliasHelp":
