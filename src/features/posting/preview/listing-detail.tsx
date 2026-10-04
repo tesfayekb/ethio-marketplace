@@ -15,6 +15,7 @@ import { entityName } from "@/i18n/entity";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
 import { formatCommission } from "../price-basis";
+import { priceLine as sharedPriceLine } from "../price-line";
 import { fill } from "../refusal-text";
 import { attributeDisplayValue } from "../attribute-display";
 import type { AttrOption } from "../attribute-options";
@@ -124,28 +125,19 @@ export function ListingDetail(view: ListingDetailView) {
       ),
     );
 
-  const priceLine =
-    view.priceMode === "commission"
-      ? view.priceBp == null
-        ? t("post.review.noPrice")
-        : fill(t("price.commission"), { percent: formatCommission(view.priceBp) })
-      : view.priceMode === "free"
-        ? t("price.free")
-        : view.priceMode === "contact"
-          ? t("price.contact")
-          : view.priceAmount === null
-            ? t("post.review.noPrice")
-            : view.basisLabel != null
-              ? fill(t("post.review.pricePer"), {
-                  amount: view.priceAmount.toLocaleString(),
-                  currency: view.priceCurrency ?? "",
-                  basis: view.basisLabel,
-                })
-              : fill(t("post.review.priceLine"), {
-                  amount: view.priceAmount.toLocaleString(),
-                  currency: view.priceCurrency ?? "",
-                  period: isPeriod(view.pricePeriod) ? t(PERIOD_KEYS[view.pricePeriod]) : "",
-                }).trim();
+  // Bundle 4 step 10 — the one shared price line.
+  const priceLine = sharedPriceLine(
+    {
+      mode: view.priceMode,
+      amount: view.priceAmount,
+      currency: view.priceCurrency,
+      period: view.pricePeriod,
+      bp: view.priceBp ?? null,
+      unit: view.basisLabel ?? null,
+    },
+    t,
+    t("post.review.noPrice"),
+  );
 
   const channels = (["phone", "phone2", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = view.contactPref[channel];
