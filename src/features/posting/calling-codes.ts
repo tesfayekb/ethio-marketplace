@@ -57,9 +57,13 @@ export function matchCountry(
   return null;
 }
 
-/** The national digits a seller typed: separators and leading zeros removed. */
+/**
+ * The national digits a seller typed, separators removed. Bundle 3 step 11:
+ * a leading zero is KEPT — whether it is a trunk digit is the phone reader's
+ * call (phone-parse.ts), never a blanket rule here.
+ */
 export function nationalDigits(typed: string): string {
-  return typed.replace(/[\s.\-()]/g, "").replace(/^0+/, "");
+  return typed.replace(/[\s.\-()]/g, "");
 }
 
 /** What is saved: "+" code digits, or "" when nothing was typed. */

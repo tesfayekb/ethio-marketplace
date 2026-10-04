@@ -447,10 +447,13 @@ test.describe("POSTING WIZARD", () => {
     categories.push(category.slug);
     const listingId = await reachStep7(page, user.id, category);
 
-    // MESSAGES IS A FACT, NOT A CHOICE (`listing_contact_refusals`).
+    // MESSAGES IS A FACT, NOT A CHOICE (`listing_contact_refusals`). Bundle 3
+    // step 10: one always-on box, with no control that could switch it off.
     const messages = page.getByTestId("post-who-channel-messages");
-    await expect(messages, "PW-12: messages was switched off").toBeChecked();
-    await expect(messages, "PW-12: messages could be changed").toBeDisabled();
+    await expect(messages, "PW-12: the messages box is missing").toBeVisible();
+    await expect(messages.locator("input, button"), "PW-12: messages could be changed").toHaveCount(
+      0,
+    );
 
     // A PLAINLY WRONG ALIAS COSTS NO ROUND TRIP: the shape is mirrored.
     const alias = page.getByTestId("post-who-alias");

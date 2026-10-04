@@ -23,6 +23,8 @@ const FORBIDDEN = [
   "react-leaflet",
   "three",
   "d3",
+  // Bundle 3 step 11 — the phone reader loads by dynamic import on the contact step only.
+  "libphonenumber-js",
 ];
 const EXTENSIONS = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx"];
 

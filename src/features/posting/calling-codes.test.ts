@@ -11,9 +11,9 @@ import {
 } from "./calling-codes";
 
 describe("calling codes (bundle 2 Q1)", () => {
-  it("saves + code digits, separators and leading zeros removed", () => {
-    expect(joinPhone("ET", "0911 23-45.67")).toBe("+251911234567");
-    expect(joinPhone("ET", "(0)91 123 4567")).toBe("+251911234567");
+  it("joins + code digits with separators removed and a leading zero kept (bundle 3 step 11)", () => {
+    expect(joinPhone("ET", "911 23-45.67")).toBe("+251911234567");
+    expect(joinPhone("IT", "06 1234 5678")).toBe("+390612345678");
     expect(joinPhone("ET", "")).toBe("");
   });
   it("+ or 00 moves the picker to the longest matching code", () => {

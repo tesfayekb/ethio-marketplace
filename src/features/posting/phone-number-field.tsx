@@ -15,6 +15,7 @@ import {
   searchCountries,
   splitPhone,
 } from "./calling-codes";
+import { type PhoneLib, readPhone, tidyTyping, typedDigits } from "./phone-parse";
 import { fill } from "./refusal-text";
 
 /**
@@ -38,6 +39,7 @@ export function PhoneNumberField({
   onValue,
   onLeave,
   onCountry,
+  lib,
 }: {
   id: string;
   testId: string;
@@ -48,6 +50,8 @@ export function PhoneNumberField({
   onLeave: (next: string) => void;
   /** The country the picker shows, reported so a sibling can open on it (B4). */
   onCountry?: (iso: string) => void;
+  /** Step 11 — the loaded phone library (null while it loads or after a failure). */
+  lib: PhoneLib | null;
 }) {
   const { t, language } = useI18n();
   const listId = useId();
@@ -61,20 +65,36 @@ export function PhoneNumberField({
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
   const numberRef = useRef<HTMLInputElement | null>(null);
+  /** Step 11 — what is saved for a country and the box's text. */
+  const saveOf = (code: string, text: string) =>
+    lib === null
+      ? typedDigits(text) === ""
+        ? ""
+        : `+${CALLING_CODES[code] ?? ""}${typedDigits(text)}`
+      : readPhone(lib, code, text).value;
   const onCountryRef = useRef(onCountry);
   onCountryRef.current = onCountry;
 
   /** A value set from outside (the last post's contact, Q3) reopens split. */
   useEffect(() => {
-    if (value === joinPhone(iso, national)) return;
+    if (value === saveOf(iso, national) || value === joinPhone(iso, national)) return;
     if (value === "" && national === "") return;
     const split = splitPhone(value, iso === "" ? defaultIso : iso);
     if (value !== "") pickedRef.current = true;
     setIso(split.iso);
-    setNational(split.national);
+    setNational(lib === null ? split.national : readPhone(lib, split.iso, split.national).shown);
     // Only an outside change of `value` reopens it; typing keeps them equal.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
+
+  /** Step 11 — a carried or saved number reopens grouped once the library is here. */
+  useEffect(() => {
+    if (lib === null || national === "") return;
+    const read = readPhone(lib, iso, national);
+    if (read.parsed) setNational(read.shown);
+    // Runs when the library arrives, not on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lib]);
 
   /** B3 — an empty, untouched box follows the default as it becomes known. */
   useEffect(() => {
@@ -117,7 +137,7 @@ export function PhoneNumberField({
   const choose = (code: string) => {
     pickedRef.current = true;
     setIso(code);
-    onValue(joinPhone(code, national));
+    onValue(saveOf(code, national));
     close(true);
   };
 
@@ -174,22 +194,28 @@ export function PhoneNumberField({
           placeholder={plan === null ? undefined : plan.example}
           aria-describedby={hint === null ? undefined : `${id}-hint`}
           onChange={(event) => {
-            const typed = event.target.value;
+            const typed = tidyTyping(event.target.value);
             const international = readInternational(typed, iso);
             if (international !== null) {
               pickedRef.current = true;
               setIso(international.iso);
               setNational(international.rest);
-              onValue(joinPhone(international.iso, international.rest));
+              onValue(saveOf(international.iso, international.rest));
               return;
             }
             if (typed !== "") pickedRef.current = true;
             setNational(typed);
-            onValue(joinPhone(iso, typed));
+            onValue(saveOf(iso, typed));
           }}
           onBlur={(event) => {
             if (wrapRef.current?.contains(event.relatedTarget as Node | null)) return;
-            onLeave(joinPhone(iso, national));
+            if (lib === null) {
+              onLeave(saveOf(iso, national));
+              return;
+            }
+            const read = readPhone(lib, iso, national);
+            setNational(read.shown);
+            onLeave(read.value);
           }}
         />
         {open && (
