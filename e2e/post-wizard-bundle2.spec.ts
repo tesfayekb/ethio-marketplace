@@ -411,6 +411,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     // Bundle 3 step 12 — the guessed home country is confirmed on the contact step.
     await expect(page.getByTestId("post-who-country-required")).toBeVisible();
     await page.getByTestId("post-who-country-confirm").click();
+    // Walk fix 5 — the confirm button opens the dialog; only its Yes confirms.
+    await page.getByTestId("post-who-country-yes").click();
     await expect(page.getByTestId("post-who-country")).toBeDisabled({ timeout: 20_000 });
     await expect(page.getByTestId("post-who-country-required")).toHaveCount(0);
     await page.getByTestId("post-next").click();
@@ -515,6 +517,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(page.getByTestId("post-step-7")).toBeVisible();
     expect(identitySaves, "PW-127: picking from the list sent a confirm").toEqual([]);
     await page.getByTestId("post-who-country-confirm").click();
+    // Walk fix 5 — the confirm button opens the dialog; only its Yes confirms.
+    await page.getByTestId("post-who-country-yes").click();
     await expect(select).toBeDisabled({ timeout: 20_000 });
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8"), "PW-127: confirmed, still held").toBeVisible({
