@@ -2,8 +2,8 @@
 
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37181051989
 - Commit: `2c252e8a63ccdb6dd72e86abaeb0147ce58268eb`
-- Attempt: 1
-- Written (UTC): 2026-10-04T05:52:57.557Z
+- Attempt: 2
+- Written (UTC): 2026-10-04T05:54:30.937Z
 
 ## Migration linter (with self-test) — failure
 
@@ -16,7 +16,7 @@
 ### Tail (last 60 lines)
 
 ```text
-  - /tmp/tmp.DqgkCViU4o (SECURITY DEFINER without in-file REVOKE: self_test_definer)
+  - /tmp/tmp.mwaGhc7a1M (SECURITY DEFINER without in-file REVOKE: self_test_definer)
 Self-test OK: allowlisted file skipped and printed:
 Definer guard: allowlisted files (each cites its closer)
   - 29990101000000_allowlisted-sample.sql (self-test: tool split placed the REVOKE in the next file | closed by deadbeef)
@@ -34,7 +34,7 @@ Policies closed later (allowlisted): 20261003215007_b9aa66a4-fa1e-4ef5-910b-31bb
 Policies closed later (allowlisted): 20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql | closed by 37a1e9bc
 Policies closed later (allowlisted): 20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql | closed by 37a1e9bc
 Self-test OK: definer-without-revoke sample correctly flagged:
-  - /tmp/tmp.8nIhi7aYoi (SECURITY DEFINER without in-file REVOKE: self_test_definer)
+  - /tmp/tmp.9YKSnfShYz (SECURITY DEFINER without in-file REVOKE: self_test_definer)
 Self-test OK: allowlisted file skipped and printed:
 Definer guard: allowlisted files (each cites its closer)
   - 29990101000000_allowlisted-sample.sql (self-test: tool split placed the REVOKE in the next file | closed by deadbeef)
@@ -63,7 +63,7 @@ Self-marking guard FAILED: 1 file(s) do not self-mark into public.migration_mark
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/8af8c795-cf22-4f9a-9fbb-0b98fdf92ae9' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/143884bc-b209-40ca-b0c5-cabfc9323e58' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -118,7 +118,7 @@ Cleaning up orphan processes
 + vite-tsconfig-paths@6.1.1
 + zod@3.25.76
 
-550 packages installed [1053.00ms]
+550 packages installed [859.00ms]
 ##[group]Run bun scripts/e2e-migration-preflight.ts
 [36;1mbun scripts/e2e-migration-preflight.ts[0m
 shell: /usr/bin/bash -e {0}
@@ -136,7 +136,7 @@ STAGING BEHIND: apply 20261004055007_5118f016-fe53-417c-8b4a-05ed5604676d.sql to
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/80174d33-1562-4759-ac67-6ea3c15e1808' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/dcee5e10-68c3-4047-9d68-6a50c85d203a' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -156,6 +156,7 @@ Cleaning up orphan processes
 ### Evidence lines
 
 ```text
+##[error]INC-100 BROKEN ARTIFACT CONTRACT — attempt 2 downloaded ZERO results.json files; the report's zeros describe the download, not the suite.
 [36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
 [36;1mPUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \[0m
 [36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
@@ -215,7 +216,7 @@ smoke=skipped email=skipped shards=skipped
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/9f041dd6-3ffc-4f2f-9fbd-93dbb367e4e2' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/7e817b54-60b3-43f6-9362-5d10011bd07e' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
