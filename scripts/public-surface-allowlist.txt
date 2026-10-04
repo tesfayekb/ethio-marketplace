@@ -9,3 +9,16 @@ check_seller_alias | seller-only check of a wanted name; keyed by auth.uid(), wr
 suggest_seller_aliases | seller-only; returns three free names, rate-gated alias_check (M2)
 my_seller_line | owner-only read keyed by auth.uid() (M2)
 change_home_country | seller-only confirmed-country change; keyed by auth.uid(), 30-day stamp, audited, rate-gated identity (M4)
+listings | M5 column grants: price_unit, price_unit_text and photos_soon are the public card's unit and ribbon fields; attested_at gets none (bundle 4 steps 10, 15, 19)
+price_unit_labels | unit words only ({token: {en, am}} for basis options); the catalogue stays closed (M5, INC-397)
+set_listing_photos_soon | owner-only door on auth.uid(); rate-gated draft; writes one revision (M5)
+save_seller_place | caller-only; copies the place of the caller's own listing; rate-gated draft (M5)
+clear_seller_place | caller-only; deletes the caller's own row (M5)
+my_seller_place | caller-only read keyed by auth.uid() (M5)
+submit_listing | the seller's draft door, restated by M5; ownership and rate gate inside
+edit_listing | the seller's live-ad edit door, restated by M5; ownership inside, judged at step 8
+get_posting_schema | the posting form's schema read, restated by M5; rate-gated schema_read
+get_attribute_options | the posting form's option read, restated by M5; rate-gated options_read
+transition_listing | the status door, restated by M5; owner, reviewer and enforcer checks inside
+renew_listing | the seller's renew door, restated by M5; ownership inside
+set_listing_pin | the seller's pin door, restated by M5 with its comments; ownership inside
