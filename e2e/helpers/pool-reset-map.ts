@@ -24,6 +24,7 @@ export const POOL_RESET_TABLES = {
   rate_overrides: "user_id rows deleted (a test's lowered dial never outlives it)",
   contact_reveals: "viewer_id rows deleted; rows on the account's listings cascade",
   alias_history: "user_id rows deleted (a pooled account's past names never block a later test)",
+  seller_places: "user_id row deleted (a saved shop place never carries into a later lease)",
 } as const;
 
 export const POOL_EXEMPT_TABLES = {
