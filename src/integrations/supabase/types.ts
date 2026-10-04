@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      alias_history: {
+        Row: {
+          alias: string
+          alias_fold: string
+          home_country_code: string | null
+          id: number
+          released_at: string | null
+          taken_at: string
+          user_id: string
+        }
+        Insert: {
+          alias: string
+          alias_fold: string
+          home_country_code?: string | null
+          id?: number
+          released_at?: string | null
+          taken_at?: string
+          user_id: string
+        }
+        Update: {
+          alias?: string
+          alias_fold?: string
+          home_country_code?: string | null
+          id?: number
+          released_at?: string | null
+          taken_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alias_history_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       attribute_import_revisions: {
         Row: {
           action: string
@@ -781,6 +819,18 @@ export type Database = {
           },
         ]
       }
+      exact_only_words: {
+        Row: {
+          word: string
+        }
+        Insert: {
+          word: string
+        }
+        Update: {
+          word?: string
+        }
+        Relationships: []
+      }
       impersonation_sessions: {
         Row: {
           actor_id: string
@@ -1424,6 +1474,56 @@ export type Database = {
           },
         ]
       }
+      protected_handles: {
+        Row: {
+          handle: string
+          handle_fold: string
+          name_id: number
+        }
+        Insert: {
+          handle: string
+          handle_fold: string
+          name_id: number
+        }
+        Update: {
+          handle?: string
+          handle_fold?: string
+          name_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protected_handles_name_id_fkey"
+            columns: ["name_id"]
+            isOneToOne: false
+            referencedRelation: "protected_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      protected_names: {
+        Row: {
+          country: string
+          id: number
+          kind: string
+          name_am: string | null
+          name_en: string
+        }
+        Insert: {
+          country: string
+          id: number
+          kind: string
+          name_am?: string | null
+          name_en: string
+        }
+        Update: {
+          country?: string
+          id?: number
+          kind?: string
+          name_am?: string | null
+          name_en?: string
+        }
+        Relationships: []
+      }
       rate_dials: {
         Row: {
           action: string
@@ -1648,6 +1748,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      seller_name_sweep_runs: {
+        Row: {
+          id: number
+          ran_at: string
+          refused_count: number
+        }
+        Insert: {
+          id?: number
+          ran_at?: string
+          refused_count: number
+        }
+        Update: {
+          id?: number
+          ran_at?: string
+          refused_count?: number
+        }
+        Relationships: []
+      }
+      site_words: {
+        Row: {
+          kind: string
+          word: string
+        }
+        Insert: {
+          kind: string
+          word: string
+        }
+        Update: {
+          kind?: string
+          word?: string
+        }
+        Relationships: []
       }
       translator_languages: {
         Row: {
@@ -2570,6 +2703,7 @@ export type Database = {
         Args: {
           p_display_name: string
           p_home_country_code?: string
+          p_reason?: string
           p_seller_alias?: string
           p_user_id: string
         }
@@ -2650,6 +2784,17 @@ export type Database = {
           meta: Json
         }[]
       }
+      alias_next_change_at: { Args: { p_uid: string }; Returns: string }
+      alias_reason: { Args: { p_rule: string }; Returns: string }
+      alias_rule: {
+        Args: { p_alias: string; p_shape?: boolean }
+        Returns: string
+      }
+      alias_taken: {
+        Args: { p_alias: string; p_uid: string }
+        Returns: boolean
+      }
+      alias_verdict: { Args: { p_alias: string; p_uid: string }; Returns: Json }
       approve_all_entity_translations_impl: {
         Args: { p_lang: string }
         Returns: Json
@@ -2765,6 +2910,8 @@ export type Database = {
           session_id: string
         }[]
       }
+      business_name_rule: { Args: { p_name: string }; Returns: string }
+      business_reason: { Args: { p_rule: string }; Returns: string }
       cat_bool: {
         Args: { p_default: boolean; p_text: string }
         Returns: boolean
@@ -2825,6 +2972,7 @@ export type Database = {
         Returns: Json
       }
       category_slug_candidate: { Args: { p_name: string }; Returns: string }
+      check_seller_alias: { Args: { p_alias: string }; Returns: Json }
       confirm_home_country: { Args: { p_country: string }; Returns: undefined }
       consume_catalog_find_rate: {
         Args: { p_key: string; p_limit?: number }
@@ -3092,6 +3240,13 @@ export type Database = {
       }
       my_last_listing_private: { Args: { p_exclude?: string }; Returns: Json }
       my_listing_private: { Args: { p_listing_id: string }; Returns: Json }
+      my_seller_line: { Args: never; Returns: Json }
+      name_brand_folds: { Args: never; Returns: string[] }
+      name_claim_folds: { Args: never; Returns: string[] }
+      name_fold: { Args: { p: string }; Returns: string }
+      name_fold_am: { Args: { p: string }; Returns: string }
+      name_fold_latin: { Args: { p: string }; Returns: string }
+      name_protected_folds: { Args: never; Returns: string[] }
       next_language_sort: { Args: never; Returns: number }
       plan_caps: { Args: { p_plan: string }; Returns: Json }
       plan_photo_cap: { Args: { p_plan: string }; Returns: number }
@@ -3156,6 +3311,7 @@ export type Database = {
         }
         Returns: Json
       }
+      seller_name_sweep: { Args: never; Returns: number }
       seller_plan: { Args: { p_user_id: string }; Returns: string }
       set_cover_photo: {
         Args: { p_listing_id: string; p_photo_id: string }
@@ -3197,6 +3353,14 @@ export type Database = {
           p_step: number
           p_title: string
           p_video_url: string
+        }
+        Returns: Json
+      }
+      suggest_seller_aliases: {
+        Args: {
+          p_business_name?: string
+          p_first_name?: string
+          p_last_name?: string
         }
         Returns: Json
       }
