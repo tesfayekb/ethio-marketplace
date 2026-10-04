@@ -210,6 +210,17 @@ export interface UpdateProfileInput {
   displayName: string;
   sellerAlias: string | null;
   homeCountryCode: string | null;
+  /**
+   * Bundle 3 step 22 — a reason (at least ten characters, judged by the door)
+   * lets an admin set a name rules b-e would refuse; sent only when asked for.
+   */
+  reason?: string | null;
+}
+
+/** The door refused a name only for want of a reason (HINT reason_required). */
+export function needsAliasReason(error: unknown): boolean {
+  const message = (error as { message?: string } | null)?.message ?? "";
+  return /seller alias needs a reason/i.test(message);
 }
 
 export async function updateProfile(input: UpdateProfileInput): Promise<void> {
@@ -220,6 +231,7 @@ export async function updateProfile(input: UpdateProfileInput): Promise<void> {
     // "not sent" and "sent as null" are the same thing to the function.
     p_seller_alias: input.sellerAlias ?? undefined,
     p_home_country_code: input.homeCountryCode ?? undefined,
+    p_reason: input.reason ?? undefined,
   });
   if (error) throw error;
 }
@@ -234,6 +246,7 @@ export function profileEditErrorKey(error: unknown): MessageKey | null {
   const abort = stepUpAbortKey(error);
   if (abort !== undefined) return abort;
   const message = (error as { message?: string } | null)?.message ?? "";
+  if (needsAliasReason(error)) return "admin.users.edit.errorAliasReason";
   if (/alias already taken|profiles_seller_alias_unique|duplicate key/i.test(message)) {
     return "admin.users.edit.errorAliasTaken";
   }
