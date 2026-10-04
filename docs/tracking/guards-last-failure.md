@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37223754642
-- Commit: `fa6a1dfd3f24058a75d9c9b2a7bbd903811633ef`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37224750591
+- Commit: `a29a4294573b16dc15c4b22e87ec5b13f138eaf3`
 - Attempt: 1
-- Written (UTC): 2026-10-04T18:32:56.119Z
+- Written (UTC): 2026-10-04T18:53:09.530Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -22,9 +22,6 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
-[36;1m  exit "$reporter"[0m
-[36;1mfi[0m
-[36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
   E2E_RESULTS_DIR: shard-results
@@ -32,10 +29,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37223754642
-  E2E_HEAD_COMMIT_MESSAGE: Implemented priceCard logic
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37224750591
+  E2E_HEAD_COMMIT_MESSAGE: Added key to preview/details
 
-X-Lovable-Edit-ID: edt-6cff090d-6d19-4484-b76b-5aa537aa1558
+X-Lovable-Edit-ID: edt-036eaa77-ab7d-4026-9199-3a22f25ebd34
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -52,24 +49,27 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (4/9 source(s) with usable results, 0 context file(s) found).
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
-##[group]Run echo "smoke=cancelled email=success shards=cancelled"
-[36;1mecho "smoke=cancelled email=success shards=cancelled"[0m
-[36;1mif [ "cancelled" != "success" ] || [ "cancelled" != "success" ] || [ "success" != "success" ]; then[0m
+##[group]Run echo "smoke=success email=success shards=cancelled"
+[36;1mecho "smoke=success email=success shards=cancelled"[0m
+[36;1mif [ "success" != "success" ] || [ "cancelled" != "success" ] || [ "success" != "success" ]; then[0m
 [36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit 1[0m
 [36;1mfi[0m
 [36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=cancelled email=success shards=cancelled
+smoke=success email=success shards=cancelled
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/7ee0b2a4-51f6-4660-9cd9-b33bf15c8b04' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/948f3aa3-a6da-45a3-9539-bd6c15da8314' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
