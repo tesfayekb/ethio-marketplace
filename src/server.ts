@@ -74,7 +74,7 @@ export default {
       if (request.url.includes("/api/")) {
         const body1 = await response.clone().text();
         console.error(
-          `[inc421-point-1] ${response.status} len=${body1.length} ${new URL(request.url).pathname}`,
+          `[inc421-point-1] ${request.method} ${response.status} len=${body1.length} ${new URL(request.url).pathname} body=${body1.slice(0, 300)}`,
         );
       }
       const out = await normalizeCatastrophicSsrResponse(request, response);
