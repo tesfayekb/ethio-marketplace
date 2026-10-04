@@ -2272,6 +2272,7 @@ export const am: Messages = {
   "admin.attributes.link.defaultValue": "ነባሪ እሴት",
   "admin.attributes.link.defaultValueHint": "ሻጭ ይህን ምድብ ሲከፍት አስቀድሞ ይሞላል።",
   "admin.attributes.link.none": "ነባሪ የለም",
+  "admin.attributes.link.andWhen": "እና ደግሞ ሲሆን",
   "admin.attributes.link.visibleWhen": "የሚታይበት ጊዜ",
   "admin.attributes.link.saveFailed": "ይህ ለውጥ አልተቀመጠም። እንደገና ይሞክሩ።",
   "admin.attributes.link.alwaysVisible": "ሁልጊዜ ይታይ",

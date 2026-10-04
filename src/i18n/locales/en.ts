@@ -2382,6 +2382,7 @@ export const en = {
   "admin.attributes.link.defaultValue": "Default value",
   "admin.attributes.link.defaultValueHint": "Prefilled when a seller opens this category.",
   "admin.attributes.link.none": "No default",
+  "admin.attributes.link.andWhen": "And when",
   "admin.attributes.link.visibleWhen": "Show when",
   "admin.attributes.link.saveFailed": "That change was not saved. Try again.",
   "admin.attributes.link.alwaysVisible": "Always visible",

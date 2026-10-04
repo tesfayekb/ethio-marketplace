@@ -73,6 +73,9 @@ export function AttributeLinkCells({
   const [defaultValue, setDefaultValue] = useState(defaultText(row.defaultValue));
   const [conditionKey, setConditionKey] = useState(row.visibleWhen?.key ?? "");
   const [conditionValues, setConditionValues] = useState<string[]>(row.visibleWhen?.in ?? []);
+  /** INC-381 — the optional second pair; both must hold for the row to be asked. */
+  const [andKey, setAndKey] = useState(row.visibleWhen?.and?.key ?? "");
+  const [andValues, setAndValues] = useState<string[]>(row.visibleWhen?.and?.in ?? []);
   const [states, setStates] = useState<Record<Cell, CellState>>(IDLE_STATES);
   /**
    * WHAT IS STORED, as this editor last saw it: the row when it arrived, and the
@@ -90,6 +93,8 @@ export function AttributeLinkCells({
     setDefaultValue(defaultText(row.defaultValue));
     setConditionKey(row.visibleWhen?.key ?? "");
     setConditionValues(row.visibleWhen?.in ?? []);
+    setAndKey(row.visibleWhen?.and?.key ?? "");
+    setAndValues(row.visibleWhen?.and?.in ?? []);
     setBaseline({
       allowed: stamp([...(row.allowedOptions ?? [])].sort()),
       default: defaultText(row.defaultValue),
@@ -101,6 +106,13 @@ export function AttributeLinkCells({
     () => siblings.find((sibling) => sibling.attrKey === conditionKey)?.options ?? [],
     [conditionKey, siblings],
   );
+  const andOptions = useMemo(
+    () => siblings.find((sibling) => sibling.attrKey === andKey)?.options ?? [],
+    [andKey, siblings],
+  );
+  const conditionSiblings = siblings.filter(
+    (sibling) => sibling.attrKey !== row.attrKey && sibling.options.length > 0,
+  );
   const isSelect = row.attrType === "single_select" || row.attrType === "multi_select";
   const effectiveOptions =
     allowed.length === 0
@@ -110,7 +122,9 @@ export function AttributeLinkCells({
   const conditionNow: VisibleWhen | null =
     conditionKey === "" || conditionValues.length === 0
       ? null
-      : { key: conditionKey, in: conditionValues };
+      : andKey === "" || andValues.length === 0
+        ? { key: conditionKey, in: conditionValues }
+        : { key: conditionKey, in: conditionValues, and: { key: andKey, in: andValues } };
   const dirty: Record<Cell, boolean> = {
     allowed: stamp([...allowed].sort()) !== baseline.allowed,
     default: defaultValue !== baseline.default,
@@ -260,16 +274,16 @@ export function AttributeLinkCells({
           onChange={(event) => {
             setConditionKey(event.target.value);
             setConditionValues([]);
+            setAndKey("");
+            setAndValues([]);
           }}
         >
           <option value="">{t("admin.attributes.link.alwaysVisible")}</option>
-          {siblings
-            .filter((sibling) => sibling.attrKey !== row.attrKey && sibling.options.length > 0)
-            .map((sibling) => (
-              <option key={sibling.attrKey} value={sibling.attrKey}>
-                {sibling.nameEn}
-              </option>
-            ))}
+          {conditionSiblings.map((sibling) => (
+            <option key={sibling.attrKey} value={sibling.attrKey}>
+              {sibling.nameEn}
+            </option>
+          ))}
         </select>
         {conditionOptions.map((option) => (
           <label key={option.value} className="flex min-h-11 items-center gap-2 text-xs">
@@ -287,6 +301,51 @@ export function AttributeLinkCells({
             {optionLabel(option)}
           </label>
         ))}
+        {conditionKey === "" ? null : (
+          <>
+            <label
+              className="block pt-1 text-xs font-medium text-foreground"
+              htmlFor={`condition-and-${row.linkId}`}
+            >
+              {t("admin.attributes.link.andWhen")}
+            </label>
+            <select
+              id={`condition-and-${row.linkId}`}
+              data-testid={`category-attribute-condition-and-key-${row.attrKey}`}
+              className={SELECT_CLASS}
+              value={andKey}
+              onChange={(event) => {
+                setAndKey(event.target.value);
+                setAndValues([]);
+              }}
+            >
+              <option value="">{t("admin.attributes.link.none")}</option>
+              {conditionSiblings
+                .filter((sibling) => sibling.attrKey !== conditionKey)
+                .map((sibling) => (
+                  <option key={sibling.attrKey} value={sibling.attrKey}>
+                    {sibling.nameEn}
+                  </option>
+                ))}
+            </select>
+            {andOptions.map((option) => (
+              <label key={option.value} className="flex min-h-11 items-center gap-2 text-xs">
+                <Checkbox
+                  data-testid={`category-attribute-condition-and-${row.attrKey}-${option.value}`}
+                  checked={andValues.includes(option.value)}
+                  onCheckedChange={(checked) =>
+                    setAndValues((previous) =>
+                      checked === true
+                        ? [...previous, option.value]
+                        : previous.filter((value) => value !== option.value),
+                    )
+                  }
+                />
+                {optionLabel(option)}
+              </label>
+            ))}
+          </>
+        )}
         <Button
           type="button"
           variant="outline"
