@@ -358,6 +358,13 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
     const select = page.getByTestId("post-who-country");
     await expect(select).toBeEnabled({ timeout: 20_000 });
+    // Every identity save the screen sends from here on (the old screen sent one per pick).
+    const identitySaves: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/api/listings/identity") && request.method() === "POST") {
+        identitySaves.push(request.postData() ?? "");
+      }
+    });
     await select.selectOption("");
     await select.selectOption("ET");
     // Rulings 3 item 3 — choosing from the list never confirms.
@@ -365,8 +372,6 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       page.getByTestId("post-who-country-confirm"),
       "PW-127: picking from the list confirmed the country",
     ).toBeVisible();
-    // The old screen saved the pick at once; let any such request finish first.
-    await page.waitForLoadState("networkidle");
     const { data: before, error } = await adminClient()
       .from("user_directory")
       .select("country_source")
@@ -382,6 +387,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       "PW-127: Next did not refuse at the country",
     ).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId("post-step-7")).toBeVisible();
+    expect(identitySaves, "PW-127: picking from the list sent a confirm").toEqual([]);
     await page.getByTestId("post-who-country-confirm").click();
     await expect(select).toBeDisabled({ timeout: 20_000 });
     await page.getByTestId("post-next").click();
