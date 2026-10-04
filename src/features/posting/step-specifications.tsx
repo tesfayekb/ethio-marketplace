@@ -3,7 +3,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type React
 import { catalogText, useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
-import { resolveBound, yearLabel } from "./attribute-display";
+import { resolveBound, settledRanges, yearLabel } from "./attribute-display";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches";
 import { Field, controlClass } from "./field";
@@ -707,6 +707,12 @@ export function StepSpecifications({
       return bound.min !== null && bound.max !== null && bound.min === bound.max ? bound.min : null;
     },
     [boundsOf],
+  );
+
+  /** INC-374 — the numbers the chosen options settle as a range; not asked. */
+  const settled = useMemo(
+    () => settledRanges(definitions, values, allowedListOf),
+    [definitions, values, allowedListOf],
   );
 
   /**
@@ -1424,6 +1430,9 @@ export function StepSpecifications({
     // DEC-085 — a number or year pinned to one value is stored and hidden the same way.
     const pin = pinnedNumber(def);
     if (pin !== null && same(value, pin)) return null;
+    // INC-374 — a number the chosen options settle as a range is not asked; the
+    // review, the preview and the detail show the range instead.
+    if (def.attrKey in settled) return null;
 
     return (
       <div
