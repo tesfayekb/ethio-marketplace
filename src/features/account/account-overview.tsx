@@ -79,7 +79,9 @@ export function AccountOverview() {
       const [profile, listings, authUser] = await Promise.all([
         supabase
           .from("profiles")
-          .select("seller_alias,seller_type,business_name,display_name,home_country_code,first_name,last_name,contact_prefs",)
+          .select(
+            "seller_alias,seller_type,business_name,display_name,home_country_code,first_name,last_name,contact_prefs",
+          )
           .eq("user_id", user.id)
           .maybeSingle(),
         supabase.from("listings").select("status").eq("seller_id", user.id),
@@ -159,7 +161,9 @@ export function AccountOverview() {
                 <dt className="text-muted-foreground">{t("account.overview.fullName")}</dt>
                 <dd className="text-foreground" data-testid="account-profile-name">
                   {[state.profile?.first_name, state.profile?.last_name]
-                    .filter((part): part is string => typeof part === "string" && part.trim() !== "")
+                    .filter(
+                      (part): part is string => typeof part === "string" && part.trim() !== "",
+                    )
                     .join(" ") || t("account.overview.notSet")}
                 </dd>
               </div>
