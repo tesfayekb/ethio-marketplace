@@ -1,26 +1,58 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37223754642
-- Commit: `fa6a1dfd3f24058a75d9c9b2a7bbd903811633ef`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37224750591
+- Commit: `a29a4294573b16dc15c4b22e87ec5b13f138eaf3`
 - Attempt: 1
-- Written (UTC): 2026-10-04T18:32:42.582Z
-- Passed: 0 · Skipped: 0 · Failed: 0
+- Written (UTC): 2026-10-04T18:52:56.460Z
+- Passed: 362 · Skipped: 44 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): email
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Flaky (passed on retry, DEC-030, non-gating): 1
+- Post-test errors (DEC-059, non-gating): smoke, email, shard 6, changed
+- Sources without results: shard 1, shard 2, shard 3, shard 4, shard 5
+
+## Flake ledger (DEC-030)
+
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
+
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 6` · shell.spec.ts › L4b location picker › LS-6 the nearest curated metro wins by geometry — Error: expect(locator).toHaveText(expected) failed
+
+## Flaky bodies (DEC-078)
+
+### shell.spec.ts › L4b location picker › LS-6 the nearest curated metro wins by geometry
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toHaveText(expected) failed
+
+Locator: getByTestId('location-level-city')
+Expected pattern: /Escratch Guess City vchmqx/
+Received string:  "Escratch Guess City tukyyqx"
+Timeout: 10000ms
+
+Call log:
+  - Expect "toHaveText" with timeout 10000ms
+  - waiting for getByTestId('location-level-city')
+    12 × locator resolved to <button type="button" id="radix-_r_4_" aria-label="City" data-state="closed" aria-haspopup="menu" aria-expanded="false" data-testid="location-level-city" class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring font-medium text-foreground">…</button>
+       - unexpected value "Escratch Guess City tukyyqx"
+
+```
+
+Context: context file not found for `shell-L4b-location-picker-LS-6-the-nearest-curated-metro-wins-by-geometry-desktop-1280`
 
 ## Server errors — census (DEC-083, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
-105 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+114 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
+| `listing not found` | 14 | shard 3, shard 5, shard 6, changed |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
-| `listing not found` | 5 | shard 3, shard 6 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -60,7 +92,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 5 · Sources: shard 3, shard 6
+- Count: 14 · Sources: shard 3, shard 5, shard 6, changed
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -68,15 +100,67 @@ Off the allowlist:
 
 ## Accessibility (DEC-084, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
 10 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0 · wizard-5 desktop-1280 serious=0 critical=0
 
 ## Timing (DEC-087, non-gating)
 
-Results read: none · unavailable: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+Results read: smoke, email, shard 6, changed · unavailable: shard 1, shard 2, shard 3, shard 4, shard 5
 
-No timing: no source carried a results.json.
+| Source | Started (UTC) | Wall time |
+| --- | --- | --- |
+| smoke | 2026-10-04T18:34:26.847Z | 15.6 min |
+| email | 2026-10-04T18:34:13.510Z | 0.2 min |
+| shard 6 | 2026-10-04T18:34:42.383Z | 16.1 min |
+| changed | 2026-10-04T18:34:12.200Z | 16.3 min |
+
+| Spec file | Tests | Summed duration | Ran in |
+| --- | --- | --- | --- |
+| `shell.spec.ts` | 189 | 14.8 min | smoke, shard 6 |
+| `post-wizard-bundle2.spec.ts` | 42 | 12.7 min | changed |
+| `post-wizard-resets.spec.ts` | 27 | 11.1 min | shard 6, changed |
+| `post-wizard-pricing.spec.ts` | 34 | 10.6 min | changed |
+| `post-wizard-specs.spec.ts` | 31 | 10.0 min | shard 6 |
+| `posting-routes.spec.ts` | 24 | 5.4 min | shard 6 |
+| `post-wizard-where.spec.ts` | 14 | 5.1 min | shard 6 |
+| `auth-signout.spec.ts` | 22 | 4.8 min | smoke |
+| `a11y.spec.ts` | 4 | 0.8 min | smoke |
+| `rbac.spec.ts` | 3 | 0.3 min | shard 6 |
+| `smoke-auth-i18n.spec.ts` | 3 | 0.2 min | smoke, shard 6 |
+| `primitives-law.spec.ts` | 12 | 0.2 min | shard 6 |
+| `auth-signup.spec.ts` | 1 | 0.1 min | email |
+| `shell-table-law.spec.ts` | 1 | 0.1 min | shard 6 |
+
+15 slowest tests:
+
+| Test | Project | Duration |
+| --- | --- | --- |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 46.5 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 46.0 s |
+| `post-wizard-where.spec.ts` › PW-98 the item tick sits on the city line, fresh and prefilled | desktop-1280 | 40.8 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 36.2 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 35.9 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 35.6 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | desktop-1280 | 33.3 s |
+| `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, big model list) | desktop-1280 | 33.2 s |
+| `posting-routes.spec.ts` › PR-24 a seller is named before an ad is published (INC-423) | desktop-1280 | 32.7 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | desktop-1280 | 32.6 s |
+| `post-wizard-pricing.spec.ts` › PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081) | desktop-1280 | 31.6 s |
+| `post-wizard-resets.spec.ts` › PW-26 a category change drops the details the new category never asks, by name | desktop-1280 | 31.5 s |
+| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 30.6 s |
+| `post-wizard-resets.spec.ts` › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) | mobile-360 | 30.0 s |
+| `post-wizard-resets.spec.ts` › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) | desktop-1280 | 29.9 s |
+
+## Post-test errors: smoke
+
+smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 3 user(s) owned by process 37224750591-smoke
+```
 
 ## Post-test errors: email
 
@@ -85,24 +169,28 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37223754642-email
+[e2e:teardown] deleted 4 user(s) owned by process 37224750591-email
 ```
 
-## Server errors: smoke
+## Post-test errors: shard 6
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
-## Client errors: smoke
+```text
+[e2e:teardown] accounts signed in this run: 9 (pool 5, fresh 4)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 4 user(s) owned by process 37224750591-6
+```
 
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+## Post-test errors: changed
 
-## Server errors: email
+changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
-
-## Client errors: email
-
-No `[client-error]` lines in the `email` log (or no log was uploaded).
+```text
+[e2e:teardown] accounts signed in this run: 5 (pool 3, fresh 2)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 3 user(s) owned by process 37224750591-changed
+```
 
 ## Server errors: shard 1
 
@@ -157,7 +245,7 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 ## Server errors: shard 3
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
+[WebServer] [ssr-error] /api/listings/draft listing not found ×7
 ```
 
 ## Client errors: shard 3
@@ -188,7 +276,6 @@ No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 ## Server errors: shard 5
 
 ```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
 [WebServer] [ssr-error] /api/admin/translations/import too many previews
@@ -208,54 +295,12 @@ No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 [WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
+[WebServer] [ssr-error] /api/listings/draft listing not found ×2
 ```
 
 ## Client errors: shard 5
 
 No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## Server errors: shard 6
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×2
-```
-
-## Client errors: shard 6
-
-No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓  142 [desktop-1280] › e2e/shell.spec.ts:1772:3 › L4b location picker › LS-2 a pick is remembered, clearing forgets it (16.4s)
-  ✓  143 [desktop-1280] › e2e/shell.spec.ts:1805:3 › L4b location picker › LS-3 an open market is guessed from the edge country, never saved (730ms)
-  ✓  144 [desktop-1280] › e2e/shell.spec.ts:1822:3 › L4b location picker › LS-4 a closed market is not guessed (888ms)
-  ✓  145 [desktop-1280] › e2e/shell.spec.ts:1841:3 › L4b location picker › LS-5 no header and no cookie: no guess, and the markets route caches (616ms)
-  ✓  146 [desktop-1280] › e2e/shell.spec.ts:1939:3 › L4b location picker › LS-6 the nearest curated metro wins by geometry (10.7s)
-  ✓  147 [desktop-1280] › e2e/shell.spec.ts:1968:3 › L4b location picker › LS-7 a region code alone selects the region (14.9s)
-  ✓  148 [desktop-1280] › e2e/shell.spec.ts:1996:3 › L4b location picker › LS-8 a city name alone selects that city (15.2s)
-  ✓  149 [desktop-1280] › e2e/shell.spec.ts:2018:3 › L4b location picker › LS-9 coordinates far from every metro stop at the market (14.5s)
-  ✓  150 [desktop-1280] › e2e/shell.spec.ts:2046:3 › L4b location picker › LS-10 a saved area beats the deepest guess (17.7s)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-Running 1 test using 1 worker
-
-  ✓  1 [email-serial] › e2e/auth-signup.spec.ts:121:3 › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle (4.3s)
-[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37223754642-email
-
-  1 passed (11.3s)
-```
 
 ## shard 1: no results file
 
@@ -265,15 +310,15 @@ shard 1: no results file — the process failed outside test results (setup/tear
 --- error lines (1) ---
 [e2e:setup] EN baseline probe unavailable: TypeError: fetch failed (UND_ERR_HEADERS_OVERFLOW) after 4 attempts
 --- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37223754642-1-2881-3-yduoju@ethio-e2e.invalid)
-  ✓  102 [mobile-360] › e2e/admin-categories-lifecycle.spec.ts:1369:3 › CAT-IE categories import/export › CT-25 an attributes file is refused by identity (3.4s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37223754642-1-2881-2-bqnyd2@ethio-e2e.invalid)
-  ✓  103 [mobile-360] › e2e/admin-countries.spec.ts:78:3 › L2b countries console › CO-2 roster: every market renders, the two open ones carry the open tone, search and the status filter narrow (3.8s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37223754642-1-2881-3-yduoju@ethio-e2e.invalid)
-  ✓  105 [mobile-360] › e2e/admin-countries.spec.ts:130:3 › L2b countries console › CO-3 creation is absent from the header; the countries file is the only creation path (2.6s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37223754642-1-2881-3-yduoju@ethio-e2e.invalid)
-  ✓  104 [mobile-360] › e2e/admin-categories-lifecycle.spec.ts:1424:3 › CAT-IE categories import/export › CT-26 imported Amharic names land pending, and undo removes them (10.5s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37223754642-1-2881-2-bqnyd2@ethio-e2e.invalid)
+✓  156 [mobile-360] › e2e/admin-translations-console.spec.ts:124:3 › U4b translations console › TR-2 roster shows every language including admin-only ones (2.0s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37224750591-1-2854-2-5yxpz8@ethio-e2e.invalid)
+  ✓  155 [mobile-360] › e2e/admin-shell.spec.ts:257:3 › Admin shell (U0) › A-3 regular user: /admin still redirects home (5.4s)
+  ✓  157 [mobile-360] › e2e/admin-translations-console.spec.ts:141:3 › U4b translations console › TR-3 the strings page lists keys with source and status (3.3s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37224750591-1-2854-2-5yxpz8@ethio-e2e.invalid)
+  ✓  159 [mobile-360] › e2e/admin-translations-console.spec.ts:157:3 › U4b translations console › TR-4 scope: a translator outside the language is refused by the SERVER (8.1s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37224750591-1-2854-2-5yxpz8@ethio-e2e.invalid)
+  ✓  160 [mobile-360] › e2e/admin-translations-console.spec.ts:177:3 › U4b translations console › TR-5 filters live in the URL and survive a reload (2.4s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37224750591-1-2854-2-5yxpz8@ethio-e2e.invalid)
 ```
 
 ```text
@@ -299,15 +344,15 @@ shard 2: no results file — the process failed outside test results (setup/tear
 --- error lines (1) ---
 [WebServer] Error in renderToReadableStream: ReferenceError: window is not defined ×4
 --- final 10 lines ---
-✓  140 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:856:3 › POSTING WIZARD — bundle 2 place and contact › PW-119 another seller's visible phone is never carried (21.7s)
-  ✓  141 [mobile-360] › e2e/post-wizard-category.spec.ts:908:3 › POSTING WIZARD › PW-27 the mobile strip walks back to a step already done, and no further (21.4s)
-  ✓  143 [mobile-360] › e2e/post-wizard-category.spec.ts:946:3 › POSTING WIZARD › PW-14 D20: a signed-out visitor is sent to sign in with a return path, comes back, and a foreign return is ignored (10.8s)
-  ✓  142 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:877:3 › POSTING WIZARD — bundle 2 place and contact › PW-121 a phone number in the title or description is flagged at its field (15.7s)
-  ✓  144 [mobile-360] › e2e/post-wizard-category.spec.ts:967:3 › POSTING WIZARD › PW-15 the posting entry lives in My Listings, not in Account (10.9s)
-  ✓  145 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:908:3 › POSTING WIZARD — bundle 2 place and contact › PW-133 contact details are kept on the profile and open the next ad (19.1s)
-  ✓  146 [mobile-360] › e2e/post-wizard-category.spec.ts:1011:3 › POSTING WIZARD › PW-29 the photos caption counts against the plan's cap (13.3s)
-  ✓  147 [mobile-360] › e2e/post-wizard-details.spec.ts:78:3 › POSTING WIZARD — WRITE-IN DETAILS › PW-102 a type that leaves only Other shows that question's text box, and the typed text saves (14.9s)
-  ✓  148 [mobile-360] › e2e/post-wizard-category.spec.ts:1046:3 › POSTING WIZARD › PW-36 a category surfaced under a second root appears under it in the tree (15.7s)
+✓  163 [mobile-360] › e2e/post-wizard-place.spec.ts:882:3 › POSTING WIZARD › PW-31 the market select waits for the prefill chain and never preselects (11.7s)
+  ✓  164 [mobile-360] › e2e/post-wizard-place.spec.ts:921:3 › POSTING WIZARD › PW-20 where: the default place lists itself, is ticked, and a lone city box offers no Remove (8.9s)
+  ✓  165 [mobile-360] › e2e/post-wizard-place.spec.ts:1010:3 › POSTING WIZARD › PW-33 a region alone never lists itself; its city does (W6 R2) (16.1s)
+  ✓  166 [mobile-360] › e2e/post-wizard-place.spec.ts:1060:3 › POSTING WIZARD › PW-80 a city is required: marked before Next, refused and scrolled to on Next, cleared by a city (16.6s)
+  ✓  167 [mobile-360] › e2e/post-wizard-place.spec.ts:1156:3 › POSTING WIZARD › PW-81 a prefilled city counts as chosen: no mark, Next passes untouched (15.3s)
+  ✓  168 [mobile-360] › e2e/post-wizard-place.spec.ts:1199:3 › POSTING WIZARD › PW-82 the add buttons follow the plan's own limits (14.7s)
+  ✓  169 [mobile-360] › e2e/post-wizard-place.spec.ts:1274:3 › POSTING WIZARD › PW-37 a tap on the map places a pin and the door stores it as exact (9.4s)
+  ✓  170 [mobile-360] › e2e/post-wizard-place.spec.ts:1307:3 › POSTING WIZARD › PW-38 a place search moves the pin and fills the street line (9.4s)
+  ✓  171 [mobile-360] › e2e/post-wizard-place.spec.ts:1341:3 › POSTING WIZARD › PW-39 an approximate pin is stored as approx and drawn as an area, never a point (14.3s)
 ```
 
 ```text
@@ -339,19 +384,19 @@ shard 3: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-✓  138 [mobile-360] › e2e/shell.spec.ts:784:3 › dark mode › the toggle flips the mode and the surfaces actually change (1.1s)
-  ✓  139 [mobile-360] › e2e/shell.spec.ts:807:3 › mobile chrome › rail is a drawer behind the hamburger (828ms)
-  ✓  140 [mobile-360] › e2e/shell.spec.ts:823:3 › mobile chrome › the drawer switcher NAVIGATES to the panel's home (U0e) (7.2s)
-  ✓  141 [mobile-360] › e2e/shell.spec.ts:850:3 › mobile chrome › the drawer logo block matches the top bar's divider and height (769ms)
-  ✓  142 [mobile-360] › e2e/shell.spec.ts:868:3 › mobile chrome › the rail-collapse toggle does not exist on mobile (580ms)
-  ✓  143 [mobile-360] › e2e/shell.spec.ts:877:3 › mobile chrome › no Settings item leaks into the mobile category drawer (857ms)
-  ✓  144 [mobile-360] › e2e/shell.spec.ts:886:3 › mobile chrome › search opens a full-width row BELOW the bar (688ms)
-  ✓  145 [mobile-360] › e2e/shell.spec.ts:900:3 › mobile chrome › no horizontal overflow and text stays legible at 360 (572ms)
-  ✓  146 [mobile-360] › e2e/shell.spec.ts:918:3 › mobile chrome › primary touch targets are at least 44px (853ms)
+✓  163 [mobile-360] › e2e/shell.spec.ts:1560:3 › U4h device language star › TR-27 a star set signed-out survives reload, sign-in and sign-out (6.9s)
+  ✓  164 [mobile-360] › e2e/shell.spec.ts:1575:3 › U4h device language star › TR-28 the account carries onto a starless device, and never over a star (12.1s)
+  ✓  165 [mobile-360] › e2e/shell.spec.ts:1642:3 › U4h device language star › TR-28 hreflang alternates equal the anon publication gate (984ms)
+  ✓  166 [mobile-360] › e2e/shell.spec.ts:1754:3 › L4b location picker › LS-1 the cascade reaches a sub-city (5.3s)
+  ✓  167 [mobile-360] › e2e/shell.spec.ts:1772:3 › L4b location picker › LS-2 a pick is remembered, clearing forgets it (15.7s)
+  ✓  168 [mobile-360] › e2e/shell.spec.ts:1805:3 › L4b location picker › LS-3 an open market is guessed from the edge country, never saved (1.1s)
+  ✓  169 [mobile-360] › e2e/shell.spec.ts:1822:3 › L4b location picker › LS-4 a closed market is not guessed (830ms)
+  ✓  170 [mobile-360] › e2e/shell.spec.ts:1841:3 › L4b location picker › LS-5 no header and no cookie: no guess, and the markets route caches (645ms)
+  ✓  171 [mobile-360] › e2e/shell.spec.ts:1939:3 › L4b location picker › LS-6 the nearest curated metro wins by geometry (11.0s)
 ```
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
+[WebServer] [ssr-error] /api/listings/draft listing not found ×7
 ```
 
 ## shard 4: no results file
@@ -360,15 +405,15 @@ shard 4: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-✓  102 [desktop-1280] › e2e/admin-categories-lifecycle.spec.ts:1369:3 › CAT-IE categories import/export › CT-25 an attributes file is refused by identity (4.5s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37223754642-4-3061-3-4bjmoe@ethio-e2e.invalid)
-  ✓  103 [desktop-1280] › e2e/admin-categories-lifecycle.spec.ts:1424:3 › CAT-IE categories import/export › CT-26 imported Amharic names land pending, and undo removes them (13.1s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37223754642-4-3061-3-4bjmoe@ethio-e2e.invalid)
-  ✓  100 [desktop-1280] › e2e/admin-categories-console.spec.ts:815:3 › C2 categories console › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes (38.4s)
-  ✓  105 [desktop-1280] › e2e/admin-countries.spec.ts:57:3 › L2b countries console › CO-1 gating: a plain user is refused; the roster and its transfer toolbar render for an admin (14.6s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37223754642-4-3061-2-rdx7mu@ethio-e2e.invalid)
-  ✓  104 [desktop-1280] › e2e/admin-categories-lifecycle.spec.ts:1534:3 › CAT-IE categories import/export › CT-30 an order edit lands as the file's sequence, a created row takes its place, a catch-all stays pinned, and undo restores it (21.9s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37223754642-4-3061-3-4bjmoe@ethio-e2e.invalid)
+✓  153 [desktop-1280] › e2e/admin-shell.spec.ts:238:3 › Admin shell (U0) › A-4 admin TAB from marketplace navigates to /admin (INC-071) (6.0s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37224750591-4-2976-3-4u9num@ethio-e2e.invalid)
+  ✓  155 [desktop-1280] › e2e/admin-translations-console.spec.ts:108:3 › U4b translations console › TR-1 gating: a permissionless user is refused; a super admin sees the roster (8.1s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37224750591-4-2976-3-4u9num@ethio-e2e.invalid)
+  ✓  156 [desktop-1280] › e2e/admin-shell.spec.ts:257:3 › Admin shell (U0) › A-3 regular user: /admin still redirects home (6.3s)
+  ✓  157 [desktop-1280] › e2e/admin-translations-console.spec.ts:124:3 › U4b translations console › TR-2 roster shows every language including admin-only ones (2.4s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37224750591-4-2976-3-4u9num@ethio-e2e.invalid)
+  ✓  159 [desktop-1280] › e2e/admin-translations-console.spec.ts:141:3 › U4b translations console › TR-3 the strings page lists keys with source and status (3.6s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37224750591-4-2976-3-4u9num@ethio-e2e.invalid)
 ```
 
 ```text
@@ -392,19 +437,18 @@ shard 5: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-✓  126 [desktop-1280] › e2e/post-wizard-category.spec.ts:797:3 › POSTING WIZARD › PW-71 the category group wears the soft border until a leaf is chosen (D71) (21.7s)
-  -  129 [desktop-1280] › e2e/post-wizard-category.spec.ts:908:3 › POSTING WIZARD › PW-27 the mobile strip walks back to a step already done, and no further
-  ✓  128 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:877:3 › POSTING WIZARD — bundle 2 place and contact › PW-121 a phone number in the title or description is flagged at its field (11.6s)
-  ✓  130 [desktop-1280] › e2e/post-wizard-category.spec.ts:946:3 › POSTING WIZARD › PW-14 D20: a signed-out visitor is sent to sign in with a return path, comes back, and a foreign return is ignored (9.2s)
-  ✓  132 [desktop-1280] › e2e/post-wizard-category.spec.ts:967:3 › POSTING WIZARD › PW-15 the posting entry lives in My Listings, not in Account (7.9s)
-  ✓  131 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:908:3 › POSTING WIZARD — bundle 2 place and contact › PW-133 contact details are kept on the profile and open the next ad (14.2s)
-  ✓  133 [desktop-1280] › e2e/post-wizard-category.spec.ts:1011:3 › POSTING WIZARD › PW-29 the photos caption counts against the plan's cap (10.0s)
-  ✓  134 [desktop-1280] › e2e/post-wizard-details.spec.ts:78:3 › POSTING WIZARD — WRITE-IN DETAILS › PW-102 a type that leaves only Other shows that question's text box, and the typed text saves (10.6s)
-  ✓  135 [desktop-1280] › e2e/post-wizard-category.spec.ts:1046:3 › POSTING WIZARD › PW-36 a category surfaced under a second root appears under it in the tree (8.4s)
+✓  164 [desktop-1280] › e2e/post-wizard-place.spec.ts:1156:3 › POSTING WIZARD › PW-81 a prefilled city counts as chosen: no mark, Next passes untouched (14.9s)
+  ✓  165 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:602:3 › POSTING WIZARD › PW-65 the currency list opens home first and USD second, with symbols (D62-2) (8.0s)
+  ✓  167 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:632:3 › POSTING WIZARD › PW-66 a pre-D62-2 'negotiable' price type saves step 1 and reaches step 3 with no refusal (INC-309) (6.7s)
+  ✓  166 [desktop-1280] › e2e/post-wizard-place.spec.ts:1199:3 › POSTING WIZARD › PW-82 the add buttons follow the plan's own limits (14.9s)
+  ✓  168 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:665:3 › POSTING WIZARD › PW-67 a commission basis chosen on step 5 is stored on the draft before the percentage is typed (INC-312) (12.7s)
+  ✓  169 [desktop-1280] › e2e/post-wizard-place.spec.ts:1274:3 › POSTING WIZARD › PW-37 a tap on the map places a pin and the door stores it as exact (8.5s)
+  ✓  170 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:686:3 › POSTING WIZARD › PW-68 a Next refused on details does not pin the claim: Back then Next from price reopens details (INC-315) (11.1s)
+  ✓  171 [desktop-1280] › e2e/post-wizard-place.spec.ts:1307:3 › POSTING WIZARD › PW-38 a place search moves the pin and fills the street line (11.3s)
+  ✓  173 [desktop-1280] › e2e/post-wizard-place.spec.ts:1341:3 › POSTING WIZARD › PW-39 an approximate pin is stored as approx and drawn as an area, never a point (13.2s)
 ```
 
 ```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
 [WebServer] [ssr-error] /api/admin/translations/import too many previews
@@ -424,25 +468,5 @@ shard 5: no results file — the process failed outside test results (setup/tear
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 [WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓  145 [desktop-1280] › e2e/shell.spec.ts:1772:3 › L4b location picker › LS-2 a pick is remembered, clearing forgets it (14.8s)
-  ✓  147 [desktop-1280] › e2e/shell.spec.ts:1805:3 › L4b location picker › LS-3 an open market is guessed from the edge country, never saved (842ms)
-  ✓  148 [desktop-1280] › e2e/shell.spec.ts:1822:3 › L4b location picker › LS-4 a closed market is not guessed (819ms)
-  ✓  149 [desktop-1280] › e2e/shell.spec.ts:1841:3 › L4b location picker › LS-5 no header and no cookie: no guess, and the markets route caches (797ms)
-  ✓  150 [desktop-1280] › e2e/shell.spec.ts:1939:3 › L4b location picker › LS-6 the nearest curated metro wins by geometry (10.9s)
-  ✓  146 [desktop-1280] › e2e/posting-routes.spec.ts:1084:3 › POSTING ROUTES › PR-24 a seller is named before an ad is published (INC-423) (27.8s)
-  ✓  152 [desktop-1280] › e2e/smoke-auth-i18n.spec.ts:18:1 › smoke: sign in, header identity, Amharic switch, 360px overflow, sign out (3.5s)
-  ✓  151 [desktop-1280] › e2e/shell.spec.ts:1968:3 › L4b location picker › LS-7 a region code alone selects the region (13.6s)
-  ✓  153 [desktop-1280] › e2e/shell.spec.ts:1996:3 › L4b location picker › LS-8 a city name alone selects that city (15.7s)
-```
-
-```text
 [WebServer] [ssr-error] /api/listings/draft listing not found ×2
 ```
