@@ -390,7 +390,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const category = await seedPostableCategory();
     categories.push(category.slug);
     const listingId = await walkToStep3(page, user.id, category);
-    await walkOnToStep5(page);
+    await walkOnToPrice(page);
     await page.getByTestId("post-price-mode-fixed").click();
     const amount = page.getByTestId("post-price-amount");
     await expect(amount, "PW-89: an example number is still the placeholder").not.toHaveAttribute(
@@ -400,6 +400,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await amount.fill("5.25");
     await page.getByTestId("post-price-scale").selectOption("6");
     await expect(page.getByTestId("post-price-amount-shown")).toContainText("5,250,000");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-title").fill("e2e w6b2 listing title");
+    await page.getByTestId("post-description").fill("e2e w6b2 listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
     await expect
