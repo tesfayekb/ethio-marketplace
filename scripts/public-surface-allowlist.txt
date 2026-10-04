@@ -5,3 +5,6 @@
 publish_listing | the seller's publish door; gates on auth.uid() ownership inside (M1b)
 my_listing_private | owner-only read; raises "not your listing" for any other caller (M1b)
 my_last_listing_private | owner-only read keyed by auth.uid() (M1b)
+check_seller_alias | seller-only check of a wanted name; keyed by auth.uid(), writes nothing to the profile, rate-gated alias_check (M2)
+suggest_seller_aliases | seller-only; returns three free names, rate-gated alias_check (M2)
+my_seller_line | owner-only read keyed by auth.uid() (M2)
