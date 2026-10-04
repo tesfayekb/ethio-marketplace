@@ -766,7 +766,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await waitForTreeSlug(page, "ET", other.slug);
     const leaf = await category();
     // A pin set by hand (not carried) in city A, with both text lines.
-    const listingId = await openDraft(page, user.id, leaf.id, 5, [chain.city.id], seedLastPin);
+    const listingId = await openDraft(page, user.id, leaf.id, 6, [chain.city.id], seedLastPin);
 
     await expect(page.getByTestId("post-where-city")).toHaveValue(chain.city.id, {
       timeout: 20_000,
