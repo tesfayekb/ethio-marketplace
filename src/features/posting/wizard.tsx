@@ -722,6 +722,11 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                              sending (the door is the judge, F3). */
                           disabled={needsLeaf}
                           onClick={() => {
+                            // Rulings 3 — the contact step refuses at its own controls.
+                            if (draft.step === 7 && whoBlocked) {
+                              setWhoTried((n) => n + 1);
+                              return;
+                            }
                             void (async () => {
                               const saved = await draft.saveAt(draft.step);
                               if (!saved) return;
@@ -916,6 +921,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           onChange={(contactPref, immediate) =>
                             draft.change({ contactPref }, immediate)
                           }
+                          nextTried={whoTried}
+                          onBlocked={setWhoBlocked}
                         />
                       )}
                       {draft.step === 8 && (

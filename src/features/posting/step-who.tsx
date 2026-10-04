@@ -7,6 +7,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
+import { RequiredMark } from "./field";
 import { PhoneNumberField } from "./phone-number-field";
 import { loadPhoneLib, type PhoneLib } from "./phone-parse";
 import {
@@ -102,6 +103,8 @@ export function StepWho({
   refusals,
   onChange,
   itemCountry = null,
+  nextTried = 0,
+  onBlocked,
 }: {
   listingId?: string | null;
   contactPref: Record<string, unknown>;
@@ -109,6 +112,10 @@ export function StepWho({
   onChange: (contactPref: Record<string, unknown>, immediate: boolean) => void;
   /** B3 — the country of the place marked "the item or service is here", if known. */
   itemCountry?: string | null;
+  /** Rulings 3 — how many times Next was refused here; > 0 shows the refusals at their controls. */
+  nextTried?: number;
+  /** Rulings 3 — whether Next must refuse on this step (unconfirmed country, unread phone). */
+  onBlocked?: (blocked: boolean) => void;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
@@ -292,17 +299,34 @@ export function StepWho({
   );
 
   const setChannel = (channel: Channel, patch: { show?: boolean; value?: string }) => {
-    const current = channelOf(contactPref, channel);
+    // Read the latest pref, so two phones read in the same tick never clobber each other.
+    const base = contactRef.current;
+    const current = channelOf(base, channel);
     const next = { ...current, ...patch };
-    onChange(
-      {
-        ...contactPref,
-        messages: true,
-        [channel]: next,
-      },
-      patch.show !== undefined,
-    );
+    const pref = { ...base, messages: true, [channel]: next };
+    contactRef.current = pref;
+    onChange(pref, patch.show !== undefined);
   };
+
+  /** INC-407 — phone boxes holding text the library has not read yet. */
+  const [pendingPhones, setPendingPhones] = useState<readonly Channel[]>([]);
+  const setPhonePending = useCallback((channel: Channel, pending: boolean) => {
+    setPendingPhones((prev) =>
+      prev.includes(channel) === pending
+        ? prev
+        : pending
+          ? [...prev, channel]
+          : prev.filter((entry) => entry !== channel),
+    );
+  }, []);
+  const unreadPhone = phoneLibFailed && pendingPhones.length > 0;
+  const blocked = !countryLocked || unreadPhone;
+  const onBlockedRef = useRef(onBlocked);
+  onBlockedRef.current = onBlocked;
+  useEffect(() => {
+    onBlockedRef.current?.(blocked);
+  }, [blocked]);
+  const showRequired = nextTried > 0;
 
   const aliasRefusal = refusalFor(identityRefusals, "alias");
   const typeRefusal = refusalFor(identityRefusals, "seller_type");
@@ -679,6 +703,7 @@ export function StepWho({
                     onLeave={(next) => leaveChannel(channel, next, current.show)}
                     onCountry={channel === "phone" ? setFirstPhoneIso : undefined}
                     lib={phoneLib}
+                    onPending={(pending) => setPhonePending(channel, pending)}
                   />
                 )}
                 <label className="flex min-h-11 shrink-0 items-center gap-2 text-xs text-foreground">
@@ -692,6 +717,17 @@ export function StepWho({
                 </label>
               </div>
               <p className="text-xs text-muted-foreground">{t(CHANNEL_HINTS[channel])}</p>
+              {showRequired && phoneLibFailed && pendingPhones.includes(channel) && (
+                <p
+                  className="flex flex-wrap items-center gap-2 text-sm text-destructive"
+                  data-testid={`post-who-unread-${channel}`}
+                >
+                  <span>{t("post.who.phoneLibFailed")}</span>
+                  <button type="button" className={smallButtonClass} onClick={loadLib}>
+                    {t("post.who.phoneLibRetry")}
+                  </button>
+                </p>
+              )}
               {refusal !== null && (
                 <p className="text-sm text-destructive" data-testid={`post-who-refusal-${channel}`}>
                   {t(draftRefusalKey(refusal.reason))}
@@ -706,6 +742,7 @@ export function StepWho({
       <div className="space-y-1">
         <label htmlFor="post-who-country" className="text-sm font-medium text-foreground">
           {t("post.who.countryLabel")}
+          {!countryLocked && <RequiredMark />}
         </label>
         <select
           id="post-who-country"
@@ -715,8 +752,8 @@ export function StepWho({
           disabled={countryLocked || markets.isLoading}
           onChange={(event) => {
             const code = event.target.value;
+            // Rulings 3 item 3 — choosing only selects; the button confirms.
             setCountry(code);
-            if (code !== "") void confirmCountry(code);
           }}
         >
           <option value="">{t("post.who.countryNone")}</option>
@@ -745,14 +782,14 @@ export function StepWho({
         <p className="text-xs text-muted-foreground">
           {countryLocked ? t("post.who.countryConfirmed") : t("post.who.countryWhereHint")}
         </p>
-        {!countryLocked && countryRefusal === null && (
+        {!countryLocked && countryRefusal === null && !showRequired && (
           <p className="text-sm text-muted-foreground" data-testid="post-who-country-required">
             {t("post.who.countryRequired")}
           </p>
         )}
-        {countryRefusal !== null && (
+        {(countryRefusal !== null || (showRequired && !countryLocked)) && (
           <p className="text-sm text-destructive" data-testid="post-who-country-refusal">
-            {t(draftRefusalKey(countryRefusal.reason))}
+            {t(draftRefusalKey(countryRefusal?.reason ?? "required"))}
           </p>
         )}
       </div>
