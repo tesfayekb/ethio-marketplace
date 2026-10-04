@@ -506,6 +506,10 @@ test.describe("POSTING WIZARD", () => {
     // DEC-109 — photos lead to the price page (4); the title page (5) is past a
     // price, so the cleared title and description are read as DB truth (J4).
     await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect(
+      page.getByTestId("post-price-amount"),
+      "PW-61: the amount box survived the reset",
+    ).toHaveValue("");
     await expect
       .poll(
         async () => {
@@ -560,6 +564,17 @@ test.describe("POSTING WIZARD", () => {
     const text = await textOf(listingId);
     expect(text.title ?? "", "PW-61: the title came back").toBe("");
     expect((await pricingOf(listingId)).amount, "PW-61: the amount came back").toBe(null);
+    // Screen truth: walk on with a free price to the title page; both boxes are empty.
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-title"), "PW-61: the title box came back").toHaveValue("");
+    await expect(
+      page.getByTestId("post-description"),
+      "PW-61: the description box came back",
+    ).toHaveValue("");
   });
 
   /**

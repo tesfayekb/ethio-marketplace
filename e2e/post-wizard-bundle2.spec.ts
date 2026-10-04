@@ -297,19 +297,17 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       await page.getByTestId("post-who-alias").click();
       await page.keyboard.type(alias);
     };
-    // A box drawn during the read is typed into at once; the read is released after.
-    const early = await first
-      .waitFor({ state: "visible", timeout: 3_000 })
-      .then(() => true)
-      .catch(() => false);
-    if (early) {
-      await typeNames();
-      release();
-    } else {
-      release();
-      await expect(first).toBeVisible({ timeout: 20_000 });
-      await typeNames();
-    }
+    // While the read is held: the loading line shows, no name box is drawn and
+    // the country select is disabled. Then release and type.
+    await expect(page.getByTestId("post-who-identity-loading")).toBeVisible({ timeout: 20_000 });
+    await expect(first, "PW-134: a name box was drawn during the read").toHaveCount(0);
+    await expect(
+      page.getByTestId("post-who-country"),
+      "PW-134: the country select was enabled during the read",
+    ).toBeDisabled();
+    release();
+    await expect(first).toBeVisible({ timeout: 20_000 });
+    await typeNames();
 
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
     await expect(first, "PW-134: the read wiped the first name").toHaveValue("Almaz");

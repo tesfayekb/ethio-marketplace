@@ -971,7 +971,9 @@ export function StepWho({
           data-testid="post-who-country"
           className={fieldClass}
           value={country}
-          disabled={markets.isLoading || (countryLocked && !countryChanging)}
+          disabled={
+            identityPending || markets.isLoading || (countryLocked && !countryChanging)
+          }
           onChange={(event) => {
             // Rulings 3 item 3 — choosing only selects; the dialog confirms.
             setCountry(event.target.value);
