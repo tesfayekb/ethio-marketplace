@@ -1341,7 +1341,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-39 an approximate pin is stored as approx and drawn as an area, never a point", async ({
     page,
   }) => {
-    const user = await seller(page);
+    const user = await seller(page, { named: true });
     const category = await seedPostableCategory();
     categories.push(category.slug);
     const listingId = await openPinAt6(page, user.id, category, true);
@@ -1440,7 +1440,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085)", async ({
     page,
   }) => {
-    const user = await seller(page);
+    const user = await seller(page, { named: true });
     const category = await leaf();
     const info = test.info();
     const stem = `e2e_pin_${info.project.name.replace(/\W/g, "")}_${info.workerIndex}_${Date.now()}`;

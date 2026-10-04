@@ -239,7 +239,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
    * pressed, nothing is refused; the read is released and Next moves on.
    */
   test("PW-129 Next waits for the identity read instead of refusing", async ({ page }) => {
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { named: true, alias: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
     let release: () => void = () => {};
@@ -366,6 +366,14 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(offered, "PW-130: the refusal did not offer three names").toHaveCount(3, {
       timeout: 20_000,
     });
+    // Step 21 — the box opened empty, so names were already offered; wait for
+    // the refusal's own ask, built from the typed names.
+    await expect
+      .poll(async () => (await offered.allTextContents()).join(","), {
+        message: "PW-130: no suggestion built from the names",
+        timeout: 20_000,
+      })
+      .toContain("abebe");
     const names = (await offered.allTextContents()).map((name) => name.trim());
     const picked = names[0] ?? "";
     expect(picked, "PW-130: the first suggestion is not built from the names").toContain("abebe");
@@ -375,6 +383,76 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
     expect((await identityOf(user.id)).alias, "PW-130: saving did not claim the name").toBe(picked);
+  });
+
+  test("PW-147 an empty seller-name box offers three names from the typed names; a saved name offers none until cleared (bundle 4 step 21, INC-422)", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    // Order: names above the public-name box; the buyer line under its label.
+    const first = page.getByTestId("post-who-first");
+    const aliasBox = page.getByTestId("post-who-alias");
+    await expect(first).toBeVisible({ timeout: 20_000 });
+    const firstY = (await first.boundingBox())?.y ?? Number.POSITIVE_INFINITY;
+    const aliasY = (await aliasBox.boundingBox())?.y ?? 0;
+    expect(firstY, "PW-147: the name boxes are not above the public name").toBeLessThan(aliasY);
+    await expect(page.getByTestId("post-who-alias-buyer-line")).toBeVisible();
+    // On open, with no names yet, the door answers from the category word.
+    await expect(
+      page.getByTestId("post-who-alias-suggestion"),
+      "PW-147: the step opened with no names offered",
+    ).toHaveCount(3, { timeout: 20_000 });
+    const last = `zq${rand().replace(/[0-9]/g, "x")}`;
+    await first.fill("Abebe");
+    await first.blur();
+    await page.getByTestId("post-who-last").fill(last);
+    await page.getByTestId("post-who-last").blur();
+    const offered = page.getByTestId("post-who-alias-suggestion");
+    await expect
+      .poll(async () => (await offered.allTextContents()).join(","), {
+        message: "PW-147: leaving the name boxes offered no names built from them",
+        timeout: 20_000,
+      })
+      .toContain("abebe");
+    await expect(offered).toHaveCount(3);
+    const names = (await offered.allTextContents()).map((name) => name.trim());
+    const picked = names[0] ?? "";
+    await page.locator(`[data-testid="post-who-alias-suggestion"][data-name="${picked}"]`).click();
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-who-alias-suggestions")).toHaveCount(0);
+  });
+
+  test("PW-148 Next refuses at the empty name box: public name, first and last for a person, business name for a business (bundle 4 step 22, INC-423)", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expect(page.getByTestId("post-who-first")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-7"), "PW-148: Next left with no names").toBeVisible();
+    await expect(page.getByTestId("post-who-first-refusal")).toBeVisible();
+    await expect(page.getByTestId("post-who-last-refusal")).toBeVisible();
+    await expect(page.getByTestId("post-who-alias-refusal")).toBeVisible();
+    // A business needs its business name, not the two names.
+    await page.getByTestId("post-who-type-business").check();
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    await expect(page.getByTestId("post-who-business-refusal")).toBeVisible();
+    await expect(page.getByTestId("post-who-first-refusal")).toHaveCount(0);
+    await page.getByTestId("post-who-business").fill(`E2e Shop ${rand()}`);
+    await page.getByTestId("post-who-business").blur();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8"), "PW-148: a named business was kept").toBeVisible({
+      timeout: 20_000,
+    });
+    expect((await identityOf(user.id)).alias, "PW-148: the name was not claimed").not.toBeNull();
   });
 
   /**

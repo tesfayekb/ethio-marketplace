@@ -557,7 +557,7 @@ test.describe("POSTING WIZARD", () => {
     page,
   }) => {
     test.setTimeout(180_000);
-    const user = await seller(page);
+    const user = await seller(page, { named: true });
     const category = await leaf();
     await gotoReady(page, "/post");
     await chooseBySearch(page, category.slug, category.id);
@@ -1004,7 +1004,7 @@ test.describe("POSTING WIZARD", () => {
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile-360", "mobile-360 only");
-    const user = await seller(page);
+    const user = await seller(page, { named: true });
     const category = await seedPostableCategory();
     categories.push(category.slug);
     await reachStep7(page, user.id, category);

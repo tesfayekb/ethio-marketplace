@@ -365,16 +365,39 @@ export function StepWho({
   }, [country]);
 
   /** Step 21 — after a refusal, three free names from the seller's own names. */
+  const suggestSeqRef = useRef(0);
   const offerSuggestions = useCallback(() => {
+    // Only the latest ask may answer: an earlier, slower one never overwrites it.
+    const seq = ++suggestSeqRef.current;
     void suggestAliases({
       ...(sellerType === "business"
         ? { businessName }
         : { firstName: firstName.trim() || null, lastName: lastName.trim() || null }),
       categoryId,
     }).then((list) => {
-      if (aliveRef.current) setSuggestions(list.slice(0, 3));
+      if (aliveRef.current && seq === suggestSeqRef.current) setSuggestions(list.slice(0, 3));
     });
   }, [sellerType, businessName, firstName, lastName, categoryId]);
+
+  /**
+   * Bundle 4 step 21 (INC-422) — with an empty public-name box, three names are
+   * asked for when the step opens and when a name box is left changed; never
+   * on a keystroke (each ask counts under alias_check).
+   */
+  const askedNamesRef = useRef<string | null>(null);
+  const askSuggestionsOnLeave = useCallback(() => {
+    if (aliasBoxRef.current.trim() !== "") return;
+    const names = [sellerType, businessName.trim(), firstName.trim(), lastName.trim()].join("|");
+    if (names === askedNamesRef.current) return;
+    askedNamesRef.current = names;
+    offerSuggestions();
+  }, [sellerType, businessName, firstName, lastName, offerSuggestions]);
+  const openAskedRef = useRef(false);
+  useEffect(() => {
+    if (openAskedRef.current || identity === null) return;
+    openAskedRef.current = true;
+    askSuggestionsOnLeave();
+  }, [identity, askSuggestionsOnLeave]);
 
   /**
    * The live check (bundle 3 step 19): the mirror's rules a–c first, then the
@@ -435,6 +458,30 @@ export function StepWho({
     if (!saveRef) return;
     saveRef.current = async () => {
       const next = alias.trim().toLowerCase();
+      /**
+       * Bundle 4 step 22 (INC-423) — a seller is named: a public name always;
+       * a person also a first and a last name; a business its business name.
+       * Next refuses at the empty box, as the door does at publish.
+       */
+      const missing: Refusal[] = [];
+      if (sellerType === "business") {
+        if (businessName.trim() === "")
+          missing.push({ field: "business_name", reason: "required" });
+      } else {
+        if (firstName.trim() === "") missing.push({ field: "first_name", reason: "required" });
+        if (lastName.trim() === "") missing.push({ field: "last_name", reason: "required" });
+      }
+      if (next === "") missing.push({ field: "alias", reason: "required" });
+      if (missing.length > 0) {
+        setEditing(true);
+        setIdentityRefusals(missing);
+        if (next === "") {
+          setAliasCheckRefusal({ field: "alias", reason: "required" });
+          setAliasState("refused");
+          offerSuggestions();
+        }
+        return false;
+      }
       if (next !== "" && next !== checkedAliasRef.current) {
         if (aliasState !== "ok") {
           if (aliasState !== "refused") checkAlias(next);
@@ -471,7 +518,18 @@ export function StepWho({
     return () => {
       saveRef.current = null;
     };
-  }, [saveRef, alias, aliasState, commit, checkAlias, offerSuggestions]);
+  }, [
+    saveRef,
+    alias,
+    aliasState,
+    commit,
+    checkAlias,
+    offerSuggestions,
+    sellerType,
+    businessName,
+    firstName,
+    lastName,
+  ]);
 
   const setChannel = (channel: Channel, patch: { show?: boolean; value?: string }) => {
     // Read the latest pref, so two phones read in the same tick never clobber each other.
@@ -600,11 +658,137 @@ export function StepWho({
 
       {(editing || identityFailed) && (
         <>
+          {/* ------------------------- person or business ---------------------- */}
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium text-foreground">
+              {t("post.who.typeLabel")}
+            </legend>
+            {(["person", "business"] as const).map((value) => (
+              <label
+                key={value}
+                className="flex min-h-11 items-center gap-2 text-sm text-foreground"
+              >
+                <input
+                  type="radio"
+                  name="post-who-type"
+                  data-testid={`post-who-type-${value}`}
+                  checked={sellerType === value}
+                  onChange={() => {
+                    setSellerType(value);
+                    void commit({
+                      sellerType: value,
+                      ...(value === "business" && businessName !== "" ? { businessName } : {}),
+                    });
+                  }}
+                />
+                <span>
+                  {value === "person" ? t("post.who.typePerson") : t("post.who.typeBusiness")}
+                </span>
+              </label>
+            ))}
+            {typeRefusal !== null && (
+              <p className="text-sm text-destructive" data-testid="post-who-type-refusal">
+                {t(draftRefusalKey(typeRefusal.reason))}
+              </p>
+            )}
+          </fieldset>
+
+          {sellerType === "business" && (
+            <div className="space-y-1">
+              <label htmlFor="post-who-business" className="text-sm font-medium text-foreground">
+                {t("post.who.businessLabel")}
+              </label>
+              <input
+                id="post-who-business"
+                data-testid="post-who-business"
+                className={fieldClass}
+                value={businessName}
+                onChange={(event) => setBusinessName(event.target.value)}
+                onBlur={() => {
+                  void commit({ sellerType: "business", businessName });
+                  askSuggestionsOnLeave();
+                }}
+              />
+              {businessRefusal !== null && (
+                <p className="text-sm text-destructive" data-testid="post-who-business-refusal">
+                  {t(draftRefusalKey(businessRefusal.reason))}
+                </p>
+              )}
+            </div>
+          )}
+          {/*
+           * D17 / M-MAINT-2 A — THE SELLER'S OWN NAME, now that the columns exist
+           * (`profiles.first_name`/`last_name`, mark 20260920000000) and the door
+           * takes them (`save_posting_identity`'s `p_first_name`/`p_last_name`).
+           *
+           * IT IS NOT THE PUBLIC NAME. The alias is what a buyer reads; these two
+           * belong to the account, and the hint says so plainly rather than
+           * leaving a seller to guess what a marketplace will publish about them.
+           * A PERSON must give them (the door refuses `nameRequired`); a BUSINESS
+           * is known by its business name, so for a business they are optional and
+           * the hint changes to say it.
+           */}
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="post-who-names">
+            <div className="space-y-1">
+              <label htmlFor="post-who-first" className="text-sm font-medium text-foreground">
+                {t("post.who.firstNameLabel")}
+              </label>
+              <input
+                id="post-who-first"
+                data-testid="post-who-first"
+                className={fieldClass}
+                value={firstName}
+                autoComplete="given-name"
+                onChange={(event) => setFirstName(event.target.value)}
+                onBlur={() => {
+                  void commit({ firstName });
+                  askSuggestionsOnLeave();
+                }}
+              />
+              {firstRefusal !== null && (
+                <p className="text-sm text-destructive" data-testid="post-who-first-refusal">
+                  {t(draftRefusalKey(firstRefusal.reason))}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="post-who-last" className="text-sm font-medium text-foreground">
+                {t("post.who.lastNameLabel")}
+              </label>
+              <input
+                id="post-who-last"
+                data-testid="post-who-last"
+                className={fieldClass}
+                value={lastName}
+                autoComplete="family-name"
+                onChange={(event) => setLastName(event.target.value)}
+                onBlur={() => {
+                  void commit({ lastName });
+                  askSuggestionsOnLeave();
+                }}
+              />
+              {lastRefusal !== null && (
+                <p className="text-sm text-destructive" data-testid="post-who-last-refusal">
+                  {t(draftRefusalKey(lastRefusal.reason))}
+                </p>
+              )}
+            </div>
+            <p
+              className="text-xs text-muted-foreground md:col-span-2"
+              data-testid="post-who-name-hint"
+            >
+              {sellerType === "business" ? t("post.who.nameBusinessHint") : t("post.who.nameHint")}
+            </p>
+          </div>
+
           {/* --------------------------- the alias ---------------------------- */}
           <div className="space-y-1">
             <label htmlFor="post-who-alias" className="text-sm font-medium text-foreground">
               {t("post.who.aliasLabel")}
             </label>
+            <p className="text-xs text-muted-foreground" data-testid="post-who-alias-buyer-line">
+              {t("post.who.aliasBuyerLine")}
+            </p>
             <input
               id="post-who-alias"
               data-testid="post-who-alias"
@@ -664,7 +848,7 @@ export function StepWho({
                 : lineFacts !== null &&
                     lineFacts.correctionUntil !== null &&
                     new Date(lineFacts.correctionUntil).getTime() > Date.now()
-                  ? fill(t("post.who.aliasCorrectionUntil"), {
+                  ? fill(t("post.who.aliasCorrectionWindow"), {
                       when: new Intl.DateTimeFormat(language, {
                         dateStyle: "medium",
                         timeStyle: "short",
@@ -678,8 +862,11 @@ export function StepWho({
             </p>
             {/* THE SUGGESTION: a business's own name, or the account's name — the
                 seller's to take in one tap, never written for them. */}
-            {aliasState === "refused" && suggestions.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {(aliasState === "refused" || alias.trim() === "") && suggestions.length > 0 && (
+              <div
+                className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
+                data-testid="post-who-alias-suggestions"
+              >
                 <span>{t("post.who.aliasSuggestions")}</span>
                 {suggestions.map((name) => (
                   <button
@@ -700,127 +887,6 @@ export function StepWho({
               </div>
             )}
           </div>
-
-          {/*
-           * D17 / M-MAINT-2 A — THE SELLER'S OWN NAME, now that the columns exist
-           * (`profiles.first_name`/`last_name`, mark 20260920000000) and the door
-           * takes them (`save_posting_identity`'s `p_first_name`/`p_last_name`).
-           *
-           * IT IS NOT THE PUBLIC NAME. The alias is what a buyer reads; these two
-           * belong to the account, and the hint says so plainly rather than
-           * leaving a seller to guess what a marketplace will publish about them.
-           * A PERSON must give them (the door refuses `nameRequired`); a BUSINESS
-           * is known by its business name, so for a business they are optional and
-           * the hint changes to say it.
-           */}
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="post-who-names">
-            <div className="space-y-1">
-              <label htmlFor="post-who-first" className="text-sm font-medium text-foreground">
-                {t("post.who.firstNameLabel")}
-              </label>
-              <input
-                id="post-who-first"
-                data-testid="post-who-first"
-                className={fieldClass}
-                value={firstName}
-                autoComplete="given-name"
-                onChange={(event) => setFirstName(event.target.value)}
-                onBlur={() => {
-                  void commit({ firstName });
-                }}
-              />
-              {firstRefusal !== null && (
-                <p className="text-sm text-destructive" data-testid="post-who-first-refusal">
-                  {t(draftRefusalKey(firstRefusal.reason))}
-                </p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="post-who-last" className="text-sm font-medium text-foreground">
-                {t("post.who.lastNameLabel")}
-              </label>
-              <input
-                id="post-who-last"
-                data-testid="post-who-last"
-                className={fieldClass}
-                value={lastName}
-                autoComplete="family-name"
-                onChange={(event) => setLastName(event.target.value)}
-                onBlur={() => {
-                  void commit({ lastName });
-                }}
-              />
-              {lastRefusal !== null && (
-                <p className="text-sm text-destructive" data-testid="post-who-last-refusal">
-                  {t(draftRefusalKey(lastRefusal.reason))}
-                </p>
-              )}
-            </div>
-            <p
-              className="text-xs text-muted-foreground md:col-span-2"
-              data-testid="post-who-name-hint"
-            >
-              {sellerType === "business" ? t("post.who.nameBusinessHint") : t("post.who.nameHint")}
-            </p>
-          </div>
-
-          {/* ------------------------- person or business ---------------------- */}
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium text-foreground">
-              {t("post.who.typeLabel")}
-            </legend>
-            {(["person", "business"] as const).map((value) => (
-              <label
-                key={value}
-                className="flex min-h-11 items-center gap-2 text-sm text-foreground"
-              >
-                <input
-                  type="radio"
-                  name="post-who-type"
-                  data-testid={`post-who-type-${value}`}
-                  checked={sellerType === value}
-                  onChange={() => {
-                    setSellerType(value);
-                    void commit({
-                      sellerType: value,
-                      ...(value === "business" && businessName !== "" ? { businessName } : {}),
-                    });
-                  }}
-                />
-                <span>
-                  {value === "person" ? t("post.who.typePerson") : t("post.who.typeBusiness")}
-                </span>
-              </label>
-            ))}
-            {typeRefusal !== null && (
-              <p className="text-sm text-destructive" data-testid="post-who-type-refusal">
-                {t(draftRefusalKey(typeRefusal.reason))}
-              </p>
-            )}
-          </fieldset>
-
-          {sellerType === "business" && (
-            <div className="space-y-1">
-              <label htmlFor="post-who-business" className="text-sm font-medium text-foreground">
-                {t("post.who.businessLabel")}
-              </label>
-              <input
-                id="post-who-business"
-                data-testid="post-who-business"
-                className={fieldClass}
-                value={businessName}
-                onChange={(event) => setBusinessName(event.target.value)}
-                onBlur={() => {
-                  void commit({ sellerType: "business", businessName });
-                }}
-              />
-              {businessRefusal !== null && (
-                <p className="text-sm text-destructive" data-testid="post-who-business-refusal">
-                  {t(draftRefusalKey(businessRefusal.reason))}
-                </p>
-              )}
-            </div>
-          )}
         </>
       )}
 

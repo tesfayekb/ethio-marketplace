@@ -4253,6 +4253,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.aliasBuyerLine": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.aliasChangeFirst": [
       "/post",
       "/post/$listingId"
@@ -4265,7 +4269,7 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.who.aliasCorrectionUntil": [
+    "post.who.aliasCorrectionWindow": [
       "/post",
       "/post/$listingId"
     ],
