@@ -433,3 +433,17 @@ export function useCategoryTree(): UseCategoryTreeResult {
 
   return { tree, isLoading, error };
 }
+
+/**
+ * Bundle 4 step 14 — THE CATEGORY'S PICTURE: the nearest ancestor (the leaf
+ * itself first) that carries one, read from the shared tree; nothing fetched.
+ */
+export function nearestCategoryPicture(tree: CategoryTree, id: string | null): string | null {
+  if (id === null) return null;
+  const chain = pathOf(tree, id);
+  for (let index = chain.length - 1; index >= 0; index -= 1) {
+    const url = chain[index]?.imageUrl ?? null;
+    if (typeof url === "string" && url !== "") return url;
+  }
+  return null;
+}

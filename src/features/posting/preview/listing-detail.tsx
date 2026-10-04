@@ -1,3 +1,4 @@
+import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { dealLines } from "../deal-lines";
 import { lazy, Suspense } from "react";
 import { SellerLine } from "../seller-line";
@@ -86,6 +87,8 @@ export interface ListingDetailView {
   photos: DraftPhotoRow[];
   /** The nearest ancestor category's picture, shown when there is no photo. */
   illustrationUrl: string | null;
+  /** Step 15 — the seller ticked "Photos coming soon". */
+  photosSoon?: boolean;
   coverage: string[];
   country: string | null;
   contactPref: Record<string, unknown>;
@@ -191,24 +194,15 @@ export function ListingDetail(view: ListingDetailView) {
             </figure>
           ))}
         </div>
-      ) : view.illustrationUrl !== null ? (
-        <div
-          className="mx-auto flex aspect-[4/3] w-full max-w-80 items-center justify-center overflow-hidden rounded-md bg-muted"
-          data-testid="listing-detail-illustration"
-        >
-          <img
-            src={view.illustrationUrl}
-            alt=""
-            width={320}
-            height={240}
-            loading="lazy"
-            className="h-full w-full object-contain"
-          />
-        </div>
       ) : (
-        <p className="text-xs text-muted-foreground" data-testid="listing-detail-nophoto">
-          {t("feed.noPhoto")}
-        </p>
+        <ListingPicture
+          photoUrl={null}
+          categoryUrl={view.illustrationUrl}
+          photosSoon={view.photosSoon === true}
+          boxTestId={
+            view.illustrationUrl !== null ? "listing-detail-illustration" : "listing-detail-nophoto"
+          }
+        />
       )}
 
       {/* ---------------------------- title and price ----------------------- */}

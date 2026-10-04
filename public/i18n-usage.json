@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 334,
+  "scanned": 336,
   "dynamicCallSites": 207,
   "keys": {
     "account.deactivatedBanner": [
@@ -3118,6 +3118,13 @@
     "language.label": [
       "(every page)"
     ],
+    "listing.photosSoon": [
+      "/",
+      "/admin/impersonation/$sessionId",
+      "/c/$slug",
+      "/post",
+      "/post/$listingId"
+    ],
     "location.anyArea": [
       "(every page)"
     ],
@@ -3398,10 +3405,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.category.illustrationAlt": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.category.keepIt": [
       "/post",
       "/post/$listingId"
@@ -3543,6 +3546,14 @@
       "/post/$listingId"
     ],
     "post.photos.retry": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.soonFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.soonTick": [
       "/post",
       "/post/$listingId"
     ],

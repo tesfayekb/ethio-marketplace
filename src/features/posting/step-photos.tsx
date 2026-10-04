@@ -1,3 +1,4 @@
+import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useI18n } from "@/i18n";
@@ -61,6 +62,8 @@ export function StepPhotos({
   photos,
   onChanged,
   illustrationUrl,
+  photosSoon = false,
+  onPhotosSoon,
   videoUrl,
   videoRefusal,
   onChangeVideo,
@@ -70,6 +73,10 @@ export function StepPhotos({
   photos: DraftPhotoRow[];
   onChanged: () => void;
   illustrationUrl: string | null;
+  /** Bundle 4 step 15 — "Photos coming soon" as the door holds it. */
+  photosSoon?: boolean;
+  /** Ticks or unticks it through the door; resolves false on a refusal. */
+  onPhotosSoon?: (on: boolean) => Promise<boolean>;
   /** U6-C1-R1 — the YouTube link lives beside the photos, not in step 4. */
   videoUrl: string;
   videoRefusal: Refusal | null;
@@ -84,6 +91,8 @@ export function StepPhotos({
   /** Tiles for photos this session picked; server rows fill the rest. */
   const [items, setItems] = useState<PhotoItem[]>([]);
   const [busy, setBusy] = useState(false);
+  const [soonBusy, setSoonBusy] = useState(false);
+  const [soonFailed, setSoonFailed] = useState(false);
   const aliveRef = useRef(true);
 
   useEffect(() => {
@@ -254,30 +263,52 @@ export function StepPhotos({
 
       {items.length === 0 && photos.length === 0 && (
         <div className="space-y-2" data-testid="post-photos-empty">
-          {illustrationUrl !== null && (
-            /* U6-C1-R3a-2 — THE STAND-IN FITS ITS BOX: a fixed 4:3 frame, the
-               picture contained and centred inside it, never stretched or
-               cropped, and never taller than 240 px. */
-            <div
-              className="mx-auto flex aspect-[4/3] w-full max-w-80 items-center justify-center overflow-hidden rounded-md"
-              data-testid="post-photos-illustration-box"
-            >
-              <img
-                src={illustrationUrl}
-                data-testid="post-photos-illustration"
-                alt={t("post.category.illustrationAlt")}
-                width={320}
-                height={240}
-                loading="lazy"
-                className="h-full w-full object-contain opacity-60"
-              />
-            </div>
-          )}
+          {/* U6-C1-R3a-2 — THE STAND-IN FITS ITS BOX: a fixed 4:3 frame, the
+              picture contained and centred inside it, never stretched or cropped. */}
+          <ListingPicture
+            photoUrl={null}
+            categoryUrl={illustrationUrl}
+            photosSoon={photosSoon}
+            boxTestId="post-photos-illustration-box"
+            imgTestId="post-photos-illustration"
+            dimCategory
+          />
 
           <p className="text-sm text-muted-foreground">{t("post.photos.none")}</p>
           <p className="text-xs text-muted-foreground" data-testid="post-photos-standin">
             {t("post.photos.standIn")}
           </p>
+          {onPhotosSoon !== undefined && listingId !== null && (
+            <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm text-foreground">
+              <input
+                type="checkbox"
+                data-testid="post-photos-soon"
+                className="h-5 w-5 shrink-0 accent-primary"
+                checked={photosSoon}
+                disabled={soonBusy}
+                onChange={(event) => {
+                  const on = event.target.checked;
+                  setSoonBusy(true);
+                  setSoonFailed(false);
+                  void onPhotosSoon(on).then((ok) => {
+                    if (!aliveRef.current) return;
+                    setSoonBusy(false);
+                    setSoonFailed(!ok);
+                  });
+                }}
+              />
+              <span>{t("post.photos.soonTick")}</span>
+            </label>
+          )}
+          {soonFailed && (
+            <p
+              className="text-xs text-destructive"
+              role="alert"
+              data-testid="post-photos-soon-failed"
+            >
+              {t("post.photos.soonFailed")}
+            </p>
+          )}
         </div>
       )}
 

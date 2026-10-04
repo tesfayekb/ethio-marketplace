@@ -222,6 +222,8 @@ export interface DraftRow {
   streetAddress: string | null;
   /** Bundle 2 step 10 (P4) — the seller's directions line, kept with or without a pin. */
   directions: string | null;
+  /** Bundle 4 step 15 — "Photos coming soon" as the door stores it. */
+  photosSoon: boolean;
 }
 
 export interface DraftPhotoRow {
@@ -262,7 +264,7 @@ export async function readDraft(
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,pin_precision,pin_zoom,street_address,directions",
+      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,pin_precision,pin_zoom,street_address,directions,photos_soon",
     )
     .eq("id", listingId)
     .maybeSingle();
@@ -325,6 +327,7 @@ export async function readDraft(
       pinZoom: typeof data.pin_zoom === "number" ? data.pin_zoom : null,
       streetAddress: data.street_address,
       directions: typeof data.directions === "string" ? data.directions : null,
+      photosSoon: data.photos_soon === true,
     },
     photos: (photos ?? []).map((row) => ({
       id: row.id,
@@ -927,6 +930,23 @@ function textArgs(text: PlaceText) {
     p_street: text.street ?? undefined,
     p_directions: text.directions ?? undefined,
   };
+}
+
+/**
+ * Bundle 4 step 15 — "PHOTOS COMING SOON": the owner-only door
+ * `set_listing_photos_soon` (rate-gated, one revision row). The screen only
+ * reflects what the door wrote; a failure is logged and returned (F4).
+ */
+export async function savePhotosSoon(listingId: string, on: boolean): Promise<boolean> {
+  const { error } = await supabase.rpc("set_listing_photos_soon", {
+    p_listing_id: listingId,
+    p_on: on,
+  });
+  if (error !== null) {
+    console.error("[photos-soon] set_listing_photos_soon refused:", error.message);
+    return false;
+  }
+  return true;
 }
 
 /** The door's reason in the screen's words; anything else is a plain failure (F4). */

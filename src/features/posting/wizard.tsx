@@ -6,7 +6,11 @@ import { Section } from "@/components/layout/section";
 import { SplitLayout } from "@/components/layout/split-layout";
 import { readAreaCookie } from "@/components/shell/location-data";
 import { PageCard } from "@/components/shell/page-card";
-import { pathOf, useCategoryTree } from "@/features/categories/category-tree";
+import {
+  nearestCategoryPicture,
+  pathOf,
+  useCategoryTree,
+} from "@/features/categories/category-tree";
 import { entityName } from "@/i18n/entity";
 import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
@@ -33,6 +37,7 @@ import {
   readPostingSchema,
   type AttrDef,
   type PlanCaps,
+  savePhotosSoon,
 } from "./posting-service";
 import { useDraft, type DraftValues } from "./use-draft";
 
@@ -331,15 +336,10 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    * upwards. Nothing is fetched for this: `pathOf` reads the shared tree the
    * step-1 control already loaded.
    */
-  const illustrationUrl = useMemo(() => {
-    if (chosenCategory === null) return null;
-    const chain = pathOf(tree, chosenCategory.id);
-    for (let index = chain.length - 1; index >= 0; index -= 1) {
-      const url = chain[index]?.imageUrl ?? null;
-      if (typeof url === "string" && url !== "") return url;
-    }
-    return null;
-  }, [tree, chosenCategory]);
+  const illustrationUrl = useMemo(
+    () => nearestCategoryPicture(tree, chosenCategory?.id ?? null),
+    [tree, chosenCategory],
+  );
 
   /**
    * U6-C1-R1 — NO CLIENT GATE. `Next` is always pressable (only a publish in
@@ -575,6 +575,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                 basisLabel={basisLabel}
                 deal={deal}
                 dealDefinitions={definitions}
+                illustrationUrl={illustrationUrl}
+                photosSoon={draft.photosSoon}
                 priceNegotiable={draft.values.priceNegotiable}
                 attributes={draft.values.attributes}
                 definitions={[]}
@@ -916,6 +918,15 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           photos={draft.photos}
                           onChanged={draft.reloadPhotos}
                           illustrationUrl={illustrationUrl}
+                          photosSoon={draft.photosSoon}
+                          onPhotosSoon={async (on) => {
+                            if (draft.listingId === null) return false;
+                            // The tick follows the finger; a refusal puts it back (F4).
+                            draft.setPhotosSoon(on);
+                            const ok = await savePhotosSoon(draft.listingId, on);
+                            if (!ok) draft.setPhotosSoon(!on);
+                            return ok;
+                          }}
                           videoUrl={draft.values.videoUrl}
                           videoRefusal={
                             refusalFor(draft.refusals, "video_url") ??
@@ -1053,6 +1064,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           values={draft.values}
                           photos={draft.photos}
                           illustrationUrl={illustrationUrl}
+                          photosSoon={draft.photosSoon}
                           expiryDays={facts?.expiryDays ?? 60}
                           refusals={draft.refusals}
                           maxPhotos={planCaps?.maxPhotos ?? null}

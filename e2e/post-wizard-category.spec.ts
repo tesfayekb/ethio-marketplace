@@ -553,6 +553,75 @@ test.describe("POSTING WIZARD", () => {
       .toBe(0);
   });
 
+  test("PW-141 Photos coming soon: the tick shows only with no photo, is saved, draws the ribbon, and goes when a photo is added (bundle 4 steps 14, 15)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await gotoReady(page, "/post");
+    await chooseBySearch(page, category.slug, category.id);
+    const [draft] = await draftsOf(user.id);
+    const listingId = String(draft?.id ?? "");
+    expect(listingId, "PW-141: step 1 created no draft").not.toBe("");
+    objects.push({ userId: user.id, listingId });
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+
+    const tick = page.getByTestId("post-photos-soon");
+    await expect(tick, "PW-141: no tick on a photo-less ad").toBeVisible({ timeout: 20_000 });
+    await tick.check();
+    const soonOf = async () => {
+      const { data } = await adminClient()
+        .from("listings")
+        .select("photos_soon")
+        .eq("id", listingId)
+        .single();
+      return data?.photos_soon;
+    };
+    await expect
+      .poll(soonOf, { message: "PW-141: the flag was not saved", timeout: 20_000 })
+      .toBe(true);
+
+    // The ribbon on the picture; sized by container units (A7 smoke proof):
+    // the letters are 5.5 % of the picture's width at every screen size.
+    const box = page.getByTestId("post-photos-illustration-box");
+    const ribbon = box.getByTestId("listing-photos-soon-ribbon");
+    await expect(ribbon, "PW-141: no ribbon on the picture").toBeVisible();
+    const boxWidth = (await box.boundingBox())?.width ?? 0;
+    const fontPx = Number.parseFloat(
+      await ribbon.evaluate((node) => getComputedStyle(node).fontSize),
+    );
+    expect(
+      Math.abs(fontPx / boxWidth - 0.055),
+      `PW-141: letters ${fontPx}px on a ${boxWidth}px picture are not container-sized`,
+    ).toBeLessThan(0.005);
+
+    // The review card (the wizard's side preview from the price page on).
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByTestId("post-review-preview").getByTestId("listing-photos-soon-ribbon"),
+      "PW-141: no ribbon on the review card",
+    ).toHaveCount(1);
+
+    // A photo is added: the tick and the ribbon go, and nothing is written.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
+    await expect(page.getByTestId("post-photo-tile")).toHaveAttribute("data-state", "stored", {
+      timeout: 45_000,
+    });
+    await expect(tick, "PW-141: the tick stayed with a photo").toHaveCount(0);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByTestId("post-review-preview").getByTestId("listing-photos-soon-ribbon"),
+      "PW-141: the ribbon stayed over a photo",
+    ).toHaveCount(0);
+    expect(await soonOf(), "PW-141: adding a photo rewrote the flag").toBe(true);
+  });
+
   test("PW-7 a draft resumes at the next step, and only for its owner", async ({
     page,
     browser,

@@ -131,6 +131,9 @@ export interface UseDraft {
   /** Bundle 2 step 10 — the directions line the door holds (pin or no pin). */
   directions: string | null;
   setDirections: (directions: string | null) => void;
+  /** Bundle 4 step 15 — "Photos coming soon" as the door holds it. */
+  photosSoon: boolean;
+  setPhotosSoon: (on: boolean) => void;
   loading: boolean;
   /** A resume that cannot be honoured says why, in words. */
   loadError: "notFound" | "failed" | null;
@@ -155,6 +158,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [photoNonce, setPhotoNonce] = useState(0);
   const [pin, setPin] = useState<DraftPin | null>(null);
   const [directions, setDirections] = useState<string | null>(null);
+  const [photosSoon, setPhotosSoon] = useState(false);
 
   // Refs, not state: the save machinery must not re-run an effect to work, and
   // the latest values must be readable from inside a timer (I3).
@@ -563,6 +567,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
         setDraftStep(found.draft.draftStep);
         setPhotos(found.photos);
         setDirections(found.draft.directions);
+        setPhotosSoon(found.draft.photosSoon);
         setPin(
           found.draft.pinLat === null || found.draft.pinLng === null
             ? null
@@ -642,6 +647,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
       setPin,
       directions,
       setDirections,
+      photosSoon,
+      setPhotosSoon,
       loading,
       loadError,
     }),
@@ -663,6 +670,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       reloadPhotos,
       pin,
       directions,
+      photosSoon,
       loading,
       loadError,
     ],

@@ -251,6 +251,7 @@ export const en = {
   "feed.errorBody": "Check your connection and try again.",
   "feed.views": "{count} views",
   "feed.noPhoto": "No photo yet",
+  "listing.photosSoon": "PHOTOS COMING SOON",
   "price.free": "Free",
   "price.negotiable": "Negotiable",
   "price.contact": "Contact for price",
@@ -2214,6 +2215,8 @@ export const en = {
   "post.category.filterHint": "Type a word, or open a group below.",
   "post.category.chipLabel": "Category",
   "post.photos.standIn": "This picture will stand in until you add your own.",
+  "post.photos.soonTick": "Don't have photos ready yet? Show “Photos coming soon” on the picture.",
+  "post.photos.soonFailed": "That could not be saved. Please try again.",
   "post.photos.rules":
     "JPG, PNG or WebP \u00b7 up to 6 MB each \u00b7 at least 480 px wide \u00b7 good light, plain background, the whole item in frame",
   "post.photos.skip": "Continue without photos",

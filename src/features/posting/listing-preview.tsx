@@ -1,3 +1,4 @@
+import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { useI18n } from "@/i18n";
 import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { entityName } from "@/i18n/entity";
@@ -63,6 +64,8 @@ export function ListingPreview({
   definitions,
   attributeOptions = {},
   photos,
+  illustrationUrl = null,
+  photosSoon = false,
   coverage,
   country,
   contactPref,
@@ -87,6 +90,10 @@ export function ListingPreview({
   definitions: AttrDef[];
   attributeOptions?: Record<string, AttrOption[]>;
   photos: DraftPhotoRow[];
+  /** Step 14 — the nearest ancestor category's picture, shown when there is no photo. */
+  illustrationUrl?: string | null;
+  /** Step 15 — the seller ticked "Photos coming soon". */
+  photosSoon?: boolean;
   coverage: string[];
   /** The market the coverage belongs to, so place names can be resolved. */
   country: string | null;
@@ -145,25 +152,14 @@ export function ListingPreview({
       className="space-y-3 rounded-md border border-border p-3"
       data-testid="post-review-preview"
     >
-      {cover !== null ? (
-        <div
-          className="mx-auto flex aspect-[4/3] w-full max-w-80 items-center justify-center overflow-hidden rounded-sm"
-          data-testid="post-review-cover-box"
-        >
-          <img
-            src={cover}
-            alt=""
-            width={320}
-            height={240}
-            loading="lazy"
-            className="h-full w-full object-contain"
-          />
-        </div>
-      ) : (
-        <p className="text-xs text-muted-foreground" data-testid="post-review-nophoto">
-          {t("feed.noPhoto")}
-        </p>
-      )}
+      <ListingPicture
+        photoUrl={cover}
+        categoryUrl={illustrationUrl}
+        photosSoon={photosSoon}
+        hasPhoto={photos.length > 0}
+        boxTestId={cover !== null ? "post-review-cover-box" : "post-review-nophoto"}
+        rounded="rounded-sm"
+      />
 
       <h3 className="text-base font-semibold text-foreground" data-testid="post-review-title">
         {title === "" ? t("post.review.noTitle") : title}
