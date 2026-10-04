@@ -612,7 +612,6 @@ test.describe("POSTING WIZARD", () => {
     ).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-preview-close").click();
 
-
     // A photo is added: the tick and the ribbon go, and nothing is written.
     await page.getByTestId("post-back").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
