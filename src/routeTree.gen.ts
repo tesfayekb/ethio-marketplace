@@ -29,6 +29,7 @@ import { Route as AdminTranslationsRouteImport } from './routes/admin.translatio
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as ApiGeoRouteImport } from './routes/api/geo'
 import { Route as ApiLocationsRouteImport } from './routes/api/locations'
+import { Route as ApiProbe500RouteImport } from './routes/api/probe-500'
 import { Route as ApiTranslateRouteImport } from './routes/api/translate'
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
@@ -164,6 +165,11 @@ const ApiGeoRoute = ApiGeoRouteImport.update({
 const ApiLocationsRoute = ApiLocationsRouteImport.update({
   id: '/api/locations',
   path: '/api/locations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProbe500Route = ApiProbe500RouteImport.update({
+  id: '/api/probe-500',
+  path: '/api/probe-500',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiTranslateRoute = ApiTranslateRouteImport.update({
@@ -375,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
+  '/api/probe-500': typeof ApiProbe500Route
   '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -432,6 +439,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
+  '/api/probe-500': typeof ApiProbe500Route
   '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -491,6 +499,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
+  '/api/probe-500': typeof ApiProbe500Route
   '/api/translate': typeof ApiTranslateRoute
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/reset': typeof AuthResetRoute
@@ -551,6 +560,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/geo'
     | '/api/locations'
+    | '/api/probe-500'
     | '/api/translate'
     | '/auth/callback'
     | '/auth/reset'
@@ -608,6 +618,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/geo'
     | '/api/locations'
+    | '/api/probe-500'
     | '/api/translate'
     | '/auth/callback'
     | '/auth/reset'
@@ -666,6 +677,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/geo'
     | '/api/locations'
+    | '/api/probe-500'
     | '/api/translate'
     | '/auth_/callback'
     | '/auth_/reset'
@@ -714,6 +726,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   ApiGeoRoute: typeof ApiGeoRouteWithChildren
   ApiLocationsRoute: typeof ApiLocationsRouteWithChildren
+  ApiProbe500Route: typeof ApiProbe500Route
   ApiTranslateRoute: typeof ApiTranslateRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetRoute: typeof AuthResetRoute
@@ -884,6 +897,13 @@ declare module '@tanstack/react-router' {
       path: '/api/locations'
       fullPath: '/api/locations'
       preLoaderRoute: typeof ApiLocationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/probe-500': {
+      id: '/api/probe-500'
+      path: '/api/probe-500'
+      fullPath: '/api/probe-500'
+      preLoaderRoute: typeof ApiProbe500RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/translate': {
@@ -1217,6 +1237,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   ApiGeoRoute: ApiGeoRouteWithChildren,
   ApiLocationsRoute: ApiLocationsRouteWithChildren,
+  ApiProbe500Route: ApiProbe500Route,
   ApiTranslateRoute: ApiTranslateRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetRoute: AuthResetRoute,
