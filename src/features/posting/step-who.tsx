@@ -471,8 +471,33 @@ export function StepWho({
   const [local, setLocal] = useState<Refusal[]>([]);
   const messagesRefusal = refusalFor(refusals, "messages") ?? refusalFor(refusals, "contact_pref");
 
-  const countries = useMemo(() => markets.markets, [markets.markets]);
-  const openMarketCodes = useMemo(() => countries.map((market) => market.code), [countries]);
+  /**
+   * Walk fix 6 — every country in the table: the open markets first, in their
+   * own order, then every other country A–Z by the shown name.
+   */
+  const countries = useMemo(() => {
+    const marketCodes = new Set(markets.markets.map((market) => market.code));
+    const rest = allCountries
+      .filter((row) => !marketCodes.has(row.code))
+      .sort((a, b) => a.nameEn.localeCompare(b.nameEn, language));
+    return [
+      ...markets.markets.map((market) => ({
+        code: market.code,
+        nameEn: market.nameEn,
+        anchorId: market.anchorId,
+      })),
+      ...rest.map((row) => ({ code: row.code, nameEn: row.nameEn, anchorId: null })),
+    ];
+  }, [markets.markets, allCountries, language]);
+  const openMarketCodes = useMemo(() => markets.markets.map((market) => market.code), [markets]);
+  /** The shown name of the picked country, for the confirm dialog. */
+  const countryName = useMemo(() => {
+    const found = countries.find((entry) => entry.code === country);
+    if (found === undefined) return country;
+    return found.anchorId === null
+      ? found.nameEn
+      : entityName("location", { id: found.anchorId, nameEn: found.nameEn, nameAm: null }, entities);
+  }, [countries, country, entities]);
 
   /** What this screen sees when a channel box is left (U6-C1-R3a). */
   const leaveChannel = (channel: Channel, value: string, show: boolean) => {
