@@ -22,3 +22,10 @@ get_attribute_options | the posting form's option read, restated by M5; rate-gat
 transition_listing | the status door, restated by M5; owner, reviewer and enforcer checks inside
 renew_listing | the seller's renew door, restated by M5; ownership inside
 set_listing_pin | the seller's pin door, restated by M5 with its comments; ownership inside
+attr_visible_when_ok | pure shape check of a row condition (the links CHECK constraint calls it); reads no table; EXECUTE restated as live by M6
+attr_visible_when_met | pure check of a row condition against the answers; reads no table; EXECUTE restated as live by M6
+attr_cell_check | definition-cell check (help-text token reads only categories' slug/active/allow_listings); returns a refusal key; EXECUTE restated as live by M6
+attr_option_shape | pure option-record shape check; reads no table; EXECUTE restated as live by M6
+attr_link_cells_refusal | link-cell check; returns a refusal key, writes nothing; EXECUTE restated as live by M6
+attr_export_payload | invoker export builder; RLS on attributes/links applies to the caller; EXECUTE restated as live by M6
+validate_listing_attributes | answer check used by the draft and publish doors; returns refusals or normalised answers, writes nothing; EXECUTE restated as live by M6
