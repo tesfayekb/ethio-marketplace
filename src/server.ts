@@ -37,7 +37,15 @@ function logSsrError(request: Request, error: unknown) {
 
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
-async function normalizeCatastrophicSsrResponse(
+//
+// INC-421 — READ THE ORIGINAL, RETURN A FRESH RESPONSE. This function must
+// read the body to recognise the swallowed shape, and in this stack reading
+// a CLONE (`response.clone().text()`) leaves the ORIGINAL body disturbed:
+// the wire answer then went out with `Content-Length: 0` and every 5xx JSON
+// answer (56 call sites) reached the client empty. Reading the original and
+// re-creating the Response with the same bytes, status and headers keeps
+// every route's 5xx body intact — no route's status changes.
+export async function normalizeCatastrophicSsrResponse(
   request: Request,
   response: Response,
 ): Promise<Response> {
@@ -45,8 +53,14 @@ async function normalizeCatastrophicSsrResponse(
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) return response;
 
-  const body = await response.clone().text();
-  if (!isH3SwallowedErrorBody(body)) return response;
+  const body = await response.text();
+  if (!isH3SwallowedErrorBody(body)) {
+    return new Response(body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  }
 
   const error = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
   logSsrError(request, error);
