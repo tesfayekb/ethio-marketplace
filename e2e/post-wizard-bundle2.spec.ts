@@ -103,7 +103,10 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     }
   }
 
-  async function signedInSeller(page: Page, options: { homeConfirmed?: boolean } = {}) {
+  async function signedInSeller(
+    page: Page,
+    options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {},
+  ) {
     const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
@@ -157,25 +160,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     return listingId;
   }
 
-  /**
-   * M5 (bundle 4 step 22) — a seller is named before a whole draft is saved or
-   * published; the door refuses an unnamed one. Own account rows only (J3).
-   */
-  async function nameSeller(userId: string, alias: string | null) {
-    const { error } = await adminClient()
-      .from("profiles")
-      .update({
-        ...(alias === null ? {} : { seller_alias: alias }),
-        first_name: "Abebe",
-        last_name: "Kebede",
-      })
-      .eq("user_id", userId);
-    if (error) throw new Error(`[e2e:bundle2] naming the seller failed: ${error.message}`);
-  }
-
   /** The seller's last post, past the draft stage, at one place. */
   async function lastPostAt(page: Page, userId: string, categoryId: string, placeId: string) {
-    await nameSeller(userId, `eseller_${rand().replace(/[0-9]/g, "q")}`);
     const token = await bearerOf(page);
     const draft = await postRoute(
       page,
@@ -436,11 +422,10 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
 
   test("PW-123 Post another ad opens step 1 with no draft carried", async ({ page }) => {
     // Exercises the country control, so its seller's home country is unconfirmed.
-    const user = await signedInSeller(page, { homeConfirmed: false });
+    // M5 — publishing needs a named seller; the alias is still typed on screen.
+    const user = await signedInSeller(page, { homeConfirmed: false, named: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
-    // M5 — publishing needs a named seller; the alias is still typed on screen.
-    await nameSeller(user.id, null);
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
     await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
