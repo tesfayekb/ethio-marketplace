@@ -426,7 +426,6 @@ export function StepWho({
     ]);
   };
 
-
   return (
     <div className="space-y-5" data-testid="post-who">
       <p className="text-sm text-muted-foreground">{t("post.who.why")}</p>
@@ -488,7 +487,7 @@ export function StepWho({
                 {t("post.who.aliasAvailable")}
               </p>
             )}
-            {/[^\x00-\x7f]/.test(alias) && (
+            {/[^ -~]/.test(alias) && (
               <p className="text-xs text-muted-foreground" data-testid="post-who-alias-latin">
                 {t("post.who.aliasLatinOnly")}
               </p>
