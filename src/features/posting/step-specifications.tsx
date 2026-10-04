@@ -66,7 +66,12 @@ export interface DealGroup {
  * whose parent list has not been read yet simply narrows once it has).
  */
 
-type OptionState = { state: "idle" | "loading" | "ready" | "failed"; list: AttrOption[] };
+type OptionState = {
+  state: "idle" | "loading" | "ready" | "failed";
+  list: AttrOption[];
+  /** Step 20 — the failed read was the options route's 429. */
+  rateLimited?: boolean;
+};
 
 const IDLE: OptionState = { state: "idle", list: [] };
 
@@ -329,10 +334,18 @@ export function StepSpecifications({
       if (held.state === "loading" || held.state === "ready") return prev;
       return { ...prev, [def.attrKey]: { state: "loading", list: [] } };
     });
-    void loadAttributeOptions(def.attributeId).then((list) => {
+    let limited = false;
+    void loadAttributeOptions(def.attributeId, {
+      onRateLimited: () => {
+        limited = true;
+      },
+    }).then((list) => {
       setOptions((prev) => ({
         ...prev,
-        [def.attrKey]: list === null ? { state: "failed", list: [] } : { state: "ready", list },
+        [def.attrKey]:
+          list === null
+            ? { state: "failed", list: [], rateLimited: limited }
+            : { state: "ready", list },
       }));
     });
   }, []);
@@ -1809,8 +1822,12 @@ export function StepSpecifications({
             )}
 
             {held.state === "failed" && (
-              <p className="text-xs text-destructive" data-testid="post-attr-options-error">
-                {t("post.specs.optionsFailed")}
+              <p
+                className="text-xs text-destructive"
+                data-testid="post-attr-options-error"
+                data-reason={held.rateLimited ? "rateLimited" : "failed"}
+              >
+                {t(held.rateLimited ? "post.specs.rateLimited" : "post.specs.optionsFailed")}
               </p>
             )}
 

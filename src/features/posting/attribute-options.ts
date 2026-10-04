@@ -123,7 +123,15 @@ function shape(row: Record<string, unknown>): AttrOption {
   };
 }
 
-export async function loadAttributeOptions(attributeId: string): Promise<AttrOption[] | null> {
+/**
+ * Bundle 4 step 20 — `onRateLimited` tells the caller a null answer was the
+ * route's 429 (rateLimited), so a control the seller opened can say so in
+ * words. Background readers pass nothing and behave exactly as before.
+ */
+export async function loadAttributeOptions(
+  attributeId: string,
+  opts: { onRateLimited?: () => void } = {},
+): Promise<AttrOption[] | null> {
   const held = cache.get(attributeId);
   if (held && Date.now() - held.at < TTL_MS) return held.options;
   try {
@@ -137,6 +145,7 @@ export async function loadAttributeOptions(attributeId: string): Promise<AttrOpt
     if (!response.ok) {
       // F4 — never silent: a refused read (429 = rateLimited) is logged.
       console.error("[attr-options] read refused", attributeId, response.status);
+      if (response.status === 429) opts.onRateLimited?.();
       return held ? held.options : null;
     }
     const payload = (await response.json()) as Record<string, unknown>;
