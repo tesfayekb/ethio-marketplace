@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
-import { groupedPhone, loadPhoneLib, readPhone, tidyTyping } from "./phone-parse";
+import { type PhoneLib, groupedPhone, loadPhoneLib, readPhone, tidyTyping } from "./phone-parse";
 
 /** Bundle 3 step 11 — the judge, with the real library. */
 const JUDGE: [string, string, string, string?][] = [
@@ -17,8 +17,12 @@ const JUDGE: [string, string, string, string?][] = [
   ["AE", "0501234567", "+971501234567"],
 ];
 
-describe("step 11 phone judge", async () => {
-  const lib = await loadPhoneLib();
+describe("step 11 phone judge", () => {
+  let lib: PhoneLib;
+  // The real library, by the same dynamic import the contact step uses (cold loads are slow).
+  beforeAll(async () => {
+    lib = await loadPhoneLib();
+  }, 30_000);
   for (const [iso, typed, saved, shown] of JUDGE) {
     it(`${iso} ${typed} → ${saved}`, () => {
       // Typed and pasted take the same path: the box tidies, then reads.
