@@ -755,7 +755,6 @@ function shapePostingSchema(data: unknown): PostingSchema | null {
             pricePeriodLocked: block["price_period_locked"] === true,
             expiryDays: int(block, "expiry_days"),
             capabilities,
-            priceBasisKey: str(block, "price_basis_key"),
             deal: shapeDeal(block["deal"]),
           },
   };

@@ -119,11 +119,6 @@ export interface CategoryFacts {
   /** DEC-052 — `bookable` / `map_pin`; the pin is a named deferral (see docs). */
   capabilities: string[];
   /**
-   * DEC-079 / D31 — the ONE pricing-basis attribute key the leaf carries
-   * (`pricing_type…` / `unit_of_sale…`), or null when it carries none or two.
-   */
-  priceBasisKey: string | null;
-  /**
    * DEC-109 — the price page's rows, as the door groups them (`deal_group`),
    * each list in display order. The screen keeps no list of its own.
    */
