@@ -691,7 +691,7 @@ test.describe("POSTING WIZARD", () => {
     const why = (message: string) =>
       [message, `PW-30 step timings: ${marks.join(" | ") || "(none)"}`].join("\n");
 
-    const user = await seller(page);
+    const user = await seller(page, { named: true });
     mark("signed in");
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
@@ -1440,7 +1440,7 @@ test.describe("POSTING WIZARD", () => {
   test("PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085)", async ({
     page,
   }) => {
-    const user = await seller(page, { named: true });
+    const user = await seller(page, { named: true, alias: true });
     const category = await leaf();
     const info = test.info();
     const stem = `e2e_pin_${info.project.name.replace(/\W/g, "")}_${info.workerIndex}_${Date.now()}`;

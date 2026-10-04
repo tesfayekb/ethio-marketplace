@@ -85,6 +85,10 @@ const smallButtonClass =
   "inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm font-medium " +
   "text-foreground hover:bg-accent";
 
+/** INC-430 — the identity refusals a control on this step shows at its own place. */
+const SHOWN_FIELD =
+  /^(?:alias|seller_type|business_name|first_name|last_name|home_country_code|contact_pref\.(?:phone|phone2|telegram|whatsapp))$/;
+
 type AliasState = "idle" | "checking" | "ok" | "refused";
 
 /** A door timestamp as a day in the reader's language; the raw value if unreadable. */
@@ -181,6 +185,8 @@ export function StepWho({
   const [countryLocked, setCountryLocked] = useState(false);
   /** Refusals the identity door named, kept apart from the draft's own. */
   const [identityRefusals, setIdentityRefusals] = useState<Refusal[]>([]);
+  /** INC-430 — a refused save no control here can show (rate, draft, network). */
+  const [saveFailed, setSaveFailed] = useState(false);
   /** Walk fix 3 — the change rule's dates, from `my_seller_line()` (M4). */
   const [lineFacts, setLineFacts] = useState<SellerLineFacts | null>(null);
   /** Walk fix 6 — every country in the table; open markets lead the list. */
@@ -340,6 +346,7 @@ export function StepWho({
     const answer = await saveIdentity(body);
     if (!aliveRef.current) return answer;
     setIdentityRefusals(answer.ok ? [] : answer.refusals);
+    setSaveFailed(!answer.ok && !answer.refusals.some((entry) => SHOWN_FIELD.test(entry.field)));
     return answer;
   }, []);
 
@@ -804,6 +811,9 @@ export function StepWho({
                 aliasBoxRef.current = next;
                 checkAlias(next);
               }}
+              // Turn 8 item 6 — a saved name is offered nothing until the box is
+              // cleared; leaving it empty asks once (the names guard holds repeats).
+              onBlur={askSuggestionsOnLeave}
             />
             <p className="text-xs text-muted-foreground">{t("post.who.aliasRules")}</p>
             {aliasState === "checking" && (
@@ -1153,6 +1163,11 @@ export function StepWho({
           </p>
         )}
       </div>
+      {saveFailed && (
+        <p className="text-sm text-destructive" role="alert" data-testid="post-who-save-failed">
+          {t("post.who.saveFailed")}
+        </p>
+      )}
     </div>
   );
 }
