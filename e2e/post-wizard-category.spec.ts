@@ -126,7 +126,10 @@ test.describe("POSTING WIZARD", () => {
     });
   }
 
-  async function seller(page: import("@playwright/test").Page, options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {}) {
+  async function seller(
+    page: import("@playwright/test").Page,
+    options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {},
+  ) {
     const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
@@ -617,7 +620,10 @@ test.describe("POSTING WIZARD", () => {
       timeout: 45_000,
     });
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-4"), "PW-54: the price page did not follow").toBeVisible();
+    await expect(
+      page.getByTestId("post-step-4"),
+      "PW-54: the price page did not follow",
+    ).toBeVisible();
 
     // (b) THE RESUME MATRIX — scratch drafts of this scratch seller only.
     const token = await bearerOf(page);
@@ -671,7 +677,11 @@ test.describe("POSTING WIZARD", () => {
     // The walked draft: specifications recorded, one registered photo.
     expect(await photoRowsOf(walkedId), "PW-54: the walked draft has no photo row").toHaveLength(1);
     await opensAt(walkedId, "post-step-4", "PW-54: draft_step 3 with a photo must open price");
-    await opensAt(await seedDraft(4), "post-step-5", "PW-54: draft_step 4 must open the title page");
+    await opensAt(
+      await seedDraft(4),
+      "post-step-5",
+      "PW-54: draft_step 4 must open the title page",
+    );
   });
 
   test("PW-8 an unreachable save keeps the answers, says so, and retries", async ({ page }) => {

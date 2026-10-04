@@ -261,6 +261,79 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   });
 
   /**
+   * PW-134 (INC-427) — names typed while the stored identity is still being read
+   * are never wiped by the read. The read is held; the names are typed as soon as
+   * a box exists (before the release on a screen that draws them early, after it
+   * otherwise); the read lands; the boxes still hold what was typed, Next saves
+   * it, and DB truth holds the public name and both names.
+   */
+  test("PW-134 names typed during the identity read survive it and are saved", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    let release: () => void = () => {};
+    const released = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let held = 0;
+    await page.route("**/rest/v1/profiles?*", async (route) => {
+      const url = route.request().url();
+      if (route.request().method() === "GET" && url.includes("seller_alias")) {
+        held += 1;
+        await released;
+      }
+      await route.continue();
+    });
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expect.poll(() => held, { message: "PW-134: the identity read was never held" }).toBe(1);
+
+    const alias = `e2e_${rand()}`.slice(0, 30).toLowerCase();
+    const first = page.getByTestId("post-who-first");
+    const typeNames = async () => {
+      await first.click();
+      await page.keyboard.type("Almaz");
+      await page.getByTestId("post-who-last").click();
+      await page.keyboard.type("Tesfaye");
+      await page.getByTestId("post-who-alias").click();
+      await page.keyboard.type(alias);
+    };
+    // A box drawn during the read is typed into at once; the read is released after.
+    const early = await first
+      .waitFor({ state: "visible", timeout: 3_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (early) {
+      await typeNames();
+      release();
+    } else {
+      release();
+      await expect(first).toBeVisible({ timeout: 20_000 });
+      await typeNames();
+    }
+
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expect(first, "PW-134: the read wiped the first name").toHaveValue("Almaz");
+    await expect(
+      page.getByTestId("post-who-last"),
+      "PW-134: the read wiped the last name",
+    ).toHaveValue("Tesfaye");
+    await expect(page.getByTestId("post-who-alias"), "PW-134: the read wiped the name").toHaveValue(
+      alias,
+    );
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(
+        async () => {
+          const found = await identityOf(user.id);
+          return `${found.alias ?? ""}|${found.firstName ?? ""}|${found.lastName ?? ""}`;
+        },
+        { message: "PW-134: the profile does not hold what was typed", timeout: 20_000 },
+      )
+      .toBe(`${alias}|Almaz|Tesfaye`);
+  });
+
+  /**
    * PW-130 (bundle 3 steps 18, 19, 21) — a refused name says why and offers three
    * free names built from the seller's own Latin names; checking claims nothing,
    * and the tapped name is claimed when the step is saved.

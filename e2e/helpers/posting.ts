@@ -109,7 +109,8 @@ export async function leaseSeller(
   if (options.named === true || options.alias === true) {
     const name: Record<string, string> = { first_name: "Abebe", last_name: "Kebede" };
     if (options.alias === true) {
-      name["seller_alias"] = `eseller_${Math.random().toString(36).slice(2, 10).replace(/[0-9]/g, "q")}`;
+      name["seller_alias"] =
+        `eseller_${Math.random().toString(36).slice(2, 10).replace(/[0-9]/g, "q")}`;
     }
     const { error } = await adminClient().from("profiles").update(name).eq("user_id", user.id);
     if (error) throw new Error(`[e2e:seller] naming the seller failed: ${error.message}`);

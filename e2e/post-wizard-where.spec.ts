@@ -82,7 +82,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     }
   }
 
-  async function signedInSeller(page: Page, options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {}) {
+  async function signedInSeller(
+    page: Page,
+    options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {},
+  ) {
     const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
