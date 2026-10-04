@@ -4,6 +4,7 @@ import { entityName } from "@/i18n/entity";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
 import { formatCommission } from "./price-basis";
+import { priceLine as sharedPriceLine } from "./price-line";
 import { fill } from "./refusal-text";
 import { attributeDisplayValue } from "./attribute-display";
 import type { AttrOption } from "./attribute-options";
@@ -100,28 +101,20 @@ export function ListingPreview({
       ),
     );
 
-  const priceLine =
-    priceMode === "commission"
-      ? priceBp === null
-        ? t("post.review.noPrice")
-        : fill(t("price.commission"), { percent: formatCommission(priceBp, language) })
-      : priceMode === "free"
-        ? t("price.free")
-        : priceMode === "contact"
-          ? t("price.contact")
-          : priceAmount === null
-            ? t("post.review.noPrice")
-            : basisLabel !== null
-              ? fill(t("post.review.pricePer"), {
-                  amount: priceAmount.toLocaleString(),
-                  currency: priceCurrency ?? "",
-                  basis: basisLabel,
-                })
-              : fill(t("post.review.priceLine"), {
-                  amount: priceAmount.toLocaleString(),
-                  currency: priceCurrency ?? "",
-                  period: isPeriod(pricePeriod) ? t(PERIOD_KEYS[pricePeriod]) : "",
-                }).trim();
+  // Bundle 4 step 10 — the one shared price line.
+  const priceLine = sharedPriceLine(
+    {
+      mode: priceMode,
+      amount: priceAmount,
+      currency: priceCurrency,
+      period: pricePeriod,
+      bp: priceBp,
+      unit: basisLabel,
+    },
+    t,
+    t("post.review.noPrice"),
+    language,
+  );
 
   const shown = (["phone", "phone2", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = contactPref[channel];

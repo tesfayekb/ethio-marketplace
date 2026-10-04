@@ -707,6 +707,32 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
   });
 
+  test("PW-135 at 1280 the step list opens a finished step with its answers kept; a step not reached is not a button (bundle 4 step 5)", async ({
+    page,
+  }) => {
+    test.skip((page.viewportSize()?.width ?? 0) < 1024, "the step list is drawn on wide screens");
+    const user = await seller(page);
+    const category = await leaf();
+    // Three steps finished: category, specifications, photos — the price page is current.
+    const listingId = await reachStep5(page, user.id, category);
+    await expect(page.getByTestId("post-step-list-go-4")).toHaveAttribute("type", "button");
+    // A step not reached yet is plain text, not a button.
+    await expect(
+      page.getByTestId("post-step-list-go-6"),
+      "PW-135: a step not reached is a button",
+    ).toHaveCount(0);
+    await expect(page.locator('[data-testid="post-step-list-item"][data-step="6"]')).toBeVisible();
+
+    await page.getByTestId("post-step-list-go-1").click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await expect(
+      page.getByTestId("post-category-search"),
+      "PW-135: the category answer was lost",
+    ).toHaveValue(category.slug);
+    const [draft] = await draftsOf(user.id);
+    expect(String(draft?.id ?? ""), "PW-135: the draft changed").toBe(listingId);
+  });
+
   test("LY-6 at 360 the open currency list is above the sticky action bar", async ({
     page,
   }, testInfo) => {

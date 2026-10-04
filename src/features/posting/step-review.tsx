@@ -1,3 +1,4 @@
+import { priceLine as sharedPriceLine } from "./price-line";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
@@ -232,25 +233,20 @@ export function StepReview({
     basisKey === null || values.attributes[basisKey] === undefined
       ? ""
       : describe([basisKey, values.attributes[basisKey]]);
-  const priceLine =
-    values.priceMode === "commission"
-      ? values.priceBp === null
-        ? ""
-        : fill(t("price.commission"), { percent: formatCommission(values.priceBp, language) })
-      : values.priceMode === "free" || values.priceMode === "contact"
-        ? t(PRICE_MODE_KEYS[values.priceMode] ?? "post.price.modeLabel")
-        : basisLabel !== null && values.priceAmount !== null
-          ? fill(t("post.review.pricePer"), {
-              amount: String(values.priceAmount),
-              currency: values.priceCurrency ?? "",
-              basis: basisLabel,
-            })
-          : [
-              values.priceCurrency ?? "",
-              values.priceAmount === null ? "" : String(values.priceAmount),
-            ]
-              .join(" ")
-              .trim();
+  // Bundle 4 step 10 — the one shared price line.
+  const priceLine = sharedPriceLine(
+    {
+      mode: values.priceMode,
+      amount: values.priceAmount,
+      currency: values.priceCurrency,
+      period: values.pricePeriod,
+      bp: values.priceBp,
+      unit: basisLabel,
+    },
+    t,
+    "",
+    language,
+  );
   const channelLine = CHANNEL_KEYS.filter((entry) => {
     const row = values.contactPref[entry.key];
     return (

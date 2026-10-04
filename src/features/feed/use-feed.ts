@@ -22,6 +22,9 @@ export interface FeedListing extends RankableListing {
   priceNegotiable: boolean;
   /** B — what the price runs per (DEC-067); "once" prints nothing. */
   pricePeriod: string;
+  /** Bundle 4 step 10 — the unit the price runs per (option token), and the written unit for `other`. */
+  priceUnit: string | null;
+  priceUnitText: string | null;
   /** U4d: the id is what the entity bundle is keyed by. */
   locationId: string | null;
   locationNameEn: string | null;
@@ -59,6 +62,8 @@ type ListingRow = {
   price_bp: number | null;
   price_negotiable: boolean;
   price_period: string;
+  price_unit: string | null;
+  price_unit_text: string | null;
   tier: string;
   published_at: string | null;
   category_id: string;
@@ -81,6 +86,8 @@ function toFeedListing(row: ListingRow): FeedListing {
     priceBp: row.price_bp,
     priceNegotiable: row.price_negotiable,
     pricePeriod: row.price_period,
+    priceUnit: row.price_unit,
+    priceUnitText: row.price_unit_text,
     locationId: row.locations?.id ?? null,
     locationNameEn: row.locations?.name_en ?? null,
     locationNameAm: row.locations?.name_am ?? null,
@@ -119,7 +126,7 @@ export function useFeed({
     let query = supabase
       .from("listings")
       .select(
-        "id,title,price_amount,price_currency,price_mode,price_bp,price_negotiable,price_period,tier,published_at,category_id,locations(id,name_en,name_am)",
+        "id,title,price_amount,price_currency,price_mode,price_bp,price_negotiable,price_period,price_unit,price_unit_text,tier,published_at,category_id,locations(id,name_en,name_am)",
       )
       .eq("status", "active");
 

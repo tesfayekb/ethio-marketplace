@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 328,
-  "dynamicCallSites": 210,
+  "scanned": 330,
+  "dynamicCallSites": 207,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3868,10 +3868,16 @@
       "/post/$listingId"
     ],
     "post.review.priceLine": [
+      "/",
+      "/admin/impersonation/$sessionId",
+      "/c/$slug",
       "/post",
       "/post/$listingId"
     ],
     "post.review.pricePer": [
+      "/",
+      "/admin/impersonation/$sessionId",
+      "/c/$slug",
       "/post",
       "/post/$listingId"
     ],
