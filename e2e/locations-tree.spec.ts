@@ -26,6 +26,31 @@ function scratchSlug(kind: string): string {
   return `e2e-l1c-${kind}-${run}${worker}${project}`.toLowerCase();
 }
 
+/** INC-428 / LR-3 — one attempt's own slug: the fixed slot plus a per-attempt tag. */
+function attemptSlug(kind: string, tag: string): string {
+  return `${scratchSlug(kind)}-${tag}`;
+}
+
+/**
+ * INC-428 class rule: LR-3 owns a fixed slot (its run x worker x project slug).
+ * A run killed before `finally` left that slot's rows behind, and the next run
+ * with the same shard number collided on locations_parent_slug_unique. Clear
+ * this slot's leftovers older than ten minutes (child first), and throw on failure.
+ */
+async function clearStaleSlot(): Promise<void> {
+  const supabase = adminClient();
+  const cutoff = new Date(Date.now() - 10 * 60_000).toISOString();
+  for (const kind of ["city", "region"] as const) {
+    const { error } = await supabase
+      .from("locations")
+      .delete()
+      .eq("country_code", "ET")
+      .like("slug", `${scratchSlug(kind)}%`)
+      .lt("created_at", cutoff);
+    if (error) throw new Error(`[e2e:l1c] clearing stale ${kind} rows failed: ${error.message}`);
+  }
+}
+
 /** The route's in-process version TTL is 15s; this poll outlives it. */
 const VERSION_POLL_MS = 60_000;
 
@@ -107,8 +132,10 @@ test.describe("L1c · public per-country location tree", () => {
     test.setTimeout(150_000); // bounded polls across two 15s TTL windows + seeding.
     const supabase = adminClient();
     const anchor = await anchorId();
-    const regionSlug = scratchSlug("region");
-    const citySlug = scratchSlug("city");
+    await clearStaleSlot();
+    const tag = Math.random().toString(36).slice(2, 8);
+    const regionSlug = attemptSlug("region", tag);
+    const citySlug = attemptSlug("city", tag);
     let regionId: string | null = null;
     let cityId: string | null = null;
 

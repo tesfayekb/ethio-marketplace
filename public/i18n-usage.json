@@ -4439,6 +4439,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.who.saveFailed": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.who.savedHint": [
       "/post",
       "/post/$listingId"

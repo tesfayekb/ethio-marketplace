@@ -4,6 +4,7 @@ import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { adminClient } from "./helpers/users";
+import { en } from "../src/i18n/locales/en";
 import { seedActiveListing } from "./helpers/categories";
 import {
   leaseSeller,
@@ -419,10 +420,95 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       .toContain("abebe");
     await expect(offered).toHaveCount(3);
     const names = (await offered.allTextContents()).map((name) => name.trim());
+    // Turn 8 item 6 — one suggestion carries the category word: the door's own
+    // rule, the last letters-only word of four or more of the leaf's English name.
+    const { data: leafRow, error: leafError } = await adminClient()
+      .from("categories")
+      .select("name_en")
+      .eq("id", leaf.id)
+      .single();
+    if (leafError) throw new Error(`[e2e:pw147] reading the leaf failed: ${leafError.message}`);
+    const word =
+      leafRow.name_en
+        .replace(/[^A-Za-z ]/g, "")
+        .toLowerCase()
+        .split(/ +/)
+        .filter((w: string) => w.length >= 4)
+        .pop() ?? "";
+    expect(word, "PW-147: the scratch leaf has no category word").not.toBe("");
+    expect(
+      names.some((name) => name.startsWith(`abebe_${word}`.slice(0, 28))),
+      `PW-147: no suggestion carries the category word (word=${word} names=${names.join(",")})`,
+    ).toBe(true);
     const picked = names[0] ?? "";
     await page.locator(`[data-testid="post-who-alias-suggestion"][data-name="${picked}"]`).click();
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-who-alias-suggestions")).toHaveCount(0);
+  });
+
+  /** PW-150 (turn 8 item 6) — a seller with a saved name is offered none until the box is cleared. */
+  test("PW-150 a saved seller name offers no suggestions until its box is cleared", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page, { named: true, alias: true });
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    // Truth, not a sleep: every suggestion ask the screen sends.
+    let asks = 0;
+    page.on("request", (request) => {
+      if (
+        request.url().includes("/api/listings/alias") &&
+        (request.postData() ?? "").includes('"suggest":true')
+      ) {
+        asks += 1;
+      }
+    });
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expect(page.getByTestId("post-who-saved-alias")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-who-edit").click();
+    const aliasBox = page.getByTestId("post-who-alias");
+    await expect(aliasBox).not.toHaveValue("", { timeout: 20_000 });
+    expect(asks, "PW-150: a saved name asked for suggestions").toBe(0);
+    await expect(
+      page.getByTestId("post-who-alias-suggestion"),
+      "PW-150: a saved name was offered suggestions",
+    ).toHaveCount(0);
+    await aliasBox.fill("");
+    await aliasBox.blur();
+    await expect(
+      page.getByTestId("post-who-alias-suggestion"),
+      "PW-150: clearing the box offered nothing",
+    ).toHaveCount(3, { timeout: 20_000 });
+  });
+
+  /** PW-151 (turn 8 item 6) — the account card reads the name and the saved channels. */
+  test("PW-151 the account card shows the name and each saved channel with whether buyers see it", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page, { named: true });
+    const { error } = await adminClient()
+      .from("profiles")
+      .update({
+        contact_prefs: {
+          messages: true,
+          phone: { value: "+251911000001", show: true },
+          whatsapp: { value: "+251911000002", show: false },
+        },
+      })
+      .eq("user_id", user.id);
+    if (error) throw new Error(`[e2e:pw151] saving channels failed: ${error.message}`);
+    await gotoReady(page, "/account");
+    await expect(page.getByTestId("account-profile-name")).toHaveText("Abebe Kebede", {
+      timeout: 20_000,
+    });
+    const channels = page.getByTestId("account-profile-channels");
+    const phone = channels.locator('[data-channel="phone"]');
+    const whatsapp = channels.locator('[data-channel="whatsapp"]');
+    await expect(channels.locator("li")).toHaveCount(2);
+    await expect(phone).toContainText("+251911000001");
+    await expect(phone).toContainText(en["account.overview.channelShown"]);
+    await expect(whatsapp).toContainText("+251911000002");
+    await expect(whatsapp).toContainText(en["account.overview.channelHidden"]);
   });
 
   test("PW-148 Next refuses at the empty name box: public name, first and last for a person, business name for a business (bundle 4 step 22, INC-423)", async ({
@@ -461,7 +547,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
    * saved if it imitates a brand (fake mode: "cocacola"), and the step stays.
    */
   test("PW-131 an imitating name is refused when the step is saved", async ({ page }) => {
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { named: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
@@ -660,7 +746,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   test("PW-127 picking a home country only selects; Next refuses until it is confirmed", async ({
     page,
   }) => {
-    const user = await signedInSeller(page, { homeConfirmed: false });
+    const user = await signedInSeller(page, { homeConfirmed: false, alias: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
@@ -702,6 +788,50 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(select).toBeDisabled({ timeout: 20_000 });
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8"), "PW-127: confirmed, still held").toBeVisible({
+      timeout: 20_000,
+    });
+  });
+
+  /**
+   * PW-149 (INC-430) — a contact-step save refused for a reason that is not a
+   * name refusal (here a rate limit) is never silent: the step shows a plain
+   * message at Next, stays, and the seller can try again.
+   */
+  test("PW-149 a save refused for another reason shows a message at Next and can be retried", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page, { named: true, alias: true });
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expect(page.getByTestId("post-who-value-phone-country")).toHaveAttribute(
+      "data-iso",
+      "ET",
+      { timeout: 20_000 },
+    );
+    let refused = 0;
+    await page.route("**/api/listings/identity", async (route) => {
+      if (route.request().method() !== "POST") return route.continue();
+      refused += 1;
+      await route.fulfill({
+        status: 429,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: false, refusals: [{ field: "rate", reason: "rateLimited" }] }),
+      });
+    });
+    await typePhone(page, "post-who-value-phone", "0911234567");
+    await page.getByTestId("post-who-value-phone").blur();
+    await page.getByTestId("post-who-show-phone").check();
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-who-save-failed"),
+      "PW-149: the refused save showed nothing",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    expect(refused, "PW-149: the identity route was never asked").toBeGreaterThan(0);
+    await page.unroute("**/api/listings/identity");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8"), "PW-149: the retry did not pass").toBeVisible({
       timeout: 20_000,
     });
   });
@@ -1169,16 +1299,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
    * seller's next ad opens with them even though the first was never published.
    */
   test("PW-133 contact details are kept on the profile and open the next ad", async ({ page }) => {
-    const user = await signedInSeller(page);
-    const named = await adminClient()
-      .from("profiles")
-      .update({
-        seller_alias: `eseller_${rand().replace(/[0-9]/g, "q")}`,
-        first_name: "Abebe",
-        last_name: "Kebede",
-      })
-      .eq("user_id", user.id);
-    expect(named.error).toBeNull();
+    const user = await signedInSeller(page, { named: true, alias: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
     await openDraft(page, user.id, leaf.id, 6, [city.id]);

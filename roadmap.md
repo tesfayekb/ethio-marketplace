@@ -50,3 +50,5 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [ ] Part H (docs, final report)
 - [x] INC-427 contact-step identity read wiped typed names (fixed bundle 4 turn 3; PW-134)
 - [ ] Photo clean-up bundle: when the card receives the ad's photo through listing-picture, the photos-soon ribbon hides by the existing rule (bundle 4 turn 6 item 7; no change before then).
+
+- [x] INC-430 — silent Next on a non-name identity refusal: post.who.saveFailed at Next; PW-149 (red first, then green)
