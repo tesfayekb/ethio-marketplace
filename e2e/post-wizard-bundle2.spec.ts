@@ -821,4 +821,57 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       await expect(refusal, `PW-121: ${id} flagged a car's year and engine`).toHaveCount(0);
     }
   });
+  /**
+   * PW-133 (bundle 4 step 23, INC-424) — the contact details live on the
+   * profile: Next on the contact step saves them there (DB truth), and the
+   * seller's next ad opens with them even though the first was never published.
+   */
+  test("PW-133 contact details are kept on the profile and open the next ad", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const named = await adminClient()
+      .from("profiles")
+      .update({
+        seller_alias: `eseller_${rand().replace(/[0-9]/g, "q")}`,
+        first_name: "Abebe",
+        last_name: "Kebede",
+      })
+      .eq("user_id", user.id);
+    expect(named.error).toBeNull();
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expect(page.getByTestId("post-who-value-phone-country")).toHaveAttribute(
+      "data-iso",
+      "ET",
+      {
+        timeout: 20_000,
+      },
+    );
+    await typePhone(page, "post-who-value-phone", "0911234567");
+    await page.getByTestId("post-who-value-phone").blur();
+    await page.getByTestId("post-who-show-phone").check();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(
+        async () => {
+          const { data } = await adminClient()
+            .from("profiles")
+            .select("contact_prefs")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          const pref = (data?.contact_prefs ?? {}) as Record<string, { value?: string }>;
+          return pref["phone"]?.value ?? "";
+        },
+        { message: "PW-133: the profile does not hold the phone", timeout: 20_000 },
+      )
+      .toBe("+251911234567");
+
+    // A second ad, the first never published, opens with the profile's phone.
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expect(
+      page.getByTestId("post-who-value-phone"),
+      "PW-133: the next ad lost the phone",
+    ).toHaveValue("91 123 4567", { timeout: 20_000 });
+  });
 });
