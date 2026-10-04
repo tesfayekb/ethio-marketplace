@@ -342,13 +342,13 @@ test.describe("POSTING WIZARD", () => {
     if ((await picker.getAttribute("data-options")) === "idle") await picker.focus();
     await expect(picker).toHaveAttribute("data-options", "failed", { timeout: 20_000 });
     expect(refused, "PW-145: the route was never refused").toBe(1);
-    const line = page
-      .locator(`[data-testid="post-attr-options-error"][data-reason="rateLimited"]`)
-      .first();
+    const line = page.locator(
+      `[data-testid="post-attr-options-error"][data-attr="${spec.select.attrKey}"][data-reason="rateLimited"]`,
+    );
     await expect(line).toHaveText(en["post.specs.rateLimited"]);
 
     // A second open asks again and the list arrives.
-    await page.getByTestId("post-attr-control").first().focus();
+    await picker.blur();
     await picker.focus();
     await expect(picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
     await expect(picker.locator("option")).toHaveCount(3);

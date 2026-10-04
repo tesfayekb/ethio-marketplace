@@ -1825,6 +1825,7 @@ export function StepSpecifications({
               <p
                 className="text-xs text-destructive"
                 data-testid="post-attr-options-error"
+                data-attr={def.attrKey}
                 data-reason={held.rateLimited ? "rateLimited" : "failed"}
               >
                 {t(held.rateLimited ? "post.specs.rateLimited" : "post.specs.optionsFailed")}
