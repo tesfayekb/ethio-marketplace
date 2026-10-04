@@ -374,10 +374,18 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     });
     await type.selectOption(set.typeValue);
     await walkOnToPrice(page);
+    // D44 / brief step 9 — a settled answer is stored, not shown: no unit control.
+    await expect(page.getByTestId("post-price-mode-fixed")).toBeVisible({ timeout: 20_000 });
     await expect(
       control(page, set.basisKey),
-      "PW-104: the price page does not hold the settled unit",
-    ).toHaveValue("per_kg", { timeout: 20_000 });
+      "PW-104: the price page shows a control for the settled unit",
+    ).toHaveCount(0);
+    // Brief step 8 — the amount's label names the unit.
+    await page.getByTestId("post-price-mode-fixed").click();
+    await expect(
+      page.locator('label[for="post-price-amount"]'),
+      "PW-104: the amount's label does not name the settled unit",
+    ).toContainText(/kg/i, { timeout: 20_000 });
     await expect
       .poll(async () => (await attributesOf(listingId))[set.basisKey], {
         message: "PW-104: the settled unit was not stored",
@@ -416,6 +424,9 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       .toBe(5_250_000);
     await gotoReady(page, `/post/${listingId}`);
     await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+    // Back from 6 opens the title page (5), and Back from 5 the price page (4).
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await page.getByTestId("post-back").click();
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect(page.getByTestId("post-price-amount")).toHaveValue("5250000");
