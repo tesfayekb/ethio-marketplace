@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 336,
-  "dynamicCallSites": 208,
+  "dynamicCallSites": 210,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -12,7 +12,13 @@
     "account.overview.business": [
       "/account"
     ],
+    "account.overview.channels": [
+      "/account"
+    ],
     "account.overview.editProfile": [
+      "/account"
+    ],
+    "account.overview.fullName": [
       "/account"
     ],
     "account.overview.homeCountry": [

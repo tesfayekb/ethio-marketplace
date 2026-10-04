@@ -12,12 +12,17 @@ import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 
+import { CHANNEL_LABELS, savedChannels } from "./saved-channels";
+
 type Profile = {
   seller_alias: string | null;
   seller_type: string | null;
   business_name: string | null;
   display_name: string;
   home_country_code: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  contact_prefs: unknown;
 };
 
 type State = {
@@ -53,7 +58,9 @@ export function AccountOverview() {
       const [profile, listings, authUser] = await Promise.all([
         supabase
           .from("profiles")
-          .select("seller_alias,seller_type,business_name,display_name,home_country_code")
+          .select(
+            "seller_alias,seller_type,business_name,display_name,home_country_code,first_name,last_name,contact_prefs",
+          )
           .eq("user_id", user.id)
           .maybeSingle(),
         supabase.from("listings").select("status").eq("seller_id", user.id),
@@ -127,6 +134,42 @@ export function AccountOverview() {
                 <dt className="text-muted-foreground">{t("account.overview.homeCountry")}</dt>
                 <dd className="text-foreground">
                   {state.profile?.home_country_code ?? t("account.overview.notSet")}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">{t("account.overview.fullName")}</dt>
+                <dd className="text-foreground" data-testid="account-profile-name">
+                  {[state.profile?.first_name, state.profile?.last_name]
+                    .filter(
+                      (part): part is string => typeof part === "string" && part.trim() !== "",
+                    )
+                    .join(" ") || t("account.overview.notSet")}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">{t("account.overview.channels")}</dt>
+                <dd className="text-foreground">
+                  {savedChannels(state.profile?.contact_prefs ?? null).length === 0 ? (
+                    t("account.overview.notSet")
+                  ) : (
+                    <ul className="grid gap-1" data-testid="account-profile-channels">
+                      {savedChannels(state.profile?.contact_prefs ?? null).map((entry) => (
+                        <li key={entry.channel} data-channel={entry.channel}>
+                          <span className="text-muted-foreground">
+                            {t(CHANNEL_LABELS[entry.channel])}:{" "}
+                          </span>
+                          <bdi dir="ltr">{entry.value}</bdi>{" "}
+                          <span className="text-xs text-muted-foreground">
+                            {t(
+                              entry.show
+                                ? "account.overview.channelShown"
+                                : "account.overview.channelHidden",
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </dd>
               </div>
             </dl>
