@@ -94,6 +94,7 @@ export function StepReview({
   values,
   photos,
   illustrationUrl,
+  photosSoon = false,
   expiryDays,
   refusals: doorRefusals,
   onChangeExpiry,
@@ -112,6 +113,8 @@ export function StepReview({
   photos: DraftPhotoRow[];
   /** The nearest ancestor category's picture, the stand-in when there is no photo. */
   illustrationUrl: string | null;
+  /** Bundle 4 step 15 — "Photos coming soon" as the door holds it. */
+  photosSoon?: boolean;
   /** The category's poster window; the door falls back to 60 days when unset. */
   expiryDays: number;
   /** The draft door's own refusals, so `posterExpiry*` lands on this field. */
@@ -414,6 +417,8 @@ export function StepReview({
       </div>
 
       <ListingPreview
+        illustrationUrl={illustrationUrl}
+        photosSoon={photosSoon}
         title={values.title}
         description={values.description}
         priceMode={values.priceMode}
@@ -466,6 +471,7 @@ export function StepReview({
             attributeOptions,
             photos,
             illustrationUrl,
+            photosSoon,
             coverage: values.coverage,
             country: readAreaCookie()?.country ?? null,
             contactPref: values.contactPref,

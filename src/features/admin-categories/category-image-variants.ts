@@ -24,8 +24,8 @@ export const ALPHA_FLOOR = 16;
 
 export const WATERMARK_TEXT = "ethio.com";
 export const WATERMARK_OPACITY = 0.1;
-export const WATERMARK_ANGLE = -30;
-export const WATERMARK_COLOR = "#1E5A43";
+import { WATERMARK_ANGLE, WATERMARK_COLOR } from "@/lib/brand-mark";
+export { WATERMARK_ANGLE, WATERMARK_COLOR };
 const BRAND_BACKGROUND = "#FFFFFF";
 /** Three marks on the leading diagonal, evenly spread. */
 export const WATERMARK_SPOTS: readonly (readonly [number, number])[] = [

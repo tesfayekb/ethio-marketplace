@@ -246,6 +246,7 @@ export const am: Messages = {
   "feed.errorBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።",
   "feed.views": "{count} እይታዎች",
   "feed.noPhoto": "እስካሁን ፎቶ የለም",
+  "listing.photosSoon": "ፎቶዎች በቅርቡ ይመጣሉ",
   "price.free": "ነጻ",
   "price.negotiable": "የሚደራደር",
   "price.contact": "ለዋጋ ያግኙ",
@@ -2115,6 +2116,8 @@ export const am: Messages = {
   "post.category.filterHint": "ቃል ይጻፉ፣ ወይም ከታች ያለውን ቡድን ይክፈቱ።",
   "post.category.chipLabel": "ምድብ",
   "post.photos.standIn": "የራስዎን ፎቶ እስኪጨምሩ ይህ ምስል ይተካል።",
+  "post.photos.soonTick": "ፎቶዎች ገና አልተዘጋጁም? በምስሉ ላይ “ፎቶዎች በቅርቡ ይመጣሉ” ያሳዩ።",
+  "post.photos.soonFailed": "ማስቀመጥ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
   "post.photos.rules":
     "JPG፣ PNG ወይም WebP \u00b7 እያንዳንዱ እስከ 6 ሜባ \u00b7 ቢያንስ 480 ፒክስል ስፋት \u00b7 ጥሩ ብርሃን፣ ንጹህ ዳራ፣ ሙሉ እቃው በምስሉ ውስጥ",
   "post.photos.skip": "ያለ ፎቶ ይቀጥሉ",

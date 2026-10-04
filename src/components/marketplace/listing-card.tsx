@@ -1,6 +1,8 @@
-import { Eye, ImageOff, MapPin } from "lucide-react";
+import { Eye, MapPin } from "lucide-react";
 
 import type { FeedListing } from "@/features/feed/use-feed";
+import { ListingPicture } from "@/components/marketplace/listing-picture";
+import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
@@ -24,6 +26,7 @@ export function NegotiableBadge() {
 
 export function ListingCard({ listing }: { listing: FeedListing }) {
   const { t, entities, language } = useI18n();
+  const { tree } = useCategoryTree();
   // Bundle 4 step 10 — the unit words load only when this card holds a unit.
   const unitLabels = usePriceUnitLabels(listing.priceUnit !== null);
   const cardPrice = priceLine(
@@ -60,18 +63,18 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
       className="flex flex-col overflow-hidden rounded-lg border border-border bg-card"
     >
       {/*
-        Photo area. Photos are stored but NOT surfaced until the EXIF-strip pass
-        ships (RLS gates listing_photos on exif_stripped), so every card shows the
-        placeholder today. When the strip feature lands, render an <img
-        loading="lazy" width height> here sized to the card.
+        Photo area. Listing photos stay un-surfaced here until the photo
+        clean-up bundle (RLS gates listing_photos on exif_stripped); the card
+        draws the category's picture from the public tree (bundle 4 step 14).
       */}
-      <div
-        className="flex aspect-4/3 w-full items-center justify-center bg-muted"
-        role="img"
-        aria-label={t("feed.noPhoto")}
-      >
-        <ImageOff className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
-      </div>
+      <ListingPicture
+        photoUrl={null}
+        categoryUrl={nearestCategoryPicture(tree, listing.categoryId)}
+        photosSoon={listing.photosSoon}
+        boxTestId="listing-card-picture"
+        rounded=""
+        fill
+      />
 
       <div className="flex flex-1 flex-col gap-2 p-3">
         <div className="flex items-start justify-between gap-2">
