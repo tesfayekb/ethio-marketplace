@@ -1111,4 +1111,46 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       "PW-133: the next ad lost the phone",
     ).toHaveValue("91 123 4567", { timeout: 20_000 });
   });
+  /**
+   * PW-144 (bundle 4 step 23, ruling item 3) — the identity calls, counted.
+   * Name and channels both changed: ONE call carrying both. Two more passes
+   * with nothing changed: no identity call at all.
+   */
+  test("PW-144 leaving the contact step makes one identity call, or none when nothing changed", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page, { named: true });
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    const calls: Record<string, unknown>[] = [];
+    page.on("request", (request) => {
+      if (request.method() === "POST" && request.url().includes("/api/listings/identity")) {
+        calls.push((request.postDataJSON() ?? {}) as Record<string, unknown>);
+      }
+    });
+    await expect(page.getByTestId("post-who-alias")).toBeVisible({ timeout: 20_000 });
+    const alias = `eseller${rand().replace(/[0-9]/g, "q")}`;
+    await page.getByTestId("post-who-alias").fill(alias);
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await typePhone(page, "post-who-value-phone", "0911234567");
+    await page.getByTestId("post-who-value-phone").blur();
+    await page.getByTestId("post-who-show-phone").check();
+    const before = calls.length;
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    const pass1 = calls.slice(before);
+    expect(pass1.length, `PW-144: both changed made ${pass1.length} calls`).toBe(1);
+    expect(pass1[0]?.["alias"], "PW-144: the call lacks the name").toBe(alias);
+    expect(pass1[0]?.["contactPref"], "PW-144: the call lacks the channels").toBeTruthy();
+
+    for (const pass of [2, 3]) {
+      await page.getByTestId("post-back").click();
+      await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 20_000 });
+      const mark = calls.length;
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+      expect(calls.length - mark, `PW-144: pass ${pass} with nothing changed called identity`).toBe(0);
+    }
+  });
 });
