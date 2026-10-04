@@ -502,6 +502,11 @@ test.describe("POSTING WIZARD", () => {
     await box.fill("2.5");
     await expect(said).toHaveCount(0);
     await page.getByTestId("post-next").click();
+    // DEC-109 — the title page follows the price page.
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e listing title");
+    await page.getByTestId("post-description").fill("e2e listing description");
+    await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
   });
 
