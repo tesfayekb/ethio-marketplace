@@ -2148,6 +2148,7 @@ export const en = {
   "post.photos.refusedFinal": "This photo can't be used. Choose a different one.",
   // U6-C2b — step 7: who is selling.
   "post.who.why": "Buyers need a name to trust and a way to reach you.",
+  "post.who.identityLoading": "Reading your saved details…",
   "post.who.readFailed": "Your saved details could not be read. Enter them again below.",
   "post.who.savedHint": "This is the name buyers will see.",
   "post.who.edit": "Change these",

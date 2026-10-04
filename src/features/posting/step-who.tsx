@@ -471,6 +471,7 @@ export function StepWho({
   const unreadPhone = phoneLibFailed && pendingPhones.length > 0;
   const blocked = !countryLocked || unreadPhone;
   const identityPending = identity === null && !identityFailed;
+  aliasBoxRef.current = alias;
   const gate = identityPending ? "pending" : blocked ? "blocked" : "open";
   const onBlockedRef = useRef(onBlocked);
   onBlockedRef.current = onBlocked;

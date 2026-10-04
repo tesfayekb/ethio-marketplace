@@ -2052,6 +2052,7 @@ export const am: Messages = {
   "post.photos.refusedFinal": "ይህ ፎቶ መጠቀም አይቻልም። ሌላ ይምረጡ።",
   // U6-C2b — ደረጃ 7፦ ማን እየሸጠ ነው።
   "post.who.why": "ገዢዎች የሚያምኑት ስምና የሚያገኙበት መንገድ ያስፈልጋቸዋል።",
+  "post.who.identityLoading": "የተቀመጡ ዝርዝሮችዎ በመነበብ ላይ ናቸው…",
   "post.who.readFailed": "የተቀመጡ ዝርዝሮችዎ መነበብ አልቻሉም። ከታች እንደገና ያስገቡ።",
   "post.who.savedHint": "ገዢዎች የሚያዩት ስም ይህ ነው።",
   "post.who.edit": "እነዚህን ይቀይሩ",
