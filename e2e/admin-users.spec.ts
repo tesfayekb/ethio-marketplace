@@ -12,7 +12,7 @@ import {
   userRow,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser, releaseStaleScratchAlias } from "./helpers/users";
 
 /**
  * Phase U1 — Users section.
@@ -464,6 +464,7 @@ test.describe("U1 admin users", () => {
       await page.goto(`/admin/users/${scratch.id}`);
       await waitForHydration(page);
 
+      await releaseStaleScratchAlias(alias);
       await page.getByTestId("edit-seller-alias").fill(alias);
       await page.getByTestId("edit-save").click();
       await stepUpIfPrompted(page, secret);
