@@ -56,7 +56,7 @@ export interface StepProgress {
 /**
  * ONE PREDICATE for "this step is behind the seller". Photos are optional and
  * never door-validated, so passing them is not recorded: a draft that went on
- * to details has passed them. `draftStep >= 2` is the OLD order's fact and is
+ * to the price page (step 4, DEC-109) has passed them. `draftStep >= 2` is the OLD order's fact and is
  * deliberately not used.
  */
 export function isStepFinished(step: number, { draftStep, photosCount }: StepProgress): boolean {

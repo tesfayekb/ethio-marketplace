@@ -35,3 +35,14 @@ Matches the brief: basis 65 (unit_of_sale 38, pricing_type 27, both 0); quantity
 - Live alias_rule folds every site word, category, location, country and brand on each call (live body), and calls name_claim_folds / name_protected_folds up to six times.
 - Limitation: the read-only database role cannot run alias_rule or check_seller_alias (permission denied), so EXPLAIN ANALYZE timings can't be read from here. They will be measured inside M5's DO block (clock_timestamp before/after), before and after the name_folds rebuild.
 - Import call sites for the rebuild: attributes/import.ts:139, :181; categories/import.ts:131, :171; locations import route to be added.
+
+## Step 9 — the price page's copies of the specifications form (census, base f183e2a6)
+
+Line numbers are those of f183e2a6, before the fix.
+
+- **Schema read, per copy.** Every mounted `StepSpecifications` reads the posting schema itself on mount (`step-specifications.tsx:259–278`, `readPostingSchemaAnswer` → `get_posting_schema`, which the door counts against the `schema_read` dial). There is no shared cache, so each copy is one counted read. The wizard's own read (`wizard.tsx:215`) is separate and happens on a category change, not on the price page.
+- **Fields report, per copy.** `step-specifications.tsx:303–316` reports the drawn, condition-met keys through `onFields`, and only when the prop is passed. The two price-page copies (`wizard.tsx:947` and `:961`) passed no `onFields`, so the price page sent **no** fields report: a refusal on a deal row mapped to no step (`field.tsx:100`, `stepOfField`).
+- **Option loading, per copy.** `step-specifications.tsx:384–419` requests lists for answered selects and for big lists once a sibling is answered. It walks **every** schema attribute, not only the drawn ones, and its once-per-key memory (`requestedAnswered`, `requestedBig`) is a per-mount ref. `loadAttributeOptions` caches only after a response (`attribute-options.ts:126`), so concurrent first loads are not de-duplicated.
+- **What the two copies did twice.** Two counted schema reads. Each answered-select list and each eligible big list requested twice, both copies asking for the same lists, including lists for rows neither copy draws. Two independent sets of hidden-answer, reconcile and default passes writing `attributes`.
+- **Could one copy's report overwrite the other's?** Yes, had both been given `onFields`. The wizard holds one `specFields` state, and each copy reports only its own subset, so the copy whose effect ran last would have replaced the other's keys. As shipped, neither reported, so no overwrite happened; the defect was the missing report.
+- **Fix chosen.** One copy draws its groups around the price control (`around={{ after: "sold", node: <StepPricing/> }}`): one schema read, one option load per list, and one fields report (`onPriceFields` → `priceFields`, routed to step 4 by `stepOfField`).

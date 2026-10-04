@@ -100,6 +100,13 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   // Which detail keys step 3 renders: refusals naming one of them are shown
   // under that control, and every other refusal still reaches the seller (F4).
   const [specFields, setSpecFields] = useState<string[]>([]);
+  // DEC-109 — the price page's rows, reported by its one copy of the form.
+  const [priceFields, setPriceFields] = useState<string[]>([]);
+  const onPriceFields = useCallback((keys: string[]) => {
+    setPriceFields((prev) =>
+      prev.length === keys.length && prev.every((key, index) => key === keys[index]) ? prev : keys,
+    );
+  }, []);
   const onSpecFields = useCallback((keys: string[]) => {
     // I3 — an equality-guarded write: a re-render must not feed a fresh array
     // back into the state it derives from.
@@ -186,7 +193,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   /** D70 — a strict refusal moves the seller to the first refused control here. */
   useEffect(() => {
     if (draft.refusals.length === 0) return;
-    focusFirstRefusal(draft.refusals, draft.step, specFields);
+    focusFirstRefusal(draft.refusals, draft.step, specFields, priceFields);
     // Keyed on the refusals alone: a new door answer, not a step or field change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft.refusals]);
@@ -309,8 +316,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           ],
     [deal],
   );
-  const soldKeys = useMemo(() => soldGroups.flatMap((group) => group.keys), [soldGroups]);
-  const restKeys = useMemo(() => restGroups.flatMap((group) => group.keys), [restGroups]);
+  const dealGroups = useMemo(() => [...soldGroups, ...restGroups], [soldGroups, restGroups]);
+  const dealKeys = useMemo(() => dealGroups.flatMap((group) => group.keys), [dealGroups]);
   /** W6b-2 B1 — the map pin is offered only where the category allows it. */
 
   const current = STEPS[draft.step - 1] ?? STEPS[0];
@@ -929,54 +936,63 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           exclude={dealExclude}
                         />
                       )}
-                      {draft.step === 4 && (
-                        <StepPricing
-                          facts={facts}
-                          values={{
-                            priceMode: draft.values.priceMode,
-                            priceAmount: draft.values.priceAmount,
-                            priceCurrency: draft.values.priceCurrency,
-                            pricePeriod: draft.values.pricePeriod,
-                            priceBp: draft.values.priceBp,
-                            priceNegotiable: draft.values.priceNegotiable,
-                            posterExpiresAt: draft.values.posterExpiresAt,
-                          }}
-                          basisKey={basisKey}
-                          basisControl={
-                            soldKeys.length === 0 ? null : (
-                              <StepSpecifications
-                                categoryId={draft.values.categoryId}
-                                values={draft.values.attributes}
-                                refusals={draft.refusals}
-                                onChange={(attributes, immediate) =>
-                                  draft.change({ attributes }, immediate)
-                                }
-                                only={soldKeys}
-                                groups={soldGroups}
-                              />
-                            )
-                          }
-                          trailing={
-                            restKeys.length === 0 ? null : (
-                              <StepSpecifications
-                                categoryId={draft.values.categoryId}
-                                values={draft.values.attributes}
-                                refusals={draft.refusals}
-                                onChange={(attributes, immediate) =>
-                                  draft.change({ attributes }, immediate)
-                                }
-                                only={restKeys}
-                                groups={restGroups}
-                                testId="post-price-rest"
-                              />
-                            )
-                          }
-                          basisValue={basisValue}
-                          basisLabel={basisLabel}
-                          refusals={draft.refusals}
-                          onChange={(patch, immediate) => draft.change(patch, immediate)}
-                        />
-                      )}
+                      {draft.step === 4 &&
+                        (dealKeys.length === 0 ? (
+                          <StepPricing
+                            facts={facts}
+                            values={{
+                              priceMode: draft.values.priceMode,
+                              priceAmount: draft.values.priceAmount,
+                              priceCurrency: draft.values.priceCurrency,
+                              pricePeriod: draft.values.pricePeriod,
+                              priceBp: draft.values.priceBp,
+                              priceNegotiable: draft.values.priceNegotiable,
+                              posterExpiresAt: draft.values.posterExpiresAt,
+                            }}
+                            basisKey={basisKey}
+                            basisValue={basisValue}
+                            basisLabel={basisLabel}
+                            refusals={draft.refusals}
+                            onChange={(patch, immediate) => draft.change(patch, immediate)}
+                          />
+                        ) : (
+                          // DEC-109 — ONE copy of the form draws the price page's rows:
+                          // one schema read, one option load per list, one fields
+                          // report, with the price controls drawn after "How it is sold".
+                          <StepSpecifications
+                            categoryId={draft.values.categoryId}
+                            values={draft.values.attributes}
+                            refusals={draft.refusals}
+                            onChange={(attributes, immediate) =>
+                              draft.change({ attributes }, immediate)
+                            }
+                            onFields={onPriceFields}
+                            only={dealKeys}
+                            groups={dealGroups}
+                            around={{
+                              after: "sold",
+                              node: (
+                                <StepPricing
+                                  facts={facts}
+                                  values={{
+                                    priceMode: draft.values.priceMode,
+                                    priceAmount: draft.values.priceAmount,
+                                    priceCurrency: draft.values.priceCurrency,
+                                    pricePeriod: draft.values.pricePeriod,
+                                    priceBp: draft.values.priceBp,
+                                    priceNegotiable: draft.values.priceNegotiable,
+                                    posterExpiresAt: draft.values.posterExpiresAt,
+                                  }}
+                                  basisKey={basisKey}
+                                  basisValue={basisValue}
+                                  basisLabel={basisLabel}
+                                  refusals={draft.refusals}
+                                  onChange={(patch, immediate) => draft.change(patch, immediate)}
+                                />
+                              ),
+                            }}
+                          />
+                        ))}
                       {draft.step === 5 && (
                         <StepDetails
                           listingId={draft.listingId}
@@ -1131,6 +1147,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                     refusals={draft.refusals}
                     step={draft.step}
                     specFields={specFields}
+                    priceFields={priceFields}
                     onGoTo={draft.goTo}
                   />
                 </div>
