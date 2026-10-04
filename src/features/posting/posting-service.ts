@@ -585,7 +585,12 @@ function shapeDeal(raw: unknown): CategoryFacts["deal"] {
     Array.isArray(row[key])
       ? (row[key] as unknown[]).filter((entry): entry is string => typeof entry === "string")
       : [];
-  return { basis: list("basis"), size: list("size"), quantity: list("quantity"), terms: list("terms") };
+  return {
+    basis: list("basis"),
+    size: list("size"),
+    quantity: list("quantity"),
+    terms: list("terms"),
+  };
 }
 
 /** D24 — a condition is used ONLY when it carries both halves; anything else is

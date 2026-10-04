@@ -98,7 +98,6 @@ function chosenList(raw: unknown): string[] {
   return Array.isArray(raw) ? answerTokens(raw) : [];
 }
 
-
 function isEmpty(value: unknown): boolean {
   return (
     value === undefined ||
@@ -1864,11 +1863,7 @@ export function StepSpecifications({
 
   if (only !== null) {
     return (
-      <div
-        className="space-y-5"
-        data-testid={testId}
-        data-options={optionsSettled ? "1" : "0"}
-      >
+      <div className="space-y-5" data-testid={testId} data-options={optionsSettled ? "1" : "0"}>
         {groups === null
           ? drawnRows.map(renderDef)
           : groups.map((group) => {

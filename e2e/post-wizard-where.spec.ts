@@ -323,7 +323,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await type.selectOption(set.typeValue);
     // DEC-109 — the unit and the quantity are asked on the price page (step 4),
     // narrowed there by the step-3 answer.
-    await expect(control(page, set.basisKey), "PW-88: the unit is still asked on step 3").toHaveCount(0);
+    await expect(
+      control(page, set.basisKey),
+      "PW-88: the unit is still asked on step 3",
+    ).toHaveCount(0);
     await walkOnToPrice(page);
     const basis = control(page, set.basisKey);
     await expect(basis, "PW-88: the unit does not show the type's fact").toHaveValue("per_litre", {
@@ -357,9 +360,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
    * PW-104 — N2: a goods unit settled by the type (Gesho → Per Kg) is filled on
    * step 3, and step 5 names it read-only with a way back to step 3.
    */
-  test("PW-104 a unit settled by the type is held by the price page's unit", async ({
-    page,
-  }) => {
+  test("PW-104 a unit settled by the type is held by the price page's unit", async ({ page }) => {
     const user = await signedInSeller(page);
     const category = await seedPostableCategory();
     categories.push(category.slug);

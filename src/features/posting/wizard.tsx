@@ -235,7 +235,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     [definitions, draft.values.attributes, dealBasis],
   );
   const basisDef = useMemo(
-    () => (basisKey === null ? null : (definitions.find((def) => def.attrKey === basisKey) ?? null)),
+    () =>
+      basisKey === null ? null : (definitions.find((def) => def.attrKey === basisKey) ?? null),
     [basisKey, definitions],
   );
   /** DEC-079 — the basis option list, loaded ONCE per definition. */
@@ -289,7 +290,13 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     () =>
       deal === null
         ? []
-        : [{ id: "sold", headingKey: "post.price.group.sold", keys: [...deal.basis, ...deal.size] }],
+        : [
+            {
+              id: "sold",
+              headingKey: "post.price.group.sold",
+              keys: [...deal.basis, ...deal.size],
+            },
+          ],
     [deal],
   );
   const restGroups = useMemo<DealGroup[]>(
