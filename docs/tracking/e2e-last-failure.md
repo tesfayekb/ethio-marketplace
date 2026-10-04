@@ -1,161 +1,277 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 37181454628 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37181454628
-- Commit: `b432691bc196d13ee6aecc5d2bb5658751191ec0`
-- Attempt: 2
-- Written (UTC): 2026-10-04T06:21:25.431Z
-- Post-test warnings: 27
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37183888212
+- Commit: `6f4923ee8ecc07a24a2e0873dff50eec0ee1a883`
+- Attempt: 1
+- Written (UTC): 2026-10-04T06:53:25.870Z
+- Passed: 0 · Skipped: 0 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
+- Post-test errors (DEC-059, non-gating): email
+- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 ## Server errors — census (DEC-083, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-106 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+8 line(s), 4 message(s): 0 off the allowlist, 4 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
-| `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
-| `too many previews` (quiet) | 10 | shard 2, shard 5 |
-| `listing not found` | 6 | shard 3, shard 6 |
-| `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `definitions badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `definitions wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `export_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
-| `preview_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
-| `categories file too large` (quiet) | 2 | shard 2, shard 5 |
-| `categories nulByte` (quiet) | 2 | shard 2, shard 5 |
-| `categories unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `commit_failed duplicate key value violates unique constraint <q>` (quiet) | 2 | shard 1, shard 4 |
-| `commit_failed step-up required: no verified factor` (quiet) | 2 | shard 1, shard 4 |
-| `countries badHeader` (quiet) | 2 | shard 2, shard 5 |
-| `countries nulByte` (quiet) | 2 | shard 2, shard 5 |
-| `countries tooManyRows` (quiet) | 2 | shard 2, shard 5 |
-| `countries unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `countries wrongFile` (quiet) | 2 | shard 2, shard 5 |
-| `definitions nulByte` (quiet) | 2 | shard 2, shard 5 |
-| `definitions tooManyRows` (quiet) | 2 | shard 2, shard 5 |
-| `definitions unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `links unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `locations badHeader` (quiet) | 2 | shard 2, shard 5 |
-| `locations file too large` (quiet) | 2 | shard 2, shard 5 |
-| `locations nulByte` (quiet) | 2 | shard 2, shard 5 |
-| `locations unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `locations wrongFile` (quiet) | 2 | shard 2, shard 5 |
-| `strings badHeader` (quiet) | 2 | shard 2, shard 5 |
-| `strings emptyFile` (quiet) | 2 | shard 2, shard 5 |
-| `strings nulByte` (quiet) | 2 | shard 2, shard 5 |
-| `strings tooManyRows` (quiet) | 2 | shard 2, shard 5 |
-| `strings unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `strings wrongFile` (quiet) | 2 | shard 2, shard 5 |
+| `definitions badHeader` (quiet) | 2 | shard 1, shard 4 |
+| `definitions wrongFile` (quiet) | 2 | shard 1, shard 4 |
+| `digest mismatch` (quiet) | 2 | shard 1, shard 4 |
+| `preview_failed permission denied` (quiet) | 2 | shard 1, shard 4 |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed duplicate key value violates unique constraint <q> ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2
+Quiet (allowlisted): definitions badHeader ×2 · definitions wrongFile ×2 · digest mismatch ×2 · preview_failed permission denied ×2
 
-Off the allowlist:
-
-### listing not found
-
-- Count: 6 · Sources: shard 3, shard 6
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
+Off the allowlist: none.
 
 ## Accessibility (DEC-084, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-10 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0 · wizard-5 desktop-1280 serious=0 critical=0
+5 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0
 
 ## Timing (DEC-087, non-gating)
 
-Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Results read: none · unavailable: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
-| Source | Started (UTC) | Wall time |
-| --- | --- | --- |
-| smoke | 2026-10-04T06:01:21.433Z | 13.2 min |
-| email | 2026-10-04T06:01:25.223Z | 0.2 min |
-| shard 1 | 2026-10-04T06:01:31.454Z | 19.5 min |
-| shard 2 | 2026-10-04T06:01:29.094Z | 19.6 min |
-| shard 3 | 2026-10-04T06:01:29.215Z | 16.1 min |
-| shard 4 | 2026-10-04T06:01:25.174Z | 17.5 min |
-| shard 5 | 2026-10-04T06:01:26.405Z | 16.7 min |
-| shard 6 | 2026-10-04T06:01:26.159Z | 12.5 min |
-| changed | 2026-10-04T06:01:30.847Z | 5.6 min |
+No timing: no source carried a results.json.
 
-| Spec file | Tests | Summed duration | Ran in |
-| --- | --- | --- | --- |
-| `post-wizard-bundle2.spec.ts` | 76 | 19.9 min | shard 2, shard 5, changed |
-| `post-wizard-specs.spec.ts` | 62 | 15.9 min | shard 3, shard 6 |
-| `shell.spec.ts` | 252 | 15.8 min | smoke, shard 3, shard 6 |
-| `admin-attributes-library.spec.ts` | 40 | 10.0 min | shard 1, shard 4 |
-| `auth-signout.spec.ts` | 44 | 8.8 min | smoke, shard 2, shard 5 |
-| `admin-attributes-editor.spec.ts` | 34 | 8.1 min | shard 1, shard 4 |
-| `post-wizard-category.spec.ts` | 40 | 7.8 min | shard 2, shard 5 |
-| `post-wizard-where.spec.ts` | 28 | 7.6 min | shard 3, shard 6 |
-| `post-wizard-place.spec.ts` | 36 | 7.6 min | shard 2, shard 5 |
-| `post-wizard-pricing.spec.ts` | 32 | 7.5 min | shard 3, shard 5 |
-| `admin-users.spec.ts` | 24 | 7.5 min | shard 2, shard 5 |
-| `admin-categories-console.spec.ts` | 32 | 7.3 min | shard 1, shard 4 |
-| `admin-categories-lifecycle.spec.ts` | 40 | 7.0 min | shard 1, shard 4 |
-| `post-wizard-resets.spec.ts` | 18 | 6.6 min | shard 3, shard 6 |
-| `import-security.spec.ts` | 34 | 6.2 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 44 | 6.2 min | shard 3, shard 6 |
-| `admin-attributes-links.spec.ts` | 22 | 6.0 min | shard 1, shard 4 |
-| `admin-attributes-import.spec.ts` | 32 | 5.6 min | shard 1, shard 4 |
-| `photo-pipeline.spec.ts` | 20 | 5.4 min | shard 2, shard 5 |
-| `admin-locations.spec.ts` | 34 | 5.2 min | shard 1, shard 4 |
-| `admin-translations-console.spec.ts` | 36 | 4.7 min | shard 1, shard 4 |
-| `admin-roles.spec.ts` | 24 | 4.5 min | shard 1, shard 4 |
-| `admin-audit.spec.ts` | 10 | 2.9 min | shard 1, shard 4 |
-| `admin-translations-data.spec.ts` | 8 | 2.9 min | shard 2, shard 5 |
-| `admin-translations-governance.spec.ts` | 8 | 2.8 min | shard 2, shard 5 |
-| `admin-countries.spec.ts` | 16 | 2.6 min | shard 1, shard 4 |
-| `mfa-stepup.spec.ts` | 18 | 2.4 min | shard 2, shard 5 |
-| `post-wizard-finder.spec.ts` | 8 | 1.5 min | shard 2, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 1.4 min | shard 2, shard 5 |
-| `admin-coverage.spec.ts` | 14 | 1.3 min | shard 1, shard 4 |
-| `admin-shell.spec.ts` | 10 | 1.2 min | shard 1, shard 4 |
-| `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `post-wizard-details.spec.ts` | 4 | 0.8 min | shard 2, shard 5 |
-| `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
-| `i18n-coverage.spec.ts` | 8 | 0.7 min | shard 2, shard 5 |
-| `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
-| `a11y.spec.ts` | 4 | 0.5 min | smoke |
-| `settings.spec.ts` | 4 | 0.5 min | shard 3 |
-| `category-nav.spec.ts` | 10 | 0.5 min | shard 2, shard 5 |
-| `rbac.spec.ts` | 6 | 0.5 min | shard 3, shard 6 |
-| `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
-| `primitives-law.spec.ts` | 24 | 0.3 min | shard 3, shard 6 |
-| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
-| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
-| `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
-| `auth-signup.spec.ts` | 1 | 0.1 min | email |
-| `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
-| `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
+## Post-test errors: email
 
-15 slowest tests:
+email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
-| Test | Project | Duration |
-| --- | --- | --- |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 44.2 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 42.6 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 40.4 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 39.7 s |
-| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | mobile-360 | 36.9 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 36.0 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 35.3 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 35.0 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 34.6 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 33.5 s |
-| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 33.4 s |
-| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 33.0 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | mobile-360 | 32.8 s |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 31.9 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 31.8 s |
+```text
+[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 4 user(s) owned by process 37183888212-email
+```
+
+## Server errors: smoke
+
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+
+## Client errors: smoke
+
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+
+## Server errors: email
+
+No `[ssr-error]` lines in the `email` log (or no log was uploaded).
+
+## Client errors: email
+
+No `[client-error]` lines in the `email` log (or no log was uploaded).
+
+## Server errors: shard 1
+
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+```
+
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## Server errors: shard 2
+
+No `[ssr-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 4
+
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+```
+
+## Client errors: shard 4
+
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 6
+
+No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## Client errors: shard 6
+
+No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- final 10 lines ---
+✓   52 [mobile-360] › e2e/shell.spec.ts:1118:3 › rail scroll regions (U0f) › drawer: items scroll, header fixed, sign out pinned (8.1s)
+  -   53 [mobile-360] › e2e/shell.spec.ts:1153:3 › rail scroll regions (U0f) › md+ rail: items scroll, header fixed
+  -   54 [mobile-360] › e2e/shell.spec.ts:1199:3 › rail scroll regions (U0f) › footer never covers the rail's Sign out
+  -   55 [mobile-360] › e2e/shell.spec.ts:1299:3 › desktop layout laws (U0g) › L1/L2: the top band and the rail stay put while content scrolls
+  -   56 [mobile-360] › e2e/shell.spec.ts:1369:3 › desktop layout laws (U0g) › L3: the footer spans the full width beneath the fixed rail
+  -   57 [mobile-360] › e2e/shell.spec.ts:1433:3 › desktop layout laws (U0g) › U0i: the rail ends at the footer top and its last item stays reachable
+  ✓   58 [mobile-360] › e2e/shell.spec.ts:1460:3 › desktop layout laws (U0g) › the tall fixture does not overflow horizontally at 360 (430ms)
+  ✓   59 [mobile-360] › e2e/shell.spec.ts:1492:3 › i18n gate is non-blocking (U4f-2) › TR-18 the header renders while the languages read is still in flight (477ms)
+  ✓   60 [mobile-360] › e2e/shell.spec.ts:1504:3 › i18n gate is non-blocking (U4f-2) › TR-18 a regular user is still redirected off /admin before the list resolves (5.3s)
+```
+
+## email: no results file
+
+email: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- final 10 lines ---
+Running 1 test using 1 worker
+
+  ✓  1 [email-serial] › e2e/auth-signup.spec.ts:121:3 › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle (4.7s)
+[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 4 user(s) owned by process 37183888212-email
+
+  1 passed (17.0s)
+```
+
+## shard 1: no results file
+
+shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- error lines (1) ---
+[e2e:setup] EN baseline probe unavailable: TypeError: fetch failed (UND_ERR_HEADERS_OVERFLOW) after 4 attempts
+--- final 10 lines ---
+✓   28 [mobile-360] › e2e/admin-attributes-import.spec.ts:1348:3 › C3 attributes console › AT-28 a categories file is refused by identity (2.9s)
+  ✓   25 [mobile-360] › e2e/admin-attributes-editor.spec.ts:1111:3 › C3 attributes console › AT-53 the allowed-values picker stores the map, reads it back, and withholds a target linked nowhere (25.6s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37183888212-1-2843-2-tsvk9d@ethio-e2e.invalid)
+  ✓   30 [mobile-360] › e2e/admin-attributes-editor.spec.ts:1261:3 › C3 attributes console › AT-54 the import dialog previews a definitions-only run and discards it (5.2s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37183888212-1-2843-2-tsvk9d@ethio-e2e.invalid)
+  ✓   29 [mobile-360] › e2e/admin-attributes-library.spec.ts:46:3 › C3 attributes console › AT-1 gating: a plain user is refused; the library renders for an admin (16.1s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37183888212-1-2843-3-tw7ivv@ethio-e2e.invalid)
+  ✓   31 [mobile-360] › e2e/admin-attributes-editor.spec.ts:1307:3 › C3 attributes console › AT-55 the option search and parent filter narrow the rows, and a save after filtering keeps every stored record (13.1s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37183888212-1-2843-2-tsvk9d@ethio-e2e.invalid)
+```
+
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+```
+
+## shard 2: no results file
+
+shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- error lines (1) ---
+[WebServer] Error in renderToReadableStream: ReferenceError: window is not defined ×4
+--- final 10 lines ---
+✓   28 [mobile-360] › e2e/auth-signin-errors.spec.ts:79:1 › B-5: one sign-in after a 12h-expired prior session lands with a session (3.4s)
+  ✓   29 [mobile-360] › e2e/auth-signout.spec.ts:58:3 › U0j sign-out hard reset › SO-1 admin: one click signs out and resets to the marketplace (11.8s)
+  ✓   26 [mobile-360] › e2e/admin-users.spec.ts:222:3 › U1 admin users › AU-3 detail: reason required, deactivate, audit row, reactivate (28.0s)
+  ✓   30 [mobile-360] › e2e/auth-signout.spec.ts:78:3 › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface (9.8s)
+  ✓   32 [mobile-360] › e2e/auth-signout.spec.ts:90:3 › U0j sign-out hard reset › SO-3 live guard: a same-tab client sign-out evacuates /admin (11.0s)
+  ✓   31 [mobile-360] › e2e/admin-users.spec.ts:269:3 › U1 admin users › AU-7 crumb: Home > Admin > Users > <name>, Users navigates back (11.2s)
+  ✓   34 [mobile-360] › e2e/admin-users.spec.ts:286:3 › U1 admin users › AU-8 own row: status controls are not offered on your own record (11.1s)
+  ✓   33 [mobile-360] › e2e/auth-signout.spec.ts:112:3 › U0j sign-out hard reset › SO-3b reload path: a cleared token means /admin never renders on mount (11.4s)
+  ✓   36 [mobile-360] › e2e/auth-signout.spec.ts:137:3 › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI (9.2s)
+```
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- final 10 lines ---
+✓   17 [mobile-360] › e2e/post-wizard-resets.spec.ts:830:3 › POSTING WIZARD › PW-32 model-dependent details reset on a model change, seller-only details survive, and Undo restores (14.1s)
+  ✓   18 [mobile-360] › e2e/post-wizard-pricing.spec.ts:567:3 › POSTING WIZARD › PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081) (24.1s)
+  ✓   19 [mobile-360] › e2e/post-wizard-resets.spec.ts:958:3 › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332) (13.4s)
+  ✓   20 [mobile-360] › e2e/post-wizard-pricing.spec.ts:601:3 › POSTING WIZARD › PW-65 the currency list opens home first and USD second, with symbols (D62-2) (13.9s)
+  ✓   21 [mobile-360] › e2e/post-wizard-specs.spec.ts:212:3 › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it (18.0s)
+  ✓   22 [mobile-360] › e2e/post-wizard-pricing.spec.ts:635:3 › POSTING WIZARD › PW-66 a pre-D62-2 'negotiable' price type saves step 1 and reaches step 3 with no refusal (INC-309) (12.5s)
+  ✓   23 [mobile-360] › e2e/post-wizard-specs.spec.ts:290:3 › POSTING WIZARD › PW-6 the AI assist fills the title and description from the entered details, and both stay editable (17.2s)
+  ✓   24 [mobile-360] › e2e/post-wizard-pricing.spec.ts:668:3 › POSTING WIZARD › PW-67 a commission basis chosen on step 5 is stored on the draft before the percentage is typed (INC-312) (16.1s)
+  ✓   25 [mobile-360] › e2e/post-wizard-specs.spec.ts:375:3 › POSTING WIZARD › PW-101 a phone number in a free-text answer is refused at its field (7.4s)
+```
+
+## shard 4: no results file
+
+shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- final 10 lines ---
+✓   30 [desktop-1280] › e2e/admin-attributes-import.spec.ts:1348:3 › C3 attributes console › AT-28 a categories file is refused by identity (3.7s)
+  ✓   29 [desktop-1280] › e2e/admin-attributes-editor.spec.ts:1261:3 › C3 attributes console › AT-54 the import dialog previews a definitions-only run and discards it (6.4s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37183888212-4-3049-3-u0nz2z@ethio-e2e.invalid)
+  ✓   32 [desktop-1280] › e2e/admin-attributes-editor.spec.ts:1307:3 › C3 attributes console › AT-55 the option search and parent filter narrow the rows, and a save after filtering keeps every stored record (17.1s)
+  ✓   31 [desktop-1280] › e2e/admin-attributes-library.spec.ts:46:3 › C3 attributes console › AT-1 gating: a plain user is refused; the library renders for an admin (18.4s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37183888212-4-3049-3-u0nz2z@ethio-e2e.invalid)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37183888212-4-3049-2-soufg8@ethio-e2e.invalid)
+  ✓   33 [desktop-1280] › e2e/admin-attributes-editor.spec.ts:1413:3 › C3 attributes console › AT-56 the constraint pickers offer only co-linked targets (9.4s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37183888212-4-3049-3-u0nz2z@ethio-e2e.invalid)
+```
+
+```text
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- final 10 lines ---
+✓   13 [desktop-1280] › e2e/auth-signout.spec.ts:90:3 › U0j sign-out hard reset › SO-3 live guard: a same-tab client sign-out evacuates /admin (12.4s)
+  ✓   15 [desktop-1280] › e2e/auth-signout.spec.ts:112:3 › U0j sign-out hard reset › SO-3b reload path: a cleared token means /admin never renders on mount (11.9s)
+  ✓   16 [desktop-1280] › e2e/auth-signout.spec.ts:137:3 › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI (10.7s)
+  ✓   14 [desktop-1280] › e2e/admin-users.spec.ts:222:3 › U1 admin users › AU-3 detail: reason required, deactivate, audit row, reactivate (27.8s)
+  ✓   17 [desktop-1280] › e2e/auth-signout.spec.ts:260:3 › U0k session policy › SP-1 idle: the warning appears, then the session is hard-reset (12.9s)
+  ✓   18 [desktop-1280] › e2e/admin-users.spec.ts:269:3 › U1 admin users › AU-7 crumb: Home > Admin > Users > <name>, Users navigates back (11.6s)
+  ✓   20 [desktop-1280] › e2e/admin-users.spec.ts:286:3 › U1 admin users › AU-8 own row: status controls are not offered on your own record (11.4s)
+  ✓   19 [desktop-1280] › e2e/auth-signout.spec.ts:273:3 › U0k session policy › SP-2 stay signed in extends past the original deadline (15.5s)
+  ✓   22 [desktop-1280] › e2e/auth-signout.spec.ts:288:3 › U0k session policy › SP-3 absolute: continuous activity does not save the session (14.2s)
+```
+
+## shard 6: no results file
+
+shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- final 10 lines ---
+✓   13 [desktop-1280] › e2e/post-wizard-specs.spec.ts:548:3 › POSTING WIZARD › PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320) (15.5s)
+  ✓   15 [desktop-1280] › e2e/post-wizard-specs.spec.ts:628:3 › POSTING WIZARD › PW-70 a strict refusal focuses the first refused field (D70) (15.2s)
+  ✓   14 [desktop-1280] › e2e/post-wizard-resets.spec.ts:560:3 › POSTING WIZARD › PW-59 a card-1 identity change restarts the form, Undo restores it, a card-2 change does not (17.0s)
+  ✓   17 [desktop-1280] › e2e/post-wizard-resets.spec.ts:702:3 › POSTING WIZARD › PW-60 a non-identity fold owner change clears only its fold child; the identity still restarts (15.1s)
+  ✓   16 [desktop-1280] › e2e/post-wizard-specs.spec.ts:655:5 › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, no-preference) (18.2s)
+  ✓   18 [desktop-1280] › e2e/post-wizard-resets.spec.ts:830:3 › POSTING WIZARD › PW-32 model-dependent details reset on a model change, seller-only details survive, and Undo restores (14.6s)
+  ✓   19 [desktop-1280] › e2e/post-wizard-specs.spec.ts:655:5 › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, reduce) (17.7s)
+  ✓   20 [desktop-1280] › e2e/post-wizard-resets.spec.ts:958:3 › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332) (13.6s)
+  ✓   22 [desktop-1280] › e2e/post-wizard-where.spec.ts:149:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-83 the ad's places: new heading, the single city box ticked, the ticked node is the item place (16.3s)
+```
