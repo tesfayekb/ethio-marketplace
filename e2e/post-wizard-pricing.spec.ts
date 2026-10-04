@@ -1075,6 +1075,56 @@ test.describe("POSTING WIZARD", () => {
     ).toHaveCount(0);
   });
 
+  test("PW-140 the title page opens with a title written from the answers, and the seller's edit survives a changed answer (bundle 4 step 12)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, set } = await dealLeaf();
+    const listingId = await dealToPrice(page, user.id, category, set);
+    await specControl(page, set.basisKey).selectOption("per_kg");
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    // The type (card rank 1) is the built title; the unit (a deal row) never enters it.
+    const builtTitle = set.typeValue.replace(/_narrow$/, " narrow");
+    const titleBox = page.getByTestId("post-title");
+    await expect(titleBox, "PW-140: the title was not written from the answers").toHaveValue(
+      builtTitle,
+      { timeout: 20_000 },
+    );
+    await expect(page.getByTestId("post-title-built")).toBeVisible();
+    await titleBox.click();
+    await titleBox.press("End");
+    await titleBox.pressSequentially(" own");
+    await expect(page.getByTestId("post-title-built")).toHaveCount(0);
+    await expect
+      .poll(
+        async () => {
+          const { data } = await adminClient()
+            .from("listings")
+            .select("title")
+            .eq("id", listingId)
+            .single();
+          return data?.title;
+        },
+        { message: "PW-140: the seller's edit was not stored", timeout: 20_000 },
+      )
+      .toBe(`${builtTitle} own`);
+    // Back to the specifications page, change the answer, forward again.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-back").click();
+    await expect(specControl(page, set.typeKey)).toBeVisible({ timeout: 20_000 });
+    await specControl(page, set.typeKey).selectOption(`${set.typeValue.replace(/_narrow$/, "")}_open`);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await expect(titleBox, "PW-140: the seller's edit was overwritten").toHaveValue(
+      `${builtTitle} own`,
+    );
+  });
+
   /**
    * U6-C1-R1 — ONE searchable currency control, already carrying an answer.
    *
