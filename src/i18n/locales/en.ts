@@ -2228,10 +2228,12 @@ export const en = {
   "post.who.nameHint": "Buyers see your seller name, not this. We keep it for your account.",
   "post.who.nameBusinessHint": "Optional for a business — the business name is what buyers see.",
   "post.who.messagesOnBadge": "Always on",
-  "post.who.messagesEveryBuyer": "Every buyer can write to you here. We email you when a message arrives.",
+  "post.who.messagesEveryBuyer":
+    "Every buyer can write to you here. We email you when a message arrives.",
   "post.who.messagesCannotOff": "This cannot be turned off.",
   "post.who.optionalHeading": "Optional: phone, WhatsApp or Telegram",
-  "post.who.optionalLine": "Buyers reach you faster with a number. It is shown only if you tick the box beside it, and only to buyers who are signed in.",
+  "post.who.optionalLine":
+    "Buyers reach you faster with a number. It is shown only if you tick the box beside it, and only to buyers who are signed in.",
   "post.who.showToSignedIn": "Show to signed-in buyers",
   "post.who.countryWhereHint": "Where you live. We use it for your default currency.",
   "post.who.phoneLibFailed": "The phone box could not be loaded.",

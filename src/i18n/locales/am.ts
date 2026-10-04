@@ -2133,7 +2133,8 @@ export const am: Messages = {
   "post.who.messagesEveryBuyer": "ማንኛውም ገዢ እዚህ ሊጽፍልዎት ይችላል። መልዕክት ሲመጣ በኢሜይል እናሳውቅዎታለን።",
   "post.who.messagesCannotOff": "ይህ ሊጠፋ አይችልም።",
   "post.who.optionalHeading": "አማራጭ፦ ስልክ፣ WhatsApp ወይም Telegram",
-  "post.who.optionalLine": "በቁጥር ገዢዎች በፍጥነት ያገኙዎታል። የሚታየው ከጎኑ ያለውን ሳጥን ምልክት ካደረጉ ብቻ ነው፣ ለገቡ ገዢዎች ብቻ።",
+  "post.who.optionalLine":
+    "በቁጥር ገዢዎች በፍጥነት ያገኙዎታል። የሚታየው ከጎኑ ያለውን ሳጥን ምልክት ካደረጉ ብቻ ነው፣ ለገቡ ገዢዎች ብቻ።",
   "post.who.showToSignedIn": "ለገቡ ገዢዎች አሳይ",
   "post.who.countryWhereHint": "የሚኖሩበት። ለነባሪ ገንዘብዎ እንጠቀምበታለን።",
   "post.who.phoneLibFailed": "የስልክ ሳጥኑ ሊጫን አልቻለም።",
