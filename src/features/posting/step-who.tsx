@@ -56,7 +56,7 @@ import { checkChannel, normalizeTelegram } from "./validate";
  * subset and leaves the fields it was not given alone.
  */
 
-const ALIAS_DEBOUNCE_MS = 700;
+const ALIAS_DEBOUNCE_MS = 350;
 /** Bundle 2 Q2 — `phone2` is the optional second phone, revealed on request. */
 const CHANNELS = ["phone", "phone2", "telegram", "whatsapp"] as const;
 type Channel = (typeof CHANNELS)[number];
@@ -111,6 +111,18 @@ function channelOf(
 /** Bundle 2 Q3 — whether a draft's contact already holds a channel value. */
 function hasChannelValue(pref: Record<string, unknown>): boolean {
   return CHANNELS.some((channel) => channelOf(pref, channel).value !== "");
+}
+
+/**
+ * Bundle 4 step 23 — the channels compared the way the profile keeps them:
+ * each channel's value and show switch. Equal channels make no identity call.
+ */
+export function sameChannels(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+  return CHANNELS.every((channel) => {
+    const left = channelOf(a, channel);
+    const right = channelOf(b, channel);
+    return left.value === right.value && left.show === right.show;
+  });
 }
 
 export function StepWho({
@@ -222,6 +234,7 @@ export function StepWho({
         return;
       }
       setIdentity(found);
+      profileContactRef.current = found.contactPrefs;
       setAlias(found.alias ?? "");
       aliasBoxRef.current = found.alias ?? "";
       checkedAliasRef.current = found.alias ?? "";
@@ -282,6 +295,8 @@ export function StepWho({
   const defaultIso = itemCountry ?? country;
   const carryAskedRef = useRef(false);
   const contactRef = useRef(contactPref);
+  /** Bundle 4 step 23 — the channels the profile holds, as last read or saved. */
+  const profileContactRef = useRef<Record<string, unknown>>({});
   contactRef.current = contactPref;
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
@@ -425,23 +440,32 @@ export function StepWho({
           if (aliasState !== "refused") checkAlias(next);
           return false;
         }
-        const answer = await commit({ alias: next });
-        if (!aliveRef.current) return answer.ok;
-        if (!answer.ok) {
+      /**
+       * Bundle 4 step 23 (INC-424, ruling item 3) — the contact details live on
+       * the profile. ONE identity call carries what differs from the profile:
+       * the claimed name, the channels, or both; nothing differing makes no call.
+       * A refusal lands on its own control (`alias` / `contact_pref.<channel>`).
+       */
+      const nameChanged = next !== "" && next !== checkedAliasRef.current;
+      const pref = contactRef.current;
+      const channelsChanged = !sameChannels(pref, profileContactRef.current);
+      if (!nameChanged && !channelsChanged) return true;
+      const answer = await commit({
+        ...(nameChanged ? { alias: next } : {}),
+        ...(channelsChanged ? { contactPref: pref } : {}),
+      });
+      if (!aliveRef.current) return answer.ok;
+      if (!answer.ok) {
+        if (nameChanged && refusalFor(answer.refusals, "alias") !== null) {
           setAliasCheckRefusal(refusalFor(answer.refusals, "alias"));
           setAliasState("refused");
           offerSuggestions();
-          return false;
         }
-        checkedAliasRef.current = next;
+        return false;
       }
-      /**
-       * Bundle 4 step 23 (INC-424) — the contact details live on the profile:
-       * leaving the step saves them there through the same door, and a refusal
-       * lands on the channel's own control (`contact_pref.<channel>`).
-       */
-      const contactAnswer = await commit({ contactPref: contactRef.current });
-      return contactAnswer.ok;
+      if (nameChanged) checkedAliasRef.current = next;
+      if (channelsChanged) profileContactRef.current = pref;
+      return true;
     };
     return () => {
       saveRef.current = null;
