@@ -419,6 +419,29 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     .filter((url): url is string => url !== null)
     .slice(0, 3);
 
+  function goNext() {
+    void (async () => {
+      const saved = await draft.saveAt(draft.step);
+      if (!saved) return;
+      if (returnToReview) {
+        setReturnToReview(false);
+        draft.goTo(TOTAL_STEPS);
+        return;
+      }
+      draft.goTo(nextOf(draft.step));
+    })();
+  }
+
+  /* Rulings 4 item 4 — a queued Next is judged once the identity read answers. */
+  useEffect(() => {
+    if (!whoQueued || whoGate === "pending") return;
+    setWhoQueued(false);
+    if (draft.step !== 7) return;
+    if (whoGate === "blocked") setWhoTried((n) => n + 1);
+    else goNext();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fires on the gate's answer only
+  }, [whoQueued, whoGate]);
+
   return (
     <PageShell as="main" width="full" data-testid="post-page-shell">
       <SplitLayout
