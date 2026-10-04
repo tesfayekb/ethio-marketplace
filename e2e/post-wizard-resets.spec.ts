@@ -237,7 +237,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(pw26Picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
     await pw26Picker.selectOption(spec.optionValues[0] ?? "");
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
       .poll(async () => Object.keys(await attributesOf(listingId)).length, {
         message: "PW-26: the answers never reached the draft",
@@ -411,8 +411,8 @@ test.describe("POSTING WIZARD", () => {
         })
         .toMatchObject({ amount: 4100, currency: code });
 
-      // Back to step 1 (5 → 4 → 2 → 3 → 1), then leaf B, then Undo.
-      for (let hop = 0; hop < 4; hop += 1) await page.getByTestId("post-back").click();
+      // Back to step 1 (4 → 2 → 3 → 1), then leaf B, then Undo.
+      for (let hop = 0; hop < 3; hop += 1) await page.getByTestId("post-back").click();
       await expect(page.getByTestId("post-step-1")).toBeVisible();
       await chooseBySearch(page, second.slug, second.id, false);
       await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
@@ -427,6 +427,9 @@ test.describe("POSTING WIZARD", () => {
         .toBe(4100);
       expect((await pricingOf(listingId)).currency, "PW-73: Undo moved the currency").toBe(code);
       await nextThroughPhotos(page);
+      // The restored price passes the price page (4); Next opens the title page (5).
+      await expect(page.getByTestId("post-step-4")).toBeVisible();
+      await page.getByTestId("post-next").click();
       await expect(page.getByTestId("post-step-5")).toBeVisible();
       await expect(page.getByTestId("post-title"), "PW-73: Undo lost the title").toHaveValue(
         "e2e c2a listing title",
@@ -500,12 +503,12 @@ test.describe("POSTING WIZARD", () => {
     const { listingId, first, spec, typedValue } = await answeredThenMoved(page);
 
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
-    await expect(page.getByTestId("post-title"), "PW-61: the title survived").toHaveValue("");
-    await expect(
-      page.getByTestId("post-description"),
-      "PW-61: the description survived",
-    ).toHaveValue("");
+    // DEC-109 — photos lead to the price page (4); the title page (5) is past a
+    // price, so the cleared title and description are read as DB truth (J4).
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect
+      .poll(async () => await textOf(listingId), { message: "PW-61: the title or description survived" })
+      .toMatchObject({ title: null, description: null });
     await expect
       .poll(async () => (await pricingOf(listingId)).amount, {
         message: "PW-61: the amount survived the reset",
@@ -964,7 +967,11 @@ test.describe("POSTING WIZARD", () => {
     const category = await leaf();
     await reachStep3(page, user.id, category);
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    // DEC-109 — a free price passes the price page (4) to the title page (5).
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-title").fill("e2e inc332 listing title");
     await page.getByTestId("post-description").fill("e2e inc332 listing description");
     await page.getByTestId("post-title").fill("");
