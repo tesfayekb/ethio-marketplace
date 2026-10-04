@@ -1,3 +1,4 @@
+import { dealLines } from "../deal-lines";
 import { lazy, Suspense } from "react";
 import { SellerLine } from "../seller-line";
 
@@ -20,7 +21,7 @@ import { fill } from "../refusal-text";
 import { attributeDisplayValue } from "../attribute-display";
 import type { AttrOption } from "../attribute-options";
 import type { AttrDef, DraftPhotoRow } from "../posting-service";
-import type { PricePeriod } from "../types";
+import type { DealLists, PricePeriod } from "../types";
 import type { MessageKey } from "@/i18n";
 
 /**
@@ -75,6 +76,8 @@ export interface ListingDetailView {
   priceBp?: number | null;
   /** DEC-079 — the basis option's label for "per <basis>". */
   basisLabel?: string | null;
+  /** Bundle 4 step 10 — the door's deal lists: the size and terms lines under the price. */
+  deal?: DealLists | null;
   /** DEC-081 — "Price is negotiable", shown as a badge beside the price. */
   priceNegotiable?: boolean;
   attributes: Record<string, unknown>;
@@ -125,6 +128,16 @@ export function ListingDetail(view: ListingDetailView) {
       ),
     );
 
+  const dealText = dealLines({
+    deal: view.deal ?? null,
+    attributes: view.attributes,
+    definitions: view.definitions,
+    attributeOptions: view.attributeOptions,
+    unit: view.basisLabel ?? null,
+    language,
+    entities,
+    t,
+  });
   // Bundle 4 step 10 — the one shared price line.
   const priceLine = sharedPriceLine(
     {
@@ -208,6 +221,20 @@ export function ListingDetail(view: ListingDetailView) {
         </p>
         {view.priceNegotiable === true && <NegotiableBadge />}
       </div>
+      {dealText.size !== null && (
+        <p className="text-sm text-muted-foreground" data-testid="listing-detail-deal-size">
+          {dealText.size}
+        </p>
+      )}
+      {dealText.terms.map((line) => (
+        <p
+          key={line}
+          className="text-sm text-muted-foreground"
+          data-testid="listing-detail-deal-term"
+        >
+          {line}
+        </p>
+      ))}
       {places.length > 0 && (
         <p className="text-sm text-muted-foreground" data-testid="listing-detail-places">
           {places.join(", ")}

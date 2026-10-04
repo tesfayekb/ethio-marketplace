@@ -2193,6 +2193,7 @@ export const en = {
   "post.review.noTitle": "No title yet",
   "post.review.noPrice": "No price yet",
   "post.review.priceLine": "{amount} {currency} {period}",
+  "post.review.sizeLine": "One {unit}: {values}",
   "post.review.pricePer": "{amount} {currency} per {basis}",
   "post.review.channels": "{count} ways to reach you",
   "post.review.publish": "Publish",

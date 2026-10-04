@@ -27,7 +27,7 @@ import {
 import { PreviewSheet } from "./preview/preview-sheet";
 import { SellerLine } from "./seller-line";
 import type { DraftValues } from "./use-draft";
-import type { Refusal } from "./types";
+import type { DealLists, Refusal } from "./types";
 
 /**
  * U6-C2b — STEP 8: REVIEW & PUBLISH (spec §4 B2 step 8).
@@ -103,6 +103,7 @@ export function StepReview({
   directions = null,
   basisLabel = null,
   basisKey = null,
+  deal = null,
 }: {
   listingId: string | null;
   /** The chosen category's full path, in the seller's language. */
@@ -133,6 +134,8 @@ export function StepReview({
   basisLabel?: string | null;
   /** D62-2 — the leaf's pricing-basis key: its answer reads under Price, not Specifications. */
   basisKey?: string | null;
+  /** Bundle 4 step 10 — the door's deal lists; their answers read under Price. */
+  deal?: DealLists | null;
 }) {
   const { t, entities, language } = useI18n();
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
@@ -225,7 +228,15 @@ export function StepReview({
     )}`;
   };
   const attrLine = Object.entries(values.attributes)
-    .filter(([key]) => key !== basisKey)
+    // Bundle 4 step 10 — the deal rows read under Price, not Specifications.
+    .filter(
+      ([key]) =>
+        key !== basisKey &&
+        !(
+          deal !== null &&
+          [...deal.basis, ...deal.size, ...deal.quantity, ...deal.terms].includes(key)
+        ),
+    )
     .map(describe)
     .join(" · ");
   /** D62-2 — the basis answer, said under Price (the step that now asks it). */
@@ -411,6 +422,7 @@ export function StepReview({
         pricePeriod={values.pricePeriod}
         priceBp={values.priceBp}
         basisLabel={basisLabel}
+        deal={deal}
         priceNegotiable={values.priceNegotiable}
         attributes={values.attributes}
         definitions={definitions}
@@ -447,6 +459,7 @@ export function StepReview({
             pricePeriod: values.pricePeriod,
             priceBp: values.priceBp,
             basisLabel,
+            deal,
             priceNegotiable: values.priceNegotiable,
             attributes: values.attributes,
             definitions,
