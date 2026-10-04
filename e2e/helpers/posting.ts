@@ -2606,3 +2606,125 @@ export async function seedWriteInSet(categoryId: string): Promise<WriteInSet> {
     attrKeys: [kind, brand, textRequired, textOptional, colour].map((a) => a.attrKey),
   };
 }
+
+/**
+ * Bundle 4 step 9 — A SCRATCH DEAL SET, keyed by the door's family names
+ * (`deal_group`, M5): a type picker drawn on step 3 whose one option allows only
+ * per_kg and per_pack, a required `unit_of_sale-<stem>` unit with no default, a
+ * `pack_quantity-<stem>` size row shown only when the unit is per_pack, and a
+ * `lease_term-<stem>` terms row. `noUnit` instead links one `volume_ml-<stem>`
+ * row and no unit, so the door files it under no deal group (step 9's fourth
+ * test). Scratch only (G27); the caller reaps `attrKeys` with `destroySpecSet`.
+ */
+export interface DealSet {
+  typeKey: string;
+  typeValue: string;
+  basisKey: string;
+  packKey: string;
+  termKey: string;
+  termName: string;
+  volumeKey: string;
+  attrKeys: string[];
+}
+
+export async function seedDealSet(
+  categoryId: string,
+  shape: { noUnit?: boolean } = {},
+): Promise<DealSet> {
+  const stem = `e2e_${Date.now().toString(36)}${rand()}`;
+  const typeKey = `${stem}_type`;
+  const typeValue = `${stem}_narrow`;
+  const basisKey = `unit_of_sale-${stem}`;
+  const packKey = `pack_quantity-${stem}`;
+  const termKey = `lease_term-${stem}`;
+  const termName = `${stem} lease`;
+  const volumeKey = `volume_ml-${stem}`;
+  const supabase = adminClient();
+  const rows = shape.noUnit
+    ? [{ attr_key: volumeKey, name_en: `${stem} volume`, attr_type: "number", unit: "ml" }]
+    : [
+        {
+          attr_key: typeKey,
+          name_en: `${stem} type`,
+          attr_type: "single_select",
+          options: [
+            {
+              value: typeValue,
+              label_en: `${stem} narrow`,
+              label_am: `${stem} ጠባብ`,
+              allowed: { [basisKey]: ["per_kg", "per_pack"] },
+            },
+            { value: `${stem}_open`, label_en: `${stem} open`, label_am: `${stem} ክፍት` },
+          ],
+        },
+        {
+          attr_key: basisKey,
+          name_en: `${stem} unit`,
+          attr_type: "single_select",
+          options: ["per_kg", "per_litre", "per_piece", "per_pack"].map((token) => ({
+            value: token,
+            label_en: `Per ${token.slice(4)}`,
+            label_am: `በ${token.slice(4)}`,
+          })),
+        },
+        { attr_key: packKey, name_en: `${stem} pack`, attr_type: "number", unit: "pieces" },
+        { attr_key: termKey, name_en: termName, attr_type: "number", unit: "months" },
+      ];
+  const { data, error } = await supabase.from("attributes").insert(rows).select("id, attr_key");
+  if (error || !data) throw new Error(`[e2e:b4s9] seeding failed: ${error?.message}`);
+  const idOf = (key: string) => {
+    const row = data.find((entry) => entry.attr_key === key);
+    if (!row) throw new Error(`[e2e:b4s9] ${key} missing after seed`);
+    return row.id;
+  };
+  const links = shape.noUnit
+    ? [
+        {
+          category_id: categoryId,
+          attribute_id: idOf(volumeKey),
+          is_required: false,
+          display_order: 100,
+        },
+      ]
+    : [
+        {
+          category_id: categoryId,
+          attribute_id: idOf(typeKey),
+          is_required: true,
+          card_rank: 1,
+          display_order: 100,
+        },
+        {
+          category_id: categoryId,
+          attribute_id: idOf(basisKey),
+          is_required: true,
+          card_rank: 2,
+          display_order: 101,
+        },
+        {
+          category_id: categoryId,
+          attribute_id: idOf(packKey),
+          is_required: false,
+          display_order: 102,
+          visible_when: { key: basisKey, in: ["per_pack"] },
+        },
+        {
+          category_id: categoryId,
+          attribute_id: idOf(termKey),
+          is_required: false,
+          display_order: 103,
+        },
+      ];
+  const { error: linkError } = await supabase.from("category_attribute_links").insert(links);
+  if (linkError) throw new Error(`[e2e:b4s9] linking failed: ${linkError.message}`);
+  return {
+    typeKey,
+    typeValue,
+    basisKey,
+    packKey,
+    termKey,
+    termName,
+    volumeKey,
+    attrKeys: data.map((row) => row.attr_key),
+  };
+}

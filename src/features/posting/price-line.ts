@@ -6,7 +6,7 @@ import { fill } from "./refusal-text";
  * Bundle 4 step 10 — THE ONE PRICE LINE. The card, the wizard's preview, the
  * review and the detail print a price through this function only:
  * "<amount> <currency> per <unit>" when the listing holds a unit with a noun,
- * else the period as before, else the amount alone. Commission, free and
+ * else the period through the same template, else the amount alone. Commission, free and
  * contact keep their own words. `empty` is what a surface prints for a fixed
  * price with no amount (each surface keeps its own word for that).
  */
@@ -49,12 +49,15 @@ export function priceLine(
   if (input.unit !== null && input.unit.trim() !== "") {
     return fill(t("post.review.pricePer"), { amount, currency, basis: input.unit.trim() });
   }
+  // Turn 5 item 1 — the period runs through the unit's own template, with the
+  // noun of the period label ("per day" / "በቀን"); a one-off prints the amount.
   const periodKey = input.period === null ? undefined : PERIOD_KEYS[input.period];
-  return fill(t("post.review.priceLine"), {
-    amount,
-    currency,
-    period: periodKey === undefined || input.period === "once" ? "" : t(periodKey),
-  })
+  const periodNoun =
+    periodKey === undefined || input.period === "once" ? null : basisNoun(t(periodKey));
+  if (periodNoun !== null) {
+    return fill(t("post.review.pricePer"), { amount, currency, basis: periodNoun });
+  }
+  return fill(t("post.review.priceLine"), { amount, currency, period: "" })
     .replace(/\s+/g, " ")
     .trim();
 }

@@ -17,9 +17,9 @@ describe("bundle 4 step 10 — the one price line", () => {
   const rows: [string, Partial<PriceLineInput>, string][] = [
     ["a unit with a noun prints per unit", { unit: "kg" }, "4,100 ETB per kg"],
     ["a unit outranks the period", { unit: "pack", period: "month" }, "4,100 ETB per pack"],
-    ["no unit prints the period", { period: "day" }, "4,100 ETB Per day"],
+    ["no unit prints the period", { period: "day" }, "4,100 ETB per day"],
     ["no unit and a one-off price prints the amount alone", {}, "4,100 ETB"],
-    ["a blank unit falls back to the period", { unit: "  ", period: "week" }, "4,100 ETB Per week"],
+    ["a blank unit falls back to the period", { unit: "  ", period: "week" }, "4,100 ETB per week"],
     ["free", { mode: "free" }, "Free"],
     ["contact", { mode: "contact" }, "Contact for price"],
     ["commission", { mode: "commission", amount: null, bp: 250 }, "2.5% commission"],

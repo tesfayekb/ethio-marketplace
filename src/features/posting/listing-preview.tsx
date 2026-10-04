@@ -57,6 +57,7 @@ export function ListingPreview({
   priceBp = null,
   basisLabel = null,
   deal = null,
+  dealDefinitions,
   priceNegotiable = false,
   attributes,
   definitions,
@@ -78,6 +79,8 @@ export function ListingPreview({
   basisLabel?: string | null;
   /** Bundle 4 step 10 — the door's deal lists: the size and terms lines under the price. */
   deal?: DealLists | null;
+  /** Turn 5 item 2 — definitions for the size and terms lines only (defaults to `definitions`). */
+  dealDefinitions?: AttrDef[];
   /** DEC-081 — "Price is negotiable", shown as a badge beside the price. */
   priceNegotiable?: boolean;
   attributes: Record<string, unknown>;
@@ -108,7 +111,7 @@ export function ListingPreview({
   const dealText = dealLines({
     deal,
     attributes,
-    definitions,
+    definitions: dealDefinitions ?? definitions,
     attributeOptions,
     unit: basisLabel,
     language,

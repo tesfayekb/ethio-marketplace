@@ -74,3 +74,26 @@ describe("bundle 4 step 10 — the deal lines under the price", () => {
     ).toEqual({ size: null, terms: [] });
   });
 });
+
+describe("turn 5 item 2 — a choice is never printed as a raw token", () => {
+  const choice = def("deposit_terms", "Deposit", null, "single_select");
+  const call = (options: Record<string, { value: string; labelEn: string }[]>) =>
+    dealLines({
+      deal: { basis: [], size: [], quantity: [], terms: ["deposit_terms"] },
+      attributes: { deposit_terms: "two_months" },
+      definitions: [choice],
+      attributeOptions: options as never,
+      unit: null,
+      language: "en",
+      entities,
+      t,
+    }).terms;
+  it("a choice whose label is not held prints nothing", () => {
+    expect(call({})).toEqual([]);
+  });
+  it("a choice whose label is held prints the label", () => {
+    expect(call({ deposit_terms: [{ value: "two_months", labelEn: "Two months" }] })).toEqual([
+      "Deposit: Two months",
+    ]);
+  });
+});

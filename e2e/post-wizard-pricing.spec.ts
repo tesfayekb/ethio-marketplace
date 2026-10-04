@@ -25,7 +25,10 @@ import {
   seedSpecSet,
   seedBasisSet,
   priceBpOf,
+  attributesOf,
+  seedDealSet,
   type BasisSet,
+  type DealSet,
   stopPageBeforePurge,
 } from "./helpers/posting";
 
@@ -452,7 +455,7 @@ test.describe("POSTING WIZARD", () => {
       `[data-testid="listing-card"][data-listing="${listingId}"] [data-testid="listing-card-price"]`,
     );
     await expect(price).toHaveAttribute("data-period", "day");
-    await expect(price).toContainText("Per day");
+    await expect(price).toContainText("per day");
   });
 
   test("PW-57 a per-quintal basis keeps the period once and reviews as a price per quintal", async ({
@@ -899,6 +902,178 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-7")).toBeVisible();
     return listingId;
   }
+
+  /* ===== Bundle 4 step 9 — the specifications page draws every row but the deal rows ===== */
+
+  async function dealLeaf(shape: { noUnit?: boolean } = {}) {
+    const category = await leaf();
+    const set = await seedDealSet(category.id, shape);
+    specs.push(...set.attrKeys);
+    return { category, set };
+  }
+
+  /** Step 3 with the type answered, then on to the price page (step 4). */
+  async function dealToPrice(
+    page: Page,
+    userId: string,
+    category: { id: string; slug: string },
+    set: DealSet,
+  ) {
+    const listingId = await reachStep3(page, userId, category);
+    const type = specControl(page, set.typeKey);
+    await expect(type.locator(`option[value="${set.typeValue}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await type.selectOption(set.typeValue);
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.typeKey], {
+        message: "step 9: the type answer was not stored",
+        timeout: 20_000,
+      })
+      .toBe(set.typeValue);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await expect(specControl(page, set.basisKey)).toBeVisible({ timeout: 20_000 });
+    return listingId;
+  }
+
+  test("PW-136 a product type that allows only some units narrows the unit list on the price page (bundle 4 step 9)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, set } = await dealLeaf();
+    await dealToPrice(page, user.id, category, set);
+    const basis = specControl(page, set.basisKey);
+    for (const token of ["per_kg", "per_pack"]) {
+      await expect(
+        basis.locator(`option[value="${token}"]`),
+        `PW-136: ${token} is not offered`,
+      ).toHaveCount(1);
+    }
+    for (const token of ["per_litre", "per_piece"]) {
+      await expect(
+        basis.locator(`option[value="${token}"]`),
+        `PW-136: ${token} is still offered`,
+      ).toHaveCount(0);
+    }
+  });
+
+  test("PW-137 Pieces per Pack shows with per pack and goes, with its value, on another unit; the size and terms lines read under the price (bundle 4 steps 9, 10)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, set } = await dealLeaf();
+    const listingId = await dealToPrice(page, user.id, category, set);
+    // The deal rows are not asked on the specifications page.
+    const pack = specControl(page, set.packKey);
+    await expect(pack, "PW-137: the pack row shows before per pack").toHaveCount(0);
+    await specControl(page, set.basisKey).selectOption("per_pack");
+    await expect(pack, "PW-137: the pack row did not show for per pack").toBeVisible({
+      timeout: 20_000,
+    });
+    await pack.fill("12");
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.packKey], {
+        message: "PW-137: the pack size was not stored",
+        timeout: 20_000,
+      })
+      .toBe(12);
+    await specControl(page, set.basisKey).selectOption("per_kg");
+    await expect(pack, "PW-137: the pack row stayed for per kg").toHaveCount(0, {
+      timeout: 20_000,
+    });
+    await expect
+      .poll(async () => set.packKey in (await attributesOf(listingId)), {
+        message: "PW-137: the pack size outlived its unit",
+        timeout: 20_000,
+      })
+      .toBe(false);
+    // Back to per pack, a size and a term, then to review.
+    await specControl(page, set.basisKey).selectOption("per_pack");
+    await expect(pack).toBeVisible({ timeout: 20_000 });
+    await pack.fill("12");
+    await specControl(page, set.termKey).fill("6");
+    await page.getByTestId("post-price-mode-fixed").click();
+    await page.getByTestId("post-price-amount").fill("500");
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.termKey], {
+        message: "PW-137: the term was not stored",
+        timeout: 20_000,
+      })
+      .toBe(6);
+    await pricingToReview(page);
+    const review = page.getByTestId("post-review-preview");
+    await expect(
+      review.getByTestId("post-review-deal-size"),
+      "PW-137: no size line on review",
+    ).toContainText("12 pieces");
+    await expect(
+      review.getByTestId("post-review-deal-term"),
+      "PW-137: no terms line on review",
+    ).toContainText(`${set.termName}: 6 months`);
+    await page.getByTestId("post-preview-open").click();
+    const detail = page.getByTestId("post-preview-sheet");
+    await expect(
+      detail.getByTestId("listing-detail-deal-size"),
+      "PW-137: no size line for the buyer",
+    ).toContainText("12 pieces");
+    await expect(
+      detail.getByTestId("listing-detail-deal-term"),
+      "PW-137: no terms line for the buyer",
+    ).toContainText(`${set.termName}: 6 months`);
+  });
+
+  test("PW-138 a required unit left empty is refused on the price page's Next, not on the specifications page's (bundle 4 step 9)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, set } = await dealLeaf();
+    const listingId = await reachStep3(page, user.id, category);
+    await specControl(page, set.typeKey).selectOption(set.typeValue);
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-step-2"),
+      "PW-138: specifications refused the empty unit",
+    ).toBeVisible({
+      timeout: 20_000,
+    });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-refusal-summary"),
+      "PW-138: the empty unit was not refused",
+    ).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(
+      page.getByTestId("post-step-4"),
+      "PW-138: the price page let an empty unit through",
+    ).toBeVisible();
+    expect(
+      (await attributesOf(listingId))[set.basisKey],
+      "PW-138: a unit was stored",
+    ).toBeUndefined();
+  });
+
+  test("PW-139 a category with no unit still asks Volume on the specifications page (bundle 4 step 9)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, set } = await dealLeaf({ noUnit: true });
+    await reachStep3(page, user.id, category);
+    await expect(
+      specControl(page, set.volumeKey),
+      "PW-139: Volume is not asked on specifications",
+    ).toBeVisible();
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      specControl(page, set.volumeKey),
+      "PW-139: Volume moved to the price page",
+    ).toHaveCount(0);
+  });
 
   /**
    * U6-C1-R1 — ONE searchable currency control, already carrying an answer.
