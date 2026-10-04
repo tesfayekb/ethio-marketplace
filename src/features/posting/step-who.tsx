@@ -223,6 +223,7 @@ export function StepWho({
       }
       setIdentity(found);
       setAlias(found.alias ?? "");
+      aliasBoxRef.current = found.alias ?? "";
       checkedAliasRef.current = found.alias ?? "";
       setSellerType(found.sellerType ?? "person");
       setBusinessName(found.businessName ?? "");
@@ -471,7 +472,6 @@ export function StepWho({
   const unreadPhone = phoneLibFailed && pendingPhones.length > 0;
   const blocked = !countryLocked || unreadPhone;
   const identityPending = identity === null && !identityFailed;
-  aliasBoxRef.current = alias;
   const gate = identityPending ? "pending" : blocked ? "blocked" : "open";
   const onBlockedRef = useRef(onBlocked);
   onBlockedRef.current = onBlocked;
@@ -592,6 +592,7 @@ export function StepWho({
               onChange={(event) => {
                 const next = event.target.value.toLowerCase();
                 setAlias(next);
+                aliasBoxRef.current = next;
                 checkAlias(next);
               }}
             />
@@ -664,6 +665,7 @@ export function StepWho({
                     className={smallButtonClass}
                     onClick={() => {
                       setAlias(name);
+                      aliasBoxRef.current = name;
                       checkAlias(name);
                     }}
                   >
