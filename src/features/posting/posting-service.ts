@@ -196,7 +196,7 @@ export interface DraftRow {
   description: string | null;
   videoUrl: string | null;
   attributes: Record<string, unknown>;
-  /** U6-C2a — step 5's stored answers, so a resume opens on what was saved. */
+  /** U6-C2a — the price step (4)'s stored answers, so a resume opens on what was saved. */
   priceMode: string | null;
   priceAmount: number | null;
   priceCurrency: string | null;
@@ -528,7 +528,7 @@ export interface PostingSchema {
   /**
    * U6-C2a — the `category` block the read already carried and step 1 never used:
    * what the CATEGORY decides about price, period, poster window and
-   * capabilities. Step 5 mirrors every one of them (the door still decides).
+   * capabilities. The price step (4) mirrors every one of them (the door still decides).
    */
   category: CategoryFacts | null;
   /** D22 — the caller's own plan caps; `null` when the read carries no block. */
@@ -573,6 +573,19 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
     visibleWhen: shapeCondition(row["visible_when"]),
     cardRank: int(row, "card_rank"),
   };
+}
+
+/** DEC-109 — the door's `deal` block; a missing or malformed list reads as empty. */
+function shapeDeal(raw: unknown): CategoryFacts["deal"] {
+  const row =
+    raw !== null && typeof raw === "object" && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>)
+      : {};
+  const list = (key: string): string[] =>
+    Array.isArray(row[key])
+      ? (row[key] as unknown[]).filter((entry): entry is string => typeof entry === "string")
+      : [];
+  return { basis: list("basis"), size: list("size"), quantity: list("quantity"), terms: list("terms") };
 }
 
 /** D24 — a condition is used ONLY when it carries both halves; anything else is
@@ -658,6 +671,7 @@ function shapePostingSchema(data: unknown): PostingSchema | null {
             expiryDays: int(block, "expiry_days"),
             capabilities,
             priceBasisKey: str(block, "price_basis_key"),
+            deal: shapeDeal(block["deal"]),
           },
   };
 }

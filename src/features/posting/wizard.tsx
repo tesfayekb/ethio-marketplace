@@ -21,12 +21,12 @@ import { StepPricing } from "./step-pricing";
 import { StepWhere } from "./step-where";
 import { StepWho } from "./step-who";
 import { StepReview } from "./step-review";
-import { StepSpecifications } from "./step-specifications";
+import { StepSpecifications, type DealGroup } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
 import { MobileStepStrip } from "./mobile-step-strip";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { answerOtherText } from "./answer-tokens";
-import { basisNoun, basisToken, isUnitOfSaleKey } from "./price-basis";
+import { basisInForce, basisNoun, basisToken } from "./price-basis";
 import {
   clearPin,
   readPlaceCountry,
@@ -57,6 +57,7 @@ import {
   SEQUENCE,
   STEPS,
   TOTAL_STEPS,
+  isStepFinished,
   nextOf,
   positionOf,
   prevOf,
@@ -109,7 +110,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
 
   /**
    * U6-C2a — WHAT THE CATEGORY DECIDES, read once per category from the same
-   * public posting read step 1 and step 3 already use. Step 5 mirrors it; the
+   * public posting read step 1 and step 3 already use. Step 4 mirrors it; the
    * door remains the authority (F3).
    */
   const [facts, setFacts] = useState<CategoryFacts | null>(null);
@@ -145,8 +146,8 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   }, [pinCarried, facts, draft.listingId]);
   /** D22 — the seller's plan caps, as the posting document reports them. */
   const [planCaps, setPlanCaps] = useState<PlanCaps | null>(null);
-  /** DEC-079 — the leaf's ONE pricing-basis definition, from the same read. */
-  const [basisDef, setBasisDef] = useState<AttrDef | null>(null);
+  /** DEC-109 — the leaf's definitions, from the same read: the basis in force is judged on them. */
+  const [definitions, setDefinitions] = useState<AttrDef[]>([]);
   const [basisOptions, setBasisOptions] = useState<AttrOption[] | null>(null);
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
   const [returnToReview, setReturnToReview] = useState(false);
@@ -207,7 +208,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   useEffect(() => {
     if (categoryId === null) {
       setFacts(null);
-      setBasisDef(null);
+      setDefinitions([]);
       return;
     }
     let cancelled = false;
@@ -217,16 +218,26 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
       // D22 — the plan travels with the same document; the caps the wizard holds
       // are never read from a second place.
       setPlanCaps(schema?.plan ?? null);
-      const key = schema?.category?.priceBasisKey ?? null;
-      setBasisDef(
-        key === null ? null : (schema?.attributes.find((def) => def.attrKey === key) ?? null),
-      );
+      setDefinitions(schema?.attributes ?? []);
     });
     return () => {
       cancelled = true;
     };
   }, [categoryId]);
 
+  /**
+   * DEC-109 step 7 — THE BASIS IN FORCE, judged from the answers by the client
+   * mirror of `price_basis_in_force`; the door decides (F3).
+   */
+  const dealBasis = facts?.deal.basis;
+  const basisKey = useMemo(
+    () => basisInForce(definitions, draft.values.attributes, dealBasis ?? []).key,
+    [definitions, draft.values.attributes, dealBasis],
+  );
+  const basisDef = useMemo(
+    () => (basisKey === null ? null : (definitions.find((def) => def.attrKey === basisKey) ?? null)),
+    [basisKey, definitions],
+  );
   /** DEC-079 — the basis option list, loaded ONCE per definition. */
   useEffect(() => {
     setBasisOptions(null);
@@ -240,8 +251,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     };
   }, [basisDef]);
 
-  const basisValue =
-    facts?.priceBasisKey != null ? basisToken(draft.values.attributes[facts.priceBasisKey]) : null;
+  const basisValue = basisKey !== null ? basisToken(draft.values.attributes[basisKey]) : null;
   /** The answer's label in the UI language; the token itself while loading. */
   const basisLabel =
     basisValue === null
@@ -250,7 +260,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           // INC-371 — an Other unit is named by the seller's own written unit.
           if (basisValue === "other") {
             const written = answerOtherText(
-              facts?.priceBasisKey != null ? draft.values.attributes[facts.priceBasisKey] : null,
+              basisKey !== null ? draft.values.attributes[basisKey] : null,
             ).trim();
             return written === "" ? null : written;
           }
@@ -259,17 +269,41 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           return found === undefined ? basisValue : basisNoun(optionLabel(found, language));
         })();
 
-  /** D62-2 — one stable array (I3): the basis key moved from step 3 to step 5. */
-  const basisKey = facts?.priceBasisKey ?? null;
   /**
-   * N2 — GOODS ask "How it's sold" on step 3, at the definition's own display
-   * order (a `unit_of_sale-` key); SERVICES keep D62-2 (asked first on step 5).
+   * DEC-109 — THE DEAL ROWS LIVE ON THE PRICE PAGE. The door's four lists say
+   * which rows they are; the specifications page excludes them all, the price
+   * page draws them in its groups. Stable arrays (I3), keyed by their contents.
    */
-  const basisOnSpecs = isUnitOfSaleKey(basisKey);
-  const basisExclude = useMemo(
-    () => (basisKey === null || basisOnSpecs ? null : [basisKey]),
-    [basisKey, basisOnSpecs],
+  const dealSignature = facts === null ? "" : JSON.stringify(facts.deal);
+  const deal = useMemo(
+    () => (facts === null ? null : facts.deal),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dealSignature],
   );
+  const dealExclude = useMemo(() => {
+    if (deal === null) return null;
+    const all = [...deal.basis, ...deal.size, ...deal.quantity, ...deal.terms];
+    return all.length === 0 ? null : all;
+  }, [deal]);
+  const soldGroups = useMemo<DealGroup[]>(
+    () =>
+      deal === null
+        ? []
+        : [{ id: "sold", headingKey: "post.price.group.sold", keys: [...deal.basis, ...deal.size] }],
+    [deal],
+  );
+  const restGroups = useMemo<DealGroup[]>(
+    () =>
+      deal === null
+        ? []
+        : [
+            { id: "quantity", headingKey: "post.price.group.quantity", keys: deal.quantity },
+            { id: "terms", headingKey: "post.price.group.terms", keys: deal.terms },
+          ],
+    [deal],
+  );
+  const soldKeys = useMemo(() => soldGroups.flatMap((group) => group.keys), [soldGroups]);
+  const restKeys = useMemo(() => restGroups.flatMap((group) => group.keys), [restGroups]);
   /** W6b-2 B1 — the map pin is offered only where the category allows it. */
 
   const current = STEPS[draft.step - 1] ?? STEPS[0];
@@ -455,14 +489,22 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           <div className="space-y-4" data-testid="post-desktop-aside">
             <Section>
               <ol className="space-y-2" aria-label={t("post.progress.label")}>
-                {WALK.map((entry) => (
-                  <li
-                    key={entry.step}
-                    className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-sm"
-                    aria-current={entry.step === draft.step ? "step" : undefined}
-                  >
+                {WALK.map((entry) => {
+                  const current = entry.step === draft.step;
+                  /*
+                   * DEC-113 — THE LIST OPENS WHAT IS DONE. A finished step and the
+                   * current one are buttons, by the strip's own rule (isStepFinished,
+                   * draft.goTo); a step not reached yet stays plain text.
+                   */
+                  const reachable =
+                    current ||
+                    isStepFinished(entry.step, {
+                      draftStep: draft.draftStep,
+                      photosCount: draft.photos.length,
+                    });
+                  const badge = (
                     <span
-                      className={`grid size-6 place-items-center rounded-full border text-xs ${
+                      className={`grid size-6 shrink-0 place-items-center rounded-full border text-xs ${
                         positionOf(entry.step) <= positionOf(draft.step)
                           ? "border-primary bg-primary text-primary-foreground"
                           : "border-border text-muted-foreground"
@@ -472,9 +514,36 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                         ? "✓"
                         : positionOf(entry.step)}
                     </span>
-                    <span className="truncate text-foreground">{t(entry.nameKey)}</span>
-                  </li>
-                ))}
+                  );
+                  return (
+                    <li
+                      key={entry.step}
+                      className="text-sm"
+                      aria-current={current ? "step" : undefined}
+                      data-testid="post-step-list-item"
+                      data-step={entry.step}
+                    >
+                      {reachable ? (
+                        <button
+                          type="button"
+                          data-testid={`post-step-list-go-${entry.step}`}
+                          className="grid min-h-11 w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-md px-1 text-start hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          onClick={() => {
+                            if (!current) draft.goTo(entry.step);
+                          }}
+                        >
+                          {badge}
+                          <span className="truncate text-foreground">{t(entry.nameKey)}</span>
+                        </button>
+                      ) : (
+                        <span className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-1">
+                          {badge}
+                          <span className="truncate text-muted-foreground">{t(entry.nameKey)}</span>
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
               </ol>
               {draft.step > 1 && categoryPath !== "" ? (
                 <p className="mt-4 text-xs text-muted-foreground">{categoryPath}</p>
@@ -849,24 +918,11 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             draft.change({ attributes }, immediate)
                           }
                           onFields={onSpecFields}
-                          // D62-2 — the pricing basis is asked on the price step.
-                          exclude={basisExclude}
+                          // DEC-109 — the deal rows are asked on the price page.
+                          exclude={dealExclude}
                         />
                       )}
                       {draft.step === 4 && (
-                        <StepDetails
-                          listingId={draft.listingId}
-                          categoryId={draft.values.categoryId}
-                          categoryPath={categoryPath}
-                          photoUrls={assistPhotoUrls}
-                          attributes={draft.values.attributes}
-                          title={draft.values.title}
-                          description={draft.values.description}
-                          refusals={draft.refusals}
-                          onChange={(patch, immediate) => draft.change(patch, immediate)}
-                        />
-                      )}
-                      {draft.step === 5 && (
                         <StepPricing
                           facts={facts}
                           values={{
@@ -878,32 +934,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             priceNegotiable: draft.values.priceNegotiable,
                             posterExpiresAt: draft.values.posterExpiresAt,
                           }}
+                          basisKey={basisKey}
                           basisControl={
-                            basisOnSpecs ? (
-                              <p
-                                className="flex flex-wrap items-center gap-2 text-sm text-foreground"
-                                data-testid="post-price-unit-chosen"
-                                data-basis={basisValue ?? ""}
-                              >
-                                <span>
-                                  {basisValue === null ||
-                                  (basisValue === "other" && basisLabel === null)
-                                    ? t("post.price.unitNotChosen")
-                                    : t("post.price.unitChosenOn").replace(
-                                        "{basis}",
-                                        basisLabel ?? basisValue,
-                                      )}
-                                </span>
-                                <button
-                                  type="button"
-                                  data-testid="post-price-unit-change"
-                                  className="min-h-11 px-2 text-sm font-medium text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                  onClick={() => draft.goTo(3)}
-                                >
-                                  {t("post.price.unitChange")}
-                                </button>
-                              </p>
-                            ) : basisExclude === null ? null : (
+                            soldKeys.length === 0 ? null : (
                               <StepSpecifications
                                 categoryId={draft.values.categoryId}
                                 values={draft.values.attributes}
@@ -911,12 +944,41 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                                 onChange={(attributes, immediate) =>
                                   draft.change({ attributes }, immediate)
                                 }
-                                only={basisExclude}
+                                only={soldKeys}
+                                groups={soldGroups}
+                              />
+                            )
+                          }
+                          trailing={
+                            restKeys.length === 0 ? null : (
+                              <StepSpecifications
+                                categoryId={draft.values.categoryId}
+                                values={draft.values.attributes}
+                                refusals={draft.refusals}
+                                onChange={(attributes, immediate) =>
+                                  draft.change({ attributes }, immediate)
+                                }
+                                only={restKeys}
+                                groups={restGroups}
+                                testId="post-price-rest"
                               />
                             )
                           }
                           basisValue={basisValue}
                           basisLabel={basisLabel}
+                          refusals={draft.refusals}
+                          onChange={(patch, immediate) => draft.change(patch, immediate)}
+                        />
+                      )}
+                      {draft.step === 5 && (
+                        <StepDetails
+                          listingId={draft.listingId}
+                          categoryId={draft.values.categoryId}
+                          categoryPath={categoryPath}
+                          photoUrls={assistPhotoUrls}
+                          attributes={draft.values.attributes}
+                          title={draft.values.title}
+                          description={draft.values.description}
                           refusals={draft.refusals}
                           onChange={(patch, immediate) => draft.change(patch, immediate)}
                         />
@@ -1009,20 +1071,20 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                     )
                     .filter(
                       (refusal) =>
-                        !(draft.step === 4 && ["title", "description"].includes(refusal.field)),
+                        !(draft.step === 5 && ["title", "description"].includes(refusal.field)),
                     )
                     .filter(
                       (refusal) =>
                         !(
-                          draft.step === 5 &&
+                          draft.step === 4 &&
                           [
                             "price_mode",
                             "price_amount",
                             "price_currency",
                             "price_period",
                             "poster_expires_at",
-                            // D62-2 — the basis refusal lands under its own control here.
-                            ...(basisExclude ?? []),
+                            // DEC-109 — a deal row's refusal lands under its own control here.
+                            ...(dealExclude ?? []),
                           ].includes(refusal.field)
                         ),
                     )

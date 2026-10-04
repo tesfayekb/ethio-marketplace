@@ -29,7 +29,7 @@ import { checkText, mergeRefusals } from "./validate";
  */
 
 /**
- * INC-342 — the DOOR is the authority (validate_listing_draft step 4): title
+ * INC-342 — the DOOR is the authority (validate_listing_draft step 5): title
  * 1–120, description ≤ 5000. The form follows it; the AI assist keeps its own
  * shorter 1200 cap (DEC-072). Pinned by step-details-limits.test.ts and PR-18.
  */
@@ -87,7 +87,7 @@ export function StepDetails({
       ...(found ? [found] : []),
     ]);
 
-  /** Step 4 — a phone number in the title or description is flagged as typed (the door decides). */
+  /** Step 5 — a phone number in the title or description is flagged as typed (the door decides). */
   const judgeContact = (field: "title" | "description", text: string) => {
     if (looksLikeContact(text)) note(field, { field, reason: "contactInText" });
     else if (local.some((entry) => entry.field === field && entry.reason === "contactInText"))

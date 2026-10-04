@@ -237,7 +237,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(pw26Picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
     await pw26Picker.selectOption(spec.optionValues[0] ?? "");
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await expect
       .poll(async () => Object.keys(await attributesOf(listingId)).length, {
         message: "PW-26: the answers never reached the draft",
@@ -304,10 +304,6 @@ test.describe("POSTING WIZARD", () => {
     const listingId = await reachStep3(page, userId, category);
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e c2a listing title");
-    await page.getByTestId("post-description").fill("e2e c2a listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
     return listingId;
   }
 
@@ -393,9 +389,15 @@ test.describe("POSTING WIZARD", () => {
       await page.getByTestId("post-price-mode-fixed").click();
       await page.getByTestId("post-price-amount").fill("4100");
       await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-step-5")).toBeVisible();
+      await page.getByTestId("post-title").fill("e2e c2a listing title");
+      await page.getByTestId("post-description").fill("e2e c2a listing description");
+      await page.getByTestId("post-next").click();
       await expect(page.getByTestId("post-step-6")).toBeVisible();
       await page.getByTestId("post-back").click();
       await expect(page.getByTestId("post-step-5")).toBeVisible();
+      await page.getByTestId("post-back").click();
+      await expect(page.getByTestId("post-step-4")).toBeVisible();
       const currency = page.getByTestId("post-price-currency");
       await expect(currency, "PW-73: the door's currency was not mirrored").not.toHaveAttribute(
         "data-code",
@@ -425,7 +427,7 @@ test.describe("POSTING WIZARD", () => {
         .toBe(4100);
       expect((await pricingOf(listingId)).currency, "PW-73: Undo moved the currency").toBe(code);
       await nextThroughPhotos(page);
-      await expect(page.getByTestId("post-step-4")).toBeVisible();
+      await expect(page.getByTestId("post-step-5")).toBeVisible();
       await expect(page.getByTestId("post-title"), "PW-73: Undo lost the title").toHaveValue(
         "e2e c2a listing title",
       );
@@ -457,12 +459,12 @@ test.describe("POSTING WIZARD", () => {
     await picker.selectOption(spec.optionValues[0] ?? "");
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e d59 title");
-    await page.getByTestId("post-description").fill("e2e d59 description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await page.getByTestId("post-price-mode-fixed").click();
     await page.getByTestId("post-price-amount").fill("4100");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e d59 title");
+    await page.getByTestId("post-description").fill("e2e d59 description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
     await expect
@@ -498,7 +500,7 @@ test.describe("POSTING WIZARD", () => {
     const { listingId, first, spec, typedValue } = await answeredThenMoved(page);
 
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await expect(page.getByTestId("post-title"), "PW-61: the title survived").toHaveValue("");
     await expect(
       page.getByTestId("post-description"),
@@ -962,7 +964,7 @@ test.describe("POSTING WIZARD", () => {
     const category = await leaf();
     await reachStep3(page, user.id, category);
     await nextThroughPhotos(page);
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await page.getByTestId("post-title").fill("e2e inc332 listing title");
     await page.getByTestId("post-description").fill("e2e inc332 listing description");
     await page.getByTestId("post-title").fill("");
@@ -978,7 +980,7 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-refusal-summary"),
       "PW-79: the tap on Next was lost — no refusal summary",
     ).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     await expect(
       page.getByTestId("post-title"),
       "PW-79: the title did not take focus",

@@ -617,7 +617,7 @@ test.describe("POSTING WIZARD", () => {
       timeout: 45_000,
     });
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-4"), "PW-54: details did not follow").toBeVisible();
+    await expect(page.getByTestId("post-step-5"), "PW-54: details did not follow").toBeVisible();
 
     // (b) THE RESUME MATRIX — scratch drafts of this scratch seller only.
     const token = await bearerOf(page);
@@ -670,8 +670,8 @@ test.describe("POSTING WIZARD", () => {
     );
     // The walked draft: specifications recorded, one registered photo.
     expect(await photoRowsOf(walkedId), "PW-54: the walked draft has no photo row").toHaveLength(1);
-    await opensAt(walkedId, "post-step-4", "PW-54: draft_step 3 with a photo must open details");
-    await opensAt(await seedDraft(4), "post-step-5", "PW-54: draft_step 4 must open price");
+    await opensAt(walkedId, "post-step-4", "PW-54: draft_step 3 with a photo must open price");
+    await opensAt(await seedDraft(4), "post-step-5", "PW-54: draft_step 4 must open details");
   });
 
   test("PW-8 an unreachable save keeps the answers, says so, and retries", async ({ page }) => {
@@ -780,10 +780,6 @@ test.describe("POSTING WIZARD", () => {
     const listingId = await reachStep3(page, userId, category);
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible();
-    await page.getByTestId("post-title").fill("e2e c2a listing title");
-    await page.getByTestId("post-description").fill("e2e c2a listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
     return listingId;
   }
 
@@ -887,6 +883,10 @@ test.describe("POSTING WIZARD", () => {
     const listingId = await reachStep5(page, userId, category);
     await page.getByTestId("post-price-mode-free").click();
     await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await page.getByTestId("post-title").fill("e2e c2a listing title");
+    await page.getByTestId("post-description").fill("e2e c2a listing description");
+    await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible();
 
     await chooseOneCity(page);
@@ -923,7 +923,7 @@ test.describe("POSTING WIZARD", () => {
     // BACK to a step already answered, then forward again to review — both taps.
     await strip.getByTestId("post-step-strip-go-5").click();
     await expect(
-      page.getByTestId("post-step-5"),
+      page.getByTestId("post-step-4"),
       "PW-27: the strip would not go back to a step already done",
     ).toBeVisible();
     await page.getByTestId("post-step-strip-go-8").click();

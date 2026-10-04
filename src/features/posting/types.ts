@@ -11,8 +11,8 @@ export const STEPS = [
   { step: 1, nameKey: "post.step.category" },
   { step: 2, nameKey: "post.step.photos" },
   { step: 3, nameKey: "post.step.specifications" },
-  { step: 4, nameKey: "post.step.details" },
-  { step: 5, nameKey: "post.step.price" },
+  { step: 4, nameKey: "post.step.price" },
+  { step: 5, nameKey: "post.step.details" },
   { step: 6, nameKey: "post.step.place" },
   { step: 7, nameKey: "post.step.contact" },
   { step: 8, nameKey: "post.step.review" },
@@ -21,9 +21,10 @@ export const STEPS = [
 export const TOTAL_STEPS = STEPS.length;
 
 /**
- * D39 — THE ORDER A SELLER WALKS, not the door's numbers. The door keeps
- * 1 category · 2 photos · 3 specifications · … · 8 review; the seller meets
- * category → specifications → photos → details → price → place → contact →
+ * D39 / DEC-110 — THE ORDER A SELLER WALKS, not the door's numbers. The door
+ * keeps 1 category · 2 photos · 3 specifications · 4 price · 5 title and
+ * description · 6 place · 7 contact · 8 review; the seller meets
+ * category → specifications → photos → price → title → place → contact →
  * review. Every "next", "previous", rail and "Step N of M" reads this list.
  */
 export const SEQUENCE = [1, 3, 2, 4, 5, 6, 7, 8] as const;
@@ -113,7 +114,7 @@ export interface CategoryFacts {
   priceEnabled: boolean;
   defaultPricePeriod: string;
   pricePeriodLocked: boolean;
-  /** How many days a poster may run; the door falls back to 60 when unset. */
+  /** The category's listing lifetime in days; `null` = no limit (DEC-117). */
   expiryDays: number | null;
   /** DEC-052 — `bookable` / `map_pin`; the pin is a named deferral (see docs). */
   capabilities: string[];
@@ -122,6 +123,18 @@ export interface CategoryFacts {
    * (`pricing_type…` / `unit_of_sale…`), or null when it carries none or two.
    */
   priceBasisKey: string | null;
+  /**
+   * DEC-109 — the price page's rows, as the door groups them (`deal_group`),
+   * each list in display order. The screen keeps no list of its own.
+   */
+  deal: DealLists;
+}
+
+export interface DealLists {
+  basis: string[];
+  size: string[];
+  quantity: string[];
+  terms: string[];
 }
 
 /** One refusal, exactly as a door or route worded it. Never translated here. */

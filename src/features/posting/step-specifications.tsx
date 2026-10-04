@@ -12,6 +12,15 @@ import { contactRuleApplies, looksLikeContact } from "./contact-like";
 import { answerOtherText, answerTokens, multiAnswer } from "./answer-tokens";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
+import { conditionMet } from "./visible-when";
+import type { MessageKey } from "@/i18n";
+
+/** DEC-109 — one headed group of the price page's rows (the door's `deal` lists). */
+export interface DealGroup {
+  id: string;
+  headingKey: MessageKey;
+  keys: readonly string[];
+}
 
 /**
  * U6-C1b / U6-C1-R3a-2 — STEP 3: THE SPECIFICATIONS, GENERATED FROM THE
@@ -89,21 +98,6 @@ function chosenList(raw: unknown): string[] {
   return Array.isArray(raw) ? answerTokens(raw) : [];
 }
 
-/**
- * D24 — IS THIS DETAIL ASKED FOR AT ALL? A link with no condition always is. A
- * condition is met when the sibling it names holds one of its listed answers —
- * a single answer, an `other` pick, or one of a multi-select's answers. The
- * door (`validate_listing_attributes`) decides the same way and DROPS a value
- * sent for an unmet link, so this is the mirror and never the authority (F3).
- */
-function conditionMet(def: AttrDef, values: Record<string, unknown>): boolean {
-  const condition = def.visibleWhen;
-  if (condition === null) return true;
-  const held = values[condition.key];
-  const picked = selectedValue(held);
-  if (picked !== "") return condition.in.includes(picked);
-  return chosenList(held).some((entry) => condition.in.includes(entry));
-}
 
 function isEmpty(value: unknown): boolean {
   return (
@@ -196,6 +190,8 @@ export function StepSpecifications({
   onFields,
   only = null,
   exclude = null,
+  groups = null,
+  testId = "post-price-basis",
 }: {
   categoryId: string | null;
   values: Record<string, unknown>;
@@ -208,13 +204,18 @@ export function StepSpecifications({
    */
   onFields?: (attrKeys: string[]) => void;
   /**
-   * D62-2 (DEC-081) — WHICH ROWS THIS COPY DRAWS. The pricing basis is asked on
-   * the price step: step 3 passes `exclude=[basisKey]`, step 5 mounts the SAME
-   * form with `only=[basisKey]`, so the control, its option loading and its
-   * refusal are one implementation. Every pass still runs over the whole schema.
+   * DEC-109 — WHICH ROWS THIS COPY DRAWS. The deal rows (the door's `deal`
+   * lists) are asked on the price page: the specifications page passes
+   * `exclude=<all four lists>`, the price page mounts the SAME form with
+   * `only=<its lists>`, so each control, its option loading and its refusal are
+   * one implementation. Every pass still runs over the whole schema.
    */
   only?: readonly string[] | null;
   exclude?: readonly string[] | null;
+  /** DEC-109 — headed groups for an `only` copy; a group with no visible row draws nothing. */
+  groups?: readonly DealGroup[] | null;
+  /** The `only` copy's wrapper id; the price page mounts two copies. */
+  testId?: string;
 }) {
   const { t, entities, language } = useI18n();
   const [schema, setSchema] = useState<PostingSchema | null>(null);
@@ -1865,10 +1866,27 @@ export function StepSpecifications({
     return (
       <div
         className="space-y-5"
-        data-testid="post-price-basis"
+        data-testid={testId}
         data-options={optionsSettled ? "1" : "0"}
       >
-        {drawnRows.map(renderDef)}
+        {groups === null
+          ? drawnRows.map(renderDef)
+          : groups.map((group) => {
+              // DEC-109 — a group with no visible row draws nothing, heading included.
+              const rows = drawnRows.filter((def) => group.keys.includes(def.attrKey));
+              if (rows.length === 0) return null;
+              return (
+                <section
+                  key={group.id}
+                  className="space-y-4"
+                  data-testid={`post-price-group-${group.id}`}
+                  aria-label={t(group.headingKey)}
+                >
+                  <h3 className="text-sm font-semibold text-foreground">{t(group.headingKey)}</h3>
+                  {rows.map(renderDef)}
+                </section>
+              );
+            })}
       </div>
     );
   }

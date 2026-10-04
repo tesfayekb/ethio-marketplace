@@ -300,10 +300,6 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
-    await page.getByTestId("post-title").fill("e2e w6b2 listing title");
-    await page.getByTestId("post-description").fill("e2e w6b2 listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
   }
 
   /**
@@ -348,6 +344,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       { timeout: 20_000 },
     );
     await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-title").fill("e2e w6b2 listing title");
+    await page.getByTestId("post-description").fill("e2e w6b2 listing description");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
     await expect
@@ -419,7 +419,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await gotoReady(page, `/post/${listingId}`);
     await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect(page.getByTestId("post-price-amount")).toHaveValue("5250000");
     await expect(page.getByTestId("post-price-scale")).toHaveValue("0");
   });

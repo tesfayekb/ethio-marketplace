@@ -106,6 +106,8 @@ export function StepPricing({
   basisValue = null,
   basisLabel = null,
   basisControl = null,
+  basisKey = null,
+  trailing = null,
 }: {
   /** The category block of the posting read; `null` while it is still loading. */
   facts: CategoryFacts | null;
@@ -117,10 +119,14 @@ export function StepPricing({
   /** That answer's option label in the UI language (the token while loading). */
   basisLabel?: string | null;
   /**
-   * D62-2 (DEC-081) — the leaf's pricing-basis question, drawn by the SAME
-   * specifications form (`only=[basisKey]`) and rendered FIRST on this step.
+   * DEC-109 — "How it is sold": the basis in force and the size rows, drawn by
+   * the SAME specifications form (`only=<basis + size>`), FIRST on this page.
    */
   basisControl?: ReactNode;
+  /** DEC-109 step 7 — the basis key in force (`basisInForce`), or null. */
+  basisKey?: string | null;
+  /** DEC-109 — "How many do you have?" and "Terms", drawn after the price. */
+  trailing?: ReactNode;
 }) {
   const { t, language } = useI18n();
   const currencies = useCurrencies();
@@ -148,7 +154,7 @@ export function StepPricing({
    * `periodFollowsBasis` / `modeFollowsBasis` by itself (F3). L5: the basis
    * outranks the category's DEC-067 lock. No basis → DEC-067 exactly as before.
    */
-  const basisOn = facts?.priceBasisKey != null && basisValue !== null;
+  const basisOn = basisKey !== null && basisValue !== null;
   const shape = basisOn ? priceShapeFor(basisValue) : null;
   const forcedMode = shape?.forcedMode ?? null;
   const derivedPeriod =
@@ -260,7 +266,7 @@ export function StepPricing({
    */
   const [local, setLocal] = useState<Refusal[]>([]);
   const basisLocal = checkPriceBasis({
-    basisKey: facts?.priceBasisKey ?? null,
+    basisKey,
     basisValue,
     priceMode: values.priceMode,
     pricePeriod: values.pricePeriod,
@@ -384,6 +390,11 @@ export function StepPricing({
 
       {/* D62-2 — the pricing basis is asked FIRST: it shapes everything below. */}
       {basisControl}
+
+      {/* DEC-109 — the price group's own heading, between "How it is sold" and the rest. */}
+      <h3 className="text-sm font-semibold text-foreground" data-testid="post-price-group-price">
+        {t("post.price.group.price")}
+      </h3>
 
       {/* ---------------------------- 1 · the mode --------------------------- */}
       <fieldset className="space-y-2">
@@ -704,6 +715,7 @@ export function StepPricing({
           {basisLabel !== null && fill(t("post.price.basisFixed"), { basis: basisLabel })}
         </span>
       )}
+      {trailing}
       {locked && !basisOn && (
         <span
           className="sr-only"

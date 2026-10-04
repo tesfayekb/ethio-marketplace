@@ -177,7 +177,7 @@ export function mergeRefusals(door: Refusal[], local: Refusal[]): Refusal[] {
 
 /**
  * DEC-079 / D31 — THE BASIS LAW, MIRRORED. The same four refusals the door
- * raises in `validate_listing_draft` step 5, from the leaf's basis key, the
+ * raises in `validate_listing_draft` step 4, from the leaf's basis key, the
  * seller's basis answer and the pricing values — so they show on blur before
  * the door repeats them. `null` key with `ambiguous` means the leaf carries two.
  */
