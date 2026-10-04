@@ -921,16 +921,23 @@ export function StepWho({
           {t("post.who.countryLabel")}
           {!countryLocked && <RequiredMark />}
         </label>
+        {/*
+         * Walk fix 5 — the confirmed box shows the country and a CHANGE button;
+         * choosing from the list only SELECTS; the confirm button opens the
+         * dialog, and only the dialog's Confirm saves. The line "Confirmed.
+         * Contact support to change it." is gone: a change is possible here,
+         * inside the 30-day rule the door enforces.
+         */}
         <select
           id="post-who-country"
           data-testid="post-who-country"
           className={fieldClass}
           value={country}
-          disabled={countryLocked || markets.isLoading}
+          disabled={markets.isLoading || (countryLocked && !countryChanging)}
           onChange={(event) => {
-            const code = event.target.value;
-            // Rulings 3 item 3 — choosing only selects; the button confirms.
-            setCountry(code);
+            // Rulings 3 item 3 — choosing only selects; the dialog confirms.
+            setCountry(event.target.value);
+            setCountryChangeRefusal(null);
           }}
         >
           <option value="">{t("post.who.countryNone")}</option>
@@ -946,27 +953,74 @@ export function StepWho({
             </option>
           ))}
         </select>
-        {!countryLocked && country !== "" && (
+        {countryLocked && !countryChanging && (
+          <button
+            type="button"
+            data-testid="post-who-country-change"
+            className={smallButtonClass}
+            onClick={() => {
+              setCountryChanging(true);
+              setCountryChangeRefusal(null);
+            }}
+          >
+            {t("post.who.countryChange")}
+          </button>
+        )}
+        {(!countryLocked || countryChanging) && country !== "" && !countryConfirming && (
           <button
             type="button"
             data-testid="post-who-country-confirm"
             className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground"
-            onClick={() => void confirmCountry(country)}
+            onClick={() => setCountryConfirming(true)}
           >
             {t("post.who.countryConfirm")}
           </button>
         )}
-        <p className="text-xs text-muted-foreground">
-          {countryLocked ? t("post.who.countryConfirmed") : t("post.who.countryWhereHint")}
-        </p>
+        {countryConfirming && (
+          <div
+            className="space-y-2 rounded-md border border-border p-3"
+            data-testid="post-who-country-dialog"
+          >
+            <p className="text-sm text-foreground">
+              {fill(t("post.who.countryConfirmTitle"), { country: countryName })}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                data-testid="post-who-country-yes"
+                className="min-h-11 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
+                onClick={() => void doConfirmCountry()}
+              >
+                {t("post.who.countryConfirmYes")}
+              </button>
+              <button
+                type="button"
+                data-testid="post-who-country-go"
+                className={smallButtonClass}
+                onClick={() => setCountryConfirming(false)}
+              >
+                {t("post.who.countryConfirmGo")}
+              </button>
+            </div>
+          </div>
+        )}
+        {!countryLocked && (
+          <p className="text-xs text-muted-foreground">{t("post.who.countryWhereHint")}</p>
+        )}
         {!countryLocked && countryRefusal === null && !showRequired && (
           <p className="text-sm text-muted-foreground" data-testid="post-who-country-required">
             {t("post.who.countryRequired")}
           </p>
         )}
-        {(countryRefusal !== null || (showRequired && !countryLocked)) && (
+        {(countryChangeRefusal !== null ||
+          countryRefusal !== null ||
+          (showRequired && !countryLocked)) && (
           <p className="text-sm text-destructive" data-testid="post-who-country-refusal">
-            {t(draftRefusalKey(countryRefusal?.reason ?? "required"))}
+            {(countryChangeRefusal ?? countryRefusal)?.reason === "countryTooSoon"
+              ? fill(t("post.refusal.countryTooSoon"), {
+                  date: formatDay((countryChangeRefusal ?? countryRefusal)?.detail ?? "", language),
+                })
+              : t(draftRefusalKey((countryChangeRefusal ?? countryRefusal)?.reason ?? "required"))}
           </p>
         )}
       </div>
