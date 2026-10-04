@@ -1125,6 +1125,8 @@ test.describe("POSTING WIZARD", () => {
     );
     await nextThroughPhotos(page);
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    // The new type no longer narrows the unit; the form asks for it again.
+    await specControl(page, set.basisKey).selectOption("per_kg");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
     await expect(titleBox, "PW-140: the seller's edit was overwritten").toHaveValue(
