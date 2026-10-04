@@ -118,7 +118,10 @@ test.describe("POSTING WIZARD", () => {
     });
   }
 
-  async function seller(page: import("@playwright/test").Page, options: { named?: boolean } = {}) {
+  async function seller(
+    page: import("@playwright/test").Page,
+    options: { named?: boolean; alias?: boolean } = {},
+  ) {
     const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
