@@ -433,14 +433,14 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   }
 
   /* Rulings 4 item 4 — a queued Next is judged once the identity read answers. */
-  useEffect(() => {
-    if (!whoQueued || whoGate === "pending") return;
+  function onWhoGate(gate: "pending" | "blocked" | "open") {
+    setWhoGate(gate);
+    if (!whoQueued || gate === "pending") return;
     setWhoQueued(false);
     if (draft.step !== 7) return;
-    if (whoGate === "blocked") setWhoTried((n) => n + 1);
+    if (gate === "blocked") setWhoTried((n) => n + 1);
     else goNext();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fires on the gate's answer only
-  }, [whoQueued, whoGate]);
+  }
 
   return (
     <PageShell as="main" width="full" data-testid="post-page-shell">
@@ -945,7 +945,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             draft.change({ contactPref }, immediate)
                           }
                           nextTried={whoTried}
-                          onBlocked={setWhoGate}
+                          onBlocked={onWhoGate}
                         />
                       )}
                       {draft.step === 8 && (

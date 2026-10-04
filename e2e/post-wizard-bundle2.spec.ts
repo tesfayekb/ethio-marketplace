@@ -245,7 +245,6 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect.poll(() => held, { message: "PW-129: the identity read was never held" }).toBe(1);
 
     await page.getByTestId("post-next").click();
-    await page.waitForTimeout(500);
     await expect(
       page.getByTestId("post-who-country-required"),
       "PW-129: Next refused a confirmed seller before the identity was read",
