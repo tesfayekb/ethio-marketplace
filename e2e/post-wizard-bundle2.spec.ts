@@ -239,7 +239,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
    * pressed, nothing is refused; the read is released and Next moves on.
    */
   test("PW-129 Next waits for the identity read instead of refusing", async ({ page }) => {
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { named: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
     let release: () => void = () => {};
