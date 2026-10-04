@@ -17,7 +17,9 @@ export interface PhoneLib {
   parsePhoneNumberFromString: (
     text: string,
     country?: string,
-  ) => { number: string; countryCallingCode: string; formatInternational: () => string } | undefined;
+  ) =>
+    | { number: string; countryCallingCode: string; formatInternational: () => string }
+    | undefined;
 }
 
 let pending: Promise<PhoneLib> | null = null;
@@ -50,7 +52,9 @@ export function typedDigits(typed: string): string {
 /** International grouping without the "+code " prefix. */
 function nationalGrouping(international: string, code: string): string {
   const prefix = `+${code}`;
-  return international.startsWith(prefix) ? international.slice(prefix.length).trim() : international;
+  return international.startsWith(prefix)
+    ? international.slice(prefix.length).trim()
+    : international;
 }
 
 /**

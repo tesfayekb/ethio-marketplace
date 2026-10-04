@@ -570,7 +570,7 @@ export function StepWho({
       {/* ---------------------------- the channels --------------------------- */}
       <div className="space-y-3">
         <p className="text-sm font-medium text-foreground">{t("post.who.channelsLabel")}</p>
-{/* Bundle 3 step 10 — messages: one highlighted box, always on. */}
+        {/* Bundle 3 step 10 — messages: one highlighted box, always on. */}
         <div
           className="space-y-1 rounded-md border-2 border-primary p-3"
           data-testid="post-who-channel-messages"
@@ -588,7 +588,10 @@ export function StepWho({
         <p className="text-sm font-medium text-foreground">{t("post.who.optionalHeading")}</p>
         <p className="text-xs text-muted-foreground">{t("post.who.optionalLine")}</p>
         {phoneLibFailed && (
-          <p className="flex flex-wrap items-center gap-2 text-sm text-destructive" data-testid="post-who-phone-lib-failed">
+          <p
+            className="flex flex-wrap items-center gap-2 text-sm text-destructive"
+            data-testid="post-who-phone-lib-failed"
+          >
             <span>{t("post.who.phoneLibFailed")}</span>
             <button
               type="button"
