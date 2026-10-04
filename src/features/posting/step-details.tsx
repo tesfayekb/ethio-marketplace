@@ -68,6 +68,8 @@ export function StepDetails({
   categoryId,
   categoryPath,
   attributes,
+  definitions = [],
+  dealKeys = null,
   photoUrls,
   title,
   description,
@@ -79,6 +81,10 @@ export function StepDetails({
   /** The chosen category's full path, already in the seller's language. */
   categoryPath: string;
   attributes: Record<string, unknown>;
+  /** Step 12 — the leaf's definitions, to build the title from the answers. */
+  definitions?: AttrDef[];
+  /** Step 12 — the deal rows' keys: never part of a built title. */
+  dealKeys?: string[] | null;
   /** The first three stored photos (card variant), passed to the assistant. */
   photoUrls: string[];
   title: string;
@@ -94,6 +100,69 @@ export function StepDetails({
   const [history, setHistory] = useState<Suggestion[]>([]);
   const [assistRefusal, setAssistRefusal] = useState<string | null>(null);
   const [triesLeft, setTriesLeft] = useState<number | null>(null);
+
+  /** Step 12 — option labels for the ranked choice rows the title is built from. */
+  const [titleOptions, setTitleOptions] = useState<Record<string, AttrOption[]>>({});
+  const rankedChoices = useMemo(
+    () =>
+      definitions.filter(
+        (def) =>
+          def.cardRank !== null &&
+          ["single_select", "select", "multi_select"].includes(def.attrType),
+      ),
+    [definitions],
+  );
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all(
+      rankedChoices.map(
+        async (def) => [def.attrKey, await loadAttributeOptions(def.attributeId)] as const,
+      ),
+    ).then((entries) => {
+      if (cancelled) return;
+      // A list that failed to load is left out; buildTitle then skips that row (no raw token).
+      setTitleOptions(
+        Object.fromEntries(entries.filter(([, list]) => list !== null).map(([k, l]) => [k, l!])),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [rankedChoices]);
+  const dealSet = useMemo(() => new Set(dealKeys ?? []), [dealKeys]);
+  const built = useMemo(
+    () =>
+      buildTitle({
+        definitions,
+        answers: attributes,
+        options: titleOptions,
+        language,
+        dealKeys: dealSet,
+        yearSuffix: t("post.specs.yearEcSuffix"),
+      }),
+    [definitions, attributes, titleOptions, language, dealSet, t],
+  );
+  const [lastBuilt, setLastBuilt] = useState<string | null>(null);
+  useEffect(() => {
+    if (listingId === null) return;
+    setLastBuilt(readSession(builtKey(listingId)));
+  }, [listingId]);
+  useEffect(() => {
+    if (listingId === null || built === "") return;
+    if (readSession(ownKey(listingId)) !== null) return;
+    const last = readSession(builtKey(listingId));
+    const builderHolds = title === "" || (last !== null && title === last);
+    if (!builderHolds || built === title) return;
+    writeSession(builtKey(listingId), built);
+    setLastBuilt(built);
+    onChange({ title: built }, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rebuilt only when the build changes
+  }, [built, listingId]);
+  const showBuiltCaption = lastBuilt !== null && title !== "" && title === lastBuilt;
+  const sellerTyped = (value: string) => {
+    if (listingId === null) return;
+    if (value !== readSession(builtKey(listingId))) writeSession(ownKey(listingId), "1");
+  };
 
   /**
    * U6-C1-R3a / STEP 8 — THE SAME RULES, ON BLUR. What the seller has written is
