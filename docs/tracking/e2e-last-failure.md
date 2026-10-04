@@ -1,46 +1,25 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37237374049
-- Commit: `83da74b2bd6bb3eb475009a679dd02147bfcbc63`
+last E2E run 37241062194 passed
+
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37241062194
+- Commit: `fcc9b8225bdff3e1910827018348f047346fb2e0`
 - Attempt: 1
-- Written (UTC): 2026-10-04T22:08:50.494Z
-- Passed: 1139 · Skipped: 76 · Failed: 8
-- Gating failures: 8 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
-- Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
-- Sources without results: none
-
-## Flake ledger (DEC-030)
-
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
-
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · locations-tree.spec.ts › L1c · public per-country location tree › LR-3 a row disappears when an ancestor is retired, and the version moves — Error: [e2e:l1c] seeding the region failed: duplicate key value violates unique constraint "locations_parent_slug_unique"
-
-## Flaky bodies (DEC-078)
-
-### locations-tree.spec.ts › L1c · public per-country location tree › LR-3 a row disappears when an ancestor is retired, and the version moves
-
-- Source: `shard 5`
-- Project: `desktop-1280`
-
-```text
-Error: [e2e:l1c] seeding the region failed: duplicate key value violates unique constraint "locations_parent_slug_unique"
-```
-
-Context: context file not found for `locations-tree-L1c-public-per-country-location-tree-LR-3-a-row-disappears-when-an-ancestor-is-retired-and-the-version-moves-desktop-1280`
+- Written (UTC): 2026-10-04T23:04:58.646Z
+- Post-test warnings: 24
+- Flaky (passed on retry, DEC-030, non-gating): 0
 
 ## Server errors — census (DEC-083, non-gating)
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-107 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+111 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
+| `listing not found` | 11 | shard 3, shard 5, shard 6 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
-| `listing not found` | 7 | shard 3, shard 6 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -80,7 +59,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 7 · Sources: shard 3, shard 6
+- Count: 11 · Sources: shard 3, shard 5, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -98,64 +77,64 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-04T21:46:55.027Z | 13.1 min |
-| email | 2026-10-04T21:46:57.623Z | 0.2 min |
-| shard 1 | 2026-10-04T21:46:48.203Z | 18.3 min |
-| shard 2 | 2026-10-04T21:47:02.240Z | 21.4 min |
-| shard 3 | 2026-10-04T21:46:59.422Z | 16.6 min |
-| shard 4 | 2026-10-04T21:46:52.181Z | 17.7 min |
-| shard 5 | 2026-10-04T21:47:01.045Z | 19.7 min |
-| shard 6 | 2026-10-04T21:46:50.100Z | 12.1 min |
+| smoke | 2026-10-04T22:44:29.977Z | 14.0 min |
+| email | 2026-10-04T22:44:21.084Z | 0.3 min |
+| shard 1 | 2026-10-04T22:44:23.865Z | 20.2 min |
+| shard 2 | 2026-10-04T22:44:15.490Z | 17.0 min |
+| shard 3 | 2026-10-04T22:44:20.804Z | 16.1 min |
+| shard 4 | 2026-10-04T22:44:17.139Z | 18.1 min |
+| shard 5 | 2026-10-04T22:44:15.360Z | 17.6 min |
+| shard 6 | 2026-10-04T22:44:26.337Z | 15.2 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `post-wizard-specs.spec.ts` | 64 | 16.1 min | shard 3, shard 6 |
-| `shell.spec.ts` | 252 | 15.6 min | smoke, shard 3, shard 6 |
-| `post-wizard-bundle2.spec.ts` | 54 | 15.4 min | shard 2, shard 5 |
-| `post-wizard-place.spec.ts` | 36 | 11.0 min | shard 2, shard 5 |
-| `post-wizard-pricing.spec.ts` | 44 | 10.6 min | shard 3, shard 5 |
-| `admin-attributes-library.spec.ts` | 40 | 9.7 min | shard 1, shard 4 |
-| `post-wizard-category.spec.ts` | 42 | 8.6 min | shard 2, shard 5 |
-| `auth-signout.spec.ts` | 44 | 8.4 min | smoke, shard 2, shard 5 |
-| `post-wizard-where.spec.ts` | 28 | 7.5 min | shard 3, shard 6 |
-| `admin-users.spec.ts` | 24 | 7.2 min | shard 2, shard 5 |
-| `admin-attributes-editor.spec.ts` | 34 | 7.1 min | shard 1, shard 4 |
-| `posting-routes.spec.ts` | 50 | 7.1 min | shard 3, shard 6 |
-| `admin-categories-console.spec.ts` | 32 | 6.8 min | shard 1, shard 4 |
-| `admin-categories-lifecycle.spec.ts` | 40 | 6.7 min | shard 1, shard 4 |
-| `import-security.spec.ts` | 34 | 6.5 min | shard 2, shard 5 |
-| `post-wizard-resets.spec.ts` | 18 | 6.1 min | shard 3, shard 6 |
-| `admin-attributes-links.spec.ts` | 22 | 5.7 min | shard 1, shard 4 |
-| `photo-pipeline.spec.ts` | 20 | 5.5 min | shard 2, shard 5 |
-| `admin-locations.spec.ts` | 34 | 5.4 min | shard 1, shard 4 |
-| `admin-translations-console.spec.ts` | 36 | 5.0 min | shard 1, shard 4 |
-| `admin-attributes-import.spec.ts` | 32 | 4.7 min | shard 1, shard 4 |
-| `admin-roles.spec.ts` | 24 | 4.7 min | shard 1, shard 4 |
-| `admin-audit.spec.ts` | 10 | 2.8 min | shard 1, shard 4 |
-| `admin-countries.spec.ts` | 16 | 2.7 min | shard 1, shard 4 |
-| `mfa-stepup.spec.ts` | 18 | 2.4 min | shard 2, shard 5 |
-| `admin-translations-governance.spec.ts` | 8 | 2.4 min | shard 1, shard 5 |
+| `post-wizard-specs.spec.ts` | 64 | 18.1 min | shard 3, shard 6 |
+| `shell.spec.ts` | 252 | 17.0 min | smoke, shard 3, shard 6 |
+| `post-wizard-bundle2.spec.ts` | 60 | 14.1 min | shard 2, shard 5 |
+| `admin-attributes-library.spec.ts` | 40 | 9.9 min | shard 1, shard 4 |
+| `posting-routes.spec.ts` | 50 | 9.8 min | shard 3, shard 6 |
+| `post-wizard-category.spec.ts` | 42 | 9.2 min | shard 2, shard 5 |
+| `post-wizard-pricing.spec.ts` | 44 | 8.7 min | shard 3, shard 5 |
+| `post-wizard-where.spec.ts` | 28 | 8.4 min | shard 3, shard 6 |
+| `admin-categories-console.spec.ts` | 32 | 8.1 min | shard 1, shard 4 |
+| `admin-categories-lifecycle.spec.ts` | 40 | 7.9 min | shard 1, shard 4 |
+| `auth-signout.spec.ts` | 44 | 7.9 min | smoke, shard 2, shard 5 |
+| `post-wizard-place.spec.ts` | 36 | 7.2 min | shard 2, shard 5 |
+| `admin-attributes-editor.spec.ts` | 34 | 7.2 min | shard 1, shard 4 |
+| `post-wizard-resets.spec.ts` | 18 | 6.4 min | shard 3, shard 6 |
+| `admin-users.spec.ts` | 24 | 6.0 min | shard 2, shard 5 |
+| `admin-attributes-links.spec.ts` | 22 | 5.9 min | shard 1, shard 4 |
+| `admin-locations.spec.ts` | 34 | 5.5 min | shard 1, shard 4 |
+| `import-security.spec.ts` | 34 | 5.3 min | shard 2, shard 5 |
+| `admin-translations-console.spec.ts` | 36 | 5.1 min | shard 1, shard 4 |
+| `admin-roles.spec.ts` | 24 | 4.8 min | shard 1, shard 4 |
+| `admin-attributes-import.spec.ts` | 32 | 4.6 min | shard 1, shard 4 |
+| `photo-pipeline.spec.ts` | 20 | 4.6 min | shard 2, shard 5 |
+| `admin-audit.spec.ts` | 10 | 3.0 min | shard 1, shard 4 |
+| `admin-countries.spec.ts` | 16 | 3.0 min | shard 1, shard 4 |
+| `admin-translations-governance.spec.ts` | 8 | 2.3 min | shard 1, shard 5 |
 | `admin-translations-data.spec.ts` | 8 | 2.2 min | shard 1, shard 5 |
-| `admin-shell.spec.ts` | 10 | 1.6 min | shard 1, shard 4 |
-| `post-wizard-finder.spec.ts` | 8 | 1.4 min | shard 2, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 1.3 min | shard 2, shard 5 |
-| `admin-coverage.spec.ts` | 14 | 1.2 min | shard 1, shard 4 |
+| `mfa-stepup.spec.ts` | 18 | 2.1 min | shard 2, shard 5 |
+| `post-wizard-finder.spec.ts` | 8 | 1.5 min | shard 2, shard 5 |
+| `admin-coverage.spec.ts` | 14 | 1.4 min | shard 1, shard 4 |
+| `admin-shell.spec.ts` | 10 | 1.4 min | shard 1, shard 4 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
+| `post-wizard-details.spec.ts` | 4 | 0.9 min | shard 2, shard 5 |
+| `category-image-routes.spec.ts` | 10 | 0.8 min | shard 2, shard 5 |
 | `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
-| `post-wizard-details.spec.ts` | 4 | 0.7 min | shard 2, shard 5 |
+| `a11y.spec.ts` | 4 | 0.6 min | smoke |
 | `i18n-coverage.spec.ts` | 8 | 0.6 min | shard 2, shard 5 |
 | `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
-| `a11y.spec.ts` | 4 | 0.5 min | smoke |
 | `settings.spec.ts` | 4 | 0.5 min | shard 3 |
-| `rbac.spec.ts` | 6 | 0.4 min | shard 3, shard 6 |
-| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
+| `rbac.spec.ts` | 6 | 0.5 min | shard 3, shard 6 |
 | `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
+| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
 | `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
 | `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
-| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `layout.spec.ts` | 10 | 0.2 min | shard 2, shard 5 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
-| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `auth-signup.spec.ts` | 1 | 0.1 min | email |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
@@ -164,342 +143,18 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `post-wizard-place.spec.ts` › PW-30 review and buyer preview render option labels, units, multi-values and booleans | desktop-1280 | 75.1 s |
-| `post-wizard-place.spec.ts` › PW-30 review and buyer preview render option labels, units, multi-values and booleans | mobile-360 | 68.2 s |
-| `post-wizard-bundle2.spec.ts` › PW-131 an imitating name is refused when the step is saved | mobile-360 | 64.0 s |
-| `post-wizard-bundle2.spec.ts` › PW-131 an imitating name is refused when the step is saved | desktop-1280 | 61.7 s |
-| `post-wizard-bundle2.spec.ts` › PW-127 picking a home country only selects; Next refuses until it is confirmed | mobile-360 | 61.3 s |
-| `post-wizard-bundle2.spec.ts` › PW-127 picking a home country only selects; Next refuses until it is confirmed | desktop-1280 | 60.6 s |
-| `post-wizard-place.spec.ts` › PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085) | mobile-360 | 48.3 s |
-| `post-wizard-place.spec.ts` › PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085) | desktop-1280 | 45.2 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 43.6 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 39.0 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 37.7 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 37.4 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 37.0 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 36.0 s |
-| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 35.2 s |
-
-## Post-test errors: smoke
-
-smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37237374049-smoke
-```
-
-## Post-test errors: email
-
-email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37237374049-email
-```
-
-## Post-test errors: shard 1
-
-shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 12 (pool 5, fresh 7)
-[e2e:teardown] transport retries this run: 12 (by method: GET 12; by code: UND_ERR_HEADERS_OVERFLOW 12; ran out: 4)
-[e2e:teardown] deleted 8 user(s) owned by process 37237374049-1
-```
-
-## Post-test errors: shard 2
-
-shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 35 (pool 4, fresh 31)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 47 user(s) owned by process 37237374049-2
-```
-
-## Post-test errors: shard 3
-
-shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 8 (pool 5, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37237374049-3
-```
-
-## Post-test errors: shard 4
-
-shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 13 (pool 5, fresh 8)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 37237374049-4
-```
-
-## Post-test errors: shard 5
-
-shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 30 (pool 4, fresh 26)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 40 user(s) owned by process 37237374049-5
-```
-
-## Post-test errors: shard 6
-
-shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 9 (pool 5, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37237374049-6
-```
-
-## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-131 an imitating name is refused when the step is saved
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Error: PW-131: the imitation was not refused on save
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-who-alias-refusal')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-131: the imitation was not refused on save with timeout 20000ms
-  - waiting for getByTestId('post-who-alias-refusal')
-
-```
-
-Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-131-an-imitating-name-is-refused-when-the-step-is-saved-mobile-360`
-
-## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-127 picking a home country only selects; Next refuses until it is confirmed
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Error: PW-127: confirmed, still held
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-127: confirmed, still held with timeout 20000ms
-  - waiting for getByTestId('post-step-8')
-
-```
-
-Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-127-picking-a-home-country-only-selects-Next-refuses-until-it-is-confirmed-mobile-360`
-
-## post-wizard-place.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Error: PW-30: the review step never opened
-PW-30 step timings: signed in @ 4222 ms | category and specifications seeded @ 4739 ms | step 3 reached @ 6576 ms | specifications answered @ 6820 ms | step 6 open @ 9556 ms | tree served @ 10085 ms | place chosen @ 10368 ms
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-30: the review step never opened
-PW-30 step timings: signed in @ 4222 ms | category and specifications seeded @ 4739 ms | step 3 reached @ 6576 ms | specifications answered @ 6820 ms | step 6 open @ 9556 ms | tree served @ 10085 ms | place chosen @ 10368 ms with timeout 20000ms
-  - waiting for getByTestId('post-step-8')
-
-```
-
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-30-review-and-buyer-preview-render-option-labels-units-multi-values-and-booleans-mobile-360`
-
-## post-wizard-place.spec.ts › POSTING WIZARD › PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085)
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-step-8')
-
-```
-
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-76-a-detail-the-model-pins-to-one-value-is-filled-and-hidden-and-still-reviewed-DEC-085-mobile-360`
-
-## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-131 an imitating name is refused when the step is saved
-
-- Source: `shard 5`
-- Project: `desktop-1280`
-
-```text
-Error: PW-131: the imitation was not refused on save
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-who-alias-refusal')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-131: the imitation was not refused on save with timeout 20000ms
-  - waiting for getByTestId('post-who-alias-refusal')
-
-```
-
-Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-131-an-imitating-name-is-refused-when-the-step-is-saved-desktop-1280`
-
-## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-127 picking a home country only selects; Next refuses until it is confirmed
-
-- Source: `shard 5`
-- Project: `desktop-1280`
-
-```text
-Error: PW-127: confirmed, still held
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-127: confirmed, still held with timeout 20000ms
-  - waiting for getByTestId('post-step-8')
-
-```
-
-Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-127-picking-a-home-country-only-selects-Next-refuses-until-it-is-confirmed-desktop-1280`
-
-## post-wizard-place.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans
-
-- Source: `shard 5`
-- Project: `desktop-1280`
-
-```text
-Error: PW-30: the review step never opened
-PW-30 step timings: signed in @ 6859 ms | category and specifications seeded @ 8010 ms | step 3 reached @ 9995 ms | specifications answered @ 10206 ms | step 6 open @ 15866 ms | tree served @ 16734 ms | place chosen @ 16991 ms
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-30: the review step never opened
-PW-30 step timings: signed in @ 6859 ms | category and specifications seeded @ 8010 ms | step 3 reached @ 9995 ms | specifications answered @ 10206 ms | step 6 open @ 15866 ms | tree served @ 16734 ms | place chosen @ 16991 ms with timeout 20000ms
-  - waiting for getByTestId('post-step-8')
-
-```
-
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-30-review-and-buyer-preview-render-option-labels-units-multi-values-and-booleans-desktop-1280`
-
-## post-wizard-place.spec.ts › POSTING WIZARD › PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085)
-
-- Source: `shard 5`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-step-8')
-
-```
-
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-76-a-detail-the-model-pins-to-one-value-is-filled-and-hidden-and-still-reviewed-DEC-085-desktop-1280`
-
-## Server errors: shard 2
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-```
-
-## Client errors: shard 2
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 (Too Many Requests) ×2
-```
-
-## Server errors: shard 5
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-```
-
-## Client errors: shard 5
-
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+| `admin-audit.spec.ts` › IMP-3 server refusals: self, super-admin target, and a non-super caller | mobile-360 | 43.9 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 40.2 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 37.6 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 36.9 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 36.8 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 35.8 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 35.4 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 34.9 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 34.7 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 33.9 s |
+| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 33.5 s |
+| `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, small model list) | desktop-1280 | 33.4 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 33.4 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 33.1 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | desktop-1280 | 32.8 s |
