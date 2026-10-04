@@ -173,8 +173,8 @@ function ErrorContent({ error, reset }: ErrorComponentProps) {
   const caught = error instanceof Error ? error : new Error(String(error));
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+    reportLovableError(caught, { boundary: "tanstack_root_error_component" });
+  }, [caught]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -205,7 +205,7 @@ function ErrorContent({ error, reset }: ErrorComponentProps) {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   return (
     <I18nProvider>
