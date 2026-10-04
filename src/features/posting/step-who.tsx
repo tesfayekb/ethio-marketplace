@@ -365,14 +365,17 @@ export function StepWho({
   }, [country]);
 
   /** Step 21 — after a refusal, three free names from the seller's own names. */
+  const suggestSeqRef = useRef(0);
   const offerSuggestions = useCallback(() => {
+    // Only the latest ask may answer: an earlier, slower one never overwrites it.
+    const seq = ++suggestSeqRef.current;
     void suggestAliases({
       ...(sellerType === "business"
         ? { businessName }
         : { firstName: firstName.trim() || null, lastName: lastName.trim() || null }),
       categoryId,
     }).then((list) => {
-      if (aliveRef.current) setSuggestions(list.slice(0, 3));
+      if (aliveRef.current && seq === suggestSeqRef.current) setSuggestions(list.slice(0, 3));
     });
   }, [sellerType, businessName, firstName, lastName, categoryId]);
 
