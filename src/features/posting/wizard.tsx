@@ -1054,6 +1054,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                           directions={draft.directions}
                           basisLabel={basisLabel}
                           basisKey={basisKey}
+                          deal={deal}
                           onChangeExpiry={(posterExpiresAt) =>
                             draft.change({ posterExpiresAt }, true)
                           }

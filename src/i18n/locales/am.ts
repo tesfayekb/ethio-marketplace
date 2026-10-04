@@ -2096,6 +2096,7 @@ export const am: Messages = {
   "post.review.noTitle": "እስካሁን አርዕስት የለም",
   "post.review.noPrice": "እስካሁን ዋጋ የለም",
   "post.review.priceLine": "{amount} {currency} {period}",
+  "post.review.sizeLine": "አንድ {unit}: {values}",
   "post.review.pricePer": "{amount} {currency} በ{basis}",
   "post.review.channels": "{count} የሚያገኙዎት መንገዶች",
   "post.review.publish": "አውጣ",
