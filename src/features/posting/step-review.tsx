@@ -361,9 +361,6 @@ export function StepReview({
             >
               <div className="min-w-0 space-y-1">
                 <dt className="text-xs font-medium text-muted-foreground">{t(section.nameKey)}</dt>
-                <dd className="break-words text-sm text-foreground" data-testid="post-review-value">
-                  {section.value === "" ? t("post.review.notGiven") : section.value}
-                </dd>
                 {section.seller === true && identity !== null && (
                   <dd data-testid="post-review-seller">
                     <SellerLine
@@ -377,6 +374,9 @@ export function StepReview({
                     />
                   </dd>
                 )}
+                <dd className="break-words text-sm text-foreground" data-testid="post-review-value">
+                  {section.value === "" ? t("post.review.notGiven") : section.value}
+                </dd>
                 {section.negotiable === true && (
                   <dd>
                     <NegotiableBadge />
