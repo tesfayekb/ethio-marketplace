@@ -1,9 +1,82 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37235098893
-- Commit: `2bebb42d84f2c4aa022184080a1d403a40c81d80`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37235400948
+- Commit: `722b78faaec821de2f2459af464701d0e582c055`
 - Attempt: 1
-- Written (UTC): 2026-10-04T21:18:03.870Z
+- Written (UTC): 2026-10-04T21:29:30.024Z
+
+## i18n used-on map is fresh (U4i ②) — failure
+
+### Evidence lines
+
+```text
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
+with:
+  bun-version: latest
+  no-cache: false
+  token: ***
+##[endgroup]
+Downloading a new version of Bun: https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-linux-x64.zip
+[command]/usr/bin/unzip -o -q /home/runner/work/_temp/0092acbf-863a-4e52-98cc-40a10a55ad04.zip
+[command]/home/runner/.bun/bin/bun --revision
+1.4.2+744846f84
+##[group]Run bun run i18n:usage
+[36;1mbun run i18n:usage[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+$ bun run scripts/i18n-usage-map.ts
+i18n usage map: 1266 keys across 337 files (210 dynamic call sites)
+##[group]Run git diff --exit-code -- docs/generated/i18n-usage.json public/i18n-usage.json
+[36;1mgit diff --exit-code -- docs/generated/i18n-usage.json public/i18n-usage.json[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+diff --git a/docs/generated/i18n-usage.json b/docs/generated/i18n-usage.json
+index 37c5d96..6269d64 100644
+--- a/docs/generated/i18n-usage.json
++++ b/docs/generated/i18n-usage.json
+@@ -1,6 +1,6 @@
+ {
+   "generator": "scripts/i18n-usage-map.ts",
+-  "scanned": 336,
++  "scanned": 337,
+   "dynamicCallSites": 210,
+   "keys": {
+     "account.deactivatedBanner": [
+diff --git a/public/i18n-usage.json b/public/i18n-usage.json
+index 37c5d96..6269d64 100644
+--- a/public/i18n-usage.json
++++ b/public/i18n-usage.json
+@@ -1,6 +1,6 @@
+ {
+   "generator": "scripts/i18n-usage-map.ts",
+-  "scanned": 336,
++  "scanned": 337,
+   "dynamicCallSites": 210,
+   "keys": {
+     "account.deactivatedBanner": [
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.55.0
+Temporarily overriding HOME='/home/runner/work/_temp/7b6b3d80-85e2-4a84-b409-2a5e986059c6' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -22,6 +95,9 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1mfi[0m
+[36;1mif [ "$reporter" -ne 0 ]; then[0m
+[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit "$reporter"[0m
 [36;1mfi[0m
 [36;1mexit 0[0m
@@ -32,10 +108,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37235098893
-  E2E_HEAD_COMMIT_MESSAGE: Added name suggestions PW-147
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37235400948
+  E2E_HEAD_COMMIT_MESSAGE: Added account channels card
 
-X-Lovable-Edit-ID: edt-d2600246-83f4-4822-a85a-aabc652f16ba
+X-Lovable-Edit-ID: edt-33071f31-64cd-4e5b-b015-af2a4642eadb
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -49,10 +125,7 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-context download: 0 context files found.
-  glob: shard-contexts/**/error-context.md
-  searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 1 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "smoke=cancelled email=success shards=cancelled"
 [36;1mecho "smoke=cancelled email=success shards=cancelled"[0m
@@ -69,7 +142,7 @@ smoke=cancelled email=success shards=cancelled
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/62c74f17-05dd-4101-a283-3342d71d43c7' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/16e7fb3f-1e01-4a88-bb57-d052cc631e36' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
