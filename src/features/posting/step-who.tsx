@@ -314,25 +314,38 @@ export function StepWho({
     return answer;
   }, []);
 
-  /** Step 12 — a country the seller picks or confirms is saved as confirmed. */
-  const confirmCountry = useCallback(
-    async (code: string) => {
-      const answer = await commit({ homeCountryCode: code });
-      if (aliveRef.current && answer.ok) setCountryLocked(true);
-    },
-    [commit],
-  );
+  /**
+   * Walk fix 5 — choosing only SELECTS. The confirm button opens the "Confirm
+   * this country" dialog; only its Confirm saves, through `change_home_country`
+   * (M4), which confirms a first country or changes a confirmed one inside the
+   * 30-day rule and refuses `countryTooSoon` with the next date.
+   */
+  const doConfirmCountry = useCallback(async () => {
+    const answer = await changeHomeCountry(country);
+    if (!aliveRef.current) return;
+    setCountryConfirming(false);
+    if (answer.ok) {
+      setCountryLocked(true);
+      setCountryChanging(false);
+      setCountryChangeRefusal(null);
+      return;
+    }
+    setCountryChangeRefusal(
+      answer.refusals[0] ?? { field: "home_country_code", reason: "badValue" },
+    );
+  }, [country]);
 
   /** Step 21 — after a refusal, three free names from the seller's own names. */
   const offerSuggestions = useCallback(() => {
-    void suggestAliases(
-      sellerType === "business"
+    void suggestAliases({
+      ...(sellerType === "business"
         ? { businessName }
-        : { firstName: firstName.trim() || null, lastName: lastName.trim() || null },
-    ).then((list) => {
+        : { firstName: firstName.trim() || null, lastName: lastName.trim() || null }),
+      categoryId,
+    }).then((list) => {
       if (aliveRef.current) setSuggestions(list.slice(0, 3));
     });
-  }, [sellerType, businessName, firstName, lastName]);
+  }, [sellerType, businessName, firstName, lastName, categoryId]);
 
   /**
    * The live check (bundle 3 step 19): the mirror's rules a–c first, then the
@@ -348,6 +361,17 @@ export function StepWho({
       }
       if (next === checkedAliasRef.current) {
         setAliasState("ok");
+        return;
+      }
+      /**
+       * Walk fix 4 — a non-Latin name is answered HERE, in the seller's
+       * language, in place of the general shape message; no suggestions call
+       * is made for a name the door could never take.
+       */
+      if (NON_LATIN_RE.test(next)) {
+        setAliasCheckRefusal({ field: "alias", reason: "aliasLatinOnly" });
+        setAliasState("refused");
+        setSuggestions([]);
         return;
       }
       const local = aliasRuleLocal(next);
@@ -521,26 +545,50 @@ export function StepWho({
                 {t("post.who.aliasAvailable")}
               </p>
             )}
-            {/[^ -~]/.test(alias) && (
-              <p className="text-xs text-muted-foreground" data-testid="post-who-alias-latin">
+            {/* Walk fix 4 — the Latin line IS the refusal for a non-Latin name,
+                shown in place of the general shape message. */}
+            {aliasState === "refused" && shownAliasRefusal?.reason === "aliasLatinOnly" && (
+              <p className="text-sm text-destructive" data-testid="post-who-alias-latin">
                 {t("post.who.aliasLatinOnly")}
               </p>
             )}
-            {aliasState === "refused" && shownAliasRefusal !== null && (
-              <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
-                {/* U6-C1-R2 — the imitation check names WHAT the alias resembles,
-                    so the seller can tell a coincidence from a rejection. */}
-                {shownAliasRefusal.reason === "aliasImitatesBrand"
-                  ? fill(t("post.refusal.aliasImitatesBrand"), {
-                      name: shownAliasRefusal.detail ?? "",
-                    })
-                  : shownAliasRefusal.reason === "aliasTooSoon"
-                    ? fill(t("post.refusal.aliasTooSoon"), {
-                        date: formatDay(shownAliasRefusal.detail ?? "", language),
+            {aliasState === "refused" &&
+              shownAliasRefusal !== null &&
+              shownAliasRefusal.reason !== "aliasLatinOnly" && (
+                <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
+                  {/* U6-C1-R2 — the imitation check names WHAT the alias resembles,
+                      so the seller can tell a coincidence from a rejection. */}
+                  {shownAliasRefusal.reason === "aliasImitatesBrand"
+                    ? fill(t("post.refusal.aliasImitatesBrand"), {
+                        name: shownAliasRefusal.detail ?? "",
                       })
-                    : t(draftRefusalKey(shownAliasRefusal.reason))}
-              </p>
-            )}
+                    : shownAliasRefusal.reason === "aliasTooSoon"
+                      ? fill(t("post.refusal.aliasTooSoon"), {
+                          date: formatDay(shownAliasRefusal.detail ?? "", language),
+                        })
+                      : t(draftRefusalKey(shownAliasRefusal.reason))}
+                </p>
+              )}
+            {/* Walk fix 3 — ONE STATE LINE under the name box: the change rule
+                in one of four states, from `my_seller_line()` (M4). */}
+            <p className="text-xs text-muted-foreground" data-testid="post-who-alias-change-rule">
+              {identity !== null && identity.alias === null
+                ? t("post.who.aliasChangeFirst")
+                : lineFacts !== null &&
+                    lineFacts.correctionUntil !== null &&
+                    new Date(lineFacts.correctionUntil).getTime() > Date.now()
+                  ? fill(t("post.who.aliasCorrectionUntil"), {
+                      when: new Intl.DateTimeFormat(language, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format(new Date(lineFacts.correctionUntil)),
+                    })
+                  : lineFacts !== null && lineFacts.nextChangeAt !== null
+                    ? fill(t("post.who.aliasNextChange"), {
+                        date: formatDay(lineFacts.nextChangeAt, language),
+                      })
+                    : t("post.who.aliasChangeRule")}
+            </p>
             {/* THE SUGGESTION: a business's own name, or the account's name — the
                 seller's to take in one tap, never written for them. */}
             {aliasState === "refused" && suggestions.length > 0 && (
@@ -777,14 +825,21 @@ export function StepWho({
                   cannot also hold the switch, the switch wraps to its own line. */}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 {channel === "telegram" ? (
+                  /* Walk fix 7 — one shape, "@handle", as wide as the phone
+                     boxes; a pasted t.me/ link or bare handle is normalized as
+                     typed, and the box judges it as typed. */
                   <input
                     id={`post-who-value-${channel}`}
                     data-testid={`post-who-value-${channel}`}
-                    className={`${fieldClass} grow`}
+                    className={`${fieldClass} min-w-[16.5rem] grow basis-0`}
                     value={current.value}
                     inputMode="text"
                     onBlur={(event) => leaveChannel(channel, event.target.value, current.show)}
-                    onChange={(event) => setChannel(channel, { value: event.target.value.trim() })}
+                    onChange={(event) => {
+                      const next = normalizeTelegram(event.target.value);
+                      setChannel(channel, { value: next });
+                      leaveChannel(channel, next, current.show);
+                    }}
                   />
                 ) : (
                   /* Bundle 2 Q1 — a country picker in front of the number. */
