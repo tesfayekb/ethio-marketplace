@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { savedChannels } from "./account-overview";
+import { savedChannels } from "./saved-channels";
 
 describe("savedChannels (bundle 4 step 23)", () => {
   it("lists only channels with a value, in the contact step's order", () => {
