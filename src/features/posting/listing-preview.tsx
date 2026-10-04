@@ -7,7 +7,7 @@ import { useCountryTree, type TreeNode } from "@/components/shell/location-data"
 import { formatCommission } from "./price-basis";
 import { priceLine as sharedPriceLine } from "./price-line";
 import { fill } from "./refusal-text";
-import { attributeDisplayValue } from "./attribute-display";
+import { attributeDisplayValue, rangeDisplayValue, settledRanges } from "./attribute-display";
 import type { AttrOption } from "./attribute-options";
 import type { AttrDef, DraftPhotoRow } from "./posting-service";
 import type { DealLists, PricePeriod } from "./types";
@@ -115,6 +115,12 @@ export function ListingPreview({
       ),
     );
 
+  // INC-374 — a number the chosen model settles is shown as its range.
+  const ranges = settledRanges(
+    definitions,
+    attributes,
+    (definition) => attributeOptions[definition.attrKey] ?? [],
+  );
   const dealText = dealLines({
     deal,
     attributes,
@@ -199,7 +205,10 @@ export function ListingPreview({
           {definitions
             .filter((definition) => {
               const value = attributes[definition.attrKey];
-              return value !== undefined && value !== null && value !== "";
+              return (
+                (value !== undefined && value !== null && value !== "") ||
+                definition.attrKey in ranges
+              );
             })
             .map((definition) => (
               <div key={definition.attrKey} className="flex justify-between gap-3">
@@ -219,15 +228,17 @@ export function ListingPreview({
                   data-testid="post-review-spec"
                   data-key={definition.attrKey}
                 >
-                  {attributeDisplayValue(
-                    definition,
-                    attributes[definition.attrKey],
-                    attributeOptions[definition.attrKey] ?? [],
-                    language,
-                    t("post.review.yes"),
-                    t("post.review.no"),
-                    t("post.specs.yearEcSuffix"),
-                  )}
+                  {ranges[definition.attrKey] !== undefined
+                    ? rangeDisplayValue(definition, ranges[definition.attrKey]!, language)
+                    : attributeDisplayValue(
+                        definition,
+                        attributes[definition.attrKey],
+                        attributeOptions[definition.attrKey] ?? [],
+                        language,
+                        t("post.review.yes"),
+                        t("post.review.no"),
+                        t("post.specs.yearEcSuffix"),
+                      )}
                 </dd>
               </div>
             ))}

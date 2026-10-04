@@ -19,7 +19,7 @@ import { useCountryTree, type TreeNode } from "@/components/shell/location-data"
 import { formatCommission } from "../price-basis";
 import { priceLine as sharedPriceLine } from "../price-line";
 import { fill } from "../refusal-text";
-import { attributeDisplayValue } from "../attribute-display";
+import { attributeDisplayValue, rangeDisplayValue, settledRanges } from "../attribute-display";
 import type { AttrOption } from "../attribute-options";
 import type { AttrDef, DraftPhotoRow } from "../posting-service";
 import type { DealLists, PricePeriod } from "../types";
@@ -162,9 +162,15 @@ export function ListingDetail(view: ListingDetailView) {
     );
   });
 
+  // INC-374 — a number the chosen model settles is shown as its range.
+  const ranges = settledRanges(
+    view.definitions,
+    view.attributes,
+    (definition) => view.attributeOptions[definition.attrKey] ?? [],
+  );
   const facts = view.definitions.filter((definition) => {
     const value = view.attributes[definition.attrKey];
-    return value !== undefined && value !== null && value !== "";
+    return (value !== undefined && value !== null && value !== "") || definition.attrKey in ranges;
   });
 
   return (
@@ -258,15 +264,17 @@ export function ListingDetail(view: ListingDetailView) {
                   data-testid="listing-detail-spec"
                   data-key={definition.attrKey}
                 >
-                  {attributeDisplayValue(
-                    definition,
-                    view.attributes[definition.attrKey],
-                    view.attributeOptions[definition.attrKey] ?? [],
-                    language,
-                    t("post.review.yes"),
-                    t("post.review.no"),
-                    t("post.specs.yearEcSuffix"),
-                  )}
+                  {ranges[definition.attrKey] !== undefined
+                    ? rangeDisplayValue(definition, ranges[definition.attrKey]!, language)
+                    : attributeDisplayValue(
+                        definition,
+                        view.attributes[definition.attrKey],
+                        view.attributeOptions[definition.attrKey] ?? [],
+                        language,
+                        t("post.review.yes"),
+                        t("post.review.no"),
+                        t("post.specs.yearEcSuffix"),
+                      )}
                 </dd>
               </div>
             ))}

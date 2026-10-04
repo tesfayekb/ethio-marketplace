@@ -76,4 +76,3 @@ export function conditionMet(
   if (!pairMet(condition, values)) return false;
   return condition.and === undefined || pairMet(condition.and, values);
 }
-
