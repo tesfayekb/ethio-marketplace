@@ -496,7 +496,11 @@ export function StepWho({
     if (found === undefined) return country;
     return found.anchorId === null
       ? found.nameEn
-      : entityName("location", { id: found.anchorId, nameEn: found.nameEn, nameAm: null }, entities);
+      : entityName(
+          "location",
+          { id: found.anchorId, nameEn: found.nameEn, nameAm: null },
+          entities,
+        );
   }, [countries, country, entities]);
 
   /** What this screen sees when a channel box is left (U6-C1-R3a). */

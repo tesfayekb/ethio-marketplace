@@ -24,8 +24,8 @@ describe("normalizeTelegram (walk fix 7)", () => {
   it("a normalized handle passes the door's shape; a short or long one does not", () => {
     expect(checkChannel("telegram", normalizeTelegram("abebe_shop"), false)).toBeNull();
     expect(checkChannel("telegram", normalizeTelegram("ab"), false)?.reason).toBe("badHandle");
-    expect(
-      checkChannel("telegram", normalizeTelegram(`a`.repeat(40)), false)?.reason,
-    ).toBe("badHandle");
+    expect(checkChannel("telegram", normalizeTelegram(`a`.repeat(40)), false)?.reason).toBe(
+      "badHandle",
+    );
   });
 });
