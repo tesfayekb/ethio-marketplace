@@ -283,21 +283,32 @@ export function StepWho({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   useEffect(() => {
-    if (carryAskedRef.current) return;
+    if (carryAskedRef.current || (identity === null && !identityFailed)) return;
     carryAskedRef.current = true;
     if (hasChannelValue(contactRef.current)) return;
     let cancelled = false;
+    const apply = (source: Record<string, unknown>) => {
+      const next: Record<string, unknown> = { ...contactRef.current, messages: true };
+      for (const channel of CHANNELS) {
+        const entry = channelOf(source, channel);
+        if (entry.value !== "") next[channel] = entry;
+      }
+      onChangeRef.current(next, true);
+      setCarriedContact(true);
+    };
+    /**
+     * Bundle 4 step 23 (INC-424) — the contact details live on the profile and
+     * open the step; the last post's channels remain the fallback.
+     */
+    if (identity !== null && hasChannelValue(identity.contactPrefs)) {
+      apply(identity.contactPrefs);
+      return;
+    }
     readLastListingContact(listingId)
       .then((last) => {
         if (cancelled || last === null || !hasChannelValue(last)) return;
         if (hasChannelValue(contactRef.current)) return;
-        const next: Record<string, unknown> = { ...contactRef.current, messages: true };
-        for (const channel of CHANNELS) {
-          const entry = channelOf(last, channel);
-          if (entry.value !== "") next[channel] = entry;
-        }
-        onChangeRef.current(next, true);
-        setCarriedContact(true);
+        apply(last);
       })
       .catch((error: unknown) => {
         console.error("[post-who] last post's contact read failed", error);
@@ -305,7 +316,7 @@ export function StepWho({
     return () => {
       cancelled = true;
     };
-  }, [listingId]);
+  }, [listingId, identity, identityFailed]);
 
   const commit = useCallback(async (body: Parameters<typeof saveIdentity>[0]) => {
     const answer = await saveIdentity(body);
@@ -404,21 +415,28 @@ export function StepWho({
     if (!saveRef) return;
     saveRef.current = async () => {
       const next = alias.trim().toLowerCase();
-      if (next === "" || next === checkedAliasRef.current) return true;
-      if (aliasState !== "ok") {
-        if (aliasState !== "refused") checkAlias(next);
-        return false;
-      }
-      const answer = await commit({ alias: next });
-      if (!aliveRef.current) return answer.ok;
-      if (answer.ok) {
+      if (next !== "" && next !== checkedAliasRef.current) {
+        if (aliasState !== "ok") {
+          if (aliasState !== "refused") checkAlias(next);
+          return false;
+        }
+        const answer = await commit({ alias: next });
+        if (!aliveRef.current) return answer.ok;
+        if (!answer.ok) {
+          setAliasCheckRefusal(refusalFor(answer.refusals, "alias"));
+          setAliasState("refused");
+          offerSuggestions();
+          return false;
+        }
         checkedAliasRef.current = next;
-        return true;
       }
-      setAliasCheckRefusal(refusalFor(answer.refusals, "alias"));
-      setAliasState("refused");
-      offerSuggestions();
-      return false;
+      /**
+       * Bundle 4 step 23 (INC-424) — the contact details live on the profile:
+       * leaving the step saves them there through the same door, and a refusal
+       * lands on the channel's own control (`contact_pref.<channel>`).
+       */
+      const contactAnswer = await commit({ contactPref: contactRef.current });
+      return contactAnswer.ok;
     };
     return () => {
       saveRef.current = null;
