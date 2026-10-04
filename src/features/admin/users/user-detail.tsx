@@ -15,7 +15,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { profileEditErrorKey, UNASSIGNABLE_ROLES } from "./admin-users-service";
+import { needsAliasReason, profileEditErrorKey, UNASSIGNABLE_ROLES } from "./admin-users-service";
 import {
   useAdminRoles,
   useAdminUser,
@@ -434,6 +434,10 @@ function AdminUserEditForm({
   const [country, setCountry] = useState(homeCountryCode ?? "");
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [saved, setSaved] = useState(false);
+  // Bundle 3 step 22 — the reason is asked for only after the door refuses the
+  // name for want of one; changing the name withdraws the question.
+  const [reasonAsked, setReasonAsked] = useState(false);
+  const [reason, setReason] = useState("");
 
   return (
     <FormSection
@@ -459,10 +463,18 @@ function AdminUserEditForm({
                   displayName: name.trim(),
                   sellerAlias: alias.trim() === "" ? null : alias.trim(),
                   homeCountryCode: country === "" ? null : country,
+                  reason: reasonAsked && reason.trim() !== "" ? reason.trim() : null,
                 }),
               )
-                .then(() => setSaved(true))
-                .catch((error: unknown) => setErrorKey(profileEditErrorKey(error)));
+                .then(() => {
+                  setSaved(true);
+                  setReasonAsked(false);
+                  setReason("");
+                })
+                .catch((error: unknown) => {
+                  if (needsAliasReason(error)) setReasonAsked(true);
+                  setErrorKey(profileEditErrorKey(error));
+                });
             }}
           >
             {t("admin.users.edit.save")}
@@ -504,9 +516,26 @@ function AdminUserEditForm({
           onChange={(event) => {
             setAlias(event.target.value);
             setSaved(false);
+            setReasonAsked(false);
+            setReason("");
           }}
         />
       </FormField>
+
+      {reasonAsked ? (
+        <FormField
+          label={t("admin.users.edit.aliasReason")}
+          htmlFor="edit-alias-reason"
+          help={t("admin.users.edit.aliasReasonHelp")}
+        >
+          <Input
+            id="edit-alias-reason"
+            data-testid="edit-alias-reason"
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+          />
+        </FormField>
+      ) : null}
 
       <FormField label={t("admin.users.edit.country")} htmlFor="edit-country">
         <select

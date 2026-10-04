@@ -714,6 +714,34 @@ export interface SellerIdentity {
   displayName: string | null;
 }
 
+/** Bundle 3 step 20 — the seller line's facts, as `my_seller_line()` holds them. */
+export interface SellerLineFacts {
+  alias: string | null;
+  previousAlias: string | null;
+  memberSince: string | null;
+}
+
+/**
+ * The signed-in seller's own line. `null` when nobody is signed in; a failed
+ * read throws (F4) and the caller logs it.
+ */
+export async function readSellerLine(): Promise<SellerLineFacts | null> {
+  const { data: session } = await supabase.auth.getSession();
+  if ((session.session?.user.id ?? null) === null) return null;
+  const { data, error } = await supabase.rpc("my_seller_line");
+  if (error) throw new Error(error.message);
+  const row =
+    data !== null && typeof data === "object" && !Array.isArray(data)
+      ? (data as Record<string, unknown>)
+      : {};
+  const text = (key: string) => (typeof row[key] === "string" ? (row[key] as string) : null);
+  return {
+    alias: text("alias"),
+    previousAlias: text("previous_alias"),
+    memberSince: text("member_since"),
+  };
+}
+
 export async function readSellerIdentity(): Promise<SellerIdentity | null> {
   const { data: session } = await supabase.auth.getUser();
   const userId = session.user?.id ?? null;

@@ -1,4 +1,5 @@
 import { ChevronDown, MapPin } from "lucide-react";
+import { sortPlacesByName } from "@/lib/place-order";
 
 import { useShell, type LocationNode } from "@/components/shell-context";
 import {
@@ -96,7 +97,7 @@ function Picker({
 }
 
 export function LocationSelector() {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const {
     locationPath,
     setLocationPath,
@@ -168,11 +169,16 @@ export function LocationSelector() {
       deeper.push({
         labelKey: definition.labelKey,
         depth,
-        options: rows.map((node) => ({
-          id: node.id,
-          name: treeName(node),
-          node: asLocationNode(node),
-        })),
+        // Part D — A to Z by the shown name, in the reader's language.
+        options: sortPlacesByName(
+          rows.map((node) => ({
+            id: node.id,
+            name: treeName(node),
+            node: asLocationNode(node),
+          })),
+          (option) => option.name,
+          language,
+        ),
         selectedId: selected?.id ?? null,
         selectedName: selected
           ? entityName(

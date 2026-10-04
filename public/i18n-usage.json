@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 325,
+  "scanned": 327,
   "dynamicCallSites": 206,
   "keys": {
     "account.deactivatedBanner": [
@@ -2642,6 +2642,12 @@
     "admin.users.edit.aliasHelp": [
       "/admin/users/$userId"
     ],
+    "admin.users.edit.aliasReason": [
+      "/admin/users/$userId"
+    ],
+    "admin.users.edit.aliasReasonHelp": [
+      "/admin/users/$userId"
+    ],
     "admin.users.edit.country": [
       "/admin/users/$userId"
     ],
@@ -3915,6 +3921,14 @@
       "/post/$listingId"
     ],
     "post.save.unsaved": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.seller.memberSince": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.seller.previously": [
       "/post",
       "/post/$listingId"
     ],

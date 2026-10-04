@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { SellerLine } from "../seller-line";
 
 /**
  * U6-C1-R3b-4 — the still map is its own lazy chunk, shared with U7: a listing
@@ -87,6 +88,9 @@ export interface ListingDetailView {
   /** The public seller name, and the business name when there is one. */
   sellerAlias: string | null;
   sellerBusinessName: string | null;
+  /** Bundle 3 step 20 — "previously" (365 days) and member since; absent = unknown. */
+  sellerPreviousAlias?: string | null;
+  sellerMemberSince?: string | null;
   /**
    * U6-C1-R3b-4 — the saved pin, exactly as the door holds it. `approx` is drawn
    * as a 500-metre circle whose centre is snapped inside `MapPreview`, so this
@@ -278,18 +282,13 @@ export function ListingDetail(view: ListingDetailView) {
         data-testid="listing-detail-seller"
       >
         <h3 className="text-sm font-medium text-foreground">{t("post.preview.sellerLabel")}</h3>
-        <p className="text-sm text-foreground" data-testid="listing-detail-seller-name">
-          {view.sellerBusinessName !== null && view.sellerBusinessName !== ""
-            ? view.sellerBusinessName
-            : (view.sellerAlias ?? t("post.review.notGiven"))}
-        </p>
-        {view.sellerAlias !== null &&
-          view.sellerBusinessName !== null &&
-          view.sellerBusinessName !== "" && (
-            <p className="text-xs text-muted-foreground" data-testid="listing-detail-seller-alias">
-              {view.sellerAlias}
-            </p>
-          )}
+        <SellerLine
+          alias={view.sellerAlias}
+          businessName={view.sellerBusinessName}
+          previousAlias={view.sellerPreviousAlias ?? null}
+          memberSince={view.sellerMemberSince ?? null}
+          testId="listing-detail-seller"
+        />
         <ul className="flex flex-wrap gap-2 text-xs text-muted-foreground">
           <li data-testid="listing-detail-channel" data-channel="messages">
             {t("post.who.channel.messages")}
