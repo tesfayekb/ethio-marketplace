@@ -302,6 +302,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       .waitFor({ state: "visible", timeout: 3_000 })
       .then(() => true)
       .catch(() => false);
+    console.log(`[PW-134] early=${early} held=${held}`);
     if (early) {
       await typeNames();
       release();
