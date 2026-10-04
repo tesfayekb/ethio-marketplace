@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { sortPlacesByName } from "@/lib/place-order";
 import type { ReactNode } from "react";
 
 import {
@@ -248,14 +249,17 @@ function CountryBox({
   onAddSubCity: (from: Row) => void;
   onAddRegion: (country: string | null) => void;
 }) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const nameOf = (node: TreeNode) =>
     entityName(
       "location",
       { id: node.id, nameEn: node.nameEn ?? node.slug, nameAm: null },
       entities,
     );
-  const regions = childrenOf(nodes, anchorOf(nodes)?.id ?? null, "region");
+  // Part D — every picker lists its places A to Z by the shown name.
+  const pick = (parentId: string | null, level: string) =>
+    sortPlacesByName(childrenOf(nodes, parentId, level), nameOf, language);
+  const regions = pick(anchorOf(nodes)?.id ?? null, "region");
 
   /** Region boxes in order of first appearance; a region not yet chosen is its own box. */
   const groups: { key: string; region: string | null; rows: Row[] }[] = [];
@@ -329,7 +333,7 @@ function CountryBox({
       {nodes.length > 0 &&
         groups.map((group) => {
           const hasPrimary = group.rows.some((row) => row.key === PRIMARY);
-          const cities = childrenOf(nodes, group.region, "city");
+          const cities = pick(group.region, "city");
           const groupEmpty = !group.rows.some((row) => placeOf(row) !== null);
           const regionOptions = regions.filter(
             (node) => node.id === group.region || !takenRegions.includes(node.id),
@@ -411,7 +415,7 @@ function CountryBox({
                   const head = cityGroup.rows[0]!;
                   const keys = cityGroup.rows.map((row) => row.key);
                   const isPrimary = keys.includes(PRIMARY);
-                  const subCities = childrenOf(nodes, cityGroup.city, "sub_city");
+                  const subCities = pick(cityGroup.city, "sub_city");
                   const cityNode = nodes.find((node) => node.id === cityGroup.city) ?? null;
                   const cityId = isPrimary ? "post-where-city" : `post-where-city-${head.key}`;
                   const cityOptions = cities.filter(
