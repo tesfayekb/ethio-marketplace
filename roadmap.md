@@ -20,7 +20,7 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] Bundle 2 step 3 — done: door attr_contact_like in 7423f49a; PW-120 (e2e/post-wizard-specs.spec.ts)
 - [x] Bundle 2 step 4 — done: door in 7423f49a; PW-121 (e2e/post-wizard-bundle2.spec.ts)
 - [x] Part R — done: src/features/posting/contact-like.ts + contact-like.test.ts; door 7423f49a; PW-120, PW-121
-- [x] Part S — done: 7423f49a:1607 schedules catalog-find-sweep '*/5 * * * *', in-file ASSERT :1745
+- [x] Part S — done: 7423f49a:1607 schedules catalog-find-sweep '_/5 _ \* \* \*', in-file ASSERT :1745
 - [x] Part P (bundle 2) — done: as Part P above; step 9a in step-where.tsx
 - [x] Part Q — done: Q1 PW-111, Q2 PW-114, Q3 PW-112, Q4 PW-115/PW-116 (e2e/post-wizard-bundle2.spec.ts)
 - [x] Step 15a (own_place) — done: 7423f49a:889–894; CT-34 (e2e/admin-categories-lifecycle.spec.ts)
