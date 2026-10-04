@@ -1,14 +1,36 @@
 import { Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useI18n } from "@/i18n";
 
+import { loadAttributeOptions, type AttrOption } from "./attribute-options";
+import { buildTitle } from "./build-title";
 import { Field, controlClass } from "./field";
-import { requestAssist } from "./posting-service";
+import { requestAssist, type AttrDef } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { ASSIST_TRIES, type Refusal } from "./types";
 import { looksLikeContact } from "./contact-like";
 import { checkText, mergeRefusals } from "./validate";
+
+/** Step 12 — the built title last written into the box, remembered per draft. */
+const builtKey = (listingId: string) => `post-built-title:${listingId}`;
+/** Step 12 — set once the seller edits the title: it is theirs from then on. */
+const ownKey = (listingId: string) => `post-built-title-own:${listingId}`;
+function readSession(key: string): string | null {
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+function writeSession(key: string, value: string | null) {
+  try {
+    if (value === null) window.sessionStorage.removeItem(key);
+    else window.sessionStorage.setItem(key, value);
+  } catch {
+    // Storage refused (private mode): the built title still fills once, it just isn't remembered.
+  }
+}
 
 /**
  * U6-C1b / U6-C1-R2 — STEP 4: TITLE, DESCRIPTION AND THE WRITING HELP (DEC-072).
@@ -46,6 +68,10 @@ export function StepDetails({
   categoryId,
   categoryPath,
   attributes,
+  definitions = [],
+  dealKeys = null,
+  negotiable = false,
+  period = null,
   photoUrls,
   title,
   description,
@@ -57,6 +83,13 @@ export function StepDetails({
   /** The chosen category's full path, already in the seller's language. */
   categoryPath: string;
   attributes: Record<string, unknown>;
+  /** Step 12 — the leaf's definitions, to build the title from the answers. */
+  definitions?: AttrDef[];
+  /** Step 12 — the deal rows' keys: never part of a built title. */
+  dealKeys?: string[] | null;
+  /** Step 13 — the negotiable switch and the period, sent to the writing helper as facts. */
+  negotiable?: boolean;
+  period?: string | null;
   /** The first three stored photos (card variant), passed to the assistant. */
   photoUrls: string[];
   title: string;
@@ -72,6 +105,69 @@ export function StepDetails({
   const [history, setHistory] = useState<Suggestion[]>([]);
   const [assistRefusal, setAssistRefusal] = useState<string | null>(null);
   const [triesLeft, setTriesLeft] = useState<number | null>(null);
+
+  /** Step 12 — option labels for the ranked choice rows the title is built from. */
+  const [titleOptions, setTitleOptions] = useState<Record<string, AttrOption[]>>({});
+  const rankedChoices = useMemo(
+    () =>
+      definitions.filter(
+        (def) =>
+          def.cardRank !== null &&
+          ["single_select", "select", "multi_select"].includes(def.attrType),
+      ),
+    [definitions],
+  );
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.all(
+      rankedChoices.map(
+        async (def) => [def.attrKey, await loadAttributeOptions(def.attributeId)] as const,
+      ),
+    ).then((entries) => {
+      if (cancelled) return;
+      // A list that failed to load is left out; buildTitle then skips that row (no raw token).
+      setTitleOptions(
+        Object.fromEntries(entries.filter(([, list]) => list !== null).map(([k, l]) => [k, l!])),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [rankedChoices]);
+  const dealSet = useMemo(() => new Set(dealKeys ?? []), [dealKeys]);
+  const built = useMemo(
+    () =>
+      buildTitle({
+        definitions,
+        answers: attributes,
+        options: titleOptions,
+        language,
+        dealKeys: dealSet,
+        yearSuffix: t("post.specs.yearEcSuffix"),
+      }),
+    [definitions, attributes, titleOptions, language, dealSet, t],
+  );
+  const [lastBuilt, setLastBuilt] = useState<string | null>(null);
+  useEffect(() => {
+    if (listingId === null) return;
+    setLastBuilt(readSession(builtKey(listingId)));
+  }, [listingId]);
+  useEffect(() => {
+    if (listingId === null || built === "") return;
+    if (readSession(ownKey(listingId)) !== null) return;
+    const last = readSession(builtKey(listingId));
+    const builderHolds = title === "" || (last !== null && title === last);
+    if (!builderHolds || built === title) return;
+    writeSession(builtKey(listingId), built);
+    setLastBuilt(built);
+    onChange({ title: built }, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rebuilt only when the build changes
+  }, [built, listingId]);
+  const showBuiltCaption = lastBuilt !== null && title !== "" && title === lastBuilt;
+  const sellerTyped = (value: string) => {
+    if (listingId === null) return;
+    if (value !== readSession(builtKey(listingId))) writeSession(ownKey(listingId), "1");
+  };
 
   /**
    * U6-C1-R3a / STEP 8 — THE SAME RULES, ON BLUR. What the seller has written is
@@ -114,6 +210,8 @@ export function StepDetails({
       categoryId,
       categoryPath,
       attrs: attributes,
+      negotiable,
+      period,
       locale: language,
       photoUrls: photoUrls.slice(0, 3),
       title,
@@ -152,9 +250,16 @@ export function StepDetails({
         required
         refusal={titleRefusal}
         hint={
-          <p className="text-xs text-muted-foreground">
-            {fill(t("post.details.count"), { count: title.length, max: TITLE_MAX })}
-          </p>
+          <>
+            {showBuiltCaption && (
+              <p className="text-xs text-muted-foreground" data-testid="post-title-built">
+                {t("post.details.titleBuilt")}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {fill(t("post.details.count"), { count: title.length, max: TITLE_MAX })}
+            </p>
+          </>
         }
       >
         <input

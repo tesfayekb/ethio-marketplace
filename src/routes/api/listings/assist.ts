@@ -10,12 +10,13 @@ import {
   routeJson,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
+import { assistDealLines, assistFactLines, composeAssistPrompt } from "@/lib/assist-prompt";
 
 /**
  * U6-A2-C / U6-C1-R2 — THE WRITING ASSISTANT (DEC-072, in full).
  *
  *   POST /api/listings/assist
- *     { listingId?, categoryId, categoryPath?, attrs, locale,
+ *     { listingId?, categoryId, categoryPath?, attrs, locale, negotiable?, period?,
  *       photoUrls?, title?, description?, previous? }
  *       →  { ok, title, description, triesLeft }
  *
@@ -66,26 +67,6 @@ function serverEnv(name: string): string {
 function textModel(): string {
   const value = serverEnv("GEMINI_TEXT_MODEL").trim();
   return value === "" ? "gemini-3.5-flash-lite" : value;
-}
-
-/** The facts, flattened to `key: value` lines — nothing else reaches the model. */
-function factLines(attrs: unknown, photoFacts: unknown): string[] {
-  const lines: string[] = [];
-  const push = (source: unknown) => {
-    if (source === null || typeof source !== "object" || Array.isArray(source)) return;
-    for (const [key, value] of Object.entries(source as Record<string, unknown>)) {
-      if (value === null || value === undefined || value === "") continue;
-      const rendered = Array.isArray(value)
-        ? value.map((entry) => String(entry)).join(", ")
-        : typeof value === "object"
-          ? JSON.stringify(value)
-          : String(value);
-      lines.push(`${key}: ${rendered.slice(0, 200)}`);
-    }
-  };
-  push(attrs);
-  push(photoFacts);
-  return lines.slice(0, 40);
 }
 
 function clamp(value: unknown, max: number): string {
@@ -150,6 +131,7 @@ const SYSTEM_PROMPT = [
   "Add nothing that is not visible in the photos or stated in the facts: never invent a",
   "condition, measurement, age, brand, history, price, delivery term, guarantee or contact detail.",
   "If a fact is missing, leave it out rather than guessing.",
+  "Never state a price, an amount or a currency. You may say what the item is sold per, and that the price is negotiable, when the facts say so.",
   "If earlier suggestions are listed, take a clearly different angle from all of them.",
   `Return JSON only: {"title": string (max ${TITLE_MAX} characters), "description": string (max ${DESCRIPTION_MAX} characters)}.`,
   "Write both fields in the requested language.",
@@ -266,7 +248,10 @@ async function handlePost(request: Request): Promise<Response> {
     triesLeft = budget.remaining;
   }
 
-  const facts = factLines(body["attrs"], body["photoFacts"]);
+  const facts = [
+    ...assistFactLines(body["attrs"], body["photoFacts"]),
+    ...assistDealLines(body["negotiable"], body["period"]),
+  ];
   const urls = photoUrls(body["photoUrls"]);
   const previous = previousPairs(body["previous"]);
   const sellerTitle = clamp(body["title"], TITLE_MAX);
@@ -290,23 +275,15 @@ async function handlePost(request: Request): Promise<Response> {
     return routeJson({ ok: true, ...fake, triesLeft }, 200);
   }
 
-  const prompt = [
-    `Language: ${locale}`,
-    `Category: ${categoryPath}`,
-    "Facts:",
-    ...(facts.length === 0 ? ["(none)"] : facts.map((line) => `- ${line}`)),
-    sellerTitle === "" ? "Seller's draft title: (none)" : `Seller's draft title: ${sellerTitle}`,
-    sellerDescription === ""
-      ? "Seller's draft description: (none)"
-      : `Seller's draft description: ${sellerDescription}`,
-    urls.length === 0 ? "Photos: (none)" : `Photos attached: ${urls.length}`,
-    ...(previous.length === 0
-      ? []
-      : [
-          "Earlier suggestions to differ from:",
-          ...previous.map((pair, index) => `- ${index + 1}: ${pair.title} — ${pair.description}`),
-        ]),
-  ].join("\n");
+  const prompt = composeAssistPrompt({
+    locale,
+    categoryPath,
+    facts,
+    sellerTitle,
+    sellerDescription,
+    photoCount: urls.length,
+    previous,
+  });
 
   const answer = await callProvider(prompt, urls);
   if (answer === null) return refusal("assist", "providerUnavailable");

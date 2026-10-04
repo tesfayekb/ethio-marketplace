@@ -2037,6 +2037,7 @@ export const am: Messages = {
   "post.details.why": "ጥርት ያለ አርዕስትና እውነተኛ መግለጫ ከማንኛውም ማጋነን በላይ ይሸጣል።",
   "post.details.titleLabel": "አርዕስት",
   "post.details.titlePlaceholder": "ለምሳሌ፦ ሳምሰንግ ፍሪጅ፣ የሚሠራ፣ አንድ ባለቤት",
+  "post.details.titleBuilt": "ከመልሶችዎ የተጻፈ። እንደፈለጉ ይቀይሩት።",
   "post.details.descriptionLabel": "መግለጫ",
   "post.details.descriptionPlaceholder": "ምን እንደሆነ፣ ሁኔታውና ገዢ ማወቅ ያለበት ሁሉ።",
   "post.details.count": "{count} ከ{max}",

@@ -695,6 +695,9 @@ export function requestAssist(body: {
   /** The chosen category's full path, in the seller's language. */
   categoryPath: string;
   attrs: Record<string, unknown>;
+  /** Step 13 — deal facts only; the amount and the currency are never sent. */
+  negotiable: boolean;
+  period: string | null;
   locale: string;
   /** The first three stored photos (card variant) — the model may look at them. */
   photoUrls: string[];
