@@ -46,7 +46,7 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [ ] M5 (step 25) → apply on ethio-prod → stop
 - [x] Screens A + B — done (steps 1–11; PW-135, PW-136–139, price/deal-line and picker unit tests)
 - [ ] Parts C → D → E → F — C, D, E done (PW-140–143, PR-25); F open
-- [ ] M6 (step 30) → stop → screens of Part G
+- [ ] M6 (step 30) written as e44f20e5, mark 20261005100000; apply on ethio-prod → stop → screens of Part G
 - [ ] Part H (docs, final report)
 - [x] INC-427 contact-step identity read wiped typed names (fixed bundle 4 turn 3; PW-134)
 - [ ] Photo clean-up bundle: when the card receives the ad's photo through listing-picture, the photos-soon ribbon hides by the existing rule (bundle 4 turn 6 item 7; no change before then).
