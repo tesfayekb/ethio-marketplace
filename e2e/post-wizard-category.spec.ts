@@ -126,8 +126,11 @@ test.describe("POSTING WIZARD", () => {
     });
   }
 
-  async function seller(page: import("@playwright/test").Page) {
-    const user = await leaseSeller();
+  async function seller(
+    page: import("@playwright/test").Page,
+    options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {},
+  ) {
+    const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
     await signInViaSession(page, user.email, user.password);
@@ -617,7 +620,10 @@ test.describe("POSTING WIZARD", () => {
       timeout: 45_000,
     });
     await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5"), "PW-54: details did not follow").toBeVisible();
+    await expect(
+      page.getByTestId("post-step-4"),
+      "PW-54: the price page did not follow",
+    ).toBeVisible();
 
     // (b) THE RESUME MATRIX — scratch drafts of this scratch seller only.
     const token = await bearerOf(page);
@@ -671,7 +677,11 @@ test.describe("POSTING WIZARD", () => {
     // The walked draft: specifications recorded, one registered photo.
     expect(await photoRowsOf(walkedId), "PW-54: the walked draft has no photo row").toHaveLength(1);
     await opensAt(walkedId, "post-step-4", "PW-54: draft_step 3 with a photo must open price");
-    await opensAt(await seedDraft(4), "post-step-5", "PW-54: draft_step 4 must open details");
+    await opensAt(
+      await seedDraft(4),
+      "post-step-5",
+      "PW-54: draft_step 4 must open the title page",
+    );
   });
 
   test("PW-8 an unreachable save keeps the answers, says so, and retries", async ({ page }) => {
@@ -923,7 +933,7 @@ test.describe("POSTING WIZARD", () => {
     // BACK to a step already answered, then forward again to review — both taps.
     await strip.getByTestId("post-step-strip-go-5").click();
     await expect(
-      page.getByTestId("post-step-4"),
+      page.getByTestId("post-step-5"),
       "PW-27: the strip would not go back to a step already done",
     ).toBeVisible();
     await page.getByTestId("post-step-strip-go-8").click();
@@ -1293,7 +1303,8 @@ test.describe("POSTING WIZARD", () => {
    * screening — never live (the owner's door can only ever hand it to review).
    */
   test("PW-48 a catch-all leaf can be chosen and its listing lands in review", async ({ page }) => {
-    const user = await seller(page);
+    // M5 — publishing needs a named seller; the alias is typed on screen.
+    const user = await seller(page, { named: true });
     const { parent, leaf: other } = await seedCatchAllLeaf();
     branches.push(parent.slug, other.slug);
 

@@ -90,13 +90,30 @@ export async function confirmHomeCountry(page: Page, token: string, country = "E
  * country control pass `{ homeConfirmed: false }`. Written through the service
  * client; the next lease returns both rows to their defaults (pool-reset-map).
  */
-export async function leaseSeller(options: { homeConfirmed?: boolean } = {}): Promise<TestUser> {
+export async function leaseSeller(
+  options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {},
+): Promise<TestUser> {
   const user = await leaseUser();
-  if (options.homeConfirmed === false) return user;
-  const fact = { home_country_code: "ET", country_source: "user_confirmed" };
-  for (const table of ["user_directory", "profiles"] as const) {
-    const { error } = await adminClient().from(table).update(fact).eq("user_id", user.id);
-    if (error) throw new Error(`[e2e:seller] confirming ${table} failed: ${error.message}`);
+  if (options.homeConfirmed !== false) {
+    const fact = { home_country_code: "ET", country_source: "user_confirmed" };
+    for (const table of ["user_directory", "profiles"] as const) {
+      const { error } = await adminClient().from(table).update(fact).eq("user_id", user.id);
+      if (error) throw new Error(`[e2e:seller] confirming ${table} failed: ${error.message}`);
+    }
+  }
+  /**
+   * Bundle 4 turn 3 (M5's named-seller rule) — `named` gives a first and last
+   * name; `alias` also gives a scratch public name (letters only, e2e- door
+   * forbids digits). The pool reset clears all three columns.
+   */
+  if (options.named === true || options.alias === true) {
+    const name: Record<string, string> = { first_name: "Abebe", last_name: "Kebede" };
+    if (options.alias === true) {
+      name["seller_alias"] =
+        `eseller_${Math.random().toString(36).slice(2, 10).replace(/[0-9]/g, "q")}`;
+    }
+    const { error } = await adminClient().from("profiles").update(name).eq("user_id", user.id);
+    if (error) throw new Error(`[e2e:seller] naming the seller failed: ${error.message}`);
   }
   return user;
 }
@@ -2424,7 +2441,8 @@ export async function seedUnitFactSet(
   const typeValue = `${stem}_milk`;
   const basisKey = `unit_of_sale-${stem}`;
   // N2-a — a later-ordered row, so a test can prove the unit is asked first.
-  const quantityKey = `${stem}_quantity`;
+  // The door's quantity family is `quantity_available` (as the unit is `unit_of_sale`).
+  const quantityKey = `quantity_available-${stem}`;
   const tokens = ["per_kg", "per_litre", "per_piece", "per_pack"];
   const supabase = adminClient();
   const { data, error } = await supabase

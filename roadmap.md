@@ -47,3 +47,4 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [ ] Screens A + B (one turn) → C → D → E → F
 - [ ] M6 (step 30) → stop → screens of Part G
 - [ ] Part H (docs, final report)
+- [x] INC-427 contact-step identity read wiped typed names (fixed bundle 4 turn 3; PW-134)

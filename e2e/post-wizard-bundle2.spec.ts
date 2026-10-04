@@ -103,7 +103,10 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     }
   }
 
-  async function signedInSeller(page: Page, options: { homeConfirmed?: boolean } = {}) {
+  async function signedInSeller(
+    page: Page,
+    options: { homeConfirmed?: boolean; named?: boolean; alias?: boolean } = {},
+  ) {
     const user = await leaseSeller(options);
     sellers.push(user.id);
     await asEdge(page);
@@ -157,25 +160,8 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     return listingId;
   }
 
-  /**
-   * M5 (bundle 4 step 22) — a seller is named before a whole draft is saved or
-   * published; the door refuses an unnamed one. Own account rows only (J3).
-   */
-  async function nameSeller(userId: string, alias: string | null) {
-    const { error } = await adminClient()
-      .from("profiles")
-      .update({
-        ...(alias === null ? {} : { seller_alias: alias }),
-        first_name: "Abebe",
-        last_name: "Kebede",
-      })
-      .eq("user_id", userId);
-    if (error) throw new Error(`[e2e:bundle2] naming the seller failed: ${error.message}`);
-  }
-
   /** The seller's last post, past the draft stage, at one place. */
   async function lastPostAt(page: Page, userId: string, categoryId: string, placeId: string) {
-    await nameSeller(userId, `eseller_${rand().replace(/[0-9]/g, "q")}`);
     const token = await bearerOf(page);
     const draft = await postRoute(
       page,
@@ -272,6 +258,79 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     release();
     await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-who-country-refusal")).toHaveCount(0);
+  });
+
+  /**
+   * PW-134 (INC-427) — names typed while the stored identity is still being read
+   * are never wiped by the read. The read is held; the names are typed as soon as
+   * a box exists (before the release on a screen that draws them early, after it
+   * otherwise); the read lands; the boxes still hold what was typed, Next saves
+   * it, and DB truth holds the public name and both names.
+   */
+  test("PW-134 names typed during the identity read survive it and are saved", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    let release: () => void = () => {};
+    const released = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let held = 0;
+    await page.route("**/rest/v1/profiles?*", async (route) => {
+      const url = route.request().url();
+      if (route.request().method() === "GET" && url.includes("seller_alias")) {
+        held += 1;
+        await released;
+      }
+      await route.continue();
+    });
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await expect.poll(() => held, { message: "PW-134: the identity read was never held" }).toBe(1);
+
+    const alias = `e2e_${rand()}`.slice(0, 30).toLowerCase();
+    const first = page.getByTestId("post-who-first");
+    const typeNames = async () => {
+      await first.click();
+      await page.keyboard.type("Almaz");
+      await page.getByTestId("post-who-last").click();
+      await page.keyboard.type("Tesfaye");
+      await page.getByTestId("post-who-alias").click();
+      await page.keyboard.type(alias);
+    };
+    // A box drawn during the read is typed into at once; the read is released after.
+    const early = await first
+      .waitFor({ state: "visible", timeout: 3_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (early) {
+      await typeNames();
+      release();
+    } else {
+      release();
+      await expect(first).toBeVisible({ timeout: 20_000 });
+      await typeNames();
+    }
+
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expect(first, "PW-134: the read wiped the first name").toHaveValue("Almaz");
+    await expect(
+      page.getByTestId("post-who-last"),
+      "PW-134: the read wiped the last name",
+    ).toHaveValue("Tesfaye");
+    await expect(page.getByTestId("post-who-alias"), "PW-134: the read wiped the name").toHaveValue(
+      alias,
+    );
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(
+        async () => {
+          const found = await identityOf(user.id);
+          return `${found.alias ?? ""}|${found.firstName ?? ""}|${found.lastName ?? ""}`;
+        },
+        { message: "PW-134: the profile does not hold what was typed", timeout: 20_000 },
+      )
+      .toBe(`${alias}|Almaz|Tesfaye`);
   });
 
   /**
@@ -436,11 +495,10 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
 
   test("PW-123 Post another ad opens step 1 with no draft carried", async ({ page }) => {
     // Exercises the country control, so its seller's home country is unconfirmed.
-    const user = await signedInSeller(page, { homeConfirmed: false });
+    // M5 — publishing needs a named seller; the alias is still typed on screen.
+    const user = await signedInSeller(page, { homeConfirmed: false, named: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
-    // M5 — publishing needs a named seller; the alias is still typed on screen.
-    await nameSeller(user.id, null);
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
     await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
@@ -645,7 +703,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   test("PW-115 without own_place the last post's pin, directions and details carry over", async ({
     page,
   }) => {
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { alias: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
     const lastId = await lastPostAt(page, user.id, leaf.id, city.id);
@@ -669,7 +727,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   });
 
   test("PW-116 an own_place category never carries the last post's pin", async ({ page }) => {
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { alias: true });
     const plain = await category();
     const own = await category(["map_pin", "own_place"]);
     const city = await activeCityOf("ET");
@@ -770,7 +828,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   }
 
   test("PW-118 a draft's own channel is never overwritten by the last post's", async ({ page }) => {
-    const user = await signedInSeller(page);
+    const user = await signedInSeller(page, { alias: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
     const lastId = await lastPostAt(page, user.id, leaf.id, city.id);
