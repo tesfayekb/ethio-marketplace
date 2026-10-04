@@ -46,6 +46,8 @@ async function normalizeCatastrophicSsrResponse(
   if (!contentType.includes("application/json")) return response;
 
   const body = await response.clone().text();
+  // TEMP INC-421 measurement — removed before commit.
+  console.error(`[inc421-normalize] ${response.status} len=${body.length} body=${body.slice(0, 200)}`);
   if (!isH3SwallowedErrorBody(body)) return response;
 
   const error = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
