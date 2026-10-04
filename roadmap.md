@@ -70,6 +70,8 @@ Brief: docs/governance/briefs/bundle-2.md (read first every turn; steps 1–19).
   - [ ] Red-first tests of steps 5–7 (no EXECUTE on consume_rate_limit / rate_gate / residency_country_for; door dials; private columns; reveal); the rest of the posting specs
   - [ ] Step 12 home-country check in publish_listing — not in M1; needs a corrective migration
 - [x] Bundle 3 Part B: contact step (steps 10-12) — PW-125/126 green; red-first for PW-125/126 owed.
+- [x] Rulings 3 item 3 — country pick only selects; Next refuses at the control until confirmed (PW-127 red on 74eb1f88, green)
+- [x] Rulings 3 item 4 / INC-407 — phone box saves nothing until the library reads it; failed load + typed text holds Next at the box (PW-128 red on 74eb1f88 with +2510911234567, green)
 - [ ] Bundle 3 Part C: seller name (steps 13-24, M2).
   - [x] Step 13/17 censuses (2026-10-04): door alias rule 5631bf8d:608-614 (shape ^[a-z0-9_]{3,30}$, 32 reserved exact); route AI check identity.ts:62-119 passes on AI failure; admin_update_profile a3ef929c:60-64 (taken only); index 479720fb:28; ALIAS_RE step-who.tsx:50, suggestion :338 (display_name fallback); 2 of 2 live aliases fail new shape (kept); fold of reserved file = 2,162 handles; brand options = 633 folded names in 40 lists (877 options), brand_name preset 0 attributes; audit table audit_log; heartbeat table catalog_find_sweep_runs is catalogue-shaped
   - [ ] M2 draft (steps 14-24) -> staging stop
