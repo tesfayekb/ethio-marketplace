@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37226811550
-- Commit: `695b315bb6bccd24f205fe4dba1a7b79106214bf`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37227771204
+- Commit: `d0b05bbc8d4cb196de2b812d7e869c94462802d7`
 - Attempt: 1
-- Written (UTC): 2026-10-04T19:20:10.044Z
+- Written (UTC): 2026-10-04T19:30:19.714Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -14,25 +14,22 @@
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-109 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+82 line(s), 34 message(s): 1 off the allowlist, 33 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
-| `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
-| `listing not found` | 10 | shard 3, shard 6 |
-| `too many previews` (quiet) | 10 | shard 2, shard 5 |
-| `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
+| `digest mismatch` (quiet) | 9 | shard 1, shard 2, shard 4, shard 5 |
+| `too many previews` (quiet) | 8 | shard 2, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `definitions badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `definitions wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `export_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
-| `preview_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
-| `categories wrongFile` (quiet) | 3 | shard 2, shard 4, shard 5 |
+| `listing not found` | 3 | shard 3, shard 6 |
+| `categories badHeader` (quiet) | 2 | shard 2, shard 5 |
 | `categories file too large` (quiet) | 2 | shard 2, shard 5 |
 | `categories nulByte` (quiet) | 2 | shard 2, shard 5 |
 | `categories unknownColumn` (quiet) | 2 | shard 2, shard 5 |
+| `categories wrongFile` (quiet) | 2 | shard 2, shard 5 |
 | `commit_failed duplicate key value violates unique constraint <q>` (quiet) | 2 | shard 1, shard 4 |
-| `commit_failed step-up required: no verified factor` (quiet) | 2 | shard 1, shard 4 |
 | `countries badHeader` (quiet) | 2 | shard 2, shard 5 |
 | `countries nulByte` (quiet) | 2 | shard 2, shard 5 |
 | `countries tooManyRows` (quiet) | 2 | shard 2, shard 5 |
@@ -41,26 +38,28 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 ·
 | `definitions nulByte` (quiet) | 2 | shard 2, shard 5 |
 | `definitions tooManyRows` (quiet) | 2 | shard 2, shard 5 |
 | `definitions unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `links unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `locations badHeader` (quiet) | 2 | shard 2, shard 5 |
-| `locations file too large` (quiet) | 2 | shard 2, shard 5 |
-| `locations nulByte` (quiet) | 2 | shard 2, shard 5 |
-| `locations unknownColumn` (quiet) | 2 | shard 2, shard 5 |
-| `locations wrongFile` (quiet) | 2 | shard 2, shard 5 |
+| `export_failed permission denied` (quiet) | 2 | shard 4 |
+| `preview_failed permission denied` (quiet) | 2 | shard 1, shard 4 |
 | `strings badHeader` (quiet) | 2 | shard 2, shard 5 |
 | `strings emptyFile` (quiet) | 2 | shard 2, shard 5 |
 | `strings nulByte` (quiet) | 2 | shard 2, shard 5 |
 | `strings tooManyRows` (quiet) | 2 | shard 2, shard 5 |
 | `strings unknownColumn` (quiet) | 2 | shard 2, shard 5 |
 | `strings wrongFile` (quiet) | 2 | shard 2, shard 5 |
+| `links unknownColumn` (quiet) | 1 | shard 2 |
+| `locations badHeader` (quiet) | 1 | shard 2 |
+| `locations file too large` (quiet) | 1 | shard 2 |
+| `locations nulByte` (quiet) | 1 | shard 2 |
+| `locations unknownColumn` (quiet) | 1 | shard 2 |
+| `locations wrongFile` (quiet) | 1 | shard 2 |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories wrongFile ×3 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed duplicate key value violates unique constraint <q> ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2
+Quiet (allowlisted): digest mismatch ×9 · too many previews ×8 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · categories badHeader ×2 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · categories wrongFile ×2 · commit_failed duplicate key value violates unique constraint <q> ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · export_failed permission denied ×2 · preview_failed permission denied ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · links unknownColumn ×1 · locations badHeader ×1 · locations file too large ×1 · locations nulByte ×1 · locations unknownColumn ×1 · locations wrongFile ×1
 
 Off the allowlist:
 
 ### listing not found
 
-- Count: 10 · Sources: shard 3, shard 6
+- Count: 3 · Sources: shard 3, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -85,7 +84,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37226811550-email
+[e2e:teardown] deleted 4 user(s) owned by process 37227771204-email
 ```
 
 ## Server errors: smoke
@@ -113,11 +112,6 @@ No `[client-error]` lines in the `email` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
 [WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
 ```
 
 ## Client errors: shard 1
@@ -152,13 +146,14 @@ No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 ## Client errors: shard 2
 
 ```text
+[client-error] console.error: [client-error] gate fetch threw
 [client-error] console.error: Failed to load resource: the server responded with a status of 409 () ×2
 ```
 
 ## Server errors: shard 3
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×5
+[WebServer] [ssr-error] /api/listings/draft listing not found ×2
 ```
 
 ## Client errors: shard 3
@@ -175,11 +170,6 @@ No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
 [WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
 [WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
 ```
 
 ## Client errors: shard 4
@@ -189,6 +179,15 @@ No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 ## Server errors: shard 5
 
 ```text
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
+[WebServer] [ssr-error] /api/admin/categories/import categories unknownColumn
+[WebServer] [ssr-error] /api/admin/categories/import categories file too large
+[WebServer] [ssr-error] /api/admin/categories/import categories nulByte
+[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
+[WebServer] [ssr-error] /api/admin/categories/import too many previews
+[WebServer] [ssr-error] /api/admin/translations/import strings badHeader
+[WebServer] [ssr-error] /api/admin/translations/import strings wrongFile
 [WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
@@ -200,15 +199,6 @@ No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
 [WebServer] [ssr-error] /api/admin/locations/import countries nulByte
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
 ```
 
 ## Client errors: shard 5
@@ -218,7 +208,7 @@ No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
 ## Server errors: shard 6
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×5
+[WebServer] [ssr-error] /api/listings/draft listing not found
 ```
 
 ## Client errors: shard 6
@@ -231,15 +221,15 @@ smoke: no results file — the process failed outside test results (setup/teardo
 
 ```text
 --- final 10 lines ---
-✓  130 [desktop-1280] › e2e/shell.spec.ts:1153:3 › rail scroll regions (U0f) › md+ rail: items scroll, header fixed (10.0s)
-  ✓  131 [desktop-1280] › e2e/shell.spec.ts:1199:3 › rail scroll regions (U0f) › footer never covers the rail's Sign out (9.1s)
-  ✓  132 [desktop-1280] › e2e/shell.spec.ts:1299:3 › desktop layout laws (U0g) › L1/L2: the top band and the rail stay put while content scrolls (1.0s)
-  ✓  133 [desktop-1280] › e2e/shell.spec.ts:1369:3 › desktop layout laws (U0g) › L3: the footer spans the full width beneath the fixed rail (737ms)
-  ✓  134 [desktop-1280] › e2e/shell.spec.ts:1433:3 › desktop layout laws (U0g) › U0i: the rail ends at the footer top and its last item stays reachable (972ms)
-  -  135 [desktop-1280] › e2e/shell.spec.ts:1460:3 › desktop layout laws (U0g) › the tall fixture does not overflow horizontally at 360
-  ✓  136 [desktop-1280] › e2e/shell.spec.ts:1492:3 › i18n gate is non-blocking (U4f-2) › TR-18 the header renders while the languages read is still in flight (566ms)
-  ✓  137 [desktop-1280] › e2e/shell.spec.ts:1504:3 › i18n gate is non-blocking (U4f-2) › TR-18 a regular user is still redirected off /admin before the list resolves (8.6s)
-  ✓  138 [desktop-1280] › e2e/shell.spec.ts:1560:3 › U4h device language star › TR-27 a star set signed-out survives reload, sign-in and sign-out (10.1s)
+[a11y] wizard-5 desktop-1280 serious=0 critical=0
+  ✓   79 [desktop-1280] › e2e/a11y.spec.ts:65:3 › A11Y SMOKE (DEC-084, gating) › A11Y-2 wizard steps 1, 3 and 5 for a scratch seller @a11y (18.6s)
+  ✓   80 [desktop-1280] › e2e/auth-signout.spec.ts:58:3 › U0j sign-out hard reset › SO-1 admin: one click signs out and resets to the marketplace (9.0s)
+  ✓   81 [desktop-1280] › e2e/auth-signout.spec.ts:78:3 › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface (10.3s)
+  ✓   82 [desktop-1280] › e2e/auth-signout.spec.ts:90:3 › U0j sign-out hard reset › SO-3 live guard: a same-tab client sign-out evacuates /admin (10.6s)
+  ✓   83 [desktop-1280] › e2e/auth-signout.spec.ts:112:3 › U0j sign-out hard reset › SO-3b reload path: a cleared token means /admin never renders on mount (9.9s)
+  ✓   84 [desktop-1280] › e2e/auth-signout.spec.ts:137:3 › U0j sign-out hard reset › SO-4 signed-out marketplace carries no gated UI (8.5s)
+  ✓   85 [desktop-1280] › e2e/auth-signout.spec.ts:260:3 › U0k session policy › SP-1 idle: the warning appears, then the session is hard-reset (12.1s)
+  ✓   86 [desktop-1280] › e2e/auth-signout.spec.ts:273:3 › U0k session policy › SP-2 stay signed in extends past the original deadline (14.4s)
 ```
 
 ## email: no results file
@@ -250,12 +240,12 @@ email: no results file — the process failed outside test results (setup/teardo
 --- final 10 lines ---
 Running 1 test using 1 worker
 
-  ✓  1 [email-serial] › e2e/auth-signup.spec.ts:121:3 › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle (4.6s)
+  ✓  1 [email-serial] › e2e/auth-signup.spec.ts:121:3 › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle (4.3s)
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37226811550-email
+[e2e:teardown] deleted 4 user(s) owned by process 37227771204-email
 
-  1 passed (14.2s)
+  1 passed (10.7s)
 ```
 
 ## shard 1: no results file
@@ -266,15 +256,15 @@ shard 1: no results file — the process failed outside test results (setup/tear
 --- error lines (1) ---
 [e2e:setup] EN baseline probe unavailable: TypeError: fetch failed (UND_ERR_HEADERS_OVERFLOW) after 4 attempts
 --- final 10 lines ---
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37226811550-1-2842-3-55we8d@ethio-e2e.invalid)
-  ✓   95 [mobile-360] › e2e/admin-categories-lifecycle.spec.ts:983:3 › CAT-IE categories import/export › CT-21 unknown parents, cycles, catch-alls and formulas are refused (7.5s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37226811550-1-2842-2-q9clx0@ethio-e2e.invalid)
-  ✓   97 [mobile-360] › e2e/admin-categories-lifecycle.spec.ts:1069:3 › CAT-IE categories import/export › CT-34 own_place is accepted by the import and an unknown token is refused (5.1s)
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-  ✓   98 [mobile-360] › e2e/admin-categories-lifecycle.spec.ts:1155:3 › CAT-IE categories import/export › CT-22 a categories:view-only operator sees no import control and is refused (10.0s)
-  ✓   96 [mobile-360] › e2e/admin-categories-console.spec.ts:815:3 › C2 categories console › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes (30.7s)
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
+✓   53 [mobile-360] › e2e/admin-attributes-library.spec.ts:561:3 › C3 attributes console › AT-12 an approved am attribute label renders in am and falls back to EN (8.7s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37227771204-1-2843-3-ps5tvy@ethio-e2e.invalid)
+  ✓   54 [mobile-360] › e2e/admin-attributes-library.spec.ts:612:3 › C3 attributes console › AT-13 a scratch attribute appears in the Data scope roster as pending (6.0s)
+  ✓   52 [mobile-360] › e2e/admin-attributes-links.spec.ts:781:3 › C3 attributes console › AT-60 a links file reorders three links and the posting read follows (19.0s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37227771204-1-2843-2-tm1fie@ethio-e2e.invalid)
+  ✓   55 [mobile-360] › e2e/admin-attributes-library.spec.ts:665:3 › C3 attributes console › AT-14 a categories:view-only user reads the library and every write door refuses (13.3s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37227771204-1-2843-3-ps5tvy@ethio-e2e.invalid)
+  ✓   56 [mobile-360] › e2e/admin-attributes-links.spec.ts:919:3 › C3 attributes console › AT-62 an exported link's condition and order re-import as unchanged (11.3s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37227771204-1-2843-2-tm1fie@ethio-e2e.invalid)
 ```
 
 ```text
@@ -284,11 +274,6 @@ shard 1: no results file — the process failed outside test results (setup/tear
 [WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
 [WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
 ```
 
 ## shard 2: no results file
@@ -296,22 +281,23 @@ shard 1: no results file — the process failed outside test results (setup/tear
 shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
---- error lines (5) ---
+--- error lines (6) ---
 [WebServer] Error in renderToReadableStream: ReferenceError: window is not defined ×4
+[client-error] console.error: [client-error] gate fetch threw
 [client-error] console.error: Failed to load resource: the server responded with a status of 409 ()
-  ✘   38 [mobile-360] › e2e/admin-users.spec.ts:452:3 › U1 admin users › AU-12 edit: a reserved name needs a reason of ten characters (32.2s)
+  ✘   37 [mobile-360] › e2e/admin-users.spec.ts:452:3 › U1 admin users › AU-12 edit: a reserved name needs a reason of ten characters (32.9s)
 [client-error] console.error: Failed to load resource: the server responded with a status of 409 ()
-  ✘   41 [mobile-360] › e2e/admin-users.spec.ts:452:3 › U1 admin users › AU-12 edit: a reserved name needs a reason of ten characters (retry #1) (31.9s)
+  ✘   41 [mobile-360] › e2e/admin-users.spec.ts:452:3 › U1 admin users › AU-12 edit: a reserved name needs a reason of ten characters (retry #1) (32.4s)
 --- final 10 lines ---
-✓  140 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:828:3 › POSTING WIZARD — bundle 2 place and contact › PW-118 a draft's own channel is never overwritten by the last post's (10.7s)
-  ✓  139 [mobile-360] › e2e/post-wizard-category.spec.ts:797:3 › POSTING WIZARD › PW-71 the category group wears the soft border until a leaf is chosen (D71) (20.7s)
-  ✓  141 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:856:3 › POSTING WIZARD — bundle 2 place and contact › PW-119 another seller's visible phone is never carried (14.2s)
-  ✓  142 [mobile-360] › e2e/post-wizard-category.spec.ts:908:3 › POSTING WIZARD › PW-27 the mobile strip walks back to a step already done, and no further (16.3s)
-  ✓  143 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:877:3 › POSTING WIZARD — bundle 2 place and contact › PW-121 a phone number in the title or description is flagged at its field (9.6s)
-  ✓  144 [mobile-360] › e2e/post-wizard-category.spec.ts:946:3 › POSTING WIZARD › PW-14 D20: a signed-out visitor is sent to sign in with a return path, comes back, and a foreign return is ignored (7.2s)
-  ✓  146 [mobile-360] › e2e/post-wizard-category.spec.ts:967:3 › POSTING WIZARD › PW-15 the posting entry lives in My Listings, not in Account (9.3s)
-  ✓  145 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:908:3 › POSTING WIZARD — bundle 2 place and contact › PW-133 contact details are kept on the profile and open the next ad (15.9s)
-  ✓  147 [mobile-360] › e2e/post-wizard-category.spec.ts:1011:3 › POSTING WIZARD › PW-29 the photos caption counts against the plan's cap (8.5s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37227771204-2-3045-2-xhqbeg@ethio-e2e.invalid)
+[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
+  ✓  105 [mobile-360] › e2e/import-security.spec.ts:908:3 › IMPORT-GATE attributes-links › IG-5 attributes-links: an undeclared column is refused by name and the declared cells are not (3.6s)
+  ✓  104 [mobile-360] › e2e/photo-pipeline.spec.ts:188:3 › PHOTO PIPELINE › PP-4 a variant over its size dial is refused by name (13.0s)
+  ✓  106 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:190:3 › POSTING WIZARD — bundle 2 place and contact › PW-113 directions are saved, survive a pin move, and refuse a phone number (12.4s)
+  ✓  107 [mobile-360] › e2e/photo-pipeline.spec.ts:207:3 › PHOTO PIPELINE › PP-5 the policy pass refuses the cover and stores nothing (11.9s)
+  ✓  108 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:231:3 › POSTING WIZARD — bundle 2 place and contact › PW-129 Next waits for the identity read instead of refusing (15.9s)
+  ✓  109 [mobile-360] › e2e/photo-pipeline.spec.ts:223:3 › PHOTO PIPELINE › PP-6 another seller's listing is a 403 (19.9s)
+  ✓  110 [mobile-360] › e2e/post-wizard-bundle2.spec.ts:270:3 › POSTING WIZARD — bundle 2 place and contact › PW-134 names typed during the identity read survive it and are saved (14.1s)
 ```
 
 ```text
@@ -338,6 +324,7 @@ shard 2: no results file — the process failed outside test results (setup/tear
 ```
 
 ```text
+[client-error] console.error: [client-error] gate fetch threw
 [client-error] console.error: Failed to load resource: the server responded with a status of 409 () ×2
 ```
 
@@ -347,19 +334,19 @@ shard 3: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-[WebServer] [ssr-error] /api/listings/draft listing not found
-  ✓   68 [mobile-360] › e2e/post-wizard-specs.spec.ts:1674:3 › POSTING WIZARD › PW-45 a declared swatch renders one ink, a two-tone and a pattern tile (13.0s)
-  ✓   69 [mobile-360] › e2e/post-wizard-where.spec.ts:831:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-96 the saved pin keeps its zoom; the dropper reopens at it (13.7s)
-  ✓   70 [mobile-360] › e2e/post-wizard-specs.spec.ts:1743:3 › POSTING WIZARD › PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44) (17.9s)
-  ✓   71 [mobile-360] › e2e/post-wizard-where.spec.ts:871:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-101 the location details refuse a phone number and keep a street note (14.1s)
-  ✓   72 [mobile-360] › e2e/post-wizard-specs.spec.ts:1804:3 › POSTING WIZARD › PW-42 Amharic catalog text falls back field by field (14.3s)
-  ✓   73 [mobile-360] › e2e/posting-routes.spec.ts:93:3 › POSTING ROUTES › PR-1 the draft route sets the observed residency from the edge exactly once (14.6s)
-  ✓   75 [mobile-360] › e2e/posting-routes.spec.ts:123:3 › POSTING ROUTES › PR-2 an incomplete step is the door's own refusal, at status 200 (11.8s)
-  ✓   74 [mobile-360] › e2e/post-wizard-specs.spec.ts:1879:3 › POSTING WIZARD › PW-43 a fact prefills a sibling the same selection unhides (21.5s)
+✓   33 [mobile-360] › e2e/post-wizard-pricing.spec.ts:961:3 › POSTING WIZARD › PW-137 Pieces per Pack shows with per pack and goes, with its value, on another unit; the size and terms lines read under the price (bundle 4 steps 9, 10) (36.2s)
+  ✓   35 [mobile-360] › e2e/post-wizard-specs.spec.ts:559:3 › POSTING WIZARD › PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320) (22.8s)
+  ✓   36 [mobile-360] › e2e/post-wizard-pricing.spec.ts:1026:3 › POSTING WIZARD › PW-138 a required unit left empty is refused on the price page's Next, not on the specifications page's (bundle 4 step 9) (24.5s)
+  ✓   37 [mobile-360] › e2e/post-wizard-specs.spec.ts:635:3 › POSTING WIZARD › PW-70 a strict refusal focuses the first refused field (D70) (20.3s)
+  ✓   38 [mobile-360] › e2e/post-wizard-pricing.spec.ts:1060:3 › POSTING WIZARD › PW-139 a category with no unit still asks Volume on the specifications page (bundle 4 step 9) (18.5s)
+  ✓   39 [mobile-360] › e2e/post-wizard-specs.spec.ts:662:5 › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, no-preference) (23.2s)
+  ✓   40 [mobile-360] › e2e/post-wizard-pricing.spec.ts:1078:3 › POSTING WIZARD › PW-140 the title page opens with a title written from the answers, and the seller's edit survives a changed answer (bundle 4 step 12) (31.6s)
+  ✓   41 [mobile-360] › e2e/post-wizard-specs.spec.ts:662:5 › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, reduce) (21.8s)
+  ✓   42 [mobile-360] › e2e/post-wizard-pricing.spec.ts:1145:3 › POSTING WIZARD › PW-17 the currency is preselected and searchable by name in one control (16.1s)
 ```
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×5
+[WebServer] [ssr-error] /api/listings/draft listing not found ×2
 ```
 
 ## shard 4: no results file
@@ -368,15 +355,15 @@ shard 4: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-✓  112 [desktop-1280] › e2e/admin-categories-lifecycle.spec.ts:1880:3 › C2-HOME categories home flag › CT-33 the flagged pointer is the home, a reorder never moves it, and deleting it promotes the other (6.1s)
-  ✓  111 [desktop-1280] › e2e/admin-countries.spec.ts:200:3 › L2b countries console › CO-5 profile round trip: units, currency and order are saved and read back (11.9s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37226811550-4-2851-2-p7ed6s@ethio-e2e.invalid)
-  ✓  113 [desktop-1280] › e2e/admin-coverage.spec.ts:114:3 › L2b coverage console › CV-1 gating: a plain user is refused; the roster renders for a super admin (12.8s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37226811550-4-2851-3-knxrma@ethio-e2e.invalid)
-  ✓  114 [desktop-1280] › e2e/admin-countries.spec.ts:230:3 › L2b countries console › CO-6 rail order: two roots are stored in position order, and the reset removes every row (11.0s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37226811550-4-2851-2-p7ed6s@ethio-e2e.invalid)
-  ✓  115 [desktop-1280] › e2e/admin-coverage.spec.ts:132:3 › L2b coverage console › CV-2 roster: the free plan renders its three limits and its everywhere state (3.0s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37226811550-4-2851-3-knxrma@ethio-e2e.invalid)
+✓   65 [desktop-1280] › e2e/admin-audit.spec.ts:135:3 › U3 audit & security › IMP-1 impersonation: super admin opens a read-only session and ends it @private-identity (20.5s)
+  ✓   67 [desktop-1280] › e2e/admin-attributes-library.spec.ts:1127:3 › C3 attributes console › AT-19 an inherited row has no write verb and the write RPCs refuse it (11.3s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37227771204-4-3063-2-lwtzj8@ethio-e2e.invalid)
+  ✓   68 [desktop-1280] › e2e/admin-audit.spec.ts:162:3 › U3 audit & security › IMP-2 dual-actor audit: start and end are both recorded @private-identity (17.6s)
+  ✓   69 [desktop-1280] › e2e/admin-attributes-library.spec.ts:1215:3 › C3 attributes console › AT-36 a secondary parent confers nothing, a primary parent confers (14.5s)
+  ✓   71 [desktop-1280] › e2e/admin-categories-console.spec.ts:83:3 › C2 categories console › CT-1 gating: a plain user is refused; the section renders for an admin (14.4s)
+  ✓   72 [desktop-1280] › e2e/admin-categories-console.spec.ts:101:3 › C2 categories console › CT-2 roster: the ratified tree renders, search narrows it, nothing overflows (7.7s)
+  ✓   70 [desktop-1280] › e2e/admin-audit.spec.ts:191:3 › U3 audit & security › IMP-3 server refusals: self, super-admin target, and a non-super caller @private-identity (28.5s)
+[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37227771204-4-3063-3-mqsi87@ethio-e2e.invalid)
 ```
 
 ```text
@@ -387,11 +374,6 @@ shard 4: no results file — the process failed outside test results (setup/tear
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
 [WebServer] [ssr-error] /api/admin/attributes/import commit_failed duplicate key value violates unique constraint "category_attribute_links_card_rank_unique"
 [WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
 ```
 
 ## shard 5: no results file
@@ -399,19 +381,30 @@ shard 4: no results file — the process failed outside test results (setup/tear
 shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
+--- error lines (1) ---
+  ✘   63 [desktop-1280] › e2e/locations-tree.spec.ts:104:3 › L1c · public per-country location tree › LR-3 a row disappears when an ancestor is retired, and the version moves (1.5s)
 --- final 10 lines ---
-✓  104 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:439:3 › POSTING WIZARD — bundle 2 place and contact › PW-114 a second phone appears on request and is stored as phone2 (21.2s)
-  ✓  105 [desktop-1280] › e2e/post-wizard-category.spec.ts:171:3 › POSTING WIZARD › PW-1 the shell renders one step of eight, Back and Next both closed (10.2s)
-  ✓  106 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:474:3 › POSTING WIZARD — bundle 2 place and contact › PW-122 an empty phone box opens on the country of the item's place (16.6s)
-  ✓  107 [desktop-1280] › e2e/post-wizard-category.spec.ts:196:3 › POSTING WIZARD › PW-2 search-to-leaf chooses a category and creates the draft at once (12.5s)
-  ✓  109 [desktop-1280] › e2e/post-wizard-category.spec.ts:220:3 › POSTING WIZARD › PW-52 a category with an icon name shows its glyph; one without shows none (D38) (12.6s)
-  ✓  108 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:494:3 › POSTING WIZARD — bundle 2 place and contact › PW-123 Post another ad opens step 1 with no draft carried (19.0s)
-  ✓  110 [desktop-1280] › e2e/post-wizard-category.spec.ts:257:3 › POSTING WIZARD › PW-53 Back responds after typing in Find a category (INC-277) (12.0s)
-  ✓  111 [desktop-1280] › e2e/post-wizard-bundle2.spec.ts:522:3 › POSTING WIZARD — bundle 2 place and contact › PW-124 the phone box shows an example and a length hint per country (14.6s)
-  ✓  112 [desktop-1280] › e2e/post-wizard-category.spec.ts:297:3 › POSTING WIZARD › PW-62 a level follows pointer order, a guest follows the host's own children, and the home is the flagged pointer (DEC-080) (13.4s)
+[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
+[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
+[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
+[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
+  ✓   83 [desktop-1280] › e2e/import-security.spec.ts:339:5 › IMPORT-GATE locations-countries › IG-1 locations-countries: malformed, foreign, oversized and unreadable files are refused whole (2.9s)
+[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37227771204-5-3081-2-w6sljo@ethio-e2e.invalid)
+  ✓   84 [desktop-1280] › e2e/import-security.spec.ts:414:5 › IMPORT-GATE locations-countries › IG-2 locations-countries: dangerous cells refuse their own row and name the reason (2.9s)
+  ✓   81 [desktop-1280] › e2e/photo-pipeline.spec.ts:110:3 › PHOTO PIPELINE › PP-1 a JPEG carrying GPS, XMP and ICC is stored as image data only (REQ-036) (18.5s)
+[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 ```
 
 ```text
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
+[WebServer] [ssr-error] /api/admin/categories/import categories unknownColumn
+[WebServer] [ssr-error] /api/admin/categories/import categories file too large
+[WebServer] [ssr-error] /api/admin/categories/import categories nulByte
+[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
+[WebServer] [ssr-error] /api/admin/categories/import too many previews
+[WebServer] [ssr-error] /api/admin/translations/import strings badHeader
+[WebServer] [ssr-error] /api/admin/translations/import strings wrongFile
 [WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
@@ -423,15 +416,6 @@ shard 5: no results file — the process failed outside test results (setup/tear
 [WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
 [WebServer] [ssr-error] /api/admin/locations/import countries nulByte
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
 ```
 
 ## shard 6: no results file
@@ -440,17 +424,17 @@ shard 6: no results file — the process failed outside test results (setup/tear
 
 ```text
 --- final 10 lines ---
-✓  127 [desktop-1280] › e2e/posting-routes.spec.ts:785:3 › POSTING ROUTES › PR-16 a model question that matters is required by the draft route (DEC-086) (17.1s)
-  ✓  130 [desktop-1280] › e2e/shell.spec.ts:1199:3 › rail scroll regions (U0f) › footer never covers the rail's Sign out (8.6s)
-  ✓  132 [desktop-1280] › e2e/shell.spec.ts:1299:3 › desktop layout laws (U0g) › L1/L2: the top band and the rail stay put while content scrolls (1.5s)
-  ✓  133 [desktop-1280] › e2e/shell.spec.ts:1369:3 › desktop layout laws (U0g) › L3: the footer spans the full width beneath the fixed rail (1.4s)
-  ✓  131 [desktop-1280] › e2e/posting-routes.spec.ts:881:3 › POSTING ROUTES › PR-20 step 5: the counters are server-only; the server path still counts (11.0s)
-  ✓  134 [desktop-1280] › e2e/shell.spec.ts:1433:3 › desktop layout laws (U0g) › U0i: the rail ends at the footer top and its last item stays reachable (952ms)
-  -  136 [desktop-1280] › e2e/shell.spec.ts:1460:3 › desktop layout laws (U0g) › the tall fixture does not overflow horizontally at 360
-  ✓  137 [desktop-1280] › e2e/shell.spec.ts:1492:3 › i18n gate is non-blocking (U4f-2) › TR-18 the header renders while the languages read is still in flight (583ms)
-  ✓  138 [desktop-1280] › e2e/shell.spec.ts:1504:3 › i18n gate is non-blocking (U4f-2) › TR-18 a regular user is still redirected off /admin before the list resolves (9.4s)
+✓   47 [desktop-1280] › e2e/post-wizard-specs.spec.ts:1674:3 › POSTING WIZARD › PW-45 a declared swatch renders one ink, a two-tone and a pattern tile (12.0s)
+  ✓   48 [desktop-1280] › e2e/post-wizard-where.spec.ts:871:3 › POSTING WIZARD — where the ad is shown (W6b-1) › PW-101 the location details refuse a phone number and keep a street note (12.5s)
+  ✓   49 [desktop-1280] › e2e/post-wizard-specs.spec.ts:1743:3 › POSTING WIZARD › PW-35 a model's single allowed answer is stored, not rendered, and the review shows it (D44) (18.7s)
+  ✓   50 [desktop-1280] › e2e/posting-routes.spec.ts:93:3 › POSTING ROUTES › PR-1 the draft route sets the observed residency from the edge exactly once (12.4s)
+  ✓   52 [desktop-1280] › e2e/posting-routes.spec.ts:123:3 › POSTING ROUTES › PR-2 an incomplete step is the door's own refusal, at status 200 (9.3s)
+  ✓   51 [desktop-1280] › e2e/post-wizard-specs.spec.ts:1804:3 › POSTING WIZARD › PW-42 Amharic catalog text falls back field by field (14.5s)
+  ✓   53 [desktop-1280] › e2e/posting-routes.spec.ts:151:3 › POSTING ROUTES › PR-10 a pricing basis is the door's own refusal by name, at status 200 (DEC-079) (11.6s)
+  ✓   54 [desktop-1280] › e2e/post-wizard-specs.spec.ts:1879:3 › POSTING WIZARD › PW-43 a fact prefills a sibling the same selection unhides (17.8s)
+  ✓   55 [desktop-1280] › e2e/posting-routes.spec.ts:218:3 › POSTING ROUTES › PR-11 negotiable is a flag: stored on a price, forced off on contact (DEC-081) (10.6s)
 ```
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×5
+[WebServer] [ssr-error] /api/listings/draft listing not found
 ```
