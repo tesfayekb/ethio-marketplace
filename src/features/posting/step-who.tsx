@@ -10,18 +10,23 @@ import type { MessageKey } from "@/i18n";
 import { RequiredMark } from "./field";
 import { PhoneNumberField } from "./phone-number-field";
 import { loadPhoneLib, type PhoneLib } from "./phone-parse";
-import { ALIAS_RULE_REASON, aliasRuleLocal } from "./alias-rules";
+import { ALIAS_RULE_REASON, NON_LATIN_RE, aliasRuleLocal } from "./alias-rules";
 import {
+  changeHomeCountry,
   checkAlias as checkAliasDoor,
+  readCountries,
   readLastListingContact,
   readSellerIdentity,
+  readSellerLine,
   saveIdentity,
   suggestAliases,
+  type CountryRow,
   type SellerIdentity,
+  type SellerLineFacts,
 } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
-import { checkChannel } from "./validate";
+import { checkChannel, normalizeTelegram } from "./validate";
 
 /**
  * U6-C2b — STEP 7: WHO IS SELLING, AND HOW A BUYER REACHES THEM (spec §4 B2).
@@ -67,7 +72,8 @@ const CHANNEL_LABELS: Record<Channel, MessageKey> = {
 const CHANNEL_HINTS: Record<Channel, MessageKey> = {
   phone: "post.who.channel.numberHint",
   phone2: "post.who.channel.numberHint",
-  telegram: "post.who.channel.telegramHint",
+  // Walk fix 7 — one shape, "@handle", said in the hint (new key, D5).
+  telegram: "post.who.channel.telegramHintV2",
   whatsapp: "post.who.channel.numberHint",
 };
 
@@ -116,6 +122,7 @@ export function StepWho({
   nextTried = 0,
   onBlocked,
   saveRef,
+  categoryId = null,
 }: {
   listingId?: string | null;
   contactPref: Record<string, unknown>;
@@ -136,6 +143,8 @@ export function StepWho({
    * leaves the step, and a checked name is claimed only then. False keeps the step.
    */
   saveRef?: { current: (() => Promise<boolean>) | null };
+  /** Walk fix 2 (M4) — the draft's category, so suggestions can use its word. */
+  categoryId?: string | null;
 }) {
   const { t, entities, language } = useI18n();
   const markets = useOpenMarkets();
@@ -160,6 +169,15 @@ export function StepWho({
   const [countryLocked, setCountryLocked] = useState(false);
   /** Refusals the identity door named, kept apart from the draft's own. */
   const [identityRefusals, setIdentityRefusals] = useState<Refusal[]>([]);
+  /** Walk fix 3 — the change rule's dates, from `my_seller_line()` (M4). */
+  const [lineFacts, setLineFacts] = useState<SellerLineFacts | null>(null);
+  /** Walk fix 6 — every country in the table; open markets lead the list. */
+  const [allCountries, setAllCountries] = useState<CountryRow[]>([]);
+  /** Walk fix 5 — the confirmed box opens for a change; choosing only selects. */
+  const [countryChanging, setCountryChanging] = useState(false);
+  /** Walk fix 5 — the "Confirm this country" dialog; only Confirm saves. */
+  const [countryConfirming, setCountryConfirming] = useState(false);
+  const [countryChangeRefusal, setCountryChangeRefusal] = useState<Refusal | null>(null);
 
   /** Step 11 — the phone library, loaded when this step opens; a failure offers a retry. */
   const [phoneLib, setPhoneLib] = useState<PhoneLib | null>(null);
@@ -222,6 +240,22 @@ export function StepWho({
       }
       setEditing(found.alias === null);
     });
+    // Walk fix 3 — the change rule's dates, for the state line under the name.
+    void readSellerLine()
+      .then((facts) => {
+        if (!cancelled) setLineFacts(facts);
+      })
+      .catch((error: unknown) => {
+        console.error("[post-who] seller line read failed", error);
+      });
+    // Walk fix 6 — every country in the table, not only the open markets.
+    void readCountries()
+      .then((rows) => {
+        if (!cancelled) setAllCountries(rows);
+      })
+      .catch((error: unknown) => {
+        console.error("[post-who] countries read failed", error);
+      });
     return () => {
       cancelled = true;
     };
