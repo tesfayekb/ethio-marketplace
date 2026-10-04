@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 336,
-  "dynamicCallSites": 207,
+  "dynamicCallSites": 208,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -4022,10 +4022,6 @@
       "/post/$listingId"
     ],
     "post.specs.noneForParent": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.specs.optionsFailed": [
       "/post",
       "/post/$listingId"
     ],

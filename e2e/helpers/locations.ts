@@ -354,6 +354,28 @@ export async function seedScratchChain(countryCode: string) {
  */
 export async function seedGuessFixture(countryCode: string, point: { lat: number; lng: number }) {
   const supabase = adminClient();
+  // INC-428 class rule: this fixture owns a fixed slot (a map point). Clear
+  // scratch cities left at exactly this point by a cancelled run (> 10 min
+  // old), child first through destroyLocation of their scratch region.
+  const staleCutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const stale = await supabase
+    .from("locations")
+    .select("slug, parent_id")
+    .like("slug", "e2e-%")
+    .eq("country_code", countryCode)
+    .eq("center_lat", point.lat)
+    .eq("center_lng", point.lng)
+    .lt("created_at", staleCutoff);
+  if (stale.error) throw new Error(`[e2e:l4b2] stale read failed: ${stale.error.message}`);
+  for (const row of stale.data ?? []) {
+    const parent = row.parent_id
+      ? await supabase.from("locations").select("slug").eq("id", row.parent_id).maybeSingle()
+      : null;
+    if (parent?.error)
+      throw new Error(`[e2e:l4b2] stale parent read failed: ${parent.error.message}`);
+    const parentSlug = parent?.data?.slug;
+    await destroyLocation(parentSlug?.startsWith("e2e-") ? parentSlug : row.slug);
+  }
   const anchor = await anchorOf(countryCode);
   const regionSlug = scratchSlug("gs-region");
   const citySlug = scratchSlug("gs-city");

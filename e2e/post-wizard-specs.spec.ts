@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { en } from "../src/i18n/locales/en";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
 import { destroyLocation } from "./helpers/locations";
@@ -296,6 +297,62 @@ test.describe("POSTING WIZARD", () => {
       (await attributesOf(listingId))[spec.select.attrKey],
       "PW-5: the chosen option was not recorded",
     ).toBe(spec.optionValues[0]);
+  });
+
+  /**
+   * PW-145 — bundle 4 step 20. The options route answers 429 once: the plain
+   * "please wait" sentence the schema read uses shows under that control, and
+   * opening the list again loads it.
+   */
+  test("PW-145 an over-limit options read says so under its control, and a second open loads the list", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    let refused = 0;
+    await page.route(`**/api/attributes/${spec.select.id}/options`, async (route) => {
+      if (refused === 0) {
+        refused += 1;
+        await route.fulfill({
+          status: 429,
+          contentType: "application/json",
+          body: JSON.stringify({ ok: false, reason: "rateLimited" }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+    await gotoReady(page, "/post");
+    await chooseBySearch(page, category.slug, category.id);
+    const [draft] = await draftsOf(user.id);
+    objects.push({ userId: user.id, listingId: String(draft?.id ?? "") });
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+
+    const picker = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${spec.select.attrKey}"]`,
+    );
+    if ((await picker.getAttribute("data-options")) === "idle") await picker.focus();
+    await expect(picker).toHaveAttribute("data-options", "failed", { timeout: 20_000 });
+    expect(refused, "PW-145: the route was never refused").toBe(1);
+    const line = page.locator(
+      `[data-testid="post-attr-options-error"][data-attr="${spec.select.attrKey}"][data-reason="rateLimited"]`,
+    );
+    await expect(line).toHaveText(en["post.specs.rateLimited"]);
+
+    // A second open asks again and the list arrives.
+    await picker.blur();
+    await picker.focus();
+    await expect(picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+    await expect(picker.locator("option")).toHaveCount(3);
+    await expect(line).toHaveCount(0);
   });
 
   test("PW-6 the AI assist fills the title and description from the entered details, and both stay editable", async ({

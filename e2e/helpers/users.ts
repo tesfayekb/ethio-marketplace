@@ -385,3 +385,54 @@ export async function leaseUser(): Promise<TestUser> {
   recordAccount("pool", id);
   return { id, email, password, displayName: email.split("@")[0]! };
 }
+
+/**
+ * INC-428 — a fixture that uses a fixed slot clears its own stale leftovers
+ * first. A cancelled run's scratch user can still hold a reserved handle
+ * (teardown never ran; the nightly sweep waits 24h). This releases `alias`
+ * from SCRATCH accounts only (e2e+…@ethio-e2e.invalid, never a pool seat or a
+ * real account) created more than ten minutes ago, with their alias_history
+ * rows for it. Returns the released user ids for the test's trail.
+ */
+export async function releaseStaleScratchAlias(alias: string): Promise<string[]> {
+  const supabase = adminClient();
+  const fold = alias.toLowerCase();
+  const cutoff = Date.now() - 10 * 60 * 1000;
+  const holders = new Set<string>();
+  const profiles = await supabase.from("profiles").select("user_id").ilike("seller_alias", fold);
+  if (profiles.error) throw new Error(`[e2e:alias] holder read failed: ${profiles.error.message}`);
+  const history = await supabase.from("alias_history").select("user_id").eq("alias_fold", fold);
+  if (history.error) throw new Error(`[e2e:alias] history read failed: ${history.error.message}`);
+  for (const row of [...(profiles.data ?? []), ...(history.data ?? [])]) holders.add(row.user_id);
+
+  const released: string[] = [];
+  for (const id of holders) {
+    const { data, error } = await supabase.auth.admin.getUserById(id);
+    if (error || !data?.user) continue;
+    const email = data.user.email ?? "";
+    const scratch = email.startsWith("e2e+") && email.endsWith("@ethio-e2e.invalid");
+    const created = Date.parse(data.user.created_at ?? "");
+    if (!scratch || !Number.isFinite(created) || created >= cutoff) continue;
+    const cleared = await supabase
+      .from("profiles")
+      .update({ seller_alias: null })
+      .eq("user_id", id)
+      .ilike("seller_alias", fold);
+    if (cleared.error)
+      throw new Error(`[e2e:alias] clearing ${id} failed: ${cleared.error.message}`);
+    const rows = await supabase
+      .from("alias_history")
+      .delete()
+      .eq("user_id", id)
+      .eq("alias_fold", fold);
+    if (rows.error)
+      throw new Error(`[e2e:alias] history delete ${id} failed: ${rows.error.message}`);
+    released.push(id);
+  }
+  if (released.length > 0) {
+    console.log(
+      `[e2e:alias] released "${alias}" from stale scratch account(s) ${released.join(", ")}`,
+    );
+  }
+  return released;
+}
