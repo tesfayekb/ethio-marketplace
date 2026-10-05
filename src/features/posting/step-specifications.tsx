@@ -1571,7 +1571,7 @@ export function StepSpecifications({
                     data-testid="post-attr-unit"
                     data-attr={def.attrKey}
                   >
-                    {catalogWords(def.unit, null, entities.lang, catalogScope)}
+                    {catalogWords(def.unit, def.unitAm, entities.lang, catalogScope)}
                   </span>
                 )}
               </div>

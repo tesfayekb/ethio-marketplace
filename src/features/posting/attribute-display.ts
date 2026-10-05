@@ -32,7 +32,7 @@ export function attributeDisplayValue(
   };
 
   const rendered = Array.isArray(value) ? value.map(renderOne).join(", ") : renderOne(value);
-  const unit = catalogWords(definition.unit ?? "", null, language, tokens);
+  const unit = catalogWords(definition.unit ?? "", definition.unitAm, language, tokens);
   return unit === "" ? rendered : `${rendered} ${unit}`;
 }
 
@@ -135,7 +135,7 @@ export function rangeDisplayValue(
   language: string,
   tokens: CatalogTokens,
 ): string {
-  const unit = catalogWords(definition.unit ?? "", null, language, tokens);
+  const unit = catalogWords(definition.unit ?? "", definition.unitAm, language, tokens);
   const text = `${range.min}–${range.max}`;
   return unit === "" ? text : `${text} ${unit}`;
 }
