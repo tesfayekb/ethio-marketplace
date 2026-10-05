@@ -16,6 +16,7 @@ import {
   readAttribute,
   readLinks,
   destroyAttribute,
+  openAttributeMenu,
 } from "./helpers/admin-attributes";
 
 /**
