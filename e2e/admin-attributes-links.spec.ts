@@ -1461,8 +1461,11 @@ test.describe("C3 attributes console", () => {
         .from("attributes")
         .select("name_en, options, help_text_en, help_text_am")
         .eq("attr_key", key)
-        .single();
+        .maybeSingle();
       if (error) throw new Error(`AT-67 read-back: ${error.message}`);
+      if (stored === null) {
+        throw new Error(`AT-67 the commit stored nothing: ${JSON.stringify(commit.payload)}`);
+      }
       expect(stored.name_en).toBe(label);
       expect(stored.help_text_en).toBe(help);
       expect(stored.help_text_am).toBe(helpAm);
