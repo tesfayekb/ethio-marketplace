@@ -56,7 +56,10 @@ export function catalogPieces(text: string, tokens: CatalogTokens): CatalogPiece
   // A dropped pointer leaves no doubled space and no space before punctuation.
   const tidied = pieces.map((piece) =>
     piece.kind === "text"
-      ? { kind: "text" as const, text: piece.text.replace(/ {2,}/g, " ").replace(/ +([.,;:!?።])/g, "$1") }
+      ? {
+          kind: "text" as const,
+          text: piece.text.replace(/ {2,}/g, " ").replace(/ +([.,;:!?።])/g, "$1"),
+        }
       : piece,
   );
   const first = tidied[0];

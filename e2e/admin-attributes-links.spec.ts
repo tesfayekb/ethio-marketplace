@@ -1425,12 +1425,32 @@ test.describe("C3 attributes console", () => {
       const options = "local=Made in {country}|import=Imported";
       const definitions =
         `${DEF_HEADER}\r\n` +
-        [key, cell(label), cell(labelAm), "single_select", cell(options), "", "", "", "", "", "",
-          "", "", cell(help), cell(helpAm), "", "0"].join(",") +
+        [
+          key,
+          cell(label),
+          cell(labelAm),
+          "single_select",
+          cell(options),
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          cell(help),
+          cell(helpAm),
+          "",
+          "0",
+        ].join(",") +
         "\r\n";
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
-      expect((preview.payload["refusals"] ?? []) as unknown[], JSON.stringify(preview.payload)).toHaveLength(0);
+      expect(
+        (preview.payload["refusals"] ?? []) as unknown[],
+        JSON.stringify(preview.payload),
+      ).toHaveLength(0);
       const commit = await importPost(page, token, {
         mode: "commit",
         definitions,
@@ -1474,14 +1494,34 @@ test.describe("C3 attributes console", () => {
       const token = await bearerOf(page);
       const definitions =
         `${DEF_HEADER}\r\n` +
-        [key, key, "", "text", "", "", "", "", "", "", "", "", "",
-          cell(`Post cases under {category:${ghost}}.`), "", "", "0"].join(",") +
+        [
+          key,
+          key,
+          "",
+          "text",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          cell(`Post cases under {category:${ghost}}.`),
+          "",
+          "",
+          "0",
+        ].join(",") +
         "\r\n";
       const preview = await importPost(page, token, { mode: "preview", definitions });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
       const refusals = (preview.payload["refusals"] ?? []) as Record<string, unknown>[];
       const found = refusals.find((row) => row["detail"] === "unknownCategoryToken");
-      expect(found, `AT-68 no unknownCategoryToken refusal: ${JSON.stringify(refusals)}`).toBeTruthy();
+      expect(
+        found,
+        `AT-68 no unknownCategoryToken refusal: ${JSON.stringify(refusals)}`,
+      ).toBeTruthy();
       expect(found?.["cell"]).toBe("help_text_en");
       expect(found?.["value"]).toBe(ghost);
       expect(await readAttribute(key), "AT-68 a refused preview wrote").toBeFalsy();

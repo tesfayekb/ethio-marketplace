@@ -748,32 +748,32 @@ test.describe("U4b translations console", () => {
     await seedScratchKey(key, "Plugs used in {country}");
     const supabase = adminClient();
     try {
-    const { user, secret } = await signInAsSuperAdmin(page);
-    await logTranslatorScope(page, user.id);
-    await gotoReady(page, "/admin/translations/am");
-    const id = slug(key);
-    await page.getByTestId("strings-search").fill(key);
-    await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
-    await surfaceControl(page, `string-expand-${id}`).click();
-    const route = watchRoute(page, "/api/translate");
-    await expansionControl(page, id, "string-ai").click();
-    await stepUpIfPrompted(page, secret);
-    const routeText = await route;
-    await expectWithEvidence(
-      () => expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 }),
-      async () =>
-        `route /api/translate → ${routeText}\n` +
-        `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
-    );
-    const { data, error } = await supabase
-      .from("ui_translations")
-      .select("value, flagged")
-      .eq("key", key)
-      .eq("lang_code", "am")
-      .single();
-    if (error) throw new Error(`[e2e:tr35] read failed: ${error.message}`);
-    expect(data?.flagged, "TR-35 the token was lost").toBe(false);
-    expect(data?.value ?? "").toContain("{country}");
+      const { user, secret } = await signInAsSuperAdmin(page);
+      await logTranslatorScope(page, user.id);
+      await gotoReady(page, "/admin/translations/am");
+      const id = slug(key);
+      await page.getByTestId("strings-search").fill(key);
+      await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
+      await surfaceControl(page, `string-expand-${id}`).click();
+      const route = watchRoute(page, "/api/translate");
+      await expansionControl(page, id, "string-ai").click();
+      await stepUpIfPrompted(page, secret);
+      const routeText = await route;
+      await expectWithEvidence(
+        () => expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 }),
+        async () =>
+          `route /api/translate → ${routeText}\n` +
+          `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
+      );
+      const { data, error } = await supabase
+        .from("ui_translations")
+        .select("value, flagged")
+        .eq("key", key)
+        .eq("lang_code", "am")
+        .single();
+      if (error) throw new Error(`[e2e:tr35] read failed: ${error.message}`);
+      expect(data?.flagged, "TR-35 the token was lost").toBe(false);
+      expect(data?.value ?? "").toContain("{country}");
     } finally {
       await supabase.from("ui_translation_revisions").delete().eq("key", key);
       await reapScratchKey(key);

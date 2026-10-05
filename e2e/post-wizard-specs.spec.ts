@@ -2258,9 +2258,15 @@ test.describe("POSTING WIZARD", () => {
   }
 
   async function browseEthiopia(page: Page) {
-    await page.context().addCookies([
-      { name: "ethio_area", value: `ET:${crypto.randomUUID()}`, url: test.info().project.use.baseURL! },
-    ]);
+    await page
+      .context()
+      .addCookies([
+        {
+          name: "ethio_area",
+          value: `ET:${crypto.randomUUID()}`,
+          url: test.info().project.use.baseURL!,
+        },
+      ]);
   }
 
   test("PW-154 {country} in a label and its help reads the market's country in English", async ({
@@ -2269,7 +2275,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey, spec.multi.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     await countryWords(spec);
     await browseEthiopia(page);
     await reachStep3(page, user.id, category);
@@ -2283,7 +2295,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey, spec.multi.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     await countryWords(spec);
     await browseEthiopia(page);
     await gotoReady(page, "/");
@@ -2300,14 +2318,20 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey, spec.multi.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     await countryWords(spec);
-    // No market cookie, and the profile read answers with the home unconfirmed.
+    // No market cookie, and the profile read answers with no home country.
     await page.route("**/rest/v1/profiles*", async (route) => {
       const response = await route.fetch();
       const body: unknown = await response.json();
       const unconfirm = (row: Record<string, unknown>) =>
-        "home_country_confirmed" in row ? { ...row, home_country_confirmed: false } : row;
+        "home_country_code" in row ? { ...row, home_country_code: null } : row;
       const json = Array.isArray(body)
         ? body.map((row) => unconfirm(row as Record<string, unknown>))
         : unconfirm(body as Record<string, unknown>);
@@ -2332,7 +2356,13 @@ test.describe("POSTING WIZARD", () => {
     const category = await leaf();
     const target = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey, spec.multi.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     const supabase = adminClient();
     const help = await supabase
       .from("attributes")
@@ -2351,7 +2381,9 @@ test.describe("POSTING WIZARD", () => {
     await page
       .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
       .fill("e2e kept answer");
-    const pointer = page.locator(`[data-testid="post-category-pointer"][data-slug="${target.slug}"]`);
+    const pointer = page.locator(
+      `[data-testid="post-category-pointer"][data-slug="${target.slug}"]`,
+    );
     await expect(pointer).toContainText(target.slug);
     await expect(page.getByTestId("post-specs")).not.toContainText("{category");
 
@@ -2384,7 +2416,13 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await leaf();
     const spec = await seedSpecSet(category.id);
-    specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey, spec.multi.attrKey);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
     const ghost = `e2e-ghost-${rand()}`;
     const help = await adminClient()
       .from("attributes")
@@ -2395,7 +2433,9 @@ test.describe("POSTING WIZARD", () => {
     const helpLine = page.getByTestId("post-attr-help").first();
     await expect(page.getByTestId("post-specs")).toContainText("Cases go under.");
     await expect(page.getByTestId("post-specs")).not.toContainText("{category");
-    await expect(page.locator(`[data-testid="post-category-pointer"][data-slug="${ghost}"]`)).toHaveCount(0);
+    await expect(
+      page.locator(`[data-testid="post-category-pointer"][data-slug="${ghost}"]`),
+    ).toHaveCount(0);
     await expect(helpLine).toBeVisible();
   });
 });
