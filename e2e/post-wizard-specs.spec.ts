@@ -2302,13 +2302,21 @@ test.describe("POSTING WIZARD", () => {
     const spec = await seedSpecSet(category.id);
     specs.push(spec.text.attrKey, spec.number.attrKey, spec.bool.attrKey, spec.select.attrKey, spec.multi.attrKey);
     await countryWords(spec);
-    await page.route("**/rest/v1/rpc/get_seller_identity*", (route) => route.continue());
+    // No market cookie, and the profile read answers with the home unconfirmed.
+    await page.route("**/rest/v1/profiles*", async (route) => {
+      const response = await route.fetch();
+      const body: unknown = await response.json();
+      const unconfirm = (row: Record<string, unknown>) =>
+        "home_country_confirmed" in row ? { ...row, home_country_confirmed: false } : row;
+      const json = Array.isArray(body)
+        ? body.map((row) => unconfirm(row as Record<string, unknown>))
+        : unconfirm(body as Record<string, unknown>);
+      await route.fulfill({ response, json });
+    });
     await reachStep3(page, user.id, category);
     const form = page.getByTestId("post-specs");
     await expect(form).not.toContainText("{country}");
-    await expect(form).toContainText(
-      new RegExp(`Plug used in (${en["post.catalog.yourCountry"]}|Ethiopia|[A-Z][a-z]+)`),
-    );
+    await expect(form).toContainText(`Plug used in ${en["post.catalog.yourCountry"]}`);
   });
 
   /**
