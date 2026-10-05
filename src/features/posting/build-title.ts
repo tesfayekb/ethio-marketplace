@@ -1,3 +1,5 @@
+import type { CatalogTokens } from "@/i18n";
+
 import { attributeDisplayValue } from "./attribute-display";
 import type { AttrOption } from "./attribute-options";
 import type { AttrDef } from "./posting-service";

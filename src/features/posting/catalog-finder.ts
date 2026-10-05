@@ -176,7 +176,9 @@ export async function prefillFromMatches(
   lang: string,
 ): Promise<Record<string, unknown>> {
   const out: Record<string, unknown> = {};
-  for (const entry of await fit(leafId, matches, lang)) {
+  // Only the values are used here; the labels are never drawn.
+  const unseen: CatalogTokens = { country: "", categoryPath: () => null };
+  for (const entry of await fit(leafId, matches, lang, unseen)) {
     if (entry.type === "multi_select") {
       const held = Array.isArray(out[entry.key]) ? (out[entry.key] as string[]) : [];
       out[entry.key] = [...held, entry.value];
@@ -192,6 +194,7 @@ export function useMatchLine(
   leafId: string,
   matches: FinderMatch[],
   lang: string,
+  tokens: CatalogTokens,
 ): { attribute: string; option: string } | null {
   const [line, setLine] = useState<{ attribute: string; option: string } | null>(null);
   const signature = matches.map((entry) => `${entry.key}=${entry.value}`).join("|");
@@ -199,7 +202,7 @@ export function useMatchLine(
     let cancelled = false;
     setLine(null);
     if (signature === "") return;
-    void fit(leafId, matches, lang).then((kept) => {
+    void fit(leafId, matches, lang, tokens).then((kept) => {
       if (cancelled) return;
       const first = kept[0];
       setLine(
@@ -211,6 +214,6 @@ export function useMatchLine(
     };
     // `signature` stands for `matches` (a fresh array each render).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leafId, signature, lang]);
+  }, [leafId, signature, lang, tokens]);
   return line;
 }

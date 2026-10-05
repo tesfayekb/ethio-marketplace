@@ -1,4 +1,4 @@
-import type { MessageKey } from "@/i18n";
+import { drawCatalog, type CatalogTokens, type MessageKey } from "@/i18n";
 import { entityName, type EntityBundle } from "@/i18n/entity";
 import { attributeDisplayValue } from "./attribute-display";
 import type { AttrOption } from "./attribute-options";
