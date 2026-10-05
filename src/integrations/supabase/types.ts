@@ -2338,6 +2338,7 @@ export type Database = {
           options: Json
           preset: string
           unit: string
+          unit_am: string
           usage_count: number
         }[]
       }
@@ -2857,6 +2858,7 @@ export type Database = {
           p_options: Json
           p_preset?: string
           p_unit?: string
+          p_unit_am?: string
         }
         Returns: string
       }
