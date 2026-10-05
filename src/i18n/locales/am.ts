@@ -1118,8 +1118,7 @@ export const am: Messages = {
     "የአማራጭ ገደቦች “{detail}”ን ያመለክታሉ፤ እሱ ግን ከተመሳሳይ ምድቦች ጋር አልተገናኘም",
   "admin.attributes.import.reason.rankInherited":
     "በ“{category}” የካርድ ቦታ {rank} ከ“{origin_category}” በተወረሰው “{origin_key}” ተይዟል",
-  "admin.attributes.import.reason.rankClash":
-    "በ“{category}” የካርድ ቦታ {rank} በ“{origin_key}”ም ተይዟል",
+  "admin.attributes.import.reason.rankClash": "በ“{category}” የካርድ ቦታ {rank} በ“{origin_key}”ም ተይዟል",
   "admin.attributes.import.reason.optionInUse":
     "እሴቱ “{value}” አሁንም በ{detail} ተጠቅሷል፤ መጀመሪያ እነዚያን ሕዋሶች እንደገና ይጻፉ ወይም ያላቅቁ",
   "admin.attributes.import.reason.required": "የ“{detail}” ሕዋስ ያስፈልጋል",
