@@ -3,13 +3,6 @@ import { useState } from "react";
 
 import { useI18n } from "@/i18n";
 
-/**
- * INC-435 — the hazard-tape corner band (the operator's reference): a yellow
- * band with black text and a thin black-and-yellow stripe on each edge.
- */
-const TAPE_YELLOW = "#FFD200";
-const TAPE_BLACK = "#000000";
-const TAPE_STRIPE = `repeating-linear-gradient(45deg, ${TAPE_BLACK} 0 0.9cqw, ${TAPE_YELLOW} 0.9cqw 1.8cqw)`;
 /** How far in from the corner the band's centre sits, in the picture's own width units. */
 const TAPE_INSET = "21cqw";
 
@@ -28,6 +21,8 @@ const TAPE_INSET = "21cqw";
  * picture's OWN drawn box: the img sits in a box sized to its rendered shape
  * (its natural ratio, contained in the 4:3 frame), the band lives inside that
  * box rotated −45° and is clipped by it, so nothing runs past the picture.
+ * It takes the design system's primary button colours (bg-primary with
+ * text-primary-foreground), a clean band with no stripes.
  */
 export function ListingPicture({
   photoUrl,
@@ -108,17 +103,14 @@ export function ListingPicture({
             className="pointer-events-none absolute inset-0 overflow-hidden"
           >
             <div
-              className="absolute flex flex-col font-bold uppercase"
+              className="absolute bg-primary font-bold uppercase text-primary-foreground"
               style={{
                 width: "84cqw",
                 left: `calc(100% - ${TAPE_INSET})`,
                 top: `calc(100% - ${TAPE_INSET})`,
                 transform: "translate(-50%, -50%) rotate(-45deg)",
-                background: TAPE_YELLOW,
-                color: TAPE_BLACK,
               }}
             >
-              <span className="block" style={{ height: "1.2cqw", background: TAPE_STRIPE }} />
               <span
                 data-testid="listing-photos-soon-text"
                 className="block text-center leading-none whitespace-nowrap"
@@ -126,7 +118,6 @@ export function ListingPicture({
               >
                 {t("listing.photosSoon")}
               </span>
-              <span className="block" style={{ height: "1.2cqw", background: TAPE_STRIPE }} />
             </div>
           </div>
         )}
