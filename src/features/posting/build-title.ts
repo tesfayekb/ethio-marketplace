@@ -1,3 +1,5 @@
+import type { CatalogTokens } from "@/i18n";
+
 import { attributeDisplayValue } from "./attribute-display";
 import type { AttrOption } from "./attribute-options";
 import type { AttrDef } from "./posting-service";
@@ -24,8 +26,9 @@ export function buildTitle(input: {
   language: string;
   dealKeys: ReadonlySet<string>;
   yearSuffix: string;
+  tokens: CatalogTokens;
 }): string {
-  const { definitions, answers, options, language, dealKeys, yearSuffix } = input;
+  const { definitions, answers, options, language, dealKeys, yearSuffix, tokens } = input;
   const ranked = definitions
     .filter((def) => def.cardRank !== null && !dealKeys.has(def.attrKey))
     .filter((def) => conditionMet(def, answers))
@@ -54,7 +57,16 @@ export function buildTitle(input: {
       });
       if (unlabelled) continue;
     }
-    const part = attributeDisplayValue(def, value, held, language, "", "", yearSuffix).trim();
+    const part = attributeDisplayValue(
+      def,
+      value,
+      held,
+      language,
+      "",
+      "",
+      yearSuffix,
+      tokens,
+    ).trim();
     if (part === "") continue;
     const next = title === "" ? part : `${title} ${part}`;
     if (next.length > BUILT_TITLE_MAX) break;

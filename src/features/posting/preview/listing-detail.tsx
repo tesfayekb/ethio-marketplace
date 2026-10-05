@@ -14,6 +14,9 @@ const MapPreview = lazy(() =>
 import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
+import { drawCatalog } from "@/i18n";
+import { useCatalogScope } from "../catalog-scope";
+
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
 import { formatCommission } from "../price-basis";
@@ -115,6 +118,7 @@ export interface ListingDetailView {
 
 export function ListingDetail(view: ListingDetailView) {
   const { t, entities, language } = useI18n();
+  const scope = useCatalogScope();
   const tree = useCountryTree(view.country);
   const nodes: TreeNode[] = tree.loadedCountry === view.country ? tree.nodes : [];
 
@@ -140,6 +144,7 @@ export function ListingDetail(view: ListingDetailView) {
     language,
     entities,
     t,
+    tokens: scope,
   });
   // Bundle 4 step 10 — the one shared price line.
   const priceLine = sharedPriceLine(
@@ -249,14 +254,17 @@ export function ListingDetail(view: ListingDetailView) {
             {facts.map((definition) => (
               <div key={definition.attrKey} className="flex justify-between gap-3 p-2">
                 <dt className="text-muted-foreground">
-                  {entityName(
-                    "attribute",
-                    {
-                      id: definition.attributeId,
-                      nameEn: definition.nameEn,
-                      nameAm: definition.nameAm,
-                    },
-                    entities,
+                  {drawCatalog(
+                    entityName(
+                      "attribute",
+                      {
+                        id: definition.attributeId,
+                        nameEn: definition.nameEn,
+                        nameAm: definition.nameAm,
+                      },
+                      entities,
+                    ),
+                    scope,
                   )}
                 </dt>
                 <dd
@@ -265,7 +273,7 @@ export function ListingDetail(view: ListingDetailView) {
                   data-key={definition.attrKey}
                 >
                   {ranges[definition.attrKey] !== undefined
-                    ? rangeDisplayValue(definition, ranges[definition.attrKey]!, language)
+                    ? rangeDisplayValue(definition, ranges[definition.attrKey]!, language, scope)
                     : attributeDisplayValue(
                         definition,
                         view.attributes[definition.attrKey],
@@ -274,6 +282,7 @@ export function ListingDetail(view: ListingDetailView) {
                         t("post.review.yes"),
                         t("post.review.no"),
                         t("post.specs.yearEcSuffix"),
+                        scope,
                       )}
                 </dd>
               </div>

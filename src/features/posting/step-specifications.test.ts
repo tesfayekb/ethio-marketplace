@@ -26,4 +26,13 @@ describe("firstSentence (INC-294)", () => {
     const text = "Find it under Settings › About phone, or on the box.";
     expect(firstSentence(text)).toEqual({ head: text, rest: "" });
   });
+
+  it("keeps a sentence that ends in a category token whole (step 29)", () => {
+    const out = firstSentence("Cases are posted under {category:phone-cases}. Ask the seller.");
+    expect(out.head).toBe("Cases are posted under {category:phone-cases}.");
+    expect(out.rest).toBe("Ask the seller.");
+    expect(firstSentence("ሽፋኖች በ{category:phone-cases} ሥር ይለጠፋሉ። ሻጩን ይጠይቁ።").head).toBe(
+      "ሽፋኖች በ{category:phone-cases} ሥር ይለጠፋሉ።",
+    );
+  });
 });

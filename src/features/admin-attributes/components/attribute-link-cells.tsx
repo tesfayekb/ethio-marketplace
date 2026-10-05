@@ -319,7 +319,7 @@ export function AttributeLinkCells({
                 setAndValues([]);
               }}
             >
-              <option value="">{t("admin.attributes.link.none")}</option>
+              <option value="">{t("admin.attributes.link.andNone")}</option>
               {conditionSiblings
                 .filter((sibling) => sibling.attrKey !== conditionKey)
                 .map((sibling) => (

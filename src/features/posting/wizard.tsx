@@ -4,9 +4,10 @@ import { FormLayout } from "@/components/layout/form-layout";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
 import { SplitLayout } from "@/components/layout/split-layout";
-import { readAreaCookie } from "@/components/shell/location-data";
+import { readAreaCookie, useOpenMarkets } from "@/components/shell/location-data";
 import { PageCard } from "@/components/shell/page-card";
 import {
+  isPostable,
   nearestCategoryPicture,
   pathOf,
   useCategoryTree,
@@ -28,6 +29,8 @@ import { StepReview } from "./step-review";
 import { StepSpecifications, type DealGroup } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
 import { MobileStepStrip } from "./mobile-step-strip";
+import { CatalogScopeProvider, tokenCountryCode, type CatalogScope } from "./catalog-scope";
+import { CategoryMoveDialog } from "./category-move-dialog";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { answerOtherText } from "./answer-tokens";
 import { basisInForce, basisNoun, basisToken } from "./price-basis";
@@ -35,6 +38,7 @@ import {
   clearPin,
   readPlaceCountry,
   readPostingSchema,
+  readSellerIdentity,
   type AttrDef,
   type PlanCaps,
   savePhotosSoon,
@@ -144,6 +148,72 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
       cancelled = true;
     };
   }, [itemPlaceId]);
+
+  /**
+   * Bundle 4 steps 28–29 — WHAT {country} AND {category:…} DRAW AS, resolved once
+   * for every seller and buyer screen under this wizard (catalog-scope.tsx).
+   * The seller's identity is read only when neither the place nor the browsed
+   * market names a country.
+   */
+  const openMarkets = useOpenMarkets();
+  const areaCountry = readAreaCookie()?.country ?? null;
+  const needHome = itemCountry === null && areaCountry === null;
+  const [home, setHome] = useState<{ code: string | null; confirmed: boolean } | null>(null);
+  useEffect(() => {
+    if (!needHome || home !== null) return;
+    let cancelled = false;
+    void readSellerIdentity().then((identity) => {
+      if (cancelled) return;
+      setHome({
+        code: identity?.homeCountryCode ?? null,
+        confirmed: identity?.homeCountryConfirmed ?? false,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [needHome, home]);
+  const tokenCountry = tokenCountryCode({
+    placeCountry: itemCountry,
+    areaCountry,
+    homeCountry: home?.code ?? null,
+    homeConfirmed: home?.confirmed ?? false,
+  });
+  const fallbackCountry = t("post.catalog.yourCountry");
+  const countryWords = useMemo(() => {
+    if (tokenCountry === null) return fallbackCountry;
+    const market = openMarkets.markets.find((entry) => entry.code === tokenCountry);
+    if (market !== undefined && market.anchorId !== null) {
+      return entityName(
+        "location",
+        { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
+        entities,
+      );
+    }
+    try {
+      const name = new Intl.DisplayNames([language], { type: "region" }).of(tokenCountry);
+      if (name !== undefined && name !== tokenCountry) return name;
+    } catch {
+      // An unknown code falls through to the market's own name or the fallback words.
+    }
+    return market?.nameEn ?? fallbackCountry;
+  }, [tokenCountry, openMarkets.markets, entities, language, fallbackCountry]);
+  /** The {category:…} pointer the seller tapped, awaiting the move question. */
+  const [pointerSlug, setPointerSlug] = useState<string | null>(null);
+  const catalogScope = useMemo<CatalogScope>(
+    () => ({
+      country: countryWords,
+      categoryPath: (slug: string) => {
+        const node = tree.nodes.find((entry) => entry.slug === slug);
+        if (node === undefined || !isPostable(tree, node)) return null;
+        return pathOf(tree, node.id)
+          .map((step) => entityName("category", step, entities))
+          .join(" › ");
+      },
+      moveTo: setPointerSlug,
+    }),
+    [countryWords, tree, entities],
+  );
   useEffect(() => {
     if (!pinCarried || draft.listingId === null) return;
     if (facts === null || !facts.capabilities.includes("own_place")) return;
@@ -279,7 +349,9 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           }
           const found = basisOptions?.find((option) => option.value === basisValue);
           // INC-297 — the NOUN, derived once here: templates keep their own "per".
-          return found === undefined ? basisValue : basisNoun(optionLabel(found, language));
+          return found === undefined
+            ? basisValue
+            : basisNoun(optionLabel(found, language, catalogScope));
         })();
 
   /**
@@ -495,270 +567,304 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     else goNext();
   }
 
+  /**
+   * Step 29 — the pointer's "yes": exactly step 1's choice (chooseLeaf, with its
+   * reset offer), carrying every answer whose key the target category also asks
+   * with the same type; the door judges what it receives (F3).
+   */
+  const pointerNode =
+    pointerSlug === null ? null : (tree.nodes.find((node) => node.slug === pointerSlug) ?? null);
+  const pointerPath = pointerSlug === null ? null : catalogScope.categoryPath(pointerSlug);
+  const confirmPointer = () => {
+    const target = pointerNode;
+    setPointerSlug(null);
+    if (target === null) return;
+    const held = draft.values.attributes;
+    void readPostingSchema(target.id).then((schema) => {
+      const kept: Record<string, unknown> = {};
+      for (const def of schema?.attributes ?? []) {
+        const mine = definitions.find((entry) => entry.attrKey === def.attrKey);
+        if (mine === undefined || mine.attrType !== def.attrType) continue;
+        if (held[def.attrKey] !== undefined) kept[def.attrKey] = held[def.attrKey];
+      }
+      chooseLeaf(target.id, kept);
+    });
+  };
+
   return (
-    <PageShell as="main" width="full" data-testid="post-page-shell">
-      <SplitLayout
-        asideCollapsible
-        aside={
-          <div className="space-y-4" data-testid="post-desktop-aside">
-            <Section>
-              <ol className="space-y-2" aria-label={t("post.progress.label")}>
-                {WALK.map((entry) => {
-                  const current = entry.step === draft.step;
-                  /*
-                   * DEC-113 — THE LIST OPENS WHAT IS DONE. A finished step and the
-                   * current one are buttons, by the strip's own rule (isStepFinished,
-                   * draft.goTo); a step not reached yet stays plain text.
-                   */
-                  const reachable =
-                    current ||
-                    isStepFinished(entry.step, {
-                      draftStep: draft.draftStep,
-                      photosCount: draft.photos.length,
-                    });
-                  const badge = (
-                    <span
-                      className={`grid size-6 shrink-0 place-items-center rounded-full border text-xs ${
-                        positionOf(entry.step) <= positionOf(draft.step)
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border text-muted-foreground"
-                      }`}
-                    >
-                      {positionOf(entry.step) < positionOf(draft.step)
-                        ? "✓"
-                        : positionOf(entry.step)}
-                    </span>
-                  );
-                  return (
-                    <li
-                      key={entry.step}
-                      className="text-sm"
-                      aria-current={current ? "step" : undefined}
-                      data-testid="post-step-list-item"
-                      data-step={entry.step}
-                    >
-                      {reachable ? (
-                        <button
-                          type="button"
-                          data-testid={`post-step-list-go-${entry.step}`}
-                          className="grid min-h-11 w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-md px-1 text-start hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                          onClick={() => {
-                            if (!current) draft.goTo(entry.step);
-                          }}
-                        >
-                          {badge}
-                          <span className="truncate text-foreground">{t(entry.nameKey)}</span>
-                        </button>
-                      ) : (
-                        <span className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-1">
-                          {badge}
-                          <span className="truncate text-muted-foreground">{t(entry.nameKey)}</span>
-                        </span>
-                      )}
-                    </li>
-                  );
-                })}
-              </ol>
-              {draft.step > 1 && categoryPath !== "" ? (
-                <p className="mt-4 text-xs text-muted-foreground">{categoryPath}</p>
-              ) : null}
-            </Section>
-            {draft.step >= 4 && draft.step < 8 ? (
-              <ListingPreview
-                title={draft.values.title}
-                description={draft.values.description}
-                priceMode={draft.values.priceMode}
-                priceAmount={draft.values.priceAmount}
-                priceCurrency={draft.values.priceCurrency}
-                pricePeriod={draft.values.pricePeriod}
-                priceBp={draft.values.priceBp}
-                basisLabel={basisLabel}
-                deal={deal}
-                dealDefinitions={definitions}
-                illustrationUrl={illustrationUrl}
-                photosSoon={draft.photosSoon}
-                priceNegotiable={draft.values.priceNegotiable}
-                attributes={draft.values.attributes}
-                definitions={[]}
-                attributeOptions={{}}
-                photos={draft.photos}
-                coverage={draft.values.coverage}
-                country={readAreaCookie()?.country ?? null}
-                contactPref={draft.values.contactPref}
-              />
-            ) : null}
-          </div>
-        }
-        main={
-          <div className="mx-auto min-w-0 max-w-3xl">
-            <Section className="space-y-4">
-              <header className="space-y-2">
-                <h1 className="text-lg font-semibold text-foreground">{t("post.title")}</h1>
-                <p className="text-sm text-muted-foreground" data-testid="post-step-header">
-                  {fill(t("post.stepOf"), {
-                    step: positionOf(draft.step),
-                    total: TOTAL_STEPS,
-                    name: t(current.nameKey),
+    <CatalogScopeProvider value={catalogScope}>
+      <CategoryMoveDialog
+        path={pointerPath}
+        onCancel={() => setPointerSlug(null)}
+        onConfirm={confirmPointer}
+      />
+      <PageShell as="main" width="full" data-testid="post-page-shell">
+        <SplitLayout
+          asideCollapsible
+          aside={
+            <div className="space-y-4" data-testid="post-desktop-aside">
+              <Section>
+                <ol className="space-y-2" aria-label={t("post.progress.label")}>
+                  {WALK.map((entry) => {
+                    const current = entry.step === draft.step;
+                    /*
+                     * DEC-113 — THE LIST OPENS WHAT IS DONE. A finished step and the
+                     * current one are buttons, by the strip's own rule (isStepFinished,
+                     * draft.goTo); a step not reached yet stays plain text.
+                     */
+                    const reachable =
+                      current ||
+                      isStepFinished(entry.step, {
+                        draftStep: draft.draftStep,
+                        photosCount: draft.photos.length,
+                      });
+                    const badge = (
+                      <span
+                        className={`grid size-6 shrink-0 place-items-center rounded-full border text-xs ${
+                          positionOf(entry.step) <= positionOf(draft.step)
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border text-muted-foreground"
+                        }`}
+                      >
+                        {positionOf(entry.step) < positionOf(draft.step)
+                          ? "✓"
+                          : positionOf(entry.step)}
+                      </span>
+                    );
+                    return (
+                      <li
+                        key={entry.step}
+                        className="text-sm"
+                        aria-current={current ? "step" : undefined}
+                        data-testid="post-step-list-item"
+                        data-step={entry.step}
+                      >
+                        {reachable ? (
+                          <button
+                            type="button"
+                            data-testid={`post-step-list-go-${entry.step}`}
+                            className="grid min-h-11 w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-md px-1 text-start hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            onClick={() => {
+                              if (!current) draft.goTo(entry.step);
+                            }}
+                          >
+                            {badge}
+                            <span className="truncate text-foreground">{t(entry.nameKey)}</span>
+                          </button>
+                        ) : (
+                          <span className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-1">
+                            {badge}
+                            <span className="truncate text-muted-foreground">
+                              {t(entry.nameKey)}
+                            </span>
+                          </span>
+                        )}
+                      </li>
+                    );
                   })}
-                </p>
-                {/* The progress rail: eight segments, the passed ones filled. */}
-                <ol
-                  aria-label={t("post.progress.label")}
-                  data-testid="post-progress"
-                  className="flex gap-1"
-                >
-                  {WALK.map((entry) => (
-                    <li
-                      key={entry.step}
-                      aria-current={entry.step === draft.step ? "step" : undefined}
-                      className={`h-1 grow rounded-full ${
-                        positionOf(entry.step) <= positionOf(draft.step) ? "bg-primary" : "bg-muted"
-                      }`}
-                    >
-                      <span className="sr-only">{t(entry.nameKey)}</span>
-                    </li>
-                  ))}
                 </ol>
-                {/*
-                 * U6-C1-R3b-1 STEP 4 — THE MOBILE STEP STRIP. The desktop rail
-                 * (the aside) tells a seller where they are and lets them jump
-                 * back; below `lg` there was no rail and no way back except Back,
-                 * Back, Back. The strip is that rail, laid on its side: eight
-                 * numbers, a tick for the ones behind, the current one LABELLED
-                 * (a lone highlighted digit is not an answer to "where am I"),
-                 * horizontally scrollable at 360.
-                 *
-                 * ONLY WHAT IS DONE IS TAPPABLE. A step the seller has not reached
-                 * has nothing to show and no answers to edit, so it is a plain
-                 * number and not a button — an affordance that leads nowhere is a
-                 * lie about the wizard's shape.
-                 */}
-                <MobileStepStrip
-                  step={draft.step}
-                  draftStep={draft.draftStep}
-                  photosCount={draft.photos.length}
-                  onGoTo={draft.goTo}
+                {draft.step > 1 && categoryPath !== "" ? (
+                  <p className="mt-4 text-xs text-muted-foreground">{categoryPath}</p>
+                ) : null}
+              </Section>
+              {draft.step >= 4 && draft.step < 8 ? (
+                <ListingPreview
+                  title={draft.values.title}
+                  description={draft.values.description}
+                  priceMode={draft.values.priceMode}
+                  priceAmount={draft.values.priceAmount}
+                  priceCurrency={draft.values.priceCurrency}
+                  pricePeriod={draft.values.pricePeriod}
+                  priceBp={draft.values.priceBp}
+                  basisLabel={basisLabel}
+                  deal={deal}
+                  dealDefinitions={definitions}
+                  illustrationUrl={illustrationUrl}
+                  photosSoon={draft.photosSoon}
+                  priceNegotiable={draft.values.priceNegotiable}
+                  attributes={draft.values.attributes}
+                  definitions={[]}
+                  attributeOptions={{}}
+                  photos={draft.photos}
+                  coverage={draft.values.coverage}
+                  country={readAreaCookie()?.country ?? null}
+                  contactPref={draft.values.contactPref}
                 />
-                <p
-                  className="text-xs text-muted-foreground"
-                  data-testid="post-save-state"
-                  data-state={draft.saveState}
-                >
-                  {draft.saveState === "saving" && t("post.save.saving")}
-                  {draft.saveState === "saved" && t("post.save.saved")}
-                  {draft.saveState === "unsaved" && t("post.save.unsaved")}
-                </p>
-                {/* INC-227 — a rate refusal is a WAIT, never a wall: the caption counts
-              it down and `Next` keeps working. */}
-                {draft.pauseSeconds > 0 && (
-                  <p className="text-xs text-muted-foreground" data-testid="post-save-paused">
-                    {fill(t("post.save.paused"), { seconds: draft.pauseSeconds })}
+              ) : null}
+            </div>
+          }
+          main={
+            <div className="mx-auto min-w-0 max-w-3xl">
+              <Section className="space-y-4">
+                <header className="space-y-2">
+                  <h1 className="text-lg font-semibold text-foreground">{t("post.title")}</h1>
+                  <p className="text-sm text-muted-foreground" data-testid="post-step-header">
+                    {fill(t("post.stepOf"), {
+                      step: positionOf(draft.step),
+                      total: TOTAL_STEPS,
+                      name: t(current.nameKey),
+                    })}
                   </p>
-                )}
-                {draft.saveState === "unsaved" && (
-                  <button
-                    type="button"
-                    data-testid="post-save-retry"
-                    className="min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
-                    onClick={draft.retry}
+                  {/* The progress rail: eight segments, the passed ones filled. */}
+                  <ol
+                    aria-label={t("post.progress.label")}
+                    data-testid="post-progress"
+                    className="flex gap-1"
                   >
-                    {t("post.action.retry")}
-                  </button>
-                )}
-              </header>
+                    {WALK.map((entry) => (
+                      <li
+                        key={entry.step}
+                        aria-current={entry.step === draft.step ? "step" : undefined}
+                        className={`h-1 grow rounded-full ${
+                          positionOf(entry.step) <= positionOf(draft.step)
+                            ? "bg-primary"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <span className="sr-only">{t(entry.nameKey)}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  {/*
+                   * U6-C1-R3b-1 STEP 4 — THE MOBILE STEP STRIP. The desktop rail
+                   * (the aside) tells a seller where they are and lets them jump
+                   * back; below `lg` there was no rail and no way back except Back,
+                   * Back, Back. The strip is that rail, laid on its side: eight
+                   * numbers, a tick for the ones behind, the current one LABELLED
+                   * (a lone highlighted digit is not an answer to "where am I"),
+                   * horizontally scrollable at 360.
+                   *
+                   * ONLY WHAT IS DONE IS TAPPABLE. A step the seller has not reached
+                   * has nothing to show and no answers to edit, so it is a plain
+                   * number and not a button — an affordance that leads nowhere is a
+                   * lie about the wizard's shape.
+                   */}
+                  <MobileStepStrip
+                    step={draft.step}
+                    draftStep={draft.draftStep}
+                    photosCount={draft.photos.length}
+                    onGoTo={draft.goTo}
+                  />
+                  <p
+                    className="text-xs text-muted-foreground"
+                    data-testid="post-save-state"
+                    data-state={draft.saveState}
+                  >
+                    {draft.saveState === "saving" && t("post.save.saving")}
+                    {draft.saveState === "saved" && t("post.save.saved")}
+                    {draft.saveState === "unsaved" && t("post.save.unsaved")}
+                  </p>
+                  {/* INC-227 — a rate refusal is a WAIT, never a wall: the caption counts
+              it down and `Next` keeps working. */}
+                  {draft.pauseSeconds > 0 && (
+                    <p className="text-xs text-muted-foreground" data-testid="post-save-paused">
+                      {fill(t("post.save.paused"), { seconds: draft.pauseSeconds })}
+                    </p>
+                  )}
+                  {draft.saveState === "unsaved" && (
+                    <button
+                      type="button"
+                      data-testid="post-save-retry"
+                      className="min-h-11 rounded-md border border-input px-3 text-xs font-medium text-foreground"
+                      onClick={draft.retry}
+                    >
+                      {t("post.action.retry")}
+                    </button>
+                  )}
+                </header>
 
-              {/* THE CHIP: the chosen category, on every step after the first, with the
+                {/* THE CHIP: the chosen category, on every step after the first, with the
             way back to change it. The walk asked for the path, not the leaf. */}
-              {draft.step > 1 && chosenCategory !== null && (
-                <div
-                  className="flex flex-wrap items-center gap-2 rounded-md bg-muted px-3 py-2"
-                  data-testid="post-category-chip"
-                >
-                  <span className="text-xs text-foreground" data-testid="post-category-chip-path">
-                    {pathOf(tree, chosenCategory.id)
-                      .map((node) => entityName("category", node, entities))
-                      .join(" › ")}
-                  </span>
-                  <button
-                    type="button"
-                    data-testid="post-category-chip-change"
-                    className="text-xs font-medium text-primary underline"
-                    onClick={() => draft.goTo(1)}
-                  >
-                    {t("post.category.change")}
-                  </button>
-                </div>
-              )}
-
-              {/*
-               * R-YEAR STEP 5 — ONE LINE, IN THE SELLER'S WORDS, AND DISMISSIBLE.
-               * The old notice was a heading plus a sentence; a seller who has just
-               * changed category needs one plain line naming the new category and
-               * the answers that did not travel with them (F4: nothing vanishes in
-               * silence), and a way to put it away once read.
-               */}
-              {((resetOffer !== null && draft.step === 3) ||
-                (photosNeedRecheck && draft.step === 2)) &&
-                !noticeDismissed && (
+                {draft.step > 1 && chosenCategory !== null && (
                   <div
-                    className="space-y-1 rounded-md border border-border bg-muted p-3"
-                    data-testid="post-category-changed"
+                    className="flex flex-wrap items-center gap-2 rounded-md bg-muted px-3 py-2"
+                    data-testid="post-category-chip"
                   >
-                    {resetOffer !== null && draft.step === 3 && (
-                      <p
-                        className="flex flex-wrap items-center gap-2 text-sm text-foreground"
-                        data-testid="post-category-dropped"
-                      >
-                        <span>
-                          {fill(t("post.category.changedReset"), {
-                            category:
-                              chosenCategory === null
-                                ? ""
-                                : entityName("category", chosenCategory, entities),
-                          })}
-                        </span>
-                        <button
-                          type="button"
-                          className="min-h-11 font-medium text-primary underline"
-                          data-testid="post-category-reset-undo"
-                          onClick={() => {
-                            const snapshot = resetOffer;
-                            setResetOffer(null);
-                            setPhotosNeedRecheck(false);
-                            draft.change(snapshot, false);
-                            void draft.rewindTo(1).then((saved) => {
-                              if (saved) draft.goTo(3);
-                            });
-                          }}
-                        >
-                          {t("post.specs.resetUndo")}
-                        </button>
-                        <button
-                          type="button"
-                          className="min-h-11 font-medium text-primary underline"
-                          data-testid="post-category-changed-dismiss"
-                          onClick={() => setNoticeDismissed(true)}
-                        >
-                          {t("post.category.changedDismiss")}
-                        </button>
-                      </p>
-                    )}
-                    {photosNeedRecheck && draft.step === 2 && (
-                      <p
-                        className="text-sm text-muted-foreground"
-                        data-testid="post-category-photos-recheck"
-                      >
-                        {t("post.category.changedPhotos")}
-                      </p>
-                    )}
+                    <span className="text-xs text-foreground" data-testid="post-category-chip-path">
+                      {pathOf(tree, chosenCategory.id)
+                        .map((node) => entityName("category", node, entities))
+                        .join(" › ")}
+                    </span>
+                    <button
+                      type="button"
+                      data-testid="post-category-chip-change"
+                      className="text-xs font-medium text-primary underline"
+                      onClick={() => draft.goTo(1)}
+                    >
+                      {t("post.category.change")}
+                    </button>
                   </div>
                 )}
 
-              <FormLayout
-                footer={
-                  <div
-                    className="space-y-1"
-                    /* INC-332 — A TAP ON NEXT OR BACK IS NEVER LOST. Pressing a
+                {/*
+                 * R-YEAR STEP 5 — ONE LINE, IN THE SELLER'S WORDS, AND DISMISSIBLE.
+                 * The old notice was a heading plus a sentence; a seller who has just
+                 * changed category needs one plain line naming the new category and
+                 * the answers that did not travel with them (F4: nothing vanishes in
+                 * silence), and a way to put it away once read.
+                 */}
+                {((resetOffer !== null && draft.step === 3) ||
+                  (photosNeedRecheck && draft.step === 2)) &&
+                  !noticeDismissed && (
+                    <div
+                      className="space-y-1 rounded-md border border-border bg-muted p-3"
+                      data-testid="post-category-changed"
+                    >
+                      {resetOffer !== null && draft.step === 3 && (
+                        <p
+                          className="flex flex-wrap items-center gap-2 text-sm text-foreground"
+                          data-testid="post-category-dropped"
+                        >
+                          <span>
+                            {fill(t("post.category.changedReset"), {
+                              category:
+                                chosenCategory === null
+                                  ? ""
+                                  : entityName("category", chosenCategory, entities),
+                            })}
+                          </span>
+                          <button
+                            type="button"
+                            className="min-h-11 font-medium text-primary underline"
+                            data-testid="post-category-reset-undo"
+                            onClick={() => {
+                              const snapshot = resetOffer;
+                              setResetOffer(null);
+                              setPhotosNeedRecheck(false);
+                              draft.change(snapshot, false);
+                              void draft.rewindTo(1).then((saved) => {
+                                if (saved) draft.goTo(3);
+                              });
+                            }}
+                          >
+                            {t("post.specs.resetUndo")}
+                          </button>
+                          <button
+                            type="button"
+                            className="min-h-11 font-medium text-primary underline"
+                            data-testid="post-category-changed-dismiss"
+                            onClick={() => setNoticeDismissed(true)}
+                          >
+                            {t("post.category.changedDismiss")}
+                          </button>
+                        </p>
+                      )}
+                      {photosNeedRecheck && draft.step === 2 && (
+                        <p
+                          className="text-sm text-muted-foreground"
+                          data-testid="post-category-photos-recheck"
+                        >
+                          {t("post.category.changedPhotos")}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                <FormLayout
+                  footer={
+                    <div
+                      className="space-y-1"
+                      /* INC-332 — A TAP ON NEXT OR BACK IS NEVER LOST. Pressing a
                        button used to blur the field first; its on-blur judgement
                        then rendered a message that moved the button out from
                        under the finger, and the click landed elsewhere. The press
@@ -766,212 +872,187 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                        the click itself then blurs the field (its judgement still
                        shows) AFTER it has registered. One rule for every step's
                        on-blur field and every layout of this bar. */
-                    data-testid="post-actions"
-                    onMouseDown={(event) => {
-                      if ((event.target as HTMLElement).closest("button") !== null) {
-                        event.preventDefault();
-                      }
-                    }}
-                    onClickCapture={(event) => {
-                      if ((event.target as HTMLElement).closest("button") === null) return;
-                      const active = document.activeElement;
-                      if (active instanceof HTMLElement && !event.currentTarget.contains(active)) {
-                        active.blur();
-                      }
-                    }}
-                  >
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        data-testid="post-back"
-                        /* U6-C1-R3b-1 STEP 3 — SECONDARY TOKENS, not a bare
+                      data-testid="post-actions"
+                      onMouseDown={(event) => {
+                        if ((event.target as HTMLElement).closest("button") !== null) {
+                          event.preventDefault();
+                        }
+                      }}
+                      onClickCapture={(event) => {
+                        if ((event.target as HTMLElement).closest("button") === null) return;
+                        const active = document.activeElement;
+                        if (
+                          active instanceof HTMLElement &&
+                          !event.currentTarget.contains(active)
+                        ) {
+                          active.blur();
+                        }
+                      }}
+                    >
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          data-testid="post-back"
+                          /* U6-C1-R3b-1 STEP 3 — SECONDARY TOKENS, not a bare
                            outline: on the card the old transparent Back read as
                            disabled next to the filled Next. */
-                        className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
-                        disabled={
-                          draft.step === 1 && categoryCursor === null && categoryTerm.trim() === ""
-                        }
-                        onClick={() => {
-                          // INC-277 — while the filter holds a term the tree shows hits,
-                          // not the level: Back first clears the filter (visibly),
-                          // instead of moving a cursor nobody can see or doing nothing.
-                          if (draft.step === 1 && categoryTerm.trim() !== "") {
-                            setCategoryTerm("");
-                            return;
-                          }
-                          // STEP 5 — inside the tree, Back climbs one level; at the
-                          // roots it leaves the step, as it always did.
-                          if (draft.step === 1 && categoryCursor !== null) {
-                            setCategoryCursor(tree.parentOf.get(categoryCursor) ?? null);
-                            return;
-                          }
-                          draft.goTo(prevOf(draft.step));
-                        }}
-                      >
-                        {t("post.action.back")}
-                      </button>
-                      {/*
-                       * U6-C1-R3b-1 STEP 2a — THE WAY BACK FROM AN EDIT. `Next`
-                       * already returns to review, but a seller who decides the
-                       * field was fine after all had to press Next (and be judged)
-                       * to get back. This returns without claiming anything.
-                       * Secondary-button tokens, not a bare link: it sits on the
-                       * card beside Next and has to be readable there.
-                       */}
-                      {returnToReview && draft.step < TOTAL_STEPS ? (
-                        <button
-                          type="button"
-                          data-testid="post-back-to-review"
                           className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
+                          disabled={
+                            draft.step === 1 &&
+                            categoryCursor === null &&
+                            categoryTerm.trim() === ""
+                          }
                           onClick={() => {
-                            setReturnToReview(false);
-                            draft.goTo(TOTAL_STEPS);
+                            // INC-277 — while the filter holds a term the tree shows hits,
+                            // not the level: Back first clears the filter (visibly),
+                            // instead of moving a cursor nobody can see or doing nothing.
+                            if (draft.step === 1 && categoryTerm.trim() !== "") {
+                              setCategoryTerm("");
+                              return;
+                            }
+                            // STEP 5 — inside the tree, Back climbs one level; at the
+                            // roots it leaves the step, as it always did.
+                            if (draft.step === 1 && categoryCursor !== null) {
+                              setCategoryCursor(tree.parentOf.get(categoryCursor) ?? null);
+                              return;
+                            }
+                            draft.goTo(prevOf(draft.step));
                           }}
                         >
-                          {t("post.action.backToReview")}
+                          {t("post.action.back")}
                         </button>
-                      ) : null}
-                      {draft.step < TOTAL_STEPS ? (
-                        <button
-                          type="button"
-                          data-testid="post-next"
-                          className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60`}
-                          /* U6-C1-R3a-2 — STEP 1 HAS ONE ANSWER and it is a leaf:
+                        {/*
+                         * U6-C1-R3b-1 STEP 2a — THE WAY BACK FROM AN EDIT. `Next`
+                         * already returns to review, but a seller who decides the
+                         * field was fine after all had to press Next (and be judged)
+                         * to get back. This returns without claiming anything.
+                         * Secondary-button tokens, not a bare link: it sits on the
+                         * card beside Next and has to be readable there.
+                         */}
+                        {returnToReview && draft.step < TOTAL_STEPS ? (
+                          <button
+                            type="button"
+                            data-testid="post-back-to-review"
+                            className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
+                            onClick={() => {
+                              setReturnToReview(false);
+                              draft.goTo(TOTAL_STEPS);
+                            }}
+                          >
+                            {t("post.action.backToReview")}
+                          </button>
+                        ) : null}
+                        {draft.step < TOTAL_STEPS ? (
+                          <button
+                            type="button"
+                            data-testid="post-next"
+                            className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60`}
+                            /* U6-C1-R3a-2 — STEP 1 HAS ONE ANSWER and it is a leaf:
                              with none chosen there is nothing to send, so Next is
                              closed and says why underneath. Every later step keeps
                              sending (the door is the judge, F3). */
-                          disabled={needsLeaf}
-                          onClick={() => {
-                            // Rulings 3 — the contact step refuses at its own controls.
-                            if (draft.step === 7 && whoGate === "pending") {
-                              setWhoQueued(true);
-                              return;
-                            }
-                            if (draft.step === 7 && whoGate === "blocked") {
-                              setWhoTried((n) => n + 1);
-                              return;
-                            }
-                            goNext();
-                          }}
+                            disabled={needsLeaf}
+                            onClick={() => {
+                              // Rulings 3 — the contact step refuses at its own controls.
+                              if (draft.step === 7 && whoGate === "pending") {
+                                setWhoQueued(true);
+                                return;
+                              }
+                              if (draft.step === 7 && whoGate === "blocked") {
+                                setWhoTried((n) => n + 1);
+                                return;
+                              }
+                              goNext();
+                            }}
+                          >
+                            {t("post.action.next")}
+                          </button>
+                        ) : null}
+                      </div>
+                      {/* D58 — a Next whose save never reached the door says so HERE. */}
+                      {draft.nextBlockedByTransport && (
+                        <p data-testid="post-next-unreachable" className="text-sm text-destructive">
+                          {t("post.save.unsaved")}
+                        </p>
+                      )}
+                      {needsLeaf && (
+                        <p
+                          className="text-xs text-muted-foreground"
+                          data-testid="post-next-blocked"
                         >
-                          {t("post.action.next")}
-                        </button>
-                      ) : null}
+                          {t("post.category.nextBlocked")}
+                        </p>
+                      )}
                     </div>
-                    {/* D58 — a Next whose save never reached the door says so HERE. */}
-                    {draft.nextBlockedByTransport && (
-                      <p data-testid="post-next-unreachable" className="text-sm text-destructive">
-                        {t("post.save.unsaved")}
-                      </p>
-                    )}
-                    {needsLeaf && (
-                      <p className="text-xs text-muted-foreground" data-testid="post-next-blocked">
-                        {t("post.category.nextBlocked")}
-                      </p>
-                    )}
-                  </div>
-                }
-              >
-                <div data-span="full" className="min-w-0 space-y-4">
-                  {draft.loading ? (
-                    <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
-                  ) : (
-                    <section
-                      data-testid={`post-step-${draft.step}`}
-                      /* A KEYBOARD SELLER PRESSING ENTER on step 1 with no leaf gets
+                  }
+                >
+                  <div data-span="full" className="min-w-0 space-y-4">
+                    {draft.loading ? (
+                      <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
+                    ) : (
+                      <section
+                        data-testid={`post-step-${draft.step}`}
+                        /* A KEYBOARD SELLER PRESSING ENTER on step 1 with no leaf gets
                          the same answer as a tap on a closed Next: the choice group
                          outlined, and the reason said (F4). */
-                      onKeyDown={(event) => {
-                        if (event.key !== "Enter" || !needsLeaf) return;
-                        setTriedWithoutLeaf(true);
-                      }}
-                    >
-                      {draft.step === 1 && (
-                        <StepCategory
-                          tree={tree}
-                          isLoading={treeLoading}
-                          treeError={treeError}
-                          cursor={categoryCursor}
-                          onCursor={setCategoryCursor}
-                          term={categoryTerm}
-                          onTerm={setCategoryTerm}
-                          selectedId={categoryId}
-                          invalid={triedWithoutLeaf && categoryId === null}
-                          onChoose={(nextCategoryId, matches) => {
-                            // D37-2 — a finder hit carries proposed answers; they are
-                            // revalidated against the leaf's schema and options first
-                            // (the finder is a hint), then land as editable prefills.
-                            if (matches !== undefined && matches.length > 0) {
-                              void prefillFromMatches(nextCategoryId, matches, entities.lang).then(
-                                (prefill) => chooseLeaf(nextCategoryId, prefill),
-                              );
-                              return;
-                            }
-                            chooseLeaf(nextCategoryId, {});
-                          }}
-                        />
-                      )}
-
-                      {draft.step === 2 && (
-                        <StepPhotos
-                          listingId={draft.listingId}
-                          photos={draft.photos}
-                          onChanged={draft.reloadPhotos}
-                          illustrationUrl={illustrationUrl}
-                          photosSoon={draft.photosSoon}
-                          onPhotosSoon={async (on) => {
-                            if (draft.listingId === null) return false;
-                            // The tick follows the finger; a refusal puts it back (F4).
-                            draft.setPhotosSoon(on);
-                            const ok = await savePhotosSoon(draft.listingId, on);
-                            if (!ok) draft.setPhotosSoon(!on);
-                            return ok;
-                          }}
-                          videoUrl={draft.values.videoUrl}
-                          videoRefusal={
-                            refusalFor(draft.refusals, "video_url") ??
-                            refusalFor(draft.refusals, "videoUrl")
-                          }
-                          onChangeVideo={(videoUrl) => draft.change({ videoUrl }, false)}
-                          maxPhotos={planCaps?.maxPhotos ?? null}
-                        />
-                      )}
-                      {draft.step === 3 && (
-                        <StepSpecifications
-                          categoryId={draft.values.categoryId}
-                          values={draft.values.attributes}
-                          refusals={draft.refusals}
-                          onChange={(attributes, immediate) =>
-                            draft.change({ attributes }, immediate)
-                          }
-                          onFields={onSpecFields}
-                          // DEC-109 — the deal rows are asked on the price page.
-                          exclude={dealExclude}
-                        />
-                      )}
-                      {draft.step === 4 &&
-                        (dealKeys.length === 0 ? (
-                          <StepPricing
-                            facts={facts}
-                            values={{
-                              priceMode: draft.values.priceMode,
-                              priceAmount: draft.values.priceAmount,
-                              priceCurrency: draft.values.priceCurrency,
-                              pricePeriod: draft.values.pricePeriod,
-                              priceBp: draft.values.priceBp,
-                              priceNegotiable: draft.values.priceNegotiable,
-                              posterExpiresAt: draft.values.posterExpiresAt,
+                        onKeyDown={(event) => {
+                          if (event.key !== "Enter" || !needsLeaf) return;
+                          setTriedWithoutLeaf(true);
+                        }}
+                      >
+                        {draft.step === 1 && (
+                          <StepCategory
+                            tree={tree}
+                            isLoading={treeLoading}
+                            treeError={treeError}
+                            cursor={categoryCursor}
+                            onCursor={setCategoryCursor}
+                            term={categoryTerm}
+                            onTerm={setCategoryTerm}
+                            selectedId={categoryId}
+                            invalid={triedWithoutLeaf && categoryId === null}
+                            onChoose={(nextCategoryId, matches) => {
+                              // D37-2 — a finder hit carries proposed answers; they are
+                              // revalidated against the leaf's schema and options first
+                              // (the finder is a hint), then land as editable prefills.
+                              if (matches !== undefined && matches.length > 0) {
+                                void prefillFromMatches(
+                                  nextCategoryId,
+                                  matches,
+                                  entities.lang,
+                                ).then((prefill) => chooseLeaf(nextCategoryId, prefill));
+                                return;
+                              }
+                              chooseLeaf(nextCategoryId, {});
                             }}
-                            basisKey={basisKey}
-                            basisValue={basisValue}
-                            basisLabel={basisLabel}
-                            refusals={draft.refusals}
-                            onChange={(patch, immediate) => draft.change(patch, immediate)}
                           />
-                        ) : (
-                          // DEC-109 — ONE copy of the form draws the price page's rows:
-                          // one schema read, one option load per list, one fields
-                          // report, with the price controls drawn after "How it is sold".
+                        )}
+
+                        {draft.step === 2 && (
+                          <StepPhotos
+                            listingId={draft.listingId}
+                            photos={draft.photos}
+                            onChanged={draft.reloadPhotos}
+                            illustrationUrl={illustrationUrl}
+                            photosSoon={draft.photosSoon}
+                            onPhotosSoon={async (on) => {
+                              if (draft.listingId === null) return false;
+                              // The tick follows the finger; a refusal puts it back (F4).
+                              draft.setPhotosSoon(on);
+                              const ok = await savePhotosSoon(draft.listingId, on);
+                              if (!ok) draft.setPhotosSoon(!on);
+                              return ok;
+                            }}
+                            videoUrl={draft.values.videoUrl}
+                            videoRefusal={
+                              refusalFor(draft.refusals, "video_url") ??
+                              refusalFor(draft.refusals, "videoUrl")
+                            }
+                            onChangeVideo={(videoUrl) => draft.change({ videoUrl }, false)}
+                            maxPhotos={planCaps?.maxPhotos ?? null}
+                          />
+                        )}
+                        {draft.step === 3 && (
                           <StepSpecifications
                             categoryId={draft.values.categoryId}
                             values={draft.values.attributes}
@@ -979,203 +1060,246 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             onChange={(attributes, immediate) =>
                               draft.change({ attributes }, immediate)
                             }
-                            onFields={onPriceFields}
-                            only={dealKeys}
-                            groups={dealGroups}
-                            around={{
-                              after: "sold",
-                              node: (
-                                <StepPricing
-                                  facts={facts}
-                                  values={{
-                                    priceMode: draft.values.priceMode,
-                                    priceAmount: draft.values.priceAmount,
-                                    priceCurrency: draft.values.priceCurrency,
-                                    pricePeriod: draft.values.pricePeriod,
-                                    priceBp: draft.values.priceBp,
-                                    priceNegotiable: draft.values.priceNegotiable,
-                                    posterExpiresAt: draft.values.posterExpiresAt,
-                                  }}
-                                  basisKey={basisKey}
-                                  basisValue={basisValue}
-                                  basisLabel={basisLabel}
-                                  refusals={draft.refusals}
-                                  onChange={(patch, immediate) => draft.change(patch, immediate)}
-                                />
-                              ),
+                            onFields={onSpecFields}
+                            // DEC-109 — the deal rows are asked on the price page.
+                            exclude={dealExclude}
+                          />
+                        )}
+                        {draft.step === 4 &&
+                          (dealKeys.length === 0 ? (
+                            <StepPricing
+                              facts={facts}
+                              values={{
+                                priceMode: draft.values.priceMode,
+                                priceAmount: draft.values.priceAmount,
+                                priceCurrency: draft.values.priceCurrency,
+                                pricePeriod: draft.values.pricePeriod,
+                                priceBp: draft.values.priceBp,
+                                priceNegotiable: draft.values.priceNegotiable,
+                                posterExpiresAt: draft.values.posterExpiresAt,
+                              }}
+                              basisKey={basisKey}
+                              basisValue={basisValue}
+                              basisLabel={basisLabel}
+                              refusals={draft.refusals}
+                              onChange={(patch, immediate) => draft.change(patch, immediate)}
+                            />
+                          ) : (
+                            // DEC-109 — ONE copy of the form draws the price page's rows:
+                            // one schema read, one option load per list, one fields
+                            // report, with the price controls drawn after "How it is sold".
+                            <StepSpecifications
+                              categoryId={draft.values.categoryId}
+                              values={draft.values.attributes}
+                              refusals={draft.refusals}
+                              onChange={(attributes, immediate) =>
+                                draft.change({ attributes }, immediate)
+                              }
+                              onFields={onPriceFields}
+                              only={dealKeys}
+                              groups={dealGroups}
+                              around={{
+                                after: "sold",
+                                node: (
+                                  <StepPricing
+                                    facts={facts}
+                                    values={{
+                                      priceMode: draft.values.priceMode,
+                                      priceAmount: draft.values.priceAmount,
+                                      priceCurrency: draft.values.priceCurrency,
+                                      pricePeriod: draft.values.pricePeriod,
+                                      priceBp: draft.values.priceBp,
+                                      priceNegotiable: draft.values.priceNegotiable,
+                                      posterExpiresAt: draft.values.posterExpiresAt,
+                                    }}
+                                    basisKey={basisKey}
+                                    basisValue={basisValue}
+                                    basisLabel={basisLabel}
+                                    refusals={draft.refusals}
+                                    onChange={(patch, immediate) => draft.change(patch, immediate)}
+                                  />
+                                ),
+                              }}
+                            />
+                          ))}
+                        {draft.step === 5 && (
+                          <StepDetails
+                            listingId={draft.listingId}
+                            categoryId={draft.values.categoryId}
+                            categoryPath={categoryPath}
+                            photoUrls={assistPhotoUrls}
+                            attributes={draft.values.attributes}
+                            definitions={definitions}
+                            dealKeys={dealExclude}
+                            negotiable={draft.values.priceNegotiable}
+                            period={draft.values.pricePeriod}
+                            title={draft.values.title}
+                            description={draft.values.description}
+                            refusals={draft.refusals}
+                            onChange={(patch, immediate) => draft.change(patch, immediate)}
+                          />
+                        )}
+                        {draft.step === 6 && (
+                          <StepWhere
+                            coverage={draft.values.coverage}
+                            refusals={draft.refusals}
+                            onChange={(coverage, immediate) =>
+                              draft.change({ coverage }, immediate)
+                            }
+                            listingId={draft.listingId}
+                            pin={draft.pin}
+                            onPinSaved={(pin) => draft.setPin(pin)}
+                            onDirectionsSaved={(directions) => draft.setDirections(directions)}
+                            ownPlace={
+                              facts === null ? null : facts.capabilities.includes("own_place")
+                            }
+                            pinCarried={pinCarried}
+                            onPinCarried={setPinCarried}
+                            maxCities={planCaps?.maxCities ?? null}
+                            maxRegions={planCaps?.maxRegions ?? null}
+                            maxCountries={planCaps?.maxCountries ?? null}
+                          />
+                        )}
+                        {draft.step === 7 && (
+                          <StepWho
+                            listingId={draft.listingId}
+                            contactPref={draft.values.contactPref}
+                            refusals={draft.refusals}
+                            itemCountry={itemCountry}
+                            onChange={(contactPref, immediate) =>
+                              draft.change({ contactPref }, immediate)
+                            }
+                            nextTried={whoTried}
+                            onBlocked={onWhoGate}
+                            saveRef={whoSaveRef}
+                            categoryId={draft.values.categoryId}
+                          />
+                        )}
+                        {draft.step === 8 && (
+                          <StepReview
+                            listingId={draft.listingId}
+                            categoryPath={categoryPath}
+                            values={draft.values}
+                            photos={draft.photos}
+                            illustrationUrl={illustrationUrl}
+                            photosSoon={draft.photosSoon}
+                            expiryDays={facts?.expiryDays ?? null}
+                            refusals={draft.refusals}
+                            maxPhotos={planCaps?.maxPhotos ?? null}
+                            pin={draft.pin}
+                            directions={draft.directions}
+                            basisLabel={basisLabel}
+                            basisKey={basisKey}
+                            deal={deal}
+                            onChangeExpiry={(posterExpiresAt) =>
+                              draft.change({ posterExpiresAt }, true)
+                            }
+                            onGoTo={(step) => {
+                              // U6-C1-R2 — EDIT COMES BACK. A seller who left review to fix
+                              // one field returns to review on Next, not into the rest of
+                              // the wizard.
+                              setReturnToReview(true);
+                              draft.goTo(step);
                             }}
                           />
-                        ))}
-                      {draft.step === 5 && (
-                        <StepDetails
-                          listingId={draft.listingId}
-                          categoryId={draft.values.categoryId}
-                          categoryPath={categoryPath}
-                          photoUrls={assistPhotoUrls}
-                          attributes={draft.values.attributes}
-                          definitions={definitions}
-                          dealKeys={dealExclude}
-                          negotiable={draft.values.priceNegotiable}
-                          period={draft.values.pricePeriod}
-                          title={draft.values.title}
-                          description={draft.values.description}
-                          refusals={draft.refusals}
-                          onChange={(patch, immediate) => draft.change(patch, immediate)}
-                        />
-                      )}
-                      {draft.step === 6 && (
-                        <StepWhere
-                          coverage={draft.values.coverage}
-                          refusals={draft.refusals}
-                          onChange={(coverage, immediate) => draft.change({ coverage }, immediate)}
-                          listingId={draft.listingId}
-                          pin={draft.pin}
-                          onPinSaved={(pin) => draft.setPin(pin)}
-                          onDirectionsSaved={(directions) => draft.setDirections(directions)}
-                          ownPlace={
-                            facts === null ? null : facts.capabilities.includes("own_place")
-                          }
-                          pinCarried={pinCarried}
-                          onPinCarried={setPinCarried}
-                          maxCities={planCaps?.maxCities ?? null}
-                          maxRegions={planCaps?.maxRegions ?? null}
-                          maxCountries={planCaps?.maxCountries ?? null}
-                        />
-                      )}
-                      {draft.step === 7 && (
-                        <StepWho
-                          listingId={draft.listingId}
-                          contactPref={draft.values.contactPref}
-                          refusals={draft.refusals}
-                          itemCountry={itemCountry}
-                          onChange={(contactPref, immediate) =>
-                            draft.change({ contactPref }, immediate)
-                          }
-                          nextTried={whoTried}
-                          onBlocked={onWhoGate}
-                          saveRef={whoSaveRef}
-                          categoryId={draft.values.categoryId}
-                        />
-                      )}
-                      {draft.step === 8 && (
-                        <StepReview
-                          listingId={draft.listingId}
-                          categoryPath={categoryPath}
-                          values={draft.values}
-                          photos={draft.photos}
-                          illustrationUrl={illustrationUrl}
-                          photosSoon={draft.photosSoon}
-                          expiryDays={facts?.expiryDays ?? null}
-                          refusals={draft.refusals}
-                          maxPhotos={planCaps?.maxPhotos ?? null}
-                          pin={draft.pin}
-                          directions={draft.directions}
-                          basisLabel={basisLabel}
-                          basisKey={basisKey}
-                          deal={deal}
-                          onChangeExpiry={(posterExpiresAt) =>
-                            draft.change({ posterExpiresAt }, true)
-                          }
-                          onGoTo={(step) => {
-                            // U6-C1-R2 — EDIT COMES BACK. A seller who left review to fix
-                            // one field returns to review on Next, not into the rest of
-                            // the wizard.
-                            setReturnToReview(true);
-                            draft.goTo(step);
-                          }}
-                        />
-                      )}
-                      {draft.step > IMPLEMENTED_THROUGH && (
-                        <p className="text-sm text-muted-foreground" data-testid="post-step-later">
-                          {t("post.stepLater")}
-                        </p>
-                      )}
-                    </section>
-                  )}
+                        )}
+                        {draft.step > IMPLEMENTED_THROUGH && (
+                          <p
+                            className="text-sm text-muted-foreground"
+                            data-testid="post-step-later"
+                          >
+                            {t("post.stepLater")}
+                          </p>
+                        )}
+                      </section>
+                    )}
 
-                  {categoryRefusal !== null && (
-                    <p className="text-sm text-destructive" data-testid="post-refusal-category">
-                      {t(draftRefusalKey(categoryRefusal.reason))}
-                    </p>
-                  )}
-                  {draft.refusals
-                    // A refusal is shown ONCE. Steps 3 and 4 render every refusal that
-                    // names one of their own controls beneath that control, which is where
-                    // a seller can act on it; only refusals with no field of their own on
-                    // screen fall through to this list (F4 — never swallowed).
-                    .filter((refusal) => refusal.field !== "category_id")
-                    .filter((refusal) => !(draft.step === 3 && specFields.includes(refusal.field)))
-                    // The YouTube link moved to step 2 (U6-C1-R1), so its refusal is shown
-                    // there, beside the field that owns it.
-                    .filter(
-                      (refusal) =>
-                        !(draft.step === 2 && ["video_url", "videoUrl"].includes(refusal.field)),
-                    )
-                    .filter(
-                      (refusal) =>
-                        !(draft.step === 5 && ["title", "description"].includes(refusal.field)),
-                    )
-                    .filter(
-                      (refusal) =>
-                        !(
-                          draft.step === 4 &&
-                          [
-                            "price_mode",
-                            "price_amount",
-                            "price_currency",
-                            "price_period",
-                            "poster_expires_at",
-                            // DEC-109 — a deal row's refusal lands under its own control here.
-                            ...(dealExclude ?? []),
-                          ].includes(refusal.field)
-                        ),
-                    )
-                    .filter((refusal) => !(draft.step === 6 && refusal.field === "coverage"))
-                    // Step 8 owns the active window, so `posterExpiry*` renders on it.
-                    .filter(
-                      (refusal) => !(draft.step === 8 && refusal.field === "poster_expires_at"),
-                    )
-                    .filter(
-                      (refusal) =>
-                        !(
-                          draft.step === 7 &&
-                          [
-                            "contact_pref",
-                            "messages",
-                            "phone",
-                            "phone2",
-                            "telegram",
-                            "whatsapp",
-                          ].includes(refusal.field)
-                        ),
-                    )
-                    .map((refusal) => (
-                      <p
-                        key={`${refusal.field}:${refusal.reason}`}
-                        className="text-sm text-destructive"
-                        data-testid="post-refusal"
-                        data-field={refusal.field}
-                      >
-                        {t(draftRefusalKey(refusal.reason))}
+                    {categoryRefusal !== null && (
+                      <p className="text-sm text-destructive" data-testid="post-refusal-category">
+                        {t(draftRefusalKey(categoryRefusal.reason))}
                       </p>
-                    ))}
+                    )}
+                    {draft.refusals
+                      // A refusal is shown ONCE. Steps 3 and 4 render every refusal that
+                      // names one of their own controls beneath that control, which is where
+                      // a seller can act on it; only refusals with no field of their own on
+                      // screen fall through to this list (F4 — never swallowed).
+                      .filter((refusal) => refusal.field !== "category_id")
+                      .filter(
+                        (refusal) => !(draft.step === 3 && specFields.includes(refusal.field)),
+                      )
+                      // The YouTube link moved to step 2 (U6-C1-R1), so its refusal is shown
+                      // there, beside the field that owns it.
+                      .filter(
+                        (refusal) =>
+                          !(draft.step === 2 && ["video_url", "videoUrl"].includes(refusal.field)),
+                      )
+                      .filter(
+                        (refusal) =>
+                          !(draft.step === 5 && ["title", "description"].includes(refusal.field)),
+                      )
+                      .filter(
+                        (refusal) =>
+                          !(
+                            draft.step === 4 &&
+                            [
+                              "price_mode",
+                              "price_amount",
+                              "price_currency",
+                              "price_period",
+                              "poster_expires_at",
+                              // DEC-109 — a deal row's refusal lands under its own control here.
+                              ...(dealExclude ?? []),
+                            ].includes(refusal.field)
+                          ),
+                      )
+                      .filter((refusal) => !(draft.step === 6 && refusal.field === "coverage"))
+                      // Step 8 owns the active window, so `posterExpiry*` renders on it.
+                      .filter(
+                        (refusal) => !(draft.step === 8 && refusal.field === "poster_expires_at"),
+                      )
+                      .filter(
+                        (refusal) =>
+                          !(
+                            draft.step === 7 &&
+                            [
+                              "contact_pref",
+                              "messages",
+                              "phone",
+                              "phone2",
+                              "telegram",
+                              "whatsapp",
+                            ].includes(refusal.field)
+                          ),
+                      )
+                      .map((refusal) => (
+                        <p
+                          key={`${refusal.field}:${refusal.reason}`}
+                          className="text-sm text-destructive"
+                          data-testid="post-refusal"
+                          data-field={refusal.field}
+                        >
+                          {t(draftRefusalKey(refusal.reason))}
+                        </p>
+                      ))}
 
-                  {/* U6-C1-R1 — ONE SUMMARY above the actions, naming by label what is
+                    {/* U6-C1-R1 — ONE SUMMARY above the actions, naming by label what is
             still missing; each entry focuses its own control. */}
-                  <RefusalSummary
-                    refusals={draft.refusals}
-                    step={draft.step}
-                    specFields={specFields}
-                    priceFields={priceFields}
-                    onGoTo={draft.goTo}
-                  />
-                </div>
-              </FormLayout>
-            </Section>
-          </div>
-        }
-      />
-    </PageShell>
+                    <RefusalSummary
+                      refusals={draft.refusals}
+                      step={draft.step}
+                      specFields={specFields}
+                      priceFields={priceFields}
+                      onGoTo={draft.goTo}
+                    />
+                  </div>
+                </FormLayout>
+              </Section>
+            </div>
+          }
+        />
+      </PageShell>
+    </CatalogScopeProvider>
   );
 }
 

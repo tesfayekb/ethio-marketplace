@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
+
+import type { CatalogTokens } from "@/i18n";
 import type { AttrOption } from "./attribute-options";
 import { buildTitle } from "./build-title";
 import type { AttrDef } from "./posting-service";
+
+const PLAIN: CatalogTokens = { country: "Ethiopia", categoryPath: () => null };
 
 const def = (
   attrKey: string,
@@ -46,6 +50,7 @@ const run = (
     options,
     language: "en",
     dealKeys: new Set(["unit_of_sale"]),
+    tokens: PLAIN,
     yearSuffix: "",
     ...extra,
   });

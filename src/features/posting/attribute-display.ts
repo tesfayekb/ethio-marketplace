@@ -2,7 +2,7 @@ import { answerTokens } from "./answer-tokens";
 import { optionLabel, type AttrOption } from "./attribute-options";
 import type { AttrDef } from "./posting-service";
 import { conditionMet } from "./visible-when";
-import { catalogText } from "@/i18n";
+import { catalogWords, type CatalogTokens } from "@/i18n";
 
 export function attributeDisplayValue(
   definition: AttrDef,
@@ -12,13 +12,16 @@ export function attributeDisplayValue(
   yes: string,
   no: string,
   yearSuffix: string,
+  tokens: CatalogTokens,
 ): string {
   if (definition.attrType === "boolean") return value === true ? yes : no;
   if (definition.format === "year" && typeof value === "number") {
     return yearLabel(value, language, yearSuffix);
   }
 
-  const labels = new Map(options.map((option) => [option.value, optionLabel(option, language)]));
+  const labels = new Map(
+    options.map((option) => [option.value, optionLabel(option, language, tokens)]),
+  );
   const renderOne = (entry: unknown): string => {
     if (entry !== null && typeof entry === "object" && !Array.isArray(entry)) {
       const other = entry as { value?: unknown; text?: unknown };
@@ -29,7 +32,7 @@ export function attributeDisplayValue(
   };
 
   const rendered = Array.isArray(value) ? value.map(renderOne).join(", ") : renderOne(value);
-  const unit = catalogText(definition.unit ?? "", null, language);
+  const unit = catalogWords(definition.unit ?? "", null, language, tokens);
   return unit === "" ? rendered : `${rendered} ${unit}`;
 }
 
@@ -130,8 +133,9 @@ export function rangeDisplayValue(
   definition: AttrDef,
   range: SettledRange,
   language: string,
+  tokens: CatalogTokens,
 ): string {
-  const unit = catalogText(definition.unit ?? "", null, language);
+  const unit = catalogWords(definition.unit ?? "", null, language, tokens);
   const text = `${range.min}–${range.max}`;
   return unit === "" ? text : `${text} ${unit}`;
 }

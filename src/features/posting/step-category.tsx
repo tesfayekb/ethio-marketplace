@@ -11,6 +11,7 @@ import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { entityName } from "@/i18n/entity";
 import { useI18n } from "@/i18n";
 
+import { useCatalogScope } from "./catalog-scope";
 import { finderPending, useCatalogFinder, useMatchLine, type FinderMatch } from "./catalog-finder";
 import { RequiredMark } from "./field";
 
@@ -82,7 +83,8 @@ function HitButton({
   onChoose: () => void;
 }) {
   const { t } = useI18n();
-  const line = useMatchLine(node.id, matches, lang);
+  const scope = useCatalogScope();
+  const line = useMatchLine(node.id, matches, lang, scope);
   return (
     <button
       type="button"

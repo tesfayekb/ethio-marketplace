@@ -2236,4 +2236,202 @@ test.describe("POSTING WIZARD", () => {
       pair.childValues[0],
     );
   });
+
+  /**
+   * Bundle 4 step 28 (DEC-094) — {country} IS DRAWN, NEVER SHOWN AS BRACES. A
+   * scratch label, option label and help carry the token; the seller browsing
+   * Ethiopia reads Ethiopia, in English and in Amharic; the stored text keeps
+   * the token.
+   */
+  async function countryWords(spec: Awaited<ReturnType<typeof seedSpecSet>>) {
+    const supabase = adminClient();
+    const label = await supabase
+      .from("attributes")
+      .update({
+        name_en: "Plug used in {country}",
+        name_am: "በ{country} የሚሠራ መሰኪያ",
+        help_text_en: "Sold in {country} shops.",
+        help_text_am: "በ{country} ሱቆች ይሸጣል።",
+      })
+      .eq("id", spec.text.id);
+    if (label.error) throw new Error(`[e2e:pw154] label seed: ${label.error.message}`);
+  }
+
+  async function browseEthiopia(page: Page) {
+    await page.context().addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${crypto.randomUUID()}`,
+        url: test.info().project.use.baseURL!,
+      },
+    ]);
+  }
+
+  test("PW-154 {country} in a label and its help reads the market's country in English", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    await countryWords(spec);
+    await browseEthiopia(page);
+    await reachStep3(page, user.id, category);
+    const form = page.getByTestId("post-specs");
+    await expect(form).toContainText("Plug used in Ethiopia");
+    await expect(form).toContainText("Sold in Ethiopia shops.");
+    await expect(form).not.toContainText("{country}");
+  });
+
+  test("PW-155 {country} reads the country in Amharic", async ({ page }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    await countryWords(spec);
+    await browseEthiopia(page);
+    await gotoReady(page, "/");
+    await switchLanguage(page, "am");
+    await reachStep3(page, user.id, category);
+    const form = page.getByTestId("post-specs");
+    await expect(form).toContainText("በኢትዮጵያ የሚሠራ መሰኪያ");
+    await expect(form).not.toContainText("{country}");
+  });
+
+  test("PW-156 with no place, market or confirmed home, {country} reads the fallback words", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    await countryWords(spec);
+    // No market cookie, and the profile read answers with no home country.
+    await page.route("**/rest/v1/profiles*", async (route) => {
+      const response = await route.fetch();
+      const body: unknown = await response.json();
+      const unconfirm = (row: Record<string, unknown>) =>
+        "home_country_code" in row ? { ...row, home_country_code: null } : row;
+      const json = Array.isArray(body)
+        ? body.map((row) => unconfirm(row as Record<string, unknown>))
+        : unconfirm(body as Record<string, unknown>);
+      await route.fulfill({ response, json });
+    });
+    await reachStep3(page, user.id, category);
+    const form = page.getByTestId("post-specs");
+    await expect(form).not.toContainText("{country}");
+    await expect(form).toContainText(`Plug used in ${en["post.catalog.yourCountry"]}`);
+  });
+
+  /**
+   * Bundle 4 step 29 (DEC-095) — A HELP-TEXT POINTER MOVES THE AD. The help of a
+   * scratch definition names a second scratch leaf; the seller sees its path as a
+   * button, is asked, and on yes the ad moves there with the answer the target
+   * also asks kept. A pointer to a category that is gone draws nothing.
+   */
+  test("PW-157 a category pointer in help text asks, then moves the ad and keeps the answer", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const target = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    const supabase = adminClient();
+    const help = await supabase
+      .from("attributes")
+      .update({ help_text_en: `Cases go under {category:${target.slug}}.` })
+      .eq("id", spec.text.id);
+    if (help.error) throw new Error(`[e2e:pw157] help seed: ${help.error.message}`);
+    const link = await supabase.from("category_attribute_links").insert({
+      category_id: target.id,
+      attribute_id: spec.text.id,
+      is_required: false,
+      display_order: 1,
+    });
+    if (link.error) throw new Error(`[e2e:pw157] link seed: ${link.error.message}`);
+    const listingId = await reachStep3(page, user.id, category);
+
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
+      .fill("e2e kept answer");
+    const pointer = page.locator(
+      `[data-testid="post-category-pointer"][data-slug="${target.slug}"]`,
+    );
+    await expect(pointer).toContainText(target.slug);
+    await expect(page.getByTestId("post-specs")).not.toContainText("{category");
+
+    // No: nothing moves.
+    await pointer.click();
+    await page.getByTestId("post-category-move-cancel").click();
+    await expect(page.getByTestId("post-category-move-confirm")).toBeHidden();
+    expect((await draftsOf(user.id))[0]?.category_id).toBe(category.id);
+
+    // Yes: the ad moves and the shared answer is kept.
+    await pointer.click();
+    await page.getByTestId("post-category-move-yes").click();
+    await expect
+      .poll(async () => (await draftsOf(user.id))[0]?.category_id, {
+        message: "PW-157 the ad never moved",
+        timeout: 20_000,
+      })
+      .toBe(target.id);
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await expect(page.getByTestId("post-category-chip-path")).toContainText(target.slug);
+    await expect(
+      page.locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`),
+    ).toHaveValue("e2e kept answer");
+    expect(listingId).not.toBe("");
+  });
+
+  test("PW-158 a pointer to a category that is gone draws nothing and no braces", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    const ghost = `e2e-ghost-${rand()}`;
+    const help = await adminClient()
+      .from("attributes")
+      .update({ help_text_en: `Cases go under {category:${ghost}}. Ask first.` })
+      .eq("id", spec.text.id);
+    if (help.error) throw new Error(`[e2e:pw158] help seed: ${help.error.message}`);
+    await reachStep3(page, user.id, category);
+    await expect(page.getByTestId("post-specs")).toContainText("Cases go under.");
+    await expect(page.getByTestId("post-specs")).not.toContainText("{category");
+    await expect(
+      page.locator(`[data-testid="post-category-pointer"][data-slug="${ghost}"]`),
+    ).toHaveCount(0);
+  });
 });

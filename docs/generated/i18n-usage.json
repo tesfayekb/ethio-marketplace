@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 337,
+  "scanned": 341,
   "dynamicCallSites": 210,
   "keys": {
     "account.deactivatedBanner": [
@@ -383,6 +383,9 @@
       "/admin/categories"
     ],
     "admin.attributes.link.alwaysVisible": [
+      "/admin/categories"
+    ],
+    "admin.attributes.link.andNone": [
       "/admin/categories"
     ],
     "admin.attributes.link.andWhen": [
@@ -2944,7 +2947,9 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/places",
-      "/dev/primitives"
+      "/dev/primitives",
+      "/post",
+      "/post/$listingId"
     ],
     "common.close": [
       "(every page)",
@@ -3367,6 +3372,22 @@
       "/post/$listingId"
     ],
     "post.assist.working": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.catalog.moveAsk": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.catalog.moveKeeps": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.catalog.moveYes": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.catalog.yourCountry": [
       "/post",
       "/post/$listingId"
     ],

@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
+
+import type { CatalogTokens } from "@/i18n";
 import { en } from "@/i18n/locales/en";
 import type { MessageKey } from "@/i18n";
 import { dealLines } from "./deal-lines";
 import type { AttrDef } from "./posting-service";
+
+const PLAIN: CatalogTokens = { country: "Ethiopia", categoryPath: () => null };
 
 const t = (key: MessageKey) => (en as Record<string, string>)[key] ?? key;
 const def = (attrKey: string, nameEn: string, unit: string | null, attrType = "number") =>
@@ -38,6 +42,7 @@ const run = (attributes: Record<string, unknown>, unit: string | null) =>
     unit,
     language: "en",
     entities,
+    tokens: PLAIN,
     t,
   });
 
@@ -69,6 +74,7 @@ describe("bundle 4 step 10 — the deal lines under the price", () => {
         unit: null,
         language: "en",
         entities,
+        tokens: PLAIN,
         t,
       }),
     ).toEqual({ size: null, terms: [] });
@@ -86,6 +92,7 @@ describe("turn 5 item 2 — a choice is never printed as a raw token", () => {
       unit: null,
       language: "en",
       entities,
+      tokens: PLAIN,
       t,
     }).terms;
   it("a choice whose label is not held prints nothing", () => {

@@ -2,6 +2,9 @@ import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { useI18n } from "@/i18n";
 import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { entityName } from "@/i18n/entity";
+import { drawCatalog } from "@/i18n";
+import { useCatalogScope } from "./catalog-scope";
+
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
 import { formatCommission } from "./price-basis";
@@ -100,6 +103,7 @@ export function ListingPreview({
   contactPref: Record<string, unknown>;
 }) {
   const { t, entities, language } = useI18n();
+  const scope = useCatalogScope();
   const tree = useCountryTree(country);
   const nodes: TreeNode[] = tree.loadedCountry === country ? tree.nodes : [];
   const cover = coverUrlOf(photos);
@@ -130,6 +134,7 @@ export function ListingPreview({
     language,
     entities,
     t,
+    tokens: scope,
   });
   // Bundle 4 step 10 — the one shared price line.
   const priceLine = sharedPriceLine(
@@ -213,14 +218,17 @@ export function ListingPreview({
             .map((definition) => (
               <div key={definition.attrKey} className="flex justify-between gap-3">
                 <dt className="text-muted-foreground">
-                  {entityName(
-                    "attribute",
-                    {
-                      id: definition.attributeId,
-                      nameEn: definition.nameEn,
-                      nameAm: definition.nameAm,
-                    },
-                    entities,
+                  {drawCatalog(
+                    entityName(
+                      "attribute",
+                      {
+                        id: definition.attributeId,
+                        nameEn: definition.nameEn,
+                        nameAm: definition.nameAm,
+                      },
+                      entities,
+                    ),
+                    scope,
                   )}
                 </dt>
                 <dd
@@ -229,7 +237,7 @@ export function ListingPreview({
                   data-key={definition.attrKey}
                 >
                   {ranges[definition.attrKey] !== undefined
-                    ? rangeDisplayValue(definition, ranges[definition.attrKey]!, language)
+                    ? rangeDisplayValue(definition, ranges[definition.attrKey]!, language, scope)
                     : attributeDisplayValue(
                         definition,
                         attributes[definition.attrKey],
@@ -238,6 +246,7 @@ export function ListingPreview({
                         t("post.review.yes"),
                         t("post.review.no"),
                         t("post.specs.yearEcSuffix"),
+                        scope,
                       )}
                 </dd>
               </div>

@@ -13,7 +13,7 @@
  * pretending the catalogue has nothing.
  */
 
-import { catalogText } from "@/i18n";
+import { catalogWords, type CatalogTokens } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AttrOption {
@@ -171,6 +171,6 @@ export async function loadAttributeOptions(
  * their overlay is the record's own Amharic label with the English one beneath
  * it. One resolver, here, so no control writes its own language ternary (B2).
  */
-export function optionLabel(option: AttrOption, lang: string): string {
-  return catalogText(option.labelEn, option.labelAm, lang);
+export function optionLabel(option: AttrOption, lang: string, tokens: CatalogTokens): string {
+  return catalogWords(option.labelEn, option.labelAm, lang, tokens);
 }

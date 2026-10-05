@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import type { CatalogTokens } from "@/i18n";
+
 import { rangeDisplayValue, settledRanges } from "./attribute-display";
 import type { AttrOption } from "./attribute-options";
 import type { AttrDef } from "./posting-service";
+
+const PLAIN: CatalogTokens = { country: "Ethiopia", categoryPath: () => null };
 
 const def = (attrKey: string, attrType: string, extra: Partial<AttrDef> = {}) =>
   ({ attrKey, attrType, visibleWhen: null, unit: null, ...extra }) as unknown as AttrDef;
@@ -31,6 +35,6 @@ describe("settledRanges (INC-374)", () => {
     expect(ranges({ model: "m1", battery_mah: 4100 })).toEqual({});
   });
   it("writes the range with its unit", () => {
-    expect(rangeDisplayValue(mah, { min: 4056, max: 4288 }, "en")).toBe("4056–4288 mAh");
+    expect(rangeDisplayValue(mah, { min: 4056, max: 4288 }, "en", PLAIN)).toBe("4056–4288 mAh");
   });
 });
