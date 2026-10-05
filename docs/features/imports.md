@@ -381,3 +381,18 @@ A planner reads the live catalog ONCE per plan (for categories: one `cat_export_
 - The `visible_when` cell may hold the two-pair condition and option `bounds` may hold `settled` (attributes.md). Tokens are stored byte for byte (AT-67); `/api/translate` masks and restores them (TR-35).
 - The deal key families and the `term_` prefix import as ordinary keys.
 - After a commit or an undo, each import route rebuilds the catalogue finder and the name-fold table, outside the transaction; a failed rebuild is logged `[ssr-error]` and never fails the import (INC-432).
+
+## Bundle 5 — the attributes file's `unit_am` cell (2026-10-05)
+
+The definitions file's LAST declared column is `unit_am`, the Amharic unit, and
+it is optional (`optionalFrom` at its index): a file written before the column
+existed stops early and imports unchanged, because an absent cell is never a
+change. A filled cell is held to the same 16-character ceiling as `unit`, carries
+Amharic script, and is refused on a non-number definition exactly as `unit` is
+(`attr_cell_check`). An empty cell means "no Amharic yet": the English unit
+prints under Amharic. The export writes the column last, so a curator's file
+built on an export carries the header:
+
+```text
+attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant (read-only),direct_link_count (read-only),unit_am
+```
