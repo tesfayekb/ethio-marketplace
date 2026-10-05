@@ -676,7 +676,10 @@ test.describe("C3 attributes console", () => {
       const header = records[0] ?? "";
       const mine = records.find((record) => record.startsWith(`${key},`));
       expect(mine, "AT-44 the export carries no row for this attribute").toBeTruthy();
-      expect(mine!, "AT-44 the export lost the v2 cells").toContain("km,,0,100,1,plain");
+      expect(mine!, "AT-44 the export lost the v2 cells").toContain("km,0,100,1,plain");
+      // Bundle 5 C3 — unit_am is the export's LAST column; this row has none.
+      expect(header.split(",").at(-1), "AT-44 unit_am is not the last column").toBe("unit_am");
+      expect(mine!.split(",").at(-1), "AT-44 the unit_am cell is not empty").toBe("");
 
       const echo = await importPost(page, token, {
         mode: "preview",
