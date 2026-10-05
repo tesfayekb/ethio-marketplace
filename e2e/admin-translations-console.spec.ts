@@ -738,6 +738,43 @@ test.describe("U4b translations console", () => {
    * J-laws: both keys are axes-namespaced scratch keys, deleted in `finally`
    * together with the revisions the writer captured for them.
    */
+  /**
+   * TR-35 (Bundle 4 step 28 census) — THE TRANSLATION ROUTE KEEPS {country}.
+   * Catalogue text carries the country token; a machine translation must hand
+   * it back untouched, so the screens can still draw it.
+   */
+  test("TR-35 machine translation keeps the {country} token", async ({ page }) => {
+    const key = scratchKey("tr35");
+    await seedScratchKey(key, "Plugs used in {country}");
+    const supabase = adminClient();
+    const { user, secret } = await signInAsSuperAdmin(page);
+    await logTranslatorScope(page, user.id);
+    await gotoReady(page, "/admin/translations/am");
+    const id = slug(key);
+    await page.getByTestId("strings-search").fill(key);
+    await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
+    await surfaceControl(page, `string-expand-${id}`).click();
+    const route = watchRoute(page, "/api/translate");
+    await expansionControl(page, id, "string-ai").click();
+    await stepUpIfPrompted(page, secret);
+    const routeText = await route;
+    await expectWithEvidence(
+      () => expect(expansionControl(page, id, "string-saved")).toBeVisible({ timeout: 30000 }),
+      async () =>
+        `route /api/translate → ${routeText}\n` +
+        `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
+    );
+    const { data, error } = await supabase
+      .from("ui_translations")
+      .select("value, flagged")
+      .eq("key", key)
+      .eq("lang_code", "am")
+      .single();
+    if (error) throw new Error(`[e2e:tr35] read failed: ${error.message}`);
+    expect(data?.flagged, "TR-35 the token was lost").toBe(false);
+    expect(data?.value ?? "").toContain("{country}");
+  });
+
   test("TR-23 machine translation keeps placeholders, and the editor repairs a mangled one", async ({
     page,
   }) => {
