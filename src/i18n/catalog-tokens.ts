@@ -66,10 +66,14 @@ export function catalogPieces(text: string, tokens: CatalogTokens): CatalogPiece
   return tidied.filter((piece) => piece.kind !== "text" || piece.text !== "");
 }
 
-/** Already-resolved catalogue text, as plain words (a pointer reads as its path). */
+/**
+ * Labels, option labels and units as plain words: {country} is drawn; a
+ * category pointer belongs to help text alone (the doors refuse one elsewhere),
+ * so here it is never drawn and never leaks as braces.
+ */
 export function drawCatalog(text: string, tokens: CatalogTokens): string {
-  return catalogPieces(text, tokens)
-    .map((piece) => (piece.kind === "text" ? piece.text : piece.path))
+  return catalogPieces(text, { ...tokens, categoryPath: () => null })
+    .map((piece) => (piece.kind === "text" ? piece.text : ""))
     .join("");
 }
 
