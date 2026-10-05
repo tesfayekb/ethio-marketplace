@@ -13,8 +13,9 @@ import { leaseSeller, bearerOf, destroyListingsOf, postRoute, reasonsOf } from "
  *
  * The pool reset deletes the leased user's `rate_limits` rows (pool-reset-map),
  * so the count starts at zero. The 20 honest names are letters only (the door's
- * alias rules refuse digit runs), so every one of them is SAVED by the door —
- * a door refusal would be a different field from the gate's ("rate").
+ * alias rules refuse digit runs). The door saves the first few and then answers
+ * its own change rule (`aliasTooSoon`, field "alias") — a door refusal, told
+ * apart from the gate's (field "rate"); every one of the 20 reaches the door.
  *
  * Fake mode judges any name containing "cocacola" as imitating, so the 21st call
  * would answer `aliasImitatesBrand` if the judge ran; it answers the rate refusal.
@@ -54,9 +55,13 @@ test.describe("POSTING ROUTES — IDENTITY GATE", () => {
         reasons.filter((r) => r.field === "rate"),
         `call ${call + 1}: ${JSON.stringify(answer.payload)}`,
       ).toEqual([]);
-      expect(answer.payload["ok"], `call ${call + 1}: ${JSON.stringify(answer.payload)}`).toBe(
-        true,
-      );
+      // The door answers every one of the 20: the first few are saved, later ones
+      // meet the door's own change rule (`aliasTooSoon`) — a door refusal, never
+      // the gate's, and never an imitation verdict.
+      expect(reasons.map((r) => r.reason)).not.toContain("aliasImitatesBrand");
+      if (answer.payload["ok"] !== true) {
+        expect(reasons.map((r) => r.field), JSON.stringify(answer.payload)).toEqual(["alias"]);
+      }
     }
 
     const over = await postRoute(
