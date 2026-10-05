@@ -101,6 +101,7 @@ export function StepDetails({
   refusals: Refusal[];
 }) {
   const { t, language } = useI18n();
+  const scope = useCatalogScope();
   const [assisting, setAssisting] = useState(false);
   const [history, setHistory] = useState<Suggestion[]>([]);
   const [assistRefusal, setAssistRefusal] = useState<string | null>(null);
@@ -144,8 +145,9 @@ export function StepDetails({
         language,
         dealKeys: dealSet,
         yearSuffix: t("post.specs.yearEcSuffix"),
+        tokens: scope,
       }),
-    [definitions, attributes, titleOptions, language, dealSet, t],
+    [definitions, attributes, titleOptions, language, dealSet, t, scope],
   );
   const [lastBuilt, setLastBuilt] = useState<string | null>(null);
   useEffect(() => {

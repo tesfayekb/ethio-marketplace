@@ -13,6 +13,9 @@ import { ListingPreview } from "./listing-preview";
 import { attributeDisplayValue, rangeDisplayValue, settledRanges } from "./attribute-display";
 import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { entityName } from "@/i18n/entity";
+import { drawCatalog } from "@/i18n";
+import { useCatalogScope } from "./catalog-scope";
+
 import { formatCommission } from "./price-basis";
 import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
@@ -143,6 +146,7 @@ export function StepReview({
   deal?: DealLists | null;
 }) {
   const { t, entities, language } = useI18n();
+  const scope = useCatalogScope();
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
   const [attributeOptions, setAttributeOptions] = useState<Record<string, AttrOption[]>>({});
   /** U6-C1-R3b-1 — the seller block the buyer's-eye preview and the summary show. */
@@ -219,10 +223,13 @@ export function StepReview({
   const describe = ([key, value]: [string, unknown]): string => {
     const def = definitions.find((entry) => entry.attrKey === key);
     if (def === undefined) return `${key}: ${String(value)}`;
-    const name = entityName(
-      "attribute",
-      { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
-      entities,
+    const name = drawCatalog(
+      entityName(
+        "attribute",
+        { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
+        entities,
+      ),
+      scope,
     );
     return `${name}: ${attributeDisplayValue(
       def,
@@ -232,6 +239,7 @@ export function StepReview({
       t("post.review.yes"),
       t("post.review.no"),
       t("post.specs.yearEcSuffix"),
+      scope,
     )}`;
   };
   const attrLine = Object.entries(values.attributes)
@@ -255,12 +263,15 @@ export function StepReview({
         ),
       ).map(([key, range]) => {
         const def = definitions.find((entry) => entry.attrKey === key)!;
-        const name = entityName(
-          "attribute",
-          { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
-          entities,
+        const name = drawCatalog(
+          entityName(
+            "attribute",
+            { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
+            entities,
+          ),
+          scope,
         );
-        return `${name}: ${rangeDisplayValue(def, range, language)}`;
+        return `${name}: ${rangeDisplayValue(def, range, language, scope)}`;
       }),
     )
     .join(" · ");
