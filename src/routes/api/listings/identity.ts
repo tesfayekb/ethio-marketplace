@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import type { Database } from "@/integrations/supabase/types";
 import {
+  consumeRate,
   doorAnswer,
   logRouteError,
   readJsonBody,
@@ -28,6 +29,12 @@ import {
  * Bundle 3 rulings 4 item 5 — the DOOR alone counts the `identity` bucket
  * (M1b dial, `save_posting_identity`); the route no longer consumes a second
  * count from the same bucket, which made the effective limit half the dial.
+ *
+ * Bundle 5 Part F — INC-442: the route DOES count one bucket of its own,
+ * `identity:imitation`, and only in front of the paid imitation model call. It
+ * is not "the second count" of the door's `identity` bucket and must not be
+ * removed as one: without it a signed-in account can buy unbounded model calls
+ * with names the door never sees (an imitating name returns before the door).
  */
 
 const PATH = "/api/listings/identity";
@@ -37,6 +44,14 @@ type IdentityArgs = Database["public"]["Functions"]["save_posting_identity"]["Ar
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
+
+/**
+ * INC-442 — the imitation gate's dial, equal to the live `rate_dials` row for
+ * `identity` (20 per 86400 s), so honest use meets the door's gate first.
+ */
+const IMITATION_LIMIT = 20;
+/** INC-442 — the window of the same live row (86400 s). */
+const IMITATION_WINDOW = "24 hours";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -157,6 +172,14 @@ async function handlePost(request: Request): Promise<Response> {
   const alias = text(body["alias"]);
   let unchecked = false;
   if (alias !== null) {
+    // INC-442 — counted BEFORE the paid model call; a refused verdict never asks it.
+    const rate = await consumeRate(
+      "identity:imitation",
+      caller.userId!,
+      IMITATION_LIMIT,
+      IMITATION_WINDOW,
+    );
+    if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
     const imitated = await imitationOf(alias.toLowerCase());
     if (imitated.of !== null) return refusal("alias", "aliasImitatesBrand", imitated.of);
     unchecked = !imitated.checked;
