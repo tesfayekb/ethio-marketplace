@@ -126,6 +126,29 @@ function same(a: unknown, b: unknown): boolean {
   return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
 
+/**
+ * INC-434 — ONE FOLD FOR ONE FACT. A scalar fact prefills its target; a LIST
+ * fact (`{"dishes": ["doro_wot"]}`) prefills a multi_select target the same way
+ * — only while the target is empty, the seller's own ticks owning it after; a
+ * boolean target stays a hint (D27). Anything else is not a fact this screen
+ * can draw.
+ */
+export function foldFact(
+  raw: unknown,
+  targetType: string | null,
+): { kind: "prefill" | "hint"; value: unknown } | { kind: "skip" } {
+  if (Array.isArray(raw)) {
+    const list = raw.filter((entry): entry is string => typeof entry === "string" && entry !== "");
+    if (targetType !== "multi_select" || list.length === 0) return { kind: "skip" };
+    return { kind: "prefill", value: list };
+  }
+  if (typeof raw !== "string" && typeof raw !== "number" && typeof raw !== "boolean") {
+    return { kind: "skip" };
+  }
+  if (targetType === "boolean") return { kind: "hint", value: raw };
+  return { kind: "prefill", value: raw };
+}
+
 interface FactBound {
   min: number | null;
   max: number | null;
@@ -663,15 +686,15 @@ export function StepSpecifications({
           (bounds[key] ??= []).push(bound);
           continue;
         }
-        if (typeof raw !== "string" && typeof raw !== "number" && typeof raw !== "boolean")
-          continue;
         const target = definitions.find((entry) => entry.attrKey === key) ?? null;
-        if (target !== null && target.attrType === "boolean") {
-          hints[key] = raw;
+        const folded = foldFact(raw, target?.attrType ?? null);
+        if (folded.kind === "skip") continue;
+        if (folded.kind === "hint") {
+          hints[key] = folded.value;
           continue;
         }
-        prefill[key] = raw;
-        mine[key] = raw;
+        prefill[key] = folded.value;
+        mine[key] = folded.value;
       }
       byOwner[def.attrKey] = mine;
     }
