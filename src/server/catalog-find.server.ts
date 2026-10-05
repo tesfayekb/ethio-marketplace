@@ -109,5 +109,6 @@ export async function refreshNameFoldsAfterCommit(path: string): Promise<void> {
     console.error(`[ssr-error] ${path} name_folds_rebuild: ${String(error)}`);
   }
   const elapsed = performance.now() - started;
-  if (elapsed > 5_000) console.warn(`[slow-rpc] ${path} name_folds_rebuild ${Math.round(elapsed)}ms`);
+  if (elapsed > 5_000)
+    console.warn(`[slow-rpc] ${path} name_folds_rebuild ${Math.round(elapsed)}ms`);
 }

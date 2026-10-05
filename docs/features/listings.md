@@ -548,3 +548,7 @@ The shell publishes `feedInputsReady` through `useShell()`: true once the catego
 
 - `price_mode = 'commission'` rows carry `price_bp` (1–10000) and a NULL amount/currency. Every price line (card, review, buyer preview, admin impersonation table) judges commission FIRST and renders `price.commission`; "—" is only a true null amount on a non-commission row.
 - The feed selects `price_mode, price_bp`; `impersonated_list_listings` returns both.
+
+## Bundle 4 columns and the sweep (M5 923dd4cb)
+
+New columns: `price_unit`, `price_unit_text`, `photos_soon` (anon and authenticated may SELECT these three) and `attested_at` (no client grant). The hourly `listing-expiry-sweep` runs `expire_stale_listings()` and writes one `listing_expiry_sweep_runs` row.

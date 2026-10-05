@@ -972,3 +972,10 @@ with the blank-cell no-op and the refusal in the same walk.
 `default_value`, so an exported links file does not echo `display_order` (or
 `visible_when`); the order survives a round trip only through the blank rule.
 Extending the export route rides a named follow-up turn.
+
+## Bundle 4 Part G — conditions, settled ranges, tokens (M6 e44f20e5, 2026-10-05)
+
+- **Two-pair condition.** `visible_when` may carry one `and` pair: `{"key":"a","in":["x"],"and":{"key":"b","in":["y"]}}`; both pairs must be met (`attr_visible_when_met`; the form mirrors it in `visible-when.ts`). The inner pair holds `key` and `in` only. The import/export cell carries the same JSON text. The editor's "And when" empty choice is `admin.attributes.link.andNone`. Tests: AT-65, AT-66, PW-152.
+- **Settled range.** An option's `bounds.<key>` may add `"settled": true` beside a numeric `min` and `max`; anything else is refused `boundsSettledNeedsRange`. The range is settled when any contributing option says so (PW-153).
+- **Tokens.** `{country}` is accepted anywhere; `{category:<slug>}` only in help text — `attr_cell_check` refuses an unknown slug with `unknownCategoryToken` (AT-68). Rendering: see posting.md.
+- **Price-page keys.** The deal key families and the `term_` prefix are those of M5 (`deal_keys`, `deal_group`); `price_basis_key` left `get_posting_schema` in M6.

@@ -936,17 +936,22 @@ test.describe("CAT-IE categories import/export", () => {
     bandOnly(page, "any");
     await signInAsSuperAdmin(page);
 
+    const parentSlug = scratchSlug();
     const slug = scratchSlug();
     const word = scratchFoldWord();
     try {
+      await seedCategory(parentSlug, null);
       await gotoReady(page, "/admin/categories");
       const token = await bearerOf(page);
       expect(await nameFoldPresent("category", word), "CT-35 the scratch word pre-exists").toBe(
         false,
       );
 
+      // The import adds children only: a scratch root (its stored order kept)
+      // and one new child whose English name is the scratch word.
       const categories = file([
-        line({ category_slug: slug, name_en: word, display_order: "2000000" }),
+        line({ category_slug: parentSlug, name_en: parentSlug, display_order: "2000000" }),
+        line({ category_slug: slug, parent_slug: parentSlug, name_en: word, display_order: "0" }),
       ]);
       const preview = await importPost(page, token, { mode: "preview", categories });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
@@ -969,6 +974,7 @@ test.describe("CAT-IE categories import/export", () => {
       );
     } finally {
       await destroyCategory(slug);
+      await destroyCategory(parentSlug);
     }
   });
 

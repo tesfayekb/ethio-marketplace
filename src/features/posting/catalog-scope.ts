@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useMemo } from "react";
 
 import type { CatalogTokens } from "@/i18n";
 import { useI18n } from "@/i18n";
@@ -16,17 +16,8 @@ export interface CatalogScope extends CatalogTokens {
   moveTo: ((slug: string) => void) | null;
 }
 
-const ScopeContext = createContext<CatalogScope | null>(null);
-
-export function CatalogScopeProvider({
-  value,
-  children,
-}: {
-  value: CatalogScope;
-  children: ReactNode;
-}) {
-  return <ScopeContext.Provider value={value}>{children}</ScopeContext.Provider>;
-}
+/** Provided by `CatalogScopeProvider` (./catalog-scope-provider). */
+export const ScopeContext = createContext<CatalogScope | null>(null);
 
 const NO_PATH = () => null;
 
