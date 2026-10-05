@@ -5,6 +5,7 @@ import { useI18n } from "@/i18n";
 
 import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { buildTitle } from "./build-title";
+import { useCatalogScope } from "./catalog-scope";
 import { Field, controlClass } from "./field";
 import { requestAssist, type AttrDef } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
