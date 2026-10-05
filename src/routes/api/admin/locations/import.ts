@@ -17,6 +17,8 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 
+import { refreshNameFoldsAfterCommit } from "@/server/catalog-find.server";
+
 import {
   json,
   openImportGate,
@@ -143,6 +145,7 @@ export const Route = createFileRoute("/api/admin/locations/import")({
               p_batch: batchId,
             });
             if (error) return relay(error, "undo_failed");
+            await refreshNameFoldsAfterCommit(PATH);
             await audit("undo", batchId, data ?? {});
             return json(data, 200);
           }
@@ -181,6 +184,7 @@ export const Route = createFileRoute("/api/admin/locations/import")({
             p_digest: digest,
           });
           if (error) return relay(error, "commit_failed");
+          await refreshNameFoldsAfterCommit(PATH);
           const result = (data ?? {}) as Record<string, unknown>;
           const serverRefusals = (result["refusals"] as Refusal[] | undefined) ?? [];
           const all = withRowValues(

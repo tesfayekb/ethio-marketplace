@@ -91,3 +91,23 @@ export async function refreshCatalogFindAfterCommit(path: string): Promise<void>
     console.error(`[ssr-error] ${path} catalog_find_refresh: ${String(error)}`);
   }
 }
+
+/**
+ * INC-432 (bundle 4 step 24, the third way) — the seller-name table
+ * `name_folds` is rebuilt ONCE by an import route after its commit or undo has
+ * returned, never inside that transaction. Same contract as
+ * `refreshCatalogFindAfterCommit`: a failed rebuild is logged and never fails
+ * the import; the hourly 'name-folds-rebuild' cron entry catches it up.
+ */
+export async function refreshNameFoldsAfterCommit(path: string): Promise<void> {
+  const started = performance.now();
+  try {
+    const client = await adminClient();
+    const { error } = await client.rpc("name_folds_rebuild");
+    if (error) console.error(`[ssr-error] ${path} name_folds_rebuild: ${error.message}`);
+  } catch (error) {
+    console.error(`[ssr-error] ${path} name_folds_rebuild: ${String(error)}`);
+  }
+  const elapsed = performance.now() - started;
+  if (elapsed > 5_000) console.warn(`[slow-rpc] ${path} name_folds_rebuild ${Math.round(elapsed)}ms`);
+}
