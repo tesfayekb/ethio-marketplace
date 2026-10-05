@@ -768,6 +768,8 @@ test.describe("C3 attributes console", () => {
       const mine = records.find((record) => record.startsWith(`${key},`));
       expect(mine?.split(",").at(-1), "AT-72 (a) the export's last cell").toBe("ሰዎች");
 
+      // The library was loaded before the import; reload it to read the stored row.
+      await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
       await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
       await expect(page.getByTestId("attribute-unit-am")).toHaveValue("ሰዎች", { timeout: 20000 });
