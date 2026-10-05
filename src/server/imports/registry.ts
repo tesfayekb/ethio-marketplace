@@ -216,6 +216,7 @@ export const FAMILIES: Record<string, FamilySpec> = {
            * which type may carry which cell, ranges, and `year` arithmetic.
            */
           { name: "unit", klass: "editable", type: "text", maxLength: MAX_UNIT },
+          { name: "unit_am", klass: "editable", type: "text", maxLength: MAX_UNIT },
           { name: "min", klass: "editable", type: "bound" },
           { name: "max", klass: "editable", type: "bound" },
           { name: "decimals", klass: "editable", type: "int", formula: "allow" },
