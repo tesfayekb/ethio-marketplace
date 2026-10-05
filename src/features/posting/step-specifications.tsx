@@ -1420,7 +1420,11 @@ export function StepSpecifications({
           String(yearCeiling - index),
         )
       : [];
-    /** D36 — the guidance, split: one sentence inline, the rest behind (i). */
+    /**
+     * D36 — the guidance, split: one sentence inline, the rest behind (i). The
+     * split reads the STORED words, tokens unopened, so a sentence that ends in a
+     * token stays whole; each half is then drawn by the one renderer (step 29).
+     */
     const help = firstSentence(catalogText(def.helpTextEn ?? "", def.helpTextAm, entities.lang));
     /**
      * D44 (supersedes D35's strip on the form) — A SETTLED ANSWER IS STORED, NOT
@@ -1853,7 +1857,9 @@ export function StepSpecifications({
                   below. */}
             {help.head !== "" && (
               <p className="text-xs text-muted-foreground" data-testid="post-attr-help">
-                <span>{help.head}</span>
+                <span>
+                  <CatalogWords text={help.head} />
+                </span>
                 {help.rest !== "" && (
                   <>
                     {" "}
@@ -1874,7 +1880,10 @@ export function StepSpecifications({
                       {t("post.specs.helpMoreMark")}
                     </button>
                     {helpOpen[def.attrKey] === true && (
-                      <span data-testid="post-attr-help-rest"> {help.rest}</span>
+                      <span data-testid="post-attr-help-rest">
+                        {" "}
+                        <CatalogWords text={help.rest} />
+                      </span>
                     )}
                   </>
                 )}
