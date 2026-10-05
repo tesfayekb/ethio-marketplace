@@ -58,3 +58,10 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [ ] Photo clean-up bundle: when the card receives the ad's photo through listing-picture, the photos-soon ribbon hides by the existing rule (bundle 4 turn 6 item 7; no change before then).
 
 - [x] INC-430 — silent Next on a non-name identity refusal: post.who.saveFailed at Next; PW-149 (red first, then green)
+
+## Bundle 4 — turn 11
+
+- [x] LT-13 / INC-334 (closed)
+- [x] INC-434 list facts tick tick lists
+- [x] INC-435 corner ribbon
+- [x] INC-436 "Use my location" state

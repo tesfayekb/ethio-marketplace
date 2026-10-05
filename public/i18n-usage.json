@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 342,
-  "dynamicCallSites": 210,
+  "dynamicCallSites": 211,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3624,10 +3624,6 @@
       "/post/$listingId"
     ],
     "post.pin.layerStreet": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.pin.locate": [
       "/post",
       "/post/$listingId"
     ],

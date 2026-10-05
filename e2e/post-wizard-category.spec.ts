@@ -585,18 +585,37 @@ test.describe("POSTING WIZARD", () => {
       .toBe(true);
 
     // The ribbon on the picture; sized by container units (A7 smoke proof):
-    // the letters are 5.5 % of the picture's width at every screen size.
+    // the letters are 3.6 % of the drawn picture's width at every screen size.
     const box = page.getByTestId("post-photos-illustration-box");
     const ribbon = box.getByTestId("listing-photos-soon-ribbon");
     await expect(ribbon, "PW-141: no ribbon on the picture").toBeVisible();
-    const boxWidth = (await box.boundingBox())?.width ?? 0;
+    // The picture's own drawn box: the frame the ribbon sits in (the img when a
+    // picture is drawn, the placeholder's box when none is — this scratch
+    // category has no picture).
+    const img = ribbon.locator("xpath=..");
+    const imgBox = await img.boundingBox();
     const fontPx = Number.parseFloat(
-      await ribbon.evaluate((node) => getComputedStyle(node).fontSize),
+      await box
+        .getByTestId("listing-photos-soon-text")
+        .evaluate((node) => getComputedStyle(node).fontSize),
     );
     expect(
-      Math.abs(fontPx / boxWidth - 0.055),
-      `PW-141: letters ${fontPx}px on a ${boxWidth}px picture are not container-sized`,
+      Math.abs(fontPx / (imgBox?.width ?? 1) - 0.036),
+      `PW-141: letters ${fontPx}px on a ${imgBox?.width}px picture are not container-sized`,
     ).toBeLessThan(0.005);
+    // INC-435 — the ribbon (its clip box) lies inside the picture's own box.
+    const ribbonBox = await ribbon.boundingBox();
+    expect(imgBox, "PW-141: no picture box").not.toBeNull();
+    expect(ribbonBox, "PW-141: no ribbon box").not.toBeNull();
+    const inside =
+      ribbonBox!.x >= imgBox!.x - 0.5 &&
+      ribbonBox!.y >= imgBox!.y - 0.5 &&
+      ribbonBox!.x + ribbonBox!.width <= imgBox!.x + imgBox!.width + 0.5 &&
+      ribbonBox!.y + ribbonBox!.height <= imgBox!.y + imgBox!.height + 0.5;
+    expect(
+      inside,
+      `PW-141: the ribbon ${JSON.stringify(ribbonBox)} runs past the picture ${JSON.stringify(imgBox)}`,
+    ).toBe(true);
 
     // The review card (the wizard's side preview from the price page on).
     await page.getByTestId("post-next").click();

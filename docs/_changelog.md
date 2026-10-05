@@ -670,3 +670,7 @@
 - 2026-10-05 — bundle 4 M6 (e44f20e5, mark 20261005100000) applied on ethio-prod and ethio-staging: two-pair condition, settled ranges, {category:…} help tokens.
 - 2026-10-05 — bundle 4 M7 (9347e038, mark 20261005040000) on ethio-prod and ethio-staging: name_folds_rebuild deletes WHERE true, callable from the import routes.
 - 2026-10-05 — Bundle 4 turn 10: Part A–F docs; INC-432 import routes rebuild name_folds (CT-35, AT-69, LT-15); INC-431 Amharic map-pin words and the am.ts script guard; catalog-scope split (lint 32); Part H docs.
+- 2026-10-05 — Bundle 4 turn 11 item 1: INC-334 closed — LT-13 reads the DB count and the page total in the same poll step (class rule in the admin-locations header).
+- 2026-10-05 — Bundle 4 turn 11 item 2: INC-434 — a list fact ticks its multi_select target while empty (foldFact; unit tests, PW-159).
+- 2026-10-05 — Bundle 4 turn 11 item 3: INC-435 — "Photos coming soon" is a hazard-tape corner band inside the picture's own drawn box (PW-141 box assertion).
+- 2026-10-05 — Bundle 4 turn 11 item 4: INC-436 — "Use my location" is disabled while locating and pressed once taken, until the pin is moved (PW-160).

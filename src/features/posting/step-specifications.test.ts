@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { firstSentence } from "./step-specifications";
+import { stepSpecificationsPure } from "./step-specifications";
+
+const { firstSentence, foldFact } = stepSpecificationsPure;
 
 describe("firstSentence (INC-294)", () => {
   it("does not end a sentence on an abbreviation", () => {
@@ -34,5 +36,30 @@ describe("firstSentence (INC-294)", () => {
     expect(firstSentence("ሽፋኖች በ{category:phone-cases} ሥር ይለጠፋሉ። ሻጩን ይጠይቁ።").head).toBe(
       "ሽፋኖች በ{category:phone-cases} ሥር ይለጠፋሉ።",
     );
+  });
+});
+
+describe("foldFact (INC-434)", () => {
+  it("a list fact prefills a multi_select target", () => {
+    expect(foldFact(["doro_wot"], "multi_select")).toEqual({
+      kind: "prefill",
+      value: ["doro_wot"],
+    });
+  });
+
+  it("a list fact never fills a single_select or boolean target", () => {
+    expect(foldFact(["doro_wot"], "single_select")).toEqual({ kind: "skip" });
+    expect(foldFact(["doro_wot"], "boolean")).toEqual({ kind: "skip" });
+  });
+
+  it("an empty list or a list of non-strings is not a fact", () => {
+    expect(foldFact([], "multi_select")).toEqual({ kind: "skip" });
+    expect(foldFact([1, null], "multi_select")).toEqual({ kind: "skip" });
+  });
+
+  it("a scalar still prefills and a boolean target stays a hint (D27)", () => {
+    expect(foldFact("petrol", "single_select")).toEqual({ kind: "prefill", value: "petrol" });
+    expect(foldFact(true, "boolean")).toEqual({ kind: "hint", value: true });
+    expect(foldFact({ a: 1 }, "single_select")).toEqual({ kind: "skip" });
   });
 });

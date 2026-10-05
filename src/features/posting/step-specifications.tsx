@@ -126,6 +126,32 @@ function same(a: unknown, b: unknown): boolean {
   return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
 
+/**
+ * INC-434 — ONE FOLD FOR ONE FACT. A scalar fact prefills its target; a LIST
+ * fact (`{"dishes": ["doro_wot"]}`) prefills a multi_select target the same way
+ * — only while the target is empty, the seller's own ticks owning it after; a
+ * boolean target stays a hint (D27). Anything else is not a fact this screen
+ * can draw.
+ */
+function foldFact(
+  raw: unknown,
+  targetType: string | null,
+): { kind: "prefill" | "hint"; value: unknown } | { kind: "skip" } {
+  if (Array.isArray(raw)) {
+    const list = raw.filter((entry): entry is string => typeof entry === "string" && entry !== "");
+    if (targetType !== "multi_select" || list.length === 0) return { kind: "skip" };
+    return { kind: "prefill", value: list };
+  }
+  if (typeof raw !== "string" && typeof raw !== "number" && typeof raw !== "boolean") {
+    return { kind: "skip" };
+  }
+  if (targetType === "boolean") return { kind: "hint", value: raw };
+  return { kind: "prefill", value: raw };
+}
+
+/** INC-434 — the form's provenance per category, kept across remounts (this tab only). */
+const PREFILLS_HELD = new Map<string, Record<string, unknown>>();
+
 interface FactBound {
   min: number | null;
   max: number | null;
@@ -173,7 +199,7 @@ function optionBelongsToParent(option: AttrOption, parentValue: string): boolean
  * (i) tap beside the label. Amharic's own full stop (`።`) ends a sentence here
  * exactly as a full stop does.
  */
-export function firstSentence(text: string): { head: string; rest: string } {
+function firstSentence(text: string): { head: string; rest: string } {
   // INC-294 — "e.g." / "i.e." / "etc." / "vs." / "approx." / "cf." do not end
   // a sentence. Amharic's `።` is never an abbreviation.
   const terminator = /[.!?…።](?=\s|$)/g;
@@ -244,7 +270,13 @@ export function StepSpecifications({
    *   - different → the seller typed over it, and a parent change never discards
    *     a person's own words (it offers the model's new value instead).
    */
-  const [prefills, setPrefills] = useState<Record<string, unknown>>({});
+  /**
+   * INC-434 — provenance outlives the page: Next and Back remount this form, and
+   * a seller who emptied a fact-filled list must not see the fact tick it again.
+   */
+  const [prefills, setPrefills] = useState<Record<string, unknown>>(() =>
+    categoryId === null ? {} : (PREFILLS_HELD.get(categoryId) ?? {}),
+  );
   /** What this screen alone saw wrong — the door's own refusal always wins. */
   const [local, setLocal] = useState<Refusal[]>([]);
   /** D36 — the details whose full guidance the (i) tap has opened. */
@@ -663,15 +695,15 @@ export function StepSpecifications({
           (bounds[key] ??= []).push(bound);
           continue;
         }
-        if (typeof raw !== "string" && typeof raw !== "number" && typeof raw !== "boolean")
-          continue;
         const target = definitions.find((entry) => entry.attrKey === key) ?? null;
-        if (target !== null && target.attrType === "boolean") {
-          hints[key] = raw;
+        const folded = foldFact(raw, target?.attrType ?? null);
+        if (folded.kind === "skip") continue;
+        if (folded.kind === "hint") {
+          hints[key] = folded.value;
           continue;
         }
-        prefill[key] = raw;
-        mine[key] = raw;
+        prefill[key] = folded.value;
+        mine[key] = folded.value;
       }
       byOwner[def.attrKey] = mine;
     }
@@ -1089,7 +1121,10 @@ export function StepSpecifications({
     }
 
     // I3 — the mirror of provenance is written only when it actually moved.
-    if (JSON.stringify(owned) !== JSON.stringify(prefills)) setPrefills(owned);
+    if (JSON.stringify(owned) !== JSON.stringify(prefills)) {
+      if (categoryId !== null) PREFILLS_HELD.set(categoryId, owned);
+      setPrefills(owned);
+    }
 
     if (!changed) return;
     // I3 — the same patch is never written twice: a reconciliation is identified
@@ -1100,6 +1135,7 @@ export function StepSpecifications({
     emit(next, false);
   }, [
     onlyKey,
+    categoryId,
     schema,
     definitions,
     folds,
@@ -2010,3 +2046,6 @@ export function StepSpecifications({
 }
 
 export default StepSpecifications;
+
+/** Pure pieces of this screen, one export so the module stays a component file (unit tests). */
+export const stepSpecificationsPure = { firstSentence, foldFact };
