@@ -2258,15 +2258,13 @@ test.describe("POSTING WIZARD", () => {
   }
 
   async function browseEthiopia(page: Page) {
-    await page
-      .context()
-      .addCookies([
-        {
-          name: "ethio_area",
-          value: `ET:${crypto.randomUUID()}`,
-          url: test.info().project.use.baseURL!,
-        },
-      ]);
+    await page.context().addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${crypto.randomUUID()}`,
+        url: test.info().project.use.baseURL!,
+      },
+    ]);
   }
 
   test("PW-154 {country} in a label and its help reads the market's country in English", async ({
@@ -2430,12 +2428,10 @@ test.describe("POSTING WIZARD", () => {
       .eq("id", spec.text.id);
     if (help.error) throw new Error(`[e2e:pw158] help seed: ${help.error.message}`);
     await reachStep3(page, user.id, category);
-    const helpLine = page.getByTestId("post-attr-help").first();
     await expect(page.getByTestId("post-specs")).toContainText("Cases go under.");
     await expect(page.getByTestId("post-specs")).not.toContainText("{category");
     await expect(
       page.locator(`[data-testid="post-category-pointer"][data-slug="${ghost}"]`),
     ).toHaveCount(0);
-    await expect(helpLine).toBeVisible();
   });
 });

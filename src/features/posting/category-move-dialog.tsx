@@ -37,7 +37,9 @@ export function CategoryMoveDialog({
     >
       <AlertDialogContent data-testid="post-category-move-confirm">
         <AlertDialogHeader>
-          <AlertDialogTitle>{fill(t("post.catalog.moveAsk"), { path: path ?? "" })}</AlertDialogTitle>
+          <AlertDialogTitle>
+            {fill(t("post.catalog.moveAsk"), { path: path ?? "" })}
+          </AlertDialogTitle>
           <AlertDialogDescription>{t("post.catalog.moveKeeps")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -74,7 +74,7 @@ describe("bundle 4 step 10 — the deal lines under the price", () => {
         unit: null,
         language: "en",
         entities,
-    tokens: PLAIN,
+        tokens: PLAIN,
         t,
       }),
     ).toEqual({ size: null, terms: [] });
@@ -92,7 +92,7 @@ describe("turn 5 item 2 — a choice is never printed as a raw token", () => {
       unit: null,
       language: "en",
       entities,
-    tokens: PLAIN,
+      tokens: PLAIN,
       t,
     }).terms;
   it("a choice whose label is not held prints nothing", () => {

@@ -19,7 +19,9 @@ export function attributeDisplayValue(
     return yearLabel(value, language, yearSuffix);
   }
 
-  const labels = new Map(options.map((option) => [option.value, optionLabel(option, language, tokens)]));
+  const labels = new Map(
+    options.map((option) => [option.value, optionLabel(option, language, tokens)]),
+  );
   const renderOne = (entry: unknown): string => {
     if (entry !== null && typeof entry === "object" && !Array.isArray(entry)) {
       const other = entry as { value?: unknown; text?: unknown };

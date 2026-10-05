@@ -57,7 +57,16 @@ export function buildTitle(input: {
       });
       if (unlabelled) continue;
     }
-    const part = attributeDisplayValue(def, value, held, language, "", "", yearSuffix, tokens).trim();
+    const part = attributeDisplayValue(
+      def,
+      value,
+      held,
+      language,
+      "",
+      "",
+      yearSuffix,
+      tokens,
+    ).trim();
     if (part === "") continue;
     const next = title === "" ? part : `${title} ${part}`;
     if (next.length > BUILT_TITLE_MAX) break;
