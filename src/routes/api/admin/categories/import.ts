@@ -132,7 +132,6 @@ export const Route = createFileRoute("/api/admin/categories/import")({
             });
             if (error) return relay(error, "undo_failed");
             await refreshCatalogFindAfterCommit(PATH);
-            await refreshNameFoldsAfterCommit(PATH);
             await audit("undo", batchId, data ?? {});
             return json(data, 200);
           }
@@ -173,7 +172,6 @@ export const Route = createFileRoute("/api/admin/categories/import")({
           });
           if (error) return relay(error, "commit_failed");
           await refreshCatalogFindAfterCommit(PATH);
-          await refreshNameFoldsAfterCommit(PATH);
           const result = (data ?? {}) as Record<string, unknown>;
           const serverRefusals = (result["refusals"] as Refusal[] | undefined) ?? [];
           const all = withRowValues(

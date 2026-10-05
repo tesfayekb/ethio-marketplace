@@ -12,7 +12,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
-import { geometryDump, grantRole } from "./helpers/categories";
+import { geometryDump, grantRole, nameFoldPresent, scratchFoldWord } from "./helpers/categories";
 import {
   actionsOf,
   activeRosterSpan,
@@ -691,6 +691,49 @@ test.describe("L2a locations console", () => {
       await expect(locationRow(page, `${ANCHOR}/${regionSlug}`)).toBeVisible();
     } finally {
       await destroyLocation(regionSlug);
+    }
+  });
+
+  /**
+   * LT-15 (INC-432) — THE SELLER-NAME TABLE FOLLOWS THE PLACES IMPORT. A place
+   * name the import creates is protected the moment the commit returns and
+   * released the moment its undo returns (DB truth: name_folds, kind place).
+   */
+  test("LT-15 an imported place name is in the name table after commit and gone after undo", async ({
+    page,
+  }) => {
+    const { secret } = await useJobSuperAdmin(page);
+    const slug = scratchSlug("lt15");
+    const word = scratchFoldWord();
+    try {
+      expect(await nameFoldPresent("place", word), "LT-15 the scratch word pre-exists").toBe(false);
+      await gotoReady(page, "/admin/places");
+      await selectMarket(page, "ET");
+      await page.getByTestId("location-import").click();
+      await expect(page.getByTestId("location-import-dialog")).toBeVisible({ timeout: 20000 });
+      await uploadLocations(
+        page,
+        csv([
+          ["", `${ANCHOR}/${slug}`, word, "", "", "", "0", "", "", "true", "", "", "", "", "activate"],
+        ]),
+      );
+      await page.getByTestId("location-import-preview").click();
+      await expect(page.getByTestId("location-import-counts")).toContainText("1", {
+        timeout: 30000,
+      });
+      await page.getByTestId("location-import-confirm").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("location-import-applied")).toBeVisible({ timeout: 30000 });
+      expect(await readLocation(slug), "LT-15 the commit created no row").not.toBeNull();
+      expect(await nameFoldPresent("place", word), "LT-15 not protected after commit").toBe(true);
+
+      await page.getByTestId("location-import-undo").click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("location-import-undone")).toBeVisible({ timeout: 30000 });
+      expect(await readLocation(slug), "LT-15 the undo left the row").toBeNull();
+      expect(await nameFoldPresent("place", word), "LT-15 still protected after undo").toBe(false);
+    } finally {
+      await destroyLocation(slug);
     }
   });
 

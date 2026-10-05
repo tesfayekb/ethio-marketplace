@@ -23,6 +23,8 @@ import {
   destroyCategory,
   createViaUi,
   lifecycleDump,
+  nameFoldPresent,
+  scratchFoldWord,
   rand,
 } from "./helpers/categories";
 /**
@@ -919,6 +921,54 @@ test.describe("CAT-IE categories import/export", () => {
       await destroyCategory(newSlug);
       await destroyCategory(childSlug);
       await destroyCategory(parentSlug);
+    }
+  });
+
+  /**
+   * CT-35 (INC-432) — THE SELLER-NAME TABLE FOLLOWS THE CATEGORY IMPORT. A
+   * category name the import creates is protected the moment the commit
+   * returns, and released the moment its undo returns (DB truth: name_folds).
+   */
+  test("CT-35 an imported category name is in the name table after commit and gone after undo", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const slug = scratchSlug();
+    const word = scratchFoldWord();
+    try {
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+      expect(await nameFoldPresent("category", word), "CT-35 the scratch word pre-exists").toBe(
+        false,
+      );
+
+      const categories = file([
+        line({ category_slug: slug, name_en: word, display_order: "2000000" }),
+      ]);
+      const preview = await importPost(page, token, { mode: "preview", categories });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        categories,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+      expect(await nameFoldPresent("category", word), "CT-35 not protected after commit").toBe(
+        true,
+      );
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await nameFoldPresent("category", word), "CT-35 still protected after undo").toBe(
+        false,
+      );
+    } finally {
+      await destroyCategory(slug);
     }
   });
 
