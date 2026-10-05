@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { en } from "../src/i18n/locales/en";
 import { gotoReady, stepUpIfPrompted } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
@@ -1366,6 +1367,10 @@ test.describe("C3 attributes console", () => {
       const id = leaf.child;
       await page.getByTestId(`category-attribute-condition-key-${id}`).selectOption(leaf.k1);
       await page.getByTestId(`category-attribute-condition-${id}-a`).click();
+      // Turn 9b item 3 — the empty "And when" choice has its own words.
+      await expect(
+        page.getByTestId(`category-attribute-condition-and-key-${id}`).locator('option[value=""]'),
+      ).toHaveText(en["admin.attributes.link.andNone"]);
       await page.getByTestId(`category-attribute-condition-and-key-${id}`).selectOption(leaf.k2);
       await page.getByTestId(`category-attribute-condition-and-${id}-d`).click();
       await page.getByTestId(`category-attribute-save-condition-${id}`).click();
@@ -1389,6 +1394,99 @@ test.describe("C3 attributes console", () => {
       await expect(page.getByTestId(`category-attribute-save-condition-${id}`)).toBeDisabled();
     } finally {
       await leaf.destroy();
+    }
+  });
+  /**
+   * AT-67 (step 28/29 census) — THE IMPORTER KEEPS A TOKEN AS WRITTEN. A scratch
+   * definition whose label, help text and option label carry {country}, and whose
+   * help points at a scratch postable category, previews clean, commits, and is
+   * stored byte-for-byte; undo removes it.
+   */
+  test("AT-67 catalogue tokens import and are stored unchanged", async ({ page }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    const slug = `e2e-cat-tok-${rand()}`;
+    try {
+      const made = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+        .select("id")
+        .single();
+      if (made.error) throw new Error(`AT-67 scratch category: ${made.error.message}`);
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const label = "Plug used in {country}";
+      const labelAm = "በ{country} የሚሠራ መሰኪያ";
+      const help = `See {category:${slug}} for adapters.`;
+      const helpAm = `ለአስማሚዎች {category:${slug}} ይመልከቱ።`;
+      const options = "local=Made in {country}|import=Imported";
+      const definitions =
+        `${DEF_HEADER}\r\n` +
+        [key, cell(label), cell(labelAm), "single_select", cell(options), "", "", "", "", "", "",
+          "", "", cell(help), cell(helpAm), "", "0"].join(",") +
+        "\r\n";
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect((preview.payload["refusals"] ?? []) as unknown[], JSON.stringify(preview.payload)).toHaveLength(0);
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const { data: stored, error } = await supabase
+        .from("attributes")
+        .select("name_en, options, help_text_en, help_text_am")
+        .eq("attr_key", key)
+        .single();
+      if (error) throw new Error(`AT-67 read-back: ${error.message}`);
+      expect(stored.name_en).toBe(label);
+      expect(stored.help_text_en).toBe(help);
+      expect(stored.help_text_am).toBe(helpAm);
+      expect(JSON.stringify(stored.options)).toContain("Made in {country}");
+      const undo = await importPost(page, token, {
+        mode: "undo",
+        batchId: commit.payload["batch_id"],
+      });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+    } finally {
+      await destroyAttribute(key);
+      await destroyCategory(slug);
+    }
+  });
+
+  /**
+   * AT-68 (step 29, DEC-095) — A POINTER TO NO CATEGORY IS REFUSED. Help text
+   * naming a slug that is not an active category taking ads is refused with
+   * unknownCategoryToken:<slug>, and nothing is written.
+   */
+  test("AT-68 an import naming an unknown category is refused", async ({ page }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    const ghost = `e2e-cat-ghost-${rand()}`;
+    try {
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const definitions =
+        `${DEF_HEADER}\r\n` +
+        [key, key, "", "text", "", "", "", "", "", "", "", "", "",
+          cell(`Post cases under {category:${ghost}}.`), "", "", "0"].join(",") +
+        "\r\n";
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const refusals = (preview.payload["refusals"] ?? []) as Record<string, unknown>[];
+      const found = refusals.find((row) => row["detail"] === "unknownCategoryToken");
+      expect(found, `AT-68 no unknownCategoryToken refusal: ${JSON.stringify(refusals)}`).toBeTruthy();
+      expect(found?.["cell"]).toBe("help_text_en");
+      expect(found?.["value"]).toBe(ghost);
+      expect(await readAttribute(key), "AT-68 a refused preview wrote").toBeFalsy();
+    } finally {
+      await destroyAttribute(key);
     }
   });
 });
