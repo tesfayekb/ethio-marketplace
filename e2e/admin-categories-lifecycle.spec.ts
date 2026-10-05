@@ -1055,6 +1055,12 @@ test.describe("CAT-IE categories import/export", () => {
     try {
       const rootId = await seedCategory(rootSlug, null);
       const leafId = await seedCategory(leafSlug, rootId);
+      // A delete row is judged only for a retired category (deleteActive).
+      const { error: retireError } = await supabase
+        .from("categories")
+        .update({ is_active: false })
+        .eq("id", leafId);
+      if (retireError) throw new Error(`CT-37 retire failed: ${retireError.message}`);
       const { data: attrs, error: attrError } = await supabase
         .from("attributes")
         .insert([
