@@ -1418,8 +1418,9 @@ test.describe("C3 attributes console", () => {
       if (made.error) throw new Error(`AT-67 scratch category: ${made.error.message}`);
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      const label = "Plug used in {country}";
-      const labelAm = "በ{country} የሚሠራ መሰኪያ";
+      // Unique per test: the importer pairs an unseen key with a same-label row as a rename.
+      const label = `Plug ${key} used in {country}`;
+      const labelAm = `በ{country} የሚሠራ ${key} መሰኪያ`;
       const help = `See {category:${slug}} for adapters.`;
       const helpAm = `ለአስማሚዎች {category:${slug}} ይመልከቱ።`;
       const options = "local=Made in {country}|import=Imported";
