@@ -16,7 +16,7 @@ const tokens = {} as never;
 
 describe("unit language", () => {
   it("prints the Amharic unit under Amharic", () => {
-    expect(attributeDisplayValue(base, 4, "am", tokens)).toContain("ሰዎች");
+    expect(attributeDisplayValue(base, 4, [], "am", "", "", "", tokens)).toBe("4 ሰዎች");
     expect(rangeDisplayValue(base, { min: 2, max: 5 }, "am", tokens)).toBe("2–5 ሰዎች");
   });
   it("prints the English unit under English", () => {
@@ -25,6 +25,6 @@ describe("unit language", () => {
   it("falls back to English when the Amharic unit is empty", () => {
     const bare = { ...base, unitAm: "" } as AttrDef;
     expect(rangeDisplayValue(bare, { min: 2, max: 5 }, "am", tokens)).toBe("2–5 people");
-    expect(attributeDisplayValue(bare, 4, "am", tokens)).toContain("people");
+    expect(attributeDisplayValue(bare, 4, [], "am", "", "", "", tokens)).toBe("4 people");
   });
 });
