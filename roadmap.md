@@ -66,3 +66,4 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] INC-435 corner ribbon
 - [x] INC-436 "Use my location" state
 - [x] INC-437 CT-19 stored-cell file rows
+- [x] Records turn 2026-10-05 — see docs/governance/handoffs/2026-10-05-bundle4-close-handover.md
