@@ -231,7 +231,7 @@ export function StepSpecifications({
   around?: { after: string; node: ReactNode } | null;
 }) {
   const { t, entities, language } = useI18n();
-  const scope = useCatalogScope();
+  const catalogScope = useCatalogScope();
   const [schema, setSchema] = useState<PostingSchema | null>(null);
   const [failed, setFailed] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
@@ -949,7 +949,7 @@ export function StepSpecifications({
         setUndoOffer({
           values: snapshot,
           prefills: heldPrefills,
-          model: option === undefined ? "" : optionLabel(option, entities.lang, scope),
+          model: option === undefined ? "" : optionLabel(option, entities.lang, catalogScope),
         });
         // INC-245 — a reset empties fields the LINK has a default for, and a
         // default is what an empty field starts from. So the defaults pass below
@@ -1324,7 +1324,7 @@ export function StepSpecifications({
         { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
         entities,
       ),
-      scope,
+      catalogScope,
     );
 
   /**
@@ -1534,7 +1534,7 @@ export function StepSpecifications({
                     data-testid="post-attr-unit"
                     data-attr={def.attrKey}
                   >
-                    {catalogWords(def.unit, null, entities.lang, scope)}
+                    {catalogWords(def.unit, null, entities.lang, catalogScope)}
                   </span>
                 )}
               </div>
@@ -1611,7 +1611,7 @@ export function StepSpecifications({
                 <option value="">{t("post.specs.choose")}</option>
                 {shown.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {optionLabel(option, entities.lang, scope)}
+                    {optionLabel(option, entities.lang, catalogScope)}
                   </option>
                 ))}
               </select>
@@ -1628,7 +1628,7 @@ export function StepSpecifications({
                 data-attr={def.attrKey}
               >
                 {colourOptions.map(({ option, swatch }) => {
-                  const label = optionLabel(option, entities.lang, scope);
+                  const label = optionLabel(option, entities.lang, catalogScope);
                   return (
                     <button
                       key={option.value}
@@ -1746,7 +1746,7 @@ export function StepSpecifications({
                             )
                           }
                         />
-                        <span>{optionLabel(option, entities.lang, scope)}</span>
+                        <span>{optionLabel(option, entities.lang, catalogScope)}</span>
                       </label>
                     </li>
                   );
