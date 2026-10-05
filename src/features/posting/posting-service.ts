@@ -557,6 +557,8 @@ export interface AttrDef {
   helpTextAm: string | null;
   isRequired: boolean;
   unit: string | null;
+  /** Bundle 5 C6 — the Amharic unit; empty or absent prints the English one. */
+  unitAm?: string | null;
   minBound: string | null;
   maxBound: string | null;
   decimals: number | null;
@@ -638,6 +640,7 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
     helpTextAm: str(row, "help_text_am"),
     isRequired: row["is_required"] === true,
     unit: str(row, "unit"),
+    unitAm: str(row, "unit_am"),
     minBound: str(row, "min_bound"),
     maxBound: str(row, "max_bound"),
     decimals: int(row, "decimals"),

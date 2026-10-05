@@ -70,8 +70,9 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 
 ## Bundle 5 (2026-10-05)
 
-- [ ] Part A — categories importer: create-row guests (INC-314), undo restores links (INC-307); M8a with the INC-433 mark heal
-- [ ] Part B — attributes importer: rankClash (INC-327), optionInUse (INC-438); M8b
-- [ ] Part C — the Amharic unit cell (unit_am); M8c and the app side
+- [x] Part A — categories importer: create-row guests (INC-314), undo restores links (INC-307); M8a with the INC-433 mark heal
+- [x] Part B — attributes importer: rankClash (INC-327), optionInUse (INC-438); M8b
+- [x] Part C — the Amharic unit cell (unit_am); M8c and the app side (PW-161, AT-72)
 - [ ] Part D — the nightly of 2026-10-05: PW-32 and the aborted-request lines (INC-439)
+- [ ] Part F — the identity route's paid check behind a rate gate (INC-442)
 - [ ] Part E — the records this bundle writes

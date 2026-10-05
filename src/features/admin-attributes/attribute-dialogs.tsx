@@ -200,6 +200,7 @@ export function AttributeEditorDialog({
   const [helpTextAm, setHelpTextAm] = useState(attribute?.helpTextAm ?? "");
   const [numberFields, setNumberFields] = useState<NumberFieldsValue>(() => ({
     unit: attribute?.unit ?? "",
+    unitAm: attribute?.unitAm ?? "",
     min: attribute?.minBound ?? "",
     max: attribute?.maxBound ?? "",
     decimals:
@@ -316,6 +317,8 @@ export function AttributeEditorDialog({
           dependsOnKey: dependent ? dependsOn : null,
           helpTextAm,
           unit: isNumber ? text(numberFields.unit) : null,
+          // "" clears the stored Amharic unit; a non-number sends nothing.
+          unitAm: isNumber ? numberFields.unitAm.trim() : null,
           minBound: isNumber ? text(numberFields.min) : null,
           maxBound: isNumber ? text(numberFields.max) : null,
           decimals: isNumber

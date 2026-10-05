@@ -201,6 +201,8 @@ export const FAMILIES: Record<string, FamilySpec> = {
       {
         id: "definitions",
         identityHeader: "attribute_key",
+        // A file may stop before `unit_am` (index 17), the trailing cell.
+        optionalFrom: 17,
         identityColumns: ["attribute_key"],
         duplicateIdentity: "gate",
         columns: [
@@ -216,7 +218,6 @@ export const FAMILIES: Record<string, FamilySpec> = {
            * which type may carry which cell, ranges, and `year` arithmetic.
            */
           { name: "unit", klass: "editable", type: "text", maxLength: MAX_UNIT },
-          { name: "unit_am", klass: "editable", type: "text", maxLength: MAX_UNIT },
           { name: "min", klass: "editable", type: "bound" },
           { name: "max", klass: "editable", type: "bound" },
           { name: "decimals", klass: "editable", type: "int", formula: "allow" },
@@ -227,6 +228,12 @@ export const FAMILIES: Record<string, FamilySpec> = {
           { name: "help_text_am", klass: "editable", type: "text", maxLength: MAX_HELP },
           { name: "is_per_variant", klass: "read-only", type: "bool" },
           { name: "direct_link_count", klass: "read-only", type: "int", formula: "allow" },
+          /**
+           * Bundle 5 C2 — THE AMHARIC UNIT, LAST AND OPTIONAL. It sits behind
+           * `optionalFrom` so every definitions file written before it still
+           * imports: an absent cell is never a change.
+           */
+          { name: "unit_am", klass: "editable", type: "text", maxLength: MAX_UNIT },
           { name: "action", klass: "action", values: ACTION_ATTRIBUTE_DEFS },
         ],
       },

@@ -16,6 +16,7 @@ import {
   readAttribute,
   readLinks,
   destroyAttribute,
+  openAttributeMenu,
 } from "./helpers/admin-attributes";
 
 /**
@@ -36,14 +37,13 @@ test.describe("C3 attributes console", () => {
    * visibility — is asserted in AT-23.
    */
   /**
-   * DEC-050 L2b — the ten v2 cells (unit_am since M8c) sit between `depends_on` and the two
-   * read-only cells. The header carries them, and `v2()` splices ten empty
+   * DEC-050 L2b — the nine v2 cells sit between `depends_on` and the two
+   * read-only cells. The header carries them, and `v2()` splices nine empty
    * cells into a hand-authored row at the same index, so every row below reads
    * exactly as it did before and no assertion is weakened.
    */
   const V2_CELLS = [
     "unit",
-    "unit_am",
     "min",
     "max",
     "decimals",
@@ -56,7 +56,7 @@ test.describe("C3 attributes console", () => {
   const DEF_HEADER =
     `attribute_key,label_en,label_am,type,options,depends_on,${V2_CELLS.join(",")},` +
     "is_per_variant,direct_link_count";
-  /** Splices the ten empty v2 cells after `depends_on`, quotes respected. */
+  /** Splices the nine empty v2 cells after `depends_on`, quotes respected. */
   function v2(row: string): string {
     const cells: string[] = [];
     let current = "";
@@ -631,10 +631,10 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      // attribute_key,label_en,label_am,type,options,depends_on,unit,unit_am,min,max,
+      // attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,
       // decimals,format,preset,max_length,help_text_en,help_text_am,
       // is_per_variant,direct_link_count
-      const row = `${key},${key},,number,,,km,,0,100,1,plain,,,${cell("How far it travels")},,,0`;
+      const row = `${key},${key},,number,,,km,0,100,1,plain,,,${cell("How far it travels")},,,0`;
       const definitions = `${DEF_HEADER}\r\n${row}\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
@@ -677,7 +677,10 @@ test.describe("C3 attributes console", () => {
       const header = records[0] ?? "";
       const mine = records.find((record) => record.startsWith(`${key},`));
       expect(mine, "AT-44 the export carries no row for this attribute").toBeTruthy();
-      expect(mine!, "AT-44 the export lost the v2 cells").toContain("km,,0,100,1,plain");
+      expect(mine!, "AT-44 the export lost the v2 cells").toContain("km,0,100,1,plain");
+      // Bundle 5 C3 — unit_am is the export's LAST column; this row has none.
+      expect(header.split(",").at(-1), "AT-44 unit_am is not the last column").toBe("unit_am");
+      expect(mine!.split(",").at(-1), "AT-44 the unit_am cell is not empty").toBe("");
 
       const echo = await importPost(page, token, {
         mode: "preview",
@@ -706,6 +709,88 @@ test.describe("C3 attributes console", () => {
         format: null,
         help_text_en: null,
       });
+    } finally {
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-72 (Bundle 5 C2/C3) — THE AMHARIC UNIT IS THE LAST, OPTIONAL COLUMN.
+   * (a) a file carrying `unit_am` last changes it, the export writes it last,
+   * the editor shows it and the undo restores the previous cell; (b) the same
+   * row in a file that stops before `unit_am` is unchanged and leaves the
+   * stored Amharic unit alone.
+   */
+  test("AT-72 unit_am imports as the last column and a file without it leaves it alone", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_attr_${rand()}`;
+    try {
+      await supabase
+        .from("attributes")
+        .insert({ attr_key: key, name_en: key, attr_type: "number", unit: "people" });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      const row = `${key},${key},,number,,,people,,,,,,,,,,0`;
+      const withAm = `${DEF_HEADER},unit_am\r\n${row},ሰዎች\r\n`;
+
+      const preview = await importPost(page, token, { mode: "preview", definitions: withAm });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(counts.changes, JSON.stringify(preview.payload)).toBe(1);
+      expect(counts.refusals, JSON.stringify(preview.payload["refusals"])).toBe(0);
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions: withAm,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+      const read = async () =>
+        (await supabase.from("attributes").select("unit_am").eq("attr_key", key).single()).data
+          ?.unit_am ?? null;
+      expect(await read(), "AT-72 (a) the commit did not store unit_am").toBe("ሰዎች");
+
+      const exported = await page.request.get("/api/admin/attributes/export?file=definitions", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(exported.status()).toBe(200);
+      const text = await exported.text();
+      const records = (text.charCodeAt(0) === 0xfeff ? text.slice(1) : text).split("\r\n");
+      expect((records[0] ?? "").split(",").at(-1)).toBe("unit_am");
+      const mine = records.find((record) => record.startsWith(`${key},`));
+      expect(mine?.split(",").at(-1), "AT-72 (a) the export's last cell").toBe("ሰዎች");
+
+      // The library was loaded before the import; reload it to read the stored row.
+      await gotoReady(page, "/admin/attributes");
+      await page.getByTestId("attribute-search").fill(key);
+      await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
+      await expect(page.getByTestId("attribute-unit-am")).toHaveValue("ሰዎች", { timeout: 20000 });
+      await page.keyboard.press("Escape");
+
+      // (b) the same row without the trailing column: unchanged, cell untouched.
+      const without = await importPost(page, token, {
+        mode: "preview",
+        definitions: `${DEF_HEADER}\r\n${row}\r\n`,
+      });
+      expect(without.status, JSON.stringify(without.payload)).toBe(200);
+      const bCounts = without.payload["counts"] as Record<string, number>;
+      expect(
+        { changes: bCounts.changes, unchanged: bCounts.unchanged, refusals: bCounts.refusals },
+        `AT-72 (b) ${JSON.stringify(without.payload)}`,
+      ).toEqual({ changes: 0, unchanged: 1, refusals: 0 });
+      expect(await read(), "AT-72 (b) a file without the column touched it").toBe("ሰዎች");
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await read(), "AT-72 (a) the undo did not restore the previous cell").toBeNull();
     } finally {
       await destroyAttribute(key);
     }

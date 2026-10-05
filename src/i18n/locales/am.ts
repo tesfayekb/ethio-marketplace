@@ -1118,6 +1118,9 @@ export const am: Messages = {
     "የአማራጭ ገደቦች “{detail}”ን ያመለክታሉ፤ እሱ ግን ከተመሳሳይ ምድቦች ጋር አልተገናኘም",
   "admin.attributes.import.reason.rankInherited":
     "በ“{category}” የካርድ ቦታ {rank} ከ“{origin_category}” በተወረሰው “{origin_key}” ተይዟል",
+  "admin.attributes.import.reason.rankClash": "በ“{category}” የካርድ ቦታ {rank} በ“{origin_key}”ም ተይዟል",
+  "admin.attributes.import.reason.optionInUse":
+    "እሴቱ “{value}” አሁንም በ{detail} ተጠቅሷል፤ መጀመሪያ እነዚያን ሕዋሶች እንደገና ይጻፉ ወይም ያላቅቁ",
   "admin.attributes.import.reason.required": "የ“{detail}” ሕዋስ ያስፈልጋል",
   "admin.attributes.import.reason.tooLong": "የ“{detail}” ሕዋስ በጣም ረጅም ነው",
   "admin.attributes.import.reason.badSlug": "የ“{detail}” ሕዋስ ተገቢ ቁልፍ አይደለም፦ a-z፣ 0-9፣ - እና _ ይጠቀሙ",
@@ -1301,6 +1304,9 @@ export const am: Messages = {
   "admin.attributes.field.numberGroup": "የቁጥር ቅንብሮች",
   "admin.attributes.field.unit": "መለኪያ",
   "admin.attributes.field.unitHelp": "ከእሴቱ በኋላ ይታያል፤ ከ16 ቁምፊ አይበልጥም (ኪሜ፣ ጊባ፣ ካሬ ሜትር)።",
+  "admin.attributes.field.unitAm": "መለኪያ በአማርኛ",
+  "admin.attributes.field.unitAmHelp":
+    "ለአማርኛ አንባቢዎች ይታያል፤ ከ16 ቁምፊ አይበልጥም። የእንግሊዝኛው መለኪያ እንዲታይ ባዶ ይተዉት።",
   "admin.attributes.field.min": "አነስተኛ",
   "admin.attributes.field.max": "ከፍተኛ",
   "admin.attributes.field.boundHelp": "ቁጥር፣ ወይም የዓመት ቶከን፦ year፣ year+1፣ year-1።",

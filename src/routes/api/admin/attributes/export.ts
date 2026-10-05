@@ -36,8 +36,6 @@ const DEFINITION_COLUMNS = [
   // DEC-050 L2b — the nine v2 cells; the payload already emits them and this
   // route formats nothing (IE-3b).
   "unit",
-  // M8c / C3 — the Amharic unit, after unit.
-  "unit_am",
   "min",
   "max",
   "decimals",
@@ -48,6 +46,9 @@ const DEFINITION_COLUMNS = [
   "help_text_am",
   "is_per_variant",
   "direct_link_count",
+  // Bundle 5 C3 — the Amharic unit, LAST: the registry makes it optional so
+  // a file written before it still imports.
+  "unit_am",
 ] as const;
 
 const LINK_COLUMNS = [

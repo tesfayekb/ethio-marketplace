@@ -74,13 +74,12 @@ function csv(value: string): string {
 }
 
 /**
- * DEC-050 L2b — the ten v2 cells (unit_am since M8c) sit between `depends_on` and the two
+ * DEC-050 L2b — the nine v2 cells sit between `depends_on` and the two
  * read-only cells; `V2_EMPTY` splices them into the hostile rows below so the
  * probes read exactly as before.
  */
 const V2_COLUMNS = [
   "unit",
-  "unit_am",
   "min",
   "max",
   "decimals",
@@ -137,7 +136,6 @@ const FAMILIES: Family[] = [
           over["options"] ?? "",
           "",
           "",
-          "", // unit_am (M8c)
           over["min"] ?? "",
           "",
           "",

@@ -30,6 +30,8 @@ const REASON_KEYS = new Set([
   "dependsCycle",
 
   "blastRadius",
+  // Bundle 5 B8 (M8b B3) — a removed or retired option value still in use.
+  "optionInUse",
   "unknownCategory",
   "unknownAttribute",
   "outOfScope",
@@ -53,6 +55,8 @@ const REASON_KEYS = new Set([
   "boundsTargetNotNumber",
   "boundsTargetNotColinked",
   "rankInherited",
+  // Bundle 5 B8 (M8b B2) — two direct links hold one card position.
+  "rankClash",
   // The gate's own shape verdicts.
   "required",
   "tooLong",
