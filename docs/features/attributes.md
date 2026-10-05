@@ -645,8 +645,14 @@ read-only cells, in exactly this order:
 ```text
 attribute_key, label_en, label_am, type, options, depends_on,
 unit, min, max, decimals, format, preset, max_length, help_text_en, help_text_am,
-is_per_variant (read-only), direct_link_count (read-only), action
+is_per_variant (read-only), direct_link_count (read-only), unit_am, action
 ```
+
+Bundle 5 C2/C3 — `unit_am`, the Amharic unit, is the LAST declared column and
+OPTIONAL (`optionalFrom`): a file written before it stops early and still imports,
+and an absent cell is never a change. The cell has the same 16-character ceiling
+as `unit`, holds Amharic script, and is refused on a non-number definition as a
+unit is. Empty means "no Amharic yet": the English unit prints under Amharic.
 
 The gate (`src/server/imports/registry.ts` + `src/server/imports/gate.ts`) judges
 SHAPE only, never meaning: `unit` at most 16 characters, `min`/`max` a number or a
@@ -671,6 +677,14 @@ Every refusal renders as its own sentence: the door's detail token resolves
 the sentence, and a token with no key of its own falls back to the message that
 names the row — no raw token is ever printed at an operator (D1, F4).
 
+Bundle 5 B8 adds two planner refusals to the vocabulary: `rankClash` — the end
+state of the file gives two direct links one card position in a category
+(“Card position {rank} at “{category}” is also held by “{origin_key}””) — and
+`optionInUse` — a definitions row removes or retires an option value that a
+link's allowed list, a default or a condition still names
+(“The value “{value}” is still named by {detail}; rewrite or unlink those cells
+first”).
+
 Proofs: IG-2 drives the shape-hostility catalogue through the gate for the
 attributes family; AT-44 commits the nine cells, reads DB truth, echoes them
 through the export, re-imports the export as a no-op and undoes to silence;
@@ -680,7 +694,7 @@ row and itself. AT-20/AT-21 hold unchanged.
 ## DEC-050 L3a — the definition editor and the coverage column
 
 The editor mounts ONE group per type and nothing else: a **Number** group
-(unit, min, max, format, decimals) for `attr_type = 'number'`, a **Text** group
+(unit, unit in Amharic, min, max, format, decimals) for `attr_type = 'number'`, a **Text** group
 (preset builder, max length) for `text`. A type change unmounts the wrong group
 AND clears its values, so a unit can never ride along on a text definition —
 `admin_upsert_attribute` refuses it regardless (F3; the console is convenience).
