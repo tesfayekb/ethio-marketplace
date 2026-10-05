@@ -1135,6 +1135,7 @@ export function StepSpecifications({
     emit(next, false);
   }, [
     onlyKey,
+    categoryId,
     schema,
     definitions,
     folds,
