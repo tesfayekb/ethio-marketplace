@@ -747,6 +747,7 @@ test.describe("U4b translations console", () => {
     const key = scratchKey("tr35");
     await seedScratchKey(key, "Plugs used in {country}");
     const supabase = adminClient();
+    try {
     const { user, secret } = await signInAsSuperAdmin(page);
     await logTranslatorScope(page, user.id);
     await gotoReady(page, "/admin/translations/am");
@@ -773,6 +774,10 @@ test.describe("U4b translations console", () => {
     if (error) throw new Error(`[e2e:tr35] read failed: ${error.message}`);
     expect(data?.flagged, "TR-35 the token was lost").toBe(false);
     expect(data?.value ?? "").toContain("{country}");
+    } finally {
+      await supabase.from("ui_translation_revisions").delete().eq("key", key);
+      await reapScratchKey(key);
+    }
   });
 
   test("TR-23 machine translation keeps placeholders, and the editor repairs a mangled one", async ({
