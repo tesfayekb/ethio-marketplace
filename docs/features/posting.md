@@ -680,9 +680,9 @@ with nothing to show is a plain number, never a tappable lie. The desktop aside
 is unchanged.
 
 **STEP 7 NAMES (D17).** First and last name sit above the seller type and reach
-`save_posting_identity`'s `p_first_name`/`p_last_name`. A person must be named;
-a business must carry a business name and may leave the names empty. The door
-owns both rules — the screen mirrors them. The review's seller line shows the
+`save_posting_identity`'s `p_first_name`/`p_last_name`. Since M5 (bundle 4 step 22) the door refuses at
+`p_step` 8 a seller with no public name and a person with no first name; a
+named business passes. The door owns these rules — the screen mirrors them. The review's seller line shows the
 business name (or the alias) before the channels.
 
 ### The plan document (D22) — both doors exist since M-MAINT-3
@@ -1215,3 +1215,14 @@ W1: rows sharing a city draw ONE city box: the city picker, then one sub-city bo
 - One price line (`price-line.ts`): a unit or a period reads "<amount> <currency> per <noun>" through `post.review.pricePer`; a one-off price prints the amount alone.
 - Under the price, the size line and the terms lines (`deal-lines.ts`) read on review, in the buyer's preview and in the wizard's side preview. A choice whose option label is not held on screen prints nothing; a raw token is never printed.
 - The currency box and the phone-country box share one picker (`src/components/searchable-picker.tsx`): arrows, Enter and Escape behave alike, and both lists open by the INC-280 rule (upward only when the room below is short and the room above is larger). What a search matches stays each list's own.
+
+## Bundle 4 — the wizard as built (Parts A–G, 2026-10-05)
+
+- **Order and price page.** Steps keep the brief's numbers; the price page is its own step after the specifications and draws the copies of the form the step-9 census lists (`bundle-4-census.md`). Price, unit/period and the deal lines read through `price-line.ts` and `deal-lines.ts` (above).
+- **Title.** Built from the answers and editable; the assistant prompt strips price-like facts (PW-140).
+- **Picture.** One listing picture with a fallback; "photos soon" is a ribbon and an action through `set_listing_photos_soon` (PW-141).
+- **Lifetime.** An optional end date; the door applies the LEAST of the seller's date and the category's `expiry_days` on transition and renew; the hourly `listing-expiry-sweep` (`17 * * * *`) expires stale ads and writes one `listing_expiry_sweep_runs` row (PW-143, PR-25).
+- **Place.** Changing the place follows step 17; a saved place (`seller_places`, its three doors, no client table access) is reusable on the next ad.
+- **Contact step.** First and last name required for a person; public-name suggestions are asked on blur; the name and channels are saved on the profile and inherited by the next ad; one identity request when either changed, none when nothing did (PW-144). The account card shows them read-only.
+- **The name-fold table.** `name_folds` (kind, fold) holds every protected word — site, role, function, category, place, country, brand, handle, exact_only, claim — so `alias_rule` and `business_name_rule` read by key. It is rebuilt by `name_folds_rebuild()` three ways: M5 built it; the hourly cron entry `name-folds-rebuild` (`41 * * * *`); and every import route that commits or undoes (attributes, categories, locations) through `refreshNameFoldsAfterCommit`, after the commit returns, a failure logged and never failing the import (INC-432; CT-35, AT-69, LT-15). **A name imported is protected at once; a name edited by hand in the admin console is protected within the hour.**
+- **Catalogue tokens (Part G).** `{country}` draws in definition labels, help, option labels and units: the ad's first place ▸ the browsing market (area cookie) ▸ the confirmed home country ▸ "your country". `{category:<slug>}` draws in help text only, as a button with the category path; tapping asks before moving the ad (answers the target also asks are kept); a gone category draws nothing; in labels it never draws and never leaks braces. Admin screens keep raw tokens (PW-154–158).

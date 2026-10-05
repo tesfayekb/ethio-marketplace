@@ -375,3 +375,9 @@ A planner reads the live catalog ONCE per plan (for categories: one `cat_export_
 ## D31-C note
 
 - Import-side basis rules are unchanged from D31-M (`priceBasisDuplicate`, `periodLockedWithBasis`); D31-C only teaches the posting doors to read the basis.
+
+## Bundle 4 — what the importer carries (2026-10-05)
+
+- The `visible_when` cell may hold the two-pair condition and option `bounds` may hold `settled` (attributes.md). Tokens are stored byte for byte (AT-67); `/api/translate` masks and restores them (TR-35).
+- The deal key families and the `term_` prefix import as ordinary keys.
+- After a commit or an undo, each import route rebuilds the catalogue finder and the name-fold table, outside the transaction; a failed rebuild is logged `[ssr-error]` and never fails the import (INC-432).

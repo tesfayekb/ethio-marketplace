@@ -42,16 +42,18 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 ## Bundle 4
 
 - [x] Step 0 — brief saved (sha256 9ba52ecf… matches), truth pass above
-- [ ] Censuses (steps 1, 6, 9, 16, 20, 22, 23, 24)
-- [ ] M5 (step 25) → apply on ethio-prod → stop
+- [x] Censuses (steps 1, 6, 9, 16, 20, 22, 23, 24) — docs/governance/briefs/bundle-4-census.md
+- [x] M5 (step 25) 923dd4cb, mark 20261004090000; M5b 02084273, mark 20261004160000 — on ethio-prod and ethio-staging
 - [x] Screens A + B — done (steps 1–11; PW-135, PW-136–139, price/deal-line and picker unit tests)
-- [ ] Parts C → D → E → F — C, D, E done (PW-140–143, PR-25); F open
+- [x] Parts C → D → E → F — PW-140, PW-141, PW-143, PR-25, PW-144
 - [x] M6 (step 30) e44f20e5, mark 20261005100000 on ethio-prod
 - [x] Part G step 26 screens (INC-381) — AT-65, AT-66, PW-152
 - [x] Part G step 27 screens (INC-374) — PW-153
 - [x] Part G step 28 ({country}) screens — PW-154/155/156, AT-67, TR-35
 - [x] Part G step 29 ({category:slug}, help text only) screens — PW-157/158, AT-68; "And when" empty choice reads admin.attributes.link.andNone
-- [ ] Part H (docs, final report)
+- [x] Part H (docs, final report) — turn 10
+- [x] INC-432 import routes rebuild name_folds — M7 9347e038, mark 20261005040000; CT-35, AT-69, LT-15
+- [x] INC-431 Amharic map-pin words — src/i18n/locales/am-script.test.ts
 - [x] INC-427 contact-step identity read wiped typed names (fixed bundle 4 turn 3; PW-134)
 - [ ] Photo clean-up bundle: when the card receives the ad's photo through listing-picture, the photos-soon ribbon hides by the existing rule (bundle 4 turn 6 item 7; no change before then).
 

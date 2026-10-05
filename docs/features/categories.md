@@ -552,3 +552,7 @@ console write the same columns through the same validation.
 - The import door judges the `icon` column (type `icon`, case-sensitive): a name off the list is refused `unknownIcon`; a blank cell passes (no change).
 - A new category gets its icon from a file cell naming a listed icon, or blank and then the console's picker / Suggest icon.
 - INC-310: the image prompt's parent is the home pointer (`is_primary` first, then `display_order`).
+
+## Lifetime field (bundle 4 step 16)
+
+`expiry_days` caps an ad's life in the category; with none, the seller's own end date stands. The door applies the LEAST rule on transition and renew.
