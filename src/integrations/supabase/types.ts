@@ -110,6 +110,7 @@ export type Database = {
           options: Json | null
           preset: string | null
           unit: string | null
+          unit_am: string | null
           updated_at: string
         }
         Insert: {
@@ -130,6 +131,7 @@ export type Database = {
           options?: Json | null
           preset?: string | null
           unit?: string | null
+          unit_am?: string | null
           updated_at?: string
         }
         Update: {
@@ -150,6 +152,7 @@ export type Database = {
           options?: Json | null
           preset?: string | null
           unit?: string | null
+          unit_am?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2959,6 +2962,7 @@ export type Database = {
           p_preset: string
           p_type: string
           p_unit: string
+          p_unit_am?: string
         }
         Returns: string
       }
