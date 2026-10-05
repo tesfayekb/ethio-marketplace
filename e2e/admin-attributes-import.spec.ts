@@ -36,13 +36,14 @@ test.describe("C3 attributes console", () => {
    * visibility — is asserted in AT-23.
    */
   /**
-   * DEC-050 L2b — the nine v2 cells sit between `depends_on` and the two
-   * read-only cells. The header carries them, and `v2()` splices nine empty
+   * DEC-050 L2b — the ten v2 cells (unit_am since M8c) sit between `depends_on` and the two
+   * read-only cells. The header carries them, and `v2()` splices ten empty
    * cells into a hand-authored row at the same index, so every row below reads
    * exactly as it did before and no assertion is weakened.
    */
   const V2_CELLS = [
     "unit",
+    "unit_am",
     "min",
     "max",
     "decimals",
@@ -55,7 +56,7 @@ test.describe("C3 attributes console", () => {
   const DEF_HEADER =
     `attribute_key,label_en,label_am,type,options,depends_on,${V2_CELLS.join(",")},` +
     "is_per_variant,direct_link_count";
-  /** Splices the nine empty v2 cells after `depends_on`, quotes respected. */
+  /** Splices the ten empty v2 cells after `depends_on`, quotes respected. */
   function v2(row: string): string {
     const cells: string[] = [];
     let current = "";
@@ -630,10 +631,10 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       const token = await bearerOf(page);
-      // attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,
+      // attribute_key,label_en,label_am,type,options,depends_on,unit,unit_am,min,max,
       // decimals,format,preset,max_length,help_text_en,help_text_am,
       // is_per_variant,direct_link_count
-      const row = `${key},${key},,number,,,km,0,100,1,plain,,,${cell("How far it travels")},,,0`;
+      const row = `${key},${key},,number,,,km,,0,100,1,plain,,,${cell("How far it travels")},,,0`;
       const definitions = `${DEF_HEADER}\r\n${row}\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions });
@@ -676,7 +677,7 @@ test.describe("C3 attributes console", () => {
       const header = records[0] ?? "";
       const mine = records.find((record) => record.startsWith(`${key},`));
       expect(mine, "AT-44 the export carries no row for this attribute").toBeTruthy();
-      expect(mine!, "AT-44 the export lost the v2 cells").toContain("km,0,100,1,plain");
+      expect(mine!, "AT-44 the export lost the v2 cells").toContain("km,,0,100,1,plain");
 
       const echo = await importPost(page, token, {
         mode: "preview",
@@ -1606,8 +1607,8 @@ test.describe("C3 attributes console", () => {
 
       // (b) the same file re-points D's condition at a: accepted.
       const links =
-        `${LINK_HEADER},visible_when\r\n` +
-        `${slug},${slug},${keyD},false,false,,${slug},${keyP}=a\r\n`;
+        `${LINK_HEADER},allowed_options,default_value,visible_when\r\n` +
+        `${slug},${slug},${keyD},false,false,,${slug},,,${keyP}=a\r\n`;
       const b = await importPost(page, token, { mode: "preview", definitions: dropB, links });
       expect(b.status, JSON.stringify(b.payload)).toBe(200);
       expect(refusalsOf(b.payload), `AT-71 (b) refused: ${JSON.stringify(b.payload)}`).toHaveLength(

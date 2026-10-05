@@ -36,6 +36,8 @@ const DEFINITION_COLUMNS = [
   // DEC-050 L2b — the nine v2 cells; the payload already emits them and this
   // route formats nothing (IE-3b).
   "unit",
+  // M8c / C3 — the Amharic unit, after unit.
+  "unit_am",
   "min",
   "max",
   "decimals",
