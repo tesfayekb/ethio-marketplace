@@ -13,7 +13,10 @@ describe("am.ts script guard (INC-431)", () => {
   it("no value carries an unassigned code point", () => {
     const bad = entries
       .filter(([, value]) => /\p{Cn}/u.test(value))
-      .map(([key, value]) => `${key}: ${[...value.matchAll(/\p{Cn}/gu)].map((m) => `U+${m[0].codePointAt(0)!.toString(16).toUpperCase()}`).join(",")}`);
+      .map(
+        ([key, value]) =>
+          `${key}: ${[...value.matchAll(/\p{Cn}/gu)].map((m) => `U+${m[0].codePointAt(0)!.toString(16).toUpperCase()}`).join(",")}`,
+      );
     expect(bad).toEqual([]);
   });
 
@@ -21,7 +24,10 @@ describe("am.ts script guard (INC-431)", () => {
     const foreign = /(?![\p{Script=Ethiopic}\p{Script=Latin}])\p{L}/gu;
     const bad = entries
       .filter(([, value]) => new RegExp(foreign.source, "u").test(value))
-      .map(([key, value]) => `${key}: ${[...value.matchAll(foreign)].map((m) => `U+${m[0].codePointAt(0)!.toString(16).toUpperCase()}`).join(",")}`);
+      .map(
+        ([key, value]) =>
+          `${key}: ${[...value.matchAll(foreign)].map((m) => `U+${m[0].codePointAt(0)!.toString(16).toUpperCase()}`).join(",")}`,
+      );
     expect(bad).toEqual([]);
   });
 });

@@ -1661,8 +1661,7 @@ export const am: Messages = {
   "admin.countries.filter.allStatusesOption": "ሁኔታ፦ ክፉት እና ዝግ",
   "admin.countries.filter.openOnly": "\u12ad\u1349\u1275 \u1265\u127b",
   "admin.countries.filter.closedOnly": "\u12dd\u130d \u1265\u127b",
-  "admin.countries.filter.pageSize":
-    "በአንድ ገጽ ረድፎች",
+  "admin.countries.filter.pageSize": "በአንድ ገጽ ረድፎች",
   "admin.countries.col.name": "\u12a0\u1308\u122d",
   "admin.countries.col.status": "\u1201\u1294\u1273",
   "admin.countries.col.places": "\u1265\u122a \u1263\u1275\u12ce\u127d \u1363 \u1260\u12e0\u1275",

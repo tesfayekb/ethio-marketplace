@@ -714,7 +714,23 @@ test.describe("L2a locations console", () => {
       await uploadLocations(
         page,
         csv([
-          ["", `${ANCHOR}/${slug}`, word, "", "", "", "0", "", "", "true", "", "", "", "", "activate"],
+          [
+            "",
+            `${ANCHOR}/${slug}`,
+            word,
+            "",
+            "",
+            "",
+            "0",
+            "",
+            "",
+            "true",
+            "",
+            "",
+            "",
+            "",
+            "activate",
+          ],
         ]),
       );
       await page.getByTestId("location-import-preview").click();
