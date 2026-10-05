@@ -39,7 +39,10 @@ describe("firstSentence (INC-294)", () => {
 
 describe("foldFact (INC-434)", () => {
   it("a list fact prefills a multi_select target", () => {
-    expect(foldFact(["doro_wot"], "multi_select")).toEqual({ kind: "prefill", value: ["doro_wot"] });
+    expect(foldFact(["doro_wot"], "multi_select")).toEqual({
+      kind: "prefill",
+      value: ["doro_wot"],
+    });
   });
 
   it("a list fact never fills a single_select or boolean target", () => {

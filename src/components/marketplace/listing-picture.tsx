@@ -105,24 +105,29 @@ export function ListingPicture({
           <div
             data-testid="listing-photos-soon-ribbon"
             aria-hidden="true"
-            className="pointer-events-none absolute flex flex-col font-bold uppercase"
-            style={{
-              width: "84cqw",
-              left: `calc(100% - ${TAPE_INSET})`,
-              top: `calc(100% - ${TAPE_INSET})`,
-              transform: "translate(-50%, -50%) rotate(-45deg)",
-              background: TAPE_YELLOW,
-              color: TAPE_BLACK,
-            }}
+            className="pointer-events-none absolute inset-0 overflow-hidden"
           >
-            <span className="block" style={{ height: "1.2cqw", background: TAPE_STRIPE }} />
-            <span
-              className="block text-center leading-none whitespace-nowrap"
-              style={{ fontSize: "3.6cqw", letterSpacing: "0.04em", padding: "1.4cqw 0" }}
+            <div
+              className="absolute flex flex-col font-bold uppercase"
+              style={{
+                width: "84cqw",
+                left: `calc(100% - ${TAPE_INSET})`,
+                top: `calc(100% - ${TAPE_INSET})`,
+                transform: "translate(-50%, -50%) rotate(-45deg)",
+                background: TAPE_YELLOW,
+                color: TAPE_BLACK,
+              }}
             >
-              {t("listing.photosSoon")}
-            </span>
-            <span className="block" style={{ height: "1.2cqw", background: TAPE_STRIPE }} />
+              <span className="block" style={{ height: "1.2cqw", background: TAPE_STRIPE }} />
+              <span
+                data-testid="listing-photos-soon-text"
+                className="block text-center leading-none whitespace-nowrap"
+                style={{ fontSize: "3.6cqw", letterSpacing: "0.04em", padding: "1.4cqw 0" }}
+              >
+                {t("listing.photosSoon")}
+              </span>
+              <span className="block" style={{ height: "1.2cqw", background: TAPE_STRIPE }} />
+            </div>
           </div>
         )}
       </div>
