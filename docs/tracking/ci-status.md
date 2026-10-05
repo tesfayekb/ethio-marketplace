@@ -1,36 +1,31 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `77d8c77143605ac8117e7d4561f15d0e11563750` (short `77d8c77`)
-- Conclusion: **CANCELLED**
-- Completed (UTC): 2026-10-05T17:28:35Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37347110818
+- Commit: `365df2919620b0765a26fac6e210cea476fa325c` (short `365df29`)
+- Conclusion: **FAILURE**
+- Completed (UTC): 2026-10-05T17:29:43Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37348481625
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Component tests | success |
-| i18n used-on map is fresh (U4i ②) | success |
-| Listing-write seam guard (with self-test) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| Hardcoded string scan (enforcing) | success |
-| Build, typecheck, lint | success |
-| Migration linter (with self-test) | success |
 | Import gate guard (with self-test) | success |
-| Gitleaks secrets scan | success |
-| E2E preflight (migration parity, staging) | success |
+| Migration linter (with self-test) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
 | Dependency vulnerability audit (enforcing on high/critical) | success |
 | Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Build, typecheck, lint | success |
+| E2E preflight (migration parity, staging) | failure |
+| Listing-write seam guard (with self-test) | success |
 | First-paint bundle budget (gzipped ceiling) | success |
-| E2E build (shared dist) | success |
-| E2E smoke tier | cancelled |
-| E2E changed specs (fast lane) | cancelled |
-| E2E shard 1/6 | cancelled |
-| E2E shard 2/6 | cancelled |
-| E2E shard 5/6 | cancelled |
-| E2E shard 4/6 | cancelled |
-| E2E email (serial, quota-bound) | success |
-| E2E shard 3/6 | cancelled |
-| E2E shard 6/6 | cancelled |
+| Component tests | success |
+| Hardcoded string scan (enforcing) | success |
+| i18n used-on map is fresh (U4i ②) | success |
+| Gitleaks secrets scan | success |
+| E2E build (shared dist) | skipped |
+| E2E email (serial, quota-bound) | skipped |
+| E2E shard ${{ matrix.shard }}/6 | skipped |
 | E2E (Playwright, ethio-staging) | failure |
-| Promote to main (fast-forward on green) | cancelled |
+| E2E smoke tier | skipped |
+| E2E changed specs (fast lane) | skipped |
+| Promote to main (fast-forward on green) | skipped |
