@@ -4,9 +4,10 @@ import { FormLayout } from "@/components/layout/form-layout";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
 import { SplitLayout } from "@/components/layout/split-layout";
-import { readAreaCookie } from "@/components/shell/location-data";
+import { readAreaCookie, useOpenMarkets } from "@/components/shell/location-data";
 import { PageCard } from "@/components/shell/page-card";
 import {
+  isPostable,
   nearestCategoryPicture,
   pathOf,
   useCategoryTree,
@@ -28,6 +29,8 @@ import { StepReview } from "./step-review";
 import { StepSpecifications, type DealGroup } from "./step-specifications";
 import { ListingPreview } from "./listing-preview";
 import { MobileStepStrip } from "./mobile-step-strip";
+import { CatalogScopeProvider, tokenCountryCode, type CatalogScope } from "./catalog-scope";
+import { CategoryMoveDialog } from "./category-move-dialog";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { answerOtherText } from "./answer-tokens";
 import { basisInForce, basisNoun, basisToken } from "./price-basis";
@@ -35,6 +38,7 @@ import {
   clearPin,
   readPlaceCountry,
   readPostingSchema,
+  readSellerIdentity,
   type AttrDef,
   type PlanCaps,
   savePhotosSoon,
@@ -144,6 +148,72 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
       cancelled = true;
     };
   }, [itemPlaceId]);
+
+  /**
+   * Bundle 4 steps 28–29 — WHAT {country} AND {category:…} DRAW AS, resolved once
+   * for every seller and buyer screen under this wizard (catalog-scope.tsx).
+   * The seller's identity is read only when neither the place nor the browsed
+   * market names a country.
+   */
+  const openMarkets = useOpenMarkets();
+  const areaCountry = readAreaCookie()?.country ?? null;
+  const needHome = itemCountry === null && areaCountry === null;
+  const [home, setHome] = useState<{ code: string | null; confirmed: boolean } | null>(null);
+  useEffect(() => {
+    if (!needHome || home !== null) return;
+    let cancelled = false;
+    void readSellerIdentity().then((identity) => {
+      if (cancelled) return;
+      setHome({
+        code: identity?.homeCountryCode ?? null,
+        confirmed: identity?.homeCountryConfirmed ?? false,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [needHome, home]);
+  const tokenCountry = tokenCountryCode({
+    placeCountry: itemCountry,
+    areaCountry,
+    homeCountry: home?.code ?? null,
+    homeConfirmed: home?.confirmed ?? false,
+  });
+  const fallbackCountry = t("post.catalog.yourCountry");
+  const countryWords = useMemo(() => {
+    if (tokenCountry === null) return fallbackCountry;
+    const market = openMarkets.markets.find((entry) => entry.code === tokenCountry);
+    if (market !== undefined && market.anchorId !== null) {
+      return entityName(
+        "location",
+        { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
+        entities,
+      );
+    }
+    try {
+      const name = new Intl.DisplayNames([language], { type: "region" }).of(tokenCountry);
+      if (name !== undefined && name !== tokenCountry) return name;
+    } catch {
+      // An unknown code falls through to the market's own name or the fallback words.
+    }
+    return market?.nameEn ?? fallbackCountry;
+  }, [tokenCountry, openMarkets.markets, entities, language, fallbackCountry]);
+  /** The {category:…} pointer the seller tapped, awaiting the move question. */
+  const [pointerSlug, setPointerSlug] = useState<string | null>(null);
+  const catalogScope = useMemo<CatalogScope>(
+    () => ({
+      country: countryWords,
+      categoryPath: (slug: string) => {
+        const node = tree.nodes.find((entry) => entry.slug === slug);
+        if (node === undefined || !isPostable(tree, node)) return null;
+        return pathOf(tree, node.id)
+          .map((step) => entityName("category", step, entities))
+          .join(" › ");
+      },
+      moveTo: setPointerSlug,
+    }),
+    [countryWords, tree, entities],
+  );
   useEffect(() => {
     if (!pinCarried || draft.listingId === null) return;
     if (facts === null || !facts.capabilities.includes("own_place")) return;
@@ -495,7 +565,37 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
     else goNext();
   }
 
+  /**
+   * Step 29 — the pointer's "yes": exactly step 1's choice (chooseLeaf, with its
+   * reset offer), carrying every answer whose key the target category also asks
+   * with the same type; the door judges what it receives (F3).
+   */
+  const pointerNode =
+    pointerSlug === null ? null : (tree.nodes.find((node) => node.slug === pointerSlug) ?? null);
+  const pointerPath = pointerSlug === null ? null : catalogScope.categoryPath(pointerSlug);
+  const confirmPointer = () => {
+    const target = pointerNode;
+    setPointerSlug(null);
+    if (target === null) return;
+    const held = draft.values.attributes;
+    void readPostingSchema(target.id).then((schema) => {
+      const kept: Record<string, unknown> = {};
+      for (const def of schema?.attributes ?? []) {
+        const mine = definitions.find((entry) => entry.attrKey === def.attrKey);
+        if (mine === undefined || mine.attrType !== def.attrType) continue;
+        if (held[def.attrKey] !== undefined) kept[def.attrKey] = held[def.attrKey];
+      }
+      chooseLeaf(target.id, kept);
+    });
+  };
+
   return (
+    <CatalogScopeProvider value={catalogScope}>
+    <CategoryMoveDialog
+      path={pointerPath}
+      onCancel={() => setPointerSlug(null)}
+      onConfirm={confirmPointer}
+    />
     <PageShell as="main" width="full" data-testid="post-page-shell">
       <SplitLayout
         asideCollapsible
@@ -1176,6 +1276,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
         }
       />
     </PageShell>
+    </CatalogScopeProvider>
   );
 }
 
