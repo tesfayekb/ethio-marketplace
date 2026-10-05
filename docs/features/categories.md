@@ -556,3 +556,8 @@ console write the same columns through the same validation.
 ## Lifetime field (bundle 4 step 16)
 
 `expiry_days` caps an ad's life in the category; with none, the seller's own end date stands. The door applies the LEAST rule on transition and renew.
+
+## Bundle 5 — create-row guests and the delete's links (2026-10-05, M8a)
+
+- **Create-row guests (A2, A3).** A create row's `secondary_parents` are judged as an update row's are: each slug must be an existing non-catch-all category or a create row earlier in the same file, else the row is refused `unknownParent` with the slug as detail. The commit then adds each guest pointer (`admin_add_category_pointer`) unless it already exists, so the revision's post carries the guests.
+- **The delete's links (A4, A5).** A deleted category's revision `prev` carries `links` — its attribute links with each attribute's `attr_key`. Undo recreates the row, then re-inserts each link whose attribute still exists and skips the rest; it returns `{ restored, links_restored, links_skipped }`, where `links_skipped` names the skipped `attr_key`s. Tests: CT-36, CT-37.
