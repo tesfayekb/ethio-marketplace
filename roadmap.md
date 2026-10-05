@@ -65,3 +65,4 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] INC-434 list facts tick tick lists
 - [x] INC-435 corner ribbon
 - [x] INC-436 "Use my location" state
+- [x] INC-437 CT-19 stored-cell file rows

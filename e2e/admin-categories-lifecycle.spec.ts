@@ -32,6 +32,10 @@ import {
  *
  * L1 (DEC-037): split out of admin-categories.spec.ts with titles, tags and
  * fixture identities unchanged (INC-159 shard balance).
+ *
+ * CLASS RULE (INC-437, INC-383 class): a file row for a row that already
+ * exists carries that row's stored cells read at build time, never a constant;
+ * a test asserts its own rows, not a shared roster's totals.
  */ test.describe("C2 categories console", () => {
   /**
    * CT-12 (C2d, re-armed by UI-FIX-7) — the reactivate walk. A retired scratch
@@ -722,6 +726,20 @@ test.describe("CAT-IE categories import/export", () => {
     return action === undefined ? cells.join(",") : [...cells, cell(action)].join(",");
   }
 
+  /**
+   * INC-437 — a file row for a row that already exists carries that row's
+   * stored cells, read through the service client at build time.
+   */
+  async function storedRootLine(slug: string): Promise<string> {
+    const stored = await readCategory(slug);
+    if (stored === null) throw new Error(`[e2e:c2] ${slug} is not stored`);
+    return line({
+      category_slug: stored.slug,
+      name_en: stored.name_en,
+      display_order: String(stored.display_order),
+    });
+  }
+
   function file(rows: string[], withAction = false): string {
     const header = withAction ? `${HEADER},action` : HEADER;
     return `\uFEFF${[header, ...rows].join("\r\n")}\r\n`;
@@ -872,8 +890,8 @@ test.describe("CAT-IE categories import/export", () => {
 
       const renamed = `${childSlug}-renamed`;
       const categories = file([
-        // INC-383 — the scratch root's own stored order, so it is not a change.
-        line({ category_slug: parentSlug, name_en: parentSlug, display_order: "2000000" }),
+        // INC-437 — the scratch root's CURRENT stored cells, read at build time.
+        await storedRootLine(parentSlug),
         line({
           category_slug: childSlug,
           parent_slug: parentSlug,
@@ -890,12 +908,12 @@ test.describe("CAT-IE categories import/export", () => {
 
       const preview = await importPost(page, token, { mode: "preview", categories });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
-      const previewCounts = preview.payload["counts"] as Record<string, number>;
-      expect(previewCounts, JSON.stringify(preview.payload["refusals"])).toMatchObject({
-        adds: 1,
-        changes: 1,
-        refusals: 0,
-      });
+      // INC-437 — the test's own rows' planned actions, never the file's totals.
+      const items = (preview.payload["items"] ?? []) as { slug: string; op: string }[];
+      const opOf = (slug: string) => items.find((item) => item.slug === slug)?.op;
+      expect(preview.payload["refusals"], JSON.stringify(preview.payload)).toEqual([]);
+      expect(opOf(childSlug), JSON.stringify(items)).toBe("update");
+      expect(opOf(newSlug), JSON.stringify(items)).toBe("create");
 
       const commit = await importPost(page, token, {
         mode: "commit",
@@ -950,7 +968,7 @@ test.describe("CAT-IE categories import/export", () => {
       // The import adds children only: a scratch root (its stored order kept)
       // and one new child whose English name is the scratch word.
       const categories = file([
-        line({ category_slug: parentSlug, name_en: parentSlug, display_order: "2000000" }),
+        await storedRootLine(parentSlug),
         line({ category_slug: slug, parent_slug: parentSlug, name_en: word, display_order: "0" }),
       ]);
       const preview = await importPost(page, token, { mode: "preview", categories });

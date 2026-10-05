@@ -674,3 +674,4 @@
 - 2026-10-05 — Bundle 4 turn 11 item 2: INC-434 — a list fact ticks its multi_select target while empty (foldFact; unit tests, PW-159).
 - 2026-10-05 — Bundle 4 turn 11 item 3: INC-435 — "Photos coming soon" is a hazard-tape corner band inside the picture's own drawn box (PW-141 box assertion).
 - 2026-10-05 — Bundle 4 turn 11 item 4: INC-436 — "Use my location" is disabled while locating and pressed once taken, until the pin is moved (PW-160).
+- 2026-10-05 — Bundle 4 turn 12: INC-437 — CT-19/CT-35 build the scratch root row from its stored cells at build time and CT-19 asserts its own rows' planned actions (class rule in the file header).
