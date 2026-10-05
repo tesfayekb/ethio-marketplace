@@ -29,3 +29,5 @@ attr_option_shape | pure option-record shape check; reads no table; EXECUTE rest
 attr_link_cells_refusal | link-cell check; returns a refusal key, writes nothing; EXECUTE restated as live by M6
 attr_export_payload | invoker export builder; RLS on attributes/links applies to the caller; EXECUTE restated as live by M6
 validate_listing_attributes | answer check used by the draft and publish doors; returns refusals or normalised answers, writes nothing; EXECUTE restated as live by M6
+admin_commit_category_import | admin import door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8a)
+admin_undo_category_import | admin import undo door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8a)

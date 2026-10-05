@@ -27,6 +27,7 @@ import {
   scratchFoldWord,
   rand,
 } from "./helpers/categories";
+import { destroyAttribute } from "./helpers/admin-attributes";
 /**
  * C2 — LIFECYCLE, STEP-UP AND DELETE (CT-12..CT-17).
  *
@@ -939,6 +940,229 @@ test.describe("CAT-IE categories import/export", () => {
       await destroyCategory(newSlug);
       await destroyCategory(childSlug);
       await destroyCategory(parentSlug);
+    }
+  });
+
+  /**
+   * CT-36 (M8a A2/A3, INC-314) — A CREATE ROW'S GUEST PARENTS. A created leaf
+   * whose secondary_parents names a category gets its guest pointer at the
+   * commit; the undo removes the leaf and both pointers; an unknown guest is
+   * refused as unknownParent, naming the slug.
+   */
+  test("CT-36 a created leaf gets its secondary parents and the undo removes both pointers", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const rootSlug = scratchSlug();
+    const guestSlug = scratchSlug();
+    const leafSlug = scratchSlug();
+    const ghostSlug = scratchSlug();
+    try {
+      const rootId = await seedCategory(rootSlug, null);
+      const guestId = await seedCategory(guestSlug, null);
+
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      const categories = file([
+        await storedRootLine(rootSlug),
+        await storedRootLine(guestSlug),
+        line({
+          category_slug: leafSlug,
+          parent_slug: rootSlug,
+          name_en: leafSlug,
+          display_order: "0",
+          secondary_parents: guestSlug,
+        }),
+      ]);
+      const preview = await importPost(page, token, { mode: "preview", categories });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const items = (preview.payload["items"] ?? []) as { slug: string; op: string }[];
+      expect(preview.payload["refusals"], JSON.stringify(preview.payload)).toEqual([]);
+      expect(items.find((item) => item.slug === leafSlug)?.op, JSON.stringify(items)).toBe(
+        "create",
+      );
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        categories,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+
+      // DB TRUTH (J4): the primary pointer under the root, the guest under the second parent.
+      const created = await readCategory(leafSlug);
+      expect(created, "CT-36 the leaf was not created").not.toBeNull();
+      const parents = (await readPointers(created!.id)).map((pointer) => pointer.parent_id).sort();
+      expect(parents, "CT-36 the leaf's pointers").toEqual([rootId, guestId].sort());
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await readCategory(leafSlug), "CT-36 undo left the leaf").toBeNull();
+      expect(await readPointers(created!.id), "CT-36 undo left a pointer").toEqual([]);
+
+      // An unknown guest is refused by the planner, naming the row and the slug.
+      const ghost = file([
+        await storedRootLine(rootSlug),
+        line({
+          category_slug: leafSlug,
+          parent_slug: rootSlug,
+          name_en: leafSlug,
+          display_order: "0",
+          secondary_parents: ghostSlug,
+        }),
+      ]);
+      const refused = await importPost(page, token, { mode: "preview", categories: ghost });
+      expect(refused.status, JSON.stringify(refused.payload)).toBe(200);
+      const refusals = (refused.payload["refusals"] ?? []) as Record<string, unknown>[];
+      const named = refusals.find((refusal) => refusal["key"] === leafSlug);
+      expect(named?.["reason"], `CT-36 no refusal: ${JSON.stringify(refused.payload)}`).toBe(
+        "unknownParent",
+      );
+      expect(String(named?.["detail"] ?? ""), "CT-36 the refusal names no slug").toContain(
+        ghostSlug,
+      );
+    } finally {
+      await destroyCategory(leafSlug);
+      await destroyCategory(guestSlug);
+      await destroyCategory(rootSlug);
+    }
+  });
+
+  /**
+   * CT-37 (M8a A4/A5, INC-307) — AN UNDO RESTORES EVERY DEPENDENT ROW THE
+   * DELETE REMOVED, OR SAYS WHICH IT CANNOT: the leaf's attribute links come
+   * back cell for cell; a link whose attribute is gone is named as skipped.
+   */
+  test("CT-37 undoing a category delete restores its attribute links or names the skipped ones", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const rootSlug = scratchSlug();
+    const leafSlug = scratchSlug();
+    const keyX = `e2e_attr_${rand()}`;
+    const keyY = `e2e_attr_${rand()}`;
+    const LINK_CELLS =
+      "is_required, is_filterable, is_searchable, display_order, card_rank, allowed_options, default_value, visible_when, attribute_id";
+    try {
+      const rootId = await seedCategory(rootSlug, null);
+      const leafId = await seedCategory(leafSlug, rootId);
+      // A delete row is judged only for a retired category (deleteActive).
+      const { error: retireError } = await supabase
+        .from("categories")
+        .update({ is_active: false })
+        .eq("id", leafId);
+      if (retireError) throw new Error(`CT-37 retire failed: ${retireError.message}`);
+      const { data: attrs, error: attrError } = await supabase
+        .from("attributes")
+        .insert([
+          {
+            attr_key: keyX,
+            name_en: keyX,
+            attr_type: "single_select",
+            options: [
+              { value: "a", label_en: "a" },
+              { value: "b", label_en: "b" },
+            ],
+          },
+          { attr_key: keyY, name_en: keyY, attr_type: "number" },
+        ])
+        .select("id, attr_key");
+      if (attrError || !attrs) throw new Error(`CT-37 attributes failed: ${attrError?.message}`);
+      const idOf = (key: string) => attrs.find((row) => row.attr_key === key)!.id as string;
+      const { error: linkError } = await supabase.from("category_attribute_links").insert([
+        {
+          category_id: leafId,
+          attribute_id: idOf(keyX),
+          display_order: 1,
+          card_rank: 1,
+          is_required: true,
+          is_filterable: false,
+          allowed_options: ["a"],
+          default_value: "a",
+          visible_when: null,
+        },
+        {
+          category_id: leafId,
+          attribute_id: idOf(keyY),
+          display_order: 2,
+          card_rank: 2,
+          is_required: false,
+          is_filterable: true,
+          allowed_options: null,
+          default_value: null,
+          visible_when: { key: keyX, in: ["a"] },
+        },
+      ]);
+      if (linkError) throw new Error(`CT-37 links failed: ${linkError.message}`);
+
+      const linksOf = async (categoryId: string) => {
+        const { data, error } = await supabase
+          .from("category_attribute_links")
+          .select(LINK_CELLS)
+          .eq("category_id", categoryId)
+          .order("display_order");
+        if (error) throw new Error(`CT-37 reading links failed: ${error.message}`);
+        return data ?? [];
+      };
+      const before = await linksOf(leafId);
+      expect(before, "CT-37 the seed").toHaveLength(2);
+
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+      const deleteLeaf = async () => {
+        const doomed = file([line({ category_slug: leafSlug, name_en: leafSlug }, "delete")], true);
+        const preview = await importPost(page, token, { mode: "preview", categories: doomed });
+        expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+        expect(preview.payload["refusals"], JSON.stringify(preview.payload)).toEqual([]);
+        const commit = await importPost(page, token, {
+          mode: "commit",
+          categories: doomed,
+          digest: preview.payload["digest"],
+        });
+        expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+        expect(await readCategory(leafSlug), "CT-37 the leaf was not deleted").toBeNull();
+        return commit.payload["batch_id"] as string;
+      };
+
+      // (a) delete → the links cascade away; undo → every captured cell is back.
+      const first = await deleteLeaf();
+      const undo = await importPost(page, token, { mode: "undo", batchId: first });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(undo.payload, "CT-37 the undo's answer").toMatchObject({
+        links_restored: 2,
+        links_skipped: [],
+      });
+      const back = await readCategory(leafSlug);
+      expect(back, "CT-37 the undo did not restore the leaf").not.toBeNull();
+      expect(await linksOf(back!.id), "CT-37 the links did not come back as captured").toEqual(
+        before,
+      );
+
+      // (b) delete, then the second attribute is removed, then undo: it is named.
+      const second = await deleteLeaf();
+      await destroyAttribute(keyY);
+      const partial = await importPost(page, token, { mode: "undo", batchId: second });
+      expect(partial.status, JSON.stringify(partial.payload)).toBe(200);
+      expect(partial.payload, "CT-37 the partial undo's answer").toMatchObject({
+        links_restored: 1,
+        links_skipped: [keyY],
+      });
+      const again = await readCategory(leafSlug);
+      expect((await linksOf(again!.id)).map((row) => row.attribute_id)).toEqual([idOf(keyX)]);
+    } finally {
+      await destroyCategory(leafSlug);
+      await destroyCategory(rootSlug);
+      await destroyAttribute(keyX);
+      await destroyAttribute(keyY);
     }
   });
 

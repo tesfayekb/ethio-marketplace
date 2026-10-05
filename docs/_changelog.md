@@ -676,3 +676,4 @@
 - 2026-10-05 — Bundle 4 turn 11 item 4: INC-436 — "Use my location" is disabled while locating and pressed once taken, until the pin is moved (PW-160).
 - 2026-10-05 — Bundle 4 turn 12: INC-437 — CT-19/CT-35 build the scratch root row from its stored cells at build time and CT-19 asserts its own rows' planned actions (class rule in the file header).
 - 2026-10-05 — records turn: ledger S44–S53 (DEC-081…131), INC-308…437, legal drafts v1, Knowledge v3.10 mirror, instructions v1.13, handover 2026-10-05, specs archive, curator record
+- 2026-10-05 — Bundle 5 turn 1 stop: INC-314, INC-307, INC-433: M8a — cat_import_plan judges a create row's guest parents (unknownParent names the slug), the commit adds them, a category delete captures its attribute links and the undo restores them or names the skipped attr_keys (links_restored, links_skipped); M7's mark healed to 20261005110000; red-first CT-36, CT-37, AT-58, AT-70, AT-71. apply 78683470 → expect mark 20261006120000
