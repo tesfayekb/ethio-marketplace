@@ -135,14 +135,19 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   /** B3 — the item place's country, for the contact step's empty phone boxes. */
   const itemPlaceId = draft.values.coverage[0] ?? null;
   const [itemCountry, setItemCountry] = useState<string | null>(null);
+  /** The place id whose country lookup has answered (null = no place, settled at once). */
+  const [itemCountryFor, setItemCountryFor] = useState<string | null | undefined>(undefined);
   useEffect(() => {
     if (itemPlaceId === null) {
       setItemCountry(null);
+      setItemCountryFor(null);
       return;
     }
     let cancelled = false;
     void readPlaceCountry(itemPlaceId).then((code) => {
-      if (!cancelled) setItemCountry(code);
+      if (cancelled) return;
+      setItemCountry(code);
+      setItemCountryFor(itemPlaceId);
     });
     return () => {
       cancelled = true;
@@ -157,7 +162,13 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    */
   const openMarkets = useOpenMarkets();
   const areaCountry = readAreaCookie()?.country ?? null;
-  const needHome = itemCountry === null && areaCountry === null;
+  /**
+   * PW-129/PW-134 — the home read waits until the draft has loaded and its
+   * place's country has answered, so a draft whose place names a country makes
+   * no identity read of its own (the contact step's read stays the only one).
+   */
+  const placeSettled = !draft.loading && itemCountryFor === itemPlaceId;
+  const needHome = placeSettled && itemCountry === null && areaCountry === null;
   const [home, setHome] = useState<{ code: string | null; confirmed: boolean } | null>(null);
   useEffect(() => {
     if (!needHome || home !== null) return;
