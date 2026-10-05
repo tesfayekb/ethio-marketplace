@@ -136,8 +136,13 @@ export function MapPinDropper({
     }
   }
 
+  /** INC-436 — the "Use my location" button's own state. */
+  const [located, setLocated] = useState<"plain" | "locating" | "pressed">("plain");
+
   // The single writer of the marker: tap, drag, search and "My location" (I3).
   function put(lat: number, lng: number, ask: boolean) {
+    // INC-436 — any other writer (drag, tap, search) returns the button to plain.
+    setLocated("plain");
     setPosition({ lat, lng });
     setState("idle");
     judgeOutside(lat, lng);
@@ -299,13 +304,18 @@ export function MapPinDropper({
       return;
     }
     setNotice("post.pin.locating");
+    setLocated("locating");
     navigator.geolocation.getCurrentPosition(
       (found) => {
         setNotice(null);
         put(found.coords.latitude, found.coords.longitude, true);
         mapRef.current?.setView([found.coords.latitude, found.coords.longitude], 16);
+        setLocated("pressed");
       },
-      () => setNotice("post.pin.locateRefused"),
+      () => {
+        setLocated("plain");
+        setNotice("post.pin.locateRefused");
+      },
       { timeout: 10000 },
     );
   }
@@ -380,8 +390,18 @@ export function MapPinDropper({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" className="min-h-11" onClick={locate}>
-              {t("post.pin.locate")}
+            {/* INC-436 — locating: disabled with the locating words; taken: pressed, filled green. */}
+            <Button
+              type="button"
+              variant={located === "pressed" ? "default" : "outline"}
+              className="min-h-11"
+              onClick={locate}
+              disabled={located === "locating"}
+              aria-pressed={located === "pressed"}
+              data-state={located}
+              data-testid="post-pin-locate"
+            >
+              {t(located === "locating" ? "post.pin.locating" : "post.pin.locate")}
             </Button>
             <Button
               type="button"
