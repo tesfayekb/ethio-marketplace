@@ -349,6 +349,14 @@
       "/admin/attributes",
       "/admin/categories"
     ],
+    "admin.attributes.field.unitAm": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.field.unitAmHelp": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
     "admin.attributes.field.unitHelp": [
       "/admin/attributes",
       "/admin/categories"
