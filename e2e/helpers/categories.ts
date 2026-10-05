@@ -400,3 +400,27 @@ export async function lifecycleDump(page: Page, slug: string, errors: string[]):
     .maybeSingle();
   return `[e2e:c2] lifecycle ${slug}: dom=${JSON.stringify(dom)} db=${JSON.stringify(row.data)} clientErrors=${JSON.stringify(errors.slice(-5))}`;
 }
+
+/**
+ * INC-432 — a scratch word whose seller-name fold is itself: lower-case
+ * letters only, no digit (the fold maps 0/1/3/4/5) and no `r` (the fold turns
+ * `rn` into `m`). The `zqe` stem keeps it clear of every real catalogue name.
+ */
+export function scratchFoldWord(): string {
+  const letters = "abcdefghijkmpqstuvwxyz";
+  let word = "zqe";
+  for (let i = 0; i < 10; i += 1) word += letters[Math.floor(Math.random() * letters.length)];
+  return word;
+}
+
+/** DB truth (J4): does the seller-name table hold this fold under this kind? */
+export async function nameFoldPresent(kind: string, fold: string): Promise<boolean> {
+  const { data, error } = await adminClient()
+    .from("name_folds")
+    .select("fold")
+    .eq("kind", kind)
+    .eq("fold", fold)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:name-folds] read ${kind}/${fold} failed: ${error.message}`);
+  return data !== null;
+}

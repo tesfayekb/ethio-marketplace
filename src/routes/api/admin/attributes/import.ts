@@ -21,7 +21,10 @@ import {
   withRowValues,
   type Refusal,
 } from "@/server/imports/gate";
-import { refreshCatalogFindAfterCommit } from "@/server/catalog-find.server";
+import {
+  refreshCatalogFindAfterCommit,
+  refreshNameFoldsAfterCommit,
+} from "@/server/catalog-find.server";
 
 const PATH = "/api/admin/attributes/import";
 
@@ -137,6 +140,7 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
             });
             if (error) return relay(error, "undo_failed");
             await refreshCatalogFindAfterCommit(PATH);
+            await refreshNameFoldsAfterCommit(PATH);
             await audit("undo", batchId, data ?? {});
             return json(data, 200);
           }
@@ -179,6 +183,7 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
           });
           if (error) return relay(error, "commit_failed");
           await refreshCatalogFindAfterCommit(PATH);
+          await refreshNameFoldsAfterCommit(PATH);
           const result = (data ?? {}) as Record<string, unknown>;
           const serverRefusals = (result["refusals"] as Refusal[] | undefined) ?? [];
           const all = withRowValues(

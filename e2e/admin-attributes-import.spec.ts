@@ -2,7 +2,15 @@ import { expect, test } from "./fixtures";
 import { gotoReady, switchUser } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
-import { rand, bandOnly, destroyCategory, action, signInAsSuperAdmin } from "./helpers/categories";
+import {
+  rand,
+  bandOnly,
+  destroyCategory,
+  action,
+  nameFoldPresent,
+  scratchFoldWord,
+  signInAsSuperAdmin,
+} from "./helpers/categories";
 import {
   seedAttribute,
   readAttribute,
@@ -535,6 +543,67 @@ test.describe("C3 attributes console", () => {
       expect(restored[0]?.card_rank).toBeNull();
     } finally {
       await destroyCategory(slug);
+      await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-69 (INC-432) — THE SELLER-NAME TABLE FOLLOWS THE ATTRIBUTE IMPORT. A
+   * brand option the import adds to a scratch brand definition is protected
+   * the moment the commit returns and released the moment its undo returns
+   * (DB truth: name_folds, kind brand).
+   */
+  test("AT-69 an imported brand option is in the name table after commit and gone after undo", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const key = `e2e_brand_${rand()}`;
+    const word = scratchFoldWord();
+    try {
+      await supabase.from("attributes").insert({
+        attr_key: key,
+        name_en: key,
+        attr_type: "single_select",
+        options: [{ value: "alpha", label_en: "Alpha" }],
+      });
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+      expect(await nameFoldPresent("brand", word), "AT-69 the scratch word pre-exists").toBe(false);
+
+      const options = [
+        '{"value": "alpha", "label_en": "Alpha"}',
+        `{"value": "${word}", "label_en": "${word}"}`,
+      ].join("|");
+      const definitions =
+        `${DEF_HEADER}\r\n` +
+        v2([key, key, "", "single_select", cell(options), "", "", "0"].join(",")) +
+        "\r\n";
+      const preview = await importPost(page, token, { mode: "preview", definitions });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(
+        (preview.payload["counts"] as Record<string, number>).changes,
+        JSON.stringify(preview.payload["refusals"]),
+      ).toBe(1);
+
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        definitions,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batchId = commit.payload["batch_id"] as string;
+      expect(batchId).toBeTruthy();
+      expect(await nameFoldPresent("brand", word), "AT-69 not protected after commit").toBe(true);
+
+      const undo = await importPost(page, token, { mode: "undo", batchId });
+      expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+      expect(await nameFoldPresent("brand", word), "AT-69 still protected after undo").toBe(false);
+    } finally {
       await destroyAttribute(key);
     }
   });
