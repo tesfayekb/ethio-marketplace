@@ -1,36 +1,36 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `70e16ea5c557d243200e73b3005b2a3a8ba9bdf6` (short `70e16ea`)
-- Conclusion: **FAILURE**
-- Completed (UTC): 2026-10-05T04:57:52Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37264070069
+- Commit: `48d3c53bbfa8a729647e5b0b4e68af66c0bf6435` (short `48d3c53`)
+- Conclusion: **SUCCESS**
+- Completed (UTC): 2026-10-05T06:04:07Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37268978090
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Import gate guard (with self-test) | success |
-| Build, typecheck, lint | success |
-| Gitleaks secrets scan | success |
-| Migration linter (with self-test) | success |
-| Listing-write seam guard (with self-test) | success |
 | i18n used-on map is fresh (U4i ②) | success |
 | Component tests | success |
-| Hardcoded string scan (enforcing) | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Import gate guard (with self-test) | success |
 | Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Migration linter (with self-test) | success |
+| Hardcoded string scan (enforcing) | success |
+| Gitleaks secrets scan | success |
 | Dependency vulnerability audit (enforcing on high/critical) | success |
+| Build, typecheck, lint | success |
 | First-paint bundle budget (gzipped ceiling) | success |
+| Listing-write seam guard (with self-test) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | E2E preflight (migration parity, staging) | success |
 | E2E build (shared dist) | success |
-| E2E email (serial, quota-bound) | success |
-| E2E smoke tier | success |
-| E2E shard 3/6 | success |
-| E2E shard 6/6 | success |
 | E2E shard 2/6 | success |
-| E2E shard 1/6 | failure |
+| E2E smoke tier | success |
 | E2E changed specs (fast lane) | success |
-| E2E shard 5/6 | success |
+| E2E email (serial, quota-bound) | success |
+| E2E shard 6/6 | success |
+| E2E shard 3/6 | success |
 | E2E shard 4/6 | success |
-| E2E (Playwright, ethio-staging) | failure |
-| Promote to main (fast-forward on green) | skipped |
+| E2E shard 5/6 | success |
+| E2E shard 1/6 | success |
+| E2E (Playwright, ethio-staging) | success |
+| Promote to main (fast-forward on green) | success |
