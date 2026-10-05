@@ -88,9 +88,8 @@ test.describe("POSTING WIZARD — UNITS", () => {
     await reachStep3(page, user.id, category);
     await expect(unit, "PW-161: English did not print the English unit").toHaveText("people");
 
-    await stopPageBeforePurge(page);
+    // The same screen, switched in place: catalog text redraws under the new language.
     await switchLanguage(page, "am");
-    await reachStep3(page, user.id, category);
     await expect(unit, "PW-161: Amharic did not print the Amharic unit").toHaveText("ሰዎች");
   });
 });
