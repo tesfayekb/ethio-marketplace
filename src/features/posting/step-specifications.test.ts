@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { firstSentence, foldFact } from "./step-specifications";
+import { stepSpecificationsPure } from "./step-specifications";
+
+const { firstSentence, foldFact } = stepSpecificationsPure;
 
 describe("firstSentence (INC-294)", () => {
   it("does not end a sentence on an abbreviation", () => {

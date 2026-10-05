@@ -133,7 +133,7 @@ function same(a: unknown, b: unknown): boolean {
  * boolean target stays a hint (D27). Anything else is not a fact this screen
  * can draw.
  */
-export function foldFact(
+function foldFact(
   raw: unknown,
   targetType: string | null,
 ): { kind: "prefill" | "hint"; value: unknown } | { kind: "skip" } {
@@ -196,7 +196,7 @@ function optionBelongsToParent(option: AttrOption, parentValue: string): boolean
  * (i) tap beside the label. Amharic's own full stop (`።`) ends a sentence here
  * exactly as a full stop does.
  */
-export function firstSentence(text: string): { head: string; rest: string } {
+function firstSentence(text: string): { head: string; rest: string } {
   // INC-294 — "e.g." / "i.e." / "etc." / "vs." / "approx." / "cf." do not end
   // a sentence. Amharic's `።` is never an abbreviation.
   const terminator = /[.!?…።](?=\s|$)/g;
@@ -2033,3 +2033,6 @@ export function StepSpecifications({
 }
 
 export default StepSpecifications;
+
+/** Pure pieces of this screen, one export so the module stays a component file (unit tests). */
+export const stepSpecificationsPure = { firstSentence, foldFact };

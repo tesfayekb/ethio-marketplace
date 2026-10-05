@@ -1725,8 +1725,10 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
     await expect(box(tibs)).toBeVisible({ timeout: 20_000 });
     await expect(box(wot), "PW-159: the untick did not survive Next and Back").not.toBeChecked();
-    await page.waitForTimeout(1500);
-    await expect(box(wot), "PW-159: the fact re-ticked the seller's list").not.toBeChecked();
+    expect(
+      (await attributesOf(listingId))[dishes] ?? [],
+      "PW-159: the fact re-ticked the stored list",
+    ).toEqual([]);
   });
 
   /**
