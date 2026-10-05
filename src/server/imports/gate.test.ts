@@ -17,6 +17,7 @@ import {
   optionShapeFault,
   splitOptionSegments,
 } from "./gate";
+import { FAMILIES } from "./registry";
 
 const twoTone =
   '{"value":"black_tan","label_en":"Black | Tan","swatch":"#000000|#8B5A2B"}|{"value":"white","label_en":"White","swatch":"#FFFFFF"}';
@@ -95,5 +96,28 @@ describe("DEC-103 — the option ceiling is 1,500", () => {
   });
   it("refuses a cell of 1,501 options as tooManyOptions", () => {
     expect(checkCell(rule, cell(1501))).toBe("tooManyOptions");
+  });
+});
+
+describe("steps 28–29 census — the gate neither changes nor refuses a catalogue token", () => {
+  const file = FAMILIES.attributes!.files.find((entry) => entry.id === "definitions")!;
+  const rule = (name: string) => file.columns.find((column) => column.name === name)!;
+  it("passes {country} and {category:…} in labels and help text, en and am", () => {
+    expect(checkCell(rule("label_en"), "Plug type used in {country}")).toBeNull();
+    expect(checkCell(rule("label_am"), "በ{country} የሚሠራ መሰኪያ")).toBeNull();
+    expect(checkCell(rule("help_text_en"), "Cases go under {category:phone-cases}.")).toBeNull();
+    expect(checkCell(rule("help_text_am"), "ሽፋኖች በ{category:phone-cases} ሥር።")).toBeNull();
+  });
+  it("keeps a token inside an option label whole, in both cell dialects", () => {
+    const records = '{"value":"local","label_en":"Made in {country}"}|{"value":"import","label_en":"Imported"}';
+    expect(checkCell(rule("options"), records)).toBeNull();
+    expect(splitOptionSegments(records)).toEqual([
+      '{"value":"local","label_en":"Made in {country}"}',
+      '{"value":"import","label_en":"Imported"}',
+    ]);
+    expect(normalizeOptionsCell(records)).toContain("Made in {country}");
+    expect(normalizeOptionsCell("local=Made in {country}|import=Imported")).toContain(
+      "Made in {country}",
+    );
   });
 });
