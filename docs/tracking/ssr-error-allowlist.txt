@@ -18,4 +18,3 @@ export_failed permission denied # AT-16 (admin-attributes.spec.ts — a categori
 preview_failed permission denied # AT-23 (admin-attributes.spec.ts), CT-22 (admin-categories-lifecycle.spec.ts — view-only operator refused the import)
 commit_failed step-up required # CT-23 (admin-categories-lifecycle.spec.ts — a commit without step-up is refused)
 strings emptyFile # IG-4 (import-security.spec.ts — an XLIFF file with no units is empty)
-commit_failed duplicate key value violates unique constraint # AT-58 (admin-attributes.spec.ts — a clashing card-rank commit is refused, INC-196 L2 / INC-327)

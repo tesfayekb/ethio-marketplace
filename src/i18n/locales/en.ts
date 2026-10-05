@@ -1179,6 +1179,10 @@ export const en = {
     "Option limits point at “{detail}”, which is not linked to the same categories",
   "admin.attributes.import.reason.rankInherited":
     "Card position {rank} at “{category}” is already taken by “{origin_key}”, inherited from “{origin_category}”",
+  "admin.attributes.import.reason.rankClash":
+    "Card position {rank} at “{category}” is also held by “{origin_key}”",
+  "admin.attributes.import.reason.optionInUse":
+    "The value “{value}” is still named by {detail}; rewrite or unlink those cells first",
   "admin.attributes.import.reason.required": "The “{detail}” cell is required",
   "admin.attributes.import.reason.tooLong": "The “{detail}” cell is too long",
   "admin.attributes.import.reason.badSlug":
@@ -1375,6 +1379,9 @@ export const en = {
   "admin.attributes.field.numberGroup": "Number settings",
   "admin.attributes.field.unit": "Unit",
   "admin.attributes.field.unitHelp": "Shown after the value, up to 16 characters (km, GB, m²).",
+  "admin.attributes.field.unitAm": "Unit in Amharic",
+  "admin.attributes.field.unitAmHelp":
+    "Shown to Amharic readers, up to 16 characters. Leave empty to show the English unit.",
   "admin.attributes.field.min": "Minimum",
   "admin.attributes.field.max": "Maximum",
   "admin.attributes.field.boundHelp": "A number, or a year token: year, year+1, year-1.",
