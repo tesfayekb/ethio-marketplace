@@ -27,6 +27,7 @@ import {
   scratchFoldWord,
   rand,
 } from "./helpers/categories";
+import { destroyAttribute } from "./helpers/admin-attributes";
 /**
  * C2 — LIFECYCLE, STEP-UP AND DELETE (CT-12..CT-17).
  *
