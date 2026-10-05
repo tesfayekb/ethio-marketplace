@@ -21,8 +21,10 @@ export function dealLines(input: {
   language: string;
   entities: EntityBundle;
   t: (key: MessageKey) => string;
+  tokens: CatalogTokens;
 }): { size: string | null; terms: string[] } {
-  const { deal, attributes, definitions, attributeOptions, unit, language, entities, t } = input;
+  const { deal, attributes, definitions, attributeOptions, unit, language, entities, t, tokens } =
+    input;
   if (deal === null) return { size: null, terms: [] };
   const render = (key: string): { name: string; value: string } | null => {
     const value = attributes[key];
@@ -48,10 +50,13 @@ export function dealLines(input: {
       if (unlabelled) return null;
     }
     return {
-      name: entityName(
-        "attribute",
-        { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
-        entities,
+      name: drawCatalog(
+        entityName(
+          "attribute",
+          { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
+          entities,
+        ),
+        tokens,
       ),
       value: attributeDisplayValue(
         def,
@@ -61,6 +66,7 @@ export function dealLines(input: {
         t("post.review.yes"),
         t("post.review.no"),
         t("post.specs.yearEcSuffix"),
+        tokens,
       ),
     };
   };

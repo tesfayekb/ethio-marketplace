@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { catalogText } from "@/i18n/entity";
+import { catalogWords, type CatalogTokens } from "@/i18n";
 
 import { loadAttributeOptions, optionLabel } from "./attribute-options";
 import { readPostingSchema, type PostingSchema } from "./posting-service";
@@ -136,7 +136,12 @@ interface Fitted {
 }
 
 /** Revalidates each pair against the leaf's effective links and current options. */
-async function fit(leafId: string, matches: FinderMatch[], lang: string): Promise<Fitted[]> {
+async function fit(
+  leafId: string,
+  matches: FinderMatch[],
+  lang: string,
+  tokens: CatalogTokens,
+): Promise<Fitted[]> {
   if (matches.length === 0) return [];
   const schema = await schemaOf(leafId);
   if (schema === null) return [];
@@ -156,8 +161,8 @@ async function fit(leafId: string, matches: FinderMatch[], lang: string): Promis
     kept.push({
       key: def.attrKey,
       type: def.attrType,
-      attributeLabel: catalogText(def.nameEn, def.nameAm, lang),
-      optionLabel: optionLabel(option, lang),
+      attributeLabel: catalogWords(def.nameEn, def.nameAm, lang, tokens),
+      optionLabel: optionLabel(option, lang, tokens),
       value: option.value,
     });
   }
