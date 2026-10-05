@@ -957,6 +957,7 @@ test.describe("CAT-IE categories import/export", () => {
       });
       expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
       const batchId = commit.payload["batch_id"] as string;
+      console.log("CT35DBG", JSON.stringify(commit.payload).slice(0,800));
       expect(batchId).toBeTruthy();
       expect(await nameFoldPresent("category", word), "CT-35 not protected after commit").toBe(
         true,
