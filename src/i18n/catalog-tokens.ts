@@ -54,17 +54,13 @@ export function catalogPieces(text: string, tokens: CatalogTokens): CatalogPiece
   pushText(text.slice(cursor));
   if (!dropped) return pieces;
   // A dropped pointer leaves no doubled space and no space before punctuation.
-  const tidied = pieces.map((piece, index) =>
-    piece.kind !== "text"
-      ? piece
-      : {
-          kind: "text" as const,
-          text: piece.text
-            .replace(/ {2,}/g, " ")
-            .replace(/ +([.,;:!?።])/g, "$1")
-            .replace(index === 0 ? /^ +/ : /$^/, ""),
-        },
+  const tidied = pieces.map((piece) =>
+    piece.kind === "text"
+      ? { kind: "text" as const, text: piece.text.replace(/ {2,}/g, " ").replace(/ +([.,;:!?።])/g, "$1") }
+      : piece,
   );
+  const first = tidied[0];
+  if (first !== undefined && first.kind === "text") first.text = first.text.replace(/^ +/, "");
   const last = tidied[tidied.length - 1];
   if (last !== undefined && last.kind === "text") last.text = last.text.replace(/ +$/, "");
   return tidied.filter((piece) => piece.kind !== "text" || piece.text !== "");
