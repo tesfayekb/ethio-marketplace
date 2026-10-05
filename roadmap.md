@@ -49,7 +49,8 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] M6 (step 30) e44f20e5, mark 20261005100000 on ethio-prod
 - [x] Part G step 26 screens (INC-381) — AT-65, AT-66, PW-152
 - [x] Part G step 27 screens (INC-374) — PW-153
-- [ ] Part G steps 28 ({country}) and 29 ({category:slug}) screens — next turn
+- [x] Part G step 28 ({country}) screens — PW-154/155/156, AT-67, TR-35
+- [x] Part G step 29 ({category:slug}, help text only) screens — PW-157/158, AT-68; "And when" empty choice reads admin.attributes.link.andNone
 - [ ] Part H (docs, final report)
 - [x] INC-427 contact-step identity read wiped typed names (fixed bundle 4 turn 3; PW-134)
 - [ ] Photo clean-up bundle: when the card receives the ad's photo through listing-picture, the photos-soon ribbon hides by the existing rule (bundle 4 turn 6 item 7; no change before then).
