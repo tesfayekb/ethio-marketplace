@@ -104,6 +104,8 @@ export interface AttributeRow {
   /* DEC-050 — the v2 cells; every one nullable, the door's CHECKs authoritative. */
   helpTextAm: string | null;
   unit: string | null;
+  /** Bundle 5 C6 — the Amharic unit. */
+  unitAm: string | null;
   minBound: string | null;
   maxBound: string | null;
   decimals: number | null;
@@ -186,6 +188,7 @@ export async function listAttributes(): Promise<AttributeRow[]> {
     // pre-fill them; without the prefill an UPDATE would erase them.
     helpTextAm: row.help_text_am ?? null,
     unit: row.unit ?? null,
+    unitAm: row.unit_am ?? null,
     minBound: row.min_bound ?? null,
     maxBound: row.max_bound ?? null,
     decimals: row.decimals === null || row.decimals === undefined ? null : Number(row.decimals),
@@ -229,6 +232,8 @@ export interface UpsertAttributeInput {
   /* DEC-050 L3a — every v2 cell reaches the door; empty is null. */
   helpTextAm: string;
   unit: string | null;
+  /** Bundle 5 C6 — "" clears the stored Amharic unit; null leaves it as it is. */
+  unitAm: string | null;
   minBound: string | null;
   maxBound: string | null;
   decimals: number | null;
@@ -283,6 +288,7 @@ export async function upsertAttribute(input: UpsertAttributeInput): Promise<stri
     p_help_text_am:
       input.helpTextAm.trim() === "" ? (null as unknown as string) : input.helpTextAm.trim(),
     p_unit: input.unit as string,
+    p_unit_am: input.unitAm as string,
     p_min_bound: input.minBound as string,
     p_max_bound: input.maxBound as string,
     p_decimals: input.decimals as number,
@@ -569,6 +575,7 @@ export async function listEffectiveCategoryLinks(categoryId: string): Promise<Ef
  */
 export const EMPTY_NUMBER_FIELDS: NumberFieldsValue = {
   unit: "",
+  unitAm: "",
   min: "",
   max: "",
   decimals: "",

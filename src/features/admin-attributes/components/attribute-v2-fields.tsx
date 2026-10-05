@@ -18,6 +18,8 @@ export const HELP_TEXT_MAX = 240;
 
 export interface NumberFieldsValue {
   unit: string;
+  /** Bundle 5 C6 — the Amharic unit; "" means the English one prints. */
+  unitAm: string;
   min: string;
   max: string;
   /** "" | "0" | "1" | "2" | "3" — a string because the control is a select. */
@@ -57,6 +59,20 @@ export function AttributeNumberFields({
           maxLength={16}
           value={value.unit}
           onChange={(event) => patch({ unit: event.target.value })}
+        />
+      </FormField>
+      <FormField
+        label={t("admin.attributes.field.unitAm")}
+        htmlFor="attribute-unit-am"
+        help={t("admin.attributes.field.unitAmHelp")}
+      >
+        <Input
+          id="attribute-unit-am"
+          data-testid="attribute-unit-am"
+          lang="am"
+          maxLength={16}
+          value={value.unitAm}
+          onChange={(event) => patch({ unitAm: event.target.value })}
         />
       </FormField>
       <FormField
