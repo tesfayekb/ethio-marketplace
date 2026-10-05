@@ -60,7 +60,10 @@ test.describe("POSTING ROUTES — IDENTITY GATE", () => {
       // the gate's, and never an imitation verdict.
       expect(reasons.map((r) => r.reason)).not.toContain("aliasImitatesBrand");
       if (answer.payload["ok"] !== true) {
-        expect(reasons.map((r) => r.field), JSON.stringify(answer.payload)).toEqual(["alias"]);
+        expect(
+          reasons.map((r) => r.field),
+          JSON.stringify(answer.payload),
+        ).toEqual(["alias"]);
       }
     }
 
