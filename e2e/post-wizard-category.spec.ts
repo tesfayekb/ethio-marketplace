@@ -589,7 +589,10 @@ test.describe("POSTING WIZARD", () => {
     const box = page.getByTestId("post-photos-illustration-box");
     const ribbon = box.getByTestId("listing-photos-soon-ribbon");
     await expect(ribbon, "PW-141: no ribbon on the picture").toBeVisible();
-    const img = box.locator("img");
+    // The picture's own drawn box: the frame the ribbon sits in (the img when a
+    // picture is drawn, the placeholder's box when none is — this scratch
+    // category has no picture).
+    const img = ribbon.locator("xpath=..");
     const imgBox = await img.boundingBox();
     const fontPx = Number.parseFloat(
       await box
