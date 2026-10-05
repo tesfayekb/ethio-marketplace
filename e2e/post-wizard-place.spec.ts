@@ -1399,6 +1399,39 @@ test.describe("POSTING WIZARD", () => {
     ).toEqual([null, null, null, null]);
   });
 
+  /**
+   * INC-436 (PW-160) — "Use my location" SHOWS ITS STATE. With a granted
+   * permission at a fixed position, the tap leaves the button pressed
+   * (aria-pressed="true"); a tap on the map returns it to plain.
+   */
+  test("PW-160 Use my location stays pressed until the pin is moved by hand", async ({
+    page,
+    context,
+  }) => {
+    await context.grantPermissions(["geolocation"]);
+    await context.setGeolocation({ latitude: 9.0108, longitude: 38.7613 });
+    const user = await seller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    await openPinAt6(page, user.id, category);
+    await mapReady(page);
+    const button = page.getByTestId("post-pin-locate");
+    await expect(button).toHaveAttribute("aria-pressed", "false");
+    await button.click();
+    await expect(button, "PW-160: the button never showed pressed").toHaveAttribute(
+      "aria-pressed",
+      "true",
+      { timeout: 20_000 },
+    );
+    await expect(page.getByTestId("post-pin-position")).toHaveAttribute("data-lat", /^9\.01/);
+    await page.getByTestId("post-pin-map").click({ position: { x: 120, y: 90 } });
+    await expect(button, "PW-160: a hand-placed pin left the button pressed").toHaveAttribute(
+      "aria-pressed",
+      "false",
+      { timeout: 20_000 },
+    );
+  });
+
   test("PW-41 the geocode route spends a dial and refuses the call past its ceiling", async ({
     page,
   }) => {
