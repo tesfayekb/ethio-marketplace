@@ -49,6 +49,9 @@ import {
  * DataTable scroller and every action box, and LT-8..11 pin the reconciliation
  * itself — verb reachability at 360 and 1280, the two roster twins, the tone
  * vocabulary, and the one-read-per-country rule.
+ *
+ * CLASS RULE (INC-334): a total asserted against DB truth is read in the same
+ * poll step as the page, never from a snapshot.
  */
 
 const ANCHOR = "ethiopia";
@@ -1059,22 +1062,31 @@ test.describe("L2a locations console", () => {
     // fills the first page and another run's fixtures shift every position.
     // The total the roster names must be the number of ACTIVE places the service
     // client counts, and those places must belong to more than one market.
-    await page.getByTestId("location-active-filter").selectOption("active");
-    const span = await activeRosterSpan();
+    // INC-334 (third, closed) — the DB count and the page total are read in
+    // the SAME poll step, the roster refetched each step (reload + reselect),
+    // because LT-15 in this file adds a place and undoes it mid-run.
+    let span = await activeRosterSpan();
+    let shown = -1;
+    await expect
+      .poll(
+        async () => {
+          await gotoReady(page, "/admin/places");
+          await page.getByTestId("location-active-filter").selectOption("active");
+          const pagination = page.getByTestId("location-pagination");
+          await expect(pagination).toContainText(/\d/, { timeout: 10000 });
+          span = await activeRosterSpan();
+          const text = await pagination.innerText();
+          const digits = (text.match(/\d+/g) ?? []).map((value) => Number(value));
+          shown = Math.max(...digits, 0);
+          return shown === span.total ? "agree" : `page ${shown} vs db ${span.total}`;
+        },
+        { timeout: 60000, intervals: [1000, 2000, 3000] },
+      )
+      .toBe("agree");
     expect(
       span.countries.length,
       `the roster spans one market only\n${span.countries}`,
     ).toBeGreaterThanOrEqual(2);
-    await expect
-      .poll(
-        async () => {
-          const text = await page.getByTestId("location-pagination").innerText();
-          const digits = (text.match(/\d+/g) ?? []).map((value) => Number(value));
-          return Math.max(...digits, 0) === span.total;
-        },
-        { timeout: 20000 },
-      )
-      .toBe(true);
 
     // A REAL ROW of each market is located through the SEARCH BOX.
     const et = await anchorOf("ET");
