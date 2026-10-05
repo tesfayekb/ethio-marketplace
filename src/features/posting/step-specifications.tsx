@@ -1,7 +1,9 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { catalogText, useI18n } from "@/i18n";
+import { catalogText, catalogWords, drawCatalog, useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
+import { useCatalogScope } from "./catalog-scope";
+import { CatalogWords } from "./catalog-words";
 
 import { resolveBound, settledRanges, yearLabel } from "./attribute-display";
 import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
@@ -229,6 +231,7 @@ export function StepSpecifications({
   around?: { after: string; node: ReactNode } | null;
 }) {
   const { t, entities, language } = useI18n();
+  const scope = useCatalogScope();
   const [schema, setSchema] = useState<PostingSchema | null>(null);
   const [failed, setFailed] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
@@ -946,7 +949,7 @@ export function StepSpecifications({
         setUndoOffer({
           values: snapshot,
           prefills: heldPrefills,
-          model: option === undefined ? "" : optionLabel(option, entities.lang),
+          model: option === undefined ? "" : optionLabel(option, entities.lang, scope),
         });
         // INC-245 — a reset empties fields the LINK has a default for, and a
         // default is what an empty field starts from. So the defaults pass below
@@ -1315,10 +1318,13 @@ export function StepSpecifications({
   }
 
   const nameOf = (def: AttrDef) =>
-    entityName(
-      "attribute",
-      { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
-      entities,
+    drawCatalog(
+      entityName(
+        "attribute",
+        { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
+        entities,
+      ),
+      scope,
     );
 
   /**
@@ -1524,7 +1530,7 @@ export function StepSpecifications({
                     data-testid="post-attr-unit"
                     data-attr={def.attrKey}
                   >
-                    {catalogText(def.unit, null, entities.lang)}
+                    {catalogWords(def.unit, null, entities.lang, scope)}
                   </span>
                 )}
               </div>
@@ -1601,7 +1607,7 @@ export function StepSpecifications({
                 <option value="">{t("post.specs.choose")}</option>
                 {shown.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {optionLabel(option, entities.lang)}
+                    {optionLabel(option, entities.lang, scope)}
                   </option>
                 ))}
               </select>
@@ -1618,7 +1624,7 @@ export function StepSpecifications({
                 data-attr={def.attrKey}
               >
                 {colourOptions.map(({ option, swatch }) => {
-                  const label = optionLabel(option, entities.lang);
+                  const label = optionLabel(option, entities.lang, scope);
                   return (
                     <button
                       key={option.value}
@@ -1736,7 +1742,7 @@ export function StepSpecifications({
                             )
                           }
                         />
-                        <span>{optionLabel(option, entities.lang)}</span>
+                        <span>{optionLabel(option, entities.lang, scope)}</span>
                       </label>
                     </li>
                   );

@@ -279,7 +279,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           }
           const found = basisOptions?.find((option) => option.value === basisValue);
           // INC-297 — the NOUN, derived once here: templates keep their own "per".
-          return found === undefined ? basisValue : basisNoun(optionLabel(found, language));
+          return found === undefined ? basisValue : basisNoun(optionLabel(found, language, catalogScope));
         })();
 
   /**
