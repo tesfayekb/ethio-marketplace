@@ -1115,6 +1115,7 @@ export function StepSpecifications({
     dependents,
     allowedListOf,
     entities.lang,
+    catalogScope,
     visibleOptionsOf,
     emit,
   ]);
