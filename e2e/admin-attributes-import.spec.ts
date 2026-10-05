@@ -1411,6 +1411,242 @@ test.describe("C3 attributes console", () => {
   });
 
   /**
+   * AT-70 (M8b B2, rankClash) — THE PLANNER JUDGES THE END STATE OF DIRECT RANKS.
+   * A rank held by two keys once the file is applied refuses the file row(s)
+   * holding it; a swap inside one file has no clash in its end state.
+   */
+  test("AT-70 a direct rank held twice in the end state is refused as rankClash", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const slug = `e2e-cat-clash-${rand()}`;
+    const keys = [`e2e_attr_${rand()}`, `e2e_attr_${rand()}`, `e2e_attr_${rand()}`];
+    try {
+      // SEED BEFORE NAVIGATE (J7), service client (J5), scratch namespace (J1).
+      const { data: attrs, error: attrError } = await supabase
+        .from("attributes")
+        .insert(keys.map((key) => ({ attr_key: key, name_en: key, attr_type: "number" })))
+        .select("id, attr_key");
+      if (attrError || !attrs) throw new Error(`AT-70 attributes failed: ${attrError?.message}`);
+      const idOf = (key: string) => attrs.find((row) => row.attr_key === key)!.id as string;
+      const { data: cat, error: catError } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+        .select("id")
+        .single();
+      if (catError || !cat) throw new Error(`AT-70 category failed: ${catError?.message}`);
+      const { error: pointerError } = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: null, child_id: cat.id, display_order: 2_000_970 });
+      if (pointerError) throw new Error(`AT-70 pointer failed: ${pointerError.message}`);
+      const { error: linkError } = await supabase.from("category_attribute_links").insert(
+        keys.map((key, at) => ({
+          category_id: cat.id,
+          attribute_id: idOf(key),
+          display_order: at + 1,
+          card_rank: at + 1,
+        })),
+      );
+      if (linkError) throw new Error(`AT-70 links failed: ${linkError.message}`);
+
+      const ranksOf = async () => {
+        const rows = await readLinks(cat.id);
+        return keys.map((key) => {
+          const row = rows.find((link) => link.attribute_id === idOf(key));
+          return row?.card_rank === null || row === undefined ? null : Number(row.card_rank);
+        });
+      };
+      const linkRow = (key: string, rank: string) =>
+        `${slug},${slug},${key},false,false,${rank},${slug}`;
+      const refusalsOf = (payload: Record<string, unknown>) =>
+        (payload["refusals"] as Record<string, unknown>[]) ?? [];
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      // (a) the second key takes rank 3 while the third keeps it.
+      const clash = `${LINK_HEADER}\r\n${linkRow(keys[1], "3")}\r\n`;
+      const preview = await importPost(page, token, { mode: "preview", links: clash });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const refused = refusalsOf(preview.payload);
+      expect(refused, `AT-70 (a) preview: ${JSON.stringify(preview.payload)}`).toHaveLength(1);
+      expect(refused[0]).toMatchObject({
+        reason: "rankClash",
+        key: keys[1],
+        category: slug,
+        rank: 3,
+        origin_key: keys[2],
+      });
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        links: clash,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, `AT-70 (a) commit: ${JSON.stringify(commit.payload)}`).toBe(200);
+      expect(
+        refusalsOf(commit.payload).map((entry) => entry["reason"]),
+        `AT-70 (a) commit refusals: ${JSON.stringify(commit.payload)}`,
+      ).toEqual(["rankClash"]);
+      expect(await ranksOf(), "AT-70 (a) the refused commit moved a rank").toEqual([1, 2, 3]);
+
+      // (b) two file rows take rank 2 (one of them the holder): both refused.
+      const twice =
+        `${LINK_HEADER}\r\n${linkRow(keys[0], "2")}\r\n` + `${linkRow(keys[2], "2")}\r\n`;
+      const twicePreview = await importPost(page, token, { mode: "preview", links: twice });
+      expect(twicePreview.status, JSON.stringify(twicePreview.payload)).toBe(200);
+      expect(
+        refusalsOf(twicePreview.payload)
+          .map((entry) => `${entry["reason"]}:${entry["key"]}`)
+          .sort(),
+        `AT-70 (b) preview: ${JSON.stringify(twicePreview.payload)}`,
+      ).toEqual([`rankClash:${keys[0]}`, `rankClash:${keys[2]}`].sort());
+
+      // (c) the swap 1 <-> 3: no clash in the end state.
+      const swap =
+        `${LINK_HEADER}\r\n${linkRow(keys[0], "3")}\r\n` + `${linkRow(keys[2], "1")}\r\n`;
+      const swapPreview = await importPost(page, token, { mode: "preview", links: swap });
+      expect(swapPreview.status, JSON.stringify(swapPreview.payload)).toBe(200);
+      expect(
+        refusalsOf(swapPreview.payload),
+        `AT-70 (c) the swap was refused: ${JSON.stringify(swapPreview.payload)}`,
+      ).toHaveLength(0);
+      expect(await ranksOf(), "AT-70 a preview wrote a rank").toEqual([1, 2, 3]);
+    } finally {
+      await destroyCategory(slug);
+      for (const key of keys) await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-71 (M8b B3, optionInUse) — A DEFINITIONS ROW THAT REMOVES OR RETIRES AN
+   * OPTION VALUE STILL NAMED ELSEWHERE IS REFUSED, NAMING THE HOLDERS, unless
+   * the same file takes care of the holder.
+   */
+  test("AT-71 removing an option value still in use is refused as optionInUse", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const supabase = adminClient();
+    const slug = `e2e-cat-inuse-${rand()}`;
+    const keyP = `e2e_attr_${rand()}`;
+    const keyD = `e2e_attr_${rand()}`;
+    const keyE = `e2e_attr_${rand()}`;
+    const opt = (value: string, extra: Record<string, unknown> = {}) => ({
+      value,
+      label_en: value,
+      ...extra,
+    });
+    try {
+      const { data: attrs, error: attrError } = await supabase
+        .from("attributes")
+        .insert([
+          {
+            attr_key: keyP,
+            name_en: keyP,
+            attr_type: "single_select",
+            options: [opt("a"), opt("b"), opt("c")],
+          },
+          { attr_key: keyD, name_en: keyD, attr_type: "number" },
+          {
+            attr_key: keyE,
+            name_en: keyE,
+            attr_type: "single_select",
+            options: [opt("x", { allowed: { [keyP]: ["c"] } })],
+          },
+        ])
+        .select("id, attr_key");
+      if (attrError || !attrs) throw new Error(`AT-71 attributes failed: ${attrError?.message}`);
+      const idOf = (key: string) => attrs.find((row) => row.attr_key === key)!.id as string;
+      const { data: cat, error: catError } = await supabase
+        .from("categories")
+        .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+        .select("id")
+        .single();
+      if (catError || !cat) throw new Error(`AT-71 category failed: ${catError?.message}`);
+      const { error: pointerError } = await supabase
+        .from("category_tree_pointers")
+        .insert({ parent_id: null, child_id: cat.id, display_order: 2_000_971 });
+      if (pointerError) throw new Error(`AT-71 pointer failed: ${pointerError.message}`);
+      const { error: linkError } = await supabase.from("category_attribute_links").insert([
+        { category_id: cat.id, attribute_id: idOf(keyP), display_order: 1 },
+        {
+          category_id: cat.id,
+          attribute_id: idOf(keyD),
+          display_order: 2,
+          visible_when: { key: keyP, in: ["b"] },
+        },
+      ]);
+      if (linkError) throw new Error(`AT-71 links failed: ${linkError.message}`);
+
+      const pRow = (options: Record<string, unknown>[]) =>
+        `${DEF_HEADER}\r\n${v2(`${keyP},${keyP},,single_select,${cell(JSON.stringify(options))},,,0`)}\r\n`;
+      const refusalsOf = (payload: Record<string, unknown>) =>
+        (payload["refusals"] as Record<string, unknown>[]) ?? [];
+
+      await gotoReady(page, "/admin/attributes");
+      const token = await bearerOf(page);
+
+      // (a) P loses b while D's condition names b.
+      const dropB = pRow([opt("a"), opt("c")]);
+      const a = await importPost(page, token, { mode: "preview", definitions: dropB });
+      expect(a.status, JSON.stringify(a.payload)).toBe(200);
+      const aRefusal = refusalsOf(a.payload).find((entry) => entry["reason"] === "optionInUse");
+      expect(aRefusal, `AT-71 (a) not refused: ${JSON.stringify(a.payload)}`).toBeTruthy();
+      expect(String(aRefusal!["detail"]), "AT-71 (a) detail").toContain("b");
+      expect(String(aRefusal!["detail"]), "AT-71 (a) holder").toContain(
+        `${slug}·${keyD}·visible_when`,
+      );
+
+      // (b) the same file re-points D's condition at a: accepted.
+      const links =
+        `${LINK_HEADER},visible_when\r\n` +
+        `${slug},${slug},${keyD},false,false,,${slug},${keyP}=a\r\n`;
+      const b = await importPost(page, token, { mode: "preview", definitions: dropB, links });
+      expect(b.status, JSON.stringify(b.payload)).toBe(200);
+      expect(refusalsOf(b.payload), `AT-71 (b) refused: ${JSON.stringify(b.payload)}`).toHaveLength(
+        0,
+      );
+
+      // (c) P loses c while E's option names c in its allowed record.
+      const c = await importPost(page, token, {
+        mode: "preview",
+        definitions: pRow([opt("a"), opt("b")]),
+      });
+      expect(c.status, JSON.stringify(c.payload)).toBe(200);
+      const cRefusal = refusalsOf(c.payload).find((entry) => entry["reason"] === "optionInUse");
+      expect(cRefusal, `AT-71 (c) not refused: ${JSON.stringify(c.payload)}`).toBeTruthy();
+      expect(String(cRefusal!["detail"]), "AT-71 (c) holder").toContain(`·${keyE}·allowed`);
+
+      // (d) P retires b (active false) while D's condition names b.
+      const d = await importPost(page, token, {
+        mode: "preview",
+        definitions: pRow([opt("a"), opt("b", { active: false }), opt("c")]),
+      });
+      expect(d.status, JSON.stringify(d.payload)).toBe(200);
+      expect(
+        refusalsOf(d.payload).map((entry) => entry["reason"]),
+        `AT-71 (d) not refused: ${JSON.stringify(d.payload)}`,
+      ).toContain("optionInUse");
+
+      const stored = await readAttribute(keyP);
+      expect(
+        (stored?.options as { value: string }[]).map((option) => option.value),
+        "AT-71 a preview wrote the options",
+      ).toEqual(["a", "b", "c"]);
+    } finally {
+      await destroyCategory(slug);
+      for (const key of [keyD, keyE, keyP]) await destroyAttribute(key);
+    }
+  });
+
+  /**
    * AT-28 — FILE IDENTITY (IE-3). A categories export dropped into the
    * attributes import is refused by its headers, before any row is parsed.
    */

@@ -1779,13 +1779,19 @@ test.describe("C3 attributes console", () => {
       });
 
       /**
-       * INC-196 L2's forwarded reason, proven on a REAL REFUSAL: a links file
-       * whose end state gives two direct links rank 3. The planner refuses it
-       * inside the commit RPC; the route forwards the message as data.
+       * M8b B2 (rankClash): a links file whose END STATE gives two direct links
+       * rank 3 is refused by the PLANNER, row by row — the preview names it and
+       * the commit answers 200 with the same refusal, writing nothing.
+       * INC-196 L2's forwarded-message rule stays proven by CT-23 (same relay).
        */
       const clash = `${LINK_HEADER}\r\n` + `${linkRow(keyB, "3")}\r\n`;
       const clashPreview = await importPost(page, token, { mode: "preview", links: clash });
       expect(clashPreview.status, JSON.stringify(clashPreview.payload)).toBe(200);
+      const clashRefusals = (clashPreview.payload["refusals"] as Record<string, unknown>[]) ?? [];
+      expect(
+        clashRefusals.map((entry) => entry["reason"]),
+        `AT-58 the clash preview: ${JSON.stringify(clashPreview.payload)}`,
+      ).toEqual(["rankClash"]);
       const clashCommit = await importPost(page, token, {
         mode: "commit",
         links: clash,
@@ -1793,12 +1799,14 @@ test.describe("C3 attributes console", () => {
       });
       expect(
         clashCommit.status,
-        `AT-58 the clashing commit did not fail: ${JSON.stringify(clashCommit.payload)}`,
-      ).toBe(500);
+        `AT-58 the clashing commit: ${JSON.stringify(clashCommit.payload)}`,
+      ).toBe(200);
       expect(
-        String(clashCommit.payload["message"] ?? ""),
-        "AT-58 the route forwarded no message for the refused commit (INC-196 L2)",
-      ).not.toBe("");
+        ((clashCommit.payload["refusals"] as Record<string, unknown>[]) ?? []).map(
+          (entry) => entry["reason"],
+        ),
+        `AT-58 the commit carried no rankClash: ${JSON.stringify(clashCommit.payload)}`,
+      ).toEqual(["rankClash"]);
       expect(await ranksOf(), "AT-58 the refused commit changed ranks").toEqual({
         [keyA]: 1,
         [keyB]: 2,

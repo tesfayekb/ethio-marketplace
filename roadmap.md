@@ -1,6 +1,6 @@
 # Roadmap
 
-Bundle 4 brief: docs/governance/briefs/bundle-4.md (read first every turn).
+Bundle 5 brief: docs/governance/briefs/bundle-5.md (read first every turn).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -67,3 +67,11 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] INC-436 "Use my location" state
 - [x] INC-437 CT-19 stored-cell file rows
 - [x] Records turn 2026-10-05 — see docs/governance/handoffs/2026-10-05-bundle4-close-handover.md
+
+## Bundle 5 (2026-10-05)
+
+- [ ] Part A — categories importer: create-row guests (INC-314), undo restores links (INC-307); M8a with the INC-433 mark heal
+- [ ] Part B — attributes importer: rankClash (INC-327), optionInUse (INC-438); M8b
+- [ ] Part C — the Amharic unit cell (unit_am); M8c and the app side
+- [ ] Part D — the nightly of 2026-10-05: PW-32 and the aborted-request lines (INC-439)
+- [ ] Part E — the records this bundle writes
