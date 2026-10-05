@@ -1650,6 +1650,86 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * INC-434 (PW-159) — A LIST FACT TICKS A TICK LIST. An option whose fact is a
+   * list (`{"dishes": ["doro_wot"]}`) ticks those boxes on its multi_select
+   * target while the target is empty; the seller's own untick then owns the
+   * answer and survives Next and Back. Scratch definitions only, reaped by the
+   * afterEach (J3).
+   */
+  test("PW-159 a list fact ticks its tick list once, and the seller's untick stays", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const supabase = adminClient();
+    const stem = `e2e_listfact_${Date.now()}_${rand()}`;
+    const food = `${stem}_food`;
+    const dishes = `${stem}_dishes`;
+    const [wot, tibs] = [`${stem}_wot`, `${stem}_tibs`];
+    const { data, error } = await supabase
+      .from("attributes")
+      .insert([
+        {
+          attr_key: food,
+          name_en: food,
+          attr_type: "single_select",
+          options: [
+            { value: `${stem}_f1`, label_en: `${stem} f1`, facts: { [dishes]: [wot] } },
+            { value: `${stem}_f2`, label_en: `${stem} f2` },
+          ],
+        },
+        {
+          attr_key: dishes,
+          name_en: dishes,
+          attr_type: "multi_select",
+          options: [
+            { value: wot, label_en: `${wot} label` },
+            { value: tibs, label_en: `${tibs} label` },
+          ],
+        },
+      ])
+      .select("id, attr_key");
+    if (error || !data) throw new Error(`[e2e:PW-159] seeding failed: ${error?.message}`);
+    specs.push(...data.map((row) => row.attr_key));
+    const idOf = (key: string) => data.find((row) => row.attr_key === key)!.id;
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      { category_id: category.id, attribute_id: idOf(food), display_order: 100 },
+      { category_id: category.id, attribute_id: idOf(dishes), display_order: 101 },
+    ]);
+    if (linkError) throw new Error(`[e2e:PW-159] linking failed: ${linkError.message}`);
+
+    const listingId = await reachStep3(page, user.id, category);
+    const box = (value: string) =>
+      page.locator(
+        `[data-testid="post-attr-checks"][data-attr="${dishes}"] [data-value="${value}"]`,
+      );
+    const picker = page.locator(`[data-testid="post-attr-control"][data-attr="${food}"]`);
+    await picker.focus();
+    await picker.selectOption(`${stem}_f1`);
+    await expect(box(wot), "PW-159: the list fact ticked nothing").toBeChecked({
+      timeout: 20_000,
+    });
+    await expect(box(tibs)).not.toBeChecked();
+    await expect
+      .poll(async () => (await attributesOf(listingId))[dishes], { timeout: 20_000 })
+      .toEqual([wot]);
+
+    await box(wot).uncheck();
+    await expect(box(wot)).not.toBeChecked();
+    await expect
+      .poll(async () => (await attributesOf(listingId))[dishes] ?? [], { timeout: 20_000 })
+      .toEqual([]);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    await expect(box(tibs)).toBeVisible({ timeout: 20_000 });
+    await expect(box(wot), "PW-159: the untick did not survive Next and Back").not.toBeChecked();
+    await page.waitForTimeout(1500);
+    await expect(box(wot), "PW-159: the fact re-ticked the seller's list").not.toBeChecked();
+  });
+
+  /**
    * INC-374 (PW-153) — A RANGE THAT SETTLES THE QUESTION. A model whose bounds
    * for a required number carry `"settled": true` takes the row off the form;
    * the review and the buyer sheet read "<min>–<max> <unit>"; another model
