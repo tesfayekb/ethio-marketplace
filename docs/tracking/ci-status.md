@@ -1,31 +1,25 @@
 # CI Status (auto-generated — do not edit by hand)
 
 - Commit: `ba9a4530a87f2d8bfe9a8d0dc03ec32a1a48eb50` (short `ba9a453`)
-- Conclusion: **FAILURE**
-- Completed (UTC): 2026-10-05T19:39:24Z
+- Conclusion: **CANCELLED**
+- Completed (UTC): 2026-10-05T21:20:08Z
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37363017708
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Gitleaks secrets scan | cancelled |
-| Component tests | cancelled |
-| E2E preflight (migration parity, staging) | success |
-| i18n used-on map is fresh (U4i ②) | cancelled |
+| Hardcoded string scan (enforcing) | success |
+| i18n used-on map is fresh (U4i ②) | success |
+| Gitleaks secrets scan | queued |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| E2E build (shared dist) | queued |
 | Migration linter (with self-test) | success |
-| Listing-write seam guard (with self-test) | success |
-| Hardcoded string scan (enforcing) | cancelled |
-| First-paint bundle budget (gzipped ceiling) | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | Build, typecheck, lint | success |
 | Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| Import gate guard (with self-test) | cancelled |
-| Dependency vulnerability audit (enforcing on high/critical) | cancelled |
-| E2E build (shared dist) | cancelled |
-| E2E (Playwright, ethio-staging) | failure |
-| E2E changed specs (fast lane) | skipped |
-| E2E shard ${{ matrix.shard }}/6 | skipped |
-| E2E smoke tier | skipped |
-| E2E email (serial, quota-bound) | skipped |
-| Promote to main (fast-forward on green) | skipped |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Component tests | success |
+| Listing-write seam guard (with self-test) | success |
+| Import gate guard (with self-test) | success |
+| E2E preflight (migration parity, staging) | success |
+| First-paint bundle budget (gzipped ceiling) | success |
