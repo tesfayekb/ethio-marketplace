@@ -1,25 +1,24 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37249574367
-- Commit: `0fc968e46d4b9cc28ac7a02bffac68cbd1712703`
+last E2E run 37251884569 passed
+
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37251884569
+- Commit: `24d401f55c71e0256039284823ece9b94df249a5`
 - Attempt: 1
-- Written (UTC): 2026-10-05T01:23:44.098Z
-- Passed: 1319 · Skipped: 77 · Failed: 2
-- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
+- Written (UTC): 2026-10-05T01:58:05.360Z
+- Post-test warnings: 27
 - Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
-- Sources without results: none
 
 ## Server errors — census (DEC-083, non-gating)
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
-111 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+113 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
-| `listing not found` | 10 | shard 3, shard 6, changed |
+| `listing not found` | 12 | shard 3, shard 6, changed |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 5 | shard 1, shard 2, shard 4, shard 5, changed |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -60,7 +59,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 10 · Sources: shard 3, shard 6, changed
+- Count: 12 · Sources: shard 3, shard 6, changed
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -78,62 +77,62 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-05T01:00:01.058Z | 16.3 min |
-| email | 2026-10-05T01:00:01.192Z | 0.3 min |
-| shard 1 | 2026-10-05T00:59:56.428Z | 21.3 min |
-| shard 2 | 2026-10-05T00:59:52.825Z | 19.7 min |
-| shard 3 | 2026-10-05T00:59:58.077Z | 21.5 min |
-| shard 4 | 2026-10-05T00:59:56.204Z | 20.1 min |
-| shard 5 | 2026-10-05T01:00:02.798Z | 23.4 min |
-| shard 6 | 2026-10-05T01:00:02.152Z | 19.2 min |
-| changed | 2026-10-05T00:59:52.971Z | 20.9 min |
+| smoke | 2026-10-05T01:34:35.383Z | 13.8 min |
+| email | 2026-10-05T01:34:44.753Z | 0.3 min |
+| shard 1 | 2026-10-05T01:34:34.326Z | 20.7 min |
+| shard 2 | 2026-10-05T01:34:41.944Z | 21.9 min |
+| shard 3 | 2026-10-05T01:34:39.387Z | 21.1 min |
+| shard 4 | 2026-10-05T01:34:46.142Z | 21.5 min |
+| shard 5 | 2026-10-05T01:34:41.444Z | 23.1 min |
+| shard 6 | 2026-10-05T01:35:12.197Z | 16.1 min |
+| changed | 2026-10-05T01:34:35.427Z | 18.6 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `post-wizard-specs.spec.ts` | 152 | 47.1 min | shard 3, shard 6, changed |
-| `post-wizard-bundle2.spec.ts` | 60 | 19.0 min | shard 2, shard 5 |
-| `shell.spec.ts` | 252 | 18.0 min | smoke, shard 3, shard 6 |
-| `admin-attributes-links.spec.ts` | 60 | 16.3 min | shard 1, shard 4, changed |
-| `post-wizard-pricing.spec.ts` | 44 | 12.4 min | shard 3, shard 5 |
-| `admin-translations-console.spec.ts` | 76 | 12.2 min | shard 1, shard 4, changed |
-| `post-wizard-category.spec.ts` | 42 | 11.2 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 50 | 10.9 min | shard 3, shard 6 |
-| `admin-attributes-library.spec.ts` | 40 | 10.6 min | shard 1, shard 4 |
-| `post-wizard-where.spec.ts` | 28 | 10.1 min | shard 3, shard 6 |
-| `auth-signout.spec.ts` | 44 | 9.8 min | smoke, shard 2, shard 5 |
-| `post-wizard-resets.spec.ts` | 20 | 9.3 min | shard 3, shard 6 |
-| `admin-categories-lifecycle.spec.ts` | 40 | 8.8 min | shard 1, shard 4 |
-| `post-wizard-place.spec.ts` | 36 | 8.3 min | shard 2, shard 5 |
+| `post-wizard-specs.spec.ts` | 152 | 41.4 min | shard 3, shard 6, changed |
+| `post-wizard-bundle2.spec.ts` | 60 | 17.8 min | shard 2, shard 5 |
+| `shell.spec.ts` | 252 | 16.7 min | smoke, shard 3, shard 6 |
+| `admin-attributes-links.spec.ts` | 60 | 16.2 min | shard 1, shard 4, changed |
+| `admin-translations-console.spec.ts` | 76 | 12.1 min | shard 1, shard 4, changed |
+| `post-wizard-pricing.spec.ts` | 44 | 11.8 min | shard 3, shard 5 |
+| `admin-attributes-library.spec.ts` | 40 | 11.6 min | shard 1, shard 4 |
+| `post-wizard-category.spec.ts` | 42 | 11.5 min | shard 2, shard 5 |
+| `post-wizard-where.spec.ts` | 28 | 9.6 min | shard 3, shard 6 |
+| `posting-routes.spec.ts` | 50 | 9.4 min | shard 3, shard 6 |
+| `auth-signout.spec.ts` | 44 | 9.3 min | smoke, shard 2, shard 5 |
+| `post-wizard-place.spec.ts` | 36 | 8.7 min | shard 2, shard 5 |
+| `admin-categories-lifecycle.spec.ts` | 40 | 8.6 min | shard 1, shard 4 |
+| `admin-categories-console.spec.ts` | 32 | 8.3 min | shard 1, shard 4 |
+| `admin-users.spec.ts` | 24 | 8.1 min | shard 2, shard 5 |
 | `admin-attributes-editor.spec.ts` | 34 | 8.1 min | shard 1, shard 4 |
-| `admin-categories-console.spec.ts` | 32 | 8.0 min | shard 1, shard 4 |
-| `admin-users.spec.ts` | 24 | 7.6 min | shard 2, shard 5 |
-| `import-security.spec.ts` | 34 | 6.5 min | shard 2, shard 5 |
-| `photo-pipeline.spec.ts` | 20 | 6.3 min | shard 2, shard 5 |
-| `admin-locations.spec.ts` | 34 | 6.0 min | shard 1, shard 4 |
-| `admin-attributes-import.spec.ts` | 32 | 5.3 min | shard 1, shard 4 |
-| `admin-roles.spec.ts` | 24 | 5.0 min | shard 1, shard 4 |
-| `admin-countries.spec.ts` | 16 | 3.5 min | shard 1, shard 4 |
-| `admin-audit.spec.ts` | 10 | 2.9 min | shard 1, shard 4 |
-| `admin-translations-data.spec.ts` | 8 | 2.6 min | shard 1, shard 5 |
-| `admin-translations-governance.spec.ts` | 8 | 2.6 min | shard 1, shard 5 |
-| `mfa-stepup.spec.ts` | 18 | 2.4 min | shard 2, shard 5 |
-| `admin-coverage.spec.ts` | 14 | 1.8 min | shard 1, shard 4 |
+| `post-wizard-resets.spec.ts` | 20 | 7.8 min | shard 3, shard 6 |
+| `import-security.spec.ts` | 34 | 7.8 min | shard 2, shard 5 |
+| `photo-pipeline.spec.ts` | 20 | 7.6 min | shard 2, shard 5 |
+| `admin-locations.spec.ts` | 34 | 5.8 min | shard 1, shard 4 |
+| `admin-attributes-import.spec.ts` | 32 | 5.6 min | shard 1, shard 4 |
+| `admin-roles.spec.ts` | 24 | 5.1 min | shard 1, shard 4 |
+| `admin-countries.spec.ts` | 16 | 3.2 min | shard 1, shard 4 |
+| `admin-audit.spec.ts` | 10 | 3.1 min | shard 1, shard 4 |
+| `mfa-stepup.spec.ts` | 18 | 2.7 min | shard 2, shard 5 |
+| `admin-translations-data.spec.ts` | 8 | 2.5 min | shard 1, shard 5 |
+| `admin-translations-governance.spec.ts` | 8 | 2.5 min | shard 1, shard 5 |
 | `post-wizard-finder.spec.ts` | 8 | 1.6 min | shard 2, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 1.5 min | shard 2, shard 5 |
+| `admin-coverage.spec.ts` | 14 | 1.4 min | shard 1, shard 4 |
 | `admin-shell.spec.ts` | 10 | 1.4 min | shard 1, shard 4 |
-| `post-wizard-details.spec.ts` | 4 | 1.2 min | shard 2, shard 5 |
+| `category-image-routes.spec.ts` | 10 | 1.4 min | shard 2, shard 5 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `a11y.spec.ts` | 4 | 0.9 min | smoke |
-| `rbac.spec.ts` | 6 | 0.8 min | shard 3, shard 6 |
-| `i18n-coverage.spec.ts` | 8 | 0.7 min | shard 2, shard 5 |
-| `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
+| `post-wizard-details.spec.ts` | 4 | 1.0 min | shard 2, shard 5 |
+| `i18n-coverage.spec.ts` | 8 | 0.8 min | shard 2, shard 5 |
+| `admin-categories-images.spec.ts` | 2 | 0.8 min | shard 1, shard 4 |
 | `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
-| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
-| `settings.spec.ts` | 4 | 0.4 min | shard 3 |
+| `rbac.spec.ts` | 6 | 0.6 min | shard 3, shard 6 |
+| `settings.spec.ts` | 4 | 0.5 min | shard 3 |
+| `a11y.spec.ts` | 4 | 0.5 min | smoke |
+| `category-nav.spec.ts` | 10 | 0.5 min | shard 2, shard 5 |
 | `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
-| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
 | `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
-| `layout.spec.ts` | 10 | 0.2 min | shard 2, shard 5 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
+| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
 | `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
@@ -145,175 +144,18 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `post-wizard-bundle2.spec.ts` › PW-129 Next waits for the identity read instead of refusing | mobile-360 | 69.4 s |
-| `post-wizard-bundle2.spec.ts` › PW-134 names typed during the identity read survive it and are saved | mobile-360 | 68.0 s |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 45.4 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 44.1 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 43.8 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 43.8 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 42.4 s |
-| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 40.7 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 39.9 s |
-| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | desktop-1280 | 39.4 s |
-| `admin-translations-governance.spec.ts` › TR-32 an import is undoable while nothing has touched the rows | desktop-1280 | 39.0 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 38.5 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 38.2 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 37.8 s |
-| `posting-routes.spec.ts` › PR-24 a seller is named before an ad is published (INC-423) | desktop-1280 | 36.4 s |
-
-## Post-test errors: smoke
-
-smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37249574367-smoke
-```
-
-## Post-test errors: email
-
-email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37249574367-email
-```
-
-## Post-test errors: shard 1
-
-shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 12 (pool 5, fresh 7)
-[e2e:teardown] transport retries this run: 12 (by method: GET 12; by code: UND_ERR_HEADERS_OVERFLOW 12; ran out: 4)
-[e2e:teardown] deleted 8 user(s) owned by process 37249574367-1
-```
-
-## Post-test errors: shard 2
-
-shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 35 (pool 4, fresh 31)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 47 user(s) owned by process 37249574367-2
-```
-
-## Post-test errors: shard 3
-
-shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 8 (pool 5, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37249574367-3
-```
-
-## Post-test errors: shard 4
-
-shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 13 (pool 5, fresh 8)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 37249574367-4
-```
-
-## Post-test errors: shard 5
-
-shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 30 (pool 4, fresh 26)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 40 user(s) owned by process 37249574367-5
-```
-
-## Post-test errors: shard 6
-
-shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 9 (pool 5, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37249574367-6
-```
-
-## Post-test errors: changed
-
-changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 2, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 37249574367-changed
-```
-
-## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-129 Next waits for the identity read instead of refusing
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Error: PW-129: the identity read was never held
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 1
-Received: 2
-
-Call Log:
-- Timeout 10000ms exceeded while waiting on the predicate
-```
-
-Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-129-Next-waits-for-the-identity-read-instead-of-refusing-mobile-360`
-
-## post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-134 names typed during the identity read survive it and are saved
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Error: PW-134: the identity read was never held
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 1
-Received: 2
-
-Call Log:
-- Timeout 10000ms exceeded while waiting on the predicate
-```
-
-Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-134-names-typed-during-the-identity-read-survive-it-and-are-saved-mobile-360`
-
-## Server errors: shard 2
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-```
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 53.7 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 47.8 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 46.8 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | desktop-1280 | 43.9 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 43.1 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 40.8 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | mobile-360 | 39.3 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 38.8 s |
+| `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, small model list) | mobile-360 | 38.4 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 38.3 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 36.7 s |
+| `post-wizard-category.spec.ts` › PW-54 the wizard walks category, specifications, photos, details and resumes at the first unfinished step | mobile-360 | 36.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | desktop-1280 | 36.3 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 35.9 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 35.6 s |
