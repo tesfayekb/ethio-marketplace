@@ -149,6 +149,9 @@ function foldFact(
   return { kind: "prefill", value: raw };
 }
 
+/** INC-434 — the form's provenance per category, kept across remounts (this tab only). */
+const PREFILLS_HELD = new Map<string, Record<string, unknown>>();
+
 interface FactBound {
   min: number | null;
   max: number | null;
@@ -267,7 +270,13 @@ export function StepSpecifications({
    *   - different → the seller typed over it, and a parent change never discards
    *     a person's own words (it offers the model's new value instead).
    */
-  const [prefills, setPrefills] = useState<Record<string, unknown>>({});
+  /**
+   * INC-434 — provenance outlives the page: Next and Back remount this form, and
+   * a seller who emptied a fact-filled list must not see the fact tick it again.
+   */
+  const [prefills, setPrefills] = useState<Record<string, unknown>>(() =>
+    categoryId === null ? {} : (PREFILLS_HELD.get(categoryId) ?? {}),
+  );
   /** What this screen alone saw wrong — the door's own refusal always wins. */
   const [local, setLocal] = useState<Refusal[]>([]);
   /** D36 — the details whose full guidance the (i) tap has opened. */
@@ -1112,7 +1121,10 @@ export function StepSpecifications({
     }
 
     // I3 — the mirror of provenance is written only when it actually moved.
-    if (JSON.stringify(owned) !== JSON.stringify(prefills)) setPrefills(owned);
+    if (JSON.stringify(owned) !== JSON.stringify(prefills)) {
+      if (categoryId !== null) PREFILLS_HELD.set(categoryId, owned);
+      setPrefills(owned);
+    }
 
     if (!changed) return;
     // I3 — the same patch is never written twice: a reconciliation is identified
