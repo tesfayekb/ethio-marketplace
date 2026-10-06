@@ -91,6 +91,7 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] Part H — attributes console reds (turn 4)
 
 ## Next — bundle 7 candidates (not specced; the supervisor explains each to the operator before the brief)
+
 - [ ] Previously used categories on the wizard's category step (operator, 2026-10-05)
 - [ ] One number formatter for specification values and settled ranges (INC-451)
 - [ ] The database security lints: public.security_lints() and the nightly step (DEC-132 layer B, B2 option ii)
