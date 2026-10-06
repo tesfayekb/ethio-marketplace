@@ -696,3 +696,4 @@
 - 2026-10-06 — Bundle 6 Part Y2: INC-461 — PW-22 answers the make first (the unit keeps the seller's answer, DEC-139), then changes it (the link's default returns).
 - 2026-10-06 — Bundle 6 Part Y3: INC-452, INC-458, DEC-142 — readAllPages pages by key (after the last attr_key), never by position; the setup reaps scratch attribute definitions older than 3h (e2e/helpers/attribute-reap-plan.ts).
 - 2026-10-06 — Bundle 6 Part Y4: INC-462, DEC-143 — the failure report carries up to three further errors of a result, so a timed-out test names the action it waited on.
+- 2026-10-06 — INC-463 (DEC-142): the scratch attribute reaper also matches `e2e_`/`e2e-` directly after a hyphen (`/(^|-)e2e[_-]/`), so family-prefixed leftovers such as `pricing_type-e2e_…` are reaped; e2e-harness.md updated.
