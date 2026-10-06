@@ -1231,3 +1231,6 @@ W1: rows sharing a city draw ONE city box: the city picker, then one sub-city bo
 
 - **Unit in Amharic.** A number definition's `unit_am` prints in the specifications step, review, preview and detail under Amharic; the English `unit` prints when it is empty (PW-161).
 - **Imitation gate (INC-442).** `/api/listings/identity` counts `identity:imitation` (20 per 24 hours, matching the live `identity` dial) before the paid imitation model call and answers `rate`/`rateLimited` with the reset as detail; the door keeps counting its own `identity` bucket (PR-26).
+
+- Bundle 6 (INC-444, DEC-136): the seller doors edit_listing, transition_listing, renew_listing, set_listing_pin, mark_sold and relist_listing each call `rate_gate('revise')` (120 an hour per seller) after their caller checks and refuse with `rateLimited`.
+- Bundle 6 (DEC-135): a draft save's transport call times out after 30 s (`SAVE_TIMEOUT_MS`); a timeout answers unreachable, the draft shows unsaved, and the next edit retries.

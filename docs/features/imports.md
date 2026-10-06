@@ -396,3 +396,5 @@ built on an export carries the header:
 ```text
 attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant (read-only),direct_link_count (read-only),unit_am
 ```
+
+- Bundle 6 (C2): the idle prune of rate buckets (`bucketFor`) never deletes a bucket that is in flight, however long it has been idle.

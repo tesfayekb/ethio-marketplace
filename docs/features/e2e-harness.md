@@ -371,3 +371,9 @@ or a harness file (playwright.config.ts, global setup/teardown,
 serve-e2e-node.ts) selects ALL. `bun run e2e:changed` runs the list locally;
 on ALL it prints and stops — CI carries the rest. The build job runs
 `--self-test`: every spec reachable from an area, no stale area glob.
+
+## Byte-batched service reads (Bundle 6 Part G, INC-454, DEC-138)
+
+- Every `.in(...)` list the service client builds from an unbounded source (the INC-175 EN heal, the scratch-role, seller-listing, photo-folder, category and ratified-am reaper reads in `e2e/global-setup.ts`; a pool account's listing meters in `e2e/helpers/users.ts`; a location's descendants in `e2e/helpers/locations.ts`) is cut by `chunkByLength(values, maxChars = 4000)` in `e2e/helpers/chunk-by-length.ts`: order kept, nothing lost, an over-long value its own batch. The category reap uses half the cap because its pointer step names each batch twice. Lists bounded by a test's own input stay as they are.
+- `[e2e:setup] healed <n> stale EN rows (INC-175; probe complete)` — or `(INC-175; probe INCOMPLETE: <message>)` when a batch of the probe failed.
+- `[e2e:teardown] transport retries this run: … ran out: <n>` — when n > 0 it is followed by the exhausted calls, method and path without query string, e.g. `ran out: 2 (GET /rest/v1/ui_translations ×2)`.
