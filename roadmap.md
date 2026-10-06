@@ -82,6 +82,6 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 
 - [x] Part P — DEC-133 runner pin (turn 1)
 - [x] Part A — security review fixes, M9 (turn 2)
-- [ ] Part B — scanners in our own CI (turn 3)
+- [x] Part B — scanners in our own CI (turn 3)
 - [ ] Part C — small follow-ups (turn 4)
 - [ ] Part D — records and final report (turn 4)
