@@ -89,6 +89,9 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] Part F — promote needs every gating job (turn 4)
 - [x] Part G — byte-batched service reads (turn 4)
 - [x] Part H — attributes console reds (turn 4)
+- [x] Part X — workflow file repaired and linted, INC-457 (turn 5)
+- [x] Part W — Next judged at its step, summary names questions, first identity answer keeps details, INC-455/456 (turn 5)
+- [ ] Bundle 7 — scratch attribute definitions reaper (staging 1,459 e2e rows)
 
 ## Next — bundle 7 candidates (not specced; the supervisor explains each to the operator before the brief)
 
