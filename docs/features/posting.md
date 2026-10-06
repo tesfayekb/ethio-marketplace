@@ -969,13 +969,13 @@ Test: PW-58.
 
 - `AttrDef.cardRank` carries `get_posting_schema`'s `card_rank` (no migration — the read already served it).
 - The single_select detail with `cardRank === 1` is the leaf's identity. It joins both `parents` and `roots`, so changing it is a D25b root change: every other detail restarts (the seller's own answers included), the new option's facts and the link defaults (INC-245) fill what they fill, and the ten-second Undo offer names the new option.
-- Undo after an identity reset restores the answers as they stood before it — the previous identity and the details it had shown — from the last pass in which no parent moved. Other Undo offers are unchanged (a make change still keeps the new make).
+- (Retired by DEC-144, Bundle 7 Part A — see "A changed answer resets only what depends on it".) Undo after an identity reset restored the answers as they stood before it — the previous identity and the details it had shown — from the last pass in which no parent moved. Other Undo offers are unchanged (a make change still keeps the new make).
 - A card-2/3 change keeps D25's narrower scope. PW-59 proves both sides on scratch rows.
 - D45 part 2: `attributeDisplayValue`'s `yearSuffix` is required, and the buyer sheet passes `post.specs.yearEcSuffix`; PW-58 reads the label in the sheet too.
 
 ## Only the identity restarts the form (D47, 2026-09-26)
 
-The whole-form reset root is the leaf's identity (the card-1 select) and nothing else. INC-291: the old D25b rule also made every top fold owner a root, so a size-system change on clothing or shoes, or a make change at Vehicle Hire where make is not card 1, wiped the whole form. A fold owner that is not card 1 stays a D25 parent: its fold child is cleared by the narrowing pass, details its options speak about are re-derived, and the seller's own answers stay. The fold fixtures (seedFoldSet, seedDeepFoldSet, seedFactShiftSet) now link their make/brand as required card 1, the catalog's shape, so PW-32 and the INC-245 test keep their assertions. PW-60 proves a non-identity system change clears only its size and an identity change still restarts everything.
+(Retired by DEC-144, Bundle 7 Part A: there is no whole-form root any more.) The whole-form reset root was the leaf's identity (the card-1 select) and nothing else. INC-291: the old D25b rule also made every top fold owner a root, so a size-system change on clothing or shoes, or a make change at Vehicle Hire where make is not card 1, wiped the whole form. A fold owner that is not card 1 stays a D25 parent: its fold child is cleared by the narrowing pass, details its options speak about are re-derived, and the seller's own answers stay. The fold fixtures (seedFoldSet, seedDeepFoldSet, seedFactShiftSet) now link their make/brand as required card 1, the catalog's shape, so PW-32 and the INC-245 test keep their assertions. PW-60 proves a non-identity system change clears only its size and an identity change still restarts everything.
 
 ## Every row open (D41, 2026-09-24)
 
