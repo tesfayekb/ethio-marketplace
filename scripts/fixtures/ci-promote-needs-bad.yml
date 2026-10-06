@@ -1,0 +1,22 @@
+# DEC-137 self-test fixture: promote omits the `lint` job, so
+# scripts/check-promote-needs.sh must exit non-zero on this file.
+name: bad
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo build
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo lint
+  e2e-changed:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo fast lane
+  promote:
+    needs: [build]
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo promote
