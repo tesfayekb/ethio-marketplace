@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 
-import { usePickerKeys } from "./searchable-picker";
+import { chosenFirst } from "@/lib/chosen-first";
+
+import { PickerOption, usePickerKeys } from "./searchable-picker";
 
 function Box({
   count,
@@ -35,5 +37,40 @@ describe("bundle 4 step 11 — the shared picker's one keyboard behaviour", () =
     render(<Box count={0} onPick={onPick} onEscape={() => undefined} />);
     fireEvent.keyDown(screen.getByTestId("box"), { key: "Enter" });
     expect(onPick).not.toHaveBeenCalled();
+  });
+});
+
+describe("bundle 7 B2 — the current choice is first and marked", () => {
+  it("marks the selected row with a check and no other row", () => {
+    render(
+      <div>
+        <PickerOption
+          selected={true}
+          highlighted={false}
+          testId="row-a"
+          data={{}}
+          onPick={() => {}}
+        >
+          A
+        </PickerOption>
+        <PickerOption
+          selected={false}
+          highlighted={false}
+          testId="row-b"
+          data={{}}
+          onPick={() => {}}
+        >
+          B
+        </PickerOption>
+      </div>,
+    );
+    expect(screen.queryByTestId("row-a-check")).not.toBeNull();
+    expect(screen.queryByTestId("row-b-check")).toBeNull();
+  });
+  it("draws the choice first, matching or not, and never twice", () => {
+    const same = (a: string, b: string) => a === b;
+    expect(chosenFirst(["x", "y"], "z", same)).toEqual(["z", "x", "y"]);
+    expect(chosenFirst(["x", "z", "y"], "z", same)).toEqual(["z", "x", "y"]);
+    expect(chosenFirst(["x"], null, same)).toEqual(["x"]);
   });
 });

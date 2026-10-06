@@ -1,5 +1,7 @@
 import { useEffect, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 
+import { Check } from "lucide-react";
+
 import { Z_POPOVER } from "@/components/layout/layers";
 
 /**
@@ -126,6 +128,13 @@ export function PickerOption({
       onClick={onPick}
     >
       {children}
+      {selected && (
+        <Check
+          aria-hidden="true"
+          data-testid={`${testId}-check`}
+          className="ms-auto h-4 w-4 shrink-0 text-primary"
+        />
+      )}
     </button>
   );
 }

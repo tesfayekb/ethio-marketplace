@@ -257,3 +257,111 @@ describe("useDraft — a queued save is never sent below step 1 (INC-465)", () =
     });
   });
 });
+
+function failedDoor(): DoorAnswer {
+  return {
+    ok: false,
+    status: 200,
+    unreachable: false,
+    payload: {},
+    refusals: [{ field: "door", reason: "doorError" }],
+  } as unknown as DoorAnswer;
+}
+
+/**
+ * Bundle 7 B4 — an autosave the server failed on (`doorError`) is not dropped in
+ * silence: "unsaved", the step stays queued, and up to three retries after
+ * RETRY_MS (4 s) for the same answers; an edit starts the count again.
+ */
+describe("useDraft — an autosave the server failed on retries (Bundle 7 B4)", () => {
+  async function answerLast(answer: DoorAnswer) {
+    await act(async () => {
+      pending[pending.length - 1]!(answer);
+      await settle();
+    });
+  }
+  async function wait() {
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+      await settle();
+    });
+  }
+
+  it("(i) a doorError autosave shows unsaved and sends again after the wait", async () => {
+    vi.useFakeTimers();
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    await act(async () => {
+      result.current.change({ categoryId: "c-1" }, true);
+      await settle();
+    });
+    expect(sent).toHaveLength(1);
+    await answerLast(failedDoor());
+    expect(result.current.saveState).toBe("unsaved");
+    await wait();
+    expect(sent).toHaveLength(2);
+    await answerLast(took());
+    vi.useRealTimers();
+  });
+
+  it("(ii) after three retries the fourth is not made", async () => {
+    vi.useFakeTimers();
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    await act(async () => {
+      result.current.change({ categoryId: "c-1" }, true);
+      await settle();
+    });
+    for (let i = 0; i < 4; i += 1) {
+      await answerLast(failedDoor());
+      await wait();
+    }
+    expect(sent).toHaveLength(4);
+    expect(result.current.saveState).toBe("unsaved");
+    vi.useRealTimers();
+  });
+
+  it("(iii) an edit starts the count again", async () => {
+    vi.useFakeTimers();
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    await act(async () => {
+      result.current.change({ categoryId: "c-1" }, true);
+      await settle();
+    });
+    for (let i = 0; i < 4; i += 1) {
+      await answerLast(failedDoor());
+      await wait();
+    }
+    expect(sent).toHaveLength(4);
+    await act(async () => {
+      result.current.change({ title: "new" }, true);
+      await settle();
+    });
+    expect(sent).toHaveLength(5);
+    await answerLast(failedDoor());
+    await wait();
+    expect(sent).toHaveLength(6);
+    await answerLast(took());
+    vi.useRealTimers();
+  });
+
+  it("(iv) an autosave refused for an answer stays silent as today", async () => {
+    vi.useFakeTimers();
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    await act(async () => {
+      result.current.change({ categoryId: "c-1" }, true);
+      await settle();
+    });
+    await answerLast(refused());
+    expect(result.current.saveState).toBe("idle");
+    await wait();
+    expect(sent).toHaveLength(1);
+    vi.useRealTimers();
+  });
+});

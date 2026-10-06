@@ -2,6 +2,7 @@ import { lengthHint, phonePlanOf } from "./phone-plans";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
+import { chosenFirst } from "@/lib/chosen-first";
 import {
   PickerOption,
   pickerPopClass,
@@ -160,6 +161,9 @@ export function PhoneNumberField({
     if (refocus) numberRef.current?.focus();
   };
 
+  // Bundle 7 B2 — the current choice first and marked, matching or not.
+  const shownRows = chosenFirst(matches, shownIso === "" ? null : shownIso, (a, b) => a === b);
+
   const choose = (code: string) => {
     pickedRef.current = true;
     setIso(code);
@@ -168,9 +172,9 @@ export function PhoneNumberField({
   };
   // Bundle 4 step 11 — the shared picker's keyboard behaviour and opening rule.
   const { highlight, setHighlight, onKeyDown } = usePickerKeys({
-    count: matches.length,
+    count: shownRows.length,
     onPick: (index) => {
-      const row = matches[index];
+      const row = shownRows[index];
       if (row !== undefined) choose(row);
     },
     onEscape: () => close(true),
@@ -292,7 +296,7 @@ export function PhoneNumberField({
                   {t("post.who.phoneCountryNone")}
                 </li>
               )}
-              {matches.map((code, index) => (
+              {shownRows.map((code, index) => (
                 <li key={code} role="presentation">
                   <PickerOption
                     id={`${listId}-${code}`}

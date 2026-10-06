@@ -28,6 +28,8 @@ import {
 
 const DEBOUNCE_MS = 2000;
 const RETRY_MS = 4000;
+/** Bundle 7 B4 — retries of an autosave the server failed on, per unchanged answers. */
+const DOOR_RETRIES = 3;
 
 export interface DraftValues {
   categoryId: string | null;
@@ -199,6 +201,11 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [pauseSeconds, setPauseSeconds] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Bundle 7 B4 — the answers (serial) a doorError retry counts for, and its count. */
+  const doorRetryRef = useRef<{ serial: string | null; count: number }>({
+    serial: null,
+    count: 0,
+  });
   const aliveRef = useRef(true);
 
   useEffect(() => {
@@ -383,6 +390,24 @@ export function useDraft(initialListingId: string | null): UseDraft {
       pausedUntilRef.current = Number.isFinite(at) ? at : Date.now() + 60_000;
       setPauseSeconds(Math.max(1, Math.ceil((pausedUntilRef.current - Date.now()) / 1000)));
       setSaveState("idle");
+      return false;
+    }
+
+    // Bundle 7 B4 — the SERVER failed (doorError): not a verdict on the answers,
+    // so not dropped in silence. "Not saved yet", the step stays queued, and up
+    // to three retries for the same unchanged answers; an edit restarts the count.
+    if (!strict && answer.refusals.some((refusal) => refusal.reason === "doorError")) {
+      const held = doorRetryRef.current;
+      const tries = held.serial === serial ? held.count : 0;
+      doorRetryRef.current = { serial, count: tries + 1 };
+      pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, forStep);
+      setSaveState("unsaved");
+      if (tries < DOOR_RETRIES) {
+        if (retryRef.current) clearTimeout(retryRef.current);
+        retryRef.current = setTimeout(() => {
+          void flushRef.current?.();
+        }, RETRY_MS);
+      }
       return false;
     }
 

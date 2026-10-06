@@ -386,7 +386,12 @@ test.describe("POSTING WIZARD", () => {
     // U6-C1-R2 — A SUGGESTION, NEVER AN AUTHOR: the answer arrives BESIDE the
     // fields; the seller's own boxes are not written until they say so.
     await expect(page.getByTestId("post-assist-history")).toBeVisible();
-    await expect(title, "PW-6: the assist wrote into the seller's title itself").toHaveValue("");
+    // Bundle 7 B3.1 — this leaf's first question is a required text with no card
+    // rank, so the title page opens on the built title (the seller's text); the
+    // assist still writes nothing into the box.
+    await expect(title, "PW-6: the assist wrote into the seller's title itself").toHaveValue(
+      "e2e assist facts",
+    );
 
     // U6-C1-R2 — EACH TRY IS A DIFFERENT ANGLE, AND THE BUDGET IS VISIBLE: the
     // history keeps every suggestion, a second try differs from the first, and
@@ -1829,14 +1834,14 @@ test.describe("POSTING WIZARD", () => {
     await expect(
       page.getByTestId("post-review-preview").locator(`[data-key="${battery}"]`),
       "PW-153: the review did not show the range",
-    ).toHaveText("4056–4288 mAh", { timeout: 20_000 });
+    ).toHaveText("4,056–4,288 mAh", { timeout: 20_000 });
     await page.getByTestId("post-preview-open").click();
     await expect(
       page
         .getByTestId("post-preview-sheet")
         .locator(`[data-testid="listing-detail-spec"][data-key="${battery}"]`),
       "PW-153: the buyer sheet did not show the range",
-    ).toHaveText("4056–4288 mAh", { timeout: 20_000 });
+    ).toHaveText("4,056–4,288 mAh", { timeout: 20_000 });
     await page.getByTestId("post-preview-close").click();
   });
 

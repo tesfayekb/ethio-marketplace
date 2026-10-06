@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { CatalogTokens } from "@/i18n";
 
-import { rangeDisplayValue, settledRanges } from "./attribute-display";
+import { numberText, rangeDisplayValue, settledRanges } from "./attribute-display";
 import type { AttrOption } from "./attribute-options";
 import type { AttrDef } from "./posting-service";
 
@@ -35,6 +35,22 @@ describe("settledRanges (INC-374)", () => {
     expect(ranges({ model: "m1", battery_mah: 4100 })).toEqual({});
   });
   it("writes the range with its unit", () => {
-    expect(rangeDisplayValue(mah, { min: 4056, max: 4288 }, "en", PLAIN)).toBe("4056–4288 mAh");
+    expect(rangeDisplayValue(mah, { min: 4056, max: 4288 }, "en", PLAIN)).toBe("4,056–4,288 mAh");
+  });
+});
+
+describe("numberText (INC-451)", () => {
+  it("groups a whole number and both ends of a range", () => {
+    expect(numberText(45000, "en")).toBe("45,000");
+    expect(rangeDisplayValue(def("r", "number"), { min: 4056, max: 4288 }, "en", PLAIN)).toBe(
+      "4,056–4,288",
+    );
+  });
+  it("keeps a decimal's digits, and Amharic gives the same digits", () => {
+    expect(numberText("1234.56789", "en")).toBe("1,234.56789");
+    expect(numberText(45000, "am")).toBe("45,000");
+  });
+  it("is not a number text for a non-number", () => {
+    expect(numberText("abc", "en")).toBeNull();
   });
 });

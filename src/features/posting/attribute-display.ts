@@ -31,9 +31,34 @@ export function attributeDisplayValue(
     return labels.get(raw) ?? raw;
   };
 
-  const rendered = Array.isArray(value) ? value.map(renderOne).join(", ") : renderOne(value);
+  const rendered =
+    definition.attrType === "number" && !Array.isArray(value)
+      ? (numberText(value, language) ?? renderOne(value))
+      : Array.isArray(value)
+        ? value.map(renderOne).join(", ")
+        : renderOne(value);
   const unit = catalogWords(definition.unit ?? "", definition.unitAm, language, tokens);
   return unit === "" ? rendered : `${rendered} ${unit}`;
+}
+
+const PLAIN_DECIMAL = /^-?\d+(\.\d+)?$/;
+
+/**
+ * INC-451 — ONE NUMBER FORMAT. A number definition's value (a finite number, or
+ * the plain decimal string it is stored as) is written the way the price is:
+ * grouped, no rounding. Not for a year, an option label, a text answer or an
+ * input box. Returns null for anything that is not such a value.
+ */
+export function numberText(value: unknown, language: string): string | null {
+  const format = new Intl.NumberFormat(language === "am" ? "am-ET" : "en-US", {
+    maximumFractionDigits: 20,
+  });
+  if (typeof value === "number") return Number.isFinite(value) ? format.format(value) : null;
+  if (typeof value === "string" && PLAIN_DECIMAL.test(value.trim())) {
+    // A decimal string is formatted as written (no float round-trip).
+    return format.format(value.trim() as unknown as number);
+  }
+  return null;
 }
 
 /**
@@ -136,6 +161,6 @@ export function rangeDisplayValue(
   tokens: CatalogTokens,
 ): string {
   const unit = catalogWords(definition.unit ?? "", definition.unitAm, language, tokens);
-  const text = `${range.min}–${range.max}`;
+  const text = `${numberText(range.min, language) ?? range.min}–${numberText(range.max, language) ?? range.max}`;
   return unit === "" ? text : `${text} ${unit}`;
 }

@@ -111,3 +111,41 @@ describe("buildTitle (bundle 4 step 12)", () => {
     expect(run({})).toBe("");
   });
 });
+
+describe("buildTitle (bundle 7 B3)", () => {
+  const other = [def("item_name", "text", null, { isRequired: true }), ...definitions];
+
+  it("the seller's own name for the item leads, then the ranked parts", () => {
+    expect(run({ item_name: "  Handmade stool ", brand: "samsung" }, { definitions: other })).toBe(
+      "Handmade stool Samsung",
+    );
+  });
+
+  it("a long name uses the whole 70 and is cut at the last whole word", () => {
+    const name = `${"word ".repeat(15)}end`;
+    const built = run({ item_name: name, brand: "samsung" }, { definitions: other });
+    expect(built.length).toBeLessThanOrEqual(70);
+    expect(built.length).toBeGreaterThan(30);
+    expect(built.endsWith("word")).toBe(true);
+  });
+
+  it("a first text that is not required, or ranked, does not lead", () => {
+    const loose = [def("item_name", "text", null, { isRequired: false }), ...definitions];
+    expect(run({ item_name: "Stool", brand: "samsung" }, { definitions: loose })).toBe("Samsung");
+    const ranked = [def("item_name", "text", 9, { isRequired: true }), ...definitions];
+    expect(run({ item_name: "Stool", brand: "samsung" }, { definitions: ranked })).toBe(
+      "Samsung Stool",
+    );
+  });
+
+  it("a label holding {country} is left out; one without is kept", () => {
+    const withToken = {
+      ...options,
+      model: [opt("local", "Made in {country}"), opt("a54", "Galaxy A54")],
+    };
+    expect(run({ brand: "samsung", model: "local" }, { options: withToken })).toBe("Samsung");
+    expect(run({ brand: "samsung", model: "a54" }, { options: withToken })).toBe(
+      "Samsung Galaxy A54",
+    );
+  });
+});
