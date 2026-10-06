@@ -165,7 +165,7 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     const required = await save(page, token, { ...body(cat.id, held, 4), listingId: id });
     expect
       .soft(required["refusals"], JSON.stringify(required))
-      .toEqual([{ field: "attributes", attr_key: specs.select.attrKey, reason: "required" }]);
+      .toEqual([{ attr_key: specs.select.attrKey, reason: "required" }]);
     for (const result of optional) {
       expect
         .soft(result.answer["ok"], `step ${result.step}: ${JSON.stringify(result.answer)}`)
@@ -223,7 +223,7 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
   test("PR-37 coverage first appearance is stored once, renumbered in either order", async ({
     page,
   }) => {
-    const { token, a, b, draft } = await placeDraft(page);
+    const { user, token, a, b, draft } = await placeDraft(page);
     let id: string | undefined;
     for (const order of [
       [a.city.id, b.city.id, a.city.id],
@@ -240,6 +240,14 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
       ]);
     }
     // Fallback must obey position even when created_at says the opposite.
+    const rows = await storedPlaces(id!);
+    for (const row of rows) {
+      const changed = await adminClient()
+        .from("listing_locations")
+        .update({ created_at: row.position === 1 ? "2026-10-06T12:00:00Z" : "2026-10-05T12:00:00Z" })
+        .eq("id", row.id);
+      expect(changed.error).toBeNull();
+    }
     const cleared = await adminClient()
       .from("listings")
       .update({ location_id: null })
@@ -248,6 +256,9 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     const saved = await rpc(page, "save_seller_place", { p_listing_id: id });
     expect(saved.error).toBeNull();
     expect(saved.data).toEqual({ ok: true });
+    const place = await adminClient().from("seller_places").select("location_id").eq("user_id", user.id).single();
+    expect(place.error).toBeNull();
+    expect(place.data!.location_id).toBe(b.city.id);
   });
 
   test("PR-38 owner's client cannot insert, update or delete coverage; the route can", async ({
