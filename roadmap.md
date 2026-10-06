@@ -1,6 +1,6 @@
 # Roadmap
 
-Bundle 6 brief: docs/governance/briefs/bundle-6.md (read first every turn).
+No bundle brief is in force: bundle 6 closed on 2026-10-06 (its brief stays at docs/governance/briefs/bundle-6.md). The next brief — bundle 7, the posting-form round — is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -92,12 +92,42 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] Part X — workflow file repaired and linted, INC-457 (turn 5)
 - [x] Part W — Next judged at its step, summary names questions, first identity answer keeps details, INC-455/456 (turn 5)
 - [x] Part Y — workflow lint flags, PW-22, keyed paging, scratch-definition reaper, further errors in the failure report (turn 6)
+- [x] Turn 7 — the scratch-definition reaper also matches a family prefix (INC-463)
+- [x] Turn 8 — the E2E setup refuses an app under test that does not point at staging (INC-464, DEC-146)
+- [x] Turn 9 — a queued draft save is never sent below step 1 (INC-465)
+- [x] Turn 10 — the workflow-lint download retries (INC-468, DEC-147)
+- [x] Records turn (bundle 6 close, 2026-10-06) — spec-ledger S55 (DEC-136–147), INC-450–472, system-state, the order of work; see docs/governance/handoffs/2026-10-06-bundle6-close-handover.md
 
-## Next — bundle 7 candidates (not specced; the supervisor explains each to the operator before the brief)
+## The order of work from 2026-10-06
 
+The operator's answers of 2026-10-06 and the cross-check that nothing identified earlier was dropped: docs/governance/handoffs/2026-10-06-order-of-work-and-cross-check.md (every item by its place, with its references). Nothing below is specced until its line says so; the supervisor explains each bundle or stage to the operator part by part before its brief is written.
+
+### Bundle 7 — the posting-form round (next; not specced)
+
+- [ ] DEC-144 — a changed answer resets only what depends on it; the parent question is asked first; an earlier answer narrows a later one (the whole-form restart is retired; tests PW-59, PW-60, PW-61, PW-32, PW-163, PW-22 step iv, PW-162 sequence e)
 - [ ] Previously used categories on the wizard's category step (operator, 2026-10-05)
 - [ ] One number formatter for specification values and settled ranges (INC-451)
-- [ ] The database security lints: public.security_lints() and the nightly step (DEC-132 layer B, B2 option ii)
 - [ ] admin_delete_category refuses a row with children; the pointer dialog's Home badge and "Make home" (C4)
-- [ ] Census of every list read against the data API's 1,000-row cap, each paged or shown bounded (INC-459)
-- [ ] The seeders that leave scratch attribute definitions behind (Y3d)
+- [ ] The database security lints: public.security_lints() and the nightly step (DEC-132 layer B, B2 option ii)
+- [ ] Every list read against the data API's 1,000-row cap paged or shown bounded (INC-459; the census is in docs/governance/handoffs/2026-10-06-bundle6-running-record.md)
+- [ ] The seeders that leave scratch attribute definitions behind (INC-463, Y3d)
+- [ ] An answer later switched off prints its label, not its key (INC-466)
+- [ ] The catalogue's Merge, delete and unlink look at the answers ads hold (INC-467; the executor's census of bundle 6 turn 10 is in the same running record)
+- [ ] A built title leaves out a label that holds the {country} token
+- [ ] An autosave refused by the door is not dropped without a word (seen at INC-465)
+- [ ] A test that Unit of Sale is asked before Quantity (promised 2026-10-01)
+- [ ] Three checks in the code first, a fix line for any that fails: a saved extra place in another country after Back; the chosen currency visible while searching; the built title on "Other" categories (INC-343)
+
+### After bundle 7, in this order
+
+1. Stage 1 — the rules: the legal section (Terms, Privacy, the publishing statement as numbered versions; the 18+ tick; the seller's certification), the banned-items and safety pages, the screening-promise wording
+2. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449), the CI report's gaps (INC-419, INC-429), INC-398, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), the four-lens review of the posting era
+3. Stage 2 — automatic screening from the first ad, in two layers (DEC-145): the screening gateway, duplicates, the exceptions page, posting limits and AI switches, Admin › Services (DEC-091), admin numbers
+4. Stage 3 — a buyer can open the ad: the ad page with Show contact, Report, Share and the safety box; photos on cards and paging; contact ticks; request a missing place and the admin inbox
+5. Stage 4 — sellers manage ads: My ads with retention, views and contacts per ad, a real paused state (INC-469), the expiry sweep through the state machine (INC-470)
+6. Posting-form extras — several prices in one ad (DEC-131), sizes and price drops (D68), photo tools (D65), the smaller form-engine items, an answer offered only in some countries (D75)
+7. Stage 5 — buyers find things: lists from the buyer's city, search and filters, favourites and saved searches
+8. Stage 6 — staying in touch: install and data saver, notifications, messages (every message screened), the site's own Telegram channels (ACT-007)
+9. Stage 7 — account and data: the Your data page, the devices list, Settings, the Telegram sign-in door (DEC-012)
+10. The launch round and the operator's launch checklist — backups and restore drill, observability, the 3G measurement, redirects from the old site, the private switch (DEC-116); then opening
+11. Stage 8 — the seller page at ethio.com/name and the business badge
