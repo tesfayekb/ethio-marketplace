@@ -299,19 +299,17 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     const [x, y, draftOnly, closed, inactive, foreign, tied, older] = cats;
     const time = "2026-10-06T12:00:00Z";
     const seed = async (categoryId: string, sellerId: string, published: string | null) => {
-      const result = await adminClient()
-        .from("listings")
-        .insert({
-          seller_id: sellerId,
-          category_id: categoryId,
-          title: "e2e recent category",
-          description: "e2e scratch ad",
-          status: "draft",
-          location_id: null,
-          attributes: {},
-          published_first_at: published,
-          home_country_code: "ET",
-        });
+      const result = await adminClient().from("listings").insert({
+        seller_id: sellerId,
+        category_id: categoryId,
+        title: "e2e recent category",
+        description: "e2e scratch ad",
+        status: "draft",
+        location_id: null,
+        attributes: {},
+        published_first_at: published,
+        home_country_code: "ET",
+      });
       expect(result.error).toBeNull();
     };
     await seed(x!.id, user.id, time);
