@@ -5,6 +5,8 @@ pull request targeting `main`. All jobs run in parallel.
 
 ## Jobs
 
+DEC-133 (2026-10-05): every job runs on ubuntu-24.04, pinned — GitHub moves ubuntu-latest to Ubuntu 26 from 2026-10-19; the pin moves only by a later DEC after one fully green matrix run on the new image.
+
 | Job             | Purpose                                                                 | Status   |
 | --------------- | ----------------------------------------------------------------------- | -------- |
 | build-and-check | `bun install` → `bun run typecheck` → `bun run lint` → `bun run build`. | **FAIL** |

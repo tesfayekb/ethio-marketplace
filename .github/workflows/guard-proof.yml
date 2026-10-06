@@ -12,7 +12,7 @@ permissions:
 jobs:
   guard-proof:
     name: Guard proof (mutation fixtures, ethio-staging)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # ethio-staging — publishable values only; the service-role key is a secret.
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
