@@ -706,3 +706,4 @@
 - 2026-10-06 — Bundle 7 Part B: a picker shows its current choice first and marked while it is open (searchable-picker.tsx).
 - 2026-10-06 — Bundle 7 Part B: the suggested title leads with the seller's own name for the item on leaves that ask for it, and leaves out a label that holds the {country} token (build-title.ts).
 - 2026-10-06 — Bundle 7 Part B: an autosave the server failed on shows 'Not saved yet' and retries up to three times (use-draft.ts).
+- 2026-10-06 — Bundle 7 turn 3: INC-475 — shell-quote pinned >=1.11.0 by override (GHSA-pqg4-j6r4-53mv, critical; reached through the platform's config package, dev tooling only).
