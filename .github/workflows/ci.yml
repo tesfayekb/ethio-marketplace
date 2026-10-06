@@ -1069,6 +1069,7 @@ jobs:
         marketplace-weight,
         bundle-budget,
         dependency-audit,
+        semgrep,
         e2e-preflight,
         e2e-build,
         e2e-smoke,
