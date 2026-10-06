@@ -1357,6 +1357,8 @@ async function main() {
       "CAP-1 a missing testid fails with a locator error",
       "CAP-2 a test-level timeout records no failed step",
       "Test timeout of 20000ms exceeded.",
+      // INC-462 / DEC-143 — a timed-out test names the action it waited on.
+      "page.waitForTimeout",
       "- Source: `shard 2`",
       // The quoted tail of the REAL page snapshot.
       "Context:",
