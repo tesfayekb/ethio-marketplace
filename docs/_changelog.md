@@ -698,3 +698,4 @@
 - 2026-10-06 — Bundle 6 Part Y4: INC-462, DEC-143 — the failure report carries up to three further errors of a result, so a timed-out test names the action it waited on.
 - 2026-10-06 — INC-463 (DEC-142): the scratch attribute reaper also matches `e2e_`/`e2e-` directly after a hyphen (`/(^|-)e2e[_-]/`), so family-prefixed leftovers such as `pricing_type-e2e_…` are reaped; e2e-harness.md updated.
 - 2026-10-06 — Bundle 6 turn 8: INC-464, DEC-146 — the E2E setup refuses an app under test whose VITE_SUPABASE_URL/SUPABASE_URL is not ethio-staging (e2e/helpers/app-target.ts); the failure report heads the accessibility section "gating".
+- 2026-10-06 — Bundle 6 turn 9: INC-465 — a queued draft save is never sent below step 1: sent as step 1 once a category is chosen, kept queued without one (src/features/posting/use-draft.ts); unit tests (i)–(iv) in use-draft.test.tsx.

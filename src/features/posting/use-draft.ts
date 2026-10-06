@@ -270,8 +270,15 @@ export function useDraft(initialListingId: string | null): UseDraft {
 
   /** ONE pass at the server with whatever is pending. Answers "did it take?". */
   const pass = useCallback(async (): Promise<boolean> => {
-    const forStep = pendingStepRef.current;
-    if (forStep === null) return true;
+    const queued = pendingStepRef.current;
+    if (queued === null) return true;
+    // INC-465 — THE DOOR'S FLOOR IS STEP 1: it refuses a step below 1 ('unknown
+    // step'). A save queued below 1 goes as step 1 once a category is chosen (the
+    // door judges the category and stores the rest); with no category it is not
+    // sent and stays queued for the next claim. The floor sits here, at the one
+    // sender, so no writer of the queue can send below it.
+    if (queued < 1 && valuesRef.current.categoryId === null) return false;
+    const forStep = Math.max(1, queued);
     const claimed = strictRef.current;
     const strict = claimed !== null && forStep >= claimed;
     const token = strict ? claimTokenRef.current : 0;
