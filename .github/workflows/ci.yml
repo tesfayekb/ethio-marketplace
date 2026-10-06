@@ -219,6 +219,71 @@ jobs:
       - name: Check the first-paint budget
         run: node scripts/check-bundle-size.mjs
 
+  # DEC-132 layer B (Bundle 6, B1): Semgrep CE, pinned version + pinned rules
+  # commit, no registry fetch. ERROR findings fail the job; WARNING findings are
+  # printed as a count line only (bodies stay private — the repo is public).
+  semgrep:
+    name: Semgrep (enforcing on ERROR)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write
+    env:
+      SEMGREP_VERSION: "1.179.0"
+      SEMGREP_RULES_SHA: a84ff9cc2453ca91d581380de4b8b3f272f6f4be
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned Semgrep
+        run: pip install "semgrep==${SEMGREP_VERSION}"
+      - name: Fetch pinned rules
+        run: |
+          git clone --depth 1 https://github.com/semgrep/semgrep-rules /tmp/semgrep-rules
+          git -C /tmp/semgrep-rules fetch --depth 1 origin "$SEMGREP_RULES_SHA"
+          git -C /tmp/semgrep-rules checkout --quiet "$SEMGREP_RULES_SHA"
+          # Excluded rule (baseline 2026-10-05: 304 noise results; i18n is
+          # enforced by our own string scan and usage map).
+          rm -f /tmp/semgrep-rules/typescript/react/portability/i18next/i18next-key-format.yaml
+      # Self-test first: a guard that only ever passes proves nothing.
+      - name: Self-test (planted fixture must be found)
+        run: |
+          n=$(semgrep scan --metrics=off --disable-version-check \
+            --config /tmp/semgrep-rules/javascript --severity ERROR --json \
+            scripts/fixtures/semgrep | python3 -c "import json,sys;print(len(json.load(sys.stdin)['results']))")
+          echo "Semgrep self-test findings: $n"
+          if [ "$n" -lt 1 ]; then echo "::error::Semgrep self-test found nothing in scripts/fixtures/semgrep"; exit 1; fi
+      - name: Scan (counts only)
+        run: |
+          semgrep scan --metrics=off --disable-version-check \
+            --config /tmp/semgrep-rules/javascript \
+            --config /tmp/semgrep-rules/typescript \
+            --config /tmp/semgrep-rules/generic/secrets \
+            --exclude scripts/fixtures/semgrep \
+            --exclude scripts/fixtures/e2e-results-sample.json \
+            --json -o semgrep.json --sarif-output=semgrep.sarif \
+            src e2e scripts > /dev/null
+          python3 - <<'PY'
+          import json, sys
+          d = json.load(open("semgrep.json"))
+          r = d["results"]
+          err = sum(1 for x in r if x["extra"]["severity"] == "ERROR")
+          warn = sum(1 for x in r if x["extra"]["severity"] == "WARNING")
+          print(f"Semgrep counts: ERROR={err} WARNING={warn}")
+          if err:
+              for x in r:
+                  if x["extra"]["severity"] == "ERROR":
+                      print(f"::error::{x['path']}:{x['start']['line']} {x['check_id']}")
+              sys.exit(1)
+          PY
+      - name: Upload SARIF
+        if: always() && hashFiles('semgrep.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
   dependency-audit:
     name: Dependency vulnerability audit (enforcing on high/critical)
     runs-on: ubuntu-24.04
@@ -1005,6 +1070,7 @@ jobs:
         marketplace-weight,
         bundle-budget,
         dependency-audit,
+        semgrep,
         e2e-preflight,
         e2e-build,
         e2e-smoke,

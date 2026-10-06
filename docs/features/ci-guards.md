@@ -48,6 +48,25 @@ Enforcing gate on high/critical npm advisories, with a separate red for an
 unreachable advisory service. Details and accepted exceptions:
 `docs/features/dependency-audit.md`.
 
+## semgrep (added 2026-10-06, Bundle 6 B1, DEC-132 layer B)
+
+"Semgrep (enforcing on ERROR)": pinned Semgrep 1.179.0 and semgrep-rules
+commit `a84ff9cc2453ca91d581380de4b8b3f272f6f4be`; self-test on
+`scripts/fixtures/semgrep/bad-example.js` first; ERROR findings fail,
+WARNING is a count line only; SARIF uploaded. A `promote` dependency.
+Details: `docs/features/security-scanning.md`.
+
+## Migration linter — dynamic grants and real-row proofs (Bundle 6 A3/A4)
+
+- Public-surface guard (INC-443): also reads `FOREACH … IN ARRAY ARRAY[…]`
+  loops that run `EXECUTE format('GRANT … TO anon|authenticated|PUBLIC', f)`
+  and flags every listed function not in `scripts/public-surface-allowlist.txt`.
+  Self-test fixture: `scripts/fixtures/bad-public-grant-format-example.sql`.
+- Real-row proof guard (INC-445, floor `REAL_ROW_FLOOR=20261007000000`): a DO
+  block reading identity/reference tables without the `e2e-mig-` scratch
+  namespace is refused. Self-test fixture:
+  `scripts/fixtures/bad-real-row-proof-example.sql`.
+
 ## browse-path-guard (added 2026-08-09, Phase R3)
 
 `scripts/check-browse-imports.sh` fails the build when anything outside the

@@ -1,0 +1,26 @@
+# DISABLED until the repository is private (DEC-116): a public DAST report is a public map. Run by hand only.
+#
+# DEC-132 layer B (Bundle 6, B4): OWASP ZAP baseline (passive) scan of the
+# published site. workflow_dispatch ONLY — no schedule, no push. The report is
+# kept as a job artifact and is never written to ci-evidence.
+name: ZAP baseline (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zap-baseline:
+    name: OWASP ZAP baseline
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ZAP baseline scan
+        # zaproxy/action-baseline v0.15.0, pinned by commit.
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25
+        with:
+          target: https://ethio-market-dawn.lovable.app
+          allow_issue_writing: false
+          fail_action: false
+          artifact_name: zap-baseline-report
