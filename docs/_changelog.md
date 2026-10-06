@@ -707,3 +707,5 @@
 - 2026-10-06 — Bundle 7 Part B: the suggested title leads with the seller's own name for the item on leaves that ask for it, and leaves out a label that holds the {country} token (build-title.ts).
 - 2026-10-06 — Bundle 7 Part B: an autosave the server failed on shows 'Not saved yet' and retries up to three times (use-draft.ts).
 - 2026-10-06 — Bundle 7 turn 3: INC-475 — shell-quote pinned >=1.11.0 by override (GHSA-pqg4-j6r4-53mv, critical; reached through the platform's config package, dev tooling only).
+
+2026-10-06 — Bundle 7 Part C (INC-466/467/474/476): M10 releases removed prior answers, adds retired labels, stores place order through seller doors only, orders seller-place fallback by position, and adds caller-only recent categories; PR-34–39 and coverage-write guard fixture. apply 626282eb → expect mark 20261007140000.
