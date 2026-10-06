@@ -1297,10 +1297,9 @@ test.describe("POSTING WIZARD", () => {
     ).toHaveCount(0);
 
     /**
-     * INC-245 — A DEFAULT IS WHAT AN EMPTY FIELD STARTS FROM, not a one-off. A make
-     * change empties every detail (D25b), so the link's default fills the unit again
-     * rather than leaving a field the category says has an opening answer.
-     * (DEC-139: a first answer restarts nothing; a CHANGE of make does)
+     * DEC-144 rule 1 — the unit depends on no make, so neither a first make answer
+     * nor a change of make touches the seller's unit. (A default returning after a
+     * reset, INC-245, is PW-166's.)
      */
     await unit.selectOption(fold.unitValues[1]);
     await expect(unit).toHaveValue(fold.unitValues[1]);
@@ -1319,11 +1318,13 @@ test.describe("POSTING WIZARD", () => {
       fold.unitValues[1],
     );
     await expect(page.getByTestId("post-specs-reset")).toHaveCount(0);
-    // A CHANGE of make — a different identity — restarts the form.
+    // A CHANGE of make: the unit does not depend on it and stays the seller's.
     await make.selectOption(fold.makeValues[1]);
-    await expect(unit, "PW-22: the link's default did not return after a make reset").toHaveValue(
-      fold.unitValues[0],
-      { timeout: 20_000 },
+    await expect
+      .poll(async () => (await attributesOf(listingId))[fold.make.attrKey], { timeout: 20_000 })
+      .toBe(fold.makeValues[1]);
+    await expect(unit, "PW-22: a make change moved the seller's unit (DEC-144)").toHaveValue(
+      fold.unitValues[1],
     );
 
     // J4 — DB truth: the default the screen showed is what the door recorded.
@@ -1331,9 +1332,9 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-4")).toBeVisible();
     await expect
       .poll(async () => (await attributesOf(listingId))[fold.unit.attrKey], {
-        message: "PW-22: the prefilled default never reached the draft",
+        message: "PW-22: the seller's unit never reached the draft",
       })
-      .toBe(fold.unitValues[0]);
+      .toBe(fold.unitValues[1]);
   });
 
   /**
