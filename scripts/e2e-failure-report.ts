@@ -82,7 +82,12 @@ export const FLAKE_LEDGER_HEADER = [
   "",
 ].join("\n");
 
-type PwResult = { status?: string; error?: { message?: string }; duration?: number };
+type PwResult = {
+  status?: string;
+  error?: { message?: string };
+  errors?: Array<{ message?: string }>;
+  duration?: number;
+};
 type PwTest = { projectName?: string; status?: string; results?: PwResult[] };
 type PwSpec = { title?: string; ok?: boolean; file?: string; tests?: PwTest[] };
 type PwSuite = { title?: string; file?: string; specs?: PwSpec[]; suites?: PwSuite[] };
@@ -373,7 +378,19 @@ export function collect(json: PwJson): {
         if (status === "expected" || status === "skipped") continue;
         const result = (test.results ?? []).find((r) => r.status && r.status !== "passed");
         const raw = result?.error?.message ?? "(no error message captured)";
-        const message = redact(raw).split("\n").slice(0, 40).join("\n");
+        // INC-462 / DEC-143 — after the first error, up to three FURTHER errors
+        // that differ from it (a timeout's first says only "Test timeout"; a
+        // later one names the action that was waiting).
+        const further = (result?.errors ?? [])
+          .map((entry) => entry.message ?? "")
+          .filter((text) => text !== "" && text !== raw)
+          .slice(0, 3)
+          .map(
+            (text, index) =>
+              `--- further error ${index + 1} ---\n` +
+              redact(text).split("\n").slice(0, 20).join("\n"),
+          );
+        const message = [redact(raw).split("\n").slice(0, 40).join("\n"), ...further].join("\n");
         const specTitle = spec.title ?? "(untitled)";
         const title = redact([suiteFile, ...path, specTitle].filter(Boolean).join(" › "));
         if (status === "flaky") {
