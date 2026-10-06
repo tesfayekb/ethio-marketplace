@@ -492,7 +492,10 @@ export function useDraft(initialListingId: string | null): UseDraft {
       claimSeqRef.current += 1;
       const mine = claimSeqRef.current;
       claimTokenRef.current = mine;
-      pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, forStep);
+      // INC-455 (DEC-139 R1) — a Next on step S is sent and judged at S: a step
+      // left queued by an autosave, a transport retry or a dial pause never
+      // raises it.
+      pendingStepRef.current = forStep;
       // INC-366 — THE CLAIM'S OWN VERDICT DECIDES. When an autosave was in the
       // air, ITS follow-up pass carried this claim and was refused; this run
       // then found nothing queued and answered "took", so Next advanced past
@@ -527,6 +530,22 @@ export function useDraft(initialListingId: string | null): UseDraft {
     stepRef.current = next;
     setStep(next);
     setRefusals([]);
+    // INC-455 (DEC-139 R1) — LEAVING A STEP ENDS ITS CLAIM. An unanswered strict
+    // claim stops being strict (a new token, so its late answer shows nothing on
+    // this screen), and anything still queued is lowered to this screen's backup
+    // step, so it is saved, never judged above the step on screen.
+    if (strictRef.current !== null) {
+      strictRef.current = null;
+      claimSeqRef.current += 1;
+      claimTokenRef.current = claimSeqRef.current;
+    }
+    if (pendingStepRef.current !== null) {
+      const backupStep = Math.max(
+        0,
+        next === 1 ? 0 : Math.min(draftStepRef.current, prevOf(next)),
+      );
+      pendingStepRef.current = Math.min(pendingStepRef.current, backupStep);
+    }
   }, []);
 
   /** RESUME: the owner's draft, opened at the step after the one it reached. */

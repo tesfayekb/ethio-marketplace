@@ -1,0 +1,12 @@
+# INC-457 / DEC-140 self-test fixture: a `run` step that carries `with`,
+# so actionlint must exit non-zero on this file.
+name: bad-step
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: A run step with a with block
+        run: echo build
+        with:
+          bun-version: 1.3.14

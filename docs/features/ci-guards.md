@@ -907,3 +907,13 @@ when `promote.needs` names a job that does not exist. SIGNAL_ONLY holds
 the script exit non-zero. Wired as "Promote needs every job (with self-test)" in
 `build-and-check`. Rule (DEC-137): a job gates promotion unless SIGNAL_ONLY names
 it with its decision number.
+
+## Workflow lint (added 2026-10-06, Bundle 6 X, INC-457, DEC-140)
+
+"Workflow lint (actionlint, pinned)" in `build-and-check`, right after the
+promote-needs step, downloads actionlint 1.7.7 from its release page, checks the
+tarball's sha256 against the value pinned in the step, proves itself on
+`scripts/fixtures/workflow-bad-step.yml` (a `run` step that carries `with`, which
+must fail), then lints `.github/workflows/*.yml`. Rule (DEC-140): a workflow file
+is linted before it is pushed; every turn that edits a file under
+`.github/workflows/` runs the same pinned lint and pastes its output.
