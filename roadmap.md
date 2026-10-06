@@ -106,15 +106,15 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 
 - [ ] DEC-144 — a changed answer resets only what depends on it; the parent question is asked first; an earlier answer narrows a later one (the whole-form restart is retired; tests PW-59, PW-60, PW-61, PW-32, PW-163, PW-22 step iv, PW-162 sequence e)
 - [ ] Previously used categories on the wizard's category step (operator, 2026-10-05)
-- [ ] One number formatter for specification values and settled ranges (INC-451)
+- [x] One number formatter for specification values and settled ranges (INC-451)
 - [ ] admin_delete_category refuses a row with children; the pointer dialog's Home badge and "Make home" (C4)
 - [ ] The database security lints: public.security_lints() and the nightly step (DEC-132 layer B, B2 option ii)
 - [ ] Every list read against the data API's 1,000-row cap paged or shown bounded (INC-459; the census is in docs/governance/handoffs/2026-10-06-bundle6-running-record.md)
 - [ ] The seeders that leave scratch attribute definitions behind (INC-463, Y3d)
 - [ ] An answer later switched off prints its label, not its key (INC-466)
 - [ ] The catalogue's Merge, delete and unlink look at the answers ads hold (INC-467; the executor's census of bundle 6 turn 10 is in the same running record)
-- [ ] A built title leaves out a label that holds the {country} token
-- [ ] An autosave refused by the door is not dropped without a word (seen at INC-465)
+- [x] A built title leaves out a label that holds the {country} token
+- [x] An autosave refused by the door is not dropped without a word (seen at INC-465)
 - [ ] A test that Unit of Sale is asked before Quantity (promised 2026-10-01)
 - [ ] Three checks in the code first, a fix line for any that fails: a saved extra place in another country after Back; the chosen currency visible while searching; the built title on "Other" categories (INC-343)
 
