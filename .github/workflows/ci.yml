@@ -256,12 +256,15 @@ jobs:
           if [ "$n" -lt 1 ]; then echo "::error::Semgrep self-test found nothing in scripts/fixtures/semgrep"; exit 1; fi
       - name: Scan (counts only)
         run: |
+          EXCLUDES=(--exclude scripts/fixtures/semgrep
+            # captured reporter fixture (INC-083, never edited); its JWT-shaped strings are synthetic ({"alg":"HS256"} / {"sub":"123"}) and feed the reporter's redaction self-test
+            --exclude scripts/fixtures/e2e-results-sample.json)
           semgrep scan --metrics=off --disable-version-check \
             --config /tmp/semgrep-rules/javascript \
             --config /tmp/semgrep-rules/typescript \
             --config /tmp/semgrep-rules/generic/secrets \
-            --exclude scripts/fixtures/semgrep \
-            --exclude scripts/fixtures/e2e-results-sample.json \
+            --severity ERROR --severity WARNING \
+            "${EXCLUDES[@]}" \
             --json -o semgrep.json --sarif-output=semgrep.sarif \
             src e2e scripts > /dev/null
           python3 - <<'PY'
@@ -272,9 +275,7 @@ jobs:
           warn = sum(1 for x in r if x["extra"]["severity"] == "WARNING")
           print(f"Semgrep counts: ERROR={err} WARNING={warn}")
           if err:
-              for x in r:
-                  if x["extra"]["severity"] == "ERROR":
-                      print(f"::error::{x['path']}:{x['start']['line']} {x['check_id']}")
+              print(f"::error::Semgrep: {err} ERROR finding(s). Bodies are not printed in this log (DEC-132 rule 2). Reproduce locally with the pinned version and rules, or read Security → Code scanning (branch dev, tool Semgrep).")
               sys.exit(1)
           PY
       - name: Upload SARIF
