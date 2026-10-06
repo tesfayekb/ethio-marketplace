@@ -683,3 +683,4 @@
 - 2026-10-05 — records turn (bundle 5 close): spec-ledger S54 (DEC-132…135, slips S93–S97), incidental-findings INC-438…449, system-state (evening position), AGENTS.md DEC-094 line, action tracker dispositions + ACT-011, roadmap, handoff 2026-10-05-bundle5-close-handover.md with its manifest
 - 2026-10-06 — Bundle 6 Part P: DEC-133 — runs-on pinned to ubuntu-24.04 in all four workflows (25 jobs).
 - 2026-10-06 — Bundle 6 Part A: M9a (revise dial 120/h) + M9b (six seller doors refuse rateLimited, INC-444; place step shows the wait line); INC-443 guard reads format() grant loops; INC-445 real-row proof guard (floor 20261007000000); INC-446 map fallback 60/h per address; INC-447 doors' raw messages no longer reach the client; INC-448 bounded contact scan; DEC-135 30 s save timeout. Tests PR-27…PR-33.
+- 2026-10-06 — Bundle 6 turn 3a: INC-450 — source-map-js pinned >=1.2.2 by override (GHSA-68fv-2mgg-jv7q); no other package change.
