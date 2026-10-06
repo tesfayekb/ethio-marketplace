@@ -76,3 +76,4 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] Part D — the nightly of 2026-10-05: PW-32 and the aborted-request lines (INC-439) — answered read-only, not reproduced, no change
 - [x] Part F — the identity route's paid check behind a rate gate (INC-442)
 - [x] Part E — the records this bundle writes
+- [x] Records turn (bundle 5 close, 2026-10-05) — spec-ledger S54, INC-438–449, system-state, AGENTS.md DEC-094 line, action tracker; see docs/governance/handoffs/2026-10-05-bundle5-close-handover.md
