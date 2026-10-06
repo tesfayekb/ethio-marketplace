@@ -528,7 +528,7 @@ export function a11ySection(
   }
   const cov = logCoverage(sources);
   return [
-    "## Accessibility (DEC-084, non-gating)",
+    "## Accessibility (DEC-084, gating)",
     "",
     cov.line,
     "",
@@ -1928,8 +1928,8 @@ async function main() {
         ],
         [
           "a11y line in both forms",
-          green.includes("## Accessibility (DEC-084, non-gating)") &&
-            red.includes("## Accessibility (DEC-084, non-gating)"),
+          green.includes("## Accessibility (DEC-084, gating)") &&
+            red.includes("## Accessibility (DEC-084, gating)"),
         ],
         ["a11y counts read", green.includes("10 page×project check(s): serious=1 critical=0")],
       ];

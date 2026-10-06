@@ -381,3 +381,15 @@ on ALL it prints and stops — CI carries the rest. The build job runs
 ## Scratch attribute definitions reaper (INC-458, DEC-142, 2026-10-06)
 
 In the setup's maintenance block, after the scratch-category reaper: `public.attributes` rows whose `attr_key` starts with `e2e_` or `e2e-` and whose `created_at` is older than the 3h fixture window (`cutoff`). The selection is the pure `planAttributeReap` (e2e/helpers/attribute-reap-plan.ts, tested in src/test/attribute-reap-plan.test.ts); a key also counts as scratch when `e2e_` or `e2e-` follows a hyphen directly (a family prefix such as `pricing_type-e2e_…`, INC-463); any other key is never chosen, and a stale definition that a kept definition depends on stays for a later run. Per batch (chunkByLength, ≤ 4,000 characters): links → translations (`entity_type` 'attribute') → definitions, a dependant first; every step throws with its name. Log line: `[e2e:setup] reaped <n> stale scratch attribute definition(s); kept <m>`. Runs on the maintenance owner (shard 1), or locally with `E2E_MAINTENANCE=1` (CI never sets it).
+
+## The app under test must point at staging (INC-464, DEC-146, 2026-10-06)
+
+Rule: before any browser test runs, the setup proves that the app under test points at ethio-staging, not only the service client. `assertAppTargetsStaging` (e2e/helpers/app-target.ts) runs in the global-setup preflight right after the `E2E_SUPABASE_URL` check: it throws unless `VITE_SUPABASE_URL` contains the staging ref, and when `SUPABASE_URL` is set it must contain it too. On success the setup logs `[e2e:setup] app target is staging = true`.
+
+The refusal message (URL only, never a key):
+
+```text
+[e2e:setup] the app under test does not point at ethio-staging (VITE_SUPABASE_URL = <value or "(unset)">). Start local runs with: bun run e2e:local
+```
+
+Local runs start only with `bun run e2e:local` (builds and serves with the staging environment) or `bun run e2e:changed` (which calls `e2e:local`). A plain `playwright test` reads the committed `.env`, whose address is not staging, and now stops in setup.
