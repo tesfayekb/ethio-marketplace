@@ -681,4 +681,3 @@
 - 2026-10-05 — Bundle 5 turn 3: INC-442 — the identity route counts identity:imitation (20 per 24 hours) before the paid imitation model call; refused as rate/rateLimited; PR-26 in e2e/posting-routes-identity.spec.ts.
 - 2026-10-05 — Bundle 5 close: Parts A–F done; INC-439 answered read-only (not reproduced locally in 6 serial runs, no change); M8a 78683470 → 20261006120000, M8b 6c825c7e → 20261006130000, M8c 59b6772e → 20261006140000.
 - 2026-10-05 — records turn (bundle 5 close): spec-ledger S54 (DEC-132…135, slips S93–S97), incidental-findings INC-438…449, system-state (evening position), AGENTS.md DEC-094 line, action tracker dispositions + ACT-011, roadmap, handoff 2026-10-05-bundle5-close-handover.md with its manifest
-

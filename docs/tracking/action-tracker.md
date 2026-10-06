@@ -49,4 +49,3 @@
 - ACT-011 (2026-10-05) — bundle 6: turn 1 the DEC-133 runner pin alone; Part A the security review's fixes (INC-443, INC-444 with M9, INC-445, INC-446, INC-447, INC-448) and DEC-135; Part B DEC-132 layer B (B1–B6); Part C the small follow-ups above. Brief delivered after the bundle 5 records turn is verified (G41).
 - ACT-010 — status 2026-10-05: DONE (C30 audited, imported and walked 2026-10-05; INC-314 confirmed on C29's leaf and fixed in bundle 5 M8a).
 - ACT-008 — status 2026-10-05: the curator's plan "Engine features, pass 1" (C31) audited and ruled 18:5xZ; the rows are being built; the `unit_am` words are the curator's next batch now that bundle 5 is live; the rent/hire periods and the DEC-094 rows follow.
-

@@ -64,4 +64,3 @@ Written by the supervisor thread "Supervisor 2026-10-05 — after bundle 4 (C30 
 - Security: "layers A, B and C … now; layer D's paid question at launch, default = the open-source scanners"; push protection "stays off until secret scanning has run a few days with no alert on the publishable .env values — your call then"; "Nothing to the executor until bundle 5 lands."
 - On the runner outage: "LETS ASK LOVABLE TO CHECK AND FIX THE ISSUE" — answered with the evidence that it was GitHub's; no executor prompt went out.
 - "Migration applied, continue" — sent to the executor at the turn-1 stop before the stop report reached the supervisor (deviation recorded, no harm).
-

@@ -3308,4 +3308,3 @@ Defect: `e2e/post-wizard-pricing.spec.ts` › PW-57 ("a per-quintal basis keeps 
 Numbering: next free INC-450.
 
 Watch list (DEC-030 rule, three flakes in seven days, as of run 37386543669 on 2026-10-05): LS-6 (seven matrix lines in the window — INC-285 reopened / INC-428; no source closes INC-285), PW-55 (three — INC-430), PW-57 (three — INC-449), PW-76 (two in the window plus the fast lane — INC-440), CO-4 (two in the window — INC-441), TR-29 (two — INC-345, parked), LT-13 (four, all before its fix `70e16ea5` — INC-334 closed, no line since), PW-10, TR-28, TR-24, AT-47, TR-10, LR-3 (two each, no INC); the fast-lane-only flakes are contention noise by DEC-023-B. The server-error census still carries "listing not found" off the allowlist (8 lines on run 37386543669 — INC-398, the close-out bundle's).
-
