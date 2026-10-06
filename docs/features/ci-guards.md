@@ -912,7 +912,8 @@ it with its decision number.
 
 "Workflow lint (actionlint, pinned)" in `build-and-check`, right after the
 promote-needs step, downloads actionlint 1.7.7 from its release page, checks the
-tarball's sha256 against the value pinned in the step, proves itself on
+tarball's sha256 against the value pinned in the step (the download retries
+five times, five seconds apart: INC-468, DEC-147), proves itself on
 `scripts/fixtures/workflow-bad-step.yml` (a `run` step that carries `with`, which
 must fail), then lints `.github/workflows/*.yml`. Rule (DEC-140): a workflow file
 is linted before it is pushed; every turn that edits a file under

@@ -56,13 +56,14 @@ jobs:
       # INC-460 / DEC-141: its shell and Python checks are OFF (-shellcheck= -pyflakes=):
       # they run whatever shellcheck the machine happens to carry, so the same
       # commit passed where there is none and failed on the runner.
+      # INC-468 / DEC-147: the download retries (5 tries, 5 s apart): one HTTP 500 from the release host must not red the job.
       - name: Workflow lint (actionlint, pinned)
         env:
           ACTIONLINT_VERSION: 1.7.7
           ACTIONLINT_SHA256: 023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757
         run: |
           tarball="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
-          curl -sSfL -o "$RUNNER_TEMP/$tarball" \
+          curl -sSfL --retry 5 --retry-delay 5 --retry-all-errors -o "$RUNNER_TEMP/$tarball" \
             "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/$tarball"
           echo "$ACTIONLINT_SHA256  $RUNNER_TEMP/$tarball" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" actionlint
