@@ -772,9 +772,7 @@ test.describe("POSTING WIZARD", () => {
     // On Price: the refused Next names the basis by its name, in English.
     await page.getByTestId("post-next").click();
     await expect(summary).toBeVisible({ timeout: 20_000 });
-    await expect(summary, "PW-162: the summary printed the key").not.toContainText(
-      basis.basisKey,
-    );
+    await expect(summary, "PW-162: the summary printed the key").not.toContainText(basis.basisKey);
     await expect(summary).toContainText(nameEn);
 
     // (a) refused Next, Back, Back, Next.
