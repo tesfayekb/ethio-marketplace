@@ -540,10 +540,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       claimTokenRef.current = claimSeqRef.current;
     }
     if (pendingStepRef.current !== null) {
-      const backupStep = Math.max(
-        0,
-        next === 1 ? 0 : Math.min(draftStepRef.current, prevOf(next)),
-      );
+      const backupStep = Math.max(0, next === 1 ? 0 : Math.min(draftStepRef.current, prevOf(next)));
       pendingStepRef.current = Math.min(pendingStepRef.current, backupStep);
     }
   }, []);
