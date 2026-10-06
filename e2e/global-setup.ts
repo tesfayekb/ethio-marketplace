@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { createClient } from "@supabase/supabase-js";
 
+import { chunkByLength } from "./helpers/chunk-by-length";
 import { retryingFetch } from "./helpers/net-retry";
 import migrationPreflight from "../scripts/e2e-migration-preflight";
 import { totp } from "./helpers/totp";
@@ -748,23 +749,23 @@ export default async function globalSetup() {
     throw new Error(`[e2e:setup] listing stale scratch roles failed: ${staleRoleError.message}`);
   }
   const staleRoleIds = (staleRoles ?? []).map((row) => row.id);
-  if (staleRoleIds.length > 0) {
+  for (const roleBatch of chunkByLength(staleRoleIds)) {
     // Dependents first: a role with grants or members cannot be deleted.
     const { error: permError } = await supabase
       .from("role_permissions")
       .delete()
-      .in("role_id", staleRoleIds);
+      .in("role_id", roleBatch);
     if (permError) {
       throw new Error(`[e2e:setup] reaping scratch role permissions failed: ${permError.message}`);
     }
     const { error: memberError } = await supabase
       .from("user_roles")
       .delete()
-      .in("role_id", staleRoleIds);
+      .in("role_id", roleBatch);
     if (memberError) {
       throw new Error(`[e2e:setup] reaping scratch role members failed: ${memberError.message}`);
     }
-    const { error: roleDeleteError } = await supabase.from("roles").delete().in("id", staleRoleIds);
+    const { error: roleDeleteError } = await supabase.from("roles").delete().in("id", roleBatch);
     if (roleDeleteError) {
       throw new Error(`[e2e:setup] reaping scratch roles failed: ${roleDeleteError.message}`);
     }
@@ -802,12 +803,12 @@ export default async function globalSetup() {
   }
   reapedListingCount += (reapedByTitle ?? []).length;
   reapedListings.push(...(reapedByTitle ?? []));
-  for (let index = 0; index < sellerIds.length; index += 100) {
+  for (const sellerBatch of chunkByLength(sellerIds)) {
     const { data: reapedBySeller, error: sellerListingError } = await supabase
       .from("listings")
       .delete()
       .lt("created_at", cutoff)
-      .in("seller_id", sellerIds.slice(index, index + 100))
+      .in("seller_id", sellerBatch)
       .select("id, seller_id");
     if (sellerListingError) {
       throw new Error(`[e2e:setup] reaping scratch listings failed: ${sellerListingError.message}`);
@@ -915,11 +916,11 @@ export default async function globalSetup() {
     if (!isOrphan) {
       const aliveIds = new Set<string>();
       const uuidFolders = folders.filter((name) => /^[0-9a-f-]{36}$/i.test(name));
-      for (let index = 0; index < uuidFolders.length; index += 100) {
+      for (const folderBatch of chunkByLength(uuidFolders)) {
         const { data: alive, error: aliveError } = await supabase
           .from("listings")
           .select("id")
-          .in("id", uuidFolders.slice(index, index + 100));
+          .in("id", folderBatch);
         if (aliveError)
           throw new Error(
             `[e2e:setup] reading listings for the photo backlog failed: ${aliveError.message}`,
@@ -1012,8 +1013,9 @@ export default async function globalSetup() {
         throw new Error(`[e2e:setup] reaping scratch category ${what} failed: ${error.message}`);
     }
   };
-  for (let index = 0; index < staleCategoryIds.length; index += 100) {
-    await reapCategoryBatch(staleCategoryIds.slice(index, index + 100));
+  // The pointer step names each batch twice (child_id and parent_id): half the cap.
+  for (const categoryBatch of chunkByLength(staleCategoryIds, 2000)) {
+    await reapCategoryBatch(categoryBatch);
   }
   console.log(`[e2e:setup] reaped ${staleCategoryIds.length} stale scratch categor(ies)`);
 
@@ -1114,7 +1116,7 @@ export default async function globalSetup() {
     const rows = activeCategories ?? [];
     const translated = new Set<string>();
     const ids = rows.map((row) => row.id);
-    for (let index = 0; index < ids.length; index += 200) {
+    for (const idBatch of chunkByLength(ids)) {
       const { data: approved, error: translationError } = await supabase
         .from("entity_translations")
         .select("entity_id")
@@ -1122,7 +1124,7 @@ export default async function globalSetup() {
         .eq("field", "name")
         .eq("lang_code", "am")
         .eq("status", "approved")
-        .in("entity_id", ids.slice(index, index + 200));
+        .in("entity_id", idBatch);
       if (translationError) {
         console.log(`[e2e:maintenance] ratified-am probe unavailable: ${translationError.message}`);
         translated.clear();
@@ -1150,8 +1152,8 @@ export default async function globalSetup() {
   const compiledEn = (await import("../src/i18n/locales/en")).default as Record<string, string>;
   const compiledKeys = Object.keys(compiledEn).filter((key) => !key.startsWith("e2e.scratch."));
   let healed = 0;
-  for (let index = 0; index < compiledKeys.length; index += 500) {
-    const batch = compiledKeys.slice(index, index + 500);
+  let probeError: string | null = null;
+  for (const batch of chunkByLength(compiledKeys)) {
     const { data: enRows, error: enError } = await supabase
       .from("ui_translations")
       .select("key,value,status")
@@ -1159,6 +1161,7 @@ export default async function globalSetup() {
       .in("key", batch);
     if (enError) {
       console.log(`[e2e:setup] EN baseline probe unavailable: ${enError.message}`);
+      probeError = enError.message;
       break;
     }
     const stale = (enRows ?? []).filter(
@@ -1184,7 +1187,11 @@ export default async function globalSetup() {
       healed += 1;
     }
   }
-  console.log(`[e2e:setup] healed ${healed} stale EN rows (INC-175)`);
+  console.log(
+    `[e2e:setup] healed ${healed} stale EN rows (INC-175; ${
+      probeError === null ? "probe complete" : `probe INCOMPLETE: ${probeError}`
+    })`,
+  );
 
   console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
 
