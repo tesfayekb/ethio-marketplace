@@ -24,6 +24,7 @@ describe("selectSpecs", () => {
     const list = out as string[];
     expect(list).toContain("e2e/post-wizard-place.spec.ts");
     expect(list).toContain("e2e/posting-routes.spec.ts");
+    expect(list).toContain("e2e/posting-routes-catalog.spec.ts");
     expect(list.some((s) => s.startsWith("e2e/admin-"))).toBe(false);
   });
 

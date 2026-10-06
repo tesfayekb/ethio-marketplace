@@ -936,6 +936,7 @@ export type Database = {
           lng: number | null
           location_id: string
           map_visible: boolean
+          position: number
         }
         Insert: {
           created_at?: string
@@ -945,6 +946,7 @@ export type Database = {
           lng?: number | null
           location_id: string
           map_visible?: boolean
+          position?: number
         }
         Update: {
           created_at?: string
@@ -954,6 +956,7 @@ export type Database = {
           lng?: number | null
           location_id?: string
           map_visible?: boolean
+          position?: number
         }
         Relationships: [
           {
@@ -3373,6 +3376,7 @@ export type Database = {
       }
       my_last_listing_private: { Args: { p_exclude?: string }; Returns: Json }
       my_listing_private: { Args: { p_listing_id: string }; Returns: Json }
+      my_recent_categories: { Args: never; Returns: Json }
       my_seller_line: { Args: never; Returns: Json }
       my_seller_place: { Args: never; Returns: Json }
       name_brand_folds: { Args: never; Returns: string[] }
