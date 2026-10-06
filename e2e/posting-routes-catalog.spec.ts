@@ -244,7 +244,9 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     for (const row of rows) {
       const changed = await adminClient()
         .from("listing_locations")
-        .update({ created_at: row.position === 1 ? "2026-10-06T12:00:00Z" : "2026-10-05T12:00:00Z" })
+        .update({
+          created_at: row.position === 1 ? "2026-10-06T12:00:00Z" : "2026-10-05T12:00:00Z",
+        })
         .eq("id", row.id);
       expect(changed.error).toBeNull();
     }
@@ -256,7 +258,11 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     const saved = await rpc(page, "save_seller_place", { p_listing_id: id });
     expect(saved.error).toBeNull();
     expect(saved.data).toEqual({ ok: true });
-    const place = await adminClient().from("seller_places").select("location_id").eq("user_id", user.id).single();
+    const place = await adminClient()
+      .from("seller_places")
+      .select("location_id")
+      .eq("user_id", user.id)
+      .single();
     expect(place.error).toBeNull();
     expect(place.data!.location_id).toBe(b.city.id);
   });
