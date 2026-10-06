@@ -4,8 +4,7 @@ The security scanning program, as built. Layers A–D; the rules at the end.
 
 ## Layer A — GitHub switches (facts)
 
-- Private vulnerability reporting is enabled on the repository (verified 2026-10-06); `SECURITY.md` at the root directs reporters to it.
-- Gitleaks runs on every CI push (`secrets-scan` job); the dependency audit (`dependency-audit`, `scripts/audit-gate.sh`) fails on high/critical advisories.
+GitHub-native, switched on by the operator on 2026-10-05 and free while the repository is public: Dependabot alerts (alerts only, no Dependabot pull requests), CodeQL default setup, secret scanning, private vulnerability reporting (`SECURITY.md` points reporters to it). Push protection stays off until the supervisor's call. In our own CI since before this program: Gitleaks on every push; the dependency audit, failing on high and critical advisories.
 
 ## Layer B — scanners in our own CI
 
@@ -15,7 +14,7 @@ The security scanning program, as built. Layers A–D; the rules at the end.
 - Rules: a clone of `https://github.com/semgrep/semgrep-rules` checked out at commit `a84ff9cc2453ca91d581380de4b8b3f272f6f4be`; no registry fetch, no `--config p/…`.
 - Rule directories: `javascript`, `typescript`, `generic/secrets`. Excluded rule: `i18next-key-format` (304 noise results in the 2026-10-05 baseline; i18n is enforced by the string scan and usage map).
 - Scope: `src/`, `e2e/`, `scripts/`.
-- What fails: any ERROR-severity finding (printed as `file:line rule-id`). WARNING findings are printed as one count line, never bodies.
+- What fails: any ERROR-severity finding. The job prints counts only — `Semgrep counts: ERROR=n WARNING=m` — never a path, a line or a rule id: the job log and the ci-evidence files are public. A finding's body is read in Security → Code scanning (choose branch dev, tool Semgrep) or reproduced locally with the pinned version and rules. INFO-level results are not collected.
 - SARIF is uploaded to code scanning (`github/codeql-action/upload-sarif`; job permissions `contents: read`, `security-events: write`).
 - Self-test first: `scripts/fixtures/semgrep/bad-example.js` plants one ERROR finding (`jwt-none-alg`); the job fails unless it is found. The fixture directory is excluded from the enforcing scan.
 - Also excluded: `scripts/fixtures/e2e-results-sample.json` — a captured reporter fixture (INC-083, bytes not edited) carrying a planted synthetic JWT (`{"alg":"HS256"}`/`{"sub":"123"}`) that the failure reporter's redaction self-test must strip; it is a guard input, not a credential.
@@ -35,11 +34,11 @@ The security scanning program, as built. Layers A–D; the rules at the end.
 
 ## Layer C — weekly reviewer
 
-A weekly reviewer exists and writes its findings to the supervisor's Project, read-only to the repository.
+A weekly read-only security review (Mondays): a diff review of the week's migrations, routes, dependencies and tracked files, Semgrep and Gitleaks run locally, the ci-evidence files read. It writes a dated report to the supervisor's Project and never writes to the repository.
 
 ## Layer D — at launch
 
-External review and the ZAP baseline enabled once the repository is private.
+At launch: Cloudflare in front of the site (Bot Fight Mode, the free managed WAF ruleset, a rate rule on the sign-in and posting paths, Security Events read weekly); Supabase auth rate limits and logs; the app's own security heartbeats; the ZAP baseline workflow enabled once the repository is private (DEC-116); a paid penetration test weighed at the Ethiopia-entity milestone.
 
 ## Rules
 

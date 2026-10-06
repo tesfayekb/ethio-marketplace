@@ -4,6 +4,7 @@ import { expect } from "../fixtures";
 import { assertNoStringifiedLeak, settled } from "./ui";
 import { readAnchor, scratchCountryCode, seedCountry } from "./countries";
 import { adminClient } from "./users";
+import { chunkByLength } from "./chunk-by-length";
 
 /**
  * LOCATIONS ERA L2a — SHARED LOCATIONS-CONSOLE HELPERS.
@@ -222,9 +223,16 @@ export async function destroyLocation(slug: string) {
   const descendants: string[] = [];
   let frontier = [row.id];
   for (let depth = 0; depth < 4 && frontier.length > 0; depth += 1) {
-    const { data, error } = await supabase.from("locations").select("id").in("parent_id", frontier);
-    if (error) throw new Error(`[e2e:reap] descendants of ${slug} failed: ${error.message}`);
-    frontier = (data ?? []).map((child) => child.id);
+    const next: string[] = [];
+    for (const parentBatch of chunkByLength(frontier)) {
+      const { data, error } = await supabase
+        .from("locations")
+        .select("id")
+        .in("parent_id", parentBatch);
+      if (error) throw new Error(`[e2e:reap] descendants of ${slug} failed: ${error.message}`);
+      next.push(...(data ?? []).map((child) => child.id));
+    }
+    frontier = next;
     descendants.push(...frontier);
   }
   // Deepest first: the ancestry guard refuses a parent while a child stands.

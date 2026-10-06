@@ -40,7 +40,12 @@ jobs:
         run: |
           SELF_TEST=1 bash scripts/check-deletions.sh
           bash scripts/check-deletions.sh
-      - uses: oven-sh/setup-bun@v2
+      - name: Promote needs every job (with self-test)
+        run: |
+          if bash scripts/check-promote-needs.sh scripts/fixtures/ci-promote-needs-bad.yml; then
+            echo "::error::promote-needs self-test: the bad fixture passed"; exit 1
+          fi
+          bash scripts/check-promote-needs.sh
         with:
           bun-version: 1.3.14
       - name: Install dependencies
@@ -256,12 +261,15 @@ jobs:
           if [ "$n" -lt 1 ]; then echo "::error::Semgrep self-test found nothing in scripts/fixtures/semgrep"; exit 1; fi
       - name: Scan (counts only)
         run: |
+          EXCLUDES=(--exclude scripts/fixtures/semgrep
+            # captured reporter fixture (INC-083, never edited); its JWT-shaped strings are synthetic ({"alg":"HS256"} / {"sub":"123"}) and feed the reporter's redaction self-test
+            --exclude scripts/fixtures/e2e-results-sample.json)
           semgrep scan --metrics=off --disable-version-check \
             --config /tmp/semgrep-rules/javascript \
             --config /tmp/semgrep-rules/typescript \
             --config /tmp/semgrep-rules/generic/secrets \
-            --exclude scripts/fixtures/semgrep \
-            --exclude scripts/fixtures/e2e-results-sample.json \
+            --severity ERROR --severity WARNING \
+            "${EXCLUDES[@]}" \
             --json -o semgrep.json --sarif-output=semgrep.sarif \
             src e2e scripts > /dev/null
           python3 - <<'PY'
@@ -272,9 +280,7 @@ jobs:
           warn = sum(1 for x in r if x["extra"]["severity"] == "WARNING")
           print(f"Semgrep counts: ERROR={err} WARNING={warn}")
           if err:
-              for x in r:
-                  if x["extra"]["severity"] == "ERROR":
-                      print(f"::error::{x['path']}:{x['start']['line']} {x['check_id']}")
+              print(f"::error::Semgrep: {err} ERROR finding(s). Bodies are not printed in this log (DEC-132 rule 2). Reproduce locally with the pinned version and rules, or read Security → Code scanning (branch dev, tool Semgrep).")
               sys.exit(1)
           PY
       - name: Upload SARIF
@@ -1056,12 +1062,17 @@ jobs:
   # green. `needs:` enumerates EVERY job above, and `success()` is true only
   # when all of them succeeded (the merged `e2e` job has `if: always()`, so it
   # always reports a verdict; its own red already blocks promotion). Red never
-  # lands on main; main is the certified-green record.
+  # lands on main; main is the certified-green record. The one job not listed
+  # is `e2e-changed` (DEC-023-B, signal-only); scripts/check-promote-needs.sh
+  # proves the list.
   promote:
     name: Promote to main (fast-forward on green)
     needs:
       [
         build-and-check,
+        component-tests,
+        i18n-usage-map,
+        import-gate,
         secrets-scan,
         migration-lint,
         string-scan,

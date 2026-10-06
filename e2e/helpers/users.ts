@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { test } from "@playwright/test";
 
 import { adminClient, authFetch, processId, STATE_FILE } from "../global-setup";
+import { chunkByLength } from "./chunk-by-length";
 
 export { adminClient } from "../global-setup";
 
@@ -250,8 +251,8 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
   const owned = await supabase.from("listings").select("id").eq("seller_id", id);
   if (owned.error) fail("listing ids", owned.error.message);
   const listingIds = (owned.data ?? []).map((row) => row.id);
-  if (listingIds.length > 0) {
-    const listingMeters = await supabase.from("rate_limits").delete().in("key", listingIds);
+  for (const listingBatch of chunkByLength(listingIds)) {
+    const listingMeters = await supabase.from("rate_limits").delete().in("key", listingBatch);
     if (listingMeters.error) fail("listing rate limits", listingMeters.error.message);
   }
   const listings = await supabase.from("listings").delete().eq("seller_id", id);

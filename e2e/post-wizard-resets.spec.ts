@@ -202,7 +202,7 @@ test.describe("POSTING WIZARD", () => {
     return listingId;
   }
 
-  test("PW-26 a category change drops the details the new category never asks, by name", async ({
+  test("PW-26 a category change drops the details the new category never asks", async ({
     page,
   }) => {
     const user = await seller(page);

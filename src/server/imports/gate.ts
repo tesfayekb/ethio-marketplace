@@ -749,7 +749,8 @@ export const BUCKET_IDLE_MS = 60 * 60 * 1000;
 
 export function bucketFor(userId: string, now: number = Date.now()): Bucket {
   for (const [key, bucket] of buckets) {
-    if (key !== userId && now - bucket.lastSeen > BUCKET_IDLE_MS) buckets.delete(key);
+    if (key !== userId && !bucket.inFlight && now - bucket.lastSeen > BUCKET_IDLE_MS)
+      buckets.delete(key);
   }
   const existing = buckets.get(userId);
   if (existing !== undefined) {

@@ -71,6 +71,15 @@ describe("INC-298 — idle rate buckets are pruned", () => {
     expect(hasBucket("inc298-old")).toBe(false);
     expect(hasBucket("inc298-fresh")).toBe(true);
   });
+
+  it("keeps an in-flight bucket older than the idle window; deletes an idle one", () => {
+    const start = 5_000_000;
+    bucketFor("prune-busy", start).inFlight = true;
+    bucketFor("prune-idle", start);
+    bucketFor("prune-caller", start + BUCKET_IDLE_MS + 1);
+    expect(hasBucket("prune-busy")).toBe(true);
+    expect(hasBucket("prune-idle")).toBe(false);
+  });
 });
 
 describe("INC-316 — the icon column is judged against the allowlist", () => {
