@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 342,
-  "dynamicCallSites": 211,
+  "scanned": 343,
+  "dynamicCallSites": 213,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -4135,10 +4135,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.where.detailsFailed": [
-      "/post",
-      "/post/$listingId"
-    ],
     "post.where.detailsHelp": [
       "/post",
       "/post/$listingId"
@@ -4152,10 +4148,6 @@
       "/post/$listingId"
     ],
     "post.where.detailsTooLong": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.where.directionsFailed": [
       "/post",
       "/post/$listingId"
     ],

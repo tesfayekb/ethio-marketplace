@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { doorRefusal } from "@/features/posting/door-error";
 
 import {
   doorAnswer,
@@ -38,7 +39,7 @@ async function handlePost(request: Request): Promise<Response> {
   const { data, error } = await supabase.rpc("publish_listing", { p_listing_id: listingId });
   if (error) {
     logRouteError(PATH, error.message);
-    return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
+    return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
   }
 
   // D1 GATEWAY HOOK (named deferral): the moderation gateway will be called

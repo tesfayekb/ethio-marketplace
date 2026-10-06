@@ -49,7 +49,9 @@ function serverEnv(name: string): string {
 
 function fail(error: string, status: number): Response {
   if (status >= 500) logRouteError(error);
-  return new Response(JSON.stringify({ error }), {
+  // INC-447 — a server failure is logged whole; the reply names no raw message.
+  const shown = status >= 500 ? "internal error" : error;
+  return new Response(JSON.stringify({ error: shown }), {
     status,
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });

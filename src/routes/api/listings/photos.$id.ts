@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { doorRefusal } from "@/features/posting/door-error";
 
 import { deleteObject, type Partition } from "@/server/media/storage";
 import {
@@ -98,7 +99,7 @@ async function handleDelete(request: Request, photoId: string): Promise<Response
   });
   if (error) {
     logRouteError(PATH, `remove: ${error.message}`);
-    return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
+    return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
   }
   return routeJson(data, 200);
 }
@@ -125,7 +126,7 @@ async function handlePost(request: Request, photoId: string): Promise<Response> 
   });
   if (error) {
     logRouteError(PATH, `cover: ${error.message}`);
-    return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
+    return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
   }
   return routeJson(data, 200);
 }

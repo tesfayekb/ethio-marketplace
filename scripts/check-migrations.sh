@@ -450,10 +450,39 @@ public_surface_offenders() {
       obj = substr(st, RSTART + 7, RLENGTH - 7)
       if (!(obj in ok)) print file ": " obj
     }'
+  # INC-443 — a grant built in a loop: FOREACH … IN ARRAY ARRAY[…] LOOP whose
+  # body runs EXECUTE format('GRANT select|execute|all … TO anon|authenticated|
+  # PUBLIC', f) flags every 'public.<name>(…)' literal of the ARRAY list that
+  # the allowlist does not name (the unqualified name before the parenthesis).
+  ALLOW="$PUBLIC_SURFACE_ALLOWLIST" perl -0777 -ne '
+    my %ok;
+    if (open(my $a, "<", $ENV{ALLOW})) {
+      local $/ = "\n";
+      while (my $l = <$a>) {
+        next if $l =~ /^\s*(#|$)/;
+        my ($n, $r) = split /\|/, $l, 2;
+        next unless defined $r;
+        $n =~ s/^\s+|\s+$//g; $r =~ s/^\s+|\s+$//g;
+        $ok{$n} = 1 if $n ne "" && $r ne "";
+      }
+    }
+    while (/FOREACH\s+\w+\s+IN\s+ARRAY\s+ARRAY\[(.*?)\]\s*LOOP(.*?)END\s+LOOP/sgi) {
+      my ($list, $body) = ($1, $2);
+      next unless $body =~ /EXECUTE\s+format\s*\(\s*\x27\s*GRANT\s+(SELECT|EXECUTE|ALL)\b[^\x27]*\bTO\s+[^\x27]*\b(anon|authenticated|public)\b/i;
+      while ($list =~ /\x27public\.([a-z0-9_]+)\s*\(/gi) {
+        my $n = lc $1;
+        print "$ARGV: $n\n" unless $ok{$n};
+      }
+    }
+  ' "$1"
 }
 
 if [ -z "$(public_surface_offenders "$FIXTURE_DIR/bad-public-grant-example.sql")" ]; then
   echo "Public-surface guard self-test FAILED: the bad fixture passed."
+  exit 1
+fi
+if [ -z "$(public_surface_offenders "$FIXTURE_DIR/bad-public-grant-format-example.sql")" ]; then
+  echo "Public-surface guard self-test FAILED: the format-grant loop fixture passed."
   exit 1
 fi
 
@@ -473,5 +502,52 @@ if [ -n "$surface_offenders" ]; then
   exit 1
 fi
 echo "Public-surface guard OK (floor $PUBLIC_SURFACE_FLOOR)."
+
+# INC-445 — a proof never reads a real row. In a migration at or after
+# REAL_ROW_FLOOR, a statement inside a DO $…$ block that SELECTs FROM, or
+# UPDATEs/DELETEs … WHERE on, one of the identity/reference tables below is
+# refused unless the same statement carries the scratch namespace e2e-mig-.
+REAL_ROW_FLOOR="${REAL_ROW_FLOOR:-20261007000000}"
+
+real_row_offenders() {
+  # $1 = file. Prints one "<file>: <statement head>" per refused statement.
+  perl -0777 -ne '
+    my $t = q{(?:auth\.users|public\.(?:user_roles|profiles|user_directory|locations|categories|attributes))\b};
+    while (/\bDO\s+(\$\w*\$)(.*?)\1/sg) {
+      for my $st (split /;/, $2) {
+        next if $st =~ /e2e-mig-/;
+        if ($st =~ /\bSELECT\b.*?\bFROM\s+$t/si
+            || $st =~ /\bUPDATE\s+$t.*?\bWHERE\b/si
+            || $st =~ /\bDELETE\s+FROM\s+$t.*?\bWHERE\b/si) {
+          (my $head = $st) =~ s/\s+/ /g; $head =~ s/^ //;
+          print "$ARGV: " . substr($head, 0, 120) . "\n";
+        }
+      }
+    }
+  ' "$1"
+}
+
+if [ -z "$(real_row_offenders "$FIXTURE_DIR/bad-real-row-proof-example.sql")" ]; then
+  echo "Real-row proof guard self-test FAILED: the bad fixture passed."
+  exit 1
+fi
+echo "Real-row proof guard self-test OK (the bad fixture is refused)."
+
+real_row_found=""
+while IFS= read -r -d '' file; do
+  base="$(basename "$file")"
+  stamp="${base%%_*}"
+  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$REAL_ROW_FLOOR" ]]; then
+    continue
+  fi
+  real_row_found+="$(real_row_offenders "$file")"
+done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
+
+if [ -n "$real_row_found" ]; then
+  echo "Real-row proof guard FAILED: a proof reads a real row (use an e2e-mig- scratch row):"
+  printf '%s\n' "$real_row_found"
+  exit 1
+fi
+echo "Real-row proof guard OK (floor $REAL_ROW_FLOOR)."
 
 echo "Migration guard OK."

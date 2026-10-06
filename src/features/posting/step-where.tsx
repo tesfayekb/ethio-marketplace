@@ -722,7 +722,7 @@ export function StepWhere({
    */
   const [note, setNote] = useState<string>(pin?.street ?? "");
   const [noteState, setNoteState] = useState<
-    "idle" | "busy" | "saved" | "failed" | "long" | "contact"
+    "idle" | "busy" | "saved" | "failed" | "long" | "contact" | "rateLimited"
   >("idle");
   const [pinState, setPinState] = useState<"idle" | "saved" | "removed" | "failed">("idle");
   /**
@@ -733,7 +733,7 @@ export function StepWhere({
    */
   const [directions, setDirections] = useState<string>("");
   const [dirState, setDirState] = useState<
-    "idle" | "busy" | "saved" | "failed" | "long" | "contact"
+    "idle" | "busy" | "saved" | "failed" | "long" | "contact" | "rateLimited"
   >("idle");
   /** The values the door last held, so a save of one line never clears the other. */
   const savedText = useRef<{ street: string | null; directions: string | null }>({
@@ -1779,13 +1779,17 @@ export function StepWhere({
               {t("post.refusal.contactInNote")}
             </p>
           )}
-          {dirState === "failed" && (
+          {(dirState === "failed" || dirState === "rateLimited") && (
             <p
               className="text-xs text-destructive"
               role="alert"
               data-testid="post-where-directions-failed"
             >
-              {t("post.where.directionsFailed")}
+              {t(
+                dirState === "rateLimited"
+                  ? "post.refusal.rateLimited"
+                  : "post.where.directionsFailed",
+              )}
             </p>
           )}
         </div>
@@ -1856,13 +1860,17 @@ export function StepWhere({
               {t("post.refusal.contactInNote")}
             </p>
           )}
-          {noteState === "failed" && (
+          {(noteState === "failed" || noteState === "rateLimited") && (
             <p
               className="text-xs text-destructive"
               role="alert"
               data-testid="post-where-details-failed"
             >
-              {t("post.where.detailsFailed")}
+              {t(
+                noteState === "rateLimited"
+                  ? "post.refusal.rateLimited"
+                  : "post.where.detailsFailed",
+              )}
             </p>
           )}
         </div>

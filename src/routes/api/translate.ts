@@ -541,7 +541,7 @@ export const Route = createFileRoute("/api/translate")({
           return await handlePost(request);
         } catch (error) {
           logRouteError(error);
-          return json({ error: error instanceof Error ? error.message : "internal error" }, 500);
+          return json({ error: "internal error" }, 500); // INC-447 — logged above, never echoed
         }
       },
       GET: async ({ request }) => {
@@ -549,7 +549,7 @@ export const Route = createFileRoute("/api/translate")({
           return await handleGet(request);
         } catch (error) {
           logRouteError(error);
-          return json({ error: error instanceof Error ? error.message : "internal error" }, 500);
+          return json({ error: "internal error" }, 500); // INC-447 — logged above, never echoed
         }
       },
     },

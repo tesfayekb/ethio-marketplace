@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { doorRefusal } from "@/features/posting/door-error";
 
 import { screenPhotoPolicy } from "@/server/media/policy";
 import {
@@ -249,7 +250,7 @@ async function handlePost(request: Request): Promise<Response> {
     if (error) {
       await rollback();
       logRouteError(PATH, `register: ${error.message}`);
-      return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
+      return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
     }
 
     return routeJson(
