@@ -180,14 +180,17 @@ function reportTransportRetries(): void {
   const byCode = new Map<string, number>();
   let retries = 0;
   let exhausted = 0;
+  const exhaustedPaths = new Map<string, number>();
   try {
     const file = netRetryLedgerFile();
     if (existsSync(file)) {
       for (const line of readFileSync(file, "utf8").split("\n")) {
-        const [kind, method, , code] = line.trim().split(" ");
+        const [kind, method, path, code] = line.trim().split(" ");
         if (!kind || !method || !code) continue;
         if (kind === "exhausted") {
           exhausted += 1;
+          const call = `${method} ${path}`;
+          exhaustedPaths.set(call, (exhaustedPaths.get(call) ?? 0) + 1);
           continue;
         }
         retries += 1;
@@ -206,6 +209,10 @@ function reportTransportRetries(): void {
   const fmt = (m: Map<string, number>) =>
     m.size === 0 ? "none" : [...m].map(([k, v]) => `${k} ${v}`).join(", ");
   console.log(
-    `[e2e:teardown] transport retries this run: ${retries} (by method: ${fmt(byMethod)}; by code: ${fmt(byCode)}; ran out: ${exhausted})`,
+    `[e2e:teardown] transport retries this run: ${retries} (by method: ${fmt(byMethod)}; by code: ${fmt(byCode)}; ran out: ${exhausted}${
+      exhausted === 0
+        ? ""
+        : ` (${[...exhaustedPaths].map(([call, n]) => `${call} ×${n}`).join(", ")})`
+    })`,
   );
 }
