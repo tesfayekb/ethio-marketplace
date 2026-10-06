@@ -2,8 +2,9 @@
  * INC-458 / DEC-142 — WHICH SCRATCH ATTRIBUTE DEFINITIONS THE SETUP REAPS.
  *
  * Pure (imports nothing). A row is stale when its attr_key starts with `e2e_`
- * or `e2e-` AND it was created before the cutoff; a key without one of the two
- * prefixes is never returned, whatever its age. A stale definition that a
+ * or `e2e-`, or carries `e2e_`/`e2e-` directly after a hyphen (a family prefix
+ * such as `pricing_type-e2e_…`, INC-463), AND it was created before the cutoff;
+ * any other key is never returned, whatever its age. A stale definition that a
  * definition OUTSIDE the stale set still depends on is kept for a later run.
  * The ids come back in delete order: a dependant before the definition it
  * depends on.
@@ -20,7 +21,7 @@ export interface ReapPlan {
   kept: number;
 }
 
-const SCRATCH = /^e2e[_-]/;
+const SCRATCH = /(^|-)e2e[_-]/;
 
 export function planAttributeReap(rows: ReapRow[], cutoff: string): ReapPlan {
   const cut = Date.parse(cutoff);

@@ -1023,8 +1023,9 @@ export default async function globalSetup() {
   console.log(`[e2e:setup] reaped ${staleCategoryIds.length} stale scratch categor(ies)`);
 
   // INC-458 / DEC-142 — SCRATCH ATTRIBUTE DEFINITIONS. Rows keyed `e2e_` or
-  // `e2e-` older than the 3h fixture window (planAttributeReap selects; a key
-  // without the prefix is never chosen). Order per batch: links (ON DELETE
+  // `e2e-`, or with either directly after a hyphen (INC-463), older than the 3h
+  // fixture window (planAttributeReap selects; any other key is never chosen).
+  // Order per batch: links (ON DELETE
   // RESTRICT) → translations (no foreign key) → definitions, dependant first.
   const attributeRows: ReapRow[] = [];
   for (let after: string | null = null; ; ) {

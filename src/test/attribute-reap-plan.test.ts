@@ -18,12 +18,19 @@ const row = (
 });
 
 describe("INC-458 — planAttributeReap", () => {
-  it("never returns a key without a scratch prefix, whatever its age", () => {
+  it("returns scratch keys after a family prefix; never a key that only contains the letters", () => {
     const plan = planAttributeReap(
-      [row("a", "brand", OLD), row("b", "pricing_type-e2e_x", OLD), row("c", "e2e_attr_x", OLD)],
+      [
+        row("a", "brand", OLD),
+        row("b", "pricing_type-e2e_x", OLD),
+        row("c", "e2e_attr_x", OLD),
+        row("d", "se2e_grade", OLD),
+        row("e", "brand-e2ex", OLD),
+        row("f", "unit_of_sale-e2e-x", OLD),
+      ],
       CUTOFF,
     );
-    expect(plan.ids).toEqual(["c"]);
+    expect(plan.ids).toEqual(["b", "c", "f"]);
   });
 
   it("keeps a young scratch row", () => {
