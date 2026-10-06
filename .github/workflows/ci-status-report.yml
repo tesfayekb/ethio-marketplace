@@ -19,7 +19,7 @@ jobs:
   report:
     name: Write CI status to repo
     if: github.event_name == 'workflow_run'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       actions: read
@@ -188,7 +188,7 @@ jobs:
   sync-main:
     name: sync-main — DEC-020 divergence repair
     if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:

@@ -1,6 +1,6 @@
 # Roadmap
 
-Bundle 5 brief: docs/governance/briefs/bundle-5.md (read first every turn).
+Bundle 6 brief: docs/governance/briefs/bundle-6.md (read first every turn).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -77,3 +77,11 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] Part F — the identity route's paid check behind a rate gate (INC-442)
 - [x] Part E — the records this bundle writes
 - [x] Records turn (bundle 5 close, 2026-10-05) — spec-ledger S54, INC-438–449, system-state, AGENTS.md DEC-094 line, action tracker; see docs/governance/handoffs/2026-10-05-bundle5-close-handover.md
+
+## Bundle 6 (2026-10-06)
+
+- [x] Part P — DEC-133 runner pin (turn 1)
+- [ ] Part A — security review fixes, M9 (turn 2)
+- [ ] Part B — scanners in our own CI (turn 3)
+- [ ] Part C — small follow-ups (turn 4)
+- [ ] Part D — records and final report (turn 4)

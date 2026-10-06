@@ -25,7 +25,7 @@ concurrency:
 jobs:
   build-and-check:
     name: Build, typecheck, lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
         with:
@@ -78,7 +78,7 @@ jobs:
   # boundary, so it needs no Supabase credential and no browser download.
   component-tests:
     name: Component tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -91,7 +91,7 @@ jobs:
 
   secrets-scan:
     name: Gitleaks secrets scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
         with:
@@ -102,7 +102,7 @@ jobs:
 
   migration-lint:
     name: Migration linter (with self-test)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -118,7 +118,7 @@ jobs:
 
   i18n-usage-map:
     name: i18n used-on map is fresh (U4i ②)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -134,7 +134,7 @@ jobs:
 
   string-scan:
     name: Hardcoded string scan (enforcing)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - name: Run string scan
@@ -142,7 +142,7 @@ jobs:
 
   import-gate:
     name: Import gate guard (with self-test)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -153,7 +153,7 @@ jobs:
 
   listing-write-seam:
     name: Listing-write seam guard (with self-test)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       # Direction 1: the guard must PASS on real source.
@@ -174,7 +174,7 @@ jobs:
 
   browse-path-guard:
     name: Browse-path guard (no RBAC seam on the marketplace path, with self-test)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       # Direction 1: the guard must PASS on real source.
@@ -194,7 +194,7 @@ jobs:
 
   marketplace-weight:
     name: Marketplace weight guard (no heavy deps on the first-paint path)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -205,7 +205,7 @@ jobs:
 
   bundle-budget:
     name: First-paint bundle budget (gzipped ceiling)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -221,7 +221,7 @@ jobs:
 
   dependency-audit:
     name: Dependency vulnerability audit (enforcing on high/critical)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -243,7 +243,7 @@ jobs:
 
   e2e-preflight:
     name: E2E preflight (migration parity, staging)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
@@ -278,7 +278,7 @@ jobs:
   e2e-build:
     name: E2E build (shared dist)
     needs: e2e-preflight
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
@@ -318,7 +318,7 @@ jobs:
   e2e-smoke:
     name: E2E smoke tier
     needs: [e2e-preflight, e2e-build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
       # the shard id is what makes each process's fixtures its own.
@@ -458,7 +458,7 @@ jobs:
   e2e-changed:
     name: E2E changed specs (fast lane)
     needs: [e2e-preflight, e2e-build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # signal-only per DEC-023-B — surfaces in logs/report, never gates verdict or promote;
     # a lane-only failure with a green matrix is contention noise by definition
     continue-on-error: true
@@ -592,7 +592,7 @@ jobs:
   e2e-shard:
     name: E2E shard ${{ matrix.shard }}/6
     needs: [e2e-preflight, e2e-build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -730,7 +730,7 @@ jobs:
     # never inside the shard matrix or the smoke tier.
     name: E2E email (serial, quota-bound)
     needs: [e2e-preflight, e2e-build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       E2E_SHARD: email
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
@@ -837,7 +837,7 @@ jobs:
     name: E2E (Playwright, ethio-staging)
     needs: [e2e-smoke, e2e-shard, e2e-email]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
@@ -1013,7 +1013,7 @@ jobs:
         e2e,
       ]
     if: github.ref == 'refs/heads/dev' && success()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
