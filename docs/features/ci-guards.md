@@ -895,3 +895,15 @@ and NEW code cannot add one without saying why on the line.
 The freshness guard (`git diff --exit-code` after a regen) going red on a
 key-adding landing is the guard being CORRECT, not flaky: new keys landed
 without a regen. Fix is the regen and the commit, never a guard relaxation.
+
+## Promote needs every job (added 2026-10-06, Bundle 6 F, INC-453, DEC-137)
+
+`scripts/check-promote-needs.sh [workflow]` (default `.github/workflows/ci.yml`)
+lists the job ids under `jobs:` and fails, naming the job, when a job other than
+`promote` and the script's SIGNAL_ONLY list is missing from `promote.needs`, or
+when `promote.needs` names a job that does not exist. SIGNAL_ONLY holds
+`e2e-changed` (DEC-023-B: the fast lane is signal-only). Self-test fixture
+`scripts/fixtures/ci-promote-needs-bad.yml` (its promote omits one job) must make
+the script exit non-zero. Wired as "Promote needs every job (with self-test)" in
+`build-and-check`. Rule (DEC-137): a job gates promotion unless SIGNAL_ONLY names
+it with its decision number.
