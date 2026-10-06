@@ -1,56 +1,202 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37397148951
-- Commit: `eebdf1ebe1632041dcfb51b6a54184487fc886d9`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37400005274
+- Commit: `2e9562e53ab06cfe4db3662e4d768f0c9a5fd934`
 - Attempt: 1
-- Written (UTC): 2026-10-06T01:29:24.662Z
-- Passed: 1209 · Skipped: 76 · Failed: 16
-- Gating failures: 16 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
-- Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
-- Sources without results: none
+- Written (UTC): 2026-10-06T02:00:50.498Z
+- Passed: 1101 · Skipped: 45 · Failed: 2
+- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 4
+- Post-test errors (DEC-059, non-gating): email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
+- Sources without results: smoke
 
 ## Flake ledger (DEC-030)
 
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · post-wizard-place.spec.ts › POSTING WIZARD › PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085) — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-attributes-editor.spec.ts › C3 attributes console › AT-50 per-option labels, aliases and the inactive switch land and read back — Test timeout of 180000ms exceeded.
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-attributes-editor.spec.ts › C3 attributes console › AT-55 the option search and parent filter narrow the rows, and a save after filtering keeps every stored record — Test timeout of 180000ms exceeded.
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-attributes-editor.spec.ts › C3 attributes console › AT-56 the constraint pickers offer only co-linked targets — Error: [dialog-dump AT-56 the co-linked number is not on offer] open dialogs: attribute-edit-dialog opened-by=row-edit
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-attributes-library.spec.ts › C3 attributes console › AT-19 an inherited row has no write verb and the write RPCs refuse it — Error: [dialog-dump AT-19 the inherited row never rendered] open dialogs: none
 
 ## Flaky bodies (DEC-078)
 
-### post-wizard-place.spec.ts › POSTING WIZARD › PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085)
+### admin-attributes-editor.spec.ts › C3 attributes console › AT-50 per-option labels, aliases and the inactive switch land and read back
 
-- Source: `shard 5`
+- Source: `shard 4`
 - Project: `desktop-1280`
 
 ```text
-Error: expect(locator).toBeVisible() failed
+Test timeout of 180000ms exceeded.
+```
 
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
+Context:
+
+```text
+          - listitem [ref=e228]:
+            - generic [ref=e229]: About
+          - listitem [ref=e230]:
+            - generic [ref=e231]: How it works
+      - navigation "Help" [ref=e232]:
+        - heading "Help" [level=2] [ref=e233]
+        - list [ref=e234]:
+          - listitem [ref=e235]:
+            - generic [ref=e236]: Safety
+          - listitem [ref=e237]:
+            - generic [ref=e238]: Contact
+      - navigation "Legal" [ref=e239]:
+        - heading "Legal" [level=2] [ref=e240]
+        - list [ref=e241]:
+          - listitem [ref=e242]:
+            - generic [ref=e243]: Terms
+          - listitem [ref=e244]:
+            - generic [ref=e245]: Privacy
+    - paragraph [ref=e247]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+### admin-attributes-editor.spec.ts › C3 attributes console › AT-55 the option search and parent filter narrow the rows, and a save after filtering keeps every stored record
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 180000ms exceeded.
+```
+
+Context:
+
+```text
+          - listitem [ref=e228]:
+            - generic [ref=e229]: About
+          - listitem [ref=e230]:
+            - generic [ref=e231]: How it works
+      - navigation "Help" [ref=e232]:
+        - heading "Help" [level=2] [ref=e233]
+        - list [ref=e234]:
+          - listitem [ref=e235]:
+            - generic [ref=e236]: Safety
+          - listitem [ref=e237]:
+            - generic [ref=e238]: Contact
+      - navigation "Legal" [ref=e239]:
+        - heading "Legal" [level=2] [ref=e240]
+        - list [ref=e241]:
+          - listitem [ref=e242]:
+            - generic [ref=e243]: Terms
+          - listitem [ref=e244]:
+            - generic [ref=e245]: Privacy
+    - paragraph [ref=e247]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+### admin-attributes-editor.spec.ts › C3 attributes console › AT-56 the constraint pickers offer only co-linked targets
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: [dialog-dump AT-56 the co-linked number is not on offer] open dialogs: attribute-edit-dialog opened-by=row-edit
+
+expect(locator).toHaveCount(expected) failed
+
+Locator:  getByTestId('option-group-flat').getByTestId('option-row-a').getByTestId('option-bounds-add').locator('option[value="e2e_attr_ycgiy6"]')
+Expected: 1
+Received: 0
+Timeout:  10000ms
 
 Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-step-8')
+  - [dialog-dump AT-56 the co-linked number is not on offer] open dialogs: attribute-edit-dialog opened-by=row-edit with timeout 10000ms
+  - waiting for getByTestId('option-group-flat').getByTestId('option-row-a').getByTestId('option-bounds-add').locator('option[value="e2e_attr_ycgiy6"]')
+    14 × locator resolved to 0 elements
+       - unexpected value "0"
 
 ```
 
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-76-a-detail-the-model-pins-to-one-value-is-filled-and-hidden-and-still-reviewed-DEC-085-desktop-1280`
+Context:
+
+```text
+                - paragraph [ref=e59]: The restriction applies wherever this attribute and the list attribute are used together.
+                - combobox [ref=e60]:
+                  - 'option "Restrict a list (e.g., storage: 64 / 128 / 256 GB)" [selected]'
+                  - option "e2e_attr_602vwp (e2e_attr_602vwp)"
+          - button "Add option" [ref=e61] [cursor=pointer]
+      - generic [ref=e62]:
+        - generic [ref=e63]: Help text
+        - textbox "Help text" [ref=e64]
+        - paragraph [ref=e65]: 0/240
+      - generic [ref=e66]:
+        - generic [ref=e67]: Help text (Amharic)
+        - textbox "Help text (Amharic)" [ref=e68]
+        - paragraph [ref=e69]: 0/240
+      - generic [ref=e70]:
+        - button "Cancel" [ref=e71] [cursor=pointer]
+        - button "Save" [ref=e72] [cursor=pointer]
+    - button "Close" [ref=e73] [cursor=pointer]:
+      - img [ref=e74]
+      - generic [ref=e77]: Close
+```
+```
+
+### admin-attributes-library.spec.ts › C3 attributes console › AT-19 an inherited row has no write verb and the write RPCs refuse it
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: [dialog-dump AT-19 the inherited row never rendered] open dialogs: none
+
+expect(locator).toBeVisible() failed
+
+Locator: getByRole('table').getByTestId('attribute-inherited-e2e_attr_zskf8k')
+Expected: visible
+Timeout: 30000ms
+Error: element(s) not found
+
+Call log:
+  - [dialog-dump AT-19 the inherited row never rendered] open dialogs: none with timeout 30000ms
+  - waiting for getByRole('table').getByTestId('attribute-inherited-e2e_attr_zskf8k')
+
+```
+
+Context:
+
+```text
+          - listitem [ref=e269]:
+            - generic [ref=e270]: About
+          - listitem [ref=e271]:
+            - generic [ref=e272]: How it works
+      - navigation "Help" [ref=e273]:
+        - heading "Help" [level=2] [ref=e274]
+        - list [ref=e275]:
+          - listitem [ref=e276]:
+            - generic [ref=e277]: Safety
+          - listitem [ref=e278]:
+            - generic [ref=e279]: Contact
+      - navigation "Legal" [ref=e280]:
+        - heading "Legal" [level=2] [ref=e281]
+        - list [ref=e282]:
+          - listitem [ref=e283]:
+            - generic [ref=e284]: Terms
+          - listitem [ref=e285]:
+            - generic [ref=e286]: Privacy
+    - paragraph [ref=e288]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors — census (DEC-083, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Logs read: email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: smoke
 
-104 line(s), 34 message(s): 1 off the allowlist, 33 allowlisted.
+`smoke`: log unavailable.
+
+103 line(s), 34 message(s): 1 off the allowlist, 33 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
-| `listing not found` | 6 | shard 2, shard 3, shard 6 |
+| `listing not found` | 5 | shard 2, shard 3, shard 6 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -89,7 +235,7 @@ Off the allowlist:
 
 ### listing not found
 
-- Count: 6 · Sources: shard 2, shard 3, shard 6
+- Count: 5 · Sources: shard 2, shard 3, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -97,78 +243,76 @@ Off the allowlist:
 
 ## Accessibility (DEC-084, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Logs read: email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: smoke
 
-10 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0 · wizard-5 desktop-1280 serious=0 critical=0
+`smoke`: log unavailable.
 
 ## Timing (DEC-087, non-gating)
 
-Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Results read: email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: smoke
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-06T01:05:34.596Z | 14.2 min |
-| email | 2026-10-06T01:05:38.941Z | 0.2 min |
-| shard 1 | 2026-10-06T01:05:39.651Z | 23.5 min |
-| shard 2 | 2026-10-06T01:05:32.409Z | 20.3 min |
-| shard 3 | 2026-10-06T01:05:34.649Z | 17.6 min |
-| shard 4 | 2026-10-06T01:06:09.062Z | 21.2 min |
-| shard 5 | 2026-10-06T01:05:34.541Z | 22.0 min |
-| shard 6 | 2026-10-06T01:05:44.507Z | 20.0 min |
-| changed | 2026-10-06T01:05:39.316Z | 3.0 min |
+| email | 2026-10-06T01:37:29.997Z | 0.3 min |
+| shard 1 | 2026-10-06T01:37:18.895Z | 23.1 min |
+| shard 2 | 2026-10-06T01:37:17.634Z | 17.6 min |
+| shard 3 | 2026-10-06T01:37:25.272Z | 16.7 min |
+| shard 4 | 2026-10-06T01:37:18.256Z | 21.3 min |
+| shard 5 | 2026-10-06T01:37:26.156Z | 17.4 min |
+| shard 6 | 2026-10-06T01:37:21.320Z | 14.8 min |
+| changed | 2026-10-06T01:37:18.169Z | 1.4 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `post-wizard-specs.spec.ts` | 78 | 26.0 min | shard 3, shard 6 |
-| `shell.spec.ts` | 252 | 18.1 min | smoke, shard 3, shard 6 |
-| `post-wizard-bundle2.spec.ts` | 60 | 16.9 min | shard 2, shard 5 |
-| `admin-categories-lifecycle.spec.ts` | 46 | 11.4 min | shard 1, shard 4 |
-| `post-wizard-category.spec.ts` | 42 | 11.2 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 50 | 11.0 min | shard 3, shard 6 |
-| `admin-attributes-library.spec.ts` | 40 | 10.4 min | shard 1, shard 4 |
-| `posting-routes-dials.spec.ts` | 24 | 10.1 min | shard 3, shard 6, changed |
-| `post-wizard-where.spec.ts` | 28 | 10.0 min | shard 3, shard 6 |
-| `post-wizard-place.spec.ts` | 38 | 9.4 min | shard 2, shard 5 |
-| `admin-categories-console.spec.ts` | 32 | 8.9 min | shard 1, shard 4 |
-| `auth-signout.spec.ts` | 44 | 8.8 min | smoke, shard 2, shard 5 |
-| `post-wizard-resets.spec.ts` | 20 | 8.6 min | shard 3, shard 6 |
-| `admin-attributes-links.spec.ts` | 30 | 8.4 min | shard 1, shard 4 |
-| `admin-attributes-editor.spec.ts` | 34 | 8.3 min | shard 1, shard 4 |
-| `post-wizard-pricing.spec.ts` | 44 | 8.1 min | shard 2, shard 5 |
-| `admin-attributes-import.spec.ts` | 40 | 7.7 min | shard 1, shard 4 |
-| `admin-users.spec.ts` | 24 | 6.9 min | shard 2, shard 5 |
-| `import-security.spec.ts` | 34 | 6.2 min | shard 2, shard 5 |
-| `admin-locations.spec.ts` | 36 | 6.0 min | shard 1, shard 4 |
-| `photo-pipeline.spec.ts` | 20 | 5.5 min | shard 2, shard 5 |
-| `admin-translations-console.spec.ts` | 38 | 5.1 min | shard 1, shard 4 |
-| `admin-roles.spec.ts` | 24 | 4.9 min | shard 1, shard 4 |
-| `admin-countries.spec.ts` | 16 | 3.4 min | shard 1, shard 4 |
-| `admin-audit.spec.ts` | 10 | 3.2 min | shard 1, shard 4 |
-| `admin-translations-governance.spec.ts` | 8 | 2.7 min | shard 2, shard 5 |
-| `admin-translations-data.spec.ts` | 8 | 2.4 min | shard 1, shard 5 |
-| `mfa-stepup.spec.ts` | 18 | 2.2 min | shard 2, shard 5 |
-| `post-wizard-finder.spec.ts` | 8 | 1.9 min | shard 2, shard 5 |
-| `admin-coverage.spec.ts` | 14 | 1.6 min | shard 1, shard 4 |
-| `admin-shell.spec.ts` | 10 | 1.3 min | shard 1, shard 4 |
+| `post-wizard-specs.spec.ts` | 78 | 20.9 min | shard 3, shard 6 |
+| `admin-attributes-editor.spec.ts` | 34 | 19.7 min | shard 1, shard 4 |
+| `post-wizard-bundle2.spec.ts` | 60 | 13.5 min | shard 2, shard 5 |
+| `posting-routes.spec.ts` | 50 | 10.0 min | shard 3, shard 6 |
+| `admin-attributes-library.spec.ts` | 40 | 10.0 min | shard 1, shard 4 |
+| `post-wizard-place.spec.ts` | 38 | 9.1 min | shard 2, shard 5 |
+| `post-wizard-category.spec.ts` | 42 | 8.7 min | shard 2, shard 5 |
+| `shell.spec.ts` | 126 | 8.4 min | shard 3, shard 6 |
+| `post-wizard-pricing.spec.ts` | 44 | 8.4 min | shard 2, shard 5 |
+| `admin-categories-lifecycle.spec.ts` | 46 | 8.0 min | shard 1, shard 4 |
+| `admin-attributes-links.spec.ts` | 30 | 7.6 min | shard 1, shard 4 |
+| `post-wizard-where.spec.ts` | 28 | 7.1 min | shard 3, shard 6 |
+| `admin-categories-console.spec.ts` | 32 | 7.1 min | shard 1, shard 4 |
+| `post-wizard-resets.spec.ts` | 20 | 6.9 min | shard 3, shard 6 |
+| `admin-attributes-import.spec.ts` | 40 | 6.0 min | shard 1, shard 4 |
+| `admin-users.spec.ts` | 24 | 5.7 min | shard 2, shard 5 |
+| `admin-locations.spec.ts` | 36 | 5.3 min | shard 1, shard 4 |
+| `posting-routes-dials.spec.ts` | 28 | 5.1 min | shard 3, shard 6, changed |
+| `admin-translations-console.spec.ts` | 38 | 4.8 min | shard 1, shard 4 |
+| `admin-roles.spec.ts` | 24 | 4.5 min | shard 1, shard 4 |
+| `import-security.spec.ts` | 34 | 4.3 min | shard 2, shard 5 |
+| `photo-pipeline.spec.ts` | 20 | 3.6 min | shard 2, shard 5 |
+| `auth-signout.spec.ts` | 22 | 3.5 min | shard 2, shard 5 |
+| `admin-audit.spec.ts` | 10 | 2.9 min | shard 1, shard 4 |
+| `admin-countries.spec.ts` | 16 | 2.8 min | shard 1, shard 4 |
+| `admin-translations-governance.spec.ts` | 8 | 2.5 min | shard 2, shard 5 |
+| `admin-translations-data.spec.ts` | 8 | 2.2 min | shard 1, shard 5 |
+| `mfa-stepup.spec.ts` | 18 | 1.9 min | shard 2, shard 5 |
+| `post-wizard-finder.spec.ts` | 8 | 1.5 min | shard 2, shard 5 |
+| `admin-coverage.spec.ts` | 14 | 1.2 min | shard 1, shard 4 |
+| `admin-shell.spec.ts` | 10 | 1.1 min | shard 1, shard 4 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `post-wizard-details.spec.ts` | 4 | 1.1 min | shard 2, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 1.0 min | shard 2, shard 5 |
-| `admin-categories-images.spec.ts` | 2 | 0.8 min | shard 1, shard 4 |
-| `rbac.spec.ts` | 6 | 0.8 min | shard 3, shard 6 |
+| `post-wizard-details.spec.ts` | 4 | 0.9 min | shard 2, shard 5 |
+| `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
 | `posting-routes-identity.spec.ts` | 2 | 0.7 min | shard 3, shard 6 |
-| `a11y.spec.ts` | 4 | 0.7 min | smoke |
+| `rbac.spec.ts` | 6 | 0.6 min | shard 3, shard 6 |
+| `category-image-routes.spec.ts` | 10 | 0.6 min | shard 2, shard 5 |
 | `settings.spec.ts` | 4 | 0.6 min | shard 3 |
-| `i18n-coverage.spec.ts` | 8 | 0.6 min | shard 2, shard 5 |
 | `i18n-bundle.spec.ts` | 4 | 0.6 min | shard 2, shard 5 |
-| `post-wizard-units.spec.ts` | 2 | 0.6 min | shard 3, shard 6 |
-| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
-| `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
-| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
+| `i18n-coverage.spec.ts` | 8 | 0.4 min | shard 2, shard 5 |
+| `primitives-law.spec.ts` | 24 | 0.3 min | shard 3, shard 6 |
 | `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
+| `post-wizard-units.spec.ts` | 2 | 0.3 min | shard 3, shard 6 |
+| `category-nav.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
 | `layout.spec.ts` | 10 | 0.2 min | shard 2, shard 5 |
-| `shell-table-law.spec.ts` | 2 | 0.2 min | shard 3, shard 6 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
-| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
+| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 4, shard 6 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `auth-signup.spec.ts` | 1 | 0.1 min | email |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
@@ -177,31 +321,21 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | desktop-1280 | 58.2 s |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 53.8 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 48.0 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 45.8 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 45.3 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 45.2 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 45.0 s |
-| `posting-routes-dials.spec.ts` › PR-32 relist_listing counts against the revise dial | desktop-1280 | 44.8 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 43.5 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 43.1 s |
-| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | mobile-360 | 39.8 s |
-| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 39.5 s |
-| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | desktop-1280 | 39.5 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 37.4 s |
-| `post-wizard-resets.spec.ts` › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) | desktop-1280 | 36.9 s |
-
-## Post-test errors: smoke
-
-smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37397148951-smoke
-```
+| `admin-attributes-editor.spec.ts` › AT-51 the bounds picker offers a co-linked number and withholds one linked nowhere | mobile-360 | 361.4 s |
+| `admin-attributes-editor.spec.ts` › AT-55 the option search and parent filter narrow the rows, and a save after filtering keeps every stored record | desktop-1280 | 194.4 s |
+| `admin-attributes-editor.spec.ts` › AT-50 per-option labels, aliases and the inactive switch land and read back | desktop-1280 | 192.2 s |
+| `admin-attributes-library.spec.ts` › AT-12 an approved am attribute label renders in am and falls back to EN | mobile-360 | 53.0 s |
+| `admin-attributes-library.spec.ts` › AT-19 an inherited row has no write verb and the write RPCs refuse it | desktop-1280 | 44.2 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 37.2 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 35.0 s |
+| `admin-attributes-editor.spec.ts` › AT-56 the constraint pickers offer only co-linked targets | desktop-1280 | 35.0 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 34.3 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 34.2 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 34.0 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 33.9 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 33.8 s |
+| `admin-audit.spec.ts` › IMP-3 server refusals: self, super-admin target, and a non-super caller | mobile-360 | 33.0 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 32.9 s |
 
 ## Post-test errors: email
 
@@ -210,7 +344,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37397148951-email
+[e2e:teardown] deleted 4 user(s) owned by process 37400005274-email
 ```
 
 ## Post-test errors: shard 1
@@ -220,7 +354,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 12 (pool 5, fresh 7)
 [e2e:teardown] transport retries this run: 12 (by method: GET 12; by code: UND_ERR_HEADERS_OVERFLOW 12; ran out: 4)
-[e2e:teardown] deleted 8 user(s) owned by process 37397148951-1
+[e2e:teardown] deleted 8 user(s) owned by process 37400005274-1
 ```
 
 ## Post-test errors: shard 2
@@ -230,7 +364,7 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 35 (pool 4, fresh 31)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 47 user(s) owned by process 37397148951-2
+[e2e:teardown] deleted 47 user(s) owned by process 37400005274-2
 ```
 
 ## Post-test errors: shard 3
@@ -240,7 +374,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 8 (pool 5, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37397148951-3
+[e2e:teardown] deleted 4 user(s) owned by process 37400005274-3
 ```
 
 ## Post-test errors: shard 4
@@ -250,7 +384,7 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 13 (pool 5, fresh 8)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 37397148951-4
+[e2e:teardown] deleted 8 user(s) owned by process 37400005274-4
 ```
 
 ## Post-test errors: shard 5
@@ -260,7 +394,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 30 (pool 4, fresh 26)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 40 user(s) owned by process 37397148951-5
+[e2e:teardown] deleted 40 user(s) owned by process 37400005274-5
 ```
 
 ## Post-test errors: shard 6
@@ -270,7 +404,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 9 (pool 5, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37397148951-6
+[e2e:teardown] deleted 4 user(s) owned by process 37400005274-6
 ```
 
 ## Post-test errors: changed
@@ -280,665 +414,121 @@ changed: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 4 (pool 2, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37397148951-changed
+[e2e:teardown] deleted 3 user(s) owned by process 37400005274-changed
 ```
 
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-27 edit_listing counts against the revise dial
+## admin-attributes-editor.spec.ts › C3 attributes console › AT-51 the bounds picker offers a co-linked number and withholds one linked nowhere
 
-- Source: `shard 3`
+- Source: `shard 1`
 - Project: `mobile-360`
 
 ```text
-Error: second edit_listing: {"data":null,"error":"edit_listing takes a published listing; a draft writes through submit_listing"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
+Test timeout of 180000ms exceeded.
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e94]:
-            - generic [ref=e95]: About
-          - listitem [ref=e96]:
-            - generic [ref=e97]: How it works
-      - navigation "Help" [ref=e98]:
-        - heading "Help" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Safety
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Contact
-      - navigation "Legal" [ref=e105]:
-        - heading "Legal" [level=2] [ref=e106]
-        - list [ref=e107]:
-          - listitem [ref=e108]:
-            - generic [ref=e109]: Terms
-          - listitem [ref=e110]:
-            - generic [ref=e111]: Privacy
-    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e112]:
+            - generic [ref=e113]: About
+          - listitem [ref=e114]:
+            - generic [ref=e115]: How it works
+      - navigation "Help" [ref=e116]:
+        - heading "Help" [level=2] [ref=e117]
+        - list [ref=e118]:
+          - listitem [ref=e119]:
+            - generic [ref=e120]: Safety
+          - listitem [ref=e121]:
+            - generic [ref=e122]: Contact
+      - navigation "Legal" [ref=e123]:
+        - heading "Legal" [level=2] [ref=e124]
+        - list [ref=e125]:
+          - listitem [ref=e126]:
+            - generic [ref=e127]: Terms
+          - listitem [ref=e128]:
+            - generic [ref=e129]: Privacy
+    - paragraph [ref=e131]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-28 transition_listing counts against the revise dial
+## admin-attributes-library.spec.ts › C3 attributes console › AT-12 an approved am attribute label renders in am and falls back to EN
 
-- Source: `shard 3`
+- Source: `shard 1`
 - Project: `mobile-360`
 
 ```text
-Error: second transition_listing: {"data":null,"error":"new row for relation \"listings\" violates check constraint \"listings_place_unless_draft\""}
+Error: [dialog-dump AT-12 the row never rendered in am] open dialogs: none
 
-expect(received).toBe(expected) // Object.is equality
+expect(locator).toBeVisible() failed
 
-Expected: true
-Received: false
+Locator: getByTestId('data-table-cards').getByTestId('attribute-row-e2e_attr_zkmhv0-card')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - [dialog-dump AT-12 the row never rendered in am] open dialogs: none with timeout 20000ms
+  - waiting for getByTestId('data-table-cards').getByTestId('attribute-row-e2e_attr_zkmhv0-card')
+
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e94]:
-            - generic [ref=e95]: About
-          - listitem [ref=e96]:
-            - generic [ref=e97]: How it works
-      - navigation "Help" [ref=e98]:
-        - heading "Help" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Safety
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Contact
-      - navigation "Legal" [ref=e105]:
-        - heading "Legal" [level=2] [ref=e106]
-        - list [ref=e107]:
-          - listitem [ref=e108]:
-            - generic [ref=e109]: Terms
-          - listitem [ref=e110]:
-            - generic [ref=e111]: Privacy
-    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e112]:
+            - generic [ref=e113]: About
+          - listitem [ref=e114]:
+            - generic [ref=e115]: How it works
+      - navigation "Help" [ref=e116]:
+        - heading "Help" [level=2] [ref=e117]
+        - list [ref=e118]:
+          - listitem [ref=e119]:
+            - generic [ref=e120]: Safety
+          - listitem [ref=e121]:
+            - generic [ref=e122]: Contact
+      - navigation "Legal" [ref=e123]:
+        - heading "Legal" [level=2] [ref=e124]
+        - list [ref=e125]:
+          - listitem [ref=e126]:
+            - generic [ref=e127]: Terms
+          - listitem [ref=e128]:
+            - generic [ref=e129]: Privacy
+    - paragraph [ref=e131]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-31 mark_sold counts against the revise dial
+## Server errors: smoke
 
-- Source: `shard 3`
-- Project: `mobile-360`
+No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
+
+## Client errors: smoke
+
+No `[client-error]` lines in the `smoke` log (or no log was uploaded).
+
+## Server errors: shard 1
 
 ```text
-Error: second mark_sold: {"data":null,"error":"illegal transition: draft -> sold"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
+[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
 ```
 
-Context:
+## Client errors: shard 1
+
+No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+
+## smoke: no results file
+
+smoke: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
-          - listitem [ref=e94]:
-            - generic [ref=e95]: About
-          - listitem [ref=e96]:
-            - generic [ref=e97]: How it works
-      - navigation "Help" [ref=e98]:
-        - heading "Help" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Safety
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Contact
-      - navigation "Legal" [ref=e105]:
-        - heading "Legal" [level=2] [ref=e106]
-        - list [ref=e107]:
-          - listitem [ref=e108]:
-            - generic [ref=e109]: Terms
-          - listitem [ref=e110]:
-            - generic [ref=e111]: Privacy
-    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-32 relist_listing counts against the revise dial
-
-- Source: `shard 3`
-- Project: `mobile-360`
-
-```text
-Error: second relist_listing: {"data":null,"error":"illegal transition: draft -> screening"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e94]:
-            - generic [ref=e95]: About
-          - listitem [ref=e96]:
-            - generic [ref=e97]: How it works
-      - navigation "Help" [ref=e98]:
-        - heading "Help" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Safety
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Contact
-      - navigation "Legal" [ref=e105]:
-        - heading "Legal" [level=2] [ref=e106]
-        - list [ref=e107]:
-          - listitem [ref=e108]:
-            - generic [ref=e109]: Terms
-          - listitem [ref=e110]:
-            - generic [ref=e111]: Privacy
-    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-27 edit_listing counts against the revise dial
-
-- Source: `shard 6`
-- Project: `desktop-1280`
-
-```text
-Error: second edit_listing: {"data":null,"error":"edit_listing takes a published listing; a draft writes through submit_listing"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e365]:
-            - generic [ref=e366]: About
-          - listitem [ref=e367]:
-            - generic [ref=e368]: How it works
-      - navigation "Help" [ref=e369]:
-        - heading "Help" [level=2] [ref=e370]
-        - list [ref=e371]:
-          - listitem [ref=e372]:
-            - generic [ref=e373]: Safety
-          - listitem [ref=e374]:
-            - generic [ref=e375]: Contact
-      - navigation "Legal" [ref=e376]:
-        - heading "Legal" [level=2] [ref=e377]
-        - list [ref=e378]:
-          - listitem [ref=e379]:
-            - generic [ref=e380]: Terms
-          - listitem [ref=e381]:
-            - generic [ref=e382]: Privacy
-    - paragraph [ref=e384]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-28 transition_listing counts against the revise dial
-
-- Source: `shard 6`
-- Project: `desktop-1280`
-
-```text
-Error: second transition_listing: {"data":null,"error":"new row for relation \"listings\" violates check constraint \"listings_place_unless_draft\""}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e365]:
-            - generic [ref=e366]: About
-          - listitem [ref=e367]:
-            - generic [ref=e368]: How it works
-      - navigation "Help" [ref=e369]:
-        - heading "Help" [level=2] [ref=e370]
-        - list [ref=e371]:
-          - listitem [ref=e372]:
-            - generic [ref=e373]: Safety
-          - listitem [ref=e374]:
-            - generic [ref=e375]: Contact
-      - navigation "Legal" [ref=e376]:
-        - heading "Legal" [level=2] [ref=e377]
-        - list [ref=e378]:
-          - listitem [ref=e379]:
-            - generic [ref=e380]: Terms
-          - listitem [ref=e381]:
-            - generic [ref=e382]: Privacy
-    - paragraph [ref=e384]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-31 mark_sold counts against the revise dial
-
-- Source: `shard 6`
-- Project: `desktop-1280`
-
-```text
-Error: second mark_sold: {"data":null,"error":"illegal transition: draft -> sold"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e365]:
-            - generic [ref=e366]: About
-          - listitem [ref=e367]:
-            - generic [ref=e368]: How it works
-      - navigation "Help" [ref=e369]:
-        - heading "Help" [level=2] [ref=e370]
-        - list [ref=e371]:
-          - listitem [ref=e372]:
-            - generic [ref=e373]: Safety
-          - listitem [ref=e374]:
-            - generic [ref=e375]: Contact
-      - navigation "Legal" [ref=e376]:
-        - heading "Legal" [level=2] [ref=e377]
-        - list [ref=e378]:
-          - listitem [ref=e379]:
-            - generic [ref=e380]: Terms
-          - listitem [ref=e381]:
-            - generic [ref=e382]: Privacy
-    - paragraph [ref=e384]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-32 relist_listing counts against the revise dial
-
-- Source: `shard 6`
-- Project: `desktop-1280`
-
-```text
-Error: second relist_listing: {"data":null,"error":"illegal transition: draft -> screening"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e365]:
-            - generic [ref=e366]: About
-          - listitem [ref=e367]:
-            - generic [ref=e368]: How it works
-      - navigation "Help" [ref=e369]:
-        - heading "Help" [level=2] [ref=e370]
-        - list [ref=e371]:
-          - listitem [ref=e372]:
-            - generic [ref=e373]: Safety
-          - listitem [ref=e374]:
-            - generic [ref=e375]: Contact
-      - navigation "Legal" [ref=e376]:
-        - heading "Legal" [level=2] [ref=e377]
-        - list [ref=e378]:
-          - listitem [ref=e379]:
-            - generic [ref=e380]: Terms
-          - listitem [ref=e381]:
-            - generic [ref=e382]: Privacy
-    - paragraph [ref=e384]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-27 edit_listing counts against the revise dial
-
-- Source: `changed`
-- Project: `mobile-360`
-
-```text
-Error: second edit_listing: {"data":null,"error":"edit_listing takes a published listing; a draft writes through submit_listing"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e94]:
-            - generic [ref=e95]: About
-          - listitem [ref=e96]:
-            - generic [ref=e97]: How it works
-      - navigation "Help" [ref=e98]:
-        - heading "Help" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Safety
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Contact
-      - navigation "Legal" [ref=e105]:
-        - heading "Legal" [level=2] [ref=e106]
-        - list [ref=e107]:
-          - listitem [ref=e108]:
-            - generic [ref=e109]: Terms
-          - listitem [ref=e110]:
-            - generic [ref=e111]: Privacy
-    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-28 transition_listing counts against the revise dial
-
-- Source: `changed`
-- Project: `mobile-360`
-
-```text
-Error: second transition_listing: {"data":null,"error":"new row for relation \"listings\" violates check constraint \"listings_place_unless_draft\""}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e94]:
-            - generic [ref=e95]: About
-          - listitem [ref=e96]:
-            - generic [ref=e97]: How it works
-      - navigation "Help" [ref=e98]:
-        - heading "Help" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Safety
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Contact
-      - navigation "Legal" [ref=e105]:
-        - heading "Legal" [level=2] [ref=e106]
-        - list [ref=e107]:
-          - listitem [ref=e108]:
-            - generic [ref=e109]: Terms
-          - listitem [ref=e110]:
-            - generic [ref=e111]: Privacy
-    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-31 mark_sold counts against the revise dial
-
-- Source: `changed`
-- Project: `mobile-360`
-
-```text
-Error: second mark_sold: {"data":null,"error":"illegal transition: draft -> sold"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e94]:
-            - generic [ref=e95]: About
-          - listitem [ref=e96]:
-            - generic [ref=e97]: How it works
-      - navigation "Help" [ref=e98]:
-        - heading "Help" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Safety
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Contact
-      - navigation "Legal" [ref=e105]:
-        - heading "Legal" [level=2] [ref=e106]
-        - list [ref=e107]:
-          - listitem [ref=e108]:
-            - generic [ref=e109]: Terms
-          - listitem [ref=e110]:
-            - generic [ref=e111]: Privacy
-    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-32 relist_listing counts against the revise dial
-
-- Source: `changed`
-- Project: `mobile-360`
-
-```text
-Error: second relist_listing: {"data":null,"error":"illegal transition: draft -> screening"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e94]:
-            - generic [ref=e95]: About
-          - listitem [ref=e96]:
-            - generic [ref=e97]: How it works
-      - navigation "Help" [ref=e98]:
-        - heading "Help" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Safety
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Contact
-      - navigation "Legal" [ref=e105]:
-        - heading "Legal" [level=2] [ref=e106]
-        - list [ref=e107]:
-          - listitem [ref=e108]:
-            - generic [ref=e109]: Terms
-          - listitem [ref=e110]:
-            - generic [ref=e111]: Privacy
-    - paragraph [ref=e113]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-27 edit_listing counts against the revise dial
-
-- Source: `changed`
-- Project: `desktop-1280`
-
-```text
-Error: second edit_listing: {"data":null,"error":"edit_listing takes a published listing; a draft writes through submit_listing"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e365]:
-            - generic [ref=e366]: About
-          - listitem [ref=e367]:
-            - generic [ref=e368]: How it works
-      - navigation "Help" [ref=e369]:
-        - heading "Help" [level=2] [ref=e370]
-        - list [ref=e371]:
-          - listitem [ref=e372]:
-            - generic [ref=e373]: Safety
-          - listitem [ref=e374]:
-            - generic [ref=e375]: Contact
-      - navigation "Legal" [ref=e376]:
-        - heading "Legal" [level=2] [ref=e377]
-        - list [ref=e378]:
-          - listitem [ref=e379]:
-            - generic [ref=e380]: Terms
-          - listitem [ref=e381]:
-            - generic [ref=e382]: Privacy
-    - paragraph [ref=e384]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-28 transition_listing counts against the revise dial
-
-- Source: `changed`
-- Project: `desktop-1280`
-
-```text
-Error: second transition_listing: {"data":null,"error":"new row for relation \"listings\" violates check constraint \"listings_place_unless_draft\""}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e365]:
-            - generic [ref=e366]: About
-          - listitem [ref=e367]:
-            - generic [ref=e368]: How it works
-      - navigation "Help" [ref=e369]:
-        - heading "Help" [level=2] [ref=e370]
-        - list [ref=e371]:
-          - listitem [ref=e372]:
-            - generic [ref=e373]: Safety
-          - listitem [ref=e374]:
-            - generic [ref=e375]: Contact
-      - navigation "Legal" [ref=e376]:
-        - heading "Legal" [level=2] [ref=e377]
-        - list [ref=e378]:
-          - listitem [ref=e379]:
-            - generic [ref=e380]: Terms
-          - listitem [ref=e381]:
-            - generic [ref=e382]: Privacy
-    - paragraph [ref=e384]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-31 mark_sold counts against the revise dial
-
-- Source: `changed`
-- Project: `desktop-1280`
-
-```text
-Error: second mark_sold: {"data":null,"error":"illegal transition: draft -> sold"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e365]:
-            - generic [ref=e366]: About
-          - listitem [ref=e367]:
-            - generic [ref=e368]: How it works
-      - navigation "Help" [ref=e369]:
-        - heading "Help" [level=2] [ref=e370]
-        - list [ref=e371]:
-          - listitem [ref=e372]:
-            - generic [ref=e373]: Safety
-          - listitem [ref=e374]:
-            - generic [ref=e375]: Contact
-      - navigation "Legal" [ref=e376]:
-        - heading "Legal" [level=2] [ref=e377]
-        - list [ref=e378]:
-          - listitem [ref=e379]:
-            - generic [ref=e380]: Terms
-          - listitem [ref=e381]:
-            - generic [ref=e382]: Privacy
-    - paragraph [ref=e384]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## posting-routes-dials.spec.ts › POSTING DOOR DIALS › PR-32 relist_listing counts against the revise dial
-
-- Source: `changed`
-- Project: `desktop-1280`
-
-```text
-Error: second relist_listing: {"data":null,"error":"illegal transition: draft -> screening"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-```
-
-Context:
-
-```text
-          - listitem [ref=e365]:
-            - generic [ref=e366]: About
-          - listitem [ref=e367]:
-            - generic [ref=e368]: How it works
-      - navigation "Help" [ref=e369]:
-        - heading "Help" [level=2] [ref=e370]
-        - list [ref=e371]:
-          - listitem [ref=e372]:
-            - generic [ref=e373]: Safety
-          - listitem [ref=e374]:
-            - generic [ref=e375]: Contact
-      - navigation "Legal" [ref=e376]:
-        - heading "Legal" [level=2] [ref=e377]
-        - list [ref=e378]:
-          - listitem [ref=e379]:
-            - generic [ref=e380]: Terms
-          - listitem [ref=e381]:
-            - generic [ref=e382]: Privacy
-    - paragraph [ref=e384]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## Server errors: shard 3
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×2
-```
-
-## Client errors: shard 3
-
-```text
-[client-error] console.error: [client-error] gate fetch threw
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×16
-console.error: [client-error] gate fetch threw
-```
-
-## Server errors: shard 6
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
-```
-
-## Client errors: shard 6
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×16
-```
-
-## Server errors: changed
-
-No `[ssr-error]` lines in the `changed` log (or no log was uploaded).
-
-## Client errors: changed
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 () ×32
+(no log tail was uploaded for this source)
 ```
