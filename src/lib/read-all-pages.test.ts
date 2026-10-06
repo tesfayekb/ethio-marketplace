@@ -15,19 +15,24 @@ describe("INC-452 — readAllPages", () => {
 
   it("stops on an exactly full last page with one empty read", async () => {
     let calls = 0;
+    const full = Array.from({ length: 2000 }, (_, i) => i);
     const rows = await readAllPages((from, to) => {
       calls += 1;
-      return Promise.resolve({ data: source.slice(0, 2000).slice(from, to + 1), error: null });
+      return Promise.resolve({ data: full.slice(from, to + 1), error: null });
     });
-    expect(rows).toHaveLength(1688);
-    expect(calls).toBe(2);
+    expect(rows).toHaveLength(2000);
+    expect(calls).toBe(3);
   });
 
   it("throws a failed page instead of returning a partial list", async () => {
     const failure = new Error("boom");
     await expect(
       readAllPages((from) =>
-        Promise.resolve(from === 0 ? { data: source.slice(0, 1000), error: null } : { data: null, error: failure }),
+        Promise.resolve(
+          from === 0
+            ? { data: source.slice(0, 1000), error: null }
+            : { data: null, error: failure },
+        ),
       ),
     ).rejects.toBe(failure);
   });

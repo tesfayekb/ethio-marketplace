@@ -3,6 +3,7 @@ import { shapeCondition, type VisibleWhen } from "@/features/posting/visible-whe
 import type { Json } from "@/integrations/supabase/types";
 
 import type { NumberFieldsValue, TextFieldsValue } from "./components/attribute-v2-fields";
+import { readAllPages } from "@/lib/read-all-pages";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY client seam.
@@ -173,9 +174,11 @@ function toOptionList(raw: unknown): AttributeOption[] {
 }
 
 export async function listAttributes(): Promise<AttributeRow[]> {
-  const { data, error } = await supabase.rpc("admin_list_attributes");
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
+  // INC-452 — every page, in attr_key order: one request stopped at the cap.
+  const data = await readAllPages((from, to) =>
+    supabase.rpc("admin_list_attributes").order("attr_key").range(from, to),
+  );
+  return data.map((row) => ({
     id: row.id,
     attrKey: row.attr_key,
     nameEn: row.name_en,
@@ -211,9 +214,10 @@ export interface OptionCoverage {
 }
 
 export async function listOptionCoverage(): Promise<OptionCoverage[]> {
-  const { data, error } = await supabase.rpc("admin_attribute_option_coverage");
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
+  const data = await readAllPages((from, to) =>
+    supabase.rpc("admin_attribute_option_coverage").order("attr_key").range(from, to),
+  );
+  return data.map((row) => ({
     attributeId: row.attribute_id,
     attrKey: row.attr_key,
     total: Number(row.options_total ?? 0),
