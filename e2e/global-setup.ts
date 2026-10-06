@@ -11,6 +11,7 @@ import { retryingFetch } from "./helpers/net-retry";
 import migrationPreflight from "../scripts/e2e-migration-preflight";
 import { totp } from "./helpers/totp";
 import { mintEmail } from "./helpers/users";
+import { assertAppTargetsStaging } from "./helpers/app-target";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const STATE_FILE = join(HERE, ".state", "test-user.json");
@@ -404,6 +405,9 @@ export default async function globalSetup() {
       `[e2e:setup] E2E_SUPABASE_URL does not point at ethio-staging (${STAGING_REF}). Got: ${url || "(unset)"}`,
     );
   }
+  // INC-464 / DEC-146 — the app under test, not only the service client.
+  assertAppTargetsStaging(process.env, STAGING_REF);
+  console.log("[e2e:setup] app target is staging = true");
 
   const supabase = adminClient();
   const runStartedAt = new Date().toISOString();
