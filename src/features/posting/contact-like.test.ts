@@ -60,4 +60,10 @@ describe("looksLikeContact mirrors attr_contact_like (INC-382)", () => {
     expect(contactRuleApplies("digits:15")).toBe(false);
     expect(contactRuleApplies("vin")).toBe(false);
   });
+  it("INC-448 — a 50,000-character run of 'a.' then '@' answers false within 100 ms", () => {
+    const text = "a.".repeat(25_000) + "@";
+    const started = performance.now();
+    expect(looksLikeContact(text)).toBe(false);
+    expect(performance.now() - started).toBeLessThan(100);
+  });
 });

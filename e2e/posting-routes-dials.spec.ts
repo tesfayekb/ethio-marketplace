@@ -106,14 +106,22 @@ test.describe("POSTING DOOR DIALS", () => {
     expect(removed.error, `${tag} override cleanup`).toBeNull();
   }
 
+  /**
+   * The first call spends the seller's one allowed `revise` count through a
+   * door that COMMITS on a draft (set_listing_pin clearing the pin). A door
+   * that refuses a draft by exception rolls its own count back with it, so
+   * priming through that door would never spend the count. The second call is
+   * the door under test and must be refused by the dial before its own checks.
+   */
   async function twice(
     page: import("@playwright/test").Page,
     fn: string,
     args: Record<string, unknown>,
   ) {
-    const first = await rpcAsPage(page, fn, args);
+    const listingId = String(args["p_listing_id"]);
+    const first = await rpcAsPage(page, "set_listing_pin", { p_listing_id: listingId });
     const second = await rpcAsPage(page, fn, args);
-    expect(isRateRefusal(first), `first ${fn}: ${JSON.stringify(first)}`).toBe(false);
+    expect(first.error, `first set_listing_pin: ${JSON.stringify(first)}`).toBeNull();
     expect(isRateRefusal(second), `second ${fn}: ${JSON.stringify(second)}`).toBe(true);
   }
 
@@ -186,5 +194,21 @@ test.describe("POSTING DOOR DIALS", () => {
     } finally {
       await removeOverride(user.id, "PR-32");
     }
+  });
+
+  test("PR-33 the map fallback report is capped at 60 an hour per address", async ({ page }) => {
+    // INC-446 — one fresh address per run (J1), so no other run's count is read.
+    const address = `198.51.100.${Math.floor(Math.random() * 250) + 1}-${Date.now()}`;
+    const answers: boolean[] = [];
+    for (let i = 0; i < 61; i += 1) {
+      const response = await page.request.post("/api/map/tiles", {
+        data: { reason: "e2e" },
+        headers: { "x-forwarded-for": address },
+      });
+      const body = (await response.json()) as { ok?: unknown };
+      answers.push(body.ok === true);
+    }
+    expect(answers.slice(0, 60).every(Boolean), JSON.stringify(answers)).toBe(true);
+    expect(answers[60]).toBe(false);
   });
 });

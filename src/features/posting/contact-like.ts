@@ -15,7 +15,8 @@
  * Advice only — the door is the authority (F3).
  */
 const RUN = /\+?[0-9](?:[ .()-]{0,2}[0-9])*/g;
-const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/;
+const EMAIL =
+  /[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){0,10}\.[A-Za-z]{2,24}/;
 const LINK = /\b(?:t|wa)\.me\//i;
 
 function runMatches(run: string): boolean {
@@ -34,8 +35,14 @@ function runMatches(run: string): boolean {
   return false;
 }
 
+/**
+ * INC-448 — the patterns read at most this many characters, so no text a
+ * seller pastes can make the scan run long (the e-mail pattern is bounded too).
+ */
+export const CONTACT_SCAN_MAX = 4000;
+
 export function looksLikeContact(text: string | null | undefined): boolean {
-  const value = text ?? "";
+  const value = (text ?? "").slice(0, CONTACT_SCAN_MAX);
   if (EMAIL.test(value) || LINK.test(value)) return true; // R6
   for (const run of value.match(RUN) ?? []) {
     if (runMatches(run)) return true;

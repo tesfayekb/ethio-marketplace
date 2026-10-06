@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { clientAddress, hashAddress } from "@/server/catalog-find.server";
+import { consumeRate } from "@/server/supabase/user-client";
+
 /**
  * W6b-2 C1/C2 — THE MAP'S TILE TEMPLATES.
  *
@@ -110,6 +113,15 @@ export const Route = createFileRoute("/api/map/tiles")({
           const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
           const raw = typeof body["reason"] === "string" ? body["reason"] : "";
           const reason = REASON.test(raw) ? raw : "unknown";
+          // INC-446 — an unsigned caller may write at most 60 lines an hour per
+          // address; past that the answer is ok:false and no line is written.
+          const rate = await consumeRate(
+            "map:fallback",
+            hashAddress(clientAddress(request)),
+            60,
+            "1 hour",
+          );
+          if (!rate.allowed) return json({ ok: false }, 200, "no-store");
           // DEC-091 (next) counts these lines; the reason is a bounded token only.
           console.warn(`[map] fallback provider=osm reason=${reason}`);
           return json({ ok: true }, 200, "no-store");

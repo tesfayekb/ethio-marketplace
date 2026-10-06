@@ -68,7 +68,18 @@ const UNREACHABLE: DoorAnswer = {
   unreachable: true,
 };
 
-async function call(path: string, body: BodyInit, headers: HeadersInit): Promise<DoorAnswer> {
+/**
+ * DEC-135 / INC-439 — a save that hangs is a transport failure, not a wait
+ * without end: after this many milliseconds the fetch is aborted and the call
+ * answers UNREACHABLE ("unsaved"), retried by the next edit.
+ */
+export const SAVE_TIMEOUT_MS = 30_000;
+
+export async function call(
+  path: string,
+  body: BodyInit,
+  headers: HeadersInit,
+): Promise<DoorAnswer> {
   const token = await bearer();
   if (token === null) return { ...UNREACHABLE, status: 401 };
   try {
@@ -76,6 +87,7 @@ async function call(path: string, body: BodyInit, headers: HeadersInit): Promise
       method: "POST",
       headers: { ...headers, Authorization: `Bearer ${token}` },
       body,
+      signal: AbortSignal.timeout(SAVE_TIMEOUT_MS),
     });
     return await readAnswer(response);
   } catch {
@@ -1018,9 +1030,11 @@ export async function savePhotosSoon(listingId: string, on: boolean): Promise<bo
 }
 
 /** The door's reason in the screen's words; anything else is a plain failure (F4). */
-function pinAnswer(message: string): "contactInNote" | "failed" {
+function pinAnswer(message: string): "contactInNote" | "rateLimited" | "failed" {
   console.error("[pin] set_listing_pin refused:", message);
-  return message.includes("contactInNote") ? "contactInNote" : "failed";
+  if (message.includes("contactInNote")) return "contactInNote";
+  // M9b / INC-444 — the revise dial refuses by exception naming rateLimited.
+  return message.includes("rateLimited") ? "rateLimited" : "failed";
 }
 
 /**
@@ -1096,7 +1110,7 @@ export async function savePlaceText(
   listingId: string,
   text: PlaceText,
   pin: { lat: number; lng: number; precision: string } | null,
-): Promise<"saved" | "contactInNote" | "failed"> {
+): Promise<"saved" | "contactInNote" | "rateLimited" | "failed"> {
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
     ...(pin === null ? {} : { p_lat: pin.lat, p_lng: pin.lng, p_precision: pin.precision }),

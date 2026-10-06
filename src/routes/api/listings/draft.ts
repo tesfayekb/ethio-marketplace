@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { doorErrorDetail } from "@/features/posting/door-error";
 
 import type { Database } from "@/integrations/supabase/types";
 import { geoGuess } from "@/server/geo/guess";
@@ -128,11 +129,15 @@ async function handlePost(request: Request): Promise<Response> {
     logRouteError(PATH, error.message);
     // INC-309 — every other door exception carries a reason the wizard can put
     // into words; the constraint (or message) travels as detail, never as text.
-    const constraint = /constraint "([^"]+)"/.exec(error.message)?.[1];
+    // INC-447 — the detail is the constraint's name or nothing; the raw message
+    // stays in the log line above.
+    const constraint = doorErrorDetail(error.message);
     return routeJson(
       {
         ok: false,
-        refusals: [{ field: "door", reason: "doorError", detail: constraint ?? error.message }],
+        refusals: [
+          { field: "door", reason: "doorError", ...(constraint ? { detail: constraint } : {}) },
+        ],
       },
       200,
     );
