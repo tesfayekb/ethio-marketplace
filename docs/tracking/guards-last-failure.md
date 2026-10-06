@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37395201304
-- Commit: `35f67a7b01b7361e1d88c116e903ed89641f1bb3`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37395896910
+- Commit: `0eaec8d32d1b670864319966b6e58a68636e7505`
 - Attempt: 1
-- Written (UTC): 2026-10-06T00:49:17.402Z
+- Written (UTC): 2026-10-06T00:54:29.042Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -22,6 +22,9 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1mfi[0m
+[36;1mif [ "$reporter" -ne 0 ]; then[0m
+[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit "$reporter"[0m
 [36;1mfi[0m
 [36;1mexit 0[0m
@@ -32,10 +35,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37395201304
-  E2E_HEAD_COMMIT_MESSAGE: Added bundle-6 Part P to CI
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37395896910
+  E2E_HEAD_COMMIT_MESSAGE: Wrote A1–A8, pushed, ended turn 2
 
-X-Lovable-Edit-ID: edt-ad16c5f5-ccb2-41a8-9db8-84b403167712
+X-Lovable-Edit-ID: edt-645d975b-d39b-4a5e-b5a5-95f68a28eccc
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -49,10 +52,7 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-context download: 0 context files found.
-  glob: shard-contexts/**/error-context.md
-  searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (2/9 source(s) with usable results, 16 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "smoke=cancelled email=success shards=cancelled"
 [36;1mecho "smoke=cancelled email=success shards=cancelled"[0m
@@ -69,7 +69,7 @@ smoke=cancelled email=success shards=cancelled
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/f42e3525-cda7-4acf-ab64-0ad269260ad0' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/fd643683-855b-46d6-95a5-a079a2242cec' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
