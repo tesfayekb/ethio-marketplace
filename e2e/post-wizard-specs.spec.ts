@@ -1300,12 +1300,27 @@ test.describe("POSTING WIZARD", () => {
      * INC-245 — A DEFAULT IS WHAT AN EMPTY FIELD STARTS FROM, not a one-off. A make
      * change empties every detail (D25b), so the link's default fills the unit again
      * rather than leaving a field the category says has an opening answer.
+     * (DEC-139: a first answer restarts nothing; a CHANGE of make does)
      */
     await unit.selectOption(fold.unitValues[1]);
     await expect(unit).toHaveValue(fold.unitValues[1]);
-    await page
-      .locator(`[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`)
-      .selectOption(fold.makeValues[1]);
+    const make = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`,
+    );
+    // INC-461 — the FIRST make answer: wait until the draft holds it (DB truth).
+    await make.selectOption(fold.makeValues[0]);
+    await expect
+      .poll(async () => (await attributesOf(listingId))[fold.make.attrKey], {
+        message: "PW-22: the first make answer never reached the draft",
+        timeout: 20_000,
+      })
+      .toBe(fold.makeValues[0]);
+    await expect(unit, "PW-22: a first make answer moved the seller's unit (DEC-139)").toHaveValue(
+      fold.unitValues[1],
+    );
+    await expect(page.getByTestId("post-specs-reset")).toHaveCount(0);
+    // A CHANGE of make — a different identity — restarts the form.
+    await make.selectOption(fold.makeValues[1]);
     await expect(unit, "PW-22: the link's default did not return after a make reset").toHaveValue(
       fold.unitValues[0],
       { timeout: 20_000 },
