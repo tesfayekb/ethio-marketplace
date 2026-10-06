@@ -3,7 +3,7 @@
 #
 # The ONLY legal listings mutation from client code is the seam RPC:
 #   supabase.rpc('submit_listing', ...) / supabase.rpc('transition_listing', ...)
-# Direct table writes — from('listings').insert/update/delete/upsert — bypass the
+# Direct table writes — from('listings' or 'listing_locations') mutations bypass the
 # REQ-021 screening chokepoint and the REQ-022 state machine, so they FAIL here.
 # Reads (.select) are fine.
 #
@@ -28,12 +28,12 @@ trap 'rm -f "$tmp"' EXIT
 
 # from('listings') / from("listings") followed (same line, or within a short
 # chain across lines) by a mutating method.
-grep -RnE "from\(\s*['\"\`]listings['\"\`]\s*\)[^\n]*\.(insert|update|delete|upsert)\s*\(" \
+grep -RnE "from\(\s*['\"\`](listings|listing_locations)['\"\`]\s*\)[^\n]*\.(insert|update|delete|upsert)\s*\(" \
   --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' --include='*.ts.txt' \
   "$TARGET" >>"$tmp" 2>/dev/null || true
 
 # Multi-line chains: a from('listings') line whose next 3 lines start a mutation.
-grep -RnA3 -E "from\(\s*['\"\`]listings['\"\`]\s*\)\s*$" \
+grep -RnA3 -E "from\(\s*['\"\`](listings|listing_locations)['\"\`]\s*\)\s*$" \
   --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' --include='*.ts.txt' \
   "$TARGET" 2>/dev/null |
   grep -E "^[^:]+[-:][0-9]+[-:]\s*\.(insert|update|delete|upsert)\s*\(" >>"$tmp" || true
@@ -46,7 +46,7 @@ fi
 
 echo "findings: $findings"
 if [ "$findings" -gt 0 ]; then
-  echo "FAIL: listings must be mutated only via rpc('submit_listing') / rpc('transition_listing')."
+  echo "FAIL: listings and listing_locations must be mutated only via their authorized doors."
   exit 1
 fi
 exit 0

@@ -51,6 +51,7 @@ export const AREAS: Area[] = [
       "e2e/posting-routes.spec.ts",
       "e2e/posting-routes-identity.spec.ts",
       "e2e/posting-routes-dials.spec.ts",
+      "e2e/posting-routes-catalog.spec.ts",
       "e2e/photo-pipeline.spec.ts",
       "e2e/geo.spec.ts",
     ],

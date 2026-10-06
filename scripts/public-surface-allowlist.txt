@@ -12,13 +12,13 @@ change_home_country | seller-only confirmed-country change; keyed by auth.uid(),
 listings | M5 column grants: price_unit, price_unit_text and photos_soon are the public card's unit and ribbon fields; attested_at gets none (bundle 4 steps 10, 15, 19)
 price_unit_labels | unit words only ({token: {en, am}} for basis options); the catalogue stays closed (M5, INC-397)
 set_listing_photos_soon | owner-only door on auth.uid(); rate-gated draft; writes one revision (M5)
-save_seller_place | caller-only; copies the place of the caller's own listing; rate-gated draft (M5)
+save_seller_place | restated grant (not a new surface); caller-only own-listing place, position-ordered fallback, draft rate gate (M10)
 clear_seller_place | caller-only; deletes the caller's own row (M5)
 my_seller_place | caller-only read keyed by auth.uid() (M5)
-submit_listing | the seller's draft door, restated by M5; ownership and rate gate inside
-edit_listing | the seller's live-ad edit door, restated by M5; ownership inside, judged at step 8
+submit_listing | restated grant (not a new surface); seller draft door, ownership and rate gate inside (M10)
+edit_listing | restated grant (not a new surface); seller live-ad edit door, ownership inside, judged at step 8 (M10)
 get_posting_schema | the posting form's schema read, restated by M5; rate-gated schema_read
-get_attribute_options | the posting form's option read, restated by M5; rate-gated options_read
+get_attribute_options | restated grant (not a new surface); posting option read, rate-gated options_read (M10)
 transition_listing | the status door, restated by M5; owner, reviewer and enforcer checks inside
 renew_listing | the seller's renew door, restated by M5; ownership inside
 set_listing_pin | the seller's pin door, restated by M5 with its comments; ownership inside
@@ -28,7 +28,7 @@ attr_cell_check | definition-cell check (help-text token reads only categories' 
 attr_option_shape | pure option-record shape check; reads no table; EXECUTE restated as live by M6
 attr_link_cells_refusal | link-cell check; returns a refusal key, writes nothing; EXECUTE restated as live by M6
 attr_export_payload | invoker export builder; RLS on attributes/links applies to the caller; EXECUTE restated as live by M6
-validate_listing_attributes | answer check used by the draft and publish doors; returns refusals or normalised answers, writes nothing; EXECUTE restated as live by M6
+validate_listing_attributes | restated grant (not a new surface); draft/publish answer check, normalised answers or refusals, writes nothing (M10)
 admin_commit_category_import | admin import door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8a)
 admin_undo_category_import | admin import undo door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8a)
 admin_commit_attribute_import | admin import door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8c)
@@ -39,3 +39,4 @@ mark_sold | seller door (owner check in body); EXECUTE to authenticated restated
 relist_listing | seller door (owner check in body); EXECUTE to authenticated restated by M9b (bundle 6, INC-444) — the browser calls it on the seller's own listing
 save_posting_identity | the seller's identity save; gates on auth.uid() + rate_gate('identity') inside (M2, granted in its format() loop; INC-443)
 admin_update_profile | the console's profile edit; gates on has_permission(profiles.update) inside (M2, granted in its format() loop; INC-443)
+my_recent_categories | caller-only read keyed by auth.uid(); ids and counts of the caller's own published ads (M10)

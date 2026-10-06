@@ -1,0 +1,13 @@
+// KNOWN-BAD FIXTURE — not application code; the seam guard must refuse it.
+import { supabase } from "@/integrations/supabase/client";
+
+export async function illegalPlaceWrite(listingId: string, locationId: string) {
+  return supabase.from("listing_locations").insert({ listing_id: listingId, location_id: locationId });
+}
+
+export async function illegalPlaceUpdate(id: string) {
+  return supabase
+    .from("listing_locations")
+    .update({ map_visible: false })
+    .eq("id", id);
+}
