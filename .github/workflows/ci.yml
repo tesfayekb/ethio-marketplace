@@ -42,13 +42,20 @@ jobs:
           bash scripts/check-deletions.sh
       - name: Promote needs every job (with self-test)
         run: |
-          if bash scripts/check-promote-needs.sh scripts/fixtures/ci-promote-needs-bad.yml; then
+          if out="$(bash scripts/check-promote-needs.sh scripts/fixtures/ci-promote-needs-bad.yml 2>&1)"; then
             echo "::error::promote-needs self-test: the bad fixture passed"; exit 1
           fi
+          case "$out" in
+            *"does not name job 'lint'"*) echo "promote-needs self-test OK: the bad fixture was refused" ;;
+            *) echo "::error::promote-needs self-test: the bad fixture failed for another reason"; exit 1 ;;
+          esac
           bash scripts/check-promote-needs.sh
       # INC-457 / DEC-140: a workflow file GitHub rejects starts no job and
       # leaves no evidence, so every workflow is linted by a pinned actionlint
       # that first proves it fails on a known-bad step.
+      # INC-460 / DEC-141: its shell and Python checks are OFF (-shellcheck= -pyflakes=):
+      # they run whatever shellcheck the machine happens to carry, so the same
+      # commit passed where there is none and failed on the runner.
       - name: Workflow lint (actionlint, pinned)
         env:
           ACTIONLINT_VERSION: 1.7.7
@@ -59,10 +66,16 @@ jobs:
             "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/$tarball"
           echo "$ACTIONLINT_SHA256  $RUNNER_TEMP/$tarball" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" actionlint
-          if "$RUNNER_TEMP/actionlint" scripts/fixtures/workflow-bad-step.yml; then
+          lint() { "$RUNNER_TEMP/actionlint" -shellcheck= -pyflakes= "$@"; }
+          if out="$(lint scripts/fixtures/workflow-bad-step.yml 2>&1)"; then
             echo "::error::actionlint self-test: the bad fixture passed"; exit 1
           fi
-          "$RUNNER_TEMP/actionlint" .github/workflows/*.yml
+          case "$out" in
+            *'also contains "with" key'*) echo "actionlint self-test OK: the bad fixture was refused" ;;
+            *) echo "::error::actionlint self-test: the bad fixture failed for another reason"; exit 1 ;;
+          esac
+          lint .github/workflows/*.yml
+          echo "Workflow lint OK (actionlint ${ACTIONLINT_VERSION}; shell and Python checks off, DEC-141)"
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14

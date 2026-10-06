@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { createClient } from "@supabase/supabase-js";
 
+import { planAttributeReap, type ReapRow } from "./helpers/attribute-reap-plan";
 import { chunkByLength } from "./helpers/chunk-by-length";
 import { retryingFetch } from "./helpers/net-retry";
 import migrationPreflight from "../scripts/e2e-migration-preflight";
@@ -499,7 +500,9 @@ export default async function globalSetup() {
   //     Shard 1 owns maintenance; every other job logs the skip and proceeds
   //     straight to its own minted user. An unsharded (local/solo) run has no
   //     herd and keeps ownership. The TEARDOWN is untouched.
-  const maintenanceOwner = (process.env["E2E_SHARD"] ?? "1") === "1";
+  // DEC-142 — E2E_MAINTENANCE=1 lets a local run prove the reapers (CI never sets it).
+  const maintenanceOwner =
+    (process.env["E2E_SHARD"] ?? "1") === "1" || process.env["E2E_MAINTENANCE"] === "1";
   if (!maintenanceOwner) {
     console.log(`[e2e:setup] maintenance skipped (owner: shard 1)`);
     console.log(`[e2e:setup] state written; setup complete`);
@@ -1018,6 +1021,56 @@ export default async function globalSetup() {
     await reapCategoryBatch(categoryBatch);
   }
   console.log(`[e2e:setup] reaped ${staleCategoryIds.length} stale scratch categor(ies)`);
+
+  // INC-458 / DEC-142 — SCRATCH ATTRIBUTE DEFINITIONS. Rows keyed `e2e_` or
+  // `e2e-` older than the 3h fixture window (planAttributeReap selects; a key
+  // without the prefix is never chosen). Order per batch: links (ON DELETE
+  // RESTRICT) → translations (no foreign key) → definitions, dependant first.
+  const attributeRows: ReapRow[] = [];
+  for (let after: string | null = null; ; ) {
+    let query = supabase
+      .from("attributes")
+      .select("id, attr_key, created_at, depends_on")
+      .order("attr_key")
+      .limit(1000);
+    if (after !== null) query = query.gt("attr_key", after);
+    const { data: page, error: attributeListError } = await query;
+    if (attributeListError) {
+      throw new Error(
+        `[e2e:setup] listing attribute definitions failed: ${attributeListError.message}`,
+      );
+    }
+    attributeRows.push(...((page ?? []) as ReapRow[]));
+    if ((page ?? []).length < 1000) break;
+    after = (page ?? [])[(page ?? []).length - 1]!.attr_key;
+  }
+  const attributePlan = planAttributeReap(attributeRows, cutoff);
+  for (const attributeBatch of chunkByLength(attributePlan.ids)) {
+    const steps: Array<[string, () => PromiseLike<{ error: { message: string } | null }>]> = [
+      [
+        "links",
+        () => supabase.from("category_attribute_links").delete().in("attribute_id", attributeBatch),
+      ],
+      [
+        "translations",
+        () =>
+          supabase
+            .from("entity_translations")
+            .delete()
+            .eq("entity_type", "attribute")
+            .in("entity_id", attributeBatch),
+      ],
+      ["definitions", () => supabase.from("attributes").delete().in("id", attributeBatch)],
+    ];
+    for (const [what, run] of steps) {
+      const { error } = await run();
+      if (error)
+        throw new Error(`[e2e:setup] reaping scratch attribute ${what} failed: ${error.message}`);
+    }
+  }
+  console.log(
+    `[e2e:setup] reaped ${attributePlan.ids.length} stale scratch attribute definition(s); kept ${attributePlan.kept}`,
+  );
 
   // DEC-036 PART B.2 — STAGING MAINTENANCE SWEEP (staging only by
   // construction: adminClient() refuses any URL but ethio-staging). Two

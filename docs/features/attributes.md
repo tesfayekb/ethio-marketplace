@@ -993,3 +993,5 @@ Extending the export route rides a named follow-up turn.
 - **Settled range.** An option's `bounds.<key>` may add `"settled": true` beside a numeric `min` and `max`; anything else is refused `boundsSettledNeedsRange`. The range is settled when any contributing option says so (PW-153).
 - **Tokens.** `{country}` is accepted anywhere; `{category:<slug>}` only in help text — `attr_cell_check` refuses an unknown slug with `unknownCategoryToken` (AT-68). Rendering: see posting.md.
 - **Price-page keys.** The deal key families and the `term_` prefix are those of M5 (`deal_keys`, `deal_group`); `price_basis_key` left `get_posting_schema` in M6.
+
+- INC-452 (2026-10-06, Bundle 6 Y3): the console's two reads (`admin_list_attributes`, `admin_attribute_option_coverage`) go through `readAllPages` ordered by `attr_key` (unique), each page asked for after the last key it has — never by position, which repeats or drops rows while another writer moves the list.

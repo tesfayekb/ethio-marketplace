@@ -174,9 +174,13 @@ function toOptionList(raw: unknown): AttributeOption[] {
 }
 
 export async function listAttributes(): Promise<AttributeRow[]> {
-  // INC-452 — every page, in attr_key order: one request stopped at the cap.
-  const data = await readAllPages((from, to) =>
-    supabase.rpc("admin_list_attributes").order("attr_key").range(from, to),
+  // INC-452 — every page, asked for after the last attr_key (unique): never by position.
+  const data = await readAllPages(
+    (after, limit) => {
+      const query = supabase.rpc("admin_list_attributes").order("attr_key").limit(limit);
+      return after === null ? query : query.gt("attr_key", after);
+    },
+    (row) => row.attr_key,
   );
   return data.map((row) => ({
     id: row.id,
@@ -214,8 +218,12 @@ export interface OptionCoverage {
 }
 
 export async function listOptionCoverage(): Promise<OptionCoverage[]> {
-  const data = await readAllPages((from, to) =>
-    supabase.rpc("admin_attribute_option_coverage").order("attr_key").range(from, to),
+  const data = await readAllPages(
+    (after, limit) => {
+      const query = supabase.rpc("admin_attribute_option_coverage").order("attr_key").limit(limit);
+      return after === null ? query : query.gt("attr_key", after);
+    },
+    (row) => row.attr_key,
   );
   return data.map((row) => ({
     attributeId: row.attribute_id,
