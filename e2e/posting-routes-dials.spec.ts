@@ -12,10 +12,11 @@ import {
 } from "./helpers/posting";
 
 /**
- * Bundle 6 Part A — THE WRITING DOORS' DIAL (INC-444, PR-27..PR-30).
+ * Bundle 6 Part A — THE WRITING DOORS' DIAL (INC-444, PR-27..PR-32).
  *
- * The four seller doors that write a listing revision count against the
- * `revise` dial. Each test lowers that dial for its OWN leased seller through
+ * The six seller doors that write a listing revision count against the
+ * `revise` dial and refuse it the way they already refuse: an exception
+ * naming `rateLimited` (no return type changes). Each test lowers that dial for its OWN leased seller through
  * `rate_overrides` (max_count 1, removed in finally — G38: no dial is raised),
  * calls the door twice on its own scratch draft through the browser's own
  * client (the doors are reached by RPC, not a route), and asserts the second
@@ -56,18 +57,9 @@ async function rpcAsPage(
   );
 }
 
-/** The refusal of the `revise` dial: the door's own JSON, field rate. */
+/** The refusal of the `revise` dial: the door's exception names rateLimited. */
 function isRateRefusal(answer: RpcAnswer): boolean {
-  if (answer.error !== null) return answer.error.includes("rateLimited");
-  const payload = (answer.data ?? {}) as Record<string, unknown>;
-  const list = Array.isArray(payload["refusals"]) ? payload["refusals"] : [];
-  return (
-    payload["ok"] === false &&
-    list.some((entry) => {
-      const row = (entry ?? {}) as Record<string, unknown>;
-      return row["field"] === "rate" && row["reason"] === "rateLimited";
-    })
-  );
+  return answer.error !== null && answer.error.includes("rateLimited");
 }
 
 test.describe("POSTING DOOR DIALS", () => {
@@ -175,6 +167,24 @@ test.describe("POSTING DOOR DIALS", () => {
       await twice(page, "set_listing_pin", { p_listing_id: listingId });
     } finally {
       await removeOverride(user.id, "PR-30");
+    }
+  });
+
+  test("PR-31 mark_sold counts against the revise dial", async ({ page }) => {
+    const { user, listingId } = await sellerWithDraft(page);
+    try {
+      await twice(page, "mark_sold", { p_listing_id: listingId });
+    } finally {
+      await removeOverride(user.id, "PR-31");
+    }
+  });
+
+  test("PR-32 relist_listing counts against the revise dial", async ({ page }) => {
+    const { user, listingId } = await sellerWithDraft(page);
+    try {
+      await twice(page, "relist_listing", { p_listing_id: listingId });
+    } finally {
+      await removeOverride(user.id, "PR-32");
     }
   });
 });
