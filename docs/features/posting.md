@@ -757,46 +757,44 @@ on mobile-360 under four workers, and `test.setTimeout` is twice that
 measurement, stated in the test beside the number. Every read inside it is
 bounded at 20 s and names the wait it lost.
 
-## A model change resets what the model speaks about (D25, INC-240)
+## A changed answer resets only what depends on it (DEC-144 rule 1, Bundle 7 Part A)
 
-A detail the seller never typed but the chosen option supplied is held apart from
-one the seller wrote: the form remembers WHAT IT PREFILLED, per detail. When a
-parent option changes — make → model, model → its facts — every prefilled detail
-the seller has not since edited is re-derived from the NEW option's facts, and a
-detail the new option says nothing about goes EMPTY rather than keeping the
-previous model's answer. Conditions re-evaluate and `allowed_options` re-narrow in
-the same pass, so a value the new parent no longer offers is cleared.
+One rule, one pure function: `src/features/posting/reset-scope.ts`
+(`dependencyMap`, `resetAfterMove`), called by the details step's reconciliation.
 
-**D25 (U6-C1-R3b-3b) REPLACES R3b-3a's survival rule for a MODEL-DEPENDENT
-detail.** The walk showed why: a Golf's door count left standing under a Corolla
-is a listing that lies, whoever typed it. So on a make or model change EVERY
-detail that model speaks about — a fact it fills, a bound it sets (the year), a
-condition it decides — is reset to the new option's prefill or to empty,
-REGARDLESS of a seller edit; and a detail NO option anywhere names (mileage,
-colour, condition, plate) keeps the seller's answer untouched.
+**What "depends on" means.** Question D depends on question P when P's answer
+decides something about D: D's list is folded under P (`parent`), an option of P
+fills D (`facts`), sets D's bounds (`bounds`) or narrows D's list (`allowed`), or
+D's condition names P (`visible_when`, either pair). The identity (card 1) is a
+question like any other: it resets only what depends on it.
 
-The reset is never silent (F4): a translated caption names the new model and
-offers Undo for ten seconds, restoring the previous answers in one tap. A
-restored answer becomes the SELLER's — it is only handed back to the model when
-it still matches the current fact — so the next reconciliation cannot overwrite
-what the tap just restored. PW-32 walks all of it in one form: a typed year and a
-prefilled body under one model, both re-derived under the next, the mileage
-surviving, and Undo putting the previous answers back.
+**The four cases**, for every D that depends on the moved P:
 
-### A make change starts over (D25b)
+1. D is hidden under the new answer — D stores nothing.
+2. The new option fills D (a fact) — D takes that value, marked as the form's.
+3. D holds the form's untouched answer (an old prefill) — it goes with the old
+   choice: back to the link default, or empty.
+4. D holds the seller's own answer — kept when it still fits (in the new list,
+   inside the new bounds; a multi-select keeps the picks that fit), cleared when
+   it does not.
 
-The MAKE is the root of the cascade — the picker other pickers hang under which
-hangs under nothing itself. Changing it does not adjust an item, it names a
-DIFFERENT item, so every detail on the form clears and re-prefills from the new
-make's own facts: the seller's answers included, mileage and colour and all. Only
-the moved answer itself survives. The same ten-second Undo offer covers it.
+**Followed through.** When D itself changed, what depends on D is judged the same
+way (brand → model → what the model filled). Every question that does not depend
+on the moved answer is neither read nor written.
 
-A MODEL change keeps D25's narrower scope (the details some option speaks about).
-A parent emptied by the narrowing pass — its own parent moved, or an Undo put back
-an answer the new parent cannot hold — is NOT a new choice and cascades no second
-reset, so an Undo is never undone by the pass that follows it. The model itself
-cannot come back through Undo when the make moved: it hangs under the previous
-make, and the narrowing clears what the new one cannot hold. PW-32 asserts that.
+**Undo.** A pass that changed anything offers Undo for ten seconds, restoring the
+answers as they stood before the move in one tap; an Undo of an identity move puts
+the identity itself back. A hide made by the condition's own sweep as the answer
+is chosen leaves the pass nothing to change, so it offers no Undo (PW-59).
+
+- D25b (a make/identity change starts the whole form over) is retired by DEC-144.
+- D46 (Undo after an identity reset restores the whole earlier form) is retired by DEC-144; Undo restores what the pass changed.
+- D47 (the identity as the one whole-form root) is retired by DEC-144.
+- DEC-139 is absorbed: its scoped resets are cases of the one rule.
+
+Tests: `reset-scope.test.ts` (each clause on a scratch shape); PW-164 to PW-168,
+with PW-59, PW-60, PW-163, PW-32 and PW-22 amended to the rule; PW-162 (e) proves a
+basis emptied by a type's `allowed` list leaves no refusal on Specifications.
 
 ## A year is a picker, not a number box
 
@@ -971,13 +969,13 @@ Test: PW-58.
 
 - `AttrDef.cardRank` carries `get_posting_schema`'s `card_rank` (no migration — the read already served it).
 - The single_select detail with `cardRank === 1` is the leaf's identity. It joins both `parents` and `roots`, so changing it is a D25b root change: every other detail restarts (the seller's own answers included), the new option's facts and the link defaults (INC-245) fill what they fill, and the ten-second Undo offer names the new option.
-- Undo after an identity reset restores the answers as they stood before it — the previous identity and the details it had shown — from the last pass in which no parent moved. Other Undo offers are unchanged (a make change still keeps the new make).
+- (Retired by DEC-144, Bundle 7 Part A — see "A changed answer resets only what depends on it".) Undo after an identity reset restored the answers as they stood before it — the previous identity and the details it had shown — from the last pass in which no parent moved. Other Undo offers are unchanged (a make change still keeps the new make).
 - A card-2/3 change keeps D25's narrower scope. PW-59 proves both sides on scratch rows.
 - D45 part 2: `attributeDisplayValue`'s `yearSuffix` is required, and the buyer sheet passes `post.specs.yearEcSuffix`; PW-58 reads the label in the sheet too.
 
 ## Only the identity restarts the form (D47, 2026-09-26)
 
-The whole-form reset root is the leaf's identity (the card-1 select) and nothing else. INC-291: the old D25b rule also made every top fold owner a root, so a size-system change on clothing or shoes, or a make change at Vehicle Hire where make is not card 1, wiped the whole form. A fold owner that is not card 1 stays a D25 parent: its fold child is cleared by the narrowing pass, details its options speak about are re-derived, and the seller's own answers stay. The fold fixtures (seedFoldSet, seedDeepFoldSet, seedFactShiftSet) now link their make/brand as required card 1, the catalog's shape, so PW-32 and the INC-245 test keep their assertions. PW-60 proves a non-identity system change clears only its size and an identity change still restarts everything.
+(Retired by DEC-144, Bundle 7 Part A: there is no whole-form root any more.) The whole-form reset root was the leaf's identity (the card-1 select) and nothing else. INC-291: the old D25b rule also made every top fold owner a root, so a size-system change on clothing or shoes, or a make change at Vehicle Hire where make is not card 1, wiped the whole form. A fold owner that is not card 1 stays a D25 parent: its fold child is cleared by the narrowing pass, details its options speak about are re-derived, and the seller's own answers stay. The fold fixtures (seedFoldSet, seedDeepFoldSet, seedFactShiftSet) now link their make/brand as required card 1, the catalog's shape, so PW-32 and the INC-245 test keep their assertions. PW-60 proves a non-identity system change clears only its size and an identity change still restarts everything.
 
 ## Every row open (D41, 2026-09-24)
 

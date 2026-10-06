@@ -1243,6 +1243,61 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * PW-162 sequence (e), owed since bundle 6 (W1): a draft that reached the title
+   * step, its basis then emptied by a specification change (the type's `allowed`
+   * list no longer holds it — DEC-144 rule 1, case 4), then Next on
+   * Specifications. The basis is the price page's question: no summary stands on
+   * Specifications and Next reaches Photos. Scratch leaf and definitions (J3).
+   */
+  test("PW-162 (e) a basis emptied by a specification change after the title step leaves no refusal on specifications (INC-455)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const { category, set } = await dealLeaf();
+    const openType = `${set.typeValue.replace(/_narrow$/, "")}_open`;
+    const listingId = await reachStep3(page, user.id, category);
+    const type = specControl(page, set.typeKey);
+    await expect(type.locator(`option[value="${openType}"]`)).toHaveCount(1, { timeout: 20_000 });
+    await type.selectOption(openType);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await specControl(page, set.basisKey).selectOption("per_litre");
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await attributesOf(listingId))[set.basisKey], { timeout: 20_000 })
+      .toBe("per_litre");
+
+    // Back to Specifications: title → price → photos → specifications.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-4")).toHaveCount(0, { timeout: 20_000 });
+    if ((await specControl(page, set.typeKey).count()) === 0) {
+      await page.getByTestId("post-back").click();
+    }
+    await expect(specControl(page, set.typeKey)).toBeVisible({ timeout: 20_000 });
+    await specControl(page, set.typeKey).selectOption(set.typeValue);
+    await expect
+      .poll(async () => set.basisKey in (await attributesOf(listingId)), {
+        message: "PW-162 (e): the narrowing type did not empty the basis",
+        timeout: 20_000,
+      })
+      .toBe(false);
+
+    await page.getByTestId("post-next").click();
+    await expect(
+      page.getByTestId("post-step-2"),
+      "PW-162 (e): Next on specifications did not reach photos",
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByTestId("post-refusal-summary"),
+      "PW-162 (e): a summary stood on specifications",
+    ).toHaveCount(0);
+  });
+
+  /**
    * U6-C1-R1 — ONE searchable currency control, already carrying an answer.
    *
    * Honest limit: a signed-in seller's SAVED home market outranks the edge guess

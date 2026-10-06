@@ -583,7 +583,7 @@ test.describe("POSTING WIZARD", () => {
    * and Undo takes it all back; a card-2 change keeps D25's narrower scope.
    * Scratch category and definitions only (G27), reaped by the afterEach (J3).
    */
-  test("PW-59 a card-1 identity change restarts the form, Undo restores it, a card-2 change does not", async ({
+  test("PW-59 a card-1 identity change hides only what hangs on it, and a card-2 change touches nothing else", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -673,41 +673,32 @@ test.describe("POSTING WIZARD", () => {
       )
       .toBe("5|7");
 
-    // 1 — A DIFFERENT IDENTITY: every other detail starts over.
+    // 1 — A DIFFERENT IDENTITY (DEC-144 rule 1): c hangs on A and goes; n depends
+    // on nothing and stays (the whole-form restart is retired — PW-164).
     await control(idn.attr_key).selectOption(b);
-    await expect(control(n.attr_key), "PW-59: n survived the identity change").toHaveValue("", {
+    await expect(control(c.attr_key), "PW-59: c stayed on screen under B").toHaveCount(0, {
       timeout: 20_000,
     });
+    await expect(control(n.attr_key), "PW-59: the identity change touched n").toHaveValue("5");
     await expect
       .poll(
         async () => {
           const row = await stored();
           return `${n.attr_key in row}|${c.attr_key in row}`;
         },
-        { message: "PW-59: the draft kept n or c after the identity change", timeout: 20_000 },
+        { message: "PW-59: the draft after the identity change is wrong", timeout: 20_000 },
       )
-      .toBe("false|false");
-    const offer = page.getByTestId("post-specs-reset");
-    await expect(offer, "PW-59: the reset offer did not name B").toContainText(`${b} label`, {
-      timeout: 20_000,
-    });
+      .toBe("true|false");
+    // The hide is the condition's own sweep (INC-257), made as B is chosen, so the
+    // pass has nothing left to change and offers no Undo (PW-164 holds the Undo).
+    await expect(page.getByTestId("post-specs-reset")).toHaveCount(0);
 
-    // 2 — UNDO TAKES IT ALL BACK.
-    await page.getByTestId("post-specs-reset-undo").click();
-    await expect(control(idn.attr_key), "PW-59: Undo did not restore A").toHaveValue(a, {
+    // 2 — BACK TO A: c is asked again, empty (a hidden answer is not kept).
+    await control(idn.attr_key).selectOption(a);
+    await expect(control(c.attr_key), "PW-59: c was not asked again under A").toHaveValue("", {
       timeout: 20_000,
     });
-    await expect(control(n.attr_key)).toHaveValue("5", { timeout: 20_000 });
-    await expect(control(c.attr_key)).toHaveValue("7", { timeout: 20_000 });
-    await expect
-      .poll(
-        async () => {
-          const row = await stored();
-          return `${String(row[idn.attr_key])}|${String(row[n.attr_key])}|${String(row[c.attr_key])}`;
-        },
-        { message: "PW-59: Undo did not reach the draft", timeout: 20_000 },
-      )
-      .toBe(`${a}|5|7`);
+    await expect(control(n.attr_key)).toHaveValue("5");
 
     // 3 — THE D25 BOUNDARY: a card-2 change is not a root.
     await control(k.attr_key).selectOption(`${stem}_k2`);
@@ -725,7 +716,7 @@ test.describe("POSTING WIZARD", () => {
    * and no reset is offered. A change to the other answer still restarts and
    * Undo restores, as PW-59 asserts. Scratch leaf and definitions only (J3).
    */
-  test("PW-163 a first identity answer keeps the details filled above it; a change still restarts", async ({
+  test("PW-163 a first identity answer keeps the details filled above it; a change keeps them too", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -820,21 +811,25 @@ test.describe("POSTING WIZARD", () => {
       "PW-163: a first answer offered a reset",
     ).toHaveCount(0);
 
-    // 2 — A CHANGE TO THE OTHER ANSWER: the form restarts, Undo restores (PW-59).
+    // 2 — A CHANGE TO THE OTHER ANSWER (DEC-144 rule 1): nothing depends on this
+    // identity, so nothing else moves and no reset is offered.
     await control(idn.attr_key).selectOption(b);
-    await expect(control(num.attr_key), "PW-163: the change kept the number").toHaveValue("", {
-      timeout: 20_000,
-    });
-    const offer = page.getByTestId("post-specs-reset");
-    await expect(offer, "PW-163: the reset offer did not name B").toContainText(`${b} label`, {
-      timeout: 20_000,
-    });
-    await page.getByTestId("post-specs-reset-undo").click();
-    await expect(control(idn.attr_key), "PW-163: Undo did not restore A").toHaveValue(a, {
-      timeout: 20_000,
-    });
-    await expect(control(text.attr_key)).toHaveValue("e2e own words", { timeout: 20_000 });
-    await expect(control(num.attr_key)).toHaveValue("4", { timeout: 20_000 });
+    await expect
+      .poll(async () => (await stored())[idn.attr_key], {
+        message: "PW-163: the changed identity never landed",
+        timeout: 20_000,
+      })
+      .toBe(b);
+    await expect(control(text.attr_key), "PW-163: the change emptied the text").toHaveValue(
+      "e2e own words",
+    );
+    await expect(control(num.attr_key), "PW-163: the change emptied the number").toHaveValue("4");
+    const after = await stored();
+    expect(after[num.attr_key], "PW-163: the draft lost the number on a change").toBe(4);
+    await expect(
+      page.getByTestId("post-specs-reset"),
+      "PW-163: a change nothing depends on offered a reset",
+    ).toHaveCount(0);
   });
 
   /**
@@ -844,7 +839,7 @@ test.describe("POSTING WIZARD", () => {
    * everything (PW-59). Scratch category and definitions only (G27), reaped by the
    * afterEach (J3).
    */
-  test("PW-60 a non-identity fold owner change clears only its fold child; the identity still restarts", async ({
+  test("PW-60 a non-identity fold owner change clears only its fold child; an identity change clears nothing it does not hold", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -952,14 +947,15 @@ test.describe("POSTING WIZARD", () => {
       )
       .toBe(`false|5|${a}|${us}`);
 
-    // 2 — THE IDENTITY STILL RESTARTS EVERYTHING (as PW-59 proves).
+    // 2 — THE IDENTITY IS A PARENT LIKE ANY OTHER (DEC-144 rule 1): nothing here
+    // depends on it, so its change moves nothing else.
     await control(idn.attr_key).selectOption(b);
-    await expect(control(n.attr_key), "PW-60: n survived the identity change").toHaveValue("", {
-      timeout: 20_000,
-    });
-    await expect(page.getByTestId("post-specs-reset"), "PW-60: no reset offer").toBeVisible({
-      timeout: 20_000,
-    });
+    await expect
+      .poll(async () => String((await stored())[idn.attr_key]), { timeout: 20_000 })
+      .toBe(b);
+    await expect(control(n.attr_key), "PW-60: an identity change wiped n").toHaveValue("5");
+    await expect(control(sys.attr_key), "PW-60: an identity change wiped sys").toHaveValue(us);
+    await expect(page.getByTestId("post-specs-reset"), "PW-60: a reset was offered").toHaveCount(0);
   });
 
   /**
@@ -1019,11 +1015,11 @@ test.describe("POSTING WIZARD", () => {
       String(shift.corollaDoors),
       { timeout: 20_000 },
     );
-    // 2 — A DETAIL THE NEW MODEL SAYS NOTHING ABOUT IS EMPTY, even though the
-    // seller chose it: the year belonged to the old model's bound.
-    await expect(year, "PW-32: a model-dependent year survived the model change").toHaveValue("", {
-      timeout: 20_000,
-    });
+    // 2 — THE SELLER'S OWN YEAR STILL FITS (DEC-144 rule 1 case 4): the new model
+    // bounds nothing, so the year is kept (a year outside new bounds: PW-167).
+    await expect(year, "PW-32: a year that still fits was cleared").toHaveValue(
+      String(shift.golfYear),
+    );
     // 3 — A DETAIL NO MODEL NAMES IS THE SELLER'S, always.
     await expect(mileage, "PW-32: the seller's own mileage was reset").toHaveValue("120000");
 
@@ -1054,10 +1050,9 @@ test.describe("POSTING WIZARD", () => {
     ).toHaveValue("", { timeout: 20_000 });
 
     /**
-     * D25b — A MAKE CHANGE IS A DIFFERENT CAR. The mileage the seller typed
-     * belonged to the Corolla; under another make it is not "kept", it is wrong.
-     * So the whole form starts over — the seller's own answers included — and the
-     * offer takes it all back.
+     * DEC-144 rule 1 — A MAKE CHANGE CLEARS WHAT HANGS ON THE MAKE: the model it no
+     * longer offers, and then what that model filled. The mileage depends on
+     * neither and stays (D25b retired).
      */
     await mileage.fill("120000");
     await mileage.blur();
@@ -1073,14 +1068,11 @@ test.describe("POSTING WIZARD", () => {
     await expect(body, "PW-32: the body survived the make change").toHaveValue("", {
       timeout: 20_000,
     });
-    await expect(
-      mileage,
-      "PW-32: the seller's own mileage survived a make change (D25b: a different car)",
-    ).toHaveValue("", { timeout: 20_000 });
+    await expect(mileage, "PW-32: a make change touched the seller's own mileage").toHaveValue(
+      "120000",
+    );
 
-    // AND IT IS REVERSIBLE. The model cannot come back — it hangs under the
-    // previous make, and the narrowing clears what the new make cannot hold — but
-    // everything the new make does not decide is restored.
+    // AND IT IS REVERSIBLE: the offer is shown, and Undo leaves the mileage as it is.
     const rootOffer = page.getByTestId("post-specs-reset");
     await expect(rootOffer, "PW-32: the make reset was never announced").toBeVisible({
       timeout: 20_000,
@@ -1219,5 +1211,433 @@ test.describe("POSTING WIZARD", () => {
         timeout: 20_000,
       })
       .toBe(false);
+  });
+
+  /**
+   * Bundle 7 Part A (DEC-144 rule 1) — scratch definitions for PW-164..168, linked
+   * to the test's own leaf in the order given (J3: reaped through `specs`).
+   */
+  async function seedRule(
+    tag: string,
+    categoryId: string,
+    rows: Record<string, unknown>[],
+    links: Record<string, Record<string, unknown>> = {},
+  ): Promise<void> {
+    const supabase = adminClient();
+    const { data, error } = await supabase.from("attributes").insert(rows).select("id, attr_key");
+    if (error || !data) throw new Error(`[e2e:${tag}] seeding failed: ${error?.message}`);
+    specs.push(...data.map((row) => row.attr_key));
+    const { error: linkError } = await supabase.from("category_attribute_links").insert(
+      rows.map((row, index) => {
+        const key = String(row["attr_key"]);
+        return {
+          category_id: categoryId,
+          attribute_id: data.find((entry) => entry.attr_key === key)!.id,
+          is_required: false,
+          display_order: 100 + index,
+          ...(links[key] ?? {}),
+        };
+      }),
+    );
+    if (linkError) throw new Error(`[e2e:${tag}] linking failed: ${linkError.message}`);
+  }
+
+  const ruleOption = (value: string, extra: Record<string, unknown> = {}) => ({
+    value,
+    label_en: `${value} label`,
+    label_am: `${value} ምልክት`,
+    ...extra,
+  });
+
+  const ruleControl = (page: Page, attrKey: string) =>
+    page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+
+  /** A lazy list is fetched on the tap that opens it (DEC-053): open, then choose. */
+  async function choose(page: Page, attrKey: string, value: string) {
+    const picker = ruleControl(page, attrKey);
+    if ((await picker.getAttribute("data-options")) === "idle") await picker.focus();
+    await expect(picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+    await picker.selectOption(value);
+  }
+
+  test("PW-164 an identity change keeps every detail that does not depend on it, resets the ones that do, and Undo restores them", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const stem = `e2e_r164_${Date.now()}_${rand()}`;
+    const [idn, dep, own] = [`${stem}_idn`, `${stem}_dep`, `${stem}_own`];
+    const [a, b] = [`${stem}_a`, `${stem}_b`];
+    await seedRule(
+      "PW-164",
+      category.id,
+      [
+        {
+          attr_key: idn,
+          name_en: idn,
+          attr_type: "single_select",
+          options: [ruleOption(a, { facts: { [dep]: 3 } }), ruleOption(b)],
+        },
+        { attr_key: dep, name_en: dep, attr_type: "number", decimals: 0 },
+        { attr_key: own, name_en: own, attr_type: "number", decimals: 0 },
+      ],
+      { [idn]: { is_required: true, card_rank: 1 } },
+    );
+    const listingId = await reachStep3(page, user.id, category);
+    const stored = () => attributesOf(listingId);
+
+    await choose(page, idn, a);
+    await expect(ruleControl(page, dep), "PW-164: A's fact did not prefill").toHaveValue("3", {
+      timeout: 20_000,
+    });
+    await ruleControl(page, own).fill("5");
+    await ruleControl(page, own).blur();
+    await expect
+      .poll(async () => `${String((await stored())[dep])}|${String((await stored())[own])}`, {
+        message: "PW-164: the first answers never landed",
+        timeout: 20_000,
+      })
+      .toBe("3|5");
+
+    await choose(page, idn, b);
+    await expect(ruleControl(page, dep), "PW-164: A's prefill stayed under B").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect(ruleControl(page, own), "PW-164: the independent detail moved").toHaveValue("5");
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${String(row[idn])}|${dep in row}|${String(row[own])}`;
+        },
+        { message: "PW-164: the draft after the identity change is wrong", timeout: 20_000 },
+      )
+      .toBe(`${b}|false|5`);
+    await expect(page.getByTestId("post-specs-reset")).toContainText(`${b} label`, {
+      timeout: 20_000,
+    });
+
+    await page.getByTestId("post-specs-reset-undo").click();
+    await expect(ruleControl(page, idn), "PW-164: Undo did not restore A").toHaveValue(a, {
+      timeout: 20_000,
+    });
+    await expect(ruleControl(page, dep), "PW-164: Undo did not restore the prefill").toHaveValue(
+      "3",
+      { timeout: 20_000 },
+    );
+    await expect(ruleControl(page, own)).toHaveValue("5");
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${String(row[idn])}|${String(row[dep])}|${String(row[own])}`;
+        },
+        { message: "PW-164: Undo did not reach the draft", timeout: 20_000 },
+      )
+      .toBe(`${a}|3|5`);
+  });
+
+  test("PW-165 a parent's change never touches a detail that depends on another parent", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const stem = `e2e_r165_${Date.now()}_${rand()}`;
+    const [p1, c1, p2, c2] = [`${stem}_p1`, `${stem}_c1`, `${stem}_p2`, `${stem}_c2`];
+    const v = (name: string) => `${stem}_${name}`;
+    await seedRule("PW-165", category.id, [
+      {
+        attr_key: p1,
+        name_en: p1,
+        attr_type: "single_select",
+        options: [ruleOption(v("x")), ruleOption(v("y"))],
+      },
+      {
+        attr_key: c1,
+        name_en: c1,
+        attr_type: "single_select",
+        options: [ruleOption(v("x1"), { parent: v("x") }), ruleOption(v("y1"), { parent: v("y") })],
+      },
+      {
+        attr_key: p2,
+        name_en: p2,
+        attr_type: "single_select",
+        options: [ruleOption(v("u")), ruleOption(v("w"))],
+      },
+      {
+        attr_key: c2,
+        name_en: c2,
+        attr_type: "single_select",
+        options: [ruleOption(v("u1"), { parent: v("u") }), ruleOption(v("w1"), { parent: v("w") })],
+      },
+    ]);
+    const listingId = await reachStep3(page, user.id, category);
+    const stored = () => attributesOf(listingId);
+
+    await choose(page, p1, v("x"));
+    await choose(page, c1, v("x1"));
+    await choose(page, p2, v("u"));
+    await choose(page, c2, v("u1"));
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return [p1, c1, p2, c2].map((key) => String(row[key])).join("|");
+        },
+        { message: "PW-165: the first answers never landed", timeout: 20_000 },
+      )
+      .toBe([v("x"), v("x1"), v("u"), v("u1")].join("|"));
+
+    await choose(page, p1, v("y"));
+    await expect(ruleControl(page, c1), "PW-165: the moved parent's child stayed").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect(
+      ruleControl(page, c2),
+      "PW-165: another parent's child lost the seller's answer",
+    ).toHaveValue(v("u1"));
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${String(row[p1])}|${c1 in row}|${String(row[p2])}|${String(row[c2])}`;
+        },
+        { message: "PW-165: the draft after the move is wrong", timeout: 20_000 },
+      )
+      .toBe(`${v("y")}|false|${v("u")}|${v("u1")}`);
+  });
+
+  test("PW-166 a prefill the seller left goes with the old choice; one the seller changed stays when it fits and is cleared when it does not", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const stem = `e2e_r166_${Date.now()}_${rand()}`;
+    const [model, body, trim] = [`${stem}_model`, `${stem}_body`, `${stem}_trim`];
+    const v = (name: string) => `${stem}_${name}`;
+    await seedRule(
+      "PW-166",
+      category.id,
+      [
+        {
+          attr_key: model,
+          name_en: model,
+          attr_type: "single_select",
+          options: [
+            ruleOption(v("m1"), { facts: { [body]: v("hatch"), [trim]: v("t1") } }),
+            ruleOption(v("m2")),
+            ruleOption(v("m3"), { allowed: { [trim]: [v("t1"), v("t3")] } }),
+          ],
+        },
+        {
+          attr_key: body,
+          name_en: body,
+          attr_type: "single_select",
+          options: [ruleOption(v("hatch")), ruleOption(v("van"))],
+        },
+        {
+          attr_key: trim,
+          name_en: trim,
+          attr_type: "single_select",
+          options: [ruleOption(v("t1")), ruleOption(v("t2")), ruleOption(v("t3"))],
+        },
+      ],
+      { [body]: { default_value: v("van") } },
+    );
+    const listingId = await reachStep3(page, user.id, category);
+    const stored = () => attributesOf(listingId);
+
+    await choose(page, model, v("m1"));
+    await expect(ruleControl(page, body)).toHaveValue(v("hatch"), { timeout: 20_000 });
+    await expect(ruleControl(page, trim)).toHaveValue(v("t1"), { timeout: 20_000 });
+    // The seller changes one prefill and leaves the other.
+    await choose(page, trim, v("t2"));
+    await expect
+      .poll(async () => String((await stored())[trim]), { timeout: 20_000 })
+      .toBe(v("t2"));
+
+    // 1 — m2: the untouched prefill returns to the link default; the changed one fits and stays.
+    await choose(page, model, v("m2"));
+    await expect(
+      ruleControl(page, body),
+      "PW-166: the prefill the seller left did not go to the link default",
+    ).toHaveValue(v("van"), { timeout: 20_000 });
+    await expect(
+      ruleControl(page, trim),
+      "PW-166: a changed prefill that fits was lost",
+    ).toHaveValue(v("t2"));
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${String(row[model])}|${String(row[body])}|${String(row[trim])}`;
+        },
+        { message: "PW-166: the draft after m2 is wrong", timeout: 20_000 },
+      )
+      .toBe(`${v("m2")}|${v("van")}|${v("t2")}`);
+
+    // 2 — m3 allows t1 and t3 only: the seller's t2 no longer fits and is cleared.
+    await choose(page, model, v("m3"));
+    await expect(
+      ruleControl(page, trim),
+      "PW-166: a changed prefill that no longer fits stayed",
+    ).toHaveValue("", { timeout: 20_000 });
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${String(row[model])}|${trim in row}`;
+        },
+        { message: "PW-166: the draft after m3 is wrong", timeout: 20_000 },
+      )
+      .toBe(`${v("m3")}|false`);
+  });
+
+  test("PW-167 a seller's year inside the new model's bounds is kept; one outside is cleared, with the Undo offer", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const stem = `e2e_r167_${Date.now()}_${rand()}`;
+    const [model, year] = [`${stem}_model`, `${stem}_year`];
+    const [older, newer] = [`${stem}_old`, `${stem}_new`];
+    await seedRule("PW-167", category.id, [
+      {
+        attr_key: model,
+        name_en: model,
+        attr_type: "single_select",
+        options: [
+          ruleOption(older, { bounds: { [year]: { min: 1990 } } }),
+          ruleOption(newer, { bounds: { [year]: { min: 2015 } } }),
+        ],
+      },
+      {
+        attr_key: year,
+        name_en: year,
+        attr_type: "number",
+        min_bound: "1900",
+        max_bound: "2030",
+        decimals: 0,
+        format: "year",
+      },
+    ]);
+    const listingId = await reachStep3(page, user.id, category);
+    const stored = () => attributesOf(listingId);
+
+    await choose(page, model, older);
+    await ruleControl(page, year).selectOption("2018");
+    await expect.poll(async () => (await stored())[year], { timeout: 20_000 }).toBe(2018);
+
+    // 1 — 2018 lies inside the new floor: kept, nothing reset.
+    await choose(page, model, newer);
+    await expect.poll(async () => (await stored())[model], { timeout: 20_000 }).toBe(newer);
+    await expect(
+      ruleControl(page, year),
+      "PW-167: a year inside the bounds was cleared",
+    ).toHaveValue("2018");
+    expect((await stored())[year], "PW-167: the draft lost a year that fits").toBe(2018);
+    await expect(page.getByTestId("post-specs-reset")).toHaveCount(0);
+
+    // 2 — 2000 under the old model, then the new floor 2015: cleared, with the offer.
+    await choose(page, model, older);
+    await ruleControl(page, year).selectOption("2000");
+    await expect.poll(async () => (await stored())[year], { timeout: 20_000 }).toBe(2000);
+    await choose(page, model, newer);
+    await expect(ruleControl(page, year), "PW-167: a year below the floor stayed").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect
+      .poll(async () => year in (await stored()), {
+        message: "PW-167: the draft kept a year outside the bounds",
+        timeout: 20_000,
+      })
+      .toBe(false);
+    await expect(page.getByTestId("post-specs-reset"), "PW-167: no Undo offer").toBeVisible({
+      timeout: 20_000,
+    });
+  });
+
+  test("PW-168 a chain: the brand changes, the model it no longer offers is cleared and what it filled goes; the seller's own colour stays", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const stem = `e2e_r168_${Date.now()}_${rand()}`;
+    const [brand, model, ram, colour] = [
+      `${stem}_brand`,
+      `${stem}_model`,
+      `${stem}_ram`,
+      `${stem}_colour`,
+    ];
+    const v = (name: string) => `${stem}_${name}`;
+    await seedRule("PW-168", category.id, [
+      {
+        attr_key: brand,
+        name_en: brand,
+        attr_type: "single_select",
+        options: [ruleOption(v("b1")), ruleOption(v("b2"))],
+      },
+      {
+        attr_key: model,
+        name_en: model,
+        attr_type: "single_select",
+        options: [
+          ruleOption(v("m1"), { parent: v("b1"), facts: { [ram]: v("r8") } }),
+          ruleOption(v("m2"), { parent: v("b2") }),
+        ],
+      },
+      {
+        attr_key: ram,
+        name_en: ram,
+        attr_type: "single_select",
+        options: [ruleOption(v("r8")), ruleOption(v("r16"))],
+      },
+      {
+        attr_key: colour,
+        name_en: colour,
+        attr_type: "single_select",
+        options: [ruleOption(v("red")), ruleOption(v("blue"))],
+      },
+    ]);
+    const listingId = await reachStep3(page, user.id, category);
+    const stored = () => attributesOf(listingId);
+
+    await choose(page, brand, v("b1"));
+    await choose(page, model, v("m1"));
+    await expect(ruleControl(page, ram), "PW-168: the model's fact did not prefill").toHaveValue(
+      v("r8"),
+      { timeout: 20_000 },
+    );
+    await choose(page, colour, v("red"));
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return [brand, model, ram, colour].map((key) => String(row[key])).join("|");
+        },
+        { message: "PW-168: the first answers never landed", timeout: 20_000 },
+      )
+      .toBe([v("b1"), v("m1"), v("r8"), v("red")].join("|"));
+
+    await choose(page, brand, v("b2"));
+    await expect(ruleControl(page, model), "PW-168: a model of the old brand stayed").toHaveValue(
+      "",
+      { timeout: 20_000 },
+    );
+    await expect(ruleControl(page, ram), "PW-168: the old model's prefill stayed").toHaveValue("", {
+      timeout: 20_000,
+    });
+    await expect(ruleControl(page, colour), "PW-168: the seller's colour moved").toHaveValue(
+      v("red"),
+    );
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${String(row[brand])}|${model in row}|${ram in row}|${String(row[colour])}`;
+        },
+        { message: "PW-168: the draft after the brand change is wrong", timeout: 20_000 },
+      )
+      .toBe(`${v("b2")}|false|false|${v("red")}`);
   });
 });

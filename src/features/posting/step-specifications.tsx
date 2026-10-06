@@ -15,6 +15,18 @@ import { answerOtherText, answerTokens, multiAnswer } from "./answer-tokens";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 import { conditionMet } from "./visible-when";
+import {
+  boundOf,
+  chosenList,
+  dependencyMap,
+  foldFact,
+  isEmpty,
+  optionBelongsToParent,
+  resetAfterMove,
+  same,
+  selectedValue,
+  type FactBound,
+} from "./reset-scope";
 import type { MessageKey } from "@/i18n";
 
 /** DEC-109 — one headed group of the price page's rows (the door's `deal` lists). */
@@ -82,16 +94,6 @@ const EAGER_OPTION_LIMIT = 200;
 
 const SELECT_TYPES = ["single_select", "multi_select"];
 
-/** The single-select value the door accepts: a plain value, or `other` + text. */
-function selectedValue(raw: unknown): string {
-  if (typeof raw === "string") return raw;
-  if (raw !== null && typeof raw === "object") {
-    const value = (raw as Record<string, unknown>)["value"];
-    return typeof value === "string" ? value : "";
-  }
-  return "";
-}
-
 function otherText(raw: unknown): string {
   if (raw !== null && typeof raw === "object") {
     const text = (raw as Record<string, unknown>)["text"];
@@ -100,97 +102,8 @@ function otherText(raw: unknown): string {
   return "";
 }
 
-/** Part O — the tokens of a multi-choice answer, Other included (one reader). */
-function chosenList(raw: unknown): string[] {
-  return Array.isArray(raw) ? answerTokens(raw) : [];
-}
-
-function isEmpty(value: unknown): boolean {
-  return (
-    value === undefined ||
-    value === null ||
-    value === "" ||
-    (Array.isArray(value) && value.length === 0)
-  );
-}
-
-/**
- * INC-240 — TWO ANSWERS ARE THE SAME ANSWER. A detail's value may be a string, a
- * number, a boolean, an `other` pair or a list, so provenance is compared by
- * SHAPE, not by identity — one comparator, used by the reconciliation and by the
- * caption alike, so the screen and the re-derivation can never disagree.
- */
-function same(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
-  if (isEmpty(a) && isEmpty(b)) return true;
-  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-}
-
-/**
- * INC-434 — ONE FOLD FOR ONE FACT. A scalar fact prefills its target; a LIST
- * fact (`{"dishes": ["doro_wot"]}`) prefills a multi_select target the same way
- * — only while the target is empty, the seller's own ticks owning it after; a
- * boolean target stays a hint (D27). Anything else is not a fact this screen
- * can draw.
- */
-function foldFact(
-  raw: unknown,
-  targetType: string | null,
-): { kind: "prefill" | "hint"; value: unknown } | { kind: "skip" } {
-  if (Array.isArray(raw)) {
-    const list = raw.filter((entry): entry is string => typeof entry === "string" && entry !== "");
-    if (targetType !== "multi_select" || list.length === 0) return { kind: "skip" };
-    return { kind: "prefill", value: list };
-  }
-  if (typeof raw !== "string" && typeof raw !== "number" && typeof raw !== "boolean") {
-    return { kind: "skip" };
-  }
-  if (targetType === "boolean") return { kind: "hint", value: raw };
-  return { kind: "prefill", value: raw };
-}
-
 /** INC-434 — the form's provenance per category, kept across remounts (this tab only). */
 const PREFILLS_HELD = new Map<string, Record<string, unknown>>();
-
-interface FactBound {
-  min: number | null;
-  max: number | null;
-}
-
-/**
- * INC-247 — A BOUND WRITTEN AS TEXT IS STILL A BOUND. A fact that arrives through
- * the attributes FILE carries its numbers as the file wrote them (`"1968"`), and
- * reading only JSON numbers here was how a model's floor was quietly ignored and
- * the picker offered years the catalogue had already ruled out. A numeric string
- * is read as the number it is; anything that is not a number is not a bound.
- */
-function boundOf(raw: unknown): FactBound | null {
-  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
-  const row = raw as Record<string, unknown>;
-  const num = (key: string): number | null => {
-    const held = row[key];
-    if (typeof held === "number") return Number.isFinite(held) ? held : null;
-    if (typeof held !== "string" || held.trim() === "") return null;
-    const parsed = Number(held);
-    return Number.isFinite(parsed) ? parsed : null;
-  };
-  const min = num("min");
-  const max = num("max");
-  if (min === null && max === null) return null;
-  return { min, max };
-}
-
-function optionStems(value: string): string[] {
-  const parts = value.split("_").filter((part) => part !== "");
-  const out = [value];
-  for (let index = 1; index < parts.length; index += 1) out.push(parts.slice(index).join("_"));
-  return out;
-}
-
-function optionBelongsToParent(option: AttrOption, parentValue: string): boolean {
-  if (option.parent === parentValue) return true;
-  return optionStems(option.value).some((stem) => stem.startsWith(`${parentValue}_`));
-}
 
 /**
  * D36 — HELP IS ONE SENTENCE UNTIL IT IS ASKED FOR. A curator's guidance can run
@@ -767,72 +680,41 @@ export function StepSpecifications({
   );
 
   /**
-   * D25 — WHICH DETAILS BELONG TO THE MODEL. A detail is MODEL-DEPENDENT when a
-   * parent option speaks about it at all: a fact that fills it, a fact that
-   * bounds it (a year), or a condition that decides whether it is asked. Every
-   * other detail is the SELLER's (mileage, colour, condition, plate) and no
-   * parent change may ever touch it.
+   * DEC-144 rule 1 (Bundle 7 Part A) — WHAT DEPENDS ON WHAT. The one rule lives in
+   * reset-scope.ts; this screen hands it the definitions, the loaded option lists,
+   * the folds and the definitions' own bounds. A question is a PARENT when some
+   * other question depends on it (fold, fact, bound, allowed list, condition) —
+   * the identity is a parent like any other (D25b, D46, D47 retired).
    */
-  const dependents = useMemo(() => {
-    const out = new Set<string>();
+  const scopeInput = useMemo(() => {
+    const loaded: Record<string, AttrOption[]> = {};
+    const ownBounds: Record<string, { min: number | null; max: number | null }> = {};
     for (const def of definitions) {
-      if (def.visibleWhen !== null) out.add(def.attrKey);
+      ownBounds[def.attrKey] = { min: resolveBound(def.minBound), max: resolveBound(def.maxBound) };
       if (!SELECT_TYPES.includes(def.attrType)) continue;
-      for (const option of allowedListOf(def)) {
-        for (const key of Object.keys(option.facts ?? {})) out.add(key);
-        // R-SW — a bound is an option speaking about a detail too (the year).
-        for (const key of Object.keys(option.bounds ?? {})) out.add(key);
-      }
+      if ((options[def.attrKey] ?? IDLE).state !== "ready") continue;
+      loaded[def.attrKey] = allowedListOf(def);
     }
-    return out;
-  }, [definitions, allowedListOf]);
+    return { definitions, options: loaded, folds, ownBounds };
+  }, [definitions, options, allowedListOf, folds]);
 
-  /**
-   * D25 — THE PARENTS WHOSE CHANGE RESETS THOSE DETAILS: a picker whose options
-   * carry facts (the model), and a picker another picker's options hang under
-   * (the make). Their own answers are never reset by this rule — the narrowing
-   * below still clears a child that no longer fits.
-   */
-  /** D46 — the leaf's identity (card 1) is a root: a different identity names a different thing. */
+  const parents = useMemo(
+    () =>
+      new Set(
+        Object.entries(dependencyMap(scopeInput))
+          .filter(([, children]) => children.length > 0)
+          .map(([key]) => key),
+      ),
+    [scopeInput],
+  );
+
+  /** D46 — the leaf's identity (card 1): Undo of its move puts the identity itself back. */
   const identityKey = useMemo(
     () =>
       definitions.find((def) => def.attrType === "single_select" && def.cardRank === 1)?.attrKey ??
       null,
     [definitions],
   );
-
-  const parents = useMemo(() => {
-    const out = new Set<string>();
-    for (const def of definitions) {
-      if (!SELECT_TYPES.includes(def.attrType)) continue;
-      const list = allowedListOf(def);
-      if (
-        list.some(
-          (option) =>
-            Object.keys(option.facts ?? {}).length > 0 ||
-            Object.keys(option.bounds ?? {}).length > 0,
-        )
-      )
-        out.add(def.attrKey);
-    }
-    for (const owner of Object.values(folds)) out.add(owner);
-    // D46 — the leaf's identity (card 1) is a root: a different identity names a different thing.
-    if (identityKey !== null) out.add(identityKey);
-    return out;
-  }, [definitions, allowedListOf, folds, identityKey]);
-
-  /**
-   * D47 — the root is the leaf's identity (card 1) and nothing else. Changing it
-   * names a DIFFERENT thing, so every detail on the form starts over, the
-   * seller's own answers included (INC-291: the old fold-owner rule wiped
-   * clothing, shoe and hire forms on a size-system or make change). A fold owner
-   * that is not card 1 stays in `parents` and gets D25's narrower reset.
-   */
-  const roots = useMemo(() => {
-    const out = new Set<string>();
-    if (identityKey !== null) out.add(identityKey);
-    return out;
-  }, [identityKey]);
 
   /** The parent answers as this screen last saw them, to notice a change at all. */
   const parentsSeen = useRef<Record<string, string> | null>(null);
@@ -935,64 +817,19 @@ export function StepSpecifications({
       const snapshot = { ...view };
       const heldPrefills = { ...prefills };
       /**
-       * D25b — HOW WIDE THE RESET IS. A ROOT change (the make) starts the whole
-       * form over: every other detail, the seller's own included, and the only
-       * facts that may prefill are the ones the NEW root option itself carries —
-       * the children it is about to clear are stale by definition. A MODEL change
-       * keeps D25's scope: the details some option speaks about, and no others.
+       * DEC-144 rule 1 — ONLY WHAT DEPENDS ON THE MOVED ANSWER is re-derived, by
+       * the one rule in reset-scope.ts (hidden → nothing; the new option's fact →
+       * prefill; the form's untouched answer → the link default or empty; the
+       * seller's own → kept when it fits), followed down the chain. Every other
+       * question is neither read nor written. INC-257 and INC-245 hold inside it.
        */
-      // INC-456 (DEC-139) — THE RESTART NEEDS A PREVIOUS ANSWER. A root
-      // answered for the first time is handled as D25 handles any parent: only
-      // the details its options speak about are re-derived, nothing else the
-      // seller filled is touched. A change from one answer to another restarts.
-      const rootChange = roots.has(movedKey) && before !== null && before[movedKey] !== "";
-      const source = rootChange ? (facts.byOwner[movedKey] ?? {}) : facts.prefill;
-      const scope = rootChange
-        ? definitions.map((def) => def.attrKey).filter((key) => key !== movedKey)
-        : [...dependents].filter((key) => !parents.has(key));
-      for (const key of scope) {
-        const keyDef = definitions.find((def) => def.attrKey === key) ?? null;
-        if (keyDef === null) continue;
-        /**
-         * INC-257 — A DETAIL THIS CHOICE HID STORES NOTHING (R3b). The condition is
-         * read from `next`, which already holds the answer just chosen, so the
-         * question is "is it asked NOW" and not "was it asked before".
-         */
-        if (!conditionMet(keyDef, next)) {
-          if (!isEmpty(next[key])) {
-            delete next[key];
-            changed = true;
-          }
-          delete owned[key];
-          continue;
-        }
-        const fact = source[key];
-        if (fact === undefined) {
-          /**
-           * INC-245 — A DEFAULT IS WHAT AN EMPTY FIELD STARTS FROM. The reset empties
-           * the field, so the LINK's own opening answer takes the place the fact would
-           * have had; with no default the field is simply empty again.
-           */
-          const opening = keyDef.defaultValue ?? undefined;
-          if (opening === undefined) {
-            if (!isEmpty(next[key])) {
-              delete next[key];
-              changed = true;
-            }
-          } else if (!same(next[key], opening)) {
-            next[key] = opening;
-            changed = true;
-          }
-          delete owned[key];
-          continue;
-        }
-        if (!same(next[key], fact)) {
-          next[key] = fact;
-          changed = true;
-        }
-        owned[key] = fact;
-      }
-      if (changed) {
+      const result = resetAfterMove(scopeInput, movedKey, next, owned);
+      for (const key of Object.keys(next)) if (!(key in result.answers)) delete next[key];
+      Object.assign(next, result.answers);
+      for (const key of Object.keys(owned)) if (!(key in result.prefills)) delete owned[key];
+      Object.assign(owned, result.prefills);
+      if (result.changed) changed = true;
+      if (result.changed) {
         const parentDef = definitions.find((def) => def.attrKey === movedKey) ?? null;
         const option =
           parentDef === null
@@ -1166,9 +1003,8 @@ export function StepSpecifications({
     pinnedNumber,
     prefills,
     parents,
-    roots,
     identityKey,
-    dependents,
+    scopeInput,
     allowedListOf,
     entities.lang,
     catalogScope,

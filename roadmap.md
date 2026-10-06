@@ -1,6 +1,6 @@
 # Roadmap
 
-No bundle brief is in force: bundle 6 closed on 2026-10-06 (its brief stays at docs/governance/briefs/bundle-6.md). The next brief — bundle 7, the posting-form round — is named on this line when it is saved.
+Bundle 7 brief: docs/governance/briefs/bundle-7.md (read first every turn).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -102,7 +102,7 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 
 The operator's answers of 2026-10-06 and the cross-check that nothing identified earlier was dropped: docs/governance/handoffs/2026-10-06-order-of-work-and-cross-check.md (every item by its place, with its references). Nothing below is specced until its line says so; the supervisor explains each bundle or stage to the operator part by part before its brief is written.
 
-### Bundle 7 — the posting-form round (next; not specced)
+### Bundle 7 — the posting-form round (in progress)
 
 - [ ] DEC-144 — a changed answer resets only what depends on it; the parent question is asked first; an earlier answer narrows a later one (the whole-form restart is retired; tests PW-59, PW-60, PW-61, PW-32, PW-163, PW-22 step iv, PW-162 sequence e)
 - [ ] Previously used categories on the wizard's category step (operator, 2026-10-05)
