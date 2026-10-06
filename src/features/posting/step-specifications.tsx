@@ -235,7 +235,7 @@ export function StepSpecifications({
    * knows which refusals already have a control of their own on screen — and
    * shows every OTHER refusal rather than swallowing it (F4).
    */
-  onFields?: (attrKeys: string[]) => void;
+  onFields?: (attrKeys: string[], names: Readonly<Record<string, string>>) => void;
   /**
    * DEC-109 — WHICH ROWS THIS COPY DRAWS. The deal rows (the door's `deal`
    * lists) are asked on the price page: the specifications page passes
@@ -347,20 +347,36 @@ export function StepSpecifications({
     setHelpOpen({});
   }, [categoryId]);
 
+  /** A definition's name, drawn through the one catalogue renderer (INC-455). */
+  const nameOf = (def: AttrDef) =>
+    drawCatalog(
+      entityName(
+        "attribute",
+        { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
+        entities,
+      ),
+      catalogScope,
+    );
+
   useEffect(() => {
     if (!onFields) return;
     // D24 — only the details the answers actually ask for are reported, so a
     // hidden required field can never hold `Next` shut.
-    onFields(
+    const shown =
       schema === null
         ? []
-        : schema.attributes
-            .filter((def) => conditionMet(def, values) && drawn(def.attrKey))
-            .map((def) => def.attrKey),
+        : schema.attributes.filter((def) => conditionMet(def, values) && drawn(def.attrKey));
+    // INC-455 — each key travels with its name, so the red summary names the
+    // question exactly as its own label does, in the screen's language.
+    const names: Record<string, string> = {};
+    for (const def of shown) names[def.attrKey] = nameOf(def);
+    onFields(
+      shown.map((def) => def.attrKey),
+      names,
     );
-    // `drawn` reads only `only`/`exclude`, both listed.
+    // `drawn` reads only `only`/`exclude`; `nameOf` reads `entities`/`catalogScope`; all listed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schema, onFields, values, onlyKey, excludeKey]);
+  }, [schema, onFields, values, onlyKey, excludeKey, entities, catalogScope]);
 
   /** One control's list, fetched once, on the tap that opens it (DEC-053). */
   const openOptions = useCallback((def: AttrDef) => {
@@ -925,7 +941,11 @@ export function StepSpecifications({
        * the children it is about to clear are stale by definition. A MODEL change
        * keeps D25's scope: the details some option speaks about, and no others.
        */
-      const rootChange = roots.has(movedKey);
+      // INC-456 (DEC-139) — THE RESTART NEEDS A PREVIOUS ANSWER. A root
+      // answered for the first time is handled as D25 handles any parent: only
+      // the details its options speak about are re-derived, nothing else the
+      // seller filled is touched. A change from one answer to another restarts.
+      const rootChange = roots.has(movedKey) && before !== null && before[movedKey] !== "";
       const source = rootChange ? (facts.byOwner[movedKey] ?? {}) : facts.prefill;
       const scope = rootChange
         ? definitions.map((def) => def.attrKey).filter((key) => key !== movedKey)
@@ -1353,16 +1373,6 @@ export function StepSpecifications({
       </p>
     );
   }
-
-  const nameOf = (def: AttrDef) =>
-    drawCatalog(
-      entityName(
-        "attribute",
-        { id: def.attributeId, nameEn: def.nameEn, nameAm: def.nameAm },
-        entities,
-      ),
-      catalogScope,
-    );
 
   /**
    * D36 — ONE ROW, WHEREVER IT SITS. The same renderer draws a detail in the

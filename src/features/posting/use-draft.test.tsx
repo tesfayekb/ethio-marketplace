@@ -78,3 +78,117 @@ describe("useDraft — claim tokens (INC-367)", () => {
     expect(result.current.refusals).toEqual([]);
   });
 });
+
+function unreachable(): DoorAnswer {
+  return {
+    ok: false,
+    status: 0,
+    unreachable: true,
+    payload: {},
+    refusals: [],
+  } as unknown as DoorAnswer;
+}
+
+function dialSpent(): DoorAnswer {
+  return {
+    ok: false,
+    status: 200,
+    unreachable: false,
+    payload: {},
+    refusals: [{ field: "door", reason: "rateLimited", detail: "2099-01-01T00:00:00Z" }],
+  } as unknown as DoorAnswer;
+}
+
+/**
+ * INC-455 (DEC-139 R1) — A Next on step S is sent and judged at S, and leaving a
+ * step ends its unanswered claim. One test per path that used to leave a higher
+ * step queued: a claim still in the air, a transport retry, a dial pause.
+ */
+describe("useDraft — a Next is judged at its own step (INC-455)", () => {
+  it("a price claim still in the air shows nothing after the seller goes back", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    let price!: Promise<boolean>;
+    await act(async () => {
+      price = result.current.saveAt(5);
+      await settle();
+      result.current.goTo(3);
+    });
+    await act(async () => {
+      pending[0]!(refused());
+      await settle();
+    });
+    await expect(price).resolves.toBe(false);
+    expect(result.current.refusals).toEqual([]);
+    let specs!: Promise<boolean>;
+    await act(async () => {
+      specs = result.current.saveAt(3);
+      await settle();
+    });
+    expect(sent.at(-1)).toBe(3);
+    await act(async () => {
+      pending.at(-1)!(took());
+      await settle();
+    });
+    await expect(specs).resolves.toBe(true);
+  });
+
+  it("a transport retry left at price never raises the Specifications Next", async () => {
+    vi.useFakeTimers();
+    try {
+      pending.length = 0;
+      sent.length = 0;
+      const { result } = renderHook(() => useDraft(null));
+      let price!: Promise<boolean>;
+      await act(async () => {
+        price = result.current.saveAt(5);
+        await settle();
+        pending[0]!(unreachable());
+        await settle();
+      });
+      await expect(price).resolves.toBe(false);
+      let specs!: Promise<boolean>;
+      await act(async () => {
+        result.current.goTo(3);
+        specs = result.current.saveAt(3);
+        await settle();
+      });
+      expect(sent).toEqual([5, 3]);
+      await act(async () => {
+        pending[1]!(took());
+        await settle();
+      });
+      await expect(specs).resolves.toBe(true);
+      expect(result.current.refusals).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("a dial pause left at price never raises the Specifications Next", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    let price!: Promise<boolean>;
+    await act(async () => {
+      price = result.current.saveAt(5);
+      await settle();
+      pending[0]!(dialSpent());
+      await settle();
+    });
+    await expect(price).resolves.toBe(false);
+    let specs!: Promise<boolean>;
+    await act(async () => {
+      result.current.goTo(3);
+      specs = result.current.saveAt(3);
+      await settle();
+    });
+    expect(sent).toEqual([5, 3]);
+    await act(async () => {
+      pending[1]!(took());
+      await settle();
+    });
+    await expect(specs).resolves.toBe(true);
+  });
+});

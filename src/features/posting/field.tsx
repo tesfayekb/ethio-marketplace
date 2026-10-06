@@ -283,11 +283,28 @@ export function focusFirstRefusal(
  * its own control; a field of ANOTHER step reads "Fix <Step name>: <label>" and
  * navigates there, because a name with no control beside it is a dead end.
  */
+/**
+ * INC-455 — A QUESTION IS NAMED BY ITS NAME. A form field reads its translated
+ * label; an attribute reads the definition's drawn name the wizard handed down;
+ * only a key with neither falls back to itself, so nothing is ever blank (F4).
+ */
+export function summaryLabel(
+  field: string,
+  t: (key: MessageKey) => string,
+  fieldNames: Readonly<Record<string, string>> = {},
+): string {
+  const key = FIELD_LABEL_KEYS[field];
+  if (key !== undefined) return t(key);
+  const name = fieldNames[field];
+  return name === undefined || name === "" ? field : name;
+}
+
 export function RefusalSummary({
   refusals,
   step,
   specFields = [],
   priceFields = [],
+  fieldNames = {},
   onGoTo,
 }: {
   refusals: Refusal[];
@@ -297,15 +314,16 @@ export function RefusalSummary({
   specFields?: readonly string[];
   /** DEC-109 — the detail keys the price page renders. */
   priceFields?: readonly string[];
+  /** INC-455 — each attribute key's drawn name, in the screen's language. */
+  fieldNames?: Readonly<Record<string, string>>;
   onGoTo?: (step: number) => void;
 }) {
   const { t } = useI18n();
   const shown = summaryRefusals(refusals);
   if (shown.length === 0) return null;
   const named = shown.map((refusal) => {
-    const key = FIELD_LABEL_KEYS[refusal.field];
     const owner = stepOfField(refusal.field, specFields, priceFields);
-    const label = key === undefined ? refusal.field : t(key);
+    const label = summaryLabel(refusal.field, t, fieldNames);
     return { field: refusal.field, label, owner };
   });
   return (

@@ -713,6 +713,111 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
   });
 
+  /**
+   * INC-455 (DEC-139) — A NEXT IS JUDGED AT ITS OWN STEP, AND THE SUMMARY NAMES A
+   * QUESTION BY ITS NAME. The required basis (no default) is left empty on Price;
+   * each sequence then returns to Specifications and presses Next. No summary may
+   * stand there and Next reaches Photos. On Price, a refused Next names the basis
+   * by its English name, and by its Amharic one under Amharic — never the key.
+   * Scratch leaf and definitions only (J3).
+   */
+  test("PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455)", async ({
+    page,
+  }, testInfo) => {
+    const user = await seller(page);
+    const { category, basis } = await basisLeaf();
+    const nameEn = `e2e basis name ${basis.basisKey.slice(-6)}`;
+    const nameAm = `e2e መሠረት ${basis.basisKey.slice(-6)}`;
+    const { error } = await adminClient()
+      .from("attributes")
+      .update({ name_en: nameEn, name_am: nameAm })
+      .eq("attr_key", basis.basisKey);
+    if (error) throw new Error(`[e2e:pw162] naming the basis failed: ${error.message}`);
+    await reachPricingWithBasis(page, user.id, category, basis, null);
+
+    const summary = page.getByTestId("post-refusal-summary");
+    const desktop = testInfo.project.name.startsWith("desktop");
+    const observed: string[] = [];
+    const toSpecs = async (via: "back" | "list") => {
+      if (via === "list") await page.getByTestId("post-step-list-go-3").click();
+      else {
+        await page.getByTestId("post-back").click();
+        await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+        await page.getByTestId("post-back").click();
+      }
+      await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    };
+    /** Next on Specifications: record what stood there, then come back to Price. */
+    const judge = async (label: string) => {
+      await page.getByTestId("post-next").click();
+      const photos = page.getByTestId("post-step-2");
+      const reached = await photos
+        .waitFor({ state: "visible", timeout: 20_000 })
+        .then(() => true)
+        .catch(() => false);
+      const fields = reached
+        ? []
+        : await page
+            .getByTestId("post-refusal-summary-field")
+            .evaluateAll((nodes) =>
+              nodes.map((n) => `${n.getAttribute("data-field")}@${n.getAttribute("data-step")}`),
+            );
+      observed.push(`${label}: summary=${fields.join(",") || "none"} photos=${String(reached)}`);
+      expect(fields, `PW-162 ${label}: a summary stood on specifications`).toEqual([]);
+      expect(reached, `PW-162 ${label}: Next did not reach photos`).toBe(true);
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    };
+
+    // On Price: the refused Next names the basis by its name, in English.
+    await page.getByTestId("post-next").click();
+    await expect(summary).toBeVisible({ timeout: 20_000 });
+    await expect(summary, "PW-162: the summary printed the key").not.toContainText(basis.basisKey);
+    await expect(summary).toContainText(nameEn);
+
+    // (a) refused Next, Back, Back, Next.
+    await toSpecs("back");
+    await judge("a");
+    // (b) the same through the step list (desktop only: the list is the 1280 aside).
+    if (desktop) {
+      await page.getByTestId("post-next").click();
+      await expect(summary).toBeVisible({ timeout: 20_000 });
+      await toSpecs("list");
+      await judge("b");
+    }
+    // (c) an edit on Price and no Next.
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-price-mode-fixed").click();
+    await toSpecs("back");
+    await judge("c");
+    // (d) the Price Next answered by a transport failure once.
+    let aborted = false;
+    await page.route("**/api/listings/draft", async (route) => {
+      if (!aborted) {
+        aborted = true;
+        await route.abort("failed");
+        return;
+      }
+      await route.continue();
+    });
+    await page.getByTestId("post-next").click();
+    await expect.poll(() => aborted, { timeout: 20_000 }).toBe(true);
+    await toSpecs("back");
+    await judge("d");
+    await page.unroute("**/api/listings/draft");
+
+    // Under Amharic the same summary names the basis in Amharic.
+    await page.getByTestId("post-next").click();
+    await expect(summary).toContainText(nameEn, { timeout: 20_000 });
+    await switchLanguage(page, "am");
+    await expect(summary, "PW-162: Amharic did not name the basis").toContainText(nameAm, {
+      timeout: 20_000,
+    });
+    await expect(summary).not.toContainText(basis.basisKey);
+    testInfo.annotations.push({ type: "PW-162 sequences", description: observed.join(" | ") });
+    console.log(`[pw162] ${testInfo.project.name} ${observed.join(" | ")}`);
+  });
+
   test("PW-135 at 1280 the step list opens a finished step with its answers kept; a step not reached is not a button (bundle 4 step 5)", async ({
     page,
   }) => {

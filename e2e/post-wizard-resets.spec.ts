@@ -719,6 +719,125 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * INC-456 (DEC-139) — A FIRST IDENTITY ANSWER RESTARTS NOTHING. The card-1
+   * select is ordered below a text and a number question; the seller fills both,
+   * then answers the identity for the first time: both stand, in the draft too,
+   * and no reset is offered. A change to the other answer still restarts and
+   * Undo restores, as PW-59 asserts. Scratch leaf and definitions only (J3).
+   */
+  test("PW-163 a first identity answer keeps the details filled above it; a change still restarts", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const supabase = adminClient();
+    const stem = `e2e_first_${Date.now()}_${rand()}`;
+    const option = (value: string) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+    });
+    const a = `${stem}_a`;
+    const b = `${stem}_b`;
+    const { data, error } = await supabase
+      .from("attributes")
+      .insert([
+        { attr_key: `${stem}_t`, name_en: `${stem} t`, attr_type: "text" },
+        { attr_key: `${stem}_n`, name_en: `${stem} n`, attr_type: "number", decimals: 0 },
+        {
+          attr_key: `${stem}_idn`,
+          name_en: `${stem} idn`,
+          attr_type: "single_select",
+          options: [option(a), option(b)],
+        },
+      ])
+      .select("id, attr_key");
+    if (error || !data) throw new Error(`[e2e:PW-163] seeding failed: ${error?.message}`);
+    specs.push(...data.map((row) => row.attr_key));
+    const id = (suffix: string) => {
+      const found = data.find((row) => row.attr_key === `${stem}_${suffix}`);
+      if (!found) throw new Error(`[e2e:PW-163] ${suffix} missing`);
+      return found;
+    };
+    const text = id("t");
+    const num = id("n");
+    const idn = id("idn");
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      { category_id: category.id, attribute_id: text.id, is_required: false, display_order: 98 },
+      { category_id: category.id, attribute_id: num.id, is_required: false, display_order: 99 },
+      {
+        category_id: category.id,
+        attribute_id: idn.id,
+        is_required: true,
+        card_rank: 1,
+        display_order: 100,
+      },
+    ]);
+    if (linkError) throw new Error(`[e2e:PW-163] linking failed: ${linkError.message}`);
+
+    const listingId = await reachStep3(page, user.id, category);
+    const control = (attrKey: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+    const stored = () => attributesOf(listingId);
+
+    await control(text.attr_key).fill("e2e own words");
+    await control(text.attr_key).blur();
+    await control(num.attr_key).fill("4");
+    await control(num.attr_key).blur();
+    await expect
+      .poll(
+        async () => {
+          const row = await stored();
+          return `${String(row[text.attr_key])}|${String(row[num.attr_key])}`;
+        },
+        { message: "PW-163: the text and number never landed", timeout: 20_000 },
+      )
+      .toBe("e2e own words|4");
+
+    // 1 — THE FIRST ANSWER: nothing the seller filled is touched. The list is
+    // fetched on the tap that opens it (DEC-053), so it is opened first.
+    const picker = control(idn.attr_key);
+    if ((await picker.getAttribute("data-options")) === "idle") await picker.focus();
+    await expect(picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+    await picker.selectOption(a);
+    await expect
+      .poll(async () => (await stored())[idn.attr_key], {
+        message: "PW-163: the first identity answer never landed",
+        timeout: 20_000,
+      })
+      .toBe(a);
+    await expect(control(text.attr_key), "PW-163: the first answer emptied the text").toHaveValue(
+      "e2e own words",
+    );
+    await expect(control(num.attr_key), "PW-163: the first answer emptied the number").toHaveValue(
+      "4",
+    );
+    const kept = await stored();
+    expect(kept[text.attr_key], "PW-163: the draft lost the text").toBe("e2e own words");
+    expect(kept[num.attr_key], "PW-163: the draft lost the number").toBe(4);
+    await expect(
+      page.getByTestId("post-specs-reset"),
+      "PW-163: a first answer offered a reset",
+    ).toHaveCount(0);
+
+    // 2 — A CHANGE TO THE OTHER ANSWER: the form restarts, Undo restores (PW-59).
+    await control(idn.attr_key).selectOption(b);
+    await expect(control(num.attr_key), "PW-163: the change kept the number").toHaveValue("", {
+      timeout: 20_000,
+    });
+    const offer = page.getByTestId("post-specs-reset");
+    await expect(offer, "PW-163: the reset offer did not name B").toContainText(`${b} label`, {
+      timeout: 20_000,
+    });
+    await page.getByTestId("post-specs-reset-undo").click();
+    await expect(control(idn.attr_key), "PW-163: Undo did not restore A").toHaveValue(a, {
+      timeout: 20_000,
+    });
+    await expect(control(text.attr_key)).toHaveValue("e2e own words", { timeout: 20_000 });
+    await expect(control(num.attr_key)).toHaveValue("4", { timeout: 20_000 });
+  });
+
+  /**
    * D47 (PW-60, INC-291) — ONLY THE IDENTITY RESTARTS THE FORM. A fold owner that
    * is not card 1 (a size system) gets D25's narrow reset: its fold child empties,
    * the identity and the seller's own number stand. A card-1 change still restarts

@@ -112,18 +112,41 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   const [specFields, setSpecFields] = useState<string[]>([]);
   // DEC-109 — the price page's rows, reported by its one copy of the form.
   const [priceFields, setPriceFields] = useState<string[]>([]);
-  const onPriceFields = useCallback((keys: string[]) => {
-    setPriceFields((prev) =>
-      prev.length === keys.length && prev.every((key, index) => key === keys[index]) ? prev : keys,
+  // INC-455 — each reported key's drawn name, so the red summary names a
+  // question by its name, never by its key.
+  const [fieldNames, setFieldNames] = useState<Readonly<Record<string, string>>>({});
+  const mergeNames = useCallback((names: Readonly<Record<string, string>>) => {
+    // I3 — equality-guarded: an unchanged name leaves the state untouched.
+    setFieldNames((prev) =>
+      Object.entries(names).every(([key, name]) => prev[key] === name)
+        ? prev
+        : { ...prev, ...names },
     );
   }, []);
-  const onSpecFields = useCallback((keys: string[]) => {
-    // I3 — an equality-guarded write: a re-render must not feed a fresh array
-    // back into the state it derives from.
-    setSpecFields((prev) =>
-      prev.length === keys.length && prev.every((key, index) => key === keys[index]) ? prev : keys,
-    );
-  }, []);
+  const onPriceFields = useCallback(
+    (keys: string[], names: Readonly<Record<string, string>>) => {
+      setPriceFields((prev) =>
+        prev.length === keys.length && prev.every((key, index) => key === keys[index])
+          ? prev
+          : keys,
+      );
+      mergeNames(names);
+    },
+    [mergeNames],
+  );
+  const onSpecFields = useCallback(
+    (keys: string[], names: Readonly<Record<string, string>>) => {
+      // I3 — an equality-guarded write: a re-render must not feed a fresh array
+      // back into the state it derives from.
+      setSpecFields((prev) =>
+        prev.length === keys.length && prev.every((key, index) => key === keys[index])
+          ? prev
+          : keys,
+      );
+      mergeNames(names);
+    },
+    [mergeNames],
+  );
 
   /**
    * U6-C2a — WHAT THE CATEGORY DECIDES, read once per category from the same
@@ -1302,6 +1325,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                       step={draft.step}
                       specFields={specFields}
                       priceFields={priceFields}
+                      fieldNames={fieldNames}
                       onGoTo={draft.goTo}
                     />
                   </div>
