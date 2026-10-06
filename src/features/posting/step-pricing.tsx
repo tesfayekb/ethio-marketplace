@@ -1,6 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { chosenFirst } from "@/lib/chosen-first";
 import {
   PickerOption,
   pickerPopClass,
@@ -323,12 +324,17 @@ export function StepPricing({
     shortlist.length > 0 &&
     matches.length < currencies.currencies.length;
 
-  const rowCount = matches.length + (moreHidden ? 1 : 0);
+  const chosen = currencies.currencies.find((row) => row.code === values.priceCurrency) ?? null;
+  // Bundle 7 B2 — the current choice first and marked, matching or not.
+  const shownRows = useMemo(
+    () => chosenFirst(matches, chosen, (a, b) => a.code === b.code),
+    [matches, chosen],
+  );
+
+  const rowCount = shownRows.length + (moreHidden ? 1 : 0);
 
   // INC-280 — where the list opens: the shared picker's one opening rule (step 11).
   const placement = usePickerPlacement(inputRef, open, rowCount);
-
-  const chosen = currencies.currencies.find((row) => row.code === values.priceCurrency) ?? null;
 
   const choose = (code: string) => {
     onChange({ priceCurrency: code }, true);
@@ -342,9 +348,9 @@ export function StepPricing({
     setHighlight,
     onKeyDown: pickerKeys,
   } = usePickerKeys({
-    count: matches.length,
+    count: shownRows.length,
     onPick: (index) => {
-      const row = matches[index];
+      const row = shownRows[index];
       if (row !== undefined) choose(row.code);
     },
     onEscape: () => setOpen(false),
@@ -503,7 +509,7 @@ export function StepPricing({
                     "border-border bg-background shadow-md"
                   }
                 >
-                  {matches.map((row, index) => (
+                  {shownRows.map((row, index) => (
                     <li key={row.code}>
                       <PickerOption
                         selected={row.code === values.priceCurrency}

@@ -201,6 +201,8 @@ from the stored value first and then from the stem after a parent prefix
 `tricolour`, `multicolour`, `black_tan`) render as neutral patterned chips, and a
 colour-like definition with no resolvable option renders no swatch tray.
 
+Bundle 7 B1 (INC-451): a number answer and both ends of a settled range are written with grouping separators in the price's own form (`numberText` in attribute-display.ts, no rounding); a year, an option label, a text answer and the input box itself are not reformatted.
+
 ## Step 4 — title, description, and the assist (C1b)
 
 The seller writes the title (≤120), the description and an optional YouTube
@@ -208,6 +210,8 @@ link. `post-assist` calls `/api/listings/assist` (DEC-072) with the category and
 the answers from step 3; what comes back is a SUGGESTION dropped into both
 fields as ordinary editable text, never an author — the seller's edit is what
 saves.
+
+Bundle 7 B3: when the leaf's first question is a required text question with no card rank, its trimmed answer leads the built title (up to 70 characters, cut at a whole word), and a choice whose label holds the `{country}` token is left out of the built title.
 
 ## Autosave is not an exam (INC-228, INC-227)
 
@@ -231,6 +235,8 @@ A save is never sent below step 1 (INC-465). The door refuses a step below 1, an
   message under the control on refusal, and a summary above Back/Next naming the
   refused fields BY LABEL, each a link that focuses its control. `Next` is never
   greyed out without that summary on screen.
+
+Bundle 7 B4: an autosave the server failed on (`doorError`) shows "Not saved yet", keeps its step queued and retries after RETRY_MS, at most three times for the same answers; an edit starts the count again, and every other refusal of an autosave stays silent.
 
 ## The save queue
 
@@ -291,6 +297,8 @@ Four modes: a fixed price, a negotiable one, free, and "contact for a price".
 with them, so offering one would be a trap. The currency picker is searchable
 over the ISO table and opens on the seller's home market's currency (D13); left
 alone, the door applies that same fallback itself.
+
+Bundle 7 B2: while the currency list (and the phone-code list) is open, the current choice is drawn first with a check mark, whether or not it matches the search, and is not drawn twice.
 
 ## Step 6 — where it is (C2a, D19)
 

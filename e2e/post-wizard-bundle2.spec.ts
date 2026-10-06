@@ -628,6 +628,21 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       "PW-114: the second phone did not open on the first phone's country",
     ).toHaveAttribute("data-iso", "ER");
     await expectPhoneRowUsable(page, "post-who-value-phone2");
+    // Bundle 7 B2 (PW-169's check for the phone-code list): the current country is
+    // drawn first and marked, and stays first under a search that misses it.
+    await page.getByTestId("post-who-value-phone2-country").click();
+    const codes = page.getByTestId("post-who-value-phone2-country-option");
+    await expect(codes.nth(0)).toHaveAttribute("data-iso", "ER");
+    await expect(
+      codes.nth(0).getByTestId("post-who-value-phone2-country-option-check"),
+    ).toHaveCount(1);
+    await page.getByTestId("post-who-value-phone2-country-search").fill("+251");
+    await expect(codes.nth(0), "PW-114: the chosen country left the top").toHaveAttribute(
+      "data-iso",
+      "ER",
+    );
+    await expect(codes.nth(1)).toHaveAttribute("data-iso", "ET");
+    await page.keyboard.press("Escape");
     await pickPhoneCountry(page, "post-who-value-phone2", "ET", "+251");
     await typePhone(page, "post-who-value-phone2", "922345678");
     await page.getByTestId("post-who-value-phone2").blur();

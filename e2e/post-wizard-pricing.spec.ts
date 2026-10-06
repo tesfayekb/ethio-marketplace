@@ -635,6 +635,35 @@ test.describe("POSTING WIZARD", () => {
     await expect(options.nth(1)).toHaveText(/^USD · \$ — /);
   });
 
+  test("PW-169 with a currency chosen, the list opens with it first and marked, and keeps it first under a search that misses it (Bundle 7 B2)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await reachStep3(page, user.id, category);
+    await nextThroughPhotos(page);
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-price-currency")).toHaveAttribute("data-code", "ETB", {
+      timeout: 20_000,
+    });
+    const search = page.getByTestId("post-price-currency-search");
+    await search.click();
+    const options = page.getByTestId("post-price-currency-option");
+    await expect(options.nth(0)).toHaveAttribute("data-code", "ETB");
+    await expect(options.nth(0)).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("post-price-currency-option-check")).toHaveCount(1);
+    await search.fill("USD");
+    await expect(options.nth(0), "PW-169: the choice left the top").toHaveAttribute(
+      "data-code",
+      "ETB",
+    );
+    await expect(options.nth(0).getByTestId("post-price-currency-option-check")).toHaveCount(1);
+    await expect(options.nth(1)).toHaveAttribute("data-code", "USD");
+    await expect(
+      page.locator('[data-testid="post-price-currency-option"][data-code="ETB"]'),
+    ).toHaveCount(1);
+  });
+
   test("PW-66 a pre-D62-2 'negotiable' price type saves step 1 and reaches step 3 with no refusal (INC-309)", async ({
     page,
   }) => {

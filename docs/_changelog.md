@@ -702,3 +702,7 @@
 - 2026-10-06 — Bundle 6 turn 10: INC-468, DEC-147 — the workflow-lint step's download retries (5 tries, 5 s apart), so one HTTP 500 from the release host does not red the build job.
 - 2026-10-06 — Records turn (bundle 6 close): spec-ledger block S55 (DEC-136–147, D73–D76), incidental-findings INC-450–472 with the security entries in full, system-state, AGENTS.md (two lines: how browser tests are started; scanner output is counts only), the action tracker, both roadmaps in the order of 2026-10-06, and under docs/governance/handoffs/ the order of work with its cross-check, the handover and the manifest.
 - 2026-10-06 — Bundle 7 Part A: DEC-144 rule 1 — a changed answer on the details step resets only the questions that depend on it (src/features/posting/reset-scope.ts); the whole-form restart on an identity change is retired; PW-164 to PW-168.
+- 2026-10-06 — Bundle 7 Part B: INC-451 — number answers and settled ranges are written with grouping separators (attribute-display.ts).
+- 2026-10-06 — Bundle 7 Part B: a picker shows its current choice first and marked while it is open (searchable-picker.tsx).
+- 2026-10-06 — Bundle 7 Part B: the suggested title leads with the seller's own name for the item on leaves that ask for it, and leaves out a label that holds the {country} token (build-title.ts).
+- 2026-10-06 — Bundle 7 Part B: an autosave the server failed on shows 'Not saved yet' and retries up to three times (use-draft.ts).

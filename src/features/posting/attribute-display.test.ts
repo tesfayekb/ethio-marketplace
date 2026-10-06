@@ -28,3 +28,12 @@ describe("unit language", () => {
     expect(attributeDisplayValue(bare, 4, [], "am", "", "", "", tokens)).toBe("4 people");
   });
 });
+
+describe("number format (INC-451)", () => {
+  it("groups a number answer, keeps a year as written", () => {
+    const km = { ...base, unit: "km", unitAm: "" } as AttrDef;
+    expect(attributeDisplayValue(km, 45000, [], "en", "", "", "", tokens)).toBe("45,000 km");
+    const year = { ...base, unit: null, format: "year" } as unknown as AttrDef;
+    expect(attributeDisplayValue(year, 2019, [], "en", "", "", "", tokens)).toBe("2019");
+  });
+});

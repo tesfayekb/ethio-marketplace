@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
+import { adminClient } from "./helpers/users";
 import {
   leaseSeller,
   attributesOf,
@@ -9,6 +10,8 @@ import {
   destroyPostableCategory,
   destroySpecSet,
   draftsOf,
+  rand,
+  RUN,
   seedPostableCategory,
   seedWriteInSet,
   stopPageBeforePurge,
@@ -135,5 +138,86 @@ test.describe("POSTING WIZARD — WRITE-IN DETAILS", () => {
         [set.colour.attrKey]: { value: "other", text: "e2e teal" },
         [set.brand.attrKey]: { value: "other", text: "e2e brand" },
       });
+  });
+
+  /**
+   * Bundle 7 B3.1 — on a leaf shaped like an "Other" leaf (a required text
+   * question first, no card rank, then a ranked choice) the title step offers a
+   * title that begins with the seller's own name for the item. Scratch only (J3).
+   */
+  test("PW-170 the suggested title leads with the seller's own name for the item (Bundle 7 B3)", async ({
+    page,
+  }) => {
+    const user = await leaseSeller();
+    sellers.push(user.id);
+    await asEdge(page);
+    await signInViaSession(page, user.email, user.password);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+
+    const stem = `e2e_b7t_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+    const choice = `${stem}_c1`;
+    const supabase = adminClient();
+    const { data, error } = await supabase
+      .from("attributes")
+      .insert([
+        { attr_key: `${stem}_name`, name_en: `${stem} name`, attr_type: "text", max_length: 70 },
+        {
+          attr_key: `${stem}_kind`,
+          name_en: `${stem} kind`,
+          attr_type: "single_select",
+          options: [{ value: choice, label_en: "Oak", label_am: "ዋርካ", active: true }],
+        },
+      ])
+      .select("id, attr_key");
+    if (error || !data) throw new Error(`[e2e:b7] seeding failed: ${error?.message ?? "no rows"}`);
+    specs.push(...data.map((row) => row.attr_key));
+    const idOf = (suffix: string) => data.find((row) => row.attr_key.endsWith(suffix))!.id;
+    const { error: linkError } = await supabase.from("category_attribute_links").insert([
+      {
+        category_id: category.id,
+        attribute_id: idOf("_name"),
+        is_required: true,
+        display_order: 1,
+      },
+      {
+        category_id: category.id,
+        attribute_id: idOf("_kind"),
+        is_required: true,
+        card_rank: 1,
+        display_order: 2,
+      },
+    ]);
+    if (linkError) throw new Error(`[e2e:b7] linking failed: ${linkError.message}`);
+
+    await gotoReady(page, "/post");
+    await page.getByTestId("post-category-search").fill(category.slug);
+    const hit = page.locator(`[data-testid="post-category-hit"][data-category="${category.id}"]`);
+    await expect(hit).toBeVisible();
+    await hit.click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    const [draft] = await draftsOf(user.id);
+    objects.push({ userId: user.id, listingId: String(draft?.id ?? "") });
+    await expect(page.getByTestId("post-specs")).toHaveAttribute("data-options", "1", {
+      timeout: 20_000,
+    });
+
+    await control(page, `${stem}_name`).fill("Carved stool");
+    // DEC-053: an option list is read on the first tap (the law PW-5 states).
+    const picker = control(page, `${stem}_kind`);
+    await picker.focus();
+    await expect(picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+    await picker.selectOption(choice);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByTestId("post-title"),
+      "PW-170: the title does not lead with the seller's name",
+    ).toHaveValue("Carved stool Oak", { timeout: 20_000 });
   });
 });
