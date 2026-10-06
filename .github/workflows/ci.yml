@@ -261,6 +261,7 @@ jobs:
             --config /tmp/semgrep-rules/typescript \
             --config /tmp/semgrep-rules/generic/secrets \
             --exclude scripts/fixtures/semgrep \
+            --exclude scripts/fixtures/e2e-results-sample.json \
             --json -o semgrep.json --sarif-output=semgrep.sarif \
             src e2e scripts > /dev/null
           python3 - <<'PY'
