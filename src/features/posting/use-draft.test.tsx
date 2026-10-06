@@ -192,3 +192,68 @@ describe("useDraft — a Next is judged at its own step (INC-455)", () => {
     await expect(specs).resolves.toBe(true);
   });
 });
+
+/**
+ * INC-465 — a queued save is never sent below step 1. The door refuses
+ * p_step < 1 with 'unknown step'; going to step 1 used to lower a queued save
+ * to 0, and an edit made on step 1 queued 0 by itself.
+ */
+describe("useDraft — a queued save is never sent below step 1 (INC-465)", () => {
+  it("(i, iv) an edit queued at step 3, then goTo(1): sent at step 1, and saved", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    await act(async () => {
+      result.current.goTo(3);
+      result.current.change({ categoryId: "c-1", title: "a" }, false);
+      result.current.goTo(1);
+      result.current.retry();
+      await settle();
+    });
+    expect(sent).toEqual([1]);
+    await act(async () => {
+      pending[0]!(took());
+      await settle();
+    });
+    expect(result.current.saveState).toBe("saved");
+  });
+
+  it("(ii) an edit made while step 1 is on screen is sent at step 1", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    await act(async () => {
+      result.current.change({ categoryId: "c-1" }, true);
+      await settle();
+    });
+    expect(sent).toEqual([1]);
+    await act(async () => {
+      pending[0]!(took());
+      await settle();
+    });
+  });
+
+  it("(iii) with no category chosen nothing is sent, and the save stays queued", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    await act(async () => {
+      result.current.goTo(3);
+      result.current.change({ title: "a" }, false);
+      result.current.goTo(1);
+      result.current.retry();
+      await settle();
+    });
+    expect(sent).toEqual([]);
+    expect(result.current.saveState).toBe("unsaved");
+    await act(async () => {
+      result.current.change({ categoryId: "c-1" }, true);
+      await settle();
+    });
+    expect(sent).toEqual([1]);
+    await act(async () => {
+      pending[0]!(took());
+      await settle();
+    });
+  });
+});

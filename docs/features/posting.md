@@ -211,6 +211,8 @@ saves.
 
 ## Autosave is not an exam (INC-228, INC-227)
 
+A save is never sent below step 1 (INC-465). The door refuses a step below 1, and two writers of the save queue could lower it to 0 (going back to step 1, and an edit made while step 1 is on screen). The floor sits in the one sender: a save queued below 1 is sent as step 1 when the draft has a category (the door judges the category only and stores the rest, as any autosave at the last completed step does); with no category it is not sent and stays queued for the next claim.
+
 - An autosave sends `p_step = <last completed step>` — never the step being
   edited. A half-filled step is therefore never thrown back at a seller who is
   still typing.
