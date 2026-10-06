@@ -91,7 +91,7 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [x] Part H — attributes console reds (turn 4)
 - [x] Part X — workflow file repaired and linted, INC-457 (turn 5)
 - [x] Part W — Next judged at its step, summary names questions, first identity answer keeps details, INC-455/456 (turn 5)
-- [ ] Bundle 7 — scratch attribute definitions reaper (staging 1,459 e2e rows)
+- [x] Part Y — workflow lint flags, PW-22, keyed paging, scratch-definition reaper, further errors in the failure report (turn 6)
 
 ## Next — bundle 7 candidates (not specced; the supervisor explains each to the operator before the brief)
 
@@ -99,3 +99,5 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 - [ ] One number formatter for specification values and settled ranges (INC-451)
 - [ ] The database security lints: public.security_lints() and the nightly step (DEC-132 layer B, B2 option ii)
 - [ ] admin_delete_category refuses a row with children; the pointer dialog's Home badge and "Make home" (C4)
+- [ ] Census of every list read against the data API's 1,000-row cap, each paged or shown bounded (INC-459)
+- [ ] The seeders that leave scratch attribute definitions behind (Y3d)
