@@ -53,7 +53,7 @@ unreachable advisory service. Details and accepted exceptions:
 "Semgrep (enforcing on ERROR)": pinned Semgrep 1.179.0 and semgrep-rules
 commit `a84ff9cc2453ca91d581380de4b8b3f272f6f4be`; self-test on
 `scripts/fixtures/semgrep/bad-example.js` first; ERROR findings fail,
-WARNING is a count line only; SARIF uploaded. A `promote` dependency.
+WARNING is a count line only; counts only in the log, never a path or rule id; SARIF uploaded. A `promote` dependency.
 Details: `docs/features/security-scanning.md`.
 
 ## Migration linter — dynamic grants and real-row proofs (Bundle 6 A3/A4)
