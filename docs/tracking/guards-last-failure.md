@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37693892001
-- Commit: `181b8db87357ec396158ac03aa4aa906d07a124c`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37695408087
+- Commit: `ca731cc1282a282cc82cdee98bf63e94562c1f33`
 - Attempt: 1
-- Written (UTC): 2026-10-07T22:07:43.340Z
+- Written (UTC): 2026-10-07T22:21:26.266Z
 
 ## Migration linter (with self-test) — failure
 
@@ -16,8 +16,6 @@
 ### Tail (last 60 lines)
 
 ```text
-[36;1mbash scripts/check-migrations.sh[0m
-[36;1mbun run scripts/e2e-migration-preflight.ts --self-test[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
 Self-test OK: bad fixture correctly flagged.
@@ -26,16 +24,18 @@ Self-test OK: a proof block's scratch table passes only when created, dropped an
 Scratch table in a proof block (created and dropped there): 20261007033719_9f7deb8a-e850-4fc3-bfc0-9693f6994666.sql
 Policies closed later (allowlisted): 20261003215007_b9aa66a4-fa1e-4ef5-910b-31bbfc65b211.sql | closed by bb808e1a
 Policies closed later (allowlisted): 20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql | closed by 37a1e9bc
+-p destination: Broken pipe
+Scratch table in a proof block (created and dropped there): 20261004011235_18556a32-8f3e-4da5-a645-e73223e74e13.sql
 Policies closed later (allowlisted): 20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql | closed by 37a1e9bc
 Self-test OK: definer-without-revoke sample correctly flagged:
-  - /tmp/tmp.PMa4QMzWRZ (SECURITY DEFINER without in-file REVOKE: self_test_definer)
+  - /tmp/tmp.75L4CSReat (SECURITY DEFINER without in-file REVOKE: self_test_definer)
 Self-test OK: allowlisted file skipped and printed:
 Definer guard: allowlisted files (each cites its closer)
   - 29990101000000_allowlisted-sample.sql (self-test: tool split placed the REVOKE in the next file | closed by deadbeef)
 Self-test OK: function-without-revoke sample correctly flagged:
-  - /tmp/tmp.mkwyK8XfGv (function without an in-file REVOKE ... FROM PUBLIC: self_test_invoker)
+  - /tmp/tmp.9VP5CVLWPj (function without an in-file REVOKE ... FROM PUBLIC: self_test_invoker)
 Self-test OK: revoke-without-public sample correctly flagged:
-  - /tmp/tmp.mkwyK8XfGv (function without an in-file REVOKE ... FROM PUBLIC: self_test_invoker)
+  - /tmp/tmp.9VP5CVLWPj (function without an in-file REVOKE ... FROM PUBLIC: self_test_invoker)
 Self-test OK: closed function sample passes.
 Self-test OK: unmarked-migration sample correctly flagged:
   - /home/runner/work/ethio-marketplace/ethio-marketplace/scripts/fixtures/bad-unmarked-migration-example.sql (no INSERT INTO public.migration_marks)
@@ -63,7 +63,7 @@ Self-marking guard FAILED: 1 file(s) do not self-mark into public.migration_mark
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/5ba3f330-0025-4cf4-9990-79e90b73b98d' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/3955a2f9-6ee5-462d-af61-34b164c46ddd' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -118,7 +118,7 @@ Cleaning up orphan processes
 + vite-tsconfig-paths@6.1.1
 + zod@3.25.76
 
-542 packages installed [1032.00ms]
+542 packages installed [741.00ms]
 ##[group]Run bun scripts/e2e-migration-preflight.ts
 [36;1mbun scripts/e2e-migration-preflight.ts[0m
 shell: /usr/bin/bash -e {0}
@@ -136,7 +136,7 @@ STAGING BEHIND: apply 20261007150540_e41a9cb4-6d28-4fd3-9757-82a8a35777ca.sql to
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/46d4374c-8d12-4c3a-9805-30b820ffe7da' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/787588f1-fb0f-45c9-9250-a43c7593ddad' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -178,10 +178,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37693892001
-  E2E_HEAD_COMMIT_MESSAGE: Reported missing M14 file
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37695408087
+  E2E_HEAD_COMMIT_MESSAGE: Fixed DFD index off by one
 
-X-Lovable-Edit-ID: edt-a95702d2-dafd-4758-b346-e71745d7f3ca
+X-Lovable-Edit-ID: edt-e63a5ad5-00f7-4164-83cb-f5f3800d8607
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -215,7 +215,7 @@ smoke=skipped email=skipped shards=skipped
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/0f2adb40-e469-412d-91ec-0d0b008c04df' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/b4cad556-2e21-4fd0-adf4-ade24a24035f' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
