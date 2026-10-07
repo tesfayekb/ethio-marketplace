@@ -2,7 +2,6 @@ import { createClient, type EmailOtpType, type UserIdentity } from "@supabase/su
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import type { MessageKey } from "@/i18n";
 import { clearSessionClocks } from "@/features/session/session-policy";
 import { safeReturnPath } from "@/lib/return-path";
 
