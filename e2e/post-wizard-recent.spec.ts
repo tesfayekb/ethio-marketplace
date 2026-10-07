@@ -87,10 +87,15 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
     await destroyListingsOf(other.id);
     await seed(x.id, other.id, null);
     await signInViaSession(page, other.email, other.password);
+    const answered = page.waitForResponse((r) => r.url().includes("/rpc/my_recent_categories"), {
+      timeout: 20_000,
+    });
     await gotoReady(page, "/post");
     await expect(page.getByTestId("post-category-search")).toBeVisible({ timeout: 20_000 });
-    // The reader has answered once the tree is drawn plus a settle; no row is drawn.
-    await page.waitForTimeout(2_000);
+    const reply = await answered;
+    expect(await reply.json(), "PW-171: the reader did not answer none").toEqual({
+      categories: [],
+    });
     await expect(
       page.getByTestId("post-category-recent-row"),
       "PW-171: drafts drew chips",

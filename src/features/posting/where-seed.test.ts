@@ -39,7 +39,10 @@ describe("whereSeed", () => {
     expect(seed!.rows).toEqual([{ country: "ET", region: "r", city: "c", subCity: "s" }]);
   });
   it("a saved place the read did not return gets no made-up row", () => {
-    const seed = whereSeed(["a", "gone", "off"], [fact("a", "ET"), fact("off", "ET", { active: false })]);
+    const seed = whereSeed(
+      ["a", "gone", "off"],
+      [fact("a", "ET"), fact("off", "ET", { active: false })],
+    );
     expect(seed!.rows).toHaveLength(1);
     expect(seed!.complete).toBe(false);
   });

@@ -949,7 +949,14 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
         `PW-173 (${when}): the step does not show B's city`,
       ).toHaveValue(b.city.id, { timeout: 20_000 });
       await expect(page.getByTestId("post-where-market")).toHaveValue(other!);
-      await page.waitForTimeout(1_500);
+      // No draft save is sent before a touch (a wait on the request itself, not a sleep).
+      const wrote = await page
+        .waitForRequest((r) => r.method() === "POST" && r.url().includes(DRAFT), { timeout: 3_000 })
+        .then(
+          () => true,
+          () => false,
+        );
+      expect(wrote, `PW-173 (${when}): the step sent a save before a touch`).toBe(false);
       expect(
         (await coverageOf(listingId)).placeIds,
         `PW-173 (${when}): the step wrote the draft before a touch`,

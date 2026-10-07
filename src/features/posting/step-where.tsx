@@ -901,7 +901,8 @@ export function StepWhere({
       return;
     const saved = readAreaCookie();
     // D3 — a draft with places of its own opens in its FIRST place's market.
-    const wanted = ownSeed?.country ?? last?.country ?? saved?.country ?? guess.country?.toUpperCase() ?? null;
+    const wanted =
+      ownSeed?.country ?? last?.country ?? saved?.country ?? guess.country?.toUpperCase() ?? null;
     const found =
       wanted === null ? undefined : markets.markets.find((market) => market.code === wanted);
     marketSeeded.current = true;
