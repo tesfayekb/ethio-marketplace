@@ -1,5 +1,8 @@
 import { expect, test } from "./fixtures";
 
+import { en } from "../src/i18n/locales/en";
+
+import { gotoReady } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
@@ -143,5 +146,16 @@ test.describe("STAB-I18N · cached translation bundle", () => {
     } finally {
       await cleanup(code, key);
     }
+  });
+  /**
+   * IB-3 (Part H1) — a well-formed `?lang=` that names a member every object
+   * inherits finds no compiled catalog: the shell renders in the base
+   * language, the page-failed words never appear.
+   */
+  test("IB-3 a ?lang= naming an inherited member renders the base shell", async ({ page }) => {
+    await gotoReady(page, "/?lang=constructor");
+    await expect(page.getByRole("banner")).toBeVisible();
+    await expect(page.getByText(en["error.pageFailed"])).toHaveCount(0);
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
   });
 });

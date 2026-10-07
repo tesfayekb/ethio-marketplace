@@ -24,6 +24,7 @@ import {
   useTranslationRevisions,
   useTranslationStatusAction,
 } from "./use-translations";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * U4e — THE HISTORY DRAWER.
@@ -157,11 +158,14 @@ export function HistoryDrawer({
                 >
                   <div className="flex min-w-0 flex-wrap items-center gap-2">
                     <Badge variant="outline" data-testid={`history-action-${testId}-${index}`}>
-                      {t(ACTION_LABELS[row.action] ?? "admin.translations.history.action.save")}
+                      {t(
+                        ownValue(ACTION_LABELS, row.action) ??
+                          "admin.translations.history.action.save",
+                      )}
                     </Badge>
                     <Badge variant="secondary" data-testid={`history-prev-${testId}-${index}`}>
                       {t(
-                        STATUS_LABELS[row.prevStatus ?? ""] ??
+                        ownValue(STATUS_LABELS, row.prevStatus ?? "") ??
                           "admin.translations.status.untranslated",
                       )}
                     </Badge>

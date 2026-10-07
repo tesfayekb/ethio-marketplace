@@ -118,6 +118,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [ ] A test that Unit of Sale is asked before Quantity (promised 2026-10-01)
 - [ ] Three checks in the code first, a fix line for any that fails: a saved extra place in another country after Back; the chosen currency visible while searching; the built title on "Other" categories (INC-343)
 - [x] A question or an answer removed from the catalogue never blocks a later save of the same visit (INC-479)
+- [ ] Hardening from the first read of the code scanners: the CI token, own-key lookups, the map credit, the pre-paint scripts, the report's table cells, the scan's rule set (DEC-153, DEC-154)
 
 ### After bundle 7, in this order
 

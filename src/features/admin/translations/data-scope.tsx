@@ -29,6 +29,7 @@ import {
   useEntityTranslationStatusAction,
   useSaveEntityTranslation,
 } from "./use-translations";
+import { ownValue } from "@/lib/own-key";
 
 const PAGE_SIZE = 25;
 
@@ -299,7 +300,7 @@ function dataColumns(
       width: "w-[14%]",
       cell: (row) => (
         <span className="block truncate text-xs text-muted-foreground">
-          {t(ENTITY_LABELS[row.entityType] ?? "admin.translations.entity.category")}
+          {t(ownValue(ENTITY_LABELS, row.entityType) ?? "admin.translations.entity.category")}
         </span>
       ),
     },
@@ -336,7 +337,7 @@ function dataColumns(
       width: "w-[12%]",
       cell: (row) => (
         <Badge variant="outline" data-testid={`entity-status-${entityRowSlug(row)}`}>
-          {t(STATUS_LABELS[row.status] ?? "admin.translations.status.untranslated")}
+          {t(ownValue(STATUS_LABELS, row.status) ?? "admin.translations.status.untranslated")}
         </Badge>
       ),
     },

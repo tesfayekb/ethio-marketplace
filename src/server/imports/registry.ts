@@ -11,6 +11,8 @@
  * `read-only` is reported and never applied, `action` carries the verb.
  */
 
+import { ownValue } from "@/lib/own-key";
+
 /** Slug/key law shared by every family. */
 export const SLUG_RE = /^[a-z0-9][a-z0-9_-]{1,63}$/;
 
@@ -474,7 +476,7 @@ export const FAMILIES: Record<string, FamilySpec> = {
 };
 
 export function familyOf(id: string): FamilySpec | null {
-  return FAMILIES[id] ?? null;
+  return ownValue(FAMILIES, id) ?? null;
 }
 
 export function fileOf(family: FamilySpec, fileId: string): FileSpec | null {

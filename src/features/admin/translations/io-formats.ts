@@ -150,10 +150,18 @@ function cdata(value: string): string {
 export function toXliff(rows: TransferRow[], sourceLang: string, targetLang: string): string {
   const units = rows
     .map((row) => {
+      // Reviewed (DEC-153): XLIFF text goes through cdata().
+      // nosemgrep: html-in-template-string
       const note = row.context === "" ? "" : `\n      <note>${cdata(row.context)}</note>`;
       return [
+        // Reviewed (DEC-153): XLIFF attributes go through xmlAttr().
+        // nosemgrep: html-in-template-string
         `    <trans-unit id="${xmlAttr(row.key)}" resname="${xmlAttr(row.key)}">`,
+        // Reviewed (DEC-153): XLIFF text goes through cdata().
+        // nosemgrep: html-in-template-string
         `      <source>${cdata(row.source)}</source>`,
+        // Reviewed (DEC-153): XLIFF text goes through cdata().
+        // nosemgrep: html-in-template-string
         `      <target>${cdata(row.value)}</target>${note}`,
         `    </trans-unit>`,
       ].join("\n");
@@ -163,6 +171,8 @@ export function toXliff(rows: TransferRow[], sourceLang: string, targetLang: str
   return [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">`,
+    // Reviewed (DEC-153): XLIFF attributes go through xmlAttr().
+    // nosemgrep: html-in-template-string
     `  <file original="ethio.com" datatype="plaintext" source-language="${xmlAttr(sourceLang)}" target-language="${xmlAttr(targetLang)}">`,
     `    <body>`,
     units,

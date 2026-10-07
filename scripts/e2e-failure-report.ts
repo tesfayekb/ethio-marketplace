@@ -616,7 +616,7 @@ export function timingSection(sources: { label: string; json: PwJson | null }[])
   out.push("", "15 slowest tests:", "", "| Test | Project | Duration |", "| --- | --- | --- |");
   for (const t of [...all].sort((a, b) => b.ms - a.ms).slice(0, 15))
     out.push(
-      `| \`${t.file}\` › ${t.title.replace(/\|/g, "\\|")} | ${t.project} | ${(t.ms / 1000).toFixed(1)} s |`,
+      `| \`${t.file}\` › ${mdCell(t.title)} | ${t.project} | ${(t.ms / 1000).toFixed(1)} s |`,
     );
   out.push("");
   return out;
@@ -736,12 +736,20 @@ export function ssrCensus(
   return [...rows.values()].sort((a, b) => b.count - a.count || a.message.localeCompare(b.message));
 }
 
+/**
+ * DEC-154 — one Markdown table cell: a backslash is escaped FIRST, then the
+ * pipe, so a title ending in "\\" can never swallow the cell's closing pipe.
+ */
+export function mdCell(text: string): string {
+  return text.replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
+}
+
 /** DEC-083 — the census section, identical in the red and the green forms. */
 export function ssrCensusSection(
   rows: SsrCensusRow[],
   sources: { label: string; logRead?: boolean }[],
 ): string[] {
-  const cell = (text: string) => text.replace(/\|/g, "\\|");
+  const cell = mdCell;
   const loud = rows.filter((row) => !row.quiet);
   const quiet = rows.filter((row) => row.quiet);
   const total = rows.reduce((sum, row) => sum + row.count, 0);
@@ -1638,6 +1646,12 @@ async function main() {
       attemptMeta,
       new Map(),
     );
+    // DEC-154 — a title carrying both a backslash and a pipe renders with both escaped.
+    const cellNeedle = mdCell("a\\b|c");
+    if (cellNeedle !== "a\\\\b\\|c") {
+      console.error(`SELF-TEST FAILED — table cell not escaped: ${cellNeedle}`);
+      process.exit(1);
+    }
     for (const needle of ["- Attempt: 2", "- Passed: 0 · Skipped: 0 · Failed: 0"]) {
       if (!rerun.includes(needle)) {
         console.error(`SELF-TEST FAILED — re-run report missing: ${needle}`);

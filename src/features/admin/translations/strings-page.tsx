@@ -44,6 +44,7 @@ import {
   useTranslations,
   useTranslationStats,
 } from "./use-translations";
+import { ownValue } from "@/lib/own-key";
 
 const PAGE_SIZE = 25;
 
@@ -541,7 +542,7 @@ function stringColumns(
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
           <Badge variant="outline" data-testid={`string-status-${slug(row.key)}`}>
-            {t(STATUS_LABELS[row.status] ?? "admin.translations.status.untranslated")}
+            {t(ownValue(STATUS_LABELS, row.status) ?? "admin.translations.status.untranslated")}
           </Badge>
           {row.flagged ? (
             <Badge variant="destructive" data-testid={`string-flagged-${slug(row.key)}`}>

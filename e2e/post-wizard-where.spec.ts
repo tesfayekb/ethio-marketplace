@@ -849,6 +849,9 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await map.locator(".leaflet-control-zoom-out").click();
     await expect(map).toHaveAttribute("data-zoom", String(before - 2));
     const left = before - 2;
+    // Part H2 — the pin map's credit, read while it is open.
+    const pinCredit = ((await page.getByTestId("post-pin-credit").textContent()) ?? "").trim();
+    expect(pinCredit, "PW-96: the pin map printed no credit").not.toBe("");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => (await pinOf(listingId)).zoom, { timeout: 10_000 }).toBe(left);
@@ -859,6 +862,14 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       String(left),
       { timeout: 20_000 },
     );
+    // Part H2 — the preview draws the same credit as text under the map, no markup.
+    const previewCredit = page.getByTestId("listing-map-credit");
+    await expect(previewCredit, "PW-96: the preview's credit line is not visible").toBeVisible();
+    await expect(previewCredit).toHaveText(pinCredit);
+    expect(
+      await previewCredit.textContent(),
+      "PW-96: the preview's credit holds markup",
+    ).not.toContain("<");
     await page.getByTestId("post-where-pin-open").click();
     const reopened = page.getByTestId("post-pin-map");
     await expect(reopened).toHaveAttribute("data-ready", "1", { timeout: 20_000 });

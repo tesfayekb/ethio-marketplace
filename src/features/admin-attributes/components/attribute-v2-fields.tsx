@@ -2,6 +2,7 @@ import { FormField } from "@/components/shell/form-section";
 import { Input } from "@/components/ui/input";
 import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * DEC-050 L3a — THE v2 FIELD GROUPS.
@@ -203,7 +204,7 @@ export function AttributeTextFields({
           <option value="">{t("admin.attributes.preset.none")}</option>
           {PRESET_CHOICES.map((choice) => (
             <option key={choice} value={choice}>
-              {t(`admin.attributes.preset.${PRESET_LABEL_KEY[choice]}` as MessageKey)}
+              {t(`admin.attributes.preset.${ownValue(PRESET_LABEL_KEY, choice)}` as MessageKey)}
             </option>
           ))}
         </select>

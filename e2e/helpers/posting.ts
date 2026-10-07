@@ -1437,9 +1437,20 @@ export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet
   };
 }
 
+/** The shape of a row id (a UUID), which an attribute key never has. */
+const ROW_ID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Links first, then the definitions — a definition never leaves an orphan link (J3). */
 export async function destroySpecSet(attrKeys: string[]): Promise<void> {
   if (attrKeys.length === 0) return;
+  // Part H5 — a row id handed in place of a key finds nothing to delete; that
+  // mistake left scratch definitions behind in turn 8. It is refused, loudly.
+  const rowIds = attrKeys.filter((entry) => ROW_ID_SHAPE.test(entry));
+  if (rowIds.length > 0) {
+    throw new Error(
+      `[e2e:c1b] destroySpecSet takes attribute KEYS, not row ids; got ${rowIds.length} id-shaped entr${rowIds.length === 1 ? "y" : "ies"}: ${rowIds.join(", ")}`,
+    );
+  }
   const supabase = adminClient();
   const { data, error: readError } = await supabase
     .from("attributes")

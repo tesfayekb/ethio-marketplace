@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n";
 
 import type { Refusal } from "./types";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * U6-C1a — THE DOORS' VOCABULARY, IN WORDS (D1 + F4).
@@ -122,12 +123,12 @@ const PHOTO_REASONS: Record<string, MessageKey> = {
 
 /** A draft-route refusal, in the seller's language. */
 export function draftRefusalKey(reason: string): MessageKey {
-  return DRAFT_REASONS[base(reason)] ?? "post.refusal.unknown";
+  return ownValue(DRAFT_REASONS, base(reason)) ?? "post.refusal.unknown";
 }
 
 /** An upload-route refusal, in the seller's language. */
 export function photoRefusalKey(reason: string): MessageKey {
-  return PHOTO_REASONS[base(reason)] ?? "post.photo.refusal.unknown";
+  return ownValue(PHOTO_REASONS, base(reason)) ?? "post.photo.refusal.unknown";
 }
 
 /**

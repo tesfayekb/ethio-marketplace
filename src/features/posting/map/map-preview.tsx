@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 
 import { useI18n } from "@/i18n";
@@ -6,6 +6,7 @@ import { useI18n } from "@/i18n";
 import { APPROX_RADIUS_M } from "./geocode";
 import {
   addTileLayers,
+  creditOf,
   loadLeaflet,
   loadTilePlan,
   OSM_PLAN,
@@ -55,6 +56,8 @@ export function MapPreview({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
   const approx = precision === "approx";
+  // Part H2 — the plan in force's credit, drawn as text (never Leaflet's markup control).
+  const [credit, setCredit] = useState("");
 
   useEffect(() => {
     const box = boxRef.current;
@@ -75,17 +78,19 @@ export function MapPreview({
           touchZoom: false,
           boxZoom: false,
           keyboard: false,
-          attributionControl: true,
+          attributionControl: false,
         });
         mapRef.current = map;
         // Part L — the zoom the preview opened at, readable for PW-96.
         box.setAttribute("data-zoom", String(map.getZoom()));
         // W6b-2 C2 — the same provider and the same backup as the seller's map.
         const layers = addTileLayers(L, map, plan, "street");
+        setCredit(creditOf(plan, "street"));
         watchTiles(layers, (reason) => {
           reportFallback(reason);
           for (const layer of layers) layer.remove();
           addTileLayers(L, map, OSM_PLAN, "street");
+          if (!cancelled) setCredit(creditOf(OSM_PLAN, "street"));
         });
         if (approx) {
           L.circle(centre, { radius: APPROX_RADIUS_M, weight: 2 }).addTo(map);
@@ -114,6 +119,9 @@ export function MapPreview({
         data-precision={approx ? "approx" : "exact"}
         aria-label={t(approx ? "post.pin.previewApprox" : "post.pin.previewExact")}
       />
+      <p className="text-end text-xs text-muted-foreground" data-testid="listing-map-credit">
+        {credit}
+      </p>
       <p className="text-xs text-muted-foreground" data-testid="listing-map-caption">
         {t(approx ? "post.pin.previewApprox" : "post.pin.previewExact")}
       </p>

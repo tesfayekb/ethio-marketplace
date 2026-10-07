@@ -17,9 +17,7 @@ export const RAIL_STORAGE_KEY = "ethio.rail";
 /** Tailwind arbitrary variant matching the collapsed document. */
 export const RAIL_COLLAPSED_VARIANT = "[html[data-rail=collapsed]_&]";
 
-export const RAIL_INIT_SCRIPT = `(function(){try{var k=${JSON.stringify(
-  RAIL_STORAGE_KEY,
-)};var v=window.localStorage.getItem(k);document.documentElement.setAttribute("data-rail",v==="collapsed"?"collapsed":"expanded");}catch(e){}})();`;
+export const RAIL_INIT_SCRIPT = `(function(){try{var k="ethio.rail";var v=window.localStorage.getItem(k);document.documentElement.setAttribute("data-rail",v==="collapsed"?"collapsed":"expanded");}catch(e){}})();`;
 
 function readAttribute(): boolean {
   return document.documentElement.getAttribute("data-rail") === "collapsed";

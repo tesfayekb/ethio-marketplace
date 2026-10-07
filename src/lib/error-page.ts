@@ -37,9 +37,12 @@ export function renderErrorPage(error?: unknown): string {
   const attribute = detail ? ` data-ssr-error="${detail}"` : "";
   // INC-085d CLASS RULE — evidence must be VISIBLE to the instruments that
   // collect it: ARIA/page snapshots record text, never comments or attributes.
-  const cause = detail
-    ? `\n      <pre data-testid="ssr-error-cause" class="cause">${detail}</pre>`
-    : "";
+  let cause = "";
+  if (detail) {
+    // Reviewed (DEC-153): the detail has its markup characters removed; instrumented builds only.
+    // nosemgrep: html-in-template-string
+    cause = `\n      <pre data-testid="ssr-error-cause" class="cause">${detail}</pre>`;
+  }
 
   return `<!doctype html>
 <html lang="en">

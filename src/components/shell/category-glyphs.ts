@@ -144,6 +144,7 @@ import {
   FALLBACK_ICON_NAME,
   type CategoryIconName,
 } from "@/lib/category-icon-names";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * FIX-SCAN-1 ISSUE 4 — ONE GLYPH PER ALLOWLISTED NAME.
@@ -294,7 +295,7 @@ export const CATEGORY_GLYPHS: Record<CategoryIconName, LucideIcon> = {
 /** The glyph for a stored icon name; `Package` when the name is unknown. */
 export function categoryGlyph(name: string | null | undefined): LucideIcon {
   if (!name) return Package;
-  return CATEGORY_GLYPHS[name.trim() as CategoryIconName] ?? Package;
+  return ownValue<LucideIcon>(CATEGORY_GLYPHS, name.trim()) ?? Package;
 }
 
 /**
@@ -331,7 +332,7 @@ const unknownLogged = new Set<string>();
 export function categoryGlyphOrNull(name: string | null | undefined): LucideIcon | null {
   const trimmed = (name ?? "").trim();
   if (trimmed === "") return null;
-  const glyph = CATEGORY_GLYPHS[trimmed as CategoryIconName];
+  const glyph = ownValue<LucideIcon>(CATEGORY_GLYPHS, trimmed);
   if (glyph) return glyph;
   if (!unknownLogged.has(trimmed)) {
     unknownLogged.add(trimmed);

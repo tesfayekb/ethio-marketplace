@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n";
 import { basisNoun, formatCommission } from "./price-basis";
 import { fill } from "./refusal-text";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * Bundle 4 step 10 — THE ONE PRICE LINE. The card, the wizard's preview, the
@@ -51,7 +52,7 @@ export function priceLine(
   }
   // Turn 5 item 1 — the period runs through the unit's own template, with the
   // noun of the period label ("per day" / "በቀን"); a one-off prints the amount.
-  const periodKey = input.period === null ? undefined : PERIOD_KEYS[input.period];
+  const periodKey = input.period === null ? undefined : ownValue(PERIOD_KEYS, input.period);
   const periodNoun =
     periodKey === undefined || input.period === "once" ? null : basisNoun(t(periodKey));
   if (periodNoun !== null) {

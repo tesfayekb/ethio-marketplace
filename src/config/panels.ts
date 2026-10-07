@@ -37,6 +37,7 @@ import type { LucideIcon } from "lucide-react";
 import { ADMIN_NAV_ITEMS } from "@/features/admin/rail-items";
 
 import type { NavItem, Panel, PanelAuthContext, PanelId } from "./panels.types";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * The panel/nav configuration — the single source of truth for the shell's
@@ -211,5 +212,5 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
 
 /** The glyph for a category slug; Tag when the slug is not mapped. */
 export function categoryIcon(slug: string | null | undefined): LucideIcon {
-  return (slug ? CATEGORY_ICONS[slug] : undefined) ?? Tag;
+  return (slug ? ownValue(CATEGORY_ICONS, slug) : undefined) ?? Tag;
 }

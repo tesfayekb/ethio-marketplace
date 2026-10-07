@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { en } from "./locales/en";
+import { compiledCatalogLoader } from "./compiled-catalog";
 import { type Language, type MessageKey, type Messages } from "./types";
 
 export const LANGUAGE_STORAGE_KEY = "ethio.lang";
@@ -37,18 +38,8 @@ const STAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 /** The base language: the last-resort catalog and the refusal fallback (U4f). */
 export const BASE_LANGUAGE: Language = "en";
 
-/**
- * INC-107 — A MISSING COMPILED LAYER IS EMPTY, NOT FATAL.
- *
- * The compiled catalogs are a SEED, not the language registry: a language the
- * operator publishes in the console may legitimately exist in the DATABASE
- * only, with no file here. The registry is therefore a partial map keyed by
- * code, and a lookup miss means "the compiled layer for this language is `{}`"
- * — the chain becomes compiled.en ▸ {} ▸ DB[lang], never a throw.
- */
-const loaders: Partial<Record<string, () => Promise<Messages>>> = {
-  am: () => import("./locales/am").then((m) => m.am),
-};
+// INC-107 — the compiled-catalog registry and its own-key lookup live in
+// ./compiled-catalog (Part H1).
 
 /**
  * A well-formed BCP-47-ish code. Shape only: whether a code may ACTIVATE is
@@ -527,7 +518,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
     // INC-107 — a missing compiled layer is empty, not fatal: a published,
     // DB-only language loads compiled.en underneath and DB[lang] on top.
-    const loader = loaders[language];
+    const loader = compiledCatalogLoader(language);
     if (!loader) {
       if (!warnedMissingRef.current.has(language)) {
         warnedMissingRef.current.add(language);

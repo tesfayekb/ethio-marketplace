@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
+import { ownValue } from "@/lib/own-key";
+import { compareNames } from "@/lib/name-collator";
 
 /**
  * LOCATIONS ERA L2a — THE LOCATIONS CONSOLE CLIENT SEAM.
@@ -98,9 +100,9 @@ export async function listLocations(
   const data = [...pages].sort(
     (a, b) =>
       a.country_code.localeCompare(b.country_code) ||
-      (LEVEL_RANK[a.level] ?? 3) - (LEVEL_RANK[b.level] ?? 3) ||
+      (ownValue(LEVEL_RANK, a.level) ?? 3) - (ownValue(LEVEL_RANK, b.level) ?? 3) ||
       Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
-      a.name_en.localeCompare(b.name_en) ||
+      compareNames(a.name_en, b.name_en) ||
       a.id.localeCompare(b.id),
   );
   return data.map((row) => ({

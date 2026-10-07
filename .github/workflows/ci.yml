@@ -22,6 +22,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# DEC-153 (a) — the workflow's token is read-only unless a job says otherwise.
+# Jobs that hold more declare it themselves: semgrep (security-events: write,
+# the SARIF upload), e2e (contents: write, the evidence publish), promote
+# (contents: write, the push to main), secrets-scan (pull-requests: read).
+permissions:
+  contents: read
+
 jobs:
   build-and-check:
     name: Build, typecheck, lint
@@ -129,6 +136,10 @@ jobs:
   secrets-scan:
     name: Gitleaks secrets scan
     runs-on: ubuntu-24.04
+    # DEC-153 (a) — the action reads a pull request's commits through the API.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v5
         with:
@@ -283,6 +294,11 @@ jobs:
           # Excluded rule (baseline 2026-10-05: 304 noise results; i18n is
           # enforced by our own string scan and usage map).
           rm -f /tmp/semgrep-rules/typescript/react/portability/i18next/i18next-key-format.yaml
+          # Excluded rules (DEC-153 b; counted on dev at 2cf755cd: 51, 2 and 1
+          # results, none a security rule — correctness and style only).
+          rm -f /tmp/semgrep-rules/javascript/lang/correctness/no-stringify-keys.yaml \
+            /tmp/semgrep-rules/javascript/lang/correctness/no-replaceall.yaml \
+            /tmp/semgrep-rules/typescript/react/best-practice/react-props-in-state.yaml
       # Self-test first: a guard that only ever passes proves nothing.
       - name: Self-test (planted fixture must be found)
         run: |
@@ -304,17 +320,10 @@ jobs:
             "${EXCLUDES[@]}" \
             --json -o semgrep.json --sarif-output=semgrep.sarif \
             src e2e scripts > /dev/null
-          python3 - <<'PY'
-          import json, sys
-          d = json.load(open("semgrep.json"))
-          r = d["results"]
-          err = sum(1 for x in r if x["extra"]["severity"] == "ERROR")
-          warn = sum(1 for x in r if x["extra"]["severity"] == "WARNING")
-          print(f"Semgrep counts: ERROR={err} WARNING={warn}")
-          if err:
-              print(f"::error::Semgrep: {err} ERROR finding(s). Bodies are not printed in this log (DEC-132 rule 2). Reproduce locally with the pinned version and rules, or read Security → Code scanning (branch dev, tool Semgrep).")
-              sys.exit(1)
-          PY
+          # DEC-153 b — the uploaded SARIF holds security findings only: every
+          # ERROR, WARNINGs outside test code, no reviewed (suppressed) site.
+          python3 scripts/semgrep-sarif-filter.py --self-test
+          python3 scripts/semgrep-sarif-filter.py semgrep.sarif
       - name: Upload SARIF
         if: always() && hashFiles('semgrep.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3

@@ -4,6 +4,7 @@ import type { Json } from "@/integrations/supabase/types";
 
 import type { NumberFieldsValue, TextFieldsValue } from "./components/attribute-v2-fields";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
+import { compareNames } from "@/lib/name-collator";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY client seam.
@@ -387,7 +388,7 @@ export async function listCategoryLinks(
   const data = [...pages].sort(
     (a, b) =>
       Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
-      a.name_en.localeCompare(b.name_en) ||
+      compareNames(a.name_en, b.name_en) ||
       a.link_id.localeCompare(b.link_id),
   );
   return data.map((row) => ({
@@ -570,7 +571,7 @@ export async function listAttributeCategoriesPaged(pageRows: number): Promise<At
   );
   const data = [...pages].sort(
     (a, b) =>
-      a.category_name_en.localeCompare(b.category_name_en) ||
+      compareNames(a.category_name_en, b.category_name_en) ||
       a.category_slug.localeCompare(b.category_slug) ||
       a.link_id.localeCompare(b.link_id),
   );
@@ -635,7 +636,7 @@ export async function listEffectiveCategoryLinks(
     (a, b) =>
       Number(a.inherited) - Number(b.inherited) ||
       Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
-      a.name_en.localeCompare(b.name_en) ||
+      compareNames(a.name_en, b.name_en) ||
       a.link_id.localeCompare(b.link_id),
   );
   return data.map((row) => ({

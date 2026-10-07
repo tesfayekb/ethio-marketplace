@@ -138,8 +138,9 @@ export function addTileLayers(
   kind: TileKind,
 ): Leaflet.TileLayer[] {
   return plan[kind].map((spec) =>
+    // Part H2 — no attribution handed to Leaflet: its control draws markup.
+    // Both maps print creditOf() as text under the map instead.
     L.tileLayer(spec.url, {
-      attribution: spec.attribution,
       tileSize: spec.tileSize,
       zoomOffset: spec.zoomOffset,
       maxZoom: spec.maxZoom,
@@ -211,19 +212,20 @@ export function pinIcon(L: LeafletModule): Leaflet.DivIcon {
 }
 
 /**
- * INC-354 — the plan's credit as plain text (F2: provider strings are data,
- * never HTML). Tags are dropped and the few entities providers use decoded.
+ * INC-354 / Part H2 — the plan's credit as plain TEXT (F2: provider strings are
+ * data, never HTML). Each attribution is parsed by the browser's own parser
+ * into a detached document that is never attached to the page, and only its
+ * text content is kept: tags drop and entities decode by one mechanism.
+ * Browser-only (both callers are effects).
  */
+function attributionText(markup: string): string {
+  const doc = new DOMParser().parseFromString(markup, "text/html");
+  return (doc.body.textContent ?? "").replace(/\u00a0/g, " ").trim();
+}
+
 export function creditOf(plan: TilePlan, kind: TileKind): string {
   const parts = plan[kind]
-    .map((spec) =>
-      spec.attribution
-        .replace(/<[^>]*>/g, "")
-        .replace(/&copy;/g, "\u00a9")
-        .replace(/&amp;/g, "&")
-        .replace(/&nbsp;/g, " ")
-        .trim(),
-    )
+    .map((spec) => attributionText(spec.attribution))
     .filter((text) => text !== "");
   return [...new Set(parts)].join(" · ");
 }

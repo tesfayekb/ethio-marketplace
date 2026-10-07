@@ -201,6 +201,8 @@ function maskTokens(source: string, html: boolean): Masked {
   const tokens: string[] = [];
   const text = source.replace(TOKEN_RE, (token) => {
     const index = tokens.push(token) - 1;
+    // Reviewed (DEC-153): only a number goes into the masking span sent to the provider.
+    // nosemgrep: html-in-template-string
     return html ? `<span translate="no">⟦${index}⟧</span>` : `⟦${index}⟧`;
   });
   return { text, tokens };

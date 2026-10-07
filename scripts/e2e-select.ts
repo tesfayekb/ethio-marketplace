@@ -195,6 +195,8 @@ export function globToRegExp(glob: string): RegExp {
       out += c;
     }
   }
+  // Reviewed (DEC-153): every metacharacter of the glob is escaped above.
+  // nosemgrep: detect-non-literal-regexp
   return new RegExp(`^${out}$`);
 }
 
