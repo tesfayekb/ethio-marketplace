@@ -3,7 +3,7 @@ import { shapeCondition, type VisibleWhen } from "@/features/posting/visible-whe
 import type { Json } from "@/integrations/supabase/types";
 
 import type { NumberFieldsValue, TextFieldsValue } from "./components/attribute-v2-fields";
-import { readAllPages } from "@/lib/read-all-pages";
+import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY client seam.
@@ -367,12 +367,30 @@ export interface AttributeLink {
 export type { VisibleWhen };
 export type LinkCellName = "allowed_options" | "default_value" | "visible_when";
 
-export async function listCategoryLinks(categoryId: string): Promise<AttributeLink[]> {
-  const { data, error } = await supabase.rpc("admin_list_category_attribute_links", {
-    p_category_id: categoryId,
-  });
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
+export async function listCategoryLinks(
+  categoryId: string,
+  pageRows: number = PAGE_ROWS,
+): Promise<AttributeLink[]> {
+  // INC-459 — paged after the last link_id (category_attribute_links.id, the
+  // PRIMARY KEY), then sorted back to the door's order: display order, name.
+  const pages = await readAllPages(
+    (after, limit) => {
+      const query = supabase
+        .rpc("admin_list_category_attribute_links", { p_category_id: categoryId })
+        .order("link_id")
+        .limit(limit);
+      return after === null ? query : query.gt("link_id", after);
+    },
+    (row) => row.link_id,
+    pageRows,
+  );
+  const data = [...pages].sort(
+    (a, b) =>
+      Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
+      a.name_en.localeCompare(b.name_en) ||
+      a.link_id.localeCompare(b.link_id),
+  );
+  return data.map((row) => ({
     linkId: row.link_id,
     attributeId: row.attribute_id,
     attrKey: row.attr_key,
@@ -533,10 +551,30 @@ export interface AttributeCategory {
   isActive: boolean;
 }
 
-export async function listAttributeCategories(): Promise<AttributeCategory[]> {
-  const { data, error } = await supabase.rpc("admin_list_attribute_categories");
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
+/** No argument on purpose: the query cache passes its own context as the first one. */
+export function listAttributeCategories(): Promise<AttributeCategory[]> {
+  return listAttributeCategoriesPaged(PAGE_ROWS);
+}
+
+/** The reader itself; `pageRows` is the helper's page size (unit cases use 2). */
+export async function listAttributeCategoriesPaged(pageRows: number): Promise<AttributeCategory[]> {
+  // INC-459 — paged after the last link_id (category_attribute_links.id, the
+  // PRIMARY KEY), then sorted back to the door's order: category name, slug.
+  const pages = await readAllPages(
+    (after, limit) => {
+      const query = supabase.rpc("admin_list_attribute_categories").order("link_id").limit(limit);
+      return after === null ? query : query.gt("link_id", after);
+    },
+    (row) => row.link_id,
+    pageRows,
+  );
+  const data = [...pages].sort(
+    (a, b) =>
+      a.category_name_en.localeCompare(b.category_name_en) ||
+      a.category_slug.localeCompare(b.category_slug) ||
+      a.link_id.localeCompare(b.link_id),
+  );
+  return data.map((row) => ({
     linkId: row.link_id,
     attributeId: row.attribute_id,
     categoryId: row.category_id,
@@ -575,12 +613,32 @@ export interface EffectiveLink extends AttributeLink {
   originNameEn: string;
 }
 
-export async function listEffectiveCategoryLinks(categoryId: string): Promise<EffectiveLink[]> {
-  const { data, error } = await supabase.rpc("admin_list_effective_category_links", {
-    p_category_id: categoryId,
-  });
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
+export async function listEffectiveCategoryLinks(
+  categoryId: string,
+  pageRows: number = PAGE_ROWS,
+): Promise<EffectiveLink[]> {
+  // INC-459 — paged after the last link_id (category_attribute_links.id, the
+  // PRIMARY KEY), then sorted back to the door's order: own before inherited,
+  // display order, name.
+  const pages = await readAllPages(
+    (after, limit) => {
+      const query = supabase
+        .rpc("admin_list_effective_category_links", { p_category_id: categoryId })
+        .order("link_id")
+        .limit(limit);
+      return after === null ? query : query.gt("link_id", after);
+    },
+    (row) => row.link_id,
+    pageRows,
+  );
+  const data = [...pages].sort(
+    (a, b) =>
+      Number(a.inherited) - Number(b.inherited) ||
+      Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
+      a.name_en.localeCompare(b.name_en) ||
+      a.link_id.localeCompare(b.link_id),
+  );
+  return data.map((row) => ({
     linkId: row.link_id,
     attributeId: row.attribute_id,
     attrKey: row.attr_key,

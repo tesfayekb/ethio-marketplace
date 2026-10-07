@@ -11,6 +11,7 @@ import {
   draftsOf,
   seedPostableCategory,
   seedSpecSet,
+  seedUnitFactSet,
   stopPageBeforePurge,
 } from "./helpers/posting";
 
@@ -91,5 +92,61 @@ test.describe("POSTING WIZARD — UNITS", () => {
     // The same screen, switched in place: catalog text redraws under the new language.
     await switchLanguage(page, "am");
     await expect(unit, "PW-161: Amharic did not print the Amharic unit").toHaveText("ሰዎች");
+  });
+
+  /**
+   * PW-175 — Bundle 7 F3 (promised 2026-10-01): UNIT OF SALE IS ASKED BEFORE
+   * QUANTITY. The quantity's link is ordered FIRST on purpose, so the price page
+   * must still draw the unit of sale above it. Positive control: both rows'
+   * positions are read, and a missing row fails the test.
+   */
+  test("PW-175 the price page asks the unit of sale above the quantity", async ({ page }) => {
+    const user = await leaseSeller();
+    sellers.push(user.id);
+    await asEdge(page);
+    await signInViaSession(page, user.email, user.password);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const set = await seedUnitFactSet(category.id);
+    specs.push(...set.attrKeys);
+    const { data: quantityRow, error: readError } = await adminClient()
+      .from("attributes")
+      .select("id")
+      .eq("attr_key", set.quantityKey)
+      .single();
+    if (readError) throw new Error(`[e2e:pw175] reading the quantity failed: ${readError.message}`);
+    const reordered = await adminClient()
+      .from("category_attribute_links")
+      .update({ display_order: 99 })
+      .eq("category_id", category.id)
+      .eq("attribute_id", quantityRow.id);
+    if (reordered.error) {
+      throw new Error(`[e2e:pw175] ordering the quantity first failed: ${reordered.error.message}`);
+    }
+
+    const control = (attrKey: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${attrKey}"]`);
+    await reachStep3(page, user.id, category);
+    const type = control(set.typeKey);
+    await expect(type.locator(`option[value="${set.typeValue}"]`)).toHaveCount(1, {
+      timeout: 20_000,
+    });
+    await type.selectOption(set.typeValue);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20_000 });
+
+    const unit = control(set.basisKey);
+    const quantity = control(set.quantityKey);
+    await expect(unit, "PW-175: the unit of sale is not drawn").toBeVisible({ timeout: 20_000 });
+    await expect(quantity, "PW-175: the quantity is not drawn").toBeVisible({ timeout: 20_000 });
+    const unitBox = await unit.boundingBox();
+    const quantityBox = await quantity.boundingBox();
+    if (unitBox === null) throw new Error("PW-175: the unit of sale has no position");
+    if (quantityBox === null) throw new Error("PW-175: the quantity has no position");
+    expect(unitBox.y, "PW-175: the unit of sale is not above the quantity").toBeLessThan(
+      quantityBox.y,
+    );
   });
 });

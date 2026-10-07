@@ -782,12 +782,16 @@ export async function readPostingSchemaAnswer(
   return { schema: shapePostingSchema(data), rateLimited: false };
 }
 
-function shapePostingSchema(data: unknown): PostingSchema | null {
-  if (data === null) return null;
+/**
+ * K5 — a payload without its question list is a FAILED read (`null`), never an
+ * empty list: under rule 1 an empty list would drop every answer the draft holds.
+ * An empty ARRAY stays an empty list (a category with no questions).
+ */
+export function shapePostingSchema(data: unknown): PostingSchema | null {
+  if (data === null || typeof data !== "object") return null;
   const payload = data as Record<string, unknown>;
-  const definitions = Array.isArray(payload["attributes"])
-    ? (payload["attributes"] as Record<string, unknown>[])
-    : [];
+  if (!Array.isArray(payload["attributes"])) return null;
+  const definitions = payload["attributes"] as Record<string, unknown>[];
   const attributes = definitions.map(shapeDefinition).filter((row) => row.attrKey !== "");
   const block = (payload["category"] ?? null) as Record<string, unknown> | null;
   const capabilities = Array.isArray(block?.["capabilities"])

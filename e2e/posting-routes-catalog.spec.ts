@@ -55,11 +55,11 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     const cat = await category();
     const specs = await seedSpecSet(cat.id);
     definitions.push(
-      specs.text.id,
-      specs.number.id,
-      specs.bool.id,
-      specs.select.id,
-      specs.multi.id,
+      specs.text.attrKey,
+      specs.number.attrKey,
+      specs.bool.attrKey,
+      specs.select.attrKey,
+      specs.multi.attrKey,
     );
     return { ...identity, cat, specs };
   }

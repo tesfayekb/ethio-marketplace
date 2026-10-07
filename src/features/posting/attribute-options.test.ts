@@ -67,3 +67,32 @@ describe("retired options (INC-466)", () => {
     expect(findHeldOption("zzz", offered, "a1")).toBeUndefined();
   });
 });
+
+describe("freshOnly (K4)", () => {
+  async function expireAndFail() {
+    vi.useFakeTimers({ now: Date.now() });
+    await loadAttributeOptions("a1");
+    vi.setSystemTime(Date.now() + 61_000);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("", { status: 500 })),
+    );
+  }
+  afterEach(() => vi.useRealTimers());
+  it("an expired copy and a failing fetch answer null with the option", async () => {
+    await expireAndFail();
+    expect(await loadAttributeOptions("a1", { freshOnly: true })).toBeNull();
+  });
+  it("without the option the expired copy is handed back", async () => {
+    await expireAndFail();
+    expect((await loadAttributeOptions("a1"))?.map((o) => o.value)).toEqual(["petrol"]);
+  });
+  it("a copy inside its life is used with the option", async () => {
+    await loadAttributeOptions("a1");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("", { status: 500 })),
+    );
+    expect((await loadAttributeOptions("a1", { freshOnly: true }))?.length).toBe(1);
+  });
+});
