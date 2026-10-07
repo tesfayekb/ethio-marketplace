@@ -454,17 +454,15 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
       detail?: string,
     ) {
       expect.soft(answer["ok"], `${label}: ${JSON.stringify(answer)}`).toBe(false);
-      expect
-        .soft(answer["refusals"], `${label}: ${JSON.stringify(answer)}`)
-        .toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              attr_key: key,
-              reason,
-              ...(detail === undefined ? {} : { detail }),
-            }),
-          ]),
-        );
+      expect.soft(answer["refusals"], `${label}: ${JSON.stringify(answer)}`).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            attr_key: key,
+            reason,
+            ...(detail === undefined ? {} : { detail }),
+          }),
+        ]),
+      );
     }
 
     // (1) `allowed`: p1 allows C = [a].
@@ -520,7 +518,6 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     const stored = (await attrs(String(six["listing_id"]))) as Record<string, unknown>;
     expect(stored[p.key], `(6) stored: ${JSON.stringify(stored)}`).toBe("p1");
   });
-
 
   async function placeDraft(page: Page) {
     const identity = await seller(page);
