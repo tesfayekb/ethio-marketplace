@@ -68,6 +68,7 @@ export const am: Messages = {
   "auth.errorEmailNotConfirmed": "ከመግባትዎ በፊት ኢሜይልዎን ያረጋግጡ።",
   "auth.errorEmailInUse": "በዚህ ኢሜይል የተከፈተ አካውንት አለ።",
   "auth.errorWeakPassword": "ረዘም ያለና ጠንካራ የይለፍ ቃል ይምረጡ።",
+  "auth.errorLeakedPassword": "ይህ የይለፍ ቃል ሾልከው ከወጡ የይለፍ ቃሎች መካከል ነው። ሌላ ይምረጡ።",
   "auth.errorInvalidEmail": "ትክክለኛ ኢሜይል አድራሻ ያስገቡ።",
   "auth.errorRateLimited": "ብዙ ሙከራዎች ተደርገዋል። ትንሽ ቆይተው እንደገና ይሞክሩ።",
   "auth.errorMissingFields": "ኢሜይልዎንና የይለፍ ቃልዎን ያስገቡ።",
