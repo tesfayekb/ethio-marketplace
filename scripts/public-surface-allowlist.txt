@@ -40,3 +40,8 @@ relist_listing | seller door (owner check in body); EXECUTE to authenticated res
 save_posting_identity | the seller's identity save; gates on auth.uid() + rate_gate('identity') inside (M2, granted in its format() loop; INC-443)
 admin_update_profile | the console's profile edit; gates on has_permission(profiles.update) inside (M2, granted in its format() loop; INC-443)
 my_recent_categories | caller-only read keyed by auth.uid(); ids and counts of the caller's own published ads (M10)
+admin_attribute_holders | console read behind categories:view; a count only (M11)
+admin_merge_attributes | restated grant (not a new surface) (M11)
+admin_preview_attribute_import | restated grant (not a new surface) (M11)
+admin_delete_category | restated grant (not a new surface) (M11)
+admin_list_category_pointers | restated grant (not a new surface) (M11)
