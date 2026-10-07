@@ -799,7 +799,8 @@ readers are unchanged.
 that judges answers (DEC-051) — the refusal vocabulary, the DEC-050 bound tokens
 and option-conditioned folds, and the preset allowlist are documented in
 `docs/features/listings.md`. The attribute console keeps writing definitions; it
-never re-implements the judgement.
+never re-implements the judgement. Its `allowed` rule, the kept combination
+and the entry trim are described under the narrowing below.
 
 ## Option `facts` — a prefill, never a rule (D18)
 
@@ -875,6 +876,16 @@ non-`NULL` `allowed_options` with `optionNotAllowed:<value>`, after
 `unknownOption` and `inactiveOption`; a value the listing ALREADY carried
 (`p_prior`) is not refused, so a later narrowing never blocks an edit to an
 unrelated field.
+
+Since bundle 8 (Part B, INC-477) an option's own `allowed` list is enforced too:
+when a parent question's chosen value carries `allowed` {child: [values]}, a
+child answer outside that list is refused with `optionNotAllowed:<value>`; when
+several parents speak for one child the lists are intersected. A KEPT
+COMBINATION is not refused: a child value the listing already carried stays,
+as long as every parent that names it still holds the value it held. Step B7:
+the door trims every answer ONCE at its start (a string answer, an object
+answer's `value`, each element of a list), so the bounds fold, the `allowed`
+fold and the show-when test read the same values the door judges and stores.
 
 Since M-MAINT-2 **Part B** both cells also travel in the ATTRIBUTES FILE, per
 link: `allowed_options` pipe-separated and `default_value` as value text,

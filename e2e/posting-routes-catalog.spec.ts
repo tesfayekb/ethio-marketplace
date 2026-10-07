@@ -397,6 +397,128 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     accepted("case 5", await judge(fifth.id, { [r.key]: ["r1"], [c5.key]: "b" }));
   });
 
+  test("PR-42 the door reads a padded answer as the value it stores", async ({ page }) => {
+    const { token } = await seller(page);
+    const stem = `e2e_trm_${rand()}`;
+    let count = 0;
+    const option = (value: string, extra: Record<string, unknown> = {}) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+      active: true,
+      ...extra,
+    });
+    async function define(type: string, options?: unknown[]) {
+      count += 1;
+      const key = `${stem}_${count}`;
+      definitions.push(key);
+      const row = await adminClient()
+        .from("attributes")
+        .insert({
+          attr_key: key,
+          name_en: key,
+          name_am: `${key} ጥያቄ`,
+          attr_type: type,
+          ...(type === "number" ? { min_bound: "1", max_bound: "999", decimals: 0 } : {}),
+          ...(options === undefined ? {} : { options }),
+        })
+        .select("id")
+        .single();
+      expect(row.error, `seeding ${key}`).toBeNull();
+      return { id: String(row.data!.id), key };
+    }
+    type LinkDef = { id: string; required?: boolean; visibleWhen?: Record<string, unknown> };
+    async function leaf(defs: LinkDef[]) {
+      const cat = await category();
+      const links = await adminClient()
+        .from("category_attribute_links")
+        .insert(
+          defs.map((def, index) => ({
+            category_id: cat.id,
+            attribute_id: def.id,
+            is_required: def.required === true,
+            display_order: index + 1,
+            ...(def.visibleWhen === undefined ? {} : { visible_when: def.visibleWhen }),
+          })),
+        );
+      expect(links.error).toBeNull();
+      return cat;
+    }
+    const judge = (categoryId: string, attributes: Record<string, unknown>) =>
+      save(page, token, body(categoryId, attributes));
+    function refusedAt(
+      label: string,
+      answer: Record<string, unknown>,
+      key: string,
+      reason: string,
+      detail?: string,
+    ) {
+      expect.soft(answer["ok"], `${label}: ${JSON.stringify(answer)}`).toBe(false);
+      expect.soft(answer["refusals"], `${label}: ${JSON.stringify(answer)}`).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            attr_key: key,
+            reason,
+            ...(detail === undefined ? {} : { detail }),
+          }),
+        ]),
+      );
+    }
+
+    // (1) `allowed`: p1 allows C = [a].
+    const c = await define("single_select", [option("a"), option("b")]);
+    const p = await define("single_select", [option("p1", { allowed: { [c.key]: ["a"] } })]);
+    const one = await leaf([{ id: p.id }, { id: c.id }]);
+    // (2) bounds: p1 sets T's max to 10.
+    const t2 = await define("number");
+    const p2 = await define("single_select", [option("p1", { bounds: { [t2.key]: { max: 10 } } })]);
+    const two = await leaf([{ id: p2.id }, { id: t2.id }]);
+    // (3) show-when: W is asked only when P is p1, and is then required.
+    const p3 = await define("single_select", [option("p1"), option("p2")]);
+    const w = await define("text");
+    const three = await leaf([
+      { id: p3.id },
+      { id: w.id, required: true, visibleWhen: { key: p3.key, in: ["p1"] } },
+    ]);
+    // (4) a list: r1 sets T's max to 10.
+    const t4 = await define("number");
+    const r = await define("multi_select", [option("r1", { bounds: { [t4.key]: { max: 10 } } })]);
+    const four = await leaf([{ id: r.id }, { id: t4.id }]);
+
+    for (const pad of [" ", ""]) {
+      const tag = pad === "" ? "(5) unpadded" : "padded";
+      const v = (value: string) => `${pad}${value}${pad}`;
+      refusedAt(
+        `${tag} (1)`,
+        await judge(one.id, { [p.key]: v("p1"), [c.key]: "b" }),
+        c.key,
+        "optionNotAllowed",
+        "b",
+      );
+      refusedAt(
+        `${tag} (2)`,
+        await judge(two.id, { [p2.key]: v("p1"), [t2.key]: 50 }),
+        t2.key,
+        "outOfBounds",
+        "1..10",
+      );
+      refusedAt(`${tag} (3)`, await judge(three.id, { [p3.key]: v("p1") }), w.key, "required");
+      refusedAt(
+        `${tag} (4)`,
+        await judge(four.id, { [r.key]: [v("r1")], [t4.key]: 50 }),
+        t4.key,
+        "outOfBounds",
+        "1..10",
+      );
+    }
+
+    // (6) with (1)'s definitions: a padded p1 and C = a is accepted and stored trimmed.
+    const six = await judge(one.id, { [p.key]: " p1 ", [c.key]: "a" });
+    expect.soft(six["ok"], `(6): ${JSON.stringify(six)}`).toBe(true);
+    const stored = (await attrs(String(six["listing_id"]))) as Record<string, unknown>;
+    expect(stored[p.key], `(6) stored: ${JSON.stringify(stored)}`).toBe("p1");
+  });
+
   async function placeDraft(page: Page) {
     const identity = await seller(page);
     const cat = await category();

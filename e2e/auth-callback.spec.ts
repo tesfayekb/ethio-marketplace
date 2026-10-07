@@ -45,9 +45,7 @@ test("C-3: an already-confirmed user gets the honest already-confirmed surface",
 
   await page.goto("/auth?view=check-email");
   await expect(
-    page
-      .getByText(en["auth.confirmedInline"])
-      .or(page.getByRole("button", { name: en["auth.alreadyConfirmedSignIn"] })),
+    page.getByText(en["auth.confirmedInline"]).or(page.getByTestId("auth-already-confirmed")),
   ).toBeVisible({ timeout: 15000 });
 });
 

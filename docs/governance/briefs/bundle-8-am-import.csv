@@ -1,0 +1,8 @@
+key,source,translation,context
+account.deactivatedBanner,Your account is deactivated — contact support.,መለያዎ ተቋርጧል — ድጋፍን ያግኙ።,
+admin.section.attributes.body,"The shared attribute library: definitions, their categories, and what a listing card shows.",የጋራ የባህሪ ቤተ-መዝገብ፦ ትርጓሜዎች፣ ምድቦቻቸው እና በዝርዝር ካርድ ላይ የሚታየው።,
+admin.translations.col.coverage,Interface,ገጽታ,
+auth.resendCooldown,Resend in {s}s,በ{s} ሰከንድ እንደገና ላክ,
+auth.telegramSlot,Telegram coming soon,Telegram በቅርቡ ይመጣል,
+mfa.enroll,Set up two-factor,ማረጋገጫውን ያዋቅሩ,
+settings.removePasswordConfirmYes,"Yes, remove",አዎ፣ አስወግድ,

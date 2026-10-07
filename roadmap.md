@@ -128,9 +128,20 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [ ] Part A — new database objects are born closed; the remaining helper functions are closed (INC-480, INC-482)
 - [ ] Part B — the answer door enforces an option's allowed list (INC-477)
 - [x] Part C — a message that names a leaked password
-- [ ] Part D — short button and action labels everywhere (D81); the live texts brought level with the code (INC-488)
+- [x] Part D — short button and action labels everywhere (D81); the live texts brought level with the code (INC-488)
 - [x] Part E — PW-147 and PW-130 wait for the name list built from both names (INC-487)
-- [ ] Part F — docs and final report
+- [x] Part F — docs and final report
+
+### Bundle 9 — the house style (agreed with the operator on 2026-10-07; not built in bundle 8; its brief follows the supervisor's explanation)
+
+- [ ] Colour by meaning as tokens — primary, danger, success, warning, info, neutral; corners 6 px; stronger borders; fine row rules; soft shadows on cards, tables and figures, stronger ones on menus and dialogs
+- [ ] Row actions everywhere: Edit and Delete as icons (Edit grey, Delete red) and a three-dots menu for the rest; every icon button has a name and a tooltip; one shared building block
+- [ ] Tables: a toolbar (search, Filters with its count, columns), filter chips with "Clear all", a selection bar; the footer holds the count at the left, rows per page in the centre and the page numbers at the right; on a phone one card per row
+- [ ] The shell: the top bar stays in place on every screen size; the panel tabs stay below it; the left menu stays in place with no scroll bar of its own on a desktop, becomes an icon strip on small screens that opens to the full menu, and holds Sign out at its foot; breadcrumbs stay
+- [ ] Phones: a bottom bar with the common actions (its five items are confirmed with the operator first)
+- [ ] Space: one page padding, owned by the shell — 8 px on phones, 16 px above; list pages use the full width
+- [ ] One written rule and one automatic check per element; existing screens are listed in a baseline that only shrinks
+- [ ] The public marketplace pages (cards in two columns) are designed after this, under the same rules
 
 ### After bundle 7, in this order
 
@@ -138,7 +149,7 @@ What bundle 7 added to the order, item by item with its place: docs/governance/h
 
 1. Bundle 8 — the security and wording round (its block above)
 2. Stage 1 — the rules: the legal section (Terms, Privacy, the publishing statement as numbered versions; the 18+ tick; the seller's certification), the banned-items and safety pages, the screening-promise wording
-3. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449; INC-487 if it is contention), the CI report's gaps (INC-419, INC-429), INC-398, INC-420, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), CI run time, what bundle 7 named and did not build (the definition editor's holders count, a pointer move against the parent-first guard, the parent-first refusal in the import preview, one unit case of the reset function), the four-lens review of the posting era
+3. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449; INC-487 if it is contention), the CI report's gaps (INC-419, INC-429), INC-398, INC-420, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), CI run time, what bundle 7 named and did not build (the definition editor's holders count, a pointer move against the parent-first guard, the parent-first refusal in the import preview, one unit case of the reset function), the four-lens review of the posting era; the Translations store follows a changed seed text by itself (INC-488's class); a full read of the Amharic catalog (INC-489)
 4. Stage 2 — automatic screening from the first ad, in two layers (DEC-145), with translation of every ad's free text at posting and its own switch (DEC-149): the screening gateway, duplicates, the exceptions page, posting limits and AI switches, Admin › Services (DEC-091), admin numbers
 5. Stage 3 — a buyer can open the ad: the ad page with Show contact, Report, Share and the safety box; photos on cards and paging (the home feed's uncapped read); contact ticks; request a missing place and the admin inbox
 6. Stage 4 — sellers manage ads: My ads with retention, views and contacts per ad, a real paused state (INC-469), the expiry sweep through the state machine (INC-470)
