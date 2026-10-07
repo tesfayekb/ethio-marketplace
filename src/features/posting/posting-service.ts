@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import type { CategoryFacts, DoorAnswer, Refusal } from "./types";
 import { shapeCondition, type VisibleWhen } from "./visible-when";
+import type { PlaceFact } from "./where-seed";
 
 /**
  * U6-C1a — THE WIZARD'S ONLY WAY TO THE SERVER.
@@ -494,6 +495,38 @@ export async function readRecentCategories(): Promise<string[] | null> {
     });
   } catch (cause) {
     console.error("[recent-categories] read threw", cause);
+    return null;
+  }
+}
+
+/**
+ * Bundle 7 D3 — the facts of the draft's own saved places (country, level and
+ * chain), so the place step can seed from them whatever market is on screen.
+ * `null` on any failure (logged): the step then behaves as it did before.
+ */
+export async function readPlaceFacts(ids: string[]): Promise<PlaceFact[] | null> {
+  if (ids.length === 0) return [];
+  try {
+    const { data, error } = await supabase
+      .from("locations")
+      .select("id,country_code,level,region_id,city_id,parent_id,is_active")
+      .in("id", ids)
+      .order("id", { ascending: true });
+    if (error) {
+      console.error("[place-facts] read refused", error.message);
+      return null;
+    }
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      country: row.country_code,
+      level: row.level,
+      regionId: row.region_id,
+      cityId: row.city_id,
+      parentId: row.parent_id,
+      active: row.is_active,
+    }));
+  } catch (error) {
+    console.error("[place-facts] read failed", error);
     return null;
   }
 }
