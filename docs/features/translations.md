@@ -1011,3 +1011,10 @@ waits on either the summary or that error, failing with its text.
 The Data tab passes its search to the bulk bar, so the entity sweep's count and its collection both read `admin_list_entity_translations` with the same `p_search` (F4: the number on the button is the work it queues). With a search set the button reads `bulkActionFiltered` and carries `data-scope="filtered"`. TR-24 now sweeps only its own scratch stem and proves a third scratch location outside the filter stays untouched; the TR-24 universe sweep no longer runs in CI.
 
 INC-287 also covers TR-26: its fill is filtered to its own stem (two rows, a third outside stays missing) and the approved-chip aggregate step is gone; the cold-fence universe measured 1,094 rows, warm 18–20.
+
+## A changed seed text
+
+- A text changed in en.ts reaches the live site after the console's "Sync keys".
+- A changed text of another language reaches it after an import or an edit, and its approval.
+- Why: the store's approved rows lie over the compiled catalogs, so a seed change alone is hidden by the row above it.
+- INC-488.

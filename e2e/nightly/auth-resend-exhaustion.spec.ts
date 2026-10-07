@@ -18,7 +18,7 @@ async function signUpFresh(page: import("@playwright/test").Page, n: number) {
 
   await page.goto("/auth");
   await waitForHydration(page);
-  await page.getByRole("button", { name: en["auth.toggleToSignUp"] }).click();
+  await page.getByTestId("auth-toggle-view").click();
 
   await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
   await fillUntilStable(page.locator("#auth-password"), password, "password");

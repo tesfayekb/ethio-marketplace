@@ -2801,7 +2801,7 @@
       "/dev/primitives",
       "/dev/tall"
     ],
-    "auth.alreadyConfirmedSignIn": [
+    "auth.alreadyConfirmedPrompt": [
       "/auth"
     ],
     "auth.backToSignIn": [
@@ -2950,10 +2950,10 @@
     "auth.telegramSlot": [
       "/auth"
     ],
-    "auth.toggleToSignIn": [
+    "auth.toggleToSignInPrompt": [
       "/auth"
     ],
-    "auth.toggleToSignUp": [
+    "auth.toggleToSignUpPrompt": [
       "/auth"
     ],
     "auth.working": [

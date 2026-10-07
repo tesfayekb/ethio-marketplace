@@ -456,14 +456,20 @@ function AuthScreen() {
           ) : null}
 
           {pendingEmail ? (
-            <button
-              type="button"
-              onClick={() => void handleAlreadyConfirmed()}
-              disabled={busy}
-              className={`${secondaryButtonClass} mt-4`}
-            >
-              {t("auth.alreadyConfirmedSignIn")}
-            </button>
+            <div className="mt-4">
+              <p className="text-center text-sm text-muted-foreground">
+                {t("auth.alreadyConfirmedPrompt")}
+              </p>
+              <button
+                type="button"
+                data-testid="auth-already-confirmed"
+                onClick={() => void handleAlreadyConfirmed()}
+                disabled={busy}
+                className={`${secondaryButtonClass} mt-2`}
+              >
+                {t("auth.signIn")}
+              </button>
+            </div>
           ) : (
             <button
               type="button"
@@ -575,18 +581,24 @@ function AuthScreen() {
           </button>
         ) : null}
 
-        <button
-          type="button"
-          onClick={() => {
-            setErrorKey(null);
-            setCanResend(false);
-            setResendSent(false);
-            void navigate({ to: "/auth", search: isSignIn ? { view: "sign-up" } : {} });
-          }}
-          className="mt-4 min-h-11 w-full rounded-md text-sm font-medium text-primary underline underline-offset-4"
-        >
-          {isSignIn ? t("auth.toggleToSignUp") : t("auth.toggleToSignIn")}
-        </button>
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-2">
+          <p className="text-sm text-muted-foreground">
+            {isSignIn ? t("auth.toggleToSignUpPrompt") : t("auth.toggleToSignInPrompt")}
+          </p>
+          <button
+            type="button"
+            data-testid="auth-toggle-view"
+            onClick={() => {
+              setErrorKey(null);
+              setCanResend(false);
+              setResendSent(false);
+              void navigate({ to: "/auth", search: isSignIn ? { view: "sign-up" } : {} });
+            }}
+            className="min-h-11 rounded-md px-2 text-sm font-medium text-primary underline underline-offset-4"
+          >
+            {isSignIn ? t("auth.createAccount") : t("auth.signIn")}
+          </button>
+        </div>
 
         {/* P1-d: real Google door below the email form (mobile-first order).
           Telegram (P1-e) remains a slot until its own named phase. */}

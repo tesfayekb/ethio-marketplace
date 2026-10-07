@@ -1,0 +1,137 @@
+{
+ "set": {
+  "admin.attributes.export.busy": {
+   "en": "Exporting…",
+   "am": "በመላክ ላይ…"
+  },
+  "admin.categories.export.busy": {
+   "en": "Exporting…",
+   "am": "በመላክ ላይ…"
+  },
+  "admin.locations.export.busy": {
+   "en": "Preparing file…",
+   "am": "ፋይሉ እየተዘጋጀ ነው…"
+  },
+  "admin.categories.bulk.generateMissing": {
+   "en": "Generate missing",
+   "am": "የጎደሉትን አመንጭ"
+  },
+  "admin.countries.close.forceConfirm": {
+   "en": "Close anyway",
+   "am": "ቢሆንም ዝጋ"
+  },
+  "admin.countries.rail.reset": {
+   "en": "Reset order",
+   "am": "ቅደም ተከተሉን መልስ"
+  },
+  "admin.coverage.create.open": {
+   "en": "Add plan",
+   "am": "እቅድ አክል"
+  },
+  "admin.locations.create.open": {
+   "en": "Add place",
+   "am": "ቦታ ጨምር"
+  },
+  "admin.locations.action.createChild": {
+   "en": "Add place inside",
+   "am": "ውስጡ ቦታ ጨምር"
+  },
+  "admin.translations.add.fromList": {
+   "en": "Choose from list",
+   "am": "ከዝርዝሩ ይምረጡ"
+  },
+  "admin.translations.add.manual": {
+   "en": "Enter manually",
+   "am": "በእጅ ያስገቡ"
+  },
+  "auth.backToSignIn": {
+   "en": "Back to sign-in",
+   "am": "ወደ መግቢያ ተመለስ"
+  },
+  "auth.resendCooldown": {
+   "en": "Resend in {s}s",
+   "am": "በ{s} ሰከንድ እንደገና ላክ"
+  },
+  "auth.telegramSlot": {
+   "en": "Telegram coming soon",
+   "am": "Telegram በቅርቡ ይመጣል"
+  },
+  "mfa.enroll": {
+   "en": "Set up two-factor",
+   "am": "ማረጋገጫውን ያዋቅሩ"
+  },
+  "mfa.verifyActivate": {
+   "en": "Verify and enable",
+   "am": "አረጋግጠው ያብሩ"
+  },
+  "nav.postListing": {
+   "en": "Post listing",
+   "am": "ማስታወቂያ ይለጥፉ"
+  },
+  "post.assist.action": {
+   "en": "Write for me",
+   "am": "ለእኔ ይጻፍልኝ"
+  },
+  "post.pin.remove": {
+   "en": "Remove pin",
+   "am": "ምልክቱን አስወግድ"
+  },
+  "post.review.fixStep": {
+   "en": "Open step {step}",
+   "am": "ደረጃ {step} ይክፈቱ"
+  },
+  "post.review.previewAsBuyer": {
+   "en": "Preview as buyer",
+   "am": "ገዢዎች እንደሚያዩት ይመልከቱ"
+  },
+  "post.specs.optionsLoading": {
+   "en": "Loading choices…",
+   "am": "ምርጫዎቹ በመጫን ላይ…"
+  },
+  "post.specs.useModelValue": {
+   "en": "Use model's value",
+   "am": "የሞዴሉን ዋጋ ይጠቀሙ"
+  },
+  "post.where.addCity": {
+   "en": "Add city",
+   "am": "ከተማ ጨምር"
+  },
+  "post.where.addCountry": {
+   "en": "Add country",
+   "am": "አገር ጨምር"
+  },
+  "post.where.addRegion": {
+   "en": "Add region",
+   "am": "ክልል ጨምር"
+  },
+  "settings.removePasswordConfirmYes": {
+   "en": "Yes, remove",
+   "am": "አዎ፣ አስወግድ"
+  },
+  "settings.signOutOthers": {
+   "en": "Sign out others",
+   "am": "ከሌሎች መሣሪያዎች ይውጡ"
+  },
+  "settings.signOutOthersConfirmYes": {
+   "en": "Yes, sign out",
+   "am": "አዎ፣ ያስወጣቸው"
+  },
+  "auth.alreadyConfirmedPrompt": {
+   "en": "Already confirmed?",
+   "am": "አስቀድሞ ተረጋግጧል?"
+  },
+  "auth.toggleToSignInPrompt": {
+   "en": "Already have an account?",
+   "am": "አካውንት አለዎት?"
+  },
+  "auth.toggleToSignUpPrompt": {
+   "en": "New here?",
+   "am": "አዲስ ነዎት?"
+  }
+ },
+ "remove": [
+  "auth.alreadyConfirmedSignIn",
+  "auth.toggleToSignIn",
+  "auth.toggleToSignUp"
+ ]
+}
