@@ -1,32 +1,37 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `e17fc72a86989a46dd0f4b42cab92cc2ec2de3c3` (short `e17fc72`)
+- Commit: `9a44e0836edf789f384eb25c10fb4f8f742c5113` (short `9a44e08`)
 - Conclusion: **FAILURE**
-- Completed (UTC): 2026-10-07T03:42:06Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37567814016
+- Completed (UTC): 2026-10-07T05:58:07Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37576776314
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Migration linter (with self-test) | failure |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| Build, typecheck, lint | success |
 | Hardcoded string scan (enforcing) | success |
-| Gitleaks secrets scan | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
-| Import gate guard (with self-test) | success |
-| Listing-write seam guard (with self-test) | success |
 | Component tests | success |
-| E2E preflight (migration parity, staging) | failure |
+| First-paint bundle budget (gzipped ceiling) | success |
+| Migration linter (with self-test) | success |
 | Semgrep (enforcing on ERROR) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Import gate guard (with self-test) | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Listing-write seam guard (with self-test) | success |
+| Gitleaks secrets scan | success |
+| Build, typecheck, lint | success |
 | i18n used-on map is fresh (U4i ②) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| E2E preflight (migration parity, staging) | success |
+| E2E build (shared dist) | success |
+| E2E email (serial, quota-bound) | success |
+| E2E changed specs (fast lane) | success |
+| E2E smoke tier | success |
+| E2E shard 6/6 | success |
+| E2E shard 5/6 | success |
+| E2E shard 2/6 | success |
+| E2E shard 1/6 | failure |
+| E2E shard 4/6 | failure |
+| E2E shard 3/6 | success |
 | E2E (Playwright, ethio-staging) | failure |
-| E2E email (serial, quota-bound) | skipped |
-| E2E changed specs (fast lane) | skipped |
-| E2E build (shared dist) | skipped |
-| E2E smoke tier | skipped |
-| E2E shard ${{ matrix.shard }}/6 | skipped |
 | Promote to main (fast-forward on green) | skipped |
