@@ -14,6 +14,8 @@ import { useI18n } from "@/i18n";
 import { useCatalogScope } from "./catalog-scope";
 import { finderPending, useCatalogFinder, useMatchLine, type FinderMatch } from "./catalog-finder";
 import { RequiredMark } from "./field";
+import { readRecentCategories } from "./posting-service";
+import { recentChips } from "./recent-categories";
 
 /**
  * U6-C1-R1 — STEP 1: ONE CONTROL (operator walk 2026-09-18).
@@ -148,6 +150,18 @@ export function StepCategory({
   const setTerm = onTerm;
 
   const label = (node: CategoryNode) => entityName("category", node, entities);
+  // Bundle 7 D2 — asked once on mount; nothing is drawn until it answers ids.
+  const [recentIds, setRecentIds] = useState<string[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    void readRecentCategories().then((ids) => {
+      if (!cancelled) setRecentIds(ids);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const chips = recentChips(recentIds, tree);
   const filtering = term.trim() !== "";
   const finder = useCatalogFinder(term, entities.lang);
   /**
@@ -201,6 +215,36 @@ export function StepCategory({
   return (
     <div className="space-y-4" data-testid="post-category">
       <p className="text-sm text-muted-foreground">{t("post.category.why")}</p>
+
+      {chips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2" data-testid="post-category-recent-row">
+          <span className="text-sm text-muted-foreground">{t("post.category.recentLabel")}</span>
+          {chips.map((id) => {
+            const chip = tree.byId.get(id)!;
+            return (
+              <button
+                key={id}
+                type="button"
+                data-testid="post-category-recent"
+                data-category={id}
+                aria-pressed={id === selectedId ? "true" : "false"}
+                className={
+                  "min-h-11 rounded-full border px-4 text-sm " +
+                  (id === selectedId
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-input bg-background text-foreground")
+                }
+                onClick={() => {
+                  onCursor(tree.parentOf.get(id) ?? null);
+                  onChoose(id);
+                }}
+              >
+                {label(chip)}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="space-y-1">
         {/* W4 D1 — the search is optional: its label carries no mark. */}
