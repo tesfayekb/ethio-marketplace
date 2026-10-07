@@ -129,7 +129,6 @@ rule. Self-tests: a caller's-rights function with no `REVOKE` is flagged; a
 `REVOKE` that names the function but not `PUBLIC` is flagged; a function whose
 `REVOKE … FROM PUBLIC, anon, authenticated` names it passes.
 
-
 ## Migration parity preflight (INC-074, 2026-08-16)
 
 `scripts/e2e-migration-preflight.ts` runs as its own CI step
