@@ -375,6 +375,64 @@ test.describe("Bundle 7 attribute safety", () => {
     }
   });
 
+  test("AT-76 the link editor refuses a condition on the upper question naming the lower one, and accepts the reverse", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
+    const conditionOf = async (linkId: string) => {
+      const { data, error } = await adminClient()
+        .from("category_attribute_links")
+        .select("visible_when")
+        .eq("id", linkId)
+        .single();
+      if (error) throw new Error(`[e2e:at-76] ${error.message}`);
+      return (data?.visible_when ?? null) as unknown;
+    };
+    try {
+      const leaf = await seedLeaf();
+      fx.slug = leaf.slug;
+      fx.categoryId = leaf.id;
+      const upper = attrKey("up");
+      const lower = attrKey("low");
+      fx.keys.push(upper, lower);
+      const upperLink = await seedLink(leaf.id, await seedSelect(upper), 0);
+      const lowerLink = await seedLink(leaf.id, await seedSelect(lower), 1);
+
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, leaf.slug);
+      await openEditor(page, leaf.slug);
+      await action(page, leaf.slug, "attributes").click();
+      await expect(page.getByTestId("category-attributes-dialog")).toBeVisible({ timeout: 20000 });
+
+      // Refused: the upper question shown when the lower one is answered.
+      await page.getByTestId(`category-attribute-condition-key-${upper}`).selectOption(lower);
+      await page.getByTestId(`category-attribute-condition-${upper}-a1`).click();
+      await page.getByTestId(`category-attribute-save-condition-${upper}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("attribute-dialog-error")).toHaveText(
+        fill(en["admin.attributes.error.parentAfterChild"], {
+          detail: `${leaf.slug}: ${lower} → ${upper}`,
+        }),
+        { timeout: 20000 },
+      );
+      expect(await conditionOf(upperLink), "AT-76 the refused condition was stored").toBeNull();
+
+      // Accepted: the lower question shown when the upper one is answered.
+      await page.getByTestId(`category-attribute-condition-key-${lower}`).selectOption(upper);
+      await page.getByTestId(`category-attribute-condition-${lower}-a1`).click();
+      await page.getByTestId(`category-attribute-save-condition-${lower}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(() => conditionOf(lowerLink), { timeout: 20000 })
+        .toEqual({ key: upper, in: ["a1"] });
+      expect(await conditionOf(upperLink)).toBeNull();
+    } finally {
+      await reap(fx);
+    }
+  });
+
   test("AT-77 an import whose end state asks a child first is refused whole at the commit", async ({
     page,
   }) => {
