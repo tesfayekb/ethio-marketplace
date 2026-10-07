@@ -468,6 +468,32 @@ export interface SellerPlace {
   directions: string | null;
 }
 
+/**
+ * Bundle 7 D2 — THE CALLER'S RECENT CATEGORIES (my_recent_categories, M10): the
+ * ordered ids of the leaves the seller published in, or null on any failure.
+ */
+export async function readRecentCategories(): Promise<string[] | null> {
+  try {
+    const { data, error } = await supabase.rpc("my_recent_categories");
+    if (error) {
+      console.error("[recent-categories] read refused", error.message);
+      return null;
+    }
+    const list =
+      data !== null && typeof data === "object" && !Array.isArray(data)
+        ? (data as Record<string, unknown>)["categories"]
+        : null;
+    if (!Array.isArray(list)) return null;
+    return list.flatMap((entry) => {
+      const id = (entry as Record<string, unknown> | null)?.["id"];
+      return typeof id === "string" ? [id] : [];
+    });
+  } catch (cause) {
+    console.error("[recent-categories] read threw", cause);
+    return null;
+  }
+}
+
 export async function readSellerPlace(): Promise<SellerPlace | null> {
   const { data, error } = await supabase.rpc("my_seller_place");
   if (error) throw new Error(error.message);
