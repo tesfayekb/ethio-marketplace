@@ -375,6 +375,14 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
         timeout: 20_000,
       })
       .toContain("abebe");
+    // INC-487 — the list built from BOTH names is the last answer; read only then.
+    const joined = `abebe${last}`.toLowerCase().slice(0, 28);
+    await expect
+      .poll(async () => (await offered.allTextContents()).map((name) => name.trim()), {
+        message: `PW-130: no suggestion equals the two names joined (${joined})`,
+        timeout: 20_000,
+      })
+      .toContain(joined);
     const names = (await offered.allTextContents()).map((name) => name.trim());
     const picked = names[0] ?? "";
     expect(picked, "PW-130: the first suggestion is not built from the names").toContain("abebe");
@@ -418,6 +426,14 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
         timeout: 20_000,
       })
       .toContain("abebe");
+    // INC-487 — the list built from BOTH names is the last answer; read only then.
+    const joined = `abebe${last}`.toLowerCase().slice(0, 28);
+    await expect
+      .poll(async () => (await offered.allTextContents()).map((name) => name.trim()), {
+        message: `PW-147: no suggestion equals the two names joined (${joined})`,
+        timeout: 20_000,
+      })
+      .toContain(joined);
     await expect(offered).toHaveCount(3);
     const names = (await offered.allTextContents()).map((name) => name.trim());
     // Turn 8 item 6 — one suggestion carries the category word: the door's own
