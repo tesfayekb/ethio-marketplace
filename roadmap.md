@@ -1,6 +1,6 @@
 # Roadmap
 
-Bundle 7 brief: docs/governance/briefs/bundle-7.md (read first every turn).
+No bundle brief is in force: bundle 7 closed on 2026-10-07 (its brief stays at docs/governance/briefs/bundle-7.md). The next brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -102,9 +102,9 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 
 The operator's answers of 2026-10-06 and the cross-check that nothing identified earlier was dropped: docs/governance/handoffs/2026-10-06-order-of-work-and-cross-check.md (every item by its place, with its references). Nothing below is specced until its line says so; the supervisor explains each bundle or stage to the operator part by part before its brief is written.
 
-### Bundle 7 — the posting-form round (built — close pending the supervisor's records turn)
+### Bundle 7 — the posting-form round (closed 2026-10-07)
 
-- [ ] DEC-144 — a changed answer resets only what depends on it; the parent question is asked first; an earlier answer narrows a later one (the whole-form restart is retired; tests PW-59, PW-60, PW-61, PW-32, PW-163, PW-22 step iv, PW-162 sequence e)
+- [x] DEC-144 — a changed answer resets only what depends on it; the parent question is asked first; an earlier answer narrows a later one (the whole-form restart is retired; tests PW-59, PW-60, PW-61, PW-32, PW-163, PW-22 step iv, PW-162 sequence e) — src/features/posting/reset-scope.ts; PW-164 to PW-168, PW-174; the parent-first guard of M11 (AT-76, AT-76b, AT-77)
 - [x] Previously used categories on the wizard's category step (operator, 2026-10-05)
 - [x] One number formatter for specification values and settled ranges (INC-451)
 - [x] admin_delete_category refuses a row with children; the pointer dialog's Home badge and "Make home" (C4) — M11; CT-38, CT-39, CT-40 (e2e/admin-categories-home.spec.ts)
@@ -118,18 +118,24 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] A test that Unit of Sale is asked before Quantity (promised 2026-10-01) — PW-175 (e2e/post-wizard-units.spec.ts)
 - [x] Three checks in the code first, a fix line for any that fails: a saved extra place in another country after Back; the chosen currency visible while searching; the built title on "Other" categories (INC-343) — PW-173, PW-169, PW-170
 - [x] A question or an answer removed from the catalogue never blocks a later save of the same visit (INC-479)
-- [ ] Hardening from the first read of the code scanners: the CI token, own-key lookups, the map credit, the pre-paint scripts, the report's table cells, the scan's rule set (DEC-153, DEC-154)
+- [x] Hardening from the first read of the code scanners: the CI token, own-key lookups, the map credit, the pre-paint scripts, the report's table cells, the scan's rule set (DEC-153, DEC-154) — turn 10; INC-483 to INC-486; IB-3
+- [x] The category import undo walks its batch in a fixed order (INC-481, DEC-152) — M12; CT-26, CT-42
+- [x] Table privileges follow the doors: the places table and eight admin tables are written only through their doors (INC-476, INC-478) — M10, M11; PR-38, CT-41
+- [x] Records turn (bundle 7 close, 2026-10-07) — spec-ledger S56 (DEC-148–154), INC-473–487, system-state; see docs/governance/handoffs/2026-10-07-bundle7-close-handover.md
 
 ### After bundle 7, in this order
 
-1. Stage 1 — the rules: the legal section (Terms, Privacy, the publishing statement as numbered versions; the 18+ tick; the seller's certification), the banned-items and safety pages, the screening-promise wording
-2. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449), the CI report's gaps (INC-419, INC-429), INC-398, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), the four-lens review of the posting era
-3. Stage 2 — automatic screening from the first ad, in two layers (DEC-145): the screening gateway, duplicates, the exceptions page, posting limits and AI switches, Admin › Services (DEC-091), admin numbers
-4. Stage 3 — a buyer can open the ad: the ad page with Show contact, Report, Share and the safety box; photos on cards and paging; contact ticks; request a missing place and the admin inbox
-5. Stage 4 — sellers manage ads: My ads with retention, views and contacts per ad, a real paused state (INC-469), the expiry sweep through the state machine (INC-470)
-6. Posting-form extras — several prices in one ad (DEC-131), sizes and price drops (D68), photo tools (D65), the smaller form-engine items, an answer offered only in some countries (D75)
-7. Stage 5 — buyers find things: lists from the buyer's city, search and filters, favourites and saved searches
-8. Stage 6 — staying in touch: install and data saver, notifications, messages (every message screened), the site's own Telegram channels (ACT-007)
-9. Stage 7 — account and data: the Your data page, the devices list, Settings, the Telegram sign-in door (DEC-012)
-10. The launch round and the operator's launch checklist — backups and restore drill, observability, the 3G measurement, redirects from the old site, the private switch (DEC-116); then opening
-11. Stage 8 — the seller page at ethio.com/name and the business badge
+What bundle 7 added to the order, item by item with its place: docs/governance/handoffs/2026-10-07-order-of-work-additions.md.
+
+1. The next bundle (not specced; explained to the operator part by part first) — the privileges migration (INC-480, INC-482; the "Extension in Public" line of the platform's linter read in the same census); INC-477's census; the sign-up and reset forms say that a refused password appeared in a known leak; short button and action labels everywhere (D81); INC-487 if the nightly of 2026-10-08 repeats it
+2. Stage 1 — the rules: the legal section (Terms, Privacy, the publishing statement as numbered versions; the 18+ tick; the seller's certification), the banned-items and safety pages, the screening-promise wording
+3. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449; INC-487 if it is contention), the CI report's gaps (INC-419, INC-429), INC-398, INC-420, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), CI run time, what bundle 7 named and did not build (the definition editor's holders count, a pointer move against the parent-first guard, the parent-first refusal in the import preview, one unit case of the reset function), the four-lens review of the posting era
+4. Stage 2 — automatic screening from the first ad, in two layers (DEC-145), with translation of every ad's free text at posting and its own switch (DEC-149): the screening gateway, duplicates, the exceptions page, posting limits and AI switches, Admin › Services (DEC-091), admin numbers
+5. Stage 3 — a buyer can open the ad: the ad page with Show contact, Report, Share and the safety box; photos on cards and paging (the home feed's uncapped read); contact ticks; request a missing place and the admin inbox
+6. Stage 4 — sellers manage ads: My ads with retention, views and contacts per ad, a real paused state (INC-469), the expiry sweep through the state machine (INC-470)
+7. Posting-form extras — several prices in one ad (DEC-131), sizes and price drops (D68), photo tools (D65), the smaller form-engine items, an answer offered only in some countries (D75)
+8. Stage 5 — buyers find things: lists from the buyer's city, search and filters, favourites and saved searches
+9. Stage 6 — staying in touch: install and data saver, notifications, messages (every message screened; translated on a tap), the site's own Telegram channels (ACT-007)
+10. Stage 7 — account and data: the Your data page, the devices list, Settings, the Telegram sign-in door (DEC-012)
+11. The launch round and the operator's launch checklist — backups and restore drill, observability, the 3G measurement, redirects from the old site, the private switch (DEC-116); then opening
+12. Stage 8 — the seller page at ethio.com/name, the business badge, and reviews and ratings of sellers (DEC-150)
