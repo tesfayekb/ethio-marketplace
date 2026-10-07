@@ -511,7 +511,8 @@ export function StepSpecifications({
    * (`{ fuel: ["electric"] }`). Every chosen option of every picker contributes,
    * and two contributions for the same sibling meet at their INTERSECTION — the
    * stricter reading, the one the door itself applies. This is the mirror of
-   * `attr_allowed_check`; the door remains the authority (F3).
+   * the answer door's rule in public.validate_listing_attributes; the door
+   * remains the authority (F3).
    */
   const narrowing = useMemo(() => {
     const out: Record<string, string[]> = {};
