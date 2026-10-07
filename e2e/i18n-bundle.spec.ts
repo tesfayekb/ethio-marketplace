@@ -153,10 +153,27 @@ test.describe("STAB-I18N · cached translation bundle", () => {
    * catalog: the shell renders in the base language, the page-failed words
    * never appear. "constructor" is too long to pass the shape test, so the
    * codes are `toString` and `valueOf`.
+   *
+   * The server-rendered shell is on the page before the provider's catalog
+   * effect runs, so the test first waits for the provider's own settled state
+   * (the gate read, the active language back at the base) and only then reads
+   * the page.
    */
   test("IB-3 a ?lang= naming an inherited member renders the base shell", async ({ page }) => {
     for (const code of ["toString", "valueOf"]) {
       await gotoReady(page, `/?lang=${code}`);
+      await expect
+        .poll(
+          () =>
+            page.evaluate(() => {
+              const snap = (window as unknown as Record<string, unknown>)[
+                "__ethioPublicLanguages"
+              ] as { gateReady?: boolean; active?: string } | undefined;
+              return snap ? `${String(snap.gateReady)}:${String(snap.active)}` : "none";
+            }),
+          { message: `provider settled at the base for ?lang=${code}`, timeout: 15_000 },
+        )
+        .toBe("true:en");
       await expect(page.getByRole("banner"), `banner for ?lang=${code}`).toBeVisible();
       await expect(page.getByText(en["error.pageFailed"]), `no page-failed for ${code}`).toHaveCount(
         0,
