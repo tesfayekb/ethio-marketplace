@@ -102,7 +102,7 @@ Done = the file and the test that prove it. Not done = no proof found; nothing b
 
 The operator's answers of 2026-10-06 and the cross-check that nothing identified earlier was dropped: docs/governance/handoffs/2026-10-06-order-of-work-and-cross-check.md (every item by its place, with its references). Nothing below is specced until its line says so; the supervisor explains each bundle or stage to the operator part by part before its brief is written.
 
-### Bundle 7 — the posting-form round (in progress)
+### Bundle 7 — the posting-form round (built — close pending the supervisor's records turn)
 
 - [ ] DEC-144 — a changed answer resets only what depends on it; the parent question is asked first; an earlier answer narrows a later one (the whole-form restart is retired; tests PW-59, PW-60, PW-61, PW-32, PW-163, PW-22 step iv, PW-162 sequence e)
 - [x] Previously used categories on the wizard's category step (operator, 2026-10-05)
@@ -115,8 +115,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] The catalogue's Merge, delete and unlink look at the answers ads hold (INC-467; the executor's census of bundle 6 turn 10 is in the same running record) — M11; AT-73, AT-74, AT-75
 - [x] A built title leaves out a label that holds the {country} token
 - [x] An autosave refused by the door is not dropped without a word (seen at INC-465)
-- [ ] A test that Unit of Sale is asked before Quantity (promised 2026-10-01)
-- [ ] Three checks in the code first, a fix line for any that fails: a saved extra place in another country after Back; the chosen currency visible while searching; the built title on "Other" categories (INC-343)
+- [x] A test that Unit of Sale is asked before Quantity (promised 2026-10-01) — PW-175 (e2e/post-wizard-units.spec.ts)
+- [x] Three checks in the code first, a fix line for any that fails: a saved extra place in another country after Back; the chosen currency visible while searching; the built title on "Other" categories (INC-343) — PW-173, PW-169, PW-170
 - [x] A question or an answer removed from the catalogue never blocks a later save of the same visit (INC-479)
 - [ ] Hardening from the first read of the code scanners: the CI token, own-key lookups, the map credit, the pre-paint scripts, the report's table cells, the scan's rule set (DEC-153, DEC-154)
 

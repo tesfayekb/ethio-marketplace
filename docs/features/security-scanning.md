@@ -53,3 +53,11 @@ At launch: Cloudflare in front of the site (Bot Fight Mode, the free managed WAF
 ## Database lints (DEC-132 layer B, option ii; DEC-148)
 
 `public.security_lints()` (service role only) answers five counts and nothing else: `rls_disabled_in_public` ERROR, `security_definer_view` ERROR, `function_executable_by_anon` ERROR, `function_search_path_mutable` WARN, `table_writable_by_client` WARN. The nightly runs `scripts/security-lints.ts` against ethio-staging and compares with `scripts/security-lints-baseline.json`: an ERROR count above baseline fails the run; a WARN count above baseline prints a warning; a count below baseline prints "baseline can be lowered"; a missing or unknown name fails. The baseline changes only in a commit whose changelog line says why. Counts only in the log. The admin tables and the places table are written through their doors only.
+
+## The workflow token and the scan's rule set (DEC-153)
+
+- The token's default is read-only: `.github/workflows/ci.yml` and `nightly-e2e.yml` declare `permissions: contents: read` at the top. Jobs that hold more say so and why: the Semgrep job `security-events: write` (the SARIF upload); the secrets scan `pull-requests: read` (Gitleaks reads the pull request it runs on); the E2E job and the promote job `contents: write` (the evidence publish to ci-evidence; the fast-forward of main); the nightly job `contents: write` (its evidence publish).
+- The scan's rule set is the pinned clone less three removed rule files. `scripts/semgrep-sarif-filter.py` runs its self-test, then filters the SARIF before upload: a suppressed result is dropped, an ERROR is kept anywhere, a WARNING in test code (e2e/, `*.test.ts(x)`) is dropped; it prints counts only and fails on any ERROR.
+- Suppression form: a reason line, then `// nosemgrep: <rule>` on the line above the reviewed site. The reviewed sites are found by searching the tree for `nosemgrep:`.
+- The scan on 518da704 as the supervisor read it: ERROR=0, WARNING kept 0, WARNING dropped as test code 13, suppressed 9.
+- The code-scanning status page follows the CI workflow's last result on the branch.
