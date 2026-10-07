@@ -69,6 +69,8 @@ export const en = {
   "auth.errorEmailNotConfirmed": "Confirm your email before signing in.",
   "auth.errorEmailInUse": "An account with this email already exists.",
   "auth.errorWeakPassword": "Choose a longer, stronger password.",
+  "auth.errorLeakedPassword":
+    "This password appeared in a known data leak. Choose a different one.",
   "auth.errorInvalidEmail": "Enter a valid email address.",
   "auth.errorRateLimited": "Too many attempts. Wait a moment and try again.",
   "auth.errorMissingFields": "Enter your email and password.",

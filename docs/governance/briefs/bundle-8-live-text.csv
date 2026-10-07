@@ -1,0 +1,6 @@
+lang,key,catalog,live
+en,admin.section.attributes.body,"The shared attribute library: definitions, their categories, and what a listing card shows.",Attribute management arrives in U6.
+en,admin.translations.col.coverage,Interface,Coverage
+am,account.deactivatedBanner,መለያዎ ተቋርጧል — ድጋፍን ያግኙ።,መለያዎ ተቋርጧል — ድጋፍን ያግኙ
+am,admin.section.attributes.body,የጋራ የባህሪ ቤተ-መዝገብ፦ ትርጓሜዎች፣ ምድቦቻቸው እና በዝርዝር ካርድ ላይ የሚታየው።,የባህርይ አስተዳደር በU6 ይመጣል።
+am,admin.translations.col.coverage,ገጽታ,ሽፋን

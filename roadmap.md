@@ -1,6 +1,6 @@
 # Roadmap
 
-No bundle brief is in force: bundle 7 closed on 2026-10-07 (its brief stays at docs/governance/briefs/bundle-7.md). The next brief is named on this line when it is saved.
+Bundle 8 brief: docs/governance/briefs/bundle-8.md (read first every turn).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -123,11 +123,20 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] Table privileges follow the doors: the places table and eight admin tables are written only through their doors (INC-476, INC-478) — M10, M11; PR-38, CT-41
 - [x] Records turn (bundle 7 close, 2026-10-07) — spec-ledger S56 (DEC-148–154), INC-473–487, system-state; see docs/governance/handoffs/2026-10-07-bundle7-close-handover.md
 
+### Bundle 8 — the security and wording round (in progress)
+
+- [ ] Part A — new database objects are born closed; the remaining helper functions are closed (INC-480, INC-482)
+- [ ] Part B — the answer door enforces an option's allowed list (INC-477)
+- [x] Part C — a message that names a leaked password
+- [ ] Part D — short button and action labels everywhere (D81); the live texts brought level with the code (INC-488)
+- [x] Part E — PW-147 and PW-130 wait for the name list built from both names (INC-487)
+- [ ] Part F — docs and final report
+
 ### After bundle 7, in this order
 
 What bundle 7 added to the order, item by item with its place: docs/governance/handoffs/2026-10-07-order-of-work-additions.md.
 
-1. The next bundle (not specced; explained to the operator part by part first) — the privileges migration (INC-480, INC-482; the "Extension in Public" line of the platform's linter read in the same census); INC-477's census; the sign-up and reset forms say that a refused password appeared in a known leak; short button and action labels everywhere (D81); INC-487 if the nightly of 2026-10-08 repeats it
+1. Bundle 8 — the security and wording round (its block above)
 2. Stage 1 — the rules: the legal section (Terms, Privacy, the publishing statement as numbered versions; the 18+ tick; the seller's certification), the banned-items and safety pages, the screening-promise wording
 3. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449; INC-487 if it is contention), the CI report's gaps (INC-419, INC-429), INC-398, INC-420, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), CI run time, what bundle 7 named and did not build (the definition editor's holders count, a pointer move against the parent-first guard, the parent-first refusal in the import preview, one unit case of the reset function), the four-lens review of the posting era
 4. Stage 2 — automatic screening from the first ad, in two layers (DEC-145), with translation of every ad's free text at posting and its own switch (DEC-149): the screening gateway, duplicates, the exceptions page, posting limits and AI switches, Admin › Services (DEC-091), admin numbers
