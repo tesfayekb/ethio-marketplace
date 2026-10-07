@@ -2138,6 +2138,10 @@ export type Database = {
         Args: { p_lang: string }
         Returns: Json
       }
+      admin_attribute_holders: {
+        Args: { p_attribute_id: string; p_link_id?: string; p_value?: string }
+        Returns: number
+      }
       admin_attribute_option_coverage: {
         Args: never
         Returns: {
@@ -2415,6 +2419,7 @@ export type Database = {
         Args: { p_category_id: string }
         Returns: {
           display_order: number
+          is_primary: boolean
           parent_id: string
           parent_name_en: string
           parent_slug: string
@@ -2977,6 +2982,7 @@ export type Database = {
         Returns: boolean
       }
       attr_export_payload: { Args: { p_scope_slug: string }; Returns: Json }
+      attr_import_holders: { Args: { p_plan: Json }; Returns: Json }
       attr_import_plan: {
         Args: { p_definitions: Json; p_links: Json; p_scope: string }
         Returns: Json
@@ -3032,6 +3038,10 @@ export type Database = {
         Returns: boolean
       }
       attr_visible_when_ok: { Args: { p_vw: Json }; Returns: boolean }
+      attribute_holders: {
+        Args: { p_attribute_id: string; p_link_id?: string; p_value?: string }
+        Returns: number
+      }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
         Returns: {
@@ -3090,6 +3100,10 @@ export type Database = {
       catalog_find_refresh: { Args: { p_force: boolean }; Returns: number }
       catalog_find_sweep: { Args: never; Returns: number }
       catalog_find_version: { Args: never; Returns: string }
+      catalog_order_violations: {
+        Args: { p_category_ids: string[] }
+        Returns: Json
+      }
       catalog_search: {
         Args: {
           lang: string
@@ -3458,6 +3472,7 @@ export type Database = {
         Returns: Json
       }
       save_seller_place: { Args: { p_listing_id: string }; Returns: Json }
+      security_lints: { Args: never; Returns: Json }
       seller_name_sweep: { Args: never; Returns: number }
       seller_plan: { Args: { p_user_id: string }; Returns: string }
       set_cover_photo: {
