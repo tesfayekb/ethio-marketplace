@@ -3,7 +3,12 @@ import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
+  bearerOf,
+  completeDraft,
+  postRoute,
+  seedSpecSet,
   leaseSeller,
   attributesOf,
   destroyListingsOf,
@@ -30,14 +35,21 @@ test.describe("POSTING WIZARD — WRITE-IN DETAILS", () => {
   const sellers: string[] = [];
   const specs: string[] = [];
   const objects: { userId: string; listingId: string }[] = [];
+  const places: string[] = [];
 
   test.afterEach(async ({ page }) => {
     await stopPageBeforePurge(page);
     for (const ref of objects.splice(0)) await purgeListingObjects(ref.userId, ref.listingId);
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
+    for (const sellerId of placeSellers.splice(0)) {
+      const gone = await adminClient().from("seller_places").delete().eq("user_id", sellerId);
+      if (gone.error) throw new Error(`seller_places cleanup ${sellerId}: ${gone.error.message}`);
+    }
+    for (const slug of places.splice(0)) await destroyLocation(slug);
     await destroySpecSet(specs.splice(0));
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
   });
+  const placeSellers: string[] = [];
 
   async function asEdge(page: Page) {
     for (const glob of ["**/api/listings/**", "**/api/geo"]) {
@@ -219,5 +231,79 @@ test.describe("POSTING WIZARD — WRITE-IN DETAILS", () => {
       page.getByTestId("post-title"),
       "PW-170: the title does not lead with the seller's name",
     ).toHaveValue("Carved stool Oak", { timeout: 20_000 });
+  });
+
+  test("PW-172 a held answer whose option is switched off prints its label, never offered (INC-466)", async ({
+    page,
+  }) => {
+    const user = await leaseSeller({ named: true });
+    sellers.push(user.id);
+    placeSellers.push(user.id);
+    await destroyListingsOf(user.id);
+    await asEdge(page);
+    await signInViaSession(page, user.email, user.password);
+    await gotoReady(page, "/");
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const set = await seedSpecSet(category.id);
+    specs.push(set.text.attrKey, set.number.attrKey, set.bool.attrKey);
+    specs.push(set.select.attrKey, set.multi.attrKey);
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    const [held, kept] = set.optionValues as [string, string];
+    const saved = await postRoute(
+      page,
+      "/api/listings/draft",
+      {
+        ...completeDraft({
+          categoryId: category.id,
+          cityId: chain.city.id,
+          title: "e2e retired label",
+          step: 7,
+        }),
+        attributes: { [set.text.attrKey]: "e2e held text", [set.select.attrKey]: held },
+      },
+      { token: await bearerOf(page), country: "ET" },
+    );
+    expect(saved.payload["ok"], JSON.stringify(saved.payload)).toBe(true);
+    const listingId = String(saved.payload["listing_id"]);
+    objects.push({ userId: user.id, listingId });
+    const off = await adminClient()
+      .from("attributes")
+      .update({
+        options: [
+          { value: held, label_en: `${held} label`, label_am: `${held} ምልክት`, active: false },
+          { value: kept, label_en: `${kept} label`, label_am: `${kept} ምልክት`, active: true },
+        ],
+      })
+      .eq("id", set.select.id);
+    expect(off.error).toBeNull();
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    const label = `${held} label`;
+    await expect(
+      page.locator('[data-testid="post-review-section"][data-step="3"]'),
+      "PW-172: Review prints the stored value",
+    ).toContainText(label, { timeout: 20_000 });
+    await page.getByTestId("post-preview-open").click();
+    await expect(
+      page.locator(`[data-testid="listing-detail-spec"][data-key="${set.select.attrKey}"]`),
+      "PW-172: the preview prints the stored value",
+    ).toHaveText(label);
+    await page.getByTestId("post-preview-close").click();
+    await page.locator('[data-testid="post-review-edit"][data-step="3"]').click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    const picker = control(page, set.select.attrKey);
+    await picker.focus();
+    await expect(picker).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+    await expect(
+      picker.locator("option:checked"),
+      "PW-172: the picker's current choice is not the label",
+    ).toHaveText(label);
+    await expect(
+      picker.locator(`option[value="${held}"]:not([disabled])`),
+      "PW-172: the switched-off option is offered",
+    ).toHaveCount(0);
   });
 });

@@ -6,7 +6,7 @@ import { useCatalogScope } from "./catalog-scope";
 import { CatalogWords } from "./catalog-words";
 
 import { resolveBound, settledRanges, yearLabel } from "./attribute-display";
-import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
+import { findHeldOption, loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
 import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches";
 import { Field, controlClass } from "./field";
 import { readPostingSchemaAnswer, type AttrDef, type PostingSchema } from "./posting-service";
@@ -1492,6 +1492,17 @@ export function StepSpecifications({
                 }}
               >
                 <option value="">{t("post.specs.choose")}</option>
+                {(() => {
+                  // INC-466 — a held answer whose option was switched off is drawn
+                  // as the current choice by its words; disabled, so never offered.
+                  if (chosen === "" || shown.some((option) => option.value === chosen)) return null;
+                  const kept = findHeldOption(chosen, [], def.attributeId);
+                  return kept === undefined ? null : (
+                    <option value={chosen} disabled data-retired="1">
+                      {optionLabel(kept, entities.lang, catalogScope)}
+                    </option>
+                  );
+                })()}
                 {shown.map((option) => (
                   <option key={option.value} value={option.value}>
                     {optionLabel(option, entities.lang, catalogScope)}
