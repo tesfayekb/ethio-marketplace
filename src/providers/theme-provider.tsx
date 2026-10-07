@@ -13,9 +13,7 @@ export const THEME_STORAGE_KEY = "ethio.theme";
  * It is deliberately tiny and dependency-free: read the stored choice, fall
  * back to prefers-color-scheme, write the attribute + class. Nothing else.
  */
-export const THEME_INIT_SCRIPT = `(function(){try{var k=${JSON.stringify(
-  THEME_STORAGE_KEY,
-)};var m=window.localStorage.getItem(k);if(m!=="light"&&m!=="dark"){m=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}var d=document.documentElement;d.setAttribute("data-mode",m);d.classList.toggle("dark",m==="dark");}catch(e){}})();`;
+export const THEME_INIT_SCRIPT = `(function(){try{var k="ethio.theme";var m=window.localStorage.getItem(k);if(m!=="light"&&m!=="dark"){m=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}var d=document.documentElement;d.setAttribute("data-mode",m);d.classList.toggle("dark",m==="dark");}catch(e){}})();`;
 
 type ThemeValue = {
   /** null until the client has read the DOM — SSR renders no mode-dependent markup. */

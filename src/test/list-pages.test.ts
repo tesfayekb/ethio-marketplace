@@ -210,4 +210,35 @@ describe("list readers join every page (INC-459)", () => {
     expect(calls.count).toBe(3);
     expect(out.map((row) => row.categoryId)).toEqual(["c2", "c5", "c3", "c1", "c4"]);
   });
+  it("names are ordered by the one collator pinned to en, not by code point (H5)", async () => {
+    rows.key = "link_id";
+    rows.current = [
+      {
+        link_id: "1",
+        attribute_id: "x",
+        category_id: "z",
+        category_slug: "s",
+        category_name_en: "Zebra",
+        is_active: true,
+      },
+      {
+        link_id: "2",
+        attribute_id: "x",
+        category_id: "e2",
+        category_slug: "s",
+        category_name_en: "école",
+        is_active: true,
+      },
+      {
+        link_id: "3",
+        attribute_id: "x",
+        category_id: "e1",
+        category_slug: "s",
+        category_name_en: "Ecole",
+        is_active: true,
+      },
+    ];
+    const out = await listAttributeCategoriesPaged(2);
+    expect(out.map((row) => row.categoryId)).toEqual(["e1", "e2", "z"]);
+  });
 });

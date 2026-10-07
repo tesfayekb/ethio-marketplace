@@ -43,6 +43,8 @@ export const CONTACT_SCAN_MAX = 4000;
 
 export function looksLikeContact(text: string | null | undefined): boolean {
   const value = (text ?? "").slice(0, CONTACT_SCAN_MAX);
+  // Reviewed (DEC-153): the scanned text is bounded by CONTACT_SCAN_MAX (INC-448).
+  // nosemgrep: detect-redos
   if (EMAIL.test(value) || LINK.test(value)) return true; // R6
   for (const run of value.match(RUN) ?? []) {
     if (runMatches(run)) return true;

@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 
 import { CHANNEL_LABELS, savedChannels } from "./saved-channels";
+import { ownValue } from "@/lib/own-key";
 
 type Profile = {
   seller_alias: string | null;
@@ -205,7 +206,7 @@ export function AccountOverview() {
                 {Object.entries(state.counts).map(([status, count]) => (
                   <div key={status}>
                     <dt className="text-xs text-muted-foreground">
-                      {t(STATUS_KEYS[status] ?? "account.overview.status.draft")}
+                      {t(ownValue(STATUS_KEYS, status) ?? "account.overview.status.draft")}
                     </dt>
                     <dd className="text-lg font-semibold text-foreground">{count}</dd>
                   </div>

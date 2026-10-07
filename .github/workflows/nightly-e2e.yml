@@ -7,13 +7,18 @@ on:
     - cron: "0 6 * * *"
   workflow_dispatch:
 
+# DEC-153 (a) — read-only by default; only the job that publishes the
+# nightly's evidence to ci-evidence holds write.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   nightly-e2e:
     name: Nightly E2E (Playwright, real time, ethio-staging)
     runs-on: ubuntu-24.04
+    # DEC-153 (a) — publish-evidence.sh pushes the heartbeat and failure evidence.
+    permissions:
+      contents: write
     env:
       # INC-018 (recurrence, 2026-08-04): this block MUST mirror ci.yml's e2e job
       # exactly. It previously pinned the sink flag to "1" while ci.yml read it

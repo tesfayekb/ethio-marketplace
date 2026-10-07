@@ -29,6 +29,7 @@ import { draftRefusalKey, fieldAwareRefusal, fill, refusalFor } from "./refusal-
 import { PRICE_MODES, PRICE_PERIODS, type CategoryFacts, type Refusal } from "./types";
 import { formatCommission, percentToBp, priceShapeFor } from "./price-basis";
 import { checkNumber, checkPriceBasis, mergeRefusals } from "./validate";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * U6-C2a / U6-C1-R1 — STEP 5: WHAT IT COSTS (DEC-067, D13).
@@ -424,7 +425,7 @@ export function StepPricing({
                 )
               }
             >
-              {t(MODE_KEYS[mode] ?? "post.price.modeLabel")}
+              {t(ownValue(MODE_KEYS, mode) ?? "post.price.modeLabel")}
             </button>
           ))}
         </div>
@@ -670,7 +671,7 @@ export function StepPricing({
           >
             {PRICE_PERIODS.map((period) => (
               <option key={period} value={period}>
-                {t(PERIOD_KEYS[period] ?? "post.price.period.once")}
+                {t(ownValue(PERIOD_KEYS, period) ?? "post.price.period.once")}
               </option>
             ))}
           </select>
@@ -698,7 +699,7 @@ export function StepPricing({
         >
           {fill(t("post.price.periodFixed"), {
             period: t(
-              PERIOD_KEYS[values.pricePeriod ?? facts?.defaultPricePeriod ?? "once"] ??
+              ownValue(PERIOD_KEYS, values.pricePeriod ?? facts?.defaultPricePeriod ?? "once") ??
                 "post.price.period.once",
             ),
           })}

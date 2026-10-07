@@ -18,6 +18,8 @@
  * option list cannot become a tray of empty circles.
  */
 
+import { ownValue } from "@/lib/own-key";
+
 export type ColourSwatch =
   | { kind: "solid"; ink: string }
   | { kind: "duo"; inks: [string, string] }
@@ -72,7 +74,7 @@ function stems(value: string): string[] {
 /** The visual swatch one catalogue value stands for, or `null` for no swatch. */
 export function colourSwatch(value: string): ColourSwatch | null {
   for (const stem of stems(value)) {
-    const ink = COLOUR_INK[stem];
+    const ink = ownValue(COLOUR_INK, stem);
     if (ink !== undefined) return { kind: "solid", ink };
     if (PATTERNED.has(stem)) return { kind: "pattern", pattern: stem };
   }

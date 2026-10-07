@@ -33,6 +33,7 @@ import { PreviewSheet } from "./preview/preview-sheet";
 import { SellerLine } from "./seller-line";
 import type { DraftValues } from "./use-draft";
 import type { DealLists, Refusal } from "./types";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * U6-C2b — STEP 8: REVIEW & PUBLISH (spec §4 B2 step 8).
@@ -601,7 +602,7 @@ export function StepReview({
       )}
 
       {refusals.map((refusal) => {
-        const step = FIELD_STEPS[refusal.field] ?? null;
+        const step = ownValue(FIELD_STEPS, refusal.field) ?? null;
         return (
           <div key={`${refusal.field}:${refusal.reason}`} className="space-y-1">
             <p

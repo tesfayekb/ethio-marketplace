@@ -5,6 +5,7 @@ import type { MessageKey } from "@/i18n";
 
 import { draftRefusalKey, fill } from "./refusal-text";
 import { STEPS, type Refusal } from "./types";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * U6-C1-R1 — THE REQUIRED-FIELD PRIMITIVE (B3: one shape, every step).
@@ -105,7 +106,7 @@ export function stepOfField(
   if (specFields.includes(field)) return 3;
   // DEC-109 — a detail drawn on the price page belongs to step 4.
   if (priceFields.includes(field)) return 4;
-  return FIELD_STEPS[field] ?? null;
+  return ownValue(FIELD_STEPS, field) ?? null;
 }
 
 export const fieldControlClass =
@@ -293,9 +294,9 @@ export function summaryLabel(
   t: (key: MessageKey) => string,
   fieldNames: Readonly<Record<string, string>> = {},
 ): string {
-  const key = FIELD_LABEL_KEYS[field];
+  const key = ownValue(FIELD_LABEL_KEYS, field);
   if (key !== undefined) return t(key);
-  const name = fieldNames[field];
+  const name = ownValue(fieldNames, field);
   return name === undefined || name === "" ? field : name;
 }
 
