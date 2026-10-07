@@ -297,13 +297,15 @@ export async function readDraft(
   if (photoError) throw new Error(photoError.message);
 
   // The coverage rows are the seller's own (`listing_locations` is scoped by the
-  // listing's owner), read in the order the door wrote them: the FIRST row is the
-  // item's own place.
+  // listing's owner), read by the door's own `position` (M10), then created_at,
+  // then id: the FIRST row is the item's own place — position 1, by the column.
   const { data: places, error: placeError } = await supabase
     .from("listing_locations")
     .select("location_id,created_at")
     .eq("listing_id", listingId)
-    .order("created_at", { ascending: true });
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
   if (placeError) throw new Error(placeError.message);
 
   return {
@@ -424,7 +426,9 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
       .from("listing_locations")
       .select("location_id,created_at,locations(country_code)")
       .eq("listing_id", last.id)
-      .order("created_at", { ascending: true });
+      .order("position", { ascending: true })
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true });
     if (rowError) return null;
     const countryOf = (row: { locations: unknown }) => {
       const place = row.locations as { country_code?: unknown } | null;

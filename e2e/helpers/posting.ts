@@ -1513,7 +1513,9 @@ export async function coverageOf(listingId: string): Promise<{
     .from("listing_locations")
     .select("location_id,created_at")
     .eq("listing_id", listingId)
-    .order("created_at", { ascending: true });
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
   if (rows.error) throw new Error(`[e2e:c2a] reading the coverage failed: ${rows.error.message}`);
   const listing = await supabase
     .from("listings")
