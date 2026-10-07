@@ -11,6 +11,7 @@ import {
   moveCategoryPointer,
   reactivateCategory,
   removeCategoryPointer,
+  setPrimaryPointer,
   reorderCategories,
   retireCategory,
   setCategoryWindow,
@@ -111,6 +112,14 @@ export function useRemoveCategoryPointer() {
   const invalidate = useInvalidateCategories();
   return useMutation({
     mutationFn: (pointerId: string) => removeCategoryPointer(pointerId),
+    onSettled: invalidate,
+  });
+}
+
+export function useSetPrimaryPointer() {
+  const invalidate = useInvalidateCategories();
+  return useMutation({
+    mutationFn: (pointerId: string) => setPrimaryPointer(pointerId),
     onSettled: invalidate,
   });
 }

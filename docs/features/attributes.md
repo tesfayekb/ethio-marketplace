@@ -999,3 +999,11 @@ Extending the export route rides a named follow-up turn.
 ## Retired labels (Bundle 7 D1)
 
 `/api/attributes/:id/options` returns `retired` options beside the offered list (cache tag `attr-options-2-<stamp>`), so a held answer whose option was switched off prints its label. Holders counts, the merge refusal and the order rule land with M11 (Part E).
+
+## Bundle 7 Part E — holders and the order rule (M11)
+
+- **Holders.** `admin_attribute_holders(attribute, link?, value?)` counts the listings that hold an answer. "Remove from a category" reads it for the chosen link before the confirm (button disabled until known; a failed read shows the error line); a count above zero shows one line, zero shows none. Removal is never blocked — the seller is never blocked.
+- **Merge.** `admin_merge_attributes` refuses while any source definition is held (`mergeHasHolders:<count>`); with no holder it merges as before.
+- **Import preview.** The preview answers `holders` (an unlinked held question, a removed held answer value); the dialog lists each with its row and count. Confirm is not blocked by it.
+- **Order rule (E3).** A child is never asked before its parent. Five clauses make an edge: `depends_on`; an option's `facts`, `bounds` and `allowed` keys; `visible_when.key`; `visible_when.and.key`. The order is the posting order: details step first, then the price-page groups (basis, size, quantity, terms), inside each `display_order` then key. A deferred trigger judges the end state of each transaction a signed-in caller writes, raising `parentAfterChild:<slug>: <parent> → <child>`; service writes with no caller are exempt. The console's order buttons, link editor and definition saves show it in words; the import preview does **not** judge it — the commit refuses the whole file (AT-77) and nothing is written.
+- One shared helper (`src/lib/refusal-tail.ts`) reads a refusal's tail after its first colon for both consoles and the import dialog.

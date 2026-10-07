@@ -1,0 +1,4 @@
+# DEC-151 — real-row proof guard allowlist. One line per statement:
+#   <file name> | <the statement head exactly as the guard prints it> | <reason>
+# Each allowlisted statement is skipped AND printed on every run.
+20261007033719_9f7deb8a-e850-4fc3-bfc0-9693f6994666.sql | UPDATE public.attributes SET depends_on = v_p WHERE id = v_c | the row is the proof's own scratch attribute: v_c is returned by the INSERT of the e2e-mig- key two statements above (M11 :509-510); read by the supervisor 2026-10-07

@@ -876,6 +876,19 @@ export const am: Messages = {
   "admin.categories.paths.remove": "መንገድ አስወግድ",
   "admin.categories.paths.primary": "ዋና",
   "admin.categories.paths.primaryTip": "በዝርዝሩና በዳሰሳ መስመሩ ውስጥ እንደ ወላጅ ይታያል።",
+  "admin.categories.paths.makePrimary": "ዋና አድርግ",
+  "admin.categories.error.delete_active": "ይህን ምድብ ከመሰረዝዎ በፊት ጡረታ ያውጡት።",
+  "admin.categories.error.delete_slug_mismatch": "slug አይዛመድም።",
+  "admin.categories.error.delete_has_listings": "በዚህ ምድብ ውስጥ {count} ዝርዝሮች አሉ። ከመሰረዝዎ በፊት ያዛውሯቸው።",
+  "admin.categories.error.delete_has_children":
+    "ከዚህ ምድብ ስር {count} ምድቦች አሉ። መጀመሪያ ያዛውሯቸው ወይም ይሰርዟቸው።",
+  "admin.attributes.remove.holders":
+    "እዚያ {count} ዝርዝሮች ለእሱ መልስ ይዘዋል። መልሱ መታየት ያቆማል፤ ማንም ሻጭ አይታገድም።",
+  "admin.attributes.error.mergeHasHolders":
+    "{count} ዝርዝሮች ለሚወገደው ባህሪ መልስ ይዘዋል። እነዚህ እስካሉ ድረስ ማዋሃድ አይቻልም።",
+  "admin.attributes.import.holders": "በ{count} ዝርዝሮች የተያዘ",
+  "admin.attributes.error.parentAfterChild":
+    "በ{detail} ቅደም ተከተሉ አልተፈቀደም፦ ሁለተኛው ባህሪ በመጀመሪያው ይመሠረታል፣ ግን ከእሱ በፊት ይጠየቃል። የመጀመሪያውን ከላይ ያድርጉት።",
   "admin.categories.paths.add": "ሌላ የአሰሳ መንገድ ጨምር",
   "admin.categories.paths.addSubmit": "መንገድ ጨምር",
   "admin.categories.action.pointer": "ጠቋሚ ጨምር",

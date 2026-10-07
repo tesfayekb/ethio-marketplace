@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { fillRefusal, splitRefusal } from "@/lib/refusal-tail";
 
 import { suggestCategoryIcon } from "./category-images-service";
 import {
@@ -32,6 +33,7 @@ import {
   useDeleteCategory,
   useMoveCategoryPointer,
   useRemoveCategoryPointer,
+  useSetPrimaryPointer,
   useReorderCategories,
   useRetireCategory,
   useSetCategoryWindow,
@@ -119,9 +121,15 @@ export function useSubmitError() {
       setMessage(abort === null ? null : t(abort));
       return;
     }
-    const raw = error instanceof Error ? error.message : "";
-    if (raw.startsWith("admin.categories.error.")) {
-      setMessage(t(raw as Parameters<typeof t>[0]));
+    // ES4 — a door's refusal is a plain error object, not an Error instance.
+    const raw =
+      typeof (error as { message?: unknown } | null)?.message === "string"
+        ? (error as { message: string }).message
+        : "";
+    const { key, tail } = splitRefusal(raw);
+    if (key.startsWith("admin.categories.error.")) {
+      // ES4 — the tail ({count}, {detail}) is read by the shared helper.
+      setMessage(fillRefusal(t(key as Parameters<typeof t>[0]), tail));
       return;
     }
     setMessage(raw === "" ? t("admin.categories.error.saveFailed") : raw);
@@ -812,6 +820,7 @@ export function CategoryPathsDialog({
   const pointers = useCategoryPointers(category.id);
   const movePointer = useMoveCategoryPointer();
   const removePointer = useRemoveCategoryPointer();
+  const setPrimary = useSetPrimaryPointer();
   const addPointer = useAddCategoryPointer();
   const { message, setMessage, fail } = useSubmitError();
   const [addParentId, setAddParentId] = useState("");
@@ -830,12 +839,11 @@ export function CategoryPathsDialog({
     });
   };
 
-  const busy = movePointer.isPending || removePointer.isPending || addPointer.isPending;
-
-  /** The PRIMARY path is the lowest-display_order edge (roster + breadcrumbs). */
-  const primaryPointerId =
-    [...(pointers.data ?? [])].sort((a, b) => a.displayOrder - b.displayOrder)[0]?.pointerId ??
-    null;
+  const busy =
+    movePointer.isPending ||
+    removePointer.isPending ||
+    addPointer.isPending ||
+    setPrimary.isPending;
 
   return (
     <CategoryModal
@@ -871,11 +879,10 @@ export function CategoryPathsDialog({
                   {pointer.parentNameEn ?? t("admin.categories.paths.root")}
                 </span>
                 {/*
-                  C2-GHOST PART C — the PRIMARY path. `admin_list_category_pointers`
-                  returns the edges in display_order, so the first card is the
-                  lowest-order edge: the one the roster and the breadcrumbs read.
+                  ES5 — the PRIMARY (home) path is the edge the door marks
+                  is_primary; the roster and the breadcrumbs read the same one.
                 */}
-                {pointer.pointerId === primaryPointerId ? (
+                {pointer.isPrimary ? (
                   <Badge
                     variant="secondary"
                     data-testid={`category-path-primary-${pointer.pointerId}`}
@@ -917,6 +924,18 @@ export function CategoryPathsDialog({
                 >
                   {t("admin.categories.paths.remove")}
                 </Button>
+                {pointer.isPrimary ? null : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="touch"
+                    data-testid={`category-path-make-primary-${pointer.pointerId}`}
+                    disabled={busy}
+                    onClick={() => run(() => setPrimary.mutateAsync(pointer.pointerId))}
+                  >
+                    {t("admin.categories.paths.makePrimary")}
+                  </Button>
+                )}
               </div>
             </li>
           ))}

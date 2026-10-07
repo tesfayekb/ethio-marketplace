@@ -443,6 +443,19 @@ export async function updateAttributeLink(input: {
   if (error) throw error;
 }
 
+/** ES1 — listings holding an answer to the attribute (through one link when given). */
+export async function readAttributeHolders(input: {
+  attributeId: string;
+  linkId: string | null;
+}): Promise<number> {
+  const { data, error } = await supabase.rpc("admin_attribute_holders", {
+    p_attribute_id: input.attributeId,
+    ...(input.linkId === null ? {} : { p_link_id: input.linkId }),
+  });
+  if (error) throw error;
+  return Number(data ?? 0);
+}
+
 export async function unlinkAttribute(linkId: string): Promise<void> {
   const { error } = await supabase.rpc("admin_unlink_attribute", { p_link_id: linkId });
   if (error) throw error;
