@@ -203,6 +203,62 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     }
   });
 
+  // Bundle 7 D5 (INC-479) — the door lets go ONCE: the save after a removal
+  // passes and the row stops holding the answer; the SAME body again is refused.
+  test("PR-40 a removed question or option is let go once, then the same body is refused", async ({
+    page,
+  }) => {
+    const { token, cat, specs } = await setup(page);
+    const heldText = { [specs.text.attrKey]: "held answer" };
+    const first = await save(page, token, body(cat.id, heldText));
+    expect(first["ok"], JSON.stringify(first)).toBe(true);
+    const id = String(first["listing_id"]);
+    const unlinked = await adminClient()
+      .from("category_attribute_links")
+      .delete()
+      .eq("category_id", cat.id)
+      .eq("attribute_id", specs.text.id);
+    expect(unlinked.error).toBeNull();
+    const released = await save(page, token, { ...body(cat.id, heldText), listingId: id });
+    expect(released["ok"], JSON.stringify(released)).toBe(true);
+    expect(await attrs(id)).not.toHaveProperty(specs.text.attrKey);
+    const before = await attrs(id);
+    const again = await save(page, token, { ...body(cat.id, heldText), listingId: id });
+    expect(again["ok"], JSON.stringify(again)).toBe(false);
+    expect(again["refusals"]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ attr_key: specs.text.attrKey, reason: "unknownAttribute" }),
+      ]),
+    );
+    expect(await attrs(id)).toEqual(before);
+
+    const removedValue = specs.optionValues[0];
+    const heldOption = { [specs.select.attrKey]: removedValue };
+    const optionSaved = await save(page, token, { ...body(cat.id, heldOption), listingId: id });
+    expect(optionSaved["ok"], JSON.stringify(optionSaved)).toBe(true);
+    const removed = await adminClient()
+      .from("attributes")
+      .update({ options: [{ value: specs.optionValues[1], label_en: "Kept", active: true }] })
+      .eq("id", specs.select.id);
+    expect(removed.error).toBeNull();
+    const optionReleased = await save(page, token, { ...body(cat.id, heldOption), listingId: id });
+    expect(optionReleased["ok"], JSON.stringify(optionReleased)).toBe(true);
+    expect(await attrs(id)).not.toHaveProperty(specs.select.attrKey);
+    const beforeOption = await attrs(id);
+    const optionAgain = await save(page, token, { ...body(cat.id, heldOption), listingId: id });
+    expect(optionAgain["ok"], JSON.stringify(optionAgain)).toBe(false);
+    expect(optionAgain["refusals"]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          attr_key: specs.select.attrKey,
+          reason: "unknownOption",
+          detail: removedValue,
+        }),
+      ]),
+    );
+    expect(await attrs(id)).toEqual(beforeOption);
+  });
+
   async function placeDraft(page: Page) {
     const identity = await seller(page);
     const cat = await category();

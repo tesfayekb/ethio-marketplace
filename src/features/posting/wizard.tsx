@@ -37,6 +37,7 @@ import {
   loadAttributeOptions,
   optionLabel,
   type AttrOption,
+  retiredAttributeOptions,
 } from "./attribute-options";
 import { answerOtherText } from "./answer-tokens";
 import { basisInForce, basisNoun, basisToken } from "./price-basis";
@@ -44,12 +45,14 @@ import {
   clearPin,
   readPlaceCountry,
   readPostingSchema,
+  readPostingSchemaAnswer,
   readSellerIdentity,
   type AttrDef,
   type PlanCaps,
   savePhotosSoon,
 } from "./posting-service";
 import { useDraft, type DraftValues } from "./use-draft";
+import { keepListedAnswers, type QuestionListRead } from "./catalog-held-answers";
 
 /** D59 — the fields a category change resets, and Undo restores. */
 type CategoryResetSnapshot = Pick<
@@ -327,6 +330,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
   /** INC-277 — the filter term lives beside the cursor so Back can clear it. */
   const [categoryTerm, setCategoryTerm] = useState("");
 
+  const [questionRead, setQuestionRead] = useState<QuestionListRead>({ state: "pending" });
   useEffect(() => {
     if (categoryId === null) {
       setFacts(null);
@@ -334,8 +338,15 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
       return;
     }
     let cancelled = false;
-    void readPostingSchema(categoryId).then((schema) => {
+    setQuestionRead({ state: "pending" });
+    void readPostingSchemaAnswer(categoryId).then(({ schema }) => {
       if (cancelled) return;
+      // D5 rule 1 — a failed read is NOT an empty list: it never drops an answer.
+      setQuestionRead(
+        schema === null
+          ? { state: "failed" }
+          : { state: "ok", categoryId, definitions: schema.attributes },
+      );
       setFacts(schema?.category ?? null);
       // D22 — the plan travels with the same document; the caps the wizard holds
       // are never read from a second place.
@@ -346,6 +357,43 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
       cancelled = true;
     };
   }, [categoryId]);
+
+  /**
+   * Bundle 7 D5 rule 1 (INC-479) — WHAT THE LIST NO LONGER HAS, THE FORM NO
+   * LONGER HOLDS. Only from the draft's OWN category's list read that succeeded;
+   * each choice question is judged against its options (offered and switched-off)
+   * from a read that succeeded, and a failed option read leaves that answer
+   * alone. The drop is an ordinary, non-immediate change: the next autosave
+   * stores it; no notice, no refusal.
+   */
+  const heldAttributes = draft.values.attributes;
+  const draftLoading = draft.loading;
+  const changeDraft = draft.change;
+  useEffect(() => {
+    if (draftLoading || questionRead.state !== "ok") return;
+    if (questionRead.categoryId !== categoryId) return;
+    const answers = heldAttributes;
+    if (Object.keys(answers).length === 0) return;
+    let cancelled = false;
+    void (async () => {
+      const optionsByKey: Record<string, string[] | null> = {};
+      for (const def of questionRead.definitions) {
+        if (def.attrType !== "single_select" && def.attrType !== "multi_select") continue;
+        if (answers[def.attrKey] === undefined) continue;
+        const offered = await loadAttributeOptions(def.attributeId);
+        optionsByKey[def.attrKey] =
+          offered === null
+            ? null
+            : [...offered, ...retiredAttributeOptions(def.attributeId)].map((o) => o.value);
+      }
+      if (cancelled) return;
+      const kept = keepListedAnswers({ answers, categoryId, read: questionRead, optionsByKey });
+      if (kept !== answers) changeDraft({ attributes: kept }, false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [draftLoading, questionRead, categoryId, heldAttributes, changeDraft]);
 
   /**
    * DEC-109 step 7 — THE BASIS IN FORCE, judged from the answers by the client
