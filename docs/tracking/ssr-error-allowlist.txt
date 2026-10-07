@@ -18,3 +18,4 @@ export_failed permission denied # AT-16 (admin-attributes.spec.ts — a categori
 preview_failed permission denied # AT-23 (admin-attributes.spec.ts), CT-22 (admin-categories-lifecycle.spec.ts — view-only operator refused the import)
 commit_failed step-up required # CT-23 (admin-categories-lifecycle.spec.ts — a commit without step-up is refused)
 strings emptyFile # IG-4 (import-security.spec.ts — an XLIFF file with no units is empty)
+commit_failed admin.attributes.error.parentAfterChild # AT-77 (admin-attributes-safety.spec.ts — an import whose end state asks a child first is refused at the commit)

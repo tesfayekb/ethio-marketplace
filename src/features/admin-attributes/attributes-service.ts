@@ -453,7 +453,12 @@ export async function readAttributeHolders(input: {
     ...(input.linkId === null ? {} : { p_link_id: input.linkId }),
   });
   if (error) throw error;
-  return Number(data ?? 0);
+  // Turn 7b item 4a — a null or non-numeric answer is a FAILED read, never zero.
+  const count = typeof data === "number" ? data : typeof data === "string" ? Number(data) : NaN;
+  if (data === null || data === undefined || !Number.isFinite(count)) {
+    throw new Error("admin_attribute_holders returned no count");
+  }
+  return count;
 }
 
 export async function unlinkAttribute(linkId: string): Promise<void> {

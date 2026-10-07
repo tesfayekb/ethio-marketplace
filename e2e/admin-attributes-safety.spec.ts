@@ -127,9 +127,16 @@ const LINK_HEADER =
   "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin," +
   "allowed_options,default_value,visible_when,display_order,action";
 
-async function attachLinks(page: Page, text: string) {
+async function attachLinks(page: Page, text: string, definitions?: string) {
   await page.getByTestId("attribute-import").click();
   await expect(page.getByTestId("attribute-import-dialog")).toBeVisible({ timeout: 20000 });
+  if (definitions !== undefined) {
+    await page.getByTestId("attribute-import-definitions").setInputFiles({
+      name: "definitions.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(definitions, "utf8"),
+    });
+  }
   await page.getByTestId("attribute-import-links").setInputFiles({
     name: "links.csv",
     mimeType: "text/csv",
@@ -183,6 +190,45 @@ test.describe("Bundle 7 attribute safety", () => {
       await stepUpIfPrompted(page, secret);
       await expect.poll(async () => (await readLinks(leaf.id)).length, { timeout: 20000 }).toBe(0);
     } finally {
+      await reap(fx);
+    }
+  });
+
+  test("AT-73b a failed holders read shows its error, keeps the confirm disabled and removes nothing", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
+    try {
+      const leaf = await seedLeaf();
+      fx.slug = leaf.slug;
+      fx.categoryId = leaf.id;
+      const held = attrKey("held");
+      fx.keys.push(held);
+      await seedLink(leaf.id, await seedSelect(held), 0);
+
+      // This one case only: the holders read is answered by an error.
+      await page.route("**/rest/v1/rpc/admin_attribute_holders*", (route) =>
+        route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ message: "e2e forced failure", code: "XX000" }),
+        }),
+      );
+      await openLibrary(page);
+      await page.getByTestId("attribute-search").fill(held);
+      await (await openAttributeMenu(page, held)).getByTestId(`attribute-remove-${held}`).click();
+      await expect(page.getByTestId("attribute-remove-confirm")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("attribute-dialog-error")).toHaveText(
+        en["admin.attributes.links.error"],
+        { timeout: 20000 },
+      );
+      await expect(page.getByTestId("attribute-remove-submit")).toBeDisabled();
+      await expect(page.getByTestId("attribute-remove-holders")).toHaveCount(0);
+      expect((await readLinks(leaf.id)).length, "AT-73b a link was removed").toBe(1);
+    } finally {
+      await page.unroute("**/rest/v1/rpc/admin_attribute_holders*");
       await reap(fx);
     }
   });
@@ -256,41 +302,22 @@ test.describe("Bundle 7 attribute safety", () => {
       const line = (key: string, order: number, verb: string) =>
         `${leaf.slug},${leaf.slug},${key},false,false,,${leaf.slug},,,,${order},${verb}`;
       const links = `${LINK_HEADER}\r\n${line(gone, 0, "unlink")}\r\n${line(kept, 1, "")}\r\n`;
-      await attachLinks(page, links);
-      const holders = page.getByTestId("import-holders");
-      await expect(holders).toContainText(gone, { timeout: 20000 });
-      await expect(holders).toContainText(
-        fill(en["admin.attributes.import.holders"], { count: 1 }),
-      );
-      await page.getByTestId("attribute-import-discard").click();
-
-      const { data: token } = await page.evaluate(async () => {
-        const client = (
-          window as unknown as {
-            __ethioSupabase: {
-              auth: {
-                getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
-              };
-            };
-          }
-        ).__ethioSupabase;
-        const { data } = await client.auth.getSession();
-        return { data: data.session?.access_token ?? "" };
-      });
-      // The removed answer is read through the same door the dialog posts to.
+      // Turn 7b item 3c — the removed answer is read ON THE SCREEN, in the same preview.
       const definitions =
         "attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant,direct_link_count\r\n" +
         `${kept},${kept},,single_select,"[{""value"":""a1"",""label_en"":""A1""}]",,,,,,,,,,,,\r\n`;
-      const response = await page.request.post("/api/admin/attributes/import", {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        data: { mode: "preview", definitions },
+      await attachLinks(page, links, definitions);
+      const holders = page.getByTestId("import-holders");
+      const count = fill(en["admin.attributes.import.holders"], { count: 1 });
+      const unlinkedRow = holders.locator("li").filter({ hasText: gone });
+      await expect(unlinkedRow, "AT-75 the unlinked question's row").toHaveCount(1, {
+        timeout: 20000,
       });
-      const payload = (await response.json()) as { holders?: Record<string, unknown>[] };
-      expect(response.status(), JSON.stringify(payload)).toBe(200);
-      const removed = (payload.holders ?? []).find(
-        (row) => row["key"] === kept && row["value"] === "a2",
-      );
-      expect(removed?.["count"], JSON.stringify(payload.holders)).toBe(1);
+      await expect(unlinkedRow).toContainText(count);
+      const removedRow = holders.locator("li").filter({ hasText: `${kept} · a2` });
+      await expect(removedRow, "AT-75 the removed answer's row").toHaveCount(1);
+      await expect(removedRow).toContainText(count);
+      await page.getByTestId("attribute-import-discard").click();
     } finally {
       await reap(fx);
     }
@@ -343,6 +370,64 @@ test.describe("Bundle 7 attribute safety", () => {
         parentId,
         childId,
       ]);
+    } finally {
+      await reap(fx);
+    }
+  });
+
+  test("AT-76 the link editor refuses a condition on the upper question naming the lower one, and accepts the reverse", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
+    const conditionOf = async (linkId: string) => {
+      const { data, error } = await adminClient()
+        .from("category_attribute_links")
+        .select("visible_when")
+        .eq("id", linkId)
+        .single();
+      if (error) throw new Error(`[e2e:at-76] ${error.message}`);
+      return (data?.visible_when ?? null) as unknown;
+    };
+    try {
+      const leaf = await seedLeaf();
+      fx.slug = leaf.slug;
+      fx.categoryId = leaf.id;
+      const upper = attrKey("up");
+      const lower = attrKey("low");
+      fx.keys.push(upper, lower);
+      const upperLink = await seedLink(leaf.id, await seedSelect(upper), 0);
+      const lowerLink = await seedLink(leaf.id, await seedSelect(lower), 1);
+
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, leaf.slug);
+      await openEditor(page, leaf.slug);
+      await action(page, leaf.slug, "attributes").click();
+      await expect(page.getByTestId("category-attributes-dialog")).toBeVisible({ timeout: 20000 });
+
+      // Refused: the upper question shown when the lower one is answered.
+      await page.getByTestId(`category-attribute-condition-key-${upper}`).selectOption(lower);
+      await page.getByTestId(`category-attribute-condition-${upper}-a1`).click();
+      await page.getByTestId(`category-attribute-save-condition-${upper}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect(page.getByTestId("attribute-dialog-error")).toHaveText(
+        fill(en["admin.attributes.error.parentAfterChild"], {
+          detail: `${leaf.slug}: ${lower} → ${upper}`,
+        }),
+        { timeout: 20000 },
+      );
+      expect(await conditionOf(upperLink), "AT-76 the refused condition was stored").toBeNull();
+
+      // Accepted: the lower question shown when the upper one is answered.
+      await page.getByTestId(`category-attribute-condition-key-${lower}`).selectOption(upper);
+      await page.getByTestId(`category-attribute-condition-${lower}-a1`).click();
+      await page.getByTestId(`category-attribute-save-condition-${lower}`).click();
+      await stepUpIfPrompted(page, secret);
+      await expect
+        .poll(() => conditionOf(lowerLink), { timeout: 20000 })
+        .toEqual({ key: upper, in: ["a1"] });
+      expect(await conditionOf(upperLink)).toBeNull();
     } finally {
       await reap(fx);
     }
