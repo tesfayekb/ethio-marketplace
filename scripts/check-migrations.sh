@@ -12,7 +12,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FIXTURE_DIR="$SCRIPT_DIR/fixtures"
 BAD_FIXTURE="$FIXTURE_DIR/bad-migration-example.sql"
-MIGRATIONS_DIR="supabase/migrations"
+MIGRATIONS_DIR="${MIGRATIONS_DIR:-supabase/migrations}"
 
 RLS_ALLOWLIST_FILE="${RLS_ALLOWLIST_FILE:-$SCRIPT_DIR/migration-guard-rls-allowlist.txt}"
 
@@ -45,10 +45,28 @@ rls_closer_ok() {
   return 0
 }
 
+strip_proof_scratch_tables() {
+  # DEC-151: prints the file with every DO $tag$ ... $tag$ block set aside in
+  # which CREATE TABLE and DROP TABLE occur equally often (at least once) and
+  # the scratch namespace e2e_mig_ occurs. Every other text is kept as is.
+  perl -0777 -pe '
+    s{\bDO\s+(\$\w*\$)(.*?)\1}{
+      my ($all, $b) = ($&, $2);
+      my $c = () = $b =~ /create\s+table/gi;
+      my $d = () = $b =~ /drop\s+table/gi;
+      ($c >= 1 && $c == $d && $b =~ /e2e_mig_/) ? "" : $all
+    }gse;
+  ' "$1"
+}
+
 check_file() {
   # Returns 0 = OK, 1 = violation. Prints reason on violation.
   local file="$1"
   if ! grep -qiE 'create[[:space:]]+table' "$file"; then
+    return 0
+  fi
+  if ! strip_proof_scratch_tables "$file" | grep -qiE 'create[[:space:]]+table'; then
+    echo "Scratch table in a proof block (created and dropped there): $(basename "$file")" >&2
     return 0
   fi
   local missing=()
@@ -117,6 +135,31 @@ if ! RLS_ALLOWLIST_FILE="$RLS_TEST_DIR/good.txt" RLS_CLOSER_DIR="$RLS_TEST_DIR" 
 fi
 rm -rf "$RLS_TEST_DIR"
 echo "Self-test OK: closer-cited exemption fails without the cited policy, passes with it."
+
+# Self-test (DEC-151): a proof block's scratch table is set aside only when it
+# is created AND dropped there and carries the e2e_mig_ namespace.
+SCR_DIR="$(mktemp -d)"
+SCR_BLOCK=$'DO $proof$\nDECLARE v_t text := \'e2e_mig_st_\' || 1;\nBEGIN\n  EXECUTE format(\'CREATE TABLE public.%I (id int)\', v_t);\n  EXECUTE format(\'DROP TABLE public.%I\', v_t);\nEND $proof$;'
+printf '%s\n' "$SCR_BLOCK" > "$SCR_DIR/pass.sql"
+printf '%s\n' "${SCR_BLOCK//$'  EXECUTE format(\'DROP TABLE public.%I\', v_t);\n'/}" > "$SCR_DIR/no-drop.sql"
+printf '%s\n' "${SCR_BLOCK//e2e_mig_st_/scratch_st_}" > "$SCR_DIR/no-namespace.sql"
+printf '%s\nCREATE TABLE public.self_test_top (id int);\n' "$SCR_BLOCK" > "$SCR_DIR/top-level.sql"
+if ! check_file "$SCR_DIR/pass.sql" >/dev/null 2>&1; then
+  echo "GUARD SELF-TEST FAILED: a proof block's created-and-dropped scratch table was flagged"
+  rm -rf "$SCR_DIR"; exit 1
+fi
+for bad in no-drop no-namespace top-level; do
+  if grep -q 'DROP TABLE' "$SCR_DIR/no-drop.sql" || check_file "$SCR_DIR/$bad.sql" >/dev/null 2>&1; then
+    echo "GUARD SELF-TEST FAILED: scratch-table case $bad was not flagged"
+    rm -rf "$SCR_DIR"; exit 1
+  fi
+done
+rm -rf "$SCR_DIR"
+if check_file "$BAD_FIXTURE" >/dev/null 2>&1; then
+  echo "GUARD SELF-TEST FAILED: bad fixture passed after the scratch-table rule"
+  exit 1
+fi
+echo "Self-test OK: a proof block's scratch table passes only when created, dropped and namespaced there (no drop, no namespace, top-level table all flagged)."
 
 # --- Real scan ---
 if [ ! -d "$MIGRATIONS_DIR" ]; then
@@ -527,11 +570,60 @@ real_row_offenders() {
   ' "$1"
 }
 
+REAL_ROW_ALLOWLIST_FILE="${REAL_ROW_ALLOWLIST_FILE:-$SCRIPT_DIR/migration-real-row-allowlist.txt}"
+
+real_row_split() {
+  # DEC-151. $1 = offender lines, $2 = allowlist. Refused lines go to stdout;
+  # allowlisted ones are printed to stderr as "<file> | <head> | <reason>".
+  local list="$2"
+  [ -f "$list" ] || list=/dev/null
+  printf '%s' "$1" | awk -v list="$list" '
+    BEGIN {
+      while ((getline l < list) > 0) {
+        if (l ~ /^[[:space:]]*#/ || l ~ /^[[:space:]]*$/) continue
+        n = split(l, f, "|"); if (n < 3) continue
+        for (i = 1; i <= 3; i++) gsub(/^[[:space:]]+|[[:space:]]+$/, "", f[i])
+        why[f[1] "\034" f[2]] = f[3]
+      }
+    }
+    NF == 0 { next }
+    {
+      i = index($0, ": "); path = substr($0, 1, i - 1); head = substr($0, i + 2)
+      base = path; sub(/.*\//, "", base)
+      k = base "\034" head
+      if (k in why) print "  - " base " | " head " | " why[k] > "/dev/stderr"
+      else print
+    }
+  '
+}
+
 if [ -z "$(real_row_offenders "$FIXTURE_DIR/bad-real-row-proof-example.sql")" ]; then
   echo "Real-row proof guard self-test FAILED: the bad fixture passed."
   exit 1
 fi
+RR_DIR="$(mktemp -d)"
+cat > "$RR_DIR/29990101000000_rrrr1111.sql" <<'SQL'
+DO $proof$
+DECLARE v uuid;
+BEGIN
+  v := gen_random_uuid();
+  UPDATE public.attributes SET depends_on = NULL WHERE id = v;
+  SELECT id INTO v FROM public.profiles LIMIT 1;
+END $proof$;
+SQL
+printf '%s\n' '29990101000000_rrrr1111.sql | UPDATE public.attributes SET depends_on = NULL WHERE id = v | self-test' > "$RR_DIR/allow.txt"
+rr_refused="$(real_row_split "$(real_row_offenders "$RR_DIR/29990101000000_rrrr1111.sql")" "$RR_DIR/allow.txt" 2>"$RR_DIR/skipped")"
+rr_fixture="$(real_row_split "$(real_row_offenders "$FIXTURE_DIR/bad-real-row-proof-example.sql")" "$RR_DIR/allow.txt" 2>/dev/null)"
+if ! grep -q 'UPDATE public.attributes' "$RR_DIR/skipped" \
+  || printf '%s' "$rr_refused" | grep -q 'UPDATE public.attributes' \
+  || ! printf '%s' "$rr_refused" | grep -q 'FROM public.profiles' \
+  || [ -z "$rr_fixture" ]; then
+  echo "Real-row proof guard self-test FAILED: the allowlist skipped the wrong statement."
+  rm -rf "$RR_DIR"; exit 1
+fi
+rm -rf "$RR_DIR"
 echo "Real-row proof guard self-test OK (the bad fixture is refused)."
+echo "Real-row proof guard self-test OK (an allowlisted statement is skipped and printed; the other statement of its file and the bad fixture are still refused)."
 
 real_row_found=""
 while IFS= read -r -d '' file; do
@@ -540,9 +632,15 @@ while IFS= read -r -d '' file; do
   if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$REAL_ROW_FLOOR" ]]; then
     continue
   fi
-  real_row_found+="$(real_row_offenders "$file")"
+  real_row_found+="$(real_row_offenders "$file")"$'\n'
 done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
 
+real_row_skipped="$(real_row_split "$real_row_found" "$REAL_ROW_ALLOWLIST_FILE" 2>&1 >/dev/null)"
+real_row_found="$(real_row_split "$real_row_found" "$REAL_ROW_ALLOWLIST_FILE" 2>/dev/null)"
+if [ -n "$real_row_skipped" ]; then
+  echo "Real-row proof guard: allowlisted statements (each cites its reason)"
+  printf '%s\n' "$real_row_skipped"
+fi
 if [ -n "$real_row_found" ]; then
   echo "Real-row proof guard FAILED: a proof reads a real row (use an e2e-mig- scratch row):"
   printf '%s\n' "$real_row_found"

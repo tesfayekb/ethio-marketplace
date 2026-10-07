@@ -67,6 +67,26 @@ Details: `docs/features/security-scanning.md`.
   namespace is refused. Self-test fixture:
   `scripts/fixtures/bad-real-row-proof-example.sql`.
 
+## Migration linter — proof scratch tables, real-row allowlist, drafts (DEC-151)
+
+- Table rule: a `DO $tag$ … $tag$` block in which CREATE TABLE and DROP TABLE
+  occur equally often (at least once) and the text `e2e_mig_` occurs is set
+  aside before the rule looks for CREATE TABLE. A file left with none passes
+  and the script prints `Scratch table in a proof block (created and dropped
+there): <file>`. Any other CREATE TABLE is judged as before. Self-tests: one
+  passing temporary file; three flagged (no DROP, no namespace, an extra
+  top-level table without RLS); the bad fixture stays flagged.
+- Real-row rule: `scripts/migration-real-row-allowlist.txt`, one line per
+  statement, `<file name> | <statement head as the guard prints it> |
+<reason>`. An allowlisted statement is skipped and printed under
+  `Real-row proof guard: allowlisted statements (each cites its reason)`.
+  Self-test: of two offending statements in one temporary file, the named one
+  is skipped and printed, the other is refused; the bad fixture is refused.
+- Drafts are checked before they are saved: the migration tool applies a file
+  the moment it is saved, so write the draft into a temporary folder under its
+  final name, run `MIGRATIONS_DIR=<that folder> bash scripts/check-migrations.sh`,
+  and save the file only when the check passes.
+
 ## browse-path-guard (added 2026-08-09, Phase R3)
 
 `scripts/check-browse-imports.sh` fails the build when anything outside the
@@ -927,3 +947,5 @@ fail for its own reason. The lint a turn runs before pushing is this same comman
 ## Bundle 7 note
 
 The listing-writes guard's second table (`listing_locations`) is covered by the coverage-write fixture of Part C.
+
+- Nightly database lints (DEC-148): see docs/features/nightly-e2e.md; the comparison is unit-tested in scripts/security-lints.test.ts.

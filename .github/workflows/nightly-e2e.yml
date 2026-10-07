@@ -216,6 +216,12 @@ jobs:
           bash scripts/publish-evidence.sh "chore(ci): nightly E2E heartbeat + failure evidence [skip ci]" \
             docs/tracking/nightly-status.md docs/tracking/nightly-last-failure.md
 
+      # Bundle 7 ES7 / DEC-148 — the database lints, counts only. Runs after the
+      # suites whatever they did; an ERROR-class count above its baseline fails.
+      - name: Database security lints (counts only, DEC-148)
+        if: always()
+        run: bun scripts/security-lints.ts
+
       # Re-assert the authoritative outcome captured above.
       - name: Report test outcome
         if: always()

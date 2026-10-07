@@ -13,6 +13,7 @@ import {
   mergeAttributes,
   setAttributeLinkOrder,
   setCardAttributes,
+  readAttributeHolders,
   unlinkAttribute,
   updateAttributeLink,
   upsertAttribute,
@@ -121,6 +122,18 @@ export function useUpdateAttributeLink() {
       clearCells?: LinkCellName[];
     }) => updateAttributeLink(input),
     onSettled: invalidate,
+  });
+}
+
+/** ES1 — never cached: the count is read fresh each time the dialog asks. */
+export function useAttributeHolders(attributeId: string, linkId: string | null) {
+  return useQuery({
+    queryKey: [...ADMIN_ATTRIBUTES_KEY, "holders", attributeId, linkId ?? "none"],
+    queryFn: () => readAttributeHolders({ attributeId, linkId }),
+    enabled: linkId !== null,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
   });
 }
 

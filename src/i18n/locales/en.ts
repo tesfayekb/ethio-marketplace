@@ -924,6 +924,20 @@ export const en = {
   "admin.categories.paths.remove": "Remove path",
   "admin.categories.paths.primary": "Primary",
   "admin.categories.paths.primaryTip": "Shown as the Parent in the roster and breadcrumbs.",
+  "admin.categories.paths.makePrimary": "Make primary",
+  "admin.categories.error.delete_active": "Retire this category before deleting it.",
+  "admin.categories.error.delete_slug_mismatch": "The slug does not match.",
+  "admin.categories.error.delete_has_listings":
+    "{count} listings are in this category. Move them before deleting it.",
+  "admin.categories.error.delete_has_children":
+    "{count} categories sit under this one. Move or delete them first.",
+  "admin.attributes.remove.holders":
+    "{count} listings there hold an answer to it. They will stop showing it; no seller is blocked.",
+  "admin.attributes.error.mergeHasHolders":
+    "{count} listings hold an answer to an attribute being merged away. Merging is refused while they do.",
+  "admin.attributes.import.holders": "Held by {count} listings",
+  "admin.attributes.error.parentAfterChild":
+    "Order refused in {detail}: the second attribute depends on the first and is asked before it. Put the first one above it.",
   "admin.categories.paths.add": "Add another browse path",
   "admin.categories.paths.addSubmit": "Add path",
   "admin.categories.action.pointer": "Add pointer",

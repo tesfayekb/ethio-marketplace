@@ -7,6 +7,7 @@ import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
+import { fillRefusal, splitRefusal } from "@/lib/refusal-tail";
 
 /**
  * THE IMPORT DIALOG SHELL (IE-2, generalised by CAT-IE).
@@ -54,7 +55,19 @@ export interface ImportRefusal {
 
 type Counts = Record<string, number>;
 
+/** ES3 — an unlinked link or a removed answer, with the listings that hold it. */
+export interface ImportHolder {
+  file: string;
+  row: number;
+  key: string;
+  slug?: string;
+  value?: string;
+  count: number;
+}
+
 interface Preview {
+  /** ES3 — sent by the attributes door only; the confirm is never blocked by it. */
+  holders?: ImportHolder[];
   counts: Counts;
   refusals: ImportRefusal[];
   /** IE-3 — edited read-only cells: reported, never applied. */
@@ -219,9 +232,13 @@ export function ImportDialog({
   const reasonOf = (payload: { message?: string; detail?: string }): string | null => {
     const message = (payload.message ?? "").trim();
     if (message === "") return null;
-    if (/^admin\.[a-z_-]+\.error\.[A-Za-z0-9_.-]+$/.test(message)) {
-      const translated = t(message as MessageKey) as string | undefined;
-      if (translated !== undefined && translated !== "") return translated;
+    // ES6 — a door key may carry a tail after its first colon ({count}, {detail}).
+    const { key: messageKey, tail } = splitRefusal(message);
+    if (/^admin\.[a-z_-]+\.error\.[A-Za-z0-9_.-]+$/.test(messageKey)) {
+      const translated = t(messageKey as MessageKey) as string | undefined;
+      if (translated !== undefined && translated !== "" && translated !== messageKey) {
+        return fillRefusal(translated, tail);
+      }
     }
     const detail = (payload.detail ?? "").trim();
     return detail === "" ? message : `${message} — ${detail}`;
@@ -494,6 +511,28 @@ export function ImportDialog({
               {reasonLabel(refusal)}
             </li>
           ))}
+        </ul>
+      ) : null}
+
+      {preview !== null && (preview.holders ?? []).some((holder) => holder.count > 0) ? (
+        <ul className="flex flex-col gap-1" data-testid="import-holders">
+          {(preview.holders ?? [])
+            .filter((holder) => holder.count > 0)
+            .map((holder) => (
+              <li
+                key={`${holder.file}-${holder.row}-${holder.key}-${holder.value ?? ""}`}
+                data-testid={`import-holders-${holder.row}`}
+                className="text-sm text-foreground"
+              >
+                {t(key("refusalRow")).replace("{row}", String(holder.row))}
+                {" — "}
+                {holder.value === undefined || holder.value === ""
+                  ? holder.key
+                  : `${holder.key} · ${holder.value}`}
+                {" — "}
+                {t(key("holders")).replace("{count}", String(holder.count))}
+              </li>
+            ))}
         </ul>
       ) : null}
 

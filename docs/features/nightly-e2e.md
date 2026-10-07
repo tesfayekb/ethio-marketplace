@@ -81,3 +81,7 @@ INC-088 runtime class so a runtime refusal is never read as an application break
 ## Bundle 7 note
 
 The nightly lints step lands with Part E (M11).
+
+## Database security lints step (Bundle 7 ES7, DEC-148)
+
+One step after the suites, `if: always()`: `bun scripts/security-lints.ts`. It never stops the suites; its failure turns the run red like any failed step. See docs/features/security-scanning.md for the rule.

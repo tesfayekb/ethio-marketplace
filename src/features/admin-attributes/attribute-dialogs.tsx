@@ -11,6 +11,7 @@ import type { CategoryNode } from "@/features/admin-categories/categories-servic
 import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { useI18n, type MessageKey } from "@/i18n";
+import { fillRefusal, splitRefusal } from "@/lib/refusal-tail";
 
 import {
   ATTRIBUTE_TYPES,
@@ -27,6 +28,7 @@ import {
   useDeleteAttribute,
   useLinkAttribute,
   useMergeAttributes,
+  useAttributeHolders,
   useUnlinkAttribute,
   useUpsertAttribute,
 } from "./use-attributes";
@@ -76,29 +78,14 @@ export function useAttributeError() {
       typeof (error as { message?: unknown }).message === "string"
         ? (error as { message: string }).message
         : "";
-    const [key, detail] = raw.split(":");
-    if (
-      key !== undefined &&
-      (key.startsWith("admin.attributes.error.") || key.startsWith("admin.categories.error."))
-    ) {
-      const text = t(key as MessageKey);
-      if (detail === undefined) {
-        setMessage(text);
-        return;
-      }
+    const { key, tail } = splitRefusal(raw);
+    if (key.startsWith("admin.attributes.error.") || key.startsWith("admin.categories.error.")) {
       /**
        * DEC-050 L3b — an option refusal names its parts with pipes
        * (`<attribute>|<target>`): the sentence names the TARGET, never a raw
-       * token pasted mid-line.
+       * token pasted mid-line. ES4 — the tail is read by the shared helper.
        */
-      const parts = detail.split("|");
-      setMessage(
-        text
-          .replace("{count}", detail)
-          .replace("{attr}", parts[0] ?? detail)
-          .replace("{target}", parts[parts.length - 1] ?? detail)
-          .replace("{detail}", detail),
-      );
+      setMessage(fillRefusal(t(key as MessageKey), tail));
       return;
     }
     setMessage(raw === "" ? t("admin.attributes.error.saveFailed") : raw);
@@ -890,6 +877,9 @@ export function RemoveAttributeCategoryDialog({
   const [linkId, setLinkId] = useState(links.length === 1 ? (links[0]?.linkId ?? "") : "");
 
   const chosen = links.find((row) => row.linkId === linkId) ?? null;
+  /** ES1 — listings that hold an answer through the chosen link; read before the confirm. */
+  const holders = useAttributeHolders(attribute.id, chosen?.linkId ?? null);
+  const holdersKnown = chosen !== null && holders.data !== undefined;
 
   const submit = () => {
     setMessage(null);
@@ -947,6 +937,14 @@ export function RemoveAttributeCategoryDialog({
                 .replace("{category}", chosen.nameEn)}
             </p>
           )}
+          {chosen !== null && (holders.data ?? 0) > 0 ? (
+            <p data-testid="attribute-remove-holders" className="text-sm text-foreground">
+              {t("admin.attributes.remove.holders").replace("{count}", String(holders.data))}
+            </p>
+          ) : null}
+          {chosen !== null && holders.error ? (
+            <AttributeErrorLine message={t("admin.attributes.links.error")} />
+          ) : null}
         </>
       )}
       <AttributeErrorLine message={message} />
@@ -954,7 +952,7 @@ export function RemoveAttributeCategoryDialog({
         <DialogActions
           onCancel={onClose}
           onSubmit={submit}
-          busy={unlink.isPending}
+          busy={unlink.isPending || (chosen !== null && !holdersKnown)}
           danger
           submitTestId="attribute-remove-submit"
           submitLabel={t("admin.attributes.action.remove")}

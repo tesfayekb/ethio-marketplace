@@ -565,3 +565,9 @@ console write the same columns through the same validation.
 ## Recent categories (Bundle 7 C4/D2)
 
 `my_recent_categories` returns the caller's own published, active leaves (count, latest date, then id). The category step shows the first two as chips. The delete door's fourth refusal and "Make primary" land with Part E.
+
+## Bundle 7 Part E — delete refusals and the home path (M11)
+
+- `admin_delete_category` has four refusals, each shown in words: `delete_active`, `delete_slug_mismatch`, `delete_has_listings:<count>`, and (new) `delete_has_children:<count>` while any pointer names the row as parent.
+- The pointer dialog draws the Primary badge on the edge the door marks `is_primary` (the home path, listed first), no longer the lowest order. Every other edge has "Make primary", which calls `admin_set_primary_pointer` through the same step-up guard as move/remove and refreshes the list (CT-39).
+- The admin's own client can no longer write `categories`, `category_tree_pointers`, `category_attributes`, `locations`, `resources`, `permissions`, `roles` or `role_permissions`; the doors are the only writers (CT-41).

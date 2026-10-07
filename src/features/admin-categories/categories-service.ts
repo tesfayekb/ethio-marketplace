@@ -180,6 +180,8 @@ export interface CategoryPointer {
   parentSlug: string | null;
   parentNameEn: string | null;
   displayOrder: number;
+  /** ES5 — the home path, as the door marks it. */
+  isPrimary: boolean;
 }
 
 /** C2b — every browse path this category appears on (parent NULL = a root). */
@@ -194,6 +196,7 @@ export async function listCategoryPointers(categoryId: string): Promise<Category
     parentSlug: row.parent_slug ?? null,
     parentNameEn: row.parent_name_en ?? null,
     displayOrder: Number(row.display_order ?? 0),
+    isPrimary: row.is_primary === true,
   }));
 }
 
@@ -205,6 +208,12 @@ export async function moveCategoryPointer(input: {
     p_pointer_id: input.pointerId,
     p_new_parent_id: input.newParentId as string,
   });
+  if (error) throw error;
+}
+
+/** ES5 — makes this edge the category's home path. */
+export async function setPrimaryPointer(pointerId: string): Promise<void> {
+  const { error } = await supabase.rpc("admin_set_primary_pointer", { p_pointer_id: pointerId });
   if (error) throw error;
 }
 

@@ -400,3 +400,9 @@ Local runs start only with `bun run e2e:local` (builds and serves with the stagi
 - `e2e/post-wizard-recent.spec.ts` (posting wizard): PW-171, the "used before" chips.
 - PW-172 (details), PW-173 (where), PW-174 (resets).
   Seeders' cleanup rule: rows that point at a scratch place or category are removed before it, in an afterEach that throws on failure.
+
+## Bundle 7 Part E specs
+
+- `e2e/admin-categories-home.spec.ts` (CT-38..CT-41, categories area): delete refusals, home path, door-only writes.
+- `e2e/admin-attributes-safety.spec.ts` (AT-73..AT-77, attributes area): holders, merge refusal, preview holders, order rule.
+  Both seed scratch rows through the service client before navigating and reap them in `finally` with destroys that throw.
