@@ -109,8 +109,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] One number formatter for specification values and settled ranges (INC-451)
 - [x] admin_delete_category refuses a row with children; the pointer dialog's Home badge and "Make home" (C4) — M11; CT-38, CT-39, CT-40 (e2e/admin-categories-home.spec.ts)
 - [x] The database security lints: public.security_lints() and the nightly step (DEC-132 layer B, B2 option ii) — M11; scripts/security-lints.ts + test; nightly step
-- [ ] Every list read against the data API's 1,000-row cap paged or shown bounded (INC-459; the census is in docs/governance/handoffs/2026-10-06-bundle6-running-record.md)
-- [ ] The seeders that leave scratch attribute definitions behind (INC-463, Y3d)
+- [x] Every list read against the data API's 1,000-row cap paged or shown bounded (INC-459; the census is in docs/governance/handoffs/2026-10-06-bundle6-running-record.md)
+- [x] The seeders that leave scratch attribute definitions behind (INC-463, Y3d)
 - [x] An answer later switched off prints its label, not its key (INC-466)
 - [x] The catalogue's Merge, delete and unlink look at the answers ads hold (INC-467; the executor's census of bundle 6 turn 10 is in the same running record) — M11; AT-73, AT-74, AT-75
 - [x] A built title leaves out a label that holds the {country} token
