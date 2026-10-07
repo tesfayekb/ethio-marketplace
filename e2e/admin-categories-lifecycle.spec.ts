@@ -1034,6 +1034,94 @@ test.describe("CAT-IE categories import/export", () => {
   });
 
   /**
+   * CT-42 (M12, INC-481) — THE UNDO'S ORDER. A batch's revision ids are random
+   * uuids, so an undo walking them by id meets a created parent before its
+   * created child one time in many; since M11 the delete door refuses a
+   * category that still has a child. Four rounds of a three-level created
+   * chain (with a guest link) must each undo whole.
+   */
+  test("CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in", async ({
+    page,
+  }) => {
+    test.setTimeout(480_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+
+    const aSlug = scratchSlug();
+    const bSlug = scratchSlug();
+    const made: string[] = [];
+    try {
+      const aId = await seedCategory(aSlug, null);
+      const bId = await seedCategory(bSlug, aId);
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+
+      for (let round = 1; round <= 4; round += 1) {
+        const xSlug = scratchSlug();
+        const cSlug = scratchSlug();
+        const gSlug = scratchSlug();
+        made.push(gSlug, cSlug, xSlug);
+        const bBefore = (await readPointers(bId)).map((pointer) => pointer.parent_id).sort();
+        const storedB = await readCategory(bSlug);
+        if (storedB === null) throw new Error(`[e2e:c2] ${bSlug} is not stored`);
+
+        const categories = file([
+          await storedRootLine(aSlug),
+          line({
+            category_slug: bSlug,
+            parent_slug: aSlug,
+            name_en: storedB.name_en,
+            display_order: String(storedB.display_order),
+          }),
+          line({ category_slug: xSlug, parent_slug: bSlug, name_en: xSlug, display_order: "0" }),
+          line({
+            category_slug: cSlug,
+            parent_slug: aSlug,
+            name_en: cSlug,
+            display_order: "1",
+            secondary_parents: xSlug,
+          }),
+          line({ category_slug: gSlug, parent_slug: cSlug, name_en: gSlug, display_order: "0" }),
+        ]);
+
+        const preview = await importPost(page, token, { mode: "preview", categories });
+        expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+        expect(preview.payload["refusals"], JSON.stringify(preview.payload)).toEqual([]);
+        const items = (preview.payload["items"] ?? []) as { slug: string; op: string }[];
+        const creates = items.filter((item) => item.op === "create").map((item) => item.slug);
+        expect(creates.sort(), `CT-42 round ${round} creates`).toEqual(
+          [xSlug, cSlug, gSlug].sort(),
+        );
+
+        const commit = await importPost(page, token, {
+          mode: "commit",
+          categories,
+          digest: preview.payload["digest"],
+        });
+        expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+        const batchId = commit.payload["batch_id"] as string;
+        expect(batchId).toBeTruthy();
+
+        const undo = await importPost(page, token, { mode: "undo", batchId });
+        expect(undo.status, `CT-42 round ${round} undo: ${JSON.stringify(undo.payload)}`).toBe(
+          200,
+        );
+        expect(await readCategory(xSlug), `CT-42 round ${round} left X`).toBeNull();
+        expect(await readCategory(cSlug), `CT-42 round ${round} left C`).toBeNull();
+        expect(await readCategory(gSlug), `CT-42 round ${round} left G`).toBeNull();
+        expect(await readCategory(aSlug), `CT-42 round ${round} removed a`).not.toBeNull();
+        expect(await readCategory(bSlug), `CT-42 round ${round} removed b`).not.toBeNull();
+        const bAfter = (await readPointers(bId)).map((pointer) => pointer.parent_id).sort();
+        expect(bAfter, `CT-42 round ${round} b's pointers`).toEqual(bBefore);
+      }
+    } finally {
+      for (const slug of made) await destroyCategory(slug);
+      await destroyCategory(bSlug);
+      await destroyCategory(aSlug);
+    }
+  });
+
+  /**
    * CT-37 (M8a A4/A5, INC-307) — AN UNDO RESTORES EVERY DEPENDENT ROW THE
    * DELETE REMOVED, OR SAYS WHICH IT CANNOT: the leaf's attribute links come
    * back cell for cell; a link whose attribute is gone is named as skipped.
