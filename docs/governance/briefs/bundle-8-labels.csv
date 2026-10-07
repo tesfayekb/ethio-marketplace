@@ -7,7 +7,7 @@ admin.attributes.action.merge,Merge,አዋህድ,1,button,src/features/admin-att
 admin.attributes.action.remove,Remove from category,ከምድብ አስወግድ,3,menu,src/features/admin-attributes/attributes-page.tsx,458,1,
 admin.attributes.assign.category,Category,ምድብ,1,button,src/features/admin-attributes/attribute-dialogs.tsx,824,1,
 admin.attributes.create.open,New attribute,አዲስ ባህሪ,2,button,src/features/admin-attributes/attributes-page.tsx,491,1,
-admin.attributes.delete.confirmLabel,Type {key} to confirm,ለማረጋገጥ {key} ይተይቡ,4,button,src/features/admin-attributes/attribute-dialogs.tsx,593,1,over3 bracket
+admin.attributes.delete.confirmLabel,Type {key} to confirm,ለማረጋገጥ {key} ይተይቡ,4,button,src/features/admin-attributes/attribute-dialogs.tsx,593,1,over3
 admin.attributes.dependsOn.previewLabel,Preview the cascade,ቅደም ተከተሉን ይመልከቱ,3,button,src/features/admin-attributes/attribute-dialogs.tsx,438,1,article
 admin.attributes.export.busy,Preparing the export…,ኤክስፖርቱ በመዘጋጀት ላይ…,3,button,src/features/admin-attributes/attributes-page.tsx,610,1,article
 admin.attributes.export.open,Export attributes,ባህርያትን ላክ,2,button,src/features/admin-attributes/attributes-page.tsx,611,1,
@@ -77,7 +77,7 @@ admin.categories.paths.add,Add another browse path,ሌላ የአሰሳ መንገ
 admin.categories.paths.makePrimary,Make primary,ዋና አድርግ,2,button,src/features/admin-categories/category-dialogs.tsx,936,1,
 admin.categories.paths.remove,Remove path,መንገድ አስወግድ,2,button,src/features/admin-categories/category-dialogs.tsx,925,1,
 admin.categories.pointer.parent,Additional parent,ተጨማሪ ወላጅ,2,button,src/features/admin-categories/category-dialogs.tsx,771,1,
-admin.categories.retire.reassignCount,Move {count} listings to,{count} ዝርዝሮችን ወደ አዛውር,4,button,src/features/admin-categories/category-dialogs.tsx,687,1,over3 bracket
+admin.categories.retire.reassignCount,Move {count} listings to,{count} ዝርዝሮችን ወደ አዛውር,4,button,src/features/admin-categories/category-dialogs.tsx,687,1,over3
 admin.categories.window.from,Visible from,የሚታይ ከ,2,button,src/features/admin-categories/category-dialogs.tsx,527,2,
 admin.categories.window.until,Visible until,የሚታይ እስከ,2,button,src/features/admin-categories/category-dialogs.tsx,536,2,
 admin.countries.action.edit,Edit,አርትዕ,1,aria,src/features/admin-countries/countries-page.tsx,209,1,
@@ -135,11 +135,11 @@ admin.translations.add.pick,Language,ቋንቋ,1,button,src/features/admin/trans
 admin.translations.add.rtl,Right-to-left script,ከቀኝ ወደ ግራ ጽሑፍ,2,button,src/features/admin/translations/languages-page.tsx,785,2,
 admin.translations.add.submit,Add language,ቋንቋ ጨምር,2,button,src/features/admin/translations/languages-page.tsx,700,1,
 admin.translations.ai.cancel,Cancel,ተወው,1,dialog,src/features/admin/translations/ai-bulk-bar.tsx,349,1,
-admin.translations.ai.confirmCta,Translate {count},{count} ተርጉም,2,dialog,src/features/admin/translations/ai-bulk-bar.tsx,357,1,bracket
+admin.translations.ai.confirmCta,Translate {count},{count} ተርጉም,2,dialog,src/features/admin/translations/ai-bulk-bar.tsx,357,1,
 admin.translations.ai.pending,Translating…,በመተርጎም ላይ…,1,button,src/features/admin/translations/ai-bulk-bar.tsx,290,3,
 admin.translations.ai.row,AI translate,በAI ተርጉም,2,button,src/features/admin/translations/data-scope.tsx,457,2,
 admin.translations.approve.cancel,Cancel,ሰርዝ,1,dialog,src/features/admin/translations/approve-bar.tsx,164,1,
-admin.translations.approve.confirmCta,Approve {count},{count} አጽድቅ,2,dialog,src/features/admin/translations/approve-bar.tsx,167,1,bracket
+admin.translations.approve.confirmCta,Approve {count},{count} አጽድቅ,2,dialog,src/features/admin/translations/approve-bar.tsx,167,1,
 admin.translations.collapse,Close,ዝጋ,1,button,src/features/admin/translations/data-scope.tsx,241,2,
 admin.translations.delete.action,Delete,ሰርዝ,1,button,src/features/admin/translations/delete-language-dialog.tsx,96,1,
 admin.translations.delete.cancel,Cancel,ተወው,1,dialog,src/features/admin/translations/delete-language-dialog.tsx,146,1,
@@ -157,7 +157,7 @@ admin.translations.history.open,History,ታሪክ,1,button,src/features/admin/tr
 admin.translations.history.restore,Restore this value,ይህን እሴት መልስ,3,button,src/features/admin/translations/history-drawer.tsx,231,1,
 admin.translations.order.down,Move {language} down,{language}ን ወደ ታች አንቀሳቅስ,3,aria,src/features/admin/translations/languages-page.tsx,273,1,
 admin.translations.order.up,Move {language} up,{language}ን ወደ ላይ አንቀሳቅስ,3,aria,src/features/admin/translations/languages-page.tsx,261,1,
-admin.translations.orphaned.chip,Orphaned · {count},ወላጅ አልባ · {count},3,button,src/features/admin/translations/strings-page.tsx,407,1,bracket
+admin.translations.orphaned.chip,Orphaned · {count},ወላጅ አልባ · {count},3,button,src/features/admin/translations/strings-page.tsx,407,1,
 admin.translations.pseudo.confirmAction,Generate,አመንጭ,1,dialog,src/features/admin/translations/pseudo-bar.tsx,114,1,
 admin.translations.pseudo.confirmCancel,Cancel,ተወው,1,dialog,src/features/admin/translations/pseudo-bar.tsx,107,1,
 admin.translations.pseudo.pending,Generating…,በማመንጨት ላይ…,1,button,src/features/admin/translations/pseudo-bar.tsx,89,1,
@@ -199,7 +199,7 @@ auth.continueWithGoogle,Continue with Google,በGoogle ይቀጥሉ,3,button,src
 auth.forgotPassword,Forgot your password?,የይለፍ ቃልዎን ረሱት?,3,button,src/routes/auth.tsx,574,1,
 auth.hidePassword,Hide password,የይለፍ ቃሉን ደብቅ,2,button,src/routes/auth.tsx,530,2,
 auth.resend,Resend confirmation email,የማረጋገጫ ኢሜይል እንደገና ላክ,3,button,src/routes/auth.tsx,554,1,
-auth.resendCooldown,Resend available in {s}s,እንደገና ለመላክ በ{s} ሰከንድ ውስጥ ይቻላል,4,button,src/routes/auth.tsx,374,2,over3 bracket
+auth.resendCooldown,Resend available in {s}s,እንደገና ለመላክ በ{s} ሰከንድ ውስጥ ይቻላል,4,button,src/routes/auth.tsx,374,2,over3
 auth.resetSend,Send reset link,የዳግም ማስጀመሪያ አገናኝ ላክ,3,button,src/routes/auth.tsx,375,1,
 auth.resetSubmit,Save new password,አዲሱን የይለፍ ቃል አስቀምጥ,3,button,src/routes/auth_.reset.tsx,182,1,
 auth.resetTitle,Reset your password,የይለፍ ቃልዎን ዳግም ያስጀምሩ,3,button,src/routes/auth_.reset.tsx,135,1,
@@ -246,7 +246,7 @@ post.category.change,Change,ቀይር,1,button,src/features/posting/wizard.tsx,8
 post.category.changedDismiss,Dismiss,ዝጋ,1,button,src/features/posting/wizard.tsx,940,1,
 post.category.folder,Open,ክፈት,1,button,src/features/posting/step-category.tsx,427,1,
 post.category.keepIt,Keep it,ይህንኑ ያቆዩ,2,button,src/features/posting/step-category.tsx,298,1,
-post.category.matchLine,{attribute}: {option},{attribute}፦ {option},2,button,src/features/posting/step-category.tsx,108,1,bracket
+post.category.matchLine,{attribute}: {option},{attribute}፦ {option},2,button,src/features/posting/step-category.tsx,108,1,
 post.details.descriptionLabel,Description,መግለጫ,1,button,src/features/posting/step-details.tsx,291,1,
 post.details.titleLabel,Title,አርዕስት,1,button,src/features/posting/step-details.tsx,252,1,
 post.details.videoLabel,YouTube link,የዩቲዩብ አገናኝ,2,button,src/features/posting/step-photos.tsx,452,1,
@@ -266,9 +266,9 @@ post.price.currencyLabel,Currency,ገንዘብ,1,button,src/features/posting/ste
 post.price.moreCurrencies,More currencies…,ተጨማሪ ገንዘቦች…,2,button,src/features/posting/step-pricing.tsx,540,1,
 post.price.periodLabel,Per,በ,1,button,src/features/posting/step-pricing.tsx,661,1,
 post.progress.label,Your progress,እድገትዎ,2,aria,src/features/posting/wizard.tsx,694,2,
-post.refusalSummary.elsewhere,Fix {step}: {label},{step} ያስተካክሉ፦ {label},3,button,src/features/posting/field.tsx,359,1,bracket
+post.refusalSummary.elsewhere,Fix {step}: {label},{step} ያስተካክሉ፦ {label},3,button,src/features/posting/field.tsx,359,1,
 post.review.edit,Edit,አስተካክል,1,button,src/features/posting/step-review.tsx,446,1,
-post.review.fixStep,Go to step {step},ወደ ደረጃ {step} ይሂዱ,4,button,src/features/posting/step-review.tsx,623,1,over3 bracket
+post.review.fixStep,Go to step {step},ወደ ደረጃ {step} ይሂዱ,4,button,src/features/posting/step-review.tsx,623,1,over3
 post.review.previewAsBuyer,Preview as buyers see it,ገዢዎች እንደሚያዩት ይመልከቱ,5,button,src/features/posting/step-review.tsx,486,1,over3
 post.review.publish,Publish,አውጣ,1,button,src/features/posting/step-review.tsx,658,1,
 post.review.publishing,Publishing…,በማውጣት ላይ…,1,button,src/features/posting/step-review.tsx,658,1,

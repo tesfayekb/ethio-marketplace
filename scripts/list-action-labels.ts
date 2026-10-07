@@ -7,9 +7,11 @@
  *    menu items, dialog action/cancel/close, tab triggers, toggles), a Link that
  *    carries buttonVariants, or an element whose attributes name a chip.
  * 2. Every t("key") between the control's opening tag and its closing tag is a
- *    label of that kind; a t("key") inside the opening tag's aria-label is `aria`.
+ *    label of that kind (a bracket flag is "(" or "[" — the {token} braces
+ *    are not words); a t("key") inside the opening tag's aria-label is `aria`.
  * 3. Labels handed down as props: a `{name}` rendered inside a control, where
- *    `name` is a prop of the file's component, makes `name` a label prop; every
+ *    `name` is a typed prop of the file's component whose name says it is
+ *    words (label, text, title, action, confirm, cancel …), makes `name` a label prop; every
  *    `name={t("key")}` passed anywhere in src/ is then a label of that kind.
  * Keys built at run time (t(variable)) are not listed; their count is printed.
  */
@@ -136,7 +138,7 @@ for (const path of files) {
     }
     for (const p of body.matchAll(/\{\s*(?:props\.)?([a-z][A-Za-z0-9]*)\s*\}/g)) {
       const name = p[1];
-      if (/^(children|t|i|index|key|value|label)$/.test(name) && name !== "label") continue;
+      if (!/label|text|title|cta|action|confirm|cancel|verb/i.test(name)) continue;
       if (new RegExp(`\\b${name}\\s*[?]?:\\s*(string|ReactNode|React\\.ReactNode|MessageKey)`).test(text)) {
         if (!labelProps.has(name)) labelProps.set(name, kind);
       }
@@ -173,7 +175,7 @@ for (const key of [...uses.keys()].sort()) {
   if (pressed) {
     if (words > 3) flags.push("over3");
     if (/\b(a|an|the)\b/i.test(enText)) flags.push("article");
-    if (/[()[\]{}]/.test(enText)) flags.push("bracket");
+    if (/[()[\]]/.test(enText)) flags.push("bracket");
   }
   for (const f of flags) flagCount[f]++;
   rows.push(
