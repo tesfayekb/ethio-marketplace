@@ -6,7 +6,12 @@ import { useCatalogScope } from "./catalog-scope";
 import { CatalogWords } from "./catalog-words";
 
 import { resolveBound, settledRanges, yearLabel } from "./attribute-display";
-import { findHeldOption, loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
+import {
+  findHeldOption,
+  loadAttributeOptions,
+  optionLabel,
+  type AttrOption,
+} from "./attribute-options";
 import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches";
 import { Field, controlClass } from "./field";
 import { readPostingSchemaAnswer, type AttrDef, type PostingSchema } from "./posting-service";

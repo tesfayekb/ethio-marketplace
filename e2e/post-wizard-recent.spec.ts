@@ -2,7 +2,12 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
-import { destroyListingsOf, destroyPostableCategory, leaseSeller, seedPostableCategory } from "./helpers/posting";
+import {
+  destroyListingsOf,
+  destroyPostableCategory,
+  leaseSeller,
+  seedPostableCategory,
+} from "./helpers/posting";
 
 /**
  * Bundle 7 D2 — TWO "USED BEFORE" CHIPS (PW-171). Scratch leaves and a leased
@@ -63,9 +68,9 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
     await expect(chips.nth(0), "PW-171: X is not first").toHaveAttribute("data-category", x.id);
     await expect(chips.nth(1)).toHaveAttribute("data-category", y.id);
     await chip(page, y.id).click();
-    await expect(page.getByTestId("post-step-3"), "PW-171: Y's details did not open").toBeVisible(
-      { timeout: 20_000 },
-    );
+    await expect(page.getByTestId("post-step-3"), "PW-171: Y's details did not open").toBeVisible({
+      timeout: 20_000,
+    });
     await page.getByTestId("post-back").click();
     await expect(page.getByTestId("post-step-1")).toBeVisible({ timeout: 20_000 });
     await expect(chip(page, y.id), "PW-171: Y's chip is not pressed").toHaveAttribute(
@@ -86,6 +91,9 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
     await expect(page.getByTestId("post-category-search")).toBeVisible({ timeout: 20_000 });
     // The reader has answered once the tree is drawn plus a settle; no row is drawn.
     await page.waitForTimeout(2_000);
-    await expect(page.getByTestId("post-category-recent-row"), "PW-171: drafts drew chips").toHaveCount(0);
+    await expect(
+      page.getByTestId("post-category-recent-row"),
+      "PW-171: drafts drew chips",
+    ).toHaveCount(0);
   });
 });

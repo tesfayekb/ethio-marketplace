@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 346,
+  "scanned": 347,
   "dynamicCallSites": 213,
   "keys": {
     "account.deactivatedBanner": [
@@ -3460,6 +3460,10 @@
       "/post/$listingId"
     ],
     "post.category.noHits": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.category.recentLabel": [
       "/post",
       "/post/$listingId"
     ],
