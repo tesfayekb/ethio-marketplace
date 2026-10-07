@@ -1837,7 +1837,7 @@ export const am: Messages = {
   "post.save.unsaved": "እስካሁን አልተቀመጠም — መሞከራችንን እንቀጥላለን።",
   "post.save.retrying": "እስካሁን አልተቀመጠም — እንደገና እየሞከርን…",
   "post.category.why": "ምድቡ ገዢዎች በየትኞቹ ዝርዝሮች መፈለግ እንደሚችሉ ይወስናል።",
-  "post.category.recentLabel": "ከዚህ በፊት የተጠቀሙበት፦",
+  "post.category.recentLabel": "ከዚህ በፊት የተጠቀሙባቸው፦",
   "post.category.searchLabel": "ምን ይሸጣሉ?",
   "post.category.searchPlaceholder": "ለምሳሌ ስልክ",
   "post.category.searchHint": "አንድ ቃል ይጻፉ፣ ወይም ከታች ያስሱ።",
