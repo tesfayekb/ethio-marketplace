@@ -187,6 +187,45 @@ test.describe("Bundle 7 attribute safety", () => {
     }
   });
 
+  test("AT-73b a failed holders read shows its error, keeps the confirm disabled and removes nothing", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
+    try {
+      const leaf = await seedLeaf();
+      fx.slug = leaf.slug;
+      fx.categoryId = leaf.id;
+      const held = attrKey("held");
+      fx.keys.push(held);
+      await seedLink(leaf.id, await seedSelect(held), 0);
+
+      // This one case only: the holders read is answered by an error.
+      await page.route("**/rest/v1/rpc/admin_attribute_holders*", (route) =>
+        route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ message: "e2e forced failure", code: "XX000" }),
+        }),
+      );
+      await openLibrary(page);
+      await page.getByTestId("attribute-search").fill(held);
+      await (await openAttributeMenu(page, held)).getByTestId(`attribute-remove-${held}`).click();
+      await expect(page.getByTestId("attribute-remove-confirm")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("attribute-dialog-error")).toHaveText(
+        en["admin.attributes.links.error"],
+        { timeout: 20000 },
+      );
+      await expect(page.getByTestId("attribute-remove-submit")).toBeDisabled();
+      await expect(page.getByTestId("attribute-remove-holders")).toHaveCount(0);
+      expect((await readLinks(leaf.id)).length, "AT-73b a link was removed").toBe(1);
+    } finally {
+      await page.unroute("**/rest/v1/rpc/admin_attribute_holders*");
+      await reap(fx);
+    }
+  });
+
   test("AT-74 a merge is refused while a listing holds a source's answer, and merges when none does", async ({
     page,
   }) => {
