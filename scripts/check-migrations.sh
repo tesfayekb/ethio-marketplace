@@ -350,6 +350,134 @@ echo "Self-test OK: allowlisted file skipped and printed:"
 printf '%s\n' "$allow_out"
 rm -rf "$ALLOW_TEST_DIR"
 
+# --- Born-closed law (bundle 8, Part A4): EVERY function closes itself ---
+# A migration at or after $FUNCTION_REVOKE_FLOOR that creates a function —
+# definer or caller's rights, trigger functions included — must contain, in the
+# SAME file, a REVOKE naming that function AND naming PUBLIC as a grantee
+# (a function is born executable through PUBLIC). The DEC-022-B allowlist
+# serves this rule as it serves the definer rule.
+FUNCTION_REVOKE_FLOOR="20261007143529"
+
+check_function_revoke_file() {
+  # Returns 0 = OK, 1 = violation. Prints reason on violation.
+  local file="$1"
+  local fns
+  fns=$(awk '
+    tolower($0) ~ /create[ \t]+(or[ \t]+replace[ \t]+)?function/ {
+      line = $0
+      if (match(line, /[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn][ \t]+[A-Za-z0-9_."]+/)) {
+        name = substr(line, RSTART, RLENGTH)
+        sub(/^[Ff][Uu][Nn][Cc][Tt][Ii][Oo][Nn][ \t]+/, "", name)
+        gsub(/"/, "", name)
+        sub(/^public\./, "", name)
+        print name
+      }
+    }
+  ' "$file" | sort -u)
+
+  [ -z "$fns" ] && return 0
+
+  local flat missing=() fn
+  flat=$(tr '\n' ' ' < "$file")
+  while IFS= read -r fn; do
+    [ -z "$fn" ] && continue
+    if ! printf '%s' "$flat" | grep -iE "revoke[^;]*\b${fn}\b[^;]*\bfrom\b[^;]*\bpublic\b([^.]|$)" >/dev/null 2>&1; then
+      missing+=("$fn")
+    fi
+  done <<< "$fns"
+
+  if [ ${#missing[@]} -gt 0 ]; then
+    echo "  - $file (function without an in-file REVOKE ... FROM PUBLIC: ${missing[*]})"
+    return 1
+  fi
+  return 0
+}
+
+scan_function_revoke_dir() {
+  # $1 = directory. Prints the allowlist block; returns 1 on violations.
+  local dir="$1"
+  local violations=0 offenders="" allowlisted=""
+  local file base stamp out entry
+  while IFS= read -r -d '' file; do
+    base="$(basename "$file")"
+    stamp="${base%%_*}"
+    if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$FUNCTION_REVOKE_FLOOR" ]]; then
+      continue
+    fi
+    entry="$(allowlist_entry "$base")"
+    if [ -n "$entry" ]; then
+      allowlisted+="  - $base ($entry)"$'\n'
+      continue
+    fi
+    if ! out=$(check_function_revoke_file "$file"); then
+      violations=$((violations + 1))
+      offenders+="$out"$'\n'
+    fi
+  done < <(find "$dir" -type f -name '*.sql' -print0)
+
+  if [ -n "$allowlisted" ]; then
+    echo "Born-closed guard: allowlisted files (each cites its closer)"
+    printf '%s' "$allowlisted"
+  fi
+  if [ "$violations" -gt 0 ]; then
+    echo "Born-closed guard FAILED: $violations file(s) create functions without an in-file REVOKE ... FROM PUBLIC:"
+    printf '%s' "$offenders"
+    return 1
+  fi
+  echo "Born-closed guard OK (floor $FUNCTION_REVOKE_FLOOR)."
+  return 0
+}
+
+# Self-test: a new caller's-rights function with no REVOKE must be flagged.
+FN_SAMPLE="$(mktemp)"
+cat > "$FN_SAMPLE" <<'SQL'
+CREATE OR REPLACE FUNCTION public.self_test_invoker(p_text text)
+RETURNS text LANGUAGE sql IMMUTABLE SET search_path = public AS $$
+  SELECT p_text;
+$$;
+SQL
+if fn_out=$(check_function_revoke_file "$FN_SAMPLE"); then
+  echo "GUARD SELF-TEST FAILED: function-without-revoke sample was not flagged"
+  rm -f "$FN_SAMPLE"
+  exit 1
+fi
+echo "Self-test OK: function-without-revoke sample correctly flagged:"
+printf '%s\n' "$fn_out"
+
+# Self-test: a REVOKE that names the function but not PUBLIC must be flagged.
+cat > "$FN_SAMPLE" <<'SQL'
+CREATE OR REPLACE FUNCTION public.self_test_invoker(p_text text)
+RETURNS text LANGUAGE sql IMMUTABLE SET search_path = public AS $$
+  SELECT p_text;
+$$;
+REVOKE ALL ON FUNCTION public.self_test_invoker(text) FROM anon, authenticated;
+SQL
+if fn_out=$(check_function_revoke_file "$FN_SAMPLE"); then
+  echo "GUARD SELF-TEST FAILED: revoke-without-public sample was not flagged"
+  rm -f "$FN_SAMPLE"
+  exit 1
+fi
+echo "Self-test OK: revoke-without-public sample correctly flagged:"
+printf '%s\n' "$fn_out"
+
+# Self-test: a function whose REVOKE names it and PUBLIC must pass.
+cat > "$FN_SAMPLE" <<'SQL'
+CREATE OR REPLACE FUNCTION public.self_test_invoker(p_text text)
+RETURNS text LANGUAGE sql IMMUTABLE SET search_path = public AS $$
+  SELECT p_text;
+$$;
+REVOKE ALL ON FUNCTION public.self_test_invoker(text)
+  FROM PUBLIC, anon, authenticated;
+SQL
+if ! fn_out=$(check_function_revoke_file "$FN_SAMPLE"); then
+  echo "GUARD SELF-TEST FAILED: closed function sample was flagged"
+  printf '%s\n' "$fn_out"
+  rm -f "$FN_SAMPLE"
+  exit 1
+fi
+echo "Self-test OK: closed function sample passes."
+rm -f "$FN_SAMPLE"
+
 
 
 # --- Self-marking law (U1f-3, re-based by INC-094) ---
@@ -414,6 +542,10 @@ if [ "${SELF_TEST:-0}" = "1" ]; then
 fi
 
 if ! scan_definer_dir "$MIGRATIONS_DIR"; then
+  exit 1
+fi
+
+if ! scan_function_revoke_dir "$MIGRATIONS_DIR"; then
   exit 1
 fi
 

@@ -116,6 +116,19 @@ privilege posture of every function it declares. Corrections are forward-only
 riders (migrations are append-only), e.g. the grant restatement for
 `submit_listing` / `transition_listing` re-declared in `20260816120338`.
 
+## Born-closed law (bundle 8, Part A4, 2026-10-07)
+
+`scripts/check-migrations.sh` also fails any migration (timestamp >=
+`FUNCTION_REVOKE_FLOOR`, M13's own file stamp) that creates a function —
+SECURITY DEFINER or caller's rights, trigger functions included — without an
+in-file `REVOKE` that names that function AND names `PUBLIC` as a grantee. A
+new function is executable through `PUBLIC` the moment it is created, so the
+file that creates it closes it. Re-declarations count, as they do for the
+definer law. The DEC-022-B allowlist serves this rule as it serves the definer
+rule. Self-tests: a caller's-rights function with no `REVOKE` is flagged; a
+`REVOKE` that names the function but not `PUBLIC` is flagged; a function whose
+`REVOKE … FROM PUBLIC, anon, authenticated` names it passes.
+
 ## Migration parity preflight (INC-074, 2026-08-16)
 
 `scripts/e2e-migration-preflight.ts` runs as its own CI step

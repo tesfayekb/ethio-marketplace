@@ -12,6 +12,7 @@ import {
   destroySpecSet,
   leaseSeller,
   postRoute,
+  rand,
   seedPostableCategory,
   seedSpecSet,
 } from "./helpers/posting";
@@ -257,6 +258,143 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
       ]),
     );
     expect(await attrs(id)).toEqual(beforeOption);
+  });
+
+  // Bundle 8 B3 (INC-477) — the door enforces a chosen option's `allowed` list:
+  // one value chosen for a picker narrows the siblings it names; lists meet at
+  // their intersection; a list answer narrows nothing; a stored combination that
+  // this save leaves as it was is kept.
+  test("PR-41 the door refuses an answer the chosen options do not allow", async ({ page }) => {
+    const { token } = await seller(page);
+    const stem = `e2e_alw_${rand()}`;
+    let count = 0;
+    const option = (value: string, allowed?: Record<string, string[]>) => ({
+      value,
+      label_en: `${value} label`,
+      label_am: `${value} ምልክት`,
+      active: true,
+      ...(allowed === undefined ? {} : { allowed }),
+    });
+    async function define(type: string, options?: unknown[]) {
+      count += 1;
+      const key = `${stem}_${count}`;
+      definitions.push(key);
+      const row = await adminClient()
+        .from("attributes")
+        .insert({
+          attr_key: key,
+          name_en: key,
+          name_am: `${key} ጥያቄ`,
+          attr_type: type,
+          ...(type === "number" ? { min_bound: "1", max_bound: "999", decimals: 0 } : {}),
+          ...(options === undefined ? {} : { options }),
+        })
+        .select("id")
+        .single();
+      expect(row.error, `seeding ${key}`).toBeNull();
+      return { id: String(row.data!.id), key };
+    }
+    async function leaf(defs: { id: string }[]) {
+      const cat = await category();
+      const links = await adminClient()
+        .from("category_attribute_links")
+        .insert(
+          defs.map((def, index) => ({
+            category_id: cat.id,
+            attribute_id: def.id,
+            is_required: false,
+            display_order: index + 1,
+          })),
+        );
+      expect(links.error).toBeNull();
+      return cat;
+    }
+    const judge = (categoryId: string, attributes: Record<string, unknown>, listingId?: string) =>
+      save(page, token, {
+        ...body(categoryId, attributes),
+        ...(listingId === undefined ? {} : { listingId }),
+      });
+    function refusedAt(
+      label: string,
+      answer: Record<string, unknown>,
+      key: string,
+      detail: string,
+    ) {
+      expect.soft(answer["ok"], `${label}: ${JSON.stringify(answer)}`).toBe(false);
+      expect
+        .soft(answer["refusals"], `${label}: ${JSON.stringify(answer)}`)
+        .toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ attr_key: key, reason: "optionNotAllowed", detail }),
+          ]),
+        );
+    }
+    function accepted(label: string, answer: Record<string, unknown>) {
+      expect.soft(answer["ok"], `${label}: ${JSON.stringify(answer)}`).toBe(true);
+    }
+
+    // Cases 1, 2, 6 and 7: parent P narrows child C to [a]; T is free to change.
+    const c = await define("single_select", [option("a"), option("b"), option("other")]);
+    const p = await define("single_select", [
+      option("p1", { [c.key]: ["a"] }),
+      option("p2", { [c.key]: ["a"] }),
+    ]);
+    const tq = await define("number");
+    const first = await leaf([p, c, tq]);
+    refusedAt("case 1", await judge(first.id, { [p.key]: "p1", [c.key]: "b" }), c.key, "b");
+    const two = await judge(first.id, { [p.key]: "p1", [c.key]: "a", [tq.key]: 5 });
+    accepted("case 2", two);
+    refusedAt(
+      "case 7",
+      await judge(first.id, { [p.key]: "p1", [c.key]: { value: "other", text: "handmade" } }),
+      c.key,
+      "other",
+    );
+
+    // Case 6: the test writes its own row so it already holds P = p1, C = b.
+    const id = String(two["listing_id"]);
+    await replaceAttrs(id, { [p.key]: "p1", [c.key]: "b", [tq.key]: 5 });
+    accepted(
+      "case 6 kept",
+      await judge(first.id, { [p.key]: "p1", [c.key]: "b", [tq.key]: 6 }, id),
+    );
+    refusedAt(
+      "case 6 changed",
+      await judge(first.id, { [p.key]: "p2", [c.key]: "b", [tq.key]: 6 }, id),
+      c.key,
+      "b",
+    );
+
+    // Case 3: two contributors meet at their intersection, [b].
+    const c3 = await define("single_select", [option("a"), option("b"), option("c")]);
+    const p3 = await define("single_select", [option("p1", { [c3.key]: ["a", "b"] })]);
+    const q3 = await define("single_select", [option("q1", { [c3.key]: ["b", "c"] })]);
+    const third = await leaf([p3, q3, c3]);
+    refusedAt(
+      "case 3 a",
+      await judge(third.id, { [p3.key]: "p1", [q3.key]: "q1", [c3.key]: "a" }),
+      c3.key,
+      "a",
+    );
+    accepted("case 3 b", await judge(third.id, { [p3.key]: "p1", [q3.key]: "q1", [c3.key]: "b" }));
+
+    // Case 4: a multi_select child is judged element by element.
+    const m = await define("multi_select", [option("x"), option("y"), option("z")]);
+    const p4 = await define("single_select", [option("p1", { [m.key]: ["x", "y"] })]);
+    const fourth = await leaf([p4, m]);
+    refusedAt(
+      "case 4 xz",
+      await judge(fourth.id, { [p4.key]: "p1", [m.key]: ["x", "z"] }),
+      m.key,
+      "z",
+    );
+    accepted("case 4 xy", await judge(fourth.id, { [p4.key]: "p1", [m.key]: ["x", "y"] }));
+
+    // Case 5: a list answer contributes nothing.
+    const c5 = await define("single_select", [option("a"), option("b")]);
+    const r = await define("multi_select", [option("r1", { [c5.key]: ["a"] })]);
+    const fifth = await leaf([r, c5]);
+    accepted("case 5", await judge(fifth.id, { [r.key]: ["r1"], [c5.key]: "b" }));
   });
 
   async function placeDraft(page: Page) {
