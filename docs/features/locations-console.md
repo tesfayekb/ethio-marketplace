@@ -221,3 +221,7 @@ Scratch rows carry the `e2e-` slug prefix (J1) and are destroyed child-first in
 `finally` (J3). `e2e/global-setup.ts` reaps stale scratch geography by **slug**
 prefix, deepest-first, and clears the matching `location_import_revisions`
 rows (DEC-062 delta, L2a).
+
+## Reading the list (INC-459)
+
+The list is read whole, page by page, by key (`readAllPages`), and names are ordered by the one pinned collator (src/lib/name-collator.ts).

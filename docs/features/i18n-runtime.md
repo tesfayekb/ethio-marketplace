@@ -61,3 +61,7 @@ was chosen because it supports that widening without touching call sites.
 ## RTL
 
 The header uses logical properties only (`ps-*`, `pe-*`), per law C5.
+
+## The compiled-catalog lookup reads own keys only (Bundle 7 Part H1)
+
+`compiledCatalogLoader(code)` (src/i18n/compiled-catalog.ts) answers a loader only for a code that is one of the registry's own keys; a code naming an inherited member (`toString`, `valueOf`) answers undefined, so the provider takes the "no compiled catalog" branch and the gate falls back to the base language. Lookups by an outside key elsewhere read through `ownValue` (src/lib/own-key.ts). Proven by src/test/own-key-sites.test.ts and IB-3 (e2e/i18n-bundle.spec.ts).

@@ -575,3 +575,7 @@ console write the same columns through the same validation.
 ## Import undo order (M12, INC-481)
 
 `admin_undo_category_import` walks its batch in the order `public.cat_import_undo_order(batch)` returns (service-only helper, never granted to a browser role): every row that is not a creation first; then creations ascending by how many categories `cat_descendants` counts under the row's slug (0 when it no longer stands), so a created child always goes before each created parent, home or guest; ties by `entity_key`, then `id`. A batch's revision ids are random uuids, so the earlier `ORDER BY id DESC` was a random walk that the delete door (refusing a category with a child, M11) could stop. Proven by CT-26 and CT-42 through the route.
+
+## Reading the list (INC-459)
+
+The list is read whole, page by page, by key (`readAllPages`), and names are ordered by the one pinned collator (src/lib/name-collator.ts).

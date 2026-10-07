@@ -175,9 +175,10 @@ test.describe("STAB-I18N · cached translation bundle", () => {
         )
         .toBe("true:en");
       await expect(page.getByRole("banner"), `banner for ?lang=${code}`).toBeVisible();
-      await expect(page.getByText(en["error.pageFailed"]), `no page-failed for ${code}`).toHaveCount(
-        0,
-      );
+      await expect(
+        page.getByText(en["error.pageFailed"]),
+        `no page-failed for ${code}`,
+      ).toHaveCount(0);
       await expect(page.locator("html")).toHaveAttribute("lang", "en");
     }
   });

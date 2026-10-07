@@ -949,3 +949,7 @@ fail for its own reason. The lint a turn runs before pushing is this same comman
 The listing-writes guard's second table (`listing_locations`) is covered by the coverage-write fixture of Part C.
 
 - Nightly database lints (DEC-148): see docs/features/nightly-e2e.md; the comparison is unit-tested in scripts/security-lints.test.ts.
+
+## The failure reporter's table cells (DEC-154)
+
+`scripts/e2e-failure-report.ts` writes every table cell through one `mdCell` helper that escapes the backslash first, then the pipe, at both table sites; the reporter's self-test carries the needle.

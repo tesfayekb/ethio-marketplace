@@ -85,3 +85,9 @@ The nightly lints step lands with Part E (M11).
 ## Database security lints step (Bundle 7 ES7, DEC-148)
 
 One step after the suites, `if: always()`: `bun scripts/security-lints.ts`. It never stops the suites; its failure turns the run red like any failed step. See docs/features/security-scanning.md for the rule.
+
+## Bundle 7 additions
+
+- The nightly runs `scripts/security-lints.ts` against ethio-staging (counts only; see security-scanning.md).
+- The job's token is read-only by default; the nightly job declares `contents: write` for its evidence publish (DEC-153).
+- Failure tables are written through the reporter's `mdCell` helper (DEC-154).

@@ -406,3 +406,8 @@ Local runs start only with `bun run e2e:local` (builds and serves with the stagi
 - `e2e/admin-categories-home.spec.ts` (CT-38..CT-41, categories area): delete refusals, home path, door-only writes.
 - `e2e/admin-attributes-safety.spec.ts` (AT-73..AT-77, attributes area): holders, merge refusal, preview holders, order rule.
   Both seed scratch rows through the service client before navigating and reap them in `finally` with destroys that throw.
+
+## Bundle 7 additions
+
+- New spec files and areas: e2e/admin-attributes-safety.spec.ts (holders, merge refusal, order rule), e2e/admin-categories-home.spec.ts (home path, delete refusals), e2e/post-wizard-removed.spec.ts (removed answers, D5). IB-3 joins e2e/i18n-bundle.spec.ts; it waits for the provider's settled gate state before reading the page, because the server-rendered shell is present before the catalog effect runs.
+- Seeders remove every scratch row they create in a hook that survives a timeout. `destroySpecSet` is handed attribute keys and throws when handed something shaped like a row id.

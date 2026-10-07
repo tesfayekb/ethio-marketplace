@@ -16,3 +16,7 @@ actions. The Account breadcrumb is `Home › Account`.
 No owner read currently exists for saved listings or a notification feed. No
 schema change is allowed in LAYOUT-1, so those cards render translated honest
 empty captions rather than invented counts.
+
+## Reading the list (INC-459)
+
+The list is read whole, page by page, by key (`readAllPages`), and names are ordered by the one pinned collator (src/lib/name-collator.ts).
