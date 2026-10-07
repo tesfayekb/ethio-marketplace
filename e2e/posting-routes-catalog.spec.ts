@@ -200,14 +200,18 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
   async function placeDraft(page: Page) {
     const identity = await seller(page);
     const cat = await category();
-    const a = await seedScratchChain("ET");
-    places.push(a.region.slug);
-    const b = await seedScratchChain("ET");
-    places.push(b.region.slug);
+    // ONE scratch chain: its city and its sub-city are one city and one region
+    // by the door's own count, inside the free plan (D0).
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    const a = { city: chain.city };
+    const b = { city: chain.subCity };
+    // Step 7: these tests need no review judgment, so no public name is asked (D0).
     const draft = completeDraft({
       categoryId: cat.id,
       cityId: a.city.id,
       title: "e2e ordered places",
+      step: 7,
     });
     return { ...identity, cat, a, b, draft };
   }
