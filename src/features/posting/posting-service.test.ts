@@ -8,7 +8,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-import { call, SAVE_TIMEOUT_MS } from "./posting-service";
+import { call, SAVE_TIMEOUT_MS, shapePostingSchema } from "./posting-service";
 
 let afterEachRestore: () => void = () => {};
 
@@ -49,5 +49,17 @@ describe("call() — DEC-135 save timeout", () => {
     expect(answer.unreachable).toBe(true);
     expect(answer.ok).toBe(false);
     expect(seen).toEqual([SAVE_TIMEOUT_MS]);
+  });
+});
+
+describe("shapePostingSchema — K5 failed read", () => {
+  it("a payload without an attributes array is a failed read", () => {
+    expect(shapePostingSchema({ category: {} })).toBeNull();
+    expect(shapePostingSchema({ attributes: "x" })).toBeNull();
+  });
+  it("an empty attributes array is an empty list", () => {
+    const schema = shapePostingSchema({ attributes: [] });
+    expect(schema).not.toBeNull();
+    expect(schema?.details).toBe(0);
   });
 });

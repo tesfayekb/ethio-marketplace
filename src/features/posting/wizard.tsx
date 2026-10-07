@@ -380,7 +380,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
       for (const def of questionRead.definitions) {
         if (def.attrType !== "single_select" && def.attrType !== "multi_select") continue;
         if (answers[def.attrKey] === undefined) continue;
-        const offered = await loadAttributeOptions(def.attributeId);
+        const offered = await loadAttributeOptions(def.attributeId, { freshOnly: true });
         optionsByKey[def.attrKey] =
           offered === null
             ? null

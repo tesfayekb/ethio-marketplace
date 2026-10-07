@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 
 /**
  * C2-UI — the Categories console client seam.
@@ -44,10 +45,25 @@ export interface CategoryRow {
   secondaryParentNames: string[];
 }
 
-export async function listCategories(): Promise<CategoryRow[]> {
-  const { data, error } = await supabase.rpc("admin_list_categories");
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
+/** No argument on purpose: the query cache passes its own context as the first one. */
+export function listCategories(): Promise<CategoryRow[]> {
+  return listCategoriesPaged(PAGE_ROWS);
+}
+
+/** The reader itself; `pageRows` is the helper's page size (unit cases use 2). */
+export async function listCategoriesPaged(pageRows: number): Promise<CategoryRow[]> {
+  // INC-459 — every page, asked for after the last id (categories.id is the
+  // table's PRIMARY KEY), never by position. The screens order the roster
+  // themselves (`toRoster`: parent, display order, name), so no sort back.
+  const data = await readAllPages(
+    (after, limit) => {
+      const query = supabase.rpc("admin_list_categories").order("id").limit(limit);
+      return after === null ? query : query.gt("id", after);
+    },
+    (row) => row.id,
+    pageRows,
+  );
+  return data.map((row) => ({
     id: row.id,
     parentId: row.parent_id ?? null,
     slug: row.slug,

@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
+import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 
 /**
  * LOCATIONS ERA L2a — THE LOCATIONS CONSOLE CLIENT SEAM.
@@ -66,18 +67,43 @@ export interface LocationRow {
  * The country's whole roster is read once and sieved in the browser
  * (`filterLocations`), so only switching the market fetches.
  */
-export async function listLocations(countryCode: string): Promise<LocationRow[]> {
-  const { data, error } = await supabase.rpc("admin_list_locations", {
-    // L2b-C1 — "" is the ALL-COUNTRIES scope: the door reads every market when
-    // its country argument is NULL (L2b-M re-declaration), so the roster opens
-    // on every country with exactly one read.
-    p_country_code: (countryCode === "" ? null : countryCode) as unknown as string,
-    p_search: "",
-    p_level: null as unknown as string,
-    p_active: null as unknown as boolean,
-  });
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
+const LEVEL_RANK: Record<string, number> = { country: 0, region: 1, city: 2 };
+
+export async function listLocations(
+  countryCode: string,
+  pageRows: number = PAGE_ROWS,
+): Promise<LocationRow[]> {
+  // INC-459 — every page, asked for after the last id (locations.id is the
+  // table's PRIMARY KEY), never by position: the all-countries scope passes
+  // 1,000 rows.
+  const pages = await readAllPages(
+    (after, limit) => {
+      const query = supabase
+        .rpc("admin_list_locations", {
+          // L2b-C1 — "" is the ALL-COUNTRIES scope: the door reads every market
+          // when its country argument is NULL (L2b-M re-declaration).
+          p_country_code: (countryCode === "" ? null : countryCode) as unknown as string,
+          p_search: "",
+          p_level: null as unknown as string,
+          p_active: null as unknown as boolean,
+        })
+        .order("id")
+        .limit(limit);
+      return after === null ? query : query.gt("id", after);
+    },
+    (row) => row.id,
+    pageRows,
+  );
+  // Sorted back to the door's own order: country, level, display order, name.
+  const data = [...pages].sort(
+    (a, b) =>
+      a.country_code.localeCompare(b.country_code) ||
+      (LEVEL_RANK[a.level] ?? 3) - (LEVEL_RANK[b.level] ?? 3) ||
+      Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
+      a.name_en.localeCompare(b.name_en) ||
+      a.id.localeCompare(b.id),
+  );
+  return data.map((row) => ({
     id: row.id,
     parentId: row.parent_id ?? null,
     level: row.level,

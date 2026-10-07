@@ -155,10 +155,19 @@ function shape(row: Record<string, unknown>): AttrOption {
  */
 export async function loadAttributeOptions(
   attributeId: string,
-  opts: { onRateLimited?: () => void } = {},
+  opts: {
+    onRateLimited?: () => void;
+    /**
+     * K4 — a read that does not succeed answers null even when an expired copy
+     * is held: rule 1 judges a choice only from a read that succeeded now. A copy
+     * still inside its one-minute life is a read that succeeded.
+     */
+    freshOnly?: boolean;
+  } = {},
 ): Promise<AttrOption[] | null> {
-  const held = cache.get(attributeId);
-  if (held && Date.now() - held.at < TTL_MS) return held.options;
+  const cached = cache.get(attributeId);
+  if (cached && Date.now() - cached.at < TTL_MS) return cached.options;
+  const held = opts.freshOnly === true ? undefined : cached;
   try {
     // INC-397 — the route answers signed-in callers only.
     const { data: session } = await supabase.auth.getSession();

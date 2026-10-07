@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
+import { readAllPages } from "@/lib/read-all-pages";
 
 import type { Database } from "@/integrations/supabase/types";
 
@@ -116,6 +117,15 @@ function respond(request: Request, entry: CacheEntry): Response {
 const NODE_COLUMNS =
   "id,name_en,name_am,slug,icon,display_order,allow_listings,is_catchall,image_url,image_thumb_url";
 
+/** A thrown page read, as the `{ message }` the failure path below reads. */
+function errorOf(error: unknown): { message: string } {
+  if (error instanceof Error) return { message: error.message };
+  if (error !== null && typeof error === "object" && "message" in error) {
+    return { message: String((error as { message: unknown }).message) };
+  }
+  return { message: String(error) };
+}
+
 async function handleGet(request: Request): Promise<Response> {
   const url = serverEnv("SUPABASE_URL");
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
@@ -145,22 +155,65 @@ async function handleGet(request: Request): Promise<Response> {
     });
   }
 
+  // INC-459 — both tables are read page by page after the last id (each
+  // table's PRIMARY KEY), then sorted back to the order served before.
   const [nodes, pointers] = await Promise.all([
-    supabase
-      .from("categories")
-      .select(NODE_COLUMNS)
-      .eq("is_active", true)
-      .order("display_order", { ascending: true }),
+    readAllPages(
+      (after, limit) => {
+        const query = supabase
+          .from("categories")
+          .select(NODE_COLUMNS)
+          .eq("is_active", true)
+          .order("id")
+          .limit(limit);
+        return after === null ? query : query.gt("id", after);
+      },
+      (row) => row.id,
+    ).then(
+      (rows) => ({
+        error: null,
+        data: [...rows].sort(
+          (a, b) => a.display_order - b.display_order || a.id.localeCompare(b.id),
+        ),
+      }),
+      (error: unknown) => ({ error: errorOf(error), data: null }),
+    ),
     // D33 — THE POINTER CARRIES THE ORDER, AND THE FIRST POINTER IS THE PRIMARY
     // HOME. The rows are served in exactly the order `cat_primary_pointer` ranks
     // them — `display_order`, then `created_at` — so the reader's "first pointer
     // of a child is its primary" is the SAME verdict the database reaches for the
     // export's `parent_slug` and `category_path` (D30's breadcrumb).
-    supabase
-      .from("category_tree_pointers")
-      .select("child_id,parent_id,display_order,is_primary")
-      .order("display_order", { ascending: true })
-      .order("created_at", { ascending: true }),
+    readAllPages(
+      (after, limit) => {
+        const query = supabase
+          .from("category_tree_pointers")
+          .select("id,child_id,parent_id,display_order,is_primary,created_at")
+          .order("id")
+          .limit(limit);
+        return after === null ? query : query.gt("id", after);
+      },
+      (row) => row.id,
+    ).then(
+      (rows) => ({
+        error: null,
+        // Sorted back to display_order, then created_at (the primary rule's
+        // order); id and created_at are read for paging and sorting only.
+        data: [...rows]
+          .sort(
+            (a, b) =>
+              a.display_order - b.display_order ||
+              a.created_at.localeCompare(b.created_at) ||
+              a.id.localeCompare(b.id),
+          )
+          .map(({ child_id, parent_id, display_order, is_primary }) => ({
+            child_id,
+            parent_id,
+            display_order,
+            is_primary,
+          })),
+      }),
+      (error: unknown) => ({ error: errorOf(error), data: null }),
+    ),
   ]);
   // F4 — a failed read is a failure, never an empty tree that reads as "there
   // are no categories".

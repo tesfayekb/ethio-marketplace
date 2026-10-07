@@ -61,11 +61,11 @@ test.describe("POSTING WIZARD — removed catalogue answers", () => {
     categories.push(cat.slug);
     const specs = await seedSpecSet(cat.id);
     definitions.push(
-      specs.text.id,
-      specs.number.id,
-      specs.bool.id,
-      specs.select.id,
-      specs.multi.id,
+      specs.text.attrKey,
+      specs.number.attrKey,
+      specs.bool.attrKey,
+      specs.select.attrKey,
+      specs.multi.attrKey,
     );
     const chain = await seedScratchChain("ET");
     places.push(chain.region.slug);

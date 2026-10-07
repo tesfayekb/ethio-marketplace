@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { readAllPages } from "@/lib/read-all-pages";
 
 import { useShell } from "@/components/shell-context";
 import { ContentGrid } from "@/components/layout/content-grid";
@@ -63,7 +64,24 @@ export function AccountOverview() {
           )
           .eq("user_id", user.id)
           .maybeSingle(),
-        supabase.from("listings").select("status").eq("seller_id", user.id),
+        // INC-459 — every own listing's status, paged after the last id
+        // (listings.id, the PRIMARY KEY): one request for any seller under
+        // 1,000 ads, and no status list to keep in step with the door.
+        readAllPages(
+          (after, limit) => {
+            const query = supabase
+              .from("listings")
+              .select("id,status")
+              .eq("seller_id", user.id)
+              .order("id")
+              .limit(limit);
+            return after === null ? query : query.gt("id", after);
+          },
+          (row) => row.id,
+        ).then(
+          (data) => ({ data, error: null }),
+          (error: unknown) => ({ data: null, error }),
+        ),
         supabase.auth.getUser(),
       ]);
       if (!active) return;
