@@ -571,3 +571,7 @@ console write the same columns through the same validation.
 - `admin_delete_category` has four refusals, each shown in words: `delete_active`, `delete_slug_mismatch`, `delete_has_listings:<count>`, and (new) `delete_has_children:<count>` while any pointer names the row as parent.
 - The pointer dialog draws the Primary badge on the edge the door marks `is_primary` (the home path, listed first), no longer the lowest order. Every other edge has "Make primary", which calls `admin_set_primary_pointer` through the same step-up guard as move/remove and refreshes the list (CT-39).
 - The admin's own client can no longer write `categories`, `category_tree_pointers`, `category_attributes`, `locations`, `resources`, `permissions`, `roles` or `role_permissions`; the doors are the only writers (CT-41).
+
+## Import undo order (M12, INC-481)
+
+`admin_undo_category_import` walks its batch in the order `public.cat_import_undo_order(batch)` returns (service-only helper, never granted to a browser role): every row that is not a creation first; then creations ascending by how many categories `cat_descendants` counts under the row's slug (0 when it no longer stands), so a created child always goes before each created parent, home or guest; ties by `entity_key`, then `id`. A batch's revision ids are random uuids, so the earlier `ORDER BY id DESC` was a random walk that the delete door (refusing a category with a child, M11) could stop. Proven by CT-26 and CT-42 through the route.

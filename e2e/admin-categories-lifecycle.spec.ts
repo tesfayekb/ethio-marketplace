@@ -1103,9 +1103,7 @@ test.describe("CAT-IE categories import/export", () => {
         expect(batchId).toBeTruthy();
 
         const undo = await importPost(page, token, { mode: "undo", batchId });
-        expect(undo.status, `CT-42 round ${round} undo: ${JSON.stringify(undo.payload)}`).toBe(
-          200,
-        );
+        expect(undo.status, `CT-42 round ${round} undo: ${JSON.stringify(undo.payload)}`).toBe(200);
         expect(await readCategory(xSlug), `CT-42 round ${round} left X`).toBeNull();
         expect(await readCategory(cSlug), `CT-42 round ${round} left C`).toBeNull();
         expect(await readCategory(gSlug), `CT-42 round ${round} left G`).toBeNull();
