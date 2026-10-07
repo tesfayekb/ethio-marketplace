@@ -1,5 +1,5 @@
 import { answerTokens } from "./answer-tokens";
-import { optionLabel, type AttrOption } from "./attribute-options";
+import { optionLabel, retiredAttributeOptions, type AttrOption } from "./attribute-options";
 import type { AttrDef } from "./posting-service";
 import { conditionMet } from "./visible-when";
 import { catalogWords, type CatalogTokens } from "@/i18n";
@@ -19,9 +19,14 @@ export function attributeDisplayValue(
     return yearLabel(value, language, yearSuffix);
   }
 
+  // INC-466 — offered options first, then the attribute's retired ones.
   const labels = new Map(
-    options.map((option) => [option.value, optionLabel(option, language, tokens)]),
+    retiredAttributeOptions(definition.attributeId).map((option) => [
+      option.value,
+      optionLabel(option, language, tokens),
+    ]),
   );
+  for (const option of options) labels.set(option.value, optionLabel(option, language, tokens));
   const renderOne = (entry: unknown): string => {
     if (entry !== null && typeof entry === "object" && !Array.isArray(entry)) {
       const other = entry as { value?: unknown; text?: unknown };

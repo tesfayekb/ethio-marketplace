@@ -552,3 +552,7 @@ The shell publishes `feedInputsReady` through `useShell()`: true once the catego
 ## Bundle 4 columns and the sweep (M5 923dd4cb)
 
 New columns: `price_unit`, `price_unit_text`, `photos_soon` (anon and authenticated may SELECT these three) and `attested_at` (no client grant). The hourly `listing-expiry-sweep` runs `expire_stale_listings()` and writes one `listing_expiry_sweep_runs` row.
+
+## listing_locations.position (Bundle 7 M10)
+
+Each coverage row carries `position` (1 = the item's own place), written in first-occurrence order. The posting doors (`submit_listing`, `edit_listing`) are the table's only writers; signed-in clients hold read access only.

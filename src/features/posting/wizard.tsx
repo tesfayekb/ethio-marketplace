@@ -32,7 +32,12 @@ import { MobileStepStrip } from "./mobile-step-strip";
 import { CatalogScopeProvider } from "./catalog-scope-provider";
 import { tokenCountryCode, type CatalogScope } from "./catalog-scope";
 import { CategoryMoveDialog } from "./category-move-dialog";
-import { loadAttributeOptions, optionLabel, type AttrOption } from "./attribute-options";
+import {
+  findHeldOption,
+  loadAttributeOptions,
+  optionLabel,
+  type AttrOption,
+} from "./attribute-options";
 import { answerOtherText } from "./answer-tokens";
 import { basisInForce, basisNoun, basisToken } from "./price-basis";
 import {
@@ -382,7 +387,11 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
             ).trim();
             return written === "" ? null : written;
           }
-          const found = basisOptions?.find((option) => option.value === basisValue);
+          // INC-466 — offered first, then retired (the attribute's own).
+          const found =
+            basisOptions === null || basisDef === null
+              ? undefined
+              : findHeldOption(basisValue, basisOptions, basisDef.attributeId);
           // INC-297 — the NOUN, derived once here: templates keep their own "per".
           return found === undefined
             ? basisValue

@@ -120,7 +120,7 @@ async function handleGet(request: Request, id: string): Promise<Response> {
 
   // The version is unchanged: the body already held is still the answer, and no
   // second read is paid for.
-  if (hit && hit.etag === `"attr-options-${stamp}"`) {
+  if (hit && hit.etag === `"attr-options-2-${stamp}"`) {
     const entry: CacheEntry = { ...hit, checkedAt: now };
     remember(id, entry);
     return respond(request, entry);
@@ -136,7 +136,7 @@ async function handleGet(request: Request, id: string): Promise<Response> {
   }
 
   const entry: CacheEntry = {
-    etag: `"attr-options-${stamp}"`,
+    etag: `"attr-options-2-${stamp}"`,
     body: JSON.stringify(data ?? { options: [], version: stamp }),
     checkedAt: now,
   };

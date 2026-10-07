@@ -393,3 +393,10 @@ The refusal message (URL only, never a key):
 ```
 
 Local runs start only with `bun run e2e:local` (builds and serves with the staging environment) or `bun run e2e:changed` (which calls `e2e:local`). A plain `playwright test` reads the committed `.env`, whose address is not staging, and now stops in setup.
+
+## Bundle 7 spec files
+
+- `e2e/posting-routes-catalog.spec.ts` (posting routes): PR-34–39; scratch catalogue, leased sellers; each seller's `seller_places` row is deleted before scratch places.
+- `e2e/post-wizard-recent.spec.ts` (posting wizard): PW-171, the "used before" chips.
+- PW-172 (details), PW-173 (where), PW-174 (resets).
+  Seeders' cleanup rule: rows that point at a scratch place or category are removed before it, in an afterEach that throws on failure.

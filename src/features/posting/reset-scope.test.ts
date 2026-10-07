@@ -224,4 +224,25 @@ describe("reset-scope (DEC-144 rule 1)", () => {
     expect(out.answers).toEqual({ model: "car", doors: 4 });
     expect(out.prefills).toEqual({ doors: 4 });
   });
+
+  it("(x) D4: the moved parent carries no fact, another answered parent states one: D holds it", () => {
+    const scope = input(
+      [
+        def("p1", "single_select"),
+        def("p2", "single_select"),
+        def("d", "single_select", { defaultValue: "van" }),
+      ],
+      {
+        p1: [
+          opt("old", { facts: { d: "hatch" } }),
+          opt("new", { allowed: { d: ["hatch", "van", "suv"] } }),
+        ],
+        p2: [opt("u", { facts: { d: "suv" } })],
+        d: [opt("hatch"), opt("van"), opt("suv")],
+      },
+    );
+    const out = resetAfterMove(scope, "p1", { p1: "new", p2: "u", d: "hatch" }, { d: "hatch" });
+    expect(out.answers).toEqual({ p1: "new", p2: "u", d: "suv" });
+    expect(out.prefills).toEqual({ d: "suv" });
+  });
 });

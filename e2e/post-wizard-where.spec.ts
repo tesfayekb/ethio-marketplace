@@ -2,7 +2,12 @@ import type { Browser, Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
+import {
+  destroyLocation,
+  openMarketCodes,
+  seedScratchChain,
+  waitForTreeSlug,
+} from "./helpers/locations";
 import { adminClient } from "./helpers/users";
 import {
   leaseSeller,
@@ -893,5 +898,83 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect
       .poll(async () => (await pinOf(listingId)).street, { timeout: 10_000 })
       .toBe(street);
+  });
+
+  /**
+   * PW-173 (Bundle 7 D3, INC-473/474) — THE STEP OPENS ON THE AD'S OWN PLACE.
+   * Two open markets, each with a scratch city; the saved area names A's city;
+   * the draft holds B's city. On resume, and again after Back from the next
+   * step, the step shows B's city in B's market and writes nothing; a touch
+   * replaces it.
+   */
+  test("PW-173 a draft placed in another market opens there, on resume and after Back", async ({
+    page,
+    baseURL,
+  }) => {
+    const markets = await openMarketCodes();
+    const other = markets.find((code) => code !== "ET");
+    test.skip(other === undefined, "PW-173 needs a second open market");
+    await signedInSeller(page);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const a = await seedScratchChain("ET");
+    places.push(a.region.slug);
+    const b = await seedScratchChain(other!);
+    places.push(b.region.slug);
+    await waitForTreeSlug(page, "ET", a.city.slug);
+    await waitForTreeSlug(page, other!, b.city.slug);
+    await page
+      .context()
+      .addCookies([{ name: "ethio_area", value: `ET:${a.city.id}`, url: baseURL! }]);
+    const token = await bearerOf(page);
+    const draft = await postRoute(
+      page,
+      DRAFT,
+      completeDraft({
+        categoryId: category.id,
+        cityId: b.city.id,
+        title: `e2e where other ${rand()}`,
+        step: 5,
+      }),
+      { token, country: "ET" },
+    );
+    expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
+    const listingId = String(draft.payload["listing_id"]);
+    expect((await coverageOf(listingId)).placeIds).toEqual([b.city.id]);
+
+    const expectB = async (when: string) => {
+      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+      await expect(
+        page.getByTestId("post-where-city"),
+        `PW-173 (${when}): the step does not show B's city`,
+      ).toHaveValue(b.city.id, { timeout: 20_000 });
+      await expect(page.getByTestId("post-where-market")).toHaveValue(other!);
+      // No draft save is sent before a touch (a wait on the request itself, not a sleep).
+      const wrote = await page
+        .waitForRequest((r) => r.method() === "POST" && r.url().includes(DRAFT), { timeout: 3_000 })
+        .then(
+          () => true,
+          () => false,
+        );
+      expect(wrote, `PW-173 (${when}): the step sent a save before a touch`).toBe(false);
+      expect(
+        (await coverageOf(listingId)).placeIds,
+        `PW-173 (${when}): the step wrote the draft before a touch`,
+      ).toEqual([b.city.id]);
+    };
+    await gotoReady(page, `/post/${listingId}`);
+    await expectB("resume");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-back").click();
+    await expectB("after Back");
+
+    await page.getByTestId("post-where-subcity").selectOption(b.subCity.id);
+    await expect
+      .poll(async () => (await coverageOf(listingId)).placeIds, {
+        message: "PW-173: a touch did not replace the place",
+        timeout: 20_000,
+      })
+      .toEqual([b.subCity.id]);
   });
 });

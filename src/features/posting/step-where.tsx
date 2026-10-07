@@ -27,7 +27,9 @@ import {
   savePlaceText,
   savePin,
   type LastPlaces,
+  readPlaceFacts,
 } from "./posting-service";
+import { whereSeed, type WhereSeed } from "./where-seed";
 import { RequiredMark } from "./field";
 import { looksLikeContact } from "./contact-like";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
@@ -807,6 +809,26 @@ export function StepWhere({
     [tree.loadedCountry, tree.nodes, country],
   );
 
+  /**
+   * Bundle 7 D3 (INC-473/474) — the draft's own places, read ONCE: `undefined`
+   * while read, `null` when the draft holds none (or the read failed).
+   */
+  const [ownSeed, setOwnSeed] = useState<WhereSeed | null | undefined>(() =>
+    coverage.length > 0 ? undefined : null,
+  );
+  useEffect(() => {
+    if (coverage.length === 0) return;
+    let cancelled = false;
+    void readPlaceFacts(coverage).then((facts) => {
+      if (!cancelled) setOwnSeed(facts === null ? null : whereSeed(coverage, facts));
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Read once per mount: `coverage` is the saved answer at seeding.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /** The guess is read ONCE per visit; it never writes the saved-area cookie. */
   useEffect(() => {
     let cancelled = false;
@@ -873,11 +895,14 @@ export function StepWhere({
       marketSeeded.current ||
       markets.markets.length === 0 ||
       guess === null ||
-      last === undefined
+      last === undefined ||
+      ownSeed === undefined
     )
       return;
     const saved = readAreaCookie();
-    const wanted = last?.country ?? saved?.country ?? guess.country?.toUpperCase() ?? null;
+    // D3 — a draft with places of its own opens in its FIRST place's market.
+    const wanted =
+      ownSeed?.country ?? last?.country ?? saved?.country ?? guess.country?.toUpperCase() ?? null;
     const found =
       wanted === null ? undefined : markets.markets.find((market) => market.code === wanted);
     marketSeeded.current = true;
@@ -892,7 +917,7 @@ export function StepWhere({
     }
     setMarketUnresolved(false);
     if (found.code !== country) setCountry(found.code);
-  }, [markets.markets, guess, country, last]);
+  }, [markets.markets, guess, country, last, ownSeed]);
 
   /**
    * THE PLACE PREFILL, over the market's cached tree: the draft's own saved
@@ -902,8 +927,16 @@ export function StepWhere({
   const placeSeeded = useRef<string | null>(null);
   useEffect(() => {
     if (country === null || nodes.length === 0 || placeSeeded.current === country) return;
-    if (last === undefined) return;
+    if (last === undefined || ownSeed === undefined) return;
     placeSeeded.current = country;
+    // D3 — the draft's own places, each in its own market, in saved order.
+    if (ownSeed !== null && ownSeed.country === country) {
+      setRows(
+        ownSeed.rows.map((row, index) => ({ key: index === 0 ? PRIMARY : newKey(), ...row })),
+      );
+      setItemKey(PRIMARY);
+      return;
+    }
     const byId = new Map(nodes.map((node) => [node.id, node]));
     const own = coverage.length > 0 ? (byId.get(coverage[0]!) ?? null) : null;
     if (own !== null) {
@@ -949,7 +982,7 @@ export function StepWhere({
     if (chain.region !== null || chain.city !== null) setPrefilled(true);
     // `coverage` is read once, at seeding, on purpose: later edits are the seller's.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, nodes, guess, last]);
+  }, [country, nodes, guess, last, ownSeed]);
 
   /** W6b-1 R3 — the ticked box; a tick whose box is gone falls to the first. */
   const itemRow = rows.find((row) => row.key === itemKey) ?? rows[0]!;
@@ -1078,15 +1111,13 @@ export function StepWhere({
   useEffect(() => {
     const settled = placeSeeded.current === country && country !== null;
     if (!touched.current && !settled) return;
-    if (!touched.current && coverage.some((id) => !desired.includes(id))) {
-      const known = new Set(nodes.map((node) => node.id));
-      if (coverage.some((id) => !known.has(id))) return;
-    }
+    // D3 — before the seller acts, nothing writes until every saved place is in a row.
+    if (!touched.current && coverage.some((id) => !desired.includes(id))) return;
     if (desired.length === coverage.length && desired.every((id, i) => coverage[i] === id)) return;
     // NOT an immediate save: the cascade settles through several levels; the
     // autosave sends the settled answer once, and Next saves it under the door.
     onChange(desired, false);
-  }, [desired, coverage, country, nodes, onChange]);
+  }, [desired, coverage, country, onChange]);
 
   const act = () => {
     touched.current = true;

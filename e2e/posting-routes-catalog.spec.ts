@@ -24,7 +24,13 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
   const definitions: string[] = [];
   const places: string[] = [];
   test.afterEach(async () => {
-    for (const id of sellers.splice(0)) await destroyListingsOf(id);
+    const leased = sellers.splice(0);
+    for (const id of leased) await destroyListingsOf(id);
+    // A saved seller place points at a scratch place: remove it first (J3).
+    for (const id of leased) {
+      const gone = await adminClient().from("seller_places").delete().eq("user_id", id);
+      if (gone.error) throw new Error(`seller_places cleanup ${id}: ${gone.error.message}`);
+    }
     for (const slug of places.splice(0)) await destroyLocation(slug);
     await destroySpecSet(definitions.splice(0));
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);

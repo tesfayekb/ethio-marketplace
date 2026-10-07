@@ -45,3 +45,7 @@ At launch: Cloudflare in front of the site (Bot Fight Mode, the free managed WAF
 - What blocks CI: Semgrep ERROR findings, Gitleaks findings, high/critical dependency advisories, the migration guard (including the public-surface and real-row checks).
 - Counts are public; finding bodies stay private while the repository is public.
 - A finding is an INC the same day it is seen.
+
+## Bundle 7 note
+
+`listing_locations` is written through the posting doors only (M10 removed signed-in write privileges). The lints and DEC-148's rule land with Part E.

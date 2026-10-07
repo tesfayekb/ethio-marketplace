@@ -1918,6 +1918,7 @@ export const en = {
   "post.save.unsaved": "Not saved yet — we keep trying.",
   "post.save.retrying": "Not saved yet — retrying…",
   "post.category.why": "The category decides which details buyers can search by.",
+  "post.category.recentLabel": "Used before:",
   "post.category.searchLabel": "What are you selling?",
   "post.category.searchPlaceholder": "e.g. phone",
   "post.category.searchHint": "Type a word, or browse below.",

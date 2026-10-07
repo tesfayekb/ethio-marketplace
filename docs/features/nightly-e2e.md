@@ -77,3 +77,7 @@ builds with `bun run build:e2e:cloudflare`, verifies `dist/server/wrangler.json`
 runs `e2e/smoke-auth-i18n.spec.ts` on `mobile-360`. If it dies because workerd refuses
 the build-day `compatibility_date`, the step prints an explicit `::error::` naming the
 INC-088 runtime class so a runtime refusal is never read as an application break.
+
+## Bundle 7 note
+
+The nightly lints step lands with Part E (M11).

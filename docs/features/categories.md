@@ -561,3 +561,7 @@ console write the same columns through the same validation.
 
 - **Create-row guests (A2, A3).** A create row's `secondary_parents` are judged as an update row's are: each slug must be an existing non-catch-all category or a create row earlier in the same file, else the row is refused `unknownParent` with the slug as detail. The commit then adds each guest pointer (`admin_add_category_pointer`) unless it already exists, so the revision's post carries the guests.
 - **The delete's links (A4, A5).** A deleted category's revision `prev` carries `links` — its attribute links with each attribute's `attr_key`. Undo recreates the row, then re-inserts each link whose attribute still exists and skips the rest; it returns `{ restored, links_restored, links_skipped }`, where `links_skipped` names the skipped `attr_key`s. Tests: CT-36, CT-37.
+
+## Recent categories (Bundle 7 C4/D2)
+
+`my_recent_categories` returns the caller's own published, active leaves (count, latest date, then id). The category step shows the first two as chips. The delete door's fourth refusal and "Make primary" land with Part E.

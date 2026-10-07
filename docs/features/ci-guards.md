@@ -923,3 +923,7 @@ whatever shellcheck or pyflakes the machine happens to carry, so one commit was
 judged two ways. Each self-test captures the fixture's output and requires it to
 fail for its own reason. The lint a turn runs before pushing is this same command:
 `actionlint -shellcheck= -pyflakes= .github/workflows/*.yml`.
+
+## Bundle 7 note
+
+The listing-writes guard's second table (`listing_locations`) is covered by the coverage-write fixture of Part C.

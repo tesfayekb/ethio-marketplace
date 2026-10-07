@@ -68,6 +68,8 @@ const TTL_MS = 60_000;
 
 interface CacheEntry {
   options: AttrOption[];
+  /** INC-466 — switched-off options, kept only to print a held answer's words. */
+  retired: AttrOption[];
   version: string;
   at: number;
 }
@@ -77,6 +79,29 @@ const cache = new Map<string, CacheEntry>();
 /** The version of the list currently held, if any — the form's refetch signal. */
 export function heldOptionsVersion(attributeId: string): string | null {
   return cache.get(attributeId)?.version ?? null;
+}
+
+/**
+ * INC-466 — THE SWITCHED-OFF OPTIONS of an attribute, as last read. Never offered
+ * in any list: only the words of an answer the ad already holds are drawn.
+ */
+export function retiredAttributeOptions(attributeId: string): AttrOption[] {
+  return cache.get(attributeId)?.retired ?? [];
+}
+
+/**
+ * INC-466 — ONE LOOKUP for a held value: the offered options first, then the
+ * retired ones of the same attribute. Undefined when neither holds it.
+ */
+export function findHeldOption(
+  value: string,
+  offered: readonly AttrOption[],
+  attributeId: string,
+): AttrOption | undefined {
+  return (
+    offered.find((option) => option.value === value) ??
+    retiredAttributeOptions(attributeId).find((option) => option.value === value)
+  );
 }
 
 /** Drops what is held, so the next open re-asks (a category change, a retry). */
@@ -154,8 +179,13 @@ export async function loadAttributeOptions(
     const options = list
       .map((entry) => shape((entry ?? {}) as Record<string, unknown>))
       .filter((option) => option.value !== "");
+    const retiredList = Array.isArray(payload["retired"]) ? payload["retired"] : [];
+    const retired = retiredList
+      .map((entry) => shape((entry ?? {}) as Record<string, unknown>))
+      .filter((option) => option.value !== "");
     cache.set(attributeId, {
       options,
+      retired,
       version: typeof payload["version"] === "string" ? payload["version"] : "",
       at: Date.now(),
     });

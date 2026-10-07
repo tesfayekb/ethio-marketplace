@@ -995,3 +995,7 @@ Extending the export route rides a named follow-up turn.
 - **Price-page keys.** The deal key families and the `term_` prefix are those of M5 (`deal_keys`, `deal_group`); `price_basis_key` left `get_posting_schema` in M6.
 
 - INC-452 (2026-10-06, Bundle 6 Y3): the console's two reads (`admin_list_attributes`, `admin_attribute_option_coverage`) go through `readAllPages` ordered by `attr_key` (unique), each page asked for after the last key it has — never by position, which repeats or drops rows while another writer moves the list.
+
+## Retired labels (Bundle 7 D1)
+
+`/api/attributes/:id/options` returns `retired` options beside the offered list (cache tag `attr-options-2-<stamp>`), so a held answer whose option was switched off prints its label. Holders counts, the merge refusal and the order rule land with M11 (Part E).

@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import type { CategoryFacts, DoorAnswer, Refusal } from "./types";
 import { shapeCondition, type VisibleWhen } from "./visible-when";
+import type { PlaceFact } from "./where-seed";
 
 /**
  * U6-C1a — THE WIZARD'S ONLY WAY TO THE SERVER.
@@ -297,13 +298,15 @@ export async function readDraft(
   if (photoError) throw new Error(photoError.message);
 
   // The coverage rows are the seller's own (`listing_locations` is scoped by the
-  // listing's owner), read in the order the door wrote them: the FIRST row is the
-  // item's own place.
+  // listing's owner), read by the door's own `position` (M10), then created_at,
+  // then id: the FIRST row is the item's own place — position 1, by the column.
   const { data: places, error: placeError } = await supabase
     .from("listing_locations")
     .select("location_id,created_at")
     .eq("listing_id", listingId)
-    .order("created_at", { ascending: true });
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
   if (placeError) throw new Error(placeError.message);
 
   return {
@@ -424,7 +427,9 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
       .from("listing_locations")
       .select("location_id,created_at,locations(country_code)")
       .eq("listing_id", last.id)
-      .order("created_at", { ascending: true });
+      .order("position", { ascending: true })
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true });
     if (rowError) return null;
     const countryOf = (row: { locations: unknown }) => {
       const place = row.locations as { country_code?: unknown } | null;
@@ -466,6 +471,64 @@ export interface SellerPlace {
   pin: { lat: number; lng: number; precision: string; zoom: number | null } | null;
   street: string | null;
   directions: string | null;
+}
+
+/**
+ * Bundle 7 D2 — THE CALLER'S RECENT CATEGORIES (my_recent_categories, M10): the
+ * ordered ids of the leaves the seller published in, or null on any failure.
+ */
+export async function readRecentCategories(): Promise<string[] | null> {
+  try {
+    const { data, error } = await supabase.rpc("my_recent_categories");
+    if (error) {
+      console.error("[recent-categories] read refused", error.message);
+      return null;
+    }
+    const list =
+      data !== null && typeof data === "object" && !Array.isArray(data)
+        ? (data as Record<string, unknown>)["categories"]
+        : null;
+    if (!Array.isArray(list)) return null;
+    return list.flatMap((entry) => {
+      const id = (entry as Record<string, unknown> | null)?.["id"];
+      return typeof id === "string" ? [id] : [];
+    });
+  } catch (cause) {
+    console.error("[recent-categories] read threw", cause);
+    return null;
+  }
+}
+
+/**
+ * Bundle 7 D3 — the facts of the draft's own saved places (country, level and
+ * chain), so the place step can seed from them whatever market is on screen.
+ * `null` on any failure (logged): the step then behaves as it did before.
+ */
+export async function readPlaceFacts(ids: string[]): Promise<PlaceFact[] | null> {
+  if (ids.length === 0) return [];
+  try {
+    const { data, error } = await supabase
+      .from("locations")
+      .select("id,country_code,level,region_id,city_id,parent_id,is_active")
+      .in("id", ids)
+      .order("id", { ascending: true });
+    if (error) {
+      console.error("[place-facts] read refused", error.message);
+      return null;
+    }
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      country: row.country_code,
+      level: row.level,
+      regionId: row.region_id,
+      cityId: row.city_id,
+      parentId: row.parent_id,
+      active: row.is_active,
+    }));
+  } catch (error) {
+    console.error("[place-facts] read failed", error);
+    return null;
+  }
 }
 
 export async function readSellerPlace(): Promise<SellerPlace | null> {
