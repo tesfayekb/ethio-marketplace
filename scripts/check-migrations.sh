@@ -356,7 +356,7 @@ rm -rf "$ALLOW_TEST_DIR"
 # SAME file, a REVOKE naming that function AND naming PUBLIC as a grantee
 # (a function is born executable through PUBLIC). The DEC-022-B allowlist
 # serves this rule as it serves the definer rule.
-FUNCTION_REVOKE_FLOOR="20261007140000"
+FUNCTION_REVOKE_FLOOR="20261007143529"
 
 check_function_revoke_file() {
   # Returns 0 = OK, 1 = violation. Prints reason on violation.
