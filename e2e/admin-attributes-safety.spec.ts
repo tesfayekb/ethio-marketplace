@@ -375,7 +375,7 @@ test.describe("Bundle 7 attribute safety", () => {
     }
   });
 
-  test("AT-76 the link editor refuses a condition on the upper question naming the lower one, and accepts the reverse", async ({
+  test("AT-76b the link editor refuses a condition on the upper question naming the lower one, and accepts the reverse", async ({
     page,
   }) => {
     bandOnly(page, "any");

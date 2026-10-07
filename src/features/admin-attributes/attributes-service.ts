@@ -454,8 +454,15 @@ export async function readAttributeHolders(input: {
   });
   if (error) throw error;
   // Turn 7b item 4a — a null or non-numeric answer is a FAILED read, never zero.
-  const count = typeof data === "number" ? data : typeof data === "string" ? Number(data) : NaN;
-  if (data === null || data === undefined || !Number.isFinite(count)) {
+  // Turn 8 item 3 — so is an empty or blank string (Number("") is 0).
+  const raw: unknown = data;
+  const count =
+    typeof raw === "number"
+      ? raw
+      : typeof raw === "string" && raw.trim() !== ""
+        ? Number(raw)
+        : NaN;
+  if (raw === null || raw === undefined || !Number.isFinite(count)) {
     throw new Error("admin_attribute_holders returned no count");
   }
   return count;

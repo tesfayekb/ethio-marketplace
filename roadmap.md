@@ -117,7 +117,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] An autosave refused by the door is not dropped without a word (seen at INC-465)
 - [ ] A test that Unit of Sale is asked before Quantity (promised 2026-10-01)
 - [ ] Three checks in the code first, a fix line for any that fails: a saved extra place in another country after Back; the chosen currency visible while searching; the built title on "Other" categories (INC-343)
-- [ ] A question or an answer removed from the catalogue never blocks a later save of the same visit (INC-479)
+- [x] A question or an answer removed from the catalogue never blocks a later save of the same visit (INC-479)
 
 ### After bundle 7, in this order
 

@@ -1,3 +1,4 @@
+import { dropRefusedAnswers } from "./catalog-held-answers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { readDraft, saveDraft, type DraftBody, type DraftPhotoRow } from "./posting-service";
@@ -291,7 +292,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     const token = strict ? claimTokenRef.current : 0;
     /** True while the claim this pass carries is still the newest claim. */
     const current = () => token !== 0 && claimTokenRef.current === token;
-    const serial = serialOf();
+    let serial = serialOf();
 
     // INC-227 — an autosave with nothing new to say says nothing at all.
     if (!strict && serial === lastSentSerialRef.current) {
@@ -309,7 +310,22 @@ export function useDraft(initialListingId: string | null): UseDraft {
     const sent = versionRef.current;
     setSaveState("saving");
 
-    const answer = await saveDraft(bodyFor(forStep));
+    let answer = await saveDraft(bodyFor(forStep));
+
+    // Bundle 7 D5 rule 2 (INC-479) — THE DOOR'S OWN WORD HEALS A STALE FORM. A
+    // refusal naming an answer the catalogue no longer has (unknownAttribute /
+    // unknownOption) drops exactly what it named and the SAME step and claim go
+    // ONCE more. A second refusal takes the ordinary path below; never a loop.
+    if (aliveRef.current && !answer.ok && !answer.unreachable) {
+      const healed = dropRefusedAnswers(valuesRef.current.attributes, answer.refusals);
+      if (healed !== null) {
+        const next = { ...valuesRef.current, attributes: healed };
+        valuesRef.current = next;
+        setValues(next);
+        serial = serialOf();
+        answer = await saveDraft(bodyFor(forStep));
+      }
+    }
 
     inFlightRef.current = false;
     if (!aliveRef.current) return answer.ok;
