@@ -127,9 +127,16 @@ const LINK_HEADER =
   "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin," +
   "allowed_options,default_value,visible_when,display_order,action";
 
-async function attachLinks(page: Page, text: string) {
+async function attachLinks(page: Page, text: string, definitions?: string) {
   await page.getByTestId("attribute-import").click();
   await expect(page.getByTestId("attribute-import-dialog")).toBeVisible({ timeout: 20000 });
+  if (definitions !== undefined) {
+    await page.getByTestId("attribute-import-definitions").setInputFiles({
+      name: "definitions.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(definitions, "utf8"),
+    });
+  }
   await page.getByTestId("attribute-import-links").setInputFiles({
     name: "links.csv",
     mimeType: "text/csv",
@@ -295,41 +302,22 @@ test.describe("Bundle 7 attribute safety", () => {
       const line = (key: string, order: number, verb: string) =>
         `${leaf.slug},${leaf.slug},${key},false,false,,${leaf.slug},,,,${order},${verb}`;
       const links = `${LINK_HEADER}\r\n${line(gone, 0, "unlink")}\r\n${line(kept, 1, "")}\r\n`;
-      await attachLinks(page, links);
-      const holders = page.getByTestId("import-holders");
-      await expect(holders).toContainText(gone, { timeout: 20000 });
-      await expect(holders).toContainText(
-        fill(en["admin.attributes.import.holders"], { count: 1 }),
-      );
-      await page.getByTestId("attribute-import-discard").click();
-
-      const { data: token } = await page.evaluate(async () => {
-        const client = (
-          window as unknown as {
-            __ethioSupabase: {
-              auth: {
-                getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
-              };
-            };
-          }
-        ).__ethioSupabase;
-        const { data } = await client.auth.getSession();
-        return { data: data.session?.access_token ?? "" };
-      });
-      // The removed answer is read through the same door the dialog posts to.
+      // Turn 7b item 3c — the removed answer is read ON THE SCREEN, in the same preview.
       const definitions =
         "attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant,direct_link_count\r\n" +
         `${kept},${kept},,single_select,"[{""value"":""a1"",""label_en"":""A1""}]",,,,,,,,,,,,\r\n`;
-      const response = await page.request.post("/api/admin/attributes/import", {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        data: { mode: "preview", definitions },
+      await attachLinks(page, links, definitions);
+      const holders = page.getByTestId("import-holders");
+      const count = fill(en["admin.attributes.import.holders"], { count: 1 });
+      const unlinkedRow = holders.locator("li").filter({ hasText: gone });
+      await expect(unlinkedRow, "AT-75 the unlinked question's row").toHaveCount(1, {
+        timeout: 20000,
       });
-      const payload = (await response.json()) as { holders?: Record<string, unknown>[] };
-      expect(response.status(), JSON.stringify(payload)).toBe(200);
-      const removed = (payload.holders ?? []).find(
-        (row) => row["key"] === kept && row["value"] === "a2",
-      );
-      expect(removed?.["count"], JSON.stringify(payload.holders)).toBe(1);
+      await expect(unlinkedRow).toContainText(count);
+      const removedRow = holders.locator("li").filter({ hasText: `${kept} · a2` });
+      await expect(removedRow, "AT-75 the removed answer's row").toHaveCount(1);
+      await expect(removedRow).toContainText(count);
+      await page.getByTestId("attribute-import-discard").click();
     } finally {
       await reap(fx);
     }
