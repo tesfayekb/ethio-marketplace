@@ -139,7 +139,11 @@ for (const path of files) {
     for (const p of body.matchAll(/\{\s*(?:props\.)?([a-z][A-Za-z0-9]*)\s*\}/g)) {
       const name = p[1];
       if (!/label|text|title|cta|action|confirm|cancel|verb/i.test(name)) continue;
-      if (new RegExp(`\\b${name}\\s*[?]?:\\s*(string|ReactNode|React\\.ReactNode|MessageKey)`).test(text)) {
+      if (
+        new RegExp(`\\b${name}\\s*[?]?:\\s*(string|ReactNode|React\\.ReactNode|MessageKey)`).test(
+          text,
+        )
+      ) {
         if (!labelProps.has(name)) labelProps.set(name, kind);
       }
     }
@@ -179,7 +183,17 @@ for (const key of [...uses.keys()].sort()) {
   }
   for (const f of flags) flagCount[f]++;
   rows.push(
-    [key, enText, amText, String(words), first.kind, first.file, String(first.line), String(list.length), flags.join(" ")]
+    [
+      key,
+      enText,
+      amText,
+      String(words),
+      first.kind,
+      first.file,
+      String(first.line),
+      String(list.length),
+      flags.join(" "),
+    ]
       .map(csv)
       .join(","),
   );
