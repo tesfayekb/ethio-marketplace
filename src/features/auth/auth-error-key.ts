@@ -19,7 +19,9 @@ export function isEmailNotConfirmed(message: string, code?: string): boolean {
 /** A weak-password refusal whose only reason is the leaked-password check. */
 function onlyLeaked(error: AuthErrorLike): boolean {
   const reasons = error.reasons ?? [];
-  return error.code === "weak_password" && reasons.length > 0 && reasons.every((r) => r === "pwned");
+  return (
+    error.code === "weak_password" && reasons.length > 0 && reasons.every((r) => r === "pwned")
+  );
 }
 
 /** Map a Supabase auth error onto a translation key. Raw errors never reach the UI. */
