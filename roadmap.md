@@ -125,8 +125,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 
 ### Bundle 8 — the security and wording round (in progress)
 
-- [ ] Part A — new database objects are born closed; the remaining helper functions are closed (INC-480, INC-482)
-- [ ] Part B — the answer door enforces an option's allowed list (INC-477)
+- [x] Part A — new database objects are born closed; the remaining helper functions are closed (INC-480, INC-482) — M14
+- [x] Part B — the answer door enforces an option's allowed list (INC-477) — M13, step B7 in M14
 - [x] Part C — a message that names a leaked password
 - [x] Part D — short button and action labels everywhere (D81); the live texts brought level with the code (INC-488)
 - [x] Part E — PW-147 and PW-130 wait for the name list built from both names (INC-487)
