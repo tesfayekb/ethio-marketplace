@@ -1007,10 +1007,11 @@ test.describe("C3 attributes console", () => {
         `${DEF_HEADER}\r\n` +
         `${v2(`${targetKey},${targetKey},,single_select,${targetOptions},,,0`)}\r\n` +
         `${v2(`${ownerKey},${ownerKey},,single_select,${ownerOptions},,,0`)}\r\n`;
+      // Bundle 7 E3 — the owner (whose option names the target) is asked first.
       const links =
         `${LINK_HEADER}\r\n` +
-        `${slug},${slug},${targetKey},false,false,,${slug}\r\n` +
-        `${slug},${slug},${ownerKey},false,false,,${slug}\r\n`;
+        `${slug},${slug},${ownerKey},false,false,,${slug}\r\n` +
+        `${slug},${slug},${targetKey},false,false,,${slug}\r\n`;
 
       const preview = await importPost(page, token, { mode: "preview", definitions, links });
       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
