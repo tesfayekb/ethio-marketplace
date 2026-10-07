@@ -913,7 +913,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   }) => {
     const markets = await openMarketCodes();
     const other = markets.find((code) => code !== "ET");
-    test.skip(other === undefined, "PW-173 needs a second open market");
+    expect(other, "PW-173 needs a second open market on ethio-staging").toBeDefined();
     await signedInSeller(page);
     const category = await seedPostableCategory();
     categories.push(category.slug);
