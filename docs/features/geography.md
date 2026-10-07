@@ -414,3 +414,7 @@ saved area beats the deepest guess.
 - `docs/governance/locations-era-spec.md` — the ratified era spec (§3–§4 land here).
 - `docs/features/countries-reference.md` — the root reference table this FKs.
 - `docs/governance/migrations.md` — append-only migration law.
+
+## Listing places order (Bundle 7 M10)
+
+`listing_locations.position` orders an ad's places; readers order by position, created_at, id. Only the posting doors write the table.

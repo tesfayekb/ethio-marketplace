@@ -1242,3 +1242,11 @@ W1: rows sharing a city draw ONE city box: the city picker, then one sub-city bo
 
 - Bundle 6 (INC-444, DEC-136): the seller doors edit_listing, transition_listing, renew_listing, set_listing_pin, mark_sold and relist_listing each call `rate_gate('revise')` (120 an hour per seller) after their caller checks and refuse with `rateLimited`.
 - Bundle 6 (DEC-135): a draft save's transport call times out after 30 s (`SAVE_TIMEOUT_MS`); a timeout answers unreachable, the draft shows unsaved, and the next edit retries.
+
+## Bundle 7 Part C–D (2026-10-07)
+
+- Removed answers (C1): an answer whose question or option the catalogue removed is released on the next save (autosave and the strict save alike); a required question asks again. A key or option never held stays refused.
+- Retired labels (D1, INC-466): the options route returns `retired` beside the offered list; Review, the preview, the wizard's basis caption and the details picker's current choice print a switched-off option's label (offered first, then retired). A retired option is never offered.
+- "Used before" chips (D2): the category step asks `my_recent_categories` once on mount and draws at most two chips, each the exact leaf the seller published in; a tap selects it. Nothing is drawn while the read is pending, failed or empty.
+- Place step seeding (D3, INC-473/474): a draft with places opens in its FIRST place's market; each place keeps its own country; a place the read did not return gets no row; before the seller acts, nothing writes the draft until every saved place is in a row. Places are read by `position`, then `created_at`, then `id`.
+- Reset rule (D4): rule 2 takes a fact for D from the option now chosen in ANY question D depends on — the moved parent first, then the others in form order; rule 3 applies only when none states one. Red-first in unit case (x) and PW-174, then fixed.
