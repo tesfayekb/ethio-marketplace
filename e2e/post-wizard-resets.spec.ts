@@ -1640,4 +1640,57 @@ test.describe("POSTING WIZARD", () => {
       )
       .toBe(`${v("b2")}|false|false|${v("red")}`);
   });
+
+  test("PW-174 a parent's move whose new option carries no fact leaves D on another parent's fact, as a prefill (Bundle 7 D4)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const stem = `e2e_r174_${Date.now()}_${rand()}`;
+    const [p1, p2, d] = [`${stem}_p1`, `${stem}_p2`, `${stem}_d`];
+    const v = (name: string) => `${stem}_${name}`;
+    await seedRule(
+      "PW-174",
+      category.id,
+      [
+        {
+          attr_key: p1,
+          name_en: p1,
+          attr_type: "single_select",
+          options: [ruleOption(v("old"), { facts: { [d]: v("hatch") } }), ruleOption(v("new"))],
+        },
+        {
+          attr_key: p2,
+          name_en: p2,
+          attr_type: "single_select",
+          options: [ruleOption(v("u"), { facts: { [d]: v("suv") } })],
+        },
+        {
+          attr_key: d,
+          name_en: d,
+          attr_type: "single_select",
+          options: [ruleOption(v("hatch")), ruleOption(v("van")), ruleOption(v("suv"))],
+        },
+      ],
+      { [d]: { default_value: v("van") } },
+    );
+    const listingId = await reachStep3(page, user.id, category);
+    const stored = () => attributesOf(listingId);
+
+    await choose(page, p2, v("u"));
+    await expect(ruleControl(page, d)).toHaveValue(v("suv"), { timeout: 20_000 });
+    await choose(page, p1, v("old"));
+    await expect(ruleControl(page, d)).toHaveValue(v("hatch"), { timeout: 20_000 });
+    await choose(page, p1, v("new"));
+    await expect(
+      ruleControl(page, d),
+      "PW-174: D went to its default although the other parent still states a fact",
+    ).toHaveValue(v("suv"), { timeout: 20_000 });
+    await expect
+      .poll(async () => String((await stored())[d]), {
+        message: "PW-174: the draft does not hold the other parent's fact",
+        timeout: 20_000,
+      })
+      .toBe(v("suv"));
+  });
 });

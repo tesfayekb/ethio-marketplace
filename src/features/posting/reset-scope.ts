@@ -14,8 +14,7 @@ import { conditionMet } from "./visible-when";
  *
  * WHAT A MOVE OF P DOES, for each D that depends on P, in form order:
  *   1 D is not asked under the answers as they now stand → D stores nothing;
- *   2 the option now chosen in ANY question D depends on carries a fact for D —
- *     the moved P first, then the others in form order → D takes it as a prefill;
+ *   2 the NEW option of P carries a fact for D → D takes it as a prefill;
  *   3 D holds what the form wrote and the seller left → it goes with the old
  *     choice: the link default, or empty;
  *   4 D holds the seller's own answer → kept when it fits what the catalogue now
@@ -274,27 +273,13 @@ export function resetAfterMove(
         write(key, undefined);
         delete owned[key];
       } else {
-        // 2 (Bundle 7 D4) — a fact for D carried by the option now chosen in ANY
-        // question D depends on: the moved parent first, then the others in form order.
-        const sources = [
-          option,
-          ...input.definitions
-            .map((entry) => entry.attrKey)
-            .filter((other) => other !== parent && (deps[other] ?? []).includes(key))
-            .map((other) => chosenOption(input, other, next)),
-        ];
-        let folded: ReturnType<typeof foldFact> | { kind: "skip" } = { kind: "skip" };
-        for (const source of sources) {
-          const raw = source?.facts?.[key];
-          if (raw === undefined || boundOf(raw) !== null) continue;
-          const found = foldFact(raw, def.attrType);
-          if (found.kind === "prefill") {
-            folded = found;
-            break;
-          }
-        }
+        const raw = option?.facts?.[key];
+        const folded =
+          raw === undefined || boundOf(raw) !== null
+            ? ({ kind: "skip" } as const)
+            : foldFact(raw, def.attrType);
         if (folded.kind === "prefill") {
-          // 2 — a chosen option's fact.
+          // 2 — the new option's fact.
           write(key, folded.value);
           owned[key] = folded.value;
         } else if (key in owned && same(before, owned[key])) {
