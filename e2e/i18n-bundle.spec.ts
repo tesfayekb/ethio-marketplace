@@ -154,7 +154,7 @@ test.describe("STAB-I18N · cached translation bundle", () => {
    */
   test("IB-3 a ?lang= naming an inherited member renders the base shell", async ({ page }) => {
     await gotoReady(page, "/?lang=constructor");
-    await expect(page.locator("header").first()).toBeVisible();
+    await expect(page.getByRole("banner")).toBeVisible();
     await expect(page.getByText(en["error.pageFailed"])).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
   });

@@ -158,7 +158,10 @@ export function HistoryDrawer({
                 >
                   <div className="flex min-w-0 flex-wrap items-center gap-2">
                     <Badge variant="outline" data-testid={`history-action-${testId}-${index}`}>
-                      {t(ownValue(ACTION_LABELS, row.action) ?? "admin.translations.history.action.save")}
+                      {t(
+                        ownValue(ACTION_LABELS, row.action) ??
+                          "admin.translations.history.action.save",
+                      )}
                     </Badge>
                     <Badge variant="secondary" data-testid={`history-prev-${testId}-${index}`}>
                       {t(

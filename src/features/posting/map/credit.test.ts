@@ -15,9 +15,9 @@ function plan(...attributions: string[]): TilePlan {
 
 describe("creditOf (Part H2) — the credit is text, never markup", () => {
   it("a link tag and the three entities read as plain words", () => {
-    expect(creditOf(plan('<a href="https://x.example">Esri</a> &copy; A&amp;B&nbsp;Maps'), "street")).toBe(
-      "Esri \u00a9 A&B Maps",
-    );
+    expect(
+      creditOf(plan('<a href="https://x.example">Esri</a> &copy; A&amp;B&nbsp;Maps'), "street"),
+    ).toBe("Esri \u00a9 A&B Maps");
   });
   it("a tag written inside another tag leaves no tag behind", () => {
     const text = creditOf(plan("<scr<script>ipt>Maps</script> credit"), "street");

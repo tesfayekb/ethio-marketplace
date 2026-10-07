@@ -866,9 +866,10 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const previewCredit = page.getByTestId("listing-map-credit");
     await expect(previewCredit, "PW-96: the preview's credit line is not visible").toBeVisible();
     await expect(previewCredit).toHaveText(pinCredit);
-    expect(await previewCredit.textContent(), "PW-96: the preview's credit holds markup").not.toContain(
-      "<",
-    );
+    expect(
+      await previewCredit.textContent(),
+      "PW-96: the preview's credit holds markup",
+    ).not.toContain("<");
     await page.getByTestId("post-where-pin-open").click();
     const reopened = page.getByTestId("post-pin-map");
     await expect(reopened).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
