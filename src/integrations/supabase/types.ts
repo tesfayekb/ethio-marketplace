@@ -3067,6 +3067,13 @@ export type Database = {
         Args: { p_rows: Json; p_scope: string }
         Returns: Json
       }
+      cat_import_undo_order: {
+        Args: { p_batch: string }
+        Returns: {
+          pos: number
+          revision_id: string
+        }[]
+      }
       cat_int: { Args: { p_text: string }; Returns: number }
       cat_pipe: { Args: { p_text: string }; Returns: string[] }
       cat_primary_parent: { Args: { p_id: string }; Returns: string }
