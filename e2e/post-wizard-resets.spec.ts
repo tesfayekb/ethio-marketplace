@@ -1677,10 +1677,11 @@ test.describe("POSTING WIZARD", () => {
     const listingId = await reachStep3(page, user.id, category);
     const stored = () => attributesOf(listingId);
 
-    await choose(page, p2, v("u"));
-    await expect(ruleControl(page, d)).toHaveValue(v("suv"), { timeout: 20_000 });
     await choose(page, p1, v("old"));
     await expect(ruleControl(page, d)).toHaveValue(v("hatch"), { timeout: 20_000 });
+    // P2 states its own fact for D; whichever prefill the screen shows, the seller leaves it.
+    await choose(page, p2, v("u"));
+    await expect.poll(async () => String((await stored())[p2]), { timeout: 20_000 }).toBe(v("u"));
     await choose(page, p1, v("new"));
     await expect(
       ruleControl(page, d),
