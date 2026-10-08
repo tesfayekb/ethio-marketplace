@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, signIn, waitForHydration } from "./helpers/ui";
+import { expectPanelOffered, gotoReady, signIn, waitForHydration } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -65,8 +65,7 @@ test.describe("RBAC client seam", () => {
     await signIn(page, staff.email, staff.password);
     await waitForHydration(page);
 
-    const adminTab = page.getByTestId("panel-tab-admin");
-    await expect(adminTab).toBeVisible({ timeout: 15000 });
+    await expectPanelOffered(page, "admin");
 
     await page.goto("/admin");
     await waitForHydration(page);

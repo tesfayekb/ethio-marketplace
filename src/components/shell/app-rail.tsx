@@ -529,7 +529,10 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
  */
 export function AppRail() {
   const { t } = useI18n();
-  const { navOpen, setNavOpen } = useShell();
+  const { navOpen, setNavOpen, user, auth } = useShell();
+  const onWizard = useRouterState({
+    select: (s) => s.location.pathname === "/post" || s.location.pathname.startsWith("/post/"),
+  });
   const { collapsed } = useRailCollapsed();
   const footerInset = useFooterInset();
 
@@ -564,12 +567,14 @@ export function AppRail() {
         </aside>
       </CollapsedContext.Provider>
 
-      {PHONE_STRIP ? (
+      {/* Ruling turn 5 (INC-499) — no strip on the posting wizard below md:
+          the wizard keeps the full phone width. */}
+      {PHONE_STRIP && !onWizard ? (
         <RailVariantContext.Provider value="strip">
           <div
             data-testid="rail-strip"
             style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-            className="fixed start-0 top-13 bottom-[var(--rail-bottom-inset,0px)] z-20 flex w-12 flex-col border-e border-border bg-sidebar md:hidden"
+            className="fixed start-0 top-13 bottom-[max(var(--rail-bottom-inset,0px),var(--bottom-bar))] z-20 flex w-12 flex-col border-e border-border bg-sidebar md:hidden"
           >
             <button
               type="button"
@@ -609,6 +614,14 @@ export function AppRail() {
           </SheetHeader>
           {/* U0d: the SAME panel band as the md+ rail, directly below the
               logo cell. The old stacked all-panels list is gone (U0c). */}
+          {user !== null && auth.isAuthenticated ? (
+            <p
+              data-testid="drawer-identity"
+              className="mt-3 truncate text-sm text-muted-foreground"
+            >
+              {user?.displayName ?? t("auth.signedInAs")}
+            </p>
+          ) : null}
           <PanelHeader className="mt-3" />
           <div className="mt-4 flex min-h-0 flex-1 flex-col gap-4">
             {/* U0f: same three-region pattern as the md+ rail. */}

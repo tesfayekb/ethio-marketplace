@@ -34,7 +34,7 @@ export function PanelTabs() {
       // put a scrollbar under the tabs at phone widths. Tabs now SHARE the row:
       // each is `min-w-0 flex-1` and its label truncates, so the set always fits
       // and no axis ever overflows.
-      className="flex w-full min-w-0 items-stretch gap-1 border-b border-border bg-card px-2 md:px-4"
+      className="hidden w-full min-w-0 items-stretch md:flex gap-1 border-b border-border bg-card px-2 md:px-4"
     >
       {panels.map((panel) => {
         const Icon = panel.icon;

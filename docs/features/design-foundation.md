@@ -348,3 +348,7 @@ per-breakpoint width cap.
 ## The size rule (bundle 9, Part B)
 
 A control a finger may press is 44 px on its short side, 36 px with a mouse: `size-11 md:pointer-fine:size-9` (square) or `h-11 md:pointer-fine:h-9` (field, text button); below md always 44 px.
+
+## The phone bottom bar (bundle 9, Part C2b)
+
+Below `md` (768 px) a fixed bottom bar (`bottom-bar`) holds the most-used destinations — at most five, Post emphasised in a filled circle, nothing appearing twice on a phone. Signed in: Home · My listings · Post · Account. Signed out: Home · Post · Sign in. An admin sees the same four and reaches Admin through the drawer's panel switcher. The bar renders nothing while the session is read, and is not rendered on the posting wizard ("/post" and "/post/…"), where the wizard's own Back/Next bar owns the bottom edge; there the strip is not rendered either and the top bar carries the "Open menu" button, so every page keeps exactly one. The panel tabs, the top bar's account picture and its Sign in link show from `md` only; the drawer names the signed-in user (`drawer-identity`).

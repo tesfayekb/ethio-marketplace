@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, openRailScope, signIn, signOutViaUi } from "./helpers/ui";
+import { gotoReady, openRailScope, signIn, signOutViaUi, signedInMarker } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -282,7 +282,7 @@ test.describe("U0k session policy", () => {
     // Past the ORIGINAL deadline, still signed in.
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
     await page.waitForTimeout(4000);
-    await expect(page.getByTestId("account-menu")).toBeVisible();
+    await expect(signedInMarker(page)).toBeVisible();
   });
 
   test("SP-3 absolute: continuous activity does not save the session", async ({ page }) => {
@@ -341,7 +341,7 @@ test.describe("U0k session policy", () => {
     for (let i = 0; i < 10; i += 1) {
       // eslint-disable-next-line no-restricted-syntax -- DEC-027: the subject IS elapsed policy time
       await page.waitForTimeout(1000);
-      await expect(page.getByTestId("account-menu")).toBeVisible();
+      await expect(signedInMarker(page)).toBeVisible();
       await expect(page.getByTestId("session-notice")).toHaveCount(0);
       await expect(page.getByTestId("session-idle-warning")).toHaveCount(0);
     }
@@ -370,7 +370,7 @@ test.describe("U0k session policy", () => {
     // eslint-disable-next-line no-restricted-syntax -- DEC-027: the stamps must differ if they were rewritten
     await page.waitForTimeout(2000);
     await page.reload();
-    await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+    await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
 
     const after = await readStamps(page);
     expect(after.sessionStartedAt, "the reload restarted the absolute window").toBe(

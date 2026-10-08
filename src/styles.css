@@ -147,6 +147,9 @@
 
 :root {
   --radius: 0.375rem;
+  /* C2b — the phone bottom bar's height; every sticky/fixed bottom edge
+     below md sits above it through this one variable (0px from 48rem). */
+  --bottom-bar: calc(3.75rem + env(safe-area-inset-bottom));
   /* #F6F7F9 cool-slate near-white */
   --background: oklch(0.976 0.003 264.5);
   --foreground: oklch(0.254 0.014 253.1); /* #1E2329 */
@@ -279,6 +282,12 @@
  * is one attribute write and a CSS custom-property cascade — no re-render of
  * the tree, no extra bundle weight beyond the toggle button itself.
  */
+@media (min-width: 48rem) {
+  :root {
+    --bottom-bar: 0px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

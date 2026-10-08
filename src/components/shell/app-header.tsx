@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LogOut,
   Menu,
@@ -106,11 +106,16 @@ export function AppHeader() {
   const { auth, user, requestSignOut, setNavOpen, signingOut } = useShell();
   const { collapsed, toggle } = useRailCollapsed();
   const [searchOpen, setSearchOpen] = useState(false);
+  // Ruling turn 5 — the posting wizard has no strip below md, so its menu
+  // button sits in the top bar there: every page keeps exactly one.
+  const onWizard = useRouterState({
+    select: (s) => s.location.pathname === "/post" || s.location.pathname.startsWith("/post/"),
+  });
 
   return (
     <div className="w-full min-w-0 md:h-full">
       <header className="flex h-13 w-full min-w-0 items-center gap-1 border-b border-border bg-card px-2 md:h-full md:gap-2 md:px-4">
-        {!PHONE_STRIP ? (
+        {!PHONE_STRIP || onWizard ? (
           <button
             type="button"
             aria-label={t("shell.openMenu")}
@@ -223,7 +228,7 @@ export function AppHeader() {
                   type="button"
                   aria-label={t("shell.accountMenu")}
                   data-testid="account-menu"
-                  className="inline-flex min-h-11 min-w-0 shrink-0 items-center gap-2 rounded-md px-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="hidden min-h-11 min-w-0 shrink-0 items-center gap-2 rounded-md px-1.5 md:inline-flex text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Avatar className="h-7 w-7">
                     <AvatarFallback>
@@ -265,7 +270,7 @@ export function AppHeader() {
           ) : (
             <Link
               to="/auth"
-              className="inline-flex min-h-11 shrink-0 items-center rounded-md bg-primary px-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:px-4"
+              className="hidden min-h-11 shrink-0 items-center rounded-md bg-primary px-2 md:inline-flex text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:px-4"
             >
               {t("auth.signIn")}
             </Link>

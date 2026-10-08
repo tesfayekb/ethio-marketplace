@@ -30,7 +30,7 @@ export function PageHeader({
       {actions ? <div className="hidden shrink-0 items-start gap-2 md:flex">{actions}</div> : null}
       {actions ? (
         <div
-          className={`sticky [inset-block-end:0] ${Z_ACTION_BAR} col-span-full flex min-h-11 items-center gap-2 border-t border-border bg-background py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden`}
+          className={`sticky [inset-block-end:var(--bottom-bar)] ${Z_ACTION_BAR} col-span-full flex min-h-11 items-center gap-2 border-t border-border bg-background py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden`}
           data-testid="page-header-mobile-actions"
         >
           {actions}

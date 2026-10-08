@@ -417,3 +417,7 @@ claim, decoded client-side from the token payload: it is stable across every
 refresh of the same session and differs for every new sign-in. The issuing
 instant survives only as the fallback for a token whose payload cannot be read,
 which keeps a stale marker from being treated as foreign on every tick.
+
+## The phone frame (bundle 9, Part C2b)
+
+Below 768 px: fixed top bar, 48 px icon strip (not on the posting wizard), and the bottom bar (Home · My listings · Post · Account). The Admin panel has no bar item; it is opened from the strip's menu button through the drawer's panel switcher, whose band then reads the admin panel's name.
