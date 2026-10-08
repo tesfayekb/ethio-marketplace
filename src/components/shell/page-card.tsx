@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-export const PAGE_CARD_CLASS = "rounded-lg border border-border bg-card p-6";
+export const PAGE_CARD_CLASS = "rounded-lg border border-border bg-card p-6 shadow-card";
 
 /**
  * @deprecated LAYOUT-1: content pages use `Section`; this framed block remains
