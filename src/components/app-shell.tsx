@@ -6,6 +6,7 @@ import { Logo } from "@/components/brand/logo";
 import { AppFooter } from "@/components/shell/app-footer";
 import { AppHeader } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
+import { BottomBar } from "@/components/shell/bottom-bar";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import {
   anchorOf,
@@ -322,6 +323,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // C2b / ruling turn 5 — the posting wizard: no bar, no strip offset below md.
+  const onWizard = pathname === "/post" || pathname.startsWith("/post/");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -619,7 +622,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-idle-warning"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
+          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+0.5rem)] z-50 mx-auto flex max-w-md flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
         >
           <p className="text-sm text-foreground">
             {t("session.idleWarning").replace("{s}", String(warningSecondsLeft))}
@@ -640,7 +643,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-notice"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-lg border border-border bg-card p-3 shadow-lg"
+          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+0.5rem)] z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-lg border border-border bg-card p-3 shadow-lg"
         >
           <p className="text-sm text-foreground">{t(sessionNotice)}</p>
           <button
@@ -658,7 +661,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           the footer inside the grid the rail could overhang it; ending the
           grid at the content row makes the rail's bottom stop exactly at the
           footer's top. Visually identical on mobile (stacked, full width). */}
-      <div className="flex min-h-screen flex-col bg-background">
+      <div
+        className={cn(
+          "flex min-h-screen flex-col bg-background pb-[var(--bottom-bar)]",
+          onWizard && "[--bottom-bar:0px]",
+        )}
+      >
         {/* Mobile keeps the one-column grid. From md up the layout is FIXED
             geometry (U0g-2): the band and the rail are position:fixed and the
             content column offsets itself with padding/margin. */}
@@ -728,7 +736,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             data-testid="shell-stack"
             className={cn(
               "col-start-1 row-start-2 flex min-w-0 flex-col pt-13 md:ms-64 md:pt-14 md:[html[data-rail=collapsed]_&]:ms-16",
-              PHONE_STRIP && "ms-12",
+              PHONE_STRIP && !onWizard && "ms-12",
             )}
           >
             <div
@@ -766,6 +774,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             inset equal to the rail width at md+, so the links and copyright
             stay in the readable content column. Mobile: unchanged (no fixed
             rail exists there). */}
+        {/* C2b — the phone bottom bar; never on the posting wizard. */}
+        {onWizard ? null : <BottomBar />}
         <div
           data-testid="shell-footer-wrapper"
           className="relative z-40 w-full bg-card md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16"

@@ -9,6 +9,7 @@ import {
   expectNoHorizontalOverflow,
   expectSignedIn,
   fillUntilStable,
+  isMobile,
   openAccountMenu,
   signOutViaUi,
   switchLanguage,
@@ -73,11 +74,13 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
   // Sign-out is still reachable; the menu item is addressed by testid, and the
   // account-menu trigger by its Amharic accessible name.
   await openAccountMenu(page, am["shell.accountMenu"]);
-  await expect(page.getByTestId("account-menu-sign-out")).toBeVisible();
-  await expect(page.getByTestId("account-menu-sign-out")).toHaveText(
-    new RegExp(am["auth.signOut"]),
-  );
-  await page.keyboard.press("Escape");
+  if (!isMobile(page)) {
+    await expect(page.getByTestId("account-menu-sign-out")).toBeVisible();
+    await expect(page.getByTestId("account-menu-sign-out")).toHaveText(
+      new RegExp(am["auth.signOut"]),
+    );
+    await page.keyboard.press("Escape");
+  }
   await expectNoHorizontalOverflow(page);
 
   // 6. Sign out returns the header to the signed-out state (Amharic labels).

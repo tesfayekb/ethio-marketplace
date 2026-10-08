@@ -8,7 +8,15 @@ import {
 } from "../src/features/admin/sections";
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, openRailScope, signIn, switchUser, waitForHydration } from "./helpers/ui";
+import {
+  expectPanelOffered,
+  gotoReady,
+  openPanel,
+  openRailScope,
+  signIn,
+  switchUser,
+  waitForHydration,
+} from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -190,7 +198,7 @@ test.describe("Admin shell (U0)", () => {
     await waitForHydration(page);
 
     // admin_panel:access holds, so the tab is there.
-    await expect(page.getByTestId("panel-tab-admin")).toBeVisible({ timeout: 15000 });
+    await expectPanelOffered(page, "admin");
 
     await page.goto("/admin");
     await waitForHydration(page);
@@ -246,7 +254,7 @@ test.describe("Admin shell (U0)", () => {
 
     // U0e: activation IS navigation — the stale state-path placeholder that
     // used to render here is deleted.
-    await page.getByTestId("panel-tab-admin").click();
+    await openPanel(page, "admin");
     await expect(page).toHaveURL(/\/admin$/);
     await expect(page.getByTestId("admin-landing")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("admin-nav-cards")).toBeVisible();

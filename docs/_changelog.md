@@ -735,3 +735,4 @@
 - 2026-10-08 — Bundle 9 C1: 56px top band from md; pinned tabs/breadcrumb subband; shell-owned 8px/16px gutters; 36px fine-pointer menu rows; desktop geometry proofs. No migration.
 
 - 2026-10-08 — Bundle 9 C2a: fixed 52px phone bar and tabs/breadcrumb band; shared 48px icon strip with footer inset and one menu button; 312px pre-frame sweep and 360px guard; settled HS-2 and extracted pageWindow. No migration, dependency or string.
+- 2026-10-08 — Bundle 9 C2b: phone bottom bar (Home, My listings, Post, Account / Sign in) replacing the panel tabs, account picture and top-bar Sign in below md; `--bottom-bar` bottom-edge variable; drawer identity line; posting wizard keeps the full phone width (no strip, no bar, menu in top bar — INC-499 ruling); viewport-aware panel/sign-in helpers. No migration, dependency or string.

@@ -9,6 +9,8 @@ import {
   expectSignedIn,
   gotoReady,
   describeSwitcher,
+  expectActivePanel,
+  openPanel,
   openRailScope,
   signIn,
   signInViaSession,
@@ -804,6 +806,24 @@ test.describe("dark mode", () => {
   });
 });
 
+async function poolSignIn(page: Page) {
+  const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
+  await signInViaSession(page, user.email, user.password);
+}
+
+async function barItems(page: Page) {
+  return page
+    .getByTestId("bottom-bar")
+    .locator(":scope > *")
+    .evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")));
+}
+
+async function bottomOf(page: Page, testid: string) {
+  const box = await page.getByTestId(testid).boundingBox();
+  if (!box) throw new Error(`no box for ${testid}`);
+  return box.y + box.height;
+}
+
 test.describe("mobile chrome", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) > 400, "mobile-360 only");
 
@@ -1006,6 +1026,8 @@ test.describe("mobile chrome", () => {
       "theme toggle",
     );
     await expectTapTarget(page, page.getByTestId("search-toggle"), "search toggle");
+    await expectTapTarget(page, page.getByTestId("bottom-bar-home"), "bar home");
+    await expectTapTarget(page, page.getByTestId("bottom-bar-sign-in"), "bar sign in");
 
     await expectTapTarget(page, page.getByTestId("strip-category-all"), "strip category");
 
@@ -1017,6 +1039,97 @@ test.describe("mobile chrome", () => {
       page.getByRole("link", { name: en["shell.allCategories"] }).first(),
       "all categories",
     );
+  });
+
+  test("the bottom bar, signed out", async ({ page }) => {
+    await gotoReady(page, "/");
+    const bar = page.getByTestId("bottom-bar");
+    await expect(bar).toBeVisible();
+    const vh = page.viewportSize()?.height ?? 0;
+    expect(Math.abs((await bottomOf(page, "bottom-bar")) - vh)).toBeLessThanOrEqual(1);
+    expect(await barItems(page)).toEqual([
+      "bottom-bar-home",
+      "bottom-bar-post",
+      "bottom-bar-sign-in",
+    ]);
+    for (const id of ["bottom-bar-home", "bottom-bar-post", "bottom-bar-sign-in"]) {
+      const item = await page.getByTestId(id).boundingBox();
+      expect(item?.height ?? 0, id).toBeGreaterThanOrEqual(44);
+    }
+    await expect(page.getByTestId("panel-tabs")).not.toBeVisible();
+    const topbar = page.getByTestId("shell-topbar");
+    await expect(topbar.locator('a[href="/auth"]:visible')).toHaveCount(0);
+    await expect(topbar.locator('[data-testid="account-menu"]:visible')).toHaveCount(0);
+  });
+
+  test("the bottom bar, signed in", async ({ page }) => {
+    await poolSignIn(page);
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("bottom-bar-account")).toBeVisible();
+    expect(await barItems(page)).toEqual([
+      "bottom-bar-home",
+      "bottom-bar-my-listings",
+      "bottom-bar-post",
+      "bottom-bar-account",
+    ]);
+    await expect(page.getByTestId("bottom-bar-home")).toHaveAttribute("aria-current", "page");
+    await page.getByTestId("bottom-bar-account").click();
+    await page.waitForURL(/\/account$/);
+    await expect(page.getByTestId("bottom-bar-account")).toHaveAttribute("aria-current", "page");
+    await page.getByTestId("bottom-bar-my-listings").click();
+    await expect(page.getByTestId("strip-post-entry")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("bottom-bar-my-listings")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
+  test("the bar is not on the posting wizard", async ({ page }) => {
+    await poolSignIn(page);
+    await gotoReady(page, "/post");
+    await expect(page.getByTestId("form-layout-actions")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("bottom-bar")).toHaveCount(0);
+    // Step 1 is shorter than the phone, so the sticky bar sits in flow above
+    // the viewport's bottom (brief: "= bottom ± 1" — reported, see turn 5).
+    const vh = page.viewportSize()?.height ?? 0;
+    expect(await bottomOf(page, "form-layout-actions")).toBeLessThanOrEqual(vh + 1);
+  });
+
+  test("the posting wizard keeps the full width", async ({ page }) => {
+    await poolSignIn(page);
+    await gotoReady(page, "/post");
+    await expect(page.getByTestId("post-step-1")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("rail-strip")).toHaveCount(0);
+    await expect(page.getByTestId("bottom-bar")).toHaveCount(0);
+    const main = await page.locator("main#main").boundingBox();
+    expect(Math.abs(main?.x ?? 99)).toBeLessThanOrEqual(1);
+    const menu = page
+      .getByTestId("shell-topbar")
+      .getByRole("button", { name: en["shell.openMenu"] });
+    await expect(menu).toBeVisible();
+    await menu.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+  });
+
+  test("nothing hides under the bar", async ({ page }) => {
+    await gotoReady(page, "/dev/tall");
+    const bar = await page.getByTestId("bottom-bar").boundingBox();
+    if (!bar) throw new Error("no bottom bar");
+    // Footer out of view: the strip ends at or above the bar's top.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(() => bottomOf(page, "rail-strip")).toBeLessThanOrEqual(bar.y + 1);
+    // Scrolled to the end: the footer ends at or above the bar's top.
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect.poll(() => bottomOf(page, "shell-footer-wrapper")).toBeLessThanOrEqual(bar.y + 1);
+  });
+
+  test("the drawer says who is signed in", async ({ page }) => {
+    await poolSignIn(page);
+    await gotoReady(page, "/");
+    const drawer = await openRailScope(page);
+    const identity = drawer.getByTestId("drawer-identity");
+    await expect(identity).toBeVisible();
+    await expect(identity).not.toHaveText("");
   });
 });
 
@@ -1032,17 +1145,14 @@ test.describe("panel-scoped chrome", () => {
     await expectSignedIn(page, user.displayName);
     await gotoReady(page, "/");
 
-    await expect(page.getByTestId("panel-tab-marketplace")).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    await expectActivePanel(page, "marketplace");
     await expect(page.getByTestId("location-row")).toBeVisible();
 
-    await page.getByTestId("panel-tab-account").click();
-    await expect(page.getByTestId("panel-tab-account")).toHaveAttribute("aria-selected", "true");
+    await openPanel(page, "account");
+    await expectActivePanel(page, "account");
     await expect(page.getByTestId("location-row")).toHaveCount(0);
 
-    await page.getByTestId("panel-tab-marketplace").click();
+    await openPanel(page, "marketplace");
     await expect(page.getByTestId("location-row")).toBeVisible();
 
     // INC-056 — the tabs row must FIT at every width: no horizontal scrollbar
@@ -1098,7 +1208,7 @@ test.describe("panel follows the route", () => {
     await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
 
     await gotoReady(page, "/settings");
-    await expect(page.getByTestId("panel-tab-account")).toHaveAttribute("aria-selected", "true");
+    await expectActivePanel(page, "account");
     // Account rail, not the category tree; and no marketplace location row.
     await expect(rail.getByText(en["nav.overview"], { exact: true })).toBeVisible();
     await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
@@ -1107,7 +1217,7 @@ test.describe("panel follows the route", () => {
     await expect(page.getByRole("heading", { name: en["settings.title"] })).toBeVisible();
 
     // Back to Marketplace: categories again, Settings not among them.
-    await page.getByTestId("panel-tab-marketplace").click();
+    await openPanel(page, "marketplace");
     await expect(page).toHaveURL(/\/$/);
     await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
     await expect(rail.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
@@ -1322,6 +1432,14 @@ test.describe("rail scroll regions (U0f)", () => {
  * elements under test.
  */
 test.describe("desktop layout laws (U0g)", () => {
+  test("the bottom bar is phones only; the tabs show from md", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    await poolSignIn(page);
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("bottom-bar")).not.toBeVisible();
+    await expect(page.getByTestId("panel-tabs")).toBeVisible();
+  });
+
   test("the phone strip is absent on desktop", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     await gotoReady(page, "/");

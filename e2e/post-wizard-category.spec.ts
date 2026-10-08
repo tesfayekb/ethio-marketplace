@@ -2,7 +2,13 @@ import { join } from "node:path";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
-import { gotoReady, openRailScope, signInViaSession } from "./helpers/ui";
+import {
+  expectActivePanel,
+  gotoReady,
+  openPanel,
+  openRailScope,
+  signInViaSession,
+} from "./helpers/ui";
 import {
   destroyLocation,
   readServedTree,
@@ -1084,7 +1090,7 @@ test.describe("POSTING WIZARD", () => {
 
     // U0e — the panel band activates the panel; the drawer then lists ONLY that
     // panel's items (J5: openRailScope resolves the right viewport twin).
-    await page.getByTestId("panel-tab-my-listings").click();
+    await openPanel(page, "my-listings");
     const entry = (await openRailScope(page)).getByTestId("post-entry");
     await expect(entry, "PW-15: My Listings does not carry the posting entry").toBeVisible();
 
@@ -1098,10 +1104,8 @@ test.describe("POSTING WIZARD", () => {
     // A fresh load, so the tab is derived from the route, not the click above.
     await gotoReady(page, "/post");
     await expect(page.getByTestId("post-step-1")).toBeVisible();
-    await expect(
-      page.getByTestId("panel-tab-my-listings"),
-      "PW-15: /post fell back to another panel; My Listings must own the posting pages",
-    ).toHaveAttribute("aria-selected", "true");
+    // PW-15: /post must not fall back to another panel; My Listings owns it.
+    await expectActivePanel(page, "my-listings");
     await expect(
       (await openRailScope(page)).getByTestId("post-entry"),
       "PW-15: the My Listings menu is not visible while posting",
@@ -1109,7 +1113,7 @@ test.describe("POSTING WIZARD", () => {
     // Close the drawer before switching panels (it overlays the band on mobile).
     await page.keyboard.press("Escape");
 
-    await page.getByTestId("panel-tab-account").click();
+    await openPanel(page, "account");
     await expect(
       (await openRailScope(page)).getByTestId("post-entry"),
       "PW-15: the posting entry is still in Account",

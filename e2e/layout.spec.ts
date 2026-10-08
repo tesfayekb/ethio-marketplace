@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { expect, test } from "./fixtures";
 import { STATE_FILE, type E2EUser } from "./global-setup";
-import { gotoReady, signInViaSession } from "./helpers/ui";
+import { gotoReady, openPanel, signInViaSession } from "./helpers/ui";
 
 async function signInPoolUser(page: import("@playwright/test").Page) {
   const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
@@ -71,7 +71,7 @@ test("LY-4 wizard aside is desktop-only", async ({ page }, testInfo) => {
 test("LY-5 Account tab opens the overview and profile card", async ({ page }) => {
   await signInPoolUser(page);
   await gotoReady(page, "/");
-  await page.getByTestId("panel-tab-account").click();
+  await openPanel(page, "account");
   await page.waitForURL(/\/account$/);
   await expect(page.getByTestId("account-profile-card")).toBeVisible();
 });

@@ -170,6 +170,12 @@ export async function gotoReady(page: Page, path: string) {
  */
 export async function openAccountMenu(page: Page, label: string = en["shell.accountMenu"]) {
   await waitForHydration(page);
+  if (isMobile(page)) {
+    // C2b.5 — below md the account picture left the top bar; the drawer says
+    // who is signed in and carries the sign-out affordance.
+    await expectDrawerIdentity(page);
+    return signedInMarker(page);
+  }
   const trigger = page.getByRole("button", { name: label });
   await trigger.waitFor({ state: "visible", timeout: 15000 });
   await trigger.click();
@@ -178,6 +184,10 @@ export async function openAccountMenu(page: Page, label: string = en["shell.acco
 
 /** Signed-in identity + the sign-out affordance, both inside the account menu. */
 export async function expectSignedIn(page: Page, displayName: string) {
+  if (isMobile(page)) {
+    await expectDrawerIdentity(page, displayName);
+    return;
+  }
   const trigger = await openAccountMenu(page);
   // INC-084g — anchor on the testid, not the accessible name: the menu item
   // carries an icon and renders in the ACTIVE catalog, so an English-literal
@@ -203,6 +213,117 @@ export async function signOutViaMenu(page: Page, labels: { accountMenu?: string 
 /** Viewport branch: below md the rail lives in the Sheet drawer. */
 export function isMobile(page: Page) {
   return (page.viewportSize()?.width ?? 1280) < 768;
+}
+
+/** C2b.5 — the element that says "signed in" at THIS viewport. */
+export function signedInMarker(page: Page) {
+  return isMobile(page) ? page.getByTestId("bottom-bar-account") : page.getByTestId("account-menu");
+}
+
+/** C2b.5 — the sign-in affordance at THIS viewport. */
+export function signInMarker(page: Page) {
+  return isMobile(page)
+    ? page.getByTestId("bottom-bar-sign-in")
+    : page.locator('header a[href="/auth"]');
+}
+
+type PanelKey = "marketplace" | "my-listings" | "account" | "admin";
+const BAR_ITEM: Record<Exclude<PanelKey, "admin">, string> = {
+  marketplace: "bottom-bar-home",
+  "my-listings": "bottom-bar-my-listings",
+  account: "bottom-bar-account",
+};
+const PANEL_LABEL: Record<PanelKey, keyof typeof en> = {
+  marketplace: "panel.marketplace",
+  "my-listings": "panel.myListings",
+  account: "panel.account",
+  admin: "panel.admin",
+};
+
+/** Below md: is the bottom bar on this page (absent on the posting wizard)? */
+async function barShown(page: Page) {
+  return (await page.getByTestId("bottom-bar").count()) > 0;
+}
+
+/** Below md, through the drawer's panel switcher (ruling turn 5, 3). */
+async function openPanelViaDrawer(page: Page, id: PanelKey) {
+  const drawer = await openRailScope(page);
+  await drawer.getByTestId("panel-header-switcher").click();
+  await page.getByTestId(`panel-header-option-${id}`).click();
+  const label = PANEL_LABEL[id];
+  await expect(drawer.getByTestId("panel-header-title")).toHaveText(
+    new RegExp(`^(${escapeRe(en[label])}|${escapeRe(am[label])})$`),
+    { timeout: 15000 },
+  );
+  // The switch leaves the drawer open on the new panel; close it so the page
+  // is as a tab click leaves it.
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
+}
+
+/** C2b.5 — switch panel at THIS viewport: tabs from md, the bar (or drawer) below. */
+export async function openPanel(page: Page, id: PanelKey) {
+  await waitForHydration(page);
+  if (!isMobile(page)) {
+    await page.getByTestId(`panel-tab-${id}`).click();
+    return;
+  }
+  if (id === "admin" || !(await barShown(page))) {
+    await openPanelViaDrawer(page, id);
+    return;
+  }
+  await page.getByTestId(BAR_ITEM[id]).click();
+}
+
+/**
+ * C2b.5 (turn-5 addition) — the panel is OFFERED at THIS viewport, without
+ * opening it: from md its tab is visible; below md the drawer's switcher
+ * lists it.
+ */
+export async function expectPanelOffered(page: Page, id: PanelKey) {
+  if (!isMobile(page)) {
+    await expect(page.getByTestId(`panel-tab-${id}`)).toBeVisible({ timeout: 15000 });
+    return;
+  }
+  const drawer = await openRailScope(page);
+  await drawer.getByTestId("panel-header-switcher").click();
+  await expect(page.getByTestId(`panel-header-option-${id}`)).toBeVisible({ timeout: 15000 });
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
+}
+
+/** C2b.5 — the active panel at THIS viewport. */
+export async function expectActivePanel(page: Page, id: PanelKey) {
+  if (!isMobile(page)) {
+    await expect(page.getByTestId(`panel-tab-${id}`)).toHaveAttribute("aria-selected", "true");
+    return;
+  }
+  if (id !== "admin" && (await barShown(page))) {
+    await expect(page.getByTestId(BAR_ITEM[id])).toHaveAttribute("aria-current", "page");
+    return;
+  }
+  if (id === "admin" && (await barShown(page))) {
+    await expect(page.locator('[data-testid="bottom-bar"] [aria-current="page"]')).toHaveCount(0);
+  }
+  const drawer = await openRailScope(page);
+  const label = PANEL_LABEL[id];
+  await expect(drawer.getByTestId("panel-header-title")).toHaveText(
+    new RegExp(`^(${escapeRe(en[label])}|${escapeRe(am[label])})$`),
+  );
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
+}
+
+/** C2b.5 — below md: the drawer names the signed-in user and offers sign-out. */
+async function expectDrawerIdentity(page: Page, displayName?: string) {
+  const drawer = await openRailScope(page);
+  const identity = drawer.getByTestId("drawer-identity");
+  await expect(identity).toBeVisible({ timeout: 15000 });
+  if (displayName !== undefined) await expect(identity).toContainText(displayName);
+  await expect(drawer.getByTestId("rail-sign-out")).toBeVisible({ timeout: 15000 });
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
 }
 
 /**
@@ -272,7 +393,7 @@ export async function signOutViaUi(page: Page, labels: { signIn?: string } = {})
   await expect(page.getByTestId("account-menu")).toHaveCount(0);
   const signInLink = labels.signIn
     ? page.getByRole("link", { name: labels.signIn })
-    : page.locator('header a[href="/auth"]');
+    : signInMarker(page);
   await expect(signInLink, "sign-in affordance never returned after sign-out").toBeVisible({
     timeout: 15000,
   });
@@ -337,7 +458,7 @@ export async function signIn(
   //    the authenticated branch of app-header (stable testid, no hover/open
   //    prerequisite), unlike the signed-out "Sign in" link whose absence is
   //    also true mid-render.
-  await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+  await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
   // 3. Belt: the session is persisted, so a full navigation rehydrates it.
   await page.waitForFunction(
     () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
@@ -376,7 +497,8 @@ export async function attemptSignIn(page: Page, email: string, password: string)
  * only renders on the authenticated branch, so the guarantee is identical.)
  */
 export async function expectSignedOut(page: Page) {
-  await expect(page.getByRole("button", { name: en["shell.accountMenu"] })).toHaveCount(0);
+  await expect(signedInMarker(page)).toHaveCount(0);
+  await expect(signInMarker(page)).toBeVisible({ timeout: 15000 });
 }
 
 /**
@@ -394,7 +516,7 @@ export async function signInViaSession(page: Page, email: string, password: stri
   // INC-120b: identity BEFORE anything else — a persona mix-up must name both
   // ids here, not surface later as an inexplicable permission assertion.
   await assertInjectedIdentity(page, session);
-  await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+  await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
   await page.waitForFunction(
     () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
     undefined,
@@ -826,7 +948,7 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   await injectSession(page, session);
   await gotoReady(page, "/");
   await assertInjectedIdentity(page, session);
-  await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+  await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
   await waitForHydration(page);
   // READ-BACK from the client: the injected session really is AAL2.
   await expectAal2(page);
