@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { PHONE_STRIP } from "@/config/panels";
 import { useShell } from "@/components/shell-context";
 import { useRailCollapsed } from "@/providers/rail-state";
 
@@ -98,7 +99,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
  *
  * Height: the bar fills grid row 1 (3.5rem) from md up (`md:h-full`), so its top
  * and bottom edges are the logo cell's by construction. On phones there is no
- * grid row to fill and the bar is its own compact 3.5rem.
+ * grid row to fill and the bar is its own compact 3.25rem.
  */
 export function AppHeader() {
   const { t } = useI18n();
@@ -108,15 +109,17 @@ export function AppHeader() {
 
   return (
     <div className="w-full min-w-0 md:h-full">
-      <header className="flex h-14 w-full min-w-0 items-center gap-1 border-b border-border bg-card px-2 md:h-full md:gap-2 md:px-4">
-        <button
-          type="button"
-          aria-label={t("shell.openMenu")}
-          className={cn(ICON_BUTTON, "md:hidden")}
-          onClick={() => setNavOpen(true)}
-        >
-          <Menu className="h-5 w-5" aria-hidden="true" />
-        </button>
+      <header className="flex h-13 w-full min-w-0 items-center gap-1 border-b border-border bg-card px-2 md:h-full md:gap-2 md:px-4">
+        {!PHONE_STRIP ? (
+          <button
+            type="button"
+            aria-label={t("shell.openMenu")}
+            className={cn(ICON_BUTTON, "md:hidden")}
+            onClick={() => setNavOpen(true)}
+          >
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          </button>
+        ) : null}
         {/* The wordmark — never icon-only in the bar; the icon-only variant is
             reserved for the collapsed rail. md+ shows it in the corner cell. */}
         <Link

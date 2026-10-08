@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
+import { ChevronRight, LogOut, Menu, Tag, type LucideIcon } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
@@ -11,7 +11,7 @@ import { useFooterInset } from "@/components/shell/use-footer-inset";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
+import { PANELS, PHONE_STRIP, categoryIcon, visibleItems } from "@/config/panels";
 import type { NavItem } from "@/config/panels.types";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
@@ -61,6 +61,7 @@ const ITEM_ACTIVE = "bg-sidebar-accent font-medium text-sidebar-accent-foregroun
 /** True only after hydration on a collapsed desktop rail. */
 
 const CollapsedContext = createContext(false);
+const RailVariantContext = createContext<"rail" | "strip">("rail");
 
 /**
  * Hover label for the icons-only rail. Expanded rails need no tooltip.
@@ -123,6 +124,10 @@ type RailNode = {
  * 360px fit hold all the way down.
  */
 function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
+  const strip = useContext(RailVariantContext) === "strip";
+  const testid =
+    node.testid && (strip ? `strip-${node.testid.replace(/^rail-/, "")}` : node.testid);
+  const stripClass = strip && "justify-center ps-0 pe-0";
   const hasChildren = (node.children?.length ?? 0) > 0;
   // An active descendant keeps its ancestor open.
   const containsActive = (n: RailNode): boolean =>
@@ -135,7 +140,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const inner = (
     <>
       {Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
-      <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{node.label}</span>
+      <span className={cn("truncate", HIDE_WHEN_COLLAPSED, strip && "sr-only")}>{node.label}</span>
     </>
   );
   const pad = { "--rail-pad": `${0.75 + depth * 0.75}rem` } as React.CSSProperties;
@@ -144,14 +149,18 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // MAY own a page; only then is its header a link. Its sub-items remain
   // indented and always present, and categories remains non-interactive.
   if (hasChildren && node.group) {
-    const groupClassName = cn(ITEM_BASE, containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE);
+    const groupClassName = cn(
+      ITEM_BASE,
+      containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
+      stripClass,
+    );
     return (
       <li>
         {node.path ? (
           <Link
             to={node.path}
             onClick={node.onSelect}
-            data-testid={node.testid}
+            data-testid={testid}
             aria-label={node.label}
             aria-current={node.active ? "page" : containsActive(node) ? "true" : undefined}
             style={pad}
@@ -161,7 +170,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           </Link>
         ) : (
           <div
-            data-testid={node.testid}
+            data-testid={testid}
             aria-label={node.label}
             aria-current={containsActive(node) ? "true" : undefined}
             style={pad}
@@ -171,7 +180,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           </div>
         )}
         <ul className="mt-0.5 flex flex-col gap-0.5">
-          {node.children!.map((child) => (
+          {(node.children ?? []).map((child) => (
             <RailRow key={child.key} node={child} depth={depth + 1} />
           ))}
         </ul>
@@ -194,28 +203,37 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             <CollapsibleTrigger asChild>
               <button
                 type="button"
-                data-testid="rail-submenu-trigger"
+                data-testid={strip ? "strip-submenu-trigger" : "rail-submenu-trigger"}
                 aria-expanded={open}
                 aria-label={node.label}
                 style={pad}
-                className={cn(ITEM_BASE, containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE)}
+                className={cn(
+                  ITEM_BASE,
+                  containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
+                  stripClass,
+                )}
               >
                 {inner}
-                <ChevronRight
-                  aria-hidden="true"
-                  className={cn(
-                    "ms-auto h-4 w-4 shrink-0 transition-transform",
-                    open && "rotate-90",
-                    HIDE_WHEN_COLLAPSED,
-                  )}
-                />
+                {!strip ? (
+                  <ChevronRight
+                    aria-hidden="true"
+                    className={cn(
+                      "ms-auto h-4 w-4 shrink-0 transition-transform",
+                      open && "rotate-90",
+                      HIDE_WHEN_COLLAPSED,
+                    )}
+                  />
+                ) : null}
               </button>
             </CollapsibleTrigger>
           </WithTooltip>
 
           <CollapsibleContent asChild>
-            <ul data-testid="rail-submenu" className="mt-0.5 flex flex-col gap-0.5">
-              {node.children!.map((child) => (
+            <ul
+              data-testid={strip ? "strip-submenu" : "rail-submenu"}
+              className="mt-0.5 flex flex-col gap-0.5"
+            >
+              {(node.children ?? []).map((child) => (
                 <RailRow key={child.key} node={child} depth={depth + 1} />
               ))}
             </ul>
@@ -234,11 +252,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             params={node.params}
             hash={node.hash}
             onClick={node.onSelect}
-            data-testid={node.testid}
+            data-testid={testid}
             aria-current={node.active ? "page" : undefined}
             aria-label={node.label}
             style={pad}
-            className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE)}
+            className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE, stripClass)}
           >
             {inner}
           </Link>
@@ -254,11 +272,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           <button
             type="button"
             onClick={node.onSelect}
-            data-testid={node.testid}
+            data-testid={testid}
             aria-current={node.active ? "true" : undefined}
             aria-label={node.label}
             style={pad}
-            className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE)}
+            className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE, stripClass)}
           >
             {inner}
           </button>
@@ -274,8 +292,8 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <WithTooltip label={node.label}>
         <span
           style={pad}
-          data-testid={node.testid}
-          className={cn(ITEM_BASE, "text-muted-foreground")}
+          data-testid={testid}
+          className={cn(ITEM_BASE, "text-muted-foreground", stripClass)}
           aria-disabled="true"
           aria-label={node.label}
         >
@@ -288,6 +306,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 
 /** Marketplace rail = the LIVE category tree, read from the database. */
 function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
+  const strip = useContext(RailVariantContext) === "strip";
   const { t, entities } = useI18n();
   const { categories, isLoading } = useCategories();
   // U0l (INC-073): the highlight reads the URL, exactly like the body and the
@@ -319,14 +338,16 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
 
   return (
     <nav aria-label={t("shell.categoriesLabel")}>
-      <h2
-        className={cn(
-          "px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
-          HIDE_WHEN_COLLAPSED,
-        )}
-      >
-        {t("shell.categoriesLabel")}
-      </h2>
+      {!strip ? (
+        <h2
+          className={cn(
+            "px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+            HIDE_WHEN_COLLAPSED,
+          )}
+        >
+          {t("shell.categoriesLabel")}
+        </h2>
+      ) : null}
       <ul className="flex flex-col gap-0.5">
         <RailRow
           node={{
@@ -344,17 +365,30 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
             the categories arrive. Cached reads skip this entirely. */}
         {isLoading
           ? Array.from({ length: 6 }).map((_, index) => (
-              <li key={`skeleton-${index}`} data-testid="rail-category-skeleton" aria-hidden="true">
-                <div className="flex min-h-11 md:pointer-fine:min-h-9 items-center gap-2 px-3">
+              <li
+                key={`skeleton-${index}`}
+                data-testid={strip ? "strip-category-skeleton" : "rail-category-skeleton"}
+                aria-hidden="true"
+              >
+                <div
+                  className={cn(
+                    "flex min-h-11 md:pointer-fine:min-h-9 items-center gap-2 px-3",
+                    strip && "justify-center ps-0 pe-0",
+                  )}
+                >
                   <span className="h-4 w-4 shrink-0 animate-pulse rounded bg-muted" />
                   <span
-                    className={cn("h-3 w-24 animate-pulse rounded bg-muted", HIDE_WHEN_COLLAPSED)}
+                    className={cn(
+                      "h-3 w-24 animate-pulse rounded bg-muted",
+                      HIDE_WHEN_COLLAPSED,
+                      strip && "hidden",
+                    )}
                   />
                 </div>
               </li>
             ))
           : nodes.map((node) => <RailRow key={node.key} node={node} />)}
-        {!isLoading && categories.length === 0 ? (
+        {!strip && !isLoading && categories.length === 0 ? (
           <li className={cn("px-3 text-sm text-muted-foreground", HIDE_WHEN_COLLAPSED)}>
             {t("shell.categoriesEmpty")}
           </li>
@@ -366,6 +400,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
 
 /** Non-Marketplace rails: config items, sectioned and/or nested. */
 function MenuNav({ onNavigate }: { onNavigate: () => void }) {
+  const strip = useContext(RailVariantContext) === "strip";
   const { t } = useI18n();
   const { auth, activePanel } = useShell();
   const items = visibleItems(PANELS[activePanel].items, auth);
@@ -415,7 +450,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
     <nav aria-label={t("shell.mainNav")} className="flex flex-col gap-3">
       {sections.map((section, index) => (
         <div key={section.key ?? `section-${index}`}>
-          {section.key ? (
+          {section.key && !strip ? (
             <h2
               className={cn(
                 "px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
@@ -454,6 +489,7 @@ function RailBody({ onNavigate }: { onNavigate: () => void }) {
  * it is reachable without scrolling a long rail.
  */
 function RailFoot({ onNavigate }: { onNavigate: () => void }) {
+  const strip = useContext(RailVariantContext) === "strip";
   const { t } = useI18n();
   const { auth, requestSignOut } = useShell();
   const pad = { "--rail-pad": "0.75rem" } as React.CSSProperties;
@@ -467,17 +503,19 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
       <WithTooltip label={t("auth.signOut")}>
         <button
           type="button"
-          data-testid="rail-sign-out"
+          data-testid={strip ? "strip-sign-out" : "rail-sign-out"}
           aria-label={t("auth.signOut")}
           style={pad}
           onClick={() => {
             onNavigate();
             requestSignOut();
           }}
-          className={cn(ITEM_BASE, ITEM_IDLE)}
+          className={cn(ITEM_BASE, ITEM_IDLE, strip && "justify-center ps-0 pe-0")}
         >
           <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <span className={cn("truncate", HIDE_WHEN_COLLAPSED)}>{t("auth.signOut")}</span>
+          <span className={cn("truncate", HIDE_WHEN_COLLAPSED, strip && "sr-only")}>
+            {t("auth.signOut")}
+          </span>
         </button>
       </WithTooltip>
     </div>
@@ -526,17 +564,44 @@ export function AppRail() {
         </aside>
       </CollapsedContext.Provider>
 
+      {PHONE_STRIP ? (
+        <RailVariantContext.Provider value="strip">
+          <div
+            data-testid="rail-strip"
+            style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
+            className="fixed start-0 top-13 bottom-[var(--rail-bottom-inset,0px)] z-20 flex w-12 flex-col border-e border-border bg-sidebar md:hidden"
+          >
+            <button
+              type="button"
+              data-testid="strip-open-menu"
+              aria-label={t("shell.openMenu")}
+              onClick={() => setNavOpen(true)}
+              className="inline-flex h-11 w-full shrink-0 items-center justify-center border-b border-border text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Menu className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <div
+              data-testid="strip-scroll"
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <RailBody onNavigate={() => undefined} />
+            </div>
+            <RailFoot onNavigate={() => undefined} />
+          </div>
+        </RailVariantContext.Provider>
+      ) : null}
+
       {/* The drawer never collapses: labels always, tooltips never. */}
       <Sheet open={navOpen} onOpenChange={setNavOpen}>
         <SheetContent side="left" className="flex w-72 flex-col bg-sidebar p-4">
           <SheetHeader className="p-0">
             {/* U0e: the drawer's logo block mirrors the top bar exactly — the
-                same h-14 height and the same `border-b border-border` divider
+                same h-13 height and the same `border-b border-border` divider
                 the header carries — so the drawer opens on the same geometry
                 the page already shows. */}
             <div
               data-testid="drawer-logo-block"
-              className="-mx-4 -mt-4 flex h-14 items-center justify-center border-b border-border px-4"
+              className="-mx-4 -mt-4 flex h-13 items-center justify-center border-b border-border px-4"
             >
               <Logo variant="full" />
             </div>

@@ -206,23 +206,23 @@ and all tokens are unchanged.
 
 ### Desktop layout laws (U0g, revised by U0g-2)
 
-Four laws govern the md+ shell; mobile (< md) is unchanged (drawer + stacked
-layout). U0g-2 replaced sticky positioning with FIXED positioning everywhere in
+Four laws govern the md+ shell; below md a 52px fixed bar and 48px icon strip
+frame the stacked layout, with the full drawer opened from the strip. U0g-2 replaced sticky positioning with FIXED positioning everywhere in
 the shell chrome: the rail must never move at any scroll offset, including the
 page bottom, where sticky used to creep upward against the footer.
 
 - **L1 — fixed top band.** The logo cell and the top bar live inside one
-  wrapper (`data-testid="shell-band"`) that is `contents` on mobile — so the
-  top bar stays grid row 1 exactly as before — and
-  `md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-14` from md up. Inside
+  wrapper (`data-testid="shell-band"`) that is fixed at every width:
+  `fixed inset-x-0 top-0 z-30 md:flex md:h-14`. Below md its content sets
+  its height and the open search row overlays the page; from md up it is 56px. Inside
   it the corner block is preserved by construction: the logo cell is
   `md:w-64 md:h-14 md:shrink-0` (`md:w-16` when `html[data-rail=collapsed]`)
   and the top bar is `md:flex-1`. Measured at 1280: logo 0/256×56, bar
   256/1024×56 — identical to the sticky band it replaced.
 - **L2 — fixed rail beneath it.** The `<aside>` is
-  `md:fixed md:start-0 md:top-14 md:z-20 md:w-64 md:h-[calc(100dvh-4rem)]
-md:overflow-hidden` (with `100vh` first as the fallback, and `md:w-16` when
-  collapsed). The inner `rail-scroll` remains the only rail scrolling region
+  `md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)]
+md:z-20 md:w-64 md:overflow-hidden` (`md:w-16` when collapsed). Its bottom
+  follows the footer inset, which also bounds the phone strip. The inner `rail-scroll` remains the only rail scrolling region
   and `RailFoot` stays pinned at its bottom.
 - **L3 — content column + full-width footer.** The content stack offsets
   itself with `md:pt-14 md:ms-64` (`md:ms-16` collapsed) so it starts under the

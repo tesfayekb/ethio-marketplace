@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { STATE_FILE, type E2EUser } from "./global-setup";
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
@@ -9,6 +11,7 @@ import {
   describeSwitcher,
   openRailScope,
   signIn,
+  signInViaSession,
   signOutViaUi,
   switchLanguage,
   waitForHydration,
@@ -804,6 +807,72 @@ test.describe("dark mode", () => {
 test.describe("mobile chrome", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) > 400, "mobile-360 only");
 
+  test("the strip sits under the fixed bar", async ({ page }) => {
+    await gotoReady(page, "/");
+    const strip = page.getByTestId("rail-strip");
+    await expect(strip).toBeVisible();
+    const box = await strip.boundingBox();
+    const header = await page.locator("header").first().boundingBox();
+    if (!box || !header) throw new Error("Missing strip or header box");
+    expect(Math.abs(box.width - 48)).toBeLessThanOrEqual(1);
+    expect(Math.abs(box.y - header.y - header.height)).toBeLessThanOrEqual(1);
+    await expect(strip.getByRole("button", { name: en["shell.openMenu"] })).toBeVisible();
+    await expect(
+      page.getByTestId("shell-topbar").getByRole("button", { name: en["shell.openMenu"] }),
+    ).toHaveCount(0);
+    await expect(page.getByTestId("strip-category-skeleton")).toHaveCount(0);
+    const row = await page.getByTestId("strip-category-all").boundingBox();
+    if (!row) throw new Error("Missing strip row box");
+    expect(row.height).toBeGreaterThanOrEqual(44);
+  });
+
+  test("a strip row opens its category", async ({ page }) => {
+    const { data, error } = await adminClient()
+      .from("category_tree_pointers")
+      .select("category:categories!category_tree_pointers_child_id_fkey!inner(slug, is_active)")
+      .is("parent_id", null)
+      .eq("category.is_active", true)
+      .not("category.slug", "like", "e2e-%")
+      .order("id")
+      .limit(1)
+      .single();
+    if (error || !data) throw new Error(`Category anchor: ${error?.message ?? "no row"}`);
+    const category = Array.isArray(data.category) ? data.category[0] : data.category;
+    if (!category) throw new Error("Category anchor: no joined category");
+    await gotoReady(page, "/");
+    const row = page.getByTestId(`strip-category-${category.slug}`);
+    await expect(row).toBeVisible();
+    await row.click();
+    await expect(page).toHaveURL(new RegExp(`/c/${category.slug}$`));
+    await expect(row).toHaveAttribute("aria-current", "page");
+  });
+
+  test("the bar and the band stay while the page scrolls", async ({ page }) => {
+    await gotoReady(page, "/dev/tall");
+    const strip = page.getByTestId("rail-strip");
+    const before = await strip.boundingBox();
+    if (!before) throw new Error("Missing strip box");
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await expect
+      .poll(() => page.evaluate(() => Math.round(document.scrollingElement?.scrollTop ?? 0)))
+      .toBe(600);
+    const bar = await page.locator("header").first().boundingBox();
+    const band = await page.getByTestId("shell-subband").boundingBox();
+    const after = await strip.boundingBox();
+    if (!bar || !band || !after) throw new Error("Missing fixed chrome box");
+    expect(Math.abs(bar.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(band.y - bar.y - bar.height)).toBeLessThanOrEqual(1);
+    expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+  });
+
+  test("the strip's Sign out", async ({ page }) => {
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("strip-sign-out")).toHaveCount(0);
+    const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
+    await signInViaSession(page, user.email, user.password);
+    await expect(page.getByTestId("strip-sign-out")).toBeVisible();
+  });
+
   test("rail is a drawer behind the hamburger", async ({ page }) => {
     await gotoReady(page, "/");
     await expect(page.getByTestId("app-rail")).toBeHidden();
@@ -937,6 +1006,8 @@ test.describe("mobile chrome", () => {
       "theme toggle",
     );
     await expectTapTarget(page, page.getByTestId("search-toggle"), "search toggle");
+
+    await expectTapTarget(page, page.getByTestId("strip-category-all"), "strip category");
 
     // Category rows inside the drawer are targets too.
     await openRailScope(page);
@@ -1251,6 +1322,12 @@ test.describe("rail scroll regions (U0f)", () => {
  * elements under test.
  */
 test.describe("desktop layout laws (U0g)", () => {
+  test("the phone strip is absent on desktop", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("rail-strip")).toBeHidden();
+  });
+
   const ROW1 = 56;
   const TALL = "/dev/tall";
 

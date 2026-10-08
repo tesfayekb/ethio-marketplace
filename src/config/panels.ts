@@ -46,6 +46,9 @@ import { ownValue } from "@/lib/own-key";
  * Marketplace's items are NOT listed here: they are the live category tree,
  * read from public.categories at render time by the rail.
  */
+// Operator preview switch: false restores the menu button and removes the phone strip offset.
+export const PHONE_STRIP = true;
+
 export const PANELS: Record<PanelId, Panel> = {
   marketplace: {
     id: "marketplace",
