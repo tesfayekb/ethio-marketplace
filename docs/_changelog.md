@@ -727,3 +727,4 @@
 - 2026-10-07 — Bundle 8 Part A (M14, INC-480, INC-482): new tables, sequences and functions of schema public are born closed to the browser roles, and the helper functions still open by default are closed; the lint baseline follows.
 - 2026-10-07 — Bundle 8 Part F: docs for the answer door's allowed rule and entry trim (attributes), a changed seed text (translations), two AGENTS.md rules, roadmap ticks and the bundle 9 block.
 - 2026-10-07 — Bundle 8 turn 3 repair: a comment-only migration file applied in error before M14 executes nothing; M14 records its ledger row and scripts/migration-mark-allowlist.txt names it; AGENTS.md gains the rule that the database tool is handed a migration's final text once.
+- 2026-10-08 — INC-493 (DEC-160): the e2e setup resets staging's English texts to the compiled catalog in every run, before its tests, one read per page; the reapers keep one owner.
