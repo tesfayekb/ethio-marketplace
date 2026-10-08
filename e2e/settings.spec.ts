@@ -6,6 +6,7 @@ import {
   expectSignedIn,
   expectSignedOut,
   signIn,
+  signedInMarker,
   signOutViaUi,
   waitForHydration,
 } from "./helpers/ui";
@@ -74,7 +75,7 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await expect(page.getByRole("alert")).toHaveText(en["auth.errorWrongCurrentPassword"]);
   // Session intact: the header account menu (the shell's authenticated-branch
   // control, successor to the old header sign-out button) is still present.
-  await expect(page.getByRole("button", { name: en["shell.accountMenu"] })).toBeVisible();
+  await expect(signedInMarker(page)).toBeVisible();
 
   // Correct current password: success feedback.
   await current.fill(user.password);
