@@ -27,8 +27,10 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/post_/$listingId")({
   ssr: false,
   beforeLoad: async ({ params }) => {
-    const { data } = await supabase.auth.getUser();
-    if (data.user === null) {
+    // C2e.2 — the session the browser holds; no auth-server round trip. RLS and
+    // the server routes stay the authority behind this screen choice.
+    const { data } = await supabase.auth.getSession();
+    if ((data.session?.user ?? null) === null) {
       throw redirect({
         to: "/auth",
         search: { return: `/post/${encodeURIComponent(params.listingId)}` },

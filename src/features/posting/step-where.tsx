@@ -136,7 +136,7 @@ function boxClass(empty: boolean, refused: boolean, step = ""): string {
     : empty
       ? "border-destructive"
       : "border-input";
-  if (step === "") return `space-y-3 rounded-md border px-1.5 py-2 sm:p-3 ${border}`;
+  if (step === "") return `space-y-3 rounded-md border px-1 py-2 sm:p-3 ${border}`;
   // PW-99 ruling (2026-09-30) — below 768 px a nested level is a LEFT RULE only:
   // no side borders, no side padding beyond the rule's gap, so every select
   // keeps ≥ 200 px and the page never scrolls sideways. From 768 px it is a box.

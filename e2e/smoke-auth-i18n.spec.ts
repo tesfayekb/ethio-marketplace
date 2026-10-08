@@ -8,7 +8,7 @@ import {
   fillUntilStable,
   isMobile,
   openAccountMenu,
-  signInViaSession,
+  signedInMarker,
   signOutViaUi,
   switchLanguage,
   waitForHydration,
@@ -53,7 +53,13 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out 
   await expect(passwordInput).toHaveValue(user.password);
 
   // Anchored: excludes "Create an account" toggle and the disabled OAuth slots.
-  await signInViaSession(page, user.email, user.password);
+  await signInButton.click();
+  await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
+  await page.waitForFunction(
+    () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
+    undefined,
+    { timeout: 15000 },
+  );
 
   // 4. The definitive signed-in signal is the header ACCOUNT MENU, which only
   //    renders on the authenticated branch. Identity and sign-out live inside

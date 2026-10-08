@@ -323,8 +323,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  // C2b / ruling turn 5 — the posting wizard: no bar, no strip offset below md.
-  const onWizard = pathname === "/post" || pathname.startsWith("/post/");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -661,12 +659,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           the footer inside the grid the rail could overhang it; ending the
           grid at the content row makes the rail's bottom stop exactly at the
           footer's top. Visually identical on mobile (stacked, full width). */}
-      <div
-        className={cn(
-          "flex min-h-screen flex-col bg-background pb-[var(--bottom-bar)]",
-          onWizard && "[--bottom-bar:0px]",
-        )}
-      >
+      <div className="flex min-h-screen flex-col bg-background pb-[var(--bottom-bar)]">
         {/* Mobile keeps the one-column grid. From md up the layout is FIXED
             geometry (U0g-2): the band and the rail are position:fixed and the
             content column offsets itself with padding/margin. */}
@@ -736,7 +729,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             data-testid="shell-stack"
             className={cn(
               "col-start-1 row-start-2 flex min-w-0 flex-col pt-13 md:ms-64 md:pt-14 md:[html[data-rail=collapsed]_&]:ms-16",
-              PHONE_STRIP && !onWizard && "ms-12",
+              PHONE_STRIP && "ms-12",
             )}
           >
             <div
@@ -774,13 +767,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             inset equal to the rail width at md+, so the links and copyright
             stay in the readable content column. Mobile: unchanged (no fixed
             rail exists there). */}
-        {/* C2b — the phone bottom bar; never on the posting wizard. */}
-        {onWizard ? null : <BottomBar />}
+        {/* C2b — the phone bottom bar, on every page (C2e: no wizard exception). */}
+        <BottomBar />
         <div
           data-testid="shell-footer-wrapper"
           className={cn(
             "relative z-0 w-full bg-card md:z-40 md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16",
-            PHONE_STRIP && !onWizard && "[&>footer>*]:ps-16",
+            PHONE_STRIP && "[&>footer>*]:ps-16",
           )}
         >
           <AppFooter />

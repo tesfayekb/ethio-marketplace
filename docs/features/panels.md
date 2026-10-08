@@ -151,3 +151,7 @@ Choosing a panel tab from a route-owned page returns to `/`.
 Admin gating is unchanged: `panelsForUser` appends the Admin panel only when
 `auth.isAdmin` is true, which is still stubbed `false` (law F3 — the server remains the
 only authorization authority).
+
+## Switching to My Listings from another panel's page (INC-501)
+
+My Listings has no home page (the INC-071 grandfather), so `useSwitchPanel` sets it by state. On a page that belongs to another panel (a path starting with /account, /settings or /admin) the route would overrule that state, so the switch navigates to "/" first and then sets the panel. The top tab, the bottom bar and the menu all use this one seam.

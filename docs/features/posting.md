@@ -324,6 +324,11 @@ accepted ONLY as a same-origin relative path — `https://evil…`, `//evil` and
 anything carrying a backslash fall back to `/`. It is a redirect, not a card:
 the old sign-in card is gone.
 
+C2e.2: the guards on `/post`, `/post/<id>` and `/account` read the session the
+browser already holds (`getSession()`), not the auth server (`getUser()`), so
+opening the page costs no round trip. They only choose a screen; every read and
+write behind them stays checked by row-level security and the server routes.
+
 INC-224 (C2b): Google's door now carries the same intent. The return path rides
 in the OAuth `redirectTo` URL's own query string (`oauthRedirectUrl`), not a
 cookie, and the callback re-applies `safeReturnPath` before it navigates — a
