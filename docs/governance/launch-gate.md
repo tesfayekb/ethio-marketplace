@@ -120,3 +120,9 @@ Every line above stands as written; the status notes and new lines below come fr
 - [x] Leaked-password protection on ethio-prod — ON since 2026-10-07 10:33Z (the operator's switch; the platform's linter had listed it as off). Re-read after any change of plan at the provider (the feature is a paid-plan feature) and at the launch round. ethio-staging: off by decision; the next bundle decides it with a rule.
 - [ ] INC-480 and INC-482 (privileges hygiene found by M11's census and the third database lint; bodies in the Project record) — NOT DONE; the first migration of the next bundle, read back on ethio-prod before real users.
 - [ ] The code-scanning list on GitHub is empty after Part H (101 open alerts on 2026-10-07 before it; the upload now carries 0 results), and push protection is decided (the supervisor's call of 2026-10-09) — NOT DONE; the operator's next read of the Security tab.
+
+## Added 2026-10-08 (the bundle 8 records turn)
+
+- [x] INC-480 and INC-482 (the line of 2026-10-07 above) — DONE: M14 on ethio-prod since 2026-10-07 22:22Z; read back there — postgres's default privileges in schema public hand nothing to the two browser roles, the third database lint counts 12 (the named doors), and the migration check refuses a new function without its REVOKE. Re-read at the launch round with the five lint counts.
+- [ ] Every Amharic text of the interface has been read by a person who reads Amharic — the admin countries console's is unreadable in many places (INC-489) and the script guard sees code points, not words — NOT DONE; the full read of `src/i18n/locales/am.ts` is in the tidy-up round, and the public pages' texts are read first.
+- [ ] After the last Publish before opening: "Sync keys" pressed and the live text store compared with the code (INC-488) — NOT DONE; at the launch round.

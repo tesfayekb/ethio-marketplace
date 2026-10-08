@@ -1,6 +1,6 @@
 # Roadmap
 
-Bundle 8 brief: docs/governance/briefs/bundle-8.md (read first every turn).
+No bundle brief is in force: bundle 8 closed on 2026-10-08 (its brief stays at docs/governance/briefs/bundle-8.md). The next brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -123,7 +123,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] Table privileges follow the doors: the places table and eight admin tables are written only through their doors (INC-476, INC-478) — M10, M11; PR-38, CT-41
 - [x] Records turn (bundle 7 close, 2026-10-07) — spec-ledger S56 (DEC-148–154), INC-473–487, system-state; see docs/governance/handoffs/2026-10-07-bundle7-close-handover.md
 
-### Bundle 8 — the security and wording round (in progress)
+### Bundle 8 — the security and wording round (closed 2026-10-08)
 
 - [x] Part A — new database objects are born closed; the remaining helper functions are closed (INC-480, INC-482) — M14
 - [x] Part B — the answer door enforces an option's allowed list (INC-477) — M13, step B7 in M14
@@ -131,8 +131,10 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] Part D — short button and action labels everywhere (D81); the live texts brought level with the code (INC-488)
 - [x] Part E — PW-147 and PW-130 wait for the name list built from both names (INC-487)
 - [x] Part F — docs and final report
+- [x] After the bundle, one harness turn: the test setup resets staging's English texts in every lane before its tests (INC-493, DEC-160) — scripts/en-baseline-heal.ts with its test; the census for bundle 9 — docs/governance/briefs/bundle-9-census.md
+- [x] Records turn (bundle 8 close, 2026-10-08) — spec-ledger S57 (DEC-155–160), INC-488–494, system-state; see docs/governance/handoffs/2026-10-08-bundle8-close-handover.md
 
-### Bundle 9 — the house style (agreed with the operator on 2026-10-07; not built in bundle 8; its brief follows the supervisor's explanation)
+### Bundle 9 — the house style (agreed with the operator on 2026-10-07; NEXT; its brief follows the supervisor's explanation; the index of today's look is docs/governance/briefs/bundle-9-census.md)
 
 - [ ] Colour by meaning as tokens — primary, danger, success, warning, info, neutral; corners 6 px; stronger borders; fine row rules; soft shadows on cards, tables and figures, stronger ones on menus and dialogs
 - [ ] Row actions everywhere: Edit and Delete as icons (Edit grey, Delete red) and a three-dots menu for the rest; every icon button has a name and a tooltip; one shared building block
@@ -147,9 +149,9 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 
 What bundle 7 added to the order, item by item with its place: docs/governance/handoffs/2026-10-07-order-of-work-additions.md.
 
-1. Bundle 8 — the security and wording round (its block above)
+1. Bundle 8 — the security and wording round (closed 2026-10-08), then bundle 9 — the house style (its block above), before stage 1
 2. Stage 1 — the rules: the legal section (Terms, Privacy, the publishing statement as numbered versions; the 18+ tick; the seller's certification), the banned-items and safety pages, the screening-promise wording
-3. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449; INC-487 if it is contention), the CI report's gaps (INC-419, INC-429), INC-398, INC-420, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), CI run time, what bundle 7 named and did not build (the definition editor's holders count, a pointer move against the parent-first guard, the parent-first refusal in the import preview, one unit case of the reset function), the four-lens review of the posting era; the Translations store follows a changed seed text by itself (INC-488's class); a full read of the Amharic catalog (INC-489)
+3. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449; INC-487 if it is contention), the CI report's gaps (INC-419, INC-429), INC-398, INC-420, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), CI run time, what bundle 7 named and did not build (the definition editor's holders count, a pointer move against the parent-first guard, the parent-first refusal in the import preview, one unit case of the reset function), the four-lens review of the posting era; the Translations store follows a changed seed text by itself (INC-488's class); a full read of the Amharic catalog (INC-489); the scan's upload step and the status report's silence while queued (INC-492); AT-3 and its shared helper (INC-494)
 4. Stage 2 — automatic screening from the first ad, in two layers (DEC-145), with translation of every ad's free text at posting and its own switch (DEC-149): the screening gateway, duplicates, the exceptions page, posting limits and AI switches, Admin › Services (DEC-091), admin numbers
 5. Stage 3 — a buyer can open the ad: the ad page with Show contact, Report, Share and the safety box; photos on cards and paging (the home feed's uncapped read); contact ticks; request a missing place and the admin inbox
 6. Stage 4 — sellers manage ads: My ads with retention, views and contacts per ad, a real paused state (INC-469), the expiry sweep through the state machine (INC-470)
