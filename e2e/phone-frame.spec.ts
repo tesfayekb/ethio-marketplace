@@ -92,3 +92,104 @@ test.describe("phone frame sweep", () => {
     await checkRoutes(page, ["/dev/primitives", "/dev/style", "/dev/tall"]);
   });
 });
+
+/* C2g.4 — THE WIDTH WALK: the frame is chosen by the window's width alone. */
+const WALK = [320, 360, 390, 430, 600, 767, 768, 834, 1023, 1024, 1280, 1440, 1920];
+
+async function checkFrame(page: Page, width: number) {
+  const at = `${width}px`;
+  const overflow = await page.evaluate(() => {
+    const doc = document.scrollingElement!;
+    return doc.scrollWidth - doc.clientWidth;
+  });
+  expect.soft(overflow, `${at}: horizontal overflow`).toBeLessThanOrEqual(1);
+  const topbar = page.getByTestId("shell-topbar");
+  await expect(topbar, `${at}: top bar`).toBeVisible();
+  const menuButton = topbar.getByRole("button", { name: /Open menu|Close menu/ });
+  const toggle = page.getByTestId("rail-collapse-toggle");
+  if (width < 1024) {
+    await expect(menuButton, `${at}: menu control`).toBeVisible();
+    await expect(toggle, `${at}: no collapse toggle`).toBeHidden();
+  } else {
+    await expect(toggle, `${at}: collapse toggle`).toBeVisible();
+    await expect(menuButton, `${at}: no menu control`).toBeHidden();
+  }
+  if (width < 768) {
+    await expect(page.getByTestId("bottom-bar"), `${at}: bar`).toBeVisible();
+    await expect(page.getByTestId("rail-strip"), `${at}: strip`).toBeVisible();
+    await expect(page.getByTestId("app-rail"), `${at}: no rail`).toBeHidden();
+  } else {
+    await expect(page.getByTestId("app-rail"), `${at}: rail`).toBeVisible();
+    await expect(page.getByTestId("bottom-bar"), `${at}: no bar`).toBeHidden();
+    await expect(page.getByTestId("rail-strip"), `${at}: no strip`).toBeHidden();
+    if (width < 1024) {
+      const box = (await page.getByTestId("app-rail").boundingBox())!;
+      expect(Math.abs(box.width - 64), `${at}: rail width`).toBeLessThanOrEqual(1);
+    }
+  }
+  if (width < 1024) {
+    const short = await page.evaluate(() => {
+      const scopes = ['[data-testid="shell-topbar"]', '[data-testid="bottom-bar"]'];
+      const out: string[] = [];
+      for (const scope of scopes) {
+        for (const el of document.querySelectorAll<HTMLElement>(
+          `${scope} a, ${scope} button, ${scope} input`,
+        )) {
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 || r.height === 0) continue;
+          if (r.height < 44)
+            out.push(`${el.getAttribute("data-testid") ?? el.tagName}:${r.height}`);
+        }
+      }
+      return out;
+    });
+    expect.soft(short, `${at}: controls under 44px`).toEqual([]);
+    await menuButton.click();
+    await expect(page.getByTestId("rail-menu"), `${at}: menu opens`).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("rail-menu"), `${at}: menu closes`).toBeHidden();
+  }
+}
+
+test.describe("width walk (C2g.4)", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, "desktop-1280 only");
+
+  test("signed out home at every width", async ({ page }) => {
+    for (const width of WALK) {
+      await page.setViewportSize({ width, height: 800 });
+      await gotoReady(page, "/");
+      await checkFrame(page, width);
+    }
+  });
+
+  test("admin categories at every width", async ({ page }) => {
+    await useJobSuperAdmin(page);
+    for (const width of WALK) {
+      await page.setViewportSize({ width, height: 800 });
+      await gotoReady(page, "/admin/categories");
+      await checkFrame(page, width);
+    }
+  });
+
+  test("account and post at every width", async ({ page }) => {
+    const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
+    await signInViaSession(page, user.email, user.password);
+    for (const path of ["/account", "/post"]) {
+      for (const width of WALK) {
+        await page.setViewportSize({ width, height: 800 });
+        await gotoReady(page, path);
+        await checkFrame(page, width);
+      }
+    }
+  });
+
+  test("one session resized through every width without a reload", async ({ page }) => {
+    const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
+    await signInViaSession(page, user.email, user.password);
+    await gotoReady(page, "/");
+    for (const width of WALK) {
+      await page.setViewportSize({ width, height: 800 });
+      await checkFrame(page, width);
+    }
+  });
+});
