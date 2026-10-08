@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 export type IconButtonTone = "neutral" | "danger" | "success" | "warning" | "info";
 export type IconButtonSize = "row" | "touch";
 
-export const ICON_BUTTON_TONES: Record<IconButtonTone, string> = {
+const ICON_BUTTON_TONES: Record<IconButtonTone, string> = {
   neutral: "text-muted-foreground hover:bg-accent hover:text-foreground",
   danger: "text-destructive hover:bg-destructive-soft",
   success: "text-success hover:bg-success-soft",
