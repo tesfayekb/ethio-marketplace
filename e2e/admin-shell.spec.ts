@@ -154,8 +154,7 @@ test.describe("Admin shell (U0)", () => {
 
     if (isMobile(page)) {
       const drawer = await openRailScope(page);
-      // U0c — the drawer heads with the ACTIVE panel and lists its items only.
-      await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.admin"]);
+      await expect(drawer).toHaveAttribute("data-panel", "admin");
       for (const id of expected) {
         await expect(drawer.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
       }
@@ -215,7 +214,7 @@ test.describe("Admin shell (U0)", () => {
     // The shell rail/drawer carries the same single item.
     if (isMobile(page)) {
       const drawer = await openRailScope(page);
-      await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.admin"]);
+      await expect(drawer).toHaveAttribute("data-panel", "admin");
       await expect(drawer.getByTestId("rail-item-ad-audit")).toBeVisible({ timeout: 15000 });
       for (const section of ADMIN_SECTIONS.filter((s) => s.id !== "audit")) {
         await expect(drawer.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);

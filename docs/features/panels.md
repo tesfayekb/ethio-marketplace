@@ -154,4 +154,4 @@ only authorization authority).
 
 ## Switching to My Listings from another panel's page (INC-501)
 
-My Listings has no home page (the INC-071 grandfather), so `useSwitchPanel` sets it by state. On a page that belongs to another panel (a path starting with /account, /settings or /admin) the route would overrule that state, so the switch navigates to "/" first and then sets the panel. The top tab, the bottom bar and the menu all use this one seam.
+My Listings has no home page (the INC-071 grandfather), so `useSwitchPanel` sets it by state. The shell's setter goes to `/` first when the current page is not the feed (`src/components/app-shell.tsx`), where that state can own the panel. Tests cover the switch from `/account` and `/settings` at phone and desktop widths.

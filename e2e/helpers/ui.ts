@@ -241,36 +241,11 @@ const PANEL_LABEL: Record<PanelKey, keyof typeof en> = {
   admin: "panel.admin",
 };
 
-/** Below md: is the bottom bar on this page (absent on the posting wizard)? */
-async function barShown(page: Page) {
-  return (await page.getByTestId("bottom-bar").count()) > 0;
-}
-
-/** Below md, through the drawer's panel switcher (ruling turn 5, 3). */
-async function openPanelViaDrawer(page: Page, id: PanelKey) {
-  const drawer = await openRailScope(page);
-  await drawer.getByTestId("panel-header-switcher").click();
-  await page.getByTestId(`panel-header-option-${id}`).click();
-  const label = PANEL_LABEL[id];
-  await expect(drawer.getByTestId("panel-header-title")).toHaveText(
-    new RegExp(`^(${escapeRe(en[label])}|${escapeRe(am[label])})$`),
-    { timeout: 15000 },
-  );
-  // The switch leaves the drawer open on the new panel; close it so the page
-  // is as a tab click leaves it.
-  await page.keyboard.press("Escape");
-  await expect(drawer).toBeHidden();
-}
-
-/** C2b.5 — switch panel at THIS viewport: tabs from md, the bar (or drawer) below. */
+/** C2b.5 — switch panel at THIS viewport: tabs from md, the bar below. */
 export async function openPanel(page: Page, id: PanelKey) {
   await waitForHydration(page);
   if (!isMobile(page)) {
     await page.getByTestId(`panel-tab-${id}`).click();
-    return;
-  }
-  if (!(await barShown(page))) {
-    await openPanelViaDrawer(page, id);
     return;
   }
   await page.getByTestId(BAR_ITEM[id]).click();
@@ -278,24 +253,14 @@ export async function openPanel(page: Page, id: PanelKey) {
 
 /**
  * C2b.5 (turn-5 addition) — the panel is OFFERED at THIS viewport, without
- * opening it: from md its tab is visible; below md the drawer's switcher
- * lists it.
+ * opening it: from md its tab is visible; below md the bottom bar lists it.
  */
 export async function expectPanelOffered(page: Page, id: PanelKey) {
   if (!isMobile(page)) {
     await expect(page.getByTestId(`panel-tab-${id}`)).toBeVisible({ timeout: 15000 });
     return;
   }
-  if (await barShown(page)) {
-    await expect(page.getByTestId(BAR_ITEM[id])).toBeVisible({ timeout: 15000 });
-    return;
-  }
-  const drawer = await openRailScope(page);
-  await drawer.getByTestId("panel-header-switcher").click();
-  await expect(page.getByTestId(`panel-header-option-${id}`)).toBeVisible({ timeout: 15000 });
-  await page.keyboard.press("Escape");
-  await page.keyboard.press("Escape");
-  await expect(drawer).toBeHidden();
+  await expect(page.getByTestId(BAR_ITEM[id])).toBeVisible({ timeout: 15000 });
 }
 
 /** C2b.5 — the active panel at THIS viewport. */
@@ -304,27 +269,17 @@ export async function expectActivePanel(page: Page, id: PanelKey) {
     await expect(page.getByTestId(`panel-tab-${id}`)).toHaveAttribute("aria-selected", "true");
     return;
   }
-  if (await barShown(page)) {
-    await expect(page.getByTestId(BAR_ITEM[id])).toHaveAttribute("aria-current", "page");
-    return;
-  }
-  const drawer = await openRailScope(page);
-  const label = PANEL_LABEL[id];
-  await expect(drawer.getByTestId("panel-header-title")).toHaveText(
-    new RegExp(`^(${escapeRe(en[label])}|${escapeRe(am[label])})$`),
-  );
-  await page.keyboard.press("Escape");
-  await expect(drawer).toBeHidden();
+  await expect(page.getByTestId(BAR_ITEM[id])).toHaveAttribute("aria-current", "page");
 }
 
-/** C2b.5 — below md: the drawer names the signed-in user and offers sign-out. */
+/** C2f.3 — below md: the opened menu names the signed-in user. */
 async function expectDrawerIdentity(page: Page, displayName?: string) {
-  const drawer = await openRailScope(page);
-  const identity = drawer.getByTestId("drawer-identity");
+  const menu = await openRailScope(page);
+  const identity = menu.getByTestId("drawer-identity");
   await expect(identity).toBeVisible({ timeout: 15000 });
   if (displayName !== undefined) await expect(identity).toContainText(displayName);
   await page.keyboard.press("Escape");
-  await expect(drawer).toBeHidden();
+  await expect(menu).toBeHidden();
   await expect(page.getByTestId("bottom-bar-account")).toBeVisible({ timeout: 15000 });
 }
 
@@ -347,7 +302,7 @@ export async function openRailScope(page: Page) {
     const hamburger = page.getByRole("button", { name: openMenuPattern() });
     await expect(hamburger, "hamburger never became interactive").toBeEnabled({ timeout: 15000 });
 
-    const drawer = page.getByRole("dialog");
+    const drawer = page.getByTestId("rail-menu");
     await hamburger.click();
 
     try {
@@ -367,8 +322,11 @@ export async function openRailScope(page: Page) {
       }
     }
 
-    // Settled, not merely present: the panel header has rendered its title.
-    await expect(drawer.getByTestId("panel-header-title")).not.toHaveText("", { timeout: 10000 });
+    // Settled, not merely present: the menu's item region holds a real control.
+    // eslint-disable-next-line no-restricted-syntax -- C2f.3: the menu has one responsive instance and this selects its first real control
+    await expect(drawer.getByTestId("rail-scroll").locator("a, button").first()).toBeVisible({
+      timeout: 10000,
+    });
     return drawer;
   }
   const rail = page.getByTestId("app-rail");

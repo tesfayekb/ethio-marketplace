@@ -5,6 +5,7 @@ import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
 import {
   expectActivePanel,
   gotoReady,
+  isMobile,
   openPanel,
   openRailScope,
   signInViaSession,
@@ -1091,7 +1092,9 @@ test.describe("POSTING WIZARD", () => {
     // U0e — the panel band activates the panel; the drawer then lists ONLY that
     // panel's items (J5: openRailScope resolves the right viewport twin).
     await openPanel(page, "my-listings");
-    const entry = (await openRailScope(page)).getByTestId("post-entry");
+    const entry = isMobile(page)
+      ? page.getByTestId("bottom-bar-post")
+      : (await openRailScope(page)).getByTestId("post-entry");
     await expect(entry, "PW-15: My Listings does not carry the posting entry").toBeVisible();
 
     // It is the WIZARD's entry, not a placeholder.
@@ -1107,10 +1110,11 @@ test.describe("POSTING WIZARD", () => {
     // PW-15: /post must not fall back to another panel; My Listings owns it.
     await expectActivePanel(page, "my-listings");
     await expect(
-      (await openRailScope(page)).getByTestId("post-entry"),
+      (await openRailScope(page)).getByTestId(
+        isMobile(page) ? "rail-item-ml-listings" : "post-entry",
+      ),
       "PW-15: the My Listings menu is not visible while posting",
     ).toBeVisible();
-    // Close the drawer before switching panels (it overlays the band on mobile).
     await page.keyboard.press("Escape");
 
     await openPanel(page, "account");

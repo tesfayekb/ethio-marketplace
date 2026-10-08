@@ -934,65 +934,97 @@ test.describe("mobile chrome", () => {
     await expect(page.getByTestId("bottom-bar-account")).toHaveCount(0);
   });
 
-  test("rail is a drawer behind the hamburger", async ({ page }) => {
+  test("the menu opens in place", async ({ page }) => {
     await gotoReady(page, "/");
     await expect(page.getByTestId("app-rail")).toBeHidden();
 
-    const drawer = await openRailScope(page);
-    await expect(drawer).toBeVisible();
+    const menu = await openRailScope(page);
+    const menuBox = await menu.boundingBox();
+    if (!menuBox) throw new Error("Missing opened menu box");
+    expect(Math.abs(menuBox.width - 256)).toBeLessThanOrEqual(1);
+    expect(Math.abs(menuBox.x)).toBeLessThanOrEqual(1);
 
-    // U0c — the drawer names the ACTIVE panel and lists ONLY its items.
-    await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
-    await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
-    // The old stacked all-panels list is gone: no non-active panel name shows
-    // in the drawer body (the switcher's options live in a portal menu).
-    await expect(drawer.getByText(en["panel.account"], { exact: true })).toHaveCount(0);
-    await expect(drawer.getByText(en["panel.myListings"], { exact: true })).toHaveCount(0);
+    // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the geometry anchor
+    const row = menu.locator('[data-testid^="rail-category-"]').first();
+    const testid = await row.getAttribute("data-testid");
+    if (!testid) throw new Error("Missing first menu category test id");
+    const slug = testid.replace("rail-category-", "");
+    const stripRow = page.getByTestId(`strip-category-${slug}`);
+    const rowBox = await row.boundingBox();
+    const stripBox = await stripRow.boundingBox();
+    if (!rowBox || !stripBox) throw new Error("Missing aligned category rows");
+    expect(Math.abs(rowBox.y - stripBox.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(rowBox.height - stripBox.height)).toBeLessThanOrEqual(1);
+    const iconBox = await row.locator("svg").boundingBox();
+    const nameBox = await row.locator("span").boundingBox();
+    if (!iconBox || !nameBox) throw new Error("Missing menu row icon or name");
+    expect(
+      Math.abs(iconBox.y + iconBox.height / 2 - (nameBox.y + nameBox.height / 2)),
+    ).toBeLessThanOrEqual(2);
+    await expect(row.locator("span")).toBeVisible();
+    await expect(menu.getByTestId("rail-category-all")).toHaveCount(0);
+    await expect(menu.getByTestId("post-entry")).toHaveCount(0);
+    await expect(menu.getByTestId("panel-header-title")).toHaveCount(0);
+    await expect(menu.getByTestId("drawer-logo-block")).toHaveCount(0);
+    await expect(menu.getByText(en["panel.account"], { exact: true })).toHaveCount(0);
+    await expect(menu.getByText(en["panel.myListings"], { exact: true })).toHaveCount(0);
   });
 
-  test("the drawer switcher NAVIGATES to the panel's home (U0e)", async ({ page }) => {
+  test("the menu follows the active panel", async ({ page }) => {
     const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await gotoReady(page, "/");
 
-    // INC-082: the drawer is opened ONLY through openRailScope — the bounded
-    // retry for transient open-timing lives in the helper, never inline.
-    const drawer = await openRailScope(page);
-    await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
-
-    // U0f: BOTH the rail and the drawer render a panel band, so the switcher
-    // must be drawer-scoped or the locator is strict-mode ambiguous. The
-    // OPTIONS live in a portal outside the drawer, so they are menu-scoped.
-    await drawer.getByTestId("panel-header-switcher").click();
-    await page.getByRole("menu").getByTestId("panel-header-option-account").click();
-
-    // INC-071: activation IS navigation. The URL is Account's homePath, and
-    // the drawer stays OPEN on the new panel's items.
+    const menu = await openRailScope(page);
+    // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; any first category proves the active panel
+    await expect(menu.locator('[data-testid^="rail-category-"]').first()).toBeVisible();
+    await expect(menu.getByTestId("rail-item-ac-overview")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await page.getByTestId("bottom-bar-account").click();
     await expect(page).toHaveURL(/\/account$/);
-    await expect(drawer).toBeVisible();
-    await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
-    await expect(drawer.getByTestId("rail-item-ac-overview")).toBeVisible();
-    await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
+    const accountMenu = await openRailScope(page);
+    await expect(accountMenu.getByTestId("rail-item-ac-overview")).toBeVisible();
+    await expect(accountMenu.locator('[data-testid^="rail-category-"]')).toHaveCount(0);
+    await expect(accountMenu).toHaveAttribute("data-panel", "account");
   });
 
-  // U0e geometry: the drawer's logo block carries the top bar's divider and
-  // exactly the top bar's height.
-  test("the drawer logo block matches the top bar's divider and height", async ({ page }) => {
+  test("the menu closes back to the icons", async ({ page }) => {
     await gotoReady(page, "/");
-    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
-    const bar = (await page.locator("header").first().boundingBox())!;
+    const control = page.getByRole("button", { name: en["shell.openMenu"] });
+    let menu = await openRailScope(page);
+    const menuBox = await menu.boundingBox();
+    if (!menuBox) throw new Error("Missing opened menu box");
+    await page.mouse.click(menuBox.x + menuBox.width + 20, menuBox.y + 20);
+    await expect(menu).toBeHidden();
+    await expect(page.getByTestId("rail-strip")).toBeVisible();
+    await expect(control).toBeFocused();
 
-    const block = (await openRailScope(page)).getByTestId("drawer-logo-block");
+    menu = await openRailScope(page);
+    await page.getByRole("button", { name: en["shell.closeMenu"] }).click();
+    await expect(menu).toBeHidden();
+    await expect(control).toBeFocused();
 
-    await expect(block).toBeVisible();
-    const box = (await block.boundingBox())!;
-    expect(Math.abs(box.height - bar.height)).toBeLessThanOrEqual(1);
-    const border = await block.evaluate((el) => ({
-      width: getComputedStyle(el).borderBottomWidth,
-      style: getComputedStyle(el).borderBottomStyle,
-    }));
-    expect(border.style).toBe("solid");
-    expect(parseFloat(border.width)).toBeGreaterThan(0);
+    menu = await openRailScope(page);
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(control).toBeFocused();
+
+    menu = await openRailScope(page);
+    // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the navigation subject
+    const category = menu.locator('[data-testid^="rail-category-"]').first();
+    const testid = await category.getAttribute("data-testid");
+    const href = await category.getAttribute("href");
+    if (!testid || !href) throw new Error("Missing category row destination");
+    await category.click();
+    await expect(page).toHaveURL(new RegExp(`${href}$`));
+    await expect(menu).toBeHidden();
+    const slug = testid.replace("rail-category-", "");
+    await expect(page.getByTestId(`strip-category-${slug}`)).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    menu = await openRailScope(page);
+    await expect(menu.getByTestId(testid)).toHaveAttribute("aria-current", "page");
   });
 
   test("the rail-collapse toggle does not exist on mobile", async ({ page }) => {
@@ -1004,13 +1036,14 @@ test.describe("mobile chrome", () => {
     await expect(page.getByTestId("rail-collapse-toggle")).toHaveCSS("display", "none");
   });
 
-  test("no Settings item leaks into the mobile category drawer", async ({ page }) => {
-    // INC-053 — the Marketplace rail is the live category tree, drawer included.
+  test("no Settings item leaks into the mobile category menu", async ({ page }) => {
+    // INC-053 — the Marketplace menu is the live category tree.
     await gotoReady(page, "/");
-    const drawer = await openRailScope(page);
-    await expect(drawer.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
-    await expect(drawer.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
-    await expect(drawer.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
+    const menu = await openRailScope(page);
+    await expect(menu).toHaveAttribute("data-panel", "marketplace");
+    // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; any first category proves Marketplace content
+    await expect(menu.locator('[data-testid^="rail-category-"]').first()).toBeVisible();
+    await expect(menu.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
 
   test("search opens a full-width row BELOW the bar", async ({ page }) => {
@@ -1077,14 +1110,16 @@ test.describe("mobile chrome", () => {
     expect(stripRowBox.height).toBeGreaterThanOrEqual(27);
     expect(stripRowBox.height).toBeLessThanOrEqual(45);
 
-    // Category rows inside the drawer are targets too.
-    await openRailScope(page);
-    await expectTapTarget(
-      page,
-      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
-      page.getByRole("link", { name: en["shell.allCategories"] }).first(),
-      "all categories",
-    );
+    // Category rows inside the opened menu share the strip's fitted height.
+    const menu = await openRailScope(page);
+    // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the fitted-row anchor
+    const firstMenuRow = await menu
+      .locator('[data-testid^="rail-category-"]')
+      .first()
+      .boundingBox();
+    if (!firstMenuRow) throw new Error("Missing menu category");
+    expect(firstMenuRow.height).toBeGreaterThanOrEqual(27);
+    expect(firstMenuRow.height).toBeLessThanOrEqual(45);
   });
 
   test("the bottom bar, signed out", async ({ page }) => {
@@ -1187,7 +1222,7 @@ test.describe("mobile chrome", () => {
     expect(firstLink.x).toBeGreaterThanOrEqual(strip.x + strip.width - 1);
   });
 
-  test("the drawer says who is signed in", async ({ page }) => {
+  test("the menu says who is signed in", async ({ page }) => {
     await poolSignIn(page);
     await gotoReady(page, "/");
     const drawer = await openRailScope(page);
@@ -1373,8 +1408,8 @@ test.describe("panel header band (U0d)", () => {
  * cannot fit.
  */
 test.describe("rail scroll regions (U0f)", () => {
-  test("drawer: items scroll, header fixed, sign out pinned", async ({ page, viewport }) => {
-    test.skip((viewport?.width ?? 0) >= 768, "mobile drawer only");
+  test("menu: items scroll, menu fixed, identity pinned", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) >= 768, "mobile menu only");
     const user = await leaseUser();
     await signIn(page, user.email, user.password);
     await page.setViewportSize({ width: 360, height: 480 });
@@ -1393,19 +1428,18 @@ test.describe("rail scroll regions (U0f)", () => {
       .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
       .toBeGreaterThan(0);
 
-    const title = drawer.getByTestId("panel-header-title");
-    const before = (await title.boundingBox())!;
+    const before = (await drawer.boundingBox())!;
     const last = scroll.locator("li").last();
     await expect(last).not.toBeInViewport();
 
     await scroll.evaluate((el) => el.scrollTo(0, el.scrollHeight));
     await expect(last).toBeInViewport();
 
-    // Fixed header: its y did not move with the items.
-    const after = (await title.boundingBox())!;
+    // Fixed menu: its y did not move with the items.
+    const after = (await drawer.boundingBox())!;
     expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
-    // Pinned foot: reachable without scrolling the drawer itself.
-    await expect(drawer.getByTestId("rail-sign-out")).toBeInViewport();
+    // Pinned foot: reachable without scrolling the menu itself.
+    await expect(drawer.getByTestId("drawer-identity")).toBeInViewport();
   });
 
   test("md+ rail: items scroll, header fixed", async ({ page, viewport }) => {

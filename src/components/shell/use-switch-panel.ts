@@ -1,4 +1,4 @@
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 
 import { useShell } from "@/components/shell-context";
@@ -23,7 +23,6 @@ import type { PanelId } from "@/config/panels.types";
  */
 export function useSwitchPanel(): (panel: PanelId) => void {
   const navigate = useNavigate();
-  const router = useRouter();
   const { setActivePanel } = useShell();
 
   return useCallback(
@@ -32,21 +31,11 @@ export function useSwitchPanel(): (panel: PanelId) => void {
       // INC-071 grandfather: no route yet, so state is the only lever. Delete
       // this branch when every panel carries a homePath.
       if (home === null || panel === "marketplace") {
-        // INC-501 — a route of another panel derives the active panel from its
-        // path, so state alone is overruled there: go to "/" first, then set it.
-        const path = router.state.location.pathname;
-        const owned = ["/account", "/settings", "/admin"].some(
-          (p) => path === p || path.startsWith(`${p}/`),
-        );
-        if (home === null && owned) {
-          void navigate({ to: "/" }).then(() => setActivePanel(panel));
-          return;
-        }
         setActivePanel(panel);
         return;
       }
       void navigate({ to: home });
     },
-    [navigate, router, setActivePanel],
+    [navigate, setActivePanel],
   );
 }

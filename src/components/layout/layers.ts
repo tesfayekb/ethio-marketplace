@@ -10,11 +10,15 @@
  *
  * So the order is declared here and imported, never re-guessed per file:
  *
- *   bar  <  popover  <  sheet
+ *   bar  <  opened phone menu  <  popover / sheet
  *
  * A popover stays in the form's own stacking context (the grid creates none), so
  * a class is enough and no portal is needed; the SHEET is a portal, because it
  * covers the page including the bar.
+ *
+ * INC-124: the opened phone menu is z-40 with its scrim at z-35. It paints
+ * over the z-30 top/bottom bars and z-20 strip, but remains below z-50 modal
+ * dialogs and sheets.
  */
 
 /** The sticky mobile action bar — the LOWEST of the three. */

@@ -3,7 +3,15 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 
-import { gotoReady, openRailScope, signIn, signOutViaUi, signedInMarker } from "./helpers/ui";
+import {
+  expectActivePanel,
+  gotoReady,
+  isMobile,
+  openRailScope,
+  signIn,
+  signOutViaUi,
+  signedInMarker,
+} from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -68,7 +76,11 @@ test.describe("U0j sign-out hard reset", () => {
 
     await expectSignedOutMarketplace(page);
     await expect(page.getByTestId("sign-out-dialog")).toHaveCount(0);
-    await expect(page.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
+    if (isMobile(page)) {
+      await expectActivePanel(page, "marketplace");
+    } else {
+      await expect(page.getByTestId("panel-header-title")).toHaveText(en["panel.marketplace"]);
+    }
 
     // Back must not re-enter a gated page (replace-navigation).
     await page.goBack();

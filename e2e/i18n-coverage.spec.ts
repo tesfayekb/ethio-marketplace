@@ -133,8 +133,8 @@ const chromeTexts = (page: Page) =>
     CHROME_TESTIDS.map((id) => `[data-testid="${id}"]`),
   );
 
-/** U0i(b) — the mobile drawer is the Sheet DIALOG, not the md+ aside. */
-const drawerTexts = (page: Page) => textsWithin(page, ['[role="dialog"]']);
+/** C2f — the phone menu is the in-place rail menu, not the md+ aside. */
+const drawerTexts = (page: Page) => textsWithin(page, ['[data-testid="rail-menu"]']);
 
 function assertAmharicChrome(texts: string[], where: string) {
   const fellBack = texts
@@ -209,7 +209,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     await expect(drawer).toBeVisible();
 
     assertAmharicChrome(await drawerTexts(page), "mobile drawer");
-    await assertAmharicCategories(page, '[role="dialog"]', "mobile drawer categories");
+    await assertAmharicCategories(page, '[data-testid="rail-menu"]', "mobile drawer categories");
   });
 
   test("the admin shell renders no English fallback", async ({ page }) => {

@@ -62,7 +62,7 @@ Visual restyling of the marketplace feed and cards (U7), the listing detail page
 
 ## 6. The bottom edge (`--bottom-bar`)
 
-`--bottom-bar` is the phone bottom bar's height (`calc(3.75rem + env(safe-area-inset-bottom))`, `0px` from 48rem; the shell sets it to `0px` on the posting wizard). Any new sticky or fixed element anchored to the bottom edge uses `var(--bottom-bar)` as its inset, never `0`, so nothing hides under the bar. Current users: the shell wrapper's padding, the strip, FormSection's and PageHeader's phone action bars, the session toasts.
+`--bottom-bar` is the phone bottom bar's height (`calc(3.75rem + env(safe-area-inset-bottom))`, `0px` from 48rem). Any new sticky or fixed element anchored to the bottom edge uses `var(--bottom-bar)` as its inset, never `0`, so nothing hides under the bar. Current users: the shell wrapper's padding, the strip and opened phone menu, FormSection's and PageHeader's phone action bars, and session notices.
 
 ### PasswordInput
 
