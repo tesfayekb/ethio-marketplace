@@ -181,7 +181,7 @@ ends). Below `md` the grid collapses to one column, the logo moves into the top
 bar, and the rail becomes the drawer.
 
 **Top-bar height rule:** the bar carries no height of its own from `md` up
-(`md:h-full`); it FILLS grid row 1 (4rem), so its top and bottom edges are the
+(`md:h-full`); it FILLS grid row 1 (3.5rem), so its top and bottom edges are the
 logo cell's by construction — one clean aligned top band, asserted numerically
 in `shell.spec`. On phones there is no grid row to fill and the bar is its own
 compact 3.5rem.

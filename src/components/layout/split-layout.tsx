@@ -25,7 +25,7 @@ export function SplitLayout({
       <div className="min-w-0">{main}</div>
       <aside
         className={cn(
-          "min-w-0 lg:sticky lg:[inset-block-start:6rem] lg:self-start",
+          "min-w-0 lg:sticky lg:[inset-block-start:9rem] lg:self-start",
           asideCollapsible && "hidden lg:block",
         )}
         data-testid="split-layout-aside"

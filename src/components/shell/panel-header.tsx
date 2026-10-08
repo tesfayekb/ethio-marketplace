@@ -57,7 +57,7 @@ export function PanelHeader({ className }: { className?: string }) {
             type="button"
             data-testid="panel-header-switcher"
             aria-label={t("shell.switchPanel")}
-            className="flex min-h-11 w-full items-center gap-2 rounded-md px-1 text-start text-base font-semibold text-foreground hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md px-1 text-start text-base font-semibold text-foreground hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span data-testid="panel-header-title" className="min-w-0 truncate">
               {label}

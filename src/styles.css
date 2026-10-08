@@ -258,8 +258,8 @@
 
   @media (min-width: 48rem) {
     html {
-      /* INC-106d: scrollIntoView targets clear the fixed 4rem shell band. */
-      scroll-padding-top: 4rem;
+      /* INC-106d: scrollIntoView targets clear the 56px top band, 74px subband and 6px air. */
+      scroll-padding-top: 8.5rem;
     }
   }
 

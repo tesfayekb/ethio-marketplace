@@ -815,11 +815,7 @@ export function AdminCategoriesPage() {
   return (
     <StepUpGate>
       {(guard) => (
-        <PageShell
-          width="full"
-          data-testid="admin-section-categories"
-          className="space-y-4 p-0 md:p-0 xl:p-0"
-        >
+        <PageShell width="full" data-testid="admin-section-categories" className="space-y-4">
           {mayCreate ? (
             <PageCard testid="category-create-card">
               <Button

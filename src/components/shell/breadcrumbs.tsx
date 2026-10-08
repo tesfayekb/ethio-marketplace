@@ -62,11 +62,7 @@ export function Breadcrumbs() {
    */
   if (pathname.startsWith("/auth")) {
     return (
-      <Breadcrumb
-        data-testid="breadcrumbs"
-        aria-label={t("shell.breadcrumbLabel")}
-        className="mb-3"
-      >
+      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -88,11 +84,7 @@ export function Breadcrumbs() {
 
   if (pathname === "/account") {
     return (
-      <Breadcrumb
-        data-testid="breadcrumbs"
-        aria-label={t("shell.breadcrumbLabel")}
-        className="mb-3"
-      >
+      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -133,11 +125,7 @@ export function Breadcrumbs() {
     const roleDetailId = /^\/admin\/roles\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
     const detailId = userDetailId ?? roleDetailId;
     return (
-      <Breadcrumb
-        data-testid="breadcrumbs"
-        aria-label={t("shell.breadcrumbLabel")}
-        className="mb-3"
-      >
+      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -216,7 +204,7 @@ export function Breadcrumbs() {
   }
 
   return (
-    <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")} className="mb-3">
+    <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
       <BreadcrumbList>
         <BreadcrumbItem>
           {showPanelSegment || path.length > 0 ? (

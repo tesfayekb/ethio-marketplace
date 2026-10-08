@@ -225,11 +225,7 @@ export function AdminTranslationsStringsPage({
   return (
     <StepUpGate>
       {(guard) => (
-        <PageShell
-          width="full"
-          data-testid="admin-translations-strings"
-          className="space-y-4 p-0 md:p-0 xl:p-0"
-        >
+        <PageShell width="full" data-testid="admin-translations-strings" className="space-y-4">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             <h1 className="min-w-0 truncate text-lg font-semibold text-foreground">
               {t("admin.translations.strings.title").replace(
