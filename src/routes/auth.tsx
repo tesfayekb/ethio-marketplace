@@ -1,3 +1,4 @@
+import { PasswordInput } from "@/components/ui/password-input";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -87,7 +88,6 @@ function AuthScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [canResend, setCanResend] = useState(false);
@@ -515,27 +515,17 @@ function AuthScreen() {
             <label htmlFor="auth-password" className="text-sm font-medium text-foreground">
               {t("auth.password")}
             </label>
-            <div className="flex items-center gap-2">
-              <input
-                id="auth-password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete={isSignIn ? "current-password" : "new-password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t("auth.passwordPlaceholder")}
-                className={fieldClass}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-pressed={showPassword}
-                className="min-h-11 shrink-0 rounded-md border border-input px-3 text-sm text-muted-foreground hover:bg-accent"
-              >
-                {showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
-              </button>
-            </div>
+            <PasswordInput
+              id="auth-password"
+              name="password"
+              type="password"
+              autoComplete={isSignIn ? "current-password" : "new-password"}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t("auth.passwordPlaceholder")}
+              className={fieldClass}
+            />
           </div>
 
           {errorKey ? (

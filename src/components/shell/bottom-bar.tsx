@@ -1,5 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { CircleUser, ClipboardList, House, LogIn, Plus, type LucideIcon } from "lucide-react";
+import {
+  CircleUser,
+  ClipboardList,
+  House,
+  LogIn,
+  Plus,
+  Shield,
+  type LucideIcon,
+} from "lucide-react";
 import type { ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
@@ -111,6 +119,17 @@ export function BottomBar() {
           <ItemBody icon={LogIn} label={label("auth.signIn")} />
         </Link>
       )}
+      {signedIn && auth.isAdmin ? (
+        <Link
+          to="/admin"
+          data-testid="bottom-bar-admin"
+          aria-label={label("panel.admin")}
+          aria-current={activePanel === "admin" ? "page" : undefined}
+          className={cn(ITEM, tone(activePanel === "admin"))}
+        >
+          <ItemBody icon={Shield} label={label("panel.admin")} />
+        </Link>
+      ) : null}
     </nav>
   );
 }

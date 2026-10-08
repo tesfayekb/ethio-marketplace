@@ -69,9 +69,10 @@ function Picker({
         <button
           type="button"
           data-testid={`location-level-${labelKey.split(".")[1]}`}
-          aria-label={t(labelKey)}
+          aria-label={selectedName ? `${t(labelKey)}: ${selectedName}` : t(labelKey)}
+          title={selectedName ?? undefined}
           className={cn(
-            "inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-sm",
+            "inline-flex h-8 min-w-[6ch] shrink items-center gap-1 rounded-md px-2 text-sm",
             "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             selectedId !== null
               ? "font-medium text-foreground"
@@ -80,7 +81,7 @@ function Picker({
         >
           {/* The picker shows its OWN selection — never a second copy of an
               area label rendered elsewhere (INC-041). */}
-          <span className="max-w-[9rem] truncate">{selectedName ?? t(labelKey)}</span>
+          <span className="min-w-0 truncate">{selectedName ?? t(labelKey)}</span>
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
@@ -197,26 +198,26 @@ export function LocationSelector() {
   return (
     <div
       data-testid="location-row"
-      className="flex w-full flex-wrap items-center gap-x-1 gap-y-0 border-b border-border bg-card px-2 py-1 md:px-4"
+      className="flex h-8 w-full flex-nowrap items-center gap-x-1 overflow-hidden border-b border-border bg-card px-2 md:px-4"
     >
-      <span className="inline-flex min-h-11 shrink-0 items-center pe-1 text-muted-foreground">
+      <span className="inline-flex min-h-8 shrink-0 items-center pe-1 text-muted-foreground">
         <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span className="sr-only">{t("location.label")}</span>
       </span>
 
       {isLoading ? (
-        <span className="min-h-11 content-center text-sm text-muted-foreground">
+        <span className="min-h-8 content-center text-sm text-muted-foreground">
           {t("common.loading")}
         </span>
       ) : failed ? (
         <span
           data-testid="location-error"
-          className="min-h-11 content-center text-sm text-muted-foreground"
+          className="min-h-8 content-center text-sm text-muted-foreground"
         >
           {t("location.readFailed")}
         </span>
       ) : marketOptions.length === 0 ? (
-        <span className="min-h-11 content-center text-sm text-muted-foreground">
+        <span className="min-h-8 content-center text-sm text-muted-foreground">
           {t("location.empty")}
         </span>
       ) : (
@@ -249,7 +250,7 @@ export function LocationSelector() {
           {guessInUse && guessNode !== null ? (
             <span
               data-testid="location-guess-caption"
-              className="min-h-11 content-center ps-1 text-xs text-muted-foreground"
+              className="min-h-8 content-center ps-1 text-xs text-muted-foreground"
             >
               {/* L4b-2 — the caption names the RESOLVED node (a metro, a region
                   or the market), so `{area}` is a NEW key: the old `{country}`

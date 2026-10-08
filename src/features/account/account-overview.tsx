@@ -1,3 +1,4 @@
+import { LogOut } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { readAllPages } from "@/lib/read-all-pages";
@@ -49,7 +50,7 @@ const STATUS_KEYS: Record<string, MessageKey> = {
 export function AccountOverview() {
   const { t, language } = useI18n();
   const { user } = useAuth();
-  const { setActivePanel } = useShell();
+  const { setActivePanel, requestSignOut } = useShell();
   const [state, setState] = useState<State>(initialState);
   const [loading, setLoading] = useState(true);
 
@@ -243,6 +244,15 @@ export function AccountOverview() {
           </Section>
         </ContentGrid>
       ) : null}
+      <Button
+        variant="outline"
+        data-testid="account-sign-out"
+        className="w-full md:w-auto"
+        onClick={requestSignOut}
+      >
+        <LogOut aria-hidden="true" />
+        {t("auth.signOut")}
+      </Button>
     </PageShell>
   );
 }
