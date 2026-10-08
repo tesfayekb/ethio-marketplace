@@ -99,13 +99,8 @@ function Picker({
 
 export function LocationSelector() {
   const { t, entities, language } = useI18n();
-  const {
-    locationPath,
-    setLocationPath,
-    locationCountry,
-    selectLocationCountry,
-    guessInUse,
-  } = useShell();
+  const { locationPath, setLocationPath, locationCountry, selectLocationCountry, guessInUse } =
+    useShell();
   const markets = useOpenMarkets();
   const tree = useCountryTree(locationCountry);
   // INC-211 — rows are used ONLY while they belong to the chosen market, so a

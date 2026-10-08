@@ -2239,8 +2239,13 @@ test.describe("L4b location picker", () => {
   test("the location row uses the width-specific label", async ({ page }) => {
     await gotoReady(page, "/");
     const mobile = test.info().project.name === "mobile-360";
-    await expect(page.locator("#location-row-label-short")).toBeVisible({ visible: mobile });
-    await expect(page.locator("#location-row-label")).toBeVisible({ visible: !mobile });
+    if (mobile) {
+      await expect(page.locator("#location-row-label-short")).toBeVisible();
+      await expect(page.locator("#location-row-label")).toBeHidden();
+    } else {
+      await expect(page.locator("#location-row-label-short")).toBeHidden();
+      await expect(page.locator("#location-row-label")).toBeVisible();
+    }
   });
 
   test("LS-3 an open market is guessed from the edge country, never saved", async ({ browser }) => {

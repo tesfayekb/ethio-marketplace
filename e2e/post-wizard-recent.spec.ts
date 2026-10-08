@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
@@ -91,9 +92,9 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
       for (const box of chipBoxes) expect(Math.abs(box.top - labelBox.y)).toBeLessThanOrEqual(2);
       expect(chipBoxes.map((box) => box.title)).toEqual([xName, yName]);
       const row = page.getByTestId("post-category-recent-row");
-      expect(await row.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(
-        1,
-      );
+      expect(
+        await row.evaluate((element) => element.scrollWidth - element.clientWidth),
+      ).toBeLessThanOrEqual(1);
     }
     await chip(page, y.id).click();
     await expect(page.getByTestId("post-step-3"), "PW-171: Y's details did not open").toBeVisible({
