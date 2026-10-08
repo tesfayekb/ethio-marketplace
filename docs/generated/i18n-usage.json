@@ -2965,7 +2965,6 @@
       "/post/$listingId"
     ],
     "common.close": [
-      "(every page)",
       "/admin/attributes",
       "/admin/categories",
       "/admin/countries",

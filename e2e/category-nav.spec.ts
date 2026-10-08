@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import { scratchSlug, destroyCategory } from "./helpers/categories";
-import { gotoReady, openRailScope } from "./helpers/ui";
+import { gotoReady, isMobile, openRailScope } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
@@ -84,8 +84,12 @@ test.describe("category selection navigates", () => {
     await page.getByTestId("breadcrumb-home").click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByTestId("breadcrumb-category")).toHaveCount(0);
-    const scope = await openRailScope(page);
-    await expect(scope.getByTestId("rail-category-all")).toHaveAttribute("aria-current", "page");
+    if (isMobile(page)) {
+      await expect(page.getByTestId("bottom-bar-home")).toHaveAttribute("aria-current", "page");
+    } else {
+      const scope = await openRailScope(page);
+      await expect(scope.getByTestId("rail-category-all")).toHaveAttribute("aria-current", "page");
+    }
   });
 
   test("C-4: /auth is a page — Home > Sign in, no category selected", async ({ page }) => {

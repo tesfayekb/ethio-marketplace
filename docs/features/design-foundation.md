@@ -107,9 +107,11 @@ value; components use semantic tokens only, never raw colours.
 +--------------------------------------------------+
 ```
 
-Same skeleton at every breakpoint. Below `md` the rail is hidden and opens as a
-drawer (`ui/sheet`, the same primitive `ui/sidebar` uses for its own mobile
-mode) from the icon strip’s head menu button. Mobile-first at 360px; all controls ≥ 44px;
+Same skeleton at every breakpoint. Below `md` the persistent rail becomes a
+48px icon strip. Its top-bar control widens that strip in place to 256px, showing
+the same rows with their names on one line; there is no logo block or panel switcher.
+A tap outside, the close control or Escape shrinks it back. The current item stays
+highlighted in both forms, while tapping a strip icon navigates directly. Mobile-first at 360px; all controls ≥ 44px;
 logical properties only (`ps-*`, `pe-*`, `me-*`, `text-start`).
 
 ## Motif rule
@@ -262,7 +264,7 @@ ONE breakpoint governs both the sidebar collapse and the top-bar minimization:
   "Sign in" button. No bare icon a non-technical user has to decode. Verified to
   fit with zero horizontal overflow at exactly 768px.
 - **Below `md`** (phones only): a 48px icon strip shares the collapsed rail’s
-  rows and opens the full drawer from its head. The 52px bar, strip and
+  rows and widens in place to a 256px named menu from the top bar. The 52px bar, strip and
   tabs/breadcrumb band stay while the page scrolls; search opens a full-width
   row over the page below the bar. Only this size minimizes the bar.
   `PHONE_STRIP=false` restores the header menu button and removes the strip offset.
@@ -271,8 +273,8 @@ ONE breakpoint governs both the sidebar collapse and the top-bar minimization:
   phones search is an icon that opens a FULL-WIDTH row below the bar (room for
   long queries) rather than a cramped in-bar field. The panel dropdown is gone.
 - **Panel tabs** (`shell/panel-tabs.tsx`) use the locked green for emphasis
-  (underline + text). Mobile users switch panels in the drawer via
-  `panel-switcher.tsx`'s list, which is now that file's only variant.
+  (underline + text). Mobile users switch panels through the bottom bar; the
+  opened menu shows only the active panel's rows.
 - **Language** is ONE affordance at every width, in two presentations: `EN ▾` on
   phones, `English ▾` (the language NAME) from `md` up. Its menu lists every
   language including the current one, ticked.

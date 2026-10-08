@@ -122,6 +122,7 @@ export function AppHeader() {
             type="button"
             aria-label={t(navOpen ? "shell.closeMenu" : "shell.openMenu")}
             aria-expanded={navOpen}
+            aria-controls="rail-menu"
             className="inline-flex h-11 w-12 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
             onClick={() => setNavOpen(!navOpen)}
           >

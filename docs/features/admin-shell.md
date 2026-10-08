@@ -66,7 +66,7 @@ into the `admin` panel's `items`. The rail's existing `visibleItems()` filter
 uses the permissions the shell has ALREADY fetched — no new read. Zero
 permitted sections → the panel simply shows no items.
 
-- 360px: the drawer lists the permitted sections; the landing still renders
+- 360px: the in-place menu lists the permitted sections; the landing still renders
   full-width tappable cards (`min-h-16`, ≥44px targets) as its index content;
   inside a section, a `Back` affordance remains (`md:hidden`).
 - md+: the shell rail lists the sections with active styling on the current
@@ -108,12 +108,12 @@ on the overview it is the current final segment.
   (`roles → role_permissions → permissions`), so seed drift fails loudly rather
   than silently changing what the test proves. Asserts card count, each link,
   section page + breadcrumb, a deep link into a second permitted section, and a
-  refusal (redirect + notice) for a section the role lacks. U0b adds: drawer
+  refusal (redirect + notice) for a section the role lacks. U0b adds: phone menu
   items + tap-to-navigate (mobile), rail items + active highlight (desktop),
   and `admin-nav-sidebar` absent on both viewports.
 - **A-2 moderator fixture** — asserts the seed grants zero sections, the Admin
   tab still shows (`admin_panel:access`), the landing shows `admin-no-sections`
-  with the nav container absent, zero admin items in the rail/drawer, and
+  with the nav container absent, zero admin items in the rail/menu, and
   `/admin/users` refused.
 - **A-3 regular user** — `/admin` redirects home; no admin tab logged out.
 
@@ -131,12 +131,10 @@ INSERT (matching `e2e/rbac.spec.ts`) because the `user_roles` UNIQUE is
   `aria-current="page"`).
 - **No Back button.** `admin-section-back` is gone at every width — the Admin
   breadcrumb segment is the way back.
-- **Drawer.** The mobile drawer heads with the ACTIVE panel's name plus a
-  panel-switcher dropdown (auth-filtered exactly like the top tabs, ≥44px
-  target, `shell.switchPanel`). Below it: only the active panel's items
-  (permission filtering unchanged). The stacked all-panels list is removed;
-  sign out stays pinned at the bottom. A single-panel (logged-out) drawer shows
-  the heading without a trigger.
+- **Phone menu.** Below 768px the icon strip widens in place to show the active
+  panel's permitted rows and their names. It has no logo block, panel heading or
+  switcher; the bottom bar switches panels. The signed-in identity is pinned in
+  its foot, and selecting a row closes the menu.
 
 ## U0d — landing cards + panel-header band (2026-08-12, INC-070)
 
