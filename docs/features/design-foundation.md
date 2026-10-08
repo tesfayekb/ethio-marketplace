@@ -44,19 +44,19 @@ Dark mode therefore uses the lighter leaf `#7FC9A6` with near-black text
 
 ### House style tokens (bundle 9, 2026-10-08)
 
-| Token | Light | Dark | Meaning |
-| --- | --- | --- | --- |
-| `--border` | #D3D8DF | #343B43 | lines of cards, tables, bars |
-| `--input` | #C3C9D1 | #3F4750 | edge of a field or an outline button |
-| `--rule` | #E4E8ED | #262C32 | fine line between two rows |
-| `--muted-foreground` | #4A515A | #A3ABB3 | secondary text |
-| `--destructive` | #B42318 | #FF6467 | danger: delete, remove, a refusal |
-| `--destructive-foreground` | #FFFFFF | #1F0A08 | text on a solid danger fill |
-| `--destructive-soft` / `-line` | #FDECEA / #F3C1BC | #3A1C1A / #5E2B27 | tinted danger surface / edge |
-| `--success` / `-soft` / `-line` | #17503A / #E3F1EA / #B9DCCB | #7FC9A6 / #1C2B24 / #2E4A3C | done, active, approved |
-| `--warning` / `-soft` / `-line` | #7A4E00 / #FFF3D6 / #EDD49A | #E6B655 / #2D2513 / #4F4020 | paused, needs attention |
-| `--info` / `-soft` / `-line` | #1D4E89 / #E6F0FB / #BBD3EF | #8DB8EA / #17253A / #2A4366 | information, a link-like action |
-| `--neutral` / `-soft` | #3B424A / #EEF1F4 | #C5CBD1 / #262C32 | draft, off, nothing to say |
+| Token                           | Light                       | Dark                        | Meaning                              |
+| ------------------------------- | --------------------------- | --------------------------- | ------------------------------------ |
+| `--border`                      | #D3D8DF                     | #343B43                     | lines of cards, tables, bars         |
+| `--input`                       | #C3C9D1                     | #3F4750                     | edge of a field or an outline button |
+| `--rule`                        | #E4E8ED                     | #262C32                     | fine line between two rows           |
+| `--muted-foreground`            | #4A515A                     | #A3ABB3                     | secondary text                       |
+| `--destructive`                 | #B42318                     | #FF6467                     | danger: delete, remove, a refusal    |
+| `--destructive-foreground`      | #FFFFFF                     | #1F0A08                     | text on a solid danger fill          |
+| `--destructive-soft` / `-line`  | #FDECEA / #F3C1BC           | #3A1C1A / #5E2B27           | tinted danger surface / edge         |
+| `--success` / `-soft` / `-line` | #17503A / #E3F1EA / #B9DCCB | #7FC9A6 / #1C2B24 / #2E4A3C | done, active, approved               |
+| `--warning` / `-soft` / `-line` | #7A4E00 / #FFF3D6 / #EDD49A | #E6B655 / #2D2513 / #4F4020 | paused, needs attention              |
+| `--info` / `-soft` / `-line`    | #1D4E89 / #E6F0FB / #BBD3EF | #8DB8EA / #17253A / #2A4366 | information, a link-like action      |
+| `--neutral` / `-soft`           | #3B424A / #EEF1F4           | #C5CBD1 / #262C32           | draft, off, nothing to say           |
 
 - **Three tokens per meaning:** the strong colour (text, icon, solid fill), `-soft` (a tinted surface), `-line` (a tinted edge). Badge variants `success`, `warning`, `info`, `danger`, `neutral` use them.
 - **Corners:** 6 px (`--radius`) for controls, cards and tables (`rounded-md`, `rounded-lg`); 4 px for small marks (`rounded-sm`); 8 px for the large surfaces (`rounded-xl`).

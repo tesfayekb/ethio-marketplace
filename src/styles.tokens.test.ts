@@ -9,10 +9,7 @@ import { describe, expect, it } from "vitest";
  * every registered colour declared in both modes, no hex or rgb() values.
  */
 
-const css = readFileSync(resolve(__dirname, "styles.css"), "utf8").replace(
-  /\/\*[\s\S]*?\*\//g,
-  "",
-);
+const css = readFileSync(resolve(__dirname, "styles.css"), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
 
 function block(selector: string): string {
   const start = css.indexOf(`${selector} {`);
@@ -87,9 +84,10 @@ describe.each([
     expect(b, `${mode} declares --${bg}`).toBeDefined();
     const ratio = contrast(f!, b!);
     console.log(`[tokens] ${mode} ${fg} on ${bg} ${ratio.toFixed(2)}:1`);
-    expect(ratio, `${mode} ${fg} ${f} on ${bg} ${b} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(
-      4.5,
-    );
+    expect(
+      ratio,
+      `${mode} ${fg} ${f} on ${bg} ${b} = ${ratio.toFixed(2)}:1`,
+    ).toBeGreaterThanOrEqual(4.5);
   });
 });
 
