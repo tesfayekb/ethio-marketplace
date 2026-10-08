@@ -189,7 +189,7 @@ export function AppHeader() {
           to="/"
           aria-label={t("app.name")}
           data-testid="topbar-wordmark"
-          className="hidden min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:[html[data-rail=collapsed]_&]:inline-flex"
+          className="hidden min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rail-icons:inline-flex"
         >
           <Logo variant="lockup" />
         </Link>

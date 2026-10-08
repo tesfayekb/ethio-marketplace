@@ -33,14 +33,14 @@ export { categoryGlyph } from "@/components/shell/category-glyphs";
  * expressed in CSS — the toggle's aria-pressed and whether hovering a row
  * shows its label as a tooltip.
  *
- * Every `md:[html[data-rail=collapsed]_&]:` below is therefore desktop-only by
+ * Every `rail-icons:` below is therefore desktop-only by
  * construction: the mobile drawer keeps full labels at all times.
  */
-const HIDE_WHEN_COLLAPSED = "md:[html[data-rail=collapsed]_&]:hidden";
+const HIDE_WHEN_COLLAPSED = "rail-icons:hidden";
 
 const ITEM_BASE =
   "flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
-  "ps-[var(--rail-pad)] md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:ps-0 md:[html[data-rail=collapsed]_&]:pe-0";
+  "ps-[var(--rail-pad)] rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0";
 /** Hover stays on the SIDEBAR token family — bg-muted is a content-surface
  *  token and read as a foreign grey against bg-sidebar (INC-042). */
 const ITEM_IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground";
@@ -591,7 +591,7 @@ export function AppRail() {
           // inner rail-scroll region keeps its scrollbar and every item stays
           // reachable instead of hiding under the footer.
           style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:px-1"
+          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden rail-icons:w-16 rail-icons:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
