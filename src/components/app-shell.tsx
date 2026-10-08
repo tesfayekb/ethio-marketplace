@@ -23,6 +23,8 @@ import {
 } from "@/components/shell/location-data";
 import { LocationSelector } from "@/components/shell/location-selector";
 import { PanelTabs } from "@/components/shell/panel-tabs";
+import { PHONE_STRIP } from "@/config/panels";
+import { cn } from "@/lib/utils";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
 import { useAuth } from "@/features/auth/use-auth";
@@ -673,16 +675,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             {t("shell.skipToContent")}
           </a>
 
-          {/* U0g-2 — THE FIXED TOP BAND. On mobile the wrapper is `contents`,
-              so the top bar remains grid row 1 exactly as before. On md+ the
-              wrapper becomes a fixed 3.5rem-tall strip spanning the viewport,
-              and the corner block lives INSIDE it: logo cell 16rem × 3.5rem at
-              x=0 (4rem when the rail is collapsed), top bar filling the rest.
-              Painted geometry is identical to the old sticky band. */}
-          <div
-            data-testid="shell-band"
-            className="contents md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-14"
-          >
+          {/* The top band is fixed at every width. On phones its content sets
+              its height; the opened search row overlays the page below the bar.
+              From md up the logo cell and top bar share the 3.5rem band. */}
+          <div data-testid="shell-band" className="fixed inset-x-0 top-0 z-30 md:flex md:h-14">
             <div
               data-testid="shell-logo-cell"
               className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:flex md:h-14 md:w-64 md:shrink-0 md:items-center md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
@@ -730,11 +726,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               L1/L2. */}
           <div
             data-testid="shell-stack"
-            className="col-start-1 row-start-2 flex min-w-0 flex-col md:ms-64 md:pt-14 md:[html[data-rail=collapsed]_&]:ms-16"
+            className={cn(
+              "col-start-1 row-start-2 flex min-w-0 flex-col pt-13 md:ms-64 md:pt-14 md:[html[data-rail=collapsed]_&]:ms-16",
+              PHONE_STRIP && "ms-12",
+            )}
           >
             <div
               data-testid="shell-subband"
-              className="bg-card md:sticky md:top-14 md:z-20 md:shadow-bar"
+              className="sticky top-13 z-20 bg-card shadow-bar md:top-14"
             >
               <PanelTabs />
               <div className="flex min-h-8 min-w-0 items-center border-b border-border px-2 md:px-4">

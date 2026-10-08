@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { DataTablePagination, pageWindow } from "./data-table";
+import { DataTablePagination } from "./data-table";
+import { pageWindow } from "./page-window";
 
 /** BUNDLE 9 B3 — the page run and the pager's two optional controls. */
 vi.mock("@/i18n", () => ({

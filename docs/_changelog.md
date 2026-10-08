@@ -733,3 +733,5 @@
 - 2026-10-08 — Bundle 9 turn 2 (house style, Part B): shared blocks IconButton, RowActions, NativeSelect, FilterChips and FiltersButton; the table pager gains optional page numbers and rows per page, the selection bar optional actions (existing tables unchanged); five prim.table.\* strings EN+AM; shown on /dev/style and tested by HS-3 to HS-5; docs/features/display-primitives.md and design-foundation.md.
 
 - 2026-10-08 — Bundle 9 C1: 56px top band from md; pinned tabs/breadcrumb subband; shell-owned 8px/16px gutters; 36px fine-pointer menu rows; desktop geometry proofs. No migration.
+
+- 2026-10-08 — Bundle 9 C2a: fixed 52px phone bar and tabs/breadcrumb band; shared 48px icon strip with footer inset and one menu button; 312px pre-frame sweep and 360px guard; settled HS-2 and extracted pageWindow. No migration, dependency or string.

@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 
 import en from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
-import { gotoReady } from "./helpers/ui";
+import { gotoReady, settled } from "./helpers/ui";
 
 /**
  * BUNDLE 9 A4 — THE HOUSE-STYLE FIXTURE (/dev/style), both projects.
@@ -47,6 +47,7 @@ test.describe("house style fixture", () => {
     await page.getByRole("button", { name: en["shell.themeToggle"] }).click();
     const after = before === "dark" ? "light" : "dark";
     await expect(html).toHaveAttribute("data-mode", after);
+    await settled(page);
     await seriousOrCritical(page, after);
   });
 

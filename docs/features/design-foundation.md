@@ -109,7 +109,7 @@ value; components use semantic tokens only, never raw colours.
 
 Same skeleton at every breakpoint. Below `md` the rail is hidden and opens as a
 drawer (`ui/sheet`, the same primitive `ui/sidebar` uses for its own mobile
-mode) from the header hamburger. Mobile-first at 360px; all controls ≥ 44px;
+mode) from the icon strip’s head menu button. Mobile-first at 360px; all controls ≥ 44px;
 logical properties only (`ps-*`, `pe-*`, `me-*`, `text-start`).
 
 ## Motif rule
@@ -184,7 +184,7 @@ bar, and the rail becomes the drawer.
 (`md:h-full`); it FILLS grid row 1 (3.5rem), so its top and bottom edges are the
 logo cell's by construction — one clean aligned top band, asserted numerically
 in `shell.spec`. On phones there is no grid row to fill and the bar is its own
-compact 3.5rem.
+compact 3.25rem, fixed while the page scrolls.
 
 ### Logo lockup FIT rule
 
@@ -238,7 +238,7 @@ The shell renders five bands, top to bottom, inside the preserved corner-block
 grid (logo cell = rail width × top-bar height, one continuous sidebar hairline):
 
 ```text
-1. TOP BAR       hamburger · wordmark · search · language · theme · account/sign-in
+1. TOP BAR       wordmark · search · language · theme · account/sign-in
 2. PANEL TABS    signed-in AND >1 panel only — absent entirely when logged out
 3. LOCATION ROW  cascading country → region → city (→ sub-city when seeded)
 4. BREADCRUMBS   Home › panel › category path — every segment clickable
@@ -261,9 +261,11 @@ ONE breakpoint governs both the sidebar collapse and the top-bar minimization:
   reading the language NAME ("English"), and a labelled account control /
   "Sign in" button. No bare icon a non-technical user has to decode. Verified to
   fit with zero horizontal overflow at exactly 768px.
-- **Below `md`** (phones only): the rail becomes the drawer, the bar minimizes to
-  icons, and search opens the full-width row below the bar. This is the ONLY
-  size that minimizes.
+- **Below `md`** (phones only): a 48px icon strip shares the collapsed rail’s
+  rows and opens the full drawer from its head. The 52px bar, strip and
+  tabs/breadcrumb band stay while the page scrolls; search opens a full-width
+  row over the page below the bar. Only this size minimizes the bar.
+  `PHONE_STRIP=false` restores the header menu button and removes the strip offset.
 
 - **Top bar** is minimal and evenly distributed at 360px, full at `md`+. On
   phones search is an icon that opens a FULL-WIDTH row below the bar (room for
@@ -314,7 +316,7 @@ the Featured badge. No background image, no gradient.
 - The desktop wordmark follows the rail: corner cell when expanded, top bar
   (after the collapse toggle, before search) when collapsed (INC-045). Placement
   keys off `html[data-rail]`, so it never flashes and never renders twice.
-- Exactly ONE sidebar affordance per breakpoint: hamburger below `md`, collapse
+- Exactly ONE sidebar affordance per breakpoint: strip menu below `md`, collapse
   toggle at `md`+ (INC-046).
 - Footer link rows are tighter; anchors keep their 44px tap boxes (INC-047).
 
