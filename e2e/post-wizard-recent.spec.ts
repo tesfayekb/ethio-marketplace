@@ -85,11 +85,15 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
       const chipBoxes = await chips.evaluateAll((elements) =>
         elements.map((element) => {
           const box = element.getBoundingClientRect();
-          return { top: box.top, title: element.getAttribute("title") };
+          return { top: box.top, height: box.height, title: element.getAttribute("title") };
         }),
       );
       if (!labelBox) throw new Error("PW-171: recent label has no box");
-      for (const box of chipBoxes) expect(Math.abs(box.top - labelBox.y)).toBeLessThanOrEqual(2);
+      const labelCentre = labelBox.y + labelBox.height / 2;
+      for (const box of chipBoxes) {
+        expect(Math.abs(box.top + box.height / 2 - labelCentre)).toBeLessThanOrEqual(2);
+      }
+      expect(Math.abs(chipBoxes[0]!.top - chipBoxes[1]!.top)).toBeLessThanOrEqual(1);
       expect(chipBoxes.map((box) => box.title)).toEqual([xName, yName]);
       const row = page.getByTestId("post-category-recent-row");
       expect(

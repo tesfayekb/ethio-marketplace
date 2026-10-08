@@ -311,12 +311,33 @@ test.describe("app shell", () => {
       expect(occurrences, `${name} rendered more than once on ${testId}`).toBe(1);
     }
     const outside = await row.evaluate((el) => {
-      const clone = el.cloneNode(true) as HTMLElement;
-      clone.querySelectorAll("[data-testid^='location-level-']").forEach((n) => n.remove());
-      return (clone.textContent ?? "").trim();
+      const visibleOutside: string[] = [];
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let text = walker.nextNode();
+      while (text !== null) {
+        const parent = text.parentElement;
+        if (parent !== null && parent.closest("[data-testid^='location-level-']") === null) {
+          let displayed = true;
+          let cursor: HTMLElement | null = parent;
+          while (cursor !== null && cursor !== el) {
+            if (getComputedStyle(cursor).display === "none") {
+              displayed = false;
+              break;
+            }
+            cursor = cursor.parentElement;
+          }
+          const value = (text.textContent ?? "").trim();
+          if (displayed && value !== "") visibleOutside.push(value);
+        }
+        text = walker.nextNode();
+      }
+      return visibleOutside.join(" ");
     });
-    // Only the screen-reader-only row label may live outside the pickers.
-    expect(outside, "an area label is echoed outside the pickers").toBe(en["location.label"]);
+    const rowLabel =
+      (page.viewportSize()?.width ?? 1280) < 768
+        ? en["location.rowLabelShort"]
+        : en["location.rowLabel"];
+    expect(outside, "an area label is echoed outside the pickers").toBe(rowLabel);
   });
 
   test("breadcrumb segments navigate the category path", async ({ page }) => {

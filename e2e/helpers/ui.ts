@@ -331,7 +331,8 @@ export async function openRailScope(page: Page) {
  */
 export async function signOutViaUi(page: Page, labels: { signIn?: string } = {}) {
   if (isMobile(page)) {
-    await openAccountMenu(page);
+    await waitForHydration(page);
+    await page.getByTestId("account-menu").click();
     await page.getByTestId("account-menu-sign-out").click();
   } else {
     // C2g.3 — from 768 px the rail's own sign-out (an icon to 1023, named from 1024).
