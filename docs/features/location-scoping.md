@@ -35,9 +35,10 @@ coordinates — and hands it to the shell; no database call was added to the roo
 When that country is an OPEN market the shell resolves the guess over the tree it
 has already cached (`resolveGuess`): the nearest curated metro within 60 km (a
 sub-city only within 8 km), else the region by ISO code, else a city by slugified
-name, else the market anchor. The caption names the chosen node — "Showing
-listings near {area} — change?" — and a NEW key carries it, because the string's
-meaning changed (D3). A closed market, or nothing the edge could say, guesses
+name, else the market anchor. The location row starts with "Showing listings in"
+from 768 px and "Listings in" below it, followed directly by the selected place
+boxes. The row records whether their value was guessed or chosen without adding
+a second visible copy of the place name. A closed market, or nothing the edge could say, guesses
 nothing: there is no default market. Production stays country-level until the
 ethio.com cutover behind the operator's zone (see `geography.md`).
 
@@ -65,8 +66,8 @@ the levels (one region → one city → one sub-city). It is implemented in ONE
 place, `autoExtendPath` in `location-data.ts`, applied by the shell's path
 derivation over the tree it has already cached — NO fetch was added. The control
 still renders that single option, so the resolution stays changeable; the deepest
-selected picker names the resolved place (INC-041 — never a second copy of it);
-and the guess caption follows the deepest resolved node. Auto-select never writes
+selected picker names the resolved place (INC-041 — never a second copy of it).
+The row's source attribute follows whether the resolved path was guessed or chosen. Auto-select never writes
 the saved-area cookie: only a deliberate pick does (law 10).
 
 Tests: LS-11 (market switch without reload; cookie's node belongs to the picked

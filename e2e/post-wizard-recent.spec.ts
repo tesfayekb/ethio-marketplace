@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
@@ -55,6 +56,17 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
     const x = await seedPostableCategory();
     const y = await seedPostableCategory();
     categories.push(x.slug, y.slug);
+    const xName = `${x.slug} extraordinarily long vehicle accessories collection`;
+    const yName = `${y.slug} exceptionally long household equipment collection`;
+    const renamed = await Promise.all(
+      [
+        { id: x.id, name: xName },
+        { id: y.id, name: yName },
+      ].map(({ id, name }) =>
+        adminClient().from("categories").update({ name_en: name }).eq("id", id),
+      ),
+    );
+    expect(renamed.map((result) => result.error)).toEqual([null, null]);
     const time = "2026-10-06T12:00:00Z";
     await seed(x.id, user.id, time);
     await seed(x.id, user.id, time);
@@ -67,6 +79,23 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
     await expect(chips).toHaveCount(2, { timeout: 20_000 });
     await expect(chips.nth(0), "PW-171: X is not first").toHaveAttribute("data-category", x.id);
     await expect(chips.nth(1)).toHaveAttribute("data-category", y.id);
+    if (test.info().project.name === "mobile-360") {
+      const label = page.getByText(en["post.category.recentLabel"], { exact: true });
+      const labelBox = await label.boundingBox();
+      const chipBoxes = await chips.evaluateAll((elements) =>
+        elements.map((element) => {
+          const box = element.getBoundingClientRect();
+          return { top: box.top, title: element.getAttribute("title") };
+        }),
+      );
+      if (!labelBox) throw new Error("PW-171: recent label has no box");
+      for (const box of chipBoxes) expect(Math.abs(box.top - labelBox.y)).toBeLessThanOrEqual(2);
+      expect(chipBoxes.map((box) => box.title)).toEqual([xName, yName]);
+      const row = page.getByTestId("post-category-recent-row");
+      expect(
+        await row.evaluate((element) => element.scrollWidth - element.clientWidth),
+      ).toBeLessThanOrEqual(1);
+    }
     await chip(page, y.id).click();
     await expect(page.getByTestId("post-step-3"), "PW-171: Y's details did not open").toBeVisible({
       timeout: 20_000,

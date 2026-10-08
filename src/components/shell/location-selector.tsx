@@ -1,4 +1,4 @@
-import { ChevronDown, MapPin } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { sortPlacesByName } from "@/lib/place-order";
 
 import { useShell, type LocationNode } from "@/components/shell-context";
@@ -99,14 +99,8 @@ function Picker({
 
 export function LocationSelector() {
   const { t, entities, language } = useI18n();
-  const {
-    locationPath,
-    setLocationPath,
-    locationCountry,
-    selectLocationCountry,
-    guessInUse,
-    guessNode,
-  } = useShell();
+  const { locationPath, setLocationPath, locationCountry, selectLocationCountry, guessInUse } =
+    useShell();
   const markets = useOpenMarkets();
   const tree = useCountryTree(locationCountry);
   // INC-211 — rows are used ONLY while they belong to the chosen market, so a
@@ -198,11 +192,22 @@ export function LocationSelector() {
   return (
     <div
       data-testid="location-row"
+      data-area-source={guessInUse ? "guess" : "chosen"}
+      role="group"
+      aria-labelledby="location-row-label location-row-label-short"
       className="flex h-8 w-full flex-nowrap items-center gap-x-1 overflow-hidden border-b border-border bg-card px-2 md:px-4"
     >
-      <span className="inline-flex min-h-8 shrink-0 items-center pe-1 text-muted-foreground">
-        <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-        <span className="sr-only">{t("location.label")}</span>
+      <span
+        id="location-row-label"
+        className="hidden shrink-0 text-sm text-muted-foreground md:inline"
+      >
+        {t("location.rowLabel")}
+      </span>
+      <span
+        id="location-row-label-short"
+        className="shrink-0 text-sm text-muted-foreground md:hidden"
+      >
+        {t("location.rowLabelShort")}
       </span>
 
       {isLoading ? (
@@ -247,24 +252,6 @@ export function LocationSelector() {
               }
             />
           ))}
-          {guessInUse && guessNode !== null ? (
-            <span
-              data-testid="location-guess-caption"
-              className="min-h-8 content-center ps-1 text-xs text-muted-foreground"
-            >
-              {/* L4b-2 — the caption names the RESOLVED node (a metro, a region
-                  or the market), so `{area}` is a NEW key: the old `{country}`
-                  one could be shadowed by an approved DB row (law D3). */}
-              {t("location.guessAreaCaption").replace(
-                "{area}",
-                entityName(
-                  "location",
-                  { id: guessNode.id, nameEn: guessNode.name_en, nameAm: guessNode.name_am },
-                  entities,
-                ),
-              )}
-            </span>
-          ) : null}
         </>
       )}
     </div>

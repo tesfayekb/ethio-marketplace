@@ -219,10 +219,17 @@ export function StepCategory({
       <p className="text-sm text-muted-foreground">{t("post.category.why")}</p>
 
       {chips.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2" data-testid="post-category-recent-row">
-          <span className="text-sm text-muted-foreground">{t("post.category.recentLabel")}</span>
+        <div
+          className="flex min-w-0 flex-nowrap items-center gap-2"
+          data-testid="post-category-recent-row"
+        >
+          <span className="shrink-0 text-sm text-muted-foreground">
+            {t("post.category.recentLabel")}
+          </span>
           {chips.map((id) => {
-            const chip = tree.byId.get(id)!;
+            const chip = tree.byId.get(id);
+            if (chip === undefined) return null;
+            const chipLabel = label(chip);
             return (
               <button
                 key={id}
@@ -230,8 +237,10 @@ export function StepCategory({
                 data-testid="post-category-recent"
                 data-category={id}
                 aria-pressed={id === selectedId ? "true" : "false"}
+                aria-label={chipLabel}
+                title={chipLabel}
                 className={
-                  "min-h-11 rounded-full border px-4 text-sm " +
+                  "min-h-11 min-w-0 max-w-[45%] shrink rounded-full border px-4 text-sm " +
                   (id === selectedId
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-input bg-background text-foreground")
@@ -241,7 +250,7 @@ export function StepCategory({
                   onChoose(id);
                 }}
               >
-                {label(chip)}
+                <span className="block truncate">{chipLabel}</span>
               </button>
             );
           })}
