@@ -49,9 +49,11 @@ describe("RowActions", () => {
     fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false, pointerType: "mouse" });
     const menu = screen.getByTestId("r-menu");
     const children = Array.from(menu.children);
-    expect(children.map((c) => c.getAttribute("data-testid") ?? c.getAttribute("role"))).toEqual(
-      ["r-more-a", "separator", "r-more-d"],
-    );
+    expect(children.map((c) => c.getAttribute("data-testid") ?? c.getAttribute("role"))).toEqual([
+      "r-more-a",
+      "separator",
+      "r-more-d",
+    ]);
     fireEvent.click(within(menu).getByTestId("r-more-d"));
     expect(danger).toHaveBeenCalledTimes(1);
   });

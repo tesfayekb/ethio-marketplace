@@ -163,7 +163,10 @@ export const AREAS: Area[] = [
   },
   {
     name: "house-style",
-    src: ["src/styles.css", "src/routes/dev.style.tsx", "src/components/ui/**",
+    src: [
+      "src/styles.css",
+      "src/routes/dev.style.tsx",
+      "src/components/ui/**",
       "src/components/shell/row-actions.tsx",
       "src/components/shell/filter-chips.tsx",
       "src/components/shell/data-table.tsx",
