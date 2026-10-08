@@ -812,7 +812,7 @@ test.describe("mobile chrome", () => {
     const strip = page.getByTestId("rail-strip");
     await expect(strip).toBeVisible();
     const box = await strip.boundingBox();
-    const header = await page.locator("header").first().boundingBox();
+    const header = await page.getByTestId("shell-topbar").locator("header").boundingBox();
     if (!box || !header) throw new Error("Missing strip or header box");
     expect(Math.abs(box.width - 48)).toBeLessThanOrEqual(1);
     expect(Math.abs(box.y - header.y - header.height)).toBeLessThanOrEqual(1);
@@ -856,7 +856,7 @@ test.describe("mobile chrome", () => {
     await expect
       .poll(() => page.evaluate(() => Math.round(document.scrollingElement?.scrollTop ?? 0)))
       .toBe(600);
-    const bar = await page.locator("header").first().boundingBox();
+    const bar = await page.getByTestId("shell-topbar").locator("header").boundingBox();
     const band = await page.getByTestId("shell-subband").boundingBox();
     const after = await strip.boundingBox();
     if (!bar || !band || !after) throw new Error("Missing fixed chrome box");
