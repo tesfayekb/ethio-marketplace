@@ -24,6 +24,7 @@ import {
   seedGuessFixture,
   readServedNodes,
   seedScratchChain,
+  scratchName,
   seedSingleOptionMarket,
   waitForOpenMarket,
   OPEN_MARKET_LS11_MS,
@@ -1047,7 +1048,7 @@ test.describe("mobile chrome", () => {
     await expectTapTarget(page, page.getByTestId("bottom-bar-sign-in"), "bar sign in");
 
     // The phone strip uses the authorized fitted 28–44px section rows.
-    const firstStripRow = page.getByTestId("strip-scroll").locator("li > a").first();
+    const firstStripRow = page.getByTestId("strip-scroll").locator("li > a").nth(0);
     const stripRowBox = await firstStripRow.boundingBox();
     if (!stripRowBox) throw new Error("Missing strip category");
     expect(stripRowBox.height).toBeGreaterThanOrEqual(27);
@@ -1099,7 +1100,7 @@ test.describe("mobile chrome", () => {
     await page.waitForURL(/\/account$/);
     await expect(page.getByTestId("bottom-bar-account")).toHaveAttribute("aria-current", "page");
     await page.getByTestId("bottom-bar-my-listings").click();
-    await expect(page.getByTestId("strip-my-listings")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("strip-item-ml-listings")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("bottom-bar-my-listings")).toHaveAttribute(
       "aria-current",
       "page",
@@ -2086,7 +2087,16 @@ test.describe("L4b location picker", () => {
   test("long location names share one 32px line", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) !== 360, "phone geometry");
     const chain = await seedChain();
-    // The scratch helper includes its unique slug in each display name; names exceed 40 characters.
+    for (const node of [chain.region, chain.city]) {
+      const name = scratchName("long-tag-name-assertion-with-forty-characters");
+      const { error } = await adminClient()
+        .from("locations")
+        .update({ name_en: name })
+        .eq("id", node.id);
+      if (error) throw new Error(`Scratch name: ${error.message}`);
+      node.name_en = name;
+    }
+    // Only this test's scratch rows get long names; managed teardown removes the chain.
     expect(chain.region.name_en!.length).toBeGreaterThanOrEqual(40);
     expect(chain.city.name_en!.length).toBeGreaterThanOrEqual(40);
     await waitForTreeSlug(page, "ET", chain.subCity.slug);

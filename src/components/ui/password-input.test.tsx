@@ -12,7 +12,14 @@ describe("PasswordInput", () => {
     const submit = vi.fn((event) => event.preventDefault());
     render(
       <form onSubmit={submit}>
-        <PasswordInput ref={ref} id="secret" name="password" autoComplete="current-password" defaultValue="secret-value" className="w-full" />
+        <PasswordInput
+          ref={ref}
+          id="secret"
+          name="password"
+          autoComplete="current-password"
+          defaultValue="secret-value"
+          className="w-full"
+        />
         <button type="submit">Submit</button>
       </form>,
     );
