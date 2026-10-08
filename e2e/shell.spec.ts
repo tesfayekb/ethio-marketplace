@@ -333,9 +333,10 @@ test.describe("app shell", () => {
       }
       return visibleOutside.join(" ");
     });
-    const rowLabel = (page.viewportSize()?.width ?? 1280) < 768
-      ? en["location.rowLabelShort"]
-      : en["location.rowLabel"];
+    const rowLabel =
+      (page.viewportSize()?.width ?? 1280) < 768
+        ? en["location.rowLabelShort"]
+        : en["location.rowLabel"];
     expect(outside, "an area label is echoed outside the pickers").toBe(rowLabel);
   });
 
