@@ -758,7 +758,6 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       .getByTestId("post-where-shown-box")
       .locator("select")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
-    console.log(`[PW-99 widths] ${test.info().project.name} ${JSON.stringify(widths)}`);
     expect(widths.length, "PW-99: no selects").toBeGreaterThan(0);
     if ((page.viewportSize()?.width ?? 0) >= 768) return;
     // Ruling 2026-09-30: at 360 a nested level is a left rule only, every select
