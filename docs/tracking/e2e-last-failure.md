@@ -1,14 +1,13 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
+last E2E run 37696163167 passed
+
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37696163167
 - Commit: `858b21372d3667f97ca89227a27341a1785830ab`
-- Attempt: 1
-- Written (UTC): 2026-10-07T22:52:12.467Z
-- Passed: 1313 · Skipped: 76 · Failed: 1
-- Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
+- Attempt: 2
+- Written (UTC): 2026-10-08T00:08:48.578Z
+- Post-test warnings: 27
 - Flaky (passed on retry, DEC-030, non-gating): 2
-- Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
-- Sources without results: none
 
 ## Flake ledger (DEC-030)
 
@@ -222,7 +221,7 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
 | smoke | 2026-10-07T22:27:23.548Z | 13.0 min |
-| email | 2026-10-07T22:27:26.541Z | 0.8 min |
+| email | 2026-10-08T00:08:17.063Z | 0.2 min |
 | shard 1 | 2026-10-07T22:28:39.514Z | 23.1 min |
 | shard 2 | 2026-10-07T22:27:34.268Z | 23.2 min |
 | shard 3 | 2026-10-07T22:27:25.507Z | 16.4 min |
@@ -276,7 +275,6 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 | `auth-reset.spec.ts` | 6 | 0.7 min | shard 2 |
 | `post-wizard-recent.spec.ts` | 2 | 0.7 min | shard 3, shard 6 |
 | `i18n-bundle.spec.ts` | 6 | 0.7 min | shard 2, shard 5 |
-| `auth-signup.spec.ts` | 1 | 0.6 min | email |
 | `a11y.spec.ts` | 4 | 0.6 min | smoke |
 | `i18n-coverage.spec.ts` | 8 | 0.6 min | shard 2, shard 5 |
 | `posting-routes-identity.spec.ts` | 2 | 0.5 min | shard 3, shard 6 |
@@ -289,6 +287,7 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 | `layout.spec.ts` | 10 | 0.2 min | shard 2, shard 5 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
+| `auth-signup.spec.ts` | 1 | 0.1 min | email |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
 
@@ -308,171 +307,6 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 | `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | desktop-1280 | 38.0 s |
 | `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 37.9 s |
 | `posting-routes-catalog.spec.ts` › PR-39 recent categories are caller-only published leaves in count/date/id order | desktop-1280 | 37.6 s |
-| `auth-signup.spec.ts` › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle | email-serial | 37.5 s |
 | `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 37.2 s |
 | `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, small model list) | desktop-1280 | 36.5 s |
-
-## Post-test errors: smoke
-
-smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37696163167-smoke
-```
-
-## Post-test errors: email
-
-email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 37696163167-email
-```
-
-## Post-test errors: shard 1
-
-shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 12 (pool 5, fresh 7)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 37696163167-1
-```
-
-## Post-test errors: shard 2
-
-shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 35 (pool 4, fresh 31)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 47 user(s) owned by process 37696163167-2
-```
-
-## Post-test errors: shard 3
-
-shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 8 (pool 5, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37696163167-3
-```
-
-## Post-test errors: shard 4
-
-shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 13 (pool 5, fresh 8)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 37696163167-4
-```
-
-## Post-test errors: shard 5
-
-shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 30 (pool 4, fresh 26)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 40 user(s) owned by process 37696163167-5
-```
-
-## Post-test errors: shard 6
-
-shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 9 (pool 5, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37696163167-6
-```
-
-## Post-test errors: changed
-
-changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 37696163167-changed
-```
-
-## auth-signup.spec.ts › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle
-
-- Source: `email`
-- Project: `email-serial`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('button', { name: /Resend in/i })
-Expected: visible
-Timeout: 15000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 15000ms
-  - waiting for getByRole('button', { name: /Resend in/i })
-
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('button', { name: /Resend in/i })
-Expected: visible
-Timeout: 15000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 15000ms
-  - waiting for getByRole('button', { name: /Resend in/i })
-
-
-  146 |     const cooldownPrefix = en["auth.resendCooldown"].split("{s}")[0]!.trim();
-  147 |     const throttled = page.getByRole("button", { name: new RegExp(cooldownPrefix, "i") });
-> 148 |     await expect(throttled).toBeVisible({ timeout: 15000 });
-      |                             ^
-  149 |     await expect(throttled).toBeDisabled();
-  150 |   });
-  151 | });
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signup.spec.ts:148:29
-```
-
-Context:
-
-```text
-          - listitem [ref=e64]:
-            - generic [ref=e65]: About
-          - listitem [ref=e66]:
-            - generic [ref=e67]: How it works
-      - navigation "Help" [ref=e68]:
-        - heading "Help" [level=2] [ref=e69]
-        - list [ref=e70]:
-          - listitem [ref=e71]:
-            - generic [ref=e72]: Safety
-          - listitem [ref=e73]:
-            - generic [ref=e74]: Contact
-      - navigation "Legal" [ref=e75]:
-        - heading "Legal" [level=2] [ref=e76]
-        - list [ref=e77]:
-          - listitem [ref=e78]:
-            - generic [ref=e79]: Terms
-          - listitem [ref=e80]:
-            - generic [ref=e81]: Privacy
-    - paragraph [ref=e83]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## Server errors: email
-
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
-
-## Client errors: email
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 429 () ×2
-```
+| `post-wizard-removed.spec.ts` › PW-177 a question removed while the form is open never blocks the next edits | desktop-1280 | 35.5 s |
