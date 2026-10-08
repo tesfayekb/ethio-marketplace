@@ -215,6 +215,11 @@ export function isMobile(page: Page) {
   return (page.viewportSize()?.width ?? 1280) < 768;
 }
 
+/** C2g.3 — below 1024 px the menu is the » / « overlay (`rail-menu`). */
+export function menuIsOverlay(page: Page) {
+  return (page.viewportSize()?.width ?? 1280) < 1024;
+}
+
 /** C2b.5 — the element that says "signed in" at THIS viewport. */
 export function signedInMarker(page: Page) {
   return isMobile(page) ? page.getByTestId("bottom-bar-account") : page.getByTestId("account-menu");
@@ -294,7 +299,7 @@ async function expectDrawerIdentity(page: Page, displayName?: string) {
  */
 export async function openRailScope(page: Page) {
   await waitForHydration(page);
-  if (isMobile(page)) {
+  if (menuIsOverlay(page)) {
     // U0j-3 — LOCALE-AGNOSTIC. The hamburger carries no testid (census:
     // app-header.tsx labels it with t("shell.openMenu") only, and that file is
     // outside this task's scope), so match its aria-label against BOTH
@@ -350,8 +355,8 @@ export async function signOutViaUi(page: Page, labels: { signIn?: string } = {})
     await gotoReady(page, "/account");
     await page.getByTestId("account-sign-out").click();
   } else {
-    const scope = await openRailScope(page);
-    await scope.getByTestId("rail-sign-out").click();
+    // C2g.3 — from 768 px the rail's own sign-out (an icon to 1023, named from 1024).
+    await page.getByTestId("app-rail").getByTestId("rail-sign-out").click();
   }
 
   await page.waitForURL(/\/$/, { timeout: 15000 });

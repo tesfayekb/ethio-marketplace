@@ -742,9 +742,16 @@ test.describe("tablet chrome (md = 768px)", () => {
     test.skip(testInfo.project.name !== "desktop-1280", "run once");
     await gotoReady(page, "/");
 
-    // Persistent sidebar, not a drawer: no hamburger at all.
+    // C2g — the persistent icon rail, and the » / « menu control (not the
+    // collapse toggle) is the one menu control from 768 to 1023 px.
     await expect(page.getByTestId("app-rail")).toBeVisible();
-    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toBeVisible();
+    await expect(page.getByTestId("rail-collapse-toggle")).toBeHidden();
+    const railWidth = (await page.getByTestId("app-rail").boundingBox())!.width;
+    expect(Math.abs(railWidth - 64)).toBeLessThanOrEqual(1);
+    const cellWidth = (await page.getByTestId("shell-logo-cell").boundingBox())!.width;
+    expect(Math.abs(cellWidth - 64)).toBeLessThanOrEqual(1);
 
     // A real search FIELD in the bar (no icon-only toggle).
     await expect(page.getByTestId("search-inline-input")).toBeVisible();
@@ -840,6 +847,27 @@ async function bottomOf(page: Page, testid: string) {
 
 test.describe("mobile chrome", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) > 400, "mobile-360 only");
+
+  test("the bar's current item carries the pill, light then dark (C2h.3)", async ({ page }) => {
+    await poolSignIn(page);
+    await gotoReady(page, "/account");
+    const account = page.getByTestId("bottom-bar-account");
+    const home = page.getByTestId("bottom-bar-home");
+    const check = async () => {
+      await expect(account.getByTestId("bottom-bar-pill")).toHaveCount(1);
+      await expect(home.getByTestId("bottom-bar-pill")).toHaveCount(0);
+      const weight = await account
+        .locator("span.truncate")
+        .evaluate((el) => Number(getComputedStyle(el).fontWeight));
+      expect(weight).toBeGreaterThanOrEqual(600);
+    };
+    await check();
+    const html = page.locator("html");
+    const before = await html.getAttribute("data-mode");
+    await page.getByRole("button", { name: en["shell.themeToggle"] }).click();
+    await expect(html).toHaveAttribute("data-mode", before === "dark" ? "light" : "dark");
+    await check();
+  });
 
   test("the strip sits under the fixed bar", async ({ page }) => {
     await gotoReady(page, "/");

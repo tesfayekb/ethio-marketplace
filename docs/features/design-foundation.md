@@ -358,3 +358,11 @@ Below `md` (768 px) a fixed bottom bar (`bottom-bar`) holds the most-used destin
 ### Bundle 9 C2c — reviewed phone frame
 
 Below 768px one top-bar menu control sits above the 48px strip and toggles the drawer. The strip holds only its section items: Home, Post and Sign out are not duplicated there. Rows share the available height at 28–44px; scrolling is permitted when the actual category census cannot fit at the 28px minimum (operator ruling). Admin appears after Account in the bottom bar for admins. Phone sign-out is at the end of Account; the existing drawer and desktop affordances remain. The footer paints behind both bars and its content starts beside the strip with balanced 16px content padding (operator ruling). Location controls share one 32px line with full selected names exposed accessibly. Every password field has an inline-end eye toggle and retains its input/form contract.
+
+### Three widths, one frame rule each (bundle 9 C2g/C2h)
+
+- Below 768 px: the strip, the bottom bar and the » / « in-place menu.
+- 768–1023 px: the icon rail (64 px, tooltips), the same » / « menu (the rail's content with names, no foot band), the tabs at the top.
+- From 1024 px: the rail with its stored choice and the collapse toggle.
+- The frame is chosen by width alone (`rail-icons` custom variant, width media queries); the width walk in e2e/phone-frame.spec.ts is the guard.
+- Selected look: `--nav-active` (primary at 15 % light / 22 % dark) — the bottom bar's pill (`bottom-bar-pill`) and the same tint on the current row of every menu.

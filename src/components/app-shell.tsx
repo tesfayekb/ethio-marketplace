@@ -682,7 +682,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div data-testid="shell-band" className="fixed inset-x-0 top-0 z-30 md:flex md:h-14">
             <div
               data-testid="shell-logo-cell"
-              className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:flex md:h-14 md:w-64 md:shrink-0 md:items-center md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
+              className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:flex md:h-14 md:w-64 md:shrink-0 md:items-center rail-icons:w-16 rail-icons:justify-center rail-icons:px-0"
             >
               <Link
                 to="/"
@@ -691,10 +691,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 {/* Collapsed rail = icon-only logo; the two swap by attribute, so
                 the swap is already correct on the first painted frame. */}
-                <span className="inline-flex md:[html[data-rail=collapsed]_&]:hidden">
+                <span className="inline-flex rail-icons:hidden">
                   <Logo variant="full" />
                 </span>
-                <span className="hidden md:[html[data-rail=collapsed]_&]:inline-flex">
+                <span className="hidden rail-icons:inline-flex">
                   <Logo variant="icon" />
                 </span>
               </Link>
@@ -728,7 +728,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div
             data-testid="shell-stack"
             className={cn(
-              "col-start-1 row-start-2 flex min-w-0 flex-col pt-13 md:ms-64 md:pt-14 md:[html[data-rail=collapsed]_&]:ms-16",
+              "col-start-1 row-start-2 flex min-w-0 flex-col pt-13 md:ms-64 md:pt-14 rail-icons:ms-16",
               PHONE_STRIP && "ms-12",
             )}
           >
@@ -772,7 +772,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div
           data-testid="shell-footer-wrapper"
           className={cn(
-            "relative z-0 w-full bg-card md:z-40 md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16",
+            "relative z-0 w-full bg-card md:z-40 md:[&>footer>*]:ps-64 rail-icons:[&>footer>*]:ps-16",
             PHONE_STRIP && "[&>footer>*]:ps-16",
           )}
         >

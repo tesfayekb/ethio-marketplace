@@ -170,7 +170,7 @@ test.describe("Admin shell (U0)", () => {
       }
       // The current section is the highlighted one.
       const current = sectionForPath(new URL(page.url()).pathname)!;
-      await expect(rail.getByTestId(`rail-item-ad-${current.id}`)).toHaveClass(/bg-sidebar-accent/);
+      await expect(rail.getByTestId(`rail-item-ad-${current.id}`)).toHaveClass(/bg-nav-active/);
     }
 
     // A section the admin role does NOT hold is refused, not blank.
@@ -311,7 +311,7 @@ test.describe("Admin shell (U0)", () => {
     // sub-item is always present beneath it.
     await expect(group).not.toHaveAttribute("aria-expanded", /.*/);
     await expect(group).not.toHaveAttribute("href");
-    await expect(group).toHaveClass(/bg-sidebar-accent/);
+    await expect(group).toHaveClass(/bg-nav-active/);
     for (const section of visible) {
       await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toBeVisible({ timeout: 15000 });
     }

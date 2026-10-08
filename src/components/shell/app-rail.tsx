@@ -1,7 +1,14 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 import { useShell } from "@/components/shell-context";
 import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
@@ -33,19 +40,40 @@ export { categoryGlyph } from "@/components/shell/category-glyphs";
  * expressed in CSS — the toggle's aria-pressed and whether hovering a row
  * shows its label as a tooltip.
  *
- * Every `md:[html[data-rail=collapsed]_&]:` below is therefore desktop-only by
- * construction: the mobile drawer keeps full labels at all times.
+ * C2g.1 — every `rail-icons:` below holds from 768 to 1023 px whatever the
+ * stored choice, and from 1024 px when the rail is collapsed; the strip and the
+ * opened menu never carry them (see `hideWhenIcons`), so their names show.
  */
-const HIDE_WHEN_COLLAPSED = "md:[html[data-rail=collapsed]_&]:hidden";
+const HIDE_WHEN_COLLAPSED = "rail-icons:hidden";
 
-const ITEM_BASE =
+/** Width media query, false on the server; live across a resize (C2g). */
+function useWidthQuery(query: string): boolean {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const mql = window.matchMedia(query);
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    },
+    [query],
+  );
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
+}
+
+const ITEM_CORE =
   "flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
-  "ps-[var(--rail-pad)] md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:ps-0 md:[html[data-rail=collapsed]_&]:pe-0";
+  "ps-[var(--rail-pad)]";
+const ITEM_ICONS = "rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0";
+const ITEM_BASE = `${ITEM_CORE} ${ITEM_ICONS}`;
 /** Hover stays on the SIDEBAR token family — bg-muted is a content-surface
  *  token and read as a foreign grey against bg-sidebar (INC-042). */
 const ITEM_IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground";
 /** Selection is GREEN, never a cream tint — the one emphasis surface. */
-const ITEM_ACTIVE = "bg-sidebar-accent font-medium text-sidebar-accent-foreground";
+/** C2h.2 — ONE selected look: the bar's pill tint, in every menu. */
+const ITEM_ACTIVE = "bg-nav-active font-semibold text-primary";
 
 /**
  * C5i PART B.3 — THE STORED ICON IS THE GLYPH.
@@ -60,7 +88,16 @@ const ITEM_ACTIVE = "bg-sidebar-accent font-medium text-sidebar-accent-foregroun
 /** True only after hydration on a collapsed desktop rail. */
 
 const CollapsedContext = createContext(false);
-const RailVariantContext = createContext<"rail" | "strip" | "menu">("rail");
+/** "overlay" = the opened menu from 768 px: the rail's content, every name shown. */
+const RailVariantContext = createContext<"rail" | "strip" | "menu" | "overlay">("rail");
+
+/** Icons-only hiding belongs to the persistent rail alone. */
+function useHide(): string {
+  return useContext(RailVariantContext) === "rail" ? HIDE_WHEN_COLLAPSED : "";
+}
+function useItemBase(): string {
+  return useContext(RailVariantContext) === "rail" ? ITEM_BASE : ITEM_CORE;
+}
 
 /**
  * Hover label for the icons-only rail. Expanded rails need no tooltip.
@@ -125,8 +162,9 @@ type RailNode = {
 function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const variant = useContext(RailVariantContext);
   const strip = variant === "strip";
-  const compact = variant !== "rail";
-  const menu = variant === "menu";
+  const compact = variant === "strip" || variant === "menu";
+  const hide = useHide();
+  const itemBase = useItemBase();
   const testid =
     node.testid && (strip ? `strip-${node.testid.replace(/^rail-/, "")}` : node.testid);
   const compactClass =
@@ -144,7 +182,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const inner = (
     <>
       {Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
-      <span className={cn("truncate", HIDE_WHEN_COLLAPSED, strip && "sr-only")}>{node.label}</span>
+      <span className={cn("truncate", hide, strip && "sr-only")}>{node.label}</span>
     </>
   );
   const pad = { "--rail-pad": `${0.75 + depth * 0.75}rem` } as React.CSSProperties;
@@ -154,7 +192,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // indented and always present, and categories remains non-interactive.
   if (hasChildren && node.group) {
     const groupClassName = cn(
-      ITEM_BASE,
+      itemBase,
       containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
       compactClass,
       compact && "h-7 min-h-7 max-h-11 flex-1",
@@ -225,7 +263,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
                 aria-label={node.label}
                 style={pad}
                 className={cn(
-                  ITEM_BASE,
+                  itemBase,
                   containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
                   compactClass,
                   compact && "h-7 min-h-7 max-h-11 flex-1",
@@ -238,7 +276,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
                     className={cn(
                       "ms-auto h-4 w-4 shrink-0 transition-transform",
                       open && "rotate-90",
-                      HIDE_WHEN_COLLAPSED,
+                      hide,
                     )}
                   />
                 ) : null}
@@ -278,7 +316,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             aria-current={node.active ? "page" : undefined}
             aria-label={node.label}
             style={pad}
-            className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE, compactClass)}
+            className={cn(itemBase, node.active ? ITEM_ACTIVE : ITEM_IDLE, compactClass)}
           >
             {inner}
           </Link>
@@ -302,7 +340,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             aria-current={node.active ? "true" : undefined}
             aria-label={node.label}
             style={pad}
-            className={cn(ITEM_BASE, node.active ? ITEM_ACTIVE : ITEM_IDLE, compactClass)}
+            className={cn(itemBase, node.active ? ITEM_ACTIVE : ITEM_IDLE, compactClass)}
           >
             {inner}
           </button>
@@ -323,7 +361,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
         <span
           style={pad}
           data-testid={testid}
-          className={cn(ITEM_BASE, "text-muted-foreground", compactClass)}
+          className={cn(itemBase, "text-muted-foreground", compactClass)}
           aria-disabled="true"
           aria-label={node.label}
         >
@@ -338,7 +376,8 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const variant = useContext(RailVariantContext);
   const strip = variant === "strip";
-  const compact = variant !== "rail";
+  const compact = variant === "strip" || variant === "menu";
+  const hide = useHide();
   const { t, entities } = useI18n();
   const { categories, isLoading } = useCategories();
   // U0l (INC-073): the highlight reads the URL, exactly like the body and the
@@ -374,7 +413,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         <h2
           className={cn(
             "px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
-            HIDE_WHEN_COLLAPSED,
+            hide,
           )}
         >
           {t("shell.categoriesLabel")}
@@ -415,7 +454,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
                   <span
                     className={cn(
                       "h-3 w-24 animate-pulse rounded bg-muted",
-                      HIDE_WHEN_COLLAPSED,
+                      hide,
                       compact && "hidden",
                     )}
                   />
@@ -424,7 +463,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
             ))
           : nodes.map((node) => <RailRow key={node.key} node={node} />)}
         {!compact && !isLoading && categories.length === 0 ? (
-          <li className={cn("px-3 text-sm text-muted-foreground", HIDE_WHEN_COLLAPSED)}>
+          <li className={cn("px-3 text-sm text-muted-foreground", hide)}>
             {t("shell.categoriesEmpty")}
           </li>
         ) : null}
@@ -437,7 +476,8 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
 function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   const variant = useContext(RailVariantContext);
   const strip = variant === "strip";
-  const compact = variant !== "rail";
+  const compact = variant === "strip" || variant === "menu";
+  const hide = useHide();
   const { t } = useI18n();
   const { auth, activePanel } = useShell();
   const items = visibleItems(PANELS[activePanel].items, auth).filter(
@@ -499,7 +539,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
             <h2
               className={cn(
                 "px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
-                HIDE_WHEN_COLLAPSED,
+                hide,
               )}
             >
               {t(section.key)}
@@ -570,17 +610,20 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
 /**
  * The rail. From md up it is grid column 1 / row 2 — directly beneath the logo
  * cell, sharing its `border-e` so the sidebar edge is one continuous hairline.
- * Below md it is a drawer with the logo CENTRED at the top of the panel.
+ * Below 1024 px the » / « control opens the in-place menu (rail-menu).
  */
 export function AppRail() {
   const { t } = useI18n();
   const { navOpen, setNavOpen, user, auth, activePanel } = useShell();
   const { collapsed } = useRailCollapsed();
   const footerInset = useFooterInset();
+  // C2g.1/C2g.2 — width media queries only, never a device test.
+  const iconsByWidth = useWidthQuery("(min-width: 48rem) and (max-width: 63.98rem)");
+  const fromMd = useWidthQuery("(min-width: 48rem)");
 
   return (
     <TooltipProvider delayDuration={150}>
-      <CollapsedContext.Provider value={collapsed === true}>
+      <CollapsedContext.Provider value={collapsed === true || iconsByWidth}>
         <aside
           data-testid="app-rail"
           // U0g-2 — FIXED, never sticky: the rail must not move at any scroll
@@ -591,7 +634,7 @@ export function AppRail() {
           // inner rail-scroll region keeps its scrollbar and every item stays
           // reachable instead of hiding under the footer.
           style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:px-1"
+          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden rail-icons:w-16 rail-icons:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
@@ -631,7 +674,7 @@ export function AppRail() {
           <div
             data-testid="rail-menu-scrim"
             aria-hidden="true"
-            className="fixed inset-x-0 top-13 bottom-0 z-[35] bg-foreground/40 md:hidden"
+            className="fixed inset-x-0 top-13 bottom-0 z-[35] bg-foreground/40 md:top-14 lg:hidden"
             onClick={() => setNavOpen(false)}
           />
         ) : null}
@@ -641,7 +684,7 @@ export function AppRail() {
           data-panel={activePanel}
           aria-label={t("shell.menuTitle")}
           aria-describedby={undefined}
-          className="fixed start-0 top-13 bottom-0 z-40 flex w-64 flex-col border-e border-border bg-sidebar shadow-lg md:hidden"
+          className="fixed start-0 top-13 bottom-0 z-40 flex w-64 flex-col border-e border-border bg-sidebar shadow-lg md:top-14 md:bottom-0 lg:hidden"
           onPointerDownOutside={(event) => {
             if ((event.target as Element | null)?.closest('[aria-controls="rail-menu"]')) {
               event.preventDefault();
@@ -667,8 +710,11 @@ export function AppRail() {
           }}
         >
           <DialogPrimitive.Title className="sr-only">{t("shell.menuTitle")}</DialogPrimitive.Title>
-          <RailVariantContext.Provider value="menu">
-            <div className="h-[calc(100%-var(--bottom-bar))] min-h-0">
+          {/* C2g.2 — from 768 px the menu holds the RAIL's content (headings,
+              "All categories", "Post listing") with every name, and no foot
+              band: the top bar's account menu says who is signed in there. */}
+          <RailVariantContext.Provider value={fromMd ? "overlay" : "menu"}>
+            <div className={cn("h-[calc(100%-var(--bottom-bar))] min-h-0", fromMd && "h-full p-2")}>
               <div
                 data-testid="rail-scroll"
                 className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -677,13 +723,15 @@ export function AppRail() {
               </div>
             </div>
           </RailVariantContext.Provider>
-          <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
-            {user !== null && auth.isAuthenticated ? (
-              <p data-testid="drawer-identity" className="truncate text-sm text-muted-foreground">
-                {user.displayName ?? t("auth.signedInAs")}
-              </p>
-            ) : null}
-          </div>
+          {fromMd ? null : (
+            <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
+              {user !== null && auth.isAuthenticated ? (
+                <p data-testid="drawer-identity" className="truncate text-sm text-muted-foreground">
+                  {user.displayName ?? t("auth.signedInAs")}
+                </p>
+              ) : null}
+            </div>
+          )}
         </DialogPrimitive.Content>
       </DialogPrimitive.Root>
     </TooltipProvider>

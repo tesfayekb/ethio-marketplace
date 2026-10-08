@@ -23,21 +23,33 @@ function ItemBody({
   icon: Icon,
   label,
   emphasised = false,
+  current = false,
 }: {
   icon: LucideIcon;
   label: string;
   emphasised?: boolean;
+  /** C2h.1 — the current item: its icon sits in the `--nav-active` pill. */
+  current?: boolean;
 }): ReactNode {
   return (
     <>
       {emphasised ? (
-        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <Icon className="h-5 w-5" aria-hidden="true" />
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <Icon className="h-6 w-6" aria-hidden="true" />
+        </span>
+      ) : current ? (
+        <span
+          data-testid="bottom-bar-pill"
+          className="inline-flex h-8 w-14 items-center justify-center rounded-full bg-nav-active"
+        >
+          <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
       ) : (
-        <Icon className="h-5 w-5" aria-hidden="true" />
+        <span className="inline-flex h-8 items-center justify-center">
+          <Icon className="h-6 w-6" aria-hidden="true" />
+        </span>
       )}
-      <span className="max-w-full truncate">{label}</span>
+      <span className={cn("max-w-full truncate", current && "font-semibold")}>{label}</span>
     </>
   );
 }
@@ -58,7 +70,7 @@ export function BottomBar() {
 
   const signedIn = auth.isAuthenticated && !signingOut;
   const tone = (current: boolean) =>
-    current ? "font-medium text-primary" : "text-muted-foreground hover:text-foreground";
+    current ? "text-primary" : "text-muted-foreground hover:text-foreground";
   const label = (key: MessageKey) => t(key);
 
   return (
@@ -77,7 +89,11 @@ export function BottomBar() {
         aria-current={signedIn && activePanel === "marketplace" ? "page" : undefined}
         className={cn(ITEM, tone(signedIn && activePanel === "marketplace"))}
       >
-        <ItemBody icon={House} label={label("nav.home")} />
+        <ItemBody
+          icon={House}
+          label={label("nav.home")}
+          current={signedIn && activePanel === "marketplace"}
+        />
       </Link>
       {signedIn ? (
         <button
@@ -88,7 +104,11 @@ export function BottomBar() {
           onClick={() => switchPanel("my-listings")}
           className={cn(ITEM, tone(activePanel === "my-listings"))}
         >
-          <ItemBody icon={ClipboardList} label={label("nav.myListings")} />
+          <ItemBody
+            icon={ClipboardList}
+            label={label("nav.myListings")}
+            current={activePanel === "my-listings"}
+          />
         </button>
       ) : null}
       <Link
@@ -107,7 +127,11 @@ export function BottomBar() {
           aria-current={activePanel === "account" ? "page" : undefined}
           className={cn(ITEM, tone(activePanel === "account"))}
         >
-          <ItemBody icon={CircleUser} label={label("panel.account")} />
+          <ItemBody
+            icon={CircleUser}
+            label={label("panel.account")}
+            current={activePanel === "account"}
+          />
         </Link>
       ) : (
         <Link
@@ -127,7 +151,7 @@ export function BottomBar() {
           aria-current={activePanel === "admin" ? "page" : undefined}
           className={cn(ITEM, tone(activePanel === "admin"))}
         >
-          <ItemBody icon={Shield} label={label("panel.admin")} />
+          <ItemBody icon={Shield} label={label("panel.admin")} current={activePanel === "admin"} />
         </Link>
       ) : null}
     </nav>
