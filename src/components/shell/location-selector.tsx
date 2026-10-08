@@ -105,7 +105,6 @@ export function LocationSelector() {
     locationCountry,
     selectLocationCountry,
     guessInUse,
-    guessNode,
   } = useShell();
   const markets = useOpenMarkets();
   const tree = useCountryTree(locationCountry);

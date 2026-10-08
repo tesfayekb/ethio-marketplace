@@ -57,13 +57,15 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
     categories.push(x.slug, y.slug);
     const xName = `${x.slug} extraordinarily long vehicle accessories collection`;
     const yName = `${y.slug} exceptionally long household equipment collection`;
-    const renamed = await adminClient()
-      .from("categories")
-      .upsert([
-        { id: x.id, slug: x.slug, name_en: xName },
-        { id: y.id, slug: y.slug, name_en: yName },
-      ]);
-    expect(renamed.error).toBeNull();
+    const renamed = await Promise.all(
+      [
+        { id: x.id, name: xName },
+        { id: y.id, name: yName },
+      ].map(({ id, name }) =>
+        adminClient().from("categories").update({ name_en: name }).eq("id", id),
+      ),
+    );
+    expect(renamed.map((result) => result.error)).toEqual([null, null]);
     const time = "2026-10-06T12:00:00Z";
     await seed(x.id, user.id, time);
     await seed(x.id, user.id, time);

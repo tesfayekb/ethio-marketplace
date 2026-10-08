@@ -952,14 +952,21 @@ test.describe("mobile chrome", () => {
     expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
   });
 
-  test("Sign out is at the end of Account @private-identity", async ({ page }) => {
+  test("Sign out is in the account menu at the top right @private-identity", async ({ page }) => {
     const user = await leaseUser();
     await signInViaSession(page, user.email, user.password);
     await gotoReady(page, "/account");
-    await expect(page.getByTestId("account-sign-out")).toBeVisible();
-    await signOutViaUi(page);
+    const topbar = page.getByTestId("shell-topbar");
+    const menu = topbar.getByTestId("account-menu");
+    await expect(menu).toBeVisible();
+    await menu.click();
+    await expect(page.getByTestId("account-menu-identity")).toBeVisible();
+    await expect(page.getByTestId("account-menu-sign-out")).toBeVisible();
+    await page.getByTestId("account-menu-sign-out").click();
     await expect(page.getByTestId("bottom-bar-sign-in")).toBeVisible();
     await expect(page.getByTestId("bottom-bar-account")).toHaveCount(0);
+    await expect(page.getByTestId("account-menu")).toHaveCount(0);
+    await expect(page.getByTestId("account-sign-out")).toHaveCount(0);
   });
 
   test("the menu opens in place", async ({ page }) => {
@@ -2165,8 +2172,7 @@ test.describe("L4b location picker", () => {
       await expect(page.getByTestId("location-level-city")).toHaveText(
         new RegExp(escapeRe(chain.city.name_en!)),
       );
-      // A remembered area is a CHOICE, so no guess caption stands beside it.
-      await expect(page.getByTestId("location-guess-caption")).toHaveCount(0);
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
 
       // Clearing the country forgets the saved area entirely.
       await page.getByTestId("location-level-country").click();
@@ -2222,6 +2228,19 @@ test.describe("L4b location picker", () => {
       "title",
       chain.region.name_en!,
     );
+    const widths = await row
+      .locator("[data-testid^='location-level-']")
+      .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().width));
+    expect(Math.min(...widths)).toBeGreaterThanOrEqual(40);
+    await expect(page.locator("#location-row-label-short")).toBeVisible();
+    await expect(page.locator("#location-row-label")).toBeHidden();
+  });
+
+  test("the location row uses the width-specific label", async ({ page }) => {
+    await gotoReady(page, "/");
+    const mobile = test.info().project.name === "mobile-360";
+    await expect(page.locator("#location-row-label-short")).toBeVisible({ visible: mobile });
+    await expect(page.locator("#location-row-label")).toBeVisible({ visible: !mobile });
   });
 
   test("LS-3 an open market is guessed from the edge country, never saved", async ({ browser }) => {
@@ -2233,7 +2252,7 @@ test.describe("L4b location picker", () => {
       await expect(page.getByTestId("location-level-country")).toHaveText(
         new RegExp(escapeRe(ethiopia)),
       );
-      await expect(page.getByTestId("location-guess-caption")).toBeVisible();
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
       // LAW 10 — the guess is never written to the saved-area cookie.
       expect(await page.evaluate("document.cookie")).not.toContain("ethio_area=");
     } finally {
@@ -2251,7 +2270,7 @@ test.describe("L4b location picker", () => {
         "CA must stay a closed market",
       ).toBe(false);
       await gotoReady(page, "/");
-      await expect(page.getByTestId("location-guess-caption")).toHaveCount(0);
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
       await expect(page.getByTestId("location-level-country")).toHaveText(
         new RegExp(escapeRe(en["location.country"])),
       );
@@ -2262,7 +2281,7 @@ test.describe("L4b location picker", () => {
 
   test("LS-5 no header and no cookie: no guess, and the markets route caches", async ({ page }) => {
     await gotoReady(page, "/");
-    await expect(page.getByTestId("location-guess-caption")).toHaveCount(0);
+    await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
     await expect(page.getByTestId("location-level-country")).toHaveText(
       new RegExp(escapeRe(en["location.country"])),
     );
@@ -2287,10 +2306,6 @@ test.describe("L4b location picker", () => {
    * city name slugified, else the market anchor. Every target is a SCRATCH row
    * (J3) and every header is injected, because the local edge sets none.
    */
-  function caption(area: string) {
-    return en["location.guessAreaCaption"].replace("{area}", area);
-  }
-
   /**
    * INC-285 — ONE POINT PER (JOB × PROJECT × WORKER). Every job that runs this
    * spec at the same time (smoke, each shard, the changed lane, email) used to
@@ -2377,9 +2392,7 @@ test.describe("L4b location picker", () => {
       await expect(page.getByTestId("location-level-city")).toHaveText(
         new RegExp(escapeRe(fixture.cityName)),
       );
-      await expect(page.getByTestId("location-guess-caption")).toHaveText(
-        new RegExp(escapeRe(caption(fixture.cityName))),
-      );
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
       expect(await page.evaluate("document.cookie")).not.toContain("ethio_area=");
     } finally {
       await context.close();
@@ -2401,14 +2414,11 @@ test.describe("L4b location picker", () => {
         new RegExp(escapeRe(fixture.region.name_en!)),
       );
       // L4b-3: the region is what the GUESS resolved, and the auto-select law
-      // then deepens into the region's ONLY city — so the caption, which always
-      // names the deepest resolved place, names that city.
+      // then deepens into the region's ONLY city, which the selected box names.
       await expect(page.getByTestId("location-level-city")).toHaveText(
         new RegExp(escapeRe(fixture.cityName)),
       );
-      await expect(page.getByTestId("location-guess-caption")).toHaveText(
-        new RegExp(escapeRe(caption(fixture.cityName))),
-      );
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
     } finally {
       await context.close();
       await destroyLocation(fixture.region.slug);
@@ -2428,9 +2438,7 @@ test.describe("L4b location picker", () => {
       await expect(page.getByTestId("location-level-city")).toHaveText(
         new RegExp(escapeRe(fixture.cityName)),
       );
-      await expect(page.getByTestId("location-guess-caption")).toHaveText(
-        new RegExp(escapeRe(caption(fixture.cityName))),
-      );
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
     } finally {
       await context.close();
       await destroyLocation(fixture.region.slug);
@@ -2456,9 +2464,7 @@ test.describe("L4b location picker", () => {
         new RegExp(escapeRe(ethiopia)),
       );
       await expect(page.locator("[data-testid^='location-level-']")).toHaveCount(2);
-      await expect(page.getByTestId("location-guess-caption")).toHaveText(
-        new RegExp(escapeRe(caption(ethiopia))),
-      );
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
     } finally {
       await context.close();
       await destroyLocation(fixture.region.slug);
@@ -2491,8 +2497,7 @@ test.describe("L4b location picker", () => {
       await expect(page.getByTestId("location-level-city")).toHaveText(
         new RegExp(escapeRe(chain.city.name_en!)),
       );
-      // The saved area is a CHOICE, so the guess never speaks.
-      await expect(page.getByTestId("location-guess-caption")).toHaveCount(0);
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
     } finally {
       await context.close();
       await destroyLocation(chain.region.slug);
