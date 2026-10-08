@@ -421,3 +421,7 @@ which keeps a stale marker from being treated as foreign on every tick.
 ## The phone frame (bundle 9, Part C2b)
 
 Below 768 px: fixed top bar, 48 px icon strip (not on the posting wizard), and the bottom bar (Home · My listings · Post · Account). The Admin panel has no bar item; it is opened from the strip's menu button through the drawer's panel switcher, whose band then reads the admin panel's name.
+
+### Bundle 9 C2c — phone Admin entry
+
+Admins have a fifth bottom-bar entry after Account, linking to `/admin` and current on the Admin panel. Helpers use that entry when the bar is present, retaining the drawer path on the posting wizard. The desktop rail remains unchanged.
