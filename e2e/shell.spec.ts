@@ -471,10 +471,18 @@ test.describe("app shell", () => {
     const columns = page.getByTestId("footer-columns");
     const group = (await columns.boundingBox())!;
     const page_width = page.viewportSize()!.width;
-    // Centred as a group: equal slack on both sides (2px subpixel tolerance).
-    expect(
-      Math.abs(group.x - (page_width < 768 ? 48 : 0) - (page_width - (group.x + group.width))),
-    ).toBeLessThanOrEqual(2);
+    // Measure the group's content box: the phone inset is padding on the grid itself.
+    const padding = await columns.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return {
+        start: parseFloat(style.paddingInlineStart),
+        end: parseFloat(style.paddingInlineEnd),
+      };
+    });
+    const contentStart = page_width < 768 ? 48 : 0;
+    const startSlack = group.x + padding.start - contentStart;
+    const endSlack = page_width - (group.x + group.width - padding.end);
+    expect(Math.abs(startSlack - endSlack)).toBeLessThanOrEqual(2);
     // Each column centres its own content.
     const alignments = await columns
       .locator("nav")
