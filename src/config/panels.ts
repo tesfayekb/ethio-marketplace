@@ -39,6 +39,9 @@ import { ADMIN_NAV_ITEMS } from "@/features/admin/rail-items";
 import type { NavItem, Panel, PanelAuthContext, PanelId } from "./panels.types";
 import { ownValue } from "@/lib/own-key";
 
+// Operator preview switch: false restores the menu button and removes the phone strip offset.
+export const PHONE_STRIP = true;
+
 /**
  * The panel/nav configuration — the single source of truth for the shell's
  * navigation. See docs/features/panels.md.
@@ -46,9 +49,6 @@ import { ownValue } from "@/lib/own-key";
  * Marketplace's items are NOT listed here: they are the live category tree,
  * read from public.categories at render time by the rail.
  */
-// Operator preview switch: false restores the menu button and removes the phone strip offset.
-export const PHONE_STRIP = true;
-
 export const PANELS: Record<PanelId, Panel> = {
   marketplace: {
     id: "marketplace",
