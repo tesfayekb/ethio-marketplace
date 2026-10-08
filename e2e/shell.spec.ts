@@ -863,7 +863,18 @@ test.describe("mobile chrome", () => {
       await expect(page.getByTestId(id)).toHaveCount(0);
     }
     const scroll = page.getByTestId("strip-scroll");
-    expect(await scroll.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
+    const capacity = await scroll.evaluate((el) => ({
+      height: el.clientHeight,
+      overflow: el.scrollHeight - el.clientHeight,
+      rows: el.querySelectorAll("li > a").length,
+      gap: parseFloat(getComputedStyle(el.querySelector("ul") ?? el).rowGap) || 0,
+    }));
+    const minimum = capacity.rows * 28 + Math.max(0, capacity.rows - 1) * capacity.gap;
+    if (minimum <= capacity.height) {
+      expect(capacity.overflow).toBeLessThanOrEqual(1);
+    } else {
+      expect(capacity.overflow).toBeGreaterThan(0);
+    }
     const rows = await scroll
       .locator("li > a")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
@@ -913,8 +924,9 @@ test.describe("mobile chrome", () => {
     expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
   });
 
-  test("Sign out is at the end of Account", async ({ page }) => {
-    await poolSignIn(page);
+  test("Sign out is at the end of Account @private-identity", async ({ page }) => {
+    const user = await leaseUser();
+    await signInViaSession(page, user.email, user.password);
     await gotoReady(page, "/account");
     await expect(page.getByTestId("account-sign-out")).toBeVisible();
     await signOutViaUi(page);

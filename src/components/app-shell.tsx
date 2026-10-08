@@ -780,7 +780,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="shell-footer-wrapper"
           className={cn(
             "relative z-0 w-full bg-card md:z-40 md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16",
-            PHONE_STRIP && !onWizard && "[&>footer>*]:ps-12",
+            PHONE_STRIP && !onWizard && "[&>footer>*]:ps-16",
           )}
         >
           <AppFooter />
