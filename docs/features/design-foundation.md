@@ -42,6 +42,28 @@ but only ~1.5:1 against the `#14181C` page, so a filled button would vanish.
 Dark mode therefore uses the lighter leaf `#7FC9A6` with near-black text
 (9.23:1 on itself, clearly separated from the page).
 
+### House style tokens (bundle 9, 2026-10-08)
+
+| Token                           | Light                       | Dark                        | Meaning                              |
+| ------------------------------- | --------------------------- | --------------------------- | ------------------------------------ |
+| `--border`                      | #D3D8DF                     | #343B43                     | lines of cards, tables, bars         |
+| `--input`                       | #C3C9D1                     | #3F4750                     | edge of a field or an outline button |
+| `--rule`                        | #E4E8ED                     | #262C32                     | fine line between two rows           |
+| `--muted-foreground`            | #4A515A                     | #A3ABB3                     | secondary text                       |
+| `--destructive`                 | #B42318                     | #FF6467                     | danger: delete, remove, a refusal    |
+| `--destructive-foreground`      | #FFFFFF                     | #1F0A08                     | text on a solid danger fill          |
+| `--destructive-soft` / `-line`  | #FDECEA / #F3C1BC           | #3A1C1A / #5E2B27           | tinted danger surface / edge         |
+| `--success` / `-soft` / `-line` | #17503A / #E3F1EA / #B9DCCB | #7FC9A6 / #1C2B24 / #2E4A3C | done, active, approved               |
+| `--warning` / `-soft` / `-line` | #7A4E00 / #FFF3D6 / #EDD49A | #E6B655 / #2D2513 / #4F4020 | paused, needs attention              |
+| `--info` / `-soft` / `-line`    | #1D4E89 / #E6F0FB / #BBD3EF | #8DB8EA / #17253A / #2A4366 | information, a link-like action      |
+| `--neutral` / `-soft`           | #3B424A / #EEF1F4           | #C5CBD1 / #262C32           | draft, off, nothing to say           |
+
+- **Three tokens per meaning:** the strong colour (text, icon, solid fill), `-soft` (a tinted surface), `-line` (a tinted edge). Badge variants `success`, `warning`, `info`, `danger`, `neutral` use them.
+- **Corners:** 6 px (`--radius`) for controls, cards and tables (`rounded-md`, `rounded-lg`); 4 px for small marks (`rounded-sm`); 8 px for the large surfaces (`rounded-xl`).
+- **Shadows:** soft (`shadow-card`, `shadow-sm`, `shadow-xs`, bare `shadow`) on cards, tables and figures; `shadow-button` on a primary or danger button; `shadow-md` on menus, `shadow-lg` on dialogs and sheets; `shadow-bar` / `shadow-bar-up` are for the frame in a later part. Shadows are black or the foreground at an alpha — the one exception to oklch-only.
+- **Secondary text is `text-muted-foreground`.**
+- Contrast of every pair is recomputed from the file by `src/styles.tokens.test.ts`; the fixture page is `/dev/style` (`e2e/house-style.spec.ts`).
+
 ## Typography
 
 - `--font-sans`: `Inter, "Noto Sans Ethiopic", system-ui, sans-serif`

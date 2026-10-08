@@ -509,6 +509,7 @@ export default async function globalSetup() {
   // written. Scratch keys and Amharic are never touched. An incomplete probe
   // logs and does not fail the setup.
   {
+    const healStartedAt = performance.now();
     const compiledEn = (await import("../src/i18n/locales/en")).default as Record<string, string>;
     let healed = 0;
     let probeError: string | null = null;
@@ -552,10 +553,11 @@ export default async function globalSetup() {
           : String((error as { message?: unknown })?.message ?? error);
       console.log(`[e2e:setup] EN baseline probe unavailable: ${probeError}`);
     }
+    const healMs = Math.round(performance.now() - healStartedAt);
     console.log(
       `[e2e:setup] healed ${healed} stale EN rows (INC-175; ${
         probeError === null ? "probe complete" : `probe INCOMPLETE: ${probeError}`
-      })`,
+      }; ${healMs} ms)`,
     );
   }
 

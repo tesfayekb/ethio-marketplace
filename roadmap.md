@@ -1,6 +1,6 @@
 # Roadmap
 
-No bundle brief is in force: bundle 8 closed on 2026-10-08 (its brief stays at docs/governance/briefs/bundle-8.md). The next brief is named on this line when it is saved.
+Bundle 9 brief: docs/governance/briefs/bundle-9.md (read first every turn).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
