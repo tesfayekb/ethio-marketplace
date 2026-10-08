@@ -742,9 +742,16 @@ test.describe("tablet chrome (md = 768px)", () => {
     test.skip(testInfo.project.name !== "desktop-1280", "run once");
     await gotoReady(page, "/");
 
-    // Persistent sidebar, not a drawer: no hamburger at all.
+    // C2g — the persistent icon rail, and the » / « menu control (not the
+    // collapse toggle) is the one menu control from 768 to 1023 px.
     await expect(page.getByTestId("app-rail")).toBeVisible();
-    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toHaveCount(1);
+    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toBeVisible();
+    await expect(page.getByTestId("rail-collapse-toggle")).toBeHidden();
+    const railWidth = (await page.getByTestId("app-rail").boundingBox())!.width;
+    expect(Math.abs(railWidth - 64)).toBeLessThanOrEqual(1);
+    const cellWidth = (await page.getByTestId("shell-logo-cell").boundingBox())!.width;
+    expect(Math.abs(cellWidth - 64)).toBeLessThanOrEqual(1);
 
     // A real search FIELD in the bar (no icon-only toggle).
     await expect(page.getByTestId("search-inline-input")).toBeVisible();
