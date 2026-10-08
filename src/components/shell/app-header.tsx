@@ -245,7 +245,7 @@ export function AppHeader() {
                   type="button"
                   aria-label={t("shell.accountMenu")}
                   data-testid="account-menu"
-                  className="hidden min-h-11 min-w-0 shrink-0 items-center gap-2 rounded-md px-1.5 md:inline-flex text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="inline-flex min-h-11 min-w-0 shrink-0 items-center gap-2 rounded-md px-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Avatar className="h-7 w-7">
                     <AvatarFallback>

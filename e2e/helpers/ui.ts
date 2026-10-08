@@ -170,12 +170,6 @@ export async function gotoReady(page: Page, path: string) {
  */
 export async function openAccountMenu(page: Page, label: string = en["shell.accountMenu"]) {
   await waitForHydration(page);
-  if (isMobile(page)) {
-    // C2b.5 — below md the account picture left the top bar; the drawer says
-    // who is signed in and carries the sign-out affordance.
-    await expectDrawerIdentity(page);
-    return signedInMarker(page);
-  }
   const trigger = page.getByRole("button", { name: label });
   await trigger.waitFor({ state: "visible", timeout: 15000 });
   await trigger.click();
@@ -184,10 +178,6 @@ export async function openAccountMenu(page: Page, label: string = en["shell.acco
 
 /** Signed-in identity + the sign-out affordance, both inside the account menu. */
 export async function expectSignedIn(page: Page, displayName: string) {
-  if (isMobile(page)) {
-    await expectDrawerIdentity(page, displayName);
-    return;
-  }
   const trigger = await openAccountMenu(page);
   // INC-084g — anchor on the testid, not the accessible name: the menu item
   // carries an icon and renders in the ACTIVE catalog, so an English-literal
@@ -277,17 +267,6 @@ export async function expectActivePanel(page: Page, id: PanelKey) {
   await expect(page.getByTestId(BAR_ITEM[id])).toHaveAttribute("aria-current", "page");
 }
 
-/** C2f.3 — below md: the opened menu names the signed-in user. */
-async function expectDrawerIdentity(page: Page, displayName?: string) {
-  const menu = await openRailScope(page);
-  const identity = menu.getByTestId("drawer-identity");
-  await expect(identity).toBeVisible({ timeout: 15000 });
-  if (displayName !== undefined) await expect(identity).toContainText(displayName);
-  await page.keyboard.press("Escape");
-  await expect(menu).toBeHidden();
-  await expect(page.getByTestId("bottom-bar-account")).toBeVisible({ timeout: 15000 });
-}
-
 /**
  * U0j-2 — opens the rail's sign-out affordance for THIS viewport and returns
  * the scope it lives in. Strict-mode safe: never a page-wide locator.
@@ -352,8 +331,8 @@ export async function openRailScope(page: Page) {
  */
 export async function signOutViaUi(page: Page, labels: { signIn?: string } = {}) {
   if (isMobile(page)) {
-    await gotoReady(page, "/account");
-    await page.getByTestId("account-sign-out").click();
+    await openAccountMenu(page);
+    await page.getByTestId("account-menu-sign-out").click();
   } else {
     // C2g.3 — from 768 px the rail's own sign-out (an icon to 1023, named from 1024).
     await page.getByTestId("app-rail").getByTestId("rail-sign-out").click();
