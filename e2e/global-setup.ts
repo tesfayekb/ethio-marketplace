@@ -12,6 +12,8 @@ import migrationPreflight from "../scripts/e2e-migration-preflight";
 import { totp } from "./helpers/totp";
 import { mintEmail } from "./helpers/users";
 import { assertAppTargetsStaging } from "./helpers/app-target";
+import { staleEnKeys, type EnRow } from "../scripts/en-baseline-heal";
+import { readAllPages } from "../src/lib/read-all-pages";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const STATE_FILE = join(HERE, ".state", "test-user.json");
@@ -496,6 +498,66 @@ export default async function globalSetup() {
 
   mkdirSync(dirname(STATE_FILE), { recursive: true });
   writeFileSync(STATE_FILE, JSON.stringify(user), "utf8");
+
+  // INC-175 / INC-493 (DEC-160) — EN BASELINE HEAL, IN EVERY SETUP.
+  // Staging is an automation-only DB whose only editors are tests, so the
+  // compiled EN catalog is the truth of record; a drifted or unapproved `en`
+  // row is set back to the exact baseline admin_sync_ui_keys writes. This runs
+  // BEFORE the maintenance gate, whatever E2E_SHARD is, so no lane starts its
+  // tests against an old English text. One read per REST page (ordered by key),
+  // compared in memory by the pure staleEnKeys; only differing rows are
+  // written. Scratch keys and Amharic are never touched. An incomplete probe
+  // logs and does not fail the setup.
+  {
+    const compiledEn = (await import("../src/i18n/locales/en")).default as Record<string, string>;
+    let healed = 0;
+    let probeError: string | null = null;
+    try {
+      const enRows = await readAllPages<EnRow>(
+        (after, limit) => {
+          let query = supabase
+            .from("ui_translations")
+            .select("key,value,status")
+            .eq("lang_code", "en")
+            .order("key", { ascending: true })
+            .limit(limit);
+          if (after !== null) query = query.gt("key", after);
+          return query as unknown as PromiseLike<{ data: EnRow[] | null; error: unknown }>;
+        },
+        (row) => row.key,
+      );
+      for (const key of staleEnKeys(compiledEn, enRows)) {
+        const { error: healError } = await supabase
+          .from("ui_translations")
+          .update({
+            value: compiledEn[key],
+            status: "approved",
+            machine: false,
+            flagged: false,
+            flag_note: null,
+            origin: "sync",
+          })
+          .eq("lang_code", "en")
+          .eq("key", key);
+        if (healError) {
+          console.log(`[e2e:setup] EN baseline heal failed for ${key}: ${healError.message}`);
+          continue;
+        }
+        healed += 1;
+      }
+    } catch (error) {
+      probeError =
+        error instanceof Error
+          ? error.message
+          : String((error as { message?: unknown })?.message ?? error);
+      console.log(`[e2e:setup] EN baseline probe unavailable: ${probeError}`);
+    }
+    console.log(
+      `[e2e:setup] healed ${healed} stale EN rows (INC-175; ${
+        probeError === null ? "probe complete" : `probe INCOMPLETE: ${probeError}`
+      })`,
+    );
+  }
 
   // 5b. STAB-SETUP (DEC-036 amendment) — ONE OWNER FOR MAINTENANCE.
   //     Every sharded job used to run the full reaper + prune + storage sweep +
@@ -1197,59 +1259,6 @@ export default async function globalSetup() {
       console.log(`[e2e:maintenance] RATIFIED-AM GAP: ${gaps.length} rows: ${gaps.join(", ")}`);
     }
   }
-
-  // INC-175 — EN BASELINE HEAL. D3 makes the DATABASE runtime truth for UI
-  // strings, but that scope is the PRODUCT database; staging is an
-  // automation-only DB whose only editors are tests, so here the compiled EN
-  // catalog is the truth of record and a drifted `en` row is residue from a
-  // dead test (A-1 read a stale "arrives in U6" body). Every non-scratch key
-  // whose `en` row differs from compiled is reset to the exact baseline
-  // admin_sync_ui_keys writes (value = compiled, status 'approved', machine
-  // false, origin 'sync'). Amharic is never touched: the ratified-am tripwire
-  // above stays the authority on approved `am` rows.
-  const compiledEn = (await import("../src/i18n/locales/en")).default as Record<string, string>;
-  const compiledKeys = Object.keys(compiledEn).filter((key) => !key.startsWith("e2e.scratch."));
-  let healed = 0;
-  let probeError: string | null = null;
-  for (const batch of chunkByLength(compiledKeys)) {
-    const { data: enRows, error: enError } = await supabase
-      .from("ui_translations")
-      .select("key,value,status")
-      .eq("lang_code", "en")
-      .in("key", batch);
-    if (enError) {
-      console.log(`[e2e:setup] EN baseline probe unavailable: ${enError.message}`);
-      probeError = enError.message;
-      break;
-    }
-    const stale = (enRows ?? []).filter(
-      (row) => row.value !== compiledEn[row.key as string] || row.status !== "approved",
-    );
-    for (const row of stale) {
-      const { error: healError } = await supabase
-        .from("ui_translations")
-        .update({
-          value: compiledEn[row.key as string],
-          status: "approved",
-          machine: false,
-          flagged: false,
-          flag_note: null,
-          origin: "sync",
-        })
-        .eq("lang_code", "en")
-        .eq("key", row.key as string);
-      if (healError) {
-        console.log(`[e2e:setup] EN baseline heal failed for ${row.key}: ${healError.message}`);
-        continue;
-      }
-      healed += 1;
-    }
-  }
-  console.log(
-    `[e2e:setup] healed ${healed} stale EN rows (INC-175; ${
-      probeError === null ? "probe complete" : `probe INCOMPLETE: ${probeError}`
-    })`,
-  );
 
   console.log(`[e2e:setup] reaped ${reaped} stale scratch rows`);
 
