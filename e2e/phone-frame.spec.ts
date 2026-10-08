@@ -171,15 +171,25 @@ test.describe("width walk (C2g.4)", () => {
     }
   });
 
-  test("account and post at every width", async ({ page }) => {
+  test("account at every width", async ({ page }) => {
     const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
     await signInViaSession(page, user.email, user.password);
-    for (const path of ["/account", "/post"]) {
-      for (const width of WALK) {
-        await page.setViewportSize({ width, height: 800 });
-        await gotoReady(page, path);
-        await checkFrame(page, width);
-      }
+    for (const width of WALK) {
+      await page.setViewportSize({ width, height: 800 });
+      await gotoReady(page, "/account");
+      await checkFrame(page, width);
+    }
+  });
+
+  test("the posting wizard resized through every width without a reload", async ({ page }) => {
+    const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
+    await signInViaSession(page, user.email, user.password);
+    await page.setViewportSize({ width: 360, height: 800 });
+    await gotoReady(page, "/post");
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    for (const width of WALK) {
+      await page.setViewportSize({ width, height: 800 });
+      await checkFrame(page, width);
     }
   });
 
