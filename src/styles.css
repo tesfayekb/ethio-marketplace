@@ -257,7 +257,7 @@
   }
 
   html {
-    /* Scroll targets clear phone 52 + 77px and desktop 56 + 74px bands. */
+    /* INC-106d: scroll targets clear the fixed bars — phone 52 + 77 px, desktop 56 + 74 px. */
     scroll-padding-top: 8.5rem;
   }
 
