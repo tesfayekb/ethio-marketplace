@@ -20,9 +20,9 @@ describe("staleEnKeys (INC-493)", () => {
   });
 
   it("does not return an equal approved row", () => {
-    expect(staleEnKeys(compiled, [{ key: "app.name", value: "ethio", status: "approved" }])).toEqual(
-      [],
-    );
+    expect(
+      staleEnKeys(compiled, [{ key: "app.name", value: "ethio", status: "approved" }]),
+    ).toEqual([]);
   });
 
   it("does not return a scratch key", () => {
