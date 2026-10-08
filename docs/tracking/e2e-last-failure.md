@@ -1,14 +1,158 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37715570406
-- Commit: `accdd3fe34b18699a5b24590fd97dca41b3f3e9c`
+last E2E run 37717277215 passed
+
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37717277215
+- Commit: `1fbea8954d42b86734e79bddeac8c742a4a9b9e4`
 - Attempt: 1
-- Written (UTC): 2026-10-08T02:19:57.874Z
-- Passed: 315 · Skipped: 42 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): smoke, email, shard 6, changed
-- Sources without results: shard 1, shard 2, shard 3, shard 4, shard 5
+- Written (UTC): 2026-10-08T02:45:32.358Z
+- Post-test warnings: 27
+- Flaky (passed on retry, DEC-030, non-gating): 2
+
+## Flake ledger (DEC-030)
+
+These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
+a test flaky 3× in 7 days gets an INC and root-cause work.
+
+- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-18 a real-export round trip is a no-op — Error: CT-18 the round trip was not a no-op: 0 added · 15 changed · 0 retired · 0 reactivated · 0 deleted · 138 unchanged · 0 refused
+- FLAKY (passed on retry) · `mobile-360` · source `changed` · house-style.spec.ts › house style fixture › HS-2 axe is clean in light and in dark mode — Error: dev-style dark
+
+## Flaky bodies (DEC-078)
+
+### admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-18 a real-export round trip is a no-op
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Error: CT-18 the round trip was not a no-op: 0 added · 15 changed · 0 retired · 0 reactivated · 0 deleted · 138 unchanged · 0 refused
+
+expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 1
+
+  Object {
+    "adds": 0,
+-   "changes": 0,
++   "changes": 15,
+    "deletes": 0,
+    "reactivations": 0,
+    "refused": 0,
+    "retires": 0,
+  }
+--- further error 1 ---
+Error: CT-18 the round trip was not a no-op: 0 added · 15 changed · 0 retired · 0 reactivated · 0 deleted · 138 unchanged · 0 refused
+
+expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 1
+
+  Object {
+    "adds": 0,
+-   "changes": 0,
++   "changes": 15,
+    "deletes": 0,
+    "reactivations": 0,
+    "refused": 0,
+    "retires": 0,
+  }
+
+  855 |       { adds, changes, retires, reactivations, deletes, refused },
+  856 |       `CT-18 the round trip was not a no-op: ${await counts.textContent()}`,
+> 857 |     ).toEqual({ adds: 0, changes: 0, retires: 0, reactivations: 0, deletes: 0, refused: 0 });
+```
+
+Context:
+
+```text
+              - listitem:
+                - generic: Terms
+              - listitem:
+                - generic: Privacy
+        - generic:
+          - paragraph: © 2026 ethio.com — All rights reserved.
+  - dialog "Import categories" [active] [ref=e2]:
+    - heading "Import categories" [level=2] [ref=e3]
+    - generic [ref=e4]:
+      - paragraph [ref=e5]: Import categories
+      - paragraph [ref=e6]: Choose the categories file you exported. Nothing is written until you preview it and confirm.
+      - paragraph [ref=e7]: "Columns marked “(read-only)” are worked out for you: you can edit them in the file, but they are never applied."
+      - status [ref=e8]: 0 added · 15 changed · 0 retired · 0 reactivated · 0 deleted · 138 unchanged · 0 refused
+      - generic [ref=e9]:
+        - button "Discard" [ref=e10] [cursor=pointer]
+        - button "Confirm import" [ref=e11] [cursor=pointer]
+    - button "Close" [ref=e12] [cursor=pointer]:
+      - img [ref=e13]
+      - generic [ref=e16]: Close
+```
+```
+
+### house-style.spec.ts › house style fixture › HS-2 axe is clean in light and in dark mode
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Error: dev-style dark
+
+expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 3
+
+- Array []
++ Array [
++   "serious:color-contrast×1",
++ ]
+--- further error 1 ---
+Error: dev-style dark
+
+expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 3
+
+- Array []
++ Array [
++   "serious:color-contrast×1",
++ ]
+
+  24 |     .map((v) => `${v.impact}:${v.id}×${v.nodes.length}`);
+  25 |   console.log(`[a11y] dev-style ${mode} ${test.info().project.name} ${rules.join(" ") || "clean"}`);
+> 26 |   expect(rules, `dev-style ${mode}`).toEqual([]);
+     |                                      ^
+  27 | }
+  28 |
+  29 | test.describe("house style fixture", () => {
+    at seriousOrCritical (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/house-style.spec.ts:26:38)
+```
+
+Context:
+
+```text
+          - listitem [ref=e182]:
+            - generic [ref=e183]: About
+          - listitem [ref=e184]:
+            - generic [ref=e185]: How it works
+      - navigation "Help" [ref=e186]:
+        - heading "Help" [level=2] [ref=e187]
+        - list [ref=e188]:
+          - listitem [ref=e189]:
+            - generic [ref=e190]: Safety
+          - listitem [ref=e191]:
+            - generic [ref=e192]: Contact
+      - navigation "Legal" [ref=e193]:
+        - heading "Legal" [level=2] [ref=e194]
+        - list [ref=e195]:
+          - listitem [ref=e196]:
+            - generic [ref=e197]: Terms
+          - listitem [ref=e198]:
+            - generic [ref=e199]: Privacy
+    - paragraph [ref=e201]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors — census (DEC-083, non-gating)
 
@@ -20,7 +164,7 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
-| `listing not found` | 6 | shard 2, shard 3, shard 5, shard 6 |
+| `listing not found` | 6 | shard 2, shard 3, shard 6 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -52,16 +196,16 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 | `strings tooManyRows` (quiet) | 2 | shard 2, shard 5 |
 | `strings unknownColumn` (quiet) | 2 | shard 2, shard 5 |
 | `strings wrongFile` (quiet) | 2 | shard 2, shard 5 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-cjygws: e<n>e_par_dfojwr → e<n>e_chi_oezlkr` (quiet) | 1 | shard 4 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-p<n>cgsi: e<n>e_par_<n>nox<n> → e<n>e_chi_<n>paphd` (quiet) | 1 | shard 1 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-b<n>vgs<n>: e<n>e_par_jor<n>l → e<n>e_chi_oyx<n>i` (quiet) | 1 | shard 4 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-tmtz<n>e: e<n>e_par_bf<n>h<n>r → e<n>e_chi_lcew<n>` (quiet) | 1 | shard 1 |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-cjygws: e<n>e_par_dfojwr → e<n>e_chi_oezlkr ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-p<n>cgsi: e<n>e_par_<n>nox<n> → e<n>e_chi_<n>paphd ×1
+Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-b<n>vgs<n>: e<n>e_par_jor<n>l → e<n>e_chi_oyx<n>i ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-tmtz<n>e: e<n>e_par_bf<n>h<n>r → e<n>e_chi_lcew<n> ×1
 
 Off the allowlist:
 
 ### listing not found
 
-- Count: 6 · Sources: shard 2, shard 3, shard 5, shard 6
+- Count: 6 · Sources: shard 2, shard 3, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -75,372 +219,98 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 
 ## Timing (DEC-087, non-gating)
 
-Results read: smoke, email, shard 6, changed · unavailable: shard 1, shard 2, shard 3, shard 4, shard 5
+Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-08T01:59:52.767Z | 12.0 min |
-| email | 2026-10-08T01:59:54.806Z | 0.2 min |
-| shard 6 | 2026-10-08T01:59:47.875Z | 15.8 min |
-| changed | 2026-10-08T02:00:02.227Z | 0.2 min |
+| smoke | 2026-10-08T02:21:12.811Z | 12.3 min |
+| email | 2026-10-08T02:21:46.506Z | 0.2 min |
+| shard 1 | 2026-10-08T02:21:25.746Z | 23.7 min |
+| shard 2 | 2026-10-08T02:21:22.887Z | 22.2 min |
+| shard 3 | 2026-10-08T02:24:33.284Z | 18.6 min |
+| shard 4 | 2026-10-08T02:21:13.905Z | 21.9 min |
+| shard 5 | 2026-10-08T02:21:09.223Z | 18.9 min |
+| shard 6 | 2026-10-08T02:21:15.961Z | 17.2 min |
+| changed | 2026-10-08T02:21:13.050Z | 0.3 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 189 | 11.7 min | smoke, shard 6 |
-| `post-wizard-specs.spec.ts` | 39 | 8.4 min | shard 6 |
-| `post-wizard-resets.spec.ts` | 17 | 4.6 min | shard 6 |
-| `post-wizard-where.spec.ts` | 15 | 3.9 min | shard 6 |
-| `auth-signout.spec.ts` | 22 | 3.5 min | smoke |
-| `posting-routes.spec.ts` | 25 | 3.2 min | shard 6 |
-| `posting-routes-catalog.spec.ts` | 9 | 2.2 min | shard 6 |
-| `posting-routes-dials.spec.ts` | 7 | 1.0 min | shard 6 |
-| `post-wizard-removed.spec.ts` | 2 | 0.7 min | shard 6 |
+| `post-wizard-specs.spec.ts` | 78 | 19.6 min | shard 3, shard 6 |
+| `shell.spec.ts` | 252 | 15.9 min | smoke, shard 3, shard 6 |
+| `post-wizard-bundle2.spec.ts` | 60 | 15.3 min | shard 2, shard 5 |
+| `admin-categories-lifecycle.spec.ts` | 48 | 11.5 min | shard 1, shard 4 |
+| `post-wizard-pricing.spec.ts` | 50 | 10.4 min | shard 2, shard 5 |
+| `post-wizard-category.spec.ts` | 42 | 10.1 min | shard 2, shard 5 |
+| `admin-attributes-library.spec.ts` | 40 | 10.1 min | shard 1, shard 4 |
+| `post-wizard-place.spec.ts` | 38 | 10.1 min | shard 2, shard 5 |
+| `post-wizard-resets.spec.ts` | 34 | 9.9 min | shard 3, shard 6 |
+| `post-wizard-where.spec.ts` | 30 | 9.2 min | shard 3, shard 6 |
+| `admin-categories-console.spec.ts` | 32 | 8.1 min | shard 1, shard 4 |
+| `admin-attributes-links.spec.ts` | 30 | 7.6 min | shard 1, shard 4 |
+| `posting-routes.spec.ts` | 50 | 7.6 min | shard 3, shard 6 |
+| `auth-signout.spec.ts` | 44 | 7.3 min | smoke, shard 2, shard 5 |
+| `admin-attributes-editor.spec.ts` | 34 | 6.9 min | shard 1, shard 4 |
+| `admin-users.spec.ts` | 24 | 6.2 min | shard 2, shard 5 |
+| `admin-locations.spec.ts` | 36 | 6.2 min | shard 1, shard 4 |
+| `admin-attributes-import.spec.ts` | 40 | 6.1 min | shard 1, shard 4 |
+| `admin-translations-console.spec.ts` | 38 | 5.4 min | shard 1, shard 4 |
+| `import-security.spec.ts` | 34 | 5.3 min | shard 2, shard 5 |
+| `photo-pipeline.spec.ts` | 20 | 5.3 min | shard 2, shard 5 |
+| `posting-routes-catalog.spec.ts` | 18 | 5.2 min | shard 3, shard 6 |
+| `admin-roles.spec.ts` | 24 | 4.9 min | shard 1, shard 4 |
+| `admin-attributes-safety.spec.ts` | 14 | 4.8 min | shard 1, shard 4 |
+| `admin-countries.spec.ts` | 16 | 3.3 min | shard 1, shard 4 |
+| `admin-categories-home.spec.ts` | 8 | 2.9 min | shard 1, shard 4 |
+| `admin-audit.spec.ts` | 10 | 2.9 min | shard 1, shard 4 |
+| `posting-routes-dials.spec.ts` | 14 | 2.5 min | shard 3, shard 6 |
+| `post-wizard-details.spec.ts` | 8 | 2.3 min | shard 2, shard 5 |
+| `admin-translations-governance.spec.ts` | 8 | 2.2 min | shard 1, shard 5 |
+| `mfa-stepup.spec.ts` | 18 | 2.2 min | shard 2, shard 5 |
+| `admin-translations-data.spec.ts` | 8 | 2.1 min | shard 1, shard 5 |
+| `post-wizard-finder.spec.ts` | 8 | 1.8 min | shard 2, shard 5 |
+| `post-wizard-removed.spec.ts` | 4 | 1.7 min | shard 3, shard 6 |
+| `admin-coverage.spec.ts` | 14 | 1.6 min | shard 1, shard 4 |
+| `admin-shell.spec.ts` | 10 | 1.4 min | shard 1, shard 4 |
+| `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
+| `post-wizard-units.spec.ts` | 4 | 1.0 min | shard 3, shard 6 |
+| `category-image-routes.spec.ts` | 10 | 0.8 min | shard 2, shard 5 |
+| `admin-categories-images.spec.ts` | 2 | 0.7 min | shard 1, shard 4 |
+| `i18n-coverage.spec.ts` | 8 | 0.7 min | shard 2, shard 5 |
+| `post-wizard-recent.spec.ts` | 2 | 0.7 min | shard 3, shard 6 |
+| `i18n-bundle.spec.ts` | 6 | 0.6 min | shard 2, shard 5 |
+| `posting-routes-identity.spec.ts` | 2 | 0.6 min | shard 3, shard 6 |
+| `house-style.spec.ts` | 20 | 0.6 min | shard 2, shard 5, changed |
+| `settings.spec.ts` | 4 | 0.5 min | shard 3 |
+| `rbac.spec.ts` | 6 | 0.5 min | shard 3, shard 6 |
 | `a11y.spec.ts` | 4 | 0.4 min | smoke |
-| `post-wizard-units.spec.ts` | 2 | 0.3 min | shard 6 |
-| `posting-routes-identity.spec.ts` | 1 | 0.2 min | shard 6 |
-| `rbac.spec.ts` | 3 | 0.2 min | shard 6 |
-| `primitives-law.spec.ts` | 12 | 0.2 min | shard 6 |
-| `smoke-auth-i18n.spec.ts` | 3 | 0.2 min | smoke, shard 6 |
-| `post-wizard-recent.spec.ts` | 1 | 0.2 min | shard 6 |
-| `house-style.spec.ts` | 4 | 0.2 min | changed |
+| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
+| `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
+| `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 4, shard 6 |
+| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
 | `auth-signup.spec.ts` | 1 | 0.1 min | email |
-| `shell-table-law.spec.ts` | 1 | 0.1 min | shard 6 |
+| `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
+| `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 32.6 s |
-| `post-wizard-where.spec.ts` › PW-173 a draft placed in another market opens there, on resume and after Back | desktop-1280 | 28.8 s |
-| `post-wizard-resets.spec.ts` › PW-73 the door's currency fill is mirrored, so Undo restores a complete price (INC-321) | desktop-1280 | 26.6 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | mobile-360 | 26.4 s |
-| `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, big model list) | desktop-1280 | 26.4 s |
-| `post-wizard-where.spec.ts` › PW-98 the item tick sits on the city line, fresh and prefilled | desktop-1280 | 26.2 s |
-| `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, small model list) | desktop-1280 | 25.5 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 25.1 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 24.7 s |
-| `post-wizard-removed.spec.ts` › PW-177 a question removed while the form is open never blocks the next edits | desktop-1280 | 24.5 s |
-| `post-wizard-resets.spec.ts` › PW-60 a non-identity fold owner change clears only its fold child; an identity change clears nothing it does not hold | desktop-1280 | 23.3 s |
-| `posting-routes-catalog.spec.ts` › PR-39 recent categories are caller-only published leaves in count/date/id order | desktop-1280 | 21.8 s |
-| `shell.spec.ts` › LS-11 picking a second market renders its own tree and saves its own node | desktop-1280 | 21.7 s |
-| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | desktop-1280 | 21.6 s |
-| `post-wizard-where.spec.ts` › PW-90 two boxes, a red border per unfilled level, the plan in one line | desktop-1280 | 20.7 s |
-
-## Post-test errors: smoke
-
-smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37715570406-smoke
-```
-
-## Post-test errors: email
-
-email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37715570406-email
-```
-
-## Post-test errors: shard 6
-
-shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 9 (pool 5, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 37715570406-6
-```
-
-## Post-test errors: changed
-
-changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 37715570406-changed
-```
-
-## Server errors: shard 1
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-1-0-p0cgsi: e2e_par_9nox56 → e2e_chi_6paphd
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## Client errors: shard 1
-
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
-
-## Server errors: shard 2
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
-
-## Client errors: shard 2
-
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Server errors: shard 3
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Server errors: shard 4
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-4-1-cjygws: e2e_par_dfojwr → e2e_chi_oezlkr
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
-## Server errors: shard 5
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
-
-## Client errors: shard 5
-
-No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37715570406-1-3016-2-px7n0j@ethio-e2e.invalid)
-  ✓  159 [mobile-360] › e2e/admin-roles.spec.ts:333:3 › U2 roles console › RP-7 registration: DEC-016 permissions appear as grantable rows (7.7s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37715570406-1-3016-2-px7n0j@ethio-e2e.invalid)
-  ✓  158 [mobile-360] › e2e/admin-locations.spec.ts:705:3 › L2a locations console › LT-15 an imported place name is in the name table after commit and gone after undo (14.5s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37715570406-1-3016-3-s04sn9@ethio-e2e.invalid)
-  ✓  160 [mobile-360] › e2e/admin-roles.spec.ts:346:3 › U2 roles console › RP-8 Amharic + no horizontal overflow (9.9s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37715570406-1-3016-2-px7n0j@ethio-e2e.invalid)
-  ✓  161 [mobile-360] › e2e/admin-locations.spec.ts:759:3 › L2a locations console › LT-7b the editor round-trips a row without dropping a stored field (9.5s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37715570406-1-3016-3-s04sn9@ethio-e2e.invalid)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-1-0-p0cgsi: e2e_par_9nox56 → e2e_chi_6paphd
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- error lines (1) ---
-[WebServer] Error in renderToReadableStream: ReferenceError: window is not defined ×4
---- final 10 lines ---
-✓  185 [mobile-360] › e2e/post-wizard-pricing.spec.ts:540:3 › POSTING WIZARD › PW-63 the pricing basis is asked on the price step, refused there when empty, and still shapes the period (D62-2) (11.6s)
-  ✓  186 [mobile-360] › e2e/post-wizard-place.spec.ts:1060:3 › POSTING WIZARD › PW-80 a city is required: marked before Next, refused and scrolled to on Next, cleared by a city (17.6s)
-  ✓  187 [mobile-360] › e2e/post-wizard-pricing.spec.ts:574:3 › POSTING WIZARD › PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081) (17.0s)
-  ✓  188 [mobile-360] › e2e/post-wizard-place.spec.ts:1156:3 › POSTING WIZARD › PW-81 a prefilled city counts as chosen: no mark, Next passes untouched (14.8s)
-  ✓  189 [mobile-360] › e2e/post-wizard-pricing.spec.ts:608:3 › POSTING WIZARD › PW-65 the currency list opens home first and USD second, with symbols (D62-2) (9.5s)
-  ✓  190 [mobile-360] › e2e/post-wizard-place.spec.ts:1199:3 › POSTING WIZARD › PW-82 the add buttons follow the plan's own limits (15.1s)
-  ✓  191 [mobile-360] › e2e/post-wizard-pricing.spec.ts:638:3 › POSTING WIZARD › PW-169 with a currency chosen, the list opens with it first and marked, and keeps it first under a search that misses it (Bundle 7 B2) (9.9s)
-  ✓  193 [mobile-360] › e2e/post-wizard-pricing.spec.ts:667:3 › POSTING WIZARD › PW-66 a pre-D62-2 'negotiable' price type saves step 1 and reaches step 3 with no refusal (INC-309) (8.1s)
-  ✓  192 [mobile-360] › e2e/post-wizard-place.spec.ts:1274:3 › POSTING WIZARD › PW-37 a tap on the map places a pin and the door stores it as exact (12.1s)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
-
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓  191 [mobile-360] › e2e/shell.spec.ts:1939:3 › L4b location picker › LS-6 the nearest curated metro wins by geometry (10.0s)
-  ✓  192 [mobile-360] › e2e/posting-routes.spec.ts:1023:3 › POSTING ROUTES › PR-23 an ad has no end unless the seller sets a date or the category holds a limit (DEC-117) (9.6s)
-  ✓  193 [mobile-360] › e2e/shell.spec.ts:1968:3 › L4b location picker › LS-7 a region code alone selects the region (15.0s)
-  ✓  194 [mobile-360] › e2e/posting-routes.spec.ts:1084:3 › POSTING ROUTES › PR-24 a seller is named before an ad is published (INC-423) (19.6s)
-  ✓  196 [mobile-360] › e2e/posting-routes.spec.ts:1160:3 › POSTING ROUTES › PR-25 a successful publish stamps the seller's statement (bundle 4 step 19) (7.3s)
-  ✓  195 [mobile-360] › e2e/shell.spec.ts:1996:3 › L4b location picker › LS-8 a city name alone selects that city (16.3s)
-  ✓  197 [mobile-360] › e2e/shell.spec.ts:2018:3 › L4b location picker › LS-9 coordinates far from every metro stop at the market (15.1s)
-  ✓  198 [mobile-360] › e2e/shell.spec.ts:2046:3 › L4b location picker › LS-10 a saved area beats the deepest guess (17.5s)
-  ✓  199 [mobile-360] › e2e/shell.spec.ts:2089:3 › L4b location picker › LS-11 picking a second market renders its own tree and saves its own node (23.8s)
-```
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓  170 [desktop-1280] › e2e/admin-locations.spec.ts:997:3 › L2a locations console › LT-12 transfer scope: exports and the import title follow the selected country (3.4s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37715570406-4-2873-2-k6urk9@ethio-e2e.invalid)
-  ✓  172 [desktop-1280] › e2e/admin-locations.spec.ts:1037:3 › L2a locations console › LT-13 all countries: the picker opens on every market, the roster spans them, and the transfer group carries no scope (4.7s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37715570406-4-2873-2-k6urk9@ethio-e2e.invalid)
-  ✓  171 [desktop-1280] › e2e/admin-roles.spec.ts:418:3 › U2 roles console › RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC (9.1s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+37715570406-4-2873-3-87jgpl@ethio-e2e.invalid)
-  ✓  173 [desktop-1280] › e2e/admin-locations.spec.ts:1122:3 › L2a locations console › LT-14 market state and whole-country parent follow the selected market (2.9s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+37715570406-4-2873-2-k6urk9@ethio-e2e.invalid)
-  ✓  175 [desktop-1280] › e2e/admin-locations.spec.ts:1153:3 › L2a locations console › OV-1 overview totals, links and group breadcrumbs (2.4s)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-4-1-cjygws: e2e_par_dfojwr → e2e_chi_oezlkr
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- error lines (1) ---
-  ✘   47 [desktop-1280] › e2e/house-style.spec.ts:38:3 › house style fixture › HS-2 axe is clean in light and in dark mode (2.8s)
---- final 10 lines ---
-✓  177 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:540:3 › POSTING WIZARD › PW-63 the pricing basis is asked on the price step, refused there when empty, and still shapes the period (D62-2) (11.5s)
-  ✓  178 [desktop-1280] › e2e/post-wizard-place.spec.ts:1060:3 › POSTING WIZARD › PW-80 a city is required: marked before Next, refused and scrolled to on Next, cleared by a city (18.1s)
-  ✓  179 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:574:3 › POSTING WIZARD › PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081) (16.1s)
-  ✓  181 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:608:3 › POSTING WIZARD › PW-65 the currency list opens home first and USD second, with symbols (D62-2) (9.1s)
-  ✓  180 [desktop-1280] › e2e/post-wizard-place.spec.ts:1156:3 › POSTING WIZARD › PW-81 a prefilled city counts as chosen: no mark, Next passes untouched (14.0s)
-  ✓  182 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:638:3 › POSTING WIZARD › PW-169 with a currency chosen, the list opens with it first and marked, and keeps it first under a search that misses it (Bundle 7 B2) (9.3s)
-  ✓  183 [desktop-1280] › e2e/post-wizard-place.spec.ts:1199:3 › POSTING WIZARD › PW-82 the add buttons follow the plan's own limits (15.3s)
-  ✓  184 [desktop-1280] › e2e/post-wizard-pricing.spec.ts:667:3 › POSTING WIZARD › PW-66 a pre-D62-2 'negotiable' price type saves step 1 and reaches step 3 with no refusal (INC-309) (9.0s)
-  ✓  185 [desktop-1280] › e2e/post-wizard-place.spec.ts:1274:3 › POSTING WIZARD › PW-37 a tap on the map places a pin and the door stores it as exact (12.3s)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
-[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
-[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
-[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
-[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
-[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
-[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
-[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
-[WebServer] [ssr-error] /api/admin/locations/import locations file too large
-[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
-[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft listing not found
-```
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 47.6 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 45.7 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | desktop-1280 | 45.4 s |
+| `post-wizard-where.spec.ts` › PW-173 a draft placed in another market opens there, on resume and after Back | mobile-360 | 38.1 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | desktop-1280 | 37.8 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 36.9 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 36.5 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 35.7 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | mobile-360 | 34.5 s |
+| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | mobile-360 | 33.9 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 33.8 s |
+| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | desktop-1280 | 33.5 s |
+| `post-wizard-where.spec.ts` › PW-173 a draft placed in another market opens there, on resume and after Back | desktop-1280 | 33.3 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 33.0 s |
+| `admin-categories-home.spec.ts` › CT-40 the delete door's refusals read as words, never as keys | mobile-360 | 33.0 s |
