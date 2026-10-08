@@ -82,7 +82,7 @@ async function expectTapTarget(page: Page, locator: ReturnType<Page["getByRole"]
 }
 
 /**
- * U0i FOOTER-CLAMP LAW (md+). The aside's top is pinned under the 4rem band,
+ * U0i FOOTER-CLAMP LAW (md+). The aside's top is pinned under the 3.5rem band,
  * and its bottom follows whichever comes first: the viewport bottom, or the
  * in-view footer's top edge. Its inner rail-scroll stays the scroll region.
  * Rects are read with getBoundingClientRect() — boundingBox() would scroll the
@@ -108,7 +108,7 @@ async function railLaw(page: Page) {
       overflows: scroll ? scroll.scrollHeight > scroll.clientHeight : false,
     };
   });
-  expect(Math.abs(measured.top - 64), "rail top is not pinned at 64").toBeLessThanOrEqual(1);
+  expect(Math.abs(measured.top - 56), "rail top is not pinned at 56").toBeLessThanOrEqual(1);
 
   // L3 stabilization poll: on a cold renderer the footer-inset hook's mount
   // settle passes (see the clamp-law comment in use-footer-inset.ts: "settle
@@ -222,7 +222,7 @@ test.describe("app shell", () => {
     await expect(shown).toHaveText(narrow ? en["language.amShort"] : en["language.amharic"]);
   });
 
-  test("the vertical stack is ordered: top bar, location row, breadcrumbs, body", async ({
+  test("the vertical stack is ordered: top bar, breadcrumbs, location row, body", async ({
     page,
   }) => {
     await gotoReady(page, "/");
@@ -236,9 +236,9 @@ test.describe("app shell", () => {
     const crumbs = await y("breadcrumbs");
     const heading = (await page.getByRole("heading", { level: 1 }).boundingBox())!.y;
 
-    expect(bar).toBeLessThan(location);
-    expect(location).toBeLessThan(crumbs);
-    expect(crumbs).toBeLessThan(heading);
+    expect(bar).toBeLessThan(crumbs);
+    expect(crumbs).toBeLessThan(location);
+    expect(location).toBeLessThan(heading);
   });
 
   test("the location row cascades Country -> Region -> City, city selectable", async ({ page }) => {
@@ -1167,7 +1167,7 @@ test.describe("rail scroll regions (U0f)", () => {
     // INC-098c: geometry assertions wait for data-settled state — skeletons gone —
     // not merely hydration. The non-blocking provider surfaced the assumption.
     await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
-    // U0i footer-clamp law: top pinned at 64, bottom = min(viewport, footerTop).
+    // U0i footer-clamp law: top pinned at 56, bottom = min(viewport, footerTop).
     // At 1280x360 the short admin page may already show the footer — the law
     // covers that case (the rail ends at the footer's top edge).
     await railLaw(page);
@@ -1251,7 +1251,7 @@ test.describe("rail scroll regions (U0f)", () => {
  * elements under test.
  */
 test.describe("desktop layout laws (U0g)", () => {
-  const ROW1 = 64;
+  const ROW1 = 56;
   const TALL = "/dev/tall";
 
   async function rect(page: Page, testid: string) {
@@ -1295,6 +1295,40 @@ test.describe("desktop layout laws (U0g)", () => {
       )
       .toBeGreaterThanOrEqual(need);
   }
+
+  test("C1: the subband stays beneath the top band while content scrolls", async ({
+    page,
+    viewport,
+  }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    await gotoReady(page, TALL);
+    await expectScrollRange(page);
+    const bar = await rect(page, "shell-topbar");
+    const before = await rect(page, "shell-subband");
+    expect(Math.abs(before.top - bar.bottom)).toBeLessThanOrEqual(1);
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await expect
+      .poll(() => page.evaluate(() => Math.round(document.scrollingElement?.scrollTop ?? 0)))
+      .toBe(600);
+    const after = await rect(page, "shell-subband");
+    expect(Math.abs(after.top - before.top)).toBeLessThanOrEqual(1);
+    await expect(page.getByTestId("breadcrumbs")).toBeInViewport();
+  });
+
+  test("C1: a rail row is 36px high with a mouse from md", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    await gotoReady(page, "/");
+    const rail = page.getByTestId("app-rail");
+    await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    const heights = await rail
+      .getByTestId("rail-scroll")
+      .getByRole("link")
+      .evaluateAll((links) => links.map((link) => link.getBoundingClientRect().height));
+    const first = heights[0];
+    expect(first).toBeDefined();
+    if (first === undefined) throw new Error("the rail has no link");
+    expect(Math.abs(first - 36)).toBeLessThanOrEqual(1);
+  });
 
   test("L1/L2: the top band and the rail stay put while content scrolls", async ({
     page,

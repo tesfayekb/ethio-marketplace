@@ -52,7 +52,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
     <form
       role="search"
       data-testid="search-row"
-      className="w-full border-b border-border bg-card px-3 py-2 md:px-4"
+      className="w-full border-b border-border bg-card px-2 py-2 md:px-4"
       onSubmit={(event) => event.preventDefault()}
     >
       <label className="relative block">
@@ -96,7 +96,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
  *     FIELD with its placeholder, the language control showing the language
  *     NAME, and a labelled account/sign-in control. No bare icons to decode.
  *
- * Height: the bar fills grid row 1 (4rem) from md up (`md:h-full`), so its top
+ * Height: the bar fills grid row 1 (3.5rem) from md up (`md:h-full`), so its top
  * and bottom edges are the logo cell's by construction. On phones there is no
  * grid row to fill and the bar is its own compact 3.5rem.
  */

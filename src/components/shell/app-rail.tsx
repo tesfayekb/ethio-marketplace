@@ -40,7 +40,7 @@ export { categoryGlyph } from "@/components/shell/category-glyphs";
 const HIDE_WHEN_COLLAPSED = "md:[html[data-rail=collapsed]_&]:hidden";
 
 const ITEM_BASE =
-  "flex min-h-11 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
+  "flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
   "ps-[var(--rail-pad)] md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:ps-0 md:[html[data-rail=collapsed]_&]:pe-0";
 /** Hover stays on the SIDEBAR token family — bg-muted is a content-surface
  *  token and read as a foreign grey against bg-sidebar (INC-042). */
@@ -340,12 +340,12 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
           }}
         />
         {/* INC-050: while the tree is being read the rail shows placeholder
-            rows at the real 44px row height, so the sidebar does not jump when
+            rows at the real pointer-dependent row height, so the sidebar does not jump when
             the categories arrive. Cached reads skip this entirely. */}
         {isLoading
           ? Array.from({ length: 6 }).map((_, index) => (
               <li key={`skeleton-${index}`} data-testid="rail-category-skeleton" aria-hidden="true">
-                <div className="flex min-h-11 items-center gap-2 px-3">
+                <div className="flex min-h-11 md:pointer-fine:min-h-9 items-center gap-2 px-3">
                   <span className="h-4 w-4 shrink-0 animate-pulse rounded bg-muted" />
                   <span
                     className={cn("h-3 w-24 animate-pulse rounded bg-muted", HIDE_WHEN_COLLAPSED)}
@@ -504,11 +504,11 @@ export function AppRail() {
           // offset. U0i — its BOTTOM is no longer the viewport bottom: it is
           // `--rail-bottom-inset`, how far the footer has scrolled into view,
           // so the rail's box always ENDS at the footer's top edge. With the
-          // fixed calc() height dropped (top-16 + bottom inset size it), the
+          // fixed calc() height dropped (top-14 + bottom inset size it), the
           // inner rail-scroll region keeps its scrollbar and every item stays
           // reachable instead of hiding under the footer.
           style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:start-0 md:top-16 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:px-1"
+          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the

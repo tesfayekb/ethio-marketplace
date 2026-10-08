@@ -78,10 +78,10 @@ function PermissionsLoader({
  * THE CORNER-BLOCK GRID + THE VERTICAL STACK.
  *
  * From md up the shell is a two-column CSS grid whose first column is the rail
- * width (16rem) and whose first row is the top-bar height (4rem):
+ * width (16rem) and whose first row is the top-bar height (3.5rem):
  *
  *   ┌──────────┬─────────────────────────┐
- *   │ LOGO     │ top bar                 │  row 1 = 4rem
+ *   │ LOGO     │ top bar                 │  row 1 = 3.5rem
  *   ├──────────┼─────────────────────────┤
  *   │ rail     │ panel tabs              │  row 2 = 1fr
  *   │          │ location row            │
@@ -675,17 +675,17 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           {/* U0g-2 — THE FIXED TOP BAND. On mobile the wrapper is `contents`,
               so the top bar remains grid row 1 exactly as before. On md+ the
-              wrapper becomes a fixed 4rem-tall strip spanning the viewport,
-              and the corner block lives INSIDE it: logo cell 16rem × 4rem at
+              wrapper becomes a fixed 3.5rem-tall strip spanning the viewport,
+              and the corner block lives INSIDE it: logo cell 16rem × 3.5rem at
               x=0 (4rem when the rail is collapsed), top bar filling the rest.
               Painted geometry is identical to the old sticky band. */}
           <div
             data-testid="shell-band"
-            className="contents md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-16"
+            className="contents md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-14"
           >
             <div
               data-testid="shell-logo-cell"
-              className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:flex md:h-16 md:w-64 md:shrink-0 md:items-center md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
+              className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:flex md:h-14 md:w-64 md:shrink-0 md:items-center md:[html[data-rail=collapsed]_&]:w-16 md:[html[data-rail=collapsed]_&]:justify-center md:[html[data-rail=collapsed]_&]:px-0"
             >
               <Link
                 to="/"
@@ -712,7 +712,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           */}
             <div
               data-testid="shell-topbar"
-              className="col-start-1 row-start-1 min-w-0 bg-card md:h-16 md:flex-1"
+              className="col-start-1 row-start-1 min-w-0 bg-card md:h-14 md:flex-1"
             >
               <AppHeader />
             </div>
@@ -730,18 +730,24 @@ export function AppShell({ children }: { children: ReactNode }) {
               L1/L2. */}
           <div
             data-testid="shell-stack"
-            className="col-start-1 row-start-2 flex min-w-0 flex-col md:ms-64 md:pt-16 md:[html[data-rail=collapsed]_&]:ms-16"
+            className="col-start-1 row-start-2 flex min-w-0 flex-col md:ms-64 md:pt-14 md:[html[data-rail=collapsed]_&]:ms-16"
           >
-            {/* Band 2 — absent entirely for a logged-out, Marketplace-only user. */}
-            <PanelTabs />
+            <div
+              data-testid="shell-subband"
+              className="bg-card md:sticky md:top-14 md:z-20 md:shadow-bar"
+            >
+              <PanelTabs />
+              <div className="flex min-h-8 min-w-0 items-center border-b border-border px-2 md:px-4">
+                <Breadcrumbs />
+              </div>
+            </div>
             {/* Band 3 — location scoping is a MARKETPLACE concept, so the row is
               gated by the SAME condition as the body: no location band on My
               Listings / Account / Admin (INC-052), and none on a route-owned
               page such as /settings (INC-058). */}
             {isFeedRoute && activePanel === "marketplace" ? <LocationSelector /> : null}
             {/* Band 4 + 5 */}
-            <main id="main" className="min-w-0 flex-1 px-3 py-4 md:px-4">
-              <Breadcrumbs />
+            <main id="main" className="min-w-0 flex-1 p-2 md:p-4">
               {/* A route-owned page always renders itself. The placeholder is
                 ONLY for a panel with no route at all (My Listings). U0e /
                 INC-071 deleted the state-path Admin body: /admin is the one

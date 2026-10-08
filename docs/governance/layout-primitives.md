@@ -11,8 +11,8 @@ forms on desktop / single column on the phone, sticky action bar).
   `PAGE_MAIN_CLASS = "mx-auto w-full max-w-sm px-4 py-10"` — a 384 px column designed for the
   sign-in form — and 17 pages/features import it (Settings, the posting wizard, verification
   pages…). Two admin consoles hand-roll `max-w-6xl`; three pages hand-roll `max-w-md`.
-- The shell's `<main>` is already fluid (`min-w-0 flex-1 px-3 py-4 md:px-4`) beside a 256 px
-  sidebar (`w-64`, collapsible to `w-16`); nothing in the shell constrains width. The constraint is
+- The shell's `<main>` is already fluid (`min-w-0 flex-1 p-2 md:p-4`) beside a 256 px
+  sidebar (`w-64`, collapsible to `w-16`); the shell owns the single gutter (8 px below md, 16 px from md); nothing in the shell constrains width. The constraint is
   the page-level constant.
 - There is no page header primitive, no grid primitive, no form layout, no split layout.
 
@@ -23,7 +23,7 @@ dependence, translated strings only (D1). One component per file.
 
 | Primitive | Purpose | Behaviour |
 |---|---|---|
-| `PageShell` | the content column | `width="narrow" \| "reading" \| "wide" \| "full"` → max 28rem / 48rem / 96rem / none, `mx-auto w-full`, gutters `px-4 md:px-6 xl:px-8`, vertical rhythm `py-4 md:py-6`. Default `wide`. |
+| `PageShell` | the content column | `width="narrow" \| "reading" \| "wide" \| "full"` → max 28rem / 48rem / 96rem / none, `mx-auto w-full min-w-0`; width only, with no padding (the shell owns the gutter). Default `wide`. |
 | `PageHeader` | title row | title (h1), optional description, breadcrumb slot (existing `Breadcrumbs`), `actions` slot: inline at `md+`, rendered into a sticky bottom bar below `md` (primary actions near the thumb, C2). |
 | `ContentGrid` | card grid | `grid gap-4 md:gap-6`, columns `1 → 2 (lg) → 3 (2xl)`, item `span={1\|2\|3}`; dashboards, Settings, Account overview. |
 | `Section` | titled card | heading + optional description + body; `p-4 md:p-6`; replaces `PageCard` for content (PageCard stays for the auth family). |

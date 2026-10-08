@@ -24,14 +24,7 @@ export function PageShell<T extends ElementType = "div">({
 } & Omit<ComponentPropsWithoutRef<T>, "as" | "className" | "children">) {
   const Component = as ?? "div";
   return (
-    <Component
-      className={cn(
-        "mx-auto w-full min-w-0 px-4 py-4 md:px-6 md:py-6 xl:px-8",
-        WIDTHS[width],
-        className,
-      )}
-      {...props}
-    >
+    <Component className={cn("mx-auto w-full min-w-0", WIDTHS[width], className)} {...props}>
       {children}
     </Component>
   );

@@ -214,18 +214,18 @@ page bottom, where sticky used to creep upward against the footer.
 - **L1 — fixed top band.** The logo cell and the top bar live inside one
   wrapper (`data-testid="shell-band"`) that is `contents` on mobile — so the
   top bar stays grid row 1 exactly as before — and
-  `md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-16` from md up. Inside
+  `md:fixed md:inset-x-0 md:top-0 md:z-30 md:flex md:h-14` from md up. Inside
   it the corner block is preserved by construction: the logo cell is
-  `md:w-64 md:h-16 md:shrink-0` (`md:w-16` when `html[data-rail=collapsed]`)
-  and the top bar is `md:flex-1`. Measured at 1280: logo 0/256×64, bar
-  256/1024×64 — identical to the sticky band it replaced.
+  `md:w-64 md:h-14 md:shrink-0` (`md:w-16` when `html[data-rail=collapsed]`)
+  and the top bar is `md:flex-1`. Measured at 1280: logo 0/256×56, bar
+  256/1024×56 — identical to the sticky band it replaced.
 - **L2 — fixed rail beneath it.** The `<aside>` is
-  `md:fixed md:start-0 md:top-16 md:z-20 md:w-64 md:h-[calc(100dvh-4rem)]
+  `md:fixed md:start-0 md:top-14 md:z-20 md:w-64 md:h-[calc(100dvh-4rem)]
 md:overflow-hidden` (with `100vh` first as the fallback, and `md:w-16` when
   collapsed). The inner `rail-scroll` remains the only rail scrolling region
   and `RailFoot` stays pinned at its bottom.
 - **L3 — content column + full-width footer.** The content stack offsets
-  itself with `md:pt-16 md:ms-64` (`md:ms-16` collapsed) so it starts under the
+  itself with `md:pt-14 md:ms-64` (`md:ms-16` collapsed) so it starts under the
   band and beside the rail, and the page scrolls normally. The footer sits in
   normal flow after it, spanning the FULL viewport width from x=0. U0h REVERSED
   the painting order: the footer wrapper is `relative z-40 bg-card`, above the
