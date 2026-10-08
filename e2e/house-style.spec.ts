@@ -71,8 +71,9 @@ test.describe("house style fixture", () => {
     );
     await page.getByTestId("style-row-1-more-copy").click();
     await expect(page.getByTestId("style-row-last")).toHaveText("copy Alpha");
-    // A choice closes the menu; the next press waits for it to be gone.
+    // A choice closes the menu and gives focus back to the three-dots.
     await expect(menu).toBeHidden();
+    await expect(more).toBeFocused();
 
     await more.click();
     await expect(menu).toBeVisible();
