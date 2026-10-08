@@ -106,3 +106,77 @@ unmodified.
   `min-width: auto`). It now carries `min-w-0 max-w-full`. The fix is at the
   shared shell, once, for every page — a per-page width hack would violate C7 and
   would have to be repeated by every future table.
+
+## Shared blocks (bundle 9, Part B, 2026-10-08)
+
+Two rules apply to every block below.
+
+- THE SIZE RULE: a control a finger may press is 44 px on its short side; with
+  a mouse it is 36 px. Classes: `size-11 md:pointer-fine:size-9` for a square
+  control, `h-11 md:pointer-fine:h-9` for a field or a text button. Below md a
+  control is always 44 px, whatever the pointer.
+- THE TOOLTIP RULE (INC-089, `src/components/shell/app-rail.tsx` WithTooltip):
+  a tooltip always sits OUTSIDE a trigger. When a control is both a tooltip's
+  and a menu's trigger the order is Tooltip › TooltipTrigger asChild ›
+  DropdownMenuTrigger asChild › the button. A component handed to an `asChild`
+  parent forwards its ref to a real DOM element; it never returns a Fragment or
+  a provider at its root.
+
+### IconButton — `src/components/ui/icon-button.tsx`
+
+Props: `label` (required; the accessible name and the tooltip's text), `icon`,
+`tone` (`neutral` default, `danger`, `success`, `warning`, `info`), `size`
+(`row` default = THE SIZE RULE; `touch` = always 44 px), an optional `tooltip`
+(the tooltip's text when it differs from the name — RowActions and FilterChips
+use it to show the label alone), and the native button props. Forwards its
+ref; `type="button"` by default; never a `title`. It renders its own
+`TooltipProvider delayDuration={150}`. `IconButtonBare` is the same button
+without the tooltip and provider, for an `asChild` trigger.
+
+### RowActions — `src/components/shell/row-actions.tsx`
+
+Props: `testid`, `name` (the row's name), `edit?`, `remove?`, `more?`. Renders
+Edit (`<testid>-edit`, Pencil), Delete (`<testid>-delete`, Trash2, danger) and
+the three-dots (`<testid>-more`, lucide `EllipsisVertical`), each only when
+given; null with none. Every control is named `<label> — <name>`; its tooltip
+shows the label alone (the three-dots' label is `prim.table.actions`). The menu
+is `<testid>-menu`, one item `<testid>-more-<key>` per entry (`min-h-11`);
+danger entries come last after one separator. The three-dots follows THE
+TOOLTIP RULE. After a choice the menu closes and focus returns to the
+three-dots.
+
+### The pager's three zones — `DataTablePagination`
+
+Zone 1: the range (`<testid>-range`, unchanged). Zone 2: rows per page — a
+label `prim.table.pageSize` and a NativeSelect `<testid>-size`, only when both
+`pageSizeOptions` and `onPageSize` are given (otherwise an empty element keeps
+the grid). Zone 3: Previous and Next (unchanged) and, only when `onPage` is
+given, the page run between them: `pageWindow(current, count)` (exported, pure)
+gives every page when count ≤ 7, otherwise the first, the last, the current and
+one neighbour on each side, with one gap wherever pages are left out. Each page
+is `<testid>-page-<n>`, named `prim.table.page` with `{n}` filled, the current
+one `aria-current="page"`. A caller passing none of the new props renders the
+same text, test ids and controls as before.
+
+### NativeSelect — `src/components/ui/native-select.tsx`
+
+One styled native `<select>` (forwardRef, native props, THE SIZE RULE for a
+field). The consoles' own select styles move to it in Part D.
+
+### FilterChips and FiltersButton — `src/components/shell/filter-chips.tsx`
+
+`FilterChips` (`testid`, `chips`, `onClearAll`): null with no chip; one chip
+`<testid>-chip-<key>` per entry with a remove IconButton
+(`<testid>-chip-<key>-remove`, named `prim.table.removeFilter — <chip label>`),
+then a link button `<testid>-clear` (`prim.table.clearAll`). `FiltersButton`
+(`testid`, `count`, `children`): an outline button (`prim.table.filters`, THE
+SIZE RULE) with a count mark `<testid>-count` above zero, opening a popover
+`<testid>-panel` that holds the console's own filter controls.
+
+### The selection bar's actions — `DataTable` `selectionActions`
+
+When given, rendered at the end of `data-table-selection`
+(`ms-auto flex flex-wrap items-center gap-2`). Nothing else in the bar changes.
+
+All of the above are shown on `/dev/style` and tested by
+`e2e/house-style.spec.ts` (HS-3 row actions, HS-4 pager, HS-5 filters).
