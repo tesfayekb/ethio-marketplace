@@ -1130,15 +1130,18 @@ test.describe("mobile chrome", () => {
     );
   });
 
-  test("the bar is not on the posting wizard", async ({ page }) => {
+  test("the posting wizard keeps the frame", async ({ page }) => {
     await poolSignIn(page);
     await gotoReady(page, "/post");
     await expect(page.getByTestId("form-layout-actions")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId("bottom-bar")).toHaveCount(0);
-    // Step 1 is shorter than the phone, so the sticky bar sits in flow above
-    // the viewport's bottom (brief: "= bottom ± 1" — reported, see turn 5).
-    const vh = page.viewportSize()?.height ?? 0;
-    expect(await bottomOf(page, "form-layout-actions")).toBeLessThanOrEqual(vh + 1);
+    await expect(page.getByTestId("rail-strip")).toBeVisible();
+    await expect(page.getByTestId("bottom-bar")).toBeVisible();
+    await expect(
+      page.getByTestId("shell-topbar").getByRole("button", { name: en["shell.openMenu"] }),
+    ).toBeVisible();
+    const bar = await page.getByTestId("bottom-bar").boundingBox();
+    if (!bar) throw new Error("no bottom bar");
+    expect(await bottomOf(page, "form-layout-actions")).toBeLessThanOrEqual(bar.y + 1);
     expect(
       await page.getByTestId("form-layout-actions").evaluate((el) => {
         const box = el.getBoundingClientRect();
@@ -1149,21 +1152,15 @@ test.describe("mobile chrome", () => {
     ).toBe(true);
   });
 
-  test("the posting wizard keeps the full width", async ({ page }) => {
-    await poolSignIn(page);
-    await gotoReady(page, "/post");
-    await expect(page.getByTestId("post-step-1")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId("rail-strip")).toHaveCount(0);
-    await expect(page.getByTestId("bottom-bar")).toHaveCount(0);
-    const main = await page.locator("main#main").boundingBox();
-    expect(Math.abs(main?.x ?? 99)).toBeLessThanOrEqual(1);
-    const menu = page
-      .getByTestId("shell-topbar")
-      .getByRole("button", { name: en["shell.openMenu"] });
-    await expect(menu).toBeVisible();
-    await menu.click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-  });
+  for (const from of ["/account", "/settings"]) {
+    test(`My listings works from ${from} (INC-501)`, async ({ page }) => {
+      await poolSignIn(page);
+      await gotoReady(page, from);
+      await page.getByTestId("bottom-bar-my-listings").click();
+      await expectActivePanel(page, "my-listings");
+      await expect(page.getByTestId("strip-item-ml-listings")).toBeVisible({ timeout: 15000 });
+    });
+  }
 
   test("nothing hides under the bar", async ({ page }) => {
     await gotoReady(page, "/dev/tall");
@@ -1241,6 +1238,19 @@ test.describe("panel-scoped chrome", () => {
       expect(per.doc, `document overflow at ${width}px`).toBeLessThanOrEqual(1);
     }
   });
+});
+
+test.describe("My listings from another panel's page (INC-501, desktop)", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, "desktop only");
+  for (const from of ["/account", "/settings"]) {
+    test(`the tab works from ${from}`, async ({ page }) => {
+      await poolSignIn(page);
+      await gotoReady(page, from);
+      await page.getByTestId("panel-tab-my-listings").click();
+      await expectActivePanel(page, "my-listings");
+      await expect(page.getByTestId("rail-item-ml-listings")).toBeVisible({ timeout: 15000 });
+    });
+  }
 });
 
 test.describe("marketplace rail is categories only", () => {

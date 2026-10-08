@@ -787,7 +787,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
           }
           main={
             <div className="mx-auto min-w-0 max-w-3xl">
-              <Section className="space-y-4">
+              <Section className="space-y-4 p-3 md:p-6">
                 <header className="space-y-2">
                   <h1 className="text-lg font-semibold text-foreground">{t("post.title")}</h1>
                   <p className="text-sm text-muted-foreground" data-testid="post-step-header">

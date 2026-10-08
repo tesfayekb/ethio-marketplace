@@ -33,7 +33,13 @@ export function usePickerPlacement(
         bar !== null && window.getComputedStyle(bar).position === "sticky"
           ? bar.getBoundingClientRect().top
           : window.innerHeight;
-      const roomBelow = Math.min(barTop, window.innerHeight) - rect.bottom - 4;
+      // C2e — the phone bottom bar, when displayed, is a floor too.
+      const bottomBar = document.querySelector<HTMLElement>('[data-testid="bottom-bar"]');
+      const bottomBarTop =
+        bottomBar !== null && window.getComputedStyle(bottomBar).display !== "none"
+          ? bottomBar.getBoundingClientRect().top
+          : window.innerHeight;
+      const roomBelow = Math.min(barTop, bottomBarTop, window.innerHeight) - rect.bottom - 4;
       const roomAbove = rect.top - 4;
       const listHeight = Math.min(256, 44 * rowCount + 2);
       const next = roomBelow >= listHeight ? "down" : roomAbove > roomBelow ? "up" : "down";

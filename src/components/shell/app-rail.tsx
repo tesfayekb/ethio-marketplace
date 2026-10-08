@@ -566,9 +566,6 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
 export function AppRail() {
   const { t } = useI18n();
   const { navOpen, setNavOpen, user, auth } = useShell();
-  const onWizard = useRouterState({
-    select: (s) => s.location.pathname === "/post" || s.location.pathname.startsWith("/post/"),
-  });
   const { collapsed } = useRailCollapsed();
   const footerInset = useFooterInset();
 
@@ -603,9 +600,7 @@ export function AppRail() {
         </aside>
       </CollapsedContext.Provider>
 
-      {/* Ruling turn 5 (INC-499) — no strip on the posting wizard below md:
-          the wizard keeps the full phone width. */}
-      {PHONE_STRIP && !onWizard ? (
+      {PHONE_STRIP ? (
         <RailVariantContext.Provider value="strip">
           <div
             data-testid="rail-strip"
