@@ -123,7 +123,7 @@ export function AppHeader() {
             aria-label={t(navOpen ? "shell.closeMenu" : "shell.openMenu")}
             aria-expanded={navOpen}
             aria-controls="rail-menu"
-            className="inline-flex h-11 w-12 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+            className="inline-flex h-11 w-12 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
             onClick={() => setNavOpen(!navOpen)}
           >
             {navOpen ? (
@@ -152,11 +152,11 @@ export function AppHeader() {
           <Logo variant="wordmark" />
         </Link>
 
-        {/* md+ ONLY: the rail collapse control, top-left of the bar and BEFORE
+        {/* lg+ ONLY: the rail collapse control, top-left of the bar and BEFORE
             the search field (INC-040 — it used to sit at the rail's bottom,
-            out of reach on long pages). Below md the drawer/hamburger owns
-            this job, so the toggle does not exist there — exactly ONE sidebar
-            affordance per breakpoint (INC-046). */}
+            out of reach on long pages). Below 1024 px the » / « menu control
+            owns this job, so the toggle does not exist there — exactly ONE
+            menu control per width (INC-046). */}
         <button
           type="button"
           data-testid="rail-collapse-toggle"
@@ -167,8 +167,8 @@ export function AppHeader() {
           // `${ICON_BUTTON} hidden md:inline-flex` left TWO base display
           // utilities on the element and the cascade — not the attribute order
           // — decided the winner, leaking the toggle onto phones. cn()/twMerge
-          // drops the earlier display class, so `hidden` genuinely wins below md.
-          className={cn(ICON_BUTTON, "hidden md:inline-flex")}
+          // drops the earlier display class, so `hidden` genuinely wins below lg.
+          className={cn(ICON_BUTTON, "hidden lg:inline-flex")}
         >
           {collapsed ? (
             <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />

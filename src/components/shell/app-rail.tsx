@@ -162,7 +162,7 @@ type RailNode = {
 function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const variant = useContext(RailVariantContext);
   const strip = variant === "strip";
-  const compact = variant !== "rail";
+  const compact = variant === "strip" || variant === "menu";
   const hide = useHide();
   const itemBase = useItemBase();
   const testid =
@@ -610,17 +610,20 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
 /**
  * The rail. From md up it is grid column 1 / row 2 — directly beneath the logo
  * cell, sharing its `border-e` so the sidebar edge is one continuous hairline.
- * Below md it is a drawer with the logo CENTRED at the top of the panel.
+ * Below 1024 px the » / « control opens the in-place menu (rail-menu).
  */
 export function AppRail() {
   const { t } = useI18n();
   const { navOpen, setNavOpen, user, auth, activePanel } = useShell();
   const { collapsed } = useRailCollapsed();
   const footerInset = useFooterInset();
+  // C2g.1/C2g.2 — width media queries only, never a device test.
+  const iconsByWidth = useWidthQuery("(min-width: 48rem) and (max-width: 63.98rem)");
+  const fromMd = useWidthQuery("(min-width: 48rem)");
 
   return (
     <TooltipProvider delayDuration={150}>
-      <CollapsedContext.Provider value={collapsed === true}>
+      <CollapsedContext.Provider value={collapsed === true || iconsByWidth}>
         <aside
           data-testid="app-rail"
           // U0g-2 — FIXED, never sticky: the rail must not move at any scroll
@@ -671,7 +674,7 @@ export function AppRail() {
           <div
             data-testid="rail-menu-scrim"
             aria-hidden="true"
-            className="fixed inset-x-0 top-13 bottom-0 z-[35] bg-foreground/40 md:hidden"
+            className="fixed inset-x-0 top-13 bottom-0 z-[35] bg-foreground/40 md:top-14 lg:hidden"
             onClick={() => setNavOpen(false)}
           />
         ) : null}
@@ -681,7 +684,7 @@ export function AppRail() {
           data-panel={activePanel}
           aria-label={t("shell.menuTitle")}
           aria-describedby={undefined}
-          className="fixed start-0 top-13 bottom-0 z-40 flex w-64 flex-col border-e border-border bg-sidebar shadow-lg md:hidden"
+          className="fixed start-0 top-13 bottom-0 z-40 flex w-64 flex-col border-e border-border bg-sidebar shadow-lg md:top-14 md:bottom-0 lg:hidden"
           onPointerDownOutside={(event) => {
             if ((event.target as Element | null)?.closest('[aria-controls="rail-menu"]')) {
               event.preventDefault();
@@ -707,8 +710,11 @@ export function AppRail() {
           }}
         >
           <DialogPrimitive.Title className="sr-only">{t("shell.menuTitle")}</DialogPrimitive.Title>
-          <RailVariantContext.Provider value="menu">
-            <div className="h-[calc(100%-var(--bottom-bar))] min-h-0">
+          {/* C2g.2 — from 768 px the menu holds the RAIL's content (headings,
+              "All categories", "Post listing") with every name, and no foot
+              band: the top bar's account menu says who is signed in there. */}
+          <RailVariantContext.Provider value={fromMd ? "overlay" : "menu"}>
+            <div className={cn("h-[calc(100%-var(--bottom-bar))] min-h-0", fromMd && "h-full p-2")}>
               <div
                 data-testid="rail-scroll"
                 className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -717,13 +723,15 @@ export function AppRail() {
               </div>
             </div>
           </RailVariantContext.Provider>
-          <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
-            {user !== null && auth.isAuthenticated ? (
-              <p data-testid="drawer-identity" className="truncate text-sm text-muted-foreground">
-                {user.displayName ?? t("auth.signedInAs")}
-              </p>
-            ) : null}
-          </div>
+          {fromMd ? null : (
+            <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
+              {user !== null && auth.isAuthenticated ? (
+                <p data-testid="drawer-identity" className="truncate text-sm text-muted-foreground">
+                  {user.displayName ?? t("auth.signedInAs")}
+                </p>
+              ) : null}
+            </div>
+          )}
         </DialogPrimitive.Content>
       </DialogPrimitive.Root>
     </TooltipProvider>
