@@ -183,7 +183,7 @@
   --sidebar-accent-foreground: oklch(0.422 0.073 164.4);
   --sidebar-border: oklch(0.88 0.011 256.7); /* #D3D8DF */
   --sidebar-ring: oklch(0.422 0.073 164.4);
---rule: oklch(0.929 0.008 253.9); /* #E4E8ED */
+  --rule: oklch(0.929 0.008 253.9); /* #E4E8ED */
   --destructive-soft: oklch(0.956 0.019 25.6); /* #FDECEA */
   --destructive-line: oklch(0.854 0.058 25); /* #F3C1BC */
   --success: oklch(0.388 0.07 163.8); /* #17503A */
