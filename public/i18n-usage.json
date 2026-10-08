@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 361,
-  "dynamicCallSites": 216,
+  "scanned": 362,
+  "dynamicCallSites": 219,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2854,10 +2854,6 @@
     "auth.forgotPassword": [
       "/auth"
     ],
-    "auth.hidePassword": [
-      "/auth",
-      "/auth/reset"
-    ],
     "auth.linkInvalid": [
       "/auth/callback"
     ],
@@ -2927,10 +2923,6 @@
       "/auth",
       "/auth/reset"
     ],
-    "auth.showPassword": [
-      "/auth",
-      "/auth/reset"
-    ],
     "auth.signIn": [
       "(every page)",
       "/auth"
@@ -2939,7 +2931,8 @@
       "/auth"
     ],
     "auth.signOut": [
-      "(every page)"
+      "(every page)",
+      "/account"
     ],
     "auth.signUpButton": [
       "/auth"
