@@ -423,3 +423,5 @@ Below 768 px: fixed top bar, 48 px icon strip (not on the posting wizard), and t
 ### Bundle 9 C2c — phone Admin entry
 
 Admins have a fifth bottom-bar entry after Account, linking to `/admin` and current on the Admin panel. Helpers use that entry when the bar is present, retaining the drawer path on the posting wizard. The desktop rail remains unchanged.
+
+From 768 to 1023 px the admin rail is icons only; » / « opens the in-place menu with names. The current row uses `bg-nav-active` (bundle 9 C2h).

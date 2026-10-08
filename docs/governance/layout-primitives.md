@@ -67,3 +67,7 @@ Visual restyling of the marketplace feed and cards (U7), the listing detail page
 ### PasswordInput
 
 `PasswordInput` forwards input props and its ref, preserves full field width, and reserves logical inline-end space for `IconButtonBare`. The eye button is `type="button"`, exposes `aria-pressed`, uses the existing Show/Hide password translations, and toggles only input visibility. Use it for sign-in, reset, and both Settings password fields.
+
+### `rail-icons` and `--nav-active`
+
+`rail-icons:` (src/styles.css) holds from 768 to 1023 px always and from 768 px when `html[data-rail="collapsed"]`; it replaces every `md:[html[data-rail=collapsed]_&]:` utility. `--nav-active` is the one selected tint (`bg-nav-active`).
