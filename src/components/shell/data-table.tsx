@@ -3,6 +3,7 @@ import { Fragment, type KeyboardEvent, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Toolbar } from "@/components/layout/toolbar";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -118,6 +119,8 @@ export interface DataTableProps<T> {
   expandedRow?: (row: T) => ReactNode;
   /** Optional bulk-select support. */
   selection?: DataTableSelection<T>;
+  /** BUNDLE 9 B6 — actions rendered at the end of the selection bar. */
+  selectionActions?: ReactNode;
   /** Pagination controls slot, rendered under the table. */
   pagination?: ReactNode;
   /**
@@ -167,7 +170,31 @@ function cellClass(
   );
 }
 
-/** The standard pagination filling: Prev / Next plus "from–to of total". */
+/**
+ * BUNDLE 9 B3 — the page run: every page when count ≤ 7; otherwise the first,
+ * the last, the current and one neighbour on each side, with ONE "gap"
+ * wherever pages are left out. `current` is zero-based; pages are one-based.
+ */
+export function pageWindow(current: number, count: number): Array<number | "gap"> {
+  if (count <= 0) return [];
+  if (count <= 7) return Array.from({ length: count }, (_, i) => i + 1);
+  const page = current + 1;
+  const keep = new Set([1, count, page - 1, page, page + 1].filter((n) => n >= 1 && n <= count));
+  const out: Array<number | "gap"> = [];
+  let last = 0;
+  for (const n of [...keep].sort((a, b) => a - b)) {
+    if (n - last > 1) out.push("gap");
+    out.push(n);
+    last = n;
+  }
+  return out;
+}
+
+/**
+ * The standard pagination filling: Prev / Next plus "from–to of total".
+ * BUNDLE 9 B3 — three zones (count · rows per page · pages); the page run and
+ * the size control appear only through their optional props.
+ */
 export function DataTablePagination({
   offset,
   pageSize,
@@ -176,6 +203,9 @@ export function DataTablePagination({
   onPrevious,
   onNext,
   testid = "data-table-pagination",
+  onPage,
+  pageSizeOptions,
+  onPageSize,
 }: {
   offset: number;
   pageSize: number;
@@ -188,17 +218,46 @@ export function DataTablePagination({
   onPrevious: () => void;
   onNext: () => void;
   testid?: string;
+  /** Zero-based page index. When given, the page run is drawn. */
+  onPage?: (pageIndex: number) => void;
+  pageSizeOptions?: number[];
+  onPageSize?: (size: number) => void;
 }) {
   const { t } = useI18n();
   const from = total === 0 ? 0 : offset + 1;
   const to = Math.min(offset + pageSize, total);
+  const pageCount = total === 0 || pageSize <= 0 ? 0 : Math.ceil(total / pageSize);
+  const currentPage = pageSize > 0 ? Math.floor(offset / pageSize) : 0;
+  const pages = onPage ? pageWindow(currentPage, pageCount) : [];
   return (
-    <div data-testid={testid} className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+    <div
+      data-testid={testid}
+      className="grid min-w-0 gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center"
+    >
       <span data-testid={`${testid}-range`} className="text-sm tabular-nums text-muted-foreground">
         {`${from}–${to} ${t("prim.table.of")} ${totalLabel ?? total}`}
       </span>
 
-      <div className="flex flex-wrap gap-2">
+      {pageSizeOptions && onPageSize ? (
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>{t("prim.table.pageSize")}</span>
+          <NativeSelect
+            data-testid={`${testid}-size`}
+            value={String(pageSize)}
+            onChange={(event) => onPageSize(Number(event.target.value))}
+          >
+            {pageSizeOptions.map((size) => (
+              <option key={size} value={String(size)}>
+                {size}
+              </option>
+            ))}
+          </NativeSelect>
+        </label>
+      ) : (
+        <span />
+      )}
+
+      <div className="flex flex-wrap items-center gap-2 md:justify-self-end">
         <Button
           type="button"
           variant="outline"
@@ -209,6 +268,51 @@ export function DataTablePagination({
         >
           {t("prim.table.previous")}
         </Button>
+        {onPage && pages.length > 0 ? (
+          <div className="flex items-center">
+            {pages.map((entry, index) => {
+              const joined = cn(
+                index > 0 && "-ms-px",
+                "rounded-none",
+                index === 0 && "rounded-s-md",
+                index === pages.length - 1 && "rounded-e-md",
+              );
+              if (entry === "gap") {
+                return (
+                  <span
+                    key={`gap-${index}`}
+                    aria-hidden="true"
+                    className={cn(
+                      "inline-flex h-11 min-w-9 items-center justify-center border border-input text-sm text-muted-foreground md:pointer-fine:h-9",
+                      joined,
+                    )}
+                  >
+                    …
+                  </span>
+                );
+              }
+              const current = entry === currentPage + 1;
+              return (
+                <Button
+                  key={entry}
+                  type="button"
+                  variant="outline"
+                  data-testid={`${testid}-page-${entry}`}
+                  aria-label={t("prim.table.page").replace("{n}", String(entry))}
+                  aria-current={current ? "page" : undefined}
+                  className={cn(
+                    "h-11 min-w-9 px-3 md:pointer-fine:h-9",
+                    joined,
+                    current && "bg-primary text-primary-foreground hover:bg-primary/90",
+                  )}
+                  onClick={() => onPage(entry - 1)}
+                >
+                  {entry}
+                </Button>
+              );
+            })}
+          </div>
+        ) : null}
         <Button
           type="button"
           variant="outline"
@@ -240,6 +344,7 @@ export function DataTable<T>({
   rowActions,
   expandedRow,
   selection,
+  selectionActions,
   pagination,
   page,
   pageSize,
@@ -331,6 +436,9 @@ export function DataTable<T>({
           className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground"
         >
           <span className="tabular-nums">{`${selectedKeys.size} ${t("prim.table.selected")}`}</span>
+          {selectionActions ? (
+            <div className="ms-auto flex flex-wrap items-center gap-2">{selectionActions}</div>
+          ) : null}
         </div>
       ) : null}
 

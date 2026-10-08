@@ -342,3 +342,7 @@ class strings with `cn()`/twMerge so the last display utility deterministically 
 The right-hand cluster (language, theme, account/sign-in) carries `md:ms-auto` so it sits
 flush against the bar's right edge at md+; the search field stays left of centre with its
 per-breakpoint width cap.
+
+## The size rule (bundle 9, Part B)
+
+A control a finger may press is 44 px on its short side, 36 px with a mouse: `size-11 md:pointer-fine:size-9` (square) or `h-11 md:pointer-fine:h-9` (field, text button); below md always 44 px.

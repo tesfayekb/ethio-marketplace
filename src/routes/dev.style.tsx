@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Pencil } from "lucide-react";
+import { useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
+import { DataTablePagination } from "@/components/shell/data-table";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { RowActions } from "@/components/shell/row-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +22,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IconButton, type IconButtonTone } from "@/components/ui/icon-button";
+import { NativeSelect } from "@/components/ui/native-select";
 
 /**
  * BUNDLE 9 A3 — THE HOUSE-STYLE FIXTURE.
@@ -92,7 +99,22 @@ const RADII = [
   { size: "xl", cls: "rounded-xl" },
 ] as const;
 
+const SAMPLE_ROWS = ["Alpha", "Beta", "Gamma"] as const;
+const TONES: IconButtonTone[] = ["neutral", "danger", "success", "warning", "info"];
+const PAGER_TOTAL = 300;
+const COLOURS = ["Red", "Blue"] as const;
+const SIZES = ["Small", "Large"] as const;
+
 function StyleFixture() {
+  const [last, setLast] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [pageSize, setPageSize] = useState(25);
+  const [colour, setColour] = useState("");
+  const [size, setSize] = useState("");
+  const chips = [
+    ...(colour ? [{ key: "colour", label: colour, onRemove: () => setColour("") }] : []),
+    ...(size ? [{ key: "size", label: size, onRemove: () => setSize("") }] : []),
+  ];
   return (
     <PageShell as="main" data-testid="dev-style">
       <div className="flex flex-col gap-6">
@@ -178,6 +200,112 @@ function StyleFixture() {
                 {r.size}
               </div>
             ))}
+          </div>
+        </Section>
+
+        <Section title={"Row actions"} testid="style-row-actions">
+          <ul className="mt-4 divide-y divide-border">
+            {SAMPLE_ROWS.map((row, index) => (
+              <li key={row} className="flex items-center justify-between gap-2 py-2 text-sm">
+                <span>{row}</span>
+                <RowActions
+                  testid={`style-row-${index + 1}`}
+                  name={row}
+                  edit={{ label: "Edit", onSelect: () => setLast(`edit ${row}`) }}
+                  remove={{ label: "Delete", onSelect: () => setLast(`delete ${row}`) }}
+                  more={[
+                    { key: "copy", label: "Copy", onSelect: () => setLast(`copy ${row}`) },
+                    {
+                      key: "erase",
+                      label: "Erase",
+                      tone: "danger",
+                      onSelect: () => setLast(`erase ${row}`),
+                    },
+                  ]}
+                />
+              </li>
+            ))}
+          </ul>
+          <p data-testid="style-row-last" className="mt-2 text-sm text-muted-foreground">
+            {last}
+          </p>
+        </Section>
+
+        <Section title={"Icon buttons"} testid="style-icon-buttons">
+          <div className="mt-4 flex flex-wrap gap-2">
+            {TONES.map((tone) => (
+              <IconButton
+                key={tone}
+                data-testid={`style-icon-${tone}`}
+                label={tone}
+                tone={tone}
+                icon={<Pencil />}
+              />
+            ))}
+          </div>
+        </Section>
+
+        <Section title={"Pager"} testid="style-pager-section">
+          <div className="mt-4">
+            <DataTablePagination
+              testid="style-pager"
+              offset={offset}
+              pageSize={pageSize}
+              total={PAGER_TOTAL}
+              onPrevious={() => setOffset((o) => Math.max(0, o - pageSize))}
+              onNext={() => setOffset((o) => o + pageSize)}
+              onPage={(index) => setOffset(index * pageSize)}
+              pageSizeOptions={[10, 25, 50]}
+              onPageSize={(next) => {
+                setPageSize(next);
+                setOffset(0);
+              }}
+            />
+          </div>
+        </Section>
+
+        <Section title={"Filters"} testid="style-filters-section">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <FiltersButton testid="style-filters" count={chips.length}>
+              <label className="flex flex-col gap-1 text-sm">
+                <span>{"Colour"}</span>
+                <NativeSelect
+                  data-testid="style-filters-colour"
+                  value={colour}
+                  onChange={(event) => setColour(event.target.value)}
+                >
+                  <option value="">{"Any"}</option>
+                  {COLOURS.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                <span>{"Size"}</span>
+                <NativeSelect
+                  data-testid="style-filters-size"
+                  value={size}
+                  onChange={(event) => setSize(event.target.value)}
+                >
+                  <option value="">{"Any"}</option>
+                  {SIZES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </label>
+            </FiltersButton>
+            <FilterChips
+              testid="style-filters-chips"
+              chips={chips}
+              onClearAll={() => {
+                setColour("");
+                setSize("");
+              }}
+            />
           </div>
         </Section>
       </div>

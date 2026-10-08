@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 355,
+  "scanned": 359,
   "dynamicCallSites": 215,
   "keys": {
     "account.deactivatedBanner": [
@@ -4560,7 +4560,14 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/primitives"
+      "/dev/primitives",
+      "/dev/style"
+    ],
+    "prim.table.clearAll": [
+      "/dev/style"
+    ],
+    "prim.table.filters": [
+      "/dev/style"
     ],
     "prim.table.next": [
       "/admin/attributes",
@@ -4574,7 +4581,8 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/primitives"
+      "/dev/primitives",
+      "/dev/style"
     ],
     "prim.table.of": [
       "/admin/attributes",
@@ -4588,7 +4596,38 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/primitives"
+      "/dev/primitives",
+      "/dev/style"
+    ],
+    "prim.table.page": [
+      "/admin/attributes",
+      "/admin/audit",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/coverage",
+      "/admin/impersonation/$sessionId",
+      "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives",
+      "/dev/style"
+    ],
+    "prim.table.pageSize": [
+      "/admin/attributes",
+      "/admin/audit",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/coverage",
+      "/admin/impersonation/$sessionId",
+      "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives",
+      "/dev/style"
     ],
     "prim.table.previous": [
       "/admin/attributes",
@@ -4602,7 +4641,11 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/primitives"
+      "/dev/primitives",
+      "/dev/style"
+    ],
+    "prim.table.removeFilter": [
+      "/dev/style"
     ],
     "prim.table.selectAll": [
       "/admin/attributes",
@@ -4616,7 +4659,8 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/primitives"
+      "/dev/primitives",
+      "/dev/style"
     ],
     "prim.table.selectRow": [
       "/admin/attributes",
@@ -4630,7 +4674,8 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/primitives"
+      "/dev/primitives",
+      "/dev/style"
     ],
     "prim.table.selected": [
       "/admin/attributes",
@@ -4644,7 +4689,8 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/primitives"
+      "/dev/primitives",
+      "/dev/style"
     ],
     "session.idleWarning": [
       "(every page)"

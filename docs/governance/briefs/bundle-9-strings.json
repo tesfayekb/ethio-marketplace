@@ -1,0 +1,10 @@
+{
+ "set": {
+  "prim.table.pageSize": {"en": "Rows per page", "am": "በአንድ ገጽ ረድፎች"},
+  "prim.table.page": {"en": "Page {n}", "am": "ገጽ {n}"},
+  "prim.table.filters": {"en": "Filters", "am": "ማጣሪያዎች"},
+  "prim.table.clearAll": {"en": "Clear all", "am": "ሁሉንም አጽዳ"},
+  "prim.table.removeFilter": {"en": "Remove filter", "am": "ማጣሪያውን አስወግድ"}
+ },
+ "remove": []
+}

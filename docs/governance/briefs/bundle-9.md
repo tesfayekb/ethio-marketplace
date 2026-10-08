@@ -1,105 +1,101 @@
-# Bundle 9 — the house style: brief, version 1 (saved unchanged, 2026-10-08)
+# Bundle 9 — the house style: brief, version 2 (saved unchanged, 2026-10-08)
 
 ```text
-BUNDLE 9 — THE HOUSE STYLE, VERSION 1 (2026-10-08). One look for every page, as the operator agreed it on 2026-10-07 (roadmap.md, the block "Bundle 9 — the house style"). Tier B (shared look; no database change in the whole bundle; no migration in any turn). THIS VERSION SPECIFIES TURN 1 ONLY: step 0, step T0 and PART A — the tokens and their first uses. Parts B to E are NAMED at the end; the supervisor replaces this file with version 2 (Part B) while turn 1 runs — if version 2 has not arrived when turn 1 is done, END THE TURN with the report; do not start a part this file does not specify.
-Line numbers are as of commit c46aa32b (dev). This file is public: it is written as build instructions.
+BUNDLE 9 — THE HOUSE STYLE, VERSION 2 (2026-10-08). THIS FILE REPLACES VERSION 1. Turn 1 (step 0, T0, Part A — the tokens and their first uses) landed at accdd3fe and is verified. This version specifies TURN 2 = PART B, the shared blocks: they are built once, shown and tested on /dev/style, and NO console or page is moved to them in this turn. Parts C to E are named at the end; the supervisor replaces this file with version 3 while turn 2 runs — if version 3 has not arrived when turn 2 is done, END THE TURN with the report. Tier B; no database change, no migration.
+Line numbers are as of commit accdd3fe (dev). This file is public: it is written as build instructions.
+
+ANSWERS TO TURN 1'S REPORT
+- Turn 1 is verified against the diff of c46aa32b..accdd3fe: the nineteen token lines equal the table in both modes and `.dark`'s `--destructive` is untouched; the radius map, the registrations and the shadow scale are as written; the four first uses; T0; the token test and HS-1, HS-2; the docs. Nothing is owed from it.
+- scripts/e2e-select.ts gaining the `house-style` area: accepted — the "every spec is reachable" test requires it (step B9 extends its list).
+- The contrast pairs that differ from the table by 0.01 are rounding: accepted.
+- /dev/style's menu and dialog are not opened by a test: HS-3 of this turn opens a menu; the dialog's shadow is judged by eye at the operator's first look.
+- Pointing the local browser at the installed one with E2E_CHROMIUM_PATH is a local setting: accepted.
+- Ending turn 1 when version 2 had not arrived was right.
 
 STEP 0 — keep this brief
-- Before anything else, save this file byte for byte as docs/governance/briefs/bundle-9.md (it is already in its saved form: the header line and one fenced text block). On every later turn, read that file first.
-- roadmap.md line 3 becomes exactly: `Bundle 9 brief: docs/governance/briefs/bundle-9.md (read first every turn).` In the block `### Bundle 9 — the house style …` tick a line only in the turn whose report says it landed with its tests (turn 1 ticks none: the first line is finished by Part D).
+- Before anything else, save this file byte for byte OVER docs/governance/briefs/bundle-9.md (it is already in its saved form: the header line and one fenced text block). On every later turn, read that file first. roadmap.md line 3 stays as it is; tick no roadmap line in this turn.
+- Cut the strings table out of this brief by script — the bytes between the line `=== BEGIN bundle-9-strings.json ===` and the line `=== END bundle-9-strings.json ===` at the end of this file, without those two lines — and save them as docs/governance/briefs/bundle-9-strings.json (431 bytes, sha256 5a585df4b485ae42fd2345c01bf536e187d042c37b7672648b9b1af8c705f060; check it, and stop if it differs).
 
 HOW TO WORK
-- Order of the turn: step 0; T0; Part A (A1 to A6) with its tests; push; the report; END THE TURN. Do not stop between steps: a clean point is not a reason to stop. Stop only for a question this brief cannot answer or the end. If the platform ends the turn early, stop at a clean point (typecheck, format:check, lint and every spec file you touched green), report three lines — done, left, CI — and the operator sends "continue".
-- The turn starts by reading CI for the last commit on dev: https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ci-status.md, then e2e-last-failure.md and guards-last-failure.md at the same address (you cannot git-fetch that branch). Paste the first six lines of ci-status.md. The run on c46aa32 (a documents-only commit) may still be going or may be cancelled by your first push — say which you see and go on. A red that is not a cancelled run is named in your report's first lines and fixed first.
+- Order of the turn: step 0; B8 (the strings) first, so that every block has its keys; B1 to B7 with their tests; B9; push; the report; END THE TURN. Do not stop between steps: a clean point is not a reason to stop. Stop only for a question this brief cannot answer or the end. If the platform ends the turn early, stop at a clean point (typecheck, format:check, lint and every spec file you touched green), report three lines — done, left, CI — and the operator sends "continue".
+- The turn starts by reading CI for the last commit on dev: https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ci-status.md, then e2e-last-failure.md and guards-last-failure.md at the same address (you cannot git-fetch that branch). Paste the first six lines of ci-status.md. A red that is not a cancelled run is named in your report's first lines and fixed first.
 - Browser tests are started only with `bun run e2e:local <files>` or `bun run e2e:changed` (AGENTS.md; DEC-146). Nothing signs in to, or runs a test against, ethio-prod or the published site.
-- Local runs (G37): every spec file you changed or added, run whole, alone, both projects where the configuration runs it in both, 2 workers, 0 retries, fake mode — and, because a token reaches every screen, these three whole as well: e2e/a11y.spec.ts, e2e/primitives-law.spec.ts, e2e/shell.spec.ts. "A file that is not fully green is not committed." CI on the turn's final commit is the full proof; a local run never writes "CI green". Unit tests (vitest) run whole.
-- Tests (G38): a red is fixed at its root. No assertion is loosened, no timeout raised, no retry added, no test skipped or moved to make a run pass. If a test fails because it asserts the OLD look (a colour, a corner, a shadow), do not edit it: name it in the report with its line and what it asserts, and leave that test red — the supervisor rules on it.
-- No migration, no database write, no package change (name a platform bump in your first lines and leave it), no new dependency, no user-facing string: the one new page is a fixture page whose labels are fixture data, written as the existing fixture page writes them (src/routes/dev.primitives.tsx: string literals in braces; its head block). The hardcoded-string scan reads the new file: every fixture label is written as `{"…"}`, and no `title=`, `label=`, `placeholder=`, `alt=` or `aria-label=` carries a literal string — a control that needs a name takes it from a key that already exists.
-- Colours: every colour this turn adds is a token of src/styles.css in oklch, with the values of the table below, copied character for character. No palette class (text-amber-600 …), no hex and no rgb() in a component. The palette classes that exist today (text-amber-…, border-amber-…, text-emerald-… in src/features/admin-attributes/attributes-page.tsx, attribute-dialogs.tsx and category-attributes-dialog.tsx, src/features/admin-categories/categories-page.tsx and src/components/shell/stat-card.tsx) are NOT touched in this turn (Part D moves them).
-- Scope: only the files a step names, plus the generated files the scripts regenerate (src/routeTree.gen.ts for the new route; docs/generated/i18n-usage.json and public/i18n-usage.json if the scan rewrites them). A file you create outside a step's list is named in the report's first lines with its reason.
-- Closed surfaces (G22): the workflow files, the failure reporter and the migration check are not touched. e2e/global-setup.ts is touched by T0 only, as written.
+- Local runs (G37): every spec file you changed or added, run whole, alone, both projects where the configuration runs it in both, 2 workers, 0 retries, fake mode — and e2e/primitives-law.spec.ts and e2e/shell-table-law.spec.ts whole, because the table's pager is touched. "A file that is not fully green is not committed." CI on the turn's final commit is the full proof; a local run never writes "CI green". Unit and component tests (vitest) run whole.
+- Tests (G38): a red is fixed at its root. No assertion is loosened, no timeout raised, no retry added, no test skipped or moved to make a run pass. An existing test that fails is not edited: name it in the report with its line and what it asserts — the supervisor rules on it. src/components/shell/data-table.test.tsx passes UNCHANGED (its two pager cases at :207–238 pin the range text).
+- ADDITIVE ONLY. Every existing prop, default, test id and rendered text of DataTable and DataTablePagination stays exactly as it is for a caller that passes none of the new props: the thirteen tables of the app must render byte for byte as before. New behaviour is reached only through a new prop.
+- No migration, no database write, no package change (name a platform bump in your first lines and leave it), no new dependency: every block is built from what is installed (the Radix tooltip, dropdown-menu and popover wrappers under src/components/ui/, lucide-react).
+- Colours and shadows: tokens only (Part A's); no palette class, no hex, no rgb() in a component.
+- Strings: exactly the five keys of B8, copied by script from the saved table, character for character; you write no English and no Amharic of your own. Fixture labels on /dev/style are fixture data, written `{"…"}` as the page already writes them; a control on that page that needs a name takes it from a key that exists.
+- Scope: only the files a step names, plus the generated files the scripts regenerate (src/routeTree.gen.ts, docs/generated/i18n-usage.json, public/i18n-usage.json). A file you create outside a step's list is named in the report's first lines with its reason.
+- Closed surfaces (G22): the workflow files, the failure reporter, the migration check and e2e/global-setup.ts are not touched.
 - Records: you write the changelog lines; the decision and incident ledgers are the supervisor's.
 - The commit that is judged by CI ends the turn: push, END THE TURN, send nothing after it.
 
-T0 — THE ENGLISH RESET PRINTS HOW LONG IT TOOK (owed from the last turn; DEC-160's rule reads it)
-- e2e/global-setup.ts, the block `EN BASELINE HEAL, IN EVERY SETUP` (:502–560): measure the block with performance.now() from its first statement to just before its console.log, and print the duration inside the same line, which becomes `[e2e:setup] healed <n> stale EN rows (INC-175; probe complete; <ms> ms)` — and `(INC-175; probe INCOMPLETE: <message>; <ms> ms)`. Nothing else in the block changes. docs/features/e2e-harness.md: the line's new form, where the line is quoted.
-- Report the line as each of your local runs of this turn printed it (every run, with its file name). That number is what the rule judges: more than 5,000 ms in any run is reported in your first lines.
+PART B — THE SHARED BLOCKS
+THE SIZE RULE (used by B1, B3 and B4). A control a finger may press is 44 px on its short side; with a mouse it is 36 px. In classes: `size-11 md:pointer-fine:size-9` for a square control, `h-11 md:pointer-fine:h-9` for a field or a text button (the installed Tailwind has the `pointer-fine` variant). Below md a control is always 44 px, whatever the pointer. (The test projects both use a fine pointer: mobile-360 measures 44 px, desktop-1280 measures 36 px.)
+THE TOOLTIP RULE (INC-089; src/components/shell/app-rail.tsx :66–89 is the law). A tooltip always sits OUTSIDE a trigger, never between a trigger and its DOM element: when a control is both a tooltip's trigger and a menu's trigger, the order is Tooltip › TooltipTrigger asChild › DropdownMenuTrigger asChild › the button. A component handed to an `asChild` parent forwards its ref to a real DOM element; it never returns a Fragment or a provider at its root.
 
-PART A — THE TOKENS AND THEIR FIRST USES
-A1 — src/styles.css. The values (light hex = oklch · dark hex = oklch; the hex is for the comment, the oklch is the value):
-  --border                   light #D3D8DF = oklch(0.88 0.011 256.7)        dark #343B43 = oklch(0.349 0.017 251.8)       lines of cards, tables, bars (was #E8EBEF / #262C32)
-  --input                    light #C3C9D1 = oklch(0.834 0.013 255.5)       dark #3F4750 = oklch(0.394 0.019 251.4)       the edge of a field or an outline button (was the border value)
-  --rule                     light #E4E8ED = oklch(0.929 0.008 253.9)       dark #262C32 = oklch(0.29 0.014 248.3)        NEW — the fine line between two rows of a table or list
-  --muted-foreground         light #4A515A = oklch(0.432 0.017 254.7)       dark #A3ABB3 = oklch(0.737 0.015 248)         secondary text (was #686F78 / #8A9299)
-  --destructive              light #B42318 = oklch(0.5 0.182 29.5)          dark #FF6467 = oklch(0.702 0.189 22.2)        danger: delete, remove, a refusal (light was a brighter red; dark unchanged)
-  --destructive-foreground   light #FFFFFF = oklch(1 0 89.9)                dark #1F0A08 = oklch(0.178 0.037 27.4)        text on a solid danger fill (dark was #E6E8EB — 2.35:1 on the fill; INC-496)
-  --destructive-soft         light #FDECEA = oklch(0.956 0.019 25.6)        dark #3A1C1A = oklch(0.268 0.048 24.7)        NEW — tinted danger surface
-  --destructive-line         light #F3C1BC = oklch(0.854 0.058 25)          dark #5E2B27 = oklch(0.358 0.075 26.1)        NEW — tinted danger edge
-  --success                  light #17503A = oklch(0.388 0.07 163.8)        dark #7FC9A6 = oklch(0.777 0.09 162.9)        NEW — done, active, approved
-  --success-soft             light #E3F1EA = oklch(0.946 0.017 164.7)       dark #1C2B24 = oklch(0.273 0.024 164.2)       NEW
-  --success-line             light #B9DCCB = oklch(0.864 0.044 164.5)       dark #2E4A3C = oklch(0.382 0.042 161.8)       NEW
-  --warning                  light #7A4E00 = oklch(0.462 0.099 72.2)        dark #E6B655 = oklch(0.801 0.127 82.7)        NEW — paused, needs attention
-  --warning-soft             light #FFF3D6 = oklch(0.966 0.04 88.2)         dark #2D2513 = oklch(0.268 0.032 86.3)        NEW
-  --warning-line             light #EDD49A = oklch(0.877 0.08 87.3)         dark #4F4020 = oklch(0.379 0.052 84.8)        NEW
-  --info                     light #1D4E89 = oklch(0.423 0.111 255.1)       dark #8DB8EA = oklch(0.77 0.086 252.6)        NEW — information, a link-like action
-  --info-soft                light #E6F0FB = oklch(0.951 0.018 250.6)       dark #17253A = oklch(0.263 0.044 258.3)       NEW
-  --info-line                light #BBD3EF = oklch(0.858 0.047 252.4)       dark #2A4366 = oklch(0.38 0.068 257)          NEW
-  --neutral                  light #3B424A = oklch(0.376 0.017 251.8)       dark #C5CBD1 = oklch(0.839 0.011 248)         NEW — draft, off, nothing to say
-  --neutral-soft             light #EEF1F4 = oklch(0.957 0.005 247.9)       dark #262C32 = oklch(0.29 0.014 248.3)        NEW
-(a) `:root` (from :105) and `.dark` (from :146): set the lines that exist and add the lines marked NEW, each `--name: oklch(…); /* #HEX */` in the file's own style. `--sidebar-border` takes the same value as `--border` in both blocks. `.dark`'s `--destructive` line is left exactly as it is.
-(b) `:root`: `--radius: 0.375rem;` (it is 0.625rem).
-(c) `@theme inline` (from :52): the first five radius lines become
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 2px);
-  --radius-2xl: calc(var(--radius) + 6px);
-(3xl and 4xl stay). So one corner — 6 px — for controls (rounded-md, 177 uses) and for cards and tables (rounded-lg), 4 px for small marks, 8 px for the two large surfaces.
-(d) `@theme inline`: register every NEW token as a colour, in the block's own form — `--color-rule: var(--rule);`, `--color-destructive-soft: var(--destructive-soft);`, `--color-destructive-line: var(--destructive-line);`, and the same three lines for success, warning and info (`--color-success`, `--color-success-soft`, `--color-success-line` …), and `--color-neutral`, `--color-neutral-soft`.
-(e) `@theme inline`: the shadow scale, so that every existing shadow class follows at once —
-  --shadow-2xs: 0 1px rgb(30 35 41 / 0.05);
-  --shadow-xs: 0 1px 2px rgb(30 35 41 / 0.06);
-  --shadow-sm: 0 1px 2px rgb(30 35 41 / 0.07), 0 1px 1px rgb(30 35 41 / 0.04);
-  --shadow: 0 1px 2px rgb(30 35 41 / 0.07), 0 1px 1px rgb(30 35 41 / 0.04);
-  --shadow-md: 0 8px 20px rgb(30 35 41 / 0.14);
-  --shadow-lg: 0 12px 28px rgb(30 35 41 / 0.18);
-  --shadow-card: 0 1px 2px rgb(30 35 41 / 0.07), 0 1px 1px rgb(30 35 41 / 0.04);
-  --shadow-button: inset 0 -1px 0 rgb(0 0 0 / 0.18), 0 1px 2px rgb(30 35 41 / 0.14);
-  --shadow-bar: 0 1px 2px rgb(30 35 41 / 0.06);
-  --shadow-bar-up: 0 -1px 2px rgb(30 35 41 / 0.06);
-(shadows are an exception to "oklch only": they are black or the foreground at an alpha; say so in the file's comment.) Meaning: xs, sm and the bare shadow are the soft shadow of a card or a field; md is a menu or a popover; lg is a dialog or a sheet; `shadow-card`, `shadow-button`, `shadow-bar` and `shadow-bar-up` are the named ones the shared blocks use. If the build shows that a bare `shadow` class does not follow `--shadow`, say so in the report with the compiled rule you saw, and leave it.
-(f) The header comment of the file: its WCAG list gains the pairs of the table "CONTRAST" below (light and dark), the stance line "Flat surfaces only" gains "soft shadows are allowed; images and gradients are not", and "To add a new semantic color" gains: a meaning has three tokens — the strong colour (text, icon, solid fill), `-soft` (a tinted surface) and `-line` (a tinted edge).
-CONTRAST (computed from the hexes; the unit test of A4 recomputes them from the file):
-  muted-foreground on background               light  7.49:1   dark  7.67:1
-  muted-foreground on card                     light  8.03:1   dark  7.14:1
-  destructive on card                          light  6.57:1   dark  5.75:1
-  destructive on destructive-soft              light  5.75:1   dark  5.34:1
-  destructive-foreground on destructive        light  6.57:1   dark  6.58:1
-  success on card                              light  9.35:1   dark  8.54:1
-  success on success-soft                      light  8.03:1   dark  7.61:1
-  warning on card                              light  7.20:1   dark  8.84:1
-  warning on warning-soft                      light  6.53:1   dark  8.07:1
-  info on card                                 light  8.39:1   dark  8.04:1
-  info on info-soft                            light  7.28:1   dark  7.47:1
-  neutral on card                              light 10.17:1   dark 10.14:1
-  neutral on neutral-soft                      light  8.97:1   dark  8.62:1
-A2 — THE FIRST USES (four files, class changes only):
-- src/components/shell/page-card.tsx :5 — PAGE_CARD_CLASS gains `shadow-card`.
-- src/components/layout/section.tsx :27 — the section's class gains `shadow-card`.
-- src/components/ui/button.tsx :12–13 — variant `default`: `shadow` becomes `shadow-button`; variant `destructive`: `shadow-sm` becomes `shadow-button`. Nothing else in the file.
-- src/components/ui/badge.tsx — FIVE variants are added beside the four that exist (none is removed or changed): `success: "border-success-line bg-success-soft text-success"`, `warning: "border-warning-line bg-warning-soft text-warning"`, `info: "border-info-line bg-info-soft text-info"`, `danger: "border-destructive-line bg-destructive-soft text-destructive"`, `neutral: "border-border bg-neutral-soft text-neutral"`.
-A3 — THE STYLE FIXTURE PAGE, src/routes/dev.style.tsx (new; route /dev/style; modelled on src/routes/dev.primitives.tsx: production-safe, no data access, no writes, noindex; its strings are fixture data). It shows, inside PageShell and Section, each under a heading: (1) for each of the five meanings a row of three swatches — the soft surface with its line as a border and a word in the strong colour on it; the strong colour as a solid fill with white or `destructive-foreground` text where a foreground exists (primary and destructive only); the strong colour as text on the card; (2) the five new Badge variants and the four old ones; (3) the six Button variants at sizes default and touch; (4) one Section (the card shadow), one open DropdownMenu trigger and one Dialog trigger (the menu and dialog shadows); (5) four boxes with rounded-sm, rounded-md, rounded-lg, rounded-xl; (6) one line of secondary text (`text-muted-foreground`) on the page and one on a card. Test ids: `style-meaning-<name>`, `style-badge-<variant>`, `style-radius-<size>`. The existing page /dev/primitives is NOT changed.
-A4 — THE CHECKS.
-- src/styles.tokens.test.ts (new, vitest): reads src/styles.css as text; parses the custom properties of `:root` and of `.dark`; converts oklch to sRGB (the standard OKLab matrices) and computes WCAG contrast; asserts, in BOTH modes, at least 4.5:1 for every pair of the CONTRAST table above (a value a mode does not declare is taken from `:root` only if the file itself does so — it does not: every token of the table is declared in both); asserts that every `--color-<name>: var(--<name>)` of `@theme inline` has `--<name>` declared in `:root` AND in `.dark`; asserts that no colour value in the two blocks is written as hex or rgb (comments are not values). A pair that fails prints its two colours and the ratio.
-- e2e/house-style.spec.ts (new; both projects): HS-1 — /dev/style at this project's width has no horizontal overflow (the page's scroll width is not greater than its client width) and shows the five `style-badge-` test ids of the new variants; HS-2 — axe-core on /dev/style (the builder as e2e/a11y.spec.ts :1–40 uses it) finds no serious and no critical violation in light mode, then after the theme toggle (`en["shell.themeToggle"]`, as e2e/shell.spec.ts :786–794) none in dark mode. No account, no seeded row.
-A5 — DOCS. docs/features/design-foundation.md: the palette section gains the token table (name, light, dark, meaning), the three-tokens-per-meaning rule, the corner rule (6 px for controls, cards and tables; 4 px small marks; 8 px large surfaces), the shadow rule (soft on cards, tables and figures; `shadow-button` on a primary or danger button; md on menus, lg on dialogs; the bar shadows are used by the frame in a later part) and "secondary text is `text-muted-foreground`". One changelog line.
-A6 — WHAT IS NOT DONE IN THIS TURN (so that nothing is half-moved): no screen is moved to the new badges or tokens; the table, the row actions, the frame, paddings and heights are untouched; no existing class is renamed.
+B1 — IconButton, src/components/ui/icon-button.tsx (new). An icon-only button that cannot exist without a name.
+- Props: `label: string` (REQUIRED — the accessible name and the tooltip's text), `icon: ReactNode`, `tone?: "neutral" | "danger" | "success" | "warning" | "info"` (default neutral), `size?: "row" | "touch"` (default "row"), and the native button props; `forwardRef` to the button element; `type="button"` by default.
+- Renders: its own `TooltipProvider delayDuration={150}` (as app-rail.tsx :499) › Tooltip › TooltipTrigger asChild › the shared Button (variant ghost) with `aria-label={label}` and NO `title` attribute; the icon wrapped `aria-hidden`; TooltipContent shows the label. A second export, `IconButtonBare`, is the same button WITHOUT the tooltip wrapper and the provider (same props, same classes, same aria-label) — it is what B2 hands to the menu trigger, which wraps it in its own tooltip.
+- Sizes: "row" follows THE SIZE RULE (`size-11 md:pointer-fine:size-9`); "touch" is `size-11` always. Padding 0; the icon is `size-4`.
+- Tones (text and hover surface): neutral `text-muted-foreground hover:bg-accent hover:text-foreground`; danger `text-destructive hover:bg-destructive-soft`; success `text-success hover:bg-success-soft`; warning `text-warning hover:bg-warning-soft`; info `text-info hover:bg-info-soft`.
+- Component test beside it (vitest, as data-table.test.tsx renders): the button's accessible name is the label; it has no `title`; a `ref` reaches the button element; each tone carries its text class.
+
+B2 — RowActions, src/components/shell/row-actions.tsx (new). The one way a row of a table or a card of a list offers its actions.
+- Props: `testid: string`; `name: string` (the row's own name); `edit?: { label: string; onSelect: () => void; disabled?: boolean }`; `remove?: { label: string; onSelect: () => void; disabled?: boolean }`; `more?: Array<{ key: string; label: string; icon?: ReactNode; tone?: "neutral" | "danger"; onSelect: () => void; disabled?: boolean }>`.
+- Renders, in one `flex items-center justify-end gap-1` row and in this order: the Edit IconButton (lucide `Pencil`, tone neutral, `data-testid={testid + "-edit"}`), the Delete IconButton (`Trash2`, tone danger, `testid + "-delete"`), the three-dots (lucide `EllipsisVertical`, or its older name `MoreVertical` if that is what the installed package exports — say which; tone neutral, `testid + "-more"`) — each only when its prop is given (`more` only when it has an entry); with none it renders null. Every control's accessible name is `<label> — <name>` (the three-dots' label is the existing key `prim.table.actions`); its tooltip shows the label alone.
+- The menu: DropdownMenuContent `align="end"`, `data-testid={testid + "-menu"}`; one DropdownMenuItem per entry (`testid + "-more-" + key`), `min-h-11`, its icon (`size-4`, aria-hidden) then its label; entries with tone danger come LAST, after one DropdownMenuSeparator, with `text-destructive focus:text-destructive` (as src/features/admin-attributes/attributes-page.tsx :460–470 does today); a disabled entry is `disabled`.
+- The three-dots follows THE TOOLTIP RULE: Tooltip › TooltipTrigger asChild › DropdownMenuTrigger asChild › IconButtonBare. RowActions wraps its row in ONE `TooltipProvider delayDuration={150}` for that tooltip.
+- Component test beside it: null with no props; the three names; the order edit, delete, more; danger entries last behind the separator; `onSelect` fires once per choice.
+
+B3 — THE TABLE'S FOOTER, src/components/shell/data-table.tsx, `DataTablePagination` (:170–225). Three zones — the count at the start, rows per page in the centre, the page numbers at the end.
+- New OPTIONAL props (the six that exist are unchanged): `onPage?: (pageIndex: number) => void` (zero-based); `pageSizeOptions?: number[]` with `onPageSize?: (size: number) => void`.
+- Layout: the root keeps its test id and becomes `grid min-w-0 gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center` (one column below md, the three zones in a row from md). Zone 1: the range span, UNCHANGED (text, classes, test id `<testid>-range`). Zone 2 (rendered only when both size props are given; otherwise an empty element keeps the grid): a `<label>` with the text of `prim.table.pageSize` and the NativeSelect of B4 (`<testid>-size`) listing the options, the current `pageSize` selected. Zone 3, `md:justify-self-end`: Previous and Next exactly as they are today (same test ids, same keys), and BETWEEN them, only when `onPage` is given, the page run: a pure function `pageWindow(current: number, count: number): Array<number | "gap">` (exported; count = ceil(total / pageSize), current zero-based) returning every page when count ≤ 7, otherwise the first, the last, the current and one neighbour on each side, with ONE "gap" wherever pages are left out; each page is a button `<testid>-page-<n>` (n one-based, also its text), `aria-label` = `prim.table.page` with `{n}` filled, `aria-current="page"` on the current one, which is drawn `bg-primary text-primary-foreground`; a gap is a non-interactive `…` (aria-hidden); the buttons are joined (`-ms-px`, the first and last rounded) and each follows THE SIZE RULE for a text button with `min-w-9`.
+- With `total === 0` the run is empty and both arrows are disabled, as today.
+- Unit cases for `pageWindow` in data-table.test.tsx's own style, in a NEW file src/components/shell/data-table-pagination.test.tsx: count 1; count 7 (all seven); count 12 at current 0, 4, 11 — `[1,2,"gap",12]`, `[1,"gap",4,5,6,"gap",12]`, `[1,"gap",11,12]`; and three render cases: no new prop ⇒ no page button and no size control; `onPage` ⇒ the run with `aria-current` on the right button and a click calling `onPage` with the zero-based index; the size props ⇒ the select calls `onPageSize` with a number.
+
+B4 — NativeSelect, src/components/ui/native-select.tsx (new). One styled native `<select>`: `forwardRef`, the native props, classes `h-11 md:pointer-fine:h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50` joined with a `className` prop. The nine style constants the consoles carry for their selects are NOT touched in this turn (Part D moves them).
+
+B5 — FilterChips and FiltersButton, src/components/shell/filter-chips.tsx (new).
+- `FilterChips` — props `testid: string`; `chips: Array<{ key: string; label: string; onRemove: () => void }>`; `onClearAll: () => void`. Renders null when `chips` is empty; otherwise a wrapping row: one chip per entry (`testid + "-chip-" + key`; `rounded-md border border-input bg-card ps-2.5 text-sm`, its label, then an IconButton with lucide `X`, tone neutral, whose label is `prim.table.removeFilter` and whose accessible name is `<that label> — <chip label>`), then a Button variant link with the text of `prim.table.clearAll` (`testid + "-clear"`).
+- `FiltersButton` — props `testid: string`; `count: number`; `children: ReactNode` (the console's own filter controls). A Button variant outline with lucide `ListFilter`, the text of `prim.table.filters` and, when count > 0, a count mark (`testid + "-count"`; `rounded-full bg-primary text-primary-foreground text-xs min-w-5 h-5 px-1.5`), opening the Popover of src/components/ui/popover.tsx (`align="start"`, `data-testid={testid + "-panel"}`) that holds the children in a `flex flex-col gap-3 p-3` box. The button follows THE SIZE RULE for a text button.
+- Component test beside it: nothing with no chip; a chip's remove calls its `onRemove`; clear calls `onClearAll`; the count mark shows only above zero.
+
+B6 — THE SELECTION BAR, src/components/shell/data-table.tsx (:328–335). One new OPTIONAL prop of DataTable, `selectionActions?: ReactNode`: when given, it is rendered at the end of the `data-table-selection` bar (`ms-auto flex flex-wrap items-center gap-2`). Nothing else in the bar changes.
+
+B7 — /dev/style SHOWS THE BLOCKS (src/routes/dev.style.tsx; local component state only, no data access). New sections under the ones of Part A: (1) "Row actions" — a three-row sample list (plain markup, not DataTable), each row with RowActions (`testid` `style-row-<n>`; edit, remove and two `more` entries, the second tone danger); the chosen action is written into a status line (`style-row-last`); (2) "Icon buttons" — one IconButton per tone; (3) "Pager" — a DataTablePagination with 300 results, page size 25 with options 10, 25, 50 and all three new props wired to local state (`testid` `style-pager`); (4) "Filters" — a FiltersButton whose panel holds two NativeSelects, with FilterChips beside it reflecting the two selections (`testid` `style-filters`); (5) "Selection" — nothing new to show without a table; leave it out.
+
+B8 — THE STRINGS. From docs/governance/briefs/bundle-9-strings.json, by script: its five keys are added to src/i18n/locales/en.ts and am.ts beside the existing `prim.table.*` keys (en.ts :490–496), each value character for character. The table (for reading; the file is the source):
+  prim.table.pageSize — English: Rows per page · Amharic: በአንድ ገጽ ረድፎች
+  prim.table.page — English: Page {n} · Amharic: ገጽ {n}
+  prim.table.filters — English: Filters · Amharic: ማጣሪያዎች
+  prim.table.clearAll — English: Clear all · Amharic: ሁሉንም አጽዳ
+  prim.table.removeFilter — English: Remove filter · Amharic: ማጣሪያውን አስወግድ
+The Amharic of all five is built only from words the catalog already uses for the same things (am.ts: `admin.categories.filter.pageSize`, `admin.attributes.filter.clear`, `prim.table.selectAll`, `settings.removePasswordConfirmYes`). Your report lists the five keys with both values as they landed.
+
+B9 — THE BROWSER TESTS AND THE DOCS.
+- e2e/house-style.spec.ts gains (both projects; no account, no seeded row): HS-3 — on /dev/style the first sample row's Edit and Delete buttons are found BY ROLE AND NAME (`<label> — <row name>`); focusing Edit by keyboard shows a tooltip with the label; the three-dots opens the menu, whose last entry is the danger one; choosing an entry writes it to `style-row-last`; Escape closes the menu and focus returns to the three-dots; the three controls each measure at least 44 × 44 px on mobile-360 and exactly 36 × 36 px on desktop-1280. HS-4 — the pager shows `1–25` in its range, the run `1 2 … 12`; a click on page 2 moves `aria-current` and the range to `26–50`; choosing 50 rows per page returns to the first page and shows `1–50` and a run of six pages; Previous is disabled on page 1. HS-5 — the filters button shows no count, then, after one select in its panel is set, the count 1 and one chip; the chip's remove clears it; with two set, "Clear all" clears both. HS-2 (axe, light and dark) stays and now covers the new sections.
+- docs/features/display-primitives.md: one section per new block (IconButton, RowActions, the pager's three zones, NativeSelect, FilterChips and FiltersButton, the selection bar's actions) with its props, its test ids, THE SIZE RULE and THE TOOLTIP RULE; docs/features/design-foundation.md: THE SIZE RULE in one line. One changelog line.
+- scripts/e2e-select.ts: the `house-style` area you added in turn 1 gains `src/components/shell/row-actions.tsx`, `src/components/shell/filter-chips.tsx` and `src/components/shell/data-table.tsx` in its `src` list, so that `bun run e2e:changed` selects e2e/house-style.spec.ts when a block changes; its unit test passes.
 
 NAMED FOR THE NEXT VERSIONS (not specified here; build none of it)
-- PART B — the shared blocks: row actions (Edit and Delete icons, a three-dots menu), the icon button with a required name and tooltip, the table's toolbar, chips, selection bar and three-zone footer, cards on a phone, the field and the switch.
 - PART C — the frame: bars that stay on every screen size, the phone's icon strip and bottom bar, one page padding, row heights.
 - PART D — the pattern console (Admin › Categories), then every other screen.
 - PART E — one written rule and one automatic check per element, with a baseline that only shrinks.
 
-REPORT. First lines: done or not done for step 0, T0, A1 (a) to (f), A2, A3, A4, A5; any platform bump; any file outside this brief's lists; any test left red because it asserts the old look (file, line, what it asserts). Then: the six ci-status lines; T0's printed lines; the unit suite (count) with the token test's pairs as it printed them; each local browser run (file, project, passed/failed, retries); typecheck, format:check, lint; whether a bare `shadow` class follows `--shadow` in the built CSS; the file list from `git diff --name-only c46aa32b`; "Logs read: … · unavailable: …"; limitations. Never "CI green" from a local run.
+REPORT. First lines: done or not done for step 0, B1 to B9; any platform bump; any file outside this brief's lists; any existing test left red (file, line, what it asserts). Then: the six ci-status lines; the five strings as landed (key, English, Amharic); the unit and component suite (count); each local browser run (file, project, passed/failed, retries); typecheck, format:check, lint (and whether any lint warning comes from a file of turn 1 or of this turn — expected none); the compiled CSS rule of `md:pointer-fine:size-9` as the build wrote it; the file list from `git diff --name-only accdd3fe`; "Logs read: … · unavailable: …"; limitations. Never "CI green" from a local run.
+
+=== BEGIN bundle-9-strings.json ===
+{
+ "set": {
+  "prim.table.pageSize": {"en": "Rows per page", "am": "በአንድ ገጽ ረድፎች"},
+  "prim.table.page": {"en": "Page {n}", "am": "ገጽ {n}"},
+  "prim.table.filters": {"en": "Filters", "am": "ማጣሪያዎች"},
+  "prim.table.clearAll": {"en": "Clear all", "am": "ሁሉንም አጽዳ"},
+  "prim.table.removeFilter": {"en": "Remove filter", "am": "ማጣሪያውን አስወግድ"}
+ },
+ "remove": []
+}
+=== END bundle-9-strings.json ===
 ```
