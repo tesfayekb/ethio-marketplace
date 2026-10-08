@@ -848,6 +848,27 @@ async function bottomOf(page: Page, testid: string) {
 test.describe("mobile chrome", () => {
   test.skip(({ viewport }) => (viewport?.width ?? 0) > 400, "mobile-360 only");
 
+  test("the bar's current item carries the pill, light then dark (C2h.3)", async ({ page }) => {
+    await poolSignIn(page);
+    await gotoReady(page, "/account");
+    const account = page.getByTestId("bottom-bar-account");
+    const home = page.getByTestId("bottom-bar-home");
+    const check = async () => {
+      await expect(account.getByTestId("bottom-bar-pill")).toHaveCount(1);
+      await expect(home.getByTestId("bottom-bar-pill")).toHaveCount(0);
+      const weight = await account
+        .locator("span.truncate")
+        .evaluate((el) => Number(getComputedStyle(el).fontWeight));
+      expect(weight).toBeGreaterThanOrEqual(600);
+    };
+    await check();
+    const html = page.locator("html");
+    const before = await html.getAttribute("data-mode");
+    await page.getByRole("button", { name: en["shell.themeToggle"] }).click();
+    await expect(html).toHaveAttribute("data-mode", before === "dark" ? "light" : "dark");
+    await check();
+  });
+
   test("the strip sits under the fixed bar", async ({ page }) => {
     await gotoReady(page, "/");
     const strip = page.getByTestId("rail-strip");
