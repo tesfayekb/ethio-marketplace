@@ -1,25 +1,24 @@
-import { readFileSync } from "node:fs";
-
 import { expect, test } from "./fixtures";
 
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
-import { STATE_FILE, type E2EUser } from "./global-setup";
 import {
   expectNoHorizontalOverflow,
   expectSignedIn,
   fillUntilStable,
   isMobile,
   openAccountMenu,
+  signInViaSession,
   signOutViaUi,
   switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
+import { leaseUser } from "./helpers/users";
 
-test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out", async ({
+test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out @private-identity", async ({
   page,
 }) => {
-  const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
+  const user = await leaseUser();
 
   // 1. Home renders.
   //    The <h1> is the FEED heading now, not the brand — the shell made the
@@ -54,7 +53,7 @@ test("smoke: sign in, header identity, Amharic switch, 360px overflow, sign out"
   await expect(passwordInput).toHaveValue(user.password);
 
   // Anchored: excludes "Create an account" toggle and the disabled OAuth slots.
-  await signInButton.click();
+  await signInViaSession(page, user.email, user.password);
 
   // 4. The definitive signed-in signal is the header ACCOUNT MENU, which only
   //    renders on the authenticated branch. Identity and sign-out live inside
