@@ -34,6 +34,7 @@ import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
 import { Route as CSlugRouteImport } from './routes/c.$slug'
 import { Route as DevPrimitivesRouteImport } from './routes/dev.primitives'
+import { Route as DevStyleRouteImport } from './routes/dev.style'
 import { Route as DevTallRouteImport } from './routes/dev.tall'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
@@ -189,6 +190,11 @@ const CSlugRoute = CSlugRouteImport.update({
 const DevPrimitivesRoute = DevPrimitivesRouteImport.update({
   id: '/dev/primitives',
   path: '/dev/primitives',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevStyleRoute = DevStyleRouteImport.update({
+  id: '/dev/style',
+  path: '/dev/style',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevTallRoute = DevTallRouteImport.update({
@@ -380,6 +386,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
   '/dev/primitives': typeof DevPrimitivesRoute
+  '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -437,6 +444,7 @@ export interface FileRoutesByTo {
   '/auth/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
   '/dev/primitives': typeof DevPrimitivesRoute
+  '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin': typeof AdminIndexRoute
@@ -496,6 +504,7 @@ export interface FileRoutesById {
   '/auth_/reset': typeof AuthResetRoute
   '/c/$slug': typeof CSlugRoute
   '/dev/primitives': typeof DevPrimitivesRoute
+  '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
   '/post_/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -556,6 +565,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/c/$slug'
     | '/dev/primitives'
+    | '/dev/style'
     | '/dev/tall'
     | '/post/$listingId'
     | '/admin/'
@@ -613,6 +623,7 @@ export interface FileRouteTypes {
     | '/auth/reset'
     | '/c/$slug'
     | '/dev/primitives'
+    | '/dev/style'
     | '/dev/tall'
     | '/post/$listingId'
     | '/admin'
@@ -671,6 +682,7 @@ export interface FileRouteTypes {
     | '/auth_/reset'
     | '/c/$slug'
     | '/dev/primitives'
+    | '/dev/style'
     | '/dev/tall'
     | '/post_/$listingId'
     | '/admin/'
@@ -719,6 +731,7 @@ export interface RootRouteChildren {
   AuthResetRoute: typeof AuthResetRoute
   CSlugRoute: typeof CSlugRoute
   DevPrimitivesRoute: typeof DevPrimitivesRoute
+  DevStyleRoute: typeof DevStyleRoute
   DevTallRoute: typeof DevTallRoute
   PostListingIdRoute: typeof PostListingIdRoute
   ApiCatalogFindRoute: typeof ApiCatalogFindRoute
@@ -919,6 +932,13 @@ declare module '@tanstack/react-router' {
       path: '/dev/primitives'
       fullPath: '/dev/primitives'
       preLoaderRoute: typeof DevPrimitivesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/style': {
+      id: '/dev/style'
+      path: '/dev/style'
+      fullPath: '/dev/style'
+      preLoaderRoute: typeof DevStyleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dev/tall': {
@@ -1222,6 +1242,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthResetRoute: AuthResetRoute,
   CSlugRoute: CSlugRoute,
   DevPrimitivesRoute: DevPrimitivesRoute,
+  DevStyleRoute: DevStyleRoute,
   DevTallRoute: DevTallRoute,
   PostListingIdRoute: PostListingIdRoute,
   ApiCatalogFindRoute: ApiCatalogFindRoute,
