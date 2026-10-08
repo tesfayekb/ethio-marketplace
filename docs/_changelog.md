@@ -740,3 +740,4 @@
 - 2026-10-08 — Bundle 9 C2e: the posting wizard keeps the phone strip and bottom bar (Back/Next bar above it, pickers floor at the bar, wizard section p-3), session-read guards on /post, /post/… and /account, My Listings switch from another panel's page goes to "/" first (INC-501), smoke sign-in through the real form
 - 2026-10-08 — Bundle 9 C2f: below 768px the icon strip widens in place into a 256px named menu; outside press, close, Escape or navigation shrinks it, and the bottom bar remains the panel switcher.
 - 2026-10-08 — bundle 9 C2g/C2h: icons-only rail and » / « menu from 768 to 1023 px (`rail-icons` variant), collapse toggle from 1024 px; width walk tests; `--nav-active` selected tint with the bottom bar's pill and every menu's current row.
+- 2026-10-08 — Bundle 9 C2i: split the account and posting width walk so the posting wizard resizes through every width without repeated page loads.
