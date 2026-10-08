@@ -1,3 +1,4 @@
+import { PasswordInput } from "@/components/ui/password-input";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 
@@ -54,7 +55,6 @@ function ResetScreen() {
   const [checking, setChecking] = useState(true);
   const [hasRecoverySession, setHasRecoverySession] = useState(false);
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
@@ -148,28 +148,18 @@ function ResetScreen() {
           <label htmlFor="reset-password" className="text-sm font-medium text-foreground">
             {t("settings.newPassword")}
           </label>
-          <div className="flex items-center gap-2">
-            <input
-              id="reset-password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              minLength={MIN_PASSWORD_LENGTH}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("auth.passwordPlaceholder")}
-              className={fieldClass}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-pressed={showPassword}
-              className="min-h-11 shrink-0 rounded-md border border-input px-3 text-sm text-muted-foreground hover:bg-accent"
-            >
-              {showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
-            </button>
-          </div>
+          <PasswordInput
+            id="reset-password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={MIN_PASSWORD_LENGTH}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("auth.passwordPlaceholder")}
+            className={fieldClass}
+          />
         </div>
 
         {errorKey ? (

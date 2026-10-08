@@ -24,6 +24,7 @@ import {
   seedGuessFixture,
   readServedNodes,
   seedScratchChain,
+  scratchName,
   seedSingleOptionMarket,
   waitForOpenMarket,
   OPEN_MARKET_LS11_MS,
@@ -470,8 +471,21 @@ test.describe("app shell", () => {
     const columns = page.getByTestId("footer-columns");
     const group = (await columns.boundingBox())!;
     const page_width = page.viewportSize()!.width;
-    // Centred as a group: equal slack on both sides (2px subpixel tolerance).
-    expect(Math.abs(group.x - (page_width - (group.x + group.width)))).toBeLessThanOrEqual(2);
+    // Desktop remains centred in the viewport; phone measures the content column.
+    if (page_width >= 768) {
+      expect(Math.abs(group.x - (page_width - (group.x + group.width)))).toBeLessThanOrEqual(2);
+    } else {
+      const padding = await columns.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return {
+          start: parseFloat(style.paddingInlineStart),
+          end: parseFloat(style.paddingInlineEnd),
+        };
+      });
+      const startSlack = group.x + padding.start - 48;
+      const endSlack = page_width - (group.x + group.width - padding.end);
+      expect(Math.abs(startSlack - endSlack)).toBeLessThanOrEqual(2);
+    }
     // Each column centres its own content.
     const alignments = await columns
       .locator("nav")
@@ -836,14 +850,28 @@ test.describe("mobile chrome", () => {
     if (!box || !header) throw new Error("Missing strip or header box");
     expect(Math.abs(box.width - 48)).toBeLessThanOrEqual(1);
     expect(Math.abs(box.y - header.y - header.height)).toBeLessThanOrEqual(1);
-    await expect(strip.getByRole("button", { name: en["shell.openMenu"] })).toBeVisible();
-    await expect(
-      page.getByTestId("shell-topbar").getByRole("button", { name: en["shell.openMenu"] }),
-    ).toHaveCount(0);
+    const menu = page
+      .getByTestId("shell-topbar")
+      .getByRole("button", { name: en["shell.openMenu"] });
+    await expect(menu).toBeVisible();
+    const control = await menu.boundingBox();
+    if (!control) throw new Error("Missing menu control");
+    expect(Math.abs(control.x + control.width - box.x - box.width)).toBeLessThanOrEqual(1);
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
     await expect(page.getByTestId("strip-category-skeleton")).toHaveCount(0);
-    const row = await page.getByTestId("strip-category-all").boundingBox();
-    if (!row) throw new Error("Missing strip row box");
-    expect(row.height).toBeGreaterThanOrEqual(44);
+    for (const id of ["strip-category-all", "strip-post-entry", "strip-sign-out"]) {
+      await expect(page.getByTestId(id)).toHaveCount(0);
+    }
+    const scroll = page.getByTestId("strip-scroll");
+    expect(await scroll.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
+    const rows = await scroll
+      .locator("li > a")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
+    expect(rows.length).toBeGreaterThan(0);
+    for (const height of rows) {
+      expect(height).toBeGreaterThanOrEqual(27);
+      expect(height).toBeLessThanOrEqual(45);
+    }
   });
 
   test("a strip row opens its category", async ({ page }) => {
@@ -885,12 +913,13 @@ test.describe("mobile chrome", () => {
     expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
   });
 
-  test("the strip's Sign out", async ({ page }) => {
-    await gotoReady(page, "/");
-    await expect(page.getByTestId("strip-sign-out")).toHaveCount(0);
-    const user = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
-    await signInViaSession(page, user.email, user.password);
-    await expect(page.getByTestId("strip-sign-out")).toBeVisible();
+  test("Sign out is at the end of Account", async ({ page }) => {
+    await poolSignIn(page);
+    await gotoReady(page, "/account");
+    await expect(page.getByTestId("account-sign-out")).toBeVisible();
+    await signOutViaUi(page);
+    await expect(page.getByTestId("bottom-bar-sign-in")).toBeVisible();
+    await expect(page.getByTestId("bottom-bar-account")).toHaveCount(0);
   });
 
   test("rail is a drawer behind the hamburger", async ({ page }) => {
@@ -1029,7 +1058,12 @@ test.describe("mobile chrome", () => {
     await expectTapTarget(page, page.getByTestId("bottom-bar-home"), "bar home");
     await expectTapTarget(page, page.getByTestId("bottom-bar-sign-in"), "bar sign in");
 
-    await expectTapTarget(page, page.getByTestId("strip-category-all"), "strip category");
+    // The phone strip uses the authorized fitted 28–44px section rows.
+    const firstStripRow = page.getByTestId("strip-scroll").locator("li > a").nth(0);
+    const stripRowBox = await firstStripRow.boundingBox();
+    if (!stripRowBox) throw new Error("Missing strip category");
+    expect(stripRowBox.height).toBeGreaterThanOrEqual(27);
+    expect(stripRowBox.height).toBeLessThanOrEqual(45);
 
     // Category rows inside the drawer are targets too.
     await openRailScope(page);
@@ -1077,7 +1111,7 @@ test.describe("mobile chrome", () => {
     await page.waitForURL(/\/account$/);
     await expect(page.getByTestId("bottom-bar-account")).toHaveAttribute("aria-current", "page");
     await page.getByTestId("bottom-bar-my-listings").click();
-    await expect(page.getByTestId("strip-post-entry")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("strip-item-ml-listings")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("bottom-bar-my-listings")).toHaveAttribute(
       "aria-current",
       "page",
@@ -1093,6 +1127,14 @@ test.describe("mobile chrome", () => {
     // the viewport's bottom (brief: "= bottom ± 1" — reported, see turn 5).
     const vh = page.viewportSize()?.height ?? 0;
     expect(await bottomOf(page, "form-layout-actions")).toBeLessThanOrEqual(vh + 1);
+    expect(
+      await page.getByTestId("form-layout-actions").evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        return el.contains(
+          document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2),
+        );
+      }),
+    ).toBe(true);
   });
 
   test("the posting wizard keeps the full width", async ({ page }) => {
@@ -1121,6 +1163,19 @@ test.describe("mobile chrome", () => {
     // Scrolled to the end: the footer ends at or above the bar's top.
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await expect.poll(() => bottomOf(page, "shell-footer-wrapper")).toBeLessThanOrEqual(bar.y + 1);
+    expect(
+      await page.getByTestId("bottom-bar").evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        return el.contains(
+          document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2),
+        );
+      }),
+    ).toBe(true);
+    expect(Math.abs((await bottomOf(page, "rail-strip")) - bar.y)).toBeLessThanOrEqual(1);
+    const strip = await page.getByTestId("rail-strip").boundingBox();
+    const firstLink = await page.getByTestId("footer-home").boundingBox();
+    if (!strip || !firstLink) throw new Error("Missing footer or strip");
+    expect(firstLink.x).toBeGreaterThanOrEqual(strip.x + strip.width - 1);
   });
 
   test("the drawer says who is signed in", async ({ page }) => {
@@ -1959,6 +2014,12 @@ test.describe("L4b location picker", () => {
    * `destroyCountry` is idempotent, so a body that already cleaned up is fine.
    */
   const seededMarkets = new Set<string>();
+  const seededChains = new Set<string>();
+  async function seedChain() {
+    const chain = await seedScratchChain("ET");
+    seededChains.add(chain.region.slug);
+    return chain;
+  }
 
   async function seedMarket() {
     const market = await seedSingleOptionMarket();
@@ -1970,6 +2031,9 @@ test.describe("L4b location picker", () => {
     const codes = [...seededMarkets];
     seededMarkets.clear();
     for (const code of codes) await destroyCountry(code);
+    const slugs = [...seededChains];
+    seededChains.clear();
+    for (const slug of slugs) await destroyLocation(slug);
   });
 
   async function pick(page: Page, level: string, name: string) {
@@ -2029,6 +2093,51 @@ test.describe("L4b location picker", () => {
     } finally {
       await destroyLocation(chain.region.slug);
     }
+  });
+
+  test("long location names share one 32px line", async ({ page, viewport }) => {
+    test.skip((viewport?.width ?? 0) !== 360, "phone geometry");
+    const chain = await seedChain();
+    for (const node of [chain.region, chain.city]) {
+      const name = scratchName("long-tag-name-assertion-with-forty-characters");
+      const { error } = await adminClient()
+        .from("locations")
+        .update({ name_en: name })
+        .eq("id", node.id);
+      if (error) throw new Error(`Scratch name: ${error.message}`);
+      node.name_en = name;
+    }
+    // Only this test's scratch rows get long names; managed teardown removes the chain.
+    expect(chain.region.name_en!.length).toBeGreaterThanOrEqual(40);
+    expect(chain.city.name_en!.length).toBeGreaterThanOrEqual(40);
+    await waitForTreeSlug(page, "ET", chain.subCity.slug);
+    await gotoReady(page, "/");
+    await pick(page, "country", await marketName(page, "ET"));
+    await pick(page, "region", chain.region.name_en!);
+    await pick(page, "city", chain.city.name_en!);
+    const row = page.getByTestId("location-row");
+    const box = await row.boundingBox();
+    if (!box) throw new Error("Missing location row");
+    expect(Math.abs(box.height - 32)).toBeLessThanOrEqual(1);
+    const tops = await row
+      .locator("[data-testid^='location-level-']")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().top));
+    expect(Math.max(...tops) - Math.min(...tops)).toBeLessThanOrEqual(1);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      ),
+    ).toBeLessThanOrEqual(1);
+    await expect(page.getByTestId("location-level-region")).toHaveAccessibleName(
+      `${en["location.region"]}: ${chain.region.name_en}`,
+    );
+    await expect(page.getByTestId("location-level-city")).toHaveAccessibleName(
+      `${en["location.city"]}: ${chain.city.name_en}`,
+    );
+    await expect(page.getByTestId("location-level-region")).toHaveAttribute(
+      "title",
+      chain.region.name_en!,
+    );
   });
 
   test("LS-3 an open market is guessed from the edge country, never saved", async ({ browser }) => {
@@ -2544,4 +2653,23 @@ test.describe("L4b location picker", () => {
       await destroyCountry(market.code);
     }
   });
+});
+
+// C2c.7: same form geometry and visibility contract on both configured frames.
+test("password visibility stays inside the full-width field", async ({ page }) => {
+  await gotoReady(page, "/auth");
+  const email = await page.locator("#auth-email").boundingBox();
+  const password = await page.locator("#auth-password").boundingBox();
+  if (!email || !password) throw new Error("Missing authentication fields");
+  expect(Math.abs(email.width - password.width)).toBeLessThanOrEqual(1);
+  const toggle = page.getByTestId("password-toggle");
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator("#auth-password")).toHaveAttribute("type", "password");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#auth-password")).toHaveAttribute("type", "text");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator("#auth-password")).toHaveAttribute("type", "password");
+  await expect(page.locator('form button[type="submit"]')).toHaveCount(1);
 });

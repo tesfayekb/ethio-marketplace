@@ -228,10 +228,11 @@ export function signInMarker(page: Page) {
 }
 
 type PanelKey = "marketplace" | "my-listings" | "account" | "admin";
-const BAR_ITEM: Record<Exclude<PanelKey, "admin">, string> = {
+const BAR_ITEM: Record<PanelKey, string> = {
   marketplace: "bottom-bar-home",
   "my-listings": "bottom-bar-my-listings",
   account: "bottom-bar-account",
+  admin: "bottom-bar-admin",
 };
 const PANEL_LABEL: Record<PanelKey, keyof typeof en> = {
   marketplace: "panel.marketplace",
@@ -268,7 +269,7 @@ export async function openPanel(page: Page, id: PanelKey) {
     await page.getByTestId(`panel-tab-${id}`).click();
     return;
   }
-  if (id === "admin" || !(await barShown(page))) {
+  if (!(await barShown(page))) {
     await openPanelViaDrawer(page, id);
     return;
   }
@@ -285,6 +286,10 @@ export async function expectPanelOffered(page: Page, id: PanelKey) {
     await expect(page.getByTestId(`panel-tab-${id}`)).toBeVisible({ timeout: 15000 });
     return;
   }
+  if (await barShown(page)) {
+    await expect(page.getByTestId(BAR_ITEM[id])).toBeVisible({ timeout: 15000 });
+    return;
+  }
   const drawer = await openRailScope(page);
   await drawer.getByTestId("panel-header-switcher").click();
   await expect(page.getByTestId(`panel-header-option-${id}`)).toBeVisible({ timeout: 15000 });
@@ -299,12 +304,9 @@ export async function expectActivePanel(page: Page, id: PanelKey) {
     await expect(page.getByTestId(`panel-tab-${id}`)).toHaveAttribute("aria-selected", "true");
     return;
   }
-  if (id !== "admin" && (await barShown(page))) {
+  if (await barShown(page)) {
     await expect(page.getByTestId(BAR_ITEM[id])).toHaveAttribute("aria-current", "page");
     return;
-  }
-  if (id === "admin" && (await barShown(page))) {
-    await expect(page.locator('[data-testid="bottom-bar"] [aria-current="page"]')).toHaveCount(0);
   }
   const drawer = await openRailScope(page);
   const label = PANEL_LABEL[id];
@@ -321,9 +323,9 @@ async function expectDrawerIdentity(page: Page, displayName?: string) {
   const identity = drawer.getByTestId("drawer-identity");
   await expect(identity).toBeVisible({ timeout: 15000 });
   if (displayName !== undefined) await expect(identity).toContainText(displayName);
-  await expect(drawer.getByTestId("rail-sign-out")).toBeVisible({ timeout: 15000 });
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
+  await expect(page.getByTestId("bottom-bar-account")).toBeVisible({ timeout: 15000 });
 }
 
 /**
@@ -386,8 +388,13 @@ export async function openRailScope(page: Page) {
  * option stays for callers that want to assert a specific rendered label.
  */
 export async function signOutViaUi(page: Page, labels: { signIn?: string } = {}) {
-  const scope = await openRailScope(page);
-  await scope.getByTestId("rail-sign-out").click();
+  if (isMobile(page)) {
+    await gotoReady(page, "/account");
+    await page.getByTestId("account-sign-out").click();
+  } else {
+    const scope = await openRailScope(page);
+    await scope.getByTestId("rail-sign-out").click();
+  }
 
   await page.waitForURL(/\/$/, { timeout: 15000 });
   await expect(page.getByTestId("account-menu")).toHaveCount(0);

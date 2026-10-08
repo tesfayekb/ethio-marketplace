@@ -1,5 +1,7 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import {
+  ChevronsLeft,
+  ChevronsRight,
   LogOut,
   Menu,
   PanelLeftClose,
@@ -103,19 +105,33 @@ function SearchRow({ onClose }: { onClose: () => void }) {
  */
 export function AppHeader() {
   const { t } = useI18n();
-  const { auth, user, requestSignOut, setNavOpen, signingOut } = useShell();
+  const { auth, user, requestSignOut, navOpen, setNavOpen, signingOut } = useShell();
   const { collapsed, toggle } = useRailCollapsed();
   const [searchOpen, setSearchOpen] = useState(false);
-  // Ruling turn 5 — the posting wizard has no strip below md, so its menu
-  // button sits in the top bar there: every page keeps exactly one.
-  const onWizard = useRouterState({
-    select: (s) => s.location.pathname === "/post" || s.location.pathname.startsWith("/post/"),
-  });
 
   return (
     <div className="w-full min-w-0 md:h-full">
-      <header className="flex h-13 w-full min-w-0 items-center gap-1 border-b border-border bg-card px-2 md:h-full md:gap-2 md:px-4">
-        {!PHONE_STRIP || onWizard ? (
+      <header
+        className={cn(
+          "flex h-13 w-full min-w-0 items-center gap-1 border-b border-border bg-card pe-2 md:h-full md:gap-2 md:px-4",
+          !PHONE_STRIP && "ps-2",
+        )}
+      >
+        {PHONE_STRIP ? (
+          <button
+            type="button"
+            aria-label={t(navOpen ? "shell.closeMenu" : "shell.openMenu")}
+            aria-expanded={navOpen}
+            className="inline-flex h-11 w-12 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+            onClick={() => setNavOpen(!navOpen)}
+          >
+            {navOpen ? (
+              <ChevronsLeft className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <ChevronsRight className="h-5 w-5" aria-hidden="true" />
+            )}
+          </button>
+        ) : (
           <button
             type="button"
             aria-label={t("shell.openMenu")}
@@ -124,7 +140,7 @@ export function AppHeader() {
           >
             <Menu className="h-5 w-5" aria-hidden="true" />
           </button>
-        ) : null}
+        )}
         {/* The wordmark — never icon-only in the bar; the icon-only variant is
             reserved for the collapsed rail. md+ shows it in the corner cell. */}
         <Link

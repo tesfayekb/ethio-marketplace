@@ -1,3 +1,4 @@
+import { PasswordInput } from "@/components/ui/password-input";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -699,7 +700,7 @@ function SettingsScreen() {
               <label htmlFor="current-password" className="text-sm text-muted-foreground">
                 {t("settings.currentPassword")}
               </label>
-              <input
+              <PasswordInput
                 id="current-password"
                 type="password"
                 autoComplete="current-password"
@@ -713,7 +714,7 @@ function SettingsScreen() {
               <label htmlFor="new-password" className="text-sm text-muted-foreground">
                 {t("settings.newPassword")}
               </label>
-              <input
+              <PasswordInput
                 id="new-password"
                 type="password"
                 autoComplete="new-password"

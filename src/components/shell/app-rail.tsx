@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, LogOut, Menu, Tag, type LucideIcon } from "lucide-react";
+import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
@@ -127,7 +127,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const strip = useContext(RailVariantContext) === "strip";
   const testid =
     node.testid && (strip ? `strip-${node.testid.replace(/^rail-/, "")}` : node.testid);
-  const stripClass = strip && "justify-center ps-0 pe-0";
+  const stripClass = strip && "h-full min-h-0 justify-center ps-0 pe-0";
   const hasChildren = (node.children?.length ?? 0) > 0;
   // An active descendant keeps its ancestor open.
   const containsActive = (n: RailNode): boolean =>
@@ -153,9 +153,14 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       ITEM_BASE,
       containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
       stripClass,
+      strip && "h-7 min-h-7 max-h-11 flex-1",
     );
     return (
-      <li>
+      <li
+        className={cn(
+          strip && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+        )}
+      >
         {node.path ? (
           <Link
             to={node.path}
@@ -179,7 +184,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             {inner}
           </div>
         )}
-        <ul className="mt-0.5 flex flex-col gap-0.5">
+        <ul className={cn("mt-0.5 flex flex-col gap-0.5", strip && "min-h-0 flex-1")}>
           {(node.children ?? []).map((child) => (
             <RailRow key={child.key} node={child} depth={depth + 1} />
           ))}
@@ -190,8 +195,16 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 
   if (hasChildren) {
     return (
-      <li>
-        <Collapsible open={open} onOpenChange={setOpen}>
+      <li
+        className={cn(
+          strip && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+        )}
+      >
+        <Collapsible
+          open={open}
+          onOpenChange={setOpen}
+          className={cn(strip && "flex min-h-0 flex-1 flex-col")}
+        >
           {/* INC-089 — the tooltip wraps the TRIGGER, never sits between the
               trigger and its DOM element: `CollapsibleTrigger asChild` must
               receive a ref-holding child, and WithTooltip's collapsed branch
@@ -211,6 +224,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
                   ITEM_BASE,
                   containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
                   stripClass,
+                  strip && "h-7 min-h-7 max-h-11 flex-1",
                 )}
               >
                 {inner}
@@ -231,7 +245,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           <CollapsibleContent asChild>
             <ul
               data-testid={strip ? "strip-submenu" : "rail-submenu"}
-              className="mt-0.5 flex flex-col gap-0.5"
+              className={cn("mt-0.5 flex flex-col gap-0.5", strip && "min-h-0 flex-1")}
             >
               {(node.children ?? []).map((child) => (
                 <RailRow key={child.key} node={child} depth={depth + 1} />
@@ -245,7 +259,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 
   if (node.path) {
     return (
-      <li>
+      <li
+        className={cn(
+          strip && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+        )}
+      >
         <WithTooltip label={node.label}>
           <Link
             to={node.path}
@@ -267,7 +285,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 
   if (node.onSelect) {
     return (
-      <li>
+      <li
+        className={cn(
+          strip && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+        )}
+      >
         <WithTooltip label={node.label}>
           <button
             type="button"
@@ -288,7 +310,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // No path yet: the item's page is a later feature. U0f — it still carries its
   // testid, so every rail item is addressable regardless of how it renders.
   return (
-    <li>
+    <li
+      className={cn(
+        strip && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+      )}
+    >
       <WithTooltip label={node.label}>
         <span
           style={pad}
@@ -337,7 +363,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   }));
 
   return (
-    <nav aria-label={t("shell.categoriesLabel")}>
+    <nav aria-label={t("shell.categoriesLabel")} className={cn(strip && "flex h-full flex-col")}>
       {!strip ? (
         <h2
           className={cn(
@@ -348,18 +374,20 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
           {t("shell.categoriesLabel")}
         </h2>
       ) : null}
-      <ul className="flex flex-col gap-0.5">
-        <RailRow
-          node={{
-            key: "all",
-            testid: "rail-category-all",
-            label: t("shell.allCategories"),
-            icon: Tag,
-            active: selectedCategorySlug === null,
-            path: "/",
-            onSelect: onNavigate,
-          }}
-        />
+      <ul className={cn("flex flex-col gap-0.5", strip && "h-full")}>
+        {!strip ? (
+          <RailRow
+            node={{
+              key: "all",
+              testid: "rail-category-all",
+              label: t("shell.allCategories"),
+              icon: Tag,
+              active: selectedCategorySlug === null,
+              path: "/",
+              onSelect: onNavigate,
+            }}
+          />
+        ) : null}
         {/* INC-050: while the tree is being read the rail shows placeholder
             rows at the real pointer-dependent row height, so the sidebar does not jump when
             the categories arrive. Cached reads skip this entirely. */}
@@ -373,7 +401,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
                 <div
                   className={cn(
                     "flex min-h-11 md:pointer-fine:min-h-9 items-center gap-2 px-3",
-                    strip && "justify-center ps-0 pe-0",
+                    strip && "h-full min-h-0 justify-center ps-0 pe-0",
                   )}
                 >
                   <span className="h-4 w-4 shrink-0 animate-pulse rounded bg-muted" />
@@ -403,7 +431,9 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   const strip = useContext(RailVariantContext) === "strip";
   const { t } = useI18n();
   const { auth, activePanel } = useShell();
-  const items = visibleItems(PANELS[activePanel].items, auth);
+  const items = visibleItems(PANELS[activePanel].items, auth).filter(
+    (item) => !strip || item.id !== "post-entry",
+  );
   // Active state for routed items — the current section is highlighted the
   // same way for every panel (U0b).
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -447,9 +477,15 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   }
 
   return (
-    <nav aria-label={t("shell.mainNav")} className="flex flex-col gap-3">
+    <nav
+      aria-label={t("shell.mainNav")}
+      className={cn("flex flex-col gap-3", strip && "h-full min-h-0 gap-0.5")}
+    >
       {sections.map((section, index) => (
-        <div key={section.key ?? `section-${index}`}>
+        <div
+          key={section.key ?? `section-${index}`}
+          className={cn(strip && "flex min-h-0 flex-1 flex-col")}
+        >
           {section.key && !strip ? (
             <h2
               className={cn(
@@ -460,7 +496,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
               {t(section.key)}
             </h2>
           ) : null}
-          <ul className="flex flex-col gap-0.5">
+          <ul className={cn("flex flex-col gap-0.5", strip && "h-full min-h-0 flex-1")}>
             {section.items.map((item) => (
               <RailRow key={item.id} node={toNode(item)} />
             ))}
@@ -510,7 +546,7 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
             onNavigate();
             requestSignOut();
           }}
-          className={cn(ITEM_BASE, ITEM_IDLE, strip && "justify-center ps-0 pe-0")}
+          className={cn(ITEM_BASE, ITEM_IDLE, strip && "h-full min-h-0 justify-center ps-0 pe-0")}
         >
           <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className={cn("truncate", HIDE_WHEN_COLLAPSED, strip && "sr-only")}>
@@ -574,24 +610,14 @@ export function AppRail() {
           <div
             data-testid="rail-strip"
             style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-            className="fixed start-0 top-13 bottom-[max(var(--rail-bottom-inset,0px),var(--bottom-bar))] z-20 flex w-12 flex-col border-e border-border bg-sidebar md:hidden"
+            className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-20 flex w-12 flex-col border-e border-border bg-sidebar md:hidden"
           >
-            <button
-              type="button"
-              data-testid="strip-open-menu"
-              aria-label={t("shell.openMenu")}
-              onClick={() => setNavOpen(true)}
-              className="inline-flex h-11 w-full shrink-0 items-center justify-center border-b border-border text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Menu className="h-5 w-5" aria-hidden="true" />
-            </button>
             <div
               data-testid="strip-scroll"
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               <RailBody onNavigate={() => undefined} />
             </div>
-            <RailFoot onNavigate={() => undefined} />
           </div>
         </RailVariantContext.Provider>
       ) : null}

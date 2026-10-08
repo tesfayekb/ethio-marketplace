@@ -778,7 +778,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         {onWizard ? null : <BottomBar />}
         <div
           data-testid="shell-footer-wrapper"
-          className="relative z-40 w-full bg-card md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16"
+          className={cn(
+            "relative z-0 w-full bg-card md:z-40 md:[&>footer>*]:ps-64 md:[html[data-rail=collapsed]_&>footer>*]:ps-16",
+            PHONE_STRIP && !onWizard && "[&>footer>*]:ps-12",
+          )}
         >
           <AppFooter />
         </div>
