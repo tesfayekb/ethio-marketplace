@@ -1,7 +1,7 @@
-# Bundle 10 — the feed engine: brief, version 2 (saved unchanged, 2026-10-09)
+# Bundle 10 — the feed engine: brief, version 3 (saved unchanged, 2026-10-09)
 
 ```text
-BUNDLE 10 — THE FEED ENGINE, VERSION 2 (2026-10-09). THIS FILE REPLACES VERSION 1. Turn 1 (Part E1) landed at 74f17e56 and matches version 1. This version specifies TURN 2 = PART E2a, the index keeps itself right:
+BUNDLE 10 — THE FEED ENGINE, VERSION 3 (2026-10-09). THIS FILE REPLACES VERSION 2. Turn 2 wrote E2a's tests, docs and changelog line (dc990588) and stopped at E2a.4: the platform's database tool refuses SQL that schedules a job more often than once an hour unless the file's first line is a review marker. This version adds that marker as the appendix's first line, corrects two tests and one older test (E2a.5), and specifies TURN 3 = E2a.5, then E2a.4. Part E2a, the index keeps itself right:
 - the tier sets the rank;
 - every write to a listing or its places refreshes that listing in the same transaction;
 - a moved category or place queues the listings under it for a sweep with a heartbeat;
@@ -11,8 +11,13 @@ The supervisor ran the migration text below on a local Postgres 16 copy of the s
 - the proofs pass;
 - a missing trigger makes P2 fail;
 - its behaviour checks give the expected rows: an insert, an extra place added and removed, a tier change, leaving and returning to active, a moved category, a moved city, a bulk expiry, a delete, and a write by a role that cannot call the refresh itself;
-- scripts/check-migrations.sh: every guard OK.
-Line numbers are as of commit 74f17e56 (dev). This file is public: it is written as build instructions.
+- scripts/check-migrations.sh: every guard OK (again with the marker line).
+Line numbers are as of commit dc990588 (dev). This file is public: it is written as build instructions.
+
+ANSWERS TO TURN 2
+- Verified by the diff of 74f17e56..dc990588: the saved brief equals version 2; FE-6 to FE-14, the docs and the changelog line are as version 2 wrote them. The census results are accepted. The ":29" in E2a.1 named the helper's line in e2e/helpers/locations.ts, as you read it.
+- The ruling on the five-minute sweep: KEEP the design, as catalog-find-sweep does (supabase/migrations/20261003005802_7423f49a-182c-47a8-b92e-d6417ed57452.sql line 1 carries the same marker). The appendix's first line is now the marker; every other line is unchanged.
+- CI on dc990588 is expected RED in FE-6 to FE-14 only: their functions do not exist until the migration applies. Any other red is named in the report.
 
 ANSWERS TO TURN 1
 - Verified by the diff of 97676945..74f17e56:
@@ -35,9 +40,9 @@ STEP 0 — keep this brief
 HOW TO WORK
 - Order of the turn:
   1. step 0;
-  2. E2a.0, the read-only census on ethio-prod. If any result differs from what it expects, STOP and report: write nothing else;
-  3. E2a.1 to E2a.3: the tests, the docs and the changelog;
-  4. E2a.4 LAST: the migration;
+  2. E2a.5: the test corrections;
+  3. E2a.4 LAST: the migration (E2a.0 to E2a.3 were done in turn 2 and are not repeated);
+  4. the unit tests;
   5. the report;
   6. END THE TURN.
   Do not stop between steps.
@@ -50,6 +55,7 @@ HOW TO WORK
 - Scope:
   - one new migration file under supabase/migrations/ (the database tool names it);
   - e2e/feed-index.spec.ts;
+  - e2e/posting-routes.spec.ts (PR-23 only, E2a.5);
   - docs/features/feed-engine.md;
   - docs/_changelog.md;
   - the brief.
@@ -57,7 +63,7 @@ HOW TO WORK
 - Closed surfaces (G22): the workflow files, the failure reporter, scripts/check-migrations.sh, the e2e helpers and e2e/global-setup.ts are not touched.
 
 THE MIGRATION RULES (G39 — every one applies)
-- The migration text is in the appendix at the end of this brief. Write it EXACTLY, changing only `<MARK>`. Do not reformat it, add to it or "improve" it. If the census shows that a line cannot work as written, STOP before saving and report the line.
+- The migration text is in the appendix at the end of this brief. Its first line is the platform's review marker for the five-minute schedule. Write it EXACTLY, changing only `<MARK>`. Do not reformat it, add to it or "improve" it. If the census shows that a line cannot work as written, STOP before saving and report the line.
 - Two functions are redeclared WHOLE with one change each (the rank from the tier):
   - feed_index_refresh: the tier is read with the listing and ranked by feed_tier_rank;
   - feed_index_check: the expected rank comes from the tier.
@@ -70,6 +76,7 @@ THE MIGRATION RULES (G39 — every one applies)
 - `<MARK>` is chosen at apply time:
   - take now() at time zone 'utc' on ethio-prod, round it up to the next whole hour and add one hour (add twelve hours instead if the save dialog may wait);
   - it must be later than the saved file's own stamp and above 20261009160000.
+  Turn 2 chose 20261009180000 and the changelog line names it: keep it if it still meets both conditions; otherwise choose by the rule and change the changelog line to the new mark.
 - Then hand the FINAL text to the database tool ONCE. Never a stub, a comment or a draft (INC-491).
 - What the text does, so the report can say it:
   - the rank function;
@@ -85,6 +92,7 @@ THE MIGRATION RULES (G39 — every one applies)
   Every new table is closed to the browser roles (RLS on, one closing policy, ALL to service_role only). Every new function has an in-file REVOKE from PUBLIC, anon and authenticated. The trigger functions run as their owner, so a write by any role refreshes the index.
 
 PART E2a — THE INDEX KEEPS ITSELF RIGHT
+E2a.0 to E2a.3 were done in turn 2 (dc990588). They stay here as the record and are not repeated; turn 3 is E2a.5, then E2a.4.
 
 E2a.0 — CENSUS (read-only, ethio-prod, with your query tool, before writing anything). Paste each result:
 - (a) `select tgrelid::regclass as tab, tgname from pg_trigger where not tgisinternal and tgrelid in ('public.listings'::regclass, 'public.listing_locations'::regclass, 'public.category_tree_pointers'::regclass, 'public.locations'::regclass) order by 1, 2;` — no name begins with feed_.
@@ -140,6 +148,14 @@ In "What it does not do yet", replace the E2 lines with: E2b adds the read door 
 
 E2a.3 — One changelog line.
 
+E2a.5 — THE TEST CORRECTIONS (before the migration). A heartbeat row is proven by its id, never by its time or by a count:
+- the runner's clock and the database's clock differ, so "ran_at at or after the test's start" can miss the row just written;
+- each sweep also deletes its rows older than its keeping period, so a count can stay level or fall in the same call that wrote a row.
+- FE-10: before the pointer insert, read the largest id of feed_reindex_runs (`select("id").order("id", { ascending: false }).limit(1)`). After `sweepUntil`, a row with a larger id exists. When there was no row before, any row counts. The ran_at comparison goes.
+- FE-13: the same for feed_index_check_runs, read before the `rpc("feed_index_check_sweep")` call.
+- PR-23 (e2e/posting-routes.spec.ts :1069–1080, INC-511): the same for listing_expiry_sweep_runs, in place of the two exact counts. The count comparison starts to fail once the ledger is older than fourteen days, about 2026-10-18 on ethio-staging. Nothing else in PR-23 changes.
+- Census (G29): `grep -rn "_runs" e2e` printed five lines at dc990588: e2e/posting-routes.spec.ts :1070 and :1076 (PR-23), e2e/feed-index.spec.ts :347 (FE-10), :429 (FE-13) and :443 (FE-14's table list, which reads no heartbeat and stays as it is). Run it again and name any other line that proves a heartbeat row.
+
 E2a.4 — THE MIGRATION (last). Write the appendix's text; run the check as above; choose the mark; hand the final text to the database tool once. Then the read-back with your query tool (it cannot call service-role-only functions — the migration's own proofs are the proof of those). Paste each result; a read refused to your tool's role is reported as refused:
 - `select version from public.migration_marks where version = '<MARK>';` — one row;
 - `select tier_rank, count(*) from public.feed_index group by 1 order by 1;`
@@ -159,8 +175,8 @@ NAMED FOR THE NEXT VERSIONS (not specified here; build none of it)
 - Then (agreed, D106 and D107): the chosen place kept on the account, and the amber "different place" notice.
 
 REPORT (one, at the end). First lines:
-- done or not done for step 0 and E2a.0 to E2a.4;
-- the E2a.0 results;
+- done or not done for step 0, E2a.5 and E2a.4;
+- the E2a.5 census;
 - whether the browser started;
 - any cited line that read differently;
 - any file outside the lists.
@@ -172,12 +188,13 @@ Then:
 - the line "apply <uuid-fragment of the filename> → expect mark <MARK>" for the operator's staging apply;
 - the six ci-status lines;
 - unit tests, format:check, lint;
-- the file list from `git diff --name-only 74f17e56` (untracked new files listed by name);
+- the file list from `git diff --name-only dc990588` (untracked new files listed by name);
 - "Logs read: … · unavailable: …".
 Never "CI green" from a local run. END THE TURN after the report.
 
 APPENDIX — THE MIGRATION TEXT (write it exactly; change only <MARK>)
 
+-- lovable-cron-fallback-reviewed: bundle 10 brief version 3 (E2a) requires feed-reindex-sweep every 5 minutes (288 runs/day) so that a moved category or place reaches the feed within minutes; the five write triggers are the main path and the sweep drains only the tree-change queue.
 -- E2a (bundle 10, the feed engine): the index keeps itself right. The tier sets the rank (D108: premium, then featured, then regular); every write to a listing or its places refreshes that listing's rows in the same transaction; a moved category or place queues the listings under it for a five-minute sweep with a heartbeat; a daily check writes its counts. Spec: docs/governance/feed-engine-spec.md.
 -- e2e-areas: feed, posting
 
