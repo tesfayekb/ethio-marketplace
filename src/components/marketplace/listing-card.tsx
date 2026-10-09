@@ -1,5 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
-import { Eye, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 import type { FeedListing } from "@/features/feed/use-feed";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
@@ -108,11 +108,6 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
           </p>
         ) : null}
 
-        {/* SEAM: viewCount is 0 until the view-tracking feature ships. */}
-        <p className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span>{t("feed.views").replace("{count}", String(listing.viewCount))}</span>
-        </p>
       </div>
     </article>
   );

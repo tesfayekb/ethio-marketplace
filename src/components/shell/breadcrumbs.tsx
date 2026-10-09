@@ -14,7 +14,7 @@ import { PANELS } from "@/config/panels";
 import { groupForPath, groupForSection, sectionForPath } from "@/features/admin/sections";
 import { useAdminRole } from "@/features/admin/roles/use-admin-roles";
 import { useAdminUser } from "@/features/admin/users/use-admin-users";
-import { useCategories } from "@/features/feed/use-feed";
+import { pathOf, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
@@ -27,9 +27,10 @@ import { entityName } from "@/i18n/entity";
  * category entirely. This works today — it is client navigation over state the
  * shell already owns, with no backend needed.
  *
- * The path is currently one level deep because useCategories returns top-level
- * categories only; when category children land the same map renders the full
- * chain (Home › Clothing › Child clothing › Shirts) with no change here.
+ * E3b — the path is the WHOLE category path, `pathOf` over the shared tree: a
+ * subcategory shows Home › <parent> › … › <itself>, following a category's
+ * first parent. The last segment is the current page (`breadcrumb-category`);
+ * every earlier one links to its /c/<slug> (`breadcrumb-category-parent`).
  */
 /** Operator directive (U0c): the CURRENT segment is underlined and heavier. */
 const CURRENT = "font-semibold text-foreground underline underline-offset-4";
@@ -41,12 +42,12 @@ export function Breadcrumbs() {
     select: (s) => (s.location.search as { view?: string }).view,
   });
   const { activePanel, selectedCategorySlug } = useShell();
-  const { categories } = useCategories();
+  const { tree } = useCategoryTree();
 
   const panelLabel = t(PANELS[activePanel].labelKey);
   /** U0l (INC-073): the crumb reads the URL, exactly like the rail and body. */
-  const selected = categories.find((c) => c.slug === selectedCategorySlug) ?? null;
-  const path = selected ? [selected] : [];
+  const selected = tree.nodes.find((node) => node.slug === selectedCategorySlug) ?? null;
+  const path = selected ? pathOf(tree, selected.id) : [];
 
   /**
    * INC-043: "Home" IS the marketplace, so "Home › Marketplace" said the same
@@ -248,7 +249,7 @@ export function Breadcrumbs() {
                     <Link
                       to="/c/$slug"
                       params={{ slug: node.slug }}
-                      data-testid="breadcrumb-category"
+                      data-testid="breadcrumb-category-parent"
                     >
                       {label}
                     </Link>

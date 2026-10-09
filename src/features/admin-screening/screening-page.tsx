@@ -137,7 +137,7 @@ export function AdminScreeningPage() {
   return (
     <StepUpGate>
       {(guard) => {
-        const confirm = async () => {
+        const decide = async () => {
           if (decision === null) return;
           const { row, next } = decision;
           setBusy(true);
@@ -260,7 +260,7 @@ export function AdminScreeningPage() {
                     className="min-h-11"
                     data-testid="admin-screening-confirm-go"
                     disabled={busy}
-                    onClick={() => void confirm()}
+                    onClick={() => void decide()}
                   >
                     {decision?.next === "rejected"
                       ? t("admin.screening.reject")

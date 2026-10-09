@@ -450,6 +450,7 @@ test.describe("POSTING WIZARD", () => {
         price_amount: 500,
         price_currency: "ETB",
         price_period: "day",
+        published_at: new Date().toISOString(),
       })
       .eq("id", listingId);
     if (error) throw new Error(`PW-94: pricing the listing failed: ${error.message}`);

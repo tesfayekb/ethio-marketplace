@@ -164,8 +164,21 @@ export const AREAS: Area[] = [
   },
   {
     name: "feed",
-    src: ["src/features/feed/**", "src/routes/api/feed.ts"],
-    specs: ["e2e/category-nav.spec.ts", "e2e/feed-index.spec.ts", "e2e/feed-route.spec.ts"],
+    src: [
+      "src/features/feed/**",
+      "src/routes/api/feed.ts",
+      "src/components/marketplace/**",
+      "src/components/app-shell.tsx",
+      "src/components/shell/breadcrumbs.tsx",
+    ],
+    specs: [
+      "e2e/category-nav.spec.ts",
+      "e2e/feed-index.spec.ts",
+      "e2e/feed-route.spec.ts",
+      "e2e/feed-screens.spec.ts",
+      "e2e/shell.spec.ts",
+      "e2e/post-wizard-pricing.spec.ts",
+    ],
   },
   {
     name: "house-style",

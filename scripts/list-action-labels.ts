@@ -105,6 +105,9 @@ function openTagEnd(text: string, start: number): number {
 
 /** The index of the matching close tag, nesting of the same tag respected. */
 function closeTag(text: string, tag: string, from: number): number {
+  if (!/^[A-Za-z]+$/.test(tag)) return -1;
+  // Reviewed (DEC-153): tag is letters only (checked above): a TAG_KIND key or "Link".
+  // nosemgrep: detect-non-literal-regexp
   const re = new RegExp(`<${tag}(?=[\\s>/])|</${tag}\\s*>`, "g");
   re.lastIndex = from;
   let depth = 1;

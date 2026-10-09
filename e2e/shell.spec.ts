@@ -472,7 +472,7 @@ test.describe("app shell", () => {
   });
   test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
     // Hold the listings read open so the busy state is observable.
-    await page.route("**/rest/v1/listings*", async (route) => {
+    await page.route("**/api/feed*", async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
       await route.continue();
     });
