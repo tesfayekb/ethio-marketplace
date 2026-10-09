@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 366,
-  "dynamicCallSites": 220,
+  "scanned": 369,
+  "dynamicCallSites": 224,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2088,6 +2088,39 @@
     "admin.roles.title": [
       "/admin/roles"
     ],
+    "admin.screening.approve": [
+      "/admin/screening"
+    ],
+    "admin.screening.col.category": [
+      "/admin/screening"
+    ],
+    "admin.screening.col.place": [
+      "/admin/screening"
+    ],
+    "admin.screening.col.sent": [
+      "/admin/screening"
+    ],
+    "admin.screening.col.title": [
+      "/admin/screening"
+    ],
+    "admin.screening.confirmApprove": [
+      "/admin/screening"
+    ],
+    "admin.screening.confirmReject": [
+      "/admin/screening"
+    ],
+    "admin.screening.empty": [
+      "/admin/screening"
+    ],
+    "admin.screening.open": [
+      "/admin/screening"
+    ],
+    "admin.screening.reject": [
+      "/admin/screening"
+    ],
+    "admin.screening.search": [
+      "/admin/screening"
+    ],
     "admin.translations.add.added": [
       "/admin/translations"
     ],
@@ -2959,6 +2992,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/places",
+      "/admin/screening",
       "/dev/primitives",
       "/post",
       "/post/$listingId"
@@ -2971,6 +3005,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId",
@@ -2979,6 +3014,9 @@
     "common.dismiss": [
       "(every page)"
     ],
+    "common.error": [
+      "/admin/screening"
+    ],
     "common.goHome": [
       "(every page)"
     ],
@@ -2986,10 +3024,12 @@
       "(every page)",
       "/account",
       "/admin/categories",
+      "/admin/screening",
       "/settings"
     ],
     "common.retry": [
       "/",
+      "/admin/screening",
       "/c/$slug"
     ],
     "common.save": [
@@ -3042,6 +3082,7 @@
     "feed.noPhoto": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -3053,6 +3094,7 @@
     "feed.views": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -3147,6 +3189,7 @@
     "listing.photosSoon": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -3177,6 +3220,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId",
@@ -3190,6 +3234,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId",
@@ -3239,6 +3284,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId"
@@ -3251,6 +3297,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId"
@@ -3263,6 +3310,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId"
@@ -3275,6 +3323,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId",
@@ -3288,6 +3337,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId"
@@ -3300,6 +3350,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId"
@@ -3400,6 +3451,7 @@
       "/post/$listingId"
     ],
     "post.catalog.yourCountry": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -3700,6 +3752,7 @@
       "/post/$listingId"
     ],
     "post.pin.title": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -3708,30 +3761,37 @@
       "/post/$listingId"
     ],
     "post.preview.close": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.descriptionLabel": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.detailsLabel": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.mapPlaceholder": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.photoCount": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.sellerLabel": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.title": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -3897,18 +3957,22 @@
     ],
     "post.review.no": [
       "/admin/categories",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.review.noPrice": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.review.noTitle": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.review.notGiven": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -3927,6 +3991,7 @@
     "post.review.priceLine": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -3934,6 +3999,7 @@
     "post.review.pricePer": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -3955,6 +4021,7 @@
       "/post/$listingId"
     ],
     "post.review.sizeLine": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -3988,6 +4055,7 @@
     ],
     "post.review.yes": [
       "/admin/categories",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -4008,10 +4076,12 @@
       "/post/$listingId"
     ],
     "post.seller.memberSince": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.seller.previously": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -4104,6 +4174,7 @@
       "/post/$listingId"
     ],
     "post.specs.yearEcSuffix": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -4148,6 +4219,7 @@
       "/post/$listingId"
     ],
     "post.where.detailsLabel": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -4164,6 +4236,7 @@
       "/post/$listingId"
     ],
     "post.where.directionsLabel": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -4332,22 +4405,27 @@
       "/post/$listingId"
     ],
     "post.who.channel.messages": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.phone": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.phone2": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.telegram": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.whatsapp": [
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -4498,6 +4576,7 @@
     "price.commission": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -4505,6 +4584,7 @@
     "price.contact": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -4512,6 +4592,7 @@
     "price.free": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -4519,6 +4600,7 @@
     "price.negotiable": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -4548,6 +4630,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
@@ -4569,6 +4652,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
@@ -4584,6 +4668,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
@@ -4599,6 +4684,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
@@ -4614,6 +4700,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
@@ -4629,6 +4716,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
@@ -4647,6 +4735,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
@@ -4662,6 +4751,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
@@ -4677,6 +4767,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
@@ -4697,6 +4788,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
+      "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId",
@@ -4853,6 +4945,7 @@
     "tier.featured": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"
@@ -4860,6 +4953,7 @@
     "tier.premium": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/screening",
       "/c/$slug",
       "/post",
       "/post/$listingId"

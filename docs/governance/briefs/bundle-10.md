@@ -1,7 +1,7 @@
-# Bundle 10 — the feed engine: brief, version 6 (saved unchanged, 2026-10-09)
+# Bundle 10 — the feed engine: brief, version 7 (saved unchanged, 2026-10-09)
 
 ```text
-BUNDLE 10 — THE FEED ENGINE, VERSION 6 (2026-10-09). THIS FILE REPLACES VERSION 5. Turn 5 (Part E2b) landed at d91aac66 and matches version 5. This version specifies TURN 6 = PART E3a — Admin › Screening (D109, the operator, 2026-10-09):
+BUNDLE 10 — THE FEED ENGINE, VERSION 7 (2026-10-09). THIS FILE REPLACES VERSION 6. Turn 6 saved version 6 and stopped at E3a.0 (b): no role holds listings:review. This version changes SC-4 (b) only; everything else is version 6. It specifies TURN 7 = PART E3a — Admin › Screening (D109, the operator, 2026-10-09):
 - a reviewer sees the ads waiting in `screening`, opens each as a buyer will see it, and approves or rejects it;
 - an approved ad goes live and the feed index takes it at once (the triggers of E2a);
 - one correction to /api/feed (E3a.6).
@@ -10,7 +10,13 @@ The supervisor ran the migration text below on a local Postgres 16 copy of the s
 - a reviewer without a fresh second factor is refused and the ad stays in screening;
 - the service's approval makes the ad active and writes its feed rows;
 - scripts/check-migrations.sh: every guard OK.
-Line numbers are as of commit d91aac66 (dev). This file is public: it is written as build instructions.
+Line numbers are as of commit ec779457 (dev). This file is public: it is written as build instructions.
+
+ANSWERS TO TURN 6
+- Your stop was right. E3a.0 (a), (c), (d) and (e) are accepted as reported: the live body's md5 equals the file's (49402bc72dbd96c8b139b037bcc755ba), 8 ads in screening, the new paths free, the newest mark 20261009190000.
+- E3a.0 (b): no role holds listings:review or listings:enforce today; only a super admin passes has_permission (it returns true for a super admin, supabase/migrations/20260809010130_05add65c-4963-4df2-95bd-b1cc855820c0.sql :128–148), and get_my_permissions lists every permission for a super admin (:150–168), so the operator's buttons show and his decisions pass the door. No role is granted anything in this bundle; that is the operator's choice in Admin › Roles.
+- So SC-4 (b) uses a scratch role that holds listings:review only, built and removed by the test as e2e/admin-attributes-editor.spec.ts AT-34 builds its scratch role (:363–424), with a leased user who has no second factor. Read E3a.0 (b) as reported; nothing else in the turn depends on it.
+- Redo E3a.0 (e) at apply time; the rest of E3a.0 stands.
 
 ANSWERS TO TURN 5
 - Verified by the diff of 41b46aa6..d91aac66:
@@ -177,7 +183,7 @@ E3a.4 — THE TESTS: e2e/admin-screening.spec.ts (new; ids SC-1 to SC-5).
 - SC-3 "Reject keeps the ad off": the same with Reject → status "rejected", no feed_index row, the "Rejected" toast.
 - SC-4 "only a reviewer with a fresh second factor decides", each with DB truth that the status stays "screening":
   - (a) a leased pool user with no role: `rpcFromBrowser(page, "transition_listing", { p_listing_id, p_new_status: "active" })` returns an error;
-  - (b) a user given the role that E3a.0 (b) shows holding `listings:review`, with no second factor (`createUser` and `grantRole`, as e2e/mfa-stepup.spec.ts MF-4 does): the same call returns an error matching /no verified factor|step-up required/i.
+  - (b) a scratch role holding `listings:review` only: the service client inserts the role (`roles`: name and display_name `e2e_screen_reviewer_${rand()}`, priority 1), one `role_permissions` row for the listings:review permission (read from `permissions` joined to `resources` named "listings", as AT-34 reads its two), and a `user_roles` row (scope_type "global") for a leased user (`leaseUser`) who has no second factor. Register the role id for the afterEach BEFORE the inserts; the afterEach deletes, in this order, its role_permissions rows, its user_roles rows and the role (as AT-34's finally does). Then `switchUser` to that user and `gotoReady(page, "/")`; the same call returns an error matching /no verified factor|step-up required/i.
 - SC-5 "an empty search shows the empty message": search a title nobody has (`e2e-none-${rand()}`) → `admin-screening-empty` is visible with the English of admin.screening.empty.
 - e2e/admin-shell.spec.ts reads the sections list itself, so it covers the new section without an edit.
 
@@ -201,7 +207,7 @@ NAMED FOR THE NEXT VERSIONS (not specified here; build none of it)
 
 REPORT (one, at the end). First lines:
 - done or not done for step 0 and E3a.0 to E3a.8;
-- the E3a.0 results;
+- E3a.0 (e) as read at apply time;
 - whether the browser started;
 - any cited line that read differently;
 - any part of ListingDetailView left out, and why;
@@ -215,7 +221,7 @@ Then:
 - the line "apply <uuid-fragment of the filename> → expect mark <MARK>" for the operator's staging apply;
 - the six ci-status lines;
 - unit tests, format:check, lint, typecheck;
-- the file list from `git diff --name-only d91aac66` (untracked new files listed by name);
+- the file list from `git diff --name-only ec779457` (untracked new files listed by name);
 - "Logs read: … · unavailable: …".
 Never "CI green" from a local run. END THE TURN after the report.
 
