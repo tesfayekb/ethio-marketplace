@@ -17,7 +17,12 @@ describe("feed-bench", () => {
   it("FB-1 nearestRank", () => {
     expect(nearestRank([5, 1, 3, 2, 4], 0.95)).toBe(5);
     expect(nearestRank([5, 1, 3, 2, 4], 0.5)).toBe(3);
-    expect(nearestRank(Array.from({ length: 30 }, (_, i) => i + 1), 0.95)).toBe(29);
+    expect(
+      nearestRank(
+        Array.from({ length: 30 }, (_, i) => i + 1),
+        0.95,
+      ),
+    ).toBe(29);
     expect(() => nearestRank([], 0.95)).toThrow();
   });
 
