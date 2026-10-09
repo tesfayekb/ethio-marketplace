@@ -272,8 +272,12 @@
 }
 
 @layer base {
-  .cut-floor::before { content: attr(data-floor); }
-  .cut-full::before { content: attr(data-full); }
+  .cut-floor::before {
+    content: attr(data-floor);
+  }
+  .cut-full::before {
+    content: attr(data-full);
+  }
   html[data-input="pointer"]
     :is(
       button,

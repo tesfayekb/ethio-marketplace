@@ -7,6 +7,7 @@ import { en } from "../src/i18n/locales/en";
 import {
   expectNoHorizontalOverflow,
   expectSignedIn,
+  expectCutFloor,
   gotoReady,
   describeSwitcher,
   expectActivePanel,

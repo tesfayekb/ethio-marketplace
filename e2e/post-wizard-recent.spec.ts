@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
-import { gotoReady, signInViaSession } from "./helpers/ui";
+import { expectCutFloor, gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import {
   destroyListingsOf,
