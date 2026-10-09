@@ -35,7 +35,7 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 ## What E3b built
 
 - **The pages and the hook** — "/" and every "/c/<slug>" read `/api/feed` through `useFeed({ categoryId, placeId, enabled })` (src/features/feed/use-feed.ts), 20 cards a page, for the last place of the location row (none = everywhere). The browser never reads `listings` and never sorts; a non-200, a thrown fetch or a body `parseFeedPage` refuses is an error, never an empty page (F4).
-- **The sections and their labels** — `feedSections` (src/features/feed/feed-page.ts) groups consecutive cards by ladder step. Step 1 has no label (the h1 names the chosen place); a wider place is named with `feed.heading`, everywhere with `nav.allListings`; a place not in the location path gets no label. With nothing in the chosen place, `feed-step-none` says so above the first section.
+- **The sections and their labels** — `feedSections` (src/features/feed/feed-page.ts) groups consecutive cards by ladder step. Step 1 has no label (the h1 names the chosen place); a wider place is named with `feed.heading`, everywhere with `nav.allListings`; a place not in the location path gets no label. With nothing in the chosen place, the invitation leads (D119, below); `feed-step-none` says so only when no invitation can be drawn.
 - **Paging** — `feed-more` (44 px) is watched by an IntersectionObserver (rootMargin 0px); the next page loads only when it comes into view. A failed next page keeps the cards and offers Retry.
 - **Not found** — the slug resolves through the whole tree (`categoryLookup`, INC-504); an unknown slug shows `feed-category-unknown` and asks the feed nothing; a failed tree read shows `feed-category-failed`. A top category shows its whole branch (INC-503).
 - **The breadcrumbs** — the whole category path (`pathOf`), earlier segments linking to their pages (`breadcrumb-category-parent`).
@@ -52,6 +52,14 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 - **The targets (D101 §5)** — p95 ≤ 50 ms per shape (nearest rank of 30 calls), one page ≤ 30,720 bytes. Under DEC-166 a red run is a MISS: an incident, and the database design is revised before the next screen bundle.
 - **Not measured here** — the cached first page's time to first byte (≤ 100 ms) needs the published site; the first page on slow 3G (≤ 1.5 s) needs a browser.
 
+## D119 — the invite card (2026-10-09)
+
+- **Who sees it** — the chosen place only (the last place of the location row; never the everywhere feed), while it holds fewer than 4 listings of the category on screen (`inviteShown`, `INVITE_BELOW = 4`, src/features/feed/feed-page.ts; on the home page every category counts). The widening threshold (8) is unchanged.
+- **Where** — `feed-invite` (src/components/marketplace/invite-card.tsx) is the last item of the chosen place's row. When the place has none, it leads alone in section 1, before the wider places, and replaces the `feed-step-none` note. With nothing anywhere, the empty box (`feed-empty`) keeps its title and shows the invitation's sentence and button instead of `feed.emptyBody`.
+- **The words** — `feed.invite.place` on the home page ("Be the first to advertise in {place}.") and `feed.invite.placeCategory` on a category page ("Be the first to advertise {category} in {place}."); the Amharic is the operator's own. The button is `nav.postListing`.
+- **The address** — `feed-invite-post` opens `/post?place=<id>`, with `category=<id>` as well on a category page (docs/features/posting.md, D119).
+- **Tests** — FS-3 and FS-4 (changed), FS-8..FS-10; FP-8.
+
 ## What it does not do yet
 
 - The rail's highlight and the subcategory menus (D98).
@@ -65,4 +73,4 @@ The E2a migration follows it with its own self-mark, recorded in docs/\_changelo
 
 The E2b migration follows with its own self-mark, recorded in docs/\_changelog.md.
 
-Tests: scripts/feed-bench.test.ts (FB-1..FB-4), e2e/feed-index.spec.ts (FE-1..FE-14), e2e/feed-route.spec.ts (FR-1..FR-8), e2e/feed-screens.spec.ts (FS-1..FS-6), src/features/feed/feed-page.test.ts (FP-1..FP-7), area `feed` in scripts/e2e-select.ts.
+Tests: scripts/feed-bench.test.ts (FB-1..FB-4), e2e/feed-index.spec.ts (FE-1..FE-14), e2e/feed-route.spec.ts (FR-1..FR-8), e2e/feed-screens.spec.ts (FS-1..FS-10), src/features/feed/feed-page.test.ts (FP-1..FP-8), area `feed` in scripts/e2e-select.ts.

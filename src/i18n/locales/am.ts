@@ -252,6 +252,8 @@ export const am: Messages = {
   "feed.errorBody": "ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።",
   "feed.views": "{count} እይታዎች",
   "feed.noPhoto": "እስካሁን ፎቶ የለም",
+  "feed.invite.place": "በ{place} ውስጥ ማስታወቂያ በመለጠፍ የመጀመሪያው ይሁኑ።",
+  "feed.invite.placeCategory": "በ{place} ውስጥ እና በ{category} ምድብ ስር ማስታወቂያ በመለጠፍ የመጀመሪያው ይሁኑ።",
   "listing.photosSoon": "ፎቶዎች በቅርቡ ይመጣሉ",
   "price.free": "ነጻ",
   "price.negotiable": "የሚደራደር",

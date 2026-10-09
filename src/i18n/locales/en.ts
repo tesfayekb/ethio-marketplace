@@ -258,6 +258,8 @@ export const en = {
   "feed.errorBody": "Check your connection and try again.",
   "feed.views": "{count} views",
   "feed.noPhoto": "No photo yet",
+  "feed.invite.place": "Be the first to advertise in {place}.",
+  "feed.invite.placeCategory": "Be the first to advertise {category} in {place}.",
   "listing.photosSoon": "PHOTOS COMING SOON",
   "price.free": "Free",
   "price.negotiable": "Negotiable",

@@ -3,10 +3,17 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useShell, type LocationNode } from "@/components/shell-context";
 import { WovenMark } from "@/components/brand/logo";
 import { Spinner } from "@/components/brand/spinner";
+import {
+  InviteCard,
+  InvitePostButton,
+  InviteText,
+  type Invite,
+} from "@/components/marketplace/invite-card";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
-import { feedSections } from "@/features/feed/feed-page";
+import { useCategoryTree } from "@/features/categories/category-tree";
+import { feedSections, inviteShown } from "@/features/feed/feed-page";
 import { useFeed } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
@@ -34,6 +41,18 @@ function FeedError({
         {t("common.retry")}
       </Button>
     </div>
+  );
+}
+
+/** D119 — the empty box's invitation: the card's sentence and its one button. */
+function InviteBody({ invite }: { invite: Invite }) {
+  return (
+    <>
+      <InviteText invite={invite} className="mt-1 text-sm text-muted-foreground" />
+      <div className="mt-4">
+        <InvitePostButton invite={invite} />
+      </div>
+    </>
   );
 }
 
@@ -75,6 +94,23 @@ export function Feed() {
 
   const sections = feedSections(cards, ladder);
 
+  const { tree } = useCategoryTree();
+  const categoryNode =
+    selectedCategoryId === null ? null : (tree.byId.get(selectedCategoryId) ?? null);
+  // D119 — the card belongs to the chosen place only; on a category page it waits
+  // for the category's name rather than drawing a sentence without it.
+  const invite: Invite | null =
+    place !== null && (selectedCategoryId === null || categoryNode !== null) && inviteShown(cards)
+      ? {
+          placeId: place.id,
+          placeName: nameOf(place),
+          categoryId: selectedCategoryId,
+          categoryName:
+            categoryNode === null ? null : entityName("category", categoryNode, entities),
+        }
+      : null;
+  const firstStep = cards[0]?.step ?? 1;
+
   let body: ReactNode;
   if (categoryLookup === "missing") {
     body = (
@@ -105,16 +141,31 @@ export function Feed() {
         {/* Allowed motif placement: logo, spinner, empty state. */}
         <WovenMark className="h-10 w-10" />
         <h2 className="mt-4 text-base font-semibold text-foreground">{t("feed.emptyTitle")}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t("feed.emptyBody")}</p>
+        {invite !== null ? (
+          <InviteBody invite={invite} />
+        ) : (
+          <p className="mt-1 text-sm text-muted-foreground">{t("feed.emptyBody")}</p>
+        )}
       </PageCard>
     );
   } else {
     body = (
       <>
-        {(cards[0]?.step ?? 1) > 1 ? (
+        {/* D119 — the note is the fallback for a place with none and no card. */}
+        {firstStep > 1 && invite === null ? (
           <p data-testid="feed-step-none" className="mb-4 text-sm text-muted-foreground">
             {t("feed.emptyTitle")}
           </p>
+        ) : null}
+        {/* D119 — nothing in the chosen place: its invitation comes first. */}
+        {firstStep > 1 && invite !== null ? (
+          <section data-testid="feed-section" data-step="1" className="mt-6 first:mt-0">
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <li>
+                <InviteCard invite={invite} />
+              </li>
+            </ul>
+          </section>
         ) : null}
         {sections.map((section) => {
           let label: string | null = null;
@@ -145,6 +196,11 @@ export function Feed() {
                     <ListingCard listing={listing} />
                   </li>
                 ))}
+                {section.step === 1 && invite !== null ? (
+                  <li key="invite">
+                    <InviteCard invite={invite} />
+                  </li>
+                ) : null}
               </ul>
             </section>
           );

@@ -29,7 +29,7 @@ import {
   type LastPlaces,
   readPlaceFacts,
 } from "./posting-service";
-import { whereSeed, type WhereSeed } from "./where-seed";
+import { whereSeed, type PlaceFact, type WhereSeed } from "./where-seed";
 import { RequiredMark } from "./field";
 import { looksLikeContact } from "./contact-like";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
@@ -687,6 +687,7 @@ export function StepWhere({
   maxCities = null,
   maxRegions = null,
   maxCountries = null,
+  invitePlaceId = null,
 }: {
   /** The chosen place ids; the FIRST one is the item's own place (spec §4 C2). */
   coverage: string[];
@@ -711,6 +712,8 @@ export function StepWhere({
   maxCities?: number | null;
   maxRegions?: number | null;
   maxCountries?: number | null;
+  /** D119 — the place the invite card named (/post only); null when none. */
+  invitePlaceId?: string | null;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
@@ -869,6 +872,27 @@ export function StepWhere({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * D119 — the invite's place, read ONCE for a new post: `undefined` while read,
+   * `null` when there is none (or it is unknown or switched off).
+   */
+  const [invite, setInvite] = useState<PlaceFact | null | undefined>(() =>
+    invitePlaceId !== null && coverage.length === 0 ? undefined : null,
+  );
+  useEffect(() => {
+    if (invitePlaceId === null || coverage.length > 0) return;
+    let cancelled = false;
+    void readPlaceFacts([invitePlaceId]).then((facts) => {
+      if (cancelled) return;
+      setInvite(facts?.find((fact) => fact.id === invitePlaceId && fact.active) ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Read once per mount, like the draft's own places.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   /** The guess is read ONCE per visit; it never writes the saved-area cookie. */
   useEffect(() => {
     let cancelled = false;
@@ -926,8 +950,9 @@ export function StepWhere({
   }, []);
 
   /**
-   * THE MARKET PREFILL (INC-237): the last post's market (W6b-1 R4), else the
-   * saved area's country, else the edge's — nothing else.
+   * THE MARKET PREFILL (INC-237): the draft's own places' market, else the
+   * invite's place's market (D119), else the last post's market (W6b-1 R4), else
+   * the saved area's country, else the edge's — nothing else.
    */
   const marketSeeded = useRef(false);
   useEffect(() => {
@@ -936,13 +961,24 @@ export function StepWhere({
       markets.markets.length === 0 ||
       guess === null ||
       last === undefined ||
-      ownSeed === undefined
+      ownSeed === undefined ||
+      invite === undefined
     )
       return;
     const saved = readAreaCookie();
     // D3 — a draft with places of its own opens in its FIRST place's market.
+    // D119 — the invite's place counts only when its market is open.
+    const inviteMarket =
+      invite !== null && markets.markets.some((market) => market.code === invite.country)
+        ? invite.country
+        : null;
     const wanted =
-      ownSeed?.country ?? last?.country ?? saved?.country ?? guess.country?.toUpperCase() ?? null;
+      ownSeed?.country ??
+      inviteMarket ??
+      last?.country ??
+      saved?.country ??
+      guess.country?.toUpperCase() ??
+      null;
     const found =
       wanted === null ? undefined : markets.markets.find((market) => market.code === wanted);
     marketSeeded.current = true;
@@ -957,17 +993,18 @@ export function StepWhere({
     }
     setMarketUnresolved(false);
     if (found.code !== country) setCountry(found.code);
-  }, [markets.markets, guess, country, last, ownSeed]);
+  }, [markets.markets, guess, country, last, ownSeed, invite]);
 
   /**
    * THE PLACE PREFILL, over the market's cached tree: the draft's own saved
-   * places first (so Back shows the seller's answer, R1), else the saved node,
-   * else the resolved guess.
+   * places first (so Back shows the seller's answer, R1), else the invite's
+   * place (D119), else the last post's places, else the saved node, else the
+   * resolved guess.
    */
   const placeSeeded = useRef<string | null>(null);
   useEffect(() => {
     if (country === null || nodes.length === 0 || placeSeeded.current === country) return;
-    if (last === undefined || ownSeed === undefined) return;
+    if (last === undefined || ownSeed === undefined || invite === undefined) return;
     placeSeeded.current = country;
     // D3 — the draft's own places, each in its own market, in saved order.
     if (ownSeed !== null && ownSeed.country === country) {
@@ -988,6 +1025,20 @@ export function StepWhere({
       setRows([{ key: PRIMARY, country, ...chainOf(nodes, own) }, ...extras]);
       setItemKey(PRIMARY);
       return;
+    }
+    // D119 — the invite's place, when it is in the market on screen; a
+    // country-level place picked the market above and fills nothing here.
+    if (invite !== null && invite.country === country) {
+      const node = byId.get(invite.id) ?? null;
+      if (node !== null) {
+        const chain = chainOf(nodes, node);
+        if (chain.region !== null || chain.city !== null) {
+          setRows([{ key: PRIMARY, country, ...chain }]);
+          setItemKey(PRIMARY);
+          setPrefilled(true);
+          return;
+        }
+      }
     }
     // W6b-1 R4 — the last post's places, its item place first and ticked.
     if (last !== null && last.country === country) {
@@ -1022,7 +1073,7 @@ export function StepWhere({
     if (chain.region !== null || chain.city !== null) setPrefilled(true);
     // `coverage` is read once, at seeding, on purpose: later edits are the seller's.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, nodes, guess, last, ownSeed]);
+  }, [country, nodes, guess, last, ownSeed, invite]);
 
   /** W6b-1 R3 — the ticked box; a tick whose box is gone falls to the first. */
   const itemRow = rows.find((row) => row.key === itemKey) ?? rows[0]!;

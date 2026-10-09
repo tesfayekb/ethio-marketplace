@@ -1,5 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { FormLayout } from "@/components/layout/form-layout";
 import { PageShell } from "@/components/layout/page-shell";
@@ -52,6 +52,7 @@ import {
   type PlanCaps,
   savePhotosSoon,
 } from "./posting-service";
+import { prefillCursor } from "./post-prefill";
 import { useDraft, type DraftValues } from "./use-draft";
 import { keepListedAnswers, type QuestionListRead } from "./catalog-held-answers";
 
@@ -110,7 +111,14 @@ const navButtonClass =
   "inline-flex min-h-11 grow items-center justify-center rounded-md px-4 text-sm font-medium " +
   "transition-colors disabled:opacity-60";
 
-export function PostingWizard({ listingId }: { listingId: string | null }) {
+export function PostingWizard({
+  listingId,
+  prefill = null,
+}: {
+  listingId: string | null;
+  /** D119 — the invite card's category and place (/post only). */
+  prefill?: { categoryId: string | null; placeId: string | null } | null;
+}) {
   const { t, entities, language } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const draft = useDraft(listingId);
@@ -328,6 +336,21 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
    * and only then leaves the step.
    */
   const [categoryCursor, setCategoryCursor] = useState<string | null>(null);
+  /**
+   * D119 — the invite's category opens step 1 at its level, once, on a new post
+   * that has no category yet. It moves the browse level only: nothing is chosen
+   * and no draft is made from the address.
+   */
+  const prefillTried = useRef(false);
+  useEffect(() => {
+    if (prefillTried.current) return;
+    const id = prefill?.categoryId ?? null;
+    if (id === null || treeLoading || tree.nodes.length === 0) return;
+    prefillTried.current = true;
+    if (listingId !== null || draft.values.categoryId !== null) return;
+    const cursor = prefillCursor(tree, id);
+    if (cursor !== undefined) setCategoryCursor(cursor);
+  }, [prefill, tree, treeLoading, listingId, draft.values.categoryId]);
   /** INC-277 — the filter term lives beside the cursor so Back can clear it. */
   const [categoryTerm, setCategoryTerm] = useState("");
 
@@ -1249,6 +1272,7 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             maxCities={planCaps?.maxCities ?? null}
                             maxRegions={planCaps?.maxRegions ?? null}
                             maxCountries={planCaps?.maxCountries ?? null}
+                            invitePlaceId={prefill?.placeId ?? null}
                           />
                         )}
                         {draft.step === 7 && (

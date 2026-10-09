@@ -122,7 +122,7 @@ function AuthScreen() {
     if (onCheckEmail) return;
     let active = true;
     void (async () => {
-      if ((await hasSessionRehydrating()) && active) void navigate({ to: afterSignIn });
+      if ((await hasSessionRehydrating()) && active) void navigate({ href: afterSignIn });
     })();
     return () => {
       active = false;
@@ -136,7 +136,7 @@ function AuthScreen() {
     setBusy(false);
     if (signedIn) {
       window.sessionStorage.removeItem(PENDING_EMAIL_KEY);
-      void navigate({ to: afterSignIn });
+      void navigate({ href: afterSignIn });
       return;
     }
     void navigate({ to: "/auth", search: {} });
@@ -228,8 +228,9 @@ function AuthScreen() {
       void navigate({ to: "/auth", search: { view: "check-email" } });
       return;
     }
-    // D20 — back to the page that asked for the session.
-    void navigate({ to: afterSignIn });
+    // D20 — back to the page that asked for the session. INC-530 — by `href`, so a
+    // return path's query string stays a query string (D119's /post?category=…).
+    void navigate({ href: afterSignIn });
   }
 
   /** Resends to `address` only: the form's own email, or the stored sign-up email. */

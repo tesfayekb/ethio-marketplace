@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { EVERYWHERE, feedSections, parseFeedPage, type FeedListing } from "./feed-page";
+import {
+  EVERYWHERE,
+  feedSections,
+  inviteShown,
+  parseFeedPage,
+  type FeedListing,
+} from "./feed-page";
 
 function card(id: string, step: number, extra: Record<string, unknown> = {}) {
   return {
@@ -77,5 +83,15 @@ describe("feedSections", () => {
     const sections = feedSections([card("1", 3) as FeedListing], ["A"]);
     expect(sections).toHaveLength(1);
     expect(sections[0]?.label).toBeNull();
+  });
+});
+
+describe("inviteShown", () => {
+  it("FP-8 the card shows while the chosen place holds fewer than 4 listings", () => {
+    const of = (steps: number[]) => steps.map((s, i) => card(String(i), s) as FeedListing);
+    expect(inviteShown([])).toBe(true);
+    expect(inviteShown(of([1, 1, 1]))).toBe(true);
+    expect(inviteShown(of([1, 1, 1, 1]))).toBe(false);
+    expect(inviteShown(of([1, 1, 1, 2, 2, 2, 2, 2]))).toBe(true);
   });
 });

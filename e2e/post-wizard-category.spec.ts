@@ -3,12 +3,15 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
 import {
+  authFields,
   expectActivePanel,
+  fillUntilStable,
   gotoReady,
   isMobile,
   openPanel,
   openRailScope,
   signInViaSession,
+  waitForHydration,
 } from "./helpers/ui";
 import {
   destroyLocation,
@@ -1083,6 +1086,92 @@ test.describe("POSTING WIZARD", () => {
     await gotoReady(page, "/post");
     await expect(page.getByTestId("post-step-1")).toBeVisible();
     expect(user.id, "PW-14: no seller identity was minted").not.toBe("");
+  });
+
+  /**
+   * PW-181 — D119: the invite card's category opens step 1 at that category's
+   * level. A leaf opens on its parent's level and is not chosen; an unknown or
+   * malformed id opens the top level, as /post always has.
+   */
+  test("PW-181 D119: a category in the address opens step 1 at its level; an unknown one opens the top level", async ({
+    page,
+  }) => {
+    const { parent, leaf } = await seedCategoryBranch();
+    branches.push(parent.slug, leaf.slug);
+    await seller(page);
+    const crumb = (id: string) =>
+      page.locator(`[data-testid="post-browse-crumb"][data-category="${id}"]`);
+    const leafRow = page.locator(`[data-testid="post-browse-leaf"][data-category="${leaf.id}"]`);
+
+    await gotoReady(page, `/post?category=${parent.id}`);
+    await expect(crumb(parent.id), "PW-181: a folder did not open inside itself").toBeDisabled({
+      timeout: 20_000,
+    });
+    await expect(leafRow).toBeVisible();
+
+    await gotoReady(page, `/post?category=${leaf.id}`);
+    await expect(
+      crumb(parent.id),
+      "PW-181: a leaf did not open on its parent's level",
+    ).toBeDisabled({ timeout: 20_000 });
+    await expect(leafRow).toBeVisible();
+    await expect(leafRow, "PW-181: the address chose the leaf").not.toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+
+    for (const value of [crypto.randomUUID(), "not-a-uuid"]) {
+      await gotoReady(page, `/post?category=${value}`);
+      await expect(crumb(""), `PW-181: ${value} did not open the top level`).toBeDisabled({
+        timeout: 20_000,
+      });
+    }
+  });
+
+  /**
+   * PW-182 — D119 and INC-530: a signed-out visitor from an invite signs in and
+   * comes back to /post with the category and the place intact — through the
+   * password door, and through the callback the Google door returns by. PW-14
+   * still proves an off-site return is ignored.
+   */
+  test("PW-182 D119: the sign-in return keeps the invite's category and place, through the password door and the callback (INC-530)", async ({
+    page,
+  }) => {
+    const { parent, leaf } = await seedCategoryBranch();
+    branches.push(parent.slug, leaf.slug);
+    const place = crypto.randomUUID();
+    const target = `/post?category=${leaf.id}&place=${place}`;
+    const user = await leaseSeller();
+    sellers.push(user.id);
+    await asEdge(page);
+    const crumb = (id: string) =>
+      page.locator(`[data-testid="post-browse-crumb"][data-category="${id}"]`);
+
+    // Signed out: the guard sends the visitor to sign in with the whole address.
+    await page.goto(target);
+    await page.waitForURL((url) => url.pathname === "/auth", { timeout: 15_000 });
+    expect(new URL(page.url()).searchParams.get("return")).toBe(target);
+
+    // The password door.
+    await waitForHydration(page);
+    const { email, password, submit } = authFields(page);
+    await expect(email, "PW-182: the sign-in form did not render").toBeEditable({
+      timeout: 15_000,
+    });
+    await fillUntilStable(email, user.email, "email");
+    await fillUntilStable(password, user.password, "password");
+    await submit.click();
+    await page.waitForURL((url) => url.pathname === "/post", { timeout: 15_000 });
+    const landed = new URL(page.url()).searchParams;
+    expect(landed.get("category"), "PW-182: the category was lost").toBe(leaf.id);
+    expect(landed.get("place"), "PW-182: the place was lost").toBe(place);
+    await expect(crumb(parent.id)).toBeDisabled({ timeout: 20_000 });
+
+    // The callback door (Google returns through it), signed in.
+    await page.goto(`/auth/callback?return=${encodeURIComponent(`/post?category=${parent.id}`)}`);
+    await page.waitForURL((url) => url.pathname === "/post", { timeout: 15_000 });
+    expect(new URL(page.url()).searchParams.get("category")).toBe(parent.id);
   });
 
   test("PW-15 the posting entry lives in My Listings, not in Account", async ({ page }) => {
