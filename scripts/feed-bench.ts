@@ -9,6 +9,7 @@
  * an e-mail address.
  */
 
+import { randomBytes } from "node:crypto";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
@@ -131,11 +132,12 @@ function randomLetters(n: number): string {
   return s;
 }
 
-function randomPassword(n: number): string {
-  const a = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let s = "";
-  for (let i = 0; i < n; i++) s += a[Math.floor(Math.random() * a.length)];
-  return s;
+/**
+ * INC-529 — the scratch seller's password comes from the system's secure
+ * generator, as every E2E account's does (e2e/helpers/users.ts :60).
+ */
+function randomPassword(): string {
+  return `Pw-${randomBytes(18).toString("base64url")}`;
 }
 
 function must<T>(res: { data: T; error: { message: string } | null }, what: string): T {
@@ -368,7 +370,7 @@ async function main(): Promise<number> {
     seedStart = Date.now();
     const created = await db.auth.admin.createUser({
       email: `${P}@ethio-e2e.invalid`,
-      password: randomPassword(24),
+      password: randomPassword(),
       email_confirm: true,
     });
     if (created.error || !created.data.user) {
