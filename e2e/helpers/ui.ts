@@ -1280,3 +1280,37 @@ export async function describeEntityStats(page: Page): Promise<string> {
     `[INC-119] first rows: ${rows.length > 0 ? rows.join(" ") : "(none rendered)"}`,
   ].join("\n");
 }
+
+/**
+ * D104 — a `[data-cut]` element keeps its five-grapheme floor: a short name
+ * shows whole; a long one leaves room for its first five graphemes and "…".
+ */
+export async function expectCutFloor(page: Page, cut: Locator): Promise<void> {
+  const reading = await cut.locator("[data-cut-text]").evaluate((element) => {
+    const text = element.textContent ?? "";
+    const graphemes = Array.from(
+      new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text),
+      ({ segment }) => segment,
+    );
+    const context = document.createElement("canvas").getContext("2d");
+    if (!context) throw new Error("expectCutFloor: no canvas context");
+    const style = getComputedStyle(element);
+    context.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    return {
+      text,
+      count: graphemes.length,
+      overflow: element.scrollWidth - element.clientWidth,
+      clientWidth: element.clientWidth,
+      floorWidth: context.measureText(`${graphemes.slice(0, 5).join("")}\u2026`).width,
+    };
+  });
+  void page;
+  if (reading.count <= 5) {
+    expect(reading.overflow, `cut name "${reading.text}" is not whole`).toBeLessThanOrEqual(1);
+  } else {
+    expect(
+      reading.clientWidth,
+      `cut name "${reading.text}" is below its five-grapheme floor`,
+    ).toBeGreaterThanOrEqual(reading.floorWidth - 1);
+  }
+}

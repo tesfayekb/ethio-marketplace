@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 import en from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
@@ -24,6 +24,39 @@ async function seriousOrCritical(page: Page, mode: string): Promise<void> {
     .map((v) => `${v.impact}:${v.id}×${v.nodes.length}`);
   console.log(`[a11y] dev-style ${mode} ${test.info().project.name} ${rules.join(" ") || "clean"}`);
   expect(rules, `dev-style ${mode}`).toEqual([]);
+}
+
+/** A ring is drawn when some box-shadow layer has a visible colour and a spread above 0. */
+async function drawnRing(control: Locator): Promise<boolean> {
+  const shadow = await control.evaluate((element) => getComputedStyle(element).boxShadow);
+  if (shadow === "none") return false;
+  const layers: string[] = [];
+  let depth = 0;
+  let current = "";
+  for (const char of shadow) {
+    if (char === "(") depth += 1;
+    if (char === ")") depth -= 1;
+    if (char === "," && depth === 0) {
+      layers.push(current.trim());
+      current = "";
+    } else current += char;
+  }
+  layers.push(current.trim());
+  return layers.some((layer) => {
+    const colour = layer.match(/[a-z]+\([^)]*\)/i)?.[0] ?? "";
+    const parts = colour
+      .slice(colour.indexOf("(") + 1, -1)
+      .split(/[\s,/]+/)
+      .filter(Boolean);
+    const alpha = parts.length >= 4 ? parseFloat(parts[3]!) : 1;
+    const lengths = layer
+      .replace(colour, "")
+      .trim()
+      .split(/\s+/)
+      .filter((part) => part.endsWith("px") || part === "0");
+    const spread = lengths.length >= 4 ? parseFloat(lengths[3]!) : 0;
+    return alpha > 0 && spread > 0;
+  });
 }
 
 test.describe("house style fixture", () => {
@@ -151,18 +184,15 @@ test.describe("house style fixture", () => {
   test("HS-6 the focus ring shows after keyboard use only", async ({ page }) => {
     await gotoReady(page, "/dev/style");
     const more = page.getByTestId("style-row-1-more");
-    const unfocused = await more.evaluate((element) => getComputedStyle(element).boxShadow);
     await more.click();
     await page.getByTestId("style-row-1-more-copy").click();
     await settled(page);
     await expect(more).toBeFocused();
-    expect(await more.evaluate((element) => getComputedStyle(element).boxShadow)).toBe(unfocused);
+    expect(await drawnRing(more), "HS-6: ring drawn after a mouse choice").toBe(false);
     await page.keyboard.press("Tab");
     await page.keyboard.press("Shift+Tab");
     await settled(page);
     await expect(more).toBeFocused();
-    expect(await more.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe(
-      unfocused,
-    );
+    expect(await drawnRing(more), "HS-6: no ring after keyboard use").toBe(true);
   });
 });

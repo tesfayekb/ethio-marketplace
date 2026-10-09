@@ -3,38 +3,57 @@ import { describe, expect, it } from "vitest";
 import { am } from "@/i18n/locales/am";
 import { CutText } from "./cut-text";
 
+const graphemes = (text: string) =>
+  Array.from(
+    new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(text),
+    ({ segment }) => segment,
+  );
+
+function parts(text: string) {
+  const { container } = render(<CutText text={text} />);
+  const outer = container.querySelector("[data-cut]");
+  const visible = outer?.querySelector("[data-cut-text]");
+  const floor = outer?.querySelector("[data-floor]");
+  const full = outer?.querySelector("[data-full]");
+  return { outer, visible, floor, full };
+}
+
 describe("CutText", () => {
-  const ethiopic = Array.from(am["location.rowLabel"])
-    .filter((char) => /[\u1200-\u137f]/u.test(char))
-    .slice(0, 5)
-    .join("");
-  it.each([
-    ["Car", "Car", ""],
-    ["Cooked food", "Cooke", "d food"],
-    [`${ethiopic} extra`, ethiopic, " extra"],
-    ["👍🏽abcd tail", "👍🏽abcd", " tail"],
-  ])("keeps the first five graphemes of %s", (text, head, tail) => {
-    const { container } = render(<CutText text={text} />);
-    const outer = container.firstElementChild;
-    expect(outer?.textContent).toBe(text);
-    expect(outer?.children[0]?.textContent).toBe(head);
-    expect(outer?.children.length).toBe(tail === "" ? 1 : 2);
-    if (tail !== "") expect(outer?.children[1]?.textContent).toBe(tail);
+  it("keeps a short name whole", () => {
+    const { outer, floor } = parts("Car");
+    expect(outer?.textContent).toBe("Car");
+    expect(floor?.getAttribute("data-floor")).toBe("Car");
   });
-  it("uses Array.from when Segmenter is unavailable", () => {
-    const original = Object.getOwnPropertyDescriptor(Intl, "Segmenter");
-    Object.defineProperty(Intl, "Segmenter", { configurable: true, value: undefined });
-    try {
-      const { container } = render(<CutText text="Cooked food" />);
-      expect(container.firstElementChild?.children[0]?.textContent).toBe("Cooke");
-      expect(container.textContent).toBe("Cooked food");
-    } finally {
-      if (original) Object.defineProperty(Intl, "Segmenter", original);
-    }
+
+  it("floors a long name at five characters and an ellipsis", () => {
+    const { outer, floor } = parts("Cooked food");
+    expect(outer?.textContent).toBe("Cooked food");
+    expect(floor?.getAttribute("data-floor")).toBe("Cooke\u2026");
   });
-  it("honours a caller's keep count", () => {
-    const { container } = render(<CutText text="Cooked food" keep={3} />);
-    expect(container.firstElementChild?.children[0]?.textContent).toBe("Coo");
-    expect(container.textContent).toBe("Cooked food");
+
+  it("floors an Ethiopic name at five graphemes", () => {
+    const name = am["location.rowLabel"];
+    const { floor } = parts(name);
+    const all = graphemes(name);
+    expect(all.length).toBeGreaterThan(5);
+    expect(floor?.getAttribute("data-floor")).toBe(`${all.slice(0, 5).join("")}\u2026`);
+  });
+
+  it("counts an emoji with a skin-tone modifier as one grapheme", () => {
+    const { floor } = parts("👍🏽abcd tail");
+    expect(floor?.getAttribute("data-floor")).toBe("👍🏽abcd\u2026");
+  });
+
+  it("hides both size-setters from screen readers", () => {
+    const { floor, full } = parts("Cooked food");
+    expect(floor?.getAttribute("aria-hidden")).toBe("true");
+    expect(full?.getAttribute("aria-hidden")).toBe("true");
+    expect(floor?.textContent).toBe("");
+    expect(full?.textContent).toBe("");
+  });
+
+  it("shows the whole input in the visible element", () => {
+    const { visible } = parts("Cooked food");
+    expect(visible?.textContent).toBe("Cooked food");
   });
 });

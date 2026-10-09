@@ -7,6 +7,7 @@ import { en } from "../src/i18n/locales/en";
 import {
   expectNoHorizontalOverflow,
   expectSignedIn,
+  expectCutFloor,
   gotoReady,
   describeSwitcher,
   expectActivePanel,
@@ -878,7 +879,7 @@ test.describe("mobile chrome", () => {
       await expect(account.getByTestId("bottom-bar-pill")).toHaveCount(1);
       await expect(home.getByTestId("bottom-bar-pill")).toHaveCount(0);
       const weight = await account
-        .locator("span.truncate")
+        .locator("[data-cut]")
         .evaluate((el) => Number(getComputedStyle(el).fontWeight));
       expect(weight).toBeGreaterThanOrEqual(600);
     };
@@ -1012,12 +1013,12 @@ test.describe("mobile chrome", () => {
     expect(Math.abs(rowBox.y - stripBox.y)).toBeLessThanOrEqual(1);
     expect(Math.abs(rowBox.height - stripBox.height)).toBeLessThanOrEqual(1);
     const iconBox = await row.locator("svg").boundingBox();
-    const nameBox = await row.locator("span").boundingBox();
+    const nameBox = await row.locator("[data-cut]").boundingBox();
     if (!iconBox || !nameBox) throw new Error("Missing menu row icon or name");
     expect(
       Math.abs(iconBox.y + iconBox.height / 2 - (nameBox.y + nameBox.height / 2)),
     ).toBeLessThanOrEqual(2);
-    await expect(row.locator("span")).toBeVisible();
+    await expect(row.locator("[data-cut]")).toBeVisible();
     await expect(menu.getByTestId("rail-category-all")).toHaveCount(0);
     await expect(menu.getByTestId("post-entry")).toHaveCount(0);
     await expect(menu.getByTestId("panel-header-title")).toHaveCount(0);
@@ -2250,53 +2251,29 @@ test.describe("L4b location picker", () => {
       chain.region.name_en!,
     );
     const assertNameHeads = async () => {
-      const boxes = await row.locator("[data-testid^='location-level-']").evaluateAll((elements) =>
-        elements.map((element) => {
-          const head = element.querySelector("span > span");
-          const arrow = element.querySelector("svg");
-          if (!head || !arrow) throw new Error("Missing location name head or arrow");
-          const box = element.getBoundingClientRect();
-          const headBox = head.getBoundingClientRect();
-          const rowBox = element.parentElement?.getBoundingClientRect();
-          if (!rowBox) throw new Error("Missing location row box");
-          const style = getComputedStyle(element);
-          return {
-            text: head.textContent,
-            name: element.getAttribute("title"),
-            width: box.width,
-            headWidth: headBox.width,
-            arrowWidth: arrow.getBoundingClientRect().width,
-            headLeft: headBox.left,
-            headRight: headBox.right,
-            contentLeft: box.left + parseFloat(style.paddingLeft),
-            contentRight: box.right - parseFloat(style.paddingRight),
-            rowLeft: rowBox.left,
-            rowRight: rowBox.right,
-          };
-        }),
-      );
-      for (const item of boxes) {
-        if (!item.name) throw new Error("Missing selected location name");
-        const prefix = Array.from(
-          new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(item.name),
-          ({ segment }) => segment,
-        )
-          .slice(0, 5)
-          .join("");
-        expect(item.text).toBe(prefix);
-        expect(item.width).toBeGreaterThanOrEqual(item.headWidth + item.arrowWidth);
-        expect(item.headLeft).toBeGreaterThanOrEqual(item.contentLeft - 1);
-        expect(item.headRight).toBeLessThanOrEqual(item.contentRight + 1);
-        expect(item.headLeft).toBeGreaterThanOrEqual(item.rowLeft - 1);
-        expect(item.headRight).toBeLessThanOrEqual(item.rowRight + 1);
+      const levels = row.locator("[data-testid^='location-level-']");
+      const rowBox = await row.boundingBox();
+      if (!rowBox) throw new Error("Missing location row box");
+      for (const level of await levels.all()) {
+        const cut = level.locator("[data-cut]");
+        await expectCutFloor(page, cut);
+        const text = await cut.locator("[data-cut-text]").textContent();
+        expect(await cut.textContent()).toBe(text);
+        const title = await level.getAttribute("title");
+        if (title !== null) expect(title).toBe(text);
+        const box = await level.boundingBox();
+        if (!box) throw new Error("Missing location level box");
+        expect(box.x).toBeGreaterThanOrEqual(rowBox.x - 1);
+        expect(box.x + box.width).toBeLessThanOrEqual(rowBox.x + rowBox.width + 1);
       }
     };
-    await assertNameHeads();
-    if (await page.locator("#location-row-label-short").isVisible()) {
+    const assertRowFits = async () => {
       expect(
         await row.evaluate((element) => element.scrollWidth - element.clientWidth),
       ).toBeLessThanOrEqual(1);
-    }
+    };
+    await assertNameHeads();
+    await assertRowFits();
     await expect(page.locator("#location-row-label")).toBeHidden();
     const subCityName = chain.subCity.name_en;
     if (!subCityName) throw new Error("Missing sub-city name");
@@ -2305,6 +2282,7 @@ test.describe("L4b location picker", () => {
     await expect(page.locator("#location-row-label-short")).toBeHidden();
     await expect(row).toHaveAccessibleName(new RegExp(escapeRe(en["location.rowLabelShort"])));
     await assertNameHeads();
+    await assertRowFits();
     const smallBox = await row.boundingBox();
     if (!smallBox) throw new Error("Missing 320px location row");
     expect(Math.abs(smallBox.height - 32)).toBeLessThanOrEqual(1);

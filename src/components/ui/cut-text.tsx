@@ -1,6 +1,11 @@
 import { cn } from "@/lib/utils";
 
-/** D104: retain the name's first graphemes while only the remainder can ellipsize. */
+/**
+ * D104 — a cut name keeps its first `keep` graphemes. One visible element holds
+ * the whole name (accessible name and textContent stay whole); two unpainted,
+ * aria-hidden size-setters fix the grid column's smallest width (the floor plus
+ * "…") and widest width (the whole name, breakable anywhere) via CSS content.
+ */
 export function CutText({
   text,
   keep = 5,
@@ -17,14 +22,25 @@ export function CutText({
           ({ segment }) => segment,
         )
       : Array.from(text);
-  const head = graphemes.slice(0, keep).join("");
-  const tail = graphemes.slice(keep).join("");
+  const floor = graphemes.length > keep ? `${graphemes.slice(0, keep).join("")}\u2026` : text;
   return (
-    <span className={cn("inline-flex min-w-0 max-w-full", className)}>
-      <span className="shrink-0 whitespace-pre">{head}</span>
-      {tail !== "" && (
-        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-pre">{tail}</span>
-      )}
+    <span data-cut="" className={cn("inline-grid min-w-0 max-w-full", className)}>
+      <span
+        data-cut-text=""
+        className="col-start-1 row-start-1 w-0 min-w-full overflow-hidden text-ellipsis whitespace-nowrap"
+      >
+        {text}
+      </span>
+      <span
+        aria-hidden="true"
+        data-floor={floor}
+        className="cut-floor invisible col-start-1 row-start-1 whitespace-pre"
+      />
+      <span
+        aria-hidden="true"
+        data-full={text}
+        className="cut-full invisible col-start-1 row-start-1 h-0 overflow-hidden break-all"
+      />
     </span>
   );
 }

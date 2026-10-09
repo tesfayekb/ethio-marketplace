@@ -75,7 +75,7 @@ function Picker({
           aria-label={selectedName ? `${t(labelKey)}: ${selectedName}` : t(labelKey)}
           title={selectedName ?? undefined}
           className={cn(
-            "inline-flex h-8 shrink items-center gap-0.5 md:gap-1 rounded-md px-1 md:px-2 text-sm",
+            "inline-flex h-8 shrink items-center gap-0.5 md:gap-1 rounded-md px-0.5 md:px-2 text-sm",
             "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             selectedId !== null
               ? "font-medium text-foreground"
@@ -85,7 +85,11 @@ function Picker({
           {/* The picker shows its OWN selection — never a second copy of an
               area label rendered elsewhere (INC-041). */}
           <CutText text={selectedName ?? t(labelKey)} />
-          <ChevronDown className="h-3 w-3 md:h-4 md:w-4 shrink-0" aria-hidden="true" />
+          <ChevronDown
+            data-row-arrow=""
+            className="h-3 w-3 md:h-4 md:w-4 shrink-0"
+            aria-hidden="true"
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
@@ -203,6 +207,7 @@ export function LocationSelector() {
       markets.failed,
       tree.failed,
     ],
+    "[data-row-arrow]",
   );
 
   const failed = markets.failed || tree.failed;
@@ -215,7 +220,7 @@ export function LocationSelector() {
       data-area-source={guessInUse ? "guess" : "chosen"}
       role="group"
       aria-labelledby="location-row-label location-row-label-short"
-      className="flex h-8 w-full flex-nowrap items-center gap-x-1 overflow-hidden border-b border-border bg-card px-2 md:px-4"
+      className="flex h-8 w-full flex-nowrap items-center gap-x-0.5 md:gap-x-1 overflow-hidden border-b border-border bg-card px-2 md:px-4"
     >
       <span
         ref={longLabelRef}

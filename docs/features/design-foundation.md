@@ -369,7 +369,7 @@ Below 768px one top-bar menu control sits above the 48px strip and toggles the d
 
 ## Cut names
 
-D104: `CutText` keeps the first five graphemes of a cut name (shorter names stay whole), ellipsizing only its tail while retaining full text and existing accessible names. D105: `useLabelRoom` measures only the row after layout and hides its visible caption with `sr-only` when names need the room, restoring it when space returns; the admin/dev census is deferred to Part D's shared table/card blocks.
+D104: `CutText` is one inline grid holding three overlapping cells: one visible element with the whole name (so the accessible name and textContent stay whole and are read once) that ellipsizes when cut, and two unpainted, `aria-hidden` size-setters whose CSS-generated content sets the column's smallest width (the first five graphemes and "…"; shorter names stay whole) and widest width (the whole name, breakable anywhere). D105: `useLabelRoom` measures only the row after layout; when names need the room, a row's optional parts step aside in order — first its visible caption (`sr-only`), then its arrows (`hidden`, the location row's `[data-row-arrow]`) — and return when space comes back; the admin/dev census is deferred to Part D's shared table/card blocks.
 
 ## Focus ring
 
