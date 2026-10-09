@@ -866,6 +866,68 @@ export type Database = {
           },
         ]
       }
+      feed_index_check_runs: {
+        Row: {
+          id: number
+          ran_at: string
+          result: Json
+        }
+        Insert: {
+          id?: number
+          ran_at?: string
+          result: Json
+        }
+        Update: {
+          id?: number
+          ran_at?: string
+          result?: Json
+        }
+        Relationships: []
+      }
+      feed_reindex_queue: {
+        Row: {
+          listing_id: string
+          queued_at: string
+        }
+        Insert: {
+          listing_id: string
+          queued_at?: string
+        }
+        Update: {
+          listing_id?: string
+          queued_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_reindex_queue_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_reindex_runs: {
+        Row: {
+          id: number
+          ran_at: string
+          refreshed: number
+          remaining: number
+        }
+        Insert: {
+          id?: number
+          ran_at?: string
+          refreshed: number
+          remaining: number
+        }
+        Update: {
+          id?: number
+          ran_at?: string
+          refreshed?: number
+          remaining?: number
+        }
+        Relationships: []
+      }
       impersonation_sessions: {
         Row: {
           actor_id: string
@@ -3220,6 +3282,7 @@ export type Database = {
       }
       expire_stale_listings: { Args: never; Returns: number }
       feed_index_check: { Args: { p_listing_id?: string }; Returns: Json }
+      feed_index_check_sweep: { Args: never; Returns: Json }
       feed_index_refresh: { Args: { p_listing_id: string }; Returns: number }
       feed_keys: {
         Args: { p_category_id: string; p_location_ids: string[] }
@@ -3228,6 +3291,17 @@ export type Database = {
           place_key: string
         }[]
       }
+      feed_reindex_enqueue_categories: {
+        Args: { p_category_ids: string[] }
+        Returns: number
+      }
+      feed_reindex_enqueue_places: {
+        Args: { p_location_ids: string[] }
+        Returns: number
+      }
+      feed_reindex_sweep: { Args: { p_limit?: number }; Returns: number }
+      feed_reindex_wake: { Args: never; Returns: undefined }
+      feed_tier_rank: { Args: { p_tier: string }; Returns: number }
       geo_distance_km: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number

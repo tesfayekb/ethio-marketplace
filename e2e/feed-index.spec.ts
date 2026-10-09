@@ -314,7 +314,6 @@ test.describe("FEED INDEX", () => {
   });
 
   test("FE-10 a category surfaced under a new parent is re-indexed by the sweep", async () => {
-    const started = Date.now();
     const s = await seedIndexedListing();
     const { places } = expectedSets(s);
     const supabase = adminClient();
@@ -334,6 +333,12 @@ test.describe("FEED INDEX", () => {
       .single();
     if (xError || !x)
       throw new Error(`[e2e:fe-10] seeding X failed: ${xError?.message ?? "no row"}`);
+    const before = await supabase
+      .from("feed_reindex_runs")
+      .select("id")
+      .order("id", { ascending: false })
+      .limit(1);
+    expect(before.error).toBeNull();
     const { error: pointerError } = await supabase
       .from("category_tree_pointers")
       .insert({ parent_id: x.id, child_id: s.leaf.id, display_order: 3 });
@@ -345,8 +350,8 @@ test.describe("FEED INDEX", () => {
     });
     const { data: runs, error: runsError } = await supabase
       .from("feed_reindex_runs")
-      .select("ran_at")
-      .gte("ran_at", new Date(started).toISOString())
+      .select("id")
+      .gt("id", before.data?.[0]?.id ?? 0)
       .limit(1);
     expect(runsError).toBeNull();
     expect((runs ?? []).length).toBe(1);
@@ -412,7 +417,12 @@ test.describe("FEED INDEX", () => {
   });
 
   test("FE-13 the daily check writes its counts", async () => {
-    const started = Date.now();
+    const before = await adminClient()
+      .from("feed_index_check_runs")
+      .select("id")
+      .order("id", { ascending: false })
+      .limit(1);
+    expect(before.error).toBeNull();
     const { data, error } = await adminClient().rpc("feed_index_check_sweep");
     expect(error).toBeNull();
     const result = data as Record<string, number>;
@@ -427,8 +437,8 @@ test.describe("FEED INDEX", () => {
       expect(result).toHaveProperty(key);
     const { data: runs, error: runsError } = await adminClient()
       .from("feed_index_check_runs")
-      .select("ran_at")
-      .gte("ran_at", new Date(started).toISOString())
+      .select("id")
+      .gt("id", before.data?.[0]?.id ?? 0)
       .limit(1);
     expect(runsError).toBeNull();
     expect((runs ?? []).length).toBe(1);

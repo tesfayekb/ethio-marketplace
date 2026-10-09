@@ -1068,16 +1068,19 @@ test.describe("POSTING ROUTES", () => {
     expect(passed.error).toBeNull();
     const before = await adminClient()
       .from("listing_expiry_sweep_runs")
-      .select("id", { count: "exact", head: true });
+      .select("id")
+      .order("id", { ascending: false })
+      .limit(1);
     expect(before.error, `PR-23: no sweep ledger: ${before.error?.message}`).toBeNull();
     const swept = await adminClient().rpc("expire_stale_listings");
     expect(swept.error, JSON.stringify(swept.error)).toBeNull();
     const after = await adminClient()
       .from("listing_expiry_sweep_runs")
-      .select("id", { count: "exact", head: true });
-    expect(after.count ?? 0, "PR-23: the sweep wrote no run row").toBeGreaterThan(
-      before.count ?? 0,
-    );
+      .select("id")
+      .gt("id", before.data?.[0]?.id ?? 0)
+      .limit(1);
+    expect(after.error, `PR-23: no sweep ledger: ${after.error?.message}`).toBeNull();
+    expect((after.data ?? []).length, "PR-23: the sweep wrote no run row").toBe(1);
     expect(await statusOf(dated)).toBe("expired");
   });
 
