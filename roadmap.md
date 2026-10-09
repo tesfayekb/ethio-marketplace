@@ -1,6 +1,6 @@
 # Roadmap
 
-No bundle brief is in force: bundle 9's fix turns 15–17 closed on 2026-10-09 (its brief stays at docs/governance/briefs/bundle-9.md, version 16); bundle 10 — the feed engine — is next, and its brief is named on this line when it is saved.
+Bundle 10 brief: docs/governance/briefs/bundle-10.md (read first every turn).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

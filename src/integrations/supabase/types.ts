@@ -834,6 +834,38 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_index: {
+        Row: {
+          category_key: string
+          listing_id: string
+          place_key: string
+          published_at: string
+          tier_rank: number
+        }
+        Insert: {
+          category_key: string
+          listing_id: string
+          place_key: string
+          published_at: string
+          tier_rank?: number
+        }
+        Update: {
+          category_key?: string
+          listing_id?: string
+          place_key?: string
+          published_at?: string
+          tier_rank?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_index_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       impersonation_sessions: {
         Row: {
           actor_id: string
@@ -3187,6 +3219,15 @@ export type Database = {
         Returns: string
       }
       expire_stale_listings: { Args: never; Returns: number }
+      feed_index_check: { Args: { p_listing_id?: string }; Returns: Json }
+      feed_index_refresh: { Args: { p_listing_id: string }; Returns: number }
+      feed_keys: {
+        Args: { p_category_id: string; p_location_ids: string[] }
+        Returns: {
+          category_key: string
+          place_key: string
+        }[]
+      }
       geo_distance_km: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
