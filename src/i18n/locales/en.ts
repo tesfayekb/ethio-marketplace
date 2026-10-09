@@ -600,7 +600,8 @@ export const en = {
   "admin.section.translations.title": "Translations",
   "admin.section.translations.body": "Languages, key coverage and the strings editor.",
   "admin.section.screening.title": "Screening queue",
-  "admin.section.screening.body": "Ads waiting for review. Approve puts an ad on the site; Reject keeps it off.",
+  "admin.section.screening.body":
+    "Ads waiting for review. Approve puts an ad on the site; Reject keeps it off.",
   "admin.screening.search": "Search",
   "admin.screening.col.title": "Title",
   "admin.screening.col.category": "Category",

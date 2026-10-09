@@ -63,6 +63,31 @@ async function feedRowsOf(id: string): Promise<number> {
   return count;
 }
 
+/** The page passes cardUntil="lg": below 1024 px each row is a card, from 1024 px a table row. */
+const TWIN_BOUNDARY = 1024;
+
+function isCardTwin(page: Page): boolean {
+  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
+}
+
+function surface(page: Page) {
+  return isCardTwin(page) ? page.getByTestId("data-table-cards") : page.getByRole("table");
+}
+
+function rowOf(page: Page, id: string) {
+  return surface(page).getByTestId(
+    isCardTwin(page) ? `admin-screening-row-${id}-card` : `admin-screening-row-${id}`,
+  );
+}
+
+function actionsOf(page: Page, id: string) {
+  return surface(page).getByTestId(
+    isCardTwin(page)
+      ? `admin-screening-row-${id}-actions`
+      : `admin-screening-row-${id}-actions-cell`,
+  );
+}
+
 test.describe("ADMIN SCREENING", () => {
   const sellers: string[] = [];
   const regions: string[] = [];
@@ -118,7 +143,7 @@ test.describe("ADMIN SCREENING", () => {
   async function findRow(page: Page, title: string, id: string) {
     await gotoReady(page, "/admin/screening");
     await page.getByTestId("admin-screening-search").fill(title);
-    const row = page.getByTestId(`admin-screening-row-${id}`);
+    const row = rowOf(page, id);
     await expect(row).toBeVisible({ timeout: 20000 });
     return row;
   }
@@ -136,7 +161,7 @@ test.describe("ADMIN SCREENING", () => {
     const ad = await seedWaiting();
     const { secret } = await useJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
-    await page.getByTestId(`admin-screening-approve-${ad.id}`).click();
+    await actionsOf(page, ad.id).getByTestId(`admin-screening-approve-${ad.id}`).click();
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
     await page.getByTestId("admin-screening-confirm-go").click();
     await stepUpIfPrompted(page, secret);
@@ -148,14 +173,14 @@ test.describe("ADMIN SCREENING", () => {
     expect(truth.status).toBe("active");
     expect(truth.published_at).not.toBeNull();
     expect(await feedRowsOf(ad.id)).toBeGreaterThanOrEqual(1);
-    await expect(page.getByTestId(`admin-screening-row-${ad.id}`)).toHaveCount(0);
+    await expect(page.locator(`[data-testid^="admin-screening-row-${ad.id}"]`)).toHaveCount(0);
   });
 
   test("SC-3 Reject keeps the ad off", async ({ page }) => {
     const ad = await seedWaiting();
     const { secret } = await useJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
-    await page.getByTestId(`admin-screening-reject-${ad.id}`).click();
+    await actionsOf(page, ad.id).getByTestId(`admin-screening-reject-${ad.id}`).click();
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
     await page.getByTestId("admin-screening-confirm-go").click();
     await stepUpIfPrompted(page, secret);
@@ -165,6 +190,7 @@ test.describe("ADMIN SCREENING", () => {
     );
     expect((await listingTruth(ad.id)).status).toBe("rejected");
     expect(await feedRowsOf(ad.id)).toBe(0);
+    await expect(page.locator(`[data-testid^="admin-screening-row-${ad.id}"]`)).toHaveCount(0);
   });
 
   test("SC-4 only a reviewer with a fresh second factor decides", async ({ page }) => {

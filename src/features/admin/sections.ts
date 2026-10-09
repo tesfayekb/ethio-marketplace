@@ -128,7 +128,7 @@ export const ADMIN_SECTIONS = [
   {
     id: "screening",
     path: "/admin/screening",
-    permission: "listings:view",
+    permission: "listings:review",
     titleKey: "admin.section.screening.title",
     bodyKey: "admin.section.screening.body",
   },

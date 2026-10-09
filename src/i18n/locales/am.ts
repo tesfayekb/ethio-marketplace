@@ -584,7 +584,8 @@ export const am: Messages = {
   "admin.section.translations.title": "ትርጉሞች",
   "admin.section.translations.body": "ቋንቋዎች፣ የቁልፍ ሽፋን እና የሐረግ አርታዒ።",
   "admin.section.screening.title": "የምርመራ ወረፋ",
-  "admin.section.screening.body": "ግምገማ የሚጠብቁ ማስታወቂያዎች። 'አጽድቅ' ማስታወቂያውን በገጹ ላይ ይጭናል፤ 'ውድቅ አድርግ' ደግሞ ከገጹ ውጪ ያደርገዋል።",
+  "admin.section.screening.body":
+    "ግምገማ የሚጠብቁ ማስታወቂያዎች። 'አጽድቅ' ማስታወቂያውን በገጹ ላይ ይጭናል፤ 'ውድቅ አድርግ' ደግሞ ከገጹ ውጪ ያደርገዋል።",
   "admin.screening.search": "ፍለጋ",
   "admin.screening.col.title": "አርዕስት",
   "admin.screening.col.category": "ምድብ",

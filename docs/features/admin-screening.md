@@ -8,7 +8,7 @@ The ads whose status is `screening`, oldest first (the order they were sent: `up
 
 ## Who may use it
 
-`listings:view` opens the section (RLS `listings_admin_read`, `listing_photos_admin_read`). Approve and Reject render only with `listings:review`. No role holds `listings:review` or `listings:enforce` today; a super admin passes `has_permission`. Granting them is the operator's choice in Admin › Roles.
+`listings:review` opens the section (DEC-163) and renders Approve and Reject. The queue's read also needs `listings:view` (RLS `listings_admin_read`, `listing_photos_admin_read`), so a role given review should hold view too. No role holds `listings:review` or `listings:enforce` today; a super admin passes `has_permission`. Granting them is the operator's choice in Admin › Roles.
 
 ## What Approve and Reject do
 
