@@ -41,6 +41,6 @@ The E1 migration under supabase/migrations/ (the database tool names it) with it
 
 The E2a migration follows it with its own self-mark, recorded in docs/\_changelog.md.
 
-The E2b migration follows with its own self-mark, recorded in docs/\\_changelog.md.
+The E2b migration follows with its own self-mark, recorded in docs/\_changelog.md.
 
 Tests: e2e/feed-index.spec.ts (FE-1..FE-14), e2e/feed-route.spec.ts (FR-1..FR-8), area `feed` in scripts/e2e-select.ts.
