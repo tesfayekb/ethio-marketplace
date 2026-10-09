@@ -45,3 +45,4 @@ admin_merge_attributes | restated grant (not a new surface) (M11)
 admin_preview_attribute_import | restated grant (not a new surface) (M11)
 admin_delete_category | restated grant (not a new surface) (M11)
 admin_list_category_pointers | restated grant (not a new surface) (M11)
+feed_page | the public feed's read door (bundle 10 E2b): card fields of active listings only, no seller; reads feed_index as its owner

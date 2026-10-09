@@ -22,9 +22,18 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 - **Who may call them** — the three new tables are closed to the browser roles (RLS on, one closing policy, ALL to `service_role`); every new function is revoked from PUBLIC, `anon` and `authenticated`.
 - **The rewrite** — the migration rewrites every active listing's rows with its tier and checks one state under brief SHARE locks.
 
+## What E2b built
+
+- **`feed_page(category, place, after, size)`** (STABLE, SECURITY DEFINER, reads `feed_index` as its owner) — one page of cards for a category (null = all categories) in a place (null = everywhere). Order (D108): premium, then featured, then regular; newest first inside each.
+- **The ladder** — the chosen place, each parent up to its country, then everywhere. The page reads from the chosen place outward and stops at the first step that holds 8 or more listings; each listing appears once, under the narrowest step that holds it. The answer carries `ladder`, `steps` (step, placeId, shown) and each card's `step`.
+- **The cursor** — `next` is the step and the last card's (tier rank, publish time, id); the next page continues after it, so a deep page costs what the first costs. `size` is 1 to 50 (20 by default).
+- **Refusals** — `feed_page: badSize`, `unknownCategory` (missing or inactive), `unknownPlace` (missing or inactive), `badCursor`.
+- **Who may call it** — `anon`, `authenticated` and `service_role` (named in scripts/public-surface-allowlist.txt); `feed_index` stays closed to the browser roles. A card carries the listing card's fields only, no seller.
+- **`GET /api/feed`** — parameters `category`, `place` (uuids), `size` (1–50) and `after` (base64url of the cursor JSON). Answers: 200 `{ cards, ladder, steps, next }` with `Cache-Control: public, max-age=60, stale-while-revalidate=300`; 400 `badCategory`, `badPlace`, `badSize`, `badCursor`; 404 `unknownCategory`, `unknownPlace`; 502 for any other failure (logged as `[ssr-error]`). Every error is `no-store`. Anon client, no session, no in-process cache.
+
 ## What it does not do yet
 
-E2b adds the read door `feed_page` and `/api/feed`; E3 the screens.
+E3 adds the screens.
 
 ## Migration
 
@@ -32,4 +41,6 @@ The E1 migration under supabase/migrations/ (the database tool names it) with it
 
 The E2a migration follows it with its own self-mark, recorded in docs/\_changelog.md.
 
-Tests: e2e/feed-index.spec.ts (FE-1..FE-14), area `feed` in scripts/e2e-select.ts.
+The E2b migration follows with its own self-mark, recorded in docs/\_changelog.md.
+
+Tests: e2e/feed-index.spec.ts (FE-1..FE-14), e2e/feed-route.spec.ts (FR-1..FR-8), area `feed` in scripts/e2e-select.ts.
