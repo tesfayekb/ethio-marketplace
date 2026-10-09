@@ -72,4 +72,10 @@ describe("feedSections", () => {
   it("FP-6 an empty list gives no sections", () => {
     expect(feedSections([], ["A"])).toEqual([]);
   });
+
+  it("FP-7 a step past the ladder gives no label", () => {
+    const sections = feedSections([card("1", 3) as FeedListing], ["A"]);
+    expect(sections).toHaveLength(1);
+    expect(sections[0]?.label).toBeNull();
+  });
 });

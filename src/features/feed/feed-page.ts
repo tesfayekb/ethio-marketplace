@@ -118,8 +118,9 @@ export interface FeedSection {
 function labelOf(step: number, ladder: string[]): FeedSectionLabel {
   if (step === 1) return null;
   const placeId = ladder[step - 1];
+  if (placeId === undefined) return null;
   if (placeId === EVERYWHERE) return { kind: "all" };
-  return { kind: "place", placeId: placeId ?? "" };
+  return { kind: "place", placeId };
 }
 
 /** Consecutive cards with the same step form one section, in the order received. */
