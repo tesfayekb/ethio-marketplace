@@ -32,4 +32,4 @@ Full rules live in Lovable Project Knowledge and are summarized here: modify onl
 - When a door gains a refusal, the census names every caller of the door and the order in which each caller reaches it. Why: the delete door's new refusal stopped the import undo, which reached parents before children (INC-481).
 - A map indexed by a key from outside (a URL, storage, a cookie, a database row) is read through `ownValue` (src/lib/own-key.ts), never `map[key]`. Why: a crafted key reached an inherited method and the page threw (INC-485).
 
-- Cut names use the shared CutText block; crowded-row captions use useLabelRoom observing only their row, and action-focus modality is installed once at hydration — shared boundaries preserve grapheme floors without resize loops or duplicate listeners.
+- Cut names use CutText; crowded-row captions use useLabelRoom observing only their row, and action-focus modality installs once at hydration — preserving grapheme floors without resize loops or duplicate listeners.
