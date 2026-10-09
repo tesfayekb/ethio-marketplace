@@ -4,7 +4,10 @@ import { am } from "@/i18n/locales/am";
 import { CutText } from "./cut-text";
 
 describe("CutText", () => {
-  const ethiopic = Array.from(am["location.rowLabel"]).filter((char) => /[\u1200-\u137f]/u.test(char)).slice(0, 5).join("");
+  const ethiopic = Array.from(am["location.rowLabel"])
+    .filter((char) => /[\u1200-\u137f]/u.test(char))
+    .slice(0, 5)
+    .join("");
   it.each([
     ["Car", "Car", ""],
     ["Cooked food", "Cooke", "d food"],

@@ -323,11 +323,15 @@ function SettingsScreen() {
           <dl className="mt-3 grid grid-cols-1 gap-2 text-sm">
             <div className="flex justify-between gap-3">
               <dt className="text-muted-foreground">{t("settings.displayName")}</dt>
-              <dd className="text-foreground"><CutText text={user?.displayName ?? "—"} /></dd>
+              <dd className="text-foreground">
+                <CutText text={user?.displayName ?? "—"} />
+              </dd>
             </div>
             <div className="flex justify-between gap-3">
               <dt className="text-muted-foreground">{t("settings.email")}</dt>
-              <dd className="text-foreground"><CutText text={user?.email ?? "—"} /></dd>
+              <dd className="text-foreground">
+                <CutText text={user?.email ?? "—"} />
+              </dd>
             </div>
             {/* U4h — the DEVICE ★, shown here as a READ-OUT: the star is chosen in
               the language switcher (one affordance, C-laws), and this row only
@@ -335,9 +339,13 @@ function SettingsScreen() {
             <div className="flex justify-between gap-3">
               <dt className="text-muted-foreground">{t("settings.deviceLanguage")}</dt>
               <dd className="text-foreground" data-testid="settings-device-language">
-                <CutText text={star
-                  ? (publicLanguages.find((row) => row.code === star)?.name_native ?? star)
-                  : t("settings.deviceLanguageNone")} />
+                <CutText
+                  text={
+                    star
+                      ? (publicLanguages.find((row) => row.code === star)?.name_native ?? star)
+                      : t("settings.deviceLanguageNone")
+                  }
+                />
               </dd>
             </div>
             <div className="flex justify-between gap-3">

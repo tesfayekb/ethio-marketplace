@@ -192,11 +192,18 @@ export function LocationSelector() {
   const rowRef = useRef<HTMLDivElement>(null);
   const longLabelRef = useRef<HTMLSpanElement>(null);
   const shortLabelRef = useRef<HTMLSpanElement>(null);
-  useLabelRoom(rowRef, [longLabelRef, shortLabelRef], [
-    selectedMarket === null ? null : marketLabel(selectedMarket),
-    deeper.map((level) => level.selectedName ?? t(level.labelKey)).join("\u0000"),
-    language, markets.isLoading, markets.failed, tree.failed,
-  ]);
+  useLabelRoom(
+    rowRef,
+    [longLabelRef, shortLabelRef],
+    [
+      selectedMarket === null ? null : marketLabel(selectedMarket),
+      deeper.map((level) => level.selectedName ?? t(level.labelKey)).join("\u0000"),
+      language,
+      markets.isLoading,
+      markets.failed,
+      tree.failed,
+    ],
+  );
 
   const failed = markets.failed || tree.failed;
   const isLoading = markets.isLoading;

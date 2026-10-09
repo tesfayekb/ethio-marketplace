@@ -34,8 +34,11 @@ describe("input modality", () => {
     const add = vi.spyOn(document, "addEventListener");
     const remove = installInputModality();
     expect(installInputModality()).toBe(remove);
-    expect(add.mock.calls.filter(([type]) => type === "pointerdown" || type === "keydown")).toEqual([
-      ["pointerdown", expect.any(Function), true], ["keydown", expect.any(Function), true],
-    ]);
+    expect(add.mock.calls.filter(([type]) => type === "pointerdown" || type === "keydown")).toEqual(
+      [
+        ["pointerdown", expect.any(Function), true],
+        ["keydown", expect.any(Function), true],
+      ],
+    );
   });
 });

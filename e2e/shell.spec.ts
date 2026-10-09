@@ -2260,17 +2260,29 @@ test.describe("L4b location picker", () => {
           const rowBox = element.parentElement?.getBoundingClientRect();
           if (!rowBox) throw new Error("Missing location row box");
           const style = getComputedStyle(element);
-          return { text: head.textContent, name: element.getAttribute("title"),
-            width: box.width, headWidth: headBox.width, arrowWidth: arrow.getBoundingClientRect().width,
-            headLeft: headBox.left, headRight: headBox.right,
+          return {
+            text: head.textContent,
+            name: element.getAttribute("title"),
+            width: box.width,
+            headWidth: headBox.width,
+            arrowWidth: arrow.getBoundingClientRect().width,
+            headLeft: headBox.left,
+            headRight: headBox.right,
             contentLeft: box.left + parseFloat(style.paddingLeft),
             contentRight: box.right - parseFloat(style.paddingRight),
-            rowLeft: rowBox.left, rowRight: rowBox.right };
+            rowLeft: rowBox.left,
+            rowRight: rowBox.right,
+          };
         }),
       );
       for (const item of boxes) {
         if (!item.name) throw new Error("Missing selected location name");
-        const prefix = Array.from(new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(item.name), ({ segment }) => segment).slice(0, 5).join("");
+        const prefix = Array.from(
+          new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(item.name),
+          ({ segment }) => segment,
+        )
+          .slice(0, 5)
+          .join("");
         expect(item.text).toBe(prefix);
         expect(item.width).toBeGreaterThanOrEqual(item.headWidth + item.arrowWidth);
         expect(item.headLeft).toBeGreaterThanOrEqual(item.contentLeft - 1);
@@ -2281,7 +2293,9 @@ test.describe("L4b location picker", () => {
     };
     await assertNameHeads();
     if (await page.locator("#location-row-label-short").isVisible()) {
-      expect(await row.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+      expect(
+        await row.evaluate((element) => element.scrollWidth - element.clientWidth),
+      ).toBeLessThanOrEqual(1);
     }
     await expect(page.locator("#location-row-label")).toBeHidden();
     const subCityName = chain.subCity.name_en;
@@ -2294,7 +2308,11 @@ test.describe("L4b location picker", () => {
     const smallBox = await row.boundingBox();
     if (!smallBox) throw new Error("Missing 320px location row");
     expect(Math.abs(smallBox.height - 32)).toBeLessThanOrEqual(1);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      ),
+    ).toBeLessThanOrEqual(1);
   });
 
   test("the location row uses the width-specific label", async ({ page }) => {

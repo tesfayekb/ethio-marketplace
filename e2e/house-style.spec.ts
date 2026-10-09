@@ -161,7 +161,8 @@ test.describe("house style fixture", () => {
     await page.keyboard.press("Shift+Tab");
     await settled(page);
     await expect(more).toBeFocused();
-    expect(await more.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe(unfocused);
+    expect(await more.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe(
+      unfocused,
+    );
   });
-
 });

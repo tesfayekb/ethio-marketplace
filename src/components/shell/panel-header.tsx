@@ -60,7 +60,7 @@ export function PanelHeader({ className }: { className?: string }) {
             aria-label={t("shell.switchPanel")}
             className="flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md px-1 text-start text-base font-semibold text-foreground hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <span data-testid="panel-header-title" >
+            <span data-testid="panel-header-title">
               <CutText text={label} />
             </span>
             <ChevronDown className="ms-auto h-4 w-4 shrink-0" aria-hidden="true" />

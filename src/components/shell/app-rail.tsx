@@ -599,7 +599,10 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
           className={cn(ITEM_BASE, ITEM_IDLE, strip && "h-full min-h-0 justify-center ps-0 pe-0")}
         >
           <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <CutText className={cn(HIDE_WHEN_COLLAPSED, strip && "sr-only")} text={t("auth.signOut")} />
+          <CutText
+            className={cn(HIDE_WHEN_COLLAPSED, strip && "sr-only")}
+            text={t("auth.signOut")}
+          />
         </button>
       </WithTooltip>
     </div>

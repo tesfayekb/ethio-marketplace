@@ -168,10 +168,21 @@ export function StepCategory({
   const chips = recentChips(recentIds, tree);
   const recentRowRef = useRef<HTMLDivElement>(null);
   const recentLabelRef = useRef<HTMLSpanElement>(null);
-  useLabelRoom(recentRowRef, [recentLabelRef], [
-    chips.map((id) => { const node = tree.byId.get(id); return node ? label(node) : ""; }).join("\u0000"),
-    language, isLoading, treeError,
-  ]);
+  useLabelRoom(
+    recentRowRef,
+    [recentLabelRef],
+    [
+      chips
+        .map((id) => {
+          const node = tree.byId.get(id);
+          return node ? label(node) : "";
+        })
+        .join("\u0000"),
+      language,
+      isLoading,
+      treeError,
+    ],
+  );
   const filtering = term.trim() !== "";
   const finder = useCatalogFinder(term, entities.lang);
   /**
