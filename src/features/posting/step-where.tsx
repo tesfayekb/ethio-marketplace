@@ -745,20 +745,60 @@ export function StepWhere({
   const noteRead = useRef(false);
   /** Bundle 2 Q4 — the draft's own text lines are known (a carry never overwrites them). */
   const [textKnown, setTextKnown] = useState(false);
+  /**
+   * INC-522 — THE STEP NEVER REPLACES NEWER TEXT WITH OLDER TEXT, AND NEVER
+   * RESTATES TEXT IT COULD NOT READ. `saveCount` counts the door's successful
+   * answers: a read applies its answer only when no save landed since it was
+   * issued. `textUnknown` holds while no read has answered and no save has
+   * landed; a seller-driven call reads the text again first (handlers read
+   * the ref, never a state value a closure captured).
+   */
+  const saveCount = useRef(0);
+  const textUnknown = useRef(true);
+  const noteSaved = () => {
+    saveCount.current += 1;
+    textUnknown.current = false;
+  };
+  const applyRead = (found: { street: string | null; directions: string | null }) => {
+    savedText.current = found;
+    if (found.street !== null)
+      setNote((current) => (current === "" ? (found.street ?? "") : current));
+    if (found.directions !== null)
+      setDirections((current) => (current === "" ? (found.directions ?? "") : current));
+    onDirectionsSaved?.(found.directions);
+  };
+  /** A read under the counter rule; false when it failed (logged by the reader, F4). */
+  const readUnderCounter = async (): Promise<boolean> => {
+    const issued = saveCount.current;
+    let found: { street: string | null; directions: string | null };
+    try {
+      found = await readPlaceText(listingId as string);
+    } catch {
+      return false;
+    }
+    if (saveCount.current === issued) applyRead(found);
+    textUnknown.current = false;
+    // Only a successful read lets a carry run: unknown text is never overwritten.
+    setTextKnown(true);
+    return true;
+  };
+  /** Before a seller-driven call: true when the text is known (read again if not). */
+  const ensureText = async (): Promise<boolean> => {
+    if (!textUnknown.current) return true;
+    const ok = await readUnderCounter();
+    if (ok) setNoteState((current) => (current === "failed" ? "idle" : current));
+    return ok;
+  };
   useEffect(() => {
     if (listingId === null || noteRead.current) return;
     noteRead.current = true;
     let cancelled = false;
+    const issued = saveCount.current;
     readPlaceText(listingId).then(
       (found) => {
         if (cancelled) return;
-        savedText.current = found;
-        if (found.street !== null)
-          setNote((current) => (current === "" ? (found.street ?? "") : current));
-        if (found.directions !== null)
-          setDirections((current) => (current === "" ? (found.directions ?? "") : current));
-        onDirectionsSaved?.(found.directions);
-        // Only a successful read lets a carry run: unknown text is never overwritten.
+        if (saveCount.current === issued) applyRead(found);
+        textUnknown.current = false;
         setTextKnown(true);
       },
       () => {
@@ -1015,6 +1055,7 @@ export function StepWhere({
           return;
         }
         savedText.current = lines;
+        noteSaved();
         setNote(lines.street ?? "");
         setDirections(lines.directions ?? "");
         onDirectionsSaved?.(lines.directions);
@@ -1030,6 +1071,7 @@ export function StepWhere({
         return;
       }
       savedText.current = text;
+      noteSaved();
       setNote(from.street ?? "");
       setDirections(from.directions ?? "");
       onDirectionsSaved?.(from.directions);
@@ -1054,6 +1096,7 @@ export function StepWhere({
         return;
       }
       savedText.current = { street: null, directions: null };
+      noteSaved();
       setNote("");
       setDirections("");
       onDirectionsSaved?.(null);
@@ -1614,15 +1657,22 @@ export function StepWhere({
                     }
                     // PW-40 — Remove clears the details with the pin; the
                     // directions line is restated so it is kept (step 10).
-                    const kept = savedText.current.directions;
-                    void clearPin(listingId, { street: null, directions: kept }).then((ok) => {
+                    void (async () => {
+                      // INC-522 (A2) — never restate directions the step has not read.
+                      if (!(await ensureText())) {
+                        setPinState("failed");
+                        return;
+                      }
+                      const kept = savedText.current.directions;
+                      const ok = await clearPin(listingId, { street: null, directions: kept });
                       if (ok) {
                         savedText.current = { street: null, directions: kept };
+                        noteSaved();
                         onPinSaved?.(null);
                         setNote("");
                       }
                       setPinState(ok ? "removed" : "failed");
-                    });
+                    })();
                   }}
                   data-testid="post-pin-remove"
                 >
@@ -1715,7 +1765,15 @@ export function StepWhere({
                   onNote={setNote}
                   onClose={() => setPinOpen(false)}
                   onSave={async (value) => {
-                    const street = sanitizeDetails(note);
+                    // INC-522 (A2) — read the text again while it is unknown.
+                    const wasUnknown = textUnknown.current;
+                    if (!(await ensureText())) {
+                      setPinState("failed");
+                      return false;
+                    }
+                    const typed = sanitizeDetails(note);
+                    const street =
+                      typed === "" && wasUnknown ? (savedText.current.street ?? "") : typed;
                     const text = {
                       street: street === "" ? null : street,
                       directions: savedText.current.directions,
@@ -1730,6 +1788,7 @@ export function StepWhere({
                     );
                     if (ok) {
                       savedText.current = text;
+                      noteSaved();
                       // A pin the seller sets is the draft's own (Q4).
                       onPinCarried?.(false);
                       onPinSaved?.({ ...value, street: street === "" ? null : street });
@@ -1772,18 +1831,27 @@ export function StepWhere({
                 setDirState("contact");
                 return;
               }
-              const text = {
-                street: savedText.current.street,
-                directions: clean === "" ? null : clean,
-              };
               setDirState("busy");
-              void savePlaceText(listingId, text, pin).then((answer) => {
+              void (async () => {
+                // INC-522 (A2) — read the text again while it is unknown.
+                const wasUnknown = textUnknown.current;
+                if (!(await ensureText())) {
+                  setDirState("failed");
+                  return;
+                }
+                const own = clean === "" && wasUnknown ? savedText.current.directions : clean;
+                const text = {
+                  street: savedText.current.street,
+                  directions: own === null || own === "" ? null : own,
+                };
+                const answer = await savePlaceText(listingId, text, pin);
                 if (answer === "saved") {
                   savedText.current = text;
+                  noteSaved();
                   onDirectionsSaved?.(text.directions);
                 }
                 setDirState(answer === "contactInNote" ? "contact" : answer);
-              });
+              })();
             }}
           />
           <p className="text-xs text-muted-foreground">{t("post.where.directionsHelp")}</p>
@@ -1853,18 +1921,26 @@ export function StepWhere({
                 setNoteState("contact");
                 return;
               }
-              const text = {
-                street: clean === "" ? null : clean,
-                directions: savedText.current.directions,
-              };
               setNoteState("busy");
-              void savePlaceText(listingId, text, pin).then((answer) => {
+              void (async () => {
+                // INC-522 (A2) — read the text again while it is unknown.
+                const wasUnknown = textUnknown.current;
+                if (!(await ensureText())) {
+                  setNoteState("failed");
+                  return;
+                }
+                const own = clean === "" && wasUnknown ? savedText.current.street : clean;
+                const street = own === null || own === "" ? null : own;
+                const text = { street, directions: savedText.current.directions };
+                const answer = await savePlaceText(listingId, text, pin);
                 const ok = answer === "saved";
-                if (ok) savedText.current = text;
+                if (ok) {
+                  savedText.current = text;
+                  noteSaved();
+                }
                 setNoteState(answer === "contactInNote" ? "contact" : answer);
-                if (ok && pin !== null)
-                  onPinSaved?.({ ...pin, street: clean === "" ? null : clean });
-              });
+                if (ok && pin !== null) onPinSaved?.({ ...pin, street });
+              })();
             }}
           />
           <p className="text-xs text-muted-foreground">{t("post.where.detailsHelp")}</p>
