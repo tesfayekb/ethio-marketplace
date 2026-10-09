@@ -34,9 +34,10 @@ import {
 /**
  * Bundle 10 E3a — ADMIN › SCREENING (D109).
  *
- * `listings:view` opens the section (the /admin layout owns that gate); the
+ * `listings:review` opens the section (the /admin layout's gate, DEC-163); the
+ * queue's rows are read under `listings:view` (RLS `listings_admin_read`); the
  * Approve/Reject buttons render only with `listings:review`, and the door
- * (`transition_listing`) re-checks the permission and a fresh second factor
+ * (`transition_listing`) re-checks `listings:review` and a fresh second factor
  * (F3). The outcome line is an inline live region: no <Toaster/> is mounted in
  * this app (the translations console's precedent).
  */
