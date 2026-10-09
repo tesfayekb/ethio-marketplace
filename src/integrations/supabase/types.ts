@@ -3291,6 +3291,15 @@ export type Database = {
           place_key: string
         }[]
       }
+      feed_page: {
+        Args: {
+          p_after?: Json
+          p_category_id?: string
+          p_location_id?: string
+          p_size?: number
+        }
+        Returns: Json
+      }
       feed_reindex_enqueue_categories: {
         Args: { p_category_ids: string[] }
         Returns: number
