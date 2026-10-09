@@ -745,20 +745,60 @@ export function StepWhere({
   const noteRead = useRef(false);
   /** Bundle 2 Q4 — the draft's own text lines are known (a carry never overwrites them). */
   const [textKnown, setTextKnown] = useState(false);
+  /**
+   * INC-522 — THE STEP NEVER REPLACES NEWER TEXT WITH OLDER TEXT, AND NEVER
+   * RESTATES TEXT IT COULD NOT READ. `saveCount` counts the door's successful
+   * answers: a read applies its answer only when no save landed since it was
+   * issued. `textUnknown` holds while no read has answered and no save has
+   * landed; a seller-driven call reads the text again first (handlers read
+   * the ref, never a state value a closure captured).
+   */
+  const saveCount = useRef(0);
+  const textUnknown = useRef(true);
+  const noteSaved = () => {
+    saveCount.current += 1;
+    textUnknown.current = false;
+  };
+  const applyRead = (found: { street: string | null; directions: string | null }) => {
+    savedText.current = found;
+    if (found.street !== null)
+      setNote((current) => (current === "" ? (found.street ?? "") : current));
+    if (found.directions !== null)
+      setDirections((current) => (current === "" ? (found.directions ?? "") : current));
+    onDirectionsSaved?.(found.directions);
+  };
+  /** A read under the counter rule; false when it failed (logged by the reader, F4). */
+  const readUnderCounter = async (): Promise<boolean> => {
+    const issued = saveCount.current;
+    let found: { street: string | null; directions: string | null };
+    try {
+      found = await readPlaceText(listingId as string);
+    } catch {
+      return false;
+    }
+    if (saveCount.current === issued) applyRead(found);
+    textUnknown.current = false;
+    // Only a successful read lets a carry run: unknown text is never overwritten.
+    setTextKnown(true);
+    return true;
+  };
+  /** Before a seller-driven call: true when the text is known (read again if not). */
+  const ensureText = async (): Promise<boolean> => {
+    if (!textUnknown.current) return true;
+    const ok = await readUnderCounter();
+    if (ok) setNoteState((current) => (current === "failed" ? "idle" : current));
+    return ok;
+  };
   useEffect(() => {
     if (listingId === null || noteRead.current) return;
     noteRead.current = true;
     let cancelled = false;
+    const issued = saveCount.current;
     readPlaceText(listingId).then(
       (found) => {
         if (cancelled) return;
-        savedText.current = found;
-        if (found.street !== null)
-          setNote((current) => (current === "" ? (found.street ?? "") : current));
-        if (found.directions !== null)
-          setDirections((current) => (current === "" ? (found.directions ?? "") : current));
-        onDirectionsSaved?.(found.directions);
-        // Only a successful read lets a carry run: unknown text is never overwritten.
+        if (saveCount.current === issued) applyRead(found);
+        textUnknown.current = false;
         setTextKnown(true);
       },
       () => {
