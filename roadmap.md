@@ -1,6 +1,6 @@
 # Roadmap
 
-No bundle brief is in force: bundle 10 was built on 2026-10-09 (its brief stays at docs/governance/briefs/bundle-10.md, version 9, with turn 14's ruling beside it); next comes bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); the brief in force is named on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-10-d119.md (D119, the invite card; one turn). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
