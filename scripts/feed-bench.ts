@@ -13,6 +13,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { chunkByLength } from "../e2e/helpers/chunk-by-length";
+import { describeRuns, gateEnv, waitForQuiet, yieldWatcher, YieldError } from "./staging-gate";
 
 export const TARGET_P95_MS = 50;
 export const TARGET_BYTES = 30720;
@@ -22,6 +23,8 @@ export const LISTINGS = 100000;
 export const HOT = 500;
 export const BATCH = 250;
 export const STAGING_REF = "jatpuhfdjfzctjipklmk";
+/** DEC-168 — the longest the bench waits for a quiet staging before it skips. */
+export const GATE_WAIT_MINUTES = 40;
 
 const STATUS_PATH = "docs/tracking/feed-bench-status.md";
 
@@ -77,7 +80,7 @@ export interface StatusInput {
   runUrl: string;
   runSha: string;
   timestamp: string;
-  outcome: "PASS" | "MISS" | "FAILED";
+  outcome: "PASS" | "MISS" | "FAILED" | "SKIPPED" | "YIELDED";
   error?: string;
   seeded: number;
   seedSeconds: number;
@@ -89,7 +92,10 @@ export interface StatusInput {
 
 export function renderStatus(input: StatusInput): string {
   const firstLine = (input.error ?? "").split("\n")[0]?.slice(0, 200) ?? "";
-  const shown = input.outcome === "FAILED" ? `FAILED (${firstLine})` : input.outcome;
+  const shown =
+    input.outcome === "PASS" || input.outcome === "MISS"
+      ? input.outcome
+      : `${input.outcome} (${firstLine})`;
   const rows = input.shapes.map(
     (s) =>
       `| ${s.name} | ${s.runs} | ${s.p50.toFixed(2)} | ${s.p95.toFixed(2)} | ${s.max.toFixed(2)} | ${s.cards} |`,
@@ -299,6 +305,45 @@ async function main(): Promise<number> {
     return left === 0 ? 0 : 1;
   }
 
+  // DEC-168 — THE STAGING GATE: CI has priority. Wait for a quiet staging
+  // before writing anything; yield the moment another staging run starts.
+  const gate = gateEnv();
+  let checkGate: () => Promise<void> = async () => {};
+  if (gate === null) {
+    console.log("staging gate: not on GitHub Actions — not checked");
+  } else {
+    let skipped: string | undefined;
+    try {
+      const waited = await waitForQuiet(gate, GATE_WAIT_MINUTES);
+      if (waited.quiet) console.log(`staging gate: staging quiet after ${waited.waitedSeconds} s`);
+      else skipped = `staging busy for ${GATE_WAIT_MINUTES} min: ${describeRuns(waited.busy)}`;
+    } catch (error) {
+      skipped = `gate unreadable: ${error instanceof Error ? error.message : String(error)}`;
+    }
+    if (skipped !== undefined) {
+      mkdirSync("docs/tracking", { recursive: true });
+      writeFileSync(
+        STATUS_PATH,
+        renderStatus({
+          runUrl: process.env["RUN_URL"] || "local",
+          runSha: process.env["RUN_SHA"] || "local",
+          timestamp: new Date().toISOString(),
+          outcome: "SKIPPED",
+          error: skipped,
+          seeded: 0,
+          seedSeconds: 0,
+          cleanupSeconds: 0,
+          leftovers: 0,
+          shapes: [],
+          bytes: 0,
+        }),
+      );
+      console.log(`::error::feed-bench SKIPPED: ${skipped}`);
+      return 1;
+    }
+    checkGate = yieldWatcher(gate);
+  }
+
   const P = `e2e-bench-${process.env["GITHUB_RUN_ID"] ?? "local"}-${randomLetters(6)}`;
   const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
@@ -310,6 +355,7 @@ async function main(): Promise<number> {
   const shapes: ShapeResult[] = [];
   let sellerId: string | null = null;
   let failure: string | undefined;
+  let yielded: string | undefined;
   let seedStart = 0;
 
   try {
@@ -398,6 +444,7 @@ async function main(): Promise<number> {
     let batch: ReturnType<typeof row>[] = [];
     const flush = async () => {
       if (batch.length === 0) return;
+      await checkGate();
       for (let attempt = 1; ; attempt++) {
         const res = await db.from("listings").insert(batch);
         if (!res.error) break;
@@ -424,6 +471,7 @@ async function main(): Promise<number> {
     seedSeconds = (Date.now() - seedStart) / 1000;
 
     // 5. Measure.
+    await checkGate();
     let after: unknown = null;
     for (let n = 1; n <= 49; n++) {
       const page = must(
@@ -446,6 +494,7 @@ async function main(): Promise<number> {
       ["guest host, country", tops[2]!, et.id, null],
     ];
     for (const [name, cat, loc, cursor] of plan) {
+      await checkGate();
       const answer = must(
         await db.rpc("feed_bench", {
           p_category_id: cat,
@@ -459,7 +508,8 @@ async function main(): Promise<number> {
       shapes.push({ name, ...summarise(answer.ms.slice(WARMUP)), cards: answer.cards });
     }
   } catch (error) {
-    failure = error instanceof Error ? error.message : String(error);
+    if (error instanceof YieldError) yielded = error.message;
+    else failure = error instanceof Error ? error.message : String(error);
     if (seedStart > 0 && seedSeconds === 0) seedSeconds = (Date.now() - seedStart) / 1000;
   } finally {
     // 6. Clean up, whatever happened.
@@ -481,7 +531,14 @@ async function main(): Promise<number> {
 
   // 7. Status.
   const judged = verdict(shapes, bytes, leftovers);
-  const outcome = failure !== undefined ? "FAILED" : judged.pass ? "PASS" : "MISS";
+  const outcome =
+    failure !== undefined
+      ? "FAILED"
+      : yielded !== undefined
+        ? "YIELDED"
+        : judged.pass
+          ? "PASS"
+          : "MISS";
   mkdirSync("docs/tracking", { recursive: true });
   writeFileSync(
     STATUS_PATH,
@@ -490,7 +547,7 @@ async function main(): Promise<number> {
       runSha: process.env["RUN_SHA"] || "local",
       timestamp: new Date().toISOString(),
       outcome,
-      error: failure,
+      error: failure ?? yielded,
       seeded,
       seedSeconds,
       cleanupSeconds,
@@ -500,6 +557,7 @@ async function main(): Promise<number> {
     }),
   );
   if (failure !== undefined) console.log(`::error::feed-bench FAILED: ${failure.split("\n")[0]}`);
+  if (yielded !== undefined) console.log(`::error::feed-bench YIELDED: ${yielded}`);
   for (const line of judged.lines) console.log(line);
   return outcome === "PASS" ? 0 : 1;
 }

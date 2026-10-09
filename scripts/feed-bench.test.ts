@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   BATCH,
+  GATE_WAIT_MINUTES,
   isStatementTimeout,
   nearestRank,
   renderStatus,
@@ -74,5 +75,31 @@ describe("feed-bench", () => {
     expect(isStatementTimeout("canceling statement due to statement timeout")).toBe(true);
     expect(isStatementTimeout("duplicate key value")).toBe(false);
     expect(BATCH).toBe(250);
+  });
+
+  it("FB-6 a skipped or yielded run names its reason (DEC-168)", () => {
+    const base = {
+      runUrl: "local",
+      runSha: "local",
+      timestamp: "2026-10-09T00:00:00.000Z",
+      seeded: 0,
+      seedSeconds: 0,
+      cleanupSeconds: 0,
+      leftovers: 0,
+      shapes: [],
+      bytes: 0,
+    };
+    expect(
+      renderStatus({
+        ...base,
+        outcome: "SKIPPED",
+        error: "staging busy for 40 min: CI run 1 (in_progress, abcdef01)",
+      }),
+    ).toContain("Verdict: SKIPPED (staging busy for 40 min: CI run 1 (in_progress, abcdef01))");
+    expect(
+      renderStatus({ ...base, outcome: "YIELDED", error: "CI run 2 (queued, abcdef01) started" }),
+    ).toContain("Verdict: YIELDED (CI run 2 (queued, abcdef01) started)");
+    expect(renderStatus({ ...base, outcome: "PASS" })).toContain("Verdict: PASS");
+    expect(GATE_WAIT_MINUTES).toBe(40);
   });
 });

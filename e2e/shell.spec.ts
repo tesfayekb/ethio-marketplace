@@ -1001,8 +1001,13 @@ test.describe("mobile chrome", () => {
     expect(Math.abs(menuBox.width - 256)).toBeLessThanOrEqual(1);
     expect(Math.abs(menuBox.x)).toBeLessThanOrEqual(1);
 
+    // INC-528 — other tests' scratch categories (slugs "e2e-…") come and go in
+    // the rail while this test runs; the anchor is a real category.
+    const realRows = menu.locator(
+      '[data-testid^="rail-category-"]:not([data-testid^="rail-category-e2e-"])',
+    );
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the geometry anchor
-    const row = menu.locator('[data-testid^="rail-category-"]').first();
+    const row = realRows.first();
     const testid = await row.getAttribute("data-testid");
     if (!testid) throw new Error("Missing first menu category test id");
     const slug = testid.replace("rail-category-", "");
@@ -1067,8 +1072,13 @@ test.describe("mobile chrome", () => {
     await expect(control).toBeFocused();
 
     menu = await openRailScope(page);
+    // INC-528 — other tests' scratch categories (slugs "e2e-…") come and go in
+    // the rail while this test runs; the navigation subject is a real category.
+    const realRows = menu.locator(
+      '[data-testid^="rail-category-"]:not([data-testid^="rail-category-e2e-"])',
+    );
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the navigation subject
-    const category = menu.locator('[data-testid^="rail-category-"]').first();
+    const category = realRows.first();
     const testid = await category.getAttribute("data-testid");
     const href = await category.getAttribute("href");
     if (!testid || !href) throw new Error("Missing category row destination");

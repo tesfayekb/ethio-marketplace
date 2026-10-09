@@ -91,3 +91,9 @@ One step after the suites, `if: always()`: `bun scripts/security-lints.ts`. It n
 - The nightly runs `scripts/security-lints.ts` against ethio-staging (counts only; see security-scanning.md).
 - The job's token is read-only by default; the nightly job declares `contents: write` for its evidence publish (DEC-153).
 - Failure tables are written through the reporter's `mdCell` helper (DEC-154).
+
+## The staging gate (DEC-168)
+
+- Before its tests the nightly waits, up to 60 minutes, until no CI, Guard Proof or Feed bench run is queued or running (`bun scripts/staging-gate.ts wait 60`); after that it runs anyway, with a warning. An unreadable gate is a warning, never a stop.
+- After the serial full run, `bun scripts/staging-gate.ts overlaps` writes a notice on the run page for every other staging run that overlapped this nightly, so a nightly red is read with that in hand (INC-487).
+- The job's token gains `actions: read` for these two steps; CI itself never waits.

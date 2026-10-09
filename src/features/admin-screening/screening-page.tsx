@@ -19,6 +19,7 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { sectionById } from "@/features/admin/sections";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
+import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -58,6 +59,8 @@ export function AdminScreeningPage() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [previewRow, setPreviewRow] = useState<ScreeningRow | null>(null);
+  // INC-525 — the preview draws the ad's category picture as the card does.
+  const { tree } = useCategoryTree();
 
   const query = useScreeningQueue(page, search);
   const photos = useScreeningPhotos(previewRow?.id ?? null);
@@ -286,7 +289,7 @@ export function AdminScreeningPage() {
                   definitions: [],
                   attributeOptions: {},
                   photos: photos.data ?? [],
-                  illustrationUrl: null,
+                  illustrationUrl: nearestCategoryPicture(tree, previewRow.categoryId),
                   photosSoon: previewRow.photosSoon,
                   coverage: previewRow.locationId === null ? [] : [previewRow.locationId],
                   country: null,
