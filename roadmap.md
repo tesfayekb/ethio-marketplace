@@ -1,6 +1,6 @@
 # Roadmap
 
-Bundle 9 brief: docs/governance/briefs/bundle-9.md (read first every turn).
+No bundle brief is in force: bundle 9's first half was built on 2026-10-08 (its brief stays at docs/governance/briefs/bundle-9.md, version 14); next come one short bundle-9 turn (version 15, C2m) and then bundle 10 — the feed engine; the brief in force is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -134,24 +134,38 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] After the bundle, one harness turn: the test setup resets staging's English texts in every lane before its tests (INC-493, DEC-160) — scripts/en-baseline-heal.ts with its test; the census for bundle 9 — docs/governance/briefs/bundle-9-census.md
 - [x] Records turn (bundle 8 close, 2026-10-08) — spec-ledger S57 (DEC-155–160), INC-488–494, system-state; see docs/governance/handoffs/2026-10-08-bundle8-close-handover.md
 
-### Bundle 9 — the house style (agreed with the operator on 2026-10-07; NEXT; its brief follows the supervisor's explanation; the index of today's look is docs/governance/briefs/bundle-9-census.md)
+### Bundle 9 — the house style (agreed with the operator on 2026-10-07; FIRST HALF BUILT 2026-10-08 in fourteen executor turns — spec-ledger block S58; the second half follows bundle 10; the index of the look before it is docs/governance/briefs/bundle-9-census.md)
 
-- [ ] Colour by meaning as tokens — primary, danger, success, warning, info, neutral; corners 6 px; stronger borders; fine row rules; soft shadows on cards, tables and figures, stronger ones on menus and dialogs
-- [ ] Row actions everywhere: Edit and Delete as icons (Edit grey, Delete red) and a three-dots menu for the rest; every icon button has a name and a tooltip; one shared building block
-- [ ] Tables: a toolbar (search, Filters with its count, columns), filter chips with "Clear all", a selection bar; the footer holds the count at the left, rows per page in the centre and the page numbers at the right; on a phone one card per row
-- [ ] The shell: the top bar stays in place on every screen size; the panel tabs stay below it; the left menu stays in place with no scroll bar of its own on a desktop, becomes an icon strip on small screens that opens to the full menu, and holds Sign out at its foot; breadcrumbs stay
-- [ ] Phones: a bottom bar with the common actions (its five items are confirmed with the operator first)
-- [ ] Space: one page padding, owned by the shell — 8 px on phones, 16 px above; list pages use the full width
+- [x] Colour by meaning as tokens — primary, danger, success, warning, info, neutral; corners 6 px; stronger borders; fine row rules; soft shadows on cards, tables and figures, stronger ones on menus and dialogs — Part A (DEC-161; INC-496); src/styles.tokens.test.ts, HS-1, HS-2; the fixture page /dev/style
+- [ ] Row actions everywhere: Edit and Delete as icons (Edit grey, Delete red) and a three-dots menu for the rest; every icon button has a name and a tooltip; one shared building block — the blocks are built (IconButton, RowActions — Part B; HS-3); the screens use them from Part D
+- [ ] Tables: a toolbar (search, Filters with its count, columns), filter chips with "Clear all", a selection bar; the footer holds the count at the left, rows per page in the centre and the page numbers at the right; on a phone one card per row — the footer's three zones, FilterChips and the selection slot are built (Part B; HS-4, HS-5); the screens use them from Part D
+- [x] The shell: the top bar stays in place on every screen size; the panel tabs stay below it; the left menu stays in place with no scroll bar of its own on a desktop, becomes an icon strip on small screens that opens to the full menu, and holds Sign out at its foot; breadcrumbs stay — Part C (C1, C2a–C2l): as built, below 768 px the bottom bar replaces the panel tabs (D88) and the strip holds the section's items only (D89, D91); Sign out is in the account menu at the top right at every width and at the rail's foot from 768 (D102); the frame follows the window's width only, guarded by the width walk (e2e/phone-frame.spec.ts)
+- [x] Phones: a bottom bar with the common actions (its five items are confirmed with the operator first) — Home · My listings · Post · Account, Admin for admins; signed out Home · Post · Sign in (D88, D91); the selected look on a pill (D97)
+- [x] Space: one page padding, owned by the shell — 8 px on phones, 16 px above; list pages use the full width — Part C1
 - [ ] One written rule and one automatic check per element; existing screens are listed in a baseline that only shrinks
 - [ ] The public marketplace pages (cards in two columns) are designed after this, under the same rules
+- [x] The posting form keeps the frame like every page (D92), its place selects at 200 px or more on a phone, and /post, /post/<id> and /account open without an auth-server round trip in their guards (measured) — C2e
+- [x] A password eye inside the box on every password field (D90); the location row on one line labelled "Listings in" / "Showing listings in" (D102, D103); "Used before" on one line (D102) — C2c, C2j
+- [x] Records turn (bundle 9 first half, 2026-10-08) — spec-ledger S58 (DEC-161–162, D87–D104), INC-495–509, system-state, the feed-engine spec; see docs/governance/handoffs/2026-10-08-bundle9-part1-close-handover.md
+- [ ] Next, before bundle 10 (version 15, C2m): every name cut with "…" keeps its first five characters (D104; INC-508, INC-509); the focus ring after keyboard use only
+- [ ] After bundle 10: subcategories in the menus (D98) with the bottom bar's short labels (D97 — the Amharic words owed by the operator)
+- [ ] After bundle 10: the scroll area — from 768 px only the page body scrolls between the fixed bars; phones keep the page's own scroll (D93, D96)
+- [ ] After bundle 10: Part D1 — the pattern console (Admin › Categories), then every other screen; Part E — the written rules and their checks
+
+### Bundle 10 — the feed engine (D99–D101; the spec, approved 2026-10-08: docs/governance/feed-engine-spec.md; NEXT after bundle 9's version 15)
+
+- [ ] E1 — `feed_index`, `feed_index_refresh`, the backfill of today's active listings, the consistency check (Tier A; one migration)
+- [ ] E2 — the write doors call the refresh; the tree-change re-index job with its heartbeat; `feed_page`; `/api/feed` with cursor paging, its cache headers and the widening ladder (Tier A; a migration and the route)
+- [ ] E3 — the feed on the route (20 per page, the next page as the last card comes into view); subcategory addresses resolved through the whole tree; the breadcrumbs; the performance job against the frozen targets at 100,000 scratch listings (Tier B)
+- [ ] INC-503 (a category's page shows its whole branch), INC-504 (a subcategory's address filters), INC-505 (no whole-catalogue read) closed by E1–E3
 
 ### After bundle 7, in this order
 
 What bundle 7 added to the order, item by item with its place: docs/governance/handoffs/2026-10-07-order-of-work-additions.md.
 
-1. Bundle 8 — the security and wording round (closed 2026-10-08), then bundle 9 — the house style (its block above), before stage 1
+1. Bundle 8 — the security and wording round (closed 2026-10-08); bundle 9 — the house style, first half built 2026-10-08; bundle 10 — the feed engine (D99–D101), next; then bundle 9's second half (its block above) — all before stage 1
 2. Stage 1 — the rules: the legal section (Terms, Privacy, the publishing statement as numbered versions; the 18+ tick; the seller's certification), the banned-items and safety pages, the screening-promise wording
-3. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449; INC-487 if it is contention), the CI report's gaps (INC-419, INC-429), INC-398, INC-420, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), CI run time, what bundle 7 named and did not build (the definition editor's holders count, a pointer move against the parent-first guard, the parent-first refusal in the import preview, one unit case of the reset function), the four-lens review of the posting era; the Translations store follows a changed seed text by itself (INC-488's class); a full read of the Amharic catalog (INC-489); the scan's upload step and the status report's silence while queued (INC-492); AT-3 and its shared helper (INC-494)
+3. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449; INC-487 if it is contention), the CI report's gaps (INC-419, INC-429), INC-398, INC-420, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), CI run time, what bundle 7 named and did not build (the definition editor's holders count, a pointer move against the parent-first guard, the parent-first refusal in the import preview, one unit case of the reset function), the four-lens review of the posting era; the Translations store follows a changed seed text by itself (INC-488's class); a full read of the Amharic catalog (INC-489); the scan's upload step and the status report's silence while queued (INC-492); AT-3 and its shared helper (INC-494); the flake ledger's re-run duplicates (INC-495); CT-18 (INC-497); the guess fixture's region code with LS-6 (INC-502, INC-285, INC-428); PW-137 and PW-144 with PW-57 (INC-449)
 4. Stage 2 — automatic screening from the first ad, in two layers (DEC-145), with translation of every ad's free text at posting and its own switch (DEC-149): the screening gateway, duplicates, the exceptions page, posting limits and AI switches, Admin › Services (DEC-091), admin numbers
 5. Stage 3 — a buyer can open the ad: the ad page with Show contact, Report, Share and the safety box; photos on cards and paging (the home feed's uncapped read); contact ticks; request a missing place and the admin inbox
 6. Stage 4 — sellers manage ads: My ads with retention, views and contacts per ad, a real paused state (INC-469), the expiry sweep through the state machine (INC-470)
