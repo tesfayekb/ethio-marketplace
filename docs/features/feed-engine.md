@@ -18,6 +18,6 @@ E2 makes the write doors (publish, edit, transitions, the expiry sweep, place ch
 
 ## Migration
 
-The E1 migration under supabase/migrations/ (the database tool names it) with its self-mark; the mark is recorded in docs/_changelog.md for this turn.
+The E1 migration under supabase/migrations/ (the database tool names it) with its self-mark; the mark is recorded in docs/\_changelog.md for this turn.
 
 Tests: e2e/feed-index.spec.ts (FE-1..FE-5), area `feed` in scripts/e2e-select.ts.

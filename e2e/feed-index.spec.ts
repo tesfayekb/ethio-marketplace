@@ -110,7 +110,8 @@ test.describe("FEED INDEX", () => {
     const { error: placeError } = await supabase
       .from("listing_locations")
       .insert({ listing_id: listingId, location_id: chain.subCity.id });
-    if (placeError) throw new Error(`[e2e:fe] adding the extra place failed: ${placeError.message}`);
+    if (placeError)
+      throw new Error(`[e2e:fe] adding the extra place failed: ${placeError.message}`);
 
     return { seller, parent, leaf, guest, chain, listingId };
   }
