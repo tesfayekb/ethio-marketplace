@@ -20,7 +20,7 @@ export const RUNS = 33;
 export const WARMUP = 3;
 export const LISTINGS = 100000;
 export const HOT = 500;
-export const BATCH = 1000;
+export const BATCH = 250;
 export const STAGING_REF = "jatpuhfdjfzctjipklmk";
 
 const STATUS_PATH = "docs/tracking/feed-bench-status.md";
@@ -39,6 +39,10 @@ export function nearestRank(ms: number[], q: number): number {
   const sorted = [...ms].sort((a, b) => a - b);
   const index = Math.max(0, Math.ceil(q * sorted.length) - 1);
   return sorted[index] as number;
+}
+
+export function isStatementTimeout(message: string): boolean {
+  return message.includes("statement timeout");
 }
 
 export function summarise(ms: number[]): { runs: number; p50: number; p95: number; max: number } {
@@ -306,6 +310,7 @@ async function main(): Promise<number> {
   const shapes: ShapeResult[] = [];
   let sellerId: string | null = null;
   let failure: string | undefined;
+  let seedStart = 0;
 
   try {
     // 3. Pre-clean an earlier run.
@@ -314,7 +319,7 @@ async function main(): Promise<number> {
     await deleteLocationsLike(db, "e2e-bench-");
 
     // 4. Seed.
-    const seedStart = Date.now();
+    seedStart = Date.now();
     const created = await db.auth.admin.createUser({
       email: `${P}@ethio-e2e.invalid`,
       password: randomPassword(24),
@@ -393,7 +398,15 @@ async function main(): Promise<number> {
     let batch: ReturnType<typeof row>[] = [];
     const flush = async () => {
       if (batch.length === 0) return;
-      must(await db.from("listings").insert(batch), "insert listings");
+      for (let attempt = 1; ; attempt++) {
+        const res = await db.from("listings").insert(batch);
+        if (!res.error) break;
+        if (attempt < 3 && isStatementTimeout(res.error.message)) {
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          continue;
+        }
+        throw new Error(`insert listings: ${res.error.message}`);
+      }
       seeded += batch.length;
       batch = [];
     };
@@ -447,6 +460,7 @@ async function main(): Promise<number> {
     }
   } catch (error) {
     failure = error instanceof Error ? error.message : String(error);
+    if (seedStart > 0 && seedSeconds === 0) seedSeconds = (Date.now() - seedStart) / 1000;
   } finally {
     // 6. Clean up, whatever happened.
     const cleanStart = Date.now();

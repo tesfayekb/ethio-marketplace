@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { nearestRank, renderStatus, summarise, verdict, type ShapeResult } from "./feed-bench";
+import {
+  BATCH,
+  isStatementTimeout,
+  nearestRank,
+  renderStatus,
+  summarise,
+  verdict,
+  type ShapeResult,
+} from "./feed-bench";
 
 function six(): ShapeResult[] {
   return ["a", "b", "c", "d", "e", "f"].map((name) => ({
@@ -60,5 +68,11 @@ describe("feed-bench", () => {
     expect(text).toContain("Verdict: PASS");
     for (const s of six()) expect(text).toContain(`| ${s.name} | 30 |`);
     expect(text).toContain("- Not measured here:");
+  });
+
+  it("FB-5 isStatementTimeout and BATCH", () => {
+    expect(isStatementTimeout("canceling statement due to statement timeout")).toBe(true);
+    expect(isStatementTimeout("duplicate key value")).toBe(false);
+    expect(BATCH).toBe(250);
   });
 });
