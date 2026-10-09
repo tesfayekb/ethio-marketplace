@@ -12,12 +12,24 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 - **Who may call them** — the table and all three functions are closed to PUBLIC, `anon` and `authenticated` (RLS on with one closing policy); `service_role` only.
 - **The backfill and its check** — the migration locks `listings`, `listing_locations`, `category_tree_pointers` and `locations` in SHARE mode, refreshes every active listing, and fails the migration unless the whole-catalogue check reports zero missing, zero inactive and zero wrong rows.
 
+## What E2a built
+
+- **The rank** — `feed_tier_rank(tier)` (IMMUTABLE): premium 2, featured 1, regular 0; an unknown tier raises. A higher rank is read first; newest first inside a rank (D108). `feed_index_refresh` and `feed_index_check` are redeclared whole with the rank taken from the listing's tier.
+- **The five refresh triggers** — statement-level, in the writer's own transaction, one refresh per listing per statement: `feed_index_on_listing_insert` / `_update` on `listings` (an update refreshes only when status, publish time, category, main place or tier changed and the row was or becomes active), and `feed_index_on_place_insert` / `_delete` / `_update` on `listing_locations` (active listings only). They run as their owner, so a write by any role keeps the index right.
+- **The queue and the sweep** — `feed_reindex_queue` (one row per listing) is filled by `feed_reindex_enqueue_categories` and `feed_reindex_enqueue_places`, called by four triggers: a tree pointer inserted, deleted or updated, and a place's parent moved. `feed_reindex_sweep(limit 500)` refreshes queued listings and writes one heartbeat row per run (nothing to do included) in `feed_reindex_runs`, kept 14 days.
+- **The daily check** — `feed_index_check_sweep()` writes the whole-catalogue counts plus the queue length to `feed_index_check_runs` and returns them.
+- **The two schedules** — `feed-reindex-sweep` every five minutes; `feed-index-check` daily at 03:53 UTC.
+- **Who may call them** — the three new tables are closed to the browser roles (RLS on, one closing policy, ALL to `service_role`); every new function is revoked from PUBLIC, `anon` and `authenticated`.
+- **The rewrite** — the migration rewrites every active listing's rows with its tier and checks one state under brief SHARE locks.
+
 ## What it does not do yet
 
-E2 makes the write doors (publish, edit, transitions, the expiry sweep, place changes) call the refresh and adds the tree-change re-index job, the read door `feed_page` and `/api/feed`. Until then the index is not kept current by the doors, and nothing reads it.
+E2b adds the read door `feed_page` and `/api/feed`; E3 the screens.
 
 ## Migration
 
 The E1 migration under supabase/migrations/ (the database tool names it) with its self-mark; the mark is recorded in docs/\_changelog.md for this turn.
 
-Tests: e2e/feed-index.spec.ts (FE-1..FE-5), area `feed` in scripts/e2e-select.ts.
+The E2a migration follows it with its own self-mark, recorded in docs/\_changelog.md.
+
+Tests: e2e/feed-index.spec.ts (FE-1..FE-14), area `feed` in scripts/e2e-select.ts.
