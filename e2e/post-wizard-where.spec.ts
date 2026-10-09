@@ -253,6 +253,69 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     expect((await coverageOf(listingId)).placeIds).not.toContain(theirs.city.id);
   });
 
+  /**
+   * PW-180 — D119: a new post from an invite opens the place step on the
+   * invite's place, ahead of the seller's own last post (W6b-1 R4 still fills
+   * the place when there is no invite — PW-84).
+   */
+  test("PW-180 D119: a new post from an invite opens the place step on the invite's place, ahead of the seller's last post", async ({
+    page,
+  }) => {
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const mine = await seedScratchChain("ET");
+    places.push(mine.region.slug);
+    const invited = await seedScratchChain("ET");
+    places.push(invited.region.slug);
+    await waitForTreeSlug(page, "ET", mine.subCity.slug);
+    await waitForTreeSlug(page, "ET", invited.city.slug);
+
+    const user = await signedInSeller(page, { alias: true });
+    const prior = await publishedAt(page, category.id, mine.subCity.id);
+    objects.push({ userId: user.id, listingId: prior });
+
+    await gotoReady(page, `/post?place=${invited.city.id}`);
+    await page.getByTestId("post-category-search").fill(category.slug);
+    const hit = page.locator(`[data-testid="post-category-hit"][data-category="${category.id}"]`);
+    await expect(hit).toBeVisible({ timeout: 20_000 });
+    await hit.click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    const [draft] = await draftsOf(user.id);
+    const listingId = String(draft?.id ?? "");
+    expect(listingId, "PW-180: step 1 created no draft").not.toBe("");
+    objects.push({ userId: user.id, listingId });
+
+    await walkOnToPrice(page);
+    await page.getByTestId("post-price-mode-free").click();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-title").fill("e2e d119 listing title");
+    await page.getByTestId("post-description").fill("e2e d119 listing description");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+
+    await expect(
+      page.getByTestId("post-where-city"),
+      "PW-180: the invite's city was not filled in",
+    ).toHaveValue(invited.city.id, { timeout: 20_000 });
+    await expect(page.getByTestId("post-where-region")).toHaveValue(invited.region.id);
+    await expect(page.getByTestId("post-where-prefilled")).toBeVisible();
+    await expect(tickOf(page, "primary")).toBeChecked();
+    await expect(
+      page.locator(`[data-testid="post-where-chosen-row"][data-id="${mine.city.id}"]`),
+      "PW-180: the last post's city was used instead",
+    ).toHaveCount(0);
+
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await coverageOf(listingId)).locationId, {
+        message: "PW-180: the item place is not the invite's city",
+        timeout: 20_000,
+      })
+      .toBe(invited.city.id);
+  });
+
   /** Seller B, in a context of their own: a LATER listing made visible as active. */
   async function otherSellersActiveListing(browser: Browser, categoryId: string, cityId: string) {
     const context = await browser.newContext();

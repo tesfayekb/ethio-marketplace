@@ -123,6 +123,19 @@ function labelOf(step: number, ladder: string[]): FeedSectionLabel {
   return { kind: "place", placeId };
 }
 
+/** D119 — the card shows while the chosen place holds fewer than this many listings. */
+export const INVITE_BELOW = 4;
+
+/**
+ * D119 — true when the chosen place's own listings (ladder step 1) are fewer than
+ * INVITE_BELOW. Step 1 always comes first and a page holds 20 cards, so a place
+ * with fewer than 4 shows them all on page 1 and the answer never changes as
+ * later pages load.
+ */
+export function inviteShown(cards: FeedListing[]): boolean {
+  return cards.filter((card) => card.step === 1).length < INVITE_BELOW;
+}
+
 /** Consecutive cards with the same step form one section, in the order received. */
 export function feedSections(cards: FeedListing[], ladder: string[]): FeedSection[] {
   const sections: FeedSection[] = [];

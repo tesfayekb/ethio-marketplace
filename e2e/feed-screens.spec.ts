@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
@@ -25,6 +25,7 @@ import { gotoReady } from "./helpers/ui";
  * Bundle 10 E3b — THE LISTINGS PAGES (FS-1..FS-6): the home and category pages
  * read /api/feed a page at a time, in D108's order, widening beyond the chosen
  * place with the wider place named. Scratch rows only; cleanup in afterEach (J3).
+ * FS-8..FS-10 and the additions to FS-3/FS-4 — D119, the invite card.
  */
 
 type Tier = "premium" | "featured" | "regular";
@@ -213,7 +214,28 @@ test.describe("FEED SCREENS", () => {
       .evaluateAll((els) => els.map((el) => el.getAttribute("data-listing") ?? ""));
   }
 
-  test("FS-3 the page reaches beyond the chosen place and names the wider place", async ({
+  /** D119 — the chosen place's invitation (section 1 only). */
+  function inviteOf(page: Page) {
+    return page.locator('[data-testid="feed-section"][data-step="1"] [data-testid="feed-invite"]');
+  }
+
+  /** D119 — what a section's row holds, in order: listing cards and the invitation. */
+  function rowOrder(page: Page, step: number) {
+    return page
+      .locator(`[data-testid="feed-section"][data-step="${step}"] ul > li > *`)
+      .evaluateAll((els) => els.map((el) => el.getAttribute("data-testid") ?? ""));
+  }
+
+  /** D119 — the invitation's address: /post, and its search parameters. */
+  async function inviteSearch(link: Locator) {
+    const href = await link.getAttribute("href");
+    expect(href, "the invitation has no address").not.toBeNull();
+    const url = new URL(href!, "http://local.test");
+    expect(url.pathname).toBe("/post");
+    return url.searchParams;
+  }
+
+  test("FS-3 the page reaches beyond the chosen place, names the wider place, and invites in the chosen one", async ({
     page,
     baseURL,
   }) => {
@@ -237,10 +259,25 @@ test.describe("FEED SCREENS", () => {
       page.locator('[data-testid="feed-section"][data-step="3"] [data-testid="feed-step-label"]'),
     ).toHaveText(en["feed.heading"].replace("{location}", fx.country));
     await expect.poll(() => sectionIds(page, 3)).toEqual([b3, b4, b5]);
+    // D119 — the chosen place's row ends with its invitation; the wider row has none.
+    await expect
+      .poll(() => rowOrder(page, 1))
+      .toEqual(["listing-card", "listing-card", "feed-invite"]);
+    await expect(inviteOf(page).getByTestId("feed-invite-text")).toHaveText(
+      en["feed.invite.placeCategory"]
+        .replace("{category}", fx.leaf.slug)
+        .replace("{place}", fx.a.city.name_en as string),
+    );
+    const params = await inviteSearch(inviteOf(page).getByTestId("feed-invite-post"));
+    expect(params.get("category")).toBe(fx.leaf.id);
+    expect(params.get("place")).toBe(fx.a.city.id);
+    await expect(
+      page.locator('[data-testid="feed-section"][data-step="3"] [data-testid="feed-invite"]'),
+    ).toHaveCount(0);
     await expect(page.getByTestId("feed-step-none")).toHaveCount(0);
   });
 
-  test("FS-4 nothing in the chosen place: the note, then the wider place", async ({
+  test("FS-4 nothing in the chosen place: the invitation first, then the wider place", async ({
     page,
     baseURL,
   }) => {
@@ -250,9 +287,15 @@ test.describe("FEED SCREENS", () => {
     const b5 = await addListing(fx.leaf.id, fx.user.id, fx.b.city.id, "regular", 5);
     await openArea(page, fx, baseURL!);
 
-    await expect(page.getByTestId("feed-step-none")).toHaveText(en["feed.emptyTitle"]);
     await expect.poll(() => sectionIds(page, 3)).toEqual([b3, b4, b5]);
-    await expect(page.locator('[data-testid="feed-section"][data-step="1"]')).toHaveCount(0);
+    // D119 — the invitation leads, alone in the chosen place's row, and replaces the note.
+    await expect.poll(() => rowOrder(page, 1)).toEqual(["feed-invite"]);
+    expect(
+      await page
+        .locator('[data-testid="feed-section"]')
+        .evaluateAll((els) => els.map((el) => el.getAttribute("data-step"))),
+    ).toEqual(["1", "3"]);
+    await expect(page.getByTestId("feed-step-none")).toHaveCount(0);
     await expect(
       page.locator('[data-testid="feed-section"][data-step="3"] [data-testid="feed-step-label"]'),
     ).toHaveText(en["feed.heading"].replace("{location}", fx.country));
@@ -330,5 +373,61 @@ test.describe("FEED SCREENS", () => {
     await expect(boxB).toBeVisible({ timeout: 20_000 });
     await expect(boxB).toHaveAttribute("data-picture", "none");
     await expect(boxB.locator("img")).toHaveCount(0);
+  });
+
+  test("FS-8 the home page invites in the chosen place, naming the place alone", async ({
+    page,
+    baseURL,
+  }) => {
+    const fx = await areaFixture(page);
+    const a1 = await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", 1);
+    const a2 = await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", 2);
+    await waitForTreeSlug(page, "ET", fx.subSlug);
+    await page
+      .context()
+      .addCookies([{ name: "ethio_area", value: `ET:${fx.a.city.id}`, url: baseURL! }]);
+    await gotoReady(page, "/");
+
+    await expect.poll(() => sectionIds(page, 1)).toEqual([a1, a2]);
+    await expect
+      .poll(() => rowOrder(page, 1))
+      .toEqual(["listing-card", "listing-card", "feed-invite"]);
+    await expect(inviteOf(page).getByTestId("feed-invite-text")).toHaveText(
+      en["feed.invite.place"].replace("{place}", fx.a.city.name_en as string),
+    );
+    const params = await inviteSearch(inviteOf(page).getByTestId("feed-invite-post"));
+    expect(params.get("place")).toBe(fx.a.city.id);
+    expect(params.has("category")).toBe(false);
+  });
+
+  test("FS-9 four listings in the chosen place: no invitation", async ({ page, baseURL }) => {
+    const fx = await areaFixture(page);
+    for (const minutes of [1, 2, 3, 4])
+      await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", minutes);
+    await openArea(page, fx, baseURL!);
+
+    await expect.poll(() => sectionIds(page, 1)).toHaveLength(4);
+    await expect(page.getByTestId("feed-invite")).toHaveCount(0);
+    await expect(page.getByTestId("feed-invite-post")).toHaveCount(0);
+  });
+
+  test("FS-10 nothing anywhere: the empty box invites, with the category and the place", async ({
+    page,
+    baseURL,
+  }) => {
+    const fx = await areaFixture(page);
+    await openArea(page, fx, baseURL!);
+
+    const empty = page.getByTestId("feed-empty");
+    await expect(empty).toBeVisible({ timeout: 20_000 });
+    await expect(empty.getByTestId("feed-invite-text")).toHaveText(
+      en["feed.invite.placeCategory"]
+        .replace("{category}", fx.leaf.slug)
+        .replace("{place}", fx.a.city.name_en as string),
+    );
+    const params = await inviteSearch(empty.getByTestId("feed-invite-post"));
+    expect(params.get("category")).toBe(fx.leaf.id);
+    expect(params.get("place")).toBe(fx.a.city.id);
+    await expect(empty.getByText(en["feed.emptyBody"], { exact: true })).toHaveCount(0);
   });
 });

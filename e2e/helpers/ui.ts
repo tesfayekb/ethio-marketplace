@@ -350,7 +350,7 @@ export async function signOutViaUi(page: Page, labels: { signIn?: string } = {})
 }
 
 /** INC-121 (c) — the /auth fields, anchored on ids, not on localised labels. */
-function authFields(page: Page) {
+export function authFields(page: Page) {
   return {
     email: page.locator("#auth-email"),
     password: page.locator("#auth-password"),

@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
+import { postReturnPath, postSearchOf, type PostSearch } from "@/features/posting/post-prefill";
 import { PostingWizard } from "@/features/posting/wizard";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,15 +18,19 @@ import { supabase } from "@/integrations/supabase/client";
  * server-rendered gate would bounce a signed-in seller on every hard refresh.
  * The wizard's own screen is not a shareable landing page, so nothing is lost by
  * rendering it on the client alone.
+ *
+ * D119 — the invite card's category and place ride in the address, checked by
+ * `postSearchOf`, and survive the sign-in round trip (INC-530).
  */
 export const Route = createFileRoute("/post")({
   ssr: false,
-  beforeLoad: async () => {
+  validateSearch: (search: Record<string, unknown>): PostSearch => postSearchOf(search),
+  beforeLoad: async ({ search }) => {
     // C2e.2 — the session the browser holds; no auth-server round trip. RLS and
     // the server routes stay the authority behind this screen choice.
     const { data } = await supabase.auth.getSession();
     if ((data.session?.user ?? null) === null)
-      throw redirect({ to: "/auth", search: { return: "/post" } });
+      throw redirect({ to: "/auth", search: { return: postReturnPath(search) } });
   },
   head: () => ({
     meta: [
@@ -48,5 +53,11 @@ export const Route = createFileRoute("/post")({
 });
 
 function PostNewScreen() {
-  return <PostingWizard listingId={null} />;
+  const search = Route.useSearch();
+  return (
+    <PostingWizard
+      listingId={null}
+      prefill={{ categoryId: search.category ?? null, placeId: search.place ?? null }}
+    />
+  );
 }
