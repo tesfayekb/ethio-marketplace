@@ -2279,7 +2279,7 @@ test.describe("L4b location picker", () => {
     if (!subCityName) throw new Error("Missing sub-city name");
     await pick(page, "subCity", subCityName);
     await page.setViewportSize({ width: 320, height: 800 });
-    await expect(page.locator("#location-row-label-short")).toBeHidden();
+    await expect(page.locator("#location-row-label-short")).toHaveClass(/(^|\s)sr-only(\s|$)/);
     await expect(row).toHaveAccessibleName(new RegExp(escapeRe(en["location.rowLabelShort"])));
     await assertNameHeads();
     await assertRowFits();
