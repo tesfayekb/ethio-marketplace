@@ -3281,6 +3281,15 @@ export type Database = {
         Returns: string
       }
       expire_stale_listings: { Args: never; Returns: number }
+      feed_bench: {
+        Args: {
+          p_after: Json
+          p_category_id: string
+          p_location_id: string
+          p_runs: number
+        }
+        Returns: Json
+      }
       feed_index_check: { Args: { p_listing_id?: string }; Returns: Json }
       feed_index_check_sweep: { Args: never; Returns: Json }
       feed_index_refresh: { Args: { p_listing_id: string }; Returns: number }
