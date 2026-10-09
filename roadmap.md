@@ -1,6 +1,6 @@
 # Roadmap
 
-No bundle brief is in force: bundle 9's first half was built on 2026-10-08 (its brief stays at docs/governance/briefs/bundle-9.md, version 14); next come one short bundle-9 turn (version 15, C2m) and then bundle 10 — the feed engine; the brief in force is named on this line when it is saved.
+Bundle 9 brief: docs/governance/briefs/bundle-9.md (read first every turn).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
