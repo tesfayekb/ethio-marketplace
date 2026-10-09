@@ -12,6 +12,8 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { chunkByLength } from "../e2e/helpers/chunk-by-length";
+
 export const TARGET_P95_MS = 50;
 export const TARGET_BYTES = 30720;
 export const RUNS = 33;
@@ -142,16 +144,10 @@ async function deleteListingsWhere(db: Db, filter: ListingFilter): Promise<void>
         : base.eq("seller_id", filter.equals);
     const rows = must(await query.limit(1000), "read scratch listings") as { id: string }[];
     if (rows.length === 0) return;
-    must(
-      await db
-        .from("listings")
-        .delete()
-        .in(
-          "id",
-          rows.map((r) => r.id),
-        ),
-      "delete scratch listings",
-    );
+    const ids = rows.map((r) => r.id);
+    for (const part of chunkByLength(ids)) {
+      must(await db.from("listings").delete().in("id", part), "delete scratch listings");
+    }
   }
 }
 
@@ -166,8 +162,7 @@ async function deleteCategoriesLike(db: Db, prefix: string): Promise<void> {
     "read scratch categories",
   ) as { id: string }[];
   const ids = cats.map((c) => c.id);
-  for (let i = 0; i < ids.length; i += 200) {
-    const part = ids.slice(i, i + 200);
+  for (const part of chunkByLength(ids)) {
     must(
       await db.from("category_tree_pointers").delete().in("child_id", part),
       "delete pointers (child)",
@@ -177,14 +172,8 @@ async function deleteCategoriesLike(db: Db, prefix: string): Promise<void> {
       "delete pointers (parent)",
     );
   }
-  for (let i = 0; i < ids.length; i += 200) {
-    must(
-      await db
-        .from("categories")
-        .delete()
-        .in("id", ids.slice(i, i + 200)),
-      "delete categories",
-    );
+  for (const part of chunkByLength(ids)) {
+    must(await db.from("categories").delete().in("id", part), "delete categories");
   }
 }
 
@@ -291,6 +280,19 @@ async function main(): Promise<number> {
   if (!url.includes(STAGING_REF)) {
     console.log("::error::feed-bench: the target is not ethio-staging; refused");
     return 1;
+  }
+
+  if (process.argv.includes("--clean")) {
+    const cleaner = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const found = await countLeftovers(cleaner, "e2e-bench-");
+    await deleteListingsWhere(cleaner, { column: "title", prefix: "e2e-bench-" });
+    await deleteCategoriesLike(cleaner, "e2e-bench-");
+    await deleteLocationsLike(cleaner, "e2e-bench-");
+    const left = await countLeftovers(cleaner, "e2e-bench-");
+    console.log(`feed-bench --clean: found ${found} scratch rows; left ${left}`);
+    return left === 0 ? 0 : 1;
   }
 
   const P = `e2e-bench-${process.env["GITHUB_RUN_ID"] ?? "local"}-${randomLetters(6)}`;
