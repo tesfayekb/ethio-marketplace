@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { useLabelRoom } from "@/components/ui/use-label-room";
+import { CutText } from "@/components/ui/cut-text";
+import { useEffect, useRef, useState } from "react";
 
 import {
   childrenOf,
@@ -148,7 +150,7 @@ export function StepCategory({
   term: string;
   onTerm: (term: string) => void;
 }) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const setTerm = onTerm;
 
   const label = (node: CategoryNode) => entityName("category", node, entities);
@@ -164,6 +166,12 @@ export function StepCategory({
     };
   }, []);
   const chips = recentChips(recentIds, tree);
+  const recentRowRef = useRef<HTMLDivElement>(null);
+  const recentLabelRef = useRef<HTMLSpanElement>(null);
+  useLabelRoom(recentRowRef, [recentLabelRef], [
+    chips.map((id) => { const node = tree.byId.get(id); return node ? label(node) : ""; }).join("\u0000"),
+    language, isLoading, treeError,
+  ]);
   const filtering = term.trim() !== "";
   const finder = useCatalogFinder(term, entities.lang);
   /**
@@ -220,10 +228,11 @@ export function StepCategory({
 
       {chips.length > 0 && (
         <div
+          ref={recentRowRef}
           className="flex min-w-0 flex-nowrap items-center gap-2"
           data-testid="post-category-recent-row"
         >
-          <span className="shrink-0 text-sm text-muted-foreground">
+          <span ref={recentLabelRef} className="shrink-0 text-sm text-muted-foreground">
             {t("post.category.recentLabel")}
           </span>
           {chips.map((id) => {
@@ -240,7 +249,7 @@ export function StepCategory({
                 aria-label={chipLabel}
                 title={chipLabel}
                 className={
-                  "min-h-11 min-w-0 max-w-[45%] shrink rounded-full border px-4 text-sm " +
+                  "min-h-11 max-w-[45%] shrink rounded-full border px-3 md:px-4 text-sm " +
                   (id === selectedId
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-input bg-background text-foreground")
@@ -250,7 +259,7 @@ export function StepCategory({
                   onChoose(id);
                 }}
               >
-                <span className="block truncate">{chipLabel}</span>
+                <CutText text={chipLabel} />
               </button>
             );
           })}

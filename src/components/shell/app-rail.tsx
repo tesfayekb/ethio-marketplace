@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
@@ -182,7 +183,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const inner = (
     <>
       {Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
-      <span className={cn("truncate", hide, strip && "sr-only")}>{node.label}</span>
+      <CutText className={cn(hide, strip && "sr-only")} text={node.label} />
     </>
   );
   const pad = { "--rail-pad": `${0.75 + depth * 0.75}rem` } as React.CSSProperties;
@@ -598,9 +599,7 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
           className={cn(ITEM_BASE, ITEM_IDLE, strip && "h-full min-h-0 justify-center ps-0 pe-0")}
         >
           <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <span className={cn("truncate", HIDE_WHEN_COLLAPSED, strip && "sr-only")}>
-            {t("auth.signOut")}
-          </span>
+          <CutText className={cn(HIDE_WHEN_COLLAPSED, strip && "sr-only")} text={t("auth.signOut")} />
         </button>
       </WithTooltip>
     </div>
@@ -726,8 +725,8 @@ export function AppRail() {
           {fromMd ? null : (
             <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
               {user !== null && auth.isAuthenticated ? (
-                <p data-testid="drawer-identity" className="truncate text-sm text-muted-foreground">
-                  {user.displayName ?? t("auth.signedInAs")}
+                <p data-testid="drawer-identity" className="text-sm text-muted-foreground">
+                  <CutText text={user.displayName ?? t("auth.signedInAs")} />
                 </p>
               ) : null}
             </div>

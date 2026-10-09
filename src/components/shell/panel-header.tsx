@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import { ChevronDown, Check } from "lucide-react";
 
 import { useShell } from "@/components/shell-context";
@@ -42,8 +43,8 @@ export function PanelHeader({ className }: { className?: string }) {
   if (panels.length < 2) {
     return (
       <div data-testid="panel-header" className={cn(BAND, className)}>
-        <h2 data-testid="panel-header-title" className="truncate text-base font-semibold">
-          {label}
+        <h2 data-testid="panel-header-title" className="text-base font-semibold">
+          <CutText text={label} />
         </h2>
       </div>
     );
@@ -59,8 +60,8 @@ export function PanelHeader({ className }: { className?: string }) {
             aria-label={t("shell.switchPanel")}
             className="flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md px-1 text-start text-base font-semibold text-foreground hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <span data-testid="panel-header-title" className="min-w-0 truncate">
-              {label}
+            <span data-testid="panel-header-title" >
+              <CutText text={label} />
             </span>
             <ChevronDown className="ms-auto h-4 w-4 shrink-0" aria-hidden="true" />
           </button>
@@ -77,7 +78,7 @@ export function PanelHeader({ className }: { className?: string }) {
                 className="min-h-11 gap-2"
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="min-w-0 truncate">{t(panel.labelKey)}</span>
+                <CutText text={t(panel.labelKey)} />
                 {active ? <Check className="ms-auto h-4 w-4 shrink-0" aria-hidden="true" /> : null}
               </DropdownMenuItem>
             );

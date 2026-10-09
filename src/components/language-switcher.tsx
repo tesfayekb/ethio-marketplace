@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import { ChevronDown, Star } from "lucide-react";
 
 import {
@@ -94,7 +95,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                 )}
                 onSelect={() => setLanguage(row.code as Language)}
               >
-                <span className="min-w-0 flex-1 truncate">{key ? t(key) : row.name_native}</span>
+                <CutText className="flex-1" text={key ? t(key) : row.name_native} />
                 {/* U4h — the DEVICE ★. One favourite: `aria-pressed` is true on
                     exactly one row because the provider's setter REPLACES the
                     star rather than appending to a set. The click never reaches

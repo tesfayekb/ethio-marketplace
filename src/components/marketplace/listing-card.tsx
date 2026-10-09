@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import { Eye, MapPin } from "lucide-react";
 
 import type { FeedListing } from "@/features/feed/use-feed";
@@ -78,8 +79,8 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
 
       <div className="flex flex-1 flex-col gap-2 p-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="min-w-0 truncate text-sm font-semibold text-foreground">
-            {listing.title}
+          <h3 className="text-sm font-semibold text-foreground">
+            <CutText text={listing.title} />
           </h3>
           {listing.tier === "premium" ? (
             <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
@@ -103,7 +104,7 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
         {locationName ? (
           <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <span className="truncate">{locationName}</span>
+            <CutText text={locationName} />
           </p>
         ) : null}
 
