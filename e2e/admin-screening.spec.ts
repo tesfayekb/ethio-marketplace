@@ -15,7 +15,7 @@ import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./hel
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
- * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-5). Seeded as feed-route seeds;
+ * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6). Seeded as feed-route seeds;
  * every row is found by its unique title in the page's search (G28); DB truth
  * through the service client; cleanup in afterEach (J3).
  */
@@ -109,10 +109,10 @@ test.describe("ADMIN SCREENING", () => {
     }
   });
 
-  async function seedWaiting() {
+  async function seedWaiting(options: { parentImageUrl?: string } = {}) {
     const seller = await leaseSeller();
     sellers.push(seller.id);
-    const { parent, leaf } = await seedCategoryBranch();
+    const { parent, leaf } = await seedCategoryBranch(options);
     branches.push([parent.slug, leaf.slug]);
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug);
@@ -251,5 +251,22 @@ test.describe("ADMIN SCREENING", () => {
       en["admin.screening.empty"],
       { timeout: 20000 },
     );
+  });
+
+  /** SC-6 (INC-525) — the preview draws the nearest category picture, as the card does. */
+  test("SC-6 Preview as buyer draws the ad's category picture", async ({ page }) => {
+    const picture = "https://example.invalid/e2e-screen-picture.jpg";
+    const ad = await seedWaiting({ parentImageUrl: picture });
+    await useJobSuperAdmin(page);
+    await findRow(page, ad.title, ad.id);
+    await actionsOf(page, ad.id).getByTestId(`admin-screening-open-${ad.id}`).click();
+    await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
+    const box = page.getByTestId("listing-detail-illustration");
+    await expect(box, "SC-6: the preview did not draw the category picture").toBeVisible({
+      timeout: 20000,
+    });
+    await expect(box).toHaveAttribute("data-picture", "category");
+    await expect(box.locator("img")).toHaveAttribute("src", picture);
+    await expect(page.getByTestId("listing-detail-nophoto")).toHaveCount(0);
   });
 });

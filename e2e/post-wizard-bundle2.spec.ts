@@ -303,24 +303,30 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   });
 
   /**
-   * PW-179 (INC-522, A2) — A PIN SAVE NEVER RESTATES DIRECTIONS THE STEP COULD
-   * NOT READ. The draft holds directions; the step's first read fails; the pin
-   * save reads again and keeps them. Positive control: the failed read is shown
-   * on screen and a second read is made.
+   * PW-179 (INC-522, A2; INC-527) — A PIN SAVE NEVER RESTATES DIRECTIONS THE
+   * STEP COULD NOT READ. The draft holds directions; the step's first read
+   * fails. The Supabase client retries a GET after a network error (three
+   * retries, 1 s, 2 s and 4 s apart), so every attempt is refused until the
+   * failure shows. Then reads are let through: the pin save reads again and
+   * keeps the directions. Positive control: the failure is shown on screen,
+   * at least one read was refused, and the pin save's read went through.
    */
   test("PW-179 a pin save never restates directions the step could not read", async ({ page }) => {
     const user = await signedInSeller(page);
     const leaf = await category();
     const value = "Second house after the mosque";
-    let reads = 0;
+    let failing = true;
+    let refused = 0;
+    let passed = 0;
     await page.route("**/rest/v1/listings?*", async (route) => {
       const url = route.request().url();
       if (route.request().method() === "GET" && url.includes("select=street_address")) {
-        reads += 1;
-        if (reads === 1) {
+        if (failing) {
+          refused += 1;
           await route.abort();
           return;
         }
+        passed += 1;
       }
       await route.continue();
     });
@@ -335,9 +341,11 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       page.getByTestId("post-where-details-failed"),
       "PW-179: the failed read was not shown",
     ).toBeVisible({ timeout: 20_000 });
+    expect(refused, "PW-179: no read was refused").toBeGreaterThanOrEqual(1);
+    failing = false;
 
     await savePinOnMap(page, 120, 90);
-    expect(reads, "PW-179: the pin save did not read the text again").toBeGreaterThanOrEqual(2);
+    expect(passed, "PW-179: the pin save did not read the text again").toBeGreaterThanOrEqual(1);
     expect(
       (await placeTextOf(listingId)).directions,
       "PW-179: the pin save restated directions it could not read",

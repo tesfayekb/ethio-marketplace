@@ -2,8 +2,10 @@ name: Feed bench
 
 # D101 §5 / DEC-166 — the feed engine's speed judge on ethio-staging:
 # 100,500 scratch listings, six page shapes timed inside the database
-# (feed_bench), everything removed after. Daily and on demand; red when a
-# target is missed. Evidence publishes to branch ci-evidence (DEC-098).
+# (feed_bench), everything removed after. Weekly (Sunday 05:10 UTC, DEC-167)
+# and on demand; red when a target is missed, or when it was skipped or
+# yielded to another staging run (DEC-168, scripts/staging-gate.ts).
+# Evidence publishes to branch ci-evidence (DEC-098).
 on:
   schedule:
     - cron: "10 5 * * 0"
@@ -21,9 +23,12 @@ jobs:
   feed-bench:
     name: Feed bench (ethio-staging, 100,500 scratch listings)
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # DEC-168 — up to 40 minutes waiting for a quiet staging, then the run.
+    timeout-minutes: 90
     permissions:
       contents: write
+      # DEC-168 — the staging gate reads the repository's runs.
+      actions: read
     env:
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
@@ -39,6 +44,8 @@ jobs:
       - name: Run the bench
         id: bench
         continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: bun scripts/feed-bench.ts
       - name: Publish the status to ci-evidence
         if: always()
