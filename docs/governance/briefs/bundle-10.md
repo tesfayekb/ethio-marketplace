@@ -1,20 +1,27 @@
-# Bundle 10 — the feed engine: brief, version 3 (saved unchanged, 2026-10-09)
+# Bundle 10 — the feed engine: brief, version 4 (saved unchanged, 2026-10-09)
 
 ```text
-BUNDLE 10 — THE FEED ENGINE, VERSION 3 (2026-10-09). THIS FILE REPLACES VERSION 2. Turn 2 wrote E2a's tests, docs and changelog line (dc990588) and stopped at E2a.4: the platform's database tool refuses SQL that schedules a job more often than once an hour unless the file's first line is a review marker. This version adds that marker as the appendix's first line, corrects two tests and one older test (E2a.5), and specifies TURN 3 = E2a.5, then E2a.4. Part E2a, the index keeps itself right:
+BUNDLE 10 — THE FEED ENGINE, VERSION 4 (2026-10-09). THIS FILE REPLACES VERSION 3. Turn 3 saved version 3 (38582ff0) and stopped before writing anything else: your database rules ask that a queue drain wake when work is queued and stop when the queue is empty (no standing poll), and that a new table's grants come before its row level security and policies. This version's appendix does both. It specifies TURN 4 = E2a.5, E2a.6, then E2a.4. Part E2a, the index keeps itself right:
 - the tier sets the rank;
 - every write to a listing or its places refreshes that listing in the same transaction;
-- a moved category or place queues the listings under it for a sweep with a heartbeat;
+- a moved category or place queues the listings under it and wakes a drain that runs every minute until the queue is empty, with a heartbeat;
 - a daily check writes its counts.
 It is ONE migration, Tier A. No screen and no route changes in this turn. The read door and /api/feed are Part E2b, the next turn.
 The supervisor ran the migration text below on a local Postgres 16 copy of the shapes it touches, after E1's text:
 - the proofs pass;
 - a missing trigger makes P2 fail;
 - its behaviour checks give the expected rows: an insert, an extra place added and removed, a tier change, leaving and returning to active, a moved category, a moved city, a bulk expiry, a delete, and a write by a role that cannot call the refresh itself;
-- scripts/check-migrations.sh: every guard OK (again with the marker line).
-Line numbers are as of commit dc990588 (dev). This file is public: it is written as build instructions.
+- scripts/check-migrations.sh: every guard OK (again with this version's text);
+- the drain wakes when listings are queued, stops when the queue is empty, is woken again by the daily check while rows remain, and keeps running when a listing is queued during its last look (tried with two sessions).
+Line numbers are as of commit 38582ff0 (dev). This file is public: it is written as build instructions.
 
-ANSWERS TO TURN 2
+ANSWERS TO TURN 3
+- Verified: dev 38582ff0 holds version 3 byte for byte and nothing else changed. Your stop was right: the text conflicted with your database rules, and nothing was rewritten.
+- The drain (your first rule): there is no standing schedule any more. feed_reindex_wake() schedules the job feed-reindex-drain (every minute) when listings are queued; each run refreshes up to 500 and unschedules the job when the queue is empty; an advisory lock orders a wake against the drain's last look at the queue; the daily check wakes the drain again if rows remain. The review marker stays as the first line because the drain, while it runs, runs every minute; its reason now says so.
+- The order (your second rule): each of the three new tables now reads table, comment, REVOKE and GRANT (and the sequence's), then ENABLE ROW LEVEL SECURITY, then the policy.
+- If any other rule of yours conflicts with the text, STOP before saving and quote that rule's exact words in the report.
+
+ANSWERS TO TURN 2 (its ruling on the five-minute schedule is replaced by the answers to turn 3)
 - Verified by the diff of 74f17e56..dc990588: the saved brief equals version 2; FE-6 to FE-14, the docs and the changelog line are as version 2 wrote them. The census results are accepted. The ":29" in E2a.1 named the helper's line in e2e/helpers/locations.ts, as you read it.
 - The ruling on the five-minute sweep: KEEP the design, as catalog-find-sweep does (supabase/migrations/20261003005802_7423f49a-182c-47a8-b92e-d6417ed57452.sql line 1 carries the same marker). The appendix's first line is now the marker; every other line is unchanged.
 - CI on dc990588 is expected RED in FE-6 to FE-14 only: their functions do not exist until the migration applies. Any other red is named in the report.
@@ -41,10 +48,11 @@ HOW TO WORK
 - Order of the turn:
   1. step 0;
   2. E2a.5: the test corrections;
-  3. E2a.4 LAST: the migration (E2a.0 to E2a.3 were done in turn 2 and are not repeated);
-  4. the unit tests;
-  5. the report;
-  6. END THE TURN.
+  3. E2a.6: the docs and changelog corrections;
+  4. E2a.4 LAST: the migration (E2a.0 to E2a.3 were done in turn 2 and are not repeated);
+  5. the unit tests;
+  6. the report;
+  7. END THE TURN.
   Do not stop between steps.
 - The migration is the last thing written because the database tool applies it on ethio-prod the moment it is saved. The operator will see the "Modify Supabase database" dialog and allow it.
 - The turn starts by reading CI for the last commit on dev at https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ci-status.md, then e2e-last-failure.md and guards-last-failure.md at the same address. You cannot git-fetch that branch. Paste the first six lines of ci-status.md.
@@ -63,7 +71,7 @@ HOW TO WORK
 - Closed surfaces (G22): the workflow files, the failure reporter, scripts/check-migrations.sh, the e2e helpers and e2e/global-setup.ts are not touched.
 
 THE MIGRATION RULES (G39 — every one applies)
-- The migration text is in the appendix at the end of this brief. Its first line is the platform's review marker for the five-minute schedule. Write it EXACTLY, changing only `<MARK>`. Do not reformat it, add to it or "improve" it. If the census shows that a line cannot work as written, STOP before saving and report the line.
+- The migration text is in the appendix at the end of this brief. Its first line is the platform's review marker for the drain's per-minute schedule while it runs. Write it EXACTLY, changing only `<MARK>`. Do not reformat it, add to it or "improve" it. If the census shows that a line cannot work as written, STOP before saving and report the line.
 - Two functions are redeclared WHOLE with one change each (the rank from the tier):
   - feed_index_refresh: the tier is read with the listing and ranked by feed_tier_rank;
   - feed_index_check: the expected rank comes from the tier.
@@ -83,16 +91,16 @@ THE MIGRATION RULES (G39 — every one applies)
   - the two redeclarations;
   - five triggers that refresh a listing on every write to it or to its extra places (statement-level, one refresh per listing per statement, in the writer's own transaction);
   - a queue, its two enqueue functions and four triggers that queue the active listings under a moved category or place;
-  - the sweep (500 per run, every five minutes, heartbeat table feed_reindex_runs);
-  - the daily check (heartbeat and counts in feed_index_check_runs);
+  - the wake (feed_reindex_wake schedules feed-reindex-drain when listings are queued) and the drain (feed_reindex_sweep: 500 per run, a heartbeat row per run in feed_reindex_runs, the job unscheduled when the queue is empty);
+  - the daily check (heartbeat and counts in feed_index_check_runs; it wakes the drain if the queue still holds rows);
   - a rewrite of every active listing's rows with its tier, checked on one state under brief SHARE locks;
-  - the two schedules;
+  - the daily schedule (the drain has none of its own);
   - the proofs;
   - the self-mark.
-  Every new table is closed to the browser roles (RLS on, one closing policy, ALL to service_role only). Every new function has an in-file REVOKE from PUBLIC, anon and authenticated. The trigger functions run as their owner, so a write by any role refreshes the index.
+  Every new table is closed to the browser roles (grants first: ALL to service_role only; then RLS on and one closing policy). Every new function has an in-file REVOKE from PUBLIC, anon and authenticated. The trigger functions run as their owner, so a write by any role refreshes the index.
 
 PART E2a — THE INDEX KEEPS ITSELF RIGHT
-E2a.0 to E2a.3 were done in turn 2 (dc990588). They stay here as the record and are not repeated; turn 3 is E2a.5, then E2a.4.
+E2a.0 to E2a.3 were done in turn 2 (dc990588). They stay here as the record and are not repeated; turn 4 is E2a.5, E2a.6, then E2a.4.
 
 E2a.0 — CENSUS (read-only, ethio-prod, with your query tool, before writing anything). Paste each result:
 - (a) `select tgrelid::regclass as tab, tgname from pg_trigger where not tgisinternal and tgrelid in ('public.listings'::regclass, 'public.listing_locations'::regclass, 'public.category_tree_pointers'::regclass, 'public.locations'::regclass) order by 1, 2;` — no name begins with feed_.
@@ -154,13 +162,19 @@ E2a.5 — THE TEST CORRECTIONS (before the migration). A heartbeat row is proven
 - FE-10: before the pointer insert, read the largest id of feed_reindex_runs (`select("id").order("id", { ascending: false }).limit(1)`). After `sweepUntil`, a row with a larger id exists. When there was no row before, any row counts. The ran_at comparison goes.
 - FE-13: the same for feed_index_check_runs, read before the `rpc("feed_index_check_sweep")` call.
 - PR-23 (e2e/posting-routes.spec.ts :1069–1080, INC-511): the same for listing_expiry_sweep_runs, in place of the two exact counts. The count comparison starts to fail once the ledger is older than fourteen days, about 2026-10-18 on ethio-staging. Nothing else in PR-23 changes.
-- Census (G29): `grep -rn "_runs" e2e` printed five lines at dc990588: e2e/posting-routes.spec.ts :1070 and :1076 (PR-23), e2e/feed-index.spec.ts :347 (FE-10), :429 (FE-13) and :443 (FE-14's table list, which reads no heartbeat and stays as it is). Run it again and name any other line that proves a heartbeat row.
+- Census (G29): `grep -rn "_runs" e2e` printed five lines at 38582ff0: e2e/posting-routes.spec.ts :1070 and :1076 (PR-23), e2e/feed-index.spec.ts :347 (FE-10), :429 (FE-13) and :443 (FE-14's table list, which reads no heartbeat and stays as it is). Run it again and name any other line that proves a heartbeat row.
+
+E2a.6 — THE DOCS AND CHANGELOG CORRECTIONS (the drain no longer has a standing schedule):
+- docs/features/feed-engine.md, in "The queue and the sweep", replace the sentence beginning "`feed_reindex_sweep(limit 500)` refreshes queued listings" with: `feed_reindex_wake()` starts the job `feed-reindex-drain` (every minute) when listings are queued; each run of `feed_reindex_sweep(limit 500)` refreshes up to 500 queued listings, writes one heartbeat row in `feed_reindex_runs` (kept 14 days) and unschedules the job when the queue is empty. An advisory lock orders a wake against the drain's last look, so a queued listing always has a drain; the daily check wakes it again if rows remain.
+- The same file: replace the bullet "**The two schedules** — …" with: - **The schedules** — `feed-index-check` daily at 03:53 UTC; `feed-reindex-drain` only while the queue holds listings.
+- docs/_changelog.md, the E2a line: replace "feed_reindex_sweep (500 per run, every five minutes, heartbeat feed_reindex_runs)" with "feed_reindex_wake and feed_reindex_sweep (a drain every minute only while the queue holds listings, 500 per run, heartbeat feed_reindex_runs)", and "two schedules" with "the daily schedule". If the mark changes, change it there too.
+- Run the formatter's check on both files.
 
 E2a.4 — THE MIGRATION (last). Write the appendix's text; run the check as above; choose the mark; hand the final text to the database tool once. Then the read-back with your query tool (it cannot call service-role-only functions — the migration's own proofs are the proof of those). Paste each result; a read refused to your tool's role is reported as refused:
 - `select version from public.migration_marks where version = '<MARK>';` — one row;
 - `select tier_rank, count(*) from public.feed_index group by 1 order by 1;`
 - `select count(*) from pg_trigger where not tgisinternal and tgname like 'feed\_%';` — 9;
-- `select jobname, schedule from cron.job where jobname like 'feed-%' order by 1;` — two rows;
+- `select jobname, schedule from cron.job where jobname like 'feed-%' order by 1;` — feed-index-check at 53 3 * * *, and no feed-reindex-drain (the queue is empty after the apply);
 - `select proname, prosecdef, provolatile from pg_proc where pronamespace = 'public'::regnamespace and proname like 'feed%' order by proname;`
 
 NAMED FOR THE NEXT VERSIONS (not specified here; build none of it)
@@ -175,7 +189,7 @@ NAMED FOR THE NEXT VERSIONS (not specified here; build none of it)
 - Then (agreed, D106 and D107): the chosen place kept on the account, and the amber "different place" notice.
 
 REPORT (one, at the end). First lines:
-- done or not done for step 0, E2a.5 and E2a.4;
+- done or not done for step 0, E2a.5, E2a.6 and E2a.4;
 - the E2a.5 census;
 - whether the browser started;
 - any cited line that read differently;
@@ -188,14 +202,14 @@ Then:
 - the line "apply <uuid-fragment of the filename> → expect mark <MARK>" for the operator's staging apply;
 - the six ci-status lines;
 - unit tests, format:check, lint;
-- the file list from `git diff --name-only dc990588` (untracked new files listed by name);
+- the file list from `git diff --name-only 38582ff0` (untracked new files listed by name);
 - "Logs read: … · unavailable: …".
 Never "CI green" from a local run. END THE TURN after the report.
 
 APPENDIX — THE MIGRATION TEXT (write it exactly; change only <MARK>)
 
--- lovable-cron-fallback-reviewed: bundle 10 brief version 3 (E2a) requires feed-reindex-sweep every 5 minutes (288 runs/day) so that a moved category or place reaches the feed within minutes; the five write triggers are the main path and the sweep drains only the tree-change queue.
--- E2a (bundle 10, the feed engine): the index keeps itself right. The tier sets the rank (D108: premium, then featured, then regular); every write to a listing or its places refreshes that listing's rows in the same transaction; a moved category or place queues the listings under it for a five-minute sweep with a heartbeat; a daily check writes its counts. Spec: docs/governance/feed-engine-spec.md.
+-- lovable-cron-fallback-reviewed: bundle 10 brief version 4 (E2a) - feed-reindex-drain runs every minute ONLY while the tree-change queue holds listings: it is scheduled when listings are queued and unschedules itself when the queue is empty; the five write triggers are the main path. The only standing schedule is the daily feed-index-check.
+-- E2a (bundle 10, the feed engine): the index keeps itself right. The tier sets the rank (D108: premium, then featured, then regular); every write to a listing or its places refreshes that listing's rows in the same transaction; a moved category or place queues the listings under it and wakes a drain that runs every minute until the queue is empty, with a heartbeat; a daily check writes its counts. Spec: docs/governance/feed-engine-spec.md.
 -- e2e-areas: feed, posting
 
 -- 1. The tier's rank: premium 2, featured 1, regular 0; read first when higher.
@@ -413,12 +427,12 @@ CREATE TABLE public.feed_reindex_queue (
 );
 CREATE INDEX feed_reindex_queue_queued_idx ON public.feed_reindex_queue (queued_at);
 COMMENT ON TABLE public.feed_reindex_queue IS
-  'Listings whose feed rows must be rewritten after a category or place moved; drained by feed_reindex_sweep every five minutes.';
+  'Listings whose feed rows must be rewritten after a category or place moved; drained by feed_reindex_sweep, which the job feed-reindex-drain runs every minute while this queue holds rows.';
+REVOKE ALL ON TABLE public.feed_reindex_queue FROM PUBLIC, anon, authenticated;
+GRANT ALL ON TABLE public.feed_reindex_queue TO service_role;
 ALTER TABLE public.feed_reindex_queue ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "feed_reindex_queue_no_client_access" ON public.feed_reindex_queue
   FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
-REVOKE ALL ON TABLE public.feed_reindex_queue FROM PUBLIC, anon, authenticated;
-GRANT ALL ON TABLE public.feed_reindex_queue TO service_role;
 
 CREATE TABLE public.feed_reindex_runs (
   id        bigserial PRIMARY KEY,
@@ -428,13 +442,13 @@ CREATE TABLE public.feed_reindex_runs (
 );
 COMMENT ON TABLE public.feed_reindex_runs IS
   'Heartbeat of feed_reindex_sweep: one row per run, "nothing to do" included; kept 14 days.';
-ALTER TABLE public.feed_reindex_runs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "feed_reindex_runs_no_client_access" ON public.feed_reindex_runs
-  FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
 REVOKE ALL ON TABLE public.feed_reindex_runs FROM PUBLIC, anon, authenticated;
 GRANT ALL ON TABLE public.feed_reindex_runs TO service_role;
 REVOKE ALL ON SEQUENCE public.feed_reindex_runs_id_seq FROM PUBLIC, anon, authenticated;
 GRANT USAGE, SELECT ON SEQUENCE public.feed_reindex_runs_id_seq TO service_role;
+ALTER TABLE public.feed_reindex_runs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "feed_reindex_runs_no_client_access" ON public.feed_reindex_runs
+  FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
 
 CREATE TABLE public.feed_index_check_runs (
   id     bigserial PRIMARY KEY,
@@ -443,13 +457,28 @@ CREATE TABLE public.feed_index_check_runs (
 );
 COMMENT ON TABLE public.feed_index_check_runs IS
   'Heartbeat and counts of the daily feed_index_check_sweep (counts only, no listing id); kept 60 days.';
-ALTER TABLE public.feed_index_check_runs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "feed_index_check_runs_no_client_access" ON public.feed_index_check_runs
-  FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
 REVOKE ALL ON TABLE public.feed_index_check_runs FROM PUBLIC, anon, authenticated;
 GRANT ALL ON TABLE public.feed_index_check_runs TO service_role;
 REVOKE ALL ON SEQUENCE public.feed_index_check_runs_id_seq FROM PUBLIC, anon, authenticated;
 GRANT USAGE, SELECT ON SEQUENCE public.feed_index_check_runs_id_seq TO service_role;
+ALTER TABLE public.feed_index_check_runs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "feed_index_check_runs_no_client_access" ON public.feed_index_check_runs
+  FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
+
+-- The drain wakes when listings are queued and stops when the queue is empty. One advisory lock orders
+-- a wake against the drain's last look at the queue, so a queued listing is never left without a drain.
+CREATE FUNCTION public.feed_reindex_wake()
+RETURNS void
+LANGUAGE plpgsql
+VOLATILE SECURITY DEFINER
+SET search_path TO 'public'
+AS $fn$
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtext('public.feed_reindex_queue'));
+  PERFORM cron.schedule('feed-reindex-drain', '* * * * *', 'SELECT public.feed_reindex_sweep(500)');
+END $fn$;
+REVOKE ALL ON FUNCTION public.feed_reindex_wake() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.feed_reindex_wake() TO service_role;
 
 CREATE FUNCTION public.feed_reindex_enqueue_categories(p_category_ids uuid[])
 RETURNS integer
@@ -474,6 +503,9 @@ BEGIN
      AND l.category_id IN (SELECT id FROM sub)
   ON CONFLICT (listing_id) DO NOTHING;
   GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n > 0 THEN
+    PERFORM public.feed_reindex_wake();
+  END IF;
   RETURN v_n;
 END $fn$;
 REVOKE ALL ON FUNCTION public.feed_reindex_enqueue_categories(uuid[]) FROM PUBLIC, anon, authenticated;
@@ -508,6 +540,9 @@ BEGIN
      AND ll.location_id IN (SELECT id FROM sub)
   ON CONFLICT (listing_id) DO NOTHING;
   GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n > 0 THEN
+    PERFORM public.feed_reindex_wake();
+  END IF;
   RETURN v_n;
 END $fn$;
 REVOKE ALL ON FUNCTION public.feed_reindex_enqueue_places(uuid[]) FROM PUBLIC, anon, authenticated;
@@ -619,9 +654,13 @@ BEGIN
     PERFORM public.feed_index_refresh(v_id);
   END LOOP;
   DELETE FROM public.feed_reindex_queue WHERE listing_id = ANY (v_ids);
+  PERFORM pg_advisory_xact_lock(hashtext('public.feed_reindex_queue'));
   SELECT count(*) INTO v_left FROM public.feed_reindex_queue;
   INSERT INTO public.feed_reindex_runs (refreshed, remaining) VALUES (cardinality(v_ids), v_left);
   DELETE FROM public.feed_reindex_runs WHERE ran_at < now() - interval '14 days';
+  IF v_left = 0 AND EXISTS (SELECT 1 FROM cron.job j WHERE j.jobname = 'feed-reindex-drain') THEN
+    PERFORM cron.unschedule('feed-reindex-drain');
+  END IF;
   RETURN cardinality(v_ids);
 END $fn$;
 REVOKE ALL ON FUNCTION public.feed_reindex_sweep(integer) FROM PUBLIC, anon, authenticated;
@@ -640,6 +679,10 @@ BEGIN
               || jsonb_build_object('queued', (SELECT count(*) FROM public.feed_reindex_queue));
   INSERT INTO public.feed_index_check_runs (result) VALUES (v_result);
   DELETE FROM public.feed_index_check_runs WHERE ran_at < now() - interval '60 days';
+  -- A queue that still holds rows is woken again (its drain stops only when the queue is empty).
+  IF (v_result->>'queued')::int > 0 THEN
+    PERFORM public.feed_reindex_wake();
+  END IF;
   RETURN v_result;
 END $fn$;
 REVOKE ALL ON FUNCTION public.feed_index_check_sweep() FROM PUBLIC, anon, authenticated;
@@ -660,13 +703,9 @@ BEGIN
   END IF;
 END $backfill$;
 
--- 8. Schedules: the sweep every five minutes; the check daily.
+-- 8. Schedules: the check daily. The drain has no standing schedule: feed_reindex_wake starts it.
 DO $cron$
 BEGIN
-  IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'feed-reindex-sweep') THEN
-    PERFORM cron.unschedule('feed-reindex-sweep');
-  END IF;
-  PERFORM cron.schedule('feed-reindex-sweep', '*/5 * * * *', 'SELECT public.feed_reindex_sweep(500)');
   IF EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'feed-index-check') THEN
     PERFORM cron.unschedule('feed-index-check');
   END IF;
@@ -717,20 +756,33 @@ BEGIN
     RAISE EXCEPTION 'E2a P2: % of the nine triggers are in place', v_n;
   END IF;
 
-  -- P3: the two schedules exist.
-  SELECT count(*) INTO v_n FROM cron.job j
-   WHERE (j.jobname = 'feed-reindex-sweep' AND j.schedule = '*/5 * * * *')
-      OR (j.jobname = 'feed-index-check' AND j.schedule = '53 3 * * *');
-  IF v_n <> 2 THEN
-    RAISE EXCEPTION 'E2a P3: % of the two schedules exist', v_n;
+  -- P3: the daily check is scheduled; the standing sweep schedule of version 2 does not exist.
+  IF NOT EXISTS (SELECT 1 FROM cron.job j WHERE j.jobname = 'feed-index-check' AND j.schedule = '53 3 * * *') THEN
+    RAISE EXCEPTION 'E2a P3: the daily check is not scheduled';
+  END IF;
+  IF EXISTS (SELECT 1 FROM cron.job j WHERE j.jobname = 'feed-reindex-sweep') THEN
+    RAISE EXCEPTION 'E2a P3: a standing sweep schedule exists';
   END IF;
 
-  -- P4: a sweep and a check write their heartbeat rows (rolled back).
+  -- P4: a wake schedules the drain; a sweep writes its heartbeat row and stops the drain when the
+  -- queue is empty; a check writes its row (all rolled back).
   BEGIN
+    PERFORM public.feed_reindex_wake();
+    IF NOT EXISTS (SELECT 1 FROM cron.job j WHERE j.jobname = 'feed-reindex-drain' AND j.schedule = '* * * * *') THEN
+      RAISE EXCEPTION 'E2a P4: a wake did not schedule the drain';
+    END IF;
     SELECT count(*) INTO v_runs FROM public.feed_reindex_runs;
     PERFORM public.feed_reindex_sweep(500);
     IF (SELECT count(*) FROM public.feed_reindex_runs) <> v_runs + 1 THEN
       RAISE EXCEPTION 'E2a P4: the sweep wrote no heartbeat row';
+    END IF;
+    IF (SELECT count(*) FROM public.feed_reindex_queue) = 0
+       AND EXISTS (SELECT 1 FROM cron.job j WHERE j.jobname = 'feed-reindex-drain') THEN
+      RAISE EXCEPTION 'E2a P4: the drain kept running on an empty queue';
+    END IF;
+    IF (SELECT count(*) FROM public.feed_reindex_queue) > 0
+       AND NOT EXISTS (SELECT 1 FROM cron.job j WHERE j.jobname = 'feed-reindex-drain') THEN
+      RAISE EXCEPTION 'E2a P4: the drain stopped while the queue holds rows';
     END IF;
     BEGIN
       PERFORM public.feed_reindex_sweep(0);
@@ -770,7 +822,7 @@ BEGIN
   FOREACH v_fn IN ARRAY ARRAY[
     'public.feed_tier_rank(text)', 'public.feed_index_refresh(uuid)', 'public.feed_index_check(uuid)',
     'public.feed_reindex_enqueue_categories(uuid[])', 'public.feed_reindex_enqueue_places(uuid[])',
-    'public.feed_reindex_sweep(integer)', 'public.feed_index_check_sweep()'] LOOP
+    'public.feed_reindex_wake()', 'public.feed_reindex_sweep(integer)', 'public.feed_index_check_sweep()'] LOOP
     FOREACH v_role IN ARRAY ARRAY['anon', 'authenticated'] LOOP
       IF has_function_privilege(v_role, v_fn, 'EXECUTE') THEN
         RAISE EXCEPTION 'E2a P5: % can execute %', v_role, v_fn;
