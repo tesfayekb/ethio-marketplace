@@ -1,39 +1,36 @@
-# Bundle 10 — the feed engine: brief, version 7 (saved unchanged, 2026-10-09)
+# Bundle 10 — the feed engine: brief, version 8 (saved unchanged, 2026-10-09)
 
 ```text
-BUNDLE 10 — THE FEED ENGINE, VERSION 7 (2026-10-09). THIS FILE REPLACES VERSION 6. Turn 6 saved version 6 and stopped at E3a.0 (b): no role holds listings:review. This version changes SC-4 (b) only; everything else is version 6. It specifies TURN 7 = PART E3a — Admin › Screening (D109, the operator, 2026-10-09):
-- a reviewer sees the ads waiting in `screening`, opens each as a buyer will see it, and approves or rejects it;
-- an approved ad goes live and the feed index takes it at once (the triggers of E2a);
-- one correction to /api/feed (E3a.6).
-It is ONE migration (transition_listing redeclared with one change), one admin section, its tests and its words. Tier A (an admin decision surface and a door).
-The supervisor ran the migration text below on a local Postgres 16 copy of the shapes it touches (with stand-ins for auth.uid, has_permission, rate_gate and the step-up helper):
-- a reviewer without a fresh second factor is refused and the ad stays in screening;
-- the service's approval makes the ad active and writes its feed rows;
-- scripts/check-migrations.sh: every guard OK.
-Line numbers are as of commit ec779457 (dev). This file is public: it is written as build instructions.
+BUNDLE 10 — THE FEED ENGINE, VERSION 8 (2026-10-09). THIS FILE REPLACES VERSION 7. Turn 7 built Admin › Screening (E3a). Turn 8 fixed its three CI failures (INC-513, INC-514, INC-515). This version specifies TURN 9 = PART E3b, the listings pages read from /api/feed:
+- the home page and every category page read one page of cards at a time from /api/feed, in D108's order, for the place the location row shows;
+- the next page loads when the end of the list comes into view;
+- when the page reaches beyond the chosen place, each wider place is named above its listings;
+- a subcategory's address shows that subcategory (INC-504), and a top category's address shows its whole branch (INC-503);
+- the breadcrumbs show the whole category path;
+- two scanner warnings are fixed (INC-516, INC-517).
+It is screens, tests and docs only: NO migration, no new message key (every word on the page uses a key that exists today in both languages), no package. Tier B.
+Line numbers are as of commit b987d837 (dev). This file is public: it is written as build instructions.
 
-ANSWERS TO TURN 6
-- Your stop was right. E3a.0 (a), (c), (d) and (e) are accepted as reported: the live body's md5 equals the file's (49402bc72dbd96c8b139b037bcc755ba), 8 ads in screening, the new paths free, the newest mark 20261009190000.
-- E3a.0 (b): no role holds listings:review or listings:enforce today; only a super admin passes has_permission (it returns true for a super admin, supabase/migrations/20260809010130_05add65c-4963-4df2-95bd-b1cc855820c0.sql :128–148), and get_my_permissions lists every permission for a super admin (:150–168), so the operator's buttons show and his decisions pass the door. No role is granted anything in this bundle; that is the operator's choice in Admin › Roles.
-- So SC-4 (b) uses a scratch role that holds listings:review only, built and removed by the test as e2e/admin-attributes-editor.spec.ts AT-34 builds its scratch role (:363–424), with a leased user who has no second factor. Read E3a.0 (b) as reported; nothing else in the turn depends on it.
-- Redo E3a.0 (e) at apply time; the rest of E3a.0 stands.
+ANSWERS TO TURN 7 AND TURN 8
+- Turn 7 (326258b1), verified by diff:
+  - the saved brief equals version 7;
+  - the migration equals the tested text, with the mark 20261009200000;
+  - the fifteen keys equal the brief's values in both files;
+  - the section, the page, the read hook, SC-1 to SC-5, the route correction (E3a.6), the selector area and the docs are as specified.
+  Two departures are accepted: src/features/admin/rail-items.ts (the section's icon), and the inline status line in place of a toast.
+- Turn 8 (b987d837), verified by diff:
+  - exactly the eight files of the ruling;
+  - both locale files byte-equal to prettier 3.8.3's output;
+  - the spec's twin functions as ruled;
+  - the section opens with listings:review (DEC-163).
+  CI green on b987d837 (run 37901886344, promoted: main = dev). Part E3a is CLEAN.
 
-ANSWERS TO TURN 5
-- Verified by the diff of 41b46aa6..d91aac66:
-  - the saved brief equals version 5;
-  - the migration equals the appendix of version 5 with the mark 20261009190000;
-  - FR-1 to FR-8, the allowlist line, the selector lines, the docs and the changelog are as written;
-  - the two regenerated i18n usage maps are accepted (A6).
-- CI green on d91aac66 (promoted). Turn 5 is CLEAN.
-- One correction to the route, done in this turn (E3a.6): an answer without data and without an error must be a failure, never an empty page (F4). The slow-call warning you added stays; name it in the docs.
-
-WHAT THE PAGE IS (D109)
-- Admin › Screening, path /admin/screening, opened with `listings:view`.
-- A table of the ads whose status is `screening`, oldest first (the order they were sent), 25 per page, with a search by title.
-- Columns: title, category, place, sent (the listing's updated_at).
-- Each row: Open (the ad as a buyer will see it), Approve and Reject.
-- Approve moves the ad to `active`; Reject moves it to `rejected`. Each asks for confirmation, then for a fresh second factor through the step-up gate, then calls `transition_listing` as the signed-in reviewer.
-- Reasons shown to the seller come with stage 2's exceptions page; not in this turn.
+WHAT THE PAGES DO (D99, D101, D108)
+- "/" shows every category. "/c/<slug>" shows that category's whole branch: its own listings and every listing in a category below it. Sellers post in last-level categories, so a top category shows its subcategories' listings.
+- Every page is for the place the location row shows: the last place of the shell's path (country, region, city or sub-city). With no place, the page is "everywhere".
+- The order is the server's (D108): premium, then featured, then regular, newest first inside each. The browser never re-sorts.
+- The server widens the place when the chosen place holds fewer than 8 listings: first the chosen place, then each wider place, then everywhere. Each listing appears once, under the narrowest place that holds it; each card carries that place's step.
+- 20 cards per page. The next page loads only when the end of the list comes into view (REQ-029: nothing is loaded beyond what is in view).
 
 STEP 0 — keep this brief
 - Save this file byte for byte OVER docs/governance/briefs/bundle-10.md (it is already in its saved form). roadmap.md line 3 stays as it is. Tick no roadmap line. On every later turn, read the brief first.
@@ -41,317 +38,277 @@ STEP 0 — keep this brief
 HOW TO WORK
 - Order of the turn:
   1. step 0;
-  2. E3a.0, the read-only census. If any result differs from what it expects, STOP and report: write nothing else;
-  3. E3a.1 to E3a.7: the words, the section, the page, the tests, the route correction, the selector, the docs and changelog;
-  4. E3a.8 LAST: the migration;
-  5. the unit tests;
-  6. the report;
-  7. END THE TURN.
+  2. E3b.0, the read-only census. If any result differs from what it expects, STOP and report: write nothing else;
+  3. E3b.1 to E3b.9;
+  4. the checks;
+  5. the report;
+  6. END THE TURN.
   Do not stop between steps.
-- The migration is the last thing written because the database tool applies it on ethio-prod the moment it is saved. The operator will see the "Modify Supabase database" dialog and allow it.
-- If any rule of yours conflicts with the text, STOP before saving and quote that rule's exact words in the report.
-- The turn starts by reading CI for the last commit on dev at https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ci-status.md, then e2e-last-failure.md and guards-last-failure.md at the same address. You cannot git-fetch that branch. Paste the first six lines of ci-status.md.
-- Production reads are SELECT-only. Reports carry counts, booleans and names of tables, columns, functions, roles and permissions. Never an e-mail address, a user id, a token or a row of user data.
-- Browser tests: try once (`bun run e2e:local e2e/admin-screening.spec.ts`). If it does not start, write "local browser runs unavailable"; CI on the final commit is the proof (INC-506). Nothing runs against ethio-prod or the published site.
-- Tests (G38): no assertion loosened, no timeout raised, no retry added. A test this brief does not name is not edited.
-- No package or dependency change. The only new strings are those of E3a.1, exactly as written there.
-- Scope:
-  - one new migration file under supabase/migrations/ (the database tool names it);
-  - src/features/admin/sections.ts (one entry);
-  - src/routes/admin.screening.tsx (new);
-  - src/features/admin-screening/ (new folder: the page, its data hook);
-  - src/i18n/locales/en.ts and src/i18n/locales/am.ts (the keys of E3a.1 only);
-  - src/routes/api/feed.ts (E3a.6 only);
-  - e2e/admin-screening.spec.ts (new);
-  - scripts/e2e-select.ts (one new area);
-  - docs/features/admin-screening.md (new), docs/features/feed-engine.md (one line), docs/_changelog.md;
+- The turn starts by reading CI for the last commit on dev:
+  - read https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ci-status.md;
+  - then e2e-last-failure.md and guards-last-failure.md at the same address;
+  - paste the first six lines of ci-status.md.
+  You cannot git-fetch that branch. A red there is fixed first.
+- This turn has NO migration and writes nothing to any database. If any step seems to need one, STOP and say why.
+- Browser tests: try once (`bun run e2e:local e2e/feed-screens.spec.ts`). If it does not start, write "local browser runs unavailable"; CI on the final commit is the proof (INC-506). Nothing runs against ethio-prod or the published site.
+- Tests (G38):
+  - no assertion loosened, no timeout raised, no retry added;
+  - a test this brief does not name is not edited;
+  - tests create their own scratch rows and remove them in afterEach (J3);
+  - no test attaches a listing to a real place, and no test changes a real row.
+- No package or dependency change. No new message key and no literal text on a page: every word comes from a key that exists today in both src/i18n/locales/en.ts and src/i18n/locales/am.ts (the list is in E3b.4).
+- Scope — these files only:
+  - src/features/feed/feed-page.ts (new), src/features/feed/feed-page.test.ts (new);
+  - src/features/feed/use-feed.ts, src/features/feed/ranking.ts;
+  - src/components/marketplace/feed.tsx, src/components/marketplace/listing-card.tsx;
+  - src/components/app-shell.tsx (the category lookup only), src/components/shell-context.ts (one field);
+  - src/components/shell/breadcrumbs.tsx (the category path only);
+  - src/features/admin-screening/screening-page.tsx (E3b.9, two lines);
+  - scripts/list-action-labels.ts (E3b.9, closeTag only);
+  - e2e/feed-screens.spec.ts (new);
+  - e2e/shell.spec.ts (one line, E3b.7);
+  - e2e/post-wizard-pricing.spec.ts (PW-94 only, E3b.7);
+  - scripts/e2e-select.ts (the feed area);
+  - docs/features/feed-engine.md, docs/_changelog.md;
   - the brief.
-  The platform may regenerate src/integrations/supabase/types.ts and src/routeTree.gen.ts, and the i18n map guard the two usage maps (A6); that is allowed and named in the report. Name any other file in the report's first lines with its reason.
+  The platform may regenerate src/integrations/supabase/types.ts and src/routeTree.gen.ts, and the i18n map guard may regenerate the two usage maps (A6). That is allowed; name it in the report. Name any other file in the report's first lines, with its reason. Delete no file.
 - Closed surfaces (G22): the workflow files, the failure reporter, scripts/check-migrations.sh, the e2e helpers and e2e/global-setup.ts are not touched. Shared UI blocks are used as they are; none changes its default.
+- Checks before the turn ends. Run each one whole, as CI runs it, and paste the last line of each:
+  - `bun run typecheck`
+  - `bun run format:check`
+  - `bun run lint`
+  - `bun run test:unit`
+  - `bun run i18n:map-guard`
+  - `bun run scripts/e2e-select.ts --self-test`
+  - `bun run scripts/check-root-routes.ts --self-test && bun run scripts/check-root-routes.ts`
+  - `bun run build`
 
-THE MIGRATION RULES (G39 — every one applies)
-- The migration text is in the appendix at the end of this brief. Its function body is the live transition_listing (supabase/migrations/20261006010039_22ac0b2a-158a-4a38-b651-60a69e259f11.sql :301–395) with exactly two inserted blocks:
-  - after the "reviewer only" refusal: when the caller is not the service, `PERFORM public.require_step_up_if_needed('listings', 'review');`
-  - after the "enforcement only" refusal: when the caller is not the service, `PERFORM public.require_step_up_if_needed('listings', 'enforce');`
-  Every other line, the header attributes, the REVOKE and the two GRANTs are the live function's.
-- Write it EXACTLY, changing only `<MARK>`. If E3a.0 (a) shows that the live definition differs from that file, STOP before saving and paste the live definition.
-- Write the file in a scratch folder first and run the migration check there:
-  - copy supabase/migrations/*.sql into a temporary folder;
-  - add the new text under a name of the form 20261009000000_screening-check.sql;
-  - run `MIGRATIONS_DIR=<that folder> bash scripts/check-migrations.sh`.
-  Paste its "guard OK" lines: Born-closed, Definer, Self-marking, Public-surface, Real-row proof, and "Migration guard OK".
-- `<MARK>` is chosen at apply time:
-  - take now() at time zone 'utc' on ethio-prod, round it up to the next whole hour and add one hour (add twelve hours instead if the save dialog may wait);
-  - it must be later than the saved file's own stamp and above 20261009190000.
-- Then hand the FINAL text to the database tool ONCE. Never a stub, a comment or a draft (INC-491).
-- What the text does: transition_listing redeclared whole with the two step-up calls; proofs (the two calls are present; header facts; EXECUTE for authenticated and service_role, not anon); the self-mark.
+PART E3b — THE LISTINGS PAGES
 
-PART E3a — ADMIN › SCREENING
+E3b.0 — THE CENSUS (read-only; paste each result):
+- (a) `grep -n "useCategories\|categoriesLoading\|selectedCategoryId" src/components/app-shell.tsx` → lines 32, 355, 356, 364, 570, 590.
+- (b) `grep -rln "rankListings\|TIER_RANK\|RankableListing\|LocationScope" src e2e` → exactly src/features/feed/ranking.ts and src/features/feed/use-feed.ts.
+- (c) `grep -rn "listing-card\|feed-empty\|rest/v1/listings" e2e --include=*.ts` → nine lines: e2e/shell.spec.ts :183, :195, :402, :419, :436, :466, :475, :539 and e2e/post-wizard-pricing.spec.ts :458.
+- (d) Each of these keys appears exactly once in en.ts and once in am.ts: feed.heading, feed.scopeAll, feed.loading, feed.emptyTitle, feed.emptyBody, feed.errorTitle, feed.errorBody, common.retry, nav.allListings, error.pageNotFound, error.pageNotFoundBody.
+- (e) `grep -n "const confirm\|void confirm()" src/features/admin-screening/screening-page.tsx` → :140 and :263.
 
-E3a.0 — CENSUS (read-only, before writing anything). Paste each result:
-- (a) on ethio-prod: `select md5(prosrc) from pg_proc where oid = 'public.transition_listing(uuid,text)'::regprocedure;` and the md5 of the body between `AS $function$` and `END $function$;` in the 20261006010039 file (:301–392), computed the same way (`md5` of the text between the two dollar quotes, which is what prosrc holds). They must be equal; the file's value is 49402bc72dbd96c8b139b037bcc755ba. Also paste `select prosecdef, provolatile, proconfig from pg_proc where oid = 'public.transition_listing(uuid,text)'::regprocedure;` (expected true, v, {search_path=public}).
-- (b) on ethio-prod: `select r.name, p.action from public.role_permissions rp join public.roles r on r.id = rp.role_id join public.permissions p on p.id = rp.permission_id join public.resources res on res.id = p.resource_id where res.name = 'listings' order by 1, 2;` — the roles that hold listings view, review and enforce (names only).
-- (c) on ethio-prod: `select count(*) from public.listings where status = 'screening';`
-- (d) in the repository: src/routes/admin.screening.tsx and src/features/admin-screening/ do not exist; no key in en.ts begins with `admin.screening.` or `admin.section.screening.`.
-- (e) on ethio-prod: `select version from public.migration_marks where version = '20261009190000';` (one row), `select max(version) from public.migration_marks;`, `select now() at time zone 'utc';`.
+E3b.1 — THE ANSWER AND ITS SECTIONS: src/features/feed/feed-page.ts (new). Pure functions, no React, no fetch.
+- `export const EVERYWHERE = "00000000-0000-0000-0000-000000000000";` — the ladder's "everywhere" step.
+- `export interface FeedListing` — one card, exactly the fields /api/feed returns:
+  - id: string; title: string; tier: ListingTier;
+  - priceAmount: number | null; priceCurrency: string | null; priceMode: string; priceBp: number | null; priceNegotiable: boolean; pricePeriod: string; priceUnit: string | null; priceUnitText: string | null; photosSoon: boolean;
+  - publishedAt: string; categoryId: string;
+  - locationId: string | null; locationNameEn: string | null; locationNameAm: string | null;
+  - step: number.
+  No viewCount (E3b.5).
+- `export interface FeedPage { cards: FeedListing[]; ladder: string[]; next: string | null }`.
+- `export function parseFeedPage(value: unknown): FeedPage | null` checks every field's type exactly and answers null on any mismatch (F4: a malformed answer is a failure, never an empty page). Rules:
+  - value is an object;
+  - `cards` is an array, `steps` is an array (it is not kept), `ladder` is a non-empty array of strings;
+  - `next` is a string or null;
+  - each card has every field above with its type;
+  - tier is "premium", "featured" or "regular";
+  - step is an integer from 1 to ladder.length.
+  Never a default for a missing or wrong field.
+- `export type FeedSectionLabel = { kind: "place"; placeId: string } | { kind: "all" } | null;`
+- `export interface FeedSection { step: number; label: FeedSectionLabel; cards: FeedListing[] }`.
+- `export function feedSections(cards: FeedListing[], ladder: string[]): FeedSection[]`. Consecutive cards with the same step form one section, in the order received. Its label is:
+  - null for step 1 (the page's heading names the chosen place);
+  - `{ kind: "all" }` when ladder[step - 1] is EVERYWHERE;
+  - otherwise `{ kind: "place", placeId: ladder[step - 1] }`.
+  An empty list gives [].
+- ListingTier is imported from ./ranking.
 
-E3a.1 — THE WORDS. Add exactly these keys, English to en.ts and Amharic to am.ts, each value copied from the block below (never retyped). The Amharic comes from the operator (2026-10-09, his own words for the six new phrases) or is copied from a key the app already has. The bracket after each Amharic value names its source and is not part of the value:
-- admin.section.screening.title
-  en: Screening queue
-  am: የምርመራ ወረፋ   [copied from nav.screeningQueue]
-- admin.section.screening.body
-  en: Ads waiting for review. Approve puts an ad on the site; Reject keeps it off.
-  am: ግምገማ የሚጠብቁ ማስታወቂያዎች። 'አጽድቅ' ማስታወቂያውን በገጹ ላይ ይጭናል፤ 'ውድቅ አድርግ' ደግሞ ከገጹ ውጪ ያደርገዋል።   [the operator]
-- admin.screening.search
-  en: Search
-  am: ፍለጋ   [copied from admin.users.searchLabel]
-- admin.screening.col.title
-  en: Title
-  am: አርዕስት   [copied from post.details.titleLabel]
-- admin.screening.col.category
-  en: Category
-  am: ምድብ   [copied from post.step.category]
-- admin.screening.col.place
-  en: Place
-  am: ቦታ   [copied from post.step.place]
-- admin.screening.col.sent
-  en: Sent
-  am: ተልኳል   [copied from post.photos.done]
-- admin.screening.open
-  en: Preview as buyer
-  am: ገዢዎች እንደሚያዩት ይመልከቱ   [copied from post.review.previewAsBuyer]
-- admin.screening.approve
-  en: Approve
-  am: አጽድቅ   [copied from admin.translations.editor.approve]
-- admin.screening.reject
-  en: Reject
-  am: ውድቅ አድርግ   [the operator]
-- admin.screening.approved
-  en: Approved
-  am: የጸደቀ   [copied from admin.translations.status.approved]
-- admin.screening.rejected
-  en: Rejected
-  am: ውድቅ ተደርጓል   [the operator]
-- admin.screening.empty
-  en: Nothing is waiting for review.
-  am: ለግምገማ የቀረበ ምንም ነገር የለም።   [the operator]
-- admin.screening.confirmApprove
-  en: Approve this ad? It goes on the site now.
-  am: ይህ ማስታወቂያ ይጽደቅ? አሁን በገጹ ላይ ይጫናል።   [the operator]
-- admin.screening.confirmReject
-  en: Reject this ad? It stays off the site.
-  am: ይህ ማስታወቂያ ውድቅ ይደረግ? ከገጹ ውጪ ሆኖ ይቆያል።   [the operator]
-The page also uses, as they are: common.loading, common.error, common.retry, common.cancel. Report every new key with its English and Amharic, as you wrote them.
+E3b.2 — THE HOOK: src/features/feed/use-feed.ts and src/features/feed/ranking.ts.
+- `useFeed({ categoryId, placeId, enabled })` replaces the old hook. It reads `/api/feed` (same origin, GET):
+  - with `category=<categoryId>` when categoryId is not null;
+  - with `place=<placeId>` when placeId is not null;
+  - with no `size` (the route's 20).
+  It never reads `listings` directly and never sorts.
+- What it returns:
+  - `cards`: every page so far, in the order received;
+  - `ladder`: from the first page;
+  - `hasMore`: true when the last page's `next` is not null;
+  - `isLoading`: the first page;
+  - `isLoadingMore`;
+  - `error`: the first page failed;
+  - `moreError`: a later page failed;
+  - `loadMore()`, `retry()`.
+- A failure — any of these is an error (or moreError), never an empty page (F4):
+  - a response that is not 200;
+  - a fetch that throws;
+  - a body that parseFeedPage refuses.
+- `loadMore()`: when hasMore and nothing is loading and moreError is false, fetch with `after=<next>` and append the cards. `retry()` repeats the request that failed (the first page, or the next page).
+- Starting over: a change of categoryId, placeId or enabled clears the cards, sets isLoading, and ignores any answer to an earlier request.
+- While enabled is false: isLoading stays true and no request is made (INC-282).
+- `export type { FeedListing } from "./feed-page";` so src/components/marketplace/listing-card.tsx keeps its import path.
+- useCategories and FeedCategory (use-feed.ts :181–217) stay exactly as they are; the rail (src/components/shell/app-rail.tsx :23) still uses them.
+- src/features/feed/ranking.ts keeps only `export type ListingTier = "premium" | "featured" | "regular";`. Its comment becomes two lines: the order is the server's (D108, feed_page); the browser never sorts. Remove rankListings, TIER_RANK, RankableListing, LocationScope and RankingContext.
 
-E3a.2 — THE SECTION. src/features/admin/sections.ts: one entry after "translations":
-  { id: "screening", path: "/admin/screening", permission: "listings:view", titleKey: "admin.section.screening.title", bodyKey: "admin.section.screening.body" }
-src/routes/admin.screening.tsx: the pattern of src/routes/admin.countries.tsx (createFileRoute("/admin/screening"), the page component, a comment naming the gate).
+E3b.3 — THE CATEGORY LOOKUP (INC-504): src/components/app-shell.tsx :352–364 and src/components/shell-context.ts.
+- The slug resolves through the WHOLE tree. Use `useCategoryTree()` (src/features/categories/category-tree.ts :400) in place of `useCategories()` (:355), and find the node with `tree.nodes.find((node) => node.slug === selectedCategorySlug)`.
+- `selectedCategoryId` stays: the found node's id, else null.
+- A new ShellValue field after selectedCategoryId: `categoryLookup: "none" | "pending" | "found" | "missing" | "failed"`. The cases, checked in this order:
+  - "none": no slug;
+  - "found": the node is in the tree;
+  - "pending": the tree is loading;
+  - "failed": the tree read failed (its `error`);
+  - "missing": otherwise.
+  Add it to the value object (:569–571) and to its dependency list (:589–591).
+- feedInputsReady (:363–364) reads the tree's isLoading in place of categoriesLoading. Nothing else in the expression changes.
+- Remove the useCategories import (:32) if nothing else in the file uses it. Nothing else in app-shell.tsx changes.
 
-E3a.3 — THE PAGE: src/features/admin-screening/ (screening-page.tsx and use-screening.ts), built from the shared blocks as src/features/admin-countries/countries-page.tsx builds its table (DataTable, DataTablePagination, the toolbar's search), wrapped in StepUpGate (src/features/auth/mfa/step-up-gate.tsx):
-- The root has `data-testid="admin-section-screening"`; an h1 with the section title and the section body as its note.
-- The read, with the signed-in session (RLS `listings_admin_read`, `listings:view`):
-  - listings where status = 'screening';
-  - columns id, title, description, category_id, location_id, price fields, attributes, updated_at;
-  - the category's and the place's names embedded (name_en, name_am), shown in the page's language;
-  - ordered by updated_at ascending, then id;
-  - 25 per page, with the page's own range;
-  - the search a case-insensitive match on the title, applied in the query (so a row is found whatever page it would sit on).
-  A failed read shows common.error with common.retry (F4), never an empty table.
-- Each row (`data-testid="admin-screening-row-<id>"`): title, category, place, sent (a short date and time); then:
-  - Preview as buyer (`admin-screening-open-<id>`, admin.screening.open): the ad as a buyer will see it, through the existing PreviewSheet and ListingDetail (src/features/posting/preview/), built from the row and its photos (`listing_photos`, read with the same session — policy `listing_photos_admin_read`). If a field of ListingDetailView cannot be filled from what the page can read, leave that part out and name it in the report;
-  - Approve (`admin-screening-approve-<id>`);
-  - Reject (`admin-screening-reject-<id>`).
-- Approve and Reject:
-  - open a confirmation (the shared alert dialog; `admin-screening-confirm`) with the phrase of E3a.1 and the buttons Approve or Reject and common.cancel;
-  - on confirm: `guard(...)` of the step-up gate around `rpc("transition_listing", { p_listing_id, p_new_status: "active" | "rejected" })`;
-  - on success: a toast (admin.screening.approved or admin.screening.rejected) and the list reloads;
-  - on an error: a toast with common.error and the row stays.
-- Buttons are shown only when the reviewer holds `listings:review` (`useAdminShell().permissions`); the door decides anyway (F3).
-- No rows: admin.screening.empty (`admin-screening-empty`).
-- Phones: the shared table's card layout, as the countries page shows it.
+E3b.4 — THE PAGE: src/components/marketplace/feed.tsx (rewritten).
+- Read selectedCategoryId, categoryLookup, locationPath and feedInputsReady from useShell(). placeId is the id of the last node of locationPath, or null.
+- Call `useFeed({ categoryId: selectedCategoryId, placeId, enabled: feedInputsReady && (categoryLookup === "none" || categoryLookup === "found") })`.
+- The heading h1 is t("feed.heading") with {location} replaced by:
+  - the chosen place's name: `entityName("location", { id, nameEn: name_en, nameAm: name_am }, entities)` of the last node of locationPath;
+  - or t("feed.scopeAll") when there is no place (today's text).
+- What the page shows, in this order of cases:
+  - categoryLookup "missing": a PageCard `feed-category-unknown` with an h2 t("error.pageNotFound") and a paragraph t("error.pageNotFoundBody"). No feed request.
+  - categoryLookup "failed": today's error block (role alert, h2 t("feed.errorTitle"), paragraph t("feed.errorBody")) with testid `feed-category-failed`. Its Retry button (t("common.retry")) reloads the page with `window.location.reload()`. No feed request.
+  - First page loading: today's spinner, t("feed.loading").
+  - First page failed: today's error block with testid `feed-error`. Its Retry button, testid `feed-retry`, calls the hook's retry.
+  - No cards at all: today's empty state, unchanged (`feed-empty`, t("feed.emptyTitle"), t("feed.emptyBody")).
+  - Cards: see the next bullets.
+- One `<section data-testid="feed-section" data-step="<n>">` per entry of feedSections(cards, ladder).
+- A section with a label starts with an h2 `feed-step-label`:
+  - kind "all": t("nav.allListings");
+  - kind "place": t("feed.heading") with {location} = that place's name, the node of locationPath with that id, named as the heading names its place;
+  - a place id that is not in locationPath: the section has no h2. Never a made-up name.
+- Each section's cards sit in a `<ul>` with today's classes exactly (`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`), each card in an `<li>`. e2e/shell.spec.ts :532–564 measures `main ul.grid` and `main ul > li`.
+- When cards exist and the first card's step is above 1 (nothing in the chosen place), a paragraph `feed-step-none` with t("feed.emptyTitle") sits under the h1, before the first section.
+- When hasMore, a `<div data-testid="feed-more">` (at least 44 px tall) follows the sections:
+  - An IntersectionObserver on it, created in an effect with rootMargin "0px", calls loadMore when it comes into view. The effect disconnects the observer on unmount and whenever its inputs change. The server render has no observer.
+  - While the next page loads, the div holds today's Spinner with t("feed.loading").
+  - A failed next page shows today's error block inside the div, with testid `feed-more-error`. The cards are kept, and its Retry button calls the hook's retry.
+  The supervisor tried this pattern in Chromium (20 cards, the 44 px div, rootMargin 0px): nothing loaded before the div was in view, and one load followed when it was scrolled into view.
+- Keep `data-testid="feed-container"` and its `data-ready` attribute exactly as they are (the INC-282 tests read them).
+- The words used, all existing in both files: feed.heading, feed.scopeAll, feed.loading, feed.emptyTitle, feed.emptyBody, feed.errorTitle, feed.errorBody, common.retry, nav.allListings, error.pageNotFound, error.pageNotFoundBody.
 
-E3a.4 — THE TESTS: e2e/admin-screening.spec.ts (new; ids SC-1 to SC-5).
-- Seeding: as e2e/feed-route.spec.ts seeds (a leased seller; a scratch category branch; `seedScratchChain("ET")`), with one listing inserted by the service client with status "screening", published_at null, the leaf category, the scratch city, and a unique title `e2e-screen-${RUN}-${rand()}`. Cleanup in afterEach in the same order (listings, region, branch).
-- The admin: `useJobSuperAdmin(page)` (e2e/helpers/ui.ts :881) and `stepUpIfPrompted(page, secret)` (:915).
-- `rpcFromBrowser`: a local function in the spec, as e2e/mfa-stepup.spec.ts :45 writes it.
-- Every row is found by searching its unique title in the page's search box, never by its place in the list (G28).
-- SC-1 "the queue lists an ad waiting for review": open /admin/screening, search the title; the row shows the title, the scratch category's name and the scratch city's name.
-- SC-2 "Approve puts the ad on the site": the row's Approve, confirm, `stepUpIfPrompted`; the "Approved" toast; then DB truth through the service client:
-  - status "active" and published_at set;
-  - at least one feed_index row for the listing;
-  - the row has left the queue.
-- SC-3 "Reject keeps the ad off": the same with Reject → status "rejected", no feed_index row, the "Rejected" toast.
-- SC-4 "only a reviewer with a fresh second factor decides", each with DB truth that the status stays "screening":
-  - (a) a leased pool user with no role: `rpcFromBrowser(page, "transition_listing", { p_listing_id, p_new_status: "active" })` returns an error;
-  - (b) a scratch role holding `listings:review` only: the service client inserts the role (`roles`: name and display_name `e2e_screen_reviewer_${rand()}`, priority 1), one `role_permissions` row for the listings:review permission (read from `permissions` joined to `resources` named "listings", as AT-34 reads its two), and a `user_roles` row (scope_type "global") for a leased user (`leaseUser`) who has no second factor. Register the role id for the afterEach BEFORE the inserts; the afterEach deletes, in this order, its role_permissions rows, its user_roles rows and the role (as AT-34's finally does). Then `switchUser` to that user and `gotoReady(page, "/")`; the same call returns an error matching /no verified factor|step-up required/i.
-- SC-5 "an empty search shows the empty message": search a title nobody has (`e2e-none-${rand()}`) → `admin-screening-empty` is visible with the English of admin.screening.empty.
-- e2e/admin-shell.spec.ts reads the sections list itself, so it covers the new section without an edit.
+E3b.5 — THE CARD: src/components/marketplace/listing-card.tsx.
+- Remove the views line (:111–115) and the `Eye` import (:2). The count was always 0, because nothing tracks views; a number the app cannot know is not printed (DEC-165). The `feed.views` key stays in the locale files.
+- Nothing else in the card changes.
 
-E3a.5 — scripts/e2e-select.ts: a new area after "admin-audit":
-  { name: "admin-screening", src: ["src/routes/admin.screening.tsx", "src/features/admin-screening/**"], specs: ["e2e/admin-screening.spec.ts"] }
-Run `bun run scripts/e2e-select.ts --self-test`.
+E3b.6 — THE BREADCRUMBS: src/components/shell/breadcrumbs.tsx (:17, :44, :48–49 and :237–259).
+- The path is `pathOf(tree, node.id)` (src/features/categories/category-tree.ts :346), with tree from `useCategoryTree()` and node the one whose slug equals selectedCategorySlug. A subcategory shows Home › <parent> › … › <itself>; a category with several parents follows its first parent (the tree's parentOf).
+- The current (last) segment keeps `breadcrumb-category` (a BreadcrumbPage, as today). Every earlier segment is a Link to /c/<its slug> with testid `breadcrumb-category-parent`.
+- Replace the comment at :30–32 to say so. Nothing else in the file changes.
 
-E3a.6 — THE ROUTE CORRECTION: src/routes/api/feed.ts. When the call returns no error, the data must be an object whose `cards`, `ladder` and `steps` are arrays; otherwise answer 502 through `fail()` (it logs one [ssr-error] line). Remove the `?? {}` and `?? []` defaults that turn a missing answer into an empty page. Nothing else in the route changes.
+E3b.7 — THE TESTS.
+- (a) e2e/feed-screens.spec.ts (new), `test.describe("FEED SCREENS", …)`.
+  - Imports:
+    - `expect`, `test` from ./fixtures;
+    - `en` from ../src/i18n/locales/en;
+    - `adminClient` from ./helpers/users;
+    - `anchorOf`, `destroyLocation`, `scratchSlug`, `seedScratchChain`, `waitForTreeSlug` from ./helpers/locations;
+    - `destroyCategoryBranch`, `destroyListingsOf`, `leaseSeller`, `rand`, `RUN`, `scratchCategorySlug`, `seedCategoryBranch` from ./helpers/posting;
+    - `gotoReady` from ./helpers/ui.
+  - Cleanup: in afterEach, in this order (as e2e/feed-route.spec.ts :48–52 does):
+    1. destroyListingsOf(seller id);
+    2. destroyLocation(region slug) for each scratch chain;
+    3. destroyCategoryBranch(slugs).
+  - `addListing(categoryId, sellerId, placeId, tier, minutesAgo)`: as e2e/feed-route.spec.ts :84–107 does (status "active", tier, published_at = now minus minutesAgo minutes, home_country_code "ET", title `e2e-feed-${RUN}-${rand()}`). FS-2 inserts its 25 rows in ONE insert of an array.
+  - Every listing's place is a scratch place from seedScratchChain("ET"), never a real place.
+  - `addLeaf(parentId)`: inserts a category and its pointer, as seedCategoryBranch does (e2e/helpers/posting.ts :390–411):
+    - slug scratchCategorySlug(), name_en the slug, is_active true, allow_listings true, is_catchall false, display_order 9102;
+    - the pointer: parent_id, child_id, display_order 2.
+    Its slug joins the branch's list for cleanup.
+  - `cardIds(page)`: the data-listing values of `[data-testid="listing-card"]`, in page order.
+  - `feedCalls`: urls of requests whose pathname is /api/feed, collected with page.on("request").
+  - Test FS-1 "a subcategory shows its own listings; its parent shows the whole branch" (INC-503, INC-504):
+    - setup: seedCategoryBranch() gives parent P and leaf L1; addLeaf(P.id) gives L2; one regular listing in L1 (5 minutes ago) and one in L2 (10 minutes ago); no area cookie (the page is everywhere);
+    - gotoReady `/c/${L1.slug}`: cardIds equals [L1's] (expect.poll);
+    - `breadcrumb-category-parent` has text P.slug, and `breadcrumb-category` has text L1.slug;
+    - click `breadcrumb-category-parent`: the URL ends `/c/${P.slug}`, and cardIds equals [L1's, L2's];
+    - gotoReady `/c/${L2.slug}`: cardIds equals [L2's].
+  - Test FS-2 "20 per page in D108's order; the next page loads only when the end comes into view":
+    - setup: one leaf L; 25 listings at a scratch city: rows 1–2 premium, 3–5 featured, 6–25 regular, minutesAgo 1–25 in that order;
+    - expected order: tier first (premium, featured, regular), then newest;
+    - gotoReady `/c/${L.slug}`: cardIds equals the first 20 expected (expect.poll), and no feed call so far carries `after`;
+    - scroll `feed-more` into view: cardIds equals all 25 (expect.poll); `feed-more` has count 0; exactly one feed call carries `after`.
+  - Shared setup for FS-3 and FS-4 ("the area fixture"):
+    - leaf L; chain A = seedScratchChain("ET"), plus a second sub-city under chain A's city (level "sub_city", country_code "ET", slug scratchSlug("fs-sub"), name_en the slug, is_active true, source "admin", center_lat 9.03, center_lng 38.74). With two sub-cities the shell's path stops at the city (autoExtendPath, src/components/shell/location-data.ts :332–343);
+    - chain B = seedScratchChain("ET");
+    - waitForTreeSlug(page, "ET", <the second sub-city's slug>);
+    - add the cookie `ethio_area` = `ET:${chainA.city.id}`, as e2e/shell.spec.ts :2549–2557 does;
+    - gotoReady `/c/${L.slug}`.
+    The ladder is then [city A, region A, Ethiopia, everywhere]; Ethiopia is step 3. Read Ethiopia's English name with anchorOf("ET").name_en.
+  - Test FS-3 "the page reaches beyond the chosen place and names the wider place":
+    - setup: two regular listings at chain A's city (1 and 2 minutes ago) and three at chain B's city (3, 4 and 5 minutes ago);
+    - the h1 equals en["feed.heading"] with {location} = chainA.city.name_en;
+    - `[data-testid="feed-section"][data-step="1"]`: its cards are A's two, newest first, and it has no `feed-step-label`;
+    - exactly one `feed-step-label` on the page, its text en["feed.heading"] with {location} = Ethiopia's name; it sits in the section with data-step "3", whose cards are B's three, newest first;
+    - `feed-step-none` has count 0.
+  - Test FS-4 "nothing in the chosen place: the note, then the wider place": the same fixture, with no listing at chain A and three at chain B. `feed-step-none` is visible with en["feed.emptyTitle"]; no section has data-step "1"; the section with data-step "3" holds B's three under its label.
+  - Test FS-5 "an address nobody has shows not found and asks the feed nothing":
+    - gotoReady `/c/e2e-none-${rand()}`;
+    - `feed-category-unknown` is visible and holds en["error.pageNotFound"] and en["error.pageNotFoundBody"];
+    - `feed-empty` has count 0 and feedCalls is empty.
+  - Test FS-6 "a failed read is shown, and Retry recovers":
+    - setup: leaf L with one listing at a scratch city; page.route("**/api/feed*") answers:
+      1. the first call: status 502, body {"error":"internal error"};
+      2. the second call: status 200 with body {} (a malformed answer);
+      3. later calls: route.continue();
+    - gotoReady `/c/${L.slug}`: `feed-error` is visible with en["feed.errorTitle"];
+    - click `feed-retry`: `feed-error` is still visible (the malformed answer is a failure, F4);
+    - click `feed-retry`: the listing's card is visible and `feed-error` has count 0.
+- (b) e2e/shell.spec.ts :475: the spinner test holds the feed's read, which is now /api/feed. Change `"**/rest/v1/listings*"` to `"**/api/feed*"`. Nothing else in the test changes.
+- (c) e2e/post-wizard-pricing.spec.ts PW-94 (:442–462): the existing `.update({ … })` (:448–453) also sets `published_at: new Date().toISOString()`. The feed shows only listings with a publish time, which every door stamps (feed_index_refresh skips an active listing without one).
+- (d) src/features/feed/feed-page.test.ts (vitest):
+  - FP-1: a valid page with two cards, a two-step ladder and next "abc" is parsed to the same values.
+  - FP-2: null for a page without `cards`, and for one whose ladder is empty.
+  - FP-3: null for a card whose tier is "gold", whose step is 0, whose step is above ladder.length, or whose priceAmount is the string "5".
+  - FP-4: null when next is 5.
+  - FP-5: cards with steps 1, 1, 3, 3, 4 and the ladder [A, B, C, EVERYWHERE] give three sections:
+    - step 1, label null, 2 cards;
+    - step 3, label { kind: "place", placeId: C }, 2 cards;
+    - step 4, label { kind: "all" }, 1 card.
+  - FP-6: an empty list gives [].
+- (e) Read, not edited — these reach the changed code and must stay green:
+  - e2e/shell.spec.ts: the empty state, the gutters, INC-282, the grid reflow, the breadcrumb segments, the Amharic heading and the vertical stack;
+  - e2e/category-nav.spec.ts;
+  - e2e/admin-translations-governance.spec.ts :688 (the heading with no area);
+  - e2e/phone-frame.spec.ts :55;
+  - e2e/smoke-auth-i18n.spec.ts :29;
+  - e2e/feed-route.spec.ts and e2e/feed-index.spec.ts.
 
-E3a.7 — docs/features/admin-screening.md (new): what the page shows, who may use it, what Approve and Reject do, the step-up rule of the door, what comes with stage 2. docs/features/feed-engine.md: one line under E2b naming the route's slow-call warning (over 5 s, `[slow-rpc]`). One changelog line.
+E3b.8 — THE SELECTOR AND THE DOCS.
+- scripts/e2e-select.ts :166–169, the area "feed":
+  - src gains "src/components/marketplace/**", "src/components/app-shell.tsx" and "src/components/shell/breadcrumbs.tsx";
+  - specs gain "e2e/feed-screens.spec.ts", "e2e/shell.spec.ts" and "e2e/post-wizard-pricing.spec.ts".
+  Run the self-test.
+- docs/features/feed-engine.md:
+  - "## What it does not do yet" with its line "E3 adds the screens." becomes "## What E3b built": the pages and the hook, the sections and their labels, paging, not found, the breadcrumbs, and the card without a views count.
+  - A new "## What it does not do yet": the performance judge (E3c); the rail's highlight and the subcategory menus (D98); the place kept on the account and the "different place" notice (D106, D107).
+  - The tests line gains FS-1..FS-6 and FP-1..FP-6.
+- docs/_changelog.md: one line.
 
-E3a.8 — THE MIGRATION (last). Write the appendix's text; run the check as above; choose the mark; hand the final text to the database tool once. Then the read-back with your query tool. Paste each result; a read refused to your tool's role is reported as refused:
-- `select version from public.migration_marks where version = '<MARK>';` — one row;
-- `select prosecdef, provolatile, proconfig from pg_proc where oid = 'public.transition_listing(uuid,text)'::regprocedure;`
-- `select position('require_step_up_if_needed' in prosrc) > 0 from pg_proc where oid = 'public.transition_listing(uuid,text)'::regprocedure;` — true.
+E3b.9 — TWO SCANNER WARNINGS (code scanning, Semgrep OSS).
+- INC-516 (#417, javascript-confirm): src/features/admin-screening/screening-page.tsx. The page's own function is named `confirm` (:140, called at :263); the scanner reads it as the browser's confirm. Rename it to `decide` at both lines. Nothing else changes.
+- INC-517 (#416, detect-non-literal-regexp): scripts/list-action-labels.ts :106–108, closeTag. `tag` is only ever a key of TAG_KIND (:52–70) or "Link" (:204–205). Make that a rule in the function, and mark the reviewed site as scripts/e2e-select.ts :216–217 does:
+  - first line of the body: `if (!/^[A-Za-z]+$/.test(tag)) return -1;`
+  - directly above the `new RegExp` line, these two comment lines, exactly:
+      // Reviewed (DEC-153): tag is letters only (checked above): a TAG_KIND key or "Link".
+      // nosemgrep: detect-non-literal-regexp
+  Nothing else in the script changes; scripts/list-action-labels.test.ts must stay green.
 
 NAMED FOR THE NEXT VERSIONS (not specified here; build none of it)
-- E3 — the feed screens on /api/feed: 20 per page, the next page as the last card comes into view; the step labels; subcategory addresses resolved through the whole tree; the breadcrumbs; the performance job. Its walk uses ads the operator approves on this page.
-- Then (agreed, D106 and D107): the chosen place kept on the account, and the amber "different place" notice.
-- Stage 2: reasons for a rejection shown to the seller; the exceptions page this section becomes part of.
+- E3c — the performance judge of the spec's §5 (D101): 100,000 scratch listings on ethio-staging; six shapes; p95 server time ≤ 50 ms; ≤ 30 KB per page. A nightly job, with its own DEC (G22).
+- Bundle 10's walk, one, at the bundle's close: the listings pages with the ads the operator approves on Admin › Screening.
+- Then D106 and D107: the chosen place kept on the account, and the amber "different place" notice.
 
-REPORT (one, at the end). First lines:
-- done or not done for step 0 and E3a.0 to E3a.8;
-- E3a.0 (e) as read at apply time;
+REPORT (one, at the end).
+First lines:
+- done or not done, for step 0 and E3b.0 to E3b.9;
+- E3b.0's results;
 - whether the browser started;
 - any cited line that read differently;
-- any part of ListingDetailView left out, and why;
-- any file outside the lists.
+- any file outside the lists, with its reason.
 Then:
-- every new key with its English and Amharic;
-- the check-migrations "guard OK" lines;
-- the mark and the now() reading it came from;
-- the apply outcome;
-- the read-back;
-- the line "apply <uuid-fragment of the filename> → expect mark <MARK>" for the operator's staging apply;
+- the last line of each check;
 - the six ci-status lines;
-- unit tests, format:check, lint, typecheck;
-- the file list from `git diff --name-only ec779457` (untracked new files listed by name);
+- the file list from `git diff --name-only b987d837` (untracked new files listed by name);
 - "Logs read: … · unavailable: …".
 Never "CI green" from a local run. END THE TURN after the report.
-
-APPENDIX — THE MIGRATION TEXT (write it exactly; change only <MARK>)
-
--- E3a (bundle 10, before the feed screens): Admin > Screening. transition_listing is redeclared WHOLE from its live definition (20261006010039, M9b) with one change: a reviewer's decision (to active, reduced, rejected or held) and an enforcer's removal require a recent second-factor step-up, as the listings:review and listings:enforce permissions say (require_step_up_if_needed, the helper every admin door calls). The seller's own paths and the service's are unchanged.
--- e2e-areas: admin-screening, posting
-
-CREATE OR REPLACE FUNCTION public.transition_listing(p_listing_id uuid, p_new_status text)
- RETURNS void
- LANGUAGE plpgsql
- VOLATILE
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-DECLARE
-  v_uid      uuid := auth.uid();
-  v_row      public.listings%ROWTYPE;
-  v_service  boolean := (v_uid IS NULL AND current_setting('role', true) IS DISTINCT FROM 'anon');
-  v_reviewer boolean := false;
-  v_enforcer boolean := false;
-  v_owner    boolean := false;
-  v_ok       boolean := false;
-BEGIN
-  IF p_new_status NOT IN ('draft','screening','active','reduced','rejected','held','expired','sold','removed') THEN
-    RAISE EXCEPTION 'unknown status: %', p_new_status;
-  END IF;
-
-  SELECT * INTO v_row FROM public.listings WHERE id = p_listing_id;
-  IF NOT FOUND THEN RAISE EXCEPTION 'listing not found'; END IF;
-
-  IF v_uid IS NOT NULL THEN
-    IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = v_uid AND account_status = 'deactivated') THEN
-      RAISE EXCEPTION 'account is deactivated';
-    END IF;
-    IF NOT coalesce((public.rate_gate('revise')->>'allowed')::boolean, false) THEN RAISE EXCEPTION 'rateLimited'; END IF;
-    v_owner    := (v_row.seller_id = v_uid);
-    v_reviewer := public.has_permission(v_uid, 'listings', 'review');
-    v_enforcer := public.has_permission(v_uid, 'listings', 'enforce');
-    IF NOT (v_owner OR v_reviewer OR v_enforcer) THEN
-      RAISE EXCEPTION 'not your listing';
-    END IF;
-  END IF;
-
-  -- The gateway/reviewer branch: only these roles may put a listing in front of
-  -- a visitor. No owner door reaches 'active'.
-  IF p_new_status IN ('active','reduced','rejected','held') THEN
-    IF NOT (v_service OR v_reviewer) THEN
-      RAISE EXCEPTION 'reviewer only: % -> %', v_row.status, p_new_status;
-    END IF;
-    IF NOT v_service THEN
-      PERFORM public.require_step_up_if_needed('listings', 'review');
-    END IF;
-    v_ok := CASE v_row.status
-      WHEN 'screening' THEN p_new_status IN ('active','reduced','rejected','held')
-      WHEN 'held'      THEN p_new_status IN ('active','reduced','rejected')
-      ELSE false
-    END;
-  ELSIF p_new_status = 'screening' THEN
-    v_ok := v_row.status IN ('draft','active','reduced','rejected','expired','sold');
-  ELSIF p_new_status IN ('sold','expired') THEN
-    v_ok := v_row.status IN ('active','reduced');
-  ELSIF p_new_status = 'removed' THEN
-    IF v_owner AND NOT (v_service OR v_enforcer) THEN
-      IF v_row.status = 'rejected' AND coalesce(v_row.screening->>'severe','false') = 'true' THEN
-        RAISE EXCEPTION 'a listing rejected for a severe reason is removed by enforcement only';
-      END IF;
-      v_ok := true;
-    ELSE
-      v_ok := (v_service OR v_enforcer);
-      IF NOT v_ok THEN
-        RAISE EXCEPTION 'enforcement only: % -> removed', v_row.status;
-      END IF;
-      IF NOT v_service THEN
-        PERFORM public.require_step_up_if_needed('listings', 'enforce');
-      END IF;
-    END IF;
-  ELSE
-    v_ok := false;
-  END IF;
-
-  IF NOT v_ok THEN
-    RAISE EXCEPTION 'illegal transition: % -> %', v_row.status, p_new_status;
-  END IF;
-
-  IF p_new_status IN ('active','reduced') THEN
-    UPDATE public.listings SET
-      status = p_new_status,
-      published_at = coalesce(published_at, now()),
-      published_first_at = coalesce(published_first_at, now()),
-      -- M5 / DEC-117 — LEAST(the seller's date, now() + the category's days);
-      -- each side is left out when absent (LEAST skips NULL); NULL when both are.
-      expires_at = LEAST(v_row.poster_expires_at,
-        now() + make_interval(days => (SELECT c.expiry_days FROM public.categories c WHERE c.id = v_row.category_id))),
-      updated_at = now()
-    WHERE id = p_listing_id;
-  ELSE
-    UPDATE public.listings SET status = p_new_status, updated_at = now()
-     WHERE id = p_listing_id;
-  END IF;
-
-  INSERT INTO public.listing_revisions (listing_id, seller_id, kind, before, after, actor)
-    VALUES (p_listing_id, v_row.seller_id, 'state',
-            jsonb_build_object('status', v_row.status),
-            jsonb_build_object('status', p_new_status), v_uid);
-END $function$;
-REVOKE ALL ON FUNCTION public.transition_listing(uuid, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.transition_listing(uuid, text) TO authenticated;
-GRANT ALL ON FUNCTION public.transition_listing(uuid, text) TO service_role;
-
--- Proofs: the header facts and grants stay those of the live function, and the two step-up calls are in place.
-DO $proof$
-DECLARE
-  v_src text;
-BEGIN
-  SELECT p.prosrc INTO STRICT v_src FROM pg_proc p WHERE p.oid = 'public.transition_listing(uuid,text)'::regprocedure;
-  IF position('require_step_up_if_needed(''listings'', ''review'')' IN v_src) = 0
-     OR position('require_step_up_if_needed(''listings'', ''enforce'')' IN v_src) = 0 THEN
-    RAISE EXCEPTION 'E3a P1: a step-up call is missing';
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.oid = 'public.transition_listing(uuid,text)'::regprocedure
-                  AND p.prosecdef AND p.provolatile = 'v' AND p.proconfig = ARRAY['search_path=public']) THEN
-    RAISE EXCEPTION 'E3a P2: transition_listing header facts differ';
-  END IF;
-  IF has_function_privilege('anon', 'public.transition_listing(uuid,text)', 'EXECUTE')
-     OR NOT has_function_privilege('authenticated', 'public.transition_listing(uuid,text)', 'EXECUTE')
-     OR NOT has_function_privilege('service_role', 'public.transition_listing(uuid,text)', 'EXECUTE') THEN
-    RAISE EXCEPTION 'E3a P3: transition_listing privileges differ';
-  END IF;
-END $proof$;
-
-INSERT INTO public.migration_marks (version) VALUES ('<MARK>') ON CONFLICT (version) DO NOTHING;
 ```

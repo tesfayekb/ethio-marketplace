@@ -33,6 +33,8 @@ export type ShellValue = {
    */
   selectedCategorySlug: string | null;
   selectedCategoryId: string | null;
+  /** E3b (INC-504) — how the URL's slug resolved against the whole category tree. */
+  categoryLookup: "none" | "pending" | "found" | "missing" | "failed";
   /** INC-282 (product) — true once the feed's category and area inputs settled. */
   feedInputsReady: boolean;
   /** The cascading area selection. SEAM: set here, not yet applied to the feed. */

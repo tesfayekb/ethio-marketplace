@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 369,
+  "scanned": 370,
   "dynamicCallSites": 224,
   "keys": {
     "account.deactivatedBanner": [
@@ -3050,10 +3050,14 @@
       "(every page)"
     ],
     "error.pageNotFound": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "error.pageNotFoundBody": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "feed.emptyBody": [
       "/",
@@ -3090,14 +3094,6 @@
     "feed.scopeAll": [
       "/",
       "/c/$slug"
-    ],
-    "feed.views": [
-      "/",
-      "/admin/impersonation/$sessionId",
-      "/admin/screening",
-      "/c/$slug",
-      "/post",
-      "/post/$listingId"
     ],
     "footer.rights": [
       "(every page)"
@@ -3360,6 +3356,10 @@
     ],
     "mfa.verifyActivate": [
       "/settings"
+    ],
+    "nav.allListings": [
+      "/",
+      "/c/$slug"
     ],
     "nav.home": [
       "(every page)"

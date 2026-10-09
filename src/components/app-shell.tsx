@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
 import { useAuth } from "@/features/auth/use-auth";
-import { useCategories } from "@/features/feed/use-feed";
+import { useCategoryTree } from "@/features/categories/category-tree";
 import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { usePermissions } from "@/features/permissions/usePermissions";
@@ -352,10 +352,26 @@ export function AppShell({ children }: { children: ReactNode }) {
   const selectedCategorySlug = pathname.startsWith("/c/")
     ? decodeURIComponent(pathname.slice(3).split("/")[0] ?? "")
     : null;
-  const { categories, isLoading: categoriesLoading } = useCategories();
-  const selectedCategoryId = selectedCategorySlug
-    ? (categories.find((c) => c.slug === selectedCategorySlug)?.id ?? null)
+  // INC-504 — the slug resolves through the WHOLE tree, subcategories included.
+  const {
+    tree: categoryTree,
+    isLoading: categoriesLoading,
+    error: categoryTreeError,
+  } = useCategoryTree();
+  const selectedCategoryNode = selectedCategorySlug
+    ? (categoryTree.nodes.find((node) => node.slug === selectedCategorySlug) ?? null)
     : null;
+  const selectedCategoryId = selectedCategoryNode?.id ?? null;
+  const categoryLookup: ShellValue["categoryLookup"] =
+    selectedCategorySlug === null
+      ? "none"
+      : selectedCategoryNode !== null
+        ? "found"
+        : categoriesLoading
+          ? "pending"
+          : categoryTreeError
+            ? "failed"
+            : "missing";
   /**
    * INC-282 (product) — THE FEED QUERIES ONCE ITS INPUTS EXIST: the category
    * id (only when the URL names a /c/ slug) and the area derivation.
@@ -568,6 +584,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       setActivePanel,
       selectedCategorySlug,
       selectedCategoryId,
+      categoryLookup,
       feedInputsReady,
       locationPath,
       setLocationPath: persistLocationPath,
@@ -588,6 +605,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     setActivePanel,
     selectedCategorySlug,
     selectedCategoryId,
+    categoryLookup,
     feedInputsReady,
     locationPath,
     persistLocationPath,

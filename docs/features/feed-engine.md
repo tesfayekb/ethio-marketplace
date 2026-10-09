@@ -32,9 +32,20 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 - **`GET /api/feed`** — parameters `category`, `place` (uuids), `size` (1–50) and `after` (base64url of the cursor JSON). Answers: 200 `{ cards, ladder, steps, next }` with `Cache-Control: public, max-age=60, stale-while-revalidate=300`; 400 `badCategory`, `badPlace`, `badSize`, `badCursor`; 404 `unknownCategory`, `unknownPlace`; 502 for any other failure (logged as `[ssr-error]`). Every error is `no-store`. Anon client, no session, no in-process cache.
 - **Slow-call warning** — a `feed_page` call over 5 s logs one `[slow-rpc] feed_page <ms>` line; an answer with no error whose `cards`, `ladder` or `steps` is not an array is a 502 (E3a.6, F4).
 
+## What E3b built
+
+- **The pages and the hook** — "/" and every "/c/<slug>" read `/api/feed` through `useFeed({ categoryId, placeId, enabled })` (src/features/feed/use-feed.ts), 20 cards a page, for the last place of the location row (none = everywhere). The browser never reads `listings` and never sorts; a non-200, a thrown fetch or a body `parseFeedPage` refuses is an error, never an empty page (F4).
+- **The sections and their labels** — `feedSections` (src/features/feed/feed-page.ts) groups consecutive cards by ladder step. Step 1 has no label (the h1 names the chosen place); a wider place is named with `feed.heading`, everywhere with `nav.allListings`; a place not in the location path gets no label. With nothing in the chosen place, `feed-step-none` says so above the first section.
+- **Paging** — `feed-more` (44 px) is watched by an IntersectionObserver (rootMargin 0px); the next page loads only when it comes into view. A failed next page keeps the cards and offers Retry.
+- **Not found** — the slug resolves through the whole tree (`categoryLookup`, INC-504); an unknown slug shows `feed-category-unknown` and asks the feed nothing; a failed tree read shows `feed-category-failed`. A top category shows its whole branch (INC-503).
+- **The breadcrumbs** — the whole category path (`pathOf`), earlier segments linking to their pages (`breadcrumb-category-parent`).
+- **The card** — no views count (DEC-165): nothing tracks views.
+
 ## What it does not do yet
 
-E3 adds the screens.
+- The performance judge (E3c).
+- The rail's highlight and the subcategory menus (D98).
+- The place kept on the account and the "different place" notice (D106, D107).
 
 ## Migration
 
@@ -44,4 +55,4 @@ The E2a migration follows it with its own self-mark, recorded in docs/\_changelo
 
 The E2b migration follows with its own self-mark, recorded in docs/\_changelog.md.
 
-Tests: e2e/feed-index.spec.ts (FE-1..FE-14), e2e/feed-route.spec.ts (FR-1..FR-8), area `feed` in scripts/e2e-select.ts.
+Tests: e2e/feed-index.spec.ts (FE-1..FE-14), e2e/feed-route.spec.ts (FR-1..FR-8), e2e/feed-screens.spec.ts (FS-1..FS-6), src/features/feed/feed-page.test.ts (FP-1..FP-6), area `feed` in scripts/e2e-select.ts.
