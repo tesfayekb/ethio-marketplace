@@ -280,8 +280,11 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(hit).toBeVisible({ timeout: 20_000 });
     await hit.click();
     await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
-    const [draft] = await draftsOf(user.id);
-    const listingId = String(draft?.id ?? "");
+    // INC-531 — draftsOf returns every listing of the seller, oldest first; the
+    // prior post is one of them, so the new draft is the draft that is not it.
+    const rows = await draftsOf(user.id);
+    const fresh = rows.find((row) => row.id !== prior && row.status === "draft");
+    const listingId = String(fresh?.id ?? "");
     expect(listingId, "PW-180: step 1 created no draft").not.toBe("");
     objects.push({ userId: user.id, listingId });
 

@@ -336,21 +336,6 @@ export function PostingWizard({
    * and only then leaves the step.
    */
   const [categoryCursor, setCategoryCursor] = useState<string | null>(null);
-  /**
-   * D119 — the invite's category opens step 1 at its level, once, on a new post
-   * that has no category yet. It moves the browse level only: nothing is chosen
-   * and no draft is made from the address.
-   */
-  const prefillTried = useRef(false);
-  useEffect(() => {
-    if (prefillTried.current) return;
-    const id = prefill?.categoryId ?? null;
-    if (id === null || treeLoading || tree.nodes.length === 0) return;
-    prefillTried.current = true;
-    if (listingId !== null || draft.values.categoryId !== null) return;
-    const cursor = prefillCursor(tree, id);
-    if (cursor !== undefined) setCategoryCursor(cursor);
-  }, [prefill, tree, treeLoading, listingId, draft.values.categoryId]);
   /** INC-277 — the filter term lives beside the cursor so Back can clear it. */
   const [categoryTerm, setCategoryTerm] = useState("");
 
@@ -608,6 +593,33 @@ export function PostingWizard({
       if (saved) draft.goTo(3);
     })();
   };
+
+  /**
+   * D119 — the invite's category, once, on a new post that has no category yet.
+   * A postable leaf is CHOSEN, exactly as a tap chooses it (the operator,
+   * 2026-10-09: a subcategory's page fills the subcategory) — the draft is made
+   * and the wizard goes on. A folder opens step 1 inside itself; any other leaf
+   * opens on its parent's level.
+   */
+  const prefillTried = useRef(false);
+  useEffect(() => {
+    if (prefillTried.current) return;
+    const id = prefill?.categoryId ?? null;
+    if (id === null || treeLoading || tree.nodes.length === 0) return;
+    if (authLoading || user === null) return;
+    prefillTried.current = true;
+    if (listingId !== null || draft.values.categoryId !== null) return;
+    const node = tree.byId.get(id);
+    if (node !== undefined && isPostable(tree, node)) {
+      chooseLeaf(id, {});
+      return;
+    }
+    const cursor = prefillCursor(tree, id);
+    if (cursor !== undefined) setCategoryCursor(cursor);
+    // `chooseLeaf` is this render's own and is made anew on every render; the
+    // body runs once, held by `prefillTried`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill, tree, treeLoading, authLoading, user, listingId, draft.values.categoryId]);
 
   // D20 (U6-C2a) — a signed-out visitor never reaches this screen: the route's own
   // `beforeLoad` sends them to `/auth?return=…` and brings them back. What is left

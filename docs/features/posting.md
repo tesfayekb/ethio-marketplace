@@ -1264,7 +1264,7 @@ Both maps print the tile provider's credit as text, never markup. `creditOf` (sr
 ## D119 — /post from an invite (2026-10-09)
 
 - **The address** — `/post?category=<uuid>&place=<uuid>`. `postSearchOf` (src/features/posting/post-prefill.ts) keeps a lowercase uuid and drops anything else. `/post/<id>` (a draft that exists) is never prefilled.
-- **Step 1** — the category opens step 1 at its level, once, on a new post with no category: a folder inside itself, a leaf on its parent's level (`prefillCursor`). Nothing is chosen and no draft is made from the address.
+- **Step 1** — once, on a new post with no category: a postable leaf is CHOSEN, exactly as a tap chooses it (the draft is made and the wizard goes on — the operator, 2026-10-09: a subcategory's page fills the subcategory); a folder opens step 1 inside itself; any other leaf opens on its parent's level (`prefillCursor`).
 - **The place step** — the draft's own places, then the invite's place (D119), then the last post's places, then the saved area, then the edge's guess. A country-level place only picks the market; the step still requires a city.
 - **Sign-in** — a signed-out visitor is sent to `/auth` with `return=/post?category=…&place=…` (`postReturnPath`). Both doors move to the checked return path by `href`, so its query string survives (INC-530); the shared rule (src/lib/return-path.ts) also refuses control characters.
-- **Tests** — PW-180, PW-181, PW-182; PF-1..PF-3; RP-1..RP-3.
+- **Tests** — PW-180 (INC-531: it finds its new draft beside the prior post), PW-181, PW-182; PF-1..PF-3; RP-1..RP-3.

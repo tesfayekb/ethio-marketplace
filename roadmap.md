@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-10-d119.md (D119, the invite card; one turn). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-10-d119-turn-2.md (D119 turn 2: INC-531, the leaf chosen, the gold card; one turn). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -162,6 +162,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] E3 — the feed on the route (20 per page, the next page as the last card comes into view); subcategory addresses resolved through the whole tree; the breadcrumbs; the performance job against the frozen targets at 100,000 scratch listings (Tier B) — as E3a (Admin › Screening, D109, DEC-163; `20261009070008`, mark `20261009200000`; SC-1–SC-6), E3b (the listings pages; FS-1–FS-7, FP-1–FP-7; the views count removed, DEC-165) and E3c (the speed judge, DEC-166, weekly from DEC-167; `20261009092434`, mark `20261009220000`; FB-1–FB-6; every target met about twenty times over); the staging gate (DEC-168; SG-1–SG-4)
 - [x] INC-503 (a category's page shows its whole branch), INC-504 (a subcategory's address filters), INC-505 (no whole-catalogue read) closed by E1–E3
 - [x] Records turn (bundle 10, 2026-10-09) — spec-ledger S60 (DEC-163–168, D108–D118), INC-511–528; see docs/governance/handoffs/2026-10-09-bundle10-close-handover.md
+- [ ] D119 — the invite card on the listings pages, /post from an invite, INC-530 (2026-10-09; docs/governance/briefs/bundle-10-d119.md and its turn 2) — built; ticked by the next records turn
+- [ ] D121 (operator, 2026-10-09; agreed, not built) — a "Why advertise here" page (the benefits of advertising on ethio.com: its unique features, visibility, performance), and the invite card links to it; its spec is written with its brief once the page's content is agreed
 - [ ] After the shell brief (D106, D107; ACT-017): the chosen place kept on the account for signed-in people (visitors keep the per-browser save; the IP guess is never saved), and the "You seem to be in <place>. Show listings there?" notice with Switch and Keep in the house style's amber (`warning` tokens) — one turn, Tier A for the account part; its spec is written with its brief
 
 ### Bundle 11 — every admin table in the agreed house style (D118, 2026-10-09; NEXT; ACT-018)

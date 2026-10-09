@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Megaphone } from "lucide-react";
+import { Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
@@ -48,20 +48,24 @@ export function InvitePostButton({ invite }: { invite: Invite }) {
   );
 }
 
-/** D119 — the card at the end of the chosen place's row, or first when it has none. */
+/**
+ * D119 — the card at the end of the chosen place's row, or first when it has none.
+ * DEC-169 — it stands out in gold, the token's third placement (the operator's
+ * choice of 2026-10-09): a gold border and tint, a star, the green button.
+ */
 export function InviteCard({ invite }: { invite: Invite }) {
   return (
     <div
       data-testid="feed-invite"
       data-place={invite.placeId}
       data-category={invite.categoryId ?? undefined}
-      className="flex h-full min-h-56 flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-primary/30 bg-card p-6 text-center"
+      className="flex h-full min-h-56 flex-col items-center justify-center gap-4 rounded-lg border-2 border-gold bg-gold/15 p-6 text-center"
     >
       <span
         aria-hidden="true"
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-gold text-gold-foreground"
       >
-        <Megaphone className="h-6 w-6" />
+        <Star className="h-6 w-6" fill="currentColor" />
       </span>
       <InviteText invite={invite} className="text-base font-semibold break-words text-foreground" />
       <InvitePostButton invite={invite} />
