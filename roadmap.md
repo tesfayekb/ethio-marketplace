@@ -1,6 +1,6 @@
 # Roadmap
 
-Bundle 9 brief: docs/governance/briefs/bundle-9.md (read first every turn).
+No bundle brief is in force: bundle 9's fix turns 15–17 closed on 2026-10-09 (its brief stays at docs/governance/briefs/bundle-9.md, version 16); bundle 10 — the feed engine — is next, and its brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -147,17 +147,20 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] The posting form keeps the frame like every page (D92), its place selects at 200 px or more on a phone, and /post, /post/<id> and /account open without an auth-server round trip in their guards (measured) — C2e
 - [x] A password eye inside the box on every password field (D90); the location row on one line labelled "Listings in" / "Showing listings in" (D102, D103); "Used before" on one line (D102) — C2c, C2j
 - [x] Records turn (bundle 9 first half, 2026-10-08) — spec-ledger S58 (DEC-161–162, D87–D104), INC-495–509, system-state, the feed-engine spec; see docs/governance/handoffs/2026-10-08-bundle9-part1-close-handover.md
-- [ ] Next, before bundle 10 (version 15, C2m): every name cut with "…" keeps its first five characters (D104; INC-508, INC-509); the focus ring after keyboard use only
+- [x] Before bundle 10 (version 15, C2m): every name cut with "…" keeps its first five characters (D104; INC-508, INC-509); the focus ring after keyboard use only — done in turns 15–17 (spec-ledger S59; INC-508–510; D105: a crowded row's label, then its arrows, step aside)
+- [x] Records turn (bundle 9 fix turns, 2026-10-09) — spec-ledger S59 (D105–D107), INC-510; see docs/governance/handoffs/2026-10-09-bundle9-fixes-running-record.md
+- [ ] With Part D: the admin and dev pages' cut names (39 lines of docs/governance/briefs/bundle-9-cut-names-census.md) get the five-character floor in the shared table and card blocks
 - [ ] After bundle 10: subcategories in the menus (D98) with the bottom bar's short labels (D97 — the Amharic words owed by the operator)
 - [ ] After bundle 10: the scroll area — from 768 px only the page body scrolls between the fixed bars; phones keep the page's own scroll (D93, D96)
 - [ ] After bundle 10: Part D1 — the pattern console (Admin › Categories), then every other screen; Part E — the written rules and their checks
 
-### Bundle 10 — the feed engine (D99–D101; the spec, approved 2026-10-08: docs/governance/feed-engine-spec.md; NEXT after bundle 9's version 15)
+### Bundle 10 — the feed engine (D99–D101; the spec, approved 2026-10-08: docs/governance/feed-engine-spec.md; NEXT)
 
 - [ ] E1 — `feed_index`, `feed_index_refresh`, the backfill of today's active listings, the consistency check (Tier A; one migration)
 - [ ] E2 — the write doors call the refresh; the tree-change re-index job with its heartbeat; `feed_page`; `/api/feed` with cursor paging, its cache headers and the widening ladder (Tier A; a migration and the route)
 - [ ] E3 — the feed on the route (20 per page, the next page as the last card comes into view); subcategory addresses resolved through the whole tree; the breadcrumbs; the performance job against the frozen targets at 100,000 scratch listings (Tier B)
 - [ ] INC-503 (a category's page shows its whole branch), INC-504 (a subcategory's address filters), INC-505 (no whole-catalogue read) closed by E1–E3
+- [ ] After E3 (D106, D107; ACT-017): the chosen place kept on the account for signed-in people (visitors keep the per-browser save; the IP guess is never saved), and the "You seem to be in <place>. Show listings there?" notice with Switch and Keep in the house style's amber (`warning` tokens) — one turn, Tier A for the account part; its spec is written with E3's brief
 
 ### After bundle 7, in this order
 

@@ -2907,3 +2907,99 @@ NAMED AND NOT BUILT IN THIS PERIOD, EACH WITH ITS PLACE (the operator's "nothing
 RECORD LINES CARRIED TO THE NEXT BRIEFS AND THE NEXT RECORDS TURN. Bundle 10's E1 is a migration turn under G39 (the mark chosen above `20261008050000` and the current time; the stop report follows the production apply; the operator applies on staging at once, D86) and its proofs build their own scratch listings (G27); its brief is written from the spec and the supervisor's own read of the write doors at that commit. The executor's browser is tried once at the start of bundle 10; until it starts, CI on each turn's final commit is the proof. INC-487's rule is judged by the first nightly that runs with no CI beside it. The end-to-end proof of DEC-160 waits for the first turn that changes an existing English label. Bundle 9's brief stays at version 14 and no brief is in force until version 15's step 0; bundle 10 follows it.
 
 NUMBERING: next free INC-510; next free DEC-163; D-rulings next free D105; slips next S133 (highest used: INC-509, DEC-162, D104, S132). Highest test ids at dev `2d5c4d85`: PW-177, PR-42, AT-77 (with AT-73b and AT-76b), CT-42, IB-3, LT-15, TR-35, IG-5, CO-8, LS-13, AU-12, HS-5 (new in this period: HS-1 to HS-5; the frame's new tests are named, not numbered, in `e2e/shell.spec.ts` and `e2e/phone-frame.spec.ts`). Migrations: none in this period; the newest file is M14 `20261007222234_fc6110fd` (mark `20261008050000`) on ethio-prod and ethio-staging, so the next migration's mark is chosen above `20261008050000` and above the current time.
+
+S59 · 2026-10-09 · BUNDLE 9 FIX TURNS 15–17 (A CUT NAME KEEPS ITS FIRST FIVE CHARACTERS; A CROWDED ROW'S LABEL, THEN ITS ARROWS, STEP ASIDE; THE FOCUS RING SHOWS AFTER KEYBOARD USE ONLY) · NO MIGRATION · D105–D107 · INC-508–510 · SLIPS S133–S134 · A PLATFORM REFUSAL AND ITS RULE
+
+TIME AND NAMES. This block covers 2026-10-08 22:50Z (where block S58 ends) to 2026-10-09 02:40Z — Thursday evening in the operator's time (America/New_York, UTC−4). Times are UTC unless marked local. Its running record is imported word for word as `docs/governance/handoffs/2026-10-09-bundle9-fixes-running-record.md` (from the entry "2026-10-08 — AFTER THE BUNDLE-9 IMPORT POINT"). The briefs:
+- version 15 (base `f26f891e`; Part C2m; 14,109 bytes, sha256 `289f218f37d7943c9ce2bf76d2f47607dbc6813c4a6d4bf9f82551ad0d6b566a`);
+- the turn-15 ruling (inline: the census over thirty);
+- version 16 (base `946d6e27`; Part C2n). Its first build (10,878 bytes, sha256 `013ce9b0713d7fc9f389b4b3e092d0cd42945e381e47faaca9871a8811027588`) was refused by the platform. The rebuilt copy (10,400 bytes, sha256 `6afabeca41097f89e73c342c837bd940200bfaf37eea9a8efac7c725f441e73a`) is the copy on dev;
+- the turn-17 ruling (inline: one test line).
+Beside them sits the census `docs/governance/briefs/bundle-9-cut-names-census.md`.
+
+STATE AT THE CLOSE (2026-10-09 02:40Z).
+- dev = main = `992b8eb3` (turn 17's commit, 2026-10-09 01:58:18Z) when this record was built.
+- CI run 37872325911 on `992b8eb3` SUCCESS at 02:24:52Z, promoted. This was the first promote since `2d5c4d85`, so the bundle-9 records commit `f26f891e` is on main too.
+- From `f26f891e` to `992b8eb3`: three executor turns and no migration.
+- PUBLISHED: `992b8eb3`, by the operator after 02:30Z.
+- WALK: two lines, both yes (operator, 02:33Z: "walk is good") — on the phone a short "Used before" name whole and a long one as its first five letters and "…", on one line; a place box after a tap, without the ring. INC-508, INC-509 and INC-510 CLOSED.
+
+WHAT THE FIX TURNS BUILT.
+- `CutText` (src/components/ui/cut-text.tsx) is one inline grid cell holding three elements:
+  - the visible element holds the whole name, so the accessible name and textContent are the name, once;
+  - an unpainted, `aria-hidden` element whose CSS-generated content (`.cut-floor::before`, the first five graphemes and "…") sets the smallest width;
+  - an unpainted, `aria-hidden` element whose generated content (`.cut-full::before`, the whole name, breakable anywhere) sets the widest width.
+  So a name never shows fewer than its first five characters, a name of five or fewer stays whole, and a row of cut names can shrink.
+- `useLabelRoom` (src/components/ui/use-label-room.ts): when a row overflows, its optional parts step aside in order — the label first (`sr-only`, still read by screen readers), then the elements its caller names (the place boxes' arrows, `hidden`).
+- The input marker (src/lib/input-modality.ts, installed once in RootComponent's effect) sets `html[data-input]` to pointer or keyboard. One CSS rule empties the ring variables on buttons, links and menu roles after pointer input. Text inputs keep their ring. Focus still returns to the control.
+- Twenty user-facing cut names moved to CutText:
+  - the shell: header, rail and menu, bottom bar, panel header and tabs, location row;
+  - the listing card;
+  - the posting form: the "Used before" chips, the wizard rows, the phone-number field;
+  - settings and the language switcher.
+  The admin and dev pages' class-A lines (39 of the census's 59) are left for Part D's shared table and card blocks.
+- Below 768 px the place boxes have 2 px padding and gaps and a 12 px arrow. The "Used before" chips have 12 px padding.
+- Tests:
+  - PW-171 at 360 and 320, with a three-character name;
+  - "long location names share one 32px line" at 360 and at 320 with four levels (the label stepped aside; every name's floor inside the row);
+  - HS-6, the drawn ring after keyboard use only;
+  - `expectCutFloor` in e2e/helpers/ui.ts, measuring the visible characters with the element's own font;
+  - the unit tests of CutText (graphemes, Ethiopic built from am.ts) and of the input marker.
+
+D105 (operator, 2026-10-08 22:51Z / 18:51 local, "ok" to the recommendation put to him minutes before; the running record's "22:57Z" for that question is a clock slip of the entry). In a row of cut names, the names come first:
+- below 768 px the place boxes' arrows and padding are slimmer;
+- when the row still cannot hold its label and the first five characters of every name, the label steps out of sight until there is room again, and screen readers keep it.
+This applies to the location row and to the "Used before" row. Its extension under G17 (overridable, told to him): when the row still overflows without the label, the arrows step aside too.
+
+DECIDED UNDER G17 IN THE PERIOD (listed to the operator as overridable; his pastes approved them):
+- the focus-ring rule keyed on the last input, with text inputs excluded;
+- the slim place box below 768;
+- the chips' 12 px padding below 768;
+- the census split — the twenty user-facing lines now, the admin and dev lines with Part D;
+- the arrows' step after the label.
+
+THE PLATFORM'S REFUSAL. Lovable refused version 16's first build: "I cannot process this request as it may violate Lovable's content policy. Please rephrase your request." Nothing reached dev.
+- The one instruction new in kind was to overwrite AGENTS.md, the file the platform treats as the agent's own instructions, with a shell redirection. The copy without that step was accepted. HYPOTHESIS, consistent with the outcome.
+- AGENTS.md as turn 15 left it stands: two rules shortened, one line added that describes CutText and useLabelRoom. Turn 15 reported the file trimmed to "5,089 bytes outside the Lovable block", an unconfirmed limit.
+
+THE OPERATOR'S LOCATION QUESTION (00:45Z, his words in the record). He asked whether the location box fills from the IP address ("very vital and pillar of the build"), whether the location is saved for the next visit on the same device, and asked for a notice when the saved place differs from the IP. Read in code and answered at 00:55Z:
+- the IP guess is built (DEC-063). On the Lovable address it gives the country only. Region and city come by geometry once ethio.com serves the new app through his Cloudflare zone, where the visitor-location headers are on;
+- the chosen area is kept for a year in the browser (`ethio_area`) and wins over the guess. The guess is never saved. Nothing keeps the area on the account;
+- no "different place" notice exists;
+- the feed does not narrow by place yet (bundle 10).
+Two decisions were put to him with recommendations, and he agreed both at the walk (02:33Z, his words: "agree with the two decisions, - amber color should match the themes we selected earlier with the new feel and look following the filament themes. proceed"):
+- D106 — the chosen place is kept on the account for signed-in people, so it follows them to every device. Visitors keep the per-browser save. The IP guess is still never saved.
+- D107 — when the saved place differs from where the IP says the person is, one line appears under the location row: "You seem to be in <place>. Show listings there?" with Switch and Keep. It uses the house style's amber, Part A's `warning` meaning tokens (the Filament-like look of D83–D85), never a raw colour. After Keep it stays quiet until the IP's place changes again. The place is never switched on its own.
+Both are one turn after bundle 10's E3 (ACT-017), Tier A for the account part; its spec is written with E3's brief.
+
+CI AND THE PLATFORM IN THE PERIOD.
+- `f26f891e` (the records) and `a2b46f66` (step 0 of turn 15): cancelled by the next push, with no failed finished shard.
+- `946d6e27` (turn 15): FAILURE, 19 — version 15's own design: accessible names split ("Engli sh"), place boxes that could not shrink, HS-6's string equality, a class selector and a bare `span` selector left by the census.
+- `31dc53ae` (turn 16): FAILURE, 3 — one expectation, "not visible" for an `sr-only` label, which Playwright counts as visible.
+- `992b8eb3` (turn 17): SUCCESS, promoted.
+- The executor's browser still does not start (INC-506), so CI on each final commit was the proof.
+- New on the watch: "the menu closes back to the icons" (two lines; it takes the first category row of a shared roster — G28's class).
+
+CLASS RULES FORGED IN THIS BLOCK (in force from the day adopted; carried to the next instructions version — G46).
+- A shared block's markup that a brief dictates is tried by the supervisor in a browser (the workspace's Chromium) for its accessible name and its intrinsic sizes before the brief is sent (S133).
+- A census of the tests that reach a changed element searches its test id, accessible name, string key AND class or tag selectors (INC-500's rule, widened a second time).
+- A test about a visually hidden element names its mark (the `sr-only` class or a box of 1 px or less), never "visible" or "hidden" (S134).
+- A "no ring" check reads the drawn rings (a shadow layer with a visible colour and a spread), never string equality.
+- A brief never tells the executor to overwrite AGENTS.md. A change the executor makes there is reviewed and recorded; a change wanted there is asked as a question (the refusal of 01:18Z).
+- A cut name is never split into separate boxes: the floor comes from a size-setter that carries no text, so the name stays one piece for screen readers (INC-510).
+
+SUPERVISOR SLIPS S133–S134 (each in the imported record with its cause and corrective).
+- S133 — version 15 dictated CutText's markup and HS-6's equality without trying either in a browser. Its census asked for ids, names and keys but not for class or tag selectors (INC-510).
+- S134 — version 15's "the short label is NOT visible" for a label that steps aside to `sr-only`.
+
+AMENDMENTS TO EARLIER LINES OF THIS LEDGER (the lines stay as written; this paragraph is the later word).
+- (1) Block S58's NUMBERING line (next free INC-510, DEC-163, D105, S133) is superseded by this block's.
+- (2) S58's "NEXT, before bundle 10: version 15 (C2m)" is done, in three turns.
+
+NAMED AND NOT BUILT, EACH WITH ITS PLACE.
+- The admin and dev cut names — Part D's shared table and card blocks.
+- D106 and D107 (the saved place on the account; the amber "different place" notice) — one turn after bundle 10's E3.
+- Bundle 10 (the feed engine), next: version 1 is drafted (E1, the index migration).
+- "The menu closes back to the icons" — watched; a third line is an INC.
+
+NUMBERING: next free INC-511; next free DEC-163; D-rulings next free D108; slips next S135 (highest used: INC-510, DEC-162, D107, S134). Highest test ids at dev `992b8eb3`: PW-177, PR-42, AT-77 (with AT-73b and AT-76b), CT-42, IB-3, LT-15, TR-35, IG-5, CO-8, LS-13, AU-12, HS-6. Migrations: none in this period. The newest mark by value is still `20261008050000`.
