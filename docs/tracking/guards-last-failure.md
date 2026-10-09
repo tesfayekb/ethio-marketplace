@@ -1,9 +1,82 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37887614746
-- Commit: `38582ff0e5bf206b995eb2c564ab39393b2c6db1`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37888575321  **PLATFORM-ORIGIN?**
+- Commit: `41b46aa6373473886fdee4dd5a0145f082003d6d`
 - Attempt: 1
-- Written (UTC): 2026-10-09T05:27:37.841Z
+- Written (UTC): 2026-10-09T05:29:28.085Z
+
+## E2E preflight (migration parity, staging) — failure
+
+### Evidence lines
+
+```text
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
++ @tanstack/react-router@1.170.41
++ @tanstack/react-start@1.168.60
++ @tanstack/router-plugin@1.168.42
++ @types/pngjs@6.0.5
++ class-variance-authority@0.7.1
++ clsx@2.1.1
++ cmdk@1.1.1
++ date-fns@4.1.0
++ embla-carousel-react@8.6.0
++ input-otp@1.4.2
++ jpeg-js@0.4.4
++ leaflet@1.9.4
++ libphonenumber-js@1.11.18
++ lucide-react@0.575.0
++ pngjs@7.0.0
++ react@19.2.5
++ react-day-picker@9.14.0
++ react-dom@19.2.5
++ react-hook-form@7.73.1
++ react-resizable-panels@4.10.0
++ recharts@2.15.4
++ sonner@2.0.7
++ tailwind-merge@3.5.0
++ tailwindcss@4.2.4
++ tw-animate-css@1.4.0
++ vaul@1.1.2
++ vite-tsconfig-paths@6.1.1
++ zod@3.25.76
+
+542 packages installed [874.00ms]
+##[group]Run bun scripts/e2e-migration-preflight.ts
+[36;1mbun scripts/e2e-migration-preflight.ts[0m
+shell: /usr/bin/bash -e {0}
+env:
+  E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+  E2E_SUPABASE_PUBLISHABLE_KEY: ***
+  E2E_SUPABASE_SERVICE_ROLE_KEY: ***
+##[endgroup]
+STAGING BEHIND: apply 20261009052418_8f39bc0a-40c5-4c4a-b699-d99a4c333a3c.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261009052418_8f39bc0a-40c5-4c4a-b699-d99a4c333a3c.sql
+STAGING BEHIND: apply 20261009052418_8f39bc0a-40c5-4c4a-b699-d99a4c333a3c.sql to ethio-staging before E2E can pass
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.55.0
+Temporarily overriding HOME='/home/runner/work/_temp/9b8ec7e4-b338-4ae1-8675-d4cbdf91f32e' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -22,8 +95,6 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
-[36;1m  exit "$reporter"[0m
-[36;1mfi[0m
 [36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
@@ -32,10 +103,12 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37887614746
-  E2E_HEAD_COMMIT_MESSAGE: Saved bundle-10-3 unchanged
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/37888575321
+  E2E_HEAD_COMMIT_MESSAGE: Lovable update
 
-X-Lovable-Edit-ID: edt-27bd7e7b-73cf-4986-96ef-bbe75a5698cd
+Background task agent_id=sub_50r1few2 project=b0521dfa-0e8c-4bc6-a635-16d3246b540f completed
+
+X-Lovable-Edit-ID: edt-4749820c-97b1-4a6a-bbff-4868b7548f80
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -52,24 +125,24 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (2/9 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
-##[group]Run echo "smoke=cancelled email=success shards=cancelled"
-[36;1mecho "smoke=cancelled email=success shards=cancelled"[0m
-[36;1mif [ "cancelled" != "success" ] || [ "cancelled" != "success" ] || [ "success" != "success" ]; then[0m
+##[group]Run echo "smoke=skipped email=skipped shards=skipped"
+[36;1mecho "smoke=skipped email=skipped shards=skipped"[0m
+[36;1mif [ "skipped" != "success" ] || [ "skipped" != "success" ] || [ "skipped" != "success" ]; then[0m
 [36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit 1[0m
 [36;1mfi[0m
 [36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=cancelled email=success shards=cancelled
+smoke=skipped email=skipped shards=skipped
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/28dd0aa6-d4a7-4edc-85b7-0a46a20f109a' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/4b77cc6c-c699-4143-b738-82fc8158280b' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
