@@ -46,8 +46,8 @@ test.describe("FEED SCREENS", () => {
     return user;
   }
 
-  async function branch() {
-    const { parent, leaf } = await seedCategoryBranch();
+  async function branch(options: { parentImageUrl?: string } = {}) {
+    const { parent, leaf } = await seedCategoryBranch(options);
     const slugs = [parent.slug, leaf.slug];
     branches.push(slugs);
     return { parent, leaf, slugs };
@@ -299,5 +299,36 @@ test.describe("FEED SCREENS", () => {
     await page.getByTestId("feed-retry").click();
     await expect(page.locator(`[data-testid="listing-card"][data-listing="${id}"]`)).toBeVisible();
     await expect(page.getByTestId("feed-error")).toHaveCount(0);
+  });
+
+  test("FS-7 a card without a photo draws the nearest category picture, else the placeholder", async ({
+    page,
+  }) => {
+    const picture = "https://example.invalid/e2e-feed-picture.jpg";
+    const user = await seller();
+    const pictured = await branch({ parentImageUrl: picture });
+    const bare = await branch();
+    const c = await chain();
+    const a = await addListing(pictured.leaf.id, user.id, c.city.id, "regular", 1);
+    const b = await addListing(bare.leaf.id, user.id, c.city.id, "regular", 2);
+
+    await gotoReady(page, `/c/${pictured.leaf.slug}`);
+    const boxA = page.locator(
+      `[data-testid="listing-card"][data-listing="${a}"] [data-testid="listing-card-picture"]`,
+    );
+    await expect(boxA, "FS-7: the leaf's card did not draw its folder's picture").toHaveAttribute(
+      "data-picture",
+      "category",
+      { timeout: 20_000 },
+    );
+    await expect(boxA.locator("img")).toHaveAttribute("src", picture);
+
+    await gotoReady(page, `/c/${bare.leaf.slug}`);
+    const boxB = page.locator(
+      `[data-testid="listing-card"][data-listing="${b}"] [data-testid="listing-card-picture"]`,
+    );
+    await expect(boxB).toBeVisible({ timeout: 20_000 });
+    await expect(boxB).toHaveAttribute("data-picture", "none");
+    await expect(boxB.locator("img")).toHaveCount(0);
   });
 });

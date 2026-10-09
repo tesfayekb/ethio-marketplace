@@ -235,6 +235,116 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   });
 
   /**
+   * PW-178 (INC-522, A1) — A LATE READ NEVER REPLACES A NEWER SAVE. The step's
+   * first read of the draft's text is answered with what the database held
+   * before the seller saved the directions, and delivered only after that save.
+   * The next pin save must still keep the directions. Positive control: the
+   * held answer is shown to be the older text, delivered after the save.
+   */
+  test("PW-178 a late read of the place text never replaces a newer save", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const value = "Behind the blue gate, 2nd floor";
+    let release: () => void = () => {};
+    const released = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let held = 0;
+    let saved = false;
+    let deliveredAfterSave = false;
+    let staleDirections: unknown = "unread";
+    await page.route("**/rest/v1/listings?*", async (route) => {
+      const url = route.request().url();
+      if (
+        route.request().method() !== "GET" ||
+        !url.includes("select=street_address") ||
+        held > 0
+      ) {
+        await route.continue();
+        return;
+      }
+      held += 1;
+      // The answer as the database holds it now, before the seller types.
+      const response = await route.fetch();
+      const body: unknown = await response.json();
+      const first: unknown = Array.isArray(body) ? body[0] : body;
+      staleDirections = (first as { directions?: unknown } | undefined)?.directions ?? null;
+      await released;
+      deliveredAfterSave = saved;
+      await route.fulfill({ response });
+    });
+    const listingId = await openDraft(page, user.id, leaf.id, 5);
+    await expect
+      .poll(() => held, { message: "PW-178: the place text read was never held" })
+      .toBe(1);
+
+    const directions = page.getByTestId("post-where-directions");
+    await directions.fill(value);
+    await directions.blur();
+    await expect(page.getByTestId("post-where-directions-saved")).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => (await placeTextOf(listingId)).directions, { timeout: 10_000 })
+      .toBe(value);
+    saved = true;
+    const answered = page.waitForResponse((response) =>
+      response.url().includes("select=street_address"),
+    );
+    release();
+    await answered;
+    expect(staleDirections, "PW-178: the held answer was not the older text").toBeNull();
+    expect(deliveredAfterSave, "PW-178: the held answer arrived before the save").toBe(true);
+
+    await savePinOnMap(page, 120, 90);
+    expect(
+      (await placeTextOf(listingId)).directions,
+      "PW-178: the pin save restated the older directions",
+    ).toBe(value);
+    await expect(directions).toHaveValue(value);
+  });
+
+  /**
+   * PW-179 (INC-522, A2) — A PIN SAVE NEVER RESTATES DIRECTIONS THE STEP COULD
+   * NOT READ. The draft holds directions; the step's first read fails; the pin
+   * save reads again and keeps them. Positive control: the failed read is shown
+   * on screen and a second read is made.
+   */
+  test("PW-179 a pin save never restates directions the step could not read", async ({ page }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const value = "Second house after the mosque";
+    let reads = 0;
+    await page.route("**/rest/v1/listings?*", async (route) => {
+      const url = route.request().url();
+      if (route.request().method() === "GET" && url.includes("select=street_address")) {
+        reads += 1;
+        if (reads === 1) {
+          await route.abort();
+          return;
+        }
+      }
+      await route.continue();
+    });
+    const listingId = await openDraft(page, user.id, leaf.id, 5, [], async (id) => {
+      const { error } = await adminClient()
+        .from("listings")
+        .update({ directions: value })
+        .eq("id", id);
+      if (error) throw new Error(`[e2e:pw179] seeding the directions failed: ${error.message}`);
+    });
+    await expect(
+      page.getByTestId("post-where-details-failed"),
+      "PW-179: the failed read was not shown",
+    ).toBeVisible({ timeout: 20_000 });
+
+    await savePinOnMap(page, 120, 90);
+    expect(reads, "PW-179: the pin save did not read the text again").toBeGreaterThanOrEqual(2);
+    expect(
+      (await placeTextOf(listingId)).directions,
+      "PW-179: the pin save restated directions it could not read",
+    ).toBe(value);
+  });
+
+  /**
    * PW-129 (bundle 3 rulings 4 item 4) — Next on the contact step never judges
    * before the seller's identity has been read: the read is held back, Next is
    * pressed, nothing is refused; the read is released and Next moves on.

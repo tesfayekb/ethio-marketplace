@@ -2090,11 +2090,18 @@ test.describe("U4h device language star", () => {
     }
 
     // Both sides normalised the same way: lower-cased, de-duplicated, sorted.
+    // INC-523 — other tests' scratch languages (zxx-, zxy-, zxb- …; never a real
+    // code) are published and withdrawn while this test reads, so both sides
+    // leave them out. Every real code is still compared.
+    const scratchLanguage = /^zx[a-z](-[a-z0-9]+)?$/;
     const normalise = (codes: string[]) =>
-      [...new Set(codes.map((code) => code.toLowerCase()))].sort();
+      [...new Set(codes.map((code) => code.toLowerCase()))]
+        .filter((code) => !scratchLanguage.test(code))
+        .sort();
     const alternates = await page
       .locator("link[rel='alternate']")
       .evaluateAll((nodes) => nodes.map((n) => n.getAttribute("hreflang") ?? ""));
+    expect(normalise(gate), await describeSwitcher(page)).toContain("en");
     expect(normalise(alternates), await describeSwitcher(page)).toEqual(
       normalise([...gate, "x-default"]),
     );
