@@ -1,36 +1,46 @@
-# Bundle 10 — the feed engine: brief, version 8 (saved unchanged, 2026-10-09)
+# Bundle 10 — the feed engine: brief, version 9 (saved unchanged, 2026-10-09)
 
 ```text
-BUNDLE 10 — THE FEED ENGINE, VERSION 8 (2026-10-09). THIS FILE REPLACES VERSION 7. Turn 7 built Admin › Screening (E3a). Turn 8 fixed its three CI failures (INC-513, INC-514, INC-515). This version specifies TURN 9 = PART E3b, the listings pages read from /api/feed:
-- the home page and every category page read one page of cards at a time from /api/feed, in D108's order, for the place the location row shows;
-- the next page loads when the end of the list comes into view;
-- when the page reaches beyond the chosen place, each wider place is named above its listings;
-- a subcategory's address shows that subcategory (INC-504), and a top category's address shows its whole branch (INC-503);
-- the breadcrumbs show the whole category path;
-- two scanner warnings are fixed (INC-516, INC-517).
-It is screens, tests and docs only: NO migration, no new message key (every word on the page uses a key that exists today in both languages), no package. Tier B.
-Line numbers are as of commit b987d837 (dev). This file is public: it is written as build instructions.
+BUNDLE 10 — THE FEED ENGINE, VERSION 9 (2026-10-09). THIS FILE REPLACES VERSION 8. Turn 9 built the listings pages (E3b). This version specifies TURN 10 = PART E3c, the speed judge of the feed-engine spec's §5 (D101), under DEC-166:
+- ONE migration: `feed_bench`, a read-only database function, service role only, that times feed_page inside the database;
+- scripts/feed-bench.ts: it seeds 100,500 scratch listings on ethio-staging, times six page shapes, removes everything, and writes docs/tracking/feed-bench-status.md;
+- a new workflow, .github/workflows/feed-bench.yml: it runs daily at 05:10 UTC and on demand, publishes the status file to branch ci-evidence, and is red when a target is missed;
+- two small fixes: INC-518 and INC-519.
+Tier B (CI infrastructure and a service-only read function). The migration rules apply in full.
+The supervisor ran the migration text below on a local Postgres 16 copy:
+- every proof passes;
+- a variant that grants anon fails P2;
+- a variant that accepts 201 runs fails P3;
+- scripts/check-migrations.sh: every guard OK.
+Line numbers are as of commit 0a0a7687 (dev). This file is public: it is written as build instructions.
 
-ANSWERS TO TURN 7 AND TURN 8
-- Turn 7 (326258b1), verified by diff:
-  - the saved brief equals version 7;
-  - the migration equals the tested text, with the mark 20261009200000;
-  - the fifteen keys equal the brief's values in both files;
-  - the section, the page, the read hook, SC-1 to SC-5, the route correction (E3a.6), the selector area and the docs are as specified.
-  Two departures are accepted: src/features/admin/rail-items.ts (the section's icon), and the inline status line in place of a toast.
-- Turn 8 (b987d837), verified by diff:
-  - exactly the eight files of the ruling;
-  - both locale files byte-equal to prettier 3.8.3's output;
-  - the spec's twin functions as ruled;
-  - the section opens with listings:review (DEC-163).
-  CI green on b987d837 (run 37901886344, promoted: main = dev). Part E3a is CLEAN.
+ANSWERS TO TURN 9
+- Verified by diff of b987d837..0a0a7687:
+  - the saved brief equals version 8;
+  - exactly the twenty files of the report;
+  - feed-page.ts, the hook, the category lookup, the page, the card, the breadcrumbs, the two scanner fixes, FS-1 to FS-6, the spinner route, PW-94, FP-1 to FP-6, the selector and the docs are as specified.
+  The ":107" you named in list-action-labels.ts is :108 at b987d837; no difference that matters.
+- CI green on 0a0a7687 (run 37906384127, promoted: main = dev). Part E3b is CLEAN. INC-503, INC-504 and INC-505 are closed by it, and INC-516 and INC-517 by its two fixes.
+- Two small findings from the diff read; both are fixed in this turn (E3c.4):
+  - INC-518: labelOf's `placeId ?? ""`;
+  - INC-519: FS-6's middle assertion can pass before the second answer arrives.
 
-WHAT THE PAGES DO (D99, D101, D108)
-- "/" shows every category. "/c/<slug>" shows that category's whole branch: its own listings and every listing in a category below it. Sellers post in last-level categories, so a top category shows its subcategories' listings.
-- Every page is for the place the location row shows: the last place of the shell's path (country, region, city or sub-city). With no place, the page is "everywhere".
-- The order is the server's (D108): premium, then featured, then regular, newest first inside each. The browser never re-sorts.
-- The server widens the place when the chosen place holds fewer than 8 listings: first the chosen place, then each wider place, then everywhere. Each listing appears once, under the narrowest place that holds it; each card carries that place's step.
-- 20 cards per page. The next page loads only when the end of the list comes into view (REQ-029: nothing is loaded beyond what is in view).
+WHAT THE JUDGE IS (D101 §5, DEC-166)
+- The targets, frozen in D101:
+  - p95 server time ≤ 50 ms per page, for each of six shapes;
+  - one page ≤ 30 KB (30,720 bytes).
+- "Server time" is measured inside the database. feed_bench calls feed_page 33 times per shape; the first 3 calls warm up and are not counted. The p95 is the nearest-rank 95th percentile of the other 30: the 29th smallest.
+- The data: 100,500 scratch active listings on ethio-staging:
+  - in 15 scratch top categories, 150 second-level categories, 9 third-level categories and 4 guests;
+  - in 10 scratch regions with 10 scratch cities each under Ethiopia, plus one empty scratch city;
+  - 1 % premium, 3 % featured, the rest regular, spread over 60 days;
+  - plus 500 in one leaf × one city.
+  Everything is removed at the end of every run.
+- Not measured here, and named in the status file as not measured:
+  - the cached first page's time to first byte (≤ 100 ms): it needs the published site, which no test touches (DEC-146);
+  - the first page on slow 3G (≤ 1.5 s, indicative): it needs a browser.
+- A red run is a MISS. It is registered as an incident, and the database design is revised before the next screen bundle (the D98 menus) is built (DEC-164).
+- ESTIMATE, from the supervisor's local copy (2 cores, 100,500 listings, 1,241,759 index rows): p95 ≤ 2 ms for every shape, and a page of 20 cards ≈ 10.5 KB. Staging's numbers replace these.
 
 STEP 0 — keep this brief
 - Save this file byte for byte OVER docs/governance/briefs/bundle-10.md (it is already in its saved form). roadmap.md line 3 stays as it is. Tick no roadmap line. On every later turn, read the brief first.
@@ -38,277 +48,341 @@ STEP 0 — keep this brief
 HOW TO WORK
 - Order of the turn:
   1. step 0;
-  2. E3b.0, the read-only census. If any result differs from what it expects, STOP and report: write nothing else;
-  3. E3b.1 to E3b.9;
+  2. E3c.0, the read-only census. If any result differs from what it expects, STOP and report: write nothing else;
+  3. E3c.1 to E3c.5: the script, its unit tests, the workflow, the two fixes, the docs;
   4. the checks;
-  5. the report;
-  6. END THE TURN.
+  5. E3c.6 LAST: the migration, then its read-back;
+  6. the report;
+  7. END THE TURN.
   Do not stop between steps.
+- The migration is the last thing written because the database tool applies it on ethio-prod the moment it is saved. The operator will see the "Modify Supabase database" dialog and allow it.
+- If any rule of yours conflicts with the text, STOP before saving and quote that rule's exact words in the report.
+- Do NOT run scripts/feed-bench.ts in this turn, locally or anywhere. Its first run is the operator's, from GitHub Actions, after CI on this turn's final commit is green and ethio-staging holds the mark.
 - The turn starts by reading CI for the last commit on dev:
   - read https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ci-status.md;
   - then e2e-last-failure.md and guards-last-failure.md at the same address;
   - paste the first six lines of ci-status.md.
   You cannot git-fetch that branch. A red there is fixed first.
-- This turn has NO migration and writes nothing to any database. If any step seems to need one, STOP and say why.
+- Production reads are SELECT-only. Reports carry counts, booleans and names of tables, columns, functions, roles and permissions. Never an e-mail address, a user id, a token or a row of user data.
 - Browser tests: try once (`bun run e2e:local e2e/feed-screens.spec.ts`). If it does not start, write "local browser runs unavailable"; CI on the final commit is the proof (INC-506). Nothing runs against ethio-prod or the published site.
-- Tests (G38):
-  - no assertion loosened, no timeout raised, no retry added;
-  - a test this brief does not name is not edited;
-  - tests create their own scratch rows and remove them in afterEach (J3);
-  - no test attaches a listing to a real place, and no test changes a real row.
-- No package or dependency change. No new message key and no literal text on a page: every word comes from a key that exists today in both src/i18n/locales/en.ts and src/i18n/locales/am.ts (the list is in E3b.4).
+- Tests (G38): no assertion loosened, no timeout raised, no retry added. A test this brief does not name is not edited.
+- No package or dependency change: the script uses @supabase/supabase-js and node:fs, which the repository already has. No message key changes.
 - Scope — these files only:
-  - src/features/feed/feed-page.ts (new), src/features/feed/feed-page.test.ts (new);
-  - src/features/feed/use-feed.ts, src/features/feed/ranking.ts;
-  - src/components/marketplace/feed.tsx, src/components/marketplace/listing-card.tsx;
-  - src/components/app-shell.tsx (the category lookup only), src/components/shell-context.ts (one field);
-  - src/components/shell/breadcrumbs.tsx (the category path only);
-  - src/features/admin-screening/screening-page.tsx (E3b.9, two lines);
-  - scripts/list-action-labels.ts (E3b.9, closeTag only);
-  - e2e/feed-screens.spec.ts (new);
-  - e2e/shell.spec.ts (one line, E3b.7);
-  - e2e/post-wizard-pricing.spec.ts (PW-94 only, E3b.7);
-  - scripts/e2e-select.ts (the feed area);
+  - one new migration file under supabase/migrations/ (the database tool names it);
+  - scripts/feed-bench.ts (new), scripts/feed-bench.test.ts (new);
+  - .github/workflows/feed-bench.yml (new). DEC-166 names this one workflow under G22; no other workflow file changes;
+  - src/features/feed/feed-page.ts and src/features/feed/feed-page.test.ts (INC-518 only);
+  - e2e/feed-screens.spec.ts (FS-6 only, INC-519);
   - docs/features/feed-engine.md, docs/_changelog.md;
   - the brief.
-  The platform may regenerate src/integrations/supabase/types.ts and src/routeTree.gen.ts, and the i18n map guard may regenerate the two usage maps (A6). That is allowed; name it in the report. Name any other file in the report's first lines, with its reason. Delete no file.
-- Closed surfaces (G22): the workflow files, the failure reporter, scripts/check-migrations.sh, the e2e helpers and e2e/global-setup.ts are not touched. Shared UI blocks are used as they are; none changes its default.
-- Checks before the turn ends. Run each one whole, as CI runs it, and paste the last line of each:
+  The platform may regenerate src/integrations/supabase/types.ts. That is allowed; name it in the report. Name any other file in the report's first lines, with its reason. Delete no file.
+- Closed surfaces (G22): every existing workflow file, the failure reporter, scripts/publish-evidence.sh, scripts/check-migrations.sh, the e2e helpers and e2e/global-setup.ts are not touched.
+- Checks before the migration. Run each one whole, as CI runs it, and paste the last line of each:
   - `bun run typecheck`
   - `bun run format:check`
   - `bun run lint`
   - `bun run test:unit`
   - `bun run i18n:map-guard`
   - `bun run scripts/e2e-select.ts --self-test`
-  - `bun run scripts/check-root-routes.ts --self-test && bun run scripts/check-root-routes.ts`
   - `bun run build`
 
-PART E3b — THE LISTINGS PAGES
+THE MIGRATION RULES (G39 — every one applies)
+- The text is in the appendix at the end of this brief. Write it EXACTLY, changing only `<MARK>`.
+- Check it in a scratch folder first:
+  - copy supabase/migrations/*.sql into a temporary folder;
+  - add the text under a name of the form 20261009000000_bench-check.sql;
+  - run `MIGRATIONS_DIR=<that folder> bash scripts/check-migrations.sh`.
+  Paste its "guard OK" lines: Born-closed, Definer, Self-marking, Public-surface, Real-row proof, and "Migration guard OK".
+- `<MARK>` is chosen at apply time:
+  - read now() at time zone 'utc' on ethio-prod;
+  - round it up to the next whole hour and add one hour (add twelve hours instead if the save dialog may wait);
+  - the mark must be later than the saved file's own stamp and above the newest mark in public.migration_marks on ethio-prod (20261009200000 at this brief).
+- Then hand the FINAL text to the database tool ONCE. Never a stub, a comment or a draft (INC-491).
 
-E3b.0 — THE CENSUS (read-only; paste each result):
-- (a) `grep -n "useCategories\|categoriesLoading\|selectedCategoryId" src/components/app-shell.tsx` → lines 32, 355, 356, 364, 570, 590.
-- (b) `grep -rln "rankListings\|TIER_RANK\|RankableListing\|LocationScope" src e2e` → exactly src/features/feed/ranking.ts and src/features/feed/use-feed.ts.
-- (c) `grep -rn "listing-card\|feed-empty\|rest/v1/listings" e2e --include=*.ts` → nine lines: e2e/shell.spec.ts :183, :195, :402, :419, :436, :466, :475, :539 and e2e/post-wizard-pricing.spec.ts :458.
-- (d) Each of these keys appears exactly once in en.ts and once in am.ts: feed.heading, feed.scopeAll, feed.loading, feed.emptyTitle, feed.emptyBody, feed.errorTitle, feed.errorBody, common.retry, nav.allListings, error.pageNotFound, error.pageNotFoundBody.
-- (e) `grep -n "const confirm\|void confirm()" src/features/admin-screening/screening-page.tsx` → :140 and :263.
+PART E3c — THE SPEED JUDGE
 
-E3b.1 — THE ANSWER AND ITS SECTIONS: src/features/feed/feed-page.ts (new). Pure functions, no React, no fetch.
-- `export const EVERYWHERE = "00000000-0000-0000-0000-000000000000";` — the ladder's "everywhere" step.
-- `export interface FeedListing` — one card, exactly the fields /api/feed returns:
-  - id: string; title: string; tier: ListingTier;
-  - priceAmount: number | null; priceCurrency: string | null; priceMode: string; priceBp: number | null; priceNegotiable: boolean; pricePeriod: string; priceUnit: string | null; priceUnitText: string | null; photosSoon: boolean;
-  - publishedAt: string; categoryId: string;
-  - locationId: string | null; locationNameEn: string | null; locationNameAm: string | null;
-  - step: number.
-  No viewCount (E3b.5).
-- `export interface FeedPage { cards: FeedListing[]; ladder: string[]; next: string | null }`.
-- `export function parseFeedPage(value: unknown): FeedPage | null` checks every field's type exactly and answers null on any mismatch (F4: a malformed answer is a failure, never an empty page). Rules:
-  - value is an object;
-  - `cards` is an array, `steps` is an array (it is not kept), `ladder` is a non-empty array of strings;
-  - `next` is a string or null;
-  - each card has every field above with its type;
-  - tier is "premium", "featured" or "regular";
-  - step is an integer from 1 to ladder.length.
-  Never a default for a missing or wrong field.
-- `export type FeedSectionLabel = { kind: "place"; placeId: string } | { kind: "all" } | null;`
-- `export interface FeedSection { step: number; label: FeedSectionLabel; cards: FeedListing[] }`.
-- `export function feedSections(cards: FeedListing[], ladder: string[]): FeedSection[]`. Consecutive cards with the same step form one section, in the order received. Its label is:
-  - null for step 1 (the page's heading names the chosen place);
-  - `{ kind: "all" }` when ladder[step - 1] is EVERYWHERE;
-  - otherwise `{ kind: "place", placeId: ladder[step - 1] }`.
-  An empty list gives [].
-- ListingTier is imported from ./ranking.
+E3c.0 — THE CENSUS (read-only; paste each result):
+- (a) `ls .github/workflows` → five files: ci-status-report.yml, ci.yml, guard-proof.yml, nightly-e2e.yml, zap-baseline.yml.
+- (b) `grep -n "cron" .github/workflows/*.yml` → one line: nightly-e2e.yml :7, "0 6 * * *".
+- (c) `grep -c "bun-version: 1.3.14" .github/workflows/ci.yml` → 12 (the one other bun-version line, :174, says latest; the new workflow pins 1.3.14).
+- (d) `grep -n "PROD_REF =" scripts/security-lints.ts` → :35 (the production project's reference, used to refuse it).
+- (e) `grep -n "placeId ?? \"\"" src/features/feed/feed-page.ts` → :122.
+- (f) `grep -n "feed-retry\").click()" e2e/feed-screens.spec.ts` → :296 and :298.
+- (g) On ethio-prod with your query tool: `select max(version) from public.migration_marks;` and `select count(*) from pg_proc where proname = 'feed_bench';` → 20261009200000 (or later) and 0.
 
-E3b.2 — THE HOOK: src/features/feed/use-feed.ts and src/features/feed/ranking.ts.
-- `useFeed({ categoryId, placeId, enabled })` replaces the old hook. It reads `/api/feed` (same origin, GET):
-  - with `category=<categoryId>` when categoryId is not null;
-  - with `place=<placeId>` when placeId is not null;
-  - with no `size` (the route's 20).
-  It never reads `listings` directly and never sorts.
-- What it returns:
-  - `cards`: every page so far, in the order received;
-  - `ladder`: from the first page;
-  - `hasMore`: true when the last page's `next` is not null;
-  - `isLoading`: the first page;
-  - `isLoadingMore`;
-  - `error`: the first page failed;
-  - `moreError`: a later page failed;
-  - `loadMore()`, `retry()`.
-- A failure — any of these is an error (or moreError), never an empty page (F4):
-  - a response that is not 200;
-  - a fetch that throws;
-  - a body that parseFeedPage refuses.
-- `loadMore()`: when hasMore and nothing is loading and moreError is false, fetch with `after=<next>` and append the cards. `retry()` repeats the request that failed (the first page, or the next page).
-- Starting over: a change of categoryId, placeId or enabled clears the cards, sets isLoading, and ignores any answer to an earlier request.
-- While enabled is false: isLoading stays true and no request is made (INC-282).
-- `export type { FeedListing } from "./feed-page";` so src/components/marketplace/listing-card.tsx keeps its import path.
-- useCategories and FeedCategory (use-feed.ts :181–217) stay exactly as they are; the rail (src/components/shell/app-rail.tsx :23) still uses them.
-- src/features/feed/ranking.ts keeps only `export type ListingTier = "premium" | "featured" | "regular";`. Its comment becomes two lines: the order is the server's (D108, feed_page); the browser never sorts. Remove rankListings, TIER_RANK, RankableListing, LocationScope and RankingContext.
+E3c.1 — THE SCRIPT: scripts/feed-bench.ts (new). Run with `bun scripts/feed-bench.ts`. It follows scripts/security-lints.ts in form:
+- pure functions exported for the unit tests;
+- `main()` runs only when the file is the entry (`process.argv[1]` includes "feed-bench");
+- exit 0 on a pass, 1 otherwise.
+- Constants:
+  - TARGET_P95_MS = 50; TARGET_BYTES = 30720;
+  - RUNS = 33; WARMUP = 3;
+  - LISTINGS = 100000; HOT = 500; BATCH = 1000;
+  - STAGING_REF = "jatpuhfdjfzctjipklmk".
+- Exported pure functions:
+  - `nearestRank(ms: number[], q: number): number` — sort ascending and take index ceil(q × n) − 1; for an empty list, throw.
+  - `summarise(ms: number[]): { runs: number; p50: number; p95: number; max: number }` — over the list given (the caller has already dropped the warm-ups).
+  - `verdict(shapes: ShapeResult[], bytes: number, leftovers: number): { pass: boolean; lines: string[] }`, where ShapeResult is `{ name: string; runs: number; p50: number; p95: number; max: number; cards: number }`. It fails when:
+    - any p95 > TARGET_P95_MS;
+    - any shape has fewer than 20 cards (that shape measured too little);
+    - bytes > TARGET_BYTES;
+    - leftovers > 0.
+    Each failure names its shape or number in one line.
+  - `renderStatus(input): string` — the markdown of docs/tracking/feed-bench-status.md, in this form (the lines below, without their leading spaces):
+    # Feed bench (auto-generated — do not edit by hand)
 
-E3b.3 — THE CATEGORY LOOKUP (INC-504): src/components/app-shell.tsx :352–364 and src/components/shell-context.ts.
-- The slug resolves through the WHOLE tree. Use `useCategoryTree()` (src/features/categories/category-tree.ts :400) in place of `useCategories()` (:355), and find the node with `tree.nodes.find((node) => node.slug === selectedCategorySlug)`.
-- `selectedCategoryId` stays: the found node's id, else null.
-- A new ShellValue field after selectedCategoryId: `categoryLookup: "none" | "pending" | "found" | "missing" | "failed"`. The cases, checked in this order:
-  - "none": no slug;
-  - "found": the node is in the tree;
-  - "pending": the tree is loading;
-  - "failed": the tree read failed (its `error`);
-  - "missing": otherwise.
-  Add it to the value object (:569–571) and to its dependency list (:589–591).
-- feedInputsReady (:363–364) reads the tree's isLoading in place of categoriesLoading. Nothing else in the expression changes.
-- Remove the useCategories import (:32) if nothing else in the file uses it. Nothing else in app-shell.tsx changes.
+    - Run: <RUN_URL, or "local">
+    - Commit: <RUN_SHA, or "local">
+    - Timestamp (UTC): <ISO time>
+    - Verdict: PASS | MISS | FAILED (<the error's first line, at most 200 characters>)
+    - Listings seeded: <n> · seed <s> s · cleanup <s> s · leftovers <n>
 
-E3b.4 — THE PAGE: src/components/marketplace/feed.tsx (rewritten).
-- Read selectedCategoryId, categoryLookup, locationPath and feedInputsReady from useShell(). placeId is the id of the last node of locationPath, or null.
-- Call `useFeed({ categoryId: selectedCategoryId, placeId, enabled: feedInputsReady && (categoryLookup === "none" || categoryLookup === "found") })`.
-- The heading h1 is t("feed.heading") with {location} replaced by:
-  - the chosen place's name: `entityName("location", { id, nameEn: name_en, nameAm: name_am }, entities)` of the last node of locationPath;
-  - or t("feed.scopeAll") when there is no place (today's text).
-- What the page shows, in this order of cases:
-  - categoryLookup "missing": a PageCard `feed-category-unknown` with an h2 t("error.pageNotFound") and a paragraph t("error.pageNotFoundBody"). No feed request.
-  - categoryLookup "failed": today's error block (role alert, h2 t("feed.errorTitle"), paragraph t("feed.errorBody")) with testid `feed-category-failed`. Its Retry button (t("common.retry")) reloads the page with `window.location.reload()`. No feed request.
-  - First page loading: today's spinner, t("feed.loading").
-  - First page failed: today's error block with testid `feed-error`. Its Retry button, testid `feed-retry`, calls the hook's retry.
-  - No cards at all: today's empty state, unchanged (`feed-empty`, t("feed.emptyTitle"), t("feed.emptyBody")).
-  - Cards: see the next bullets.
-- One `<section data-testid="feed-section" data-step="<n>">` per entry of feedSections(cards, ladder).
-- A section with a label starts with an h2 `feed-step-label`:
-  - kind "all": t("nav.allListings");
-  - kind "place": t("feed.heading") with {location} = that place's name, the node of locationPath with that id, named as the heading names its place;
-  - a place id that is not in locationPath: the section has no h2. Never a made-up name.
-- Each section's cards sit in a `<ul>` with today's classes exactly (`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`), each card in an `<li>`. e2e/shell.spec.ts :532–564 measures `main ul.grid` and `main ul > li`.
-- When cards exist and the first card's step is above 1 (nothing in the chosen place), a paragraph `feed-step-none` with t("feed.emptyTitle") sits under the h1, before the first section.
-- When hasMore, a `<div data-testid="feed-more">` (at least 44 px tall) follows the sections:
-  - An IntersectionObserver on it, created in an effect with rootMargin "0px", calls loadMore when it comes into view. The effect disconnects the observer on unmount and whenever its inputs change. The server render has no observer.
-  - While the next page loads, the div holds today's Spinner with t("feed.loading").
-  - A failed next page shows today's error block inside the div, with testid `feed-more-error`. The cards are kept, and its Retry button calls the hook's retry.
-  The supervisor tried this pattern in Chromium (20 cards, the 44 px div, rootMargin 0px): nothing loaded before the div was in view, and one load followed when it was scrolled into view.
-- Keep `data-testid="feed-container"` and its `data-ready` attribute exactly as they are (the INC-282 tests read them).
-- The words used, all existing in both files: feed.heading, feed.scopeAll, feed.loading, feed.emptyTitle, feed.emptyBody, feed.errorTitle, feed.errorBody, common.retry, nav.allListings, error.pageNotFound, error.pageNotFoundBody.
+    | Shape | Runs | p50 ms | p95 ms | Max ms | Cards |
+    | ... one row per shape, ms to two decimals ...
 
-E3b.5 — THE CARD: src/components/marketplace/listing-card.tsx.
-- Remove the views line (:111–115) and the `Eye` import (:2). The count was always 0, because nothing tracks views; a number the app cannot know is not printed (DEC-165). The `feed.views` key stays in the locale files.
-- Nothing else in the card changes.
+    - Page size (all categories, everywhere): <bytes> bytes (target ≤ 30720)
+    - Targets (D101 §5, DEC-166): p95 ≤ 50 ms per shape; one page ≤ 30,720 bytes.
+    - Not measured here: the cached first page's time to first byte (≤ 100 ms) needs the published site; the first page on slow 3G (≤ 1.5 s) needs a browser.
+    Numbers and shape names only: never a row's data, an id, a slug or an e-mail address.
+- main(), in this order:
+  1. Read E2E_SUPABASE_URL and E2E_SUPABASE_SERVICE_ROLE_KEY. If either is empty, or the URL does not contain STAGING_REF, print `::error::` with the reason and exit 1. It never runs against any other project.
+  2. The tag: `P = "e2e-bench-" + (process.env.GITHUB_RUN_ID ?? "local") + "-" + <six random lowercase letters>`. Use the client `createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })`.
+  3. Pre-clean the leftovers of an earlier run, in this order:
+     - listings whose title starts "e2e-bench-": read 1000 ids at a time and delete them by id until none are left;
+     - category_tree_pointers whose child or parent is a category whose slug starts "e2e-bench-", then those categories;
+     - locations whose slug starts "e2e-bench-": cities first, then regions.
+     The nightly's sweep removes leftover users on @ethio-e2e.invalid after 24 h.
+  4. Seed (measure the seconds):
+     - the seller: `auth.admin.createUser({ email: P + "@ethio-e2e.invalid", password: <24 random characters>, email_confirm: true })`;
+     - Ethiopia: `locations` where level = 'country' and country_code = 'ET' (one row, read only);
+     - categories (name_en = slug; is_active true; is_catchall false; display_order 9200):
+       - 15 tops `${P}-t1` … `${P}-t15`, allow_listings false, each with a root pointer (parent_id null, is_primary true);
+       - under each top, 10 second-level categories `${P}-s<i>-<j>` (pointer to the top, is_primary true), allow_listings true;
+       - the first three second-level categories of top 1 become folders (allow_listings false), each with 3 children `${P}-x<j>-<k>` (pointer, is_primary true);
+       - the first four second-level categories of top 2 also get a pointer under top 3 with is_primary false — the guests;
+       - the leaves are every second-level category that is not a folder, then the 9 third-level ones: 156 in all, in that order;
+     - places (is_active true; source "admin"; country_code "ET"):
+       - 10 regions `${P}-r1` … `${P}-r10` under Ethiopia;
+       - 10 cities `${P}-c<i>-<j>` under each region (center_lat 9.03, center_lng 38.74);
+       - one more city `${P}-cempty` under region 1, with no listing;
+       - the cities, in order, are 100;
+     - listings, in batches of BATCH rows, one insert per batch, no returned rows. For g = 1 … LISTINGS:
+       - category: leaves[(g × 7919) mod 156];
+       - location: cities[(g × 104729) mod 100];
+       - tier: premium when g mod 100 = 0, else featured when g mod 25 = 0, else regular;
+       - published_at: now minus (g mod 86400) minutes;
+       - title `${P}-<g>`; description "e2e bench listing"; status "active"; home_country_code "ET"; the seller.
+       Then HOT more with category leaves[0], location cities[0], tier regular, published_at now minus g minutes.
+  5. Measure. For each shape, `rpc("feed_bench", { p_category_id, p_location_id, p_after, p_runs: RUNS })`, drop the first WARMUP numbers of `ms`, summarise, and keep `cards`. The shapes, in this order and with these names:
+     - "all, everywhere": null, null, null;
+     - "top, country": top 5, Ethiopia, null;
+     - "leaf, city": leaves[0], cities[0], null;
+     - "top, city, widening": top 5, the empty city, null;
+     - "page 50 by cursor": null, null, and the `next` of page 49. Reach it by calling `rpc("feed_page", { p_category_id: null, p_location_id: null, p_after, p_size: 20 })` 49 times, starting with null and passing each answer's `next` on;
+     - "guest host, country": top 3, Ethiopia, null.
+     `bytes` is the first shape's.
+  6. Clean up, in a finally block, whatever happened before:
+     - listings of the seller, 1000 ids at a time, until none are left;
+     - then the pointers and the categories with slugs starting P;
+     - then the cities and the regions with slugs starting P;
+     - then `auth.admin.deleteUser(seller)`.
+     Measure the seconds. leftovers = the exact count of listings whose title starts P, plus categories and locations whose slug starts P.
+  7. Write docs/tracking/feed-bench-status.md with renderStatus. RUN_URL and RUN_SHA come from the environment, or "local". Print the verdict's lines.
+  8. Exit 0 when the verdict passes, 1 otherwise. A thrown error still runs step 6 and step 7 (Verdict: FAILED) and exits 1.
+- No console line carries a row's data, an id, a slug or an e-mail address.
 
-E3b.6 — THE BREADCRUMBS: src/components/shell/breadcrumbs.tsx (:17, :44, :48–49 and :237–259).
-- The path is `pathOf(tree, node.id)` (src/features/categories/category-tree.ts :346), with tree from `useCategoryTree()` and node the one whose slug equals selectedCategorySlug. A subcategory shows Home › <parent> › … › <itself>; a category with several parents follows its first parent (the tree's parentOf).
-- The current (last) segment keeps `breadcrumb-category` (a BreadcrumbPage, as today). Every earlier segment is a Link to /c/<its slug> with testid `breadcrumb-category-parent`.
-- Replace the comment at :30–32 to say so. Nothing else in the file changes.
+E3c.2 — THE UNIT TESTS: scripts/feed-bench.test.ts (vitest; scripts/**/*.test.ts is included):
+- FB-1 nearestRank: [5, 1, 3, 2, 4] at 0.95 → 5; at 0.5 → 3; the 30 numbers 1..30 at 0.95 → 29; an empty list throws.
+- FB-2 summarise([1, 2, 3, 4]) → runs 4, p50 2, p95 4, max 4.
+- FB-3 verdict:
+  - six shapes with p95 10, 20 cards each, bytes 10000, leftovers 0 → pass;
+  - one p95 of 50.01 → fail, naming that shape;
+  - one shape with 19 cards → fail;
+  - bytes 30721 → fail;
+  - leftovers 1 → fail.
+- FB-4 renderStatus carries "Verdict: PASS", one table row per shape, and the "Not measured here" line.
 
-E3b.7 — THE TESTS.
-- (a) e2e/feed-screens.spec.ts (new), `test.describe("FEED SCREENS", …)`.
-  - Imports:
-    - `expect`, `test` from ./fixtures;
-    - `en` from ../src/i18n/locales/en;
-    - `adminClient` from ./helpers/users;
-    - `anchorOf`, `destroyLocation`, `scratchSlug`, `seedScratchChain`, `waitForTreeSlug` from ./helpers/locations;
-    - `destroyCategoryBranch`, `destroyListingsOf`, `leaseSeller`, `rand`, `RUN`, `scratchCategorySlug`, `seedCategoryBranch` from ./helpers/posting;
-    - `gotoReady` from ./helpers/ui.
-  - Cleanup: in afterEach, in this order (as e2e/feed-route.spec.ts :48–52 does):
-    1. destroyListingsOf(seller id);
-    2. destroyLocation(region slug) for each scratch chain;
-    3. destroyCategoryBranch(slugs).
-  - `addListing(categoryId, sellerId, placeId, tier, minutesAgo)`: as e2e/feed-route.spec.ts :84–107 does (status "active", tier, published_at = now minus minutesAgo minutes, home_country_code "ET", title `e2e-feed-${RUN}-${rand()}`). FS-2 inserts its 25 rows in ONE insert of an array.
-  - Every listing's place is a scratch place from seedScratchChain("ET"), never a real place.
-  - `addLeaf(parentId)`: inserts a category and its pointer, as seedCategoryBranch does (e2e/helpers/posting.ts :390–411):
-    - slug scratchCategorySlug(), name_en the slug, is_active true, allow_listings true, is_catchall false, display_order 9102;
-    - the pointer: parent_id, child_id, display_order 2.
-    Its slug joins the branch's list for cleanup.
-  - `cardIds(page)`: the data-listing values of `[data-testid="listing-card"]`, in page order.
-  - `feedCalls`: urls of requests whose pathname is /api/feed, collected with page.on("request").
-  - Test FS-1 "a subcategory shows its own listings; its parent shows the whole branch" (INC-503, INC-504):
-    - setup: seedCategoryBranch() gives parent P and leaf L1; addLeaf(P.id) gives L2; one regular listing in L1 (5 minutes ago) and one in L2 (10 minutes ago); no area cookie (the page is everywhere);
-    - gotoReady `/c/${L1.slug}`: cardIds equals [L1's] (expect.poll);
-    - `breadcrumb-category-parent` has text P.slug, and `breadcrumb-category` has text L1.slug;
-    - click `breadcrumb-category-parent`: the URL ends `/c/${P.slug}`, and cardIds equals [L1's, L2's];
-    - gotoReady `/c/${L2.slug}`: cardIds equals [L2's].
-  - Test FS-2 "20 per page in D108's order; the next page loads only when the end comes into view":
-    - setup: one leaf L; 25 listings at a scratch city: rows 1–2 premium, 3–5 featured, 6–25 regular, minutesAgo 1–25 in that order;
-    - expected order: tier first (premium, featured, regular), then newest;
-    - gotoReady `/c/${L.slug}`: cardIds equals the first 20 expected (expect.poll), and no feed call so far carries `after`;
-    - scroll `feed-more` into view: cardIds equals all 25 (expect.poll); `feed-more` has count 0; exactly one feed call carries `after`.
-  - Shared setup for FS-3 and FS-4 ("the area fixture"):
-    - leaf L; chain A = seedScratchChain("ET"), plus a second sub-city under chain A's city (level "sub_city", country_code "ET", slug scratchSlug("fs-sub"), name_en the slug, is_active true, source "admin", center_lat 9.03, center_lng 38.74). With two sub-cities the shell's path stops at the city (autoExtendPath, src/components/shell/location-data.ts :332–343);
-    - chain B = seedScratchChain("ET");
-    - waitForTreeSlug(page, "ET", <the second sub-city's slug>);
-    - add the cookie `ethio_area` = `ET:${chainA.city.id}`, as e2e/shell.spec.ts :2549–2557 does;
-    - gotoReady `/c/${L.slug}`.
-    The ladder is then [city A, region A, Ethiopia, everywhere]; Ethiopia is step 3. Read Ethiopia's English name with anchorOf("ET").name_en.
-  - Test FS-3 "the page reaches beyond the chosen place and names the wider place":
-    - setup: two regular listings at chain A's city (1 and 2 minutes ago) and three at chain B's city (3, 4 and 5 minutes ago);
-    - the h1 equals en["feed.heading"] with {location} = chainA.city.name_en;
-    - `[data-testid="feed-section"][data-step="1"]`: its cards are A's two, newest first, and it has no `feed-step-label`;
-    - exactly one `feed-step-label` on the page, its text en["feed.heading"] with {location} = Ethiopia's name; it sits in the section with data-step "3", whose cards are B's three, newest first;
-    - `feed-step-none` has count 0.
-  - Test FS-4 "nothing in the chosen place: the note, then the wider place": the same fixture, with no listing at chain A and three at chain B. `feed-step-none` is visible with en["feed.emptyTitle"]; no section has data-step "1"; the section with data-step "3" holds B's three under its label.
-  - Test FS-5 "an address nobody has shows not found and asks the feed nothing":
-    - gotoReady `/c/e2e-none-${rand()}`;
-    - `feed-category-unknown` is visible and holds en["error.pageNotFound"] and en["error.pageNotFoundBody"];
-    - `feed-empty` has count 0 and feedCalls is empty.
-  - Test FS-6 "a failed read is shown, and Retry recovers":
-    - setup: leaf L with one listing at a scratch city; page.route("**/api/feed*") answers:
-      1. the first call: status 502, body {"error":"internal error"};
-      2. the second call: status 200 with body {} (a malformed answer);
-      3. later calls: route.continue();
-    - gotoReady `/c/${L.slug}`: `feed-error` is visible with en["feed.errorTitle"];
-    - click `feed-retry`: `feed-error` is still visible (the malformed answer is a failure, F4);
-    - click `feed-retry`: the listing's card is visible and `feed-error` has count 0.
-- (b) e2e/shell.spec.ts :475: the spinner test holds the feed's read, which is now /api/feed. Change `"**/rest/v1/listings*"` to `"**/api/feed*"`. Nothing else in the test changes.
-- (c) e2e/post-wizard-pricing.spec.ts PW-94 (:442–462): the existing `.update({ … })` (:448–453) also sets `published_at: new Date().toISOString()`. The feed shows only listings with a publish time, which every door stamps (feed_index_refresh skips an active listing without one).
-- (d) src/features/feed/feed-page.test.ts (vitest):
-  - FP-1: a valid page with two cards, a two-step ladder and next "abc" is parsed to the same values.
-  - FP-2: null for a page without `cards`, and for one whose ladder is empty.
-  - FP-3: null for a card whose tier is "gold", whose step is 0, whose step is above ladder.length, or whose priceAmount is the string "5".
-  - FP-4: null when next is 5.
-  - FP-5: cards with steps 1, 1, 3, 3, 4 and the ladder [A, B, C, EVERYWHERE] give three sections:
-    - step 1, label null, 2 cards;
-    - step 3, label { kind: "place", placeId: C }, 2 cards;
-    - step 4, label { kind: "all" }, 1 card.
-  - FP-6: an empty list gives [].
-- (e) Read, not edited — these reach the changed code and must stay green:
-  - e2e/shell.spec.ts: the empty state, the gutters, INC-282, the grid reflow, the breadcrumb segments, the Amharic heading and the vertical stack;
-  - e2e/category-nav.spec.ts;
-  - e2e/admin-translations-governance.spec.ts :688 (the heading with no area);
-  - e2e/phone-frame.spec.ts :55;
-  - e2e/smoke-auth-i18n.spec.ts :29;
-  - e2e/feed-route.spec.ts and e2e/feed-index.spec.ts.
+E3c.3 — THE WORKFLOW: .github/workflows/feed-bench.yml (new), exactly this:
 
-E3b.8 — THE SELECTOR AND THE DOCS.
-- scripts/e2e-select.ts :166–169, the area "feed":
-  - src gains "src/components/marketplace/**", "src/components/app-shell.tsx" and "src/components/shell/breadcrumbs.tsx";
-  - specs gain "e2e/feed-screens.spec.ts", "e2e/shell.spec.ts" and "e2e/post-wizard-pricing.spec.ts".
-  Run the self-test.
-- docs/features/feed-engine.md:
-  - "## What it does not do yet" with its line "E3 adds the screens." becomes "## What E3b built": the pages and the hook, the sections and their labels, paging, not found, the breadcrumbs, and the card without a views count.
-  - A new "## What it does not do yet": the performance judge (E3c); the rail's highlight and the subcategory menus (D98); the place kept on the account and the "different place" notice (D106, D107).
-  - The tests line gains FS-1..FS-6 and FP-1..FP-6.
+name: Feed bench
+
+# D101 §5 / DEC-166 — the feed engine's speed judge on ethio-staging:
+# 100,500 scratch listings, six page shapes timed inside the database
+# (feed_bench), everything removed after. Daily and on demand; red when a
+# target is missed. Evidence publishes to branch ci-evidence (DEC-098).
+on:
+  schedule:
+    - cron: "10 5 * * *"
+  workflow_dispatch:
+
+# DEC-153 (a) — read-only by default; only the job that publishes holds write.
+permissions:
+  contents: read
+
+concurrency:
+  group: feed-bench
+  cancel-in-progress: false
+
+jobs:
+  feed-bench:
+    name: Feed bench (ethio-staging, 100,500 scratch listings)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+    env:
+      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
+      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      RUN_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Run the bench
+        id: bench
+        continue-on-error: true
+        run: bun scripts/feed-bench.ts
+      - name: Publish the status to ci-evidence
+        if: always()
+        run: |
+          if [ ! -f docs/tracking/feed-bench-status.md ]; then
+            mkdir -p docs/tracking
+            {
+              echo "# Feed bench (auto-generated — do not edit by hand)"
+              echo
+              echo "- Run: ${RUN_URL}"
+              echo "- Commit: ${RUN_SHA}"
+              echo "- Verdict: FAILED (the script wrote no status file)"
+            } > docs/tracking/feed-bench-status.md
+          fi
+          bash scripts/publish-evidence.sh "chore(ci): feed bench status [skip ci]" \
+            docs/tracking/feed-bench-status.md
+      - name: Report the verdict
+        if: always()
+        env:
+          OUTCOME: ${{ steps.bench.outcome }}
+        run: |
+          if [ "${OUTCOME}" != "success" ]; then
+            echo "::error::Feed bench: a target was missed or the run failed (docs/tracking/feed-bench-status.md on ci-evidence)."
+            exit 1
+          fi
+          echo "Feed bench passed."
+
+E3c.4 — THE TWO FIXES.
+- INC-518: src/features/feed/feed-page.ts, labelOf (:118–123).
+  - After `const placeId = ladder[step - 1];`, add `if (placeId === undefined) return null;`.
+  - The last line becomes `return { kind: "place", placeId };`.
+  A missing ladder entry gives no label, never an empty place id. Add FP-7 to src/features/feed/feed-page.test.ts: feedSections with one card whose step is 3 and the ladder ["A"] gives one section whose label is null.
+- INC-519: e2e/feed-screens.spec.ts, FS-6. Between the first `feed-retry` click (:296) and the assertion after it (:297), add `await expect.poll(() => n).toBe(2);`. The error then shown is the malformed answer's, not the first one's. Nothing else in the test changes.
+
+E3c.5 — THE DOCS.
+- docs/features/feed-engine.md: a section "## The speed judge (E3c)":
+  - what feed_bench does, and who may call it;
+  - what scripts/feed-bench.ts seeds, measures and removes;
+  - the workflow (daily at 05:10 UTC and on demand) and where the status file lives (ci-evidence, docs/tracking/feed-bench-status.md);
+  - the targets and the rule of DEC-166;
+  - the two targets not measured here.
+  In "What it does not do yet", remove the line about the performance judge.
 - docs/_changelog.md: one line.
 
-E3b.9 — TWO SCANNER WARNINGS (code scanning, Semgrep OSS).
-- INC-516 (#417, javascript-confirm): src/features/admin-screening/screening-page.tsx. The page's own function is named `confirm` (:140, called at :263); the scanner reads it as the browser's confirm. Rename it to `decide` at both lines. Nothing else changes.
-- INC-517 (#416, detect-non-literal-regexp): scripts/list-action-labels.ts :106–108, closeTag. `tag` is only ever a key of TAG_KIND (:52–70) or "Link" (:204–205). Make that a rule in the function, and mark the reviewed site as scripts/e2e-select.ts :216–217 does:
-  - first line of the body: `if (!/^[A-Za-z]+$/.test(tag)) return -1;`
-  - directly above the `new RegExp` line, these two comment lines, exactly:
-      // Reviewed (DEC-153): tag is letters only (checked above): a TAG_KIND key or "Link".
-      // nosemgrep: detect-non-literal-regexp
-  Nothing else in the script changes; scripts/list-action-labels.test.ts must stay green.
+E3c.6 — THE MIGRATION (last). Write the appendix's text, run the check as above, choose the mark, and hand the final text to the database tool once. Then the read-back with your query tool; paste each result, and report a read refused to your tool's role as refused:
+- `select version from public.migration_marks where version = '<MARK>';` → one row;
+- `select prosecdef, provolatile, proconfig from pg_proc where oid = 'public.feed_bench(uuid,uuid,jsonb,integer)'::regprocedure;` → false, v, {search_path=public};
+- `select has_function_privilege('anon', 'public.feed_bench(uuid,uuid,jsonb,integer)', 'EXECUTE'), has_function_privilege('authenticated', 'public.feed_bench(uuid,uuid,jsonb,integer)', 'EXECUTE');` → false, false.
 
 NAMED FOR THE NEXT VERSIONS (not specified here; build none of it)
-- E3c — the performance judge of the spec's §5 (D101): 100,000 scratch listings on ethio-staging; six shapes; p95 server time ≤ 50 ms; ≤ 30 KB per page. A nightly job, with its own DEC (G22).
+- The first bench run: the operator's, from GitHub Actions (Actions → Feed bench → Run workflow), after CI on this turn's final commit is green and ethio-staging holds the mark. The supervisor reads the status file.
 - Bundle 10's walk, one, at the bundle's close: the listings pages with the ads the operator approves on Admin › Screening.
 - Then D106 and D107: the chosen place kept on the account, and the amber "different place" notice.
 
 REPORT (one, at the end).
 First lines:
-- done or not done, for step 0 and E3b.0 to E3b.9;
-- E3b.0's results;
+- done or not done, for step 0 and E3c.0 to E3c.6;
+- E3c.0's results;
 - whether the browser started;
 - any cited line that read differently;
 - any file outside the lists, with its reason.
 Then:
+- the check-migrations "guard OK" lines;
+- the mark, and the now() reading it came from;
+- the apply outcome;
+- the read-back;
+- the line "apply <uuid-fragment of the filename> → expect mark <MARK>", for the operator's staging apply;
 - the last line of each check;
 - the six ci-status lines;
-- the file list from `git diff --name-only b987d837` (untracked new files listed by name);
+- the file list from `git diff --name-only 0a0a7687` (untracked new files listed by name);
 - "Logs read: … · unavailable: …".
 Never "CI green" from a local run. END THE TURN after the report.
+
+APPENDIX — THE MIGRATION TEXT (write it exactly; change only <MARK>)
+
+-- E3c (bundle 10, the feed engine's speed judge, D101 §5, DEC-166): feed_bench times feed_page inside the database. It calls feed_page p_runs times (1 to 200) with the given category, place and cursor at 20 cards a page, and answers each call's milliseconds (clock_timestamp) with the last page's size in bytes and its number of cards. Read-only; executable by service_role only. Called by scripts/feed-bench.ts on ethio-staging, never by the app.
+-- e2e-areas: feed
+
+CREATE OR REPLACE FUNCTION public.feed_bench(p_category_id uuid, p_location_id uuid, p_after jsonb, p_runs integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ VOLATILE
+ SECURITY INVOKER
+ SET search_path TO 'public'
+AS $fn$
+DECLARE
+  v_ms   double precision[] := ARRAY[]::double precision[];
+  v_page jsonb;
+  v_t0   timestamptz;
+  i      integer;
+BEGIN
+  IF p_runs IS NULL OR p_runs < 1 OR p_runs > 200 THEN
+    RAISE EXCEPTION 'feed_bench: badRuns';
+  END IF;
+  FOR i IN 1..p_runs LOOP
+    v_t0 := clock_timestamp();
+    v_page := public.feed_page(p_category_id, p_location_id, p_after, 20);
+    v_ms := v_ms || (extract(epoch FROM clock_timestamp() - v_t0) * 1000)::double precision;
+  END LOOP;
+  RETURN jsonb_build_object(
+    'ms', to_jsonb(v_ms),
+    'bytes', octet_length(v_page::text),
+    'cards', jsonb_array_length(v_page->'cards'));
+END $fn$;
+REVOKE ALL ON FUNCTION public.feed_bench(uuid, uuid, jsonb, integer) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.feed_bench(uuid, uuid, jsonb, integer) TO service_role;
+COMMENT ON FUNCTION public.feed_bench(uuid, uuid, jsonb, integer) IS
+  'The feed engine''s speed judge (bundle 10 E3c, DEC-166): times p_runs calls of feed_page (20 cards) inside the database and answers their milliseconds, the last page''s bytes and its cards. Service role only; called by scripts/feed-bench.ts on ethio-staging.';
+
+-- Proofs: the header facts, the privileges and the refusal. No proof reads a row (the refusal comes before any read).
+DO $proof$
+DECLARE
+  v_fn  regprocedure := 'public.feed_bench(uuid,uuid,jsonb,integer)'::regprocedure;
+  v_err text;
+  v_bad integer;
+BEGIN
+  IF (SELECT prosecdef FROM pg_proc WHERE oid = v_fn) IS DISTINCT FROM false
+     OR (SELECT provolatile FROM pg_proc WHERE oid = v_fn) IS DISTINCT FROM 'v'
+     OR NOT (SELECT proconfig FROM pg_proc WHERE oid = v_fn) @> ARRAY['search_path=public'] THEN
+    RAISE EXCEPTION 'E3c P1: feed_bench header facts differ';
+  END IF;
+  IF has_function_privilege('anon', v_fn, 'EXECUTE')
+     OR has_function_privilege('authenticated', v_fn, 'EXECUTE')
+     OR NOT has_function_privilege('service_role', v_fn, 'EXECUTE') THEN
+    RAISE EXCEPTION 'E3c P2: feed_bench privileges differ';
+  END IF;
+  FOREACH v_bad IN ARRAY ARRAY[0, 201] LOOP
+    v_err := NULL;
+    BEGIN
+      PERFORM public.feed_bench(NULL, NULL, NULL, v_bad);
+    EXCEPTION WHEN OTHERS THEN
+      v_err := SQLERRM;
+    END;
+    IF v_err IS DISTINCT FROM 'feed_bench: badRuns' THEN
+      RAISE EXCEPTION 'E3c P3: % runs was not refused as badRuns (got %)', v_bad, coalesce(v_err, 'no error');
+    END IF;
+  END LOOP;
+END $proof$;
+
+INSERT INTO public.migration_marks (version) VALUES ('<MARK>') ON CONFLICT (version) DO NOTHING;
 ```

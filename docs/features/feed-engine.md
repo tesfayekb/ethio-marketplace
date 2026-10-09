@@ -41,9 +41,16 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 - **The breadcrumbs** — the whole category path (`pathOf`), earlier segments linking to their pages (`breadcrumb-category-parent`).
 - **The card** — no views count (DEC-165): nothing tracks views.
 
+## The speed judge (E3c)
+
+- **`feed_bench(category, place, after, runs)`** (VOLATILE, SECURITY INVOKER, read-only) — calls `feed_page` `runs` times (1 to 200, else `feed_bench: badRuns`) at 20 cards a page and answers each call's milliseconds (measured inside the database), the last page's bytes and its cards. Executable by `service_role` only.
+- **scripts/feed-bench.ts** — on ethio-staging only (it refuses any other project): seeds 100,500 scratch active listings (15 tops, 150 second-level, 9 third-level, 4 guests; 10 regions × 10 cities plus one empty city; 1 % premium, 3 % featured over 60 days; plus 500 in one leaf × one city), times six shapes (all/everywhere, top/country, leaf/city, top/empty city widening, page 50 by cursor, guest host/country) at 33 calls with 3 warm-ups, then removes every scratch row and the seller, and counts leftovers.
+- **The workflow** — .github/workflows/feed-bench.yml, daily at 05:10 UTC and on demand; it publishes docs/tracking/feed-bench-status.md to branch ci-evidence and is red on a miss or a failure.
+- **The targets (D101 §5)** — p95 ≤ 50 ms per shape (nearest rank of 30 calls), one page ≤ 30,720 bytes. Under DEC-166 a red run is a MISS: an incident, and the database design is revised before the next screen bundle.
+- **Not measured here** — the cached first page's time to first byte (≤ 100 ms) needs the published site; the first page on slow 3G (≤ 1.5 s) needs a browser.
+
 ## What it does not do yet
 
-- The performance judge (E3c).
 - The rail's highlight and the subcategory menus (D98).
 - The place kept on the account and the "different place" notice (D106, D107).
 
@@ -55,4 +62,4 @@ The E2a migration follows it with its own self-mark, recorded in docs/\_changelo
 
 The E2b migration follows with its own self-mark, recorded in docs/\_changelog.md.
 
-Tests: e2e/feed-index.spec.ts (FE-1..FE-14), e2e/feed-route.spec.ts (FR-1..FR-8), e2e/feed-screens.spec.ts (FS-1..FS-6), src/features/feed/feed-page.test.ts (FP-1..FP-6), area `feed` in scripts/e2e-select.ts.
+Tests: scripts/feed-bench.test.ts (FB-1..FB-4), e2e/feed-index.spec.ts (FE-1..FE-14), e2e/feed-route.spec.ts (FR-1..FR-8), e2e/feed-screens.spec.ts (FS-1..FS-6), src/features/feed/feed-page.test.ts (FP-1..FP-7), area `feed` in scripts/e2e-select.ts.

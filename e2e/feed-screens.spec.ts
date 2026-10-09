@@ -294,6 +294,7 @@ test.describe("FEED SCREENS", () => {
     await expect(page.getByTestId("feed-error")).toBeVisible();
     await expect(page.getByTestId("feed-error")).toContainText(en["feed.errorTitle"]);
     await page.getByTestId("feed-retry").click();
+    await expect.poll(() => n).toBe(2);
     await expect(page.getByTestId("feed-error")).toBeVisible();
     await page.getByTestId("feed-retry").click();
     await expect(page.locator(`[data-testid="listing-card"][data-listing="${id}"]`)).toBeVisible();
