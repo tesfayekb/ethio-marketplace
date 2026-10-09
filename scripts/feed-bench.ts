@@ -131,12 +131,16 @@ function must<T>(res: { data: T; error: { message: string } | null }, what: stri
   return res.data;
 }
 
-async function deleteListingsWhere(db: Db, filter: (q: any) => any): Promise<void> {
+type ListingFilter = { column: "title"; prefix: string } | { column: "seller_id"; equals: string };
+
+async function deleteListingsWhere(db: Db, filter: ListingFilter): Promise<void> {
   for (;;) {
-    const rows = must(
-      await filter(db.from("listings").select("id")).limit(1000),
-      "read scratch listings",
-    ) as { id: string }[];
+    const base = db.from("listings").select("id");
+    const query =
+      filter.column === "title"
+        ? base.like("title", `${filter.prefix}%`)
+        : base.eq("seller_id", filter.equals);
+    const rows = must(await query.limit(1000), "read scratch listings") as { id: string }[];
     if (rows.length === 0) return;
     must(
       await db
@@ -149,6 +153,11 @@ async function deleteListingsWhere(db: Db, filter: (q: any) => any): Promise<voi
       "delete scratch listings",
     );
   }
+}
+
+async function deleteSeller(db: Db, sellerId: string): Promise<void> {
+  const del = await db.auth.admin.deleteUser(sellerId);
+  if (del.error) throw new Error(`delete seller: ${del.error.message}`);
 }
 
 async function deleteCategoriesLike(db: Db, prefix: string): Promise<void> {
@@ -298,7 +307,7 @@ async function main(): Promise<number> {
 
   try {
     // 3. Pre-clean an earlier run.
-    await deleteListingsWhere(db, (q) => q.like("title", "e2e-bench-%"));
+    await deleteListingsWhere(db, { column: "title", prefix: "e2e-bench-" });
     await deleteCategoriesLike(db, "e2e-bench-");
     await deleteLocationsLike(db, "e2e-bench-");
 
@@ -440,14 +449,11 @@ async function main(): Promise<number> {
     // 6. Clean up, whatever happened.
     const cleanStart = Date.now();
     try {
-      if (sellerId) await deleteListingsWhere(db, (q) => q.eq("seller_id", sellerId));
-      await deleteListingsWhere(db, (q) => q.like("title", `${P}%`));
+      if (sellerId) await deleteListingsWhere(db, { column: "seller_id", equals: sellerId });
+      await deleteListingsWhere(db, { column: "title", prefix: P });
       await deleteCategoriesLike(db, P);
       await deleteLocationsLike(db, P);
-      if (sellerId) {
-        const del = await db.auth.admin.deleteUser(sellerId);
-        if (del.error) throw new Error(`delete seller: ${del.error.message}`);
-      }
+      if (sellerId) await deleteSeller(db, sellerId);
       leftovers = await countLeftovers(db, P);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
