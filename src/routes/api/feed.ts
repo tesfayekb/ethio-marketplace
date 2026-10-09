@@ -124,16 +124,27 @@ async function handleGet(request: Request): Promise<Response> {
     return fail(message, 502);
   }
 
-  const page = (data ?? {}) as {
-    cards?: unknown[];
-    ladder?: unknown[];
-    steps?: unknown[];
+  const page = data as {
+    cards?: unknown;
+    ladder?: unknown;
+    steps?: unknown;
     next?: unknown;
-  };
+  } | null;
+  // E3a.6 / F4 — an answer without data and without an error is a failure,
+  // never an empty page.
+  if (
+    page === null ||
+    typeof page !== "object" ||
+    !Array.isArray(page.cards) ||
+    !Array.isArray(page.ladder) ||
+    !Array.isArray(page.steps)
+  ) {
+    return fail("feed_page returned no page", 502);
+  }
   const body = {
-    cards: page.cards ?? [],
-    ladder: page.ladder ?? [],
-    steps: page.steps ?? [],
+    cards: page.cards,
+    ladder: page.ladder,
+    steps: page.steps,
     next:
       page.next === null || page.next === undefined ? null : toBase64Url(JSON.stringify(page.next)),
   };

@@ -30,6 +30,7 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 - **Refusals** — `feed_page: badSize`, `unknownCategory` (missing or inactive), `unknownPlace` (missing or inactive), `badCursor`.
 - **Who may call it** — `anon`, `authenticated` and `service_role` (named in scripts/public-surface-allowlist.txt); `feed_index` stays closed to the browser roles. A card carries the listing card's fields only, no seller.
 - **`GET /api/feed`** — parameters `category`, `place` (uuids), `size` (1–50) and `after` (base64url of the cursor JSON). Answers: 200 `{ cards, ladder, steps, next }` with `Cache-Control: public, max-age=60, stale-while-revalidate=300`; 400 `badCategory`, `badPlace`, `badSize`, `badCursor`; 404 `unknownCategory`, `unknownPlace`; 502 for any other failure (logged as `[ssr-error]`). Every error is `no-store`. Anon client, no session, no in-process cache.
+- **Slow-call warning** — a `feed_page` call over 5 s logs one `[slow-rpc] feed_page <ms>` line; an answer with no error whose `cards`, `ladder` or `steps` is not an array is a 502 (E3a.6, F4).
 
 ## What it does not do yet
 

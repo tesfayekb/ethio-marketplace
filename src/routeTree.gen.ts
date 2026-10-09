@@ -25,6 +25,7 @@ import { Route as AdminImagesRouteImport } from './routes/admin.images'
 import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
 import { Route as AdminPlacesRouteImport } from './routes/admin.places'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
+import { Route as AdminScreeningRouteImport } from './routes/admin.screening'
 import { Route as AdminTranslationsRouteImport } from './routes/admin.translations'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as ApiFeedRouteImport } from './routes/api/feed'
@@ -146,6 +147,11 @@ const AdminPlacesRoute = AdminPlacesRouteImport.update({
 const AdminRolesRoute = AdminRolesRouteImport.update({
   id: '/roles',
   path: '/roles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminScreeningRoute = AdminScreeningRouteImport.update({
+  id: '/screening',
+  path: '/screening',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
@@ -383,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/admin/screening': typeof AdminScreeningRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/feed': typeof ApiFeedRoute
@@ -442,6 +449,7 @@ export interface FileRoutesByTo {
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/admin/screening': typeof AdminScreeningRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/feed': typeof ApiFeedRoute
@@ -503,6 +511,7 @@ export interface FileRoutesById {
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
+  '/admin/screening': typeof AdminScreeningRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/api/feed': typeof ApiFeedRoute
@@ -565,6 +574,7 @@ export interface FileRouteTypes {
     | '/admin/locations'
     | '/admin/places'
     | '/admin/roles'
+    | '/admin/screening'
     | '/admin/translations'
     | '/admin/users'
     | '/api/feed'
@@ -624,6 +634,7 @@ export interface FileRouteTypes {
     | '/admin/locations'
     | '/admin/places'
     | '/admin/roles'
+    | '/admin/screening'
     | '/admin/translations'
     | '/admin/users'
     | '/api/feed'
@@ -684,6 +695,7 @@ export interface FileRouteTypes {
     | '/admin/locations'
     | '/admin/places'
     | '/admin/roles'
+    | '/admin/screening'
     | '/admin/translations'
     | '/admin/users'
     | '/api/feed'
@@ -882,6 +894,13 @@ declare module '@tanstack/react-router' {
       path: '/roles'
       fullPath: '/admin/roles'
       preLoaderRoute: typeof AdminRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/screening': {
+      id: '/admin/screening'
+      path: '/screening'
+      fullPath: '/admin/screening'
+      preLoaderRoute: typeof AdminScreeningRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/translations': {
@@ -1191,6 +1210,7 @@ interface AdminRouteChildren {
   AdminLocationsRoute: typeof AdminLocationsRoute
   AdminPlacesRoute: typeof AdminPlacesRoute
   AdminRolesRoute: typeof AdminRolesRoute
+  AdminScreeningRoute: typeof AdminScreeningRoute
   AdminTranslationsRoute: typeof AdminTranslationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -1210,6 +1230,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLocationsRoute: AdminLocationsRoute,
   AdminPlacesRoute: AdminPlacesRoute,
   AdminRolesRoute: AdminRolesRoute,
+  AdminScreeningRoute: AdminScreeningRoute,
   AdminTranslationsRoute: AdminTranslationsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,

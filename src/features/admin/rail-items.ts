@@ -1,4 +1,5 @@
 import {
+  ClipboardCheck,
   Flag,
   FolderTree,
   Globe2,
@@ -46,6 +47,7 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   attributes: SlidersHorizontal,
   images: Image,
   translations: Languages,
+  screening: ClipboardCheck,
 };
 
 const GROUP_ICONS: Record<AdminGroupId, LucideIcon> = {
