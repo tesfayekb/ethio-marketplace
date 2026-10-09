@@ -44,8 +44,11 @@ async function drawnRing(control: Locator): Promise<boolean> {
   layers.push(current.trim());
   return layers.some((layer) => {
     const colour = layer.match(/[a-z]+\([^)]*\)/i)?.[0] ?? "";
-    const parts = colour.slice(colour.indexOf("(") + 1, -1).split(/[\s,/]+/).filter(Boolean);
-    const alpha = /\/|rgba|,.*,.*,/.test(colour) && parts.length >= 4 ? parseFloat(parts[3]!) : 1;
+    const parts = colour
+      .slice(colour.indexOf("(") + 1, -1)
+      .split(/[\s,/]+/)
+      .filter(Boolean);
+    const alpha = parts.length >= 4 ? parseFloat(parts[3]!) : 1;
     const lengths = layer
       .replace(colour, "")
       .trim()
@@ -192,5 +195,4 @@ test.describe("house style fixture", () => {
     await expect(more).toBeFocused();
     expect(await drawnRing(more), "HS-6: no ring after keyboard use").toBe(true);
   });
-});
 });
