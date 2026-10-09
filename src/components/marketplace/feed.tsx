@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { useShell, type LocationNode } from "@/components/shell-context";
 import { WovenMark } from "@/components/brand/logo";
@@ -75,7 +75,7 @@ export function Feed() {
 
   const sections = feedSections(cards, ladder);
 
-  let body: React.ReactNode;
+  let body: ReactNode;
   if (categoryLookup === "missing") {
     body = (
       <PageCard
