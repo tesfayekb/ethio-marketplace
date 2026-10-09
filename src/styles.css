@@ -70,8 +70,9 @@
  * a warm/cream wash on hover states all over the app. They now carry the SAME
  * cool-slate neutral as --muted, so the surface system is ONE uniform neutral.
  * The gold itself was not re-picked: its exact values moved to --gold /
- * --gold-foreground, which are used in exactly two places — the logo dot and
- * the Featured badge. Selection/emphasis is green (sidebar-accent) everywhere.
+ * --gold-foreground, which are used in exactly three places — the logo dot, the
+ * Featured badge and the invite card (DEC-169, 2026-10-09). Selection/emphasis
+ * is green (sidebar-accent) everywhere.
  *
  * Flat surfaces only — soft shadows are allowed; images and gradients are not
  * (performance stance — see docs/features/design-foundation.md).
@@ -180,7 +181,7 @@
   /* PURGED: was honey-gold. Uniform cool-slate neutral, identical to --muted. */
   --accent: oklch(0.96 0.005 258.3); /* #F0F2F5 */
   --accent-foreground: oklch(0.254 0.014 253.1); /* #1E2329 */
-  --gold: oklch(0.681 0.13 72.5); /* #C98A2B honey-gold — logo dot + Featured only */
+  --gold: oklch(0.681 0.13 72.5); /* #C98A2B honey-gold — logo dot, Featured, invite card */
   --gold-foreground: oklch(0.301 0.055 77.9); /* #3D2A08 */
   --destructive: oklch(0.5 0.182 29.5); /* #B42318 */
   --destructive-foreground: oklch(1 0 89.9); /* #FFFFFF */
@@ -234,7 +235,7 @@
   /* PURGED: was honey-gold. Uniform cool-slate neutral, identical to --muted. */
   --accent: oklch(0.277 0.016 248.4); /* #222930 */
   --accent-foreground: oklch(0.93 0.005 258.3); /* #E6E8EB */
-  --gold: oklch(0.769 0.128 78.3); /* #E0A94A — logo dot + Featured only */
+  --gold: oklch(0.769 0.128 78.3); /* #E0A94A — logo dot, Featured, invite card */
   --gold-foreground: oklch(0.214 0.037 79.9); /* #221704 */
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.178 0.037 27.4); /* #1F0A08 */

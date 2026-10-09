@@ -1089,16 +1089,17 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * PW-181 — D119: the invite card's category opens step 1 at that category's
-   * level. A leaf opens on its parent's level and is not chosen; an unknown or
-   * malformed id opens the top level, as /post always has.
+   * PW-181 — D119: the invite card's category in the address. A folder opens
+   * step 1 inside itself; a postable leaf is chosen as a tap chooses it and the
+   * wizard moves on (the operator, 2026-10-09); an unknown or malformed id
+   * opens the top level, as /post always has.
    */
-  test("PW-181 D119: a category in the address opens step 1 at its level; an unknown one opens the top level", async ({
+  test("PW-181 D119: a folder in the address opens step 1 inside it, a leaf is chosen, an unknown one opens the top level", async ({
     page,
   }) => {
     const { parent, leaf } = await seedCategoryBranch();
     branches.push(parent.slug, leaf.slug);
-    await seller(page);
+    const user = await seller(page);
     const crumb = (id: string) =>
       page.locator(`[data-testid="post-browse-crumb"][data-category="${id}"]`);
     const leafRow = page.locator(`[data-testid="post-browse-leaf"][data-category="${leaf.id}"]`);
@@ -1110,16 +1111,12 @@ test.describe("POSTING WIZARD", () => {
     await expect(leafRow).toBeVisible();
 
     await gotoReady(page, `/post?category=${leaf.id}`);
-    await expect(
-      crumb(parent.id),
-      "PW-181: a leaf did not open on its parent's level",
-    ).toBeDisabled({ timeout: 20_000 });
-    await expect(leafRow).toBeVisible();
-    await expect(leafRow, "PW-181: the address chose the leaf").not.toHaveAttribute(
-      "aria-current",
-      "true",
-    );
-    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await expect(page.getByTestId("post-step-3"), "PW-181: the leaf was not chosen").toBeVisible({
+      timeout: 20_000,
+    });
+    await expect
+      .poll(async () => (await draftsOf(user.id)).filter((row) => row.category_id === leaf.id))
+      .toHaveLength(1);
 
     for (const value of [crypto.randomUUID(), "not-a-uuid"]) {
       await gotoReady(page, `/post?category=${value}`);
@@ -1166,12 +1163,16 @@ test.describe("POSTING WIZARD", () => {
     const landed = new URL(page.url()).searchParams;
     expect(landed.get("category"), "PW-182: the category was lost").toBe(leaf.id);
     expect(landed.get("place"), "PW-182: the place was lost").toBe(place);
-    await expect(crumb(parent.id)).toBeDisabled({ timeout: 20_000 });
+    // The invite's leaf is chosen once the seller is back (PW-181).
+    await expect(page.getByTestId("post-step-3"), "PW-182: the leaf was not chosen").toBeVisible({
+      timeout: 20_000,
+    });
 
     // The callback door (Google returns through it), signed in.
     await page.goto(`/auth/callback?return=${encodeURIComponent(`/post?category=${parent.id}`)}`);
     await page.waitForURL((url) => url.pathname === "/post", { timeout: 15_000 });
     expect(new URL(page.url()).searchParams.get("category")).toBe(parent.id);
+    await expect(crumb(parent.id)).toBeDisabled({ timeout: 20_000 });
   });
 
   test("PW-15 the posting entry lives in My Listings, not in Account", async ({ page }) => {

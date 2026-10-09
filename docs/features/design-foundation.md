@@ -155,9 +155,10 @@ The fix separates the two jobs:
 
 - `--accent` / `--accent-foreground` are now **cool-slate neutral**, and every
   generic hover, highlight and inactive surface uses them.
-- `--gold` / `--gold-foreground` are new, dedicated tokens with exactly **two**
-  sanctioned placements: the dot inside the logo mark, and the Featured badge
-  on a listing card. Nothing else may consume them.
+- `--gold` / `--gold-foreground` are new, dedicated tokens with exactly **three**
+  sanctioned placements: the dot inside the logo mark, the Featured badge on a
+  listing card, and the invite card on the listings pages (DEC-169, the
+  operator's choice of 2026-10-09; two until then). Nothing else may consume them.
 
 Selection emphasis is GREEN (`--sidebar-accent`), never a cream tint. There are
 no warm surfaces left in `src/styles.css`.
