@@ -99,21 +99,8 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
         if (!first || !second) throw new Error("PW-171: missing chip boxes");
         expect(Math.abs(first.top - second.top)).toBeLessThanOrEqual(1);
         expect(chipBoxes.map((box) => box.title)).toEqual([xName, yName]);
-        expect(
-          await chip(page, x.id).evaluate((element) => element.scrollWidth - element.clientWidth),
-        ).toBeLessThanOrEqual(1);
-        const longHead = await chip(page, y.id).evaluate((element) => {
-          const head = element.firstElementChild?.firstElementChild;
-          if (!head) throw new Error("PW-171: missing name head");
-          const box = element.getBoundingClientRect();
-          return {
-            text: head.textContent,
-            right: head.getBoundingClientRect().right,
-            contentRight: box.right - parseFloat(getComputedStyle(element).paddingRight),
-          };
-        });
-        expect(longHead.text).toBe(yName.slice(0, 5));
-        expect(longHead.right).toBeLessThanOrEqual(longHead.contentRight + 1);
+        await expectCutFloor(page, chip(page, x.id).locator("[data-cut]"));
+        await expectCutFloor(page, chip(page, y.id).locator("[data-cut]"));
         const row = page.getByTestId("post-category-recent-row");
         expect(
           await row.evaluate((element) => element.scrollWidth - element.clientWidth),
