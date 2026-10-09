@@ -159,8 +159,8 @@ export const AREAS: Area[] = [
   },
   {
     name: "feed",
-    src: ["src/features/feed/**"],
-    specs: ["e2e/category-nav.spec.ts", "e2e/feed-index.spec.ts"],
+    src: ["src/features/feed/**", "src/routes/api/feed.ts"],
+    specs: ["e2e/category-nav.spec.ts", "e2e/feed-index.spec.ts", "e2e/feed-route.spec.ts"],
   },
   {
     name: "house-style",
