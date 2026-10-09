@@ -42,7 +42,11 @@ async function readPage(
  * never sorts. A non-200, a thrown fetch or a refused body is an error, never
  * an empty page (F4).
  */
-export function useFeed({ categoryId = null, placeId = null, enabled = true }: UseFeedOptions = {}) {
+export function useFeed({
+  categoryId = null,
+  placeId = null,
+  enabled = true,
+}: UseFeedOptions = {}) {
   const [cards, setCards] = useState<FeedListing[]>([]);
   const [ladder, setLadder] = useState<string[]>([]);
   const [next, setNext] = useState<string | null>(null);

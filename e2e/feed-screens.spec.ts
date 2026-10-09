@@ -159,17 +159,12 @@ test.describe("FEED SCREENS", () => {
     const tiers: Tier[] = Array.from({ length: 25 }, (_, i) =>
       i < 2 ? "premium" : i < 5 ? "featured" : "regular",
     );
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert(tiers.map((tier, i) => row(leaf.id, user.id, c.city.id, tier, i + 1)))
-      .select("id, title");
+    // Built in the expected order: tier first (premium, featured, regular), then newest.
+    const rows = tiers.map((tier, i) => row(leaf.id, user.id, c.city.id, tier, i + 1));
+    const { data, error } = await adminClient().from("listings").insert(rows).select("id, title");
     if (error || !data) throw new Error(`[e2e:fs] seeding 25 listings failed: ${error?.message}`);
-    // Inserted in the expected order already: tier first, then newest.
-    const expected = tiers.map((_, i) => {
-      const wanted = row(leaf.id, user.id, c.city.id, tiers[i]!, i + 1);
-      void wanted;
-      return data[i]!.id as string;
-    });
+    const idOf = new Map(data.map((r) => [r.title as string, r.id as string]));
+    const expected = rows.map((r) => idOf.get(r.title) ?? "");
 
     const calls = watchFeed(page);
     await gotoReady(page, `/c/${leaf.slug}`);
@@ -206,7 +201,9 @@ test.describe("FEED SCREENS", () => {
 
   async function openArea(page: Page, fx: Awaited<ReturnType<typeof areaFixture>>, base: string) {
     await waitForTreeSlug(page, "ET", fx.subSlug);
-    await page.context().addCookies([{ name: "ethio_area", value: `ET:${fx.a.city.id}`, url: base }]);
+    await page
+      .context()
+      .addCookies([{ name: "ethio_area", value: `ET:${fx.a.city.id}`, url: base }]);
     await gotoReady(page, `/c/${fx.leaf.slug}`);
   }
 
@@ -261,9 +258,7 @@ test.describe("FEED SCREENS", () => {
     ).toHaveText(en["feed.heading"].replace("{location}", fx.country));
   });
 
-  test("FS-5 an address nobody has shows not found and asks the feed nothing", async ({
-    page,
-  }) => {
+  test("FS-5 an address nobody has shows not found and asks the feed nothing", async ({ page }) => {
     const calls = watchFeed(page);
     await gotoReady(page, `/c/e2e-none-${rand()}`);
     const unknown = page.getByTestId("feed-category-unknown");

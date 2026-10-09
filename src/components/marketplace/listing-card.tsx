@@ -107,7 +107,6 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
             <CutText text={locationName} />
           </p>
         ) : null}
-
       </div>
     </article>
   );
