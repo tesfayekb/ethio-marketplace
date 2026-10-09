@@ -135,9 +135,7 @@ async function handleGet(request: Request): Promise<Response> {
     ladder: page.ladder ?? [],
     steps: page.steps ?? [],
     next:
-      page.next === null || page.next === undefined
-        ? null
-        : toBase64Url(JSON.stringify(page.next)),
+      page.next === null || page.next === undefined ? null : toBase64Url(JSON.stringify(page.next)),
   };
   return new Response(JSON.stringify(body), {
     status: 200,
