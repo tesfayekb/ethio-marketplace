@@ -1,6 +1,6 @@
 # Roadmap
 
-Bundle 10 brief: docs/governance/briefs/bundle-10.md (read first every turn).
+No bundle brief is in force: bundle 10 was built on 2026-10-09 (its brief stays at docs/governance/briefs/bundle-10.md, version 9, with turn 14's ruling beside it); next comes bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); the brief in force is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -134,7 +134,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] After the bundle, one harness turn: the test setup resets staging's English texts in every lane before its tests (INC-493, DEC-160) — scripts/en-baseline-heal.ts with its test; the census for bundle 9 — docs/governance/briefs/bundle-9-census.md
 - [x] Records turn (bundle 8 close, 2026-10-08) — spec-ledger S57 (DEC-155–160), INC-488–494, system-state; see docs/governance/handoffs/2026-10-08-bundle8-close-handover.md
 
-### Bundle 9 — the house style (agreed with the operator on 2026-10-07; FIRST HALF BUILT 2026-10-08 in fourteen executor turns — spec-ledger block S58; the second half follows bundle 10; the index of the look before it is docs/governance/briefs/bundle-9-census.md)
+### Bundle 9 — the house style (agreed with the operator on 2026-10-07; FIRST HALF BUILT 2026-10-08 in fourteen executor turns — spec-ledger block S58; Part D and Part E are bundle 11 (D118), the shell items follow it; the index of the look before it is docs/governance/briefs/bundle-9-census.md)
 
 - [x] Colour by meaning as tokens — primary, danger, success, warning, info, neutral; corners 6 px; stronger borders; fine row rules; soft shadows on cards, tables and figures, stronger ones on menus and dialogs — Part A (DEC-161; INC-496); src/styles.tokens.test.ts, HS-1, HS-2; the fixture page /dev/style
 - [ ] Row actions everywhere: Edit and Delete as icons (Edit grey, Delete red) and a three-dots menu for the rest; every icon button has a name and a tooltip; one shared building block — the blocks are built (IconButton, RowActions — Part B; HS-3); the screens use them from Part D
@@ -150,27 +150,35 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] Before bundle 10 (version 15, C2m): every name cut with "…" keeps its first five characters (D104; INC-508, INC-509); the focus ring after keyboard use only — done in turns 15–17 (spec-ledger S59; INC-508–510; D105: a crowded row's label, then its arrows, step aside)
 - [x] Records turn (bundle 9 fix turns, 2026-10-09) — spec-ledger S59 (D105–D107), INC-510; see docs/governance/handoffs/2026-10-09-bundle9-fixes-running-record.md
 - [ ] With Part D: the admin and dev pages' cut names (39 lines of docs/governance/briefs/bundle-9-cut-names-census.md) get the five-character floor in the shared table and card blocks
-- [ ] After bundle 10: subcategories in the menus (D98) with the bottom bar's short labels (D97 — the Amharic words owed by the operator)
-- [ ] After bundle 10: the scroll area — from 768 px only the page body scrolls between the fixed bars; phones keep the page's own scroll (D93, D96)
-- [ ] After bundle 10: Part D1 — the pattern console (Admin › Categories), then every other screen; Part E — the written rules and their checks
+- [ ] After bundle 11 (the shell brief): the operator's shell notes of 2026-10-09 — the ☰ at every width, first at the top-left with the logo right after it (D110, D115, D117); the top bar evenly spaced with the search centred (D111); no divider in the top band (D112); bigger menu icons, no taller rows (D113); a footer without "How it works", one row shorter (D116)
+- [ ] After bundle 11 (the shell brief): subcategories in the menus (D98) with the bottom bar's short labels (D97 — the Amharic words owed by the operator); today the menu lists top categories only and a subcategory has no link
+- [ ] After bundle 11 (the shell brief): the scroll area — from 768 px only the page body scrolls between the fixed bars (D93, D96); on phones the top bar, the breadcrumbs band, the left strip and the bottom bar stay fixed in every case, the keyboard open included, and the location row keeps scrolling away (D114 changes D93's phone clause)
+- [ ] Part D and Part E — moved forward as bundle 11 (D118; its block below)
 
-### Bundle 10 — the feed engine (D99–D101; the spec, approved 2026-10-08: docs/governance/feed-engine-spec.md; NEXT)
+### Bundle 10 — the feed engine (D99–D101; the spec, approved 2026-10-08: docs/governance/feed-engine-spec.md; BUILT 2026-10-09 in fourteen executor turns and five migrations — spec-ledger block S60)
 
-- [ ] E1 — `feed_index`, `feed_index_refresh`, the backfill of today's active listings, the consistency check (Tier A; one migration)
-- [ ] E2 — the write doors call the refresh; the tree-change re-index job with its heartbeat; `feed_page`; `/api/feed` with cursor paging, its cache headers and the widening ladder (Tier A; a migration and the route)
-- [ ] E3 — the feed on the route (20 per page, the next page as the last card comes into view); subcategory addresses resolved through the whole tree; the breadcrumbs; the performance job against the frozen targets at 100,000 scratch listings (Tier B)
-- [ ] INC-503 (a category's page shows its whole branch), INC-504 (a subcategory's address filters), INC-505 (no whole-catalogue read) closed by E1–E3
-- [ ] After E3 (D106, D107; ACT-017): the chosen place kept on the account for signed-in people (visitors keep the per-browser save; the IP guess is never saved), and the "You seem to be in <place>. Show listings there?" notice with Switch and Keep in the house style's amber (`warning` tokens) — one turn, Tier A for the account part; its spec is written with E3's brief
+- [x] E1 — `feed_index`, `feed_index_refresh`, the backfill of today's active listings, the consistency check (Tier A; one migration) — `20261009032615`, mark `20261009160000`; FE-1–FE-5
+- [x] E2 — the write doors call the refresh; the tree-change re-index job with its heartbeat; `feed_page`; `/api/feed` with cursor paging, its cache headers and the widening ladder (Tier A; a migration and the route) — as E2a (statement triggers in place of door calls; the drain that wakes on enqueue; the daily check; `20261009052418`, mark `20261009180000`; FE-6–FE-14) and E2b (`feed_page` in D108's order, the one new public surface; `/api/feed`; `20261009060703`, mark `20261009190000`; FR-1–FR-8)
+- [x] E3 — the feed on the route (20 per page, the next page as the last card comes into view); subcategory addresses resolved through the whole tree; the breadcrumbs; the performance job against the frozen targets at 100,000 scratch listings (Tier B) — as E3a (Admin › Screening, D109, DEC-163; `20261009070008`, mark `20261009200000`; SC-1–SC-6), E3b (the listings pages; FS-1–FS-7, FP-1–FP-7; the views count removed, DEC-165) and E3c (the speed judge, DEC-166, weekly from DEC-167; `20261009092434`, mark `20261009220000`; FB-1–FB-6; every target met about twenty times over); the staging gate (DEC-168; SG-1–SG-4)
+- [x] INC-503 (a category's page shows its whole branch), INC-504 (a subcategory's address filters), INC-505 (no whole-catalogue read) closed by E1–E3
+- [x] Records turn (bundle 10, 2026-10-09) — spec-ledger S60 (DEC-163–168, D108–D118), INC-511–528; see docs/governance/handoffs/2026-10-09-bundle10-close-handover.md
+- [ ] After the shell brief (D106, D107; ACT-017): the chosen place kept on the account for signed-in people (visitors keep the per-browser save; the IP guess is never saved), and the "You seem to be in <place>. Show listings there?" notice with Switch and Keep in the house style's amber (`warning` tokens) — one turn, Tier A for the account part; its spec is written with its brief
+
+### Bundle 11 — every admin table in the agreed house style (D118, 2026-10-09; NEXT; ACT-018)
+
+- [ ] Admin › Screening first, on the blocks (RowActions, the toolbar with Filters and columns, FilterChips, the selection slot, the footer's three zones, one card per row on a phone); its "Preview as buyer" shows the facts and options it can read, the ad's own country, and — by the operator's two Tier A answers — the seller's contact preferences and name or not (spec-ledger S60, the preview census)
+- [ ] Every other admin list page on the same blocks; the admin and dev pages' cut names (39 lines of docs/governance/briefs/bundle-9-cut-names-census.md) get the five-character floor with them
+- [ ] Part E — one written rule and one automatic check per element; existing screens listed in a baseline that only shrinks, so no screen can be built another way
 
 ### After bundle 7, in this order
 
 What bundle 7 added to the order, item by item with its place: docs/governance/handoffs/2026-10-07-order-of-work-additions.md.
 
-1. Bundle 8 — the security and wording round (closed 2026-10-08); bundle 9 — the house style, first half built 2026-10-08; bundle 10 — the feed engine (D99–D101), next; then bundle 9's second half (its block above) — all before stage 1
+1. Bundle 8 — the security and wording round (closed 2026-10-08); bundle 9 — the house style, first half built 2026-10-08; bundle 10 — the feed engine (D99–D101), built 2026-10-09; bundle 11 — the house style on every admin table (D118), next; then the shell brief (D110–D117 with D98's menus and the scroll area D93/D114) and D106/D107 — all before stage 1
 2. Stage 1 — the rules: the legal section (Terms, Privacy, the publishing statement as numbered versions; the 18+ tick; the seller's certification), the banned-items and safety pages, the screening-promise wording
 3. The tidy-up round — the close-out work of ACT-009: the truth pass of the lines above, flaky tests (INC-440, INC-441, INC-449; INC-487 if it is contention), the CI report's gaps (INC-419, INC-429), INC-398, INC-420, the E2E account pool before 2026-11-01, docs/features/listings.md (INC-471), CI run time, what bundle 7 named and did not build (the definition editor's holders count, a pointer move against the parent-first guard, the parent-first refusal in the import preview, one unit case of the reset function), the four-lens review of the posting era; the Translations store follows a changed seed text by itself (INC-488's class); a full read of the Amharic catalog (INC-489); the scan's upload step and the status report's silence while queued (INC-492); AT-3 and its shared helper (INC-494); the flake ledger's re-run duplicates (INC-495); CT-18 (INC-497); the guess fixture's region code with LS-6 (INC-502, INC-285, INC-428); PW-137 and PW-144 with PW-57 (INC-449)
 4. Stage 2 — automatic screening from the first ad, in two layers (DEC-145), with translation of every ad's free text at posting and its own switch (DEC-149): the screening gateway, duplicates, the exceptions page, posting limits and AI switches, Admin › Services (DEC-091), admin numbers
-5. Stage 3 — a buyer can open the ad: the ad page with Show contact, Report, Share and the safety box; photos on cards and paging (the home feed's uncapped read); contact ticks; request a missing place and the admin inbox
+5. Stage 3 — a buyer can open the ad: the ad page with Show contact, Report, Share and the safety box — researched with peers and agreed with the operator before it is built (G49; his review of 2026-10-09); photos on cards (paging is done — bundle 10); contact ticks; request a missing place and the admin inbox
 6. Stage 4 — sellers manage ads: My ads with retention, views and contacts per ad, a real paused state (INC-469), the expiry sweep through the state machine (INC-470)
 7. Posting-form extras — several prices in one ad (DEC-131), sizes and price drops (D68), photo tools (D65), the smaller form-engine items, an answer offered only in some countries (D75)
 8. Stage 5 — buyers find things: lists from the buyer's city, search and filters, favourites and saved searches
