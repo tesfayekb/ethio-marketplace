@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import { Link } from "@tanstack/react-router";
 import {
   CircleUser,
@@ -49,7 +50,7 @@ function ItemBody({
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
       )}
-      <span className={cn("max-w-full truncate", current && "font-semibold")}>{label}</span>
+      <CutText className={cn(current && "font-semibold")} text={label} />
     </>
   );
 }

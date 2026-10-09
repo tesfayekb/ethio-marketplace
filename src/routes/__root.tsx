@@ -1,3 +1,4 @@
+import { installInputModality } from "@/lib/input-modality";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -323,6 +324,7 @@ function RootComponent() {
     // INC-085f — the E2E hydration contract: set only after React has
     // successfully hydrated; a client crash before this leaves it unset.
     document.documentElement.dataset["appReady"] = "1";
+    return installInputModality();
   }, []);
 
   return (

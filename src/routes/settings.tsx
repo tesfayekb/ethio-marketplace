@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import { PasswordInput } from "@/components/ui/password-input";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
@@ -322,21 +323,29 @@ function SettingsScreen() {
           <dl className="mt-3 grid grid-cols-1 gap-2 text-sm">
             <div className="flex justify-between gap-3">
               <dt className="text-muted-foreground">{t("settings.displayName")}</dt>
-              <dd className="truncate text-foreground">{user?.displayName ?? "—"}</dd>
+              <dd className="text-foreground">
+                <CutText text={user?.displayName ?? "—"} />
+              </dd>
             </div>
             <div className="flex justify-between gap-3">
               <dt className="text-muted-foreground">{t("settings.email")}</dt>
-              <dd className="truncate text-foreground">{user?.email ?? "—"}</dd>
+              <dd className="text-foreground">
+                <CutText text={user?.email ?? "—"} />
+              </dd>
             </div>
             {/* U4h — the DEVICE ★, shown here as a READ-OUT: the star is chosen in
               the language switcher (one affordance, C-laws), and this row only
               tells the operator which device default is currently in force. */}
             <div className="flex justify-between gap-3">
               <dt className="text-muted-foreground">{t("settings.deviceLanguage")}</dt>
-              <dd className="truncate text-foreground" data-testid="settings-device-language">
-                {star
-                  ? (publicLanguages.find((row) => row.code === star)?.name_native ?? star)
-                  : t("settings.deviceLanguageNone")}
+              <dd className="text-foreground" data-testid="settings-device-language">
+                <CutText
+                  text={
+                    star
+                      ? (publicLanguages.find((row) => row.code === star)?.name_native ?? star)
+                      : t("settings.deviceLanguageNone")
+                  }
+                />
               </dd>
             </div>
             <div className="flex justify-between gap-3">

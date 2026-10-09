@@ -56,7 +56,7 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
     const x = await seedPostableCategory();
     const y = await seedPostableCategory();
     categories.push(x.slug, y.slug);
-    const xName = `${x.slug} extraordinarily long vehicle accessories collection`;
+    const xName = x.slug.slice(-3);
     const yName = `${y.slug} exceptionally long household equipment collection`;
     const renamed = await Promise.all(
       [
@@ -80,25 +80,45 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
     await expect(chips.nth(0), "PW-171: X is not first").toHaveAttribute("data-category", x.id);
     await expect(chips.nth(1)).toHaveAttribute("data-category", y.id);
     if (test.info().project.name === "mobile-360") {
-      const label = page.getByText(en["post.category.recentLabel"], { exact: true });
-      const labelBox = await label.boundingBox();
-      const chipBoxes = await chips.evaluateAll((elements) =>
-        elements.map((element) => {
+      for (const width of [360, 320]) {
+        await page.setViewportSize({ width, height: 800 });
+        const label = page.getByText(en["post.category.recentLabel"], { exact: true });
+        const labelBox = await label.boundingBox();
+        const chipBoxes = await chips.evaluateAll((elements) =>
+          elements.map((element) => {
+            const box = element.getBoundingClientRect();
+            return { top: box.top, height: box.height, title: element.getAttribute("title") };
+          }),
+        );
+        if (!labelBox) throw new Error("PW-171: recent label has no box");
+        const labelCentre = labelBox.y + labelBox.height / 2;
+        for (const box of chipBoxes) {
+          expect(Math.abs(box.top + box.height / 2 - labelCentre)).toBeLessThanOrEqual(2);
+        }
+        const [first, second] = chipBoxes;
+        if (!first || !second) throw new Error("PW-171: missing chip boxes");
+        expect(Math.abs(first.top - second.top)).toBeLessThanOrEqual(1);
+        expect(chipBoxes.map((box) => box.title)).toEqual([xName, yName]);
+        expect(
+          await chip(page, x.id).evaluate((element) => element.scrollWidth - element.clientWidth),
+        ).toBeLessThanOrEqual(1);
+        const longHead = await chip(page, y.id).evaluate((element) => {
+          const head = element.firstElementChild?.firstElementChild;
+          if (!head) throw new Error("PW-171: missing name head");
           const box = element.getBoundingClientRect();
-          return { top: box.top, height: box.height, title: element.getAttribute("title") };
-        }),
-      );
-      if (!labelBox) throw new Error("PW-171: recent label has no box");
-      const labelCentre = labelBox.y + labelBox.height / 2;
-      for (const box of chipBoxes) {
-        expect(Math.abs(box.top + box.height / 2 - labelCentre)).toBeLessThanOrEqual(2);
+          return {
+            text: head.textContent,
+            right: head.getBoundingClientRect().right,
+            contentRight: box.right - parseFloat(getComputedStyle(element).paddingRight),
+          };
+        });
+        expect(longHead.text).toBe(yName.slice(0, 5));
+        expect(longHead.right).toBeLessThanOrEqual(longHead.contentRight + 1);
+        const row = page.getByTestId("post-category-recent-row");
+        expect(
+          await row.evaluate((element) => element.scrollWidth - element.clientWidth),
+        ).toBeLessThanOrEqual(1);
       }
-      expect(Math.abs(chipBoxes[0]!.top - chipBoxes[1]!.top)).toBeLessThanOrEqual(1);
-      expect(chipBoxes.map((box) => box.title)).toEqual([xName, yName]);
-      const row = page.getByTestId("post-category-recent-row");
-      expect(
-        await row.evaluate((element) => element.scrollWidth - element.clientWidth),
-      ).toBeLessThanOrEqual(1);
     }
     await chip(page, y.id).click();
     await expect(page.getByTestId("post-step-3"), "PW-171: Y's details did not open").toBeVisible({

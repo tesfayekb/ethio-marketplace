@@ -366,3 +366,11 @@ Below 768px one top-bar menu control sits above the 48px strip and toggles the d
 - From 1024 px: the rail with its stored choice and the collapse toggle.
 - The frame is chosen by width alone (`rail-icons` custom variant, width media queries); the width walk in e2e/phone-frame.spec.ts is the guard.
 - Selected look: `--nav-active` (primary at 15 % light / 22 % dark) — the bottom bar's pill (`bottom-bar-pill`) and the same tint on the current row of every menu.
+
+## Cut names
+
+D104: `CutText` keeps the first five graphemes of a cut name (shorter names stay whole), ellipsizing only its tail while retaining full text and existing accessible names. D105: `useLabelRoom` measures only the row after layout and hides its visible caption with `sr-only` when names need the room, restoring it when space returns; the admin/dev census is deferred to Part D's shared table/card blocks.
+
+## Focus ring
+
+Action-control rings show after keyboard input only; `installInputModality` records the last capture-phase pointer or keyboard input as `html[data-input]`, installed after hydration and removed at cleanup. No marker is written before input; text inputs, textareas and native selects are excluded from the pointer-only rule because their ring marks the typing location, and focus restoration itself is unchanged.

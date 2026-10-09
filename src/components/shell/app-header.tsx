@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import { Link } from "@tanstack/react-router";
 import {
   ChevronsLeft,
@@ -252,8 +253,8 @@ export function AppHeader() {
                       <User className="h-4 w-4" aria-hidden="true" />
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden max-w-[10rem] truncate md:inline">
-                    {user?.displayName ?? t("shell.accountMenu")}
+                  <span className="hidden max-w-[10rem] md:inline">
+                    <CutText text={user?.displayName ?? t("shell.accountMenu")} />
                   </span>
                 </button>
               </DropdownMenuTrigger>

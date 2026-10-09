@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FormLayout } from "@/components/layout/form-layout";
@@ -741,14 +742,12 @@ export function PostingWizard({ listingId }: { listingId: string | null }) {
                             }}
                           >
                             {badge}
-                            <span className="truncate text-foreground">{t(entry.nameKey)}</span>
+                            <CutText className="text-foreground" text={t(entry.nameKey)} />
                           </button>
                         ) : (
                           <span className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-1">
                             {badge}
-                            <span className="truncate text-muted-foreground">
-                              {t(entry.nameKey)}
-                            </span>
+                            <CutText className="text-muted-foreground" text={t(entry.nameKey)} />
                           </span>
                         )}
                       </li>

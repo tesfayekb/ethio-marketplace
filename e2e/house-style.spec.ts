@@ -148,4 +148,21 @@ test.describe("house style fixture", () => {
     await expect(chips).toHaveCount(0);
     await expect(count).toHaveCount(0);
   });
+  test("HS-6 the focus ring shows after keyboard use only", async ({ page }) => {
+    await gotoReady(page, "/dev/style");
+    const more = page.getByTestId("style-row-1-more");
+    const unfocused = await more.evaluate((element) => getComputedStyle(element).boxShadow);
+    await more.click();
+    await page.getByTestId("style-row-1-more-copy").click();
+    await settled(page);
+    await expect(more).toBeFocused();
+    expect(await more.evaluate((element) => getComputedStyle(element).boxShadow)).toBe(unfocused);
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Shift+Tab");
+    await settled(page);
+    await expect(more).toBeFocused();
+    expect(await more.evaluate((element) => getComputedStyle(element).boxShadow)).not.toBe(
+      unfocused,
+    );
+  });
 });

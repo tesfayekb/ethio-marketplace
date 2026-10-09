@@ -169,3 +169,5 @@ a run names one: R3b-2 STEP 1 reproduced nothing (mobile-360 alone, mobile-360 +
 desktop-1280 under a four-worker load with the posting suite, and three
 consecutive repeats of both projects all passed), so the instrumentation is the
 whole landing and INC-218 stays open until its next occurrence speaks.
+
+The location row's width-specific caption steps aside with `sr-only` when its selected names need the room (`useLabelRoom`, D105), retaining `aria-labelledby`; slim phone padding/arrows and `CutText` reserve every name's first five graphemes.

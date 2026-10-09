@@ -272,6 +272,23 @@
 }
 
 @layer base {
+  html[data-input="pointer"]
+    :is(
+      button,
+      a,
+      [role="button"],
+      [role="combobox"],
+      [role="tab"],
+      [role="menuitem"],
+      [role="option"],
+      [role="checkbox"],
+      [role="switch"]
+    ):focus-visible {
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+    outline: none !important;
+  }
+
   * {
     border-color: var(--color-border);
   }

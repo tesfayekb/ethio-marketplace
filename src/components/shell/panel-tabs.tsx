@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import { useShell } from "@/components/shell-context";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
@@ -48,7 +49,7 @@ export function PanelTabs() {
             data-testid={`panel-tab-${panel.id}`}
             onClick={() => switchPanel(panel.id)}
             className={cn(
-              "inline-flex min-h-11 md:pointer-fine:min-h-10 min-w-0 flex-1 items-center justify-center gap-2 border-b-2 px-2 text-sm transition-colors md:px-3",
+              "inline-flex min-h-11 md:pointer-fine:min-h-10 flex-1 items-center justify-center gap-2 border-b-2 px-2 text-sm transition-colors md:px-3",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               active
                 ? "border-primary font-medium text-primary"
@@ -56,7 +57,7 @@ export function PanelTabs() {
             )}
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="min-w-0 truncate">{t(panel.labelKey)}</span>
+            <CutText text={t(panel.labelKey)} />
           </button>
         );
       })}

@@ -1,3 +1,4 @@
+import { CutText } from "@/components/ui/cut-text";
 import { lengthHint, phonePlanOf } from "./phone-plans";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
@@ -308,7 +309,7 @@ export function PhoneNumberField({
                     onPick={() => choose(code)}
                   >
                     <span aria-hidden="true">{flagOf(code)}</span>
-                    <span className="min-w-0 grow truncate">{nameOf(code)}</span>
+                    <CutText className="grow" text={nameOf(code)} />
                     <span dir="ltr" className="shrink-0 tabular-nums text-muted-foreground">
                       +{CALLING_CODES[code] ?? ""}
                     </span>

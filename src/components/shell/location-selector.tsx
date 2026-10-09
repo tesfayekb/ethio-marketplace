@@ -1,3 +1,6 @@
+import { useRef } from "react";
+import { useLabelRoom } from "@/components/ui/use-label-room";
+import { CutText } from "@/components/ui/cut-text";
 import { ChevronDown } from "lucide-react";
 import { sortPlacesByName } from "@/lib/place-order";
 
@@ -72,7 +75,7 @@ function Picker({
           aria-label={selectedName ? `${t(labelKey)}: ${selectedName}` : t(labelKey)}
           title={selectedName ?? undefined}
           className={cn(
-            "inline-flex h-8 min-w-[6ch] shrink items-center gap-1 rounded-md px-2 text-sm",
+            "inline-flex h-8 shrink items-center gap-0.5 md:gap-1 rounded-md px-1 md:px-2 text-sm",
             "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             selectedId !== null
               ? "font-medium text-foreground"
@@ -81,8 +84,8 @@ function Picker({
         >
           {/* The picker shows its OWN selection — never a second copy of an
               area label rendered elsewhere (INC-041). */}
-          <span className="min-w-0 truncate">{selectedName ?? t(labelKey)}</span>
-          <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <CutText text={selectedName ?? t(labelKey)} />
+          <ChevronDown className="h-3 w-3 md:h-4 md:w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
@@ -186,11 +189,28 @@ export function LocationSelector() {
     }
   }
 
+  const rowRef = useRef<HTMLDivElement>(null);
+  const longLabelRef = useRef<HTMLSpanElement>(null);
+  const shortLabelRef = useRef<HTMLSpanElement>(null);
+  useLabelRoom(
+    rowRef,
+    [longLabelRef, shortLabelRef],
+    [
+      selectedMarket === null ? null : marketLabel(selectedMarket),
+      deeper.map((level) => level.selectedName ?? t(level.labelKey)).join("\u0000"),
+      language,
+      markets.isLoading,
+      markets.failed,
+      tree.failed,
+    ],
+  );
+
   const failed = markets.failed || tree.failed;
   const isLoading = markets.isLoading;
 
   return (
     <div
+      ref={rowRef}
       data-testid="location-row"
       data-area-source={guessInUse ? "guess" : "chosen"}
       role="group"
@@ -198,12 +218,14 @@ export function LocationSelector() {
       className="flex h-8 w-full flex-nowrap items-center gap-x-1 overflow-hidden border-b border-border bg-card px-2 md:px-4"
     >
       <span
+        ref={longLabelRef}
         id="location-row-label"
         className="hidden shrink-0 text-sm text-muted-foreground md:inline"
       >
         {t("location.rowLabel")}
       </span>
       <span
+        ref={shortLabelRef}
         id="location-row-label-short"
         className="shrink-0 text-sm text-muted-foreground md:hidden"
       >
