@@ -219,3 +219,16 @@ board draws its header. It renders nothing when there is no action.
 Tests: HS-10 (the scope before the search; the header's order; nothing when empty)
 in `src/components/shell/columns-button.test.tsx`. Used by Admin › Countries,
 Coverage and Places (CO-1, CV-2, LT-1).
+
+### RowActions' menu is not modal (bundle 11, turn B1 fix; INC-539)
+
+The three-dots menu (`DropdownMenu modal={false}`) does not lock the page's
+pointer events. Its entries usually open a dialog; a modal menu and a modal
+dialog both lock the page, and when the dialog opened while the menu was still
+closing, the lock outlived both — after the dialog closed (Escape), the page took
+no click (CO-9 found it in CI on both widths). Now the dialog alone locks the
+page. The menu still closes on a choice, on Escape and on a click outside, and
+gives focus back to the three-dots (HS-3). The same holds for Admin ›
+Attributes' own row menu until it moves onto RowActions (B3). Test: "an open menu
+leaves the page's pointer events alone" in
+`src/components/shell/row-actions.test.tsx` (red on the modal menu).
