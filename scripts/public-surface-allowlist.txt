@@ -48,3 +48,5 @@ admin_list_category_pointers | restated grant (not a new surface) (M11)
 feed_page | the public feed's read door (bundle 10 E2b): card fields of active listings only, no seller; reads feed_index as its owner
 user_set_viewing_location | D106: the browsing place on the caller's own account; keyed by auth.uid(), rate-gated viewing_place, refuses a place outside an open market's visible tree
 my_viewing_location | D106: owner-only read keyed by auth.uid(); the place, its market, when it was picked, whether it is still visible
+admin_screening_facts | bundle 11 A1 (D120): listings:review only; an ad waiting for review — its country, which contact methods are shown (true/false, never a value) and the seller's public name
+admin_reveal_listing_contact | bundle 11 A1 (D120, D128): "Show number" — listings:review with a fresh second factor, rate-gated review_reveal, phone, phone2 or whatsapp shown by the seller; one audit_log row per reveal (the channel, never the number)

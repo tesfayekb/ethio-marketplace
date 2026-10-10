@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-11-turn-1.md (bundle 11, turn 1 — INC-536: the repeated test ids renamed and the check that refuses a repeat; no migration, no string). Then bundle 11's brief for Parts A–C (the toolbar block and Admin › Screening on the blocks with D120's preview; the other twelve tables; the written rules and their check); it is named on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-11-turn-2.md (bundle 11, turn A1 — Admin › Screening's preview doors: the facts a reviewer may read and the logged "Show number"; one migration, Tier A). Then turn A2 (the shared toolbar with Search, Filters and Columns; Admin › Screening on the agreed blocks with the preview, the tick-boxes and Show number), then Parts B and C; their briefs are named on this line when they are saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

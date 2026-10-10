@@ -21,3 +21,12 @@ Each asks for confirmation, then for a fresh second factor through the step-up g
 ## Not yet (stage 2)
 
 Reasons for a rejection shown to the seller, and the exceptions page this section becomes part of.
+
+## The preview's facts and "Show number" (bundle 11, turn A1; D120, D128)
+
+Two doors, both for an ad waiting for review (status `screening`; any other ad answers "listing not found"), both refusing a person who does not hold `listings:review` ("permission denied") and a call with no session ("not signed in"):
+
+- `admin_screening_facts(p_listing_id)` — what "Preview as buyer" needs and the reviewer may read: the ad's country (its place's market, else the listing's home country), which contact methods the seller chose to show (`phone`, `phone2`, `telegram`, `whatsapp`: true or false — never a value), and the seller's public name (the public name, and the business name when the seller posts as a business). No legal name, e-mail or number leaves it.
+- `admin_reveal_listing_contact(p_listing_id, p_channel)` — "Show number": a fresh second factor (`require_step_up_if_needed('listings','review')`), the dial `review_reveal` (60 an hour per reviewer; `{ok:false, reason:"rateLimited"}`), a channel of `phone`, `phone2` or `whatsapp` ("unknown channel" otherwise) that the seller chose to show (`{ok:false, reason:"notShown"}` otherwise). It returns `{ok:true, channel, value}` and writes one `audit_log` row: action `listing.contact_revealed`, the listing, `meta = {channel}` — never the number. The row is read in Admin › Audit by holders of audit access; it is an internal moderation record and nothing shows it to the seller (D128).
+
+Migration: bundle 11 turn A1 (the dial and the two doors; proofs D1–D4). Tests: SC-7 (the facts, never a value), SC-8 (a non-reviewer reads nothing; a reviewer without a fresh second factor reveals nothing), SC-9 (a reveal returns the number and writes one row with the channel alone; a hidden channel and Telegram are refused and write nothing), SC-10 (an ad not waiting for review answers neither door). The screen uses them in turn A2.

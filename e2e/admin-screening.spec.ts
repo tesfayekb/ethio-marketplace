@@ -15,7 +15,7 @@ import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./hel
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
- * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6). Seeded as feed-route seeds;
+ * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6); bundle 11 A1 — the preview's doors (SC-7..SC-10). Seeded as feed-route seeds;
  * every row is found by its unique title in the page's search (G28); DB truth
  * through the service client; cleanup in afterEach (J3).
  */
@@ -41,6 +41,42 @@ async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unkno
     },
     [fn, args] as const,
   );
+}
+
+type RpcDataClient = {
+  rpc: (
+    fn: string,
+    args?: Record<string, unknown>,
+  ) => Promise<{ data: unknown; error: { message: string } | null }>;
+};
+
+/** Bundle 11 A1 — a door called as the page's signed-in person: its data and its error. */
+async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) {
+  await page.waitForFunction(
+    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
+    undefined,
+    { timeout: 15000 },
+  );
+  return page.evaluate(
+    async ([name, payload]) => {
+      const client = (window as unknown as { __ethioSupabase: RpcDataClient }).__ethioSupabase;
+      const result = await client.rpc(name as string, payload as Record<string, unknown>);
+      return { data: result.data, error: result.error?.message ?? null };
+    },
+    [fn, args] as const,
+  );
+}
+
+/** Bundle 11 A1 — the audit rows a reveal wrote for one listing (audit_log is append-only). */
+async function revealRows(id: string) {
+  const { data, error } = await adminClient()
+    .from("audit_log")
+    .select("actor_id, action, meta")
+    .eq("entity_type", "listing")
+    .eq("entity_id", id)
+    .eq("action", "listing.contact_revealed");
+  if (error || !data) throw new Error(`[e2e:sc] reading audit_log failed: ${error?.message}`);
+  return data as Array<{ actor_id: string | null; action: string; meta: Record<string, unknown> }>;
 }
 
 async function listingTruth(id: string) {
@@ -109,9 +145,25 @@ test.describe("ADMIN SCREENING", () => {
     }
   });
 
-  async function seedWaiting(options: { parentImageUrl?: string } = {}) {
-    const seller = await leaseSeller();
+  async function seedWaiting(
+    options: {
+      parentImageUrl?: string;
+      contactPref?: Record<string, unknown>;
+      business?: string;
+      status?: "screening" | "active";
+    } = {},
+  ) {
+    const seller = await leaseSeller({ alias: true });
     sellers.push(seller.id);
+    if (options.business !== undefined) {
+      // The pool reset restores seller_type and business_name.
+      const named = await adminClient()
+        .from("profiles")
+        .update({ seller_type: "business", business_name: options.business })
+        .eq("user_id", seller.id);
+      if (named.error)
+        throw new Error(`[e2e:sc] naming the business failed: ${named.error.message}`);
+    }
     const { parent, leaf } = await seedCategoryBranch(options);
     branches.push([parent.slug, leaf.slug]);
     const chain = await seedScratchChain("ET");
@@ -126,14 +178,16 @@ test.describe("ADMIN SCREENING", () => {
         home_country_code: "ET",
         title,
         description: "e2e scratch listing for the screening queue",
-        status: "screening",
-        published_at: null,
+        status: options.status ?? "screening",
+        published_at: options.status === "active" ? new Date().toISOString() : null,
+        ...(options.contactPref === undefined ? {} : { contact_pref: options.contactPref }),
       })
       .select("id")
       .single();
     if (error || !data) throw new Error(`[e2e:sc] seeding failed: ${error?.message ?? "no row"}`);
     return {
       id: data.id as string,
+      sellerId: seller.id,
       title,
       categoryName: leaf.slug as string,
       cityName: chain.city.name_en as string,
@@ -268,5 +322,140 @@ test.describe("ADMIN SCREENING", () => {
     await expect(box).toHaveAttribute("data-picture", "category");
     await expect(box.locator("img")).toHaveAttribute("src", picture);
     await expect(page.getByTestId("listing-detail-nophoto")).toHaveCount(0);
+  });
+
+  /** Bundle 11 A1 (D120, D128) — the contact the scratch seller chose: two numbers shown, one hidden. */
+  const PREF = {
+    messages: true,
+    phone: { show: true, value: "+251911000101" },
+    phone2: { show: false, value: "+251911000202" },
+    telegram: { show: true, value: "@escreen_handle" },
+    whatsapp: { show: true, value: "+251911000303" },
+  };
+
+  test("SC-7 a reviewer reads the preview's facts: the ad's country, the methods shown and the public name, never a value", async ({
+    page,
+  }) => {
+    const ad = await seedWaiting({ contactPref: PREF, business: "Escreen Trading" });
+    await useJobSuperAdmin(page);
+    const { data, error } = await rpcResult(page, "admin_screening_facts", {
+      p_listing_id: ad.id,
+    });
+    expect(error, "SC-7: the reviewer was refused").toBeNull();
+    const { data: profile } = await adminClient()
+      .from("profiles")
+      .select("seller_alias, display_name")
+      .eq("user_id", ad.sellerId)
+      .single();
+    expect(profile?.seller_alias, "SC-7: the scratch seller has no public name").toBeTruthy();
+    expect(data).toEqual({
+      country: "ET",
+      channels: { phone: true, phone2: false, telegram: true, whatsapp: true },
+      seller: { alias: profile?.seller_alias, business_name: "Escreen Trading" },
+    });
+    const text = JSON.stringify(data);
+    for (const secret of ["+251911000101", "+251911000202", "+251911000303", "@escreen_handle"]) {
+      expect(text, `SC-7: a contact value left the door (${secret})`).not.toContain(secret);
+    }
+    if (profile?.display_name) expect(text).not.toContain(profile.display_name);
+  });
+
+  test("SC-8 a person who is not a reviewer reads nothing; a reviewer without a fresh second factor reveals nothing", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    const ad = await seedWaiting({ contactPref: PREF });
+    const supabase = adminClient();
+
+    const plain = await leaseUser();
+    await switchUser(page, plain.email, plain.password);
+    await gotoReady(page, "/");
+    const facts = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
+    expect(facts.error).toBe("permission denied");
+    const shown = await rpcResult(page, "admin_reveal_listing_contact", {
+      p_listing_id: ad.id,
+      p_channel: "phone",
+    });
+    expect(shown.error).toBe("permission denied");
+
+    const roleName = `e2e_screen_reveal_${rand()}`;
+    const { data: role, error: roleError } = await supabase
+      .from("roles")
+      .insert({ name: roleName, display_name: roleName, priority: 1 })
+      .select("id")
+      .single();
+    if (roleError || !role) throw new Error(`SC-8 scratch role failed: ${roleError?.message}`);
+    roles.push(role.id as string);
+    const { data: perms } = await supabase
+      .from("permissions")
+      .select("id, action, resources!inner(name)")
+      .in("resources.name", ["listings"]);
+    const wanted = (perms ?? []).filter((p) => p.action === "review");
+    expect(wanted, "SC-8 expected exactly listings:review").toHaveLength(1);
+    const granted = await supabase
+      .from("role_permissions")
+      .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
+    if (granted.error) throw new Error(`SC-8 grant failed: ${granted.error.message}`);
+    const reviewer = await leaseUser();
+    const assigned = await supabase
+      .from("user_roles")
+      .insert({ user_id: reviewer.id, role_id: role.id, scope_type: "global" });
+    if (assigned.error) throw new Error(`SC-8 assignment failed: ${assigned.error.message}`);
+    await switchUser(page, reviewer.email, reviewer.password);
+    await gotoReady(page, "/");
+    const read = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
+    expect(read.error, "SC-8: a reviewer reads the facts without a second factor").toBeNull();
+    const revealed = await rpcResult(page, "admin_reveal_listing_contact", {
+      p_listing_id: ad.id,
+      p_channel: "phone",
+    });
+    expect(revealed.error).toMatch(/no verified factor|step-up required/i);
+    expect(await revealRows(ad.id)).toHaveLength(0);
+  });
+
+  test("SC-9 Show number: a reviewer with a fresh second factor gets the number, and one audit row names the channel and never the number", async ({
+    page,
+  }) => {
+    const ad = await seedWaiting({ contactPref: PREF });
+    const { user } = await useJobSuperAdmin(page);
+    const shown = await rpcResult(page, "admin_reveal_listing_contact", {
+      p_listing_id: ad.id,
+      p_channel: "whatsapp",
+    });
+    expect(shown.error).toBeNull();
+    expect(shown.data).toEqual({ ok: true, channel: "whatsapp", value: "+251911000303" });
+    const rows = await revealRows(ad.id);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual({
+      actor_id: user.id,
+      action: "listing.contact_revealed",
+      meta: { channel: "whatsapp" },
+    });
+
+    const hidden = await rpcResult(page, "admin_reveal_listing_contact", {
+      p_listing_id: ad.id,
+      p_channel: "phone2",
+    });
+    expect(hidden.error).toBeNull();
+    expect(hidden.data).toEqual({ ok: false, reason: "notShown" });
+    const handle = await rpcResult(page, "admin_reveal_listing_contact", {
+      p_listing_id: ad.id,
+      p_channel: "telegram",
+    });
+    expect(handle.error).toBe("unknown channel");
+    expect(await revealRows(ad.id), "SC-9: a refused reveal wrote a row").toHaveLength(1);
+  });
+
+  test("SC-10 an ad that is not waiting for review answers neither door", async ({ page }) => {
+    const ad = await seedWaiting({ contactPref: PREF, status: "active" });
+    await useJobSuperAdmin(page);
+    const facts = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
+    expect(facts.error).toBe("listing not found");
+    const shown = await rpcResult(page, "admin_reveal_listing_contact", {
+      p_listing_id: ad.id,
+      p_channel: "phone",
+    });
+    expect(shown.error).toBe("listing not found");
+    expect(await revealRows(ad.id)).toHaveLength(0);
   });
 });
