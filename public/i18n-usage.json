@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 377,
-  "dynamicCallSites": 228,
+  "scanned": 378,
+  "dynamicCallSites": 233,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1443,6 +1443,9 @@
     "admin.countries.action.edit": [
       "/admin/countries"
     ],
+    "admin.countries.action.railOrder": [
+      "/admin/countries"
+    ],
     "admin.countries.caption": [
       "/admin/countries"
     ],
@@ -1510,9 +1513,6 @@
       "/admin/countries"
     ],
     "admin.countries.filter.openOnly": [
-      "/admin/countries"
-    ],
-    "admin.countries.filter.pageSize": [
       "/admin/countries"
     ],
     "admin.countries.filter.search": [
@@ -1650,10 +1650,22 @@
     "admin.loading": [
       "/admin"
     ],
+    "admin.locations.action.createChild": [
+      "/admin/places"
+    ],
+    "admin.locations.action.delete": [
+      "/admin/places"
+    ],
     "admin.locations.action.deleteBlocked": [
       "/admin/places"
     ],
     "admin.locations.action.edit": [
+      "/admin/places"
+    ],
+    "admin.locations.action.move": [
+      "/admin/places"
+    ],
+    "admin.locations.action.reorder": [
       "/admin/places"
     ],
     "admin.locations.caption": [
@@ -1821,16 +1833,11 @@
       "/admin/countries",
       "/admin/places"
     ],
-    "admin.locations.filter.pageSize": [
-      "/admin/countries",
-      "/admin/places"
-    ],
     "admin.locations.filter.retiredOnly": [
       "/admin/countries",
       "/admin/places"
     ],
     "admin.locations.filter.search": [
-      "/admin/countries",
       "/admin/places"
     ],
     "admin.locations.filter.status": [
@@ -1880,7 +1887,6 @@
       "/admin/places"
     ],
     "admin.locations.searchPlaceholder": [
-      "/admin/countries",
       "/admin/places"
     ],
     "admin.locations.tip.active": [
@@ -4650,13 +4656,20 @@
       "/admin/screening"
     ],
     "prim.table.clearAll": [
+      "/admin/countries",
+      "/admin/places",
       "/admin/screening",
       "/dev/style"
     ],
     "prim.table.columns": [
+      "/admin/countries",
+      "/admin/coverage",
+      "/admin/places",
       "/admin/screening"
     ],
     "prim.table.filters": [
+      "/admin/countries",
+      "/admin/places",
       "/admin/screening",
       "/dev/style"
     ],
@@ -4741,6 +4754,8 @@
       "/dev/style"
     ],
     "prim.table.removeFilter": [
+      "/admin/countries",
+      "/admin/places",
       "/admin/screening",
       "/dev/style"
     ],
