@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-11-turn-5.md (bundle 11, turn B1 — Admin › Countries, Coverage and Places on the agreed blocks: the header's actions, the toolbar with Filters and Columns, the row's Edit, Delete and menu, the footer's page size; no migration). Then Part B (the other twelve tables, in three groups) and Part C (the written rules and their check); their briefs are named on this line when they are saved.
+The brief in force: docs/governance/briefs/bundle-11-turn-6.md (bundle 11, turn B1 fix — INC-539: the row's three-dots menu is not modal, so a dialog opened from it no longer leaves the page unclickable; no migration). Turn B1's own brief: docs/governance/briefs/bundle-11-turn-5.md. Then Part B (the other twelve tables, in three groups) and Part C (the written rules and their check); their briefs are named on this line when they are saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

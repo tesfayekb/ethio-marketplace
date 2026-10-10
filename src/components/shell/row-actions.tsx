@@ -18,6 +18,13 @@ import { cn } from "@/lib/utils";
  * then a three-dots menu. Every control is named `<label> — <row name>`; its
  * tooltip shows the label alone. The three-dots follows THE TOOLTIP RULE:
  * Tooltip › TooltipTrigger asChild › DropdownMenuTrigger asChild › the button.
+ *
+ * Bundle 11 B1 fix (INC-539) — the menu is NOT modal. A menu entry usually
+ * opens a dialog; a modal menu and a modal dialog both lock the page's pointer
+ * events, and when the dialog opens while the menu is still closing, the lock
+ * outlives both and the page takes no click after the dialog closes. The
+ * dialog alone locks the page; the menu still closes on a choice, on Escape
+ * and on a click outside, and gives focus back to the three-dots.
  */
 
 export type RowAction = { label: string; onSelect: () => void; disabled?: boolean };
@@ -93,7 +100,7 @@ export function RowActions({
           />
         ) : null}
         {hasMore ? (
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>

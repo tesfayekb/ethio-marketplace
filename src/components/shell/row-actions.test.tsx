@@ -57,4 +57,21 @@ describe("RowActions", () => {
     fireEvent.click(within(menu).getByTestId("r-more-d"));
     expect(danger).toHaveBeenCalledTimes(1);
   });
+
+  it("an open menu leaves the page's pointer events alone, so a dialog it opens is the only lock (INC-539)", () => {
+    render(
+      <RowActions
+        testid="r"
+        name="Alpha"
+        more={[{ key: "a", label: "Copy", onSelect: () => {} }]}
+      />,
+    );
+    fireEvent.pointerDown(screen.getByTestId("r-more"), {
+      button: 0,
+      ctrlKey: false,
+      pointerType: "mouse",
+    });
+    expect(screen.getByTestId("r-menu")).toBeInTheDocument();
+    expect(document.body.style.pointerEvents).not.toBe("none");
+  });
 });

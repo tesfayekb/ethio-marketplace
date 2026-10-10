@@ -413,8 +413,9 @@ export function AdminAttributesPage() {
         </DropdownMenu>
       );
     }
+    // INC-539 — the menu is not modal: its entries open dialogs, which alone lock the page.
     return mayUpdate || mayRestructure ? (
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button
             type="button"
