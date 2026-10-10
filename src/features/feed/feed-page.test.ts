@@ -4,6 +4,7 @@ import {
   EVERYWHERE,
   feedSections,
   inviteShown,
+  placeCount,
   parseFeedPage,
   type FeedListing,
 } from "./feed-page";
@@ -93,5 +94,13 @@ describe("inviteShown", () => {
     expect(inviteShown(of([1, 1, 1]))).toBe(true);
     expect(inviteShown(of([1, 1, 1, 1]))).toBe(false);
     expect(inviteShown(of([1, 1, 1, 2, 2, 2, 2, 2]))).toBe(true);
+  });
+});
+
+describe("placeCount", () => {
+  it("FP-9 counts the chosen place's own listings (step 1) only", () => {
+    const of = (steps: number[]) => steps.map((s, i) => card(String(i), s) as FeedListing);
+    expect(placeCount([])).toBe(0);
+    expect(placeCount(of([1, 1, 2, 3]))).toBe(2);
   });
 });

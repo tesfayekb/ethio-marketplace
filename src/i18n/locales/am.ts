@@ -254,6 +254,8 @@ export const am: Messages = {
   "feed.noPhoto": "እስካሁን ፎቶ የለም",
   "feed.invite.place": "በ{place} ውስጥ ማስታወቂያ በመለጠፍ የመጀመሪያው ይሁኑ።",
   "feed.invite.placeCategory": "በ{place} ውስጥ እና በ{category} ምድብ ስር ማስታወቂያ በመለጠፍ የመጀመሪያው ይሁኑ።",
+  "feed.invite.placeToo": "እርስዎም በ{place} ውስጥ ማስታወቂያ ይለጥፉ።",
+  "feed.invite.placeCategoryToo": "እርስዎም በ{place} ውስጥ እና በ{category} ምድብ ስር ማስታወቂያ ይለጥፉ።",
   "listing.photosSoon": "ፎቶዎች በቅርቡ ይመጣሉ",
   "price.free": "ነጻ",
   "price.negotiable": "የሚደራደር",

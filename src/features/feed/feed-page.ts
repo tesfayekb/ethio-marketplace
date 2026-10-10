@@ -133,7 +133,12 @@ export const INVITE_BELOW = 4;
  * later pages load.
  */
 export function inviteShown(cards: FeedListing[]): boolean {
-  return cards.filter((card) => card.step === 1).length < INVITE_BELOW;
+  return placeCount(cards) < INVITE_BELOW;
+}
+
+/** D119 — how many of the chosen place's own listings (ladder step 1) are on screen. */
+export function placeCount(cards: FeedListing[]): number {
+  return cards.filter((card) => card.step === 1).length;
 }
 
 /** Consecutive cards with the same step form one section, in the order received. */
