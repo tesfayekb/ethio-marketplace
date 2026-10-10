@@ -10,7 +10,7 @@ export interface Invite {
   placeName: string;
   categoryId: string | null;
   categoryName: string | null;
-  /** How many of the place's own listings are shown: none → "Be the first", some → "… too". */
+  /** How many of the place's own listings are shown: none → "Be the first", some → "Advertise in …". */
   placeCount: number;
 }
 
@@ -21,8 +21,11 @@ export function InviteText({ invite, className }: { invite: Invite; className: s
   const first = invite.placeCount === 0;
   const text =
     invite.categoryName === null
-      ? t(first ? "feed.invite.place" : "feed.invite.placeToo").replace("{place}", invite.placeName)
-      : t(first ? "feed.invite.placeCategory" : "feed.invite.placeCategoryToo")
+      ? t(first ? "feed.invite.place" : "feed.invite.placeMore").replace(
+          "{place}",
+          invite.placeName,
+        )
+      : t(first ? "feed.invite.placeCategory" : "feed.invite.placeCategoryMore")
           .replace("{category}", invite.categoryName)
           .replace("{place}", invite.placeName);
   return (

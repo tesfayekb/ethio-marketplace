@@ -107,7 +107,11 @@ export function parseFeedPage(value: unknown): FeedPage | null {
   return { cards: parsed, ladder: [...ladder], next };
 }
 
-export type FeedSectionLabel = { kind: "place"; placeId: string } | { kind: "all" } | null;
+/**
+ * D125 (the operator, 2026-10-10): "near" names the CHOSEN place — every wider place of
+ * the ladder lies inside the chosen place's own country; "all" is everywhere beyond it.
+ */
+export type FeedSectionLabel = { kind: "near" } | { kind: "all" } | null;
 
 export interface FeedSection {
   step: number;
@@ -120,7 +124,7 @@ function labelOf(step: number, ladder: string[]): FeedSectionLabel {
   const placeId = ladder[step - 1];
   if (placeId === undefined) return null;
   if (placeId === EVERYWHERE) return { kind: "all" };
-  return { kind: "place", placeId };
+  return { kind: "near" };
 }
 
 /** D119 — the card shows while the chosen place holds fewer than this many listings. */
@@ -141,15 +145,25 @@ export function placeCount(cards: FeedListing[]): number {
   return cards.filter((card) => card.step === 1).length;
 }
 
-/** Consecutive cards with the same step form one section, in the order received. */
+/**
+ * Consecutive cards with the same step form one section, in the order received.
+ * D125 (the operator, 2026-10-10): the wider places share ONE heading, "near" the
+ * chosen place, on the first of them; the sections after it carry none.
+ */
 export function feedSections(cards: FeedListing[], ladder: string[]): FeedSection[] {
   const sections: FeedSection[] = [];
+  let nearNamed = false;
   for (const card of cards) {
     const last = sections[sections.length - 1];
     if (last && last.step === card.step) {
       last.cards.push(card);
     } else {
-      sections.push({ step: card.step, label: labelOf(card.step, ladder), cards: [card] });
+      let label = labelOf(card.step, ladder);
+      if (label?.kind === "near") {
+        if (nearNamed) label = null;
+        nearNamed = true;
+      }
+      sections.push({ step: card.step, label, cards: [card] });
     }
   }
   return sections;

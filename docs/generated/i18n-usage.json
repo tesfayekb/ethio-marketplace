@@ -3079,6 +3079,10 @@
       "/",
       "/c/$slug"
     ],
+    "feed.headingIn": [
+      "/",
+      "/c/$slug"
+    ],
     "feed.loading": [
       "/",
       "/c/$slug"

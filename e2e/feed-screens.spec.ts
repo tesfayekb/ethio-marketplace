@@ -27,6 +27,8 @@ import { gotoReady, signInViaSession, signOutViaUi } from "./helpers/ui";
  * place with the wider place named. Scratch rows only; cleanup in afterEach (J3).
  * FS-8..FS-10 and the additions to FS-3/FS-4 — D119, the invite card. FS-11 —
  * INC-532, the place kept across a sign-out. FS-12 — D123, three a row on a phone.
+ * FS-13 and the headings of FS-3/FS-4/FS-11 — D125: "in" the chosen place, one
+ * "near" it over the rest of its country (INC-534).
  */
 
 type Tier = "premium" | "featured" | "regular";
@@ -236,7 +238,7 @@ test.describe("FEED SCREENS", () => {
     return url.searchParams;
   }
 
-  test("FS-3 the page reaches beyond the chosen place, names the wider place, and invites in the chosen one", async ({
+  test("FS-3 the page reaches beyond the chosen place, heads the wider listings near it, and invites in the chosen one", async ({
     page,
     baseURL,
   }) => {
@@ -248,8 +250,9 @@ test.describe("FEED SCREENS", () => {
     const b5 = await addListing(fx.leaf.id, fx.user.id, fx.b.city.id, "regular", 5);
     await openArea(page, fx, baseURL!);
 
+    // D125 — the chosen place's own listings are "in" it; the rest of its country is "near" it.
     await expect(page.locator("main h1")).toHaveText(
-      en["feed.heading"].replace("{location}", fx.a.city.name_en as string),
+      en["feed.headingIn"].replace("{location}", fx.a.city.name_en as string),
     );
     await expect.poll(() => sectionIds(page, 1)).toEqual([a1, a2]);
     await expect(
@@ -258,7 +261,7 @@ test.describe("FEED SCREENS", () => {
     await expect(page.getByTestId("feed-step-label")).toHaveCount(1);
     await expect(
       page.locator('[data-testid="feed-section"][data-step="3"] [data-testid="feed-step-label"]'),
-    ).toHaveText(en["feed.heading"].replace("{location}", fx.country));
+    ).toHaveText(en["feed.heading"].replace("{location}", fx.a.city.name_en as string));
     await expect.poll(() => sectionIds(page, 3)).toEqual([b3, b4, b5]);
     // D119 — the chosen place's row ends with its invitation; the wider row has none.
     await expect
@@ -266,7 +269,7 @@ test.describe("FEED SCREENS", () => {
       .toEqual(["listing-card", "listing-card", "feed-invite"]);
     await expect(inviteOf(page).getByTestId("feed-invite-text")).toHaveText(
       // The place has ads, so not "Be the first" (the operator, 2026-10-10).
-      en["feed.invite.placeCategoryToo"]
+      en["feed.invite.placeCategoryMore"]
         .replace("{category}", fx.leaf.slug)
         .replace("{place}", fx.a.city.name_en as string),
     );
@@ -300,7 +303,7 @@ test.describe("FEED SCREENS", () => {
     await expect(page.getByTestId("feed-step-none")).toHaveCount(0);
     await expect(
       page.locator('[data-testid="feed-section"][data-step="3"] [data-testid="feed-step-label"]'),
-    ).toHaveText(en["feed.heading"].replace("{location}", fx.country));
+    ).toHaveText(en["feed.heading"].replace("{location}", fx.a.city.name_en as string));
   });
 
   test("FS-5 an address nobody has shows not found and asks the feed nothing", async ({ page }) => {
@@ -395,7 +398,7 @@ test.describe("FEED SCREENS", () => {
       .poll(() => rowOrder(page, 1))
       .toEqual(["listing-card", "listing-card", "feed-invite"]);
     await expect(inviteOf(page).getByTestId("feed-invite-text")).toHaveText(
-      en["feed.invite.placeToo"].replace("{place}", fx.a.city.name_en as string),
+      en["feed.invite.placeMore"].replace("{place}", fx.a.city.name_en as string),
     );
     const params = await inviteSearch(inviteOf(page).getByTestId("feed-invite-post"));
     expect(params.get("place")).toBe(fx.a.city.id);
@@ -448,7 +451,7 @@ test.describe("FEED SCREENS", () => {
       .context()
       .addCookies([{ name: "ethio_area", value: `ET:${fx.a.city.id}`, url: baseURL! }]);
     await signInViaSession(page, fx.user.email, fx.user.password);
-    const heading = en["feed.heading"].replace("{location}", fx.a.city.name_en as string);
+    const heading = en["feed.headingIn"].replace("{location}", fx.a.city.name_en as string);
     await expect(page.locator("main h1")).toHaveText(heading, { timeout: 20_000 });
 
     await signOutViaUi(page);
@@ -485,5 +488,51 @@ test.describe("FEED SCREENS", () => {
       Math.abs(invite!.width - card!.width),
       "FS-12: the invitation is not the size of a card",
     ).toBeLessThanOrEqual(1);
+  });
+
+  /**
+   * FS-13 — D125 (the operator, 2026-10-10; INC-534): the chosen place's own
+   * listings are "in" it; the wider places of its own country — another city of
+   * its region, then another region — share ONE heading, "near" the chosen place.
+   */
+  test("FS-13 the rest of the country shares one heading near the chosen place (D125)", async ({
+    page,
+    baseURL,
+  }) => {
+    const fx = await areaFixture(page);
+    const citySlug = scratchSlug("fs-city");
+    const { data, error } = await adminClient()
+      .from("locations")
+      .insert({
+        parent_id: fx.a.region.id,
+        level: "city",
+        country_code: "ET",
+        slug: citySlug,
+        name_en: citySlug,
+        is_active: true,
+        source: "admin",
+        center_lat: 9.03,
+        center_lng: 38.74,
+      })
+      .select("id")
+      .single();
+    if (error || !data)
+      throw new Error(`[e2e:fs] seeding the second city failed: ${error?.message}`);
+    const a1 = await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", 1);
+    const r2 = await addListing(fx.leaf.id, fx.user.id, data.id as string, "regular", 2);
+    const b3 = await addListing(fx.leaf.id, fx.user.id, fx.b.city.id, "regular", 3);
+    await openArea(page, fx, baseURL!);
+
+    const city = fx.a.city.name_en as string;
+    await expect(page.locator("main h1")).toHaveText(
+      en["feed.headingIn"].replace("{location}", city),
+    );
+    await expect.poll(() => sectionIds(page, 1)).toEqual([a1]);
+    await expect.poll(() => sectionIds(page, 2)).toEqual([r2]);
+    await expect.poll(() => sectionIds(page, 3)).toEqual([b3]);
+    await expect(page.getByTestId("feed-step-label")).toHaveCount(1);
+    await expect(
+      page.locator('[data-testid="feed-section"][data-step="2"] [data-testid="feed-step-label"]'),
+    ).toHaveText(en["feed.heading"].replace("{location}", city));
   });
 });
