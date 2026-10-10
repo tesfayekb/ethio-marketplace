@@ -2,6 +2,7 @@ import { type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
+import { fillOf, isRedFill } from "./helpers/colors";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   destroyCategoryBranch,
@@ -11,18 +12,14 @@ import {
   RUN,
   seedCategoryBranch,
 } from "./helpers/posting";
-import {
-  awaitGuardedOutcome,
-  gotoReady,
-  stepUpIfPrompted,
-  switchUser,
-  useJobSuperAdmin,
-} from "./helpers/ui";
+import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6); bundle 11 A1 — the preview's doors (SC-7..SC-10);
- * bundle 11 A2 — the page on the agreed blocks (SC-11..SC-14; SC-2, SC-3, SC-6 open the row's menu). Seeded as feed-route seeds;
+ * bundle 11 A2 — the page on the agreed blocks (SC-11..SC-14; SC-2, SC-3, SC-6 open the row's menu);
+ * bundle 11 A3 — the market filter settles (SC-11, INC-537/538), every Reject is red (SC-12, SC-14),
+ * "Show number" asks for no second factor (SC-8, SC-13, SC-15 — D129), the seller box in rows (SC-13, D130). Seeded as feed-route seeds;
  * every row is found by its unique title in the page's search (G28); DB truth
  * through the service client; cleanup in afterEach (J3).
  */
@@ -223,6 +220,48 @@ test.describe("ADMIN SCREENING", () => {
     return row;
   }
 
+  /**
+   * Bundle 11 A3 — a pool user holding exactly these permissions through a
+   * scratch role, with no second factor (a pool user enrols none). The role is
+   * reaped in afterEach.
+   */
+  async function scratchHolder(wanted: Array<[resource: string, action: string]>) {
+    const supabase = adminClient();
+    const roleName = `e2e_screen_role_${rand()}`;
+    const { data: role, error: roleError } = await supabase
+      .from("roles")
+      .insert({ name: roleName, display_name: roleName, priority: 1 })
+      .select("id")
+      .single();
+    if (roleError || !role) throw new Error(`[e2e:sc] scratch role failed: ${roleError?.message}`);
+    roles.push(role.id as string);
+    const { data: perms } = await supabase
+      .from("permissions")
+      .select("id, action, resources!inner(name)")
+      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
+    const picked = (perms ?? []).filter((p) =>
+      wanted.some(
+        ([resource, action]) =>
+          (p as unknown as { resources: { name: string } }).resources.name === resource &&
+          p.action === action,
+      ),
+    );
+    expect(
+      picked,
+      `[e2e:sc] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
+    ).toHaveLength(wanted.length);
+    const granted = await supabase
+      .from("role_permissions")
+      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
+    if (granted.error) throw new Error(`[e2e:sc] grant failed: ${granted.error.message}`);
+    const holder = await leaseUser();
+    const assigned = await supabase
+      .from("user_roles")
+      .insert({ user_id: holder.id, role_id: role.id, scope_type: "global" });
+    if (assigned.error) throw new Error(`[e2e:sc] assignment failed: ${assigned.error.message}`);
+    return holder;
+  }
+
   test("SC-1 the queue lists an ad waiting for review", async ({ page }) => {
     const ad = await seedWaiting();
     await useJobSuperAdmin(page);
@@ -381,12 +420,11 @@ test.describe("ADMIN SCREENING", () => {
     if (profile?.display_name) expect(text).not.toContain(profile.display_name);
   });
 
-  test("SC-8 a person who is not a reviewer reads nothing; a reviewer without a fresh second factor reveals nothing", async ({
+  test("SC-8 a person who is not a reviewer reads nothing; a reviewer without a second factor reads the facts and reveals a shown number, logged once (D129)", async ({
     page,
   }) => {
     test.setTimeout(180_000);
     const ad = await seedWaiting({ contactPref: PREF });
-    const supabase = adminClient();
 
     const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
@@ -398,30 +436,9 @@ test.describe("ADMIN SCREENING", () => {
       p_channel: "phone",
     });
     expect(shown.error).toBe("permission denied");
+    expect(await revealRows(ad.id), "SC-8: a refused reveal wrote a row").toHaveLength(0);
 
-    const roleName = `e2e_screen_reveal_${rand()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`SC-8 scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", ["listings"]);
-    const wanted = (perms ?? []).filter((p) => p.action === "review");
-    expect(wanted, "SC-8 expected exactly listings:review").toHaveLength(1);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`SC-8 grant failed: ${granted.error.message}`);
-    const reviewer = await leaseUser();
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: reviewer.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`SC-8 assignment failed: ${assigned.error.message}`);
+    const reviewer = await scratchHolder([["listings", "review"]]);
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
     const read = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
@@ -430,8 +447,11 @@ test.describe("ADMIN SCREENING", () => {
       p_listing_id: ad.id,
       p_channel: "phone",
     });
-    expect(revealed.error).toMatch(/no verified factor|step-up required/i);
-    expect(await revealRows(ad.id)).toHaveLength(0);
+    expect(revealed.error, "SC-8: the reveal asked for a second factor (D129)").toBeNull();
+    expect(revealed.data).toEqual({ ok: true, channel: "phone", value: "+251911000101" });
+    expect(await revealRows(ad.id)).toEqual([
+      { actor_id: reviewer.id, action: "listing.contact_revealed", meta: { channel: "phone" } },
+    ]);
   });
 
   test("SC-9 Show number: a reviewer with a fresh second factor gets the number, and one audit row names the channel and never the number", async ({
@@ -480,7 +500,7 @@ test.describe("ADMIN SCREENING", () => {
     expect(await revealRows(ad.id)).toHaveLength(0);
   });
 
-  test("SC-11 the toolbar: Columns hides a column and remembers it; Filters narrows to a market and its chip clears", async ({
+  test("SC-11 the toolbar: Columns hides a column and remembers it; Filters settles on the ad's market — another market lists none, its own lists it, never an error — and its chip clears", async ({
     page,
   }) => {
     const ad = await seedWaiting();
@@ -503,12 +523,31 @@ test.describe("ADMIN SCREENING", () => {
     await page.keyboard.press("Escape");
     await expect(rowOf(page, ad.id)).toContainText(ad.cityName);
 
+    // INC-537, INC-538 — a filter is proven by a result the unfiltered list
+    // cannot give, read once the filtered read has settled: the page keeps the
+    // previous rows on screen while a read is retried.
+    const country = page.getByTestId("admin-screening-filter-country");
     await page.getByTestId("admin-screening-filters").click();
-    await page.getByTestId("admin-screening-filter-country").selectOption("ET");
+    await expect(country.locator('option[value="US"]')).toHaveCount(1);
+    await country.selectOption("US");
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
+    await expect(
+      page.getByTestId("admin-screening-empty"),
+      "SC-11: another market did not settle on the empty message",
+    ).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("data-table-error")).toHaveCount(0);
+    await expect(rowOf(page, ad.id)).toHaveCount(0);
+
+    await page.getByTestId("admin-screening-filters").click();
+    await country.selectOption("ET");
+    await page.keyboard.press("Escape");
     await expect(page.getByTestId("admin-screening-chips-chip-country")).toBeVisible();
-    await expect(rowOf(page, ad.id)).toBeVisible();
+    await expect(rowOf(page, ad.id), "SC-11: the ad's own market did not list it").toBeVisible({
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("admin-screening-empty")).toHaveCount(0);
+    await expect(page.getByTestId("data-table-error")).toHaveCount(0);
     await page.getByTestId("admin-screening-chips-clear").click();
     await expect(page.getByTestId("admin-screening-chips-chip-country")).toHaveCount(0);
     await expect(page.getByTestId("admin-screening-filters-count")).toHaveCount(0);
@@ -529,10 +568,21 @@ test.describe("ADMIN SCREENING", () => {
     await tickOf(page, first.id).click();
     await tickOf(page, second.id).click();
     await expect(page.getByTestId("data-table-selection")).toContainText("2");
+    // Bundle 11 A3 — Reject is red on the bar, Approve is not.
+    await expect
+      .poll(async () => isRedFill(await fillOf(page.getByTestId("admin-screening-bulk-reject"))), {
+        message: "SC-12: the bar's Reject is not red",
+      })
+      .toBe(true);
+    expect(isRedFill(await fillOf(page.getByTestId("admin-screening-bulk-approve")))).toBe(false);
     await page.getByTestId("admin-screening-bulk-approve").click();
     await expect(page.getByTestId("admin-screening-confirm")).toContainText(
       en["admin.screening.confirmApproveMany"].replace("{count}", "2"),
     );
+    expect(
+      isRedFill(await fillOf(page.getByTestId("admin-screening-confirm-go"))),
+      "SC-12: an Approve confirmation drawn red",
+    ).toBe(false);
     await page.getByTestId("admin-screening-confirm-go").click();
     await stepUpIfPrompted(page, secret);
     await expect(page.getByTestId("admin-screening-notice")).toHaveText(
@@ -544,11 +594,11 @@ test.describe("ADMIN SCREENING", () => {
     await expect(page.getByTestId("data-table-selection")).toHaveCount(0);
   });
 
-  test("SC-13 Preview as buyer shows the public name and the methods shown; Show number reveals one number and logs it", async ({
+  test("SC-13 Preview as buyer shows the public name, then the methods shown one per row; Show number puts the number in its row with no second factor and logs it", async ({
     page,
   }) => {
     const ad = await seedWaiting({ contactPref: PREF, business: "Escreen Trading" });
-    const { user, secret } = await useJobSuperAdmin(page);
+    const { user } = await useJobSuperAdmin(page);
     const { data: profile } = await adminClient()
       .from("profiles")
       .select("seller_alias")
@@ -564,6 +614,9 @@ test.describe("ADMIN SCREENING", () => {
     await expect(page.getByTestId("listing-detail-seller-alias")).toHaveText(
       profile?.seller_alias as string,
     );
+    await expect(page.getByTestId("listing-detail-contact")).toContainText(
+      en["post.preview.contactLabel"],
+    );
     const channel = (name: string) =>
       sheet.locator(`[data-testid="listing-detail-channel"][data-channel="${name}"]`);
     await expect(channel("phone")).toBeVisible();
@@ -574,15 +627,60 @@ test.describe("ADMIN SCREENING", () => {
     await expect(sheet).not.toContainText("+251911000101");
     await expect(sheet).not.toContainText("+251911000303");
 
+    // D130 — one method per row, top to bottom; each Show number inside its own
+    // method's row, after the method's name. Measured in one frame.
+    await expect(page.getByTestId("admin-screening-show-whatsapp")).toBeVisible();
+    const layout = await sheet.evaluate((root) => {
+      const box = (element: Element | null) => {
+        if (element === null) return null;
+        const rect = element.getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom, left: rect.left };
+      };
+      return Array.from(root.querySelectorAll('[data-testid="listing-detail-channel"]')).map(
+        (row) => ({
+          channel: row.getAttribute("data-channel"),
+          row: box(row),
+          label: box(row.querySelector('[data-testid="listing-detail-channel-label"]')),
+          button: box(row.querySelector('[data-testid^="admin-screening-show-"]')),
+        }),
+      );
+    });
+    expect(layout.map((entry) => entry.channel)).toEqual([
+      "messages",
+      "phone",
+      "telegram",
+      "whatsapp",
+    ]);
+    for (let index = 1; index < layout.length; index += 1) {
+      expect(
+        layout[index]!.row!.top,
+        `SC-13: the ${layout[index]!.channel} row is not under the one before it`,
+      ).toBeGreaterThanOrEqual(layout[index - 1]!.row!.bottom - 1);
+    }
+    for (const entry of layout.filter(
+      (item) => item.channel === "phone" || item.channel === "whatsapp",
+    )) {
+      expect(entry.button, `SC-13: ${entry.channel} has no Show number in its row`).not.toBeNull();
+      expect(entry.button!.top).toBeGreaterThanOrEqual(entry.row!.top - 1);
+      expect(entry.button!.bottom).toBeLessThanOrEqual(entry.row!.bottom + 1);
+      expect(
+        entry.button!.left,
+        `SC-13: ${entry.channel}'s Show number is not after its name`,
+      ).toBeGreaterThan(entry.label!.left);
+    }
+
     await page.getByTestId("admin-screening-show-phone").click();
-    const number = page.getByTestId("admin-screening-number-phone");
-    await awaitGuardedOutcome(page, secret, number);
-    await expect(number).toHaveText("+251911000101");
+    const number = channel("phone").getByTestId("admin-screening-number-phone");
+    await expect(number).toHaveText("+251911000101", { timeout: 20000 });
+    await expect(
+      page.getByTestId("step-up-modal"),
+      "SC-13: Show number asked for a code",
+    ).toHaveCount(0);
     await expect(sheet, "SC-13: a number not asked for was shown").not.toContainText(
       "+251911000303",
     );
-    const rows = await revealRows(ad.id);
-    expect(rows).toEqual([
+    const logged = await revealRows(ad.id);
+    expect(logged).toEqual([
       { actor_id: user.id, action: "listing.contact_revealed", meta: { channel: "phone" } },
     ]);
   });
@@ -595,11 +693,22 @@ test.describe("ADMIN SCREENING", () => {
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
-    await page.getByTestId("admin-screening-preview-reject").click();
+    const footReject = page.getByTestId("admin-screening-preview-reject");
+    await expect
+      .poll(async () => isRedFill(await fillOf(footReject)), {
+        message: "SC-14: the preview's Reject is not red",
+      })
+      .toBe(true);
+    await footReject.click();
     await expect(page.getByTestId("post-preview-sheet")).toHaveCount(0);
     await expect(page.getByTestId("admin-screening-confirm")).toContainText(
       en["admin.screening.confirmReject"],
     );
+    await expect
+      .poll(async () => isRedFill(await fillOf(page.getByTestId("admin-screening-confirm-go"))), {
+        message: "SC-14: the confirmation's Reject is not red",
+      })
+      .toBe(true);
     await page.getByTestId("admin-screening-confirm-go").click();
     await stepUpIfPrompted(page, secret);
     await expect(page.getByTestId("admin-screening-notice")).toHaveText(
@@ -607,5 +716,35 @@ test.describe("ADMIN SCREENING", () => {
       { timeout: 20000 },
     );
     expect((await listingTruth(ad.id)).status).toBe("rejected");
+  });
+
+  test("SC-15 a reviewer with no second factor opens the preview and Show number shows the number in its row, logged once (D129)", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    const ad = await seedWaiting({ contactPref: PREF });
+    const reviewer = await scratchHolder([
+      ["admin_panel", "access"],
+      ["listings", "view"],
+      ["listings", "review"],
+    ]);
+    await switchUser(page, reviewer.email, reviewer.password);
+    await findRow(page, ad.title, ad.id);
+    await rowMenu(page, ad.id, "open");
+    const sheet = page.getByTestId("post-preview-sheet");
+    await expect(sheet).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("admin-screening-show-whatsapp").click();
+    await expect(
+      sheet
+        .locator('[data-testid="listing-detail-channel"][data-channel="whatsapp"]')
+        .getByTestId("admin-screening-number-whatsapp"),
+    ).toHaveText("+251911000303", { timeout: 20000 });
+    await expect(
+      page.getByTestId("step-up-modal"),
+      "SC-15: Show number asked for a code",
+    ).toHaveCount(0);
+    expect(await revealRows(ad.id)).toEqual([
+      { actor_id: reviewer.id, action: "listing.contact_revealed", meta: { channel: "whatsapp" } },
+    ]);
   });
 });

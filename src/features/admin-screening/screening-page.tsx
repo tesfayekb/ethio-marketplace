@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
@@ -37,6 +37,7 @@ import {
   SCREENING_PAGE_SIZES,
   decideListing,
   revealContact,
+  revealProblemKey,
   useScreeningFacts,
   useScreeningPhotos,
   useScreeningQueue,
@@ -61,6 +62,12 @@ import {
  * "Preview as buyer" shows what a buyer will see (D120): the facts and their
  * options, the ad's country, the contact methods with "Show number" (logged by
  * the door, read in Admin › Audit) and the seller's public name.
+ *
+ * Bundle 11 A3: the market filter reads the ad's place (INC-537); every button
+ * that rejects or confirms a rejection is drawn destructive, as the menu's
+ * Reject is; "Show number" asks for no second factor (D129 — the door keeps
+ * listings:review, its dial and its log) and a refusal is said under that
+ * method's own row; the seller box is organised (D130, in ListingDetail).
  */
 
 type Next = "active" | "rejected";
@@ -89,7 +96,16 @@ export function AdminScreeningPage() {
   const [notice, setNotice] = useState<Notice>(null);
   const [previewRow, setPreviewRow] = useState<ScreeningRow | null>(null);
   const [revealed, setRevealed] = useState<Partial<Record<RevealChannel, string>>>({});
-  const [revealError, setRevealError] = useState<MessageKey | null>(null);
+  const [revealProblems, setRevealProblems] = useState<Partial<Record<RevealChannel, MessageKey>>>(
+    {},
+  );
+  const [revealing, setRevealing] = useState<RevealChannel | null>(null);
+  // The ad the preview shows now: an answer that arrives after the preview has
+  // closed or moved to another ad is dropped, never drawn under the wrong ad.
+  const previewId = useRef<string | null>(null);
+  useEffect(() => {
+    previewId.current = previewRow?.id ?? null;
+  }, [previewRow]);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   // INC-525 — the preview draws the ad's category picture as the card does.
   const { tree } = useCategoryTree();
@@ -154,9 +170,77 @@ export function AdminScreeningPage() {
 
   const openPreview = (row: ScreeningRow) => {
     setRevealed({});
-    setRevealError(null);
+    setRevealProblems({});
     setPreviewRow(row);
   };
+
+  // D129 — no second factor: the door is called directly; a refusal is said
+  // under the method's own row, never as a page-wide message.
+  const reveal = async (row: ScreeningRow, channel: RevealChannel) => {
+    setRevealing(channel);
+    setRevealProblems((current) => ({ ...current, [channel]: undefined }));
+    try {
+      const answer = await revealContact(row.id, channel);
+      if (previewId.current !== row.id) return;
+      if (answer.ok) {
+        setRevealed((current) => ({ ...current, [channel]: answer.value }));
+      } else {
+        setRevealProblems((current) => ({
+          ...current,
+          [channel]: revealProblemKey(answer.reason),
+        }));
+      }
+    } catch (error) {
+      console.error("[screening] reveal failed", error);
+      if (previewId.current !== row.id) return;
+      setRevealProblems((current) => ({ ...current, [channel]: "common.error" }));
+    } finally {
+      setRevealing(null);
+    }
+  };
+
+  const channelAction = (row: ScreeningRow) =>
+    function action(channel: "phone" | "phone2" | "telegram" | "whatsapp") {
+      if (channel === "telegram") return null;
+      const value = revealed[channel];
+      if (value !== undefined) {
+        return (
+          <span
+            data-testid={`admin-screening-number-${channel}`}
+            className="font-medium tabular-nums text-foreground"
+          >
+            {value}
+          </span>
+        );
+      }
+      if (!mayReview) return null;
+      const problem = revealProblems[channel];
+      return (
+        <>
+          {problem === "admin.screening.revealNotShown" ? null : (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid={`admin-screening-show-${channel}`}
+              disabled={revealing !== null}
+              onClick={() => void reveal(row, channel)}
+            >
+              {t("admin.screening.showNumber")}
+            </Button>
+          )}
+          {problem !== undefined ? (
+            <p
+              role="alert"
+              data-testid={`admin-screening-reveal-problem-${channel}`}
+              className="basis-full text-xs text-destructive"
+            >
+              {t(problem)}
+            </p>
+          ) : null}
+        </>
+      );
+    };
 
   const rowActions = (row: ScreeningRow) => (
     <RowActions
@@ -230,50 +314,6 @@ export function AdminScreeningPage() {
             await queryClient.invalidateQueries({ queryKey: ADMIN_SCREENING_KEY });
           }
         };
-
-        const reveal = async (row: ScreeningRow, channel: RevealChannel) => {
-          setRevealError(null);
-          try {
-            const answer = await guard(() => revealContact(row.id, channel));
-            if (answer.ok) {
-              setRevealed((current) => ({ ...current, [channel]: answer.value }));
-            } else {
-              setRevealError("common.error");
-            }
-          } catch (error) {
-            const abort = stepUpAbortKey(error);
-            if (abort === null) return;
-            console.error("[screening] reveal failed", error);
-            setRevealError(abort ?? "common.error");
-          }
-        };
-
-        const channelAction = (row: ScreeningRow) =>
-          function action(channel: "phone" | "phone2" | "telegram" | "whatsapp") {
-            if (channel === "telegram") return null;
-            const value = revealed[channel];
-            if (value !== undefined) {
-              return (
-                <span
-                  data-testid={`admin-screening-number-${channel}`}
-                  className="text-sm font-medium tabular-nums text-foreground"
-                >
-                  {value}
-                </span>
-              );
-            }
-            return mayReview ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                data-testid={`admin-screening-show-${channel}`}
-                onClick={() => void reveal(row, channel)}
-              >
-                {t("admin.screening.showNumber")}
-              </Button>
-            ) : null;
-          };
 
         const previewFacts = facts.data ?? null;
         const contactPref = previewFacts
@@ -421,7 +461,7 @@ export function AdminScreeningPage() {
                     <Button
                       type="button"
                       size="sm"
-                      variant="outline"
+                      variant="destructive"
                       data-testid="admin-screening-bulk-reject"
                       onClick={() => setDecision({ ids: selected, next: "rejected" })}
                     >
@@ -482,6 +522,7 @@ export function AdminScreeningPage() {
                   </AlertDialogCancel>
                   <Button
                     type="button"
+                    variant={decision?.next === "rejected" ? "destructive" : "default"}
                     className="min-h-11"
                     data-testid="admin-screening-confirm-go"
                     disabled={busy}
@@ -514,7 +555,7 @@ export function AdminScreeningPage() {
                       </Button>
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="destructive"
                         className="min-h-11"
                         data-testid="admin-screening-preview-reject"
                         onClick={() => {
@@ -524,15 +565,6 @@ export function AdminScreeningPage() {
                       >
                         {t("admin.screening.reject")}
                       </Button>
-                      {revealError !== null ? (
-                        <p
-                          role="alert"
-                          data-testid="admin-screening-reveal-error"
-                          className="text-sm text-destructive"
-                        >
-                          {t(revealError)}
-                        </p>
-                      ) : null}
                     </>
                   ) : undefined
                 }

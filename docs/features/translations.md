@@ -1018,3 +1018,7 @@ INC-287 also covers TR-26: its fill is filtered to its own stem (two rows, a thi
 - A changed text of another language reaches it after an import or an edit, and its approval.
 - Why: the store's approved rows lie over the compiled catalogs, so a seed change alone is hidden by the row above it.
 - INC-488.
+
+## The delete confirmation is red (bundle 11, turn A3)
+
+The "Delete language" confirmation is drawn red (`destructive`), as every button that confirms a destruction is (G29, the Reject-red class of Admin › Screening's walk). TR-31 reads its colour as a person sees it.
