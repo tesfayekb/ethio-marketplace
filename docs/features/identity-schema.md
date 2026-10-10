@@ -38,7 +38,9 @@ One row per account, created by the signup trigger. Columns: `user_id` (PK),
 Access: RLS enabled. `profiles_owner_read` (SELECT, `auth.uid() = user_id`) and
 `profiles_admin_read` (SELECT, the `profiles:view` permission). No write policy and no write
 grant for any client role since INC-535 (2026-10-10): every write goes through a
-`SECURITY DEFINER` door.
+`SECURITY DEFINER` door. D106 (2026-10-10) adds `viewing_location_id` (→ `locations`, ON DELETE SET
+NULL) and `viewing_location_at`, written only by `user_set_viewing_location` and read by
+`my_viewing_location` (docs/features/location-scoping.md).
 
 Both tables carry `home_country_code` per Knowledge E3.
 

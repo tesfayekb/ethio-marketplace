@@ -175,3 +175,16 @@ The location row's width-specific caption steps aside with `sr-only` when its se
 ## Sign-out keeps the chosen place (INC-532, 2026-10-10)
 
 The sign-out's hard reset clears the selection in memory and derives it again from this browser's saved area (`ethio_area`, read live), exactly as a fresh load does; with nothing saved, the guess applies. The same browser therefore shows the same place signed in and signed out, with no reload (before, the signed-out page showed every listing until a reload brought the saved place back). Keeping the place on the account across devices is D106, later. Test: FS-11.
+
+## The chosen place on the account (D106, part 1 — 2026-10-10)
+
+D106 (the operator, 2026-10-10): the place picked in the location row is kept on the account for signed-in people, so it follows them to every device; visitors keep the per-browser save; the IP guess is never saved; when a device and the account disagree at sign-in, the newest pick wins.
+
+Part 1 is the database:
+
+- `profiles.viewing_location_id` (→ `locations`, ON DELETE SET NULL) and `profiles.viewing_location_at` (when it was picked). No client role writes them (INC-535); the untyped legacy column `viewing_location` stays unread.
+- `user_set_viewing_location(p_location)` — the only writer: the caller's own row, the `viewing_place` dial (60 an hour per account), a place visible in an open market's tree (the rule of `get_location_tree`, reused), NULL clears. Answers `{ok, id, country, at}`, or `{ok: false, reason: "placeNotOpen"}` / `{ok: false, reason: "rateLimited", resets_at}`. A browsing preference: no audit line, `updated_at` untouched.
+- `my_viewing_location()` — the owner's read: `{id, country, at, usable}`; `usable` is false once the place is no longer shown.
+- Tests: VP-1..VP-5 (e2e/viewing-place.spec.ts), through the user's own client.
+
+Part 2 (the shell reading and writing it) follows in the next turn.

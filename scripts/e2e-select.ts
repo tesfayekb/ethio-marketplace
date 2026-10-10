@@ -140,6 +140,7 @@ export const AREAS: Area[] = [
       "e2e/layout.spec.ts",
       "e2e/category-nav.spec.ts",
       "e2e/locations-tree.spec.ts",
+      "e2e/viewing-place.spec.ts",
     ],
   },
   {
@@ -178,6 +179,7 @@ export const AREAS: Area[] = [
       "e2e/feed-screens.spec.ts",
       "e2e/shell.spec.ts",
       "e2e/post-wizard-pricing.spec.ts",
+      "e2e/viewing-place.spec.ts",
     ],
   },
   {
