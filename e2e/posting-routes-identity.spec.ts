@@ -1,7 +1,10 @@
+import { createClient } from "@supabase/supabase-js";
+
 import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { leaseSeller, bearerOf, destroyListingsOf, postRoute, reasonsOf } from "./helpers/posting";
+import { adminClient } from "./helpers/users";
 
 /**
  * Bundle 5 Part F — INC-442: THE IMITATION CHECK IS GATED BEFORE THE MODEL.
@@ -19,6 +22,10 @@ import { leaseSeller, bearerOf, destroyListingsOf, postRoute, reasonsOf } from "
  *
  * Fake mode judges any name containing "cocacola" as imitating, so the 21st call
  * would answer `aliasImitatesBrand` if the judge ran; it answers the rate refusal.
+ *
+ * PR-43 — INC-535: the profile is written through its doors only. The owner's
+ * own client is refused on every column it could once write; the identity route
+ * still saves the same name.
  */
 
 const IDENTITY = "/api/listings/identity";
@@ -82,5 +89,64 @@ test.describe("POSTING ROUTES — IDENTITY GATE", () => {
     });
     // The judge never ran: no imitation verdict travels with the refusal.
     expect(reasons.map((r) => r.reason)).not.toContain("aliasImitatesBrand");
+  });
+
+  test("PR-43 the owner's own client cannot write the profile; the identity route still can", async ({
+    page,
+  }) => {
+    const user = await leaseSeller({ named: true });
+    sellers.push(user.id);
+    await signInViaSession(page, user.email, user.password);
+    await gotoReady(page, "/");
+    const token = await bearerOf(page);
+    const stored = async () => {
+      const { data, error } = await adminClient()
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+      expect(error).toBeNull();
+      return data;
+    };
+    const before = await stored();
+    const own = createClient(
+      process.env["E2E_SUPABASE_URL"]!,
+      process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
+      {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+        auth: { persistSession: false },
+      },
+    );
+    const alias = `eown${letters(8)}`;
+    // Every column the owner's client could once write (INC-535), one attempt each.
+    const attempts: Record<string, unknown>[] = [
+      { seller_alias: alias },
+      { display_name: alias },
+      { avatar_url: "https://example.invalid/e2e-avatar.png" },
+      { contact_prefs: { e2e: true } },
+      { notification_prefs: { e2e: true } },
+      { viewing_location: { e2e: true } },
+      { contact_phone: "e2e" },
+      { show_phone: true },
+      { contact_telegram: "e2e" },
+      { show_telegram: true },
+      { contact_whatsapp: true },
+      { default_post_location_id: null },
+      { updated_at: new Date().toISOString() },
+    ];
+    for (const patch of attempts) {
+      const result = await own
+        .from("profiles")
+        .update(patch)
+        .eq("user_id", user.id)
+        .select("user_id");
+      expect(result.error, `PR-43: ${Object.keys(patch)[0]} was written directly`).not.toBeNull();
+    }
+    expect(await stored()).toEqual(before);
+
+    const saved = await postRoute(page, IDENTITY, { alias }, { token, country: "ET" });
+    expect(saved.status).toBe(200);
+    expect(saved.payload["ok"], JSON.stringify(saved.payload)).toBe(true);
+    expect((await stored())?.["seller_alias"]).toBe(alias);
   });
 });
