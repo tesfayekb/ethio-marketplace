@@ -25,7 +25,9 @@ import { distanceKm } from "@/lib/geo-distance";
  *
  * THE SAVED AREA (law 12) is the cookie `ethio_area`, shaped `<CC>:<node id>`,
  * so the country is known BEFORE the tree loads. The GUESS is never written to
- * it (law 10).
+ * it (law 10). D106 adds the pick's time, `<CC>:<node id>:<ms>`, so the newest
+ * pick wins between this browser and the account (place-carry.ts); a cookie
+ * written before D106 has no time and still reads.
  */
 
 export interface OpenMarket {
@@ -65,15 +67,20 @@ const CODE_RE = /^[A-Za-z]{2}$/;
 export interface SavedArea {
   country: string;
   id: string;
+  /** D106 — when this browser's pick was made (ms since the epoch); null before D106. */
+  at: number | null;
 }
 
-/** Parses `<CC>:<uuid>`; anything else is no saved area at all. */
+const TIME_RE = /^\d{1,15}$/;
+
+/** Parses `<CC>:<uuid>` or `<CC>:<uuid>:<ms>`; anything else is no saved area at all. */
 export function parseAreaCookie(raw: string | null): SavedArea | null {
   if (raw === null) return null;
-  const [code, id, ...rest] = raw.trim().split(":");
+  const [code, id, at, ...rest] = raw.trim().split(":");
   if (rest.length > 0 || code === undefined || id === undefined) return null;
   if (!CODE_RE.test(code) || !UUID_RE.test(id)) return null;
-  return { country: code.toUpperCase(), id };
+  if (at !== undefined && !TIME_RE.test(at)) return null;
+  return { country: code.toUpperCase(), id, at: at === undefined ? null : Number(at) };
 }
 
 export function readAreaCookie(): SavedArea | null {
@@ -86,9 +93,10 @@ export function readAreaCookie(): SavedArea | null {
   }
 }
 
-export function writeAreaCookie(country: string, id: string): void {
+/** D106 — `at` is the pick's time: now for a pick here, the account's time when it is carried. */
+export function writeAreaCookie(country: string, id: string, at: number = Date.now()): void {
   if (typeof document === "undefined") return;
-  document.cookie = `${AREA_COOKIE}=${country.toUpperCase()}:${id}; Path=/; Max-Age=${AREA_COOKIE_MAX_AGE}; SameSite=Lax`;
+  document.cookie = `${AREA_COOKIE}=${country.toUpperCase()}:${id}:${Math.trunc(at)}; Path=/; Max-Age=${AREA_COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
 export function clearAreaCookie(): void {

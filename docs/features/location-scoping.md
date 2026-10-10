@@ -188,3 +188,14 @@ Part 1 is the database:
 - Tests: VP-1..VP-5 (e2e/viewing-place.spec.ts), through the user's own client.
 
 Part 2 (the shell reading and writing it) follows in the next turn.
+
+## The chosen place on the account (D106, part 2 — 2026-10-10)
+
+The shell reads and writes the account's place:
+
+- **The cookie carries the pick's time.** `ethio_area` is `<CC>:<uuid>:<ms>`; a cookie written before D106 (`<CC>:<uuid>`) still reads, with no time (`parseAreaCookie`, `SavedArea.at`; the SSR shape check in src/routes/\_\_root.tsx accepts both).
+- **A pick saves here and on the account.** Every pick (a market's anchor, a deeper place) writes the cookie with the time now and, when signed in, calls `user_set_viewing_location`; "any area" clears both. The saves run one after another in the order of the picks. The account's answer stamps this browser's copy with the account's time, only while the cookie still names the same place. A refusal or a failure logs one `[location]` line and leaves this browser's pick as it is.
+- **The sign-in carry, once per signed-in identity** (the INC-121 latch): `my_viewing_location` is read and `chooseCarry` (src/components/shell/place-carry.ts) applies the operator's rule — the NEWEST pick wins. The account's place is written into this browser and shown (the place is derived again, as after a sign-out), or this browser's pick is saved to the account; a pick without a time counts as older than any account pick; an account place no longer shown counts as none; with neither, nothing is saved — the guess never is. The location row's `data-account-place` reads `off` while signed out, `pending` while the carry runs and `done` after it.
+- **Sign-out keeps the place** (INC-532): the account's place was written into this browser at sign-in.
+- The pool reset clears both columns, so a leased test account starts with no place.
+- Tests: VP-6..VP-11 (e2e/viewing-place.spec.ts); PC-1..PC-6 (src/components/shell/place-carry.test.ts); LS-11 reads the timed cookie.
