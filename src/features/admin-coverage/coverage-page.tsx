@@ -1,11 +1,16 @@
-import { Pencil, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
+import { RowActions } from "@/components/shell/row-actions";
+import { TableActions } from "@/components/shell/table-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,12 +31,20 @@ import { useCoveragePlans } from "./use-coverage";
  * the disabled state below is convenience, never authority.
  *
  * ONE READ, ONE TABLE (the categories/countries convention, CT-8): the plans
- * come from `coverage_plans` once, one 44px pencil per row opens the editor, and
- * the limits are edited there. There is no delete door — a plan is edited,
- * never removed, until a DEC says otherwise.
+ * come from `coverage_plans` once and the limits are edited in the editor. There
+ * is no delete door — a plan is edited, never removed, until a DEC says
+ * otherwise.
+ *
+ * Bundle 11 B1 (D118, D128) — on the agreed blocks: the header's one primary
+ * action (TableActions: New plan); the toolbar (search · Columns — this table
+ * has no filter); the row's actions (RowActions: Edit); the footer's three
+ * zones with the page size.
  */
 
 const PAGE_SIZE = 25;
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const TABLE_ID = "admin-coverage";
+const LOCKED = ["plan"];
 
 type Dialog =
   | { kind: "none" }
@@ -45,7 +58,9 @@ export function AdminCoveragePage() {
 
   const query = useCoveragePlans();
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
+  const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
   const [search, setSearch] = useState("");
   const all = useMemo(() => query.data ?? [], [query.data]);
@@ -60,7 +75,7 @@ export function AdminCoveragePage() {
   const open = (next: Dialog) => setDialog(next);
   const close = () => setDialog({ kind: "none" });
 
-  const columns: DataTableColumn<CoveragePlanRow>[] = [
+  const allColumns: DataTableColumn<CoveragePlanRow>[] = [
     {
       key: "plan",
       header: t("admin.coverage.col.plan"),
@@ -144,34 +159,29 @@ export function AdminCoveragePage() {
     },
   ];
 
-  /** ONE VERB IN THE ROW: a 44px pencil that opens the editor (CT-8). */
-  const rowActions = (row: CoveragePlanRow) =>
-    mayUpdate ? (
-      <span className="flex items-center xl:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          className="size-11 shrink-0 p-0"
-          data-testid={`coverage-edit-${row.plan}`}
-          aria-label={t("admin.coverage.action.edit")}
-          title={t("admin.coverage.action.edit")}
-          onClick={() => open({ kind: "editor", plan: row.plan, openedBy: "row-click" })}
-          onKeyDown={(event) => {
-            if (event.key !== "Enter" && event.key !== " ") return;
-            event.preventDefault();
-            open({ kind: "editor", plan: row.plan, openedBy: "keyboard" });
-          }}
-        >
-          <Pencil aria-hidden="true" className="size-4" />
-        </Button>
-      </span>
-    ) : null;
+  const columns = visibleColumns(allColumns, hidden, LOCKED);
+
+  /** Bundle 11 B1 — Edit; the door re-checks (F3). */
+  const rowActions = (row: CoveragePlanRow) => (
+    <RowActions
+      testid={`coverage-actions-${row.plan}`}
+      name={row.plan}
+      edit={
+        mayUpdate
+          ? {
+              label: t("admin.coverage.action.edit"),
+              onSelect: () => open({ kind: "editor", plan: row.plan, openedBy: "row-click" }),
+            }
+          : undefined
+      }
+    />
+  );
 
   return (
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-coverage" className="min-w-0 space-y-4">
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-3">
+          <TableActions testid="coverage-header">
             {mayUpdate ? (
               <Button
                 type="button"
@@ -183,7 +193,7 @@ export function AdminCoveragePage() {
                 <span>{t("admin.coverage.create.open")}</span>
               </Button>
             ) : null}
-          </div>
+          </TableActions>
 
           <DataTable<CoveragePlanRow>
             columns={columns}
@@ -204,29 +214,34 @@ export function AdminCoveragePage() {
               <p className="text-sm text-muted-foreground">{t("admin.coverage.empty")}</p>
             }
             toolbar={
-              /**
-               * L2d — the categories shape: the find group is a DIRECT child of
-               * the primitive's toolbar row with no visible label above it, and
-               * the note wraps beneath as the legend. Coverage has no transfer
-               * door, so the find group is the only group.
-               */
               <>
-                <div
-                  className="flex flex-wrap items-center gap-2"
-                  data-testid="coverage-toolbar-find"
-                >
-                  <Input
-                    data-testid="coverage-search"
-                    className="md:w-72"
-                    aria-label={t("admin.coverage.filter.search")}
-                    placeholder={t("admin.coverage.searchPlaceholder")}
-                    value={search}
-                    onChange={(event) => {
-                      setSearch(event.target.value);
-                      setPage(0);
-                    }}
-                  />
-                </div>
+                <TableToolbar
+                  testid="coverage-toolbar"
+                  search={
+                    <Input
+                      data-testid="coverage-search"
+                      aria-label={t("admin.coverage.filter.search")}
+                      placeholder={t("admin.coverage.searchPlaceholder")}
+                      value={search}
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(0);
+                      }}
+                    />
+                  }
+                  columns={
+                    <ColumnsButton
+                      testid="coverage-columns"
+                      columns={allColumns.map((column) => ({
+                        key: column.key,
+                        label: String(column.header),
+                        locked: LOCKED.includes(column.key),
+                      }))}
+                      hidden={hidden}
+                      onToggle={toggleColumn}
+                    />
+                  }
+                />
                 <p className="basis-full text-xs text-muted-foreground" data-testid="coverage-note">
                   {t("admin.coverage.note")}
                 </p>
@@ -234,15 +249,21 @@ export function AdminCoveragePage() {
             }
             rowActions={rowActions}
             page={page}
-            pageSize={PAGE_SIZE}
+            pageSize={pageSize}
             pagination={
               <DataTablePagination
                 testid="coverage-pagination"
-                offset={page * PAGE_SIZE}
-                pageSize={PAGE_SIZE}
+                offset={page * pageSize}
+                pageSize={pageSize}
                 total={rows.length}
                 onPrevious={() => setPage((current) => Math.max(0, current - 1))}
                 onNext={() => setPage((current) => current + 1)}
+                onPage={setPage}
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onPageSize={(next) => {
+                  setPageSize(next);
+                  setPage(0);
+                }}
               />
             }
           />

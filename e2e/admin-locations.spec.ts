@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+import { fillOf, isRedFill } from "./helpers/colors";
 import {
   awaitGuardedOutcome,
   enrollAndStepUp,
@@ -17,6 +18,8 @@ import {
   actionsOf,
   activeRosterSpan,
   anchorOf,
+  chooseFilter,
+  deleteButton,
   destroyLocation,
   editButton,
   findRow,
@@ -27,6 +30,7 @@ import {
   readLocation,
   readLocationTranslations,
   regionKeyUnder,
+  rowMenu,
   regionUnder,
   scratchSlug,
   treeSlugs,
@@ -91,7 +95,9 @@ async function uploadLocations(page: import("@playwright/test").Page, body: stri
 async function actionBoxes(page: import("@playwright/test").Page) {
   return page.evaluate(() => {
     const width = document.documentElement.clientWidth;
-    const boxes = [...document.querySelectorAll('[data-testid^="location-edit-"]')].map((node) => {
+    const boxes = [
+      ...document.querySelectorAll('[data-testid^="location-actions-"][data-testid$="-edit"]'),
+    ].map((node) => {
       const box = node.getBoundingClientRect();
       return { left: Math.round(box.left), right: Math.round(box.right) };
     });
@@ -100,7 +106,7 @@ async function actionBoxes(page: import("@playwright/test").Page) {
 }
 
 test.describe("L2a locations console", () => {
-  test("LT-1 gating: a plain user is refused; the roster and transfer toolbar render for an admin", async ({
+  test("LT-1 gating: a plain user is refused; the roster, its toolbar and the header's actions render for an admin", async ({
     page,
   }) => {
     const plain = await leaseUser();
@@ -120,24 +126,40 @@ test.describe("L2a locations console", () => {
     await expect(locationRow(page, ANCHOR)).toHaveCount(0);
     const toolbar = page.getByTestId("data-table-toolbar");
     await expect(toolbar).toBeVisible();
-    await expect(toolbar.getByTestId("location-toolbar-transfer")).toBeVisible();
 
-    // L2d — the categories SHAPE: both groups are direct children of the
-    // primitive's own toolbar row, no control carries a visible label element,
-    // every select names itself for a screen reader, and the legend is last.
-    const row = page.getByTestId("location-toolbar-find").locator("..");
-    await expect(row.locator("> [data-testid='location-toolbar-find']")).toHaveCount(1);
-    await expect(row.locator("> [data-testid='location-toolbar-transfer']")).toHaveCount(1);
-    await expect(row.locator("label")).toHaveCount(0);
-    const unlabelled = await row
-      .locator("select")
-      .evaluateAll((nodes) => nodes.filter((node) => !node.getAttribute("aria-label")).length);
-    expect(unlabelled, "a toolbar select carries no aria-label").toBe(0);
-    const last = await row.evaluate(
-      (node) => node.lastElementChild?.getAttribute("data-testid") ?? "",
+    // Bundle 11 B1 — the agreed toolbar, asserted on structure, never on words:
+    // the market (the table's scope), the search, then Filters and Columns; the
+    // only select left on the row is the market, and it names itself; the
+    // legend sits under the toolbar; Export, Import and New place are the
+    // header's actions.
+    const bar = page.getByTestId("location-toolbar");
+    const order = await bar.evaluate((node) =>
+      Array.from(node.querySelectorAll("[data-testid]"))
+        .map((child) => child.getAttribute("data-testid") ?? "")
+        .filter((id) =>
+          [
+            "location-country-filter",
+            "location-search",
+            "location-filters",
+            "location-columns",
+          ].includes(id),
+        ),
     );
-    expect(last, "the legend is not the toolbar's last child").toBe("location-legend");
-    await expect(page.getByTestId("location-import")).toContainText(
+    expect(order).toEqual([
+      "location-country-filter",
+      "location-search",
+      "location-filters",
+      "location-columns",
+    ]);
+    await expect(bar.locator("select")).toHaveCount(1);
+    await expect(bar.getByTestId("location-country-filter")).toHaveAttribute(
+      "aria-label",
+      en["admin.locations.filter.country"],
+    );
+    await expect(toolbar.getByTestId("location-legend")).toBeVisible();
+    const header = page.getByTestId("location-header");
+    await expect(header.getByTestId("location-transfer")).toBeVisible();
+    await expect(header.getByTestId("location-import")).toContainText(
       en["admin.locations.import.openPlaces"],
     );
   });
@@ -209,8 +231,9 @@ test.describe("L2a locations console", () => {
 
       // The level filter scopes to regions: the scratch city drops out.
       await page.getByTestId("location-search").fill("");
-      await page.getByTestId("location-level-filter").selectOption("region");
+      await chooseFilter(page, "location-level-filter", "region");
       await expect(locationRow(page, `${ANCHOR}/${region.slug}/${slug}`)).toHaveCount(0);
+      await expect(page.getByTestId("location-chips-chip-level")).toBeVisible();
       await expectNoHorizontalOverflow(page);
 
       expect(secret).not.toBe("");
@@ -438,25 +461,36 @@ test.describe("L2a locations console", () => {
       const cityKey = `${regionKey}/${citySlug}`;
 
       // The parent's delete verb is disabled while a child stands, and the bar
-      // says WHY in words (F4) rather than only in a tooltip.
+      // says WHY in words (F4) rather than only in a tooltip. Bundle 11 B1 —
+      // the row's red Delete reads the same rule: off for the parent.
       await findRow(page, regionKey, regionSlug);
+      await expect(deleteButton(page, regionKey)).toBeDisabled();
       await openEditor(page, regionKey);
       await expect(verb(page, "delete")).toBeDisabled();
       await expect(page.getByTestId("location-verb-error")).toBeVisible();
       await page.getByTestId("location-dialog-cancel").click();
 
-      // The leaf deletes with its typed address.
+      // The leaf deletes with its typed address; the confirming button is red.
       await openVerb(page, cityKey, "delete", citySlug);
       await expect(page.getByTestId("location-delete-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-delete-confirm").fill(citySlug);
+      await expect
+        .poll(async () => isRedFill(await fillOf(page.getByTestId("location-delete-submit"))), {
+          message: "LT-5: the delete confirmation is not red",
+        })
+        .toBe(true);
       await page.getByTestId("location-delete-submit").click();
       await stepUpIfPrompted(page, secret);
       await expect
         .poll(() => readLocation(citySlug), { timeout: 20000, intervals: [500, 1000, 1000] })
         .toBeNull();
 
-      // Now the region is a leaf too.
-      await openVerb(page, regionKey, "delete", regionSlug);
+      // Now the region is a leaf too: the row's red Delete is on, and opens the
+      // same dialog.
+      await findRow(page, regionKey, regionSlug);
+      await expect(deleteButton(page, regionKey)).toBeEnabled({ timeout: 20000 });
+      await deleteButton(page, regionKey).click();
+      await expect(page.getByTestId("location-delete-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-delete-confirm").fill(regionSlug);
       await page.getByTestId("location-delete-submit").click();
       await stepUpIfPrompted(page, secret);
@@ -873,7 +907,7 @@ test.describe("L2a locations console", () => {
     await expect(actionsOf(page, regionKey)).toBeVisible();
     await expect(editButton(page, regionKey)).toBeVisible();
     await expect(page.getByTestId("location-pagination-range")).toBeVisible();
-    await expect(page.getByTestId("location-page-size")).toHaveValue("25");
+    await expect(page.getByTestId("location-pagination-size")).toHaveValue("25");
     await expectNoHorizontalOverflow(page);
   });
 
@@ -966,8 +1000,8 @@ test.describe("L2a locations console", () => {
 
     // Typing, level and status are client sieves over the roster already read.
     await page.getByTestId("location-search").fill("adam");
-    await page.getByTestId("location-level-filter").selectOption("region");
-    await page.getByTestId("location-active-filter").selectOption("active");
+    await chooseFilter(page, "location-level-filter", "region");
+    await chooseFilter(page, "location-active-filter", "active");
     await page.getByTestId("location-search").fill("");
     await expect
       .poll(() => reads, { timeout: 3000, intervals: [500, 500, 500, 500] })
@@ -1071,8 +1105,8 @@ test.describe("L2a locations console", () => {
       .poll(
         async () => {
           await gotoReady(page, "/admin/places");
-          await page.getByTestId("location-active-filter").selectOption("active");
-          const pagination = page.getByTestId("location-pagination");
+          await chooseFilter(page, "location-active-filter", "active");
+          const pagination = page.getByTestId("location-pagination-range");
           await expect(pagination).toContainText(/\d/, { timeout: 10000 });
           span = await activeRosterSpan();
           const text = await pagination.innerText();
@@ -1148,6 +1182,63 @@ test.describe("L2a locations console", () => {
     await expect(page.getByTestId("location-market-state")).toHaveText(
       en["admin.locations.market.closed"].replace("{country}", "Canada"),
     );
+  });
+
+  test("LT-16 the row's actions: Edit, a red Delete and the menu's verbs open the editor's own dialogs", async ({
+    page,
+  }) => {
+    await useJobSuperAdmin(page);
+    const region = await regionUnder("ET");
+    const slug = scratchSlug("lt16");
+
+    try {
+      // Seed BEFORE navigating (J7): a retired scratch city, free to delete.
+      const { error } = await adminClient().from("locations").insert({
+        parent_id: region.id,
+        level: "city",
+        country_code: "ET",
+        name_en: slug,
+        slug,
+        center_lat: 9.03,
+        center_lng: 38.74,
+        is_active: false,
+      });
+      if (error) throw new Error(`[e2e:l2a] seeding LT-16 failed: ${error.message}`);
+
+      await gotoReady(page, "/admin/places");
+      await selectMarket(page, "ET");
+      const key = `${ANCHOR}/${region.slug}/${slug}`;
+      await findRow(page, key, slug);
+      await expect(editButton(page, key)).toBeVisible();
+
+      // The menu carries the verb bar's verbs for this row: a city can hold a
+      // sub-city, this one is retired, and it can move and be reordered.
+      const id = `location-actions-${key.replace(/\//g, "__")}`;
+      await actionsOf(page, key).getByTestId(`${id}-more`).click();
+      for (const item of ["create-child", "activate", "move", "reorder"]) {
+        await expect(page.getByTestId(`${id}-more-${item}`)).toBeVisible();
+      }
+      await expect(page.getByTestId(`${id}-more-retire`)).toHaveCount(0);
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId(`${id}-menu`)).toHaveCount(0);
+
+      // Activate opens the same dialog the verb bar opens; Cancel changes nothing.
+      await rowMenu(page, key, "activate");
+      await expect(page.getByTestId("location-active-dialog")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("location-dialog-cancel").click();
+      await expect(page.getByTestId("location-active-dialog")).toHaveCount(0);
+      expect((await readLocation(slug))?.is_active).toBe(false);
+
+      // The red Delete is on for a free leaf and opens the delete dialog.
+      await expect(deleteButton(page, key)).toBeEnabled();
+      await deleteButton(page, key).click();
+      await expect(page.getByTestId("location-delete-dialog")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("location-dialog-cancel").click();
+      await expect(page.getByTestId("location-delete-dialog")).toHaveCount(0);
+      expect(await readLocation(slug)).not.toBeNull();
+    } finally {
+      await destroyLocation(slug);
+    }
   });
 
   test("OV-1 overview totals, links and group breadcrumbs", async ({ page }) => {

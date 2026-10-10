@@ -348,6 +348,7 @@ export function LocationDeleteDialog({
         busy={remove.isPending}
         submitTestId="location-delete-submit"
         submitLabel={t("admin.locations.delete.confirm")}
+        danger
       />
     </CategoryModal>
   );

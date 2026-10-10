@@ -3,13 +3,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ColumnsButton } from "./columns-button";
 import { useHiddenColumns, visibleColumns } from "./columns-state";
+import { TableActions } from "./table-actions";
 import { TableToolbar } from "./table-toolbar";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", setLanguage: () => {} }),
 }));
 
-/** BUNDLE 11 A2 (D128) — the Columns button, the remembered choice and the toolbar's places. */
+/** BUNDLE 11 A2 (D128) — the Columns button, the remembered choice and the toolbar's places; B1 — the scope and the header actions. */
 describe("ColumnsButton, useHiddenColumns and TableToolbar", () => {
   afterEach(() => {
     window.localStorage.clear();
@@ -83,5 +84,37 @@ describe("ColumnsButton, useHiddenColumns and TableToolbar", () => {
       el.getAttribute("data-testid"),
     );
     expect(order).toEqual(["tb-search", "tb-filters", "tb-columns", "tb-chips"]);
+  });
+
+  it("HS-10 a scope control comes before the search; the header actions keep their order and draw nothing when empty", () => {
+    render(
+      <TableToolbar
+        testid="sc"
+        scope={<select data-testid="sc-scope" />}
+        search={<input data-testid="sc-search" />}
+        filters={<button data-testid="sc-filters" />}
+        columns={<button data-testid="sc-columns" />}
+      />,
+    );
+    const bar = screen.getByTestId("sc");
+    expect(
+      Array.from(bar.querySelectorAll("[data-testid^='sc-']")).map((el) =>
+        el.getAttribute("data-testid"),
+      ),
+    ).toEqual(["sc-scope", "sc-search", "sc-filters", "sc-columns"]);
+
+    render(
+      <TableActions testid="ha">
+        <button data-testid="ha-export" />
+        <button data-testid="ha-new" />
+      </TableActions>,
+    );
+    expect(
+      Array.from(screen.getByTestId("ha").querySelectorAll("button")).map((el) =>
+        el.getAttribute("data-testid"),
+      ),
+    ).toEqual(["ha-export", "ha-new"]);
+    render(<TableActions testid="none">{null}</TableActions>);
+    expect(screen.queryByTestId("none")).toBeNull();
   });
 });

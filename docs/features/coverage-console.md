@@ -96,3 +96,13 @@ plan's cap to 3 through the door and read it back through `plan_caps`, refused
 31 by name without changing the stored 3, and asserted the real `free` row
 untouched. The scratch plan's name is spelled in letters (`e_probe_…`) because
 the door's plan shape refuses a digit.
+
+## On the agreed blocks (bundle 11, turn B1; D118, D128)
+
+This section is the later word on the row's pencil above.
+
+- **The header's action** (`TableActions`, `coverage-header`): New plan (`coverage-create-open`).
+- **The toolbar** (`TableToolbar`, `coverage-toolbar`): the search box and Columns (`coverage-columns`; the plan locked; remembered in this browser under `ethio:table-columns:admin-coverage`). This table has no filter, so it has no Filters button. The note sits under the toolbar.
+- **The row's actions** (`RowActions`, `coverage-actions-<plan>`): Edit (`-edit`) opens the editor. There is no delete door, so no Delete.
+- **The footer**: the range, rows per page (`coverage-pagination-size`: 10, 25, 50, 100) and the page numbers.
+- Tests: CV-2 (the toolbar, the header, the footer's size, a hidden column and back); CV-3..CV-7 open the editor through the row's Edit.

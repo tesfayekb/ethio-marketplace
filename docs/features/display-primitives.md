@@ -204,3 +204,18 @@ Tests: HS-7 (the button, the locked column, the reported choice), HS-8 (the choi
 per table, and blocked storage), HS-9 (the drawn columns; the toolbar's order) in
 `src/components/shell/columns-button.test.tsx`. First used by Admin › Screening
 (SC-11).
+
+### TableToolbar's scope and TableActions (bundle 11, turn B1; D83, D118)
+
+`TableToolbar` takes an optional `scope` first on its row — a control that decides
+what the table READS (Admin › Places' market), not a sieve over what it shows, so
+it stays on the row instead of inside Filters — and spans the toolbar's width.
+
+`TableActions` (`src/components/shell/table-actions.tsx`; `testid`, `children`): the
+page's own actions on one row above the table, at its end — the plain ones
+(Export, Import) first, the one primary action ("New …") last, as the agreed list
+board draws its header. It renders nothing when there is no action.
+
+Tests: HS-10 (the scope before the search; the header's order; nothing when empty)
+in `src/components/shell/columns-button.test.tsx`. Used by Admin › Countries,
+Coverage and Places (CO-1, CV-2, LT-1).

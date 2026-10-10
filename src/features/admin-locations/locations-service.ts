@@ -309,6 +309,27 @@ export function filterLocations(roster: LocationNode[], filter: LocationFilter):
   });
 }
 
+/**
+ * Why a place cannot be deleted, as the door would refuse it
+ * (`retireInstead:<detail>`), or null when it can: a child first, then live
+ * listings, a coverage plan's choice, a profile's default. The verb bar and the
+ * row's Delete read this one rule (bundle 11 B1).
+ */
+export function deleteBlockedKey(
+  row: Pick<LocationNode, "childCount" | "listingCount" | "coverageCount" | "profileDefaultCount">,
+):
+  | "admin.locations.error.detail.hasChildren"
+  | "admin.locations.error.detail.hasListings"
+  | "admin.locations.error.detail.hasCoverage"
+  | "admin.locations.error.detail.hasProfileDefaults"
+  | null {
+  if (row.childCount > 0) return "admin.locations.error.detail.hasChildren";
+  if (row.listingCount > 0) return "admin.locations.error.detail.hasListings";
+  if (row.coverageCount > 0) return "admin.locations.error.detail.hasCoverage";
+  if (row.profileDefaultCount > 0) return "admin.locations.error.detail.hasProfileDefaults";
+  return null;
+}
+
 /** The console's slash key rendered as a testid segment. */
 export function keyTestId(key: string): string {
   return key.replace(/\//g, "__");

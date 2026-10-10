@@ -76,12 +76,15 @@ export function LocationDialogActions({
   busy,
   submitTestId,
   submitLabel,
+  danger = false,
 }: {
   onCancel: () => void;
   onSubmit: () => void;
   busy: boolean;
   submitTestId: string;
   submitLabel?: string;
+  /** Bundle 11 B1 (G29) — the button that confirms a destruction is red. */
+  danger?: boolean;
 }) {
   const { t } = useI18n();
   return (
@@ -98,6 +101,7 @@ export function LocationDialogActions({
       <Button
         type="button"
         size="touch"
+        variant={danger ? "destructive" : "default"}
         data-testid={submitTestId}
         disabled={busy}
         onClick={onSubmit}

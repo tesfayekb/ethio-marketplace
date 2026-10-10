@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import { childLevelOf, type LocationNode } from "./locations-service";
+import { childLevelOf, deleteBlockedKey, type LocationNode } from "./locations-service";
 
 /**
  * L2a-R — THE EDITOR'S VERB BAR (the categories `category-verb-bar`, CT-8).
@@ -65,16 +65,7 @@ export function LocationVerbBar({
   );
 
   /** The door refuses `retireInstead:<detail>`; the console names it first. */
-  const blocked =
-    row.childCount > 0
-      ? "admin.locations.error.detail.hasChildren"
-      : row.listingCount > 0
-        ? "admin.locations.error.detail.hasListings"
-        : row.coverageCount > 0
-          ? "admin.locations.error.detail.hasCoverage"
-          : row.profileDefaultCount > 0
-            ? "admin.locations.error.detail.hasProfileDefaults"
-            : null;
+  const blocked = deleteBlockedKey(row);
   const isCountry = row.level === "country";
   const atFloor = childLevelOf(row.level) === null;
 

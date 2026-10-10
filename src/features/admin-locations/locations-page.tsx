@@ -1,13 +1,20 @@
-import { Download, Pencil, Plus, Upload } from "lucide-react";
+import { ArrowDownUp, Download, MoveRight, Plus, RotateCcw, Upload } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { RowActions, type RowMoreAction } from "@/components/shell/row-actions";
+import { TableActions } from "@/components/shell/table-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -23,9 +30,10 @@ import {
   LocationMoveDialog,
   LocationReorderDialog,
 } from "./location-verb-dialogs";
-import { LocationsToolbar, PAGE_SIZE_OPTIONS } from "./locations-toolbar";
+import { LocationFilters, MarketPicker, PAGE_SIZE_OPTIONS } from "./locations-toolbar";
 import {
   childLevelOf,
+  deleteBlockedKey,
   filterLocations,
   keyTestId,
   LOCATION_COLUMN_PRIORITIES,
@@ -41,10 +49,15 @@ import { useAdminLocations, useAllCountries } from "./use-locations";
  * every write re-checks its own granular permission AND step-up inside the door
  * (F3), so the disabled states below are convenience, never authority.
  *
- * The roster follows the CATEGORIES CONVENTION: one 44px pencil per row, the
- * row itself opens the same editor, and every verb lives in the editor's verb
- * bar (CT-8). Six buttons in a table cell were what clipped the end column and
- * pushed the page sideways at 1280.
+ * Bundle 11 B1 (D118, D128) — on the agreed blocks: the header's actions
+ * (TableActions: Export and Import for the chosen scope, then New place); the
+ * toolbar (the market as the table's scope · search · Filters with level and
+ * status · Columns, chips under it); the row's actions (RowActions: Edit, Delete
+ * in red — off, as in the verb bar, while the door would refuse it — and the
+ * three-dots menu with Add a place under it, Retire or Activate, Move and
+ * Reorder; the editor's verb bar keeps them all and says why Delete is off);
+ * the footer's three zones with the page size. Icons and a menu replace the six
+ * buttons that once clipped the end column at 1280.
  *
  * ONE READ PER COUNTRY: the door is called with the country alone and the
  * search / level / status controls sieve that roster in the browser, so nothing
@@ -57,6 +70,8 @@ import { useAdminLocations, useAllCountries } from "./use-locations";
 
 const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.locations.pageSize";
+const TABLE_ID = "admin-places";
+const LOCKED = ["name"];
 
 type Dialog =
   | { kind: "none" }
@@ -87,6 +102,7 @@ export function AdminLocationsPage() {
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
+  const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
   /** Page size is a device setting, read after mount so SSR and hydration agree. */
   useEffect(() => {
@@ -167,7 +183,7 @@ export function AdminLocationsPage() {
     }
   };
 
-  const columns: DataTableColumn<LocationNode>[] = [
+  const allColumns: DataTableColumn<LocationNode>[] = [
     {
       key: "name",
       header: t("admin.locations.col.name"),
@@ -245,38 +261,149 @@ export function AdminLocationsPage() {
     },
   ];
 
-  /**
-   * ONE VERB IN THE ROW (the categories rowActions, verbatim in spirit): a 44px
-   * pencil that opens the editor, and the row itself does the same on click or
-   * on Enter/Space. The end column keeps the primitive's own width.
-   */
-  const rowActions = (row: LocationNode) =>
-    mayUpdate ? (
-      <span className="flex items-center xl:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          className="size-11 shrink-0 p-0"
-          data-testid={`location-edit-${keyTestId(row.key)}`}
-          aria-label={t("admin.locations.action.edit")}
-          title={t("admin.locations.action.edit")}
-          onClick={() => open({ kind: "editor", id: row.id, openedBy: "row-click" })}
-          onKeyDown={(event) => {
-            if (event.key !== "Enter" && event.key !== " ") return;
-            event.preventDefault();
-            open({ kind: "editor", id: row.id, openedBy: "keyboard" });
-          }}
-        >
-          <Pencil aria-hidden="true" className="size-4" />
-        </Button>
-      </span>
-    ) : null;
+  const columns = visibleColumns(allColumns, hidden, LOCKED);
+
+  const setPageSizeKept = (next: number) => {
+    setPageSize(next);
+    setPage(0);
+    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
+  };
+
+  /** Bundle 11 B1 — the verb bar's own gates, the same doors (F3). */
+  const rowActions = (row: LocationNode) => {
+    const more: RowMoreAction[] = [];
+    if (mayCreate && childLevelOf(row.level) !== null) {
+      more.push({
+        key: "create-child",
+        label: t("admin.locations.action.createChild"),
+        icon: <Plus />,
+        onSelect: () => open({ kind: "create", parentId: row.id, fixed: true }),
+      });
+    }
+    if (mayUpdate) {
+      more.push({
+        key: row.isActive ? "retire" : "activate",
+        label: t(
+          row.isActive ? "admin.locations.action.retire" : "admin.locations.action.activate",
+        ),
+        icon: <RotateCcw />,
+        onSelect: () => open({ kind: "active", id: row.id }),
+      });
+    }
+    if (mayRestructure && row.level !== "country") {
+      more.push({
+        key: "move",
+        label: t("admin.locations.action.move"),
+        icon: <MoveRight />,
+        onSelect: () => open({ kind: "move", id: row.id }),
+      });
+    }
+    if (mayUpdate && row.level !== "country") {
+      more.push({
+        key: "reorder",
+        label: t("admin.locations.action.reorder"),
+        icon: <ArrowDownUp />,
+        onSelect: () => open({ kind: "reorder", id: row.id }),
+      });
+    }
+    return (
+      <RowActions
+        testid={`location-actions-${keyTestId(row.key)}`}
+        name={row.nameEn}
+        edit={
+          mayUpdate
+            ? {
+                label: t("admin.locations.action.edit"),
+                onSelect: () => open({ kind: "editor", id: row.id, openedBy: "row-click" }),
+              }
+            : undefined
+        }
+        remove={
+          mayRestructure
+            ? {
+                label: t("admin.locations.action.delete"),
+                disabled: deleteBlockedKey(row) !== null,
+                onSelect: () => open({ kind: "delete", id: row.id }),
+              }
+            : undefined
+        }
+        more={more}
+      />
+    );
+  };
+
+  const chips = [
+    ...(level === ""
+      ? []
+      : [
+          {
+            key: "level",
+            label: t(`admin.locations.level.${level}` as MessageKey),
+            onRemove: () => {
+              setLevel("");
+              setPage(0);
+            },
+          },
+        ]),
+    ...(status === ""
+      ? []
+      : [
+          {
+            key: "status",
+            label: t(
+              status === "active"
+                ? "admin.locations.filter.activeOnly"
+                : "admin.locations.filter.retiredOnly",
+            ),
+            onRemove: () => {
+              setStatus("");
+              setPage(0);
+            },
+          },
+        ]),
+  ];
 
   return (
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-locations" className="min-w-0 space-y-4">
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-3">
+          <TableActions testid="location-header">
+            <div data-testid="location-transfer" className="flex flex-wrap items-center gap-2">
+              {/* The scope reads INLINE, before the buttons it governs. */}
+              <span className="text-sm text-muted-foreground" data-testid="location-transfer-scope">
+                {country === ""
+                  ? `${t("admin.locations.transfer.scopeAll")} ·`
+                  : `${t("admin.locations.transfer.scope").replace("{country}", countryName)} ·`}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                title={t("admin.locations.export.locationsHint")}
+                data-testid="location-export-locations"
+                disabled={exporting}
+                onClick={() => void runExport("locations")}
+              >
+                <Download aria-hidden="true" className="size-4" />
+                <span>
+                  {exporting
+                    ? t("admin.locations.export.busy")
+                    : t("admin.locations.export.locations")}
+                </span>
+              </Button>
+              {mayImport ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  data-testid="location-import"
+                  onClick={() => open({ kind: "import" })}
+                >
+                  <Upload aria-hidden="true" className="size-4" />
+                  <span>{t("admin.locations.import.openPlaces")}</span>
+                </Button>
+              ) : null}
+            </div>
             {mayCreate ? (
               <Button
                 type="button"
@@ -289,7 +416,16 @@ export function AdminLocationsPage() {
                 <span>{t("admin.locations.create.open")}</span>
               </Button>
             ) : null}
-          </div>
+            {exportError ? (
+              <p
+                role="alert"
+                className="w-full text-end text-sm text-destructive"
+                data-testid="location-export-error"
+              >
+                {t("admin.locations.export.error")}
+              </p>
+            ) : null}
+          </TableActions>
 
           <DataTable<LocationNode>
             columns={columns}
@@ -310,93 +446,71 @@ export function AdminLocationsPage() {
               <p className="text-sm text-muted-foreground">{t("admin.locations.empty")}</p>
             }
             toolbar={
-              /**
-               * L2d — THE TOOLBAR READS IN GROUPS (the categories shape): the
-               * find group and the transfer group are DIRECT children of the
-               * primitive's own toolbar row, the market state and the legend
-               * wrap beneath them on every width. No stacked labels (C1).
-               */
               <>
-                <LocationsToolbar
-                  markets={markets}
-                  country={country}
-                  onCountry={(code) => {
-                    setCountry(code);
-                    setPage(0);
-                  }}
-                  search={search}
-                  onSearch={(value) => {
-                    setSearch(value);
-                    setPage(0);
-                  }}
-                  level={level}
-                  onLevel={(value) => {
-                    setLevel(value);
-                    setPage(0);
-                  }}
-                  status={status}
-                  onStatus={(value) => {
-                    setStatus(value);
-                    setPage(0);
-                  }}
-                  pageSize={pageSize}
-                  onPageSize={(next) => {
-                    setPageSize(next);
-                    setPage(0);
-                    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-                  }}
+                <TableToolbar
+                  testid="location-toolbar"
+                  scope={
+                    <MarketPicker
+                      markets={markets}
+                      country={country}
+                      onCountry={(code) => {
+                        setCountry(code);
+                        setPage(0);
+                      }}
+                    />
+                  }
+                  search={
+                    <Input
+                      data-testid="location-search"
+                      aria-label={t("admin.locations.filter.search")}
+                      placeholder={t("admin.locations.searchPlaceholder")}
+                      value={search}
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(0);
+                      }}
+                    />
+                  }
+                  filters={
+                    <FiltersButton testid="location-filters" count={chips.length}>
+                      <LocationFilters
+                        level={level}
+                        onLevel={(value) => {
+                          setLevel(value);
+                          setPage(0);
+                        }}
+                        status={status}
+                        onStatus={(value) => {
+                          setStatus(value);
+                          setPage(0);
+                        }}
+                      />
+                    </FiltersButton>
+                  }
+                  columns={
+                    <ColumnsButton
+                      testid="location-columns"
+                      columns={allColumns.map((column) => ({
+                        key: column.key,
+                        label: String(column.header),
+                        locked: LOCKED.includes(column.key),
+                      }))}
+                      hidden={hidden}
+                      onToggle={toggleColumn}
+                    />
+                  }
+                  chips={
+                    <FilterChips
+                      testid="location-chips"
+                      chips={chips}
+                      onClearAll={() => {
+                        setLevel("");
+                        setStatus("");
+                        setPage(0);
+                      }}
+                    />
+                  }
                 />
-                <div
-                  data-testid="location-toolbar-transfer"
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  {/* The scope reads INLINE, before the buttons it governs. */}
-                  <span
-                    className="text-sm text-muted-foreground"
-                    data-testid="location-transfer-scope"
-                  >
-                    {country === ""
-                      ? `${t("admin.locations.transfer.scopeAll")} ·`
-                      : `${t("admin.locations.transfer.scope").replace("{country}", countryName)} ·`}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    title={t("admin.locations.export.locationsHint")}
-                    data-testid="location-export-locations"
-                    disabled={exporting}
-                    onClick={() => void runExport("locations")}
-                  >
-                    <Download aria-hidden="true" className="size-4" />
-                    <span>
-                      {exporting
-                        ? t("admin.locations.export.busy")
-                        : t("admin.locations.export.locations")}
-                    </span>
-                  </Button>
-                  {mayImport ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="touch"
-                      data-testid="location-import"
-                      onClick={() => open({ kind: "import" })}
-                    >
-                      <Upload aria-hidden="true" className="size-4" />
-                      <span>{t("admin.locations.import.openPlaces")}</span>
-                    </Button>
-                  ) : null}
-                  {exportError ? (
-                    <p
-                      role="alert"
-                      className="w-full text-sm text-destructive"
-                      data-testid="location-export-error"
-                    >
-                      {t("admin.locations.export.error")}
-                    </p>
-                  ) : null}
-                </div>
                 {selectedMarket ? (
                   <p
                     className="basis-full text-xs text-muted-foreground"
@@ -429,6 +543,9 @@ export function AdminLocationsPage() {
                 total={rows.length}
                 onPrevious={() => setPage((current) => Math.max(0, current - 1))}
                 onNext={() => setPage((current) => current + 1)}
+                onPage={setPage}
+                pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
+                onPageSize={setPageSizeKept}
               />
             }
           />
