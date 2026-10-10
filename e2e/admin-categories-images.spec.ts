@@ -88,9 +88,10 @@ import {
         },
         [first!.image_url!, first!.image_thumb_url!, first!.og_image_url!],
       );
+      // D122 — the card and its thumb are cut at 4:3 (they were 512 and 128 square).
       expect(dims).toEqual([
-        [512, 512],
-        [128, 128],
+        [640, 480],
+        [160, 120],
         [1200, 630],
       ]);
 

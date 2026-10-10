@@ -60,6 +60,7 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 - **The words** — `feed.invite.place` on the home page ("Be the first to advertise in {place}.") and `feed.invite.placeCategory` on a category page ("Be the first to advertise {category} in {place}."); the Amharic is the operator's own. The button is `nav.postListing`.
 - **The address** — `feed-invite-post` opens `/post?place=<id>`, with `category=<id>` as well on a category page (docs/features/posting.md, D119).
 - **Tests** — FS-3 and FS-4 (changed), FS-8..FS-10; FP-8.
+- **The grid (D123, 2026-10-10)** — three cards a row on a phone, four from 640 px, five from 1024 px; below 11rem the card is compact (smaller type and padding, a container query in listing-card.tsx); on a phone the invitation takes the whole row. Tests: FS-12, and shell.spec's grid test (3 / 4 / 5).
 
 ## What it does not do yet
 

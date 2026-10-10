@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-10-d119-turn-4.md (INC-532: the place kept across a sign-out; one turn). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-10-d119-turn-5.md (D123 three a row on a phone; D122 the 4:3 picture and one angle — the trial; one turn). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -163,6 +163,9 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] INC-503 (a category's page shows its whole branch), INC-504 (a subcategory's address filters), INC-505 (no whole-catalogue read) closed by E1–E3
 - [x] Records turn (bundle 10, 2026-10-09) — spec-ledger S60 (DEC-163–168, D108–D118), INC-511–528; see docs/governance/handoffs/2026-10-09-bundle10-close-handover.md
 - [ ] D119 — the invite card on the listings pages, /post from an invite, INC-530 (2026-10-09; docs/governance/briefs/bundle-10-d119.md and its turn 2) — built; ticked by the next records turn
+- [ ] D122 (operator, 2026-10-10) — category pictures fill the 4:3 frame, and the watermark and the ribbon share one angle (−30°): built in turn 5; one picture is regenerated first and judged, then the rest (an AI call per picture)
+- [ ] D124 (operator, 2026-10-10; research first) — the category pictures' style: peers' best practice for attractive, consistent illustrations (e.g. a car drawn with one gold and one white tyre), discussed with the operator before the prompt changes and before the rest are regenerated
+- [ ] D123 (operator, 2026-10-10) — three cards a row on a phone, four from 640 px, five from 1024 px — built in turn 5
 - [ ] D121 (operator, 2026-10-09; agreed, not built) — a "Why advertise here" page (the benefits of advertising on ethio.com: its unique features, visibility, performance), and the invite card links to it; its spec is written with its brief once the page's content is agreed
 - [ ] After the shell brief (D106, D107; ACT-017): the chosen place kept on the account for signed-in people (visitors keep the per-browser save; the IP guess is never saved), and the "You seem to be in <place>. Show listings there?" notice with Switch and Keep in the house style's amber (`warning` tokens) — one turn, Tier A for the account part; its spec is written with its brief
 

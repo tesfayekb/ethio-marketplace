@@ -61,7 +61,7 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
     <article
       data-testid="listing-card"
       data-listing={listing.id}
-      className="flex flex-col overflow-hidden rounded-lg border border-border bg-card"
+      className="@container flex flex-col overflow-hidden rounded-lg border border-border bg-card"
     >
       {/*
         Photo area. Listing photos stay un-surfaced here until the photo
@@ -77,9 +77,10 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
         fill
       />
 
-      <div className="flex flex-1 flex-col gap-2 p-3">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-sm font-semibold text-foreground">
+      {/* D123 — below 11rem (three or four a row) the card is compact. */}
+      <div className="flex flex-1 flex-col gap-1 p-2 @min-[11rem]:gap-2 @min-[11rem]:p-3">
+        <div className="flex flex-wrap items-start justify-between gap-1 @min-[11rem]:gap-2">
+          <h3 className="min-w-0 text-xs font-semibold text-foreground @min-[11rem]:text-sm">
             <CutText text={listing.title} />
           </h3>
           {listing.tier === "premium" ? (
@@ -94,7 +95,7 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
           ) : null}
         </div>
 
-        <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
+        <p className="flex flex-wrap items-center gap-1 text-xs font-semibold text-foreground @min-[11rem]:gap-2 @min-[11rem]:text-sm">
           <span data-testid="listing-card-price" data-period={listing.pricePeriod}>
             {cardPrice}
           </span>
@@ -103,7 +104,10 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
 
         {locationName ? (
           <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <MapPin
+              className="h-3 w-3 shrink-0 @min-[11rem]:h-3.5 @min-[11rem]:w-3.5"
+              aria-hidden="true"
+            />
             <CutText text={locationName} />
           </p>
         ) : null}

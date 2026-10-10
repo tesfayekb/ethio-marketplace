@@ -47,8 +47,9 @@ function FeedError({
 function InviteFirst({ invite }: { invite: Invite }) {
   return (
     <section data-testid="feed-section" data-step="1" className="mt-6 first:mt-0">
-      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <li>
+      <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
+        {/* D123 — on a phone the invitation takes the whole row. */}
+        <li className="col-span-3 sm:col-span-1">
           <InviteCard invite={invite} />
         </li>
       </ul>
@@ -57,6 +58,9 @@ function InviteFirst({ invite }: { invite: Invite }) {
 }
 
 /**
+ * D123 (operator, 2026-10-10) — three cards a row on a phone, four from 640 px,
+ * five from 1024 px; the card compacts itself below 11rem (listing-card.tsx).
+ *
  * Bundle 10 E3b — the listings page: one page of cards at a time from
  * /api/feed, in the server's order (D108), for the place the location row
  * shows. Wider places are named above their listings; the next page loads
@@ -180,14 +184,14 @@ export function Feed() {
                   {label}
                 </h2>
               ) : null}
-              <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
                 {section.cards.map((listing) => (
                   <li key={listing.id}>
                     <ListingCard listing={listing} />
                   </li>
                 ))}
                 {section.step === 1 && invite !== null ? (
-                  <li key="invite">
+                  <li key="invite" className="col-span-3 sm:col-span-1">
                     <InviteCard invite={invite} />
                   </li>
                 ) : null}
