@@ -171,3 +171,7 @@ consecutive repeats of both projects all passed), so the instrumentation is the
 whole landing and INC-218 stays open until its next occurrence speaks.
 
 The location row's width-specific caption steps aside with `sr-only` when its selected names need the room (`useLabelRoom`, D105), retaining `aria-labelledby`; slim phone padding/arrows and `CutText` reserve every name's first five graphemes.
+
+## Sign-out keeps the chosen place (INC-532, 2026-10-10)
+
+The sign-out's hard reset clears the selection in memory and derives it again from this browser's saved area (`ethio_area`, read live), exactly as a fresh load does; with nothing saved, the guess applies. The same browser therefore shows the same place signed in and signed out, with no reload (before, the signed-out page showed every listing until a reload brought the saved place back). Keeping the place on the account across devices is D106, later. Test: FS-11.
