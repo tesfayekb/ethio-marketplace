@@ -225,3 +225,14 @@ rows (DEC-062 delta, L2a).
 ## Reading the list (INC-459)
 
 The list is read whole, page by page, by key (`readAllPages`), and names are ordered by the one pinned collator (src/lib/name-collator.ts).
+
+## On the agreed blocks (bundle 11, turn B1; D118, D128)
+
+This section is the later word on the find group, the transfer group, the page size and the pencil above.
+
+- **The header's actions** (`TableActions`, `location-header`): the transfer group (`location-transfer`: the scope line, Export places, Import places) and then the one primary action, New place (`location-create-open`); an export failure is said under them (`location-export-error`).
+- **The toolbar** (`TableToolbar`, `location-toolbar`): first the market (`location-country-filter`) as the table's SCOPE — it decides what is read (one read per country), what Export and Import carry and the market note, so it stays on the row (`MarketPicker`); then the search box; Filters (`location-filters`) with Level (`location-level-filter`) and Status (`location-active-filter`), each labelled; Columns (`location-columns`; the name locked; remembered in this browser under `ethio:table-columns:admin-places`); level and status as chips (`location-chips`) with "Clear all". The market note and the legend sit under the toolbar.
+- **The row's actions** (`RowActions`, `location-actions-<key>`): Edit (`-edit`) opens the editor; Delete in red (`-delete`, `locations:restructure`) is off while the door would refuse it — the same rule as the verb bar (`deleteBlockedKey` in locations-service.ts: a child, then listings, a coverage plan, a profile's default) — and opens the typed-address dialog; the three-dots menu (`-more`) holds Add a place under it (`-more-create-child`, not at the floor), Retire or Activate (`-more-retire` / `-more-activate`), Move (`-more-move`) and Reorder (`-more-reorder`). The editor's verb bar keeps every verb and says in words why Delete is off.
+- **The delete confirmation is red** (`location-delete-submit`, `LocationDialogActions`' `danger`), as every button that confirms a destruction (G29).
+- **The footer**: the range (`location-pagination-range`), rows per page (`location-pagination-size`: 10, 25, 50, 100, kept in this browser as before) and the page numbers.
+- Tests: LT-1 (the toolbar's order and the header), LT-2 and LT-11 (level and status through the Filters panel; the chip), LT-5 (the row's Delete off for a parent, on for a leaf; the red confirmation), LT-9a (the footer's size), LT-13 (the range read for the total), LT-16 (the row's menu and Delete open the editor's own dialogs); PL-1 (`deleteBlockedKey`).

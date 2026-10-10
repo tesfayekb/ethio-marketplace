@@ -70,12 +70,31 @@ export function actionsOf(page: Page, key: string): Locator {
 }
 
 /**
- * L2a-R — THE ROW CARRIES ONE VERB: the 44px pencil that opens the editor (the
- * categories convention). Everything else is reached through the editor's verb
- * bar, so `verb()` below replaces the old per-row `action()` helper.
+ * Bundle 11 B1 — the row's Edit icon (RowActions); the editor's verb bar still
+ * carries every verb, so `verb()` below still reaches them.
  */
 export function editButton(page: Page, key: string): Locator {
-  return actionsOf(page, key).getByTestId(`location-edit-${keyTestId(key)}`);
+  return actionsOf(page, key).getByTestId(`location-actions-${keyTestId(key)}-edit`);
+}
+
+/** Bundle 11 B1 — the row's red Delete icon (RowActions). */
+export function deleteButton(page: Page, key: string): Locator {
+  return actionsOf(page, key).getByTestId(`location-actions-${keyTestId(key)}-delete`);
+}
+
+/** Bundle 11 B1 — opens the row's three-dots menu and picks an item. */
+export async function rowMenu(page: Page, key: string, item: string) {
+  const id = `location-actions-${keyTestId(key)}`;
+  await actionsOf(page, key).getByTestId(`${id}-more`).click();
+  await page.getByTestId(`${id}-more-${item}`).click();
+}
+
+/** Bundle 11 B1 — level and status live in the Filters panel: open it, choose, close it. */
+export async function chooseFilter(page: Page, testid: string, value: string) {
+  await page.getByTestId("location-filters").click();
+  await page.getByTestId(testid).selectOption(value);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("location-filters-panel")).toHaveCount(0);
 }
 
 /** A verb of the OPEN editor's bar — exactly one match per name (J5). */

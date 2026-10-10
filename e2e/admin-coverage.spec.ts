@@ -50,8 +50,9 @@ function actionsOf(page: Page, plan: string): Locator {
   return surface(page).getByTestId(isCardTwin(page) ? `${id}-actions` : `${id}-actions-cell`);
 }
 
+/** Bundle 11 B1 — the row's Edit icon (RowActions). */
 async function openEditor(page: Page, plan: string) {
-  await actionsOf(page, plan).getByTestId(`coverage-edit-${plan}`).click();
+  await actionsOf(page, plan).getByTestId(`coverage-actions-${plan}-edit`).click();
   await expect(page.getByTestId("coverage-editor")).toBeVisible({ timeout: 20000 });
   await settled(page);
 }
@@ -129,7 +130,7 @@ test.describe("L2b coverage console", () => {
     await expect(planRow(page, "free")).toBeVisible({ timeout: 20000 });
   });
 
-  test("CV-2 roster: the free plan renders its three limits and its everywhere state", async ({
+  test("CV-2 roster: the free plan renders its three limits and its everywhere state, on the agreed toolbar", async ({
     page,
   }) => {
     await useJobSuperAdmin(page);
@@ -149,16 +150,29 @@ test.describe("L2b coverage console", () => {
       String(stored?.max_countries),
     );
     await expect(row.getByTestId("coverage-free-everywhere")).toBeVisible();
-    // L2d — the categories SHAPE: the find group is a direct child of the
-    // primitive's toolbar row, no visible label element, the note wraps last.
-    const toolbarRow = page.getByTestId("coverage-toolbar-find").locator("..");
-    await expect(toolbarRow.locator("> [data-testid='coverage-toolbar-find']")).toHaveCount(1);
-    await expect(toolbarRow.locator("label")).toHaveCount(0);
-    const last = await toolbarRow.evaluate(
-      (node) => node.lastElementChild?.getAttribute("data-testid") ?? "",
-    );
-    expect(last, "the note is not the toolbar's last child").toBe("coverage-note");
-    await expect(page.getByTestId("coverage-note")).toBeVisible();
+    // Bundle 11 B1 — the agreed toolbar: search, then Columns (no filter on
+    // this table); the note under it; the header holds New plan; the footer
+    // holds the page size.
+    const toolbar = page.getByTestId("coverage-toolbar");
+    await expect(toolbar.getByTestId("coverage-search")).toBeVisible();
+    await expect(toolbar.getByTestId("coverage-columns")).toBeVisible();
+    await expect(toolbar.locator("select")).toHaveCount(0);
+    await expect(page.getByTestId("data-table-toolbar").getByTestId("coverage-note")).toBeVisible();
+    await expect(
+      page.getByTestId("coverage-header").getByTestId("coverage-create-open"),
+    ).toBeVisible();
+    await expect(page.getByTestId("coverage-pagination-size")).toHaveValue("25");
+
+    // Columns hides "photos", and the row loses it; shown again after.
+    await page.getByTestId("coverage-columns").click();
+    await expect(page.getByTestId("coverage-columns-plan")).toBeDisabled();
+    await page.getByTestId("coverage-columns-photos").click();
+    await page.keyboard.press("Escape");
+    await expect(row.getByTestId("coverage-free-photos")).toHaveCount(0);
+    await page.getByTestId("coverage-columns").click();
+    await page.getByTestId("coverage-columns-photos").click();
+    await page.keyboard.press("Escape");
+    await expect(row.getByTestId("coverage-free-photos")).toBeVisible();
 
     // The search sieves the one read in the browser.
     await page.getByTestId("coverage-search").fill("free");

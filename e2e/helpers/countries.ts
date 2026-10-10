@@ -93,8 +93,23 @@ export function actionsOf(page: Page, code: string): Locator {
   return surface(page).getByTestId(isCardTwin(page) ? `${id}-actions` : `${id}-actions-cell`);
 }
 
+/** Bundle 11 B1 — the row's Edit icon (RowActions). */
 export function editButton(page: Page, code: string): Locator {
-  return actionsOf(page, code).getByTestId(`country-edit-${code}`);
+  return actionsOf(page, code).getByTestId(`country-actions-${code}-edit`);
+}
+
+/** Bundle 11 B1 — opens the row's three-dots menu and picks an item. */
+export async function rowMenu(page: Page, code: string, item: string) {
+  await actionsOf(page, code).getByTestId(`country-actions-${code}-more`).click();
+  await page.getByTestId(`country-actions-${code}-more-${item}`).click();
+}
+
+/** Bundle 11 B1 — a filter lives in the Filters panel: open it, choose, close it. */
+export async function chooseFilter(page: Page, testid: string, value: string) {
+  await page.getByTestId("country-filters").click();
+  await page.getByTestId(testid).selectOption(value);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("country-filters-panel")).toHaveCount(0);
 }
 
 /** A verb of the OPEN editor's bar — exactly one match per name (J5). */

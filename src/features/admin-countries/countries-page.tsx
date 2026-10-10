@@ -1,20 +1,27 @@
-import { Download, Pencil, Upload } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { RowActions } from "@/components/shell/row-actions";
+import { TableActions } from "@/components/shell/table-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
-import { CountriesToolbar } from "./countries-toolbar";
+import { CountryFilters } from "./countries-toolbar";
 import { COUNTRY_COLUMN_PRIORITIES, filterCountries, type CountryRow } from "./countries-service";
 import { CountryEditorDialog } from "./country-editor";
 import { ImportCountriesDialog } from "./country-import-dialog";
@@ -31,11 +38,17 @@ import { useAdminCountries } from "./use-countries";
  *
  * ONE READ, ONE TABLE (the categories/places convention, CT-8): the roster
  * comes from `admin_list_countries` once, the search and status controls sieve
- * it in the browser, one 44px pencil per row opens the editor, and every verb
- * lives in that editor's verb bar. The MARKETS transfer group sits inside this
- * table's own toolbar — a markets file names its own countries, so it is never
- * scoped.
+ * it in the browser.
+ *
+ * Bundle 11 B1 (D118, D128) — on the agreed blocks: the header's actions
+ * (TableActions: the markets file's Export and Import — a markets file names its
+ * own countries, so it is never scoped); the toolbar (search · Filters with the
+ * status · Columns, chips under it); the row's actions (RowActions: Edit, then
+ * the three-dots menu with Open or Close market and Rail order — the editor's
+ * verb bar keeps them too); the footer's three zones with the page size.
  */
+const TABLE_ID = "admin-countries";
+const LOCKED = ["name"];
 
 const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.countries.pageSize";
@@ -66,6 +79,7 @@ export function AdminCountriesPage() {
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
+  const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
   /** Page size is a device setting, read after mount so SSR and hydration agree. */
   useEffect(() => {
@@ -116,7 +130,7 @@ export function AdminCountriesPage() {
     }
   };
 
-  const columns: DataTableColumn<CountryRow>[] = [
+  const allColumns: DataTableColumn<CountryRow>[] = [
     {
       key: "name",
       header: t("admin.countries.col.name"),
@@ -202,33 +216,120 @@ export function AdminCountriesPage() {
     },
   ];
 
-  /** ONE VERB IN THE ROW: a 44px pencil that opens the editor (CT-8). */
-  const rowActions = (row: CountryRow) =>
-    mayUpdate ? (
-      <span className="flex items-center xl:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          className="size-11 shrink-0 p-0"
-          data-testid={`country-edit-${row.code}`}
-          aria-label={t("admin.countries.action.edit")}
-          title={t("admin.countries.action.edit")}
-          onClick={() => open({ kind: "editor", code: row.code, openedBy: "row-click" })}
-          onKeyDown={(event) => {
-            if (event.key !== "Enter" && event.key !== " ") return;
-            event.preventDefault();
-            open({ kind: "editor", code: row.code, openedBy: "keyboard" });
-          }}
-        >
-          <Pencil aria-hidden="true" className="size-4" />
-        </Button>
-      </span>
-    ) : null;
+  const columns = visibleColumns(allColumns, hidden, LOCKED);
+
+  const setPageSizeKept = (next: number) => {
+    setPageSize(next);
+    setPage(0);
+    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
+  };
+
+  /** Bundle 11 B1 — Edit, then the menu; each door re-checks (F3). */
+  const rowActions = (row: CountryRow) => (
+    <RowActions
+      testid={`country-actions-${row.code}`}
+      name={row.nameEn}
+      edit={
+        mayUpdate
+          ? {
+              label: t("admin.countries.action.edit"),
+              onSelect: () => open({ kind: "editor", code: row.code, openedBy: "row-click" }),
+            }
+          : undefined
+      }
+      more={[
+        ...(mayActivate
+          ? [
+              {
+                key: row.isActive ? "close" : "open",
+                label: t(
+                  row.isActive ? "admin.countries.action.close" : "admin.countries.action.open",
+                ),
+                onSelect: () => open({ kind: "active", code: row.code }),
+              },
+            ]
+          : []),
+        ...(mayUpdate
+          ? [
+              {
+                key: "rail-order",
+                label: t("admin.countries.action.railOrder"),
+                onSelect: () => open({ kind: "rail", code: row.code }),
+              },
+            ]
+          : []),
+      ]}
+    />
+  );
+
+  const chips =
+    status === ""
+      ? []
+      : [
+          {
+            key: "status",
+            label: t(
+              status === "open"
+                ? "admin.countries.filter.openOnly"
+                : "admin.countries.filter.closedOnly",
+            ),
+            onRemove: () => {
+              setStatus("");
+              setPage(0);
+            },
+          },
+        ];
 
   return (
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-countries" className="min-w-0 space-y-4">
+          <TableActions testid="country-header">
+            <div data-testid="country-transfer" className="flex flex-wrap items-center gap-2">
+              {/* A markets file names its own countries: never scoped. */}
+              <span className="text-sm text-muted-foreground" data-testid="country-transfer-scope">
+                {`${t("admin.countries.transfer.scope")} ·`}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                title={t("admin.locations.export.countriesHint")}
+                data-testid="country-export"
+                disabled={exporting}
+                onClick={() => void runExport()}
+              >
+                <Download aria-hidden="true" className="size-4" />
+                <span>
+                  {exporting
+                    ? t("admin.locations.export.busy")
+                    : t("admin.locations.export.countries")}
+                </span>
+              </Button>
+              {mayImport ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  data-testid="country-import"
+                  onClick={() => open({ kind: "import" })}
+                >
+                  <Upload aria-hidden="true" className="size-4" />
+                  <span>{t("admin.countries.import.title")}</span>
+                </Button>
+              ) : null}
+              {exportError ? (
+                <p
+                  role="alert"
+                  className="w-full text-sm text-destructive"
+                  data-testid="country-export-error"
+                >
+                  {t("admin.locations.export.error")}
+                </p>
+              ) : null}
+            </div>
+          </TableActions>
+
           <DataTable<CountryRow>
             columns={columns}
             rows={rows}
@@ -248,79 +349,55 @@ export function AdminCountriesPage() {
               <p className="text-sm text-muted-foreground">{t("admin.countries.empty")}</p>
             }
             toolbar={
-              /**
-               * L2d — the categories shape: the find group and the transfer
-               * group are DIRECT children of the primitive's toolbar row, the
-               * legend wraps beneath them; no stacked labels (C1).
-               */
               <>
-                <CountriesToolbar
-                  search={search}
-                  onSearch={(value) => {
-                    setSearch(value);
-                    setPage(0);
-                  }}
-                  status={status}
-                  onStatus={(value) => {
-                    setStatus(value);
-                    setPage(0);
-                  }}
-                  pageSize={pageSize}
-                  onPageSize={(next) => {
-                    setPageSize(next);
-                    setPage(0);
-                    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-                  }}
+                <TableToolbar
+                  testid="country-toolbar"
+                  search={
+                    <Input
+                      data-testid="country-search"
+                      aria-label={t("admin.countries.filter.search")}
+                      placeholder={t("admin.countries.searchPlaceholder")}
+                      value={search}
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(0);
+                      }}
+                    />
+                  }
+                  filters={
+                    <FiltersButton testid="country-filters" count={chips.length}>
+                      <CountryFilters
+                        status={status}
+                        onStatus={(value) => {
+                          setStatus(value);
+                          setPage(0);
+                        }}
+                      />
+                    </FiltersButton>
+                  }
+                  columns={
+                    <ColumnsButton
+                      testid="country-columns"
+                      columns={allColumns.map((column) => ({
+                        key: column.key,
+                        label: String(column.header),
+                        locked: LOCKED.includes(column.key),
+                      }))}
+                      hidden={hidden}
+                      onToggle={toggleColumn}
+                    />
+                  }
+                  chips={
+                    <FilterChips
+                      testid="country-chips"
+                      chips={chips}
+                      onClearAll={() => {
+                        setStatus("");
+                        setPage(0);
+                      }}
+                    />
+                  }
                 />
-                <div
-                  data-testid="country-toolbar-transfer"
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  {/* A markets file names its own countries: never scoped. */}
-                  <span
-                    className="text-sm text-muted-foreground"
-                    data-testid="country-transfer-scope"
-                  >
-                    {`${t("admin.countries.transfer.scope")} ·`}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    title={t("admin.locations.export.countriesHint")}
-                    data-testid="country-export"
-                    disabled={exporting}
-                    onClick={() => void runExport()}
-                  >
-                    <Download aria-hidden="true" className="size-4" />
-                    <span>
-                      {exporting
-                        ? t("admin.locations.export.busy")
-                        : t("admin.locations.export.countries")}
-                    </span>
-                  </Button>
-                  {mayImport ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="touch"
-                      data-testid="country-import"
-                      onClick={() => open({ kind: "import" })}
-                    >
-                      <Upload aria-hidden="true" className="size-4" />
-                      <span>{t("admin.countries.import.title")}</span>
-                    </Button>
-                  ) : null}
-                  {exportError ? (
-                    <p
-                      role="alert"
-                      className="w-full text-sm text-destructive"
-                      data-testid="country-export-error"
-                    >
-                      {t("admin.locations.export.error")}
-                    </p>
-                  ) : null}
-                </div>
                 <p
                   className="basis-full text-xs text-muted-foreground"
                   data-testid="country-legend"
@@ -340,6 +417,9 @@ export function AdminCountriesPage() {
                 total={rows.length}
                 onPrevious={() => setPage((current) => Math.max(0, current - 1))}
                 onNext={() => setPage((current) => current + 1)}
+                onPage={setPage}
+                pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
+                onPageSize={setPageSizeKept}
               />
             }
           />

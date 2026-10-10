@@ -129,3 +129,13 @@ name_en`), so a single leaked OPEN scratch market displaces a real row from page
 - `docs/features/locations-console.md` — the Places roster in the same rail group.
 - `docs/features/countries-reference.md` — the reference table behind it.
 - `docs/features/imports.md` — the shared import shell and its laws.
+
+## On the agreed blocks (bundle 11, turn B1; D118, D128)
+
+This section is the later word on the toolbar and the row's pencil above.
+
+- **The header's actions** (`TableActions`, `country-header`): the markets file's group (`country-transfer`: the scope line, Export, Import) above the table, at its end. Countries has no "New" button — the markets file is the only creation path (CO-3).
+- **The toolbar** (`TableToolbar`, `country-toolbar`): the search box; Filters (`country-filters`) with the status select (`country-status-filter`, labelled) and its count; Columns (`country-columns`; the name locked; the hidden columns remembered in this browser under `ethio:table-columns:admin-countries`); the status as a chip (`country-chips`) with "Clear all". The legend sits under the toolbar.
+- **The row's actions** (`RowActions`, `country-actions-<CODE>`): Edit (`-edit`) opens the editor; the three-dots menu (`-more`) holds Open or Close market (`-more-open` / `-more-close`, `countries:activate`) and Rail order (`-more-rail-order`, `countries:update`), opening the same dialogs as the editor's verb bar, which keeps them.
+- **The footer**: the range (`country-pagination-range`), rows per page (`country-pagination-size`: 10, 25, 50, 100, kept in this browser as before) and the page numbers.
+- Tests: CO-1 (the toolbar and the header's group), CO-2 (the status filter and its chip, the toolbar's order, the footer's size), CO-7 (Import from the header), CO-9 (the row's menu; a hidden column remembered after a reload).

@@ -3,7 +3,9 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { geometryDump, grantRole } from "./helpers/categories";
 import {
+  actionsOf,
   awaitRoster,
+  chooseFilter,
   countCountries,
   countryRow,
   destroyCountry,
@@ -13,6 +15,7 @@ import {
   readAnchor,
   readCountry,
   readRootOrder,
+  rowMenu,
   scratchCountryCode,
   scratchCountryName,
   seedCountry,
@@ -54,7 +57,7 @@ const MARKETS_HEADER = [
 ].join(",");
 
 test.describe("L2b countries console", () => {
-  test("CO-1 gating: a plain user is refused; the roster and its transfer toolbar render for an admin", async ({
+  test("CO-1 gating: a plain user is refused; the roster, its toolbar and the header's transfer group render for an admin", async ({
     page,
   }) => {
     const plain = await leaseUser();
@@ -72,10 +75,12 @@ test.describe("L2b countries console", () => {
     await awaitRoster(page);
     const toolbar = page.getByTestId("data-table-toolbar");
     await expect(toolbar).toBeVisible();
-    await expect(toolbar.getByTestId("country-toolbar-transfer")).toBeVisible();
+    await expect(toolbar.getByTestId("country-toolbar")).toBeVisible();
+    // Bundle 11 B1 — the markets file's Export and Import are the header's actions.
+    await expect(page.getByTestId("country-header").getByTestId("country-transfer")).toBeVisible();
   });
 
-  test("CO-2 roster: every market renders, the two open ones carry the open tone, search and the status filter narrow", async ({
+  test("CO-2 roster: every market renders, the two open ones carry the open tone, search and the status filter narrow, on the agreed toolbar", async ({
     page,
   }) => {
     await useJobSuperAdmin(page);
@@ -90,7 +95,7 @@ test.describe("L2b countries console", () => {
     await expect
       .poll(
         async () => {
-          const text = await page.getByTestId("country-pagination").innerText();
+          const text = await page.getByTestId("country-pagination-range").innerText();
           const digits = (text.match(/\d+/g) ?? []).map((value) => Number(value));
           return Math.max(...digits, 0) === (await countCountries());
         },
@@ -105,25 +110,32 @@ test.describe("L2b countries console", () => {
       "secondary",
     );
 
-    // The closed filter then hides every open one.
+    // The closed filter (in the Filters panel) then hides every open one, and
+    // shows as a chip that clears it.
     await page.getByTestId("country-search").fill("");
-    await page.getByTestId("country-status-filter").selectOption("closed");
+    await chooseFilter(page, "country-status-filter", "closed");
     await expect(countryRow(page, "ET")).toHaveCount(0);
     await expect(countryRow(page, "US")).toHaveCount(0);
+    await expect(page.getByTestId("country-filters-count")).toHaveText("1");
+    await expect(page.getByTestId("country-chips-chip-status")).toBeVisible();
 
-    // L2d — the categories SHAPE, asserted on structure, never on English text.
-    const row = page.getByTestId("country-toolbar-find").locator("..");
-    await expect(row.locator("> [data-testid='country-toolbar-find']")).toHaveCount(1);
-    await expect(row.locator("> [data-testid='country-toolbar-transfer']")).toHaveCount(1);
-    await expect(row.locator("label")).toHaveCount(0);
-    const unlabelled = await row
-      .locator("select")
-      .evaluateAll((nodes) => nodes.filter((node) => !node.getAttribute("aria-label")).length);
-    expect(unlabelled, "a toolbar select carries no aria-label").toBe(0);
-    const last = await row.evaluate(
-      (node) => node.lastElementChild?.getAttribute("data-testid") ?? "",
+    // Bundle 11 B1 — the agreed toolbar, asserted on structure, never on words:
+    // search, then Filters and Columns; the legend under it; no select left on
+    // the row (the page size is the footer's).
+    const toolbar = page.getByTestId("country-toolbar");
+    const order = await toolbar.evaluate((node) =>
+      Array.from(node.querySelectorAll("[data-testid]"))
+        .map((child) => child.getAttribute("data-testid") ?? "")
+        .filter((id) => ["country-search", "country-filters", "country-columns"].includes(id)),
     );
-    expect(last, "the legend is not the toolbar's last child").toBe("country-legend");
+    expect(order).toEqual(["country-search", "country-filters", "country-columns"]);
+    await expect(toolbar.locator("select")).toHaveCount(0);
+    await expect(
+      page.getByTestId("data-table-toolbar").getByTestId("country-legend"),
+    ).toBeVisible();
+    await expect(page.getByTestId("country-pagination-size")).toBeVisible();
+    await page.getByTestId("country-chips-clear").click();
+    await expect(page.getByTestId("country-chips-chip-status")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -334,7 +346,7 @@ test.describe("L2b countries console", () => {
     }
   });
 
-  test("CO-7 transfer: the markets file round-trips through this toolbar and the undo puts it back", async ({
+  test("CO-7 transfer: the markets file round-trips through the header's Import and the undo puts it back", async ({
     page,
   }) => {
     // Preview, commit and a refused undo are three step-up round trips: this one
@@ -346,11 +358,12 @@ test.describe("L2b countries console", () => {
     try {
       await gotoReady(page, "/admin/countries");
       await awaitRoster(page);
-      const toolbar = page.getByTestId("data-table-toolbar");
-      await expect(toolbar.getByTestId("country-export")).toBeVisible();
-      await expect(toolbar.getByTestId("country-import")).toBeVisible();
+      // Bundle 11 B1 — the markets file's buttons are the header's actions.
+      const header = page.getByTestId("country-header");
+      await expect(header.getByTestId("country-export")).toBeVisible();
+      await expect(header.getByTestId("country-import")).toBeVisible();
 
-      await toolbar.getByTestId("country-import").click();
+      await header.getByTestId("country-import").click();
       await expect(
         page
           .getByTestId("country-import-dialog")
@@ -434,5 +447,43 @@ test.describe("L2b countries console", () => {
       ).toBeLessThanOrEqual(boxes.width);
     }
     await page.getByTestId("country-dialog-cancel").click();
+  });
+
+  test("CO-9 the row's actions and the Columns button: Edit and the menu's market verbs, a hidden column remembered", async ({
+    page,
+  }) => {
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/countries");
+    await awaitRoster(page);
+
+    // The menu carries the editor's verbs for this row: Ethiopia is open, so
+    // Close market and Rail order; Rail order opens its dialog.
+    await rowMenu(page, "ET", "rail-order");
+    await expect(page.getByTestId("country-rail-dialog")).toBeVisible({ timeout: 20000 });
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("country-rail-dialog")).toHaveCount(0);
+    await actionsOf(page, "ET").getByTestId("country-actions-ET-more").click();
+    await expect(page.getByTestId("country-actions-ET-more-close")).toBeVisible();
+    await expect(page.getByTestId("country-actions-ET-more-open")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("country-actions-ET-menu")).toHaveCount(0);
+
+    // Columns hides "units" for this table, and a reload keeps it hidden.
+    await expect(countryRow(page, "ET").getByTestId("country-ET-units")).toBeVisible();
+    await page.getByTestId("country-columns").click();
+    await expect(page.getByTestId("country-columns-name")).toBeDisabled();
+    await page.getByTestId("country-columns-units").click();
+    await page.keyboard.press("Escape");
+    await expect(countryRow(page, "ET").getByTestId("country-ET-units")).toHaveCount(0);
+    await gotoReady(page, "/admin/countries");
+    await awaitRoster(page);
+    await expect(
+      countryRow(page, "ET").getByTestId("country-ET-units"),
+      "CO-9: the hidden column came back after a reload",
+    ).toHaveCount(0);
+    await page.getByTestId("country-columns").click();
+    await page.getByTestId("country-columns-units").click();
+    await page.keyboard.press("Escape");
+    await expect(countryRow(page, "ET").getByTestId("country-ET-units")).toBeVisible();
   });
 });
