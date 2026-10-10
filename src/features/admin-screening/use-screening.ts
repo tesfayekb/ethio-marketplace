@@ -24,7 +24,12 @@ export const SCREENING_PAGE_SIZES = [25, 50, 100];
 
 /** Bundle 11 A2 — the toolbar's filters; null means every value. */
 export interface ScreeningFilters {
-  /** The ad's market (`home_country_code`). */
+  /**
+   * The market of the ad's place (`locations.country_code`, the market
+   * admin_screening_facts reports). A3, INC-537 — never `home_country_code`:
+   * that column is outside the signed-in role's grant on listings, so a filter
+   * on it is refused and every filtered read failed.
+   */
   country: string | null;
 }
 
@@ -70,7 +75,11 @@ export async function listScreening(
     .eq("status", "screening");
   const term = search.trim();
   if (term !== "") query = query.ilike("title", `%${escapeLike(term)}%`);
-  if (filters.country !== null) query = query.eq("home_country_code", filters.country);
+  // INC-537 — through the embedded place; `place=not.is.null` keeps only the
+  // ads whose place is in the market (the place's columns are granted).
+  if (filters.country !== null) {
+    query = query.eq("place.country_code", filters.country).not("place", "is", null);
+  }
   const { data, error, count } = await query
     .order("updated_at", { ascending: true })
     .order("id", { ascending: true })
@@ -236,10 +245,21 @@ export function useScreeningSchema(categoryId: string | null) {
   });
 }
 
-/** Bundle 11 A2 (D120) — "Show number": the door logs every reveal (Admin › Audit). */
+/**
+ * Bundle 11 A2 (D120) — "Show number": the door logs every reveal (Admin ›
+ * Audit). A3 (D129) — it asks for no second factor; listings:review, the
+ * review_reveal dial (60 an hour) and the log stand.
+ */
 export type RevealAnswer =
   | { ok: true; value: string }
   | { ok: false; reason: "notShown" | "rateLimited" };
+
+/** Bundle 11 A3 — the words drawn under a channel's row when a reveal is refused. */
+export function revealProblemKey(reason: "notShown" | "rateLimited") {
+  return reason === "rateLimited"
+    ? ("admin.screening.revealLimited" as const)
+    : ("admin.screening.revealNotShown" as const);
+}
 
 export async function revealContact(
   listingId: string,

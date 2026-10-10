@@ -36,7 +36,7 @@ export function SellerLine({
       : new Intl.DateTimeFormat(language, { month: "long", year: "numeric" }).format(since);
   return (
     <>
-      <p className="text-sm text-foreground" data-testid={`${testId}-name`}>
+      <p className="text-sm font-medium text-foreground" data-testid={`${testId}-name`}>
         {business ?? alias ?? t("post.review.notGiven")}
       </p>
       {business !== null && alias !== null && alias !== "" && (

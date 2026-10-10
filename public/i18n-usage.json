@@ -3769,6 +3769,11 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.preview.contactLabel": [
+      "/admin/screening",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.preview.descriptionLabel": [
       "/admin/screening",
       "/post",

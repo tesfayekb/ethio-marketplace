@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import { FENCE_PREFIX_LIST } from "./global-setup";
+import { fillOf, isRedFill } from "./helpers/colors";
 import {
   describeStringsPage,
   describeSwitcher,
@@ -1130,6 +1131,13 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await expect(submit).toBeDisabled();
       await page.getByTestId(`lang-delete-confirm-${code}`).fill(code);
       await expect(submit).toBeEnabled();
+      // Bundle 11 A3 (G29, the Reject-red class) — the button that confirms
+      // the destruction is drawn red.
+      await expect
+        .poll(async () => isRedFill(await fillOf(submit)), {
+          message: "TR-31: the delete confirmation is not red",
+        })
+        .toBe(true);
       await submit.click();
 
       /**

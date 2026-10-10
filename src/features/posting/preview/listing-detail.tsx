@@ -115,8 +115,10 @@ export interface ListingDetailView {
   directions?: string | null;
   streetAddress?: string | null;
   /**
-   * Bundle 11 A2 (D120) — a control drawn after a shown channel's name (the
-   * reviewer's "Show number"). The seller's own preview passes nothing.
+   * Bundle 11 A2 (D120) — a control drawn at the end of a shown channel's row
+   * (the reviewer's "Show number", the number, or why it was not shown — an
+   * element with `basis-full` takes its own line under the row). The seller's
+   * own preview passes nothing.
    */
   channelAction?: (channel: "phone" | "phone2" | "telegram" | "whatsapp") => ReactNode;
 }
@@ -312,46 +314,64 @@ export function ListingDetail(view: ListingDetailView) {
       )}
 
       {/* ----------------------------- the seller --------------------------- */}
+      {/* Bundle 11 A3 (D130) — one box, in order: who sells, then how to reach
+          them, one method per row with its control at the row's end. */}
       <section
-        className="space-y-1 rounded-md border border-border p-3"
+        className="space-y-3 rounded-md border border-border p-3"
         data-testid="listing-detail-seller"
       >
-        <h3 className="text-sm font-medium text-foreground">{t("post.preview.sellerLabel")}</h3>
-        <SellerLine
-          alias={view.sellerAlias}
-          businessName={view.sellerBusinessName}
-          previousAlias={view.sellerPreviousAlias ?? null}
-          memberSince={view.sellerMemberSince ?? null}
-          testId="listing-detail-seller"
-        />
-        <ul className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <li data-testid="listing-detail-channel" data-channel="messages">
-            {t("post.who.channel.messages")}
-          </li>
-          {channels.map((channel) => {
-            const label =
-              channel === "phone"
-                ? t("post.who.channel.phone")
-                : channel === "phone2"
-                  ? t("post.who.channel.phone2")
-                  : channel === "telegram"
-                    ? t("post.who.channel.telegram")
-                    : t("post.who.channel.whatsapp");
-            const action = view.channelAction?.(channel) ?? null;
-            return (
-              <li key={channel} data-testid="listing-detail-channel" data-channel={channel}>
-                {action === null ? (
-                  label
-                ) : (
-                  <span className="inline-flex flex-wrap items-center gap-2">
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium text-foreground">{t("post.preview.sellerLabel")}</h3>
+          <SellerLine
+            alias={view.sellerAlias}
+            businessName={view.sellerBusinessName}
+            previousAlias={view.sellerPreviousAlias ?? null}
+            memberSince={view.sellerMemberSince ?? null}
+            testId="listing-detail-seller"
+          />
+        </div>
+        <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
+          <h4 className="text-xs font-medium text-muted-foreground">
+            {t("post.preview.contactLabel")}
+          </h4>
+          <ul className="divide-y divide-border text-sm">
+            <li
+              data-testid="listing-detail-channel"
+              data-channel="messages"
+              className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
+            >
+              <span className="me-auto text-foreground" data-testid="listing-detail-channel-label">
+                {t("post.who.channel.messages")}
+              </span>
+            </li>
+            {channels.map((channel) => {
+              const label =
+                channel === "phone"
+                  ? t("post.who.channel.phone")
+                  : channel === "phone2"
+                    ? t("post.who.channel.phone2")
+                    : channel === "telegram"
+                      ? t("post.who.channel.telegram")
+                      : t("post.who.channel.whatsapp");
+              return (
+                <li
+                  key={channel}
+                  data-testid="listing-detail-channel"
+                  data-channel={channel}
+                  className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
+                >
+                  <span
+                    className="me-auto text-foreground"
+                    data-testid="listing-detail-channel-label"
+                  >
                     {label}
-                    {action}
                   </span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                  {view.channelAction?.(channel) ?? null}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </section>
 
       {/* Step 10 (P4) — directions above the location details, as text (F2). */}
