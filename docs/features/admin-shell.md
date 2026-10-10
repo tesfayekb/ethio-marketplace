@@ -104,18 +104,18 @@ on the overview it is the current final segment.
 
 ## E2E coverage (`e2e/admin-shell.spec.ts`)
 
-- **A-1 admin fixture** — expected sections are derived from the live seed
+- **A-6 admin fixture** — expected sections are derived from the live seed
   (`roles → role_permissions → permissions`), so seed drift fails loudly rather
   than silently changing what the test proves. Asserts card count, each link,
   section page + breadcrumb, a deep link into a second permitted section, and a
   refusal (redirect + notice) for a section the role lacks. U0b adds: phone menu
   items + tap-to-navigate (mobile), rail items + active highlight (desktop),
   and `admin-nav-sidebar` absent on both viewports.
-- **A-2 moderator fixture** — asserts the seed grants zero sections, the Admin
+- **A-7 moderator fixture** — asserts the seed grants zero sections, the Admin
   tab still shows (`admin_panel:access`), the landing shows `admin-no-sections`
   with the nav container absent, zero admin items in the rail/menu, and
   `/admin/users` refused.
-- **A-3 regular user** — `/admin` redirects home; no admin tab logged out.
+- **A-8 regular user** — `/admin` redirects home; no admin tab logged out.
 
 Fixtures are minted per test via the service role; `grantRole` uses a plain
 INSERT (matching `e2e/rbac.spec.ts`) because the `user_roles` UNIQUE is
@@ -140,7 +140,7 @@ INSERT (matching `e2e/rbac.spec.ts`) because the `user_roles` UNIQUE is
 
 - **Landing cards (standing rule).** `/admin` presents its permitted sections
   as clickable cards in the body (`AdminNav`, `admin-nav-cards`), each carrying
-  the section title and its "arrives in Un" description. A-1 now asserts both
+  the section title and its "arrives in Un" description. A-6 now asserts both
   texts per card, derived from the live seed permissions.
 - **Panel-header band.** `src/components/shell/panel-header.tsx` is the single
   panel-identity component: the active panel's name plus the switcher dropdown

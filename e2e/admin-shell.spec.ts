@@ -89,7 +89,7 @@ function expectedSectionIds(permissions: string[]): string[] {
 }
 
 test.describe("Admin shell (U0)", () => {
-  test("A-1 admin fixture: gated section nav, section page + breadcrumb, deep link", async ({
+  test("A-6 admin fixture: gated section nav, section page + breadcrumb, deep link", async ({
     page,
   }) => {
     const staff = await leaseUser();
@@ -185,7 +185,7 @@ test.describe("Admin shell (U0)", () => {
 
   // INC-085(b) — U3 gave moderators a real section — zero-sections was the
   // placeholder-era premise. The census is the truth: exactly one section.
-  test("A-2 moderator fixture: exactly one section (audit), other deep links refused, admin tab still visible", async ({
+  test("A-7 moderator fixture: exactly one section (audit), other deep links refused, admin tab still visible", async ({
     page,
   }) => {
     const mod = await leaseUser();
@@ -261,7 +261,7 @@ test.describe("Admin shell (U0)", () => {
     await expect(page.getByText(en["shell.placeholderBody"], { exact: true })).toHaveCount(0);
   });
 
-  test("A-3 regular user: /admin still redirects home", async ({ page }) => {
+  test("A-8 regular user: /admin still redirects home", async ({ page }) => {
     const user = await leaseUser();
 
     await signIn(page, user.email, user.password);
@@ -349,7 +349,7 @@ test.describe("Admin shell (U0)", () => {
     // and every grouped deep link is refused to the landing with the notice.
     const mod = await leaseUser();
     await grantRole(mod.id, "moderator");
-    // INC-074 CLASS RULE — the second persona goes through the SAME door A-2
+    // INC-074 CLASS RULE — the second persona goes through the SAME door A-7
     // uses: sign out through the UI first, never a bare `signIn` over a live
     // session (which lands on the U0j-guarded /auth and hangs).
     await switchUser(page, mod.email, mod.password);

@@ -946,11 +946,11 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
   });
 
   /**
-   * PW-101 (note) — Part D. A phone number in the location details is flagged at
+   * PW-184 (note) — Part D. A phone number in the location details is flagged at
    * the field as it is typed and never saved; a street note with a house number
    * is saved (DB truth).
    */
-  test("PW-101 the location details refuse a phone number and keep a street note", async ({
+  test("PW-184 the location details refuse a phone number and keep a street note", async ({
     page,
   }) => {
     const user = await signedInSeller(page);
@@ -961,7 +961,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await details.fill("+251 911 234 567");
     await expect(
       page.getByTestId("post-where-details-contact"),
-      "PW-101: the phone number was not flagged as typed",
+      "PW-184: the phone number was not flagged as typed",
     ).toBeVisible();
     await expect(details).toHaveAttribute("aria-invalid", "true");
     await details.blur();

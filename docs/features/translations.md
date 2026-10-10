@@ -680,8 +680,8 @@ console changes the emitted set with no code change.
 - Unit (`src/components/language-switcher-star.test.tsx`): pressed state, the
   one-favourite invariant, and a DB-only language being starrable.
 - E2E (`e2e/shell.spec.ts`): TR-27 (a signed-out star survives reload, sign-in
-  and sign-out), TR-28 (the account carries onto a starless device and writes
-  the star; a device star beats the account), and the hreflang set equalling
+  and sign-out), TR-37 (the account carries onto a starless device and writes
+  the star; a device star beats the account), and TR-28, the hreflang set equalling
   the anon gate list.
 
 ## U4i (Tier B) — context, used-on map, length advisories, cacheable bundles, transfer, pseudo

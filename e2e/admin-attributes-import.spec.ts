@@ -1314,13 +1314,13 @@ test.describe("C3 attributes console", () => {
     }
   });
   /**
-   * AT-21 (U6-C1-R3b-1 STEP 7) — THE TWO PER-LINK CELLS (D-spec §12,
+   * AT-78 (U6-C1-R3b-1 STEP 7) — THE TWO PER-LINK CELLS (D-spec §12,
    * M-MAINT-2 B). A links FILE narrows one category's copy of a shared
    * definition (`allowed_options`) and prefills it (`default_value`); the commit
    * writes both, and the export echoes what was stored — a console that drops a
    * field it does not show is INC-188, and so is a file that does.
    */
-  test("AT-21 a links file sets the allowed options and the default, and the export echoes both", async ({
+  test("AT-78 a links file sets the allowed options and the default, and the export echoes both", async ({
     page,
   }) => {
     test.setTimeout(180_000);
@@ -1383,11 +1383,11 @@ test.describe("C3 attributes console", () => {
         .eq("category_id", category!.id)
         .eq("attribute_id", attribute!.id)
         .single();
-      expect(stored.data?.allowed_options, "AT-21 the narrowing was not stored").toEqual([
+      expect(stored.data?.allowed_options, "AT-78 the narrowing was not stored").toEqual([
         "alpha",
         "beta",
       ]);
-      expect(JSON.stringify(stored.data?.default_value), "AT-21 the default was not stored").toBe(
+      expect(JSON.stringify(stored.data?.default_value), "AT-78 the default was not stored").toBe(
         JSON.stringify("beta"),
       );
 
@@ -1398,8 +1398,8 @@ test.describe("C3 attributes console", () => {
       expect(exported.status()).toBe(200);
       const body = await exported.text();
       const row = body.split("\r\n").find((line) => line.includes(`,${slug},${key},`));
-      expect(row, "AT-21 the scratch link is missing from the export").toBeTruthy();
-      expect(row, "AT-21 the export dropped the two per-link cells").toContain(",alpha|beta,beta");
+      expect(row, "AT-78 the scratch link is missing from the export").toBeTruthy();
+      expect(row, "AT-78 the export dropped the two per-link cells").toContain(",alpha|beta,beta");
     } finally {
       const { data: row } = await supabase
         .from("attributes")

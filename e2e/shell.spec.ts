@@ -1873,7 +1873,7 @@ test.describe("desktop layout laws (U0g)", () => {
 });
 
 /**
- * TR-18 (INC-098b) — THE ROOT PROVIDER NEVER WAITS ON THE NETWORK.
+ * TR-36 and TR-18 (INC-098b) — THE ROOT PROVIDER NEVER WAITS ON THE NETWORK.
  *
  * U4f made the switcher read the publication gate; U4f-2's law is that the
  * read is a RECONCILIATION, not a gate. With the languages read delayed five
@@ -1897,7 +1897,7 @@ test.describe("i18n gate is non-blocking (U4f-2)", () => {
     return state;
   }
 
-  test("TR-18 the header renders while the languages read is still in flight", async ({ page }) => {
+  test("TR-36 the header renders while the languages read is still in flight", async ({ page }) => {
     const languages = await delayLanguagesRead(page, 5000);
 
     const started = Date.now();
@@ -1980,7 +1980,7 @@ test.describe("U4h device language star", () => {
     await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am");
   });
 
-  test("TR-28 the account carries onto a starless device, and never over a star", async ({
+  test("TR-37 the account carries onto a starless device, and never over a star", async ({
     page,
   }) => {
     const supabase = adminClient();

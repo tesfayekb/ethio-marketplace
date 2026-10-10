@@ -34,7 +34,7 @@ test.describe("category selection navigates", () => {
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(rows.first()).toBeVisible();
     /**
-     * INC-171 — the guard must be the SAME for C-1..C-3, or one test runs
+     * INC-171 — the guard must be the SAME for C-6..C-8, or one test runs
      * while its siblings self-skip on a half-rendered rail. The count is
      * POLLED to its settled value (the rail hydrates row by row), so all
      * three tests read one verdict.
@@ -51,7 +51,7 @@ test.describe("category selection navigates", () => {
     return { scope, row, label, href };
   }
 
-  test("C-1: clicking a category changes the URL and survives reload", async ({ page }) => {
+  test("C-6: clicking a category changes the URL and survives reload", async ({ page }) => {
     await gotoReady(page, "/");
     const first = await firstCategory(page);
     test.skip(first === null, "needs at least one seeded category");
@@ -65,7 +65,7 @@ test.describe("category selection navigates", () => {
     await expect(page.getByTestId("breadcrumb-category")).toHaveText(first!.label);
   });
 
-  test("C-2: the rail highlight follows the URL", async ({ page }) => {
+  test("C-7: the rail highlight follows the URL", async ({ page }) => {
     await gotoReady(page, "/");
     const first = await firstCategory(page);
     test.skip(first === null, "needs at least one seeded category");
@@ -75,7 +75,7 @@ test.describe("category selection navigates", () => {
     await expect(scope.locator("a[aria-current='page']")).toHaveText(first!.label);
   });
 
-  test("C-3: Home clears the category", async ({ page }) => {
+  test("C-8: Home clears the category", async ({ page }) => {
     await gotoReady(page, "/");
     const first = await firstCategory(page);
     test.skip(first === null, "needs at least one seeded category");
@@ -92,7 +92,7 @@ test.describe("category selection navigates", () => {
     }
   });
 
-  test("C-4: /auth is a page — Home > Sign in, no category selected", async ({ page }) => {
+  test("C-9: /auth is a page — Home > Sign in, no category selected", async ({ page }) => {
     await gotoReady(page, "/auth");
     await expect(page.getByTestId("breadcrumb-home")).toBeVisible();
     await expect(page.getByTestId("breadcrumb-auth")).toHaveText(en["auth.signIn"]);

@@ -896,7 +896,7 @@ restored by Undo and echoed by the export. Refusals name themselves —
 `docs/features/imports.md`.
 
 U6-C1-R3b-1 added both cells to the import REGISTRY and the export's link
-columns, so the console's own file round trips them (AT-21).
+columns, so the console's own file round trips them (AT-78).
 
 Since M-MAINT-3 the two LINK DOORS accept them as well —
 `admin_link_attribute(…, p_allowed_options text[], p_default_value jsonb,

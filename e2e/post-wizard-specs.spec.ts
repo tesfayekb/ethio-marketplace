@@ -1625,7 +1625,7 @@ test.describe("POSTING WIZARD", () => {
     });
   }
 
-  test("PW-58 under Amharic a year reads with its Ethiopian years, the same on the picker and the review (D45)", async ({
+  test("PW-183 under Amharic a year reads with its Ethiopian years, the same on the picker and the review (D45)", async ({
     page,
   }) => {
     const user = await seller(page);
@@ -1635,37 +1635,37 @@ test.describe("POSTING WIZARD", () => {
     const picker = page.locator(`[data-testid="post-attr-control"][data-attr="${def!.attrKey}"]`);
     const option = (year: number) => picker.locator(`option[value="${year}"]`);
 
-    await expect(option(2027), "PW-58: the English picker is not the bare year").toHaveText(
+    await expect(option(2027), "PW-183: the English picker is not the bare year").toHaveText(
       "2027",
       { timeout: 20_000 },
     );
     await switchLanguage(page, "am");
-    await expect(option(2027), "PW-58: 2027 did not read 2019/20 ዓ.ም").toHaveText(
+    await expect(option(2027), "PW-183: 2027 did not read 2019/20 ዓ.ም").toHaveText(
       "2027 · 2019/20 ዓ.ም",
       { timeout: 20_000 },
     );
-    await expect(option(2000), "PW-58: 2000 did not read 1992/93 ዓ.ም").toHaveText(
+    await expect(option(2000), "PW-183: 2000 did not read 1992/93 ዓ.ም").toHaveText(
       "2000 · 1992/93 ዓ.ም",
     );
     await picker.selectOption("2027");
     await expect
       .poll(async () => (await attributesOf(listingId))[def!.attrKey], {
-        message: "PW-58: the Gregorian year was not stored",
+        message: "PW-183: the Gregorian year was not stored",
         timeout: 20_000,
       })
       .toBe(2027);
-    await openAtReview(page, listingId, user.id, "PW-58");
+    await openAtReview(page, listingId, user.id, "PW-183");
     await expect(
       page.getByTestId("post-review-preview").locator(`[data-key="${def!.attrKey}"]`),
-      "PW-58: the Amharic review did not match the picker's label",
+      "PW-183: the Amharic review did not match the picker's label",
     ).toHaveText("2027 · 2019/20 ዓ.ም", { timeout: 20_000 });
     // D45 part 2 — the buyer sheet reads the same label (the seventh argument).
     await page.getByTestId("post-preview-open").click();
     const sheet = page.getByTestId("post-preview-sheet");
-    await expect(sheet, "PW-58: the buyer preview never opened").toBeVisible();
+    await expect(sheet, "PW-183: the buyer preview never opened").toBeVisible();
     await expect(
       sheet.locator(`[data-testid="listing-detail-spec"][data-key="${def!.attrKey}"]`),
-      "PW-58: the buyer sheet did not read the Ethiopian years",
+      "PW-183: the buyer sheet did not read the Ethiopian years",
     ).toHaveText("2027 · 2019/20 ዓ.ም", { timeout: 20_000 });
     await page.getByTestId("post-preview-close").click();
   });
