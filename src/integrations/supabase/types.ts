@@ -1558,6 +1558,8 @@ export type Database = {
           updated_at: string
           user_id: string
           viewing_location: Json | null
+          viewing_location_at: string | null
+          viewing_location_id: string | null
         }
         Insert: {
           account_status?: string
@@ -1585,6 +1587,8 @@ export type Database = {
           updated_at?: string
           user_id: string
           viewing_location?: Json | null
+          viewing_location_at?: string | null
+          viewing_location_id?: string | null
         }
         Update: {
           account_status?: string
@@ -1612,6 +1616,8 @@ export type Database = {
           updated_at?: string
           user_id?: string
           viewing_location?: Json | null
+          viewing_location_at?: string | null
+          viewing_location_id?: string | null
         }
         Relationships: [
           {
@@ -1634,6 +1640,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "languages"
             referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "profiles_viewing_location_id_fkey"
+            columns: ["viewing_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3533,6 +3546,7 @@ export type Database = {
       my_recent_categories: { Args: never; Returns: Json }
       my_seller_line: { Args: never; Returns: Json }
       my_seller_place: { Args: never; Returns: Json }
+      my_viewing_location: { Args: never; Returns: Json }
       name_brand_folds: { Args: never; Returns: string[] }
       name_claim_folds: { Args: never; Returns: string[] }
       name_fold: { Args: { p: string }; Returns: string }
@@ -3687,6 +3701,7 @@ export type Database = {
         Returns: boolean
       }
       user_set_preferred_language: { Args: { p_code: string }; Returns: string }
+      user_set_viewing_location: { Args: { p_location: string }; Returns: Json }
       validate_listing_attributes: {
         Args: {
           p_attrs: Json

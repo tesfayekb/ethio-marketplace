@@ -46,3 +46,5 @@ admin_preview_attribute_import | restated grant (not a new surface) (M11)
 admin_delete_category | restated grant (not a new surface) (M11)
 admin_list_category_pointers | restated grant (not a new surface) (M11)
 feed_page | the public feed's read door (bundle 10 E2b): card fields of active listings only, no seller; reads feed_index as its owner
+user_set_viewing_location | D106: the browsing place on the caller's own account; keyed by auth.uid(), rate-gated viewing_place, refuses a place outside an open market's visible tree
+my_viewing_location | D106: owner-only read keyed by auth.uid(); the place, its market, when it was picked, whether it is still visible
