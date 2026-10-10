@@ -579,3 +579,7 @@ console write the same columns through the same validation.
 ## Reading the list (INC-459)
 
 The list is read whole, page by page, by key (`readAllPages`), and names are ordered by the one pinned collator (src/lib/name-collator.ts).
+
+## D122 — the card picture at 4:3 and one angle (2026-10-10)
+
+The card variant is cut at 640×480 (4:3) and its thumb at 160×120, so a category picture fills the listing card's 4:3 picture frame in width as in height; the icon sits at 85% of the height, centred, with the three `ethio.com` marks behind it. The OG stays 1200×630. One angle: the watermark and the ribbon are both drawn at −30°, `WATERMARK_ANGLE` (src/lib/brand-mark.ts); the ribbon's corner inset follows the angle. These values supersede the 512 / 128 lines above. Pictures already stored keep their old shape until they are generated again (Admin › Categories › Image › Regenerate); the operator regenerates one first and judges it (2026-10-10). Tests: the variant unit tests and CI-4.

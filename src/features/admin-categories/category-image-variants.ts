@@ -4,17 +4,22 @@
  * A faithful port of the retired C5a server pipeline onto canvas, same
  * constants, same order:
  *   decode -> white-to-transparent (>= 244 on R,G,B) -> content-bounds crop
- *   (alpha > 16) -> scale to 85% fill on a 512 white canvas with the three
- *   diagonal "ethio.com" watermarks drawn BEHIND the icon -> 128 thumb derived
- *   from the card -> 1200x630 OG on the same brand canvas at 88% of its height.
+ *   (alpha > 16) -> scale to 85% of the height on a 640x480 (4:3) white canvas
+ *   with the three diagonal "ethio.com" watermarks drawn BEHIND the icon -> a
+ *   160x120 thumb derived from the card -> 1200x630 OG on the same brand canvas
+ *   at 88% of its height. D122 (2026-10-10): the card was 512 square and the
+ *   thumb 128 square; at 4:3 the card fills the listing card's picture frame.
  *
  * The pure geometry (bounds, fill, centring, watermark placement, glyph blocks)
  * lives in small exported functions with unit tests; the pixel work is proven
  * by CI-4, which reads the uploaded PNGs' dimensions back in a page.
  */
 
-export const CARD_SIZE = 512;
-export const THUMB_SIZE = 128;
+/** D122 — the card fills the 4:3 picture frame (it was 512 square). */
+export const CARD_WIDTH = 640;
+export const CARD_HEIGHT = 480;
+export const THUMB_WIDTH = 160;
+export const THUMB_HEIGHT = 120;
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 export const FILL_RATIO = 0.85;
@@ -241,12 +246,12 @@ export async function makeVariants(source: Blob): Promise<Variants> {
   context2d(icon).putImageData(pixels, -box.x, -box.y, box.x, box.y, box.width, box.height);
 
   // watermark — brand canvases with the marks BEHIND the icon.
-  const card = brandCanvas(icon, CARD_SIZE, CARD_SIZE, FILL_RATIO, CARD_WATERMARK_SCALE);
+  const card = brandCanvas(icon, CARD_WIDTH, CARD_HEIGHT, FILL_RATIO, CARD_WATERMARK_SCALE);
   const og = brandCanvas(icon, OG_WIDTH, OG_HEIGHT, OG_FILL_RATIO, OG_WATERMARK_SCALE);
 
   // encode — the thumb is derived from the card so they can never disagree.
-  const thumb = makeCanvas(THUMB_SIZE, THUMB_SIZE);
-  context2d(thumb).drawImage(card, 0, 0, THUMB_SIZE, THUMB_SIZE);
+  const thumb = makeCanvas(THUMB_WIDTH, THUMB_HEIGHT);
+  context2d(thumb).drawImage(card, 0, 0, THUMB_WIDTH, THUMB_HEIGHT);
 
   const [cardPng, thumbPng, ogPng] = await Promise.all([toPng(card), toPng(thumb), toPng(og)]);
   return { card: cardPng, thumb: thumbPng, og: ogPng };

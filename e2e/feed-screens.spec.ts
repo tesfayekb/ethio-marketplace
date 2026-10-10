@@ -26,7 +26,7 @@ import { gotoReady, signInViaSession, signOutViaUi } from "./helpers/ui";
  * read /api/feed a page at a time, in D108's order, widening beyond the chosen
  * place with the wider place named. Scratch rows only; cleanup in afterEach (J3).
  * FS-8..FS-10 and the additions to FS-3/FS-4 — D119, the invite card. FS-11 —
- * INC-532, the place kept across a sign-out.
+ * INC-532, the place kept across a sign-out. FS-12 — D123, three a row on a phone.
  */
 
 type Tier = "premium" | "featured" | "regular";
@@ -455,5 +455,34 @@ test.describe("FEED SCREENS", () => {
       page.locator("main h1"),
       "INC-532: the sign-out dropped the chosen place",
     ).toHaveText(heading, { timeout: 20_000 });
+  });
+
+  /**
+   * FS-12 — D123 (the operator, 2026-10-10): on a phone three cards share a row
+   * and the invitation takes the whole row.
+   */
+  test("FS-12 on a phone three cards share a row and the invitation takes the whole row (D123)", async ({
+    page,
+    baseURL,
+  }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 640, "phones only");
+    const fx = await areaFixture(page);
+    const a1 = await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", 1);
+    await openArea(page, fx, baseURL!);
+
+    await expect.poll(() => sectionIds(page, 1)).toEqual([a1]);
+    const row = await page.locator('[data-testid="feed-section"][data-step="1"] ul').boundingBox();
+    const card = await page
+      .locator(`[data-testid="listing-card"][data-listing="${a1}"]`)
+      .boundingBox();
+    const invite = await inviteOf(page).boundingBox();
+    expect(row && card && invite, "FS-12: a box was not drawn").toBeTruthy();
+    expect(card!.width, "FS-12: a card is wider than a third of the row").toBeLessThan(
+      row!.width / 3 + 1,
+    );
+    expect(
+      Math.abs(invite!.width - row!.width),
+      "FS-12: the invitation is not the whole row",
+    ).toBeLessThanOrEqual(1);
   });
 });

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  CARD_SIZE,
+  CARD_HEIGHT,
+  CARD_WIDTH,
   centredOffset,
   contentBounds,
   fitSize,
@@ -12,6 +13,7 @@ import {
   OG_HEIGHT,
   OG_WIDTH,
   watermarkCentres,
+  WATERMARK_ANGLE,
   WATERMARK_TEXT,
 } from "./category-image-variants";
 
@@ -46,10 +48,11 @@ describe("category image variants — geometry", () => {
     });
   });
 
-  it("fills the card to 85% on the longest side, centred", () => {
-    const fit = fitSize(700, 350, CARD_SIZE, FILL_RATIO);
-    expect(fit).toEqual({ width: 435, height: 218 });
-    expect(centredOffset(CARD_SIZE, fit.width)).toBe(39);
+  it("fills the 4:3 card to 85% of its height on the longest side, centred (D122)", () => {
+    const fit = fitSize(700, 350, Math.min(CARD_WIDTH, CARD_HEIGHT), FILL_RATIO);
+    expect(fit).toEqual({ width: 408, height: 204 });
+    expect(centredOffset(CARD_WIDTH, fit.width)).toBe(116);
+    expect(centredOffset(CARD_HEIGHT, fit.height)).toBe(138);
   });
 
   it("scales the OG icon against the canvas height at 88%", () => {
@@ -59,16 +62,16 @@ describe("category image variants — geometry", () => {
   });
 
   it("places three watermarks on the leading diagonal", () => {
-    expect(watermarkCentres(CARD_SIZE, CARD_SIZE)).toEqual([
-      { cx: 0.22 * 512, cy: 0.22 * 512 },
-      { cx: 256, cy: 256 },
-      { cx: 0.78 * 512, cy: 0.78 * 512 },
+    expect(watermarkCentres(CARD_WIDTH, CARD_HEIGHT)).toEqual([
+      { cx: 0.22 * 640, cy: 0.22 * 480 },
+      { cx: 320, cy: 240 },
+      { cx: 0.78 * 640, cy: 0.78 * 480 },
     ]);
   });
 
   it("rotates the watermark glyphs about the string centre", () => {
     const flat = glyphBlockCentres(WATERMARK_TEXT, 3, 0);
-    const tilted = glyphBlockCentres(WATERMARK_TEXT, 3, -30);
+    const tilted = glyphBlockCentres(WATERMARK_TEXT, 3, WATERMARK_ANGLE);
     expect(flat.length).toBeGreaterThan(50);
     expect(tilted).toHaveLength(flat.length);
     // Rotation preserves each block's distance from the centre.
@@ -78,8 +81,14 @@ describe("category image variants — geometry", () => {
         6,
       );
     }
-    // −30°: the string's right end rises (negative y on screen).
+    // The brand angle (−30°, D122): the string's right end rises (negative y on screen).
     const rightmost = tilted.reduce((a, b) => (b.x > a.x ? b : a));
     expect(rightmost.y).toBeLessThan(0);
+  });
+});
+
+describe("D122 — one angle", () => {
+  it("draws the watermark and every ribbon at −30°", () => {
+    expect(WATERMARK_ANGLE).toBe(-30);
   });
 });

@@ -547,7 +547,8 @@ test.describe("app shell", () => {
         .first()
         .evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
       const width = page.viewportSize()?.width ?? 0;
-      const expected = width < 640 ? 1 : width < 1024 ? 2 : width < 1280 ? 3 : 4;
+      // D123 (operator, 2026-10-10): three a row on a phone, four from 640, five from 1024.
+      const expected = width < 640 ? 3 : width < 1024 ? 4 : 5;
       expect(columns).toBe(expected);
 
       // No card may spill past the grid's own box.

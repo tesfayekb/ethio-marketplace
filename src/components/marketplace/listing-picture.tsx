@@ -2,9 +2,17 @@ import { ImageOff } from "lucide-react";
 import { useState } from "react";
 
 import { useI18n } from "@/i18n";
+import { WATERMARK_ANGLE } from "@/lib/brand-mark";
 
-/** How far in from the corner the band's centre sits, in the picture's own width units. */
-const TAPE_INSET = "21cqw";
+/**
+ * D122 — the band's centre sits this far from the corner ALONG the band's own
+ * line, in the picture's width units, so the words fit between the two edges
+ * at any angle (at −45° this was 21cqw in from each edge).
+ */
+const TAPE_REACH = 29.7;
+const TAPE_RAD = (Math.abs(WATERMARK_ANGLE) * Math.PI) / 180;
+const TAPE_INSET_X = `${(TAPE_REACH * Math.cos(TAPE_RAD)).toFixed(2)}cqw`;
+const TAPE_INSET_Y = `${(TAPE_REACH * Math.sin(TAPE_RAD)).toFixed(2)}cqw`;
 
 /**
  * Bundle 4 step 14 (DEC-112) — ONE PICTURE. Every surface that draws an ad's
@@ -20,7 +28,8 @@ const TAPE_INSET = "21cqw";
  * INC-435 — the band is a corner ribbon in the LOWER-RIGHT corner of the
  * picture's OWN drawn box: the img sits in a box sized to its rendered shape
  * (its natural ratio, contained in the 4:3 frame), the band lives inside that
- * box rotated −45° and is clipped by it, so nothing runs past the picture.
+ * box rotated by the brand angle (−30°, D122; −45° until then) and is clipped by
+ * it, so nothing runs past the picture.
  * It takes the design system's primary button colours (bg-primary with
  * text-primary-foreground), a clean band with no stripes.
  */
@@ -106,9 +115,10 @@ export function ListingPicture({
               className="absolute bg-primary font-bold uppercase text-primary-foreground"
               style={{
                 width: "84cqw",
-                left: `calc(100% - ${TAPE_INSET})`,
-                top: `calc(100% - ${TAPE_INSET})`,
-                transform: "translate(-50%, -50%) rotate(-45deg)",
+                left: `calc(100% - ${TAPE_INSET_X})`,
+                top: `calc(100% - ${TAPE_INSET_Y})`,
+                // D122 — the ribbon and the watermark share one angle.
+                transform: `translate(-50%, -50%) rotate(${WATERMARK_ANGLE}deg)`,
               }}
             >
               <span
