@@ -2782,6 +2782,10 @@ export type Database = {
         Args: { p_id: string; p_reassign_to: string }
         Returns: undefined
       }
+      admin_reveal_listing_contact: {
+        Args: { p_channel: string; p_listing_id: string }
+        Returns: Json
+      }
       admin_save_entity_translation: {
         Args: {
           p_field: string
@@ -2796,6 +2800,7 @@ export type Database = {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
       }
+      admin_screening_facts: { Args: { p_listing_id: string }; Returns: Json }
       admin_set_account_status: {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: undefined
