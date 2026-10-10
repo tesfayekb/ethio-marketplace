@@ -2,9 +2,10 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
-import { destroyLocation, seedScratchChain } from "./helpers/locations";
+import { en } from "../src/i18n/locales/en";
+import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { bearerOf } from "./helpers/posting";
-import { gotoReady, signInViaSession } from "./helpers/ui";
+import { gotoReady, signInViaSession, signOutViaUi } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -15,6 +16,10 @@ import { adminClient, leaseUser } from "./helpers/users";
  * `my_viewing_location` is the owner's read. Both are called through the user's
  * own client — the app's connection. Scratch places only (J3); every test
  * clears its own account place and dial override in afterEach.
+ *
+ * D106 part 2 (VP-6..VP-11) — the shell carries it: a pick while signed in is
+ * saved on the account; at sign-in the NEWEST pick wins between this browser
+ * and the account; the guess is never saved.
  */
 
 type Answer = Record<string, unknown>;
@@ -196,5 +201,219 @@ test.describe("VIEWING PLACE — the account doors (D106)", () => {
       expect(result.error, `VP-5: ${Object.keys(patch)[0]} was written directly`).not.toBeNull();
     }
     expect(await stored(id)).toEqual(before);
+  });
+});
+
+test.describe("VIEWING PLACE — the shell carries it (D106 part 2)", () => {
+  const users: string[] = [];
+  const regions: string[] = [];
+
+  test.afterEach(async () => {
+    for (const id of users.splice(0)) {
+      const cleared = await adminClient()
+        .from("profiles")
+        .update({ viewing_location_id: null, viewing_location_at: null })
+        .eq("user_id", id);
+      if (cleared.error) {
+        throw new Error(`[e2e:vp] clearing the account place failed: ${cleared.error.message}`);
+      }
+    }
+    for (const slug of regions.splice(0)) await destroyLocation(slug);
+  });
+
+  function escapeRe(value: string) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  async function lease() {
+    const user = await leaseUser();
+    users.push(user.id);
+    return user;
+  }
+
+  async function chain(page: Page) {
+    const c = await seedScratchChain("ET");
+    regions.push(c.region.slug);
+    await waitForTreeSlug(page, "ET", c.subCity.slug);
+    return c;
+  }
+
+  async function marketName(page: Page, code: string) {
+    const response = await page.request.get("/api/locations");
+    expect(response.status(), "the open-markets route did not answer 200").toBe(200);
+    const body = (await response.json()) as { countries?: { code: string; name_en: string }[] };
+    const market = (body.countries ?? []).find((row) => row.code === code);
+    expect(market, `${code} is not an open market`).toBeTruthy();
+    return market!.name_en;
+  }
+
+  async function pick(page: Page, level: string, name: string) {
+    await page.getByTestId(`location-level-${level}`).click();
+    await page.getByRole("menuitem", { name, exact: true }).click();
+    await expect(page.getByTestId(`location-level-${level}`)).toHaveText(
+      new RegExp(escapeRe(name)),
+    );
+  }
+
+  async function putAccount(userId: string, placeId: string, at: number) {
+    const { error } = await adminClient()
+      .from("profiles")
+      .update({ viewing_location_id: placeId, viewing_location_at: new Date(at).toISOString() })
+      .eq("user_id", userId);
+    if (error) throw new Error(`[e2e:vp] seeding the account place failed: ${error.message}`);
+  }
+
+  async function accountOf(userId: string): Promise<{ id: string | null; at: number | null }> {
+    const { data, error } = await adminClient()
+      .from("profiles")
+      .select("viewing_location_id, viewing_location_at")
+      .eq("user_id", userId)
+      .single();
+    expect(error).toBeNull();
+    const row = data as { viewing_location_id: string | null; viewing_location_at: string | null };
+    return {
+      id: row.viewing_location_id,
+      at: row.viewing_location_at === null ? null : Date.parse(row.viewing_location_at),
+    };
+  }
+
+  async function areaCookie(page: Page): Promise<string | null> {
+    const cookie = (await page.context().cookies()).find((c) => c.name === "ethio_area");
+    return cookie === undefined ? null : decodeURIComponent(cookie.value);
+  }
+
+  /** The sign-in carry has finished (data-account-place, D106). */
+  async function carried(page: Page) {
+    await expect(page.getByTestId("location-row")).toHaveAttribute("data-account-place", "done", {
+      timeout: 20_000,
+    });
+  }
+
+  async function showsCity(page: Page, name: string) {
+    await expect(page.getByTestId("location-level-city")).toHaveText(new RegExp(escapeRe(name)), {
+      timeout: 20_000,
+    });
+  }
+
+  test("VP-6 a pick while signed in is saved on the account, with its time here too; any area clears it", async ({
+    page,
+  }) => {
+    const user = await lease();
+    const c = await chain(page);
+    const ethiopia = await marketName(page, "ET");
+    await signInViaSession(page, user.email, user.password);
+    await carried(page);
+
+    await pick(page, "country", ethiopia);
+    await pick(page, "region", c.region.name_en as string);
+    await pick(page, "city", c.city.name_en as string);
+    await expect
+      .poll(async () => (await accountOf(user.id)).id, { timeout: 15_000 })
+      .toBe(c.city.id);
+    const saved = await accountOf(user.id);
+    expect(saved.at).not.toBeNull();
+    await expect
+      .poll(() => areaCookie(page), { timeout: 15_000 })
+      .toBe(`ET:${c.city.id}:${saved.at}`);
+
+    await page.getByTestId("location-level-country").click();
+    await page.getByRole("menuitem", { name: en["location.anyArea"], exact: true }).click();
+    await expect.poll(async () => (await accountOf(user.id)).id, { timeout: 15_000 }).toBeNull();
+    expect(await areaCookie(page)).toBeNull();
+  });
+
+  test("VP-7 another browser opens on the account's place, and signing out there keeps it", async ({
+    page,
+  }) => {
+    const user = await lease();
+    const c = await chain(page);
+    const at = Date.now() - 60_000;
+    await putAccount(user.id, c.city.id, at);
+
+    await signInViaSession(page, user.email, user.password);
+    await carried(page);
+    await showsCity(page, c.city.name_en as string);
+    expect(await areaCookie(page)).toBe(`ET:${c.city.id}:${at}`);
+
+    await signOutViaUi(page);
+    await showsCity(page, c.city.name_en as string);
+  });
+
+  test("VP-8 this browser's newer pick wins and is saved on the account", async ({
+    page,
+    baseURL,
+  }) => {
+    const user = await lease();
+    const a = await chain(page);
+    const b = await chain(page);
+    await putAccount(user.id, a.city.id, Date.now() - 3_600_000);
+    await page
+      .context()
+      .addCookies([{ name: "ethio_area", value: `ET:${b.city.id}:${Date.now()}`, url: baseURL! }]);
+
+    await signInViaSession(page, user.email, user.password);
+    await carried(page);
+    await showsCity(page, b.city.name_en as string);
+    await expect
+      .poll(async () => (await accountOf(user.id)).id, { timeout: 15_000 })
+      .toBe(b.city.id);
+  });
+
+  test("VP-9 the account's newer pick wins over this browser's older one", async ({
+    page,
+    baseURL,
+  }) => {
+    const user = await lease();
+    const a = await chain(page);
+    const b = await chain(page);
+    const at = Date.now() - 60_000;
+    await putAccount(user.id, a.city.id, at);
+    await page
+      .context()
+      .addCookies([
+        { name: "ethio_area", value: `ET:${b.city.id}:${Date.now() - 3_600_000}`, url: baseURL! },
+      ]);
+
+    await signInViaSession(page, user.email, user.password);
+    await carried(page);
+    await showsCity(page, a.city.name_en as string);
+    expect(await areaCookie(page)).toBe(`ET:${a.city.id}:${at}`);
+    expect((await accountOf(user.id)).id).toBe(a.city.id);
+  });
+
+  test("VP-10 a browser pick saved before D106 (no time) loses to the account's place", async ({
+    page,
+    baseURL,
+  }) => {
+    const user = await lease();
+    const a = await chain(page);
+    const b = await chain(page);
+    const at = Date.now() - 86_400_000;
+    await putAccount(user.id, a.city.id, at);
+    await page
+      .context()
+      .addCookies([{ name: "ethio_area", value: `ET:${b.city.id}`, url: baseURL! }]);
+
+    await signInViaSession(page, user.email, user.password);
+    await carried(page);
+    await showsCity(page, a.city.name_en as string);
+    expect(await areaCookie(page)).toBe(`ET:${a.city.id}:${at}`);
+  });
+
+  test("VP-11 with nothing saved here or on the account, the guess shows and nothing is saved", async ({
+    browser,
+  }) => {
+    const user = await lease();
+    const context = await browser.newContext({ extraHTTPHeaders: { "cf-ipcountry": "ET" } });
+    const page = await context.newPage();
+    try {
+      await signInViaSession(page, user.email, user.password);
+      await carried(page);
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
+      expect(await accountOf(user.id)).toEqual({ id: null, at: null });
+      expect(await areaCookie(page)).toBeNull();
+    } finally {
+      await context.close();
+    }
   });
 });

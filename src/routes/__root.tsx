@@ -76,9 +76,10 @@ type SsrLangContext = {
   geo: GeoAnswer;
 };
 
-/** The saved-area cookie: "<CC>:<uuid>" and nothing else. */
+/** The saved-area cookie: "<CC>:<uuid>", or "<CC>:<uuid>:<ms>" since D106, and nothing else. */
 const AREA_COOKIE = "ethio_area";
-const AREA_SHAPE = /^[A-Za-z]{2}:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const AREA_SHAPE =
+  /^[A-Za-z]{2}:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?::\d{1,15})?$/i;
 
 /**
  * Reads the star cookie and the anon publication gate on the server. The gate

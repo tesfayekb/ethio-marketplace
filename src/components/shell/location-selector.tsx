@@ -106,8 +106,14 @@ function Picker({
 
 export function LocationSelector() {
   const { t, entities, language } = useI18n();
-  const { locationPath, setLocationPath, locationCountry, selectLocationCountry, guessInUse } =
-    useShell();
+  const {
+    locationPath,
+    setLocationPath,
+    locationCountry,
+    selectLocationCountry,
+    guessInUse,
+    accountPlace,
+  } = useShell();
   const markets = useOpenMarkets();
   const tree = useCountryTree(locationCountry);
   // INC-211 — rows are used ONLY while they belong to the chosen market, so a
@@ -218,6 +224,7 @@ export function LocationSelector() {
       ref={rowRef}
       data-testid="location-row"
       data-area-source={guessInUse ? "guess" : "chosen"}
+      data-account-place={accountPlace}
       role="group"
       aria-labelledby="location-row-label location-row-label-short"
       className="flex h-8 w-full flex-nowrap items-center gap-x-0.5 md:gap-x-1 overflow-hidden border-b border-border bg-card px-2 md:px-4"

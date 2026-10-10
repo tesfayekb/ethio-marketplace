@@ -23,6 +23,8 @@ import {
   writeAreaCookie,
 } from "@/components/shell/location-data";
 import { LocationSelector } from "@/components/shell/location-selector";
+import { chooseCarry } from "@/components/shell/place-carry";
+import { readAccountPlace, saveAccountPlace } from "@/components/shell/place-carry-service";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import { PHONE_STRIP } from "@/config/panels";
 import { cn } from "@/lib/utils";
@@ -189,6 +191,58 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [areaSettled, setAreaSettled] = useState(false);
   const pendingSaveRef = useRef(false);
 
+  /**
+   * D106 (the operator, 2026-10-10) — THE PLACE ON THE ACCOUNT. A pick is saved
+   * in this browser (the cookie, with the pick's time) and, when signed in, on
+   * the account too. The account's answer stamps this browser's copy with the
+   * account's time, so the two agree at the next sign-in — but only while the
+   * cookie still names the same place, so a later pick is never overwritten by
+   * an earlier answer. A refusal or a failure logs one line and leaves this
+   * browser's pick as it is (F4). The guess is never saved.
+   */
+  const signedInRef = useRef(false);
+  useEffect(() => {
+    signedInRef.current = user !== null;
+  }, [user]);
+
+  /**
+   * The account's saves run one after another, in the order of the picks, so a
+   * quick region-then-city never leaves the region on the account.
+   */
+  const accountSavesRef = useRef<Promise<void>>(Promise.resolve());
+  const saveToAccount = useCallback((id: string | null) => {
+    accountSavesRef.current = accountSavesRef.current
+      .then(async () => {
+        const result = await saveAccountPlace(id);
+        if (!result.ok) {
+          console.warn(`[location] the account place was not saved: ${result.reason}`);
+          return;
+        }
+        const live = readAreaCookie();
+        if (id !== null && live !== null && live.id === id && result.at !== null) {
+          writeAreaCookie(live.country, id, result.at);
+        }
+      })
+      // A thrown call must not stop the saves that follow it (F4: logged, never swallowed).
+      .catch((error: unknown) => {
+        console.warn(`[location] the account place was not saved: ${String(error)}`);
+      });
+    return accountSavesRef.current;
+  }, []);
+
+  const savePick = useCallback(
+    (country: string, id: string) => {
+      writeAreaCookie(country, id);
+      if (signedInRef.current) void saveToAccount(id);
+    },
+    [saveToAccount],
+  );
+
+  const clearPick = useCallback(() => {
+    clearAreaCookie();
+    if (signedInRef.current) void saveToAccount(null);
+  }, [saveToAccount]);
+
   useEffect(() => {
     if (appliedRef.current) return;
     // The open-market list decides whether a guessed country is browsable at
@@ -269,10 +323,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (anchor === null) return;
     setPathState([asLocationNode(anchor)]);
     if (pendingSaveRef.current) {
-      writeAreaCookie(locationCountry, anchor.id);
+      savePick(locationCountry, anchor.id);
       pendingSaveRef.current = false;
     }
-  }, [locationCountry, locationPath.length, treeNodes, treeLoadedCountry]);
+  }, [locationCountry, locationPath.length, treeNodes, treeLoadedCountry, savePick]);
 
   /**
    * L4b-3 — THE AUTO-SELECT LAW, in ONE place: the shell's path derivation.
@@ -292,21 +346,24 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (guessInUse) setGuessNode(extended[extended.length - 1]!);
   }, [treeNodes, locationPath, treeCountry, treeLoadedCountry, guessInUse]);
 
-  const selectLocationCountry = useCallback((code: string | null) => {
-    setGuessInUse(false);
-    setGuessNode(null);
-    appliedRef.current = true;
-    if (code === null) {
-      pendingSaveRef.current = false;
-      setCountryState(null);
+  const selectLocationCountry = useCallback(
+    (code: string | null) => {
+      setGuessInUse(false);
+      setGuessNode(null);
+      appliedRef.current = true;
+      if (code === null) {
+        pendingSaveRef.current = false;
+        setCountryState(null);
+        setPathState([]);
+        clearPick();
+        return;
+      }
+      pendingSaveRef.current = true;
+      setCountryState(code);
       setPathState([]);
-      clearAreaCookie();
-      return;
-    }
-    pendingSaveRef.current = true;
-    setCountryState(code);
-    setPathState([]);
-  }, []);
+    },
+    [clearPick],
+  );
 
   const persistLocationPath = useCallback(
     (path: LocationNode[]) => {
@@ -314,9 +371,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       setGuessNode(null);
       setPathState(path);
       const deepest = path[path.length - 1];
-      if (deepest && locationCountry !== null) writeAreaCookie(locationCountry, deepest.id);
+      if (deepest && locationCountry !== null) savePick(locationCountry, deepest.id);
     },
-    [locationCountry],
+    [locationCountry, savePick],
   );
 
   /**
@@ -335,6 +392,53 @@ export function AppShell({ children }: { children: ReactNode }) {
     setGuessNode(null);
     setDeriveTick((tick) => tick + 1);
   }, []);
+
+  /**
+   * D106 — THE SIGN-IN CARRY, once per signed-in identity (the INC-121 latch:
+   * keyed by the user id and released on sign-out, never once per mount). The
+   * NEWEST pick wins (chooseCarry, place-carry.ts): the account's place is
+   * written into this browser and shown — the place is derived again, as after
+   * a sign-out (INC-532) — or this browser's pick is saved to the account. With
+   * neither, nothing is saved: the guess never is. `accountPlace` says when the
+   * carry has finished ("off" while signed out).
+   */
+  const carriedForRef = useRef<string | null>(null);
+  const [accountPlace, setAccountPlace] = useState<ShellValue["accountPlace"]>("off");
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    if (authLoading) return;
+    if (userId === null) {
+      carriedForRef.current = null;
+      setAccountPlace("off");
+      return;
+    }
+    if (carriedForRef.current === userId) return;
+    carriedForRef.current = userId;
+    setAccountPlace("pending");
+    void readAccountPlace()
+      .then(async (read) => {
+        if (carriedForRef.current !== userId) return;
+        if (read.reason !== null) {
+          console.warn(`[location] the account place was not read: ${read.reason}`);
+          return;
+        }
+        const carry = chooseCarry(readAreaCookie(), read.place);
+        if (carry.kind === "apply") {
+          writeAreaCookie(carry.country, carry.id, carry.at);
+          resetLocationState();
+        } else if (carry.kind === "align") {
+          writeAreaCookie(carry.country, carry.id, carry.at);
+        } else if (carry.kind === "upload") {
+          await saveToAccount(carry.id);
+        }
+      })
+      .catch((error: unknown) => {
+        console.warn(`[location] the account place was not read: ${String(error)}`);
+      })
+      .finally(() => {
+        if (carriedForRef.current === userId) setAccountPlace("done");
+      });
+  }, [authLoading, userId, resetLocationState, saveToAccount]);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
@@ -606,6 +710,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       selectLocationCountry,
       guessInUse,
       guessNode,
+      accountPlace,
       navOpen,
       setNavOpen,
       signingOut,
@@ -627,6 +732,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     selectLocationCountry,
     guessInUse,
     guessNode,
+    accountPlace,
     navOpen,
     signingOut,
   ]);

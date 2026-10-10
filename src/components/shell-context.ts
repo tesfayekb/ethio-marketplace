@@ -49,6 +49,11 @@ export type ShellValue = {
   guessInUse: boolean;
   /** L4b-2 — the node the guess resolved to, so the caption can name it. */
   guessNode: LocationNode | null;
+  /**
+   * D106 — the sign-in carry of the account's place: "off" while signed out,
+   * "pending" while it runs, "done" once the newest pick has been applied or saved.
+   */
+  accountPlace: "off" | "pending" | "done";
   navOpen: boolean;
   setNavOpen: (open: boolean) => void;
   /** U0l-2 (SO-2): true while the hard-reset sign-out sequence is running. */

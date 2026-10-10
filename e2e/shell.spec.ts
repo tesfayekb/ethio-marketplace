@@ -2739,7 +2739,8 @@ test.describe("L4b location picker", () => {
             message: `LS-11 step 5: the saved-area cookie never named the picked market ${second.code} within 20 s`,
           },
         )
-        .toMatch(new RegExp(`^${second.code}:[0-9a-f-]{36}$`));
+        // D106 — the saved area carries the pick's time after the place.
+        .toMatch(new RegExp(`^${second.code}:[0-9a-f-]{36}:\\d+$`));
       // DB truth (J4): the saved node belongs to the market that was PICKED,
       // never to the one just left (INC-211).
       const node = await readLocationById(cookieSeen.split(":")[1]!);

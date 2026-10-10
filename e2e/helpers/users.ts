@@ -313,6 +313,8 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
       avatar_url: null,
       preferred_language: null,
       viewing_location: null,
+      viewing_location_id: null,
+      viewing_location_at: null,
       notification_prefs: {},
       contact_prefs: {},
       seller_alias: null,
