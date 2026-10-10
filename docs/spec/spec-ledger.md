@@ -3140,3 +3140,90 @@ NAMED AND NOT BUILT, EACH WITH ITS PLACE.
 - Push protection for secret scanning (DEC-132 layer A): the operator's read of the Security tab at this close found no secret-scanning alert since 2026-10-05 — the alert he read out, #418, is a CodeQL code-scanning alert (INC-529); under DEC-132 layer A push protection is therefore ruled ON, and the switch is his (Settings → Code security → Secret scanning → Push protection → Enable), asked at this close.
 
 NUMBERING: next free INC-530; next free DEC-169; D-rulings next free D119; slips next S149 (highest used: INC-529, DEC-168, D118, S148). Highest test ids at `2ab35a33`: PW-179, FE-14, FR-8, FS-7, FP-7, FB-6, SC-6, SG-4, TR-35, PR-42, AT-77 (with AT-73b and AT-76b), CT-42, IB-3, LT-15, IG-5, CO-8, LS-13, AU-12, HS-6. Migrations: five in this period (above). The newest mark by value is `20261009220000`.
+
+S61 · 2026-10-09 → 2026-10-10 · BUNDLE 10 FOLLOW-UPS (THE INVITE CARD AND /post FROM IT; THREE CARDS A ROW ON A PHONE; THE CATEGORY PICTURE'S FRAME AND ONE ANGLE; "LISTINGS IN" AND "NEAR"; THE PROFILE WRITTEN THROUGH ITS DOORS ONLY; THE BROWSING PLACE ON THE ACCOUNT) · TEN EXECUTOR TURNS, TWO MIGRATIONS · DEC-169 · D119–D127 (D106 built) · INC-530–536 · SLIPS S149–S152
+
+TIME AND NAMES. This block covers 2026-10-09 19:10Z (where block S60 ends) to 08:13Z on 2026-10-10 — Thursday evening to Saturday morning in the operator's time (America/New_York, UTC−4). Times are UTC unless marked local. Its running record is imported word for word as `docs/governance/handoffs/2026-10-10-bundle10-followups-running-record.md` (from the entry "2026-10-09 19:10 UTC — AFTER THE BUNDLE-10 IMPORT POINT"). The ten briefs, each saved by the executor in docs/governance/briefs/ and checked by sha256:
+- turn 1 — bundle-10-d119.md (D119: the invite card, /post from it, INC-530; base `7fc3a7a5`; 16,208 bytes; `ac5ac917fc6118550f811e4360f2eb7a26fb0573347f0fc99830c0c4beff92e3`);
+- turn 2 — bundle-10-d119-turn-2.md (INC-531 first; a subcategory page fills the subcategory; DEC-169; base `1f6b4180`; 5,399 bytes; `5759b2f9f599726de7b5b4cd55888c7dffaba5706f4ae61213d1450a40a0b804`);
+- turn 3 — bundle-10-d119-turn-3.md (the card on every category page, also with nothing anywhere; base `aea5b434`; 3,882 bytes; `833700acf0b4a440499ddd7af029a342941ed1448c608a27f0694a16267d104a`);
+- turn 4 — bundle-10-d119-turn-4.md (INC-532: sign-out keeps the place; base `c4efd3d8`; 5,802 bytes; `9619efefcaf2aa3477476c6464b9a80072893dd3cba21e7d77f1d055806cec36`);
+- turn 5 — bundle-10-d119-turn-5.md (D123 three a row; D122 the 4:3 cut and one angle; base `25221580`; 5,938 bytes; `2948c60262ae9ba7b9c66711b12dd25887a5cec0f867ef44a0f0b14b7a6b73aa`);
+- turn 6 — bundle-10-d119-turn-6.md (the card the size of a card; "Be the first" only where nobody has advertised; base `d099ccc1`; 5,705 bytes; `0eba684f74cf29c0d8161fd6fef6cc3d71dc648aca153fdcc0b3b171186cc5a5`);
+- turn 7 — bundle-10-d119-turn-7.md (D125 "in" and "near"; no "too"; base `7f87fd30`; 6,350 bytes; `b9b6129524659fd539f551e1e3839752a140a572ca2358f4c344be5a6d35ba28`);
+- turn 8 — bundle-10-d119-turn-8.md (INC-535; one migration; base `255d5401`; 17,739 bytes; `936bf686f12707d0a81d52b282def2eca3c384731db29fb6a1ce1edc4bbe4415`);
+- turn 9 — bundle-10-d119-turn-9.md (D106 part 1, the database; one migration; base `270ee85f`; 19,851 bytes; `c420ccc04364dd01243dad71e415f52a4578b21f8ee71025995c6ca8bcd26ffb`);
+- turn 10 — bundle-10-d119-turn-10.md (D106 part 2, the shell; base `8804f210`; 9,064 bytes; `b973c81d6dad6645a047deec982b1df21182d872df294aafd6e1d540e2016f36`).
+Delivery: every turn's code went as a carrier written by the executor's own script (modes REPLACE, NEW, APPEND, INSERT-AFTER-LINE, REPLACE-LINES), each resulting file checked against a sha256 table; the supervisor proved every carrier by an independent split on a clean worktree before sending it (S147's corrective). The executor's sandbox still cannot start a browser (INC-506): CI on each final commit was the browser proof.
+
+THE TURNS, LANDINGS AND CI.
+- Bundle 10's records turn (`7fc3a7a5`): run 37979031139 GREEN, promoted — BUNDLE 10 CLOSED (19:47Z).
+- Turn 1 → `1f6b4180`: run 37996982043 RED, PW-180 only (INC-531; the test read the seller's oldest listing); every screen assertion and FS-3, FS-4, FS-8–FS-10, PW-181, PW-182 passed (INC-530 fixed and proven).
+- Turn 2 → `aea5b434`: run 38001587149 GREEN, promoted. D119 CLEAN; DEC-169 landed.
+- Turn 3 → `c4efd3d8`: run 38015592524 RED, PW-64 only (mobile, shard 2, both attempts; 429 at the contact step — INC-533, parked with INC-449's class; nothing in turn 3 touched that path).
+- Turn 4 → `25221580`: its run 38017839254 was cancelled by turn 5's push (the operator sent turn 5 before the CI word); turn 5's run judged both.
+- Turn 5 → `d099ccc1`: run 38018795652 GREEN, promoted. Turns 4 and 5 CLEAN; INC-532 FIXED.
+- Turn 6 → `7f87fd30`: run 38020947805 GREEN, promoted.
+- Turn 7 → `255d5401`: run 38023904234 GREEN, promoted. INC-534 FIXED.
+- Turn 8 → `270ee85f`: migration `20261010055801_866d39cd-554b-492d-99de-362601f15f0d.sql`, mark `20261010180000` (ethio-prod by the executor's tool; ethio-staging by the operator); run 38029368030 attempt 1 stopped at the preflight (staging behind), attempt 2 GREEN after the staging apply, promoted. Red-first: the mid-turn run 38026670798 on `12b3a9f5` (PR-43 committed, staging not yet fixed) failed PR-43 in both projects — "PR-43: display_name was written directly". INC-535 FIXED.
+- Turn 9 → `8804f210`: migration `20261010065637_01da330c-2189-4927-bc80-ef6c6f0ed58f.sql`, mark `20261010190000` (the same two hands); run 38032736100 attempt 2 GREEN after the staging apply, promoted. VP-1..VP-5 passed.
+- Turn 10 → `5b963ca7`: run 38035039212 GREEN at 08:09:28Z, promoted (main = dev = `5b963ca7`); VP-6..VP-11, PC-1..PC-6, LS-11 and FS-11 passed; one retried pass, TR-29 (INC-345). D106 BUILT.
+- Published by the operator after turns 2, 3, 5 and 6 and walked each time; his walks gave D119's revisions, INC-532, D122, D123, D125 and INC-534.
+
+DECISIONS (his words are in the imported record).
+- DEC-169 (operator, 2026-10-09, question card "A — Soft gold (Recommended)") — the gold token gains a third placement after the logo dot and the Featured badge: the invite card (a gold border and 15 % tint, a star in a gold circle, the green Post listing button). docs/features/design-foundation.md and src/styles.css say three.
+- D119 (operator, 2026-10-09 19:13Z, answers 19:15Z; revised 2026-10-09 22:28Z and 2026-10-10 01:32Z, 02:17Z, 03:09Z–03:14Z and 04:01Z) — THE INVITE CARD. Only the chosen place gets it (never the everywhere feed); it shows while the chosen place holds fewer than 4 listings of the category on screen (every category on the home page; the widening threshold 8 unchanged); it names the category and the place on a category page, the place on the home page; it opens /post with the place — and the category — already chosen, signed-out visitors signing in first. Revised: a subcategory page fills the subcategory (a postable leaf is chosen as a tap chooses it); the place fills to the seller's own level; the card shows on every category page, and alone first when nothing exists anywhere (the old empty box only with no place chosen); it is one card among the others, the size of a card; "Be the first to advertise …" only where the place has no listing, "Advertise … in {place}." where it has some (no "too" — his words of 2026-10-10 04:01Z; the keys `feed.invite.placeMore` and `feed.invite.placeCategoryMore`). The Amharic of `feed.invite.place` and `feed.invite.placeCategory` is his own; the later Amharic was drafted by the supervisor and approved by him (G43).
+- D120 (operator, 2026-10-09) — a seller's phone number is shown only behind "Show number", and every reveal is recorded (who, when, which ad), so sellers can see who asked and bad actors can be found. For bundle 11: the reviewer's "Preview as buyer" shows the contact methods and the number behind "Show number", each reveal recorded through a reviewer-only definer door gated on listings:review with its own log (Tier A); the seller's public name only. The buyer-side "Show number" and the seller's "who asked for my number" view are stage 3's ad page (designed with him first, G49).
+- D121 (operator, 2026-10-09; agreed, NOT built) — a "Why advertise here" page (the benefits of advertising on ethio.com: its unique features, visibility, performance); the invite card links to it. Its spec waits for the page's content.
+- D122 (operator, 2026-10-10) — category pictures fill the 4:3 frame (the card cut 640×480, the thumb 160×120); the "ethio.com" watermark and the "Photos coming soon" ribbon share one angle, −30° (`WATERMARK_ANGLE`; the ribbon's inset follows the angle). Built in turn 5. Stored pictures cannot be re-cut (no original is kept): they are regenerated — ONE first, judged by him, then the rest (an AI call each; spend is his call).
+- D123 (operator, 2026-10-10, question card "3 per row") — three cards a row on a phone, four from 640 px, five from 1024 px; the card compacts below 11rem. Built in turn 5.
+- D124 (operator, 2026-10-10; research first) — the category pictures' style: peers' best practice for attractive, consistent illustrations (his example: a car drawn with one gold and one white tyre), discussed with him before the prompt changes and before the rest are regenerated.
+- D125 (operator, 2026-10-10 04:01Z; wording under G17, overridable) — the listings pages say "Listings in {place}" (`feed.headingIn`) over the chosen place's own listings; every wider place lies in the chosen place's own country, so they share ONE heading, "Listings near {place}" (`feed.heading`, naming the chosen place), drawn once; "All listings" beyond; "Listings near you" with no place chosen. INC-534. Built in turn 7.
+- D126 (operator, 2026-10-10 05:10Z; agreed as a future task, research first) — a full performance review: open literature and peers first; every surface (pages, the bundle, fonts, images, data fetches, caching and the CDN, the database's doors, indexes and RLS cost); budgets per page class measured on a mid-range phone over a slow network; tests that keep each budget (never against ethio-prod or the published site, DEC-146). Placement: after stage 1 (his "a task for future"), overridable; the supervisor's research may run beside executor turns.
+- D127 (operator, 2026-10-10 07:59Z; supersedes D125's "near") — "near inside same country may not be near … a posting in dc can not be near LA despite being posted inside USA. so best to say listing in {country} rather than near, same for state level etc."; "or listing in {state} or region". Every heading says "in": the chosen place's own listings "Listings in {place}"; each wider place of the ladder its own "Listings in {that place}" (the region or state, then the country); "All listings" beyond the country. Decided under G17, overridable: with no place chosen, "All listings" in place of "Listings near you". No new string (`feed.headingIn` and `nav.allListings` exist in both languages). AGREED, NOT BUILT — the next executor turn, before bundle 11.
+- D106, APPROVED AS AMENDED (operator, 2026-10-10 04:31Z, the question card 04:33Z "Newest pick wins (Recommended)") — the browsing place (never the posting place) is saved on the device for everyone and, when signed in, on the account; with nothing saved on the device or the account, the IP guess shows on a first load and is never saved; a change is saved and shows on the next visit; when the device and the account disagree at sign-in, the NEWEST pick wins; a place no longer shown is ignored; "any area" clears both; the dial 60 changes an hour per account (his figure); only the latest place is kept (a history for interests is a later decision with its own privacy line). BUILT in turns 9 and 10. D107 (the amber notice) stays after the shell brief.
+- The operator confirmed GitHub push protection ON (2026-10-10 07:30Z) — the ruling of block S60 is done.
+
+INCIDENTS (entries in docs/tracking/incidental-findings.md).
+- INC-530 — the sign-in doors put a return path's query string into the route's path — FIXED (turn 1).
+- INC-531 — PW-180 read the seller's oldest listing as its new draft — FIXED (turn 2).
+- INC-532 — signing out dropped the place this browser had chosen — FIXED (turn 4).
+- INC-533 — PW-64 refused at the contact step by a rate dial (429) on both attempts — OPEN, parked with INC-449's class for the next posting-area turn.
+- INC-534 — "Listings near" stood over listings IN the place named — FIXED (turn 7, D125).
+- INC-535 — profile columns writable by their owner outside the identity doors (Tier A) — FIXED (turn 8; ethio-prod and ethio-staging). Its body was kept out of the repository until the fix was live on both databases (G51).
+- INC-536 — fourteen test ids are used in two files each (the return-path tests of turn 1 repeat admin-roles' RP-1..RP-3) — OPEN; promoted to a check in bundle 11's first turn.
+
+CLASS RULES AND STANDING PRACTICE FROM THIS PERIOD.
+- A count of client-writable tables also counts column grants: `security_lints()`'s `table_writable_by_client` reads `has_any_column_privilege` for INSERT and UPDATE (INC-535's class — INC-476/INC-478 in column form, unseen by a table-privilege count).
+- A census line that expects the saved brief as the only untracked path also accepts an empty status: the platform may commit the brief mid-turn (turns 3, 8 and 9).
+- A claim about what a client can write is made after the write is tried, not from the grants alone (S150).
+- The database tool may save a migration with or without its final newline; the landed file is compared with the text with `<MARK>` restored, apart from that newline (turn 8; E1's precedent).
+
+SUPERVISOR SLIPS S149–S152 (each in the imported record with its cause and corrective).
+- S149 — turn 1's PW-180 was dictated with `draftsOf(user.id)[0]` without reading that the helper returns every listing of the seller, oldest first (INC-531).
+- S150 — INC-535's entry and the message to the operator said a signed-in person could set their own seller name directly; the red run shows `seller_alias` refused before the fix for a cause not identified (not the `name_fold` expression index — tested on a local Postgres — and not the format check). The claim came from the grants alone. What the red run proves: `display_name` was written directly; the grant covered thirteen columns; the fix closes every column either way.
+- S151 — during turn 10's build a `git checkout -- .` meant for the proving worktree ran in the build worktree and reverted its tracked edits; restored from the dry carrier, and the rebuilt carrier was byte-identical. No effect outside the supervisor's workspace.
+- S152 — turn 1's return-path unit tests were named RP-1..RP-3 without a check that the prefix was free (admin-roles uses RP-1..RP-12) — INC-536.
+
+AMENDMENTS TO EARLIER LINES OF THIS LEDGER (the lines stay as written; this paragraph is the later word).
+- (1) Block S60's NUMBERING line (next free INC-530, DEC-169, D119, S149) is superseded by this block's.
+- (2) S60's "D106 and D107 — one turn after the shell brief": D106 was brought forward by the operator (2026-10-10, "make sure that is saved as user may log in other devices as well") and BUILT in turns 9 and 10; D107 stays after the shell brief.
+- (3) S60's "Push protection … asked at this close": confirmed ON by the operator, 2026-10-10.
+- (4) The identity schema's column-grant mechanism (docs/features/identity-schema.md, 2026-07-30) is superseded by INC-535: no client role writes `profiles`; every write goes through a SECURITY DEFINER door.
+- (5) D119's "Advertise … too" wording (turn 6) is superseded by D125's revision: no "too".
+- (6) D125's "Listings near {place}" over the rest of the country is superseded by D127 ("in" at every level, each wider place named); D125's "Listings in {place}" over the chosen place's own listings stands.
+
+NAMED AND NOT BUILT, EACH WITH ITS PLACE.
+- D127 ("in" at every level; "All listings" with no place chosen) — the next executor turn, one small turn, while bundle 11's brief is written.
+- Bundle 11 — every admin table in the agreed house style, Admin › Screening first, with D120's preview (the contact methods; "Show number" behind a reviewer-only door with its own log) and Part E's automatic checks — NEXT.
+- The shell brief — D110–D117, D98's subcategory menus, D93/D114's scroll area, and D107 (the amber notice) — after bundle 11; then stage 1.
+- D122's one-picture trial (the operator regenerates ONE category picture in Admin › Categories and judges it) and D124's style research (the supervisor) — before the rest are regenerated.
+- D121 (the "Why advertise here" page) — once its content is agreed.
+- D126 (the performance review) — research any time; the build after stage 1 unless the operator moves it.
+- INC-533 with INC-449's class and INC-526 — the next posting-area turn.
+- INC-536 — the repeated test ids renamed and a unit test that refuses a repeat — bundle 11's first turn.
+- The platform linter's list of executable definer functions (173 at turn 8; the doors are executable by design) — the weekly security review of 2026-10-12 reads it.
+- INC-521 (block S60; the lints baseline) — still OPEN: the nightly of 2026-10-10 (run 38031284786, on `270ee85f`) was running when this block was written; the first nightly whose lints step reads 13 closes it.
+- INC-529 (block S60; code-scanning alert #418) — the fix landed with bundle 10's records turn; the alert's close is read with the operator's open code-scanning count at the weekly review of 2026-10-12.
+
+NUMBERING: next free INC-537; next free DEC-170; D-rulings next free D128; slips next S153 (highest used: INC-536, DEC-169, D127, S152). Highest test ids at `5b963ca7`: PW-182, FE-14, FR-8, FS-13, FP-10, FB-6, SC-6, SG-4, TR-35, PR-43, VP-11, PC-6, PF-3, AT-77 (with AT-73b and AT-76b), CT-42, IB-3, LT-15, IG-5, CO-8, LS-13, AU-12, HS-6. Migrations: two in this period (above). The newest mark by value is `20261010190000`.
