@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-10-d119-turn-2.md (D119 turn 2: INC-531, the leaf chosen, the gold card; one turn). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-10-d119-turn-3.md (D119 turn 3: the gold card when nothing exists anywhere; one turn). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

@@ -411,23 +411,23 @@ test.describe("FEED SCREENS", () => {
     await expect(page.getByTestId("feed-invite-post")).toHaveCount(0);
   });
 
-  test("FS-10 nothing anywhere: the empty box invites, with the category and the place", async ({
+  test("FS-10 nothing anywhere: the invitation card comes first, with the category and the place", async ({
     page,
     baseURL,
   }) => {
     const fx = await areaFixture(page);
     await openArea(page, fx, baseURL!);
 
-    const empty = page.getByTestId("feed-empty");
-    await expect(empty).toBeVisible({ timeout: 20_000 });
-    await expect(empty.getByTestId("feed-invite-text")).toHaveText(
+    // The operator's walk, 2026-10-09: the gold card, never the old empty box.
+    await expect.poll(() => rowOrder(page, 1), { timeout: 20_000 }).toEqual(["feed-invite"]);
+    await expect(inviteOf(page).getByTestId("feed-invite-text")).toHaveText(
       en["feed.invite.placeCategory"]
         .replace("{category}", fx.leaf.slug)
         .replace("{place}", fx.a.city.name_en as string),
     );
-    const params = await inviteSearch(empty.getByTestId("feed-invite-post"));
+    const params = await inviteSearch(inviteOf(page).getByTestId("feed-invite-post"));
     expect(params.get("category")).toBe(fx.leaf.id);
     expect(params.get("place")).toBe(fx.a.city.id);
-    await expect(empty.getByText(en["feed.emptyBody"], { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId("feed-empty")).toHaveCount(0);
   });
 });

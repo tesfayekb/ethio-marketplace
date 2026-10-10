@@ -3,12 +3,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useShell, type LocationNode } from "@/components/shell-context";
 import { WovenMark } from "@/components/brand/logo";
 import { Spinner } from "@/components/brand/spinner";
-import {
-  InviteCard,
-  InvitePostButton,
-  InviteText,
-  type Invite,
-} from "@/components/marketplace/invite-card";
+import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
@@ -44,15 +39,20 @@ function FeedError({
   );
 }
 
-/** D119 — the empty box's invitation: the card's sentence and its one button. */
-function InviteBody({ invite }: { invite: Invite }) {
+/**
+ * D119 — nothing in the chosen place: its invitation comes first, alone in the
+ * place's row — whether wider places follow or nothing exists anywhere (the
+ * operator's walk, 2026-10-09).
+ */
+function InviteFirst({ invite }: { invite: Invite }) {
   return (
-    <>
-      <InviteText invite={invite} className="mt-1 text-sm text-muted-foreground" />
-      <div className="mt-4">
-        <InvitePostButton invite={invite} />
-      </div>
-    </>
+    <section data-testid="feed-section" data-step="1" className="mt-6 first:mt-0">
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <li>
+          <InviteCard invite={invite} />
+        </li>
+      </ul>
+    </section>
   );
 }
 
@@ -132,6 +132,8 @@ export function Feed() {
     );
   } else if (error) {
     body = <FeedError testid="feed-error" retryTestid="feed-retry" onRetry={retry} />;
+  } else if (cards.length === 0 && invite !== null) {
+    body = <InviteFirst invite={invite} />;
   } else if (cards.length === 0) {
     body = (
       <PageCard
@@ -141,11 +143,7 @@ export function Feed() {
         {/* Allowed motif placement: logo, spinner, empty state. */}
         <WovenMark className="h-10 w-10" />
         <h2 className="mt-4 text-base font-semibold text-foreground">{t("feed.emptyTitle")}</h2>
-        {invite !== null ? (
-          <InviteBody invite={invite} />
-        ) : (
-          <p className="mt-1 text-sm text-muted-foreground">{t("feed.emptyBody")}</p>
-        )}
+        <p className="mt-1 text-sm text-muted-foreground">{t("feed.emptyBody")}</p>
       </PageCard>
     );
   } else {
@@ -158,15 +156,7 @@ export function Feed() {
           </p>
         ) : null}
         {/* D119 — nothing in the chosen place: its invitation comes first. */}
-        {firstStep > 1 && invite !== null ? (
-          <section data-testid="feed-section" data-step="1" className="mt-6 first:mt-0">
-            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <li>
-                <InviteCard invite={invite} />
-              </li>
-            </ul>
-          </section>
-        ) : null}
+        {firstStep > 1 && invite !== null ? <InviteFirst invite={invite} /> : null}
         {sections.map((section) => {
           let label: string | null = null;
           if (section.label?.kind === "all") label = t("nav.allListings");
