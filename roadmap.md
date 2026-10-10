@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-10-d119-turn-7.md (the listings pages' headings, "in" and "near" (D125); the invite card without "too"; one turn). Then D106 — the chosen place kept on the account, so it follows a signed-in person to every device (brought forward by the operator, 2026-10-10; its spec is approved before its brief). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-10-d119-turn-8.md (INC-535: the profile written through its doors only; one turn, one migration). Then D106 — the chosen place kept on the account (approved 2026-10-10; its brief next). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -167,8 +167,9 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [ ] D124 (operator, 2026-10-10; research first) — the category pictures' style: peers' best practice for attractive, consistent illustrations (e.g. a car drawn with one gold and one white tyre), discussed with the operator before the prompt changes and before the rest are regenerated
 - [ ] D123 (operator, 2026-10-10) — three cards a row on a phone, four from 640 px, five from 1024 px — built in turn 5
 - [ ] D125 (operator, 2026-10-10; INC-534) — the listings pages' headings: "Listings in {place}" over the chosen place's own listings, one "Listings near {place}" over the rest of its country, "All listings" beyond it; the invite card without "too" — built in turn 7
+- [ ] INC-535 (2026-10-10; Tier A) — the profile written through its doors only; the client-writable lint counts column grants — built in turn 8
 - [ ] D121 (operator, 2026-10-09; agreed, not built) — a "Why advertise here" page (the benefits of advertising on ethio.com: its unique features, visibility, performance), and the invite card links to it; its spec is written with its brief once the page's content is agreed
-- [ ] D106 and D107 (ACT-017): the chosen place kept on the account for signed-in people (visitors keep the per-browser save; the IP guess is never saved) — BROUGHT FORWARD by the operator (2026-10-10: "make sure that is saved as user may log in other devices as well"): next after turn 7, before bundle 11, Tier A, its spec approved first; and, after the shell brief, the "You seem to be in <place>. Show listings there?" notice with Switch and Keep in the house style's amber (`warning` tokens) — its spec is written with its brief
+- [ ] D106 and D107 (ACT-017): the chosen place kept on the account for signed-in people (visitors keep the per-browser save; the IP guess is never saved) — BROUGHT FORWARD by the operator (2026-10-10: "make sure that is saved as user may log in other devices as well"): next after turn 8 (INC-535), before bundle 11, Tier A — APPROVED 2026-10-10 as amended (the newest pick wins between the device and the account; with nothing saved, the IP guess on a first load; a dial of 60 an hour; only the latest place kept, no history); and, after the shell brief, the "You seem to be in <place>. Show listings there?" notice with Switch and Keep in the house style's amber (`warning` tokens) — its spec is written with its brief
 
 ### Bundle 11 — every admin table in the agreed house style (D118, 2026-10-09; NEXT; ACT-018)
 

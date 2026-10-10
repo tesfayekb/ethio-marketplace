@@ -11,6 +11,8 @@ Migrations:
 - `supabase/migrations/20260803075756_47bf56ca-eb85-4c8b-8e62-1f95cb9af2a6.sql` — INC-022:
   `country_source` gains `'unknown'`, defaults flip, `home_country_code` becomes NULLable,
   fabricated rows corrected, trigger fallback removed, `confirm_home_country` widened.
+- INC-535 (2026-10-10, the migration of bundle 10's turn 8): `profiles` is written through its
+  doors only — see "The column-grant mechanism" below.
 
 Deny-proofs: `scripts/deny-tests/phase1-identity.md` (D1–D7, all PASS).
 
@@ -33,12 +35,22 @@ One row per account, created by the signup trigger. Columns: `user_id` (PK),
 `preferred_language`, `viewing_location`, `notification_prefs`, `contact_prefs`, `created_at`,
 `updated_at` (all timestamps timestamptz, UTC).
 
-Access: RLS enabled. `profiles_owner_read` (SELECT) and `profiles_owner_update` (UPDATE), both
-scoped to `auth.uid() = user_id`.
+Access: RLS enabled. `profiles_owner_read` (SELECT, `auth.uid() = user_id`) and
+`profiles_admin_read` (SELECT, the `profiles:view` permission). No write policy and no write
+grant for any client role since INC-535 (2026-10-10): every write goes through a
+`SECURITY DEFINER` door.
 
 Both tables carry `home_country_code` per Knowledge E3.
 
 ## The column-grant mechanism
+
+**Superseded by INC-535 (2026-10-10).** The writable columns below moved into doors one by one
+(`user_set_preferred_language`, `save_posting_identity`, …) while the grant stayed. The grant is
+now gone whole: `anon` and `authenticated` hold no INSERT, UPDATE or DELETE on `profiles`, on
+the table or on any column; the owner's UPDATE policy is dropped; the doors are the only
+writers (proven by the migration's C1–C2 and by PR-43). The client-writable lint
+(`table_writable_by_client`) counts column grants as well, so this form is seen. The history
+follows.
 
 RLS decides _which rows_ a caller may touch. It does not decide _which columns_. Row-scoped
 UPDATE alone would let a user rewrite their own `home_country_code` or `country_source` and
