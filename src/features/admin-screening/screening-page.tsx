@@ -1,11 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { useOpenMarkets } from "@/components/shell/location-data";
+import { RowActions } from "@/components/shell/row-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -15,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { sectionById } from "@/features/admin/sections";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -22,48 +29,75 @@ import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
 import { useI18n, type MessageKey } from "@/i18n";
+import { entityName } from "@/i18n/entity";
 
 import {
   ADMIN_SCREENING_KEY,
   SCREENING_PAGE_SIZE,
+  SCREENING_PAGE_SIZES,
   decideListing,
+  revealContact,
+  useScreeningFacts,
   useScreeningPhotos,
   useScreeningQueue,
+  useScreeningSchema,
   type ScreeningRow,
 } from "./use-screening";
 
 /**
- * Bundle 10 E3a — ADMIN › SCREENING (D109).
+ * Bundle 10 E3a — ADMIN › SCREENING (D109); bundle 11 A2 — on the agreed blocks
+ * (D118, D128).
  *
  * `listings:review` opens the section (the /admin layout's gate, DEC-163); the
  * queue's rows are read under `listings:view` (RLS `listings_admin_read`); the
- * Approve/Reject buttons render only with `listings:review`, and the door
+ * decisions render only with `listings:review`, and the door
  * (`transition_listing`) re-checks `listings:review` and a fresh second factor
  * (F3). The outcome line is an inline live region: no <Toaster/> is mounted in
  * this app (the translations console's precedent).
+ *
+ * The table: the toolbar (search · Filters · Columns, chips under it), tick-boxes
+ * for approving or rejecting several ads (D128 — a bulk action exists here), the
+ * row's actions in its three-dots menu (RowActions), the footer's three zones.
+ * "Preview as buyer" shows what a buyer will see (D120): the facts and their
+ * options, the ad's country, the contact methods with "Show number" (logged by
+ * the door, read in Admin › Audit) and the seller's public name.
  */
 
-type Decision = { row: ScreeningRow; next: "active" | "rejected" } | null;
+type Next = "active" | "rejected";
+type Decision = { ids: string[]; next: Next } | null;
 type Notice = { key: MessageKey; tone: "ok" | "error" } | null;
+type RevealChannel = "phone" | "phone2" | "whatsapp";
+
+const TABLE_ID = "admin-screening";
+const LOCKED = ["title"];
 
 export function AdminScreeningPage() {
-  const { t, language } = useI18n();
+  const { t, language, entities } = useI18n();
   const { permissions } = useAdminShell();
   const mayReview = permissions.includes("listings:review");
   const section = sectionById("screening");
   const queryClient = useQueryClient();
+  const markets = useOpenMarkets();
 
   const [search, setSearch] = useState("");
+  const [country, setCountry] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(SCREENING_PAGE_SIZE);
+  const [selected, setSelected] = useState<string[]>([]);
   const [decision, setDecision] = useState<Decision>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [previewRow, setPreviewRow] = useState<ScreeningRow | null>(null);
+  const [revealed, setRevealed] = useState<Partial<Record<RevealChannel, string>>>({});
+  const [revealError, setRevealError] = useState<MessageKey | null>(null);
+  const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   // INC-525 — the preview draws the ad's category picture as the card does.
   const { tree } = useCategoryTree();
 
-  const query = useScreeningQueue(page, search);
+  const query = useScreeningQueue(page, search, pageSize, { country });
   const photos = useScreeningPhotos(previewRow?.id ?? null);
+  const facts = useScreeningFacts(previewRow?.id ?? null);
+  const schema = useScreeningSchema(previewRow?.categoryId ?? null);
 
   const named = (value: ScreeningRow["category"]) =>
     value === null ? "—" : language === "am" && value.name_am ? value.name_am : value.name_en;
@@ -73,7 +107,19 @@ export function AdminScreeningPage() {
       new Date(iso),
     );
 
-  const columns: DataTableColumn<ScreeningRow>[] = [
+  const marketName = (code: string) => {
+    const market = markets.markets.find((m) => m.code === code);
+    if (!market) return code;
+    return market.anchorId === null
+      ? market.nameEn
+      : entityName(
+          "location",
+          { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
+          entities,
+        );
+  };
+
+  const allColumns: DataTableColumn<ScreeningRow>[] = [
     {
       key: "title",
       header: t("admin.screening.col.title"),
@@ -99,60 +145,80 @@ export function AdminScreeningPage() {
       cell: (row) => <span className="text-sm tabular-nums">{sentAt(row.updatedAt)}</span>,
     },
   ];
+  const columns = visibleColumns(allColumns, hidden, LOCKED);
+
+  const resetPaging = () => {
+    setPage(0);
+    setSelected([]);
+  };
+
+  const openPreview = (row: ScreeningRow) => {
+    setRevealed({});
+    setRevealError(null);
+    setPreviewRow(row);
+  };
 
   const rowActions = (row: ScreeningRow) => (
-    <span className="flex flex-wrap items-center gap-2 xl:justify-end">
-      <Button
-        type="button"
-        variant="outline"
-        size="touch"
-        data-testid={`admin-screening-open-${row.id}`}
-        onClick={() => setPreviewRow(row)}
-      >
-        {t("admin.screening.open")}
-      </Button>
-      {mayReview ? (
-        <>
-          <Button
-            type="button"
-            size="touch"
-            data-testid={`admin-screening-approve-${row.id}`}
-            onClick={() => setDecision({ row, next: "active" })}
-          >
-            {t("admin.screening.approve")}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            data-testid={`admin-screening-reject-${row.id}`}
-            onClick={() => setDecision({ row, next: "rejected" })}
-          >
-            {t("admin.screening.reject")}
-          </Button>
-        </>
-      ) : null}
-    </span>
+    <RowActions
+      testid={`admin-screening-actions-${row.id}`}
+      name={row.title}
+      more={[
+        { key: "open", label: t("admin.screening.open"), onSelect: () => openPreview(row) },
+        ...(mayReview
+          ? [
+              {
+                key: "approve",
+                label: t("admin.screening.approve"),
+                onSelect: () => setDecision({ ids: [row.id], next: "active" }),
+              },
+              {
+                key: "reject",
+                label: t("admin.screening.reject"),
+                tone: "danger" as const,
+                onSelect: () => setDecision({ ids: [row.id], next: "rejected" }),
+              },
+            ]
+          : []),
+      ]}
+    />
   );
 
   const data = query.data;
+  const rows = data?.rows ?? [];
+
+  const chips =
+    country === null
+      ? []
+      : [
+          {
+            key: "country",
+            label: marketName(country),
+            onRemove: () => {
+              setCountry(null);
+              resetPaging();
+            },
+          },
+        ];
 
   return (
     <StepUpGate>
       {(guard) => {
         const decide = async () => {
           if (decision === null) return;
-          const { row, next } = decision;
+          const { ids, next } = decision;
           setBusy(true);
           setNotice(null);
           try {
-            await guard(() => decideListing(row.id, next));
+            // One step-up for the whole set; the door judges each ad on its own.
+            await guard(async () => {
+              for (const id of ids) await decideListing(id, next);
+            });
             setDecision(null);
+            setSelected([]);
             setNotice({
               key: next === "active" ? "admin.screening.approved" : "admin.screening.rejected",
               tone: "ok",
             });
-            await queryClient.invalidateQueries({ queryKey: ADMIN_SCREENING_KEY });
           } catch (error) {
             setDecision(null);
             const abort = stepUpAbortKey(error);
@@ -161,8 +227,60 @@ export function AdminScreeningPage() {
             setNotice({ key: abort ?? "common.error", tone: "error" });
           } finally {
             setBusy(false);
+            await queryClient.invalidateQueries({ queryKey: ADMIN_SCREENING_KEY });
           }
         };
+
+        const reveal = async (row: ScreeningRow, channel: RevealChannel) => {
+          setRevealError(null);
+          try {
+            const answer = await guard(() => revealContact(row.id, channel));
+            if (answer.ok) {
+              setRevealed((current) => ({ ...current, [channel]: answer.value }));
+            } else {
+              setRevealError("common.error");
+            }
+          } catch (error) {
+            const abort = stepUpAbortKey(error);
+            if (abort === null) return;
+            console.error("[screening] reveal failed", error);
+            setRevealError(abort ?? "common.error");
+          }
+        };
+
+        const channelAction = (row: ScreeningRow) =>
+          function action(channel: "phone" | "phone2" | "telegram" | "whatsapp") {
+            if (channel === "telegram") return null;
+            const value = revealed[channel];
+            if (value !== undefined) {
+              return (
+                <span
+                  data-testid={`admin-screening-number-${channel}`}
+                  className="text-sm font-medium tabular-nums text-foreground"
+                >
+                  {value}
+                </span>
+              );
+            }
+            return mayReview ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid={`admin-screening-show-${channel}`}
+                onClick={() => void reveal(row, channel)}
+              >
+                {t("admin.screening.showNumber")}
+              </Button>
+            ) : null;
+          };
+
+        const previewFacts = facts.data ?? null;
+        const contactPref = previewFacts
+          ? Object.fromEntries(
+              Object.entries(previewFacts.channels).map(([channel, show]) => [channel, { show }]),
+            )
+          : {};
 
         return (
           <div data-testid="admin-section-screening" className="min-w-0 space-y-4">
@@ -186,7 +304,7 @@ export function AdminScreeningPage() {
 
             <DataTable<ScreeningRow>
               columns={columns}
-              rows={data?.rows ?? []}
+              rows={rows}
               rowKey={(row) => row.id}
               rowTestId={(row) => `admin-screening-row-${row.id}`}
               caption={t(section.titleKey)}
@@ -215,29 +333,127 @@ export function AdminScreeningPage() {
                 </p>
               }
               toolbar={
-                <div className="flex flex-wrap items-center gap-2">
-                  <Input
-                    data-testid="admin-screening-search"
-                    className="md:w-72"
-                    aria-label={t("admin.screening.search")}
-                    placeholder={t("admin.screening.search")}
-                    value={search}
-                    onChange={(event) => {
-                      setSearch(event.target.value);
-                      setPage(0);
-                    }}
-                  />
-                </div>
+                <TableToolbar
+                  testid="admin-screening-toolbar"
+                  search={
+                    <Input
+                      data-testid="admin-screening-search"
+                      aria-label={t("admin.screening.search")}
+                      placeholder={t("admin.screening.search")}
+                      value={search}
+                      onChange={(event) => {
+                        setSearch(event.target.value);
+                        resetPaging();
+                      }}
+                    />
+                  }
+                  filters={
+                    <FiltersButton testid="admin-screening-filters" count={chips.length}>
+                      <label className="flex flex-col gap-1 text-sm">
+                        <span>{t("location.country")}</span>
+                        <NativeSelect
+                          data-testid="admin-screening-filter-country"
+                          value={country ?? ""}
+                          onChange={(event) => {
+                            setCountry(event.target.value === "" ? null : event.target.value);
+                            resetPaging();
+                          }}
+                        >
+                          <option value="">{t("prim.table.all")}</option>
+                          {markets.markets.map((market) => (
+                            <option key={market.code} value={market.code}>
+                              {marketName(market.code)}
+                            </option>
+                          ))}
+                        </NativeSelect>
+                      </label>
+                    </FiltersButton>
+                  }
+                  columns={
+                    <ColumnsButton
+                      testid="admin-screening-columns"
+                      columns={allColumns.map((column) => ({
+                        key: column.key,
+                        label: String(column.header),
+                        locked: LOCKED.includes(column.key),
+                      }))}
+                      hidden={hidden}
+                      onToggle={toggleColumn}
+                    />
+                  }
+                  chips={
+                    <FilterChips
+                      testid="admin-screening-chips"
+                      chips={chips}
+                      onClearAll={() => {
+                        setCountry(null);
+                        resetPaging();
+                      }}
+                    />
+                  }
+                />
+              }
+              selection={
+                mayReview
+                  ? {
+                      selectedKeys: selected,
+                      onToggleRow: (row, on) =>
+                        setSelected((current) =>
+                          on
+                            ? [...new Set([...current, row.id])]
+                            : current.filter((id) => id !== row.id),
+                        ),
+                      onToggleAll: (on) => setSelected(on ? rows.map((row) => row.id) : []),
+                    }
+                  : undefined
+              }
+              selectionActions={
+                mayReview && selected.length > 0 ? (
+                  <>
+                    <Button
+                      type="button"
+                      size="sm"
+                      data-testid="admin-screening-bulk-approve"
+                      onClick={() => setDecision({ ids: selected, next: "active" })}
+                    >
+                      {t("admin.screening.approve")}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      data-testid="admin-screening-bulk-reject"
+                      onClick={() => setDecision({ ids: selected, next: "rejected" })}
+                    >
+                      {t("admin.screening.reject")}
+                    </Button>
+                  </>
+                ) : undefined
               }
               rowActions={rowActions}
               pagination={
                 <DataTablePagination
                   testid="admin-screening-pagination"
-                  offset={page * SCREENING_PAGE_SIZE}
-                  pageSize={SCREENING_PAGE_SIZE}
+                  offset={page * pageSize}
+                  pageSize={pageSize}
                   total={data?.total ?? 0}
-                  onPrevious={() => setPage((current) => Math.max(0, current - 1))}
-                  onNext={() => setPage((current) => current + 1)}
+                  onPrevious={() => {
+                    setPage((current) => Math.max(0, current - 1));
+                    setSelected([]);
+                  }}
+                  onNext={() => {
+                    setPage((current) => current + 1);
+                    setSelected([]);
+                  }}
+                  onPage={(index) => {
+                    setPage(index);
+                    setSelected([]);
+                  }}
+                  pageSizeOptions={SCREENING_PAGE_SIZES}
+                  onPageSize={(size) => {
+                    setPageSize(size);
+                    resetPaging();
+                  }}
                 />
               }
             />
@@ -250,9 +466,15 @@ export function AdminScreeningPage() {
             >
               <AlertDialogContent data-testid="admin-screening-confirm">
                 <AlertDialogTitle>
-                  {decision?.next === "rejected"
-                    ? t("admin.screening.confirmReject")
-                    : t("admin.screening.confirmApprove")}
+                  {decision !== null && decision.ids.length > 1
+                    ? t(
+                        decision.next === "rejected"
+                          ? "admin.screening.confirmRejectMany"
+                          : "admin.screening.confirmApproveMany",
+                      ).replace("{count}", String(decision.ids.length))
+                    : decision?.next === "rejected"
+                      ? t("admin.screening.confirmReject")
+                      : t("admin.screening.confirmApprove")}
                 </AlertDialogTitle>
                 <AlertDialogFooter>
                   <AlertDialogCancel disabled={busy} className="min-h-11">
@@ -276,6 +498,44 @@ export function AdminScreeningPage() {
             {previewRow !== null ? (
               <PreviewSheet
                 onClose={() => setPreviewRow(null)}
+                footer={
+                  mayReview ? (
+                    <>
+                      <Button
+                        type="button"
+                        className="min-h-11"
+                        data-testid="admin-screening-preview-approve"
+                        onClick={() => {
+                          setDecision({ ids: [previewRow.id], next: "active" });
+                          setPreviewRow(null);
+                        }}
+                      >
+                        {t("admin.screening.approve")}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="min-h-11"
+                        data-testid="admin-screening-preview-reject"
+                        onClick={() => {
+                          setDecision({ ids: [previewRow.id], next: "rejected" });
+                          setPreviewRow(null);
+                        }}
+                      >
+                        {t("admin.screening.reject")}
+                      </Button>
+                      {revealError !== null ? (
+                        <p
+                          role="alert"
+                          data-testid="admin-screening-reveal-error"
+                          className="text-sm text-destructive"
+                        >
+                          {t(revealError)}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : undefined
+                }
                 view={{
                   title: previewRow.title,
                   description: previewRow.description,
@@ -286,16 +546,17 @@ export function AdminScreeningPage() {
                   priceBp: previewRow.priceBp,
                   priceNegotiable: previewRow.priceNegotiable,
                   attributes: previewRow.attributes,
-                  definitions: [],
-                  attributeOptions: {},
+                  definitions: schema.data?.definitions ?? [],
+                  attributeOptions: schema.data?.attributeOptions ?? {},
                   photos: photos.data ?? [],
                   illustrationUrl: nearestCategoryPicture(tree, previewRow.categoryId),
                   photosSoon: previewRow.photosSoon,
                   coverage: previewRow.locationId === null ? [] : [previewRow.locationId],
-                  country: null,
-                  contactPref: {},
-                  sellerAlias: null,
-                  sellerBusinessName: null,
+                  country: previewFacts?.country ?? null,
+                  contactPref,
+                  sellerAlias: previewFacts?.alias ?? null,
+                  sellerBusinessName: previewFacts?.businessName ?? null,
+                  channelAction: channelAction(previewRow),
                 }}
               />
             ) : null}

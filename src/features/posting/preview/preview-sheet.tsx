@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { Z_SHEET } from "@/components/layout/layers";
@@ -19,7 +19,16 @@ import { ListingDetail, type ListingDetailView } from "./listing-detail";
  * thumb reaches on the way back — the seller must never feel trapped in a
  * preview.
  */
-export function PreviewSheet({ view, onClose }: { view: ListingDetailView; onClose: () => void }) {
+export function PreviewSheet({
+  view,
+  onClose,
+  footer,
+}: {
+  view: ListingDetailView;
+  onClose: () => void;
+  /** Bundle 11 A2 — actions under the listing (the reviewer's Approve and Reject). */
+  footer?: ReactNode;
+}) {
   const { t } = useI18n();
   const closeRef = useRef<HTMLButtonElement | null>(null);
 
@@ -64,6 +73,11 @@ export function PreviewSheet({ view, onClose }: { view: ListingDetailView; onClo
           </button>
         </div>
         <ListingDetail {...view} />
+        {footer ? (
+          <div data-testid="post-preview-footer" className="flex flex-wrap items-center gap-2">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,

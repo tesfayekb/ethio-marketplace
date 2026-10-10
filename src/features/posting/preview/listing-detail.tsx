@@ -1,6 +1,6 @@
 import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { dealLines } from "../deal-lines";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { SellerLine } from "../seller-line";
 
 /**
@@ -114,6 +114,11 @@ export interface ListingDetailView {
   /** Bundle 2 step 10 — the directions line, then the location details. */
   directions?: string | null;
   streetAddress?: string | null;
+  /**
+   * Bundle 11 A2 (D120) — a control drawn after a shown channel's name (the
+   * reviewer's "Show number"). The seller's own preview passes nothing.
+   */
+  channelAction?: (channel: "phone" | "phone2" | "telegram" | "whatsapp") => ReactNode;
 }
 
 export function ListingDetail(view: ListingDetailView) {
@@ -323,17 +328,29 @@ export function ListingDetail(view: ListingDetailView) {
           <li data-testid="listing-detail-channel" data-channel="messages">
             {t("post.who.channel.messages")}
           </li>
-          {channels.map((channel) => (
-            <li key={channel} data-testid="listing-detail-channel" data-channel={channel}>
-              {channel === "phone"
+          {channels.map((channel) => {
+            const label =
+              channel === "phone"
                 ? t("post.who.channel.phone")
                 : channel === "phone2"
                   ? t("post.who.channel.phone2")
                   : channel === "telegram"
                     ? t("post.who.channel.telegram")
-                    : t("post.who.channel.whatsapp")}
-            </li>
-          ))}
+                    : t("post.who.channel.whatsapp");
+            const action = view.channelAction?.(channel) ?? null;
+            return (
+              <li key={channel} data-testid="listing-detail-channel" data-channel={channel}>
+                {action === null ? (
+                  label
+                ) : (
+                  <span className="inline-flex flex-wrap items-center gap-2">
+                    {label}
+                    {action}
+                  </span>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </section>
 

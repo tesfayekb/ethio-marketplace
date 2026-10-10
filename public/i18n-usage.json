@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 374,
-  "dynamicCallSites": 226,
+  "scanned": 377,
+  "dynamicCallSites": 228,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2121,6 +2121,9 @@
     "admin.screening.search": [
       "/admin/screening"
     ],
+    "admin.screening.showNumber": [
+      "/admin/screening"
+    ],
     "admin.translations.add.added": [
       "/admin/translations"
     ],
@@ -3188,6 +3191,9 @@
     ],
     "location.anyArea": [
       "(every page)"
+    ],
+    "location.country": [
+      "/admin/screening"
     ],
     "location.empty": [
       "(every page)"
@@ -4635,10 +4641,18 @@
       "/dev/primitives",
       "/dev/style"
     ],
+    "prim.table.all": [
+      "/admin/screening"
+    ],
     "prim.table.clearAll": [
+      "/admin/screening",
       "/dev/style"
     ],
+    "prim.table.columns": [
+      "/admin/screening"
+    ],
     "prim.table.filters": [
+      "/admin/screening",
       "/dev/style"
     ],
     "prim.table.next": [
@@ -4722,6 +4736,7 @@
       "/dev/style"
     ],
     "prim.table.removeFilter": [
+      "/admin/screening",
       "/dev/style"
     ],
     "prim.table.selectAll": [
