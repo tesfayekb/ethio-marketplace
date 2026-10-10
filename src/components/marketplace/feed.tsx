@@ -62,8 +62,9 @@ function InviteFirst({ invite }: { invite: Invite }) {
  *
  * Bundle 10 E3b — the listings page: one page of cards at a time from
  * /api/feed, in the server's order (D108), for the place the location row
- * shows. Wider places are named above their listings; the next page loads
- * when the end of the list comes into view.
+ * shows. The chosen place's own listings are "in" it, the rest of its country
+ * "near" it, under one heading (D125); the next page loads when the end of the
+ * list comes into view.
  */
 export function Feed() {
   const { t, entities } = useI18n();
@@ -79,7 +80,9 @@ export function Feed() {
 
   const nameOf = (node: LocationNode) =>
     entityName("location", { id: node.id, nameEn: node.name_en, nameAm: node.name_am }, entities);
-  const headingFor = (node: LocationNode) => t("feed.heading").replace("{location}", nameOf(node));
+  // D125 (the operator, 2026-10-10; INC-534): never "near" the place the listings are in.
+  const inHeading = (node: LocationNode) => t("feed.headingIn").replace("{location}", nameOf(node));
+  const nearHeading = (node: LocationNode) => t("feed.heading").replace("{location}", nameOf(node));
 
   const moreRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -164,11 +167,7 @@ export function Feed() {
         {sections.map((section) => {
           let label: string | null = null;
           if (section.label?.kind === "all") label = t("nav.allListings");
-          else if (section.label?.kind === "place") {
-            const id = section.label.placeId;
-            const node = locationPath.find((n) => n.id === id);
-            label = node ? headingFor(node) : null;
-          }
+          else if (section.label?.kind === "near" && place !== null) label = nearHeading(place);
           return (
             <section
               key={`${section.step}-${section.cards[0]?.id ?? ""}`}
@@ -220,7 +219,7 @@ export function Feed() {
       className="mx-auto w-full max-w-6xl"
     >
       <h1 className="text-xl font-semibold text-foreground">
-        {place ? headingFor(place) : t("feed.heading").replace("{location}", t("feed.scopeAll"))}
+        {place ? inHeading(place) : t("feed.heading").replace("{location}", t("feed.scopeAll"))}
       </h1>
 
       <div className="mt-4">{body}</div>
