@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-10-d127.md (D127: every listings heading says "in"; one turn, no migration, no new string). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118), its first turn with INC-536; its brief is named on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-11-turn-1.md (bundle 11, turn 1 — INC-536: the repeated test ids renamed and the check that refuses a repeat; no migration, no string). Then bundle 11's brief for Parts A–C (the toolbar block and Admin › Screening on the blocks with D120's preview; the other twelve tables; the written rules and their check); it is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -182,8 +182,9 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [ ] Admin › Screening first, on the blocks (RowActions, the toolbar with Filters and columns, FilterChips, the selection slot, the footer's three zones, one card per row on a phone); its "Preview as buyer" shows the facts and options it can read, the ad's own country, and — by the operator's two Tier A answers — the seller's contact preferences and name or not (spec-ledger S60, the preview census)
 - [ ] Every other admin list page on the same blocks; the admin and dev pages' cut names (39 lines of docs/governance/briefs/bundle-9-cut-names-census.md) get the five-character floor with them
 - [ ] Part E — one written rule and one automatic check per element; existing screens listed in a baseline that only shrinks, so no screen can be built another way
-- [ ] First turn: INC-536 — the fourteen repeated test ids renamed (the later of each pair takes a free id; the docs that name it follow) and a unit test that fails when one id appears in two files
+- [x] First turn: INC-536 — the 19 colliding test ids renamed (fifteen in two files, four on two tests of one file; the test the ledgers name keeps its id, else the older one; the docs that name a renamed test follow) and the check that refuses a repeat (scripts/test-ids.ts; TI-1..TI-4; the rule and the rename table in docs/features/test-ids.md)
 - [ ] Admin › Screening's preview (D120, 2026-10-09): the contact methods, and the number behind "Show number" through a reviewer-only door gated on listings:review with its own log of every reveal (Tier A); the seller's public name only
+- [ ] D128 (operator, 2026-10-10): tick-boxes for several rows only where a bulk action exists (Screening; Translations › Strings); the Columns button on every table (Search · Filters · Columns); a reviewer's "Show number" reveal is read in Admin › Audit and never shown to the seller
 
 ### After bundle 7, in this order
 

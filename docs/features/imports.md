@@ -276,7 +276,7 @@ cell (120 characters, a leading `-` is a NUMBER and not a formula, INC-208), bot
 after `card_rank` and before `origin`. The links header is therefore
 `category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,allowed_options,default_value,origin (read-only)`.
 Shape only lives at the gate; every semantic verdict stays the planner's
-(`badAllowedOption:` / `badDefault:`). AT-21 sets both from a file and reads the
+(`badAllowedOption:` / `badDefault:`). AT-78 sets both from a file and reads the
 export's echo. Since M-MAINT-3 both cells also have a DOOR
 (`admin_link_attribute` / `admin_update_attribute_link`), so the console's own
 per-row cells no longer wait on a migration.

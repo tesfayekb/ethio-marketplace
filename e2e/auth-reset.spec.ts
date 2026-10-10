@@ -86,7 +86,7 @@ test("R-3: a recovery link sets a new password, and the old one stops working", 
   await expectSignedIn(page, user.displayName);
 });
 
-test("R-4: recovery leaves an email identity in place (truth-model read-back)", async ({
+test("R-9: recovery leaves an email identity in place (truth-model read-back)", async ({
   page,
 }) => {
   const user = await createUser({ confirmed: true });

@@ -31,7 +31,7 @@ async function grantRole(userId: string, roleName: string) {
 }
 
 test.describe("RBAC client seam", () => {
-  test("R-1 logged out: no Admin tab and no RBAC request at all", async ({ page }) => {
+  test("R-6 logged out: no Admin tab and no RBAC request at all", async ({ page }) => {
     const rbacCalls: string[] = [];
     page.on("request", (request) => {
       if (request.url().includes("get_my_permissions")) rbacCalls.push(request.url());
@@ -44,7 +44,7 @@ test.describe("RBAC client seam", () => {
     expect(rbacCalls, "logged-out visitor issued an RBAC request").toEqual([]);
   });
 
-  test("R-2 regular user: no Admin tab, and /admin redirects home", async ({ page }) => {
+  test("R-7 regular user: no Admin tab, and /admin redirects home", async ({ page }) => {
     const user = await leaseUser();
 
     await signIn(page, user.email, user.password);
@@ -58,7 +58,7 @@ test.describe("RBAC client seam", () => {
     await expect(page.getByTestId("admin-panel-root")).toHaveCount(0);
   });
 
-  test("R-3 staff user: Admin tab appears and /admin renders", async ({ page }) => {
+  test("R-8 staff user: Admin tab appears and /admin renders", async ({ page }) => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 

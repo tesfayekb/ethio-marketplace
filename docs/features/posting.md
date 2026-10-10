@@ -976,7 +976,7 @@ every `format = 'year'` value: under Amharic "<GC> · <GC−8>/<GC−7, two digi
 – 31 Dec is GC−7), so 2027 reads "2027 · 2019/20 ዓ.ም"; elsewhere the bare year.
 The year picker, the review line and the buyer preview all use it; the suffix is
 the key `post.specs.yearEcSuffix`. The stored value is the Gregorian integer.
-Test: PW-58.
+Test: PW-183.
 
 ## The identity starts the form over (D46, 2026-09-26)
 
@@ -984,7 +984,7 @@ Test: PW-58.
 - The single_select detail with `cardRank === 1` is the leaf's identity. It joins both `parents` and `roots`, so changing it is a D25b root change: every other detail restarts (the seller's own answers included), the new option's facts and the link defaults (INC-245) fill what they fill, and the ten-second Undo offer names the new option.
 - (Retired by DEC-144, Bundle 7 Part A — see "A changed answer resets only what depends on it".) Undo after an identity reset restored the answers as they stood before it — the previous identity and the details it had shown — from the last pass in which no parent moved. Other Undo offers are unchanged (a make change still keeps the new make).
 - A card-2/3 change keeps D25's narrower scope. PW-59 proves both sides on scratch rows.
-- D45 part 2: `attributeDisplayValue`'s `yearSuffix` is required, and the buyer sheet passes `post.specs.yearEcSuffix`; PW-58 reads the label in the sheet too.
+- D45 part 2: `attributeDisplayValue`'s `yearSuffix` is required, and the buyer sheet passes `post.specs.yearEcSuffix`; PW-183 reads the label in the sheet too.
 
 ## Only the identity restarts the form (D47, 2026-09-26)
 
@@ -1267,4 +1267,4 @@ Both maps print the tile provider's credit as text, never markup. `creditOf` (sr
 - **Step 1** — once, on a new post with no category: a postable leaf is CHOSEN, exactly as a tap chooses it (the draft is made and the wizard goes on — the operator, 2026-10-09: a subcategory's page fills the subcategory); a folder opens step 1 inside itself; any other leaf opens on its parent's level (`prefillCursor`).
 - **The place step** — the draft's own places, then the invite's place (D119), then the last post's places, then the saved area, then the edge's guess. A country-level place only picks the market; the step still requires a city.
 - **Sign-in** — a signed-out visitor is sent to `/auth` with `return=/post?category=…&place=…` (`postReturnPath`). Both doors move to the checked return path by `href`, so its query string survives (INC-530); the shared rule (src/lib/return-path.ts) also refuses control characters.
-- **Tests** — PW-180 (INC-531: it finds its new draft beside the prior post), PW-181, PW-182; PF-1..PF-3; RP-1..RP-3.
+- **Tests** — PW-180 (INC-531: it finds its new draft beside the prior post), PW-181, PW-182; PF-1..PF-3; RP-13..RP-15.
