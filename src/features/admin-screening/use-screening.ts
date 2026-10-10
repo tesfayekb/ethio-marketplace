@@ -1,6 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import type { DraftPhotoRow } from "@/features/posting/posting-service";
+import { loadAttributeOptions, type AttrOption } from "@/features/posting/attribute-options";
+import {
+  readPostingSchema,
+  type AttrDef,
+  type DraftPhotoRow,
+} from "@/features/posting/posting-service";
 import { supabase } from "@/integrations/supabase/client";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
@@ -14,6 +19,14 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
  */
 export const ADMIN_SCREENING_KEY = [AUTH_DERIVED_ROOT, "admin", "screening"] as const;
 export const SCREENING_PAGE_SIZE = 25;
+/** Bundle 11 A2 — the footer's rows-per-page choices. */
+export const SCREENING_PAGE_SIZES = [25, 50, 100];
+
+/** Bundle 11 A2 — the toolbar's filters; null means every value. */
+export interface ScreeningFilters {
+  /** The ad's market (`home_country_code`). */
+  country: string | null;
+}
 
 type Named = { name_en: string; name_am: string | null } | null;
 
@@ -44,8 +57,10 @@ function escapeLike(value: string): string {
 export async function listScreening(
   page: number,
   search: string,
+  pageSize: number = SCREENING_PAGE_SIZE,
+  filters: ScreeningFilters = { country: null },
 ): Promise<{ rows: ScreeningRow[]; total: number }> {
-  const from = page * SCREENING_PAGE_SIZE;
+  const from = page * pageSize;
   let query = supabase
     .from("listings")
     .select(
@@ -55,10 +70,11 @@ export async function listScreening(
     .eq("status", "screening");
   const term = search.trim();
   if (term !== "") query = query.ilike("title", `%${escapeLike(term)}%`);
+  if (filters.country !== null) query = query.eq("home_country_code", filters.country);
   const { data, error, count } = await query
     .order("updated_at", { ascending: true })
     .order("id", { ascending: true })
-    .range(from, from + SCREENING_PAGE_SIZE - 1);
+    .range(from, from + pageSize - 1);
   // F4 — a failed read is an error, never an empty queue.
   if (error) throw new Error(error.message);
   if (!data || count === null) throw new Error("screening read returned no data");
@@ -86,10 +102,15 @@ export async function listScreening(
   return { rows, total: count };
 }
 
-export function useScreeningQueue(page: number, search: string) {
+export function useScreeningQueue(
+  page: number,
+  search: string,
+  pageSize: number = SCREENING_PAGE_SIZE,
+  filters: ScreeningFilters = { country: null },
+) {
   return useQuery({
-    queryKey: [...ADMIN_SCREENING_KEY, "list", page, search],
-    queryFn: () => listScreening(page, search),
+    queryKey: [...ADMIN_SCREENING_KEY, "list", page, search, pageSize, filters.country],
+    queryFn: () => listScreening(page, search, pageSize, filters),
     placeholderData: keepPreviousData,
     staleTime: 10_000,
   });
@@ -128,4 +149,113 @@ export async function decideListing(listingId: string, next: "active" | "rejecte
     p_new_status: next,
   });
   if (error) throw error;
+}
+
+/**
+ * Bundle 11 A2 (D120) — what the reviewer's preview may show beyond the row:
+ * the ad's country, which contact methods the seller shows (never a value) and
+ * the seller's public name, from `admin_screening_facts` (listings:review).
+ */
+export interface ScreeningFacts {
+  country: string | null;
+  channels: Record<"phone" | "phone2" | "telegram" | "whatsapp", boolean>;
+  alias: string | null;
+  businessName: string | null;
+}
+
+const CHANNELS = ["phone", "phone2", "telegram", "whatsapp"] as const;
+
+export function parseScreeningFacts(data: unknown): ScreeningFacts | null {
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return null;
+  const payload = data as Record<string, unknown>;
+  const rawChannels = payload["channels"];
+  const rawSeller = payload["seller"];
+  if (rawChannels === null || typeof rawChannels !== "object" || Array.isArray(rawChannels)) {
+    return null;
+  }
+  if (rawSeller === null || typeof rawSeller !== "object" || Array.isArray(rawSeller)) return null;
+  const channelMap = rawChannels as Record<string, unknown>;
+  const seller = rawSeller as Record<string, unknown>;
+  const text = (value: unknown) => (typeof value === "string" && value !== "" ? value : null);
+  const channels = Object.fromEntries(
+    CHANNELS.map((channel) => [channel, channelMap[channel] === true]),
+  ) as ScreeningFacts["channels"];
+  return {
+    country: text(payload["country"]),
+    channels,
+    alias: text(seller["alias"]),
+    businessName: text(seller["business_name"]),
+  };
+}
+
+export async function readScreeningFacts(listingId: string): Promise<ScreeningFacts> {
+  const { data, error } = await supabase.rpc("admin_screening_facts", {
+    p_listing_id: listingId,
+  });
+  if (error) throw new Error(error.message);
+  const facts = parseScreeningFacts(data);
+  if (facts === null) throw new Error("screening facts returned no data");
+  return facts;
+}
+
+export function useScreeningFacts(listingId: string | null) {
+  return useQuery({
+    queryKey: [...ADMIN_SCREENING_KEY, "facts", listingId],
+    queryFn: () => readScreeningFacts(listingId as string),
+    enabled: listingId !== null,
+  });
+}
+
+/**
+ * Bundle 11 A2 — the questions and their options for the preview's facts table,
+ * read as the posting form reads them (`get_posting_schema`, the options route).
+ */
+export function useScreeningSchema(categoryId: string | null) {
+  return useQuery({
+    queryKey: [...ADMIN_SCREENING_KEY, "schema", categoryId],
+    enabled: categoryId !== null,
+    queryFn: async (): Promise<{
+      definitions: AttrDef[];
+      attributeOptions: Record<string, AttrOption[]>;
+    }> => {
+      const schema = await readPostingSchema(categoryId as string);
+      const definitions = schema?.attributes ?? [];
+      const entries = await Promise.all(
+        definitions
+          .filter((definition) => ["single_select", "multi_select"].includes(definition.attrType))
+          .map(
+            async (definition) =>
+              [
+                definition.attrKey,
+                (await loadAttributeOptions(definition.attributeId)) ?? [],
+              ] as const,
+          ),
+      );
+      return { definitions, attributeOptions: Object.fromEntries(entries) };
+    },
+  });
+}
+
+/** Bundle 11 A2 (D120) — "Show number": the door logs every reveal (Admin › Audit). */
+export type RevealAnswer =
+  | { ok: true; value: string }
+  | { ok: false; reason: "notShown" | "rateLimited" };
+
+export async function revealContact(
+  listingId: string,
+  channel: "phone" | "phone2" | "whatsapp",
+): Promise<RevealAnswer> {
+  const { data, error } = await supabase.rpc("admin_reveal_listing_contact", {
+    p_listing_id: listingId,
+    p_channel: channel,
+  });
+  if (error) throw error;
+  const payload = (data ?? {}) as Record<string, unknown>;
+  if (payload["ok"] === true && typeof payload["value"] === "string") {
+    return { ok: true, value: payload["value"] };
+  }
+  if (payload["reason"] === "notShown" || payload["reason"] === "rateLimited") {
+    return { ok: false, reason: payload["reason"] };
+  }
+  throw new Error("reveal returned no answer");
 }

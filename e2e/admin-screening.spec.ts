@@ -11,11 +11,18 @@ import {
   RUN,
   seedCategoryBranch,
 } from "./helpers/posting";
-import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./helpers/ui";
+import {
+  awaitGuardedOutcome,
+  gotoReady,
+  stepUpIfPrompted,
+  switchUser,
+  useJobSuperAdmin,
+} from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
- * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6); bundle 11 A1 — the preview's doors (SC-7..SC-10). Seeded as feed-route seeds;
+ * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6); bundle 11 A1 — the preview's doors (SC-7..SC-10);
+ * bundle 11 A2 — the page on the agreed blocks (SC-11..SC-14; SC-2, SC-3, SC-6 open the row's menu). Seeded as feed-route seeds;
  * every row is found by its unique title in the page's search (G28); DB truth
  * through the service client; cleanup in afterEach (J3).
  */
@@ -124,6 +131,19 @@ function actionsOf(page: Page, id: string) {
   );
 }
 
+/** Bundle 11 A2 — the row's actions live in its three-dots menu (RowActions). */
+async function rowMenu(page: Page, id: string, item: "open" | "approve" | "reject") {
+  await actionsOf(page, id).getByTestId(`admin-screening-actions-${id}-more`).click();
+  await page.getByTestId(`admin-screening-actions-${id}-more-${item}`).click();
+}
+
+/** Bundle 11 A2 — a row's tick-box, in whichever twin the width draws. */
+function tickOf(page: Page, id: string) {
+  return surface(page).getByTestId(
+    isCardTwin(page) ? `admin-screening-row-${id}-select` : `admin-screening-row-${id}-select-cell`,
+  );
+}
+
 test.describe("ADMIN SCREENING", () => {
   const sellers: string[] = [];
   const regions: string[] = [];
@@ -151,6 +171,7 @@ test.describe("ADMIN SCREENING", () => {
       contactPref?: Record<string, unknown>;
       business?: string;
       status?: "screening" | "active";
+      title?: string;
     } = {},
   ) {
     const seller = await leaseSeller({ alias: true });
@@ -168,7 +189,7 @@ test.describe("ADMIN SCREENING", () => {
     branches.push([parent.slug, leaf.slug]);
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug);
-    const title = `e2e-screen-${RUN}-${rand()}`;
+    const title = options.title ?? `e2e-screen-${RUN}-${rand()}`;
     const { data, error } = await adminClient()
       .from("listings")
       .insert({
@@ -215,7 +236,7 @@ test.describe("ADMIN SCREENING", () => {
     const ad = await seedWaiting();
     const { secret } = await useJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
-    await actionsOf(page, ad.id).getByTestId(`admin-screening-approve-${ad.id}`).click();
+    await rowMenu(page, ad.id, "approve");
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
     await page.getByTestId("admin-screening-confirm-go").click();
     await stepUpIfPrompted(page, secret);
@@ -234,7 +255,7 @@ test.describe("ADMIN SCREENING", () => {
     const ad = await seedWaiting();
     const { secret } = await useJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
-    await actionsOf(page, ad.id).getByTestId(`admin-screening-reject-${ad.id}`).click();
+    await rowMenu(page, ad.id, "reject");
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
     await page.getByTestId("admin-screening-confirm-go").click();
     await stepUpIfPrompted(page, secret);
@@ -313,7 +334,7 @@ test.describe("ADMIN SCREENING", () => {
     const ad = await seedWaiting({ parentImageUrl: picture });
     await useJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
-    await actionsOf(page, ad.id).getByTestId(`admin-screening-open-${ad.id}`).click();
+    await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
     const box = page.getByTestId("listing-detail-illustration");
     await expect(box, "SC-6: the preview did not draw the category picture").toBeVisible({
@@ -457,5 +478,134 @@ test.describe("ADMIN SCREENING", () => {
     });
     expect(shown.error).toBe("listing not found");
     expect(await revealRows(ad.id)).toHaveLength(0);
+  });
+
+  test("SC-11 the toolbar: Columns hides a column and remembers it; Filters narrows to a market and its chip clears", async ({
+    page,
+  }) => {
+    const ad = await seedWaiting();
+    await useJobSuperAdmin(page);
+    await findRow(page, ad.title, ad.id);
+    await expect(rowOf(page, ad.id)).toContainText(ad.cityName);
+
+    await page.getByTestId("admin-screening-columns").click();
+    await expect(page.getByTestId("admin-screening-columns-title")).toBeDisabled();
+    await page.getByTestId("admin-screening-columns-place").click();
+    await page.keyboard.press("Escape");
+    await expect(rowOf(page, ad.id)).not.toContainText(ad.cityName);
+    await findRow(page, ad.title, ad.id);
+    await expect(
+      rowOf(page, ad.id),
+      "SC-11: the hidden column came back after a reload",
+    ).not.toContainText(ad.cityName);
+    await page.getByTestId("admin-screening-columns").click();
+    await page.getByTestId("admin-screening-columns-place").click();
+    await page.keyboard.press("Escape");
+    await expect(rowOf(page, ad.id)).toContainText(ad.cityName);
+
+    await page.getByTestId("admin-screening-filters").click();
+    await page.getByTestId("admin-screening-filter-country").selectOption("ET");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
+    await expect(page.getByTestId("admin-screening-chips-chip-country")).toBeVisible();
+    await expect(rowOf(page, ad.id)).toBeVisible();
+    await page.getByTestId("admin-screening-chips-clear").click();
+    await expect(page.getByTestId("admin-screening-chips-chip-country")).toHaveCount(0);
+    await expect(page.getByTestId("admin-screening-filters-count")).toHaveCount(0);
+    await expect(rowOf(page, ad.id)).toBeVisible();
+  });
+
+  test("SC-12 two ticked ads are approved together, after one confirmation that counts them", async ({
+    page,
+  }) => {
+    const stem = `e2e-screen-${RUN}-${rand()}`;
+    const first = await seedWaiting({ title: `${stem}-a` });
+    const second = await seedWaiting({ title: `${stem}-b` });
+    const { secret } = await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/screening");
+    await page.getByTestId("admin-screening-search").fill(stem);
+    await expect(rowOf(page, first.id)).toBeVisible({ timeout: 20000 });
+    await expect(rowOf(page, second.id)).toBeVisible();
+    await tickOf(page, first.id).click();
+    await tickOf(page, second.id).click();
+    await expect(page.getByTestId("data-table-selection")).toContainText("2");
+    await page.getByTestId("admin-screening-bulk-approve").click();
+    await expect(page.getByTestId("admin-screening-confirm")).toContainText(
+      en["admin.screening.confirmApproveMany"].replace("{count}", "2"),
+    );
+    await page.getByTestId("admin-screening-confirm-go").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
+      en["admin.screening.approved"],
+      { timeout: 20000 },
+    );
+    expect((await listingTruth(first.id)).status).toBe("active");
+    expect((await listingTruth(second.id)).status).toBe("active");
+    await expect(page.getByTestId("data-table-selection")).toHaveCount(0);
+  });
+
+  test("SC-13 Preview as buyer shows the public name and the methods shown; Show number reveals one number and logs it", async ({
+    page,
+  }) => {
+    const ad = await seedWaiting({ contactPref: PREF, business: "Escreen Trading" });
+    const { user, secret } = await useJobSuperAdmin(page);
+    const { data: profile } = await adminClient()
+      .from("profiles")
+      .select("seller_alias")
+      .eq("user_id", ad.sellerId)
+      .single();
+    await findRow(page, ad.title, ad.id);
+    await rowMenu(page, ad.id, "open");
+    const sheet = page.getByTestId("post-preview-sheet");
+    await expect(sheet).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("listing-detail-seller-name")).toHaveText("Escreen Trading", {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("listing-detail-seller-alias")).toHaveText(
+      profile?.seller_alias as string,
+    );
+    const channel = (name: string) =>
+      sheet.locator(`[data-testid="listing-detail-channel"][data-channel="${name}"]`);
+    await expect(channel("phone")).toBeVisible();
+    await expect(channel("telegram")).toBeVisible();
+    await expect(channel("whatsapp")).toBeVisible();
+    await expect(channel("phone2")).toHaveCount(0);
+    await expect(page.getByTestId("admin-screening-show-telegram")).toHaveCount(0);
+    await expect(sheet).not.toContainText("+251911000101");
+    await expect(sheet).not.toContainText("+251911000303");
+
+    await page.getByTestId("admin-screening-show-phone").click();
+    const number = page.getByTestId("admin-screening-number-phone");
+    await awaitGuardedOutcome(page, secret, number);
+    await expect(number).toHaveText("+251911000101");
+    await expect(sheet, "SC-13: a number not asked for was shown").not.toContainText(
+      "+251911000303",
+    );
+    const rows = await revealRows(ad.id);
+    expect(rows).toEqual([
+      { actor_id: user.id, action: "listing.contact_revealed", meta: { channel: "phone" } },
+    ]);
+  });
+
+  test("SC-14 Reject at the foot of the preview closes it and keeps the ad off", async ({
+    page,
+  }) => {
+    const ad = await seedWaiting();
+    const { secret } = await useJobSuperAdmin(page);
+    await findRow(page, ad.title, ad.id);
+    await rowMenu(page, ad.id, "open");
+    await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("admin-screening-preview-reject").click();
+    await expect(page.getByTestId("post-preview-sheet")).toHaveCount(0);
+    await expect(page.getByTestId("admin-screening-confirm")).toContainText(
+      en["admin.screening.confirmReject"],
+    );
+    await page.getByTestId("admin-screening-confirm-go").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
+      en["admin.screening.rejected"],
+      { timeout: 20000 },
+    );
+    expect((await listingTruth(ad.id)).status).toBe("rejected");
   });
 });

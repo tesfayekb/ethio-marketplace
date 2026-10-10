@@ -180,3 +180,27 @@ When given, rendered at the end of `data-table-selection`
 
 All of the above are shown on `/dev/style` and tested by
 `e2e/house-style.spec.ts` (HS-3 row actions, HS-4 pager, HS-5 filters).
+
+### ColumnsButton and TableToolbar (bundle 11, turn A2; D118, D128)
+
+`ColumnsButton` (`src/components/shell/columns-button.tsx`; `testid`, `columns`
+of `{ key, label, locked? }`, `hidden`, `onToggle(key, visible)`): an outline
+text button (`prim.table.columns`, THE SIZE RULE) opening a popover
+`<testid>-panel` with one tick per column (`<testid>-<key>`); a locked column
+(the row's name) is ticked and disabled. `useHiddenColumns(tableId)` and
+`visibleColumns(columns, hidden, locked)` (`src/components/shell/columns-state.ts`)
+keep which columns this browser hides, per table, in local storage under
+`ethio:table-columns:<tableId>` — read after the first paint, a convenience only:
+storage that fails or is missing shows every column.
+
+`TableToolbar` (`src/components/shell/table-toolbar.tsx`; `testid`, `search`,
+`filters`, `columns`, `chips`): the one layout of a table's toolbar — the search
+box first, Filters and Columns at the end of the row, the filter chips under it.
+It only places the shared blocks; every admin table passes its toolbar through it
+(D128: the Columns button on every table; tick-boxes only where a bulk action
+exists).
+
+Tests: HS-7 (the button, the locked column, the reported choice), HS-8 (the choice
+per table, and blocked storage), HS-9 (the drawn columns; the toolbar's order) in
+`src/components/shell/columns-button.test.tsx`. First used by Admin › Screening
+(SC-11).

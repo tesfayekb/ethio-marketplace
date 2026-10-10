@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-11-turn-2.md (bundle 11, turn A1 — Admin › Screening's preview doors: the facts a reviewer may read and the logged "Show number"; one migration, Tier A). Then turn A2 (the shared toolbar with Search, Filters and Columns; Admin › Screening on the agreed blocks with the preview, the tick-boxes and Show number), then Parts B and C; their briefs are named on this line when they are saved.
+The brief in force: docs/governance/briefs/bundle-11-turn-3.md (bundle 11, turn A2 — the shared toolbar with Search, Filters and Columns; Admin › Screening on the agreed blocks with the preview, the tick-boxes and Show number; no migration). Then Part B (the other twelve tables, in three groups) and Part C (the written rules and their check); their briefs are named on this line when they are saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -179,11 +179,11 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 
 ### Bundle 11 — every admin table in the agreed house style (D118, 2026-10-09; NEXT; ACT-018)
 
-- [ ] Admin › Screening first, on the blocks (RowActions, the toolbar with Filters and columns, FilterChips, the selection slot, the footer's three zones, one card per row on a phone); its "Preview as buyer" shows the facts and options it can read, the ad's own country, and — by the operator's two Tier A answers — the seller's contact preferences and name or not (spec-ledger S60, the preview census)
+- [x] Admin › Screening first, on the blocks (RowActions, the toolbar with Filters and columns, FilterChips, the selection slot, the footer's three zones, one card per row on a phone); its "Preview as buyer" shows the facts and options it can read, the ad's own country, and — by the operator's two Tier A answers — the seller's contact preferences and name or not (spec-ledger S60, the preview census) — built in turn A2 (SC-11..SC-14; the toolbar block and the Columns button, HS-7..HS-9)
 - [ ] Every other admin list page on the same blocks; the admin and dev pages' cut names (39 lines of docs/governance/briefs/bundle-9-cut-names-census.md) get the five-character floor with them
 - [ ] Part E — one written rule and one automatic check per element; existing screens listed in a baseline that only shrinks, so no screen can be built another way
 - [x] First turn: INC-536 — the 19 colliding test ids renamed (fifteen in two files, four on two tests of one file; the test the ledgers name keeps its id, else the older one; the docs that name a renamed test follow) and the check that refuses a repeat (scripts/test-ids.ts; TI-1..TI-4; the rule and the rename table in docs/features/test-ids.md)
-- [ ] Admin › Screening's preview (D120, 2026-10-09): the contact methods, and the number behind "Show number" through a reviewer-only door gated on listings:review with its own log of every reveal (Tier A); the seller's public name only
+- [x] Admin › Screening's preview (D120, 2026-10-09): the contact methods, and the number behind "Show number" through a reviewer-only door gated on listings:review with its own log of every reveal (Tier A); the seller's public name only — built in turns A1 (the doors, SC-7..SC-10) and A2 (the screen, SC-13)
 - [ ] D128 (operator, 2026-10-10): tick-boxes for several rows only where a bulk action exists (Screening; Translations › Strings); the Columns button on every table (Search · Filters · Columns); a reviewer's "Show number" reveal is read in Admin › Audit and never shown to the seller
 
 ### After bundle 7, in this order
