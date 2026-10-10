@@ -155,10 +155,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     ],
   );
   const geoCountry = geo.country;
+  /**
+   * INC-532 — bumped by the sign-out's hard reset: the place is derived again
+   * from this browser's saved area, read live (the request's cookie may be older).
+   */
+  const [deriveTick, setDeriveTick] = useState(0);
   // I3 — one stable object per cookie VALUE, never a fresh one per render.
   const savedArea = useMemo(
-    () => parseAreaCookie(areaCookieRaw) ?? readAreaCookie(),
-    [areaCookieRaw],
+    () =>
+      deriveTick === 0 ? (parseAreaCookie(areaCookieRaw) ?? readAreaCookie()) : readAreaCookie(),
+    [areaCookieRaw, deriveTick],
   );
   const { markets, isLoading: marketsLoading } = useOpenMarkets();
   const guessCountry =
@@ -245,6 +251,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     marketsLoading,
     geo,
     treeFailed,
+    deriveTick,
   ]);
 
   /**
@@ -312,14 +319,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     [locationCountry],
   );
 
-  /** The hard reset drops the client-side selection; the cookie is untouched. */
+  /**
+   * The hard reset drops the client-side selection and derives it again from
+   * this browser's saved area — the cookie is untouched — so the same browser
+   * shows the same place signed in and signed out (INC-532, the operator's walk
+   * of 2026-10-10). With nothing saved, the guess applies as on a fresh load.
+   */
   const resetLocationState = useCallback(() => {
-    appliedRef.current = true;
+    appliedRef.current = false;
     pendingSaveRef.current = false;
+    setAreaSettled(false);
     setPathState([]);
     setCountryState(null);
     setGuessInUse(false);
     setGuessNode(null);
+    setDeriveTick((tick) => tick + 1);
   }, []);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });

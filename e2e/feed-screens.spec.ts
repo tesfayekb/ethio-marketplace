@@ -19,13 +19,14 @@ import {
   scratchCategorySlug,
   seedCategoryBranch,
 } from "./helpers/posting";
-import { gotoReady } from "./helpers/ui";
+import { gotoReady, signInViaSession, signOutViaUi } from "./helpers/ui";
 
 /**
  * Bundle 10 E3b — THE LISTINGS PAGES (FS-1..FS-6): the home and category pages
  * read /api/feed a page at a time, in D108's order, widening beyond the chosen
  * place with the wider place named. Scratch rows only; cleanup in afterEach (J3).
- * FS-8..FS-10 and the additions to FS-3/FS-4 — D119, the invite card.
+ * FS-8..FS-10 and the additions to FS-3/FS-4 — D119, the invite card. FS-11 —
+ * INC-532, the place kept across a sign-out.
  */
 
 type Tier = "premium" | "featured" | "regular";
@@ -429,5 +430,30 @@ test.describe("FEED SCREENS", () => {
     expect(params.get("category")).toBe(fx.leaf.id);
     expect(params.get("place")).toBe(fx.a.city.id);
     await expect(page.getByTestId("feed-empty")).toHaveCount(0);
+  });
+
+  /**
+   * FS-11 — INC-532 (the operator's walk, 2026-10-10): signing out keeps the
+   * place this browser chose. The saved area is the visitor's own, so the same
+   * browser shows the same place signed in and signed out — with no reload.
+   */
+  test("FS-11 signing out keeps the place this browser chose (INC-532)", async ({
+    page,
+    baseURL,
+  }) => {
+    const fx = await areaFixture(page);
+    await waitForTreeSlug(page, "ET", fx.subSlug);
+    await page
+      .context()
+      .addCookies([{ name: "ethio_area", value: `ET:${fx.a.city.id}`, url: baseURL! }]);
+    await signInViaSession(page, fx.user.email, fx.user.password);
+    const heading = en["feed.heading"].replace("{location}", fx.a.city.name_en as string);
+    await expect(page.locator("main h1")).toHaveText(heading, { timeout: 20_000 });
+
+    await signOutViaUi(page);
+    await expect(
+      page.locator("main h1"),
+      "INC-532: the sign-out dropped the chosen place",
+    ).toHaveText(heading, { timeout: 20_000 });
   });
 });
