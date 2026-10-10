@@ -621,8 +621,9 @@ test.describe("U4g bulk approval, order and orphans", () => {
       "auth.signIn": "zxx-sign-in",
       "language.label": "zxx-language",
     } as const;
-    // Deliberately NOT seeded: the feed heading must fall back to English.
-    const unseededHeading = en["feed.heading"].replace("{location}", en["feed.scopeAll"]);
+    // Deliberately NOT seeded: the feed heading must fall back to English. With no
+    // place chosen the heading is "All listings" (D127).
+    const unseededHeading = en["nav.allListings"];
 
     const publishFence = async (enabled: boolean) => {
       const { error } = await supabase

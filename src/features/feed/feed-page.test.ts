@@ -71,7 +71,7 @@ describe("feedSections", () => {
     const sections = feedSections(cards, ladder);
     expect(sections.map((s) => [s.step, s.label, s.cards.length])).toEqual([
       [1, null, 2],
-      [3, { kind: "near" }, 2],
+      [3, { kind: "place", placeId: "C" }, 2],
       [4, { kind: "all" }, 1],
     ]);
   });
@@ -86,13 +86,14 @@ describe("feedSections", () => {
     expect(sections[0]?.label).toBeNull();
   });
 
-  it("FP-10 the wider places share one near heading, on the first of them (D125)", () => {
+  it("FP-10 each wider place is headed by its own name, once (D127)", () => {
     const ladder = ["A", "B", "C", EVERYWHERE];
-    const cards = [1, 2, 2, 3, 4].map((s, i) => card(String(i), s) as FeedListing);
+    const cards = [1, 2, 2, 3, 2, 4].map((s, i) => card(String(i), s) as FeedListing);
     expect(feedSections(cards, ladder).map((s) => [s.step, s.label, s.cards.length])).toEqual([
       [1, null, 1],
-      [2, { kind: "near" }, 2],
-      [3, null, 1],
+      [2, { kind: "place", placeId: "B" }, 2],
+      [3, { kind: "place", placeId: "C" }, 1],
+      [2, null, 1],
       [4, { kind: "all" }, 1],
     ]);
   });

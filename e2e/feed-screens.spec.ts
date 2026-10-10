@@ -27,8 +27,9 @@ import { gotoReady, signInViaSession, signOutViaUi } from "./helpers/ui";
  * place with the wider place named. Scratch rows only; cleanup in afterEach (J3).
  * FS-8..FS-10 and the additions to FS-3/FS-4 — D119, the invite card. FS-11 —
  * INC-532, the place kept across a sign-out. FS-12 — D123, three a row on a phone.
- * FS-13 and the headings of FS-3/FS-4/FS-11 — D125: "in" the chosen place, one
- * "near" it over the rest of its country (INC-534).
+ * FS-13 and the headings of FS-3/FS-4/FS-11 — D125: "in" the chosen place (INC-534).
+ * FS-14 and the headings of FS-3/FS-4/FS-13 — D127: "in" at every level, each wider
+ * place by its own name, and "All listings" with no place chosen; never "near".
  */
 
 type Tier = "premium" | "featured" | "regular";
@@ -238,7 +239,7 @@ test.describe("FEED SCREENS", () => {
     return url.searchParams;
   }
 
-  test("FS-3 the page reaches beyond the chosen place, heads the wider listings near it, and invites in the chosen one", async ({
+  test("FS-3 the page reaches beyond the chosen place, heads the wider listings in their own place, and invites in the chosen one", async ({
     page,
     baseURL,
   }) => {
@@ -250,7 +251,7 @@ test.describe("FEED SCREENS", () => {
     const b5 = await addListing(fx.leaf.id, fx.user.id, fx.b.city.id, "regular", 5);
     await openArea(page, fx, baseURL!);
 
-    // D125 — the chosen place's own listings are "in" it; the rest of its country is "near" it.
+    // D125/D127 — the chosen place's own listings are "in" it; the wider ones "in" the country.
     await expect(page.locator("main h1")).toHaveText(
       en["feed.headingIn"].replace("{location}", fx.a.city.name_en as string),
     );
@@ -261,7 +262,7 @@ test.describe("FEED SCREENS", () => {
     await expect(page.getByTestId("feed-step-label")).toHaveCount(1);
     await expect(
       page.locator('[data-testid="feed-section"][data-step="3"] [data-testid="feed-step-label"]'),
-    ).toHaveText(en["feed.heading"].replace("{location}", fx.a.city.name_en as string));
+    ).toHaveText(en["feed.headingIn"].replace("{location}", fx.country));
     await expect.poll(() => sectionIds(page, 3)).toEqual([b3, b4, b5]);
     // D119 — the chosen place's row ends with its invitation; the wider row has none.
     await expect
@@ -303,7 +304,7 @@ test.describe("FEED SCREENS", () => {
     await expect(page.getByTestId("feed-step-none")).toHaveCount(0);
     await expect(
       page.locator('[data-testid="feed-section"][data-step="3"] [data-testid="feed-step-label"]'),
-    ).toHaveText(en["feed.heading"].replace("{location}", fx.a.city.name_en as string));
+    ).toHaveText(en["feed.headingIn"].replace("{location}", fx.country));
   });
 
   test("FS-5 an address nobody has shows not found and asks the feed nothing", async ({ page }) => {
@@ -491,11 +492,11 @@ test.describe("FEED SCREENS", () => {
   });
 
   /**
-   * FS-13 — D125 (the operator, 2026-10-10; INC-534): the chosen place's own
-   * listings are "in" it; the wider places of its own country — another city of
-   * its region, then another region — share ONE heading, "near" the chosen place.
+   * FS-13 — D127 (the operator, 2026-10-10; it replaced D125's one "near" heading):
+   * the chosen place's own listings are "in" it; each wider place of its country —
+   * another city of its region, then another region — is headed "in" that place.
    */
-  test("FS-13 the rest of the country shares one heading near the chosen place (D125)", async ({
+  test("FS-13 each wider place is headed in its own name: the region, then the country (D127)", async ({
     page,
     baseURL,
   }) => {
@@ -530,9 +531,28 @@ test.describe("FEED SCREENS", () => {
     await expect.poll(() => sectionIds(page, 1)).toEqual([a1]);
     await expect.poll(() => sectionIds(page, 2)).toEqual([r2]);
     await expect.poll(() => sectionIds(page, 3)).toEqual([b3]);
-    await expect(page.getByTestId("feed-step-label")).toHaveCount(1);
+    await expect(page.getByTestId("feed-step-label")).toHaveCount(2);
     await expect(
       page.locator('[data-testid="feed-section"][data-step="2"] [data-testid="feed-step-label"]'),
-    ).toHaveText(en["feed.heading"].replace("{location}", city));
+    ).toHaveText(en["feed.headingIn"].replace("{location}", fx.a.region.name_en as string));
+    await expect(
+      page.locator('[data-testid="feed-section"][data-step="3"] [data-testid="feed-step-label"]'),
+    ).toHaveText(en["feed.headingIn"].replace("{location}", fx.country));
+  });
+
+  /**
+   * FS-14 — D127 (the operator, 2026-10-10): with no place chosen the page is the
+   * everywhere feed, so it is headed "All listings" — never "near you".
+   */
+  test("FS-14 with no place chosen the page is headed All listings (D127)", async ({ page }) => {
+    const user = await seller();
+    const { leaf } = await branch();
+    const c = await chain();
+    const a = await addListing(leaf.id, user.id, c.city.id, "regular", 1);
+
+    await gotoReady(page, `/c/${leaf.slug}`);
+    await expect.poll(() => cardIds(page)).toEqual([a]);
+    await expect(page.locator("main h1")).toHaveText(en["nav.allListings"]);
+    await expect(page.getByTestId("feed-step-label")).toHaveCount(0);
   });
 });
