@@ -265,7 +265,8 @@ test.describe("FEED SCREENS", () => {
       .poll(() => rowOrder(page, 1))
       .toEqual(["listing-card", "listing-card", "feed-invite"]);
     await expect(inviteOf(page).getByTestId("feed-invite-text")).toHaveText(
-      en["feed.invite.placeCategory"]
+      // The place has ads, so not "Be the first" (the operator, 2026-10-10).
+      en["feed.invite.placeCategoryToo"]
         .replace("{category}", fx.leaf.slug)
         .replace("{place}", fx.a.city.name_en as string),
     );
@@ -394,7 +395,7 @@ test.describe("FEED SCREENS", () => {
       .poll(() => rowOrder(page, 1))
       .toEqual(["listing-card", "listing-card", "feed-invite"]);
     await expect(inviteOf(page).getByTestId("feed-invite-text")).toHaveText(
-      en["feed.invite.place"].replace("{place}", fx.a.city.name_en as string),
+      en["feed.invite.placeToo"].replace("{place}", fx.a.city.name_en as string),
     );
     const params = await inviteSearch(inviteOf(page).getByTestId("feed-invite-post"));
     expect(params.get("place")).toBe(fx.a.city.id);
@@ -458,10 +459,10 @@ test.describe("FEED SCREENS", () => {
   });
 
   /**
-   * FS-12 — D123 (the operator, 2026-10-10): on a phone three cards share a row
-   * and the invitation takes the whole row.
+   * FS-12 — D123 (the operator, 2026-10-10): on a phone three cards share a row,
+   * and the invitation is one of them, the size of a card.
    */
-  test("FS-12 on a phone three cards share a row and the invitation takes the whole row (D123)", async ({
+  test("FS-12 on a phone three cards share a row and the invitation is the size of a card (D123)", async ({
     page,
     baseURL,
   }) => {
@@ -481,8 +482,8 @@ test.describe("FEED SCREENS", () => {
       row!.width / 3 + 1,
     );
     expect(
-      Math.abs(invite!.width - row!.width),
-      "FS-12: the invitation is not the whole row",
+      Math.abs(invite!.width - card!.width),
+      "FS-12: the invitation is not the size of a card",
     ).toBeLessThanOrEqual(1);
   });
 });

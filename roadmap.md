@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-10-d119-turn-5.md (D123 three a row on a phone; D122 the 4:3 picture and one angle — the trial; one turn). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-10-d119-turn-6.md (the invite card the size of a card; "Advertise … too" where the place has listings; one turn). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118); its brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

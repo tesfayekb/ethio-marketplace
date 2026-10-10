@@ -57,10 +57,11 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 - **Who sees it** — the chosen place only (the last place of the location row; never the everywhere feed), while it holds fewer than 4 listings of the category on screen (`inviteShown`, `INVITE_BELOW = 4`, src/features/feed/feed-page.ts; on the home page every category counts). The widening threshold (8) is unchanged.
 - **Where** — `feed-invite` (src/components/marketplace/invite-card.tsx) is the last item of the chosen place's row. When the place has none, it leads alone in section 1, before the wider places, and replaces the `feed-step-none` note. With nothing anywhere, the card leads alone in the same way (the operator's walk, 2026-10-09); the empty box (`feed-empty`) is shown only when no place is chosen.
 - **The look** — gold (DEC-169, the gold token's third placement): a gold border and tint, a star in a gold circle, and the green Post listing button.
+- **"Be the first" only where nobody has advertised (the operator, 2026-10-10)** — with some listings in the place the card reads `feed.invite.placeToo` ("Advertise in {place} too.") or `feed.invite.placeCategoryToo` ("Advertise {category} in {place} too."); `placeCount` (feed-page.ts) decides. Tests: FS-3, FS-8 (the "too" words), FS-4, FS-10 ("Be the first"), FP-9.
 - **The words** — `feed.invite.place` on the home page ("Be the first to advertise in {place}.") and `feed.invite.placeCategory` on a category page ("Be the first to advertise {category} in {place}."); the Amharic is the operator's own. The button is `nav.postListing`.
 - **The address** — `feed-invite-post` opens `/post?place=<id>`, with `category=<id>` as well on a category page (docs/features/posting.md, D119).
 - **Tests** — FS-3 and FS-4 (changed), FS-8..FS-10; FP-8.
-- **The grid (D123, 2026-10-10)** — three cards a row on a phone, four from 640 px, five from 1024 px; below 11rem the card is compact (smaller type and padding, a container query in listing-card.tsx); on a phone the invitation takes the whole row. Tests: FS-12, and shell.spec's grid test (3 / 4 / 5).
+- **The grid (D123, 2026-10-10)** — three cards a row on a phone, four from 640 px, five from 1024 px; below 11rem the card is compact (smaller type and padding, a container query in listing-card.tsx); the invitation is one card among the others, the size of a card, compact below 11rem as well (the operator, 2026-10-10). Tests: FS-12, and shell.spec's grid test (3 / 4 / 5).
 
 ## What it does not do yet
 

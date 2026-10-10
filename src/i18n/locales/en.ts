@@ -260,6 +260,8 @@ export const en = {
   "feed.noPhoto": "No photo yet",
   "feed.invite.place": "Be the first to advertise in {place}.",
   "feed.invite.placeCategory": "Be the first to advertise {category} in {place}.",
+  "feed.invite.placeToo": "Advertise in {place} too.",
+  "feed.invite.placeCategoryToo": "Advertise {category} in {place} too.",
   "listing.photosSoon": "PHOTOS COMING SOON",
   "price.free": "Free",
   "price.negotiable": "Negotiable",

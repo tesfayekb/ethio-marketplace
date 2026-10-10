@@ -8,7 +8,7 @@ import { ListingCard } from "@/components/marketplace/listing-card";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { useCategoryTree } from "@/features/categories/category-tree";
-import { feedSections, inviteShown } from "@/features/feed/feed-page";
+import { feedSections, inviteShown, placeCount } from "@/features/feed/feed-page";
 import { useFeed } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
@@ -48,8 +48,7 @@ function InviteFirst({ invite }: { invite: Invite }) {
   return (
     <section data-testid="feed-section" data-step="1" className="mt-6 first:mt-0">
       <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
-        {/* D123 — on a phone the invitation takes the whole row. */}
-        <li className="col-span-3 sm:col-span-1">
+        <li>
           <InviteCard invite={invite} />
         </li>
       </ul>
@@ -111,6 +110,7 @@ export function Feed() {
           categoryId: selectedCategoryId,
           categoryName:
             categoryNode === null ? null : entityName("category", categoryNode, entities),
+          placeCount: placeCount(cards),
         }
       : null;
   const firstStep = cards[0]?.step ?? 1;
@@ -191,7 +191,7 @@ export function Feed() {
                   </li>
                 ))}
                 {section.step === 1 && invite !== null ? (
-                  <li key="invite" className="col-span-3 sm:col-span-1">
+                  <li key="invite">
                     <InviteCard invite={invite} />
                   </li>
                 ) : null}
