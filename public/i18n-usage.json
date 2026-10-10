@@ -3075,10 +3075,6 @@
       "/",
       "/c/$slug"
     ],
-    "feed.heading": [
-      "/",
-      "/c/$slug"
-    ],
     "feed.headingIn": [
       "/",
       "/c/$slug"
@@ -3094,10 +3090,6 @@
       "/c/$slug",
       "/post",
       "/post/$listingId"
-    ],
-    "feed.scopeAll": [
-      "/",
-      "/c/$slug"
     ],
     "footer.rights": [
       "(every page)"

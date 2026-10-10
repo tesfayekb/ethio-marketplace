@@ -1,6 +1,6 @@
 # Roadmap
 
-No bundle brief is in force: bundle 10's follow-ups were built on 2026-10-10 in ten executor turns (their briefs stay at docs/governance/briefs/bundle-10-d119.md and bundle-10-d119-turn-2.md … bundle-10-d119-turn-10.md); next comes D127 (every listings heading says "in"; one small turn), then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118), its first turn with INC-536; the brief in force is named on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-10-d127.md (D127: every listings heading says "in"; one turn, no migration, no new string). Then bundle 11 — every admin table in the agreed house style, Admin › Screening first (D118), its first turn with INC-536; its brief is named on this line when it is saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -168,7 +168,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] D123 (operator, 2026-10-10) — three cards a row on a phone, four from 640 px, five from 1024 px — built in turn 5
 - [x] INC-532 (2026-10-10) — signing out keeps the place this browser had chosen — fixed in turn 4
 - [x] D125 (operator, 2026-10-10; INC-534) — the listings pages' headings: "Listings in {place}" over the chosen place's own listings, one "Listings near {place}" over the rest of its country, "All listings" beyond it; the invite card without "too" — built in turn 7
-- [ ] D127 (operator, 2026-10-10; supersedes D125's "near") — every heading says "in": "Listings in {place}" over the chosen place's own listings, each wider place of the ladder its own "Listings in {that place}" (the region or state, then the country), "All listings" beyond, and "All listings" with no place chosen — the next executor turn, before bundle 11
+- [x] D127 (operator, 2026-10-10; supersedes D125's "near") — every heading says "in": "Listings in {place}" over the chosen place's own listings, each wider place of the ladder its own "Listings in {that place}" (the region or state, then the country), "All listings" beyond, and "All listings" with no place chosen — built in its own turn (docs/governance/briefs/bundle-10-d127.md; FS-3, FS-4, FS-13, FS-14 new; FP-5, FP-10)
 - [x] INC-535 (2026-10-10; Tier A) — the profile written through its doors only; the client-writable lint counts column grants — built in turn 8 (`20261010055801_866d39cd`, mark `20261010180000`; PR-43)
 - [ ] The next posting-area turn: INC-526, INC-449's class (PW-57, PW-137, PW-144), INC-533 (PW-64 refused by a rate dial) and INC-430's PW-55 together — when the posting area is next touched
 - [ ] D121 (operator, 2026-10-09; agreed, not built) — a "Why advertise here" page (the benefits of advertising on ethio.com: its unique features, visibility, performance), and the invite card links to it; its spec is written with its brief once the page's content is agreed

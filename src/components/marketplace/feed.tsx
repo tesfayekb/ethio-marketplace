@@ -62,9 +62,9 @@ function InviteFirst({ invite }: { invite: Invite }) {
  *
  * Bundle 10 E3b — the listings page: one page of cards at a time from
  * /api/feed, in the server's order (D108), for the place the location row
- * shows. The chosen place's own listings are "in" it, the rest of its country
- * "near" it, under one heading (D125); the next page loads when the end of the
- * list comes into view.
+ * shows. Every heading says "in": the chosen place's own listings are "in" it,
+ * and each wider place is headed "in" that place by name (D127, which replaced
+ * D125's "near"); the next page loads when the end of the list comes into view.
  */
 export function Feed() {
   const { t, entities } = useI18n();
@@ -80,9 +80,9 @@ export function Feed() {
 
   const nameOf = (node: LocationNode) =>
     entityName("location", { id: node.id, nameEn: node.name_en, nameAm: node.name_am }, entities);
-  // D125 (the operator, 2026-10-10; INC-534): never "near" the place the listings are in.
+  // D127 (the operator, 2026-10-10): "in" at every level — a posting in one city is not
+  // "near" another city of the same country (INC-534, D125 before it).
   const inHeading = (node: LocationNode) => t("feed.headingIn").replace("{location}", nameOf(node));
-  const nearHeading = (node: LocationNode) => t("feed.heading").replace("{location}", nameOf(node));
 
   const moreRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -167,7 +167,11 @@ export function Feed() {
         {sections.map((section) => {
           let label: string | null = null;
           if (section.label?.kind === "all") label = t("nav.allListings");
-          else if (section.label?.kind === "near" && place !== null) label = nearHeading(place);
+          else if (section.label?.kind === "place") {
+            const id = section.label.placeId;
+            const node = locationPath.find((n) => n.id === id);
+            label = node ? inHeading(node) : null;
+          }
           return (
             <section
               key={`${section.step}-${section.cards[0]?.id ?? ""}`}
@@ -219,7 +223,8 @@ export function Feed() {
       className="mx-auto w-full max-w-6xl"
     >
       <h1 className="text-xl font-semibold text-foreground">
-        {place ? inHeading(place) : t("feed.heading").replace("{location}", t("feed.scopeAll"))}
+        {/* D127 — no place chosen: the everywhere feed is "All listings", not "near you". */}
+        {place ? inHeading(place) : t("nav.allListings")}
       </h1>
 
       <div className="mt-4">{body}</div>
