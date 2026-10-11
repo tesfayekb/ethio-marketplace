@@ -153,15 +153,33 @@ export function actionsOf(page: Page, slug: string): Locator {
 }
 
 /**
- * UI-FIX-4 — THE ROLES INTERACTION MODEL. The row carries exactly one verb
- * (Edit); every other verb lives in the editor's verb bar. `action()` keeps
- * its name and its canonical testid, but resolves `edit` in the row's actions
- * region and every other verb inside the open editor dialog — still exactly
- * one match per verb (J5).
+ * UI-FIX-4, bundle 11 B2 (DEC-170) — `action()` keeps its name and its
+ * canonical testids: `edit` resolves the row's Edit icon (RowActions); every
+ * other verb resolves inside the open editor's verb bar, which keeps them all —
+ * still exactly one match per verb (J5). The row's own menu is `rowMenu()`.
  */
 export function action(page: Page, slug: string, verb: string): Locator {
-  if (verb === "edit") return actionsOf(page, slug).getByTestId(`category-edit-${slug}`);
+  if (verb === "edit") return actionsOf(page, slug).getByTestId(`category-actions-${slug}-edit`);
   return page.getByTestId("category-edit-dialog").getByTestId(`category-${verb}-${slug}`);
+}
+
+/** Bundle 11 B2 — the row's red Delete icon (RowActions). */
+export function deleteButton(page: Page, slug: string): Locator {
+  return actionsOf(page, slug).getByTestId(`category-actions-${slug}-delete`);
+}
+
+/** Bundle 11 B2 — opens the row's three-dots menu and picks an item. */
+export async function rowMenu(page: Page, slug: string, item: string) {
+  await actionsOf(page, slug).getByTestId(`category-actions-${slug}-more`).click();
+  await page.getByTestId(`category-actions-${slug}-more-${item}`).click();
+}
+
+/** Bundle 11 B2 — Missing assets lives in the Filters panel: open it, press it, close it. */
+export async function toggleMissingAssets(page: Page) {
+  await page.getByTestId("category-filters").click();
+  await page.getByTestId("category-missing-filter").click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("category-filters-panel")).toHaveCount(0);
 }
 
 /** Opens a row's editor — the single door to every non-edit verb. */

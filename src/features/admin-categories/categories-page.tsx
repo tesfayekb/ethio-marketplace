@@ -5,7 +5,6 @@ import {
   Globe,
   ImageIcon,
   ListChecks,
-  Pencil,
   RotateCcw,
   Share2,
   Trash,
@@ -16,18 +15,24 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { categoryRowGlyph } from "@/components/shell/category-glyphs";
-import { PageCard } from "@/components/shell/page-card";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { RowActions, type RowMoreAction } from "@/components/shell/row-actions";
+import { TableActions } from "@/components/shell/table-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
 import { PageShell } from "@/components/layout/page-shell";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -49,7 +54,6 @@ import {
   CategoryEditorDialog,
   DeleteCategoryDialog,
   RetireCategoryDialog,
-  SELECT_CLASS,
   useSubmitError,
 } from "./category-dialogs";
 import { ROSTER_COLUMN_PRIORITIES, toRoster, type CategoryNode } from "./categories-service";
@@ -75,7 +79,20 @@ import {
  * portalled menu, so the actions region stays a single DOM subtree that the
  * twin-aware E2E locators can scope to (J5). The card twin keeps full-text
  * buttons — a 360 card has the room and no hover affordance.
+ *
+ * Bundle 11 B2 (D84, D118, D128; DEC-170) — the pattern console on the agreed
+ * blocks, the later word on the two notes above: the header's actions
+ * (TableActions: Generate missing, Export, Import, then Create category); the
+ * toolbar (the category subtree as the table's SCOPE — it also scopes Export and
+ * Import — then search · Filters with Missing assets · Columns, chips under it);
+ * the row's actions (RowActions: Edit; Delete in red, on only for a retired
+ * category, as the verb bar offers it; the three-dots menu with every other
+ * verb of the editor's verb bar, which keeps them all); the footer's three zones
+ * with the page size. A dialog opened from the row closes back to the table; one
+ * opened from the editor closes back to the editor (INC-150).
  */
+const TABLE_ID = "admin-categories";
+const LOCKED = ["name"];
 
 /**
  * C2c — PAGE SIZE IS A DEVICE SETTING. Same storage discipline as the language
@@ -115,7 +132,14 @@ type DialogState =
   | { kind: "none" }
   | { kind: "create" }
   | { kind: "import" }
-  | { kind: "edit"; id: string; sub: EditorSub | null; openedBy: OpenedBy };
+  | {
+      kind: "edit";
+      id: string;
+      sub: EditorSub | null;
+      openedBy: OpenedBy;
+      /** Bundle 11 B2 — opened from the row's actions: closing returns to the table. */
+      fromRow?: boolean;
+    };
 
 /**
  * C2-GHOST PART A — STRUCTURAL KILL, retuned by C2-SETTLE. The single
@@ -197,6 +221,20 @@ export function AdminCategoriesPage() {
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
   /** C2-GHOST — the only close path, so no surface can forget the transition. */
   const closeDialog = (next: DialogState) => setDialog(next);
+  /**
+   * INC-150 kept — a sub-dialog opened from the editor closes back to the
+   * editor; bundle 11 B2 — one opened from the row's actions closes back to the
+   * table.
+   */
+  const closeSub = () => {
+    if (dialog.kind !== "edit") return;
+    closeDialog(
+      dialog.fromRow === true
+        ? { kind: "none" }
+        : { kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy },
+    );
+  };
+  const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   /**
    * The single edit-opener; a no-op while a dialog is open (C2-SETTLE Part A:
    * the kind check alone — no time-window, no close timestamp).
@@ -384,7 +422,7 @@ export function AdminCategoriesPage() {
    * The priorities themselves live in the service so they can be asserted
    * without rendering (see categories-service.test.ts).
    */
-  const columns: DataTableColumn<CategoryNode>[] = [
+  const allColumns: DataTableColumn<CategoryNode>[] = [
     {
       key: "name",
       header: t("admin.categories.col.name"),
@@ -592,35 +630,118 @@ export function AdminCategoriesPage() {
     },
   ];
 
+  const columns = visibleColumns(allColumns, hidden, LOCKED);
+
   /**
-   * C2e / UI-FIX-4 — THE ROLES INTERACTION MODEL. The row carries exactly ONE
-   * verb: Edit. Every other verb (visibility, countries, browse paths, move,
-   * retire/reactivate, delete) lives in the editor's verb bar, so the actions
-   * column fits one button at every width and the card twin never wraps a
-   * strip. The canonical `category-<verb>-<slug>` testids are preserved —
-   * they simply moved inside the dialog (J5: still one match each).
+   * Bundle 11 B2 (DEC-170, the later word on C2e / UI-FIX-4's one row verb) —
+   * the row carries Edit, a red Delete and the three-dots menu with every other
+   * verb of the editor's verb bar, under the same gates; each opens the same
+   * dialog or runs the same mutation, and the doors re-check (F3).
    */
-  const rowActions = (row: CategoryNode) =>
-    mayUpdate ? (
-      <span className="flex items-center xl:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          className="size-11 shrink-0 p-0"
-          data-testid={`category-edit-${row.slug}`}
-          aria-label={t("admin.categories.action.edit")}
-          title={t("admin.categories.action.edit")}
-          onClick={() => openEditor(row.id, "row-click")}
-          onKeyDown={(event) => {
-            if (event.key !== "Enter" && event.key !== " ") return;
-            event.preventDefault();
-            openEditor(row.id, "keyboard");
-          }}
-        >
-          <Pencil aria-hidden="true" className="size-4" />
-        </Button>
-      </span>
-    ) : null;
+  const rowActions = (row: CategoryNode, guard: GuardFn) => {
+    const fromRow = (sub: EditorSub) => () =>
+      setDialog({ kind: "edit", id: row.id, sub, openedBy: `verb-${sub}`, fromRow: true });
+    const more: RowMoreAction[] = [];
+    if (mayUpdate) {
+      more.push(
+        {
+          key: "window",
+          label: t("admin.categories.action.window"),
+          icon: <CalendarClock />,
+          onSelect: fromRow("window"),
+        },
+        {
+          key: "exclusions",
+          label: t("admin.categories.action.exclusions"),
+          icon: <Globe />,
+          onSelect: fromRow("exclusions"),
+        },
+        {
+          key: "attributes",
+          label: t("admin.categories.action.attributes"),
+          icon: <ListChecks />,
+          onSelect: fromRow("attributes"),
+        },
+      );
+    }
+    if (mayAssets) {
+      more.push({
+        key: "image",
+        label: t("admin.categories.action.image"),
+        icon: <ImageIcon />,
+        onSelect: fromRow("image"),
+      });
+    }
+    if (mayRestructure) {
+      more.push({
+        key: "pointer",
+        label: t("admin.categories.action.pointer"),
+        icon: <Share2 />,
+        onSelect: fromRow("pointer"),
+      });
+      // C2g — a catch-all is pinned last by the server: no Move entries.
+      if (!row.isCatchall) {
+        more.push(
+          {
+            key: "up",
+            label: t("admin.categories.action.up"),
+            icon: <ArrowUp />,
+            onSelect: () => move(row, -1),
+          },
+          {
+            key: "down",
+            label: t("admin.categories.action.down"),
+            icon: <ArrowDown />,
+            onSelect: () => move(row, 1),
+          },
+        );
+      }
+      more.push(
+        row.isActive
+          ? {
+              key: "retire",
+              label: t("admin.categories.action.retire"),
+              icon: <Trash2 />,
+              disabled: row.isCatchall,
+              onSelect: fromRow("retire"),
+            }
+          : {
+              key: "reactivate",
+              label: t("admin.categories.action.reactivate"),
+              icon: <RotateCcw />,
+              onSelect: () =>
+                runVerb(guard, async () => {
+                  await reactivate.mutateAsync({ id: row.id });
+                }),
+            },
+      );
+    }
+    return (
+      <RowActions
+        testid={`category-actions-${row.slug}`}
+        name={row.nameEn}
+        edit={
+          mayUpdate
+            ? {
+                label: t("admin.categories.action.edit"),
+                onSelect: () => openEditor(row.id, "row-click"),
+              }
+            : undefined
+        }
+        remove={
+          mayRestructure
+            ? {
+                label: t("admin.categories.action.delete"),
+                // C2d — only a retired category may be deleted (typed confirm).
+                disabled: row.isActive,
+                onSelect: fromRow("delete"),
+              }
+            : undefined
+        }
+        more={more}
+      />
+    );
+  };
 
   const runBulkFill = async (candidates: CategoryNode[]) => {
     const batch = candidates.slice(0, BULK_LIMIT);
@@ -816,18 +937,114 @@ export function AdminCategoriesPage() {
     <StepUpGate>
       {(guard) => (
         <PageShell width="full" data-testid="admin-section-categories" className="space-y-4">
-          {mayCreate ? (
-            <PageCard testid="category-create-card">
+          <TableActions testid="category-header">
+            {mayAssets ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                data-testid="category-bulk-generate"
+                /* DEC-032 — the spend cap is stated where it is spent. */
+                title={t("admin.categories.bulk.generateHint")}
+                disabled={bulkBusy}
+                onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
+              >
+                {t("admin.categories.bulk.generateMissing")}
+              </Button>
+            ) : null}
+            <div data-testid="category-transfer" className="flex flex-wrap items-center gap-2">
+              {/* CAT-IE — export honours the scope; import is gated. */}
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                data-testid="category-export"
+                disabled={exporting}
+                onClick={() => void runExport()}
+              >
+                <Download aria-hidden="true" className="size-4" />
+                <span>
+                  {exporting
+                    ? t("admin.categories.export.busy")
+                    : t("admin.categories.export.open")}
+                </span>
+              </Button>
+              {mayImport ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  data-testid="category-import"
+                  onClick={() => setDialog({ kind: "import" })}
+                >
+                  <Upload aria-hidden="true" className="size-4" />
+                  <span>{t("admin.categories.import.open")}</span>
+                </Button>
+              ) : null}
+            </div>
+            {mayCreate ? (
               <Button
                 type="button"
                 size="touch"
-                className="w-full md:w-auto"
                 data-testid="category-create-open"
                 onClick={() => setDialog({ kind: "create" })}
               >
                 {t("admin.categories.create.open")}
               </Button>
-            </PageCard>
+            ) : null}
+          </TableActions>
+          {exportError ||
+          bulkProgress !== null ||
+          bulkSummary !== null ||
+          bulkFailures.length > 0 ||
+          (dialog.kind !== "edit" && verbError !== null) ? (
+            <div data-testid="category-header-status" className="space-y-1 text-end">
+              {exportError ? (
+                <p
+                  role="alert"
+                  className="text-sm text-destructive"
+                  data-testid="category-export-error"
+                >
+                  {t("admin.categories.export.error")}
+                </p>
+              ) : null}
+              {bulkProgress === null ? null : (
+                <p
+                  role="status"
+                  aria-live="polite"
+                  data-testid="category-bulk-progress"
+                  className="text-sm text-muted-foreground"
+                >
+                  {`${t("admin.categories.bulk.progress")} ${bulkProgress.done}/${bulkProgress.total}`}
+                </p>
+              )}
+              {bulkSummary === null ? null : (
+                <p
+                  role="status"
+                  data-testid="category-bulk-summary"
+                  className="text-sm text-muted-foreground"
+                >
+                  {bulkSummary}
+                </p>
+              )}
+              {bulkFailures.length === 0 ? null : (
+                <ul data-testid="category-bulk-failures" className="text-sm text-destructive">
+                  {bulkFailures.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              )}
+              {/* A verb run from the row (Move, Reactivate) says its refusal here (F4). */}
+              {dialog.kind !== "edit" && verbError !== null ? (
+                <p
+                  role="alert"
+                  data-testid="category-verb-error"
+                  className="text-sm text-destructive"
+                >
+                  {verbError}
+                </p>
+              ) : null}
+            </div>
           ) : null}
 
           <DataTable<CategoryNode>
@@ -854,28 +1071,13 @@ export function AdminCategoriesPage() {
               <p className="text-sm text-muted-foreground">{t("admin.categories.empty")}</p>
             }
             toolbar={
-              /**
-               * UX-2 PART 2 — THE TOOLBAR READS IN GROUPS, not as a row of
-               * unrelated buttons: [find] · [assets] · [transfer]. Each group is
-               * its own wrapping flex row so the 360px twin stacks by meaning
-               * rather than by accident; logical spacing only (C5).
-               */
-              <>
-                <div
-                  data-testid="category-toolbar-find"
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  <Input
-                    data-testid="category-search"
-                    className="md:w-72"
-                    placeholder={t("admin.categories.searchPlaceholder")}
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                  />
-                  <select
+              <TableToolbar
+                testid="category-toolbar"
+                scope={
+                  <NativeSelect
                     data-testid="category-root-filter"
                     aria-label={t("admin.categories.filter.root")}
-                    className={`${SELECT_CLASS} md:w-64`}
+                    className="w-full md:w-64"
                     value={rootFilter}
                     onChange={(event) => setRootFilter(event.target.value)}
                   >
@@ -894,122 +1096,61 @@ export function AdminCategoriesPage() {
                         }`}
                       </option>
                     ))}
-                  </select>
-                </div>
-                <div
-                  data-testid="category-toolbar-assets"
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  <Button
-                    type="button"
-                    variant={missingOnly ? "default" : "outline"}
-                    size="touch"
-                    aria-pressed={missingOnly}
-                    data-testid="category-missing-filter"
-                    onClick={() => setMissingOnly((prev) => !prev)}
-                  >
-                    {t("admin.categories.filter.missingAssets")}
-                  </Button>
-                  {mayAssets ? (
+                  </NativeSelect>
+                }
+                search={
+                  <Input
+                    data-testid="category-search"
+                    aria-label={t("admin.categories.searchPlaceholder")}
+                    placeholder={t("admin.categories.searchPlaceholder")}
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                }
+                filters={
+                  <FiltersButton testid="category-filters" count={missingOnly ? 1 : 0}>
                     <Button
                       type="button"
-                      variant="outline"
+                      variant={missingOnly ? "default" : "outline"}
                       size="touch"
-                      data-testid="category-bulk-generate"
-                      /* DEC-032 — the spend cap is stated where it is spent. */
-                      title={t("admin.categories.bulk.generateHint")}
-                      disabled={bulkBusy}
-                      onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
+                      aria-pressed={missingOnly}
+                      data-testid="category-missing-filter"
+                      onClick={() => setMissingOnly((prev) => !prev)}
                     >
-                      {t("admin.categories.bulk.generateMissing")}
+                      {t("admin.categories.filter.missingAssets")}
                     </Button>
-                  ) : null}
-                  {bulkProgress === null ? null : (
-                    <p
-                      role="status"
-                      aria-live="polite"
-                      data-testid="category-bulk-progress"
-                      className="self-center text-sm text-muted-foreground"
-                    >
-                      {`${t("admin.categories.bulk.progress")} ${bulkProgress.done}/${bulkProgress.total}`}
-                    </p>
-                  )}
-                  {bulkSummary === null ? null : (
-                    <p
-                      role="status"
-                      data-testid="category-bulk-summary"
-                      className="self-center text-sm text-muted-foreground"
-                    >
-                      {bulkSummary}
-                    </p>
-                  )}
-                </div>
-                <div
-                  data-testid="category-toolbar-transfer"
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  {/* CAT-IE — export honours the root filter; import is gated. */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    data-testid="category-export"
-                    disabled={exporting}
-                    onClick={() => void runExport()}
-                  >
-                    <Download aria-hidden="true" className="size-4" />
-                    <span>
-                      {exporting
-                        ? t("admin.categories.export.busy")
-                        : t("admin.categories.export.open")}
-                    </span>
-                  </Button>
-                  {mayImport ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="touch"
-                      data-testid="category-import"
-                      onClick={() => setDialog({ kind: "import" })}
-                    >
-                      <Upload aria-hidden="true" className="size-4" />
-                      <span>{t("admin.categories.import.open")}</span>
-                    </Button>
-                  ) : null}
-                  {exportError ? (
-                    <p
-                      role="alert"
-                      className="text-sm text-destructive"
-                      data-testid="category-export-error"
-                    >
-                      {t("admin.categories.export.error")}
-                    </p>
-                  ) : null}
-                </div>
-                {bulkFailures.length === 0 ? null : (
-                  <ul
-                    data-testid="category-bulk-failures"
-                    className="w-full text-sm text-destructive"
-                  >
-                    {bulkFailures.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                )}
-                <select
-                  data-testid="category-page-size"
-                  aria-label={t("admin.categories.filter.pageSize")}
-                  className={`${SELECT_CLASS} md:w-32`}
-                  value={String(pageSize)}
-                  onChange={(event) => choosePageSize(Number(event.target.value))}
-                >
-                  {PAGE_SIZE_OPTIONS.map((size) => (
-                    <option key={size} value={size}>
-                      {String(size)}
-                    </option>
-                  ))}
-                </select>
-              </>
+                  </FiltersButton>
+                }
+                columns={
+                  <ColumnsButton
+                    testid="category-columns"
+                    columns={allColumns.map((column) => ({
+                      key: column.key,
+                      label: String(column.header),
+                      locked: LOCKED.includes(column.key),
+                    }))}
+                    hidden={hidden}
+                    onToggle={toggleColumn}
+                  />
+                }
+                chips={
+                  <FilterChips
+                    testid="category-chips"
+                    chips={
+                      missingOnly
+                        ? [
+                            {
+                              key: "missing",
+                              label: t("admin.categories.filter.missingAssets"),
+                              onRemove: () => setMissingOnly(false),
+                            },
+                          ]
+                        : []
+                    }
+                    onClearAll={() => setMissingOnly(false)}
+                  />
+                }
+              />
             }
             pagination={
               <DataTablePagination
@@ -1018,10 +1159,13 @@ export function AdminCategoriesPage() {
                 total={filtered.length}
                 onPrevious={() => setOffset((prev) => Math.max(0, prev - pageSize))}
                 onNext={() => setOffset((prev) => prev + pageSize)}
+                onPage={(index) => setOffset(index * pageSize)}
+                pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
+                onPageSize={choosePageSize}
                 testid="category-pagination"
               />
             }
-            rowActions={(row) => rowActions(row)}
+            rowActions={(row) => rowActions(row, guard)}
           />
 
           {dialog.kind === "import" ? (
@@ -1058,9 +1202,7 @@ export function AdminCategoriesPage() {
               category={selected}
               openedBy="verb-window"
               guard={guard}
-              onClose={() =>
-                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
-              }
+              onClose={closeSub}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "exclusions" ? (
@@ -1072,9 +1214,7 @@ export function AdminCategoriesPage() {
                 nameEn: country.nameEn,
               }))}
               guard={guard}
-              onClose={() =>
-                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
-              }
+              onClose={closeSub}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "retire" ? (
@@ -1083,9 +1223,7 @@ export function AdminCategoriesPage() {
               openedBy="verb-retire"
               targets={roster.filter((row) => row.isActive)}
               guard={guard}
-              onClose={() =>
-                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
-              }
+              onClose={closeSub}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "delete" ? (
@@ -1093,9 +1231,7 @@ export function AdminCategoriesPage() {
               category={selected}
               openedBy="verb-delete"
               guard={guard}
-              onClose={() =>
-                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
-              }
+              onClose={closeSub}
             />
           ) : null}
           {dialog.kind === "edit" && dialog.sub === "image" ? (
@@ -1107,9 +1243,7 @@ export function AdminCategoriesPage() {
               hasImage={selected?.hasImage ?? false}
               guard={guard}
               openedBy="verb-image"
-              onClose={() =>
-                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
-              }
+              onClose={closeSub}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "attributes" ? (
@@ -1117,9 +1251,7 @@ export function AdminCategoriesPage() {
               categoryId={selected.id}
               categoryName={selected.nameEn}
               guard={guard}
-              onClose={() =>
-                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
-              }
+              onClose={closeSub}
             />
           ) : null}
           {selected && dialog.kind === "edit" && dialog.sub === "pointer" ? (
@@ -1128,9 +1260,7 @@ export function AdminCategoriesPage() {
               openedBy="verb-pointer"
               parents={roster}
               guard={guard}
-              onClose={() =>
-                closeDialog({ kind: "edit", id: dialog.id, sub: null, openedBy: dialog.openedBy })
-              }
+              onClose={closeSub}
             />
           ) : null}
         </PageShell>

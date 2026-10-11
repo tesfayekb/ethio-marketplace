@@ -254,9 +254,16 @@ import {
         const prefix = sharedPrefix(slugs);
         expect(prefix.length).toBeGreaterThan(0);
         await lazily("goto roster", () => gotoReady(page, "/admin/categories"));
+        // Bundle 11 B2 — Missing assets lives in the Filters panel; the page
+        // size is the footer's.
+        await step("category-filters", (locator) => locator.click());
         await step("category-missing-filter", (locator) => locator.click());
+        await lazily("close filters", async () => {
+          await page.keyboard.press("Escape");
+          await expect(page.getByTestId("category-filters-panel")).toHaveCount(0);
+        });
         await step("category-search", (locator) => locator.fill(prefix));
-        await step("category-page-size", async (locator) => {
+        await step("category-pagination-size", async (locator) => {
           await locator.selectOption("100");
         });
         await lazily("visible-set", async () => {

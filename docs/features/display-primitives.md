@@ -232,3 +232,26 @@ gives focus back to the three-dots (HS-3). The same holds for Admin ›
 Attributes' own row menu until it moves onto RowActions (B3). Test: "an open menu
 leaves the page's pointer events alone" in
 `src/components/shell/row-actions.test.tsx` (red on the modal menu).
+
+### TableActions' groups wrap at its end (bundle 11, turn B2)
+
+A group inside the header's row — Export and Import travel together in one
+`div` — aligns at the same end as the row (`[&>div]:justify-end`). On a phone,
+where the pair no longer fits side by side, the header is one right-aligned
+column instead of a left-aligned pair between right-aligned buttons (Admin ›
+Categories, Countries and Places).
+
+### RowActions' menu leaves at once when it closes (bundle 11, turn B2; INC-541)
+
+The B1 fix (INC-539) kept the page clickable after a dialog opened from the
+three-dots menu closed, but CO-9 still failed: the next press on the three-dots
+opened no menu. A closing menu stayed on the page for its fade-out (about 0.2 s).
+A dialog opened from it and closed inside that time handed focus back to the
+fading menu, and the menu took the press on the three-dots as a click outside
+itself. The menu now leaves at once when it closes
+(`data-[state=closed]:animate-none!` on its content; it still fades in), so a
+dialog never shares the page with a closing menu. Admin › Attributes' row menu
+likewise. Tests: CO-9 and CT-43 (a dialog from the menu, closed, then the menu
+again); the unit test "a closing menu leaves at once" in
+`src/components/shell/row-actions.test.tsx`. Reproduced locally on the Countries
+page (the menu failed to reopen in 3 of 10 runs before, 0 of 20 after).

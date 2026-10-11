@@ -1095,9 +1095,6 @@
     "admin.categories.filter.missingAssets": [
       "/admin/categories"
     ],
-    "admin.categories.filter.pageSize": [
-      "/admin/categories"
-    ],
     "admin.categories.filter.retired": [
       "/admin/attributes",
       "/admin/categories"
@@ -4656,18 +4653,21 @@
       "/admin/screening"
     ],
     "prim.table.clearAll": [
+      "/admin/categories",
       "/admin/countries",
       "/admin/places",
       "/admin/screening",
       "/dev/style"
     ],
     "prim.table.columns": [
+      "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
       "/admin/places",
       "/admin/screening"
     ],
     "prim.table.filters": [
+      "/admin/categories",
       "/admin/countries",
       "/admin/places",
       "/admin/screening",
@@ -4754,6 +4754,7 @@
       "/dev/style"
     ],
     "prim.table.removeFilter": [
+      "/admin/categories",
       "/admin/countries",
       "/admin/places",
       "/admin/screening",

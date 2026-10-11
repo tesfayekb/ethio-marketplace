@@ -428,12 +428,15 @@ function DialogActions({
   busy,
   submitTestId,
   submitLabel,
+  danger = false,
 }: {
   onCancel: () => void;
   onSubmit: () => void;
   busy: boolean;
   submitTestId: string;
   submitLabel?: string;
+  /** Bundle 11 B2 (G29) — the button that confirms a destruction is red. */
+  danger?: boolean;
 }) {
   const { t } = useI18n();
   return (
@@ -450,6 +453,7 @@ function DialogActions({
       <Button
         type="button"
         size="touch"
+        variant={danger ? "destructive" : "default"}
         data-testid={submitTestId}
         disabled={busy}
         onClick={onSubmit}
@@ -1045,6 +1049,7 @@ export function DeleteCategoryDialog({
         busy={remove.isPending}
         submitTestId="category-delete-submit"
         submitLabel={t("admin.categories.delete.confirm")}
+        danger
       />
     </CategoryModal>
   );
