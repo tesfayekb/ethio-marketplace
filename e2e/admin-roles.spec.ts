@@ -526,6 +526,9 @@ test.describe("U2 roles console", () => {
     await page.getByTestId("role-columns").click();
     await expect(page.getByTestId("role-columns-name")).toBeDisabled();
     await page.keyboard.press("Escape");
+    // G3a (the operator's walk) — the footer: the range, rows per page and the pages.
+    await expect(page.getByTestId("role-pagination-range")).toContainText("1–");
+    await expect(page.getByTestId("role-pagination-size")).toHaveValue("25");
 
     await expect(roleRow(page, name)).toBeVisible({ timeout: 20000 });
     const actions = page.getByTestId(

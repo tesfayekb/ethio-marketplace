@@ -4,11 +4,16 @@ import { Package } from "lucide-react";
 import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
-import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
+import {
+  DataTable,
+  DataTablePagination,
+  type DataTableColumn,
+} from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
 import { PageCard } from "@/components/shell/page-card";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCommission } from "@/features/posting/price-basis";
@@ -46,7 +51,13 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   const navigate = useNavigate();
   const profile = useImpersonatedProfile(sessionId);
-  const listings = useImpersonatedListings(sessionId);
+  /** G3a (the operator's walk; INC-546) — every table has its footer; the door pages the listings. */
+  const paging = useKeptPage("ethio.admin.impersonation.pageSize");
+  const listings = useImpersonatedListings(
+    sessionId,
+    paging.pageSize,
+    paging.page * paging.pageSize,
+  );
   const end = useEndImpersonation();
 
   const active = useActiveImpersonation(true);
@@ -208,6 +219,19 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       <DataTable<ImpersonatedListing>
         columns={visible}
         rows={listings.data?.rows ?? []}
+        pagination={
+          <DataTablePagination
+            testid="impersonation-listings-pagination"
+            offset={paging.page * paging.pageSize}
+            pageSize={paging.pageSize}
+            total={listings.data?.totalCount ?? 0}
+            onPrevious={() => paging.setPage((current) => Math.max(0, current - 1))}
+            onNext={() => paging.setPage((current) => current + 1)}
+            onPage={paging.setPage}
+            pageSizeOptions={paging.pageSizeOptions}
+            onPageSize={paging.setPageSize}
+          />
+        }
         rowKey={(row) => row.id}
         rowTestId={(row) => `impersonated-listing-${row.id}`}
         caption={t("impersonation.listings.caption")}

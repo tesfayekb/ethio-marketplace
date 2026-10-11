@@ -2,9 +2,18 @@ import { Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useState } from "react";
 
-import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
+import {
+  DataTable,
+  DataTablePagination,
+  type DataTableColumn,
+} from "@/components/shell/data-table";
 import { FormField, FormSection } from "@/components/shell/form-section";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
+import { TableActions } from "@/components/shell/table-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,10 +111,11 @@ export function AdminTranslationsLanguagesPage() {
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-translations" className="min-w-0 space-y-4">
-          <h1 className="min-w-0 truncate text-lg font-semibold text-foreground">
-            {t("admin.translations.title")}
-          </h1>
-          <p className="text-sm text-muted-foreground">{t("admin.translations.subtitle")}</p>
+          {/* Bundle 11 G3a (D132) — the page's heading in the header, its line under it. */}
+          <div className="min-w-0 space-y-1">
+            <TableActions testid="lang-header" title={t("admin.translations.title")} />
+            <p className="text-sm text-muted-foreground">{t("admin.translations.subtitle")}</p>
+          </div>
 
           <StatGrid testid="translations-stats">
             <StatCard
@@ -189,6 +199,13 @@ function LanguagesTable({
   const flags = useSetLanguageFlags();
   const order = useSetLanguageOrder();
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+  /**
+   * Bundle 11 G3a (D128; the operator's walk, 2026-10-11) — Columns and the
+   * footer, as every table. The roster is ordered by hand (the moves below), so
+   * its page holds 100 languages by default: the whole order on one page.
+   */
+  const [hidden, toggleColumn] = useHiddenColumns("admin-languages");
+  const paging = useKeptPage("ethio.admin.languages.pageSize", 100);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   /**
@@ -286,7 +303,17 @@ function LanguagesTable({
     );
   };
 
-  const columns: DataTableColumn<LanguageRow>[] = [
+  /** The headers carry tooltips (ReactNode), so Columns names each column by its plain word. */
+  const columnLabels: Record<string, string> = {
+    language: t("admin.translations.col.language"),
+    nameEn: t("admin.translations.col.nameEn"),
+    coverage: t("admin.translations.col.coverage"),
+    coverageData: t("admin.translations.col.coverageData"),
+    admin: t("admin.translations.col.admin"),
+    public: t("admin.translations.col.public"),
+  };
+
+  const allColumns: DataTableColumn<LanguageRow>[] = [
     {
       key: "language",
       header: t("admin.translations.col.language"),
@@ -464,6 +491,8 @@ function LanguagesTable({
     },
   ];
 
+  const columns = visibleColumns(allColumns, hidden, ["language"]);
+
   return (
     <>
       <DataTable
@@ -472,6 +501,38 @@ function LanguagesTable({
         rowKey={(row) => row.code}
         rowTestId={(row) => `lang-row-${row.code}`}
         caption={t("admin.translations.caption")}
+        toolbar={
+          <TableToolbar
+            testid="lang-toolbar"
+            columns={
+              <ColumnsButton
+                testid="lang-columns"
+                columns={allColumns.map((column) => ({
+                  key: column.key,
+                  label: columnLabels[column.key] ?? column.key,
+                  locked: column.key === "language",
+                }))}
+                hidden={hidden}
+                onToggle={toggleColumn}
+              />
+            }
+          />
+        }
+        page={paging.page}
+        pageSize={paging.pageSize}
+        pagination={
+          <DataTablePagination
+            testid="lang-pagination"
+            offset={paging.page * paging.pageSize}
+            pageSize={paging.pageSize}
+            total={ordered.length}
+            onPrevious={() => paging.setPage((current) => Math.max(0, current - 1))}
+            onNext={() => paging.setPage((current) => current + 1)}
+            onPage={paging.setPage}
+            pageSizeOptions={paging.pageSizeOptions}
+            onPageSize={paging.setPageSize}
+          />
+        }
         loading={loading}
         loadingState={
           <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>

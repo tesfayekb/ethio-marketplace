@@ -139,3 +139,4 @@ badge without a toggle; an ordinary row still toggles).
 - **The row's three-dots** (`role-actions-<name>`): View members (`-more-members`) opens the Users list with the role chosen (INC-073). The whole row opens the role's page, where its permissions are changed and a custom role is deleted (RP-9).
 - Tests: RP-16 (new — the heading and the line, Create role opening and closing the form, the locked key, View members); RP-10 reads the chosen role from the Users list's pill and chip, and the count from the footer's range.
 - **G2b:** the cards give way to the table at md (768 px), like the Users list (the twin helpers `roleRow` and `userRow` read the cards below 768 px); "below lg" above reads "below md".
+- **G3a (the operator's walk):** the footer — the range, rows per page (kept under `ethio.admin.roles.pageSize`) and the pages (`role-pagination`). RP-16 reads it.

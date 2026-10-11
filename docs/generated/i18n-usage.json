@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 382,
+  "scanned": 383,
   "dynamicCallSites": 233,
   "keys": {
     "account.deactivatedBanner": [
@@ -1796,49 +1796,73 @@
     "admin.locations.filter.activeOnly": [
       "/admin/audit",
       "/admin/countries",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
       "/admin/users"
     ],
     "admin.locations.filter.allCountriesOption": [
       "/admin/audit",
       "/admin/countries",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
       "/admin/users"
     ],
     "admin.locations.filter.allLevelsOption": [
       "/admin/audit",
       "/admin/countries",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
       "/admin/users"
     ],
     "admin.locations.filter.allStatusesOption": [
       "/admin/audit",
       "/admin/countries",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
       "/admin/users"
     ],
     "admin.locations.filter.closedSuffix": [
       "/admin/audit",
       "/admin/countries",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
       "/admin/users"
     ],
     "admin.locations.filter.country": [
       "/admin/audit",
       "/admin/countries",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
       "/admin/users"
     ],
     "admin.locations.filter.level": [
       "/admin/audit",
       "/admin/countries",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
       "/admin/users"
     ],
     "admin.locations.filter.retiredOnly": [
       "/admin/audit",
       "/admin/countries",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
       "/admin/users"
     ],
     "admin.locations.filter.search": [
@@ -1847,7 +1871,10 @@
     "admin.locations.filter.status": [
       "/admin/audit",
       "/admin/countries",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
+      "/admin/roles",
+      "/admin/translations",
       "/admin/users"
     ],
     "admin.locations.import.openPlaces": [
@@ -4690,6 +4717,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
+      "/admin/translations",
       "/admin/users"
     ],
     "prim.table.done": [
@@ -4702,6 +4730,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
+      "/admin/translations",
       "/admin/users",
       "/dev/style"
     ],
@@ -4861,6 +4890,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
+      "/admin/translations",
       "/admin/users"
     ],
     "prim.table.showResults": [
