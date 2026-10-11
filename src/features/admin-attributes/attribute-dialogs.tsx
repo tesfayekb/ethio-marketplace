@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
@@ -708,7 +709,12 @@ export function MergeAttributesDialog({
                   checked={sourceIds.includes(row.id)}
                   onCheckedChange={(next) => toggle(row.id, next === true)}
                 />
-                <span className="min-w-0 truncate">{`${attributeLabel(row.id, row.nameEn)} (${row.attrKey}) · ${row.usageCount}`}</span>
+                {/* D104 (bundle 11 B3) — a cut name keeps its first five characters. */}
+                <span className="min-w-0">
+                  <CutText
+                    text={`${attributeLabel(row.id, row.nameEn)} (${row.attrKey}) · ${row.usageCount}`}
+                  />
+                </span>
               </label>
             ))}
         </div>
@@ -743,6 +749,8 @@ export function MergeAttributesDialog({
         busy={merge.isPending}
         submitTestId="attribute-merge-submit"
         submitLabel={t("admin.attributes.action.merge")}
+        /* Bundle 11 B3 (G29) — a merge removes the duplicates' definitions. */
+        danger
       />
     </CategoryModal>
   );

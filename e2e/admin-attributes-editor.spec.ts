@@ -13,7 +13,7 @@ import {
 import {
   isCardTwin,
   librarySurface,
-  openAttributeMenu,
+  attributeEdit,
   optionGroup,
   optionRow,
   addOptionRow,
@@ -614,7 +614,7 @@ test.describe("C3 attributes console", () => {
 
       await test.step("AT-47 reopen pre-filled, then switch to text", async () => {
         await page.getByTestId("attribute-search").fill(key);
-        await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
+        await attributeEdit(page, key).click();
         await expect(page.getByTestId("attribute-unit")).toHaveValue("GB", { timeout: 20000 });
         await expect(page.getByTestId("attribute-min")).toHaveValue("1");
         await expect(page.getByTestId("attribute-max")).toHaveValue("year+1");
@@ -727,7 +727,7 @@ test.describe("C3 attributes console", () => {
   ) {
     await gotoReady(page, "/admin/attributes");
     await page.getByTestId("attribute-search").fill(key);
-    await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
+    await attributeEdit(page, key).click();
     await expect(
       page.getByTestId("attribute-edit-dialog"),
       await dialogDump(page, `${label} editor never opened`),

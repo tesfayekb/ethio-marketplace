@@ -1022,3 +1022,17 @@ Extending the export route rides a named follow-up turn.
 ## Reading the list (INC-459)
 
 The list is read whole, page by page, by key (`readAllPages`), and names are ordered by the one pinned collator (src/lib/name-collator.ts).
+
+## On the agreed blocks (bundle 11, turn B3; D118, D128; DEC-170)
+
+This section is the later word on "C3-UX-1c — ONE `⋯` trigger, every verb in its menu" above and on the create card.
+
+- **The header's actions** (`TableActions`, `attribute-header`): Merge (`attribute-merge-open`, `categories:restructure`), the transfer pair (`attribute-transfer`: Export, Import — scoped by the toolbar's category), then the one primary action, New attribute (`attribute-create-open`, `categories:update`). An export failure is said under them (`attribute-header-status`).
+- **The toolbar** (`TableToolbar`, `attribute-toolbar`): the category (`attribute-category-filter`, with Clear filter when one is chosen) as the table's SCOPE — it decides what the library reads (the effective set, inherited rows included) and what Export and Import carry — then search (`attribute-search`) and Columns (`attribute-columns`; the name locked; remembered in this browser under `ethio:table-columns:admin-attributes`). The library has no filter, so no Filters button.
+- **The row's actions** (`RowActions`, `attribute-actions-<key>`), DEC-170: Edit (`-edit`, `categories:update`) opens the editor; Delete in red (`-delete`, `categories:restructure`) is always offered — the dialog states the blast radius and the door refuses while a category still links the attribute (C3e); the three-dots menu (`-more`, `-menu`) holds Assign to category (`-more-assign`) and, in red, Remove from category (`-more-remove`). An inherited row has no Edit and no Delete; its menu holds only Open origin category (`-more-origin`).
+- **The merge confirmation is red** (`attribute-merge-submit`; a merge removes the duplicates' definitions — G29), like Delete's and Remove from category's.
+- **The footer**: the range, rows per page (`attribute-pagination-size`: 10, 25, 50, 100, kept in this browser) and the page numbers.
+- **Cut names keep their first five characters** (D104, `CutText`): the attribute's name, its key, the inherited badge and the Used by chips; the merge dialog's duplicate lines and the category editor's attribute names likewise.
+- **The option editor's inline removes** (Remove, Remove bound, Remove allowed values) stay outline: they edit the form, and nothing is removed until Save — the destructive-red rule is for a button that performs or confirms a destruction.
+- Tests: AT-79 (new — the header's and the toolbar's order, the locked name in Columns, the row's Edit and red Delete, the menu's two items with Remove in red, the cut name's floor, the page size kept across a reload); AT-6 (the red merge button); AT-9 (the three-dots reachable at every width); AT-14 (no row action at all for a reader); AT-19 (an inherited row: no Edit, no Delete, one menu item); the helpers `openAttributeMenu`, `attributeEdit`, `attributeDelete` (e2e/helpers/admin-attributes.ts).
+- **The agreed look (bundle 11 V2, D132)**: the page's heading ("Attributes") leads the header; Merge, Export, Import and New attribute are icon tiles on a phone, icon and words from md. Below lg each attribute is one card: the name (with its key and the inherited pill) and the three-dots in the corner, the type under it, Used by as a labelled fact, Edit and Delete in the footer; a tags tile leads the card. The category is the tinted pill above the search on a phone.

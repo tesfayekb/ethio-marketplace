@@ -1,34 +1,24 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import {
-  Download,
-  Link2,
-  Merge,
-  MoreHorizontal,
-  Pencil,
-  Trash,
-  Unlink,
-  Upload,
-} from "lucide-react";
+import { Download, Link2, Merge, Plus, Tags, Unlink, Upload } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
-import { PageCard } from "@/components/shell/page-card";
+import { RowActions, type RowMoreAction } from "@/components/shell/row-actions";
+import { TableActionButton, TableActions } from "@/components/shell/table-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useAdminShell } from "@/features/admin/admin-context";
-import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { toRoster } from "@/features/admin-categories/categories-service";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -71,9 +61,24 @@ import {
  * C7 parity (C3-UX-1 PART A): the roster renders ONLY through the DataTable
  * primitive at `cardUntil="lg"` — this table is dense, so the tablet band keeps
  * cards — with primitive-owned column min-widths. No per-page width hacks.
+ *
+ * Bundle 11 B3 (D118, D128; DEC-170) — on the agreed blocks: the header's
+ * actions (TableActions: Merge, the transfer pair, then New attribute); the
+ * toolbar (TableToolbar: the category as the table's SCOPE — it decides what is
+ * read, exported and imported — then search · Columns; this table has no
+ * filter); the row's actions (RowActions: Edit; Delete in red — the dialog
+ * states the blast radius and the door refuses while a category links it,
+ * C3e; the three-dots menu with Assign and, in red, Remove from category; an
+ * inherited row's menu holds only "Open origin category"); the footer's three
+ * zones with the page size kept in this browser. Names cut with "…" keep their
+ * first five characters (D104, CutText).
  */
 
-const PAGE_SIZE = 25;
+const TABLE_ID = "admin-attributes";
+const LOCKED = ["name"];
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+const DEFAULT_PAGE_SIZE = 25;
+const PAGE_SIZE_STORAGE_KEY = "ethio.admin.attributes.pageSize";
 
 export function AdminAttributesPage() {
   const { t } = useI18n();
@@ -87,6 +92,29 @@ export function AdminAttributesPage() {
   const navigate = useNavigate({ from: "/admin/attributes" });
   const [needleInput, setNeedleInput] = useState("");
   const [offset, setOffset] = useState(0);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
+
+  useEffect(() => {
+    try {
+      const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
+      if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
+        setPageSize(stored);
+      }
+    } catch {
+      /* no storage access on this device; the default answers */
+    }
+  }, []);
+
+  const choosePageSize = (next: number) => {
+    setPageSize(next);
+    setOffset(0);
+    try {
+      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
+    } catch {
+      /* the choice still holds for this session */
+    }
+  };
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
 
@@ -230,34 +258,37 @@ export function AdminAttributesPage() {
    * 1280. No column declares `minWidth` (see the C7 amendment guard,
    * `scripts/check-datatable-minwidth.sh`).
    */
-  const columns: DataTableColumn<AttributeRow>[] = [
+  const allColumns: DataTableColumn<AttributeRow>[] = [
     {
       key: "name",
       header: t("admin.attributes.col.name"),
       priority: "primary",
+      card: "title",
       width: "w-[32%]",
       cell: (row) => (
         <span className="block min-w-0">
+          {/* D104 — a cut name keeps its first five characters (CutText). */}
           <span
-            className="block truncate font-medium text-foreground"
+            className="block min-w-0 font-medium text-foreground"
+            data-testid={`attribute-name-${row.attrKey}`}
             title={attributeLabel(row.id, row.nameEn)}
           >
-            {attributeLabel(row.id, row.nameEn)}
+            <CutText text={attributeLabel(row.id, row.nameEn)} />
           </span>
-          <span className="block truncate text-xs text-muted-foreground" title={row.attrKey}>
-            {row.attrKey}
+          <span className="block min-w-0 text-xs text-muted-foreground" title={row.attrKey}>
+            <CutText text={row.attrKey} />
           </span>
           {inheritedRow(row) === null ? null : (
             <span
               data-testid={`attribute-inherited-${row.attrKey}`}
               className="mt-1 inline-flex max-w-full items-center rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
             >
-              <span className="truncate">
-                {t("admin.attributes.inherited.badge").replace(
+              <CutText
+                text={t("admin.attributes.inherited.badge").replace(
                   "{origin}",
                   inheritedRow(row)?.originNameEn ?? "",
                 )}
-              </span>
+              />
             </span>
           )}
         </span>
@@ -267,6 +298,7 @@ export function AdminAttributesPage() {
       key: "type",
       header: t("admin.attributes.col.type"),
       priority: "secondary",
+      card: "sub",
       width: "w-[14%]",
       cell: (row) => (
         <span className="block break-words text-muted-foreground">
@@ -325,6 +357,9 @@ export function AdminAttributesPage() {
       key: "usage",
       header: t("admin.attributes.col.usage"),
       priority: "secondary",
+      card: "meta",
+      // The card's count already says "Used by …": no label above it.
+      cardLabel: false,
       /* No width: Used by takes the remainder and the chips wrap inside it. */
       cell: (row) => {
         const chips = chipsFor(row);
@@ -349,7 +384,7 @@ export function AdminAttributesPage() {
                   title={chip.categorySlug}
                   className="inline-flex max-w-full items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary"
                 >
-                  <span className="truncate">{chip.nameEn}</span>
+                  <CutText text={chip.nameEn} />
                 </span>
               ))
             )}
@@ -358,6 +393,7 @@ export function AdminAttributesPage() {
       },
     },
   ];
+  const columns = visibleColumns(allColumns, hidden, LOCKED);
 
   /**
    * PART A — the OPTIONS column shows a count; the full list lives here.
@@ -375,10 +411,13 @@ export function AdminAttributesPage() {
     ) : null;
 
   /**
-   * PART B — ONE row ⋯ MENU, never a stack of verbs: the actions column stays
-   * narrow at every width and the card twin keeps a single 44px target.
+   * Bundle 11 B3 (DEC-170) — THE ROW'S ACTIONS on the shared block: Edit, a
+   * red Delete, and the three-dots menu with the other verbs. Every door
+   * re-checks its permission and step-up server-side (F3); hiding is
+   * convenience only.
    */
   const rowActions = (row: AttributeRow) => {
+    const name = attributeLabel(row.id, row.nameEn);
     /**
      * C3-INH PART A — an INHERITED row owns no write verb: it is not this
      * category's link. The menu offers exactly one way out — open the origin
@@ -387,143 +426,138 @@ export function AdminAttributesPage() {
     const origin = inheritedRow(row);
     if (origin !== null) {
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="touch"
-              data-testid={`attribute-actions-${row.attrKey}`}
-              aria-label={`${t("admin.attributes.action.menu")} — ${attributeLabel(row.id, row.nameEn)}`}
-              title={t("admin.attributes.action.menu")}
-            >
-              <MoreHorizontal aria-hidden="true" className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" data-testid="attribute-actions-menu">
-            <DropdownMenuItem
-              className="min-h-11"
-              data-testid={`attribute-open-origin-${row.attrKey}`}
-              onSelect={() => chooseCategory(origin.originSlug)}
-            >
-              <Link2 aria-hidden="true" className="size-4" />
-              <span>{t("admin.attributes.inherited.openOrigin")}</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <RowActions
+          testid={`attribute-actions-${row.attrKey}`}
+          name={name}
+          more={[
+            {
+              key: "origin",
+              label: t("admin.attributes.inherited.openOrigin"),
+              icon: <Link2 />,
+              onSelect: () => chooseCategory(origin.originSlug),
+            },
+          ]}
+        />
       );
     }
-    // INC-539 — the menu is not modal: its entries open dialogs, which alone lock the page.
-    // INC-541 — and it leaves at once when it closes (no fade-out), so a dialog opened from
-    // it never shares the page with a closing menu.
-    return mayUpdate || mayRestructure ? (
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            data-testid={`attribute-actions-${row.attrKey}`}
-            aria-label={`${t("admin.attributes.action.menu")} — ${attributeLabel(row.id, row.nameEn)}`}
-            title={t("admin.attributes.action.menu")}
-          >
-            <MoreHorizontal aria-hidden="true" className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="end"
-          data-testid="attribute-actions-menu"
-          className="data-[state=closed]:animate-none!"
-        >
-          {mayUpdate ? (
-            <DropdownMenuItem
-              className="min-h-11"
-              data-testid={`attribute-edit-${row.attrKey}`}
-              onSelect={() => setDialog({ kind: "edit", id: row.id })}
-            >
-              <Pencil aria-hidden="true" className="size-4" />
-              <span>{t("admin.attributes.action.edit")}</span>
-            </DropdownMenuItem>
-          ) : null}
-          {mayUpdate ? (
-            <DropdownMenuItem
-              className="min-h-11"
-              data-testid={`attribute-assign-${row.attrKey}`}
-              onSelect={() => setDialog({ kind: "assign", id: row.id })}
-            >
-              <Link2 aria-hidden="true" className="size-4" />
-              <span>{t("admin.attributes.action.assign")}</span>
-            </DropdownMenuItem>
-          ) : null}
-          {mayRestructure ? (
-            <DropdownMenuItem
-              className="min-h-11"
-              data-testid={`attribute-remove-${row.attrKey}`}
-              onSelect={() => setDialog({ kind: "remove", id: row.id })}
-            >
-              <Unlink aria-hidden="true" className="size-4" />
-              <span>{t("admin.attributes.action.remove")}</span>
-            </DropdownMenuItem>
-          ) : null}
-          {mayRestructure ? (
-            <DropdownMenuItem
-              className="min-h-11 text-destructive focus:text-destructive"
-              data-testid={`attribute-delete-${row.attrKey}`}
-              onSelect={() => setDialog({ kind: "delete", id: row.id })}
-            >
-              <Trash aria-hidden="true" className="size-4" />
-              <span>{t("admin.attributes.action.delete")}</span>
-            </DropdownMenuItem>
-          ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ) : null;
+    const more: RowMoreAction[] = [];
+    if (mayUpdate) {
+      more.push({
+        key: "assign",
+        label: t("admin.attributes.action.assign"),
+        icon: <Link2 />,
+        onSelect: () => setDialog({ kind: "assign", id: row.id }),
+      });
+    }
+    if (mayRestructure) {
+      // A link removed is a destructive act: drawn red, as its confirmation is.
+      more.push({
+        key: "remove",
+        label: t("admin.attributes.action.remove"),
+        icon: <Unlink />,
+        tone: "danger",
+        onSelect: () => setDialog({ kind: "remove", id: row.id }),
+      });
+    }
+    return (
+      <RowActions
+        testid={`attribute-actions-${row.attrKey}`}
+        name={name}
+        edit={
+          mayUpdate
+            ? {
+                label: t("admin.attributes.action.edit"),
+                onSelect: () => setDialog({ kind: "edit", id: row.id }),
+              }
+            : undefined
+        }
+        remove={
+          mayRestructure
+            ? {
+                // C3e — always offered: the dialog states the blast radius and
+                // the door refuses while a category still links the attribute.
+                label: t("admin.attributes.action.delete"),
+                onSelect: () => setDialog({ kind: "delete", id: row.id }),
+              }
+            : undefined
+        }
+        more={more}
+      />
+    );
   };
 
   return (
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-attributes" className="min-w-0 space-y-4">
-          {mayUpdate || mayRestructure ? (
-            <PageCard testid="attribute-create-card">
-              <div className="flex flex-col gap-2 sm:flex-row">
-                {mayUpdate ? (
-                  <Button
-                    type="button"
-                    size="touch"
-                    className="w-full sm:w-auto"
-                    data-testid="attribute-create-open"
-                    onClick={() => setDialog({ kind: "edit", id: null })}
-                  >
-                    {t("admin.attributes.create.open")}
-                  </Button>
-                ) : null}
-                {mayRestructure ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    className="w-full sm:w-auto"
-                    data-testid="attribute-merge-open"
-                    onClick={() => setDialog({ kind: "merge" })}
-                  >
-                    <Merge aria-hidden="true" className="size-4" />
-                    <span>{t("admin.attributes.action.merge")}</span>
-                  </Button>
-                ) : null}
-              </div>
-            </PageCard>
+          <TableActions testid="attribute-header" title={t("admin.section.attributes.title")}>
+            {mayRestructure ? (
+              <TableActionButton
+                data-testid="attribute-merge-open"
+                onClick={() => setDialog({ kind: "merge" })}
+                icon={<Merge />}
+                label={t("admin.attributes.action.merge")}
+              />
+            ) : null}
+            <div
+              data-testid="attribute-transfer"
+              className="flex flex-wrap items-center gap-1.5 md:gap-2"
+            >
+              {/* IE-1 — never disabled on an empty filter: the export is the
+                  scope (the whole library, or the chosen category's subtree),
+                  not the current page. */}
+              <TableActionButton
+                data-testid="attribute-export"
+                disabled={exporting}
+                onClick={() => void runExport()}
+                icon={<Download />}
+                label={
+                  exporting ? t("admin.attributes.export.busy") : t("admin.attributes.export.open")
+                }
+              />
+              {/* IE-2 — the import door is its own permission; UI hiding is
+                  convenience only, the route and RPCs refuse regardless. */}
+              {mayImport ? (
+                <TableActionButton
+                  data-testid="attribute-import"
+                  onClick={() => setDialog({ kind: "import" })}
+                  icon={<Upload />}
+                  label={t("admin.attributes.import.open")}
+                />
+              ) : null}
+            </div>
+            {mayUpdate ? (
+              <TableActionButton
+                variant="default"
+                data-testid="attribute-create-open"
+                onClick={() => setDialog({ kind: "edit", id: null })}
+                icon={<Plus />}
+                label={t("admin.attributes.create.open")}
+              />
+            ) : null}
+          </TableActions>
+          {exportError ? (
+            <div data-testid="attribute-header-status" className="text-end">
+              <p
+                role="alert"
+                className="text-sm text-destructive"
+                data-testid="attribute-export-error"
+              >
+                {t("admin.attributes.export.error")}
+              </p>
+            </div>
           ) : null}
 
           <DataTable<AttributeRow>
             columns={columns}
             rows={filtered}
-            page={Math.floor(offset / PAGE_SIZE)}
-            pageSize={PAGE_SIZE}
+            page={Math.floor(offset / pageSize)}
+            pageSize={pageSize}
             rowKey={(row) => row.id}
             rowTestId={(row) => `attribute-row-${row.attrKey}`}
             caption={t("admin.attributes.caption")}
             cardUntil="lg"
+            cardLead={() => <Tags />}
             loading={isLoading}
             loadingState={
               <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
@@ -546,15 +580,53 @@ export function AdminAttributesPage() {
               </p>
             }
             toolbar={
-              /* UX-2 PART 2 — grouped: [find] · [transfer]. */
-              <>
-                <div
-                  data-testid="attribute-toolbar-find"
-                  className="flex flex-wrap items-center gap-2"
-                >
+              <TableToolbar
+                testid="attribute-toolbar"
+                scope={
+                  /* The category decides what the library READS (its effective
+                     set, inherited rows included) and what Export and Import
+                     carry: the table's scope, never a sieve inside Filters. */
+                  <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
+                    <NativeSelect
+                      data-testid="attribute-category-filter"
+                      aria-label={t("admin.attributes.filter.category")}
+                      className="w-full min-w-0 flex-1 md:w-64 md:flex-none"
+                      value={filterCategory?.slug ?? ""}
+                      onChange={(event) => chooseCategory(event.target.value)}
+                    >
+                      <option value="">{t("admin.attributes.filter.allCategories")}</option>
+                      {filterOptions.map((row) => (
+                        <option
+                          key={row.id}
+                          value={row.slug}
+                          data-depth={row.depth}
+                          data-parent-id={row.parentId ?? ""}
+                          {...(row.isActive ? {} : { "data-retired": "true" })}
+                          className={row.isActive ? undefined : "text-muted-foreground"}
+                        >
+                          {`${row.label}${
+                            row.isActive ? "" : ` — ${t("admin.categories.filter.retired")}`
+                          }`}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                    {filterCategory === null ? null : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="touch"
+                        data-testid="attribute-category-clear"
+                        onClick={() => chooseCategory("")}
+                      >
+                        {t("admin.attributes.filter.clear")}
+                      </Button>
+                    )}
+                  </div>
+                }
+                search={
                   <Input
                     data-testid="attribute-search"
-                    className="md:w-72"
+                    aria-label={t("admin.attributes.searchPlaceholder")}
                     placeholder={t("admin.attributes.searchPlaceholder")}
                     value={needleInput}
                     onChange={(event) => {
@@ -562,100 +634,37 @@ export function AdminAttributesPage() {
                       setOffset(0);
                     }}
                   />
-                  <select
-                    data-testid="attribute-category-filter"
-                    aria-label={t("admin.attributes.filter.category")}
-                    className={`${SELECT_CLASS} md:w-72`}
-                    value={filterCategory?.slug ?? ""}
-                    onChange={(event) => chooseCategory(event.target.value)}
-                  >
-                    <option value="">{t("admin.attributes.filter.allCategories")}</option>
-                    {filterOptions.map((row) => (
-                      <option
-                        key={row.id}
-                        value={row.slug}
-                        data-depth={row.depth}
-                        data-parent-id={row.parentId ?? ""}
-                        {...(row.isActive ? {} : { "data-retired": "true" })}
-                        className={row.isActive ? undefined : "text-muted-foreground"}
-                      >
-                        {`${row.label}${
-                          row.isActive ? "" : ` — ${t("admin.categories.filter.retired")}`
-                        }`}
-                      </option>
-                    ))}
-                  </select>
-                  {filterCategory === null ? null : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="touch"
-                      data-testid="attribute-category-clear"
-                      onClick={() => chooseCategory("")}
-                    >
-                      {t("admin.attributes.filter.clear")}
-                    </Button>
-                  )}
-                </div>
-                <div
-                  data-testid="attribute-toolbar-transfer"
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  {/* IE-1 — never disabled on an empty filter: the export is the
-                      whole library, not the current view. */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    data-testid="attribute-export"
-                    disabled={exporting}
-                    onClick={() => void runExport()}
-                  >
-                    <Download aria-hidden="true" className="size-4" />
-                    <span>
-                      {exporting
-                        ? t("admin.attributes.export.busy")
-                        : t("admin.attributes.export.open")}
-                    </span>
-                  </Button>
-                  {/* IE-2 — the import door is its own permission; UI hiding is
-                      convenience only, the route and RPCs refuse regardless. */}
-                  {mayImport ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="touch"
-                      data-testid="attribute-import"
-                      onClick={() => setDialog({ kind: "import" })}
-                    >
-                      <Upload aria-hidden="true" className="size-4" />
-                      <span>{t("admin.attributes.import.open")}</span>
-                    </Button>
-                  ) : null}
-                  {exportError ? (
-                    <p
-                      role="alert"
-                      className="text-sm text-destructive"
-                      data-testid="attribute-export-error"
-                    >
-                      {t("admin.attributes.export.error")}
-                    </p>
-                  ) : null}
-                </div>
-              </>
+                }
+                columns={
+                  <ColumnsButton
+                    testid="attribute-columns"
+                    columns={allColumns.map((column) => ({
+                      key: column.key,
+                      label: String(column.header),
+                      locked: LOCKED.includes(column.key),
+                    }))}
+                    hidden={hidden}
+                    onToggle={toggleColumn}
+                  />
+                }
+              />
             }
             pagination={
               <DataTablePagination
                 offset={offset}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 total={filtered.length}
-                onPrevious={() => setOffset((prev) => Math.max(0, prev - PAGE_SIZE))}
-                onNext={() => setOffset((prev) => prev + PAGE_SIZE)}
+                onPrevious={() => setOffset((prev) => Math.max(0, prev - pageSize))}
+                onNext={() => setOffset((prev) => prev + pageSize)}
+                onPage={(index) => setOffset(index * pageSize)}
+                pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
+                onPageSize={choosePageSize}
                 testid="attribute-pagination"
               />
             }
             expandedRow={expandedRow}
             rowActions={rowActions}
+            actionsWidth="w-44"
           />
 
           {dialog.kind === "edit" ? (

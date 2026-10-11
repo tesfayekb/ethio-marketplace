@@ -100,6 +100,11 @@ export interface DataTableColumn<T> {
    * fact out of that card: a root category's card has no "—" parent line.
    */
   cardCell?: (row: T) => ReactNode;
+  /**
+   * Bundle 11 B3 — `false` when the cell already names itself ("Used by 3
+   * categories"), so the card draws no label above it.
+   */
+  cardLabel?: false;
 }
 
 export interface DataTableSelection<T> {
@@ -581,7 +586,11 @@ export function DataTable<T>({
               : { top: null, foot: null };
             const lead = cardLead?.(row);
             const label = (column: DataTableColumn<T>) =>
-              typeof column.header === "string" && column.header !== "" ? column.header : null;
+              column.cardLabel !== false &&
+              typeof column.header === "string" &&
+              column.header !== ""
+                ? column.header
+                : null;
             /** The card's own value of a column; null, undefined or false leaves it out. */
             const shown = (columns: DataTableColumn<T>[]) =>
               columns

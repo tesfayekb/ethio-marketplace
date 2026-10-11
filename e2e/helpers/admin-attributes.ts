@@ -37,14 +37,27 @@ export function attributeActions(page: import("@playwright/test").Page, key: str
 }
 
 /**
- * C3-UX-1c — the row carries ONE \u22ef trigger and every verb lives in its menu
- * (a portal, so the menu is addressed at the page, never inside the row).
+ * Bundle 11 B3 (DEC-170) — the row carries the shared RowActions: Edit and a
+ * red Delete as icons, and the three-dots menu with Assign, Remove from
+ * category (red) or, on an inherited row, Open origin category. The menu is a
+ * portal, so it is addressed at the page, never inside the row; its items are
+ * `attribute-actions-<key>-more-<assign|remove|origin>`.
  */
 export async function openAttributeMenu(page: import("@playwright/test").Page, key: string) {
-  await attributeActions(page, key).getByTestId(`attribute-actions-${key}`).click();
-  const menu = page.getByTestId("attribute-actions-menu");
+  await attributeActions(page, key).getByTestId(`attribute-actions-${key}-more`).click();
+  const menu = page.getByTestId(`attribute-actions-${key}-menu`);
   await expect(menu).toBeVisible({ timeout: 20000 });
   return menu;
+}
+
+/** Bundle 11 B3 — the row's Edit icon (opens the editor). */
+export function attributeEdit(page: import("@playwright/test").Page, key: string) {
+  return attributeActions(page, key).getByTestId(`attribute-actions-${key}-edit`);
+}
+
+/** Bundle 11 B3 — the row's red Delete icon (opens the delete dialog). */
+export function attributeDelete(page: import("@playwright/test").Page, key: string) {
+  return attributeActions(page, key).getByTestId(`attribute-actions-${key}-delete`);
 }
 
 /**

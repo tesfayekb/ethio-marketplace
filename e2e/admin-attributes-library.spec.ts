@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import {
+  expectCutFloor,
   expectNoHorizontalOverflow,
   gotoReady,
   stepUpIfPrompted,
@@ -9,6 +10,8 @@ import {
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
+import { fillOf, isRedFill } from "./helpers/colors";
+import { expectActionsInsideCell } from "./helpers/row-actions";
 import {
   rand,
   bandOnly,
@@ -27,6 +30,9 @@ import {
   librarySurface,
   libraryRows,
   openAttributeMenu,
+  attributeActions,
+  attributeEdit,
+  attributeDelete,
   addOptionRow,
   seedAttribute,
   readAttribute,
@@ -106,7 +112,7 @@ test.describe("C3 attributes console", () => {
 
       await test.step("AT-2 rename definition", async () => {
         await page.getByTestId("attribute-search").fill(key);
-        await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
+        await attributeEdit(page, key).click();
         await page.getByTestId("attribute-name").fill(`${key} renamed`);
         await page.getByTestId("attribute-edit-submit").click();
         await stepUpIfPrompted(page, secret);
@@ -245,7 +251,7 @@ test.describe("C3 attributes console", () => {
       await test.step("AT-5 delete refused while linked", async () => {
         await page.getByTestId("attribute-search").fill(key);
         // J5 — the verb resolves inside ITS OWN row's actions region, in either twin.
-        await (await openAttributeMenu(page, key)).getByTestId(`attribute-delete-${key}`).click();
+        await attributeDelete(page, key).click();
         await expect(
           page.getByTestId("attribute-delete-blast"),
           await dialogDump(page, "AT-5 delete dialog never opened"),
@@ -314,6 +320,12 @@ test.describe("C3 attributes console", () => {
       await page.getByTestId("attribute-merge-target").selectOption({ label: `${keep} (${keep})` });
       await page.getByTestId(`attribute-merge-source-${dupe}`).click();
       await expect(page.getByTestId("attribute-merge-confirm")).toBeVisible();
+      // Bundle 11 B3 (G29) — a merge removes definitions: its button is red.
+      await expect
+        .poll(async () => isRedFill(await fillOf(page.getByTestId("attribute-merge-submit"))), {
+          message: "AT-6: the merge button is not red",
+        })
+        .toBe(true);
       await page.getByTestId("attribute-merge-submit").click();
       await stepUpIfPrompted(page, secret);
 
@@ -382,7 +394,9 @@ test.describe("C3 attributes console", () => {
 
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
-      await (await openAttributeMenu(page, key)).getByTestId(`attribute-assign-${key}`).click();
+      await (await openAttributeMenu(page, key))
+        .getByTestId(`attribute-actions-${key}-more-assign`)
+        .click();
       await expect(
         page.getByTestId("attribute-assign-dialog"),
         await dialogDump(page, "AT-8 assign dialog never opened"),
@@ -449,10 +463,11 @@ test.describe("C3 attributes console", () => {
       expect(geometry.overshoot, `last column clipped at ${width}`).toBeLessThanOrEqual(2);
       expect(geometry.overflow, `the library scrolls sideways at ${width}`).toBeLessThanOrEqual(1);
 
-      // The row menu is the ONLY verb surface: it is visible at every width.
+      // Bundle 11 B3 — the row's three-dots (beside Edit and Delete) is
+      // reachable at every width.
       const firstRow = libraryRows(page).nth(0);
       await expect(
-        firstRow.locator('[data-testid^="attribute-actions-"]'),
+        firstRow.locator('[data-testid^="attribute-actions-"][data-testid$="-more"]'),
         `the row menu is unreachable at ${width}`,
       ).toBeVisible();
 
@@ -465,6 +480,112 @@ test.describe("C3 attributes console", () => {
       } else {
         expect(await optionsCells.count(), `Options should render at ${width}`).toBeGreaterThan(0);
       }
+    }
+  });
+
+  /**
+   * AT-79 (bundle 11 B3, D118, D128, DEC-170) — THE LIBRARY ON THE AGREED BLOCKS.
+   * The header's actions in order (Merge, the transfer pair, New attribute); the
+   * toolbar's order (the category scope, search, Columns with the name locked);
+   * the row's Edit and red Delete, its menu with Assign and a red Remove from
+   * category; the footer's page size kept across a reload; a cut name keeping
+   * its first five characters (D104). A scratch attribute (J3).
+   */
+  test("AT-79 the library on the agreed blocks: header, toolbar, the row's Edit, red Delete and menu, the footer's page size", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const key = `e2e_attr_${rand()}`;
+    try {
+      await seedAttribute(key);
+      await gotoReady(page, "/admin/attributes");
+      await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
+
+      const header = page.getByTestId("attribute-header");
+      // Bundle 11 V2 (D132) — the page's heading leads the header; its actions
+      // follow in this order (read by id, whatever wraps each tile).
+      await expect(header.getByRole("heading", { level: 1 })).toBeVisible();
+      const headerOrder = await header.evaluate((node) =>
+        Array.from(node.querySelectorAll("[data-testid]"))
+          .map((child) => child.getAttribute("data-testid"))
+          .filter((id) =>
+            ["attribute-merge-open", "attribute-transfer", "attribute-create-open"].includes(
+              id ?? "",
+            ),
+          ),
+      );
+      expect(headerOrder, "AT-79 the header's order").toEqual([
+        "attribute-merge-open",
+        "attribute-transfer",
+        "attribute-create-open",
+      ]);
+      await expect(
+        header.getByTestId("attribute-transfer").getByTestId("attribute-export"),
+      ).toBeVisible();
+
+      const toolbarOrder = await page.getByTestId("attribute-toolbar").evaluate((node) =>
+        Array.from(node.querySelectorAll("[data-testid]"))
+          .map((child) => child.getAttribute("data-testid"))
+          .filter((id) =>
+            ["attribute-category-filter", "attribute-search", "attribute-columns"].includes(
+              id ?? "",
+            ),
+          ),
+      );
+      expect(toolbarOrder, "AT-79 the toolbar's order").toEqual([
+        "attribute-category-filter",
+        "attribute-search",
+        "attribute-columns",
+      ]);
+      await page.getByTestId("attribute-columns").click();
+      await expect(page.getByTestId("attribute-columns-name")).toBeDisabled();
+      await page.keyboard.press("Escape");
+
+      await page.getByTestId("attribute-search").fill(key);
+      await expect(attributeEdit(page, key)).toBeVisible({ timeout: 20000 });
+      // INC-542 — Edit, Delete and the three-dots stay inside their own cell.
+      await expectActionsInsideCell(attributeActions(page, key));
+      const deleteColor = await attributeDelete(page, key).evaluate(
+        (node) => getComputedStyle(node).color,
+      );
+      expect(isRedFill(deleteColor), `AT-79 the row's Delete is not red: ${deleteColor}`).toBe(
+        true,
+      );
+
+      const menu = await openAttributeMenu(page, key);
+      const items = await menu
+        .getByRole("menuitem")
+        .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")));
+      expect(items, "AT-79 the menu's items").toEqual([
+        `attribute-actions-${key}-more-assign`,
+        `attribute-actions-${key}-more-remove`,
+      ]);
+      const removeColor = await menu
+        .getByTestId(`attribute-actions-${key}-more-remove`)
+        .evaluate((node) => getComputedStyle(node).color);
+      expect(isRedFill(removeColor), `AT-79 Remove from category is not red: ${removeColor}`).toBe(
+        true,
+      );
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId(`attribute-actions-${key}-menu`)).toHaveCount(0);
+
+      // D104 — the name keeps its first five characters at this width.
+      await expectCutFloor(
+        page,
+        librarySurface(page).getByTestId(`attribute-name-${key}`).locator("[data-cut]"),
+      );
+
+      await page.getByTestId("attribute-search").fill("");
+      await page.getByTestId("attribute-pagination-size").selectOption("10");
+      await expect(page.getByTestId("attribute-pagination-range")).toContainText("1–10");
+      await page.reload();
+      await waitForHydration(page);
+      await expect(page.getByTestId("attribute-pagination-size")).toHaveValue("10", {
+        timeout: 20000,
+      });
+    } finally {
+      await destroyAttribute(key);
     }
   });
 
@@ -525,7 +646,9 @@ test.describe("C3 attributes console", () => {
         },
       );
 
-      await (await openAttributeMenu(page, key)).getByTestId(`attribute-remove-${key}`).click();
+      await (await openAttributeMenu(page, key))
+        .getByTestId(`attribute-actions-${key}-more-remove`)
+        .click();
       await expect(
         page.getByTestId("attribute-remove-dialog"),
         await dialogDump(page, "AT-11 remove dialog never opened"),
@@ -712,8 +835,9 @@ test.describe("C3 attributes console", () => {
           isCardTwin(page) ? `attribute-row-${key}-card` : `attribute-row-${key}`,
         ),
       ).toBeVisible({ timeout: 20000 });
-      // NO WRITE VERBS: the row carries no actions trigger at all.
-      await expect(page.getByTestId(`attribute-actions-${key}`)).toHaveCount(0);
+      // NO WRITE VERBS: the row carries no action at all — no Edit, no Delete,
+      // no three-dots (bundle 11 B3: every RowActions id starts with this).
+      await expect(page.locator(`[data-testid^="attribute-actions-${key}"]`)).toHaveCount(0);
       await expect(page.getByTestId("attribute-create-open")).toHaveCount(0);
 
       // THE SERVER REFUSES — live, from the signed-in browser client.
@@ -1139,12 +1263,13 @@ test.describe("C3 attributes console", () => {
         await dialogDump(page, "AT-19 the inherited row never rendered"),
       ).toBeVisible({ timeout: 30000 });
 
+      // Bundle 11 B3 — no Edit, no Delete on the row; the menu holds only
+      // "Open origin category".
+      await expect(attributeEdit(page, fixture.keyA)).toHaveCount(0);
+      await expect(attributeDelete(page, fixture.keyA)).toHaveCount(0);
       const menu = await openAttributeMenu(page, fixture.keyA);
-      await expect(menu.getByTestId(`attribute-open-origin-${fixture.keyA}`)).toBeVisible();
-      await expect(menu.getByTestId(`attribute-edit-${fixture.keyA}`)).toHaveCount(0);
-      await expect(menu.getByTestId(`attribute-assign-${fixture.keyA}`)).toHaveCount(0);
-      await expect(menu.getByTestId(`attribute-remove-${fixture.keyA}`)).toHaveCount(0);
-      await expect(menu.getByTestId(`attribute-delete-${fixture.keyA}`)).toHaveCount(0);
+      await expect(menu.getByTestId(`attribute-actions-${fixture.keyA}-more-origin`)).toBeVisible();
+      await expect(menu.getByRole("menuitem")).toHaveCount(1);
       await page.keyboard.press("Escape");
 
       // SERVER LAW: the child owns no link, so ordering and card-ranking the
