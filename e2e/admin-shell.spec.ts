@@ -184,14 +184,16 @@ test.describe("Admin shell (U0)", () => {
   });
 
   // INC-085(b) — U3 gave moderators a real section — zero-sections was the
-  // placeholder-era premise. The census is the truth: exactly one section.
-  test("A-7 moderator fixture: exactly one section (audit), other deep links refused, admin tab still visible", async ({
+  // placeholder-era premise. The census is the truth. Bundle 11 L2 (D134): a
+  // moderator holds listings:view, so All listings is the second section.
+  test("A-7 moderator fixture: two sections (All listings, audit), other deep links refused, admin tab still visible", async ({
     page,
   }) => {
     const mod = await leaseUser();
     await grantRole(mod.id, "moderator");
     const perms = await permissionsOfRole("moderator");
-    expect(expectedSectionIds(perms), "moderator section census drifted").toEqual(["audit"]);
+    const mine = ["listings", "audit"];
+    expect(expectedSectionIds(perms), "moderator section census drifted").toEqual(mine);
 
     await signIn(page, mod.email, mod.password);
     await waitForHydration(page);
@@ -204,37 +206,39 @@ test.describe("Admin shell (U0)", () => {
     await expect(page.getByTestId("admin-panel-root")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("admin-no-sections")).toHaveCount(0);
 
-    // Exactly ONE card: Audit & Security.
+    // Exactly TWO cards: All listings and Audit & Security.
     const cards = page.getByTestId("admin-nav-cards").getByRole("link");
-    await expect(cards).toHaveCount(1, { timeout: 15000 });
-    const audit = ADMIN_SECTIONS.find((s) => s.id === "audit")!;
-    await expect(page.getByTestId("admin-section-link-audit")).toContainText(en[audit.titleKey]);
+    await expect(cards).toHaveCount(mine.length, { timeout: 15000 });
+    for (const id of mine) {
+      const section = ADMIN_SECTIONS.find((s) => s.id === id)!;
+      await expect(page.getByTestId(`admin-section-link-${id}`)).toContainText(
+        en[section.titleKey],
+      );
+    }
     await expect(page.getByTestId("admin-nav-sidebar")).toHaveCount(0);
 
-    // The shell rail/drawer carries the same single item.
-    if (isMobile(page)) {
-      const drawer = await openRailScope(page);
-      await expect(drawer).toHaveAttribute("data-panel", "admin");
-      await expect(drawer.getByTestId("rail-item-ad-audit")).toBeVisible({ timeout: 15000 });
-      for (const section of ADMIN_SECTIONS.filter((s) => s.id !== "audit")) {
-        await expect(drawer.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
-      }
-      await page.keyboard.press("Escape");
-    } else {
-      const rail = page.getByTestId("app-rail");
-      await expect(rail.getByTestId("rail-item-ad-audit")).toBeVisible({ timeout: 15000 });
-      for (const section of ADMIN_SECTIONS.filter((s) => s.id !== "audit")) {
-        await expect(rail.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
-      }
+    // The shell rail/drawer carries the same items, and no other.
+    const scope = isMobile(page) ? await openRailScope(page) : page.getByTestId("app-rail");
+    if (isMobile(page)) await expect(scope).toHaveAttribute("data-panel", "admin");
+    for (const id of mine) {
+      await expect(scope.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
     }
+    for (const section of ADMIN_SECTIONS.filter((s) => !mine.includes(s.id))) {
+      await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
+    }
+    if (isMobile(page)) await page.keyboard.press("Escape");
 
-    // The permitted deep link RENDERS.
+    // The permitted deep links RENDER.
+    const audit = ADMIN_SECTIONS.find((s) => s.id === "audit")!;
     await page.goto(audit.path);
     await waitForHydration(page);
     await expect(page.getByTestId("admin-audit")).toBeVisible({ timeout: 15000 });
+    await page.goto("/admin/listings");
+    await waitForHydration(page);
+    await expect(page.getByTestId("admin-section-listings")).toBeVisible({ timeout: 15000 });
 
     // Every other section is still refused to /admin with the notice.
-    for (const path of ["/admin/users", "/admin/roles"]) {
+    for (const path of ["/admin/users", "/admin/roles", "/admin/screening"]) {
       await page.goto(path);
       await waitForHydration(page);
       await expect(page).toHaveURL(/\/admin$/);

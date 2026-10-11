@@ -22,6 +22,7 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCountriesRouteImport } from './routes/admin.countries'
 import { Route as AdminCoverageRouteImport } from './routes/admin.coverage'
 import { Route as AdminImagesRouteImport } from './routes/admin.images'
+import { Route as AdminListingsRouteImport } from './routes/admin.listings'
 import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
 import { Route as AdminPlacesRouteImport } from './routes/admin.places'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
@@ -132,6 +133,11 @@ const AdminCoverageRoute = AdminCoverageRouteImport.update({
 const AdminImagesRoute = AdminImagesRouteImport.update({
   id: '/images',
   path: '/images',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminListingsRoute = AdminListingsRouteImport.update({
+  id: '/listings',
+  path: '/listings',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminLocationsRoute = AdminLocationsRouteImport.update({
@@ -386,6 +392,7 @@ export interface FileRoutesByFullPath {
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
+  '/admin/listings': typeof AdminListingsRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -446,6 +453,7 @@ export interface FileRoutesByTo {
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
+  '/admin/listings': typeof AdminListingsRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -508,6 +516,7 @@ export interface FileRoutesById {
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
+  '/admin/listings': typeof AdminListingsRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -571,6 +580,7 @@ export interface FileRouteTypes {
     | '/admin/countries'
     | '/admin/coverage'
     | '/admin/images'
+    | '/admin/listings'
     | '/admin/locations'
     | '/admin/places'
     | '/admin/roles'
@@ -631,6 +641,7 @@ export interface FileRouteTypes {
     | '/admin/countries'
     | '/admin/coverage'
     | '/admin/images'
+    | '/admin/listings'
     | '/admin/locations'
     | '/admin/places'
     | '/admin/roles'
@@ -692,6 +703,7 @@ export interface FileRouteTypes {
     | '/admin/countries'
     | '/admin/coverage'
     | '/admin/images'
+    | '/admin/listings'
     | '/admin/locations'
     | '/admin/places'
     | '/admin/roles'
@@ -873,6 +885,13 @@ declare module '@tanstack/react-router' {
       path: '/images'
       fullPath: '/admin/images'
       preLoaderRoute: typeof AdminImagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/listings': {
+      id: '/admin/listings'
+      path: '/listings'
+      fullPath: '/admin/listings'
+      preLoaderRoute: typeof AdminListingsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/locations': {
@@ -1207,6 +1226,7 @@ interface AdminRouteChildren {
   AdminCountriesRoute: typeof AdminCountriesRoute
   AdminCoverageRoute: typeof AdminCoverageRoute
   AdminImagesRoute: typeof AdminImagesRoute
+  AdminListingsRoute: typeof AdminListingsRoute
   AdminLocationsRoute: typeof AdminLocationsRoute
   AdminPlacesRoute: typeof AdminPlacesRoute
   AdminRolesRoute: typeof AdminRolesRoute
@@ -1227,6 +1247,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCountriesRoute: AdminCountriesRoute,
   AdminCoverageRoute: AdminCoverageRoute,
   AdminImagesRoute: AdminImagesRoute,
+  AdminListingsRoute: AdminListingsRoute,
   AdminLocationsRoute: AdminLocationsRoute,
   AdminPlacesRoute: AdminPlacesRoute,
   AdminRolesRoute: AdminRolesRoute,

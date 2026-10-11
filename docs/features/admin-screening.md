@@ -1,6 +1,6 @@
 # Admin › Screening
 
-Bundle 10 E3a (D109). Path `/admin/screening`.
+Bundle 10 E3a (D109). Path `/admin/screening`. Since bundle 11 turn L2 the queue sits under the **Listings** group in the side menu, beside All listings (docs/features/admin-listings.md); its address and permission are unchanged.
 
 ## What the page shows
 

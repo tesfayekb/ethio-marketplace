@@ -6,7 +6,9 @@ import {
   Image,
   Languages,
   LibraryBig,
+  List,
   MapPin,
+  Store,
   ScrollText,
   ShieldCheck,
   SlidersHorizontal,
@@ -49,6 +51,7 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   images: Image,
   translations: Languages,
   screening: ClipboardCheck,
+  listings: List,
 };
 
 /**
@@ -59,6 +62,7 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
 const GROUP_ICONS: Record<AdminGroupId, LucideIcon> = {
   categories: LibraryBig,
   locations: Globe2,
+  listings: Store,
 };
 
 function toItem(section: AdminSection): NavItem {
