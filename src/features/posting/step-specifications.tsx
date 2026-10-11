@@ -4,6 +4,7 @@ import { catalogText, catalogWords, drawCatalog, useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import { useCatalogScope } from "./catalog-scope";
 import { CatalogWords } from "./catalog-words";
+import { DateField } from "@/components/shell/date-field";
 
 import { resolveBound, settledRanges, yearLabel } from "./attribute-display";
 import {
@@ -1429,16 +1430,16 @@ export function StepSpecifications({
               </div>
             )}
 
+            {/* INC-549 — the app's own calendar, the same on every device. */}
             {def.attrType === "date" && (
-              <input
-                id={controlId}
-                type="date"
-                data-testid="post-attr-control"
-                data-attr={def.attrKey}
-                className={ctrl}
-                value={typeof value === "string" ? value : ""}
-                onChange={(event) => write(def.attrKey, event.target.value, true)}
-              />
+              <div data-attr={def.attrKey}>
+                <DateField
+                  id={controlId}
+                  testid="post-attr-control"
+                  value={typeof value === "string" ? value : ""}
+                  onChange={(next) => write(def.attrKey, next, true)}
+                />
+              </div>
             )}
 
             {/*

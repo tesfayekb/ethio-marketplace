@@ -290,6 +290,9 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
   }
   const revisions = await supabase.from("listing_revisions").delete().eq("seller_id", id);
   if (revisions.error) fail("listing revisions", revisions.error.message);
+  // L1b — an admin's notices to the account as a seller (they also cascade with its listings).
+  const notices = await supabase.from("seller_notices").delete().eq("seller_id", id);
+  if (notices.error) fail("seller notices", notices.error.message);
   const held = await supabase
     .from("user_roles")
     .select("id")

@@ -2,6 +2,8 @@ import { priceLine as sharedPriceLine } from "./price-line";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
+import { isoDay } from "@/components/shell/date-day";
+import { DateField } from "@/components/shell/date-field";
 import { readAreaCookie } from "@/components/shell/location-data";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
@@ -89,9 +91,14 @@ const CHANNEL_KEYS: { key: string; nameKey: MessageKey }[] = [
   { key: "whatsapp", nameKey: "post.who.channel.whatsapp" },
 ];
 
-/** `YYYY-MM-DD` for a date `days` from today, which bounds the active window. */
-function isoDay(days: number): string {
-  return new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+/**
+ * `YYYY-MM-DD` for the day `days` from today in the seller's own calendar, which
+ * bounds the active window (L1b, INC-549: the calendar's days, never a UTC day).
+ */
+function dayFromToday(days: number): string {
+  const day = new Date();
+  day.setDate(day.getDate() + days);
+  return isoDay(day);
 }
 
 export function StepReview({
@@ -581,15 +588,16 @@ export function StepReview({
               )
             }
           >
-            <input
+            {/* INC-549 — the app's own calendar: a day before tomorrow or after the
+                category's limit is greyed and cannot be chosen, on every device. */}
+            <DateField
               id="post-active-until"
-              data-testid="post-active-until"
-              type="date"
-              className={controlClass(false)}
+              testid="post-active-until"
               value={values.posterExpiresAt}
-              min={isoDay(1)}
-              max={expiryDays === null ? undefined : isoDay(expiryDays)}
-              onChange={(event) => onChangeExpiry(event.target.value)}
+              min={dayFromToday(1)}
+              max={expiryDays === null ? undefined : dayFromToday(expiryDays)}
+              onChange={onChangeExpiry}
+              clearable={false}
             />
           </Field>
         )}

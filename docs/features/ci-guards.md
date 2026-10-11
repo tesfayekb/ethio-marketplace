@@ -966,3 +966,11 @@ The listing-writes guard's second table (`listing_locations`) is covered by the 
 ## The failure reporter's table cells (DEC-154)
 
 `scripts/e2e-failure-report.ts` writes every table cell through one `mdCell` helper that escapes the backslash first, then the pipe, at both table sites; the reporter's self-test carries the needle.
+
+## DEC-171 — faster runs (2026-10-11, the operator: "its difficult to move faster with ci runs taking so long")
+
+Measured over the last 40 green runs on dev: a run lasts as long as its slowest shard plus about a minute; the median grew from about 26 minutes (2026-10-08) to 31–33 (2026-10-11) as the suite grew (1,582 browser tests on 232bfc02, the slowest shard 32 minutes, the quickest 23).
+
+- **Eight shards** (was six): `--shard=N/8`; `E2E_EXPECTED_SOURCES` names 1–8. REVERT RULE, frozen before the numbers: over the next five green runs on dev, a median wall time above 29 minutes, or two reds from staging load (statement timeouts, transport), returns the matrix to six; a median of 26 minutes or less keeps it.
+- **The preflight waits for a staging apply.** On "STAGING BEHIND" the preflight retries every 30 seconds for up to 25 minutes, so a migration turn's run continues once the operator has applied the file on ethio-staging instead of failing at once and needing "Re-run failed jobs". Any other preflight failure fails at once; still behind after 25 minutes fails as before.
+- **The nightly and the feed bench leave the operator's working hours.** The nightly E2E (about three hours, serial, with the @global-state specs) moves from 06:00 to 18:00 UTC; the Sunday feed bench from 05:10 to 16:10 UTC, before it. The nightly of 2026-10-10 failed SC-4 on a statement timeout while CI runs shared ethio-staging (INC-545 class).

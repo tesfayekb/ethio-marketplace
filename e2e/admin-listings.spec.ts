@@ -9,19 +9,27 @@ import {
   RUN,
   seedCategoryBranch,
 } from "./helpers/posting";
-import { switchUser, useJobSuperAdmin } from "./helpers/ui";
+import { passwordGrant } from "./helpers/session";
+import { useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * Bundle 11, the Listings console, turn L1 (D134, D136, D137) — THE CONSOLE'S DOORS (AL-1..AL-9).
  *
- * The doors are proven as the signed-in browser calls them (law F3: the server is
- * the authority): admin_list_listings (listings:view; drafts never), admin_edit_listing
+ * The doors are proven as signed-in people call them (law F3: the server is the
+ * authority): admin_list_listings (listings:view; drafts never), admin_edit_listing
  * and admin_move_listing (listings:enforce with a fresh second factor), the state
  * door's Restore (REQ-022 as amended by D137) and the seller's notices (the seller
  * reads only their own). Every listing, place, category and role is a scratch row of
  * this file, removed in afterEach (J3, G27); every row is found by its own id or its
  * own seller (G28); DB truth through the service client.
+ *
+ * Turn L1b (the fast lane's AL-3, 2026-10-11): each test signs ONE person into the
+ * browser — the super admin, whose fresh second factor the doors require. Every
+ * other person calls the door from node with a password grant and the same REST
+ * request the browser client sends (DEC-029: sign-in is not this file's subject).
+ * AL-3 signed four people into the browser, ran past its 60 s budget, and its
+ * afterEach reaped the rows the abandoned body was still using.
  */
 
 type RpcClient = {
@@ -29,15 +37,6 @@ type RpcClient = {
     fn: string,
     args?: Record<string, unknown>,
   ) => Promise<{ data: unknown; error: { message: string } | null }>;
-  from: (table: string) => {
-    select: (columns: string) => {
-      eq: (
-        column: string,
-        value: string,
-      ) => Promise<{ data: unknown; error: { message: string } | null }>;
-    };
-    insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
-  };
 };
 
 async function clientReady(page: Page) {
@@ -61,14 +60,60 @@ async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) 
   );
 }
 
-/** The seller's notices for one listing, read as the page's signed-in person (RLS decides). */
-async function noticesAsBrowser(page: Page, listingId: string) {
-  await clientReady(page);
-  return page.evaluate(async (id) => {
-    const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
-    const result = await client.from("seller_notices").select("kind,reason").eq("listing_id", id);
-    return { data: result.data, error: result.error?.message ?? null };
-  }, listingId);
+function restBase(): { url: string; key: string } {
+  const url = process.env["E2E_SUPABASE_URL"];
+  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
+  if (!url || !key) {
+    throw new Error("[e2e:al] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.");
+  }
+  return { url: url.replace(/\/+$/, ""), key };
+}
+
+/** A signed-in person from node: the door's data and its error, as the browser client reads them. */
+async function asPerson(person: { email: string; password: string }) {
+  const { url, key } = restBase();
+  const session = await passwordGrant(person.email, person.password);
+  const headers = {
+    apikey: key,
+    Authorization: `Bearer ${session.access_token}`,
+    "Content-Type": "application/json",
+  };
+  const answer = async (response: Response) => {
+    const text = await response.text();
+    const body: unknown = text === "" ? null : JSON.parse(text);
+    if (!response.ok) {
+      const message =
+        body !== null && typeof body === "object" && "message" in body
+          ? String((body as { message: unknown }).message)
+          : `HTTP ${response.status}`;
+      return { data: null as unknown, error: message as string | null };
+    }
+    return { data: body, error: null as string | null };
+  };
+  return {
+    rpc: async (fn: string, args: Record<string, unknown>) =>
+      answer(
+        await fetch(`${url}/rest/v1/rpc/${fn}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(args),
+        }),
+      ),
+    notices: async (listingId: string) =>
+      answer(
+        await fetch(`${url}/rest/v1/seller_notices?select=kind,reason&listing_id=eq.${listingId}`, {
+          headers,
+        }),
+      ),
+    insertNotice: async (row: Record<string, unknown>) =>
+      answer(
+        await fetch(`${url}/rest/v1/seller_notices`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(row),
+        }),
+      ),
+  };
 }
 
 /** Letters only: a scratch name the contact-in-text rule never reads as a number. */
@@ -260,13 +305,13 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const live = await seed(seller, "active");
     const draft = await seed(seller, "draft");
 
-    const plain = await leaseUser();
-    await switchUser(page, plain.email, plain.password);
-    expect((await list(page, { p_search: live.id })).error).toBe("permission denied");
+    const plain = await asPerson(await leaseUser());
+    expect((await plain.rpc("admin_list_listings", { p_search: live.id })).error).toBe(
+      "permission denied",
+    );
 
-    const viewer = await scratchHolder([["listings", "view"]]);
-    await switchUser(page, viewer.email, viewer.password);
-    const byId = await list(page, { p_search: live.id });
+    const viewer = await asPerson(await scratchHolder([["listings", "view"]]));
+    const byId = await viewer.rpc("admin_list_listings", { p_search: live.id });
     expect(byId.error).toBeNull();
     const rows = byId.data as Row[];
     expect(rows).toHaveLength(1);
@@ -279,11 +324,12 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       country_code: "ET",
       total_count: 1,
     });
-    expect((await list(page, { p_search: draft.id })).data).toEqual([]);
-    const bySeller = (await list(page, { p_seller: seller.alias })).data as Row[];
+    expect((await viewer.rpc("admin_list_listings", { p_search: draft.id })).data).toEqual([]);
+    const bySeller = (await viewer.rpc("admin_list_listings", { p_seller: seller.alias }))
+      .data as Row[];
     expect(bySeller.map((row) => row.id)).toEqual([live.id]);
     // An e-mail is not a key for someone who may not read it.
-    expect((await list(page, { p_seller: seller.email })).data).toEqual([]);
+    expect((await viewer.rpc("admin_list_listings", { p_seller: seller.email })).data).toEqual([]);
 
     await useJobSuperAdmin(page);
     const full = (await list(page, { p_search: live.id })).data as Row[];
@@ -344,20 +390,24 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         ...(note === undefined ? {} : { p_note: note }),
       });
 
-    const plain = await leaseUser();
-    await switchUser(page, plain.email, plain.password);
-    expect((await edit(target.id, { title: "Changed by nobody" })).error).toBe("permission denied");
-    const reviewer = await scratchHolder([
-      ["listings", "view"],
-      ["listings", "review"],
-    ]);
-    await switchUser(page, reviewer.email, reviewer.password);
-    expect((await edit(target.id, { title: "Changed by a reviewer" })).error).toBe(
-      "permission denied",
+    const editAs = async (person: Awaited<ReturnType<typeof asPerson>>, title: string) =>
+      person.rpc("admin_edit_listing", {
+        p_listing_id: target.id,
+        p_changes: { title },
+        p_reason: "misleading",
+      });
+
+    const plain = await asPerson(await leaseUser());
+    expect((await editAs(plain, "Changed by nobody")).error).toBe("permission denied");
+    const reviewer = await asPerson(
+      await scratchHolder([
+        ["listings", "view"],
+        ["listings", "review"],
+      ]),
     );
-    const enforcer = await scratchHolder([["listings", "enforce"]]);
-    await switchUser(page, enforcer.email, enforcer.password);
-    expect((await edit(target.id, { title: "Changed with no factor" })).error).toBe(
+    expect((await editAs(reviewer, "Changed by a reviewer")).error).toBe("permission denied");
+    const enforcer = await asPerson(await scratchHolder([["listings", "enforce"]]));
+    expect((await editAs(enforcer, "Changed with no factor")).error).toBe(
       "step-up required: no verified factor",
     );
 
@@ -438,8 +488,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const target = await seed(seller, "active");
     const title = "Call me on 0911 223 344";
 
-    await switchUser(page, seller.email, seller.password);
-    const asSeller = await rpcResult(page, "edit_listing", {
+    const asSeller = await (
+      await asPerson(seller)
+    ).rpc("edit_listing", {
       p_listing_id: target.id,
       p_category_id: seller.leafId,
       p_title: title,
@@ -585,20 +636,25 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         p_reason: "appeal_accepted",
       });
 
-    await switchUser(page, seller.email, seller.password);
+    const owner = await asPerson(seller);
     expect(
       (
-        await rpcResult(page, "transition_listing", {
+        await owner.rpc("transition_listing", {
           p_listing_id: plainRemoved.id,
           p_new_status: "screening",
         })
       ).error,
     ).toBe("enforcement only: removed -> screening");
 
-    const enforcer = await scratchHolder([["listings", "enforce"]]);
-    await switchUser(page, enforcer.email, enforcer.password);
-    expect((await restore(plainRemoved.id)).error).toBe("step-up required: no verified factor");
-    expect((await restore(severe.id)).error).toBe(
+    const enforcer = await asPerson(await scratchHolder([["listings", "enforce"]]));
+    const restoreAs = (id: string) =>
+      enforcer.rpc("admin_move_listing", {
+        p_listing_id: id,
+        p_to: "screening",
+        p_reason: "appeal_accepted",
+      });
+    expect((await restoreAs(plainRemoved.id)).error).toBe("step-up required: no verified factor");
+    expect((await restoreAs(severe.id)).error).toBe(
       "a listing removed for a severe reason is restored by a super admin only",
     );
 
@@ -630,30 +686,22 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     });
     expect((await sendBack(sold.id)).error).toBe("illegal move: sold -> screening");
 
-    await switchUser(page, seller.email, seller.password);
-    expect(await noticesAsBrowser(page, live.id)).toEqual({
+    const owner = await asPerson(seller);
+    expect(await owner.notices(live.id)).toEqual({
       data: [{ kind: "admin_send_back", reason: "wrong_category" }],
       error: null,
     });
-    const forged = await page.evaluate(
-      async ([listingId, sellerId]) => {
-        const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
-        const result = await client.from("seller_notices").insert({
-          seller_id: sellerId,
-          listing_id: listingId,
-          kind: "admin_edit",
-          reason: "other",
-          note: "forged",
-        });
-        return result.error?.message ?? null;
-      },
-      [live.id, seller.id] as const,
-    );
-    expect(forged).not.toBeNull();
+    const forged = await owner.insertNotice({
+      seller_id: seller.id,
+      listing_id: live.id,
+      kind: "admin_edit",
+      reason: "other",
+      note: "forged",
+    });
+    expect(forged.error).not.toBeNull();
 
-    const other = await leaseUser();
-    await switchUser(page, other.email, other.password);
-    expect(await noticesAsBrowser(page, live.id)).toEqual({ data: [], error: null });
+    const other = await asPerson(await leaseUser());
+    expect(await other.notices(live.id)).toEqual({ data: [], error: null });
     expect(await noticeRows(live.id)).toHaveLength(1);
   });
 });

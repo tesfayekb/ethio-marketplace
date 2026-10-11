@@ -24,3 +24,8 @@ Bundle 11, the Listings console (D134, D136, D137; spec: docs/governance/listing
 ## Tests
 
 AL-1..AL-9 (e2e/admin-listings.spec.ts): who reads All listings and what (drafts never, the e-mail only with `profiles:view`); the views, the filters and the order; every refusal of Edit and that a refused edit writes nothing; an edit's change and its three records; a refusal that equals the seller's own; a photo's removal; Remove then Restore; Restore's rules (the owner, the second factor, the severe flag); Send back, and the notices' row security. The migration's proofs F1–F5 check the table's security, the doors' headers and grants, the gates in order, and the refusals with no session and with an identity that holds nothing.
+
+## Turn L1b (CI on 63f6b687)
+
+- The notices table is on the pool reset map (e2e/helpers/pool-reset-map.ts) and the reset deletes a pooled account's notices (src/test/pool-reset-map.test.ts went red when the regenerated types named `seller_notices`).
+- AL-1, AL-3, AL-5, AL-8 and AL-9 sign ONE person into the browser — the super admin, whose fresh second factor the doors require; every other person calls the door from node with a password grant and the same REST request the browser client sends. AL-3 had signed four people into the browser, ran past its 60 s budget in the fast lane, and its afterEach reaped the rows its abandoned body was still using ("listing not found", then a place still in use).

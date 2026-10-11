@@ -348,8 +348,8 @@ jobs:
         run: bash scripts/audit-gate.sh
 
   # ── E2E TIERS ──────────────────────────────────────────────────────────────
-  # One preflight, ONE SHARED BUILD (DEC-029), one fast smoke tier, six
-  # parallel shards, one merged
+  # One preflight, ONE SHARED BUILD (DEC-029), one fast smoke tier, eight
+  # parallel shards (DEC-171, was six), one merged
   # verdict. The merged job keeps the historical name so the CI status
   # reporter's table row ("E2E (Playwright, ethio-staging)") is unchanged.
 
@@ -378,8 +378,25 @@ jobs:
         run: bun install --frozen-lockfile
       # INC-074: staging must carry the newest local migration, or the suite
       # fails with N cryptic reds instead of one named file.
+      # DEC-171: a migration turn's run WAITS for the operator's staging apply
+      # (every 30 s, up to 25 minutes) instead of failing at once and needing
+      # "Re-run failed jobs". Only "STAGING BEHIND" waits; any other failure
+      # fails at once, and a run that is still behind after 25 minutes fails
+      # exactly as before.
       - name: Migration parity preflight (staging)
-        run: bun scripts/e2e-migration-preflight.ts
+        run: |
+          set -o pipefail
+          for attempt in $(seq 1 50); do
+            if bun scripts/e2e-migration-preflight.ts 2>&1 | tee preflight.log; then
+              exit 0
+            fi
+            if ! grep -q "STAGING BEHIND" preflight.log; then
+              exit 1
+            fi
+            echo "[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt ${attempt} of 50)"
+            sleep 30
+          done
+          exit 1
 
   # DEC-029 (lever 2) — ONE SHARED BUILD. Every E2E job used to run
   # `bun run build:e2e` itself; the build is identical in all of them (VITE_E2E=1
@@ -702,13 +719,17 @@ jobs:
           retention-days: 7
 
   e2e-shard:
-    name: E2E shard ${{ matrix.shard }}/6
+    name: E2E shard ${{ matrix.shard }}/8
     needs: [e2e-preflight, e2e-build]
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6]
+        # DEC-171 — eight shards (was six): the run lasts as long as its slowest
+        # shard. REVERT RULE: over the next five green runs on dev, a median
+        # wall time above 29 minutes, or two reds from staging load (statement
+        # timeouts, transport), returns this to six.
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
     env:
       # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
       # the shard id is what makes each process's fixtures its own.
@@ -778,7 +799,7 @@ jobs:
           set -o pipefail
           # DEC-028 — @global-state specs mutate a surface every concurrent
           # project shares; they run in the SERIAL nightly only, never here.
-          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard=${{ matrix.shard }}/6 2>&1 | tee ${{ matrix.shard }}.log
+          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard=${{ matrix.shard }}/8 2>&1 | tee ${{ matrix.shard }}.log
       - name: Capture shard log tail
         # DEC-083/084 — the census and the a11y summary read every source's log on every outcome.
         if: always()
@@ -1036,7 +1057,7 @@ jobs:
           # DEC-023-B: `changed?` is OPTIONAL — labelled like any source when the
           # fast lane ran, silently omitted when it skipped. The lane is signal
           # only; this job's `needs:` and E2E_GREEN stay the full matrix.
-          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
+          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,changed?
 
           E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success' && needs.e2e-email.result == 'success') && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
