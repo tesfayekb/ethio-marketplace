@@ -121,6 +121,26 @@ test.describe("U4b translations console", () => {
     await expect(langRow(page, "am")).toBeVisible();
   });
 
+  /**
+   * TR-38 (bundle 11 G3a; D128, D132; the operator's walk, 2026-10-11) — the
+   * roster's heading in the header, Columns with the language locked, and the
+   * footer (the range, rows per page — 100 by default, the whole hand-made
+   * order on one page — and the pages).
+   */
+  test("TR-38 the roster on the agreed blocks: heading, Columns, the footer", async ({ page }) => {
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/translations");
+    await expect(page.getByTestId("lang-header").getByRole("heading", { level: 1 })).toHaveText(
+      en["admin.translations.title"],
+    );
+    await page.getByTestId("lang-columns").click();
+    await expect(page.getByTestId("lang-columns-language")).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("lang-pagination-range")).toContainText("1–");
+    await expect(page.getByTestId("lang-pagination-size")).toHaveValue("100");
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("TR-2 roster shows every language including admin-only ones", async ({ page }) => {
     await signInAsSuperAdmin(page);
     await gotoReady(page, "/admin/translations");

@@ -211,6 +211,8 @@ test.describe("U3 audit & security", () => {
         page.getByTestId("impersonation-header").getByRole("heading", { level: 1 }),
       ).toBeVisible();
       await expect(page.getByTestId("impersonation-listings-columns")).toBeVisible();
+      // G3a (INC-546) — the listings' footer pages through the door.
+      await expect(page.getByTestId("impersonation-listings-pagination-range")).toBeVisible();
       await expectNoHorizontalOverflow(page);
 
       // The banner rides along on an unrelated page (global mount).

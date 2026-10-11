@@ -380,3 +380,7 @@ categories". Test: HS-21 in `src/components/shell/data-table.test.tsx`.
   and only enabled after a change". The link manager's "Done" in Admin ›
   Attributes stays enabled: it is that dialog's only finger-sized way out, and
   every change there is saved as it is made. Tests: HS-24, HS-19, HS-20.
+
+### Every table has its footer (bundle 11, group 3, turn G3a; the operator's walk, 2026-10-11)
+
+"I don't see page count, pagination line in roles" — the census found three tables without `DataTablePagination`: Roles, the impersonation view's listings and Languages; each now has the footer (the range, rows per page, the pages). `useKeptPage(storageKey, defaultSize)` (src/components/shell/use-kept-page.ts) holds a table's page and its page size, the size kept in this browser (read after mount; storage that fails keeps the default). Languages opens at 100 rows (its order is set by hand, so the whole order stays on one page). Tests: KP-1, KP-2 (unit); RP-16, IMP-1 and TR-38 read the footers.

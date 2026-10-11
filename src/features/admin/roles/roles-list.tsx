@@ -4,11 +4,16 @@ import { useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
-import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
+import {
+  DataTable,
+  DataTablePagination,
+  type DataTableColumn,
+} from "@/components/shell/data-table";
 import { FormField, FormSection } from "@/components/shell/form-section";
 import { RowActions } from "@/components/shell/row-actions";
 import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +50,9 @@ export function AdminRolesList() {
   const { data, isLoading, error } = useAdminRolesDetailed();
   const [creating, setCreating] = useState(false);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
+  /** G3a (the operator's walk) — every table has its footer. */
+  const paging = useKeptPage("ethio.admin.roles.pageSize");
+  const roster = data ?? [];
 
   const allColumns: DataTableColumn<RoleSummary>[] = [
     {
@@ -144,7 +152,7 @@ export function AdminRolesList() {
 
       <DataTable<RoleSummary>
         columns={columns}
-        rows={data ?? []}
+        rows={roster}
         rowKey={(role) => role.id}
         rowTestId={(role) => `role-row-${role.name}`}
         rowHref={(role) => ({ to: "/admin/roles/$roleId", params: { roleId: role.id } })}
@@ -168,6 +176,21 @@ export function AdminRolesList() {
           />
         }
         rowActions={rowActions}
+        page={paging.page}
+        pageSize={paging.pageSize}
+        pagination={
+          <DataTablePagination
+            testid="role-pagination"
+            offset={paging.page * paging.pageSize}
+            pageSize={paging.pageSize}
+            total={roster.length}
+            onPrevious={() => paging.setPage((current) => Math.max(0, current - 1))}
+            onNext={() => paging.setPage((current) => current + 1)}
+            onPage={paging.setPage}
+            pageSizeOptions={paging.pageSizeOptions}
+            onPageSize={paging.setPageSize}
+          />
+        }
         loading={isLoading}
         loadingState={
           <p role="status" aria-live="polite" className="text-sm text-muted-foreground">

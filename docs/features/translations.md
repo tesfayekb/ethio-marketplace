@@ -1022,3 +1022,10 @@ INC-287 also covers TR-26: its fill is filtered to its own stem (two rows, a thi
 ## The delete confirmation is red (bundle 11, turn A3)
 
 The "Delete language" confirmation is drawn red (`destructive`), as every button that confirms a destruction is (G29, the Reject-red class of Admin › Screening's walk). TR-31 reads its colour as a person sees it.
+
+## Bundle 11, group 3, turn G3a — the roster's header, Columns and footer (D128, D132)
+
+- The page's heading ("Translations") in the header (`lang-header`), its line under it.
+- Columns (`lang-columns`; the language locked; remembered under `ethio:table-columns:admin-languages`), named by each column's plain word (the headers carry tooltips).
+- The footer (`lang-pagination`): the range, rows per page — 100 by default, so the hand-made order stays on one page (`ethio.admin.languages.pageSize`) — and the pages.
+- The row's move controls, Open and Delete, the switches and the cards are unchanged in this turn; the roster's full house-style turn (with Strings and Data scope) follows. Test: TR-38.

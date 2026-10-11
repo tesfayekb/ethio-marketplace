@@ -67,10 +67,15 @@ export function useImpersonatedProfile(sessionId: string) {
   });
 }
 
-export function useImpersonatedListings(sessionId: string) {
+/**
+ * G3a (INC-546) — the seller's listings a page at a time: the door pages them
+ * (`p_limit`, `p_offset`) and counts them all, so the view's footer reaches
+ * every one (it used to show the first 25 with no way past them).
+ */
+export function useImpersonatedListings(sessionId: string, limit = 25, offset = 0) {
   return useQuery({
-    queryKey: [...IMPERSONATION_KEY, "listings", sessionId],
-    queryFn: () => listImpersonatedListings(sessionId),
+    queryKey: [...IMPERSONATION_KEY, "listings", sessionId, limit, offset],
+    queryFn: () => listImpersonatedListings(sessionId, limit, offset),
     retry: false,
   });
 }
