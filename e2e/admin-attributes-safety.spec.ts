@@ -166,7 +166,9 @@ test.describe("Bundle 7 attribute safety", () => {
 
       await openLibrary(page);
       await page.getByTestId("attribute-search").fill(held);
-      await (await openAttributeMenu(page, held)).getByTestId(`attribute-remove-${held}`).click();
+      await (await openAttributeMenu(page, held))
+        .getByTestId(`attribute-actions-${held}-more-remove`)
+        .click();
       await expect(page.getByTestId("attribute-remove-holders")).toHaveText(
         fill(en["admin.attributes.remove.holders"], { count: 1 }),
         { timeout: 20000 },
@@ -182,7 +184,9 @@ test.describe("Bundle 7 attribute safety", () => {
 
       await openLibrary(page);
       await page.getByTestId("attribute-search").fill(free);
-      await (await openAttributeMenu(page, free)).getByTestId(`attribute-remove-${free}`).click();
+      await (await openAttributeMenu(page, free))
+        .getByTestId(`attribute-actions-${free}-more-remove`)
+        .click();
       await expect(page.getByTestId("attribute-remove-confirm")).toBeVisible({ timeout: 20000 });
       await expect(page.getByTestId("attribute-remove-submit")).toBeEnabled({ timeout: 20000 });
       await expect(page.getByTestId("attribute-remove-holders")).toHaveCount(0);
@@ -218,7 +222,9 @@ test.describe("Bundle 7 attribute safety", () => {
       );
       await openLibrary(page);
       await page.getByTestId("attribute-search").fill(held);
-      await (await openAttributeMenu(page, held)).getByTestId(`attribute-remove-${held}`).click();
+      await (await openAttributeMenu(page, held))
+        .getByTestId(`attribute-actions-${held}-more-remove`)
+        .click();
       await expect(page.getByTestId("attribute-remove-confirm")).toBeVisible({ timeout: 20000 });
       await expect(page.getByTestId("attribute-dialog-error")).toHaveText(
         en["admin.attributes.links.error"],

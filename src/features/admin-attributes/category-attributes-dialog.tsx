@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -238,8 +239,8 @@ export function CategoryAttributesDialog({
               className="space-y-2 rounded-md border border-border p-3"
             >
               <div className="flex min-w-0 items-baseline gap-2">
-                <span className="min-w-0 truncate text-sm font-medium">
-                  {attributeLabel(row.attributeId, row.nameEn)}
+                <span className="min-w-0 text-sm font-medium">
+                  <CutText text={attributeLabel(row.attributeId, row.nameEn)} />
                 </span>
                 <span className="text-xs text-muted-foreground">{row.attrKey}</span>
               </div>
@@ -371,8 +372,8 @@ export function CategoryAttributesDialog({
               className="space-y-1 rounded-md border border-dashed border-border p-3"
             >
               <div className="flex min-w-0 items-baseline gap-2">
-                <span className="min-w-0 truncate text-sm font-medium">
-                  {attributeLabel(row.attributeId, row.nameEn)}
+                <span className="min-w-0 text-sm font-medium">
+                  <CutText text={attributeLabel(row.attributeId, row.nameEn)} />
                 </span>
                 <span className="text-xs text-muted-foreground">{row.attrKey}</span>
               </div>

@@ -77,9 +77,6 @@
     "admin.attributes.action.edit": [
       "/admin/attributes"
     ],
-    "admin.attributes.action.menu": [
-      "/admin/attributes"
-    ],
     "admin.attributes.action.merge": [
       "/admin/attributes",
       "/admin/categories"
@@ -2126,6 +2123,9 @@
     ],
     "admin.screening.showNumber": [
       "/admin/screening"
+    ],
+    "admin.section.attributes.title": [
+      "/admin/attributes"
     ],
     "admin.section.categories.title": [
       "/admin/categories"
@@ -4672,6 +4672,7 @@
       "/dev/style"
     ],
     "prim.table.columns": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
@@ -4679,6 +4680,7 @@
       "/admin/screening"
     ],
     "prim.table.done": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
@@ -4829,6 +4831,7 @@
       "/dev/style"
     ],
     "prim.table.showAll": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",

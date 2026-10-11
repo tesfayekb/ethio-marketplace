@@ -16,7 +16,7 @@ import {
   readAttribute,
   readLinks,
   destroyAttribute,
-  openAttributeMenu,
+  attributeEdit,
 } from "./helpers/admin-attributes";
 
 /**
@@ -771,7 +771,7 @@ test.describe("C3 attributes console", () => {
       // The library was loaded before the import; reload it to read the stored row.
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);
-      await (await openAttributeMenu(page, key)).getByTestId(`attribute-edit-${key}`).click();
+      await attributeEdit(page, key).click();
       await expect(page.getByTestId("attribute-unit-am")).toHaveValue("ሰዎች", { timeout: 20000 });
       await page.keyboard.press("Escape");
 

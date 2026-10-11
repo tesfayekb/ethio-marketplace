@@ -334,3 +334,9 @@ card's footer, depth Soft, page tone Cool grey (tokens: docs/features/design-fou
   footer); HS-4 (the pager on a phone) and HS-5 (the filter pills) in
   e2e/house-style.spec.ts; SC-11 (the screening market pills); the countries
   and places `chooseFilter` helpers.
+
+### A fact that names itself (bundle 11, turn B3)
+
+`cardLabel: false` on a column drops the label the phone card draws above a
+fact, for a cell whose words already name it — Admin › Attributes' "Used by 3
+categories". Test: HS-21 in `src/components/shell/data-table.test.tsx`.

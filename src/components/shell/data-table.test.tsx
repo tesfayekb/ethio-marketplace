@@ -394,4 +394,15 @@ describe("DataTable V2 card and frame (D132)", () => {
     expect(screen.getByTestId("place-p1-card")).not.toHaveTextContent("Oromia");
     expect(screen.getByTestId("place-p1")).toHaveTextContent("Oromia");
   });
+
+  it("HS-21 a fact whose cell names itself draws no label in the card (cardLabel: false)", () => {
+    renderPlaces({
+      columns: placeColumns.map((column) =>
+        column.key === "listings" ? { ...column, cardLabel: false as const } : column,
+      ),
+    });
+    const card = screen.getByTestId("place-p1-card");
+    expect(within(card).getByTestId("listings-p1")).toHaveTextContent("14");
+    expect(card).not.toHaveTextContent("Listings");
+  });
 });
