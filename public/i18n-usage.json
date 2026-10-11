@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 378,
+  "scanned": 381,
   "dynamicCallSites": 233,
   "keys": {
     "account.deactivatedBanner": [
@@ -2126,6 +2126,18 @@
     ],
     "admin.screening.showNumber": [
       "/admin/screening"
+    ],
+    "admin.section.categories.title": [
+      "/admin/categories"
+    ],
+    "admin.section.countries.title": [
+      "/admin/countries"
+    ],
+    "admin.section.coverage.title": [
+      "/admin/coverage"
+    ],
+    "admin.section.places.title": [
+      "/admin/places"
     ],
     "admin.translations.add.added": [
       "/admin/translations"
@@ -4666,6 +4678,14 @@
       "/admin/places",
       "/admin/screening"
     ],
+    "prim.table.done": [
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/coverage",
+      "/admin/places",
+      "/admin/screening",
+      "/dev/style"
+    ],
     "prim.table.filters": [
       "/admin/categories",
       "/admin/countries",
@@ -4806,6 +4826,20 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
+      "/dev/style"
+    ],
+    "prim.table.showAll": [
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/coverage",
+      "/admin/places",
+      "/admin/screening"
+    ],
+    "prim.table.showResults": [
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/places",
+      "/admin/screening",
       "/dev/style"
     ],
     "session.idleWarning": [

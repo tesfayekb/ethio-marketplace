@@ -1,4 +1,4 @@
-import { Download, Upload } from "lucide-react";
+import { Download, Globe, Upload } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
@@ -10,10 +10,9 @@ import {
 } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { RowActions } from "@/components/shell/row-actions";
-import { TableActions } from "@/components/shell/table-actions";
+import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
@@ -135,6 +134,7 @@ export function AdminCountriesPage() {
       key: "name",
       header: t("admin.countries.col.name"),
       priority: COUNTRY_COLUMN_PRIORITIES.name,
+      card: "title",
       cell: (row) => (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span className="min-w-0 break-words font-medium">{row.nameEn}</span>
@@ -146,6 +146,7 @@ export function AdminCountriesPage() {
       key: "status",
       header: t("admin.countries.col.status"),
       priority: COUNTRY_COLUMN_PRIORITIES.status,
+      card: "badge",
       cell: (row) => (
         <TipBadge
           variant={row.isActive ? "secondary" : "outline"}
@@ -159,6 +160,7 @@ export function AdminCountriesPage() {
       key: "places",
       header: t("admin.countries.col.places"),
       priority: COUNTRY_COLUMN_PRIORITIES.places,
+      card: "meta",
       align: "end",
       cell: (row) => (
         <span
@@ -174,6 +176,7 @@ export function AdminCountriesPage() {
       key: "units",
       header: t("admin.countries.col.units"),
       priority: COUNTRY_COLUMN_PRIORITIES.units,
+      card: "sub",
       cell: (row) => (
         <span className="text-sm" data-testid={`country-${row.code}-units`}>
           {`${t(`admin.countries.unit.${row.unitSystem}` as MessageKey)} · ${row.currencyCode ?? "—"}`}
@@ -184,6 +187,7 @@ export function AdminCountriesPage() {
       key: "rail",
       header: t("admin.countries.col.rail"),
       priority: COUNTRY_COLUMN_PRIORITIES.rail,
+      card: "foot",
       align: "end",
       cell: (row) => (
         <span
@@ -284,39 +288,37 @@ export function AdminCountriesPage() {
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-countries" className="min-w-0 space-y-4">
-          <TableActions testid="country-header">
-            <div data-testid="country-transfer" className="flex flex-wrap items-center gap-2">
+          <TableActions testid="country-header" title={t("admin.section.countries.title")}>
+            <div
+              data-testid="country-transfer"
+              className="flex flex-wrap items-center gap-1.5 md:gap-2"
+            >
               {/* A markets file names its own countries: never scoped. */}
-              <span className="text-sm text-muted-foreground" data-testid="country-transfer-scope">
+              <span
+                className="text-sm text-muted-foreground max-md:sr-only"
+                data-testid="country-transfer-scope"
+              >
                 {`${t("admin.countries.transfer.scope")} ·`}
               </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
+              <TableActionButton
                 title={t("admin.locations.export.countriesHint")}
                 data-testid="country-export"
                 disabled={exporting}
                 onClick={() => void runExport()}
-              >
-                <Download aria-hidden="true" className="size-4" />
-                <span>
-                  {exporting
+                icon={<Download />}
+                label={
+                  exporting
                     ? t("admin.locations.export.busy")
-                    : t("admin.locations.export.countries")}
-                </span>
-              </Button>
+                    : t("admin.locations.export.countries")
+                }
+              />
               {mayImport ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
+                <TableActionButton
                   data-testid="country-import"
                   onClick={() => open({ kind: "import" })}
-                >
-                  <Upload aria-hidden="true" className="size-4" />
-                  <span>{t("admin.countries.import.title")}</span>
-                </Button>
+                  icon={<Upload />}
+                  label={t("admin.countries.import.title")}
+                />
               ) : null}
               {exportError ? (
                 <p
@@ -337,6 +339,7 @@ export function AdminCountriesPage() {
             rowTestId={(row) => `country-${row.code}`}
             caption={t("admin.countries.caption")}
             cardUntil="lg"
+            cardLead={() => <Globe />}
             loading={query.isLoading}
             loadingState={<p className="text-sm">{t("admin.countries.loading")}</p>}
             error={query.error}
@@ -365,7 +368,15 @@ export function AdminCountriesPage() {
                     />
                   }
                   filters={
-                    <FiltersButton testid="country-filters" count={chips.length}>
+                    <FiltersButton
+                      testid="country-filters"
+                      count={chips.length}
+                      resultCount={rows.length}
+                      onClearAll={() => {
+                        setStatus("");
+                        setPage(0);
+                      }}
+                    >
                       <CountryFilters
                         status={status}
                         onStatus={(value) => {
@@ -407,6 +418,7 @@ export function AdminCountriesPage() {
               </>
             }
             rowActions={rowActions}
+            actionsWidth="w-32"
             page={page}
             pageSize={pageSize}
             pagination={

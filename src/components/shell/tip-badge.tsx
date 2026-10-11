@@ -13,7 +13,17 @@ import { Badge } from "@/components/ui/badge";
  *
  * `data-tone` is the tone as STRUCTURE, so a test asserts the meaning and never
  * a colour class or an English word (J5).
+ *
+ * Bundle 11 V2 (D132) — each tone is drawn as a soft pill with its own edge:
+ * a live state green, a stopping state red, a classification grey. The tone
+ * names (and `data-tone`) are unchanged.
  */
+const DRAWN = {
+  secondary: "success",
+  destructive: "danger",
+  outline: "neutral",
+} as const;
+
 export function TipBadge({
   variant,
   label,
@@ -30,7 +40,7 @@ export function TipBadge({
 }) {
   return (
     <Badge
-      variant={variant}
+      variant={DRAWN[variant]}
       className={className}
       title={tip}
       aria-label={`${label}: ${tip}`}

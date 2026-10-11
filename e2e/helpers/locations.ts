@@ -89,10 +89,13 @@ export async function rowMenu(page: Page, key: string, item: string) {
   await page.getByTestId(`${id}-more-${item}`).click();
 }
 
-/** Bundle 11 B1 — level and status live in the Filters panel: open it, choose, close it. */
+/**
+ * Bundle 11 B1 — level and status live in the Filters panel: open it, choose, close it.
+ * Bundle 11 V2 (INC-543) — a choice is a pill (`<testid>-<value>`, "" is `all`).
+ */
 export async function chooseFilter(page: Page, testid: string, value: string) {
   await page.getByTestId("location-filters").click();
-  await page.getByTestId(testid).selectOption(value);
+  await page.getByTestId(`${testid}-${value === "" ? "all" : value}`).click();
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("location-filters-panel")).toHaveCount(0);
 }
@@ -407,12 +410,15 @@ export async function seedGuessFixture(countryCode: string, point: { lat: number
   const regionSlug = scratchSlug("gs-region");
   const citySlug = scratchSlug("gs-city");
   const suffix = rand().replace(/[^a-z]/g, "") + "qx";
-  const regionCode = `Z${
-    rand()
-      .replace(/[^a-z]/gi, "")
-      .slice(0, 2)
-      .toUpperCase() || "Z9"
-  }`;
+  // LS-7 (bundle 11 B3) — the code is unique across every live scratch region
+  // (locations_iso_3166_2_unique); two random letters (676 values) collided with
+  // another run's region. "Z" plus five letters or digits (36^5) cannot, and the
+  // guess judge takes up to eight of [A-Za-z0-9-] (src/server/geo/guess.ts).
+  const regionCode = `Z${rand()
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(0, 5)
+    .toUpperCase()
+    .padEnd(5, "9")}`;
   const cityName = `Escratch Guess City ${suffix}`;
 
   const { data: region, error: regionError } = await supabase

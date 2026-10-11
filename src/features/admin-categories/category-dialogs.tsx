@@ -918,9 +918,11 @@ export function CategoryPathsDialog({
                     </option>
                   ))}
                 </select>
+                {/* Bundle 11 B3 (G29) — it removes the path at once: a destructive
+                    act is red on the button that performs it. */}
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="destructive"
                   size="touch"
                   data-testid={`category-path-remove-${pointer.pointerId}`}
                   disabled={busy}

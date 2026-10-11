@@ -1,5 +1,6 @@
 import { Link, useNavigate, type LinkProps } from "@tanstack/react-router";
-import { Fragment, type KeyboardEvent, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cloneElement, Fragment, isValidElement, type KeyboardEvent, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,8 +9,8 @@ import { Toolbar } from "@/components/layout/toolbar";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-import { PageCard } from "./page-card";
 import { pageWindow } from "./page-window";
+import { RowActions, type RowActionsProps } from "./row-actions";
 
 /**
  * U1b/U1c — THE DATATABLE PRIMITIVE (shell law).
@@ -59,6 +60,20 @@ export type ColumnPriority = "primary" | "secondary" | "detail" | "wide";
  */
 export type CardUntil = "md" | "lg" | "xl";
 
+/**
+ * Bundle 11 V2 (D132) — where a column sits in the phone card (Filament's
+ * stacked-on-mobile layout, the agreed board):
+ *   title — the card's first line (the row's name), one per card;
+ *   sub   — the muted line under the name;
+ *   meta  — a labelled fact in the card's grid (label above, value below);
+ *   badge — a state pill at the end of the facts line;
+ *   foot  — a labelled note in the card's footer, beside Edit and Delete;
+ *   hide  — the table only.
+ * Unset, the priority decides (detail stays out; wide only at `xl`) and the
+ * first column shown is the title, the others facts.
+ */
+export type CardPlace = "title" | "sub" | "meta" | "badge" | "foot" | "hide";
+
 export interface DataTableColumn<T> {
   key: string;
   header: ReactNode;
@@ -77,6 +92,14 @@ export interface DataTableColumn<T> {
   minWidth?: string;
   /** Opt-in sorting; the parent owns the state and receives onSort(key). */
   sortable?: boolean;
+  /** Bundle 11 V2 (D132) — the column's place in the phone card. */
+  card?: CardPlace;
+  /**
+   * Bundle 11 V2 (D132) — what the CARD shows for this column when it differs
+   * from the table's cell (the table keeps `cell`). Returning null leaves the
+   * fact out of that card: a root category's card has no "—" parent line.
+   */
+  cardCell?: (row: T) => ReactNode;
 }
 
 export interface DataTableSelection<T> {
@@ -109,6 +132,20 @@ export interface DataTableProps<T> {
   toolbar?: ReactNode;
   /** Per-row controls: inline in the 360 card, trailing column at md. */
   rowActions?: (row: T) => ReactNode;
+  /**
+   * Bundle 11 B3 (INC-542) — the actions column's width in the table twin, so
+   * the row's icons never spill over the column before it. With the cell's
+   * padding and RowActions' gap: `w-24` holds one 44 px icon (the default),
+   * `w-32` two, `w-44` three (Edit, Delete and the three-dots) — and, where a
+   * mouse draws the icons at 36 px (md and up), `w-36`, so the other columns
+   * keep the room.
+   */
+  actionsWidth?: "w-24" | "w-32" | "w-44";
+  /**
+   * Bundle 11 V2 (D132) — the card's lead tile: an icon (or initials) in a
+   * tinted square before the row's name. Decorative; the name says it.
+   */
+  cardLead?: (row: T) => ReactNode;
   /**
    * U3a (INC-092) — INLINE ROW EXPANSION. Return the detail region for a row
    * and it renders DIRECTLY beneath that row: inside the 360 card, and as a
@@ -150,6 +187,13 @@ export interface DataTableProps<T> {
   className?: string;
 }
 
+/** INC-542 — literal classes, so the stylesheet carries each one. */
+const ACTIONS_WIDTH_CLASS = {
+  "w-24": "w-24",
+  "w-32": "w-32",
+  "w-44": "w-44 md:pointer-fine:w-36",
+} as const;
+
 function cellClass(
   column: DataTableColumn<unknown>,
   sticky: false | "start-0" | "start-10" = false,
@@ -175,6 +219,10 @@ function cellClass(
  * The standard pagination filling: Prev / Next plus "from–to of total".
  * BUNDLE 9 B3 — three zones (count · rows per page · pages); the page run and
  * the size control appear only through their optional props.
+ *
+ * Bundle 11 V2 (D132) — one line on a phone: the count, the page size and two
+ * arrow tiles (the page run waits for md, where it joins the arrows into one
+ * group). The arrows are icons named by their words; RTL mirrors them.
  */
 export function DataTablePagination({
   offset,
@@ -210,18 +258,19 @@ export function DataTablePagination({
   const pageCount = total === 0 || pageSize <= 0 ? 0 : Math.ceil(total / pageSize);
   const currentPage = pageSize > 0 ? Math.floor(offset / pageSize) : 0;
   const pages = onPage ? pageWindow(currentPage, pageCount) : [];
+  const hasRun = onPage !== undefined && pages.length > 0;
   return (
     <div
       data-testid={testid}
-      className="grid min-w-0 gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center"
+      className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 md:grid md:grid-cols-[1fr_auto_1fr]"
     >
       <span data-testid={`${testid}-range`} className="text-sm tabular-nums text-muted-foreground">
         {`${from}–${to} ${t("prim.table.of")} ${totalLabel ?? total}`}
       </span>
 
       {pageSizeOptions && onPageSize ? (
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>{t("prim.table.pageSize")}</span>
+        <label className="ms-auto flex items-center gap-2 text-sm text-muted-foreground md:ms-0">
+          <span className="max-md:sr-only">{t("prim.table.pageSize")}</span>
           <NativeSelect
             data-testid={`${testid}-size`}
             value={String(pageSize)}
@@ -235,38 +284,36 @@ export function DataTablePagination({
           </NativeSelect>
         </label>
       ) : (
-        <span />
+        <span className="hidden md:block" />
       )}
 
-      <div className="flex flex-wrap items-center gap-2 md:justify-self-end">
+      <div
+        className={cn(
+          "flex items-center gap-1.5 md:justify-self-end",
+          pageSizeOptions && onPageSize ? null : "ms-auto md:ms-0",
+          "md:gap-0",
+        )}
+      >
         <Button
           type="button"
           variant="outline"
-          className="min-h-11"
+          className="size-11 p-0 md:pointer-fine:size-9 md:rounded-e-none"
           data-testid={`${testid}-prev`}
+          aria-label={t("prim.table.previous")}
           disabled={offset === 0}
           onClick={onPrevious}
         >
-          {t("prim.table.previous")}
+          <ChevronLeft aria-hidden="true" className="rtl:rotate-180" />
         </Button>
-        {onPage && pages.length > 0 ? (
-          <div className="flex items-center">
+        {hasRun ? (
+          <div className="hidden items-center md:flex">
             {pages.map((entry, index) => {
-              const joined = cn(
-                index > 0 && "-ms-px",
-                "rounded-none",
-                index === 0 && "rounded-s-md",
-                index === pages.length - 1 && "rounded-e-md",
-              );
               if (entry === "gap") {
                 return (
                   <span
                     key={`gap-${index}`}
                     aria-hidden="true"
-                    className={cn(
-                      "inline-flex h-11 min-w-9 items-center justify-center border border-input text-sm text-muted-foreground md:pointer-fine:h-9",
-                      joined,
-                    )}
+                    className="-ms-px inline-flex h-11 min-w-9 items-center justify-center border border-input bg-card text-sm text-muted-foreground md:pointer-fine:h-9"
                   >
                     …
                   </span>
@@ -282,9 +329,9 @@ export function DataTablePagination({
                   aria-label={t("prim.table.page").replace("{n}", String(entry))}
                   aria-current={current ? "page" : undefined}
                   className={cn(
-                    "h-11 min-w-9 px-3 md:pointer-fine:h-9",
-                    joined,
-                    current && "bg-primary text-primary-foreground hover:bg-primary/90",
+                    "-ms-px h-11 min-w-9 rounded-none px-3 md:pointer-fine:h-9",
+                    current &&
+                      "relative z-10 border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
                   )}
                   onClick={() => onPage(entry - 1)}
                 >
@@ -297,16 +344,72 @@ export function DataTablePagination({
         <Button
           type="button"
           variant="outline"
-          className="min-h-11"
+          className="size-11 p-0 md:pointer-fine:size-9 md:-ms-px md:rounded-s-none"
           data-testid={`${testid}-next`}
+          aria-label={t("prim.table.next")}
           disabled={to >= total}
           onClick={onNext}
         >
-          {t("prim.table.next")}
+          <ChevronRight aria-hidden="true" className="rtl:rotate-180" />
         </Button>
       </div>
     </div>
   );
+}
+
+/**
+ * Bundle 11 V2 (D132) — the breakpoint classes, written out whole so the
+ * stylesheet carries each one. At and above `cardUntil` the table is ONE card:
+ * toolbar, selection bar, table and footer inside a single frame. Below it the
+ * toolbar and the footer sit on the page and every row is its own card.
+ */
+const FRAME_AT: Record<CardUntil, string> = {
+  md: "md:space-y-0 md:rounded-lg md:border md:border-border md:bg-card md:shadow-card",
+  lg: "lg:space-y-0 lg:rounded-lg lg:border lg:border-border lg:bg-card lg:shadow-card",
+  xl: "xl:space-y-0 xl:rounded-lg xl:border xl:border-border xl:bg-card xl:shadow-card",
+};
+const BODY_AT: Record<CardUntil, string> = {
+  md: "md:space-y-0",
+  lg: "lg:space-y-0",
+  xl: "xl:space-y-0",
+};
+const TOOLBAR_AT: Record<CardUntil, string> = {
+  md: "md:border-b md:border-border md:px-4 md:py-3",
+  lg: "lg:border-b lg:border-border lg:px-4 lg:py-3",
+  xl: "xl:border-b xl:border-border xl:px-4 xl:py-3",
+};
+const FOOTER_AT: Record<CardUntil, string> = {
+  md: "md:border-t md:border-border md:px-4 md:py-3",
+  lg: "lg:border-t lg:border-border lg:px-4 lg:py-3",
+  xl: "xl:border-t xl:border-border xl:px-4 xl:py-3",
+};
+const STATE_AT: Record<CardUntil, string> = {
+  md: "md:rounded-none md:border-0 md:bg-transparent md:shadow-none",
+  lg: "lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none",
+  xl: "xl:rounded-none xl:border-0 xl:bg-transparent xl:shadow-none",
+};
+const SELECTION_AT: Record<CardUntil, string> = {
+  md: "md:rounded-none md:border-x-0 md:border-t-0",
+  lg: "lg:rounded-none lg:border-x-0 lg:border-t-0",
+  xl: "xl:rounded-none xl:border-x-0 xl:border-t-0",
+};
+
+/**
+ * Bundle 11 V2 (D132) — the card's own split of a row's RowActions: the
+ * three-dots go to the card's top corner, Edit and Delete to its footer. Any
+ * other actions node is the footer's as it is.
+ */
+function splitRowActions(node: ReactNode): { top: ReactNode; foot: ReactNode } {
+  if (isValidElement<RowActionsProps>(node) && node.type === RowActions) {
+    const props = node.props;
+    const hasMore = (props.more?.length ?? 0) > 0;
+    const hasDoors = props.edit !== undefined || props.remove !== undefined;
+    return {
+      top: hasMore ? cloneElement(node, { edit: undefined, remove: undefined }) : null,
+      foot: hasDoors ? cloneElement(node, { more: undefined }) : null,
+    };
+  }
+  return { top: null, foot: node ?? null };
 }
 
 export function DataTable<T>({
@@ -323,6 +426,8 @@ export function DataTable<T>({
   errorState,
   toolbar,
   rowActions,
+  actionsWidth = "w-24",
+  cardLead,
   expandedRow,
   selection,
   selectionActions,
@@ -365,9 +470,9 @@ export function DataTable<T>({
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
 
   const toolbarBlock = toolbar ? (
-    <PageCard testid="data-table-toolbar" className="min-w-0">
+    <div data-testid="data-table-toolbar" className={cn("min-w-0", TOOLBAR_AT[cardUntil])}>
       <Toolbar>{toolbar}</Toolbar>
-    </PageCard>
+    </div>
   ) : null;
 
   /**
@@ -380,41 +485,69 @@ export function DataTable<T>({
    * consumer never adds a width hack (C7).
    */
   const frame = (body: ReactNode) => (
-    <div className={cn("min-w-0 max-w-full space-y-4", className)}>
+    <div className={cn("min-w-0 max-w-full space-y-3", FRAME_AT[cardUntil], className)}>
       {toolbarBlock}
       {body}
     </div>
   );
+  const stateBox = (testid: string, node: ReactNode) =>
+    frame(
+      <div
+        data-testid={testid}
+        className={cn(
+          "min-w-0 rounded-lg border border-border bg-card p-6 shadow-card",
+          STATE_AT[cardUntil],
+        )}
+      >
+        {node}
+      </div>,
+    );
 
-  if (loading) {
-    return frame(<PageCard testid="data-table-loading">{loadingState}</PageCard>);
-  }
-  if (error) {
-    return frame(<PageCard testid="data-table-error">{errorState}</PageCard>);
-  }
-  if (rows.length === 0) {
-    return frame(<PageCard testid="data-table-empty">{emptyState}</PageCard>);
-  }
+  if (loading) return stateBox("data-table-loading", loadingState);
+  if (error) return stateBox("data-table-error", errorState);
+  if (rows.length === 0) return stateBox("data-table-empty", emptyState);
 
   /**
    * C2-UI-FIX-3 — when the split is at `xl` the card twin is the ONLY
    * presentation below a wide desktop, so dropping the `wide` tier there would
    * hide that content outright. A vertical card has the room the table row did
    * not: at `cardUntil="xl"` the card carries every column except `detail`.
+   *
+   * Bundle 11 V2 (D132) — a column's own `card` place wins over its priority.
    */
-  const cardColumns = columns.filter(
-    (column) => column.priority !== "detail" && (cardUntil === "xl" || column.priority !== "wide"),
+  const cardColumns = columns.filter((column) =>
+    column.card !== undefined
+      ? column.card !== "hide"
+      : column.priority !== "detail" && (cardUntil === "xl" || column.priority !== "wide"),
   );
+  const titleColumn =
+    cardColumns.find((column) => column.card === "title") ??
+    cardColumns.find((column) => column.card === undefined) ??
+    cardColumns[0];
+  const placeOf = (column: DataTableColumn<T>): CardPlace =>
+    column === titleColumn
+      ? "title"
+      : column.card === undefined || column.card === "title"
+        ? "meta"
+        : column.card;
+  const inCard = (place: CardPlace) => cardColumns.filter((column) => placeOf(column) === place);
+  const subColumns = inCard("sub");
+  const metaColumns = inCard("meta");
+  const badgeColumns = inCard("badge");
+  const footColumns = inCard("foot");
 
   const selectedKeys = new Set(selection?.selectedKeys ?? []);
   const allSelected = rows.every((row) => selectedKeys.has(rowKey(row)));
 
   return frame(
-    <div className="min-w-0 max-w-full space-y-4">
+    <div className={cn("min-w-0 max-w-full space-y-3", BODY_AT[cardUntil])}>
       {selection && selectedKeys.size > 0 ? (
         <div
           data-testid="data-table-selection"
-          className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground"
+          className={cn(
+            "flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-border bg-muted px-4 py-2 text-sm text-foreground",
+            SELECTION_AT[cardUntil],
+          )}
         >
           <span className="tabular-nums">{`${selectedKeys.size} ${t("prim.table.selected")}`}</span>
           {selectionActions ? (
@@ -423,63 +556,174 @@ export function DataTable<T>({
         </div>
       ) : null}
 
-      <PageCard testid="data-table" className="min-w-0 max-w-full p-0">
-        {/* 360-first: a card per row, primary + secondary stacked. */}
+      <div data-testid="data-table" className="min-w-0 max-w-full">
+        {/*
+          Below `cardUntil`: one card per row (Bundle 11 V2, D132). The top line
+          is the row's name with its three-dots in the corner, then a line under
+          it, then the labelled facts with the state badges at the end, and a
+          footer with a note and Edit / Delete.
+        */}
         <ul
           data-testid="data-table-cards"
           aria-label={caption}
-          className={cn("divide-y divide-border", cardsHiddenClass)}
+          className={cn(
+            "grid min-w-0 gap-3",
+            cardUntil === "md" ? null : "md:grid-cols-2",
+            cardsHiddenClass,
+          )}
         >
           {rows.map((row) => {
             const key = rowKey(row);
+            const rid = rowTestId(row);
+            const href = rowHref?.(row);
+            const { top, foot } = rowActions
+              ? splitRowActions(rowActions(row))
+              : { top: null, foot: null };
+            const lead = cardLead?.(row);
+            const label = (column: DataTableColumn<T>) =>
+              typeof column.header === "string" && column.header !== "" ? column.header : null;
+            /** The card's own value of a column; null, undefined or false leaves it out. */
+            const shown = (columns: DataTableColumn<T>[]) =>
+              columns
+                .map((column) => ({
+                  column,
+                  value: column.cardCell ? column.cardCell(row) : column.cell(row),
+                }))
+                .filter(({ value }) => value !== null && value !== undefined && value !== false);
+            const subs = shown(subColumns);
+            const metas = shown(metaColumns);
+            const badges = shown(badgeColumns);
+            const notes = shown(footColumns);
             const body = (
               <>
-                {cardColumns.map((column) => (
-                  <span key={column.key} className="block min-w-0 break-words text-sm">
-                    {column.cell(row)}
+                {/*
+                  A cell's tree indent (`data-indent`: a margin or a run of
+                  dots) is the table's; the card is not a tree, so it drops it.
+                */}
+                <span
+                  className={cn(
+                    "block min-w-0 break-words text-[15px] font-semibold leading-5 text-foreground [&_[data-indent]]:ms-0! [&_span[data-indent][aria-hidden]]:hidden",
+                    top ? "pe-9" : null,
+                  )}
+                >
+                  {titleColumn ? titleColumn.cell(row) : null}
+                </span>
+                {subs.length > 0 ? (
+                  <span
+                    className={cn(
+                      "flex min-w-0 flex-wrap items-center gap-x-1.5 text-[13px] leading-[18px] text-muted-foreground",
+                      top ? "pe-9" : null,
+                    )}
+                  >
+                    {subs.map(({ column, value }, index) => (
+                      <Fragment key={column.key}>
+                        {index > 0 ? <span aria-hidden="true">·</span> : null}
+                        <span className="min-w-0 break-words">{value}</span>
+                      </Fragment>
+                    ))}
                   </span>
-                ))}
+                ) : null}
+                {/*
+                  The facts line: the labelled facts first, the state pills at
+                  its end; pills that do not fit move under the facts and wrap.
+                */}
+                {metas.length > 0 || badges.length > 0 ? (
+                  <span className="flex min-w-0 flex-wrap items-end gap-x-3 gap-y-2 pt-1">
+                    {metas.length > 0 ? (
+                      <span className="grid min-w-[6.5rem] flex-1 grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-x-3 gap-y-1.5">
+                        {metas.map(({ column, value }) => (
+                          <span key={column.key} className="block min-w-0">
+                            {label(column) ? (
+                              <span className="block truncate text-xs text-muted-foreground">
+                                {label(column)}
+                              </span>
+                            ) : null}
+                            <span className="block min-w-0 break-words text-sm tabular-nums text-foreground">
+                              {value}
+                            </span>
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
+                    {/*
+                      A cell that draws a group of pills in its own flex span
+                      (Categories' flags) is flattened into this one row, so
+                      every pill wraps the same way, at the end.
+                    */}
+                    {badges.length > 0 ? (
+                      <span className="ms-auto flex min-w-0 flex-wrap justify-end gap-1.5 [&>span.flex]:contents">
+                        {badges.map(({ column, value }) => (
+                          <Fragment key={column.key}>{value}</Fragment>
+                        ))}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
               </>
             );
-            const href = rowHref?.(row);
+            const hasFoot = notes.length > 0 || foot !== null;
             return (
-              <li key={key} className="min-w-0 space-y-2 p-4">
-                <div className="flex min-w-0 items-start gap-3">
-                  {selection ? (
-                    <Checkbox
-                      className="mt-1 shrink-0"
-                      aria-label={t("prim.table.selectRow")}
-                      data-testid={`${rowTestId(row)}-select`}
-                      checked={selectedKeys.has(key)}
-                      onCheckedChange={(checked) => selection.onToggleRow(row, checked === true)}
-                    />
-                  ) : null}
-                  <div className="min-w-0 flex-1">
+              <li key={key} className="min-w-0">
+                <div
+                  data-testid={rowActions ? `${rid}-actions` : undefined}
+                  className="relative flex min-w-0 flex-col rounded-lg border border-border bg-card shadow-card"
+                >
+                  <div className="flex min-w-0 items-start gap-2.5 px-3 pb-3 pt-3">
+                    {selection ? (
+                      <Checkbox
+                        className="mt-2.5 shrink-0"
+                        aria-label={t("prim.table.selectRow")}
+                        data-testid={`${rid}-select`}
+                        checked={selectedKeys.has(key)}
+                        onCheckedChange={(checked) => selection.onToggleRow(row, checked === true)}
+                      />
+                    ) : null}
+                    {lead ? (
+                      <span
+                        aria-hidden="true"
+                        className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-accent text-primary [&_svg]:size-[18px]"
+                      >
+                        {lead}
+                      </span>
+                    ) : null}
                     {href ? (
                       <Link
                         {...href}
-                        data-testid={`${rowTestId(row)}-card`}
-                        className="block min-h-11 min-w-0 space-y-1"
+                        data-testid={`${rid}-card`}
+                        className="block min-h-11 min-w-0 flex-1 space-y-1"
                       >
                         {body}
                       </Link>
                     ) : (
-                      <div data-testid={`${rowTestId(row)}-card`} className="min-w-0 space-y-1">
+                      <div data-testid={`${rid}-card`} className="min-w-0 flex-1 space-y-1">
                         {body}
                       </div>
                     )}
                   </div>
+                  {top ? <div className="absolute end-1 top-1">{top}</div> : null}
+                  {hasFoot ? (
+                    <div className="flex min-h-11 min-w-0 items-center gap-2 rounded-b-lg border-t border-border/70 bg-muted/40 pe-1 ps-3">
+                      <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                        {notes.map(({ column, value }, index) => (
+                          <Fragment key={column.key}>
+                            {index > 0 ? <span aria-hidden="true">·</span> : null}
+                            <span className="inline-flex min-w-0 items-baseline gap-1">
+                              {label(column) ? <span>{label(column)}</span> : null}
+                              <span className="min-w-0 break-words text-foreground">{value}</span>
+                            </span>
+                          </Fragment>
+                        ))}
+                      </span>
+                      {foot !== null ? (
+                        <span className="flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-1">
+                          {foot}
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
-                {rowActions ? (
-                  <div
-                    data-testid={`${rowTestId(row)}-actions`}
-                    className="flex min-w-0 flex-wrap gap-2"
-                  >
-                    {rowActions(row)}
-                  </div>
-                ) : null}
                 {expandedRow?.(row) ? (
-                  <div data-testid={`${rowTestId(row)}-expanded`} className="min-w-0">
+                  <div data-testid={`${rid}-expanded`} className="mt-2 min-w-0">
                     {expandedRow(row)}
                   </div>
                 ) : null}
@@ -488,7 +732,7 @@ export function DataTable<T>({
           })}
         </ul>
 
-        {/* md+: a real table. overflow-x-auto is the last resort, never the plan. */}
+        {/* At `cardUntil`: a real table. overflow-x-auto is the last resort, never the plan. */}
         <div
           data-testid="data-table-scroller"
           className={cn("hidden min-w-0 max-w-full overflow-x-auto", tableShownClass)}
@@ -497,7 +741,7 @@ export function DataTable<T>({
             className={cn("w-full text-start text-sm", hasMinWidths ? "min-w-max" : "table-fixed")}
           >
             <caption className="sr-only">{caption}</caption>
-            <thead className="border-b border-border text-muted-foreground">
+            <thead className="border-b border-border text-xs text-muted-foreground">
               <tr>
                 {selection ? (
                   <th
@@ -522,7 +766,7 @@ export function DataTable<T>({
                     scope="col"
                     className={cn(
                       cellClass(column as DataTableColumn<unknown>, stickyFor(index)),
-                      "font-medium",
+                      "font-semibold",
                     )}
                     aria-sort={
                       sortKey === column.key
@@ -549,7 +793,10 @@ export function DataTable<T>({
                   <th
                     scope="col"
                     data-testid="data-table-col-actions"
-                    className="w-24 p-3 text-end align-top font-medium"
+                    className={cn(
+                      ACTIONS_WIDTH_CLASS[actionsWidth],
+                      "p-3 text-end align-top font-semibold",
+                    )}
                   >
                     {t("prim.table.actions")}
                   </th>
@@ -569,7 +816,7 @@ export function DataTable<T>({
                     <tr
                       data-testid={rowTestId(row)}
                       className={cn(
-                        "border-b border-border last:border-0",
+                        "border-b border-border/70 last:border-0",
                         href && "cursor-pointer hover:bg-muted/50",
                       )}
                       {...(href
@@ -643,7 +890,7 @@ export function DataTable<T>({
                     {expansion ? (
                       <tr
                         data-testid={`${rowTestId(row)}-expanded-row`}
-                        className="border-b border-border last:border-0"
+                        className="border-b border-border/70 last:border-0"
                       >
                         <td
                           colSpan={columns.length + (selection ? 1 : 0) + (rowActions ? 1 : 0)}
@@ -660,9 +907,9 @@ export function DataTable<T>({
             </tbody>
           </table>
         </div>
-      </PageCard>
+      </div>
 
-      {pagination}
+      {pagination ? <div className={cn("min-w-0", FOOTER_AT[cardUntil])}>{pagination}</div> : null}
     </div>,
   );
 }

@@ -13,6 +13,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { expectActionsInsideCell } from "./helpers/row-actions";
 import {
   RUN,
   rand,
@@ -1077,6 +1078,8 @@ test.describe("C2 categories console", () => {
       await gotoReady(page, "/admin/categories");
       await findRow(page, slug);
       await expect(action(page, slug, "edit")).toBeVisible();
+      // INC-542 — Edit, Delete and the three-dots stay inside their own cell.
+      await expectActionsInsideCell(actionsOf(page, slug));
 
       // Active: Delete is off; the menu offers Retire, never Reactivate.
       await expect(deleteButton(page, slug)).toBeDisabled();

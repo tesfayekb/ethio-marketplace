@@ -30,6 +30,7 @@ import {
   useJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
+import { expectActionsInsideCell } from "./helpers/row-actions";
 import { leaseUser } from "./helpers/users";
 
 /**
@@ -455,6 +456,8 @@ test.describe("L2b countries console", () => {
     await useJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
     await awaitRoster(page);
+    // INC-542 — Edit and the three-dots stay inside their own cell.
+    await expectActionsInsideCell(actionsOf(page, "ET"));
 
     // The menu carries the editor's verbs for this row: Ethiopia is open, so
     // Close market and Rail order; Rail order opens its dialog.

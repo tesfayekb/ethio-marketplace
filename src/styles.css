@@ -33,7 +33,7 @@
  * `-soft` (a tinted surface) and `-line` (a tinted edge).
  *
  * WCAG contrast (measured, sRGB, computed from the source hexes):
- *   LIGHT  foreground/background        #1E2329 on #F6F7F9  14.76:1  AAA
+ *   LIGHT  foreground/background        #1E2329 on #F3F5F8  14.48:1  AAA
  *          primary-foreground/primary   #FFFFFF on #1E5A43    8.08:1  AAA
  *          foreground/accent (neutral)  #1E2329 on #F0F2F5  13.61:1  AAA
  *          gold-foreground/gold         #3D2A08 on #C98A2B    4.67:1  AA
@@ -44,7 +44,7 @@
  *          gold-foreground/gold         #221704 on #E0A94A    8.34:1  AAA
  *          primary on rail-active       #7FC9A6 on #22302A    7.09:1  AAA
  *   HOUSE STYLE (bundle 9, light / dark):
- *          muted-foreground on background          7.49 / 7.67
+ *          muted-foreground on background          7.35 / 7.67
  *          muted-foreground on card                8.03 / 7.14
  *          destructive on card                     6.57 / 5.75
  *          destructive on destructive-soft         5.75 / 5.34
@@ -154,8 +154,16 @@
   --shadow: 0 1px 2px rgb(30 35 41 / 0.07), 0 1px 1px rgb(30 35 41 / 0.04);
   --shadow-md: 0 8px 20px rgb(30 35 41 / 0.14);
   --shadow-lg: 0 12px 28px rgb(30 35 41 / 0.18);
-  --shadow-card: 0 1px 2px rgb(30 35 41 / 0.07), 0 1px 1px rgb(30 35 41 / 0.04);
-  --shadow-button: inset 0 -1px 0 rgb(0 0 0 / 0.18), 0 1px 2px rgb(30 35 41 / 0.14);
+  /*
+   * Bundle 11 V2 (D132) — the agreed depth, "Soft": a card lifts off the
+   * cool-grey page by a hairline and a short soft drop; a white tile (an
+   * outline button, a toolbar icon) by a hairline and a bottom edge; the
+   * filled button by a firmer bottom edge; a bottom sheet by an upward drop.
+   */
+  --shadow-card: 0 1px 2px rgb(30 35 41 / 0.06), 0 3px 10px rgb(30 35 41 / 0.07);
+  --shadow-button: inset 0 -2px 0 rgb(0 0 0 / 0.22), 0 2px 4px rgb(30 35 41 / 0.18);
+  --shadow-tile: inset 0 -1px 0 rgb(30 35 41 / 0.06), 0 1px 2px rgb(30 35 41 / 0.08);
+  --shadow-sheet: 0 -8px 28px rgb(30 35 41 / 0.22);
   --shadow-bar: 0 1px 2px rgb(30 35 41 / 0.06);
   --shadow-bar-up: 0 -1px 2px rgb(30 35 41 / 0.06);
 }
@@ -165,8 +173,8 @@
   /* C2b — the phone bottom bar's height; every sticky/fixed bottom edge
      below md sits above it through this one variable (0px from 48rem). */
   --bottom-bar: calc(3.75rem + env(safe-area-inset-bottom));
-  /* #F6F7F9 cool-slate near-white */
-  --background: oklch(0.976 0.003 264.5);
+  /* #F3F5F8 cool grey (bundle 11 V2, D132 — the agreed page tone) */
+  --background: oklch(0.969 0.005 258.3);
   --foreground: oklch(0.254 0.014 253.1); /* #1E2329 */
   --card: oklch(1 0 89.9); /* #FFFFFF */
   --card-foreground: oklch(0.254 0.014 253.1);

@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { ImageIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
@@ -9,8 +10,10 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { FilterChoices } from "@/components/shell/filter-choices";
 import { useOpenMarkets } from "@/components/shell/location-data";
 import { RowActions } from "@/components/shell/row-actions";
+import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import {
   AlertDialog,
@@ -21,7 +24,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { NativeSelect } from "@/components/ui/native-select";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { sectionById } from "@/features/admin/sections";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -139,24 +141,28 @@ export function AdminScreeningPage() {
     {
       key: "title",
       header: t("admin.screening.col.title"),
+      card: "title",
       priority: "primary",
       cell: (row) => <span className="min-w-0 break-words font-medium">{row.title}</span>,
     },
     {
       key: "category",
       header: t("admin.screening.col.category"),
+      card: "sub",
       priority: "secondary",
       cell: (row) => <span className="text-sm">{named(row.category)}</span>,
     },
     {
       key: "place",
       header: t("admin.screening.col.place"),
+      card: "sub",
       priority: "secondary",
       cell: (row) => <span className="text-sm">{named(row.place)}</span>,
     },
     {
       key: "sent",
       header: t("admin.screening.col.sent"),
+      card: "foot",
       priority: "detail",
       cell: (row) => <span className="text-sm tabular-nums">{sentAt(row.updatedAt)}</span>,
     },
@@ -324,11 +330,9 @@ export function AdminScreeningPage() {
 
         return (
           <div data-testid="admin-section-screening" className="min-w-0 space-y-4">
-            <div>
-              <h1 className="min-w-0 truncate text-lg font-semibold text-foreground">
-                {t(section.titleKey)}
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground">{t(section.bodyKey)}</p>
+            <div className="space-y-1">
+              <TableActions testid="admin-screening-header" title={t(section.titleKey)} />
+              <p className="text-sm text-muted-foreground">{t(section.bodyKey)}</p>
             </div>
 
             <p
@@ -349,6 +353,7 @@ export function AdminScreeningPage() {
               rowTestId={(row) => `admin-screening-row-${row.id}`}
               caption={t(section.titleKey)}
               cardUntil="lg"
+              cardLead={() => <ImageIcon />}
               loading={query.isLoading}
               loadingState={<p className="text-sm">{t("common.loading")}</p>}
               error={query.error}
@@ -388,25 +393,31 @@ export function AdminScreeningPage() {
                     />
                   }
                   filters={
-                    <FiltersButton testid="admin-screening-filters" count={chips.length}>
-                      <label className="flex flex-col gap-1 text-sm">
-                        <span>{t("location.country")}</span>
-                        <NativeSelect
-                          data-testid="admin-screening-filter-country"
-                          value={country ?? ""}
-                          onChange={(event) => {
-                            setCountry(event.target.value === "" ? null : event.target.value);
-                            resetPaging();
-                          }}
-                        >
-                          <option value="">{t("prim.table.all")}</option>
-                          {markets.markets.map((market) => (
-                            <option key={market.code} value={market.code}>
-                              {marketName(market.code)}
-                            </option>
-                          ))}
-                        </NativeSelect>
-                      </label>
+                    <FiltersButton
+                      testid="admin-screening-filters"
+                      count={chips.length}
+                      onClearAll={() => {
+                        setCountry(null);
+                        resetPaging();
+                      }}
+                    >
+                      {/* Bundle 11 V2 (INC-543) — one pill per market, never a dropdown. */}
+                      <FilterChoices
+                        testid="admin-screening-filter-country"
+                        label={t("location.country")}
+                        value={country ?? ""}
+                        onChange={(value) => {
+                          setCountry(value === "" ? null : value);
+                          resetPaging();
+                        }}
+                        options={[
+                          { value: "", label: t("prim.table.all") },
+                          ...markets.markets.map((market) => ({
+                            value: market.code,
+                            label: marketName(market.code),
+                          })),
+                        ]}
+                      />
                     </FiltersButton>
                   }
                   columns={

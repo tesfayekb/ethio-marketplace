@@ -44,19 +44,20 @@ export type RowMoreAction = {
   disabled?: boolean;
 };
 
-export function RowActions({
-  testid,
-  name,
-  edit,
-  remove,
-  more,
-}: {
+export interface RowActionsProps {
   testid: string;
   name: string;
   edit?: RowAction;
   remove?: RowAction;
   more?: RowMoreAction[];
-}) {
+}
+
+/**
+ * Bundle 11 V2 (D132) — a phone card draws the same RowActions twice: the
+ * three-dots alone in its top corner, Edit and Delete alone in its footer
+ * (DataTable splits them). Each control keeps its one testid.
+ */
+export function RowActions({ testid, name, edit, remove, more }: RowActionsProps) {
   const { t } = useI18n();
   const hasMore = (more?.length ?? 0) > 0;
   if (!edit && !remove && !hasMore) return null;

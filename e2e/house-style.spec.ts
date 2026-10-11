@@ -133,8 +133,28 @@ test.describe("house style fixture", () => {
     const range = page.getByTestId("style-pager-range");
     const pageButtons = page.locator('[data-testid^="style-pager-page-"]');
     await expect(range).toContainText("1–25");
-    await expect(pageButtons).toHaveText(["1", "2", "12"]);
     await expect(page.getByTestId("style-pager-prev")).toBeDisabled();
+
+    if (test.info().project.name === "mobile-360") {
+      // Bundle 11 V2 (D132) — a phone pages with the two arrow tiles; the
+      // page run waits for md, where it joins them.
+      await expect(page.getByTestId("style-pager-page-1")).toBeHidden();
+      for (const arrow of ["prev", "next"]) {
+        const box = (await page.getByTestId(`style-pager-${arrow}`).boundingBox())!;
+        expect(box.width).toBeGreaterThanOrEqual(44);
+        expect(box.height).toBeGreaterThanOrEqual(44);
+      }
+      await page.getByTestId("style-pager-next").click();
+      await expect(range).toContainText("26–50");
+      await page.getByTestId("style-pager-prev").click();
+      await expect(range).toContainText("1–25");
+      await page.getByTestId("style-pager-size").selectOption("50");
+      await expect(range).toContainText("1–50");
+      await expect(page.getByTestId("style-pager-prev")).toBeDisabled();
+      return;
+    }
+
+    await expect(pageButtons).toHaveText(["1", "2", "12"]);
 
     await page.getByTestId("style-pager-page-2").click();
     await expect(page.getByTestId("style-pager-page-2")).toHaveAttribute("aria-current", "page");
@@ -161,9 +181,15 @@ test.describe("house style fixture", () => {
     await expect(button).toBeVisible();
     await expect(count).toHaveCount(0);
 
+    // Bundle 11 V2 (INC-543) — a filter is a pill: one tap applies it.
     await button.click();
-    await page.getByTestId("style-filters-colour").selectOption("Red");
+    await page.getByTestId("style-filters-colour-Red").click();
+    await expect(page.getByTestId("style-filters-colour-Red")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     await page.keyboard.press("Escape");
+    await expect(page.getByTestId("style-filters-panel")).toHaveCount(0);
     await expect(count).toHaveText("1");
     await expect(chips).toHaveCount(1);
 
@@ -172,8 +198,8 @@ test.describe("house style fixture", () => {
     await expect(count).toHaveCount(0);
 
     await button.click();
-    await page.getByTestId("style-filters-colour").selectOption("Blue");
-    await page.getByTestId("style-filters-size").selectOption("Large");
+    await page.getByTestId("style-filters-colour-Blue").click();
+    await page.getByTestId("style-filters-size-Large").click();
     await page.keyboard.press("Escape");
     await expect(count).toHaveText("2");
     await expect(chips).toHaveCount(2);

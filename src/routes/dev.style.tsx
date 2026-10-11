@@ -6,6 +6,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { FilterChoices } from "@/components/shell/filter-choices";
 import { RowActions } from "@/components/shell/row-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconButton, type IconButtonTone } from "@/components/ui/icon-button";
-import { NativeSelect } from "@/components/ui/native-select";
 
 /**
  * BUNDLE 9 A3 — THE HOUSE-STYLE FIXTURE.
@@ -104,6 +104,10 @@ const TONES: IconButtonTone[] = ["neutral", "danger", "success", "warning", "inf
 const PAGER_TOTAL = 300;
 const COLOURS = ["Red", "Blue"] as const;
 const SIZES = ["Small", "Large"] as const;
+/** Fixture words (a dev page, English only). */
+const COLOUR_LABEL = "Colour";
+const SIZE_LABEL = "Size";
+const ANY = "Any";
 
 function StyleFixture() {
   const [last, setLast] = useState("");
@@ -266,37 +270,32 @@ function StyleFixture() {
 
         <Section title={"Filters"} testid="style-filters-section">
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <FiltersButton testid="style-filters" count={chips.length}>
-              <label className="flex flex-col gap-1 text-sm">
-                <span>{"Colour"}</span>
-                <NativeSelect
-                  data-testid="style-filters-colour"
-                  value={colour}
-                  onChange={(event) => setColour(event.target.value)}
-                >
-                  <option value="">{"Any"}</option>
-                  {COLOURS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                <span>{"Size"}</span>
-                <NativeSelect
-                  data-testid="style-filters-size"
-                  value={size}
-                  onChange={(event) => setSize(event.target.value)}
-                >
-                  <option value="">{"Any"}</option>
-                  {SIZES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </label>
+            {/* Bundle 11 V2 (INC-543) — each filter a row of pills, never a dropdown. */}
+            <FiltersButton
+              testid="style-filters"
+              count={chips.length}
+              onClearAll={() => {
+                setColour("");
+                setSize("");
+              }}
+            >
+              <FilterChoices
+                testid="style-filters-colour"
+                label={COLOUR_LABEL}
+                value={colour}
+                onChange={setColour}
+                options={[
+                  { value: "", label: ANY },
+                  ...COLOURS.map((c) => ({ value: c, label: c })),
+                ]}
+              />
+              <FilterChoices
+                testid="style-filters-size"
+                label={SIZE_LABEL}
+                value={size}
+                onChange={setSize}
+                options={[{ value: "", label: ANY }, ...SIZES.map((c) => ({ value: c, label: c }))]}
+              />
             </FiltersButton>
             <FilterChips
               testid="style-filters-chips"
