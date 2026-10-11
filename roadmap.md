@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-11-turn-20.md (bundle 11, the Listings console, turn L3 — one listing's page with its full history (D139), one migration: `admin_listing_detail`). Then the Edit form (L4), group 3's next turns (the Languages roster's full house style, Strings, Data scope) and Part C; their briefs are named on this line when they are saved.
+The brief in force: docs/governance/briefs/bundle-11-turn-21.md (bundle 11, the Listings console, turn L4a — Edit on the listing's page: the title, the description and the price with a reason and a note (D140); one migration: `admin_edit_listing` judged on what an admin can change (DEC-173, INC-552) and All listings' price unit (INC-553)). Then L4b (Edit: the category and the specifications; removing a photo waits for photo display, D140), group 3's next turns (the Languages roster's full house style, Strings, Data scope) and Part C; their briefs are named on this line when they are saved.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

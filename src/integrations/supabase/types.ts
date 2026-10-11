@@ -2701,6 +2701,8 @@ export type Database = {
           price_mode: string
           price_negotiable: boolean
           price_period: string
+          price_unit: string
+          price_unit_text: string
           published_at: string
           seller_alias: string
           seller_business_name: string

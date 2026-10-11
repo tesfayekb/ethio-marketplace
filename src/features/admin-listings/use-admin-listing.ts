@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
+import type { Refusal } from "@/features/posting/types";
 
 import { ADMIN_LISTINGS_KEY } from "./use-admin-listings";
 
@@ -47,6 +49,9 @@ export interface AdminListingDetail {
     pricePeriod: string | null;
     priceBp: number | null;
     priceNegotiable: boolean;
+    /** INC-553 — the price's unit (a token, or `other` with the seller's own word). */
+    priceUnit: string | null;
+    priceUnitText: string | null;
     attributes: Record<string, unknown>;
     photosSoon: boolean;
     photoCount: number;
@@ -122,6 +127,8 @@ export function detailOf(data: unknown): AdminListingDetail {
       pricePeriod: text(l["price_period"]),
       priceBp: number(l["price_bp"]),
       priceNegotiable: l["price_negotiable"] === true,
+      priceUnit: text(l["price_unit"]),
+      priceUnitText: text(l["price_unit_text"]),
       attributes: object(l["attributes"]),
       photosSoon: l["photos_soon"] === true,
       photoCount: number(l["photo_count"]) ?? 0,
@@ -161,6 +168,59 @@ export async function readAdminListing(listingId: string): Promise<AdminListingD
   return detailOf(data);
 }
 
+/**
+ * Turn L4a (D140) — an admin's edit through the one door `admin_edit_listing`
+ * (listings:enforce with a fresh second factor; the seller's content rules for
+ * what an admin can change — DEC-173). The door answers a refusal list as an
+ * answer (F4: shown under its field), and raises everything else, which is
+ * thrown as it came so the step-up guard can read it.
+ */
+export type AdminEditAnswer =
+  | { ok: true; status: string; fields: string[] }
+  | { ok: false; refusals: Refusal[] };
+
+/** The door's refusals as the form reads them: a specification is named by its key. */
+export function refusalsOf(value: unknown): Refusal[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((entry) => {
+    const row = object(entry);
+    const field = text(row["field"]) ?? (text(row["attr_key"]) !== null ? "attributes" : "door");
+    const detail = text(row["detail"]) ?? text(row["attr_key"]);
+    return {
+      field,
+      reason: String(row["reason"] ?? ""),
+      ...(detail !== null ? { detail } : {}),
+    };
+  });
+}
+
+export function editAnswerOf(data: unknown): AdminEditAnswer {
+  const root = object(data);
+  if (root["ok"] === true) {
+    return {
+      ok: true,
+      status: String(root["status"] ?? ""),
+      fields: Array.isArray(root["fields"]) ? root["fields"].map(String) : [],
+    };
+  }
+  return { ok: false, refusals: refusalsOf(root["refusals"]) };
+}
+
+export async function editAdminListing(
+  listingId: string,
+  changes: Record<string, unknown>,
+  reason: string,
+  note: string,
+): Promise<AdminEditAnswer> {
+  const { data, error } = await supabase.rpc("admin_edit_listing", {
+    p_listing_id: listingId,
+    p_changes: changes as Json,
+    p_reason: reason,
+    ...(note.trim() === "" ? {} : { p_note: note.trim() }),
+  });
+  if (error) throw error;
+  return editAnswerOf(data);
+}
 export function useAdminListing(listingId: string) {
   return useQuery({
     queryKey: [...ADMIN_LISTINGS_KEY, "detail", listingId],

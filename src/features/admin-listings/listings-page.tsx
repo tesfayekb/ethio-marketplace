@@ -32,7 +32,8 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useAuth } from "@/features/auth/use-auth";
 import { rootsOf, useCategoryTree } from "@/features/categories/category-tree";
-import { priceLine } from "@/features/posting/price-line";
+import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
+import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
@@ -143,6 +144,8 @@ export function AdminListingsPage() {
   });
   const rows = query.data?.rows ?? [];
   const total = query.data?.total ?? 0;
+  // INC-553 — the unit words load only when a row on this page holds a unit (the card's rule).
+  const unitLabels = usePriceUnitLabels(rows.some((row) => row.priceUnit !== null));
 
   const reset = () => {
     paging.setPage(0);
@@ -387,7 +390,7 @@ export function AdminListingsPage() {
               currency: row.priceCurrency,
               period: row.pricePeriod,
               bp: row.priceBp,
-              unit: null,
+              unit: storedUnitNoun(row.priceUnit, row.priceUnitText, unitLabels, language),
             },
             t,
             "—",

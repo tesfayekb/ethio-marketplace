@@ -802,9 +802,9 @@ jobs:
           # the slices' sizes, else makes them equal (not in its public docs: a
           # version that drops it falls back to equal slices). Equal slices left the posting-wizard
           # specs on shards 3 and 7 (31-32 min, the others 21-27, run
-          # 38131355354). These sizes equalise that run's timing; re-tuned as
-          # docs/features/ci-guards.md (DEC-172) says.
-          PWTEST_SHARD_WEIGHTS: "160:202:145:236:160:185:145:232"
+          # 38131355354). Re-tuned as docs/features/ci-guards.md (DEC-172) says:
+          # these sizes equalise run 38140549121's timing (turn L4a).
+          PWTEST_SHARD_WEIGHTS: "148:174:195:235:148:157:195:231"
         run: |
           set -o pipefail
           # DEC-028 — @global-state specs mutate a surface every concurrent

@@ -716,6 +716,16 @@ export const am: Messages = {
   "admin.listings.history.field.video": "ቪዲዮ",
   "admin.listings.history.field.renewals": "እድሳቶች",
   "admin.listings.history.field.other": "ሌሎች ዝርዝሮች",
+  "admin.listings.action.edit": "አርትዕ",
+  "admin.listings.edit.title": "ይህን ማስታወቂያ ያርትዑ",
+  "admin.listings.edit.hint":
+    "አርዕስቱን፣ መግለጫውን ወይም ዋጋውን ይቀይሩ። የቀየሩት ነገር ከምክንያትዎና ከማስታወሻዎ ጋር ለሻጩ ይነገራል።",
+  "admin.listings.edit.save": "ለውጦችን አስቀምጥ",
+  "admin.listings.edit.nothing": "ምንም አልተቀየረም።",
+  "admin.listings.edit.error.removed": "የተወገደ ማስታወቂያ አይታረምም። መጀመሪያ ይመልሱት።",
+  "admin.listings.edit.priceFailed":
+    "የዚህ ምድብ የዋጋ ደንቦች አልተጫኑም፤ ስለዚህ ዋጋው አሁን ሊቀየር አይችልም። አርዕስቱና መግለጫው ግን ይቀየራሉ።",
+  "admin.listings.edit.done": "ተቀምጧል። የተቀየረው ለሻጩ ይነገራል፦ {fields}።",
   "admin.screening.search": "ፍለጋ",
   "admin.screening.col.title": "አርዕስት",
   "admin.screening.col.category": "ምድብ",
