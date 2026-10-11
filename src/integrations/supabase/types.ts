@@ -1943,6 +1943,50 @@ export type Database = {
         }
         Relationships: []
       }
+      seller_notices: {
+        Row: {
+          created_at: string
+          fields: string[]
+          id: string
+          kind: string
+          listing_id: string
+          note: string | null
+          read_at: string | null
+          reason: string
+          seller_id: string
+        }
+        Insert: {
+          created_at?: string
+          fields?: string[]
+          id?: string
+          kind: string
+          listing_id: string
+          note?: string | null
+          read_at?: string | null
+          reason: string
+          seller_id: string
+        }
+        Update: {
+          created_at?: string
+          fields?: string[]
+          id?: string
+          kind?: string
+          listing_id?: string
+          note?: string | null
+          read_at?: string | null
+          reason?: string
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_notices_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seller_places: {
         Row: {
           directions: string | null
@@ -2333,6 +2377,15 @@ export type Database = {
         Returns: undefined
       }
       admin_delete_role: { Args: { p_role_id: string }; Returns: undefined }
+      admin_edit_listing: {
+        Args: {
+          p_changes: Json
+          p_listing_id: string
+          p_note?: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       admin_entity_translation_stats: {
         Args: { p_lang?: string }
         Returns: {
@@ -2616,6 +2669,51 @@ export type Database = {
           updated_at: string
         }[]
       }
+      admin_list_listings: {
+        Args: {
+          p_category?: string
+          p_country?: string
+          p_from?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_seller?: string
+          p_tier?: string
+          p_to?: string
+          p_view?: string
+        }
+        Returns: {
+          category_id: string
+          category_name_am: string
+          category_name_en: string
+          country_code: string
+          cover_paths: Json
+          cover_storage_path: string
+          created_at: string
+          expires_at: string
+          id: string
+          photo_count: number
+          place_name_am: string
+          place_name_en: string
+          price_amount: number
+          price_bp: number
+          price_currency: string
+          price_mode: string
+          price_negotiable: boolean
+          price_period: string
+          published_at: string
+          seller_alias: string
+          seller_business_name: string
+          seller_email: string
+          seller_id: string
+          severe: boolean
+          status: string
+          tier: string
+          title: string
+          total_count: number
+          updated_at: string
+        }[]
+      }
       admin_list_locations: {
         Args: {
           p_active?: boolean
@@ -2748,6 +2846,15 @@ export type Database = {
       admin_move_category_pointer: {
         Args: { p_new_parent_id: string; p_pointer_id: string }
         Returns: undefined
+      }
+      admin_move_listing: {
+        Args: {
+          p_listing_id: string
+          p_note?: string
+          p_reason: string
+          p_to: string
+        }
+        Returns: Json
       }
       admin_move_location: {
         Args: { p_id: string; p_new_parent_id: string }

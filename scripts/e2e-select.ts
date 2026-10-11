@@ -111,6 +111,11 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-screening.spec.ts"],
   },
   {
+    name: "admin-listings",
+    src: ["src/routes/admin.listings*.tsx", "src/features/admin-listings/**"],
+    specs: ["e2e/admin-listings.spec.ts"],
+  },
+  {
     name: "admin-imports",
     src: ["src/routes/api/admin/*/import*", "src/features/admin-*/**/*import*"],
     specs: ["e2e/import-security.spec.ts"],
