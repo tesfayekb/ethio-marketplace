@@ -54,6 +54,8 @@ function useInvalidateLocations() {
 export function useUpsertLocation() {
   const invalidate = useInvalidateLocations();
   return useMutation({
+    // INC-558's class — the page's editors are seeded from this read (useSettling).
+    mutationKey: ADMIN_LOCATIONS_KEY,
     mutationFn: (input: UpsertLocationInput) => upsertLocation(input),
     onSettled: invalidate,
   });
@@ -70,6 +72,8 @@ export function useSetLocationActive() {
 export function useMoveLocation() {
   const invalidate = useInvalidateLocations();
   return useMutation({
+    // INC-558's class — the page's editors are seeded from this read (useSettling).
+    mutationKey: ADMIN_LOCATIONS_KEY,
     mutationFn: (input: { id: string; newParentId: string }) => moveLocation(input),
     onSettled: invalidate,
   });
@@ -78,6 +82,8 @@ export function useMoveLocation() {
 export function useReorderLocations() {
   const invalidate = useInvalidateLocations();
   return useMutation({
+    // INC-558's class — the page's editors are seeded from this read (useSettling).
+    mutationKey: ADMIN_LOCATIONS_KEY,
     mutationFn: (input: { parentId: string; ids: string[] }) => reorderLocations(input),
     onSettled: invalidate,
   });

@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
+import { useSettling } from "@/lib/use-settling";
 import { supabase } from "@/integrations/supabase/client";
 
 import { LocationCreateDialog } from "./location-dialogs";
@@ -39,7 +40,7 @@ import {
   toRoster,
   type LocationNode,
 } from "./locations-service";
-import { useAdminLocations, useAllCountries } from "./use-locations";
+import { ADMIN_LOCATIONS_KEY, useAdminLocations, useAllCountries } from "./use-locations";
 
 /**
  * LOCATIONS ERA L2a-R — THE LOCATIONS CONSOLE, PART 1, RECONCILED.
@@ -84,6 +85,11 @@ type Dialog =
 
 export function AdminLocationsPage() {
   const { t } = useI18n();
+  /**
+   * INC-558's class (turn G3c) — the editors open on this read and send whole
+   * records: their openers wait while it re-reads or a write to it is in flight.
+   */
+  const settling = useSettling(ADMIN_LOCATIONS_KEY);
   const { permissions } = useAdminShell();
 
   const mayCreate = permissions.includes("locations:create");
@@ -301,6 +307,7 @@ export function AdminLocationsPage() {
         key: "move",
         label: t("admin.locations.action.move"),
         icon: <MoveRight />,
+        disabled: settling,
         onSelect: () => open({ kind: "move", id: row.id }),
       });
     }
@@ -309,6 +316,7 @@ export function AdminLocationsPage() {
         key: "reorder",
         label: t("admin.locations.action.reorder"),
         icon: <ArrowDownUp />,
+        disabled: settling,
         onSelect: () => open({ kind: "reorder", id: row.id }),
       });
     }
@@ -320,6 +328,7 @@ export function AdminLocationsPage() {
           mayUpdate
             ? {
                 label: t("admin.locations.action.edit"),
+                disabled: settling,
                 onSelect: () => open({ kind: "editor", id: row.id, openedBy: "row-click" }),
               }
             : undefined
@@ -591,6 +600,7 @@ export function AdminLocationsPage() {
                   onMove={() => open({ kind: "move", id: selected.id })}
                   onReorder={() => open({ kind: "reorder", id: selected.id })}
                   onDelete={() => open({ kind: "delete", id: selected.id })}
+                  settling={settling}
                 />
               }
             />

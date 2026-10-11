@@ -11,6 +11,7 @@ import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import { fillRefusal, splitRefusal } from "@/lib/refusal-tail";
+import { useSettling } from "@/lib/use-settling";
 
 import { suggestCategoryIcon } from "./category-images-service";
 import {
@@ -27,6 +28,7 @@ import {
   type CategoryRow,
 } from "./categories-service";
 import {
+  ADMIN_CATEGORIES_KEY,
   useAddCategoryPointer,
   useCategoryPointers,
   useCreateCategory,
@@ -180,6 +182,11 @@ export function CategoryEditorDialog({
   const update = useUpdateCategory();
   const setExclusions = useSetCountryExclusions();
   const reorder = useReorderCategories();
+  /**
+   * INC-558's class (turn G3c) — the editor's verb bar can move this category;
+   * its Save sends the order it holds, so Save waits until the roster settles.
+   */
+  const settling = useSettling(ADMIN_CATEGORIES_KEY);
   const { message, setMessage, fail } = useSubmitError();
   /** Set by a successful create — from here the SAME dialog is an editor. */
   const [createdId, setCreatedId] = useState<string | null>(null);
@@ -413,7 +420,7 @@ export function CategoryEditorDialog({
           <DialogActions
             onCancel={onClose}
             onSubmit={submit}
-            busy={update.isPending}
+            busy={update.isPending || settling}
             submitTestId="category-edit-submit"
           />
         </>

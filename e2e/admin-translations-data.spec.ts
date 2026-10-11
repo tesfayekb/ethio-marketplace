@@ -325,6 +325,12 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       await expect(editor.getByTestId(`entity-saved-location-${one.id}-name`)).toBeVisible({
         timeout: 30000,
       });
+      // INC-558's class (turn G3c) — the box shows the AI's text (it kept the old
+      // text, and Save would have written it back).
+      await expect(editor.getByTestId(`entity-input-location-${one.id}-name`)).toHaveValue(
+        new RegExp(`⟪${fence}⟫`),
+        { timeout: 20000 },
+      );
       await expect
         .poll(() => machineStatus(one.id), {
           timeout: 20000,

@@ -18,6 +18,7 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
+import { useSettling } from "@/lib/use-settling";
 import { supabase } from "@/integrations/supabase/client";
 
 import { CountryFilters } from "./countries-toolbar";
@@ -26,7 +27,7 @@ import { CountryEditorDialog } from "./country-editor";
 import { ImportCountriesDialog } from "./country-import-dialog";
 import { CountryVerbBar } from "./country-verb-bar";
 import { CountryActiveDialog, CountryRailOrderDialog } from "./country-verb-dialogs";
-import { useAdminCountries } from "./use-countries";
+import { ADMIN_COUNTRIES_KEY, useAdminCountries } from "./use-countries";
 
 /**
  * LOCATIONS ERA L2b-C1 — THE COUNTRIES CONSOLE.
@@ -61,6 +62,11 @@ type Dialog =
 
 export function AdminCountriesPage() {
   const { t } = useI18n();
+  /**
+   * INC-558's class (turn G3c) — the editors open on this read and send whole
+   * records: their openers wait while it re-reads or a write to it is in flight.
+   */
+  const settling = useSettling(ADMIN_COUNTRIES_KEY);
   const { permissions } = useAdminShell();
 
   // The GATES MIRROR THE DOORS (E7): `admin_upsert_country` and
@@ -237,6 +243,7 @@ export function AdminCountriesPage() {
         mayUpdate
           ? {
               label: t("admin.countries.action.edit"),
+              disabled: settling,
               onSelect: () => open({ kind: "editor", code: row.code, openedBy: "row-click" }),
             }
           : undefined
@@ -258,6 +265,7 @@ export function AdminCountriesPage() {
               {
                 key: "rail-order",
                 label: t("admin.countries.action.railOrder"),
+                disabled: settling,
                 onSelect: () => open({ kind: "rail", code: row.code }),
               },
             ]
@@ -450,6 +458,7 @@ export function AdminCountriesPage() {
                   mayActivate={mayActivate}
                   onActive={() => open({ kind: "active", code: selected.code })}
                   onRailOrder={() => open({ kind: "rail", code: selected.code })}
+                  settling={settling}
                 />
               }
             />

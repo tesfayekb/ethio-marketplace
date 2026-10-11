@@ -45,6 +45,14 @@ import {
  * removeQueries() on sign-out drops the whole console's cache.
  */
 export const ADMIN_TRANSLATIONS_KEY = [AUTH_DERIVED_ROOT, "admin", "translations"] as const;
+/**
+ * Bundle 11, turn G3c (INC-558's class) — the two row reads an editor is seeded
+ * from. The writes that change a row's text name them as their mutation key,
+ * so an editor's Save waits while the text is being written or re-read
+ * (`useSettling`).
+ */
+export const TRANSLATION_ROWS_KEY = [...ADMIN_TRANSLATIONS_KEY, "rows"] as const;
+export const ENTITY_ROWS_KEY = [...ADMIN_TRANSLATIONS_KEY, "entity-rows"] as const;
 
 export function useLanguages() {
   return useQuery({
@@ -64,7 +72,7 @@ export function useTranslationStats(lang?: string) {
 
 export function useTranslations(filters: TranslationFilters) {
   return useQuery({
-    queryKey: [...ADMIN_TRANSLATIONS_KEY, "rows", filters],
+    queryKey: [...TRANSLATION_ROWS_KEY, filters],
     queryFn: () => listTranslations(filters),
     staleTime: 10_000,
   });
@@ -93,6 +101,8 @@ function useInvalidateTranslations() {
 export function useSaveTranslation(lang: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
+    // INC-558's class — the text an editor is seeded from (useSettling).
+    mutationKey: TRANSLATION_ROWS_KEY,
     mutationFn: (input: { key: string; value: string }) => saveTranslation({ lang, ...input }),
     // Refetch is the truth (F4): a refusal never leaves an optimistic value up.
     onSettled: invalidate,
@@ -174,6 +184,8 @@ export function useSetTranslatorLanguages(userId: string) {
 export function useAiTranslate(lang: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
+    // INC-558's class — the AI writes the text an editor is seeded from (useSettling).
+    mutationKey: TRANSLATION_ROWS_KEY,
     mutationFn: (items: AiTranslateItem[]) => aiTranslate({ lang, items }),
     onSettled: invalidate,
   });
@@ -185,7 +197,7 @@ export function useAiTranslate(lang: string) {
  */
 export function useEntityTranslations(filters: EntityTranslationFilters, enabled: boolean) {
   return useQuery({
-    queryKey: [...ADMIN_TRANSLATIONS_KEY, "entity-rows", filters],
+    queryKey: [...ENTITY_ROWS_KEY, filters],
     queryFn: () => listEntityTranslations(filters),
     enabled,
     staleTime: 10_000,
@@ -195,6 +207,8 @@ export function useEntityTranslations(filters: EntityTranslationFilters, enabled
 export function useSaveEntityTranslation(lang: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
+    // INC-558's class — the text an editor is seeded from (useSettling).
+    mutationKey: ENTITY_ROWS_KEY,
     mutationFn: (input: { type: EntityType; id: string; field: string; value: string }) =>
       saveEntityTranslation({ lang, ...input }),
     onSettled: invalidate,
@@ -245,6 +259,8 @@ export function useEntityTranslationStats(lang?: string) {
 export function useAiTranslateEntities(lang: string) {
   const invalidate = useInvalidateTranslations();
   return useMutation({
+    // INC-558's class — the AI writes the text an editor is seeded from (useSettling).
+    mutationKey: ENTITY_ROWS_KEY,
     mutationFn: (items: AiEntityItem[]) => aiTranslateEntities({ lang, items }),
     onSettled: invalidate,
   });

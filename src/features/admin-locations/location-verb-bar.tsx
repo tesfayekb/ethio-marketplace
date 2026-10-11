@@ -28,6 +28,7 @@ export function LocationVerbBar({
   onMove,
   onReorder,
   onDelete,
+  settling = false,
 }: {
   row: LocationNode;
   mayCreate: boolean;
@@ -38,6 +39,11 @@ export function LocationVerbBar({
   onMove: () => void;
   onReorder: () => void;
   onDelete: () => void;
+  /**
+   * INC-558's class (turn G3c): Move and Reorder open on the console's read (the
+   * siblings' order), so they wait while that read re-reads.
+   */
+  settling?: boolean;
 }) {
   const { t } = useI18n();
 
@@ -103,6 +109,7 @@ export function LocationVerbBar({
             "admin.locations.action.move",
             <MoveRight aria-hidden="true" className="size-4" />,
             onMove,
+            settling,
           )
         : null}
       {mayUpdate
@@ -111,7 +118,7 @@ export function LocationVerbBar({
             "admin.locations.action.reorder",
             <ArrowDownUp aria-hidden="true" className="size-4" />,
             onReorder,
-            isCountry,
+            isCountry || settling,
           )
         : null}
       {mayRestructure

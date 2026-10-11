@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { useSettling } from "@/lib/use-settling";
 
 import { AttributeErrorLine, useAttributeError } from "./attribute-dialogs";
 import { AttributeLinkCells } from "./components/attribute-link-cells";
@@ -19,6 +20,7 @@ import {
 } from "./attributes-service";
 
 import {
+  ADMIN_ATTRIBUTES_KEY,
   useAdminAttributes,
   useCategoryLinks,
   useEffectiveCategoryLinks,
@@ -66,6 +68,12 @@ export function CategoryAttributesDialog({
   const updateLink = useUpdateAttributeLink();
   const reorder = useSetAttributeLinkOrder();
   const setCards = useSetCardAttributes();
+  /**
+   * INC-558's class (turn G3c) — the order and the cards are sent whole,
+   * computed from the links read: they wait until that read settles, so a
+   * second press never computes from the old list (and undoes the first).
+   */
+  const settling = useSettling(ADMIN_ATTRIBUTES_KEY);
   const { message, setMessage, fail } = useAttributeError();
   const [picker, setPicker] = useState("");
   const [search, setSearch] = useState("");
@@ -301,7 +309,9 @@ export function CategoryAttributesDialog({
                   <Checkbox
                     data-testid={`category-attribute-card-${row.attrKey}`}
                     checked={row.cardRank !== null}
-                    disabled={row.cardRank === null && carded.length >= CARD_ATTRIBUTE_MAXIMUM}
+                    disabled={
+                      settling || (row.cardRank === null && carded.length >= CARD_ATTRIBUTE_MAXIMUM)
+                    }
                     onCheckedChange={(next) => toggleCard(row.attributeId, next === true)}
                   />
                   {row.cardRank === null
@@ -332,7 +342,7 @@ export function CategoryAttributesDialog({
                   variant="outline"
                   size="touch"
                   data-testid={`category-attribute-up-${row.attrKey}`}
-                  disabled={index === 0}
+                  disabled={settling || index === 0}
                   onClick={() => move(index, -1)}
                 >
                   {t("admin.categories.action.up")}
@@ -342,7 +352,7 @@ export function CategoryAttributesDialog({
                   variant="outline"
                   size="touch"
                   data-testid={`category-attribute-down-${row.attrKey}`}
-                  disabled={index === rows.length - 1}
+                  disabled={settling || index === rows.length - 1}
                   onClick={() => move(index, 1)}
                 >
                   {t("admin.categories.action.down")}

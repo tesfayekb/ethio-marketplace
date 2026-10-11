@@ -22,6 +22,7 @@ export function CountryVerbBar({
   mayActivate,
   onActive,
   onRailOrder,
+  settling = false,
 }: {
   row: CountryRow;
   mayUpdate: boolean;
@@ -29,10 +30,21 @@ export function CountryVerbBar({
   mayActivate: boolean;
   onActive: () => void;
   onRailOrder: () => void;
+  /**
+   * INC-558's class (turn G3c): the rail order opens on the market's stored
+   * order from the console's read, so it waits while that read re-reads.
+   */
+  settling?: boolean;
 }) {
   const { t } = useI18n();
 
-  const verb = (suffix: string, labelKey: MessageKey, icon: ReactNode, onClick: () => void) => (
+  const verb = (
+    suffix: string,
+    labelKey: MessageKey,
+    icon: ReactNode,
+    onClick: () => void,
+    disabled = false,
+  ) => (
     <Button
       key={suffix}
       type="button"
@@ -40,6 +52,7 @@ export function CountryVerbBar({
       size="touch"
       data-testid={`country-verb-${suffix}`}
       title={t(labelKey)}
+      disabled={disabled}
       onClick={onClick}
     >
       {icon}
@@ -77,6 +90,7 @@ export function CountryVerbBar({
             "admin.countries.action.railOrder",
             <ArrowDownUp aria-hidden="true" className="size-4" />,
             onRailOrder,
+            settling,
           )
         : null}
     </div>

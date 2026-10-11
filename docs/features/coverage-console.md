@@ -110,3 +110,5 @@ This section is the later word on the row's pencil above.
 ## Bundle 11 V2 — the agreed phone card (D132)
 
 The page's heading ("Coverage") leads the header row, whose actions are icon tiles on a phone (their words show while a finger holds the tile) and icon and word from md. Below the table's breakpoint each row is its own card: the plan on top, its four limits (cities, regions, countries, photos) as labelled facts, the everywhere pill at the end, Updated in the footer beside Edit; a layers tile leads the card. From the breakpoint up, the toolbar, the table and the footer are one card. The blocks: docs/features/display-primitives.md, "The agreed tables".
+
+- Bundle 11 G3c (INC-558's class, G29 — an admin control that sends values computed from a read (a whole record, an ordered list, a set), or opens a form seeded from it, waits while that read is re-reading or a write keyed to it is in flight (`useSettling`, src/lib/use-settling.ts)): Edit waits while the plans read settles (the editor sends the whole plan).

@@ -1121,8 +1121,14 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         seller_id: seller.id,
         kind: "edit",
         actor: seller.id,
-        before: { title: "Before the edit", pin_lat: 8.9, street_address: "Old street one" },
-        after: { title: live.title, pin_lat: 9.01, street_address: "New street two" },
+        // INC-559 — pins with nine decimals: a timestamp in the door's answer carries six,
+        // so the absence check below cannot match one by chance ("8.9" did, once).
+        before: {
+          title: "Before the edit",
+          pin_lat: 8.912345678,
+          street_address: "Old street one",
+        },
+        after: { title: live.title, pin_lat: 9.087654321, street_address: "New street two" },
       });
     if (revision.error) throw new Error(`[e2e:al] revision seed failed: ${revision.error.message}`);
 
@@ -1157,8 +1163,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(edit?.["fields"]).toEqual(
       expect.arrayContaining(["pin_lat", "street_address", "title"]),
     );
+    // INC-559 — named, never shown: the values carry neither key …
+    for (const side of ["before", "after"]) {
+      expect(edit?.[side], `AL-16 the ${side} value carries the pin`).not.toHaveProperty("pin_lat");
+      expect(edit?.[side], `AL-16 the ${side} value carries the address`).not.toHaveProperty(
+        "street_address",
+      );
+    }
+    // … and nothing in the answer shows them.
     const text = JSON.stringify(body);
-    for (const hidden of ["Old street one", "New street two", "8.9", "9.01"]) {
+    for (const hidden of ["Old street one", "New street two", "8.912345678", "9.087654321"]) {
       expect(text, `AL-16 the door showed ${hidden}`).not.toContain(hidden);
     }
 
