@@ -215,7 +215,11 @@ test.describe("U1 admin users", () => {
     await page.getByTestId("users-search").fill(scratch.email);
     await expect(userRow(page, scratch.id)).toBeVisible({ timeout: 15000 });
 
-    await page.getByTestId("users-status-filter").selectOption("deactivated");
+    // Bundle 11 G2a (INC-543) — the status is a pill in the Filters panel.
+    await page.getByTestId("users-filters").click();
+    await page.getByTestId("users-status-filter-deactivated").click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("users-chips-chip-status")).toBeVisible();
     await expect(userRow(page, scratch.id)).toHaveCount(0);
   });
 
@@ -522,5 +526,63 @@ test.describe("U1 admin users", () => {
 
     await expect(page.getByTestId("own-account-note-edit")).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("user-edit-form")).toHaveCount(0);
+  });
+
+  /**
+   * Bundle 11 G2a (D118, D128, D132) — the Users list on the agreed blocks: the
+   * page's heading in the header; the toolbar's order (search, Filters,
+   * Columns); the status and the role as pills; the name locked in Columns;
+   * the footer's page size kept across a reload.
+   */
+  test("AU-13 the users list on the agreed blocks: heading, toolbar, pills, Columns, page size", async ({
+    page,
+  }) => {
+    const staff = await leaseUser();
+    await grantRole(staff.id, "admin");
+    await switchUser(page, staff.email, staff.password);
+    await gotoReady(page, "/admin/users");
+    await expect(page.getByTestId("users-search")).toBeVisible({ timeout: 20000 });
+
+    const header = page.getByTestId("users-header");
+    await expect(header.getByRole("heading", { level: 1 })).toHaveText(en["admin.users.title"]);
+    const toolbarOrder = await page.getByTestId("users-toolbar").evaluate((node) =>
+      Array.from(node.querySelectorAll("[data-testid]"))
+        .map((child) => child.getAttribute("data-testid"))
+        .filter((id) => ["users-search", "users-filters", "users-columns"].includes(id ?? "")),
+    );
+    expect(toolbarOrder, "AU-13 the toolbar's order").toEqual([
+      "users-search",
+      "users-filters",
+      "users-columns",
+    ]);
+
+    await page.getByTestId("users-filters").click();
+    const panel = page.getByTestId("users-filters-panel");
+    await expect(panel.getByTestId("users-status-filter-all")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(panel.getByTestId("users-role-filter-all")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(panel.getByTestId("users-role-filter-admin")).toBeVisible({ timeout: 20000 });
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+
+    await page.getByTestId("users-columns").click();
+    await expect(page.getByTestId("users-columns-name")).toBeDisabled();
+    await page.keyboard.press("Escape");
+
+    await page.getByTestId("users-search").fill(staff.email);
+    await expect(userRow(page, staff.id)).toBeVisible({ timeout: 15000 });
+    await page.getByTestId("users-search").fill("");
+    await page.getByTestId("users-pagination-size").selectOption("10");
+    await expect(page.getByTestId("users-pagination-range")).toContainText("1–10", {
+      timeout: 20000,
+    });
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("users-pagination-size")).toHaveValue("10", { timeout: 20000 });
   });
 });

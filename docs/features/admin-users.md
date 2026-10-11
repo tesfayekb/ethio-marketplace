@@ -131,3 +131,11 @@ re-anchored to the step-up world with the shared `enrollAndStepUp` /
 | Delete user             | registered later — GDPR flow + a U2 permission |
 | Impersonation           | registered later — U3, with guardrails         |
 | Bulk actions            | registered later — on need                     |
+
+## Bundle 11, group 2, turn G2a — the Users list on the agreed blocks (D118, D128, D132)
+
+- **The header** (`TableActions`, `users-header`): the page's heading, "Users"; the page has no header action (accounts are opened by their owners and changed on their own page).
+- **The toolbar** (`TableToolbar`, `users-toolbar`): search (`users-search`), Filters (`users-filters`) with the status (`users-status-filter`: All, Active, Deactivated) and the role (`users-role-filter`: All, then every role, labelled by its display name) as pills, and Columns (`users-columns`; the name locked; remembered in this browser under `ethio:table-columns:admin-users`); the active filters as chips under it (`users-chips`). The role stays in the URL (INC-073): a deep link and a pill are the same state, and the URL's role is a pill before the roster loads (INC-106).
+- **One card per user below lg**: the name, the email under it, Country, Roles (only when the user has one) and Joined as facts, the status pill at the end. The whole row opens the user's page; the row carries no action buttons.
+- **The footer** (`users-pagination`): the range, rows per page (10, 25, 50, 100, kept in this browser) and the pages; the server still pages the roster (`admin_list_users`, limit and offset).
+- Tests: AU-13 (new — the heading, the toolbar's order, the pills, the locked name, the page size kept across a reload); AU-2 (the status chosen by its pill).

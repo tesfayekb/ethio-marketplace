@@ -130,3 +130,11 @@ permitted), plus read-backs on the reserved count and both functions' grants.
 
 E2E: `RP-11` (locked row + RPC refusal + Amharic note) and `RP-12` (baseline
 badge without a toggle; an ordinary row still toggles).
+
+## Bundle 11, group 2, turn G2a — the Roles list on the agreed blocks (D118, D128, D132)
+
+- **The header** (`TableActions`, `role-header`): the page's heading, "Roles & Permissions", and Create role (`role-create-open`, `roles:create`) as its one action — it opens the create form under the header and closes it again (the old card that held only the button is gone); the page's line (`role-subtitle`) under it.
+- **The toolbar** (`role-toolbar`): Columns only (`role-columns`; the key locked) — a short roster, so no search and no filter.
+- **One card per role below lg**: the key, the display name under it, Members and Permissions as facts, the kind pill (System or Custom) at the end.
+- **The row's three-dots** (`role-actions-<name>`): View members (`-more-members`) opens the Users list with the role chosen (INC-073). The whole row opens the role's page, where its permissions are changed and a custom role is deleted (RP-9).
+- Tests: RP-16 (new — the heading and the line, Create role opening and closing the form, the locked key, View members); RP-10 reads the chosen role from the Users list's pill and chip, and the count from the footer's range.
