@@ -41,6 +41,9 @@ export const ADMIN_GROUPS = {
     titleKey: "admin.nav.group.locations",
     path: "/admin/locations",
   },
+  // Bundle 11, the Listings console, L2 (D134) — All listings and the Screening
+  // queue under one group, as Catalog holds Categories; no page of its own.
+  listings: { id: "listings", titleKey: "admin.nav.group.listings" },
 } as const satisfies Record<
   string,
   { readonly id: string; readonly titleKey: MessageKey; readonly path?: string }
@@ -49,6 +52,22 @@ export const ADMIN_GROUPS = {
 export type AdminGroupId = keyof typeof ADMIN_GROUPS;
 
 export const ADMIN_SECTIONS = [
+  {
+    id: "listings",
+    path: "/admin/listings",
+    permission: "listings:view",
+    titleKey: "admin.section.listings.title",
+    bodyKey: "admin.section.listings.body",
+    group: "listings",
+  },
+  {
+    id: "screening",
+    path: "/admin/screening",
+    permission: "listings:review",
+    titleKey: "admin.section.screening.title",
+    bodyKey: "admin.section.screening.body",
+    group: "listings",
+  },
   {
     id: "users",
     path: "/admin/users",
@@ -124,13 +143,6 @@ export const ADMIN_SECTIONS = [
     permission: "translations:view",
     titleKey: "admin.section.translations.title",
     bodyKey: "admin.section.translations.body",
-  },
-  {
-    id: "screening",
-    path: "/admin/screening",
-    permission: "listings:review",
-    titleKey: "admin.section.screening.title",
-    bodyKey: "admin.section.screening.body",
   },
 ] as const satisfies readonly AdminSectionShape[];
 

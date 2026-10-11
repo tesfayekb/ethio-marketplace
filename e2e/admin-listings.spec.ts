@@ -1,5 +1,7 @@
 import { type Page } from "@playwright/test";
 
+import { en } from "../src/i18n/locales/en";
+
 import { expect, test } from "./fixtures";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
@@ -10,7 +12,12 @@ import {
   seedCategoryBranch,
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
-import { useJobSuperAdmin } from "./helpers/ui";
+import {
+  expectNoHorizontalOverflow,
+  gotoReady,
+  signInViaSession,
+  useJobSuperAdmin,
+} from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -375,21 +382,17 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect((await list(page, { p_view: "bogus" })).error).toBe("unknown view");
   });
 
-  test("AL-3 Edit refuses: no permission, a reviewer, no second factor, the admin's own, a draft, a removed listing", async ({
-    page,
-  }) => {
+  /**
+   * Turn L2 (the fast lane on cf7187ab): AL-3 was split in two. With four
+   * pooled accounts, a scratch seller and the super admin's session in one
+   * test it ran past its 60 s budget on the phone project under the matrix's
+   * load (its afterEach then reaped the rows the abandoned body still used).
+   * AL-3 keeps the people who may not edit; AL-12 the super admin's refusals.
+   * Every assertion is kept (G38).
+   */
+  test("AL-3 Edit refuses the person who may not edit: no permission, a reviewer, no second factor", async () => {
     const seller = await scratchSeller();
     const target = await seed(seller, "active");
-    const draft = await seed(seller, "draft");
-    const removed = await seed(seller, "removed");
-    const edit = (id: string, changes: Row, reason = "misleading", note?: string) =>
-      rpcResult(page, "admin_edit_listing", {
-        p_listing_id: id,
-        p_changes: changes,
-        p_reason: reason,
-        ...(note === undefined ? {} : { p_note: note }),
-      });
-
     const editAs = async (person: Awaited<ReturnType<typeof asPerson>>, title: string) =>
       person.rpc("admin_edit_listing", {
         p_listing_id: target.id,
@@ -410,6 +413,27 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect((await editAs(enforcer, "Changed with no factor")).error).toBe(
       "step-up required: no verified factor",
     );
+
+    expect(await auditRows(target.id)).toEqual([]);
+    expect(await noticeRows(target.id)).toEqual([]);
+    expect(await revisionRows(target.id, "edit")).toEqual([]);
+    expect((await listingTruth(target.id))?.["title"]).toBe(target.title);
+  });
+
+  test("AL-12 Edit refuses as the super admin: the admin's own, a draft, a removed listing, a key not editable, a reason without its note", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const target = await seed(seller, "active");
+    const draft = await seed(seller, "draft");
+    const removed = await seed(seller, "removed");
+    const edit = (id: string, changes: Row, reason = "misleading", note?: string) =>
+      rpcResult(page, "admin_edit_listing", {
+        p_listing_id: id,
+        p_changes: changes,
+        p_reason: reason,
+        ...(note === undefined ? {} : { p_note: note }),
+      });
 
     const { user } = await useJobSuperAdmin(page);
     const own = await seed({ ...seller, id: user.id }, "active", { own: true });
@@ -703,5 +727,131 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const other = await asPerson(await leaseUser());
     expect(await other.notices(live.id)).toEqual({ data: [], error: null });
     expect(await noticeRows(live.id)).toHaveLength(1);
+  });
+
+  /**
+   * Turn L2 — the page passes cardUntil="lg": below 1024 px each listing is a
+   * card, from 1024 px a table row. A listing's row at THIS viewport.
+   */
+  const isCardTwin = (page: Page) => (page.viewportSize()?.width ?? 1280) < 1024;
+  const listingRow = (page: Page, id: string) =>
+    page.getByTestId(`listing-row-${id}${isCardTwin(page) ? "-card" : ""}`);
+
+  /**
+   * Bundle 11, turn L2 (D134, D136) — ADMIN › LISTINGS › ALL LISTINGS on the
+   * agreed blocks (D118, D128, D132): the page's heading in the header; the views
+   * above the toolbar, All first; the toolbar's order (search, Filters, Columns);
+   * the seller filter inside Filters, shown as a chip; one row per listing (a card
+   * below md), newest first, a draft never; the views narrow the list; the title
+   * locked in Columns; the footer's range. The list is narrowed to this test's own
+   * seller before any row is read (G28).
+   */
+  test("AL-10 All listings page: the blocks, the views, the seller filter, newest first, drafts never", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const hour = 3_600_000;
+    const live = await seed(seller, "active", {
+      publishedAt: new Date(Date.now() - hour).toISOString(),
+    });
+    const removed = await seed(seller, "removed", {
+      publishedAt: new Date(Date.now() - 2 * hour).toISOString(),
+    });
+    const draft = await seed(seller, "draft");
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("listings-header").getByRole("heading", { level: 1 })).toHaveText(
+      en["admin.section.listings.title"],
+    );
+    await expect(page.getByTestId("listings-view-all")).toHaveAttribute("aria-pressed", "true");
+    const toolbarOrder = await page.getByTestId("listings-toolbar").evaluate((node) =>
+      Array.from(node.querySelectorAll("[data-testid]"))
+        .map((child) => child.getAttribute("data-testid"))
+        .filter((id) =>
+          ["listings-search", "listings-filters", "listings-columns"].includes(id ?? ""),
+        ),
+    );
+    expect(toolbarOrder, "AL-10 the toolbar's order").toEqual([
+      "listings-search",
+      "listings-filters",
+      "listings-columns",
+    ]);
+
+    await page.getByTestId("listings-filters").click();
+    const panel = page.getByTestId("listings-filters-panel");
+    await panel.getByTestId("listings-filter-seller").fill(seller.alias);
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+    await expect(page.getByTestId("listings-chips-chip-seller")).toContainText(seller.alias);
+
+    await expect(listingRow(page, live.id)).toBeVisible({ timeout: 20000 });
+    await expect(listingRow(page, removed.id)).toBeVisible();
+    await expect(page.getByTestId("listings-pagination-range")).toHaveText("1–2 of 2");
+    for (const twin of ["", "-card"]) {
+      await expect(page.getByTestId(`listing-row-${draft.id}${twin}`)).toHaveCount(0);
+    }
+    const suffix = isCardTwin(page) ? "-card" : "";
+    const own = [`listing-row-${live.id}${suffix}`, `listing-row-${removed.id}${suffix}`];
+    const order = await page.evaluate(
+      (wanted: string[]) =>
+        Array.from(document.querySelectorAll("[data-testid^='listing-row-']"))
+          .map((node) => node.getAttribute("data-testid") ?? "")
+          .filter((id) => wanted.includes(id)),
+      own,
+    );
+    expect(order, "AL-10 newest first").toEqual(own);
+    await expect(listingRow(page, live.id).getByTestId(`listing-row-${live.id}-status`)).toHaveText(
+      en["admin.listings.status.active"],
+    );
+    // The super admin holds profiles:view: the seller's e-mail is on the row.
+    await expect(listingRow(page, live.id)).toContainText(seller.email);
+
+    await page.getByTestId("listings-view-live").click();
+    await expect(listingRow(page, removed.id)).toHaveCount(0);
+    await expect(listingRow(page, live.id)).toBeVisible();
+    await page.getByTestId("listings-view-removed").click();
+    await expect(listingRow(page, live.id)).toHaveCount(0);
+    await expect(listingRow(page, removed.id)).toBeVisible();
+    await expect(
+      listingRow(page, removed.id).getByTestId(`listing-row-${removed.id}-status`),
+    ).toHaveText(en["admin.listings.status.removed"]);
+    await expect(page.getByTestId("listings-pagination-range")).toHaveText("1–1 of 1");
+
+    await page.getByTestId("listings-columns").click();
+    await expect(page.getByTestId("listings-columns-title")).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await expectNoHorizontalOverflow(page);
+  });
+
+  /**
+   * Turn L2 — the page read by someone who holds listings:view and nothing else:
+   * the admin menu lets them in, the row names the seller by their public name,
+   * and the e-mail is never on the page (the door decides — F3); the seller
+   * filter's hint offers no e-mail.
+   */
+  test("AL-11 All listings page with listings:view alone: the public name, never the e-mail", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    const viewer = await scratchHolder([["listings", "view"]]);
+
+    await signInViaSession(page, viewer.email, viewer.password);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("listings-search").fill(live.id);
+    await expect(listingRow(page, live.id)).toBeVisible({ timeout: 20000 });
+    await expect(listingRow(page, live.id)).toContainText(seller.alias);
+    await expect(listingRow(page, live.id)).not.toContainText(seller.email);
+    await expect(page.getByTestId("admin-section-listings")).not.toContainText(seller.email);
+
+    await page.getByTestId("listings-filters").click();
+    await expect(
+      page.getByTestId("listings-filters-panel").getByTestId("listings-filter-seller"),
+    ).toHaveAttribute("placeholder", en["admin.listings.filter.sellerPlaceholder"]);
+    await page.keyboard.press("Escape");
+    await expectNoHorizontalOverflow(page);
   });
 });
