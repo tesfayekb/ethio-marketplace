@@ -13,6 +13,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { expectActionsInsideCell } from "./helpers/row-actions";
 import { geometryDump, grantRole, nameFoldPresent, scratchFoldWord } from "./helpers/categories";
 import {
   actionsOf,
@@ -1210,6 +1211,8 @@ test.describe("L2a locations console", () => {
       const key = `${ANCHOR}/${region.slug}/${slug}`;
       await findRow(page, key, slug);
       await expect(editButton(page, key)).toBeVisible();
+      // INC-542 — Edit, Delete and the three-dots stay inside their own cell.
+      await expectActionsInsideCell(actionsOf(page, key));
 
       // The menu carries the verb bar's verbs for this row: a city can hold a
       // sub-city, this one is retired, and it can move and be reordered.

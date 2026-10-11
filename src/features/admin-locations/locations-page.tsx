@@ -1,4 +1,4 @@
-import { ArrowDownUp, Download, MoveRight, Plus, RotateCcw, Upload } from "lucide-react";
+import { ArrowDownUp, Download, MapPin, MoveRight, Plus, RotateCcw, Upload } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
@@ -10,10 +10,9 @@ import {
 } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { RowActions, type RowMoreAction } from "@/components/shell/row-actions";
-import { TableActions } from "@/components/shell/table-actions";
+import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -188,9 +187,12 @@ export function AdminLocationsPage() {
       key: "name",
       header: t("admin.locations.col.name"),
       priority: LOCATION_COLUMN_PRIORITIES.name,
+      card: "title",
       cell: (row) => (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {/* The tree indent: the table's alone (a phone card is not a tree). */}
           <span
+            data-indent=""
             className="min-w-0 break-words font-medium"
             style={{ marginInlineStart: `${row.depth * 12}px` }}
           >
@@ -209,12 +211,14 @@ export function AdminLocationsPage() {
       key: "path",
       header: t("admin.locations.col.path"),
       priority: LOCATION_COLUMN_PRIORITIES.path,
+      card: "sub",
       cell: (row) => <span className="min-w-0 break-words text-sm">{row.path}</span>,
     },
     {
       key: "status",
       header: t("admin.locations.col.status"),
       priority: LOCATION_COLUMN_PRIORITIES.status,
+      card: "badge",
       cell: (row) => (
         <TipBadge
           variant={row.isActive ? "secondary" : "destructive"}
@@ -228,6 +232,7 @@ export function AdminLocationsPage() {
       key: "counts",
       header: t("admin.locations.col.counts"),
       priority: LOCATION_COLUMN_PRIORITIES.counts,
+      card: "meta",
       align: "end",
       cell: (row) => (
         <span
@@ -243,6 +248,7 @@ export function AdminLocationsPage() {
       key: "order",
       header: t("admin.locations.col.order"),
       priority: LOCATION_COLUMN_PRIORITIES.order,
+      card: "foot",
       align: "end",
       cell: (row) => <span className="tabular-nums text-sm">{row.displayOrder}</span>,
     },
@@ -367,54 +373,51 @@ export function AdminLocationsPage() {
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-locations" className="min-w-0 space-y-4">
-          <TableActions testid="location-header">
-            <div data-testid="location-transfer" className="flex flex-wrap items-center gap-2">
-              {/* The scope reads INLINE, before the buttons it governs. */}
-              <span className="text-sm text-muted-foreground" data-testid="location-transfer-scope">
+          <TableActions testid="location-header" title={t("admin.section.places.title")}>
+            <div
+              data-testid="location-transfer"
+              className="flex flex-wrap items-center gap-1.5 md:gap-2"
+            >
+              {/* The scope reads INLINE, before the buttons it governs (a
+                  phone reads it from the market pill under the heading). */}
+              <span
+                className="text-sm text-muted-foreground max-md:sr-only"
+                data-testid="location-transfer-scope"
+              >
                 {country === ""
                   ? `${t("admin.locations.transfer.scopeAll")} ·`
                   : `${t("admin.locations.transfer.scope").replace("{country}", countryName)} ·`}
               </span>
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
+              <TableActionButton
                 title={t("admin.locations.export.locationsHint")}
                 data-testid="location-export-locations"
                 disabled={exporting}
                 onClick={() => void runExport("locations")}
-              >
-                <Download aria-hidden="true" className="size-4" />
-                <span>
-                  {exporting
+                icon={<Download />}
+                label={
+                  exporting
                     ? t("admin.locations.export.busy")
-                    : t("admin.locations.export.locations")}
-                </span>
-              </Button>
+                    : t("admin.locations.export.locations")
+                }
+              />
               {mayImport ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
+                <TableActionButton
                   data-testid="location-import"
                   onClick={() => open({ kind: "import" })}
-                >
-                  <Upload aria-hidden="true" className="size-4" />
-                  <span>{t("admin.locations.import.openPlaces")}</span>
-                </Button>
+                  icon={<Upload />}
+                  label={t("admin.locations.import.openPlaces")}
+                />
               ) : null}
             </div>
             {mayCreate ? (
-              <Button
-                type="button"
-                size="touch"
+              <TableActionButton
+                variant="default"
                 data-testid="location-create-open"
                 disabled={anchorId === ""}
                 onClick={() => open({ kind: "create", parentId: anchorId, fixed: false })}
-              >
-                <Plus aria-hidden="true" className="size-4" />
-                <span>{t("admin.locations.create.open")}</span>
-              </Button>
+                icon={<Plus />}
+                label={t("admin.locations.create.open")}
+              />
             ) : null}
             {exportError ? (
               <p
@@ -434,6 +437,7 @@ export function AdminLocationsPage() {
             rowTestId={(row) => `location-${keyTestId(row.key)}`}
             caption={t("admin.locations.caption")}
             cardUntil="lg"
+            cardLead={() => <MapPin />}
             loading={query.isLoading || countries.isLoading}
             loadingState={<p className="text-sm">{t("admin.locations.loading")}</p>}
             error={query.error ?? countries.error}
@@ -472,7 +476,16 @@ export function AdminLocationsPage() {
                     />
                   }
                   filters={
-                    <FiltersButton testid="location-filters" count={chips.length}>
+                    <FiltersButton
+                      testid="location-filters"
+                      count={chips.length}
+                      resultCount={rows.length}
+                      onClearAll={() => {
+                        setLevel("");
+                        setStatus("");
+                        setPage(0);
+                      }}
+                    >
                       <LocationFilters
                         level={level}
                         onLevel={(value) => {
@@ -533,6 +546,7 @@ export function AdminLocationsPage() {
               </>
             }
             rowActions={rowActions}
+            actionsWidth="w-44"
             page={page}
             pageSize={pageSize}
             pagination={

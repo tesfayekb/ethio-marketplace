@@ -9,7 +9,7 @@ Tokens live in `src/styles.css` in the existing `@theme inline` / `:root` /
 
 | Token                        | Light (hex → oklch)                    | Dark (hex → oklch)                     |
 | ---------------------------- | -------------------------------------- | -------------------------------------- |
-| `--background`               | `#F6F7F9` → `oklch(0.976 0.003 264.5)` | `#14181C` → `oklch(0.207 0.010 248.3)` |
+| `--background`               | `#F3F5F8` → `oklch(0.969 0.005 258.3)` | `#14181C` → `oklch(0.207 0.010 248.3)` |
 | `--card` / `--popover`       | `#FFFFFF` → `oklch(1 0 89.9)`          | `#1A1F24` → `oklch(0.236 0.012 248.3)` |
 | `--foreground`               | `#1E2329` → `oklch(0.254 0.014 253.1)` | `#E6E8EB` → `oklch(0.930 0.005 258.3)` |
 | `--muted-foreground`         | `#686F78` → `oklch(0.539 0.016 254.7)` | `#8A9299` → `oklch(0.656 0.014 244.4)` |
@@ -28,7 +28,7 @@ Tokens live in `src/styles.css` in the existing `@theme inline` / `:root` /
 
 | Pair                          | Light   | Dark    |
 | ----------------------------- | ------- | ------- |
-| foreground / background       | 14.76:1 | 14.53:1 |
+| foreground / background       | 14.48:1 | 14.53:1 |
 | muted-foreground / background | 4.74:1  | 5.65:1  |
 | primary-foreground / primary  | 8.08:1  | 9.23:1  |
 | accent-foreground / accent    | 4.67:1  | 8.34:1  |
@@ -375,3 +375,7 @@ D104: `CutText` is one inline grid holding three overlapping cells: one visible 
 ## Focus ring
 
 Action-control rings show after keyboard input only; `installInputModality` records the last capture-phase pointer or keyboard input as `html[data-input]`, installed after hydration and removed at cleanup. No marker is written before input; text inputs, textareas and native selects are excluded from the pointer-only rule because their ring marks the typing location, and focus restoration itself is unchanged.
+
+## The agreed look (bundle 11 V2; D132)
+
+The operator chose the boards' look for every page (2026-10-11): the page tone **cool grey** (`--background` `#F3F5F8`, was `#F6F7F9`; foreground on it 14.48:1, muted text 7.35:1), the depth **Soft**, pills for every badge. Soft depth is four tokens: `shadow-card` (a hairline and a short soft drop: `0 1px 2px` at 6 % and `0 3px 10px` at 7 %) on cards and the table's card; `shadow-tile` (a hairline and a bottom edge) on every white tile — an outline button, a toolbar icon, the pager's arrows; `shadow-button` (a firmer bottom edge and a drop) on a filled button; `shadow-sheet` (an upward drop) on a bottom sheet. An outline button and a native select are white (`bg-card`), so they read as tiles on the grey page. A badge is a pill (`rounded-full`); `TipBadge`'s tones are drawn soft — a live state green (`success`), a stopping state red (`danger`), a classification grey (`neutral`) — with `data-tone` unchanged. The table blocks are in docs/features/display-primitives.md ("The agreed tables").

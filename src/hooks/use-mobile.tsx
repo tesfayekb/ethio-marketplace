@@ -6,6 +6,11 @@ export function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
 
   React.useEffect(() => {
+    // Bundle 11 V2 — a page without matchMedia (a unit render) reads the width once.
+    if (typeof window.matchMedia !== "function") {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+      return;
+    }
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
     const onChange = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);

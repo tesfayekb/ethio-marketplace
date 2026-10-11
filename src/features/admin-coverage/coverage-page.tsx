@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Layers, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
@@ -9,10 +9,9 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { RowActions } from "@/components/shell/row-actions";
-import { TableActions } from "@/components/shell/table-actions";
+import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -80,6 +79,7 @@ export function AdminCoveragePage() {
       key: "plan",
       header: t("admin.coverage.col.plan"),
       priority: COVERAGE_COLUMN_PRIORITIES.plan,
+      card: "title",
       cell: (row) => (
         <span className="min-w-0 break-words font-medium" data-testid={`coverage-${row.plan}-plan`}>
           {row.plan}
@@ -90,6 +90,7 @@ export function AdminCoveragePage() {
       key: "cities",
       header: t("admin.coverage.col.cities"),
       priority: COVERAGE_COLUMN_PRIORITIES.cities,
+      card: "meta",
       align: "end",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`coverage-${row.plan}-cities`}>
@@ -101,6 +102,7 @@ export function AdminCoveragePage() {
       key: "regions",
       header: t("admin.coverage.col.regions"),
       priority: COVERAGE_COLUMN_PRIORITIES.regions,
+      card: "meta",
       align: "end",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`coverage-${row.plan}-regions`}>
@@ -112,6 +114,7 @@ export function AdminCoveragePage() {
       key: "countries",
       header: t("admin.coverage.col.countries"),
       priority: COVERAGE_COLUMN_PRIORITIES.countries,
+      card: "meta",
       align: "end",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`coverage-${row.plan}-countries`}>
@@ -123,6 +126,7 @@ export function AdminCoveragePage() {
       key: "photos",
       header: t("admin.coverage.col.photos"),
       priority: COVERAGE_COLUMN_PRIORITIES.photos,
+      card: "meta",
       align: "end",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`coverage-${row.plan}-photos`}>
@@ -134,6 +138,7 @@ export function AdminCoveragePage() {
       key: "everywhere",
       header: t("admin.coverage.col.everywhere"),
       priority: COVERAGE_COLUMN_PRIORITIES.everywhere,
+      card: "badge",
       cell: (row) => (
         <TipBadge
           variant="outline"
@@ -153,6 +158,7 @@ export function AdminCoveragePage() {
       key: "updated",
       header: t("admin.coverage.col.updated"),
       priority: COVERAGE_COLUMN_PRIORITIES.updated,
+      card: "foot",
       cell: (row) => (
         <span className="text-sm">{row.updatedAt === "" ? "—" : row.updatedAt.slice(0, 10)}</span>
       ),
@@ -181,17 +187,15 @@ export function AdminCoveragePage() {
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-coverage" className="min-w-0 space-y-4">
-          <TableActions testid="coverage-header">
+          <TableActions testid="coverage-header" title={t("admin.section.coverage.title")}>
             {mayUpdate ? (
-              <Button
-                type="button"
-                size="touch"
+              <TableActionButton
+                variant="default"
                 data-testid="coverage-create-open"
                 onClick={() => open({ kind: "create" })}
-              >
-                <Plus aria-hidden="true" className="size-4" />
-                <span>{t("admin.coverage.create.open")}</span>
-              </Button>
+                icon={<Plus />}
+                label={t("admin.coverage.create.open")}
+              />
             ) : null}
           </TableActions>
 
@@ -202,6 +206,7 @@ export function AdminCoveragePage() {
             rowTestId={(row) => `coverage-${row.plan}`}
             caption={t("admin.coverage.caption")}
             cardUntil="lg"
+            cardLead={() => <Layers />}
             loading={query.isLoading}
             loadingState={<p className="text-sm">{t("admin.coverage.loading")}</p>}
             error={query.error}

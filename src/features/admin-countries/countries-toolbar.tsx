@@ -1,11 +1,14 @@
-import { NativeSelect } from "@/components/ui/native-select";
+import { FilterChoices } from "@/components/shell/filter-choices";
 import { useI18n } from "@/i18n";
 
 /**
  * Bundle 11 B1 (D118) — THE COUNTRIES FILTERS, drawn inside the shared Filters
- * panel: one labelled select per filter. The search box, Columns and the chips
- * are the shared toolbar's (TableToolbar); the page size is the footer's.
- * Nothing here fetches: the one roster in hand is sieved in the browser (G2).
+ * panel. The search box, Columns and the chips are the shared toolbar's
+ * (TableToolbar); the page size is the footer's. Nothing here fetches: the one
+ * roster in hand is sieved in the browser (G2).
+ *
+ * Bundle 11 V2 (INC-543) — each filter is a labelled row of pills, never a
+ * dropdown inside the panel.
  */
 export function CountryFilters({
   status,
@@ -17,19 +20,17 @@ export function CountryFilters({
   const { t } = useI18n();
 
   return (
-    <label className="flex flex-col gap-1 text-sm">
-      <span>{t("admin.countries.filter.status")}</span>
-      <NativeSelect
-        data-testid="country-status-filter"
-        aria-label={t("admin.countries.filter.status")}
-        value={status}
-        onChange={(event) => onStatus(event.target.value)}
-      >
-        <option value="">{t("admin.countries.filter.allStatusesOption")}</option>
-        <option value="open">{t("admin.countries.filter.openOnly")}</option>
-        <option value="closed">{t("admin.countries.filter.closedOnly")}</option>
-      </NativeSelect>
-    </label>
+    <FilterChoices
+      testid="country-status-filter"
+      label={t("admin.countries.filter.status")}
+      value={status}
+      onChange={onStatus}
+      options={[
+        { value: "", label: t("admin.countries.filter.allStatusesOption") },
+        { value: "open", label: t("admin.countries.filter.openOnly") },
+        { value: "closed", label: t("admin.countries.filter.closedOnly") },
+      ]}
+    />
   );
 }
 

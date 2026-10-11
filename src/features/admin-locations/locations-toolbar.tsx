@@ -1,3 +1,4 @@
+import { FilterChoices } from "@/components/shell/filter-choices";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -14,7 +15,8 @@ export const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
  *   market note, so it is never hidden inside Filters. It opens on "All
  *   countries" (L2b-C1).
  * - `LocationFilters` are drawn inside the shared Filters panel: level and
- *   status, each a labelled select. They sieve the roster already in hand, so a
+ *   status, each a labelled row of pills (Bundle 11 V2, INC-543 — never a
+ *   dropdown inside the panel). They sieve the roster already in hand, so a
  *   change costs no request (G2).
  *
  * The search box, Columns and the chips are TableToolbar's; the page size is
@@ -65,35 +67,30 @@ export function LocationFilters({
   const { t } = useI18n();
   return (
     <>
-      <label className="flex flex-col gap-1 text-sm">
-        <span>{t("admin.locations.filter.level")}</span>
-        <NativeSelect
-          data-testid="location-level-filter"
-          aria-label={t("admin.locations.filter.level")}
-          value={level}
-          onChange={(event) => onLevel(event.target.value)}
-        >
-          <option value="">{t("admin.locations.filter.allLevelsOption")}</option>
-          {LOCATION_LEVELS.map((name) => (
-            <option key={name} value={name}>
-              {t(`admin.locations.level.${name}` as MessageKey)}
-            </option>
-          ))}
-        </NativeSelect>
-      </label>
-      <label className="flex flex-col gap-1 text-sm">
-        <span>{t("admin.locations.filter.status")}</span>
-        <NativeSelect
-          data-testid="location-active-filter"
-          aria-label={t("admin.locations.filter.status")}
-          value={status}
-          onChange={(event) => onStatus(event.target.value)}
-        >
-          <option value="">{t("admin.locations.filter.allStatusesOption")}</option>
-          <option value="active">{t("admin.locations.filter.activeOnly")}</option>
-          <option value="retired">{t("admin.locations.filter.retiredOnly")}</option>
-        </NativeSelect>
-      </label>
+      <FilterChoices
+        testid="location-level-filter"
+        label={t("admin.locations.filter.level")}
+        value={level}
+        onChange={onLevel}
+        options={[
+          { value: "", label: t("admin.locations.filter.allLevelsOption") },
+          ...LOCATION_LEVELS.map((name) => ({
+            value: name,
+            label: t(`admin.locations.level.${name}` as MessageKey),
+          })),
+        ]}
+      />
+      <FilterChoices
+        testid="location-active-filter"
+        label={t("admin.locations.filter.status")}
+        value={status}
+        onChange={onStatus}
+        options={[
+          { value: "", label: t("admin.locations.filter.allStatusesOption") },
+          { value: "active", label: t("admin.locations.filter.activeOnly") },
+          { value: "retired", label: t("admin.locations.filter.retiredOnly") },
+        ]}
+      />
     </>
   );
 }

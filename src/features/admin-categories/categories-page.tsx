@@ -2,9 +2,12 @@ import {
   ArrowDown,
   ArrowUp,
   CalendarClock,
+  Check,
   Globe,
   ImageIcon,
+  ImagePlus,
   ListChecks,
+  Plus,
   RotateCcw,
   Share2,
   Trash,
@@ -25,12 +28,13 @@ import {
 import { categoryRowGlyph } from "@/components/shell/category-glyphs";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { RowActions, type RowMoreAction } from "@/components/shell/row-actions";
-import { TableActions } from "@/components/shell/table-actions";
+import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { PageShell } from "@/components/layout/page-shell";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useAdminShell } from "@/features/admin/admin-context";
@@ -426,7 +430,11 @@ export function AdminCategoriesPage() {
     {
       key: "name",
       header: t("admin.categories.col.name"),
+      card: "title",
       priority: ROSTER_COLUMN_PRIORITIES.name,
+      // Bundle 11 B3 (INC-542) — the name keeps a fifth of the table, so the
+      // wider actions column never crushes it to its floor at the tablet band.
+      width: "w-[22%]",
       cell: (row) => {
         // C5i PART B.1 — the row's chosen glyph, rendered before the name in
         // BOTH twins. An unknown/missing icon resolves to Package.
@@ -445,16 +453,21 @@ export function AdminCategoriesPage() {
               className="mt-0.5 size-4 shrink-0 text-muted-foreground"
             />
             <span className="block min-w-0">
-              <span className="block truncate font-medium text-foreground" title={row.nameEn}>
+              {/* D104 (bundle 11 B3) — a cut name keeps its first five characters. */}
+              <span className="flex min-w-0 font-medium text-foreground" title={row.nameEn}>
                 {row.depth > 0 ? (
-                  <span aria-hidden="true" className="text-muted-foreground">
+                  <span
+                    aria-hidden="true"
+                    data-indent=""
+                    className="shrink-0 whitespace-pre text-muted-foreground"
+                  >
                     {"· ".repeat(row.depth)}
                   </span>
                 ) : null}
-                {row.nameEn}
+                <CutText text={row.nameEn} />
               </span>
-              <span className="block truncate text-xs text-muted-foreground" title={row.slug}>
-                {row.slug}
+              <span className="block min-w-0 text-xs text-muted-foreground" title={row.slug}>
+                <CutText text={row.slug} />
               </span>
             </span>
           </span>
@@ -464,6 +477,7 @@ export function AdminCategoriesPage() {
     {
       key: "parent",
       header: t("admin.categories.col.parent"),
+      card: "sub",
       priority: ROSTER_COLUMN_PRIORITIES.parent,
       /**
        * C3c PART D — THE PRIMARY/SECONDARY PARENT CELL. Line 1 is the parent
@@ -502,6 +516,7 @@ export function AdminCategoriesPage() {
     {
       key: "status",
       header: t("admin.categories.col.status"),
+      card: "badge",
       priority: ROSTER_COLUMN_PRIORITIES.status,
       cell: (row) => {
         if (!row.isActive) {
@@ -535,6 +550,7 @@ export function AdminCategoriesPage() {
     {
       key: "flags",
       header: t("admin.categories.col.flags"),
+      card: "badge",
       priority: ROSTER_COLUMN_PRIORITIES.flags,
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
@@ -607,6 +623,7 @@ export function AdminCategoriesPage() {
     {
       key: "order",
       header: t("admin.categories.col.order"),
+      card: "foot",
       // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
       priority: ROSTER_COLUMN_PRIORITIES.order,
       align: "end",
@@ -615,6 +632,7 @@ export function AdminCategoriesPage() {
     {
       key: "listings",
       header: t("admin.categories.col.listings"),
+      card: "meta",
       // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
       priority: ROSTER_COLUMN_PRIORITIES.listings,
       align: "end",
@@ -937,60 +955,49 @@ export function AdminCategoriesPage() {
     <StepUpGate>
       {(guard) => (
         <PageShell width="full" data-testid="admin-section-categories" className="space-y-4">
-          <TableActions testid="category-header">
+          <TableActions testid="category-header" title={t("admin.section.categories.title")}>
             {mayAssets ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
+              <TableActionButton
                 data-testid="category-bulk-generate"
                 /* DEC-032 — the spend cap is stated where it is spent. */
                 title={t("admin.categories.bulk.generateHint")}
                 disabled={bulkBusy}
                 onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
-              >
-                {t("admin.categories.bulk.generateMissing")}
-              </Button>
+                icon={<ImagePlus />}
+                label={t("admin.categories.bulk.generateMissing")}
+              />
             ) : null}
-            <div data-testid="category-transfer" className="flex flex-wrap items-center gap-2">
+            <div
+              data-testid="category-transfer"
+              className="flex flex-wrap items-center gap-1.5 md:gap-2"
+            >
               {/* CAT-IE — export honours the scope; import is gated. */}
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
+              <TableActionButton
                 data-testid="category-export"
                 disabled={exporting}
                 onClick={() => void runExport()}
-              >
-                <Download aria-hidden="true" className="size-4" />
-                <span>
-                  {exporting
-                    ? t("admin.categories.export.busy")
-                    : t("admin.categories.export.open")}
-                </span>
-              </Button>
+                icon={<Download />}
+                label={
+                  exporting ? t("admin.categories.export.busy") : t("admin.categories.export.open")
+                }
+              />
               {mayImport ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
+                <TableActionButton
                   data-testid="category-import"
                   onClick={() => setDialog({ kind: "import" })}
-                >
-                  <Upload aria-hidden="true" className="size-4" />
-                  <span>{t("admin.categories.import.open")}</span>
-                </Button>
+                  icon={<Upload />}
+                  label={t("admin.categories.import.open")}
+                />
               ) : null}
             </div>
             {mayCreate ? (
-              <Button
-                type="button"
-                size="touch"
+              <TableActionButton
+                variant="default"
                 data-testid="category-create-open"
                 onClick={() => setDialog({ kind: "create" })}
-              >
-                {t("admin.categories.create.open")}
-              </Button>
+                icon={<Plus />}
+                label={t("admin.categories.create.open")}
+              />
             ) : null}
           </TableActions>
           {exportError ||
@@ -1108,15 +1115,22 @@ export function AdminCategoriesPage() {
                   />
                 }
                 filters={
-                  <FiltersButton testid="category-filters" count={missingOnly ? 1 : 0}>
+                  <FiltersButton
+                    testid="category-filters"
+                    count={missingOnly ? 1 : 0}
+                    resultCount={filtered.length}
+                    onClearAll={() => setMissingOnly(false)}
+                  >
+                    {/* Bundle 11 V2 — a one-tap pill, the look of every filter choice. */}
                     <Button
                       type="button"
                       variant={missingOnly ? "default" : "outline"}
-                      size="touch"
                       aria-pressed={missingOnly}
                       data-testid="category-missing-filter"
+                      className="h-10 self-start rounded-full px-3.5"
                       onClick={() => setMissingOnly((prev) => !prev)}
                     >
+                      {missingOnly ? <Check aria-hidden="true" /> : null}
                       {t("admin.categories.filter.missingAssets")}
                     </Button>
                   </FiltersButton>
@@ -1166,6 +1180,7 @@ export function AdminCategoriesPage() {
               />
             }
             rowActions={(row) => rowActions(row, guard)}
+            actionsWidth="w-44"
           />
 
           {dialog.kind === "import" ? (

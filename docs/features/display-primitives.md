@@ -255,3 +255,82 @@ likewise. Tests: CO-9 and CT-43 (a dialog from the menu, closed, then the menu
 again); the unit test "a closing menu leaves at once" in
 `src/components/shell/row-actions.test.tsx`. Reproduced locally on the Countries
 page (the menu failed to reopen in 3 of 10 runs before, 0 of 20 after).
+
+### DataTable's actions column fits its icons (bundle 11, turn B3; INC-542)
+
+The table twin's actions column was always `w-24` — room for one 44 px icon.
+RowActions draws two (Edit and the three-dots) or three (Edit, Delete and the
+three-dots), so from md up the icons spilled over the column before them
+(Admin › Countries, Places, Categories since turn B1/B2). `DataTable` takes
+`actionsWidth`: `w-24` (the default, one icon), `w-32` (two), `w-44` (three;
+`w-36` where a mouse draws the icons at 36 px, md and up). Countries passes
+`w-32`; Places and Categories pass `w-44`; Coverage and Screening keep the
+default. Categories' name column keeps 22 % of the table, so the wider column
+never crushes the name at the tablet band. Tests: the unit test "sizes the
+actions column for the icons it holds" in `src/components/shell/data-table.test.tsx`;
+the row's buttons read inside their own cell (`expectActionsInsideCell`,
+e2e/helpers/row-actions.ts) in CO-9, LT-16 and CT-43.
+
+## The agreed tables (bundle 11 V2, 2026-10-11; D132, INC-543)
+
+The operator's phone walk of turns B1 and B2 found the tables cramped on a
+phone, the Filters panel's dropdown impossible to open there (INC-543), and the
+agreed Filament boards not followed (S159). The v2 boards (a Places list on a
+phone, one card per table, the Filters and Columns sheets, a desktop list) were
+approved "as drawn, for all" — Edit and Delete in the
+card's footer, depth Soft, page tone Cool grey (tokens: docs/features/design-foundation.md).
+
+- **One card, from the breakpoint up.** At and above `cardUntil` the toolbar,
+  the selection bar, the table and the footer sit inside ONE card (the frame
+  carries the border and `shadow-card`; the toolbar has a bottom rule, the
+  footer a top rule). Below it the toolbar and the footer sit on the page and
+  every row is its own card; between md and `cardUntil` ("lg"/"xl") the cards
+  are two to a row. The scroller chain (INC-132) is unchanged: frame → body →
+  `data-table` → scroller.
+- **The phone card** (Filament's stacked-on-mobile layout). A column's `card`
+  place decides where it sits: `title` (the first line, one per card), `sub`
+  (the muted line under it), `meta` (a labelled fact — the label above the
+  value — in a grid), `badge` (a pill at the end of the facts line; pills that
+  do not fit move under the facts), `foot` (a labelled note in the footer),
+  `hide` (the table only). Unset, the priority decides as before (detail out;
+  wide only at `xl`), the first column shown is the title and the others are
+  facts. `cardCell` gives the card its own value (null leaves the fact out).
+  `cardLead` draws a tinted 36 px icon tile before the name. A cell's tree
+  indent (`data-indent`) is the table's alone. A cell that draws a group of
+  pills in its own flex span is flattened into the card's pill row.
+- **RowActions splits in the card.** The three-dots sit in the card's top
+  corner; Edit and Delete in its footer, beside the footer notes; each control
+  keeps its one testid, and the whole card is the row's actions region
+  (`<row>-actions`), so a helper finds every control there. Any other actions
+  node sits in the footer as it is. The table twin keeps all three in its
+  actions cell.
+- **The header** (`TableActions` `title`): the page's one heading leads the row;
+  the actions follow at its end and move under it when they do not fit.
+  `TableActionButton` is one header action: a 44 px icon tile on a phone, icon
+  and word from md; its words stay for screen readers and show under the tile
+  while a finger holds it (`PressLabel`: about half a second; that press does
+  nothing else; a short tap acts as before; a mouse never sees it).
+- **The toolbar** (`TableToolbar`): on a phone the scope is a tinted pill on its
+  own line, then the search (a 44 px white box with its magnifier) and the
+  Filters and Columns tiles share one line; from md one row inside the card.
+- **The panels** (`ToolbarPanel`): Filters and Columns open a popover from md
+  and a modal bottom sheet on a phone (a grabber, the panel's name with a 44 px
+  close, the content, its footer). A focus change never closes the sheet
+  (INC-543: the native list opened inside the old popover took the focus and
+  the popover closed under it). Content testid `<testid>-panel` in both forms;
+  Escape closes both. Filters' footer: Clear all and "Show N results" (when the
+  page gives `resultCount`; else "Done"). Columns: one switch per column (the
+  locked one on and greyed), footer Show all and Done.
+- **Filters are pills** (`FilterChoices`, `src/components/shell/filter-choices.tsx`):
+  a labelled row of pills, the chosen one filled with a tick, one tap applies
+  it. Never a dropdown inside a panel. Testids `<testid>-<value>`; the empty
+  value is `<testid>-all`.
+- **The pager on a phone**: the count, the page size and two 44 px arrow tiles
+  on one line (the arrows are icons named "Previous" / "Next"; RTL mirrors
+  them); the page run waits for md, where it joins the arrows into one group.
+- Tests: HS-11 to HS-20 (unit: the card's places, RowActions' split, the one
+  card frame, `cardCell`, the pills, the panel's two forms, the held-finger
+  label, the pager's arrows, the header's heading and Show all, the Filters
+  footer); HS-4 (the pager on a phone) and HS-5 (the filter pills) in
+  e2e/house-style.spec.ts; SC-11 (the screening market pills); the countries
+  and places `chooseFilter` helpers.

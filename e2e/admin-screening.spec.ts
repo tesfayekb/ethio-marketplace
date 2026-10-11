@@ -526,10 +526,11 @@ test.describe("ADMIN SCREENING", () => {
     // INC-537, INC-538 — a filter is proven by a result the unfiltered list
     // cannot give, read once the filtered read has settled: the page keeps the
     // previous rows on screen while a read is retried.
-    const country = page.getByTestId("admin-screening-filter-country");
+    // Bundle 11 V2 (INC-543) — one pill per market, never a dropdown.
+    const country = (code: string) => page.getByTestId(`admin-screening-filter-country-${code}`);
     await page.getByTestId("admin-screening-filters").click();
-    await expect(country.locator('option[value="US"]')).toHaveCount(1);
-    await country.selectOption("US");
+    await expect(country("US")).toHaveCount(1);
+    await country("US").click();
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
     await expect(
@@ -540,7 +541,7 @@ test.describe("ADMIN SCREENING", () => {
     await expect(rowOf(page, ad.id)).toHaveCount(0);
 
     await page.getByTestId("admin-screening-filters").click();
-    await country.selectOption("ET");
+    await country("ET").click();
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("admin-screening-chips-chip-country")).toBeVisible();
     await expect(rowOf(page, ad.id), "SC-11: the ad's own market did not list it").toBeVisible({

@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+import { fillOf, isRedFill } from "./helpers/colors";
 import { awaitGuardedOutcome, gotoReady, stepUpIfPrompted } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import {
@@ -144,6 +145,14 @@ test.describe("Bundle 7 category doors", () => {
       });
       await expect(page.getByTestId(`category-path-primary-${otherPointer.id}`)).toHaveCount(0);
       await expect(page.getByTestId(`category-path-make-primary-${homePointer.id}`)).toHaveCount(0);
+      // Bundle 11 B3 (G29) — Remove path removes at once: its button is red.
+      await expect
+        .poll(
+          async () =>
+            isRedFill(await fillOf(page.getByTestId(`category-path-remove-${otherPointer.id}`))),
+          { message: "CT-39: Remove path is not red" },
+        )
+        .toBe(true);
 
       await page.getByTestId(`category-path-make-primary-${otherPointer.id}`).click();
       await stepUpIfPrompted(page, secret);

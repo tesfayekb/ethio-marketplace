@@ -117,4 +117,37 @@ describe("ColumnsButton, useHiddenColumns and TableToolbar", () => {
     render(<TableActions testid="none">{null}</TableActions>);
     expect(screen.queryByTestId("none")).toBeNull();
   });
+
+  it("HS-19 the header carries the page's one heading; Show all brings back every hidden column (D132)", () => {
+    render(
+      <TableActions testid="hd" title="Places">
+        <button data-testid="hd-new" />
+      </TableActions>,
+    );
+    expect(screen.getByTestId("hd").querySelector("h1")).toHaveTextContent("Places");
+    render(<TableActions testid="hd2" title="Coverage" />);
+    expect(screen.getByTestId("hd2").querySelector("h1")).toHaveTextContent("Coverage");
+
+    const onToggle = vi.fn();
+    render(
+      <ColumnsButton
+        testid="cc"
+        columns={[
+          { key: "title", label: "Title", locked: true },
+          { key: "sent", label: "Sent" },
+          { key: "place", label: "Place" },
+        ]}
+        hidden={["sent", "place"]}
+        onToggle={onToggle}
+      />,
+    );
+    fireEvent.click(screen.getByTestId("cc"));
+    fireEvent.click(screen.getByTestId("cc-all"));
+    expect(onToggle.mock.calls).toEqual([
+      ["sent", true],
+      ["place", true],
+    ]);
+    fireEvent.click(screen.getByTestId("cc-done"));
+    expect(screen.queryByTestId("cc-panel")).toBeNull();
+  });
 });

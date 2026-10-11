@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { DataTable, DataTablePagination, type DataTableColumn } from "./data-table";
+import { RowActions } from "./row-actions";
 
 /**
  * DEC-025 floor for the C7 / INC-130 DataTable contract.
@@ -89,6 +90,17 @@ describe("DataTable C7 contract", () => {
     const table = container.querySelector("table");
     expect(table?.className).toContain("min-w-max");
     expect(table?.className).not.toContain("table-fixed");
+  });
+
+  it("sizes the actions column for the icons it holds: one by default, three on request (INC-542)", () => {
+    const actions = () => <button type="button">act</button>;
+    const { unmount } = renderTable({ rowActions: actions });
+    expect(screen.getByTestId("data-table-col-actions").className).toContain("w-24");
+    unmount();
+    renderTable({ rowActions: actions, actionsWidth: "w-44" });
+    const header = screen.getByTestId("data-table-col-actions").className;
+    expect(header).toContain("w-44");
+    expect(header).not.toContain("w-24");
   });
 
   it("keeps fixed layout when no column declares a min-width", () => {
@@ -234,5 +246,152 @@ describe("DataTablePagination totalLabel", () => {
     expect(screen.getByTestId("data-table-pagination-range").textContent).toBe(
       "1–25 prim.table.of 10,000+",
     );
+  });
+});
+
+/**
+ * Bundle 11 V2 (D132) — the phone card and the one-card frame, as drawn on the
+ * agreed boards: a column's `card` place puts it in the card's title, the line
+ * under it, the labelled facts, the pills or the footer; RowActions splits
+ * into the corner three-dots and the footer's Edit and Delete.
+ */
+type Place = {
+  id: string;
+  name: string;
+  path: string;
+  listings: number;
+  order: number;
+  active: boolean;
+};
+const PLACES: Place[] = [
+  { id: "p1", name: "Adama", path: "Oromia", listings: 14, order: 3, active: true },
+];
+const placeColumns: DataTableColumn<Place>[] = [
+  { key: "name", header: "Name", priority: "primary", card: "title", cell: (r) => r.name },
+  { key: "path", header: "Path", priority: "secondary", card: "sub", cell: (r) => r.path },
+  {
+    key: "status",
+    header: "Status",
+    priority: "primary",
+    card: "badge",
+    cell: (r) => <span data-testid={`pill-${r.id}`}>{r.active ? "Active" : "Retired"}</span>,
+  },
+  {
+    key: "listings",
+    header: "Listings",
+    priority: "detail",
+    card: "meta",
+    cell: (r) => <span data-testid={`listings-${r.id}`}>{r.listings}</span>,
+  },
+  {
+    key: "order",
+    header: "Order",
+    priority: "detail",
+    card: "foot",
+    cell: (r) => <span data-testid={`order-${r.id}`}>{r.order}</span>,
+  },
+  {
+    key: "iso",
+    header: "ISO",
+    priority: "secondary",
+    card: "hide",
+    cell: () => <span data-testid="iso-cell">ET-OR</span>,
+  },
+];
+
+function renderPlaces(props: Partial<React.ComponentProps<typeof DataTable<Place>>> = {}) {
+  return render(
+    <DataTable<Place>
+      columns={placeColumns}
+      rows={PLACES}
+      rowKey={(r) => r.id}
+      rowTestId={(r) => `place-${r.id}`}
+      caption="places"
+      emptyState={<p>empty</p>}
+      {...props}
+    />,
+  );
+}
+
+describe("DataTable V2 card and frame (D132)", () => {
+  it("HS-11 a column's card place decides where the card shows it, the facts and notes labelled", () => {
+    renderPlaces();
+    const card = screen.getByTestId("place-p1-card");
+    expect(card).toHaveTextContent("Adama");
+    expect(card).toHaveTextContent("Oromia");
+    // A detail column with a card place is in the card; its label rides with it.
+    expect(within(card).getByTestId("listings-p1")).toHaveTextContent("14");
+    expect(card).toHaveTextContent("Listings");
+    expect(within(card).getByTestId("pill-p1")).toBeTruthy();
+    // "hide" keeps a column to the table: once there, never in the card.
+    expect(within(card).queryByTestId("iso-cell")).toBeNull();
+    expect(screen.getAllByTestId("iso-cell")).toHaveLength(1);
+    // The footer note sits outside the card body, beside the actions.
+    expect(within(card).queryByTestId("order-p1")).toBeNull();
+    const cards = screen.getByTestId("data-table-cards");
+    expect(within(cards).getByTestId("order-p1").parentElement?.parentElement).toHaveTextContent(
+      "Order",
+    );
+  });
+
+  it("HS-12 RowActions splits in the card: the three-dots in its corner, Edit and Delete in its footer, all inside the row's actions region", () => {
+    renderPlaces({
+      rowActions: (r) => (
+        <RowActions
+          testid={`act-${r.id}`}
+          name={r.name}
+          edit={{ label: "Edit", onSelect: () => {} }}
+          remove={{ label: "Delete", onSelect: () => {}, disabled: true }}
+          more={[{ key: "move", label: "Move", onSelect: () => {} }]}
+        />
+      ),
+    });
+    const region = within(screen.getByTestId("data-table-cards")).getByTestId("place-p1-actions");
+    // One of each control in the card, none twice.
+    expect(within(region).getAllByTestId("act-p1-edit")).toHaveLength(1);
+    expect(within(region).getAllByTestId("act-p1-delete")).toHaveLength(1);
+    expect(within(region).getAllByTestId("act-p1-more")).toHaveLength(1);
+    expect(within(region).getByTestId("act-p1-delete")).toBeDisabled();
+    // The three-dots sits apart from the footer's two doors.
+    const more = within(region).getByTestId("act-p1-more");
+    const edit = within(region).getByTestId("act-p1-edit");
+    expect(more.closest(".absolute")).not.toBeNull();
+    expect(edit.closest(".absolute")).toBeNull();
+    // The table twin keeps all three together in its actions cell.
+    const cell = screen.getByTestId("place-p1-actions-cell");
+    expect(within(cell).getByTestId("act-p1-more")).toBeTruthy();
+    expect(within(cell).getByTestId("act-p1-edit")).toBeTruthy();
+  });
+
+  it("HS-13 from cardUntil up the toolbar, the table and the footer share one card; below it each row is its own card", () => {
+    renderPlaces({
+      cardUntil: "lg",
+      toolbar: <input data-testid="tb" />,
+      pagination: <div data-testid="pager" />,
+    });
+    const frame = screen.getByTestId("data-table").parentElement!.parentElement!;
+    for (const name of ["lg:rounded-lg", "lg:border", "lg:bg-card", "lg:shadow-card"]) {
+      expect(frame.className).toContain(name);
+    }
+    expect(frame.className).not.toContain("md:bg-card");
+    expect(frame.contains(screen.getByTestId("data-table-toolbar"))).toBe(true);
+    expect(frame.contains(screen.getByTestId("pager"))).toBe(true);
+    expect(screen.getByTestId("data-table-toolbar").className).toContain("lg:border-b");
+    expect(screen.getByTestId("pager").parentElement!.className).toContain("lg:border-t");
+    // Below lg the cards stand alone (two to a row from md).
+    const cards = screen.getByTestId("data-table-cards");
+    expect(cards.className).toContain("md:grid-cols-2");
+    const article = within(cards).getByTestId("place-p1-card").closest(".shadow-card");
+    expect(article).not.toBeNull();
+  });
+
+  it("HS-14 a card cell can leave a fact out of the card while the table keeps it", () => {
+    renderPlaces({
+      columns: placeColumns.map((column) =>
+        column.key === "path" ? { ...column, cardCell: () => null } : column,
+      ),
+    });
+    expect(screen.getByTestId("place-p1-card")).not.toHaveTextContent("Oromia");
+    expect(screen.getByTestId("place-p1")).toHaveTextContent("Oromia");
   });
 });

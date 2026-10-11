@@ -594,3 +594,14 @@ This section is the later word on "C2e + UI-FIX-4 — one row verb, one editor",
 - **The delete confirmation is red** (`category-delete-submit`; DialogActions' `danger`; G29).
 - **The footer**: the range, rows per page (`category-pagination-size`: 10, 25, 50, 100, kept in this browser as before) and the page numbers.
 - Tests: CT-11 (Missing assets in Filters with its chip; the footer's page size kept across a reload), CT-13 (the red confirmation), CT-29 (the footer's page size), CT-43 (the row's Edit, Delete off then on, the menu's verbs, a dialog that closes back to the table and a page that still takes a click — INC-539); the images test reaches Missing assets through Filters.
+
+## Bundle 11, turn B3 — cut names and Remove path (D104; G29)
+
+- The roster's category name and slug are cut with `CutText`, so a cut name keeps its first five characters (D104) — turn B2 moved the page onto the blocks and left these two (the cut-names census, docs/governance/briefs/bundle-9-cut-names-census.md, lines for categories-page.tsx).
+- Add pointer's "Remove path" (`category-path-remove-<pointer>`) removes the path at once, so it is drawn red (the destructive-red rule; CT-39 reads its fill).
+
+## Bundle 11 V2 — the agreed phone card (D132)
+
+- The page's heading ("Categories") leads the header row; Generate missing (an image-plus icon), Export, Import and Create category (a plus) are icon tiles on a phone, icon and word from md.
+- The phone card: the name (with its glyph and slug) on top with the three-dots in its corner; the parent line under it (a root reads "—"); Listings as a labelled fact; the state and the flags as pills at the end; Order in the footer beside Edit and Delete. The tree's dots are the table's alone.
+- Missing assets, inside the Filters panel (a bottom sheet on a phone), is a one-tap pill; the panel's footer clears it and closes with the count of rows shown.

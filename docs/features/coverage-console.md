@@ -106,3 +106,7 @@ This section is the later word on the row's pencil above.
 - **The row's actions** (`RowActions`, `coverage-actions-<plan>`): Edit (`-edit`) opens the editor. There is no delete door, so no Delete.
 - **The footer**: the range, rows per page (`coverage-pagination-size`: 10, 25, 50, 100) and the page numbers.
 - Tests: CV-2 (the toolbar, the header, the footer's size, a hidden column and back); CV-3..CV-7 open the editor through the row's Edit.
+
+## Bundle 11 V2 — the agreed phone card (D132)
+
+The page's heading ("Coverage") leads the header row, whose actions are icon tiles on a phone (their words show while a finger holds the tile) and icon and word from md. Below the table's breakpoint each row is its own card: the plan on top, its four limits (cities, regions, countries, photos) as labelled facts, the everywhere pill at the end, Updated in the footer beside Edit; a layers tile leads the card. From the breakpoint up, the toolbar, the table and the footer are one card. The blocks: docs/features/display-primitives.md, "The agreed tables".

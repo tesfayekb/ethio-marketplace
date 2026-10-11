@@ -77,4 +77,16 @@ describe("DataTablePagination", () => {
     });
     expect(onPageSize).toHaveBeenCalledWith(50);
   });
+
+  it("HS-18 the arrows are icon tiles named by their words; the page run waits for md (D132)", () => {
+    pager({ offset: 25, onPage: vi.fn() });
+    const prev = screen.getByTestId("data-table-pagination-prev");
+    const next = screen.getByTestId("data-table-pagination-next");
+    expect(prev).toHaveAccessibleName("prim.table.previous");
+    expect(next).toHaveAccessibleName("prim.table.next");
+    expect(prev.className).toContain("size-11");
+    const run = screen.getByTestId("data-table-pagination-page-1").parentElement!;
+    expect(run.className).toContain("hidden");
+    expect(run.className).toContain("md:flex");
+  });
 });

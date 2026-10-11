@@ -44,4 +44,19 @@ describe("FilterChips and FiltersButton", () => {
     );
     expect(screen.getByTestId("b-count")).toHaveTextContent("2");
   });
+
+  it("HS-20 the panel's footer clears every filter and closes with the result count (D132)", () => {
+    const onClearAll = vi.fn();
+    render(
+      <FiltersButton testid="p" count={1} onClearAll={onClearAll} resultCount={41}>
+        <p data-testid="p-body">body</p>
+      </FiltersButton>,
+    );
+    fireEvent.click(screen.getByTestId("p"));
+    expect(screen.getByTestId("p-done")).toHaveTextContent("prim.table.showResults");
+    fireEvent.click(screen.getByTestId("p-clear"));
+    expect(onClearAll).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByTestId("p-done"));
+    expect(screen.queryByTestId("p-panel")).toBeNull();
+  });
 });
