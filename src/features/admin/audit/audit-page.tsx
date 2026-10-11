@@ -1,24 +1,32 @@
-import { useState } from "react";
+import { History } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { ChartFrame } from "@/components/shell/chart-frame";
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { FilterChoices } from "@/components/shell/filter-choices";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
+import { TableActions } from "@/components/shell/table-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
 import { useI18n } from "@/i18n";
 
 import type { AuditRow } from "./audit-service";
 import { useAuditFacets, useAuditList, useAuditStats } from "./use-audit";
 
-const PAGE_SIZE = 25;
-
-const SELECT_CLASS =
-  "h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground";
+const TABLE_ID = "admin-audit";
+const LOCKED = ["action"];
+const DEFAULT_PAGE_SIZE = 25;
+const PAGE_SIZE_STORAGE_KEY = "ethio.admin.audit.pageSize";
 
 /**
  * U3b (INC-093) — SPARKLINE. A dependency-free 14-day trend drawn inside the
@@ -77,25 +85,44 @@ function DayBars({
  * Gate tier: audit_logs:view (moderator and up). The /admin layout owns the
  * panel gate; each RPC re-checks the permission server-side (law F3), so a
  * user without it sees the section's refusal, never a blank table.
+ *
+ * Bundle 11 G2b (D118, D128, D132) — on the agreed blocks and the agreed look:
+ * the page's heading in the header (no header action: the log is read, never
+ * written here); the figures and the chart under it; the toolbar (search ·
+ * Filters with the action and the entity type as pills and the From and To
+ * dates · Columns, the chips under it); one card per event below md (the
+ * action, the actor under it, Time and Entity as facts, Details in its footer,
+ * the details inside the card when open); the footer's range, page size (kept
+ * in this browser) and pages. The server pages the log (`admin_list_audit`).
  */
 export function AdminAuditPage() {
   const { t, language } = useI18n();
   const [search, setSearch] = useState("");
-  const [action, setAction] = useState("all");
-  const [entityType, setEntityType] = useState("all");
+  const [action, setAction] = useState("");
+  const [entityType, setEntityType] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
+
+  /** Page size is a device setting, read after mount so SSR and hydration agree. */
+  useEffect(() => {
+    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY) ?? "");
+    if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
+      setPageSize(stored);
+    }
+  }, []);
 
   const filters = {
     search,
-    action,
-    entityType,
+    action: action === "" ? "all" : action,
+    entityType: entityType === "" ? "all" : entityType,
     from,
     to,
-    limit: PAGE_SIZE,
-    offset: page * PAGE_SIZE,
+    limit: pageSize,
+    offset: page * pageSize,
   };
   const list = useAuditList(filters);
   const facets = useAuditFacets();
@@ -126,13 +153,19 @@ export function AdminAuditPage() {
   );
 
   const resetPage = () => setPage(0);
+  const setPageSizeKept = (next: number) => {
+    setPageSize(next);
+    setPage(0);
+    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
+  };
 
-  const columns: DataTableColumn<AuditRow>[] = [
+  const allColumns: DataTableColumn<AuditRow>[] = [
     {
       key: "time",
       header: t("admin.audit.col.time"),
       priority: "primary",
       width: "w-[18%]",
+      card: "meta",
       cell: (row) => (
         <span className="block truncate tabular-nums text-muted-foreground">
           {timeFmt.format(new Date(row.createdAt))}
@@ -144,6 +177,7 @@ export function AdminAuditPage() {
       header: t("admin.audit.col.actor"),
       priority: "primary",
       width: "w-[20%]",
+      card: "sub",
       cell: (row) => (
         <span className="block truncate text-foreground" title={row.actorName ?? undefined}>
           {row.actorName ?? t("admin.audit.system")}
@@ -155,6 +189,7 @@ export function AdminAuditPage() {
       header: t("admin.audit.col.action"),
       priority: "primary",
       width: "w-[22%]",
+      card: "title",
       cell: (row) => (
         <span className="block break-all font-medium text-foreground">{row.action}</span>
       ),
@@ -164,6 +199,7 @@ export function AdminAuditPage() {
       header: t("admin.audit.col.entity"),
       priority: "secondary",
       width: "w-[20%]",
+      card: "meta",
       cell: (row) => (
         <span className="block break-all text-muted-foreground">
           {row.entityType}
@@ -176,6 +212,8 @@ export function AdminAuditPage() {
       header: t("admin.audit.col.meta"),
       priority: "detail",
       width: "w-[20%]",
+      // The card's Details opens every pair; the raw line stays in the table.
+      card: "hide",
       cell: (row) => (
         <span className="block truncate text-xs text-muted-foreground">
           {JSON.stringify(row.meta)}
@@ -183,14 +221,53 @@ export function AdminAuditPage() {
       ),
     },
   ];
+  const columns = visibleColumns(allColumns, hidden, LOCKED);
+
+  const chips = [
+    ...(action === ""
+      ? []
+      : [{ key: "action", label: action, onRemove: () => (setAction(""), resetPage()) }]),
+    ...(entityType === ""
+      ? []
+      : [
+          {
+            key: "entity",
+            label: entityType,
+            onRemove: () => (setEntityType(""), resetPage()),
+          },
+        ]),
+    ...(from === ""
+      ? []
+      : [
+          {
+            key: "from",
+            label: `${t("admin.audit.filter.from")} ${from}`,
+            onRemove: () => (setFrom(""), resetPage()),
+          },
+        ]),
+    ...(to === ""
+      ? []
+      : [
+          {
+            key: "to",
+            label: `${t("admin.audit.filter.to")} ${to}`,
+            onRemove: () => (setTo(""), resetPage()),
+          },
+        ]),
+  ];
+  const clearAll = () => {
+    setAction("");
+    setEntityType("");
+    setFrom("");
+    setTo("");
+    resetPage();
+  };
 
   const topAction = stats.data?.topActions[0];
 
   return (
     <div data-testid="admin-audit" className="min-w-0 space-y-4">
-      <h1 className="min-w-0 truncate text-lg font-semibold text-foreground">
-        {t("admin.audit.title")}
-      </h1>
+      <TableActions testid="audit-header" title={t("admin.audit.title")} />
 
       <StatGrid testid="audit-stats">
         <StatCard
@@ -244,84 +321,111 @@ export function AdminAuditPage() {
         {(size) => <DayBars size={size} days={days} labelFor={barLabel} />}
       </ChartFrame>
 
-      <DataTable
+      <DataTable<AuditRow>
         columns={columns}
         rows={rows}
         rowKey={(row) => row.id}
         rowTestId={(row) => `audit-row-${row.id}`}
         caption={t("admin.audit.caption")}
+        cardLead={() => <History />}
         loading={list.isLoading}
         loadingState={<p className="text-sm text-muted-foreground">{t("admin.audit.loading")}</p>}
         error={list.error}
         errorState={<p className="text-sm text-destructive">{t("admin.audit.error")}</p>}
         emptyState={<p className="text-sm text-muted-foreground">{t("admin.audit.empty")}</p>}
         toolbar={
-          <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            <Input
-              data-testid="audit-search"
-              value={search}
-              placeholder={t("admin.audit.filter.actor")}
-              aria-label={t("admin.audit.filter.actor")}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                resetPage();
-              }}
-            />
-            <select
-              data-testid="audit-filter-action"
-              aria-label={t("admin.audit.filter.action")}
-              className={SELECT_CLASS}
-              value={action}
-              onChange={(event) => {
-                setAction(event.target.value);
-                resetPage();
-              }}
-            >
-              <option value="all">{t("admin.audit.filter.all")}</option>
-              {(facets.data?.actions ?? []).map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-            <select
-              data-testid="audit-filter-entity"
-              aria-label={t("admin.audit.filter.entity")}
-              className={SELECT_CLASS}
-              value={entityType}
-              onChange={(event) => {
-                setEntityType(event.target.value);
-                resetPage();
-              }}
-            >
-              <option value="all">{t("admin.audit.filter.all")}</option>
-              {(facets.data?.entityTypes ?? []).map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-            <Input
-              type="date"
-              data-testid="audit-filter-from"
-              aria-label={t("admin.audit.filter.from")}
-              value={from}
-              onChange={(event) => {
-                setFrom(event.target.value);
-                resetPage();
-              }}
-            />
-            <Input
-              type="date"
-              data-testid="audit-filter-to"
-              aria-label={t("admin.audit.filter.to")}
-              value={to}
-              onChange={(event) => {
-                setTo(event.target.value);
-                resetPage();
-              }}
-            />
-          </div>
+          <TableToolbar
+            testid="audit-toolbar"
+            search={
+              <Input
+                data-testid="audit-search"
+                value={search}
+                placeholder={t("admin.audit.filter.actor")}
+                aria-label={t("admin.audit.filter.actor")}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  resetPage();
+                }}
+              />
+            }
+            filters={
+              <FiltersButton
+                testid="audit-filters"
+                count={chips.length}
+                state={`${action}|${entityType}|${from}|${to}`}
+                resultCount={total > 10000 ? undefined : total}
+                onClearAll={clearAll}
+              >
+                <FilterChoices
+                  testid="audit-filter-action"
+                  label={t("admin.audit.filter.action")}
+                  value={action}
+                  onChange={(value) => {
+                    setAction(value);
+                    resetPage();
+                  }}
+                  options={[
+                    { value: "", label: t("admin.audit.filter.all") },
+                    ...(facets.data?.actions ?? []).map((value) => ({ value, label: value })),
+                  ]}
+                />
+                <FilterChoices
+                  testid="audit-filter-entity"
+                  label={t("admin.audit.filter.entity")}
+                  value={entityType}
+                  onChange={(value) => {
+                    setEntityType(value);
+                    resetPage();
+                  }}
+                  options={[
+                    { value: "", label: t("admin.audit.filter.all") },
+                    ...(facets.data?.entityTypes ?? []).map((value) => ({ value, label: value })),
+                  ]}
+                />
+                {/* The dates are typed or picked inside the sheet, which a
+                    focus change never closes (INC-543). */}
+                <div className="grid min-w-0 grid-cols-2 gap-3">
+                  <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-foreground">
+                    {t("admin.audit.filter.from")}
+                    <Input
+                      type="date"
+                      data-testid="audit-filter-from"
+                      value={from}
+                      onChange={(event) => {
+                        setFrom(event.target.value);
+                        resetPage();
+                      }}
+                    />
+                  </label>
+                  <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-foreground">
+                    {t("admin.audit.filter.to")}
+                    <Input
+                      type="date"
+                      data-testid="audit-filter-to"
+                      value={to}
+                      onChange={(event) => {
+                        setTo(event.target.value);
+                        resetPage();
+                      }}
+                    />
+                  </label>
+                </div>
+              </FiltersButton>
+            }
+            columns={
+              <ColumnsButton
+                testid="audit-columns"
+                columns={allColumns.map((column) => ({
+                  key: column.key,
+                  label: String(column.header),
+                  locked: LOCKED.includes(column.key),
+                }))}
+                hidden={hidden}
+                onToggle={toggleColumn}
+              />
+            }
+            chips={<FilterChips testid="audit-chips" chips={chips} onClearAll={clearAll} />}
+          />
         }
         expandedRow={(row) =>
           row.id === expanded ? (
@@ -360,16 +464,19 @@ export function AdminAuditPage() {
         pagination={
           <DataTablePagination
             testid="audit-pagination"
-            offset={page * PAGE_SIZE}
-            pageSize={PAGE_SIZE}
+            offset={page * pageSize}
+            pageSize={pageSize}
             total={total}
             /* INC-129 — admin_list_audit caps the count at 10,001; the raw
                boundary number is never rendered as truth (C7 totalLabel). */
             totalLabel={total > 10000 ? t("admin.audit.total.capped") : undefined}
             onPrevious={() => setPage((current) => Math.max(0, current - 1))}
             onNext={() =>
-              setPage((current) => ((current + 1) * PAGE_SIZE < total ? current + 1 : current))
+              setPage((current) => ((current + 1) * pageSize < total ? current + 1 : current))
             }
+            onPage={setPage}
+            pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
+            onPageSize={setPageSizeKept}
           />
         }
       />

@@ -93,3 +93,12 @@ step-up) gate. Two findings need operator action outside SQL: `pg_trgm` lives in
 `public` (moving it would break the `gin_trgm_ops` indexes whose functions pin
 `search_path = public`; accepted, no move), and leaked-password protection is an
 Auth dashboard toggle on the external `ethio-prod` project.
+
+## Bundle 11, group 2, turn G2b — the log and the impersonation view on the agreed blocks (D118, D128, D132)
+
+- **The header** (`TableActions`, `audit-header`): the page's heading, "Audit & Security"; no header action (the log is read here, never written). The four figures and the 14-day chart stay under it.
+- **The toolbar** (`audit-toolbar`): search (`audit-search`), Filters (`audit-filters`) with the action (`audit-filter-action`) and the entity type (`audit-filter-entity`) as pills — All, then every value the log holds (`admin_audit_facets`) — and the From and To dates (`audit-filter-from`, `audit-filter-to`) inside the sheet, which a focus change never closes (INC-543); Columns (`audit-columns`; the action locked); the chips under it (`audit-chips`, a date chip named "From …" / "To …").
+- **One card per event below md**: the action, the actor under it, Time and Entity as facts; Details in the card's footer opens every pair inside the card (V2c); the raw details line stays in the table only.
+- **The footer** (`audit-pagination`): the range (10,000+ past the cap, INC-129), rows per page (10, 25, 50, 100, kept in this browser under `ethio.admin.audit.pageSize`) and the pages; the server pages the log.
+- **The impersonation view**: the heading ("Viewing as …") with the countdown in its header (`impersonation-header`); the read-only note and End now unchanged; the seller's listings with Columns (`impersonation-listings-columns`, the title locked), one card per listing below md (the title, its status as a soft pill, Price and Created as facts).
+- Tests: AS-3 (new — the heading, the toolbar's order, the pills and the dates in Filters, a date chip, the action locked, the page size kept across a reload); IMP-1 (the header's heading and the listings' Columns).

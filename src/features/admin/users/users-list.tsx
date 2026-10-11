@@ -59,11 +59,14 @@ function RoleChips({ roles }: { roles: string[] }) {
  * the page's heading in the header (TableActions; the page has no header
  * action — accounts are opened by their owners, and changed on their own page);
  * the toolbar (search · Filters with the status and the role as pills · Columns,
- * the chips under it); one card per user below lg (the name, the email under
+ * the chips under it); one card per user below md (the name, the email under
  * it, country, roles and joined as facts, the status pill at the end); the
  * footer's range, page size (kept in this browser) and pages. The whole row
  * opens the user's page, so the row carries no action buttons. The server
  * pages the roster (INC-073: the role lives in the URL).
+ *
+ * G2b — the cards give way to the table at md, as before G2a: the table law
+ * (e2e/shell-table-law.spec.ts) holds this list's table at 768 px.
  */
 export function AdminUsersList() {
   const { t, language } = useI18n();
@@ -244,7 +247,6 @@ export function AdminUsersList() {
           params: { userId: user.userId },
         })}
         caption={t("admin.users.title")}
-        cardUntil="lg"
         cardLead={() => <UserRound />}
         loading={isLoading}
         loadingState={

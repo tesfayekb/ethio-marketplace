@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 381,
+  "scanned": 382,
   "dynamicCallSites": 233,
   "keys": {
     "account.deactivatedBanner": [
@@ -1794,41 +1794,49 @@
       "/admin/places"
     ],
     "admin.locations.filter.activeOnly": [
+      "/admin/audit",
       "/admin/countries",
       "/admin/places",
       "/admin/users"
     ],
     "admin.locations.filter.allCountriesOption": [
+      "/admin/audit",
       "/admin/countries",
       "/admin/places",
       "/admin/users"
     ],
     "admin.locations.filter.allLevelsOption": [
+      "/admin/audit",
       "/admin/countries",
       "/admin/places",
       "/admin/users"
     ],
     "admin.locations.filter.allStatusesOption": [
+      "/admin/audit",
       "/admin/countries",
       "/admin/places",
       "/admin/users"
     ],
     "admin.locations.filter.closedSuffix": [
+      "/admin/audit",
       "/admin/countries",
       "/admin/places",
       "/admin/users"
     ],
     "admin.locations.filter.country": [
+      "/admin/audit",
       "/admin/countries",
       "/admin/places",
       "/admin/users"
     ],
     "admin.locations.filter.level": [
+      "/admin/audit",
       "/admin/countries",
       "/admin/places",
       "/admin/users"
     ],
     "admin.locations.filter.retiredOnly": [
+      "/admin/audit",
       "/admin/countries",
       "/admin/places",
       "/admin/users"
@@ -1837,6 +1845,7 @@
       "/admin/places"
     ],
     "admin.locations.filter.status": [
+      "/admin/audit",
       "/admin/countries",
       "/admin/places",
       "/admin/users"
@@ -3012,9 +3021,11 @@
     ],
     "common.close": [
       "/admin/attributes",
+      "/admin/audit",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4661,6 +4672,7 @@
       "/admin/screening"
     ],
     "prim.table.clearAll": [
+      "/admin/audit",
       "/admin/categories",
       "/admin/countries",
       "/admin/places",
@@ -4670,9 +4682,11 @@
     ],
     "prim.table.columns": [
       "/admin/attributes",
+      "/admin/audit",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -4680,9 +4694,11 @@
     ],
     "prim.table.done": [
       "/admin/attributes",
+      "/admin/audit",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -4690,6 +4706,7 @@
       "/dev/style"
     ],
     "prim.table.filters": [
+      "/admin/audit",
       "/admin/categories",
       "/admin/countries",
       "/admin/places",
@@ -4778,6 +4795,7 @@
       "/dev/style"
     ],
     "prim.table.removeFilter": [
+      "/admin/audit",
       "/admin/categories",
       "/admin/countries",
       "/admin/places",
@@ -4835,15 +4853,18 @@
     ],
     "prim.table.showAll": [
       "/admin/attributes",
+      "/admin/audit",
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/impersonation/$sessionId",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
       "/admin/users"
     ],
     "prim.table.showResults": [
+      "/admin/audit",
       "/admin/categories",
       "/admin/countries",
       "/admin/places",
