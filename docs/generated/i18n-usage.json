@@ -1795,42 +1795,51 @@
     ],
     "admin.locations.filter.activeOnly": [
       "/admin/countries",
-      "/admin/places"
+      "/admin/places",
+      "/admin/users"
     ],
     "admin.locations.filter.allCountriesOption": [
       "/admin/countries",
-      "/admin/places"
+      "/admin/places",
+      "/admin/users"
     ],
     "admin.locations.filter.allLevelsOption": [
       "/admin/countries",
-      "/admin/places"
+      "/admin/places",
+      "/admin/users"
     ],
     "admin.locations.filter.allStatusesOption": [
       "/admin/countries",
-      "/admin/places"
+      "/admin/places",
+      "/admin/users"
     ],
     "admin.locations.filter.closedSuffix": [
       "/admin/countries",
-      "/admin/places"
+      "/admin/places",
+      "/admin/users"
     ],
     "admin.locations.filter.country": [
       "/admin/countries",
-      "/admin/places"
+      "/admin/places",
+      "/admin/users"
     ],
     "admin.locations.filter.level": [
       "/admin/countries",
-      "/admin/places"
+      "/admin/places",
+      "/admin/users"
     ],
     "admin.locations.filter.retiredOnly": [
       "/admin/countries",
-      "/admin/places"
+      "/admin/places",
+      "/admin/users"
     ],
     "admin.locations.filter.search": [
       "/admin/places"
     ],
     "admin.locations.filter.status": [
       "/admin/countries",
-      "/admin/places"
+      "/admin/places",
+      "/admin/users"
     ],
     "admin.locations.import.openPlaces": [
       "/admin/places"
@@ -2029,6 +2038,7 @@
       "/admin/roles/$roleId"
     ],
     "admin.roles.members.view": [
+      "/admin/roles",
       "/admin/roles/$roleId"
     ],
     "admin.roles.meta.description": [
@@ -2760,12 +2770,6 @@
       "/admin/users",
       "/admin/users/$userId"
     ],
-    "admin.users.next": [
-      "/admin/users"
-    ],
-    "admin.users.prev": [
-      "/admin/users"
-    ],
     "admin.users.roleFilter": [
       "/admin/users"
     ],
@@ -2836,9 +2840,6 @@
       "/admin/users"
     ],
     "admin.users.title": [
-      "/admin/users"
-    ],
-    "admin.users.total": [
       "/admin/users"
     ],
     "app.name": [
@@ -3020,6 +3021,7 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
+      "/admin/users",
       "/admin/users/$userId",
       "/dev/style"
     ],
@@ -4663,6 +4665,7 @@
       "/admin/countries",
       "/admin/places",
       "/admin/screening",
+      "/admin/users",
       "/dev/style"
     ],
     "prim.table.columns": [
@@ -4671,7 +4674,9 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/places",
-      "/admin/screening"
+      "/admin/roles",
+      "/admin/screening",
+      "/admin/users"
     ],
     "prim.table.done": [
       "/admin/attributes",
@@ -4679,7 +4684,9 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/places",
+      "/admin/roles",
       "/admin/screening",
+      "/admin/users",
       "/dev/style"
     ],
     "prim.table.filters": [
@@ -4687,6 +4694,7 @@
       "/admin/countries",
       "/admin/places",
       "/admin/screening",
+      "/admin/users",
       "/dev/style"
     ],
     "prim.table.next": [
@@ -4774,6 +4782,7 @@
       "/admin/countries",
       "/admin/places",
       "/admin/screening",
+      "/admin/users",
       "/dev/style"
     ],
     "prim.table.selectAll": [
@@ -4830,13 +4839,16 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/places",
-      "/admin/screening"
+      "/admin/roles",
+      "/admin/screening",
+      "/admin/users"
     ],
     "prim.table.showResults": [
       "/admin/categories",
       "/admin/countries",
       "/admin/places",
       "/admin/screening",
+      "/admin/users",
       "/dev/style"
     ],
     "session.idleWarning": [

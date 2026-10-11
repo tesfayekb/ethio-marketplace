@@ -8,6 +8,7 @@ import {
   useJobSuperAdmin,
   expectNoHorizontalOverflow,
   gotoReady,
+  isMobile,
   roleRow,
   stepUpIfPrompted,
   switchLanguage,
@@ -89,6 +90,21 @@ async function createRoleViaUi(page: Page, secret: string) {
   await stepUpIfPrompted(page, secret);
   await expect(page.getByTestId("role-permissions")).toBeVisible({ timeout: 20000 });
   return name;
+}
+
+/**
+ * Bundle 11 G2a — the Users list's role filter is a row of pills in the Filters
+ * panel and a chip under the toolbar: the URL's role is the chosen pill.
+ */
+async function expectRoleChosen(page: Page, name: string) {
+  await expect(page.getByTestId("users-chips-chip-role")).toBeVisible({ timeout: 20000 });
+  await page.getByTestId("users-filters").click();
+  await expect(page.getByTestId(`users-role-filter-${name}`)).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("users-filters-panel")).toHaveCount(0);
 }
 
 async function roleId(name: string) {
@@ -404,15 +420,15 @@ test.describe("U2 roles console", () => {
     await gotoReady(page, `/admin/roles/${id}`);
     await page.getByTestId("role-members-link").click();
     await expect(page).toHaveURL(new RegExp(`/admin/users\\?role=${name}$`), { timeout: 20000 });
-    await expect(page.getByTestId("users-role-filter")).toHaveValue(name);
+    await expectRoleChosen(page, name);
     await expect(userRow(page, member.id)).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("users-total")).toContainText("1");
+    await expect(page.getByTestId("users-pagination-range")).toHaveText("1–1 of 1");
 
     // A direct deep link behaves identically (INC-073: the URL is the state).
     await gotoReady(page, `/admin/users?role=${name}`);
-    await expect(page.getByTestId("users-role-filter")).toHaveValue(name);
+    await expectRoleChosen(page, name);
     await expect(userRow(page, member.id)).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("users-total")).toContainText("1");
+    await expect(page.getByTestId("users-pagination-range")).toHaveText("1–1 of 1");
   });
 
   test("RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC", async ({
@@ -483,5 +499,41 @@ test.describe("U2 roles console", () => {
       am["admin.roles.perm.baselineBadge"],
     );
     await expectNoHorizontalOverflow(page);
+  });
+
+  /**
+   * Bundle 11 G2a (D118, D128, D132) — the Roles list on the agreed blocks: the
+   * page's heading and its line in the header with Create role as its one
+   * action (it opens the form, and opens it closed again); Columns with the key
+   * locked; a role's three-dots holds View members, which opens the Users list
+   * with the role chosen (INC-073).
+   */
+  test("RP-16 the roles list on the agreed blocks: heading, Create role, Columns, View members", async ({
+    page,
+  }) => {
+    const { secret } = await signInAsSuperAdmin(page);
+    const name = await createRoleViaUi(page, secret);
+
+    await gotoReady(page, "/admin/roles");
+    const header = page.getByTestId("role-header");
+    await expect(header.getByRole("heading", { level: 1 })).toHaveText(en["admin.roles.title"]);
+    await expect(page.getByTestId("role-subtitle")).toHaveText(en["admin.roles.subtitle"]);
+    await header.getByTestId("role-create-open").click();
+    await expect(page.getByTestId("role-create-form")).toBeVisible();
+    await header.getByTestId("role-create-open").click();
+    await expect(page.getByTestId("role-create-form")).toHaveCount(0);
+
+    await page.getByTestId("role-columns").click();
+    await expect(page.getByTestId("role-columns-name")).toBeDisabled();
+    await page.keyboard.press("Escape");
+
+    await expect(roleRow(page, name)).toBeVisible({ timeout: 20000 });
+    const actions = page.getByTestId(
+      isMobile(page) ? `role-row-${name}-actions` : `role-row-${name}-actions-cell`,
+    );
+    await actions.getByTestId(`role-actions-${name}-more`).click();
+    await page.getByTestId(`role-actions-${name}-more-members`).click();
+    await expect(page).toHaveURL(new RegExp(`/admin/users\\?role=${name}$`), { timeout: 20000 });
+    await expectRoleChosen(page, name);
   });
 });

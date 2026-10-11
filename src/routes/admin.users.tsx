@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminUsersList } from "@/features/admin/users/users-list";
-import { useI18n } from "@/i18n";
 
 /**
  * U2a / INC-073 law — the role filter lives in the URL, so "View members" on a
@@ -16,16 +15,11 @@ export const Route = createFileRoute("/admin/users")({
   component: AdminUsersPage,
 });
 
+/** Bundle 11 G2a — the page's heading is the list's header (TableActions). */
 function AdminUsersPage() {
-  const { t } = useI18n();
   return (
     <div data-testid="admin-section-users">
-      <h1 className="min-w-0 truncate text-lg font-semibold text-foreground">
-        {t("admin.users.title")}
-      </h1>
-      <div className="mt-4">
-        <AdminUsersList />
-      </div>
+      <AdminUsersList />
     </div>
   );
 }
