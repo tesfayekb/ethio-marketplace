@@ -177,17 +177,24 @@ export function Breadcrumbs() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {/* A group may own a page. On a child route it is a link; on
-                    the group's own page it is the current final segment. */}
+                    the group's own page it is the current final segment.
+                    INC-557 (the operator's walk, 2026-10-11): a group with NO
+                    page of its own (Listings, Catalog) is a plain name, never
+                    the current segment — before, it wore the current look
+                    (bold, underlined, aria-current) beside the real current
+                    page. */}
                 {"path" in group && group.path !== pathname ? (
                   <BreadcrumbLink asChild>
                     <Link to={group.path} data-testid="breadcrumb-admin-group">
                       {t(group.titleKey)}
                     </Link>
                   </BreadcrumbLink>
-                ) : (
+                ) : "path" in group ? (
                   <BreadcrumbPage data-testid="breadcrumb-admin-group" className={CURRENT}>
                     {t(group.titleKey)}
                   </BreadcrumbPage>
+                ) : (
+                  <span data-testid="breadcrumb-admin-group">{t(group.titleKey)}</span>
                 )}
               </BreadcrumbItem>
             </>

@@ -386,6 +386,8 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                     variant="outline"
                     size="touch"
                     data-testid="listing-edit"
+                    // INC-558 — the form opens on a fresh read, never while the page is re-reading.
+                    disabled={query.isFetching}
                     onClick={() => {
                       setNotice(null);
                       setEditRefusals([]);
