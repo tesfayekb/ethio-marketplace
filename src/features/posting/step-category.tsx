@@ -127,6 +127,7 @@ export function StepCategory({
   selectedId = null,
   term,
   onTerm,
+  showRecent = true,
 }: {
   tree: CategoryTree;
   isLoading: boolean;
@@ -149,6 +150,12 @@ export function StepCategory({
   /** INC-277 — the wizard holds the filter term so its Back can clear it. */
   term: string;
   onTerm: (term: string) => void;
+  /**
+   * Bundle 11, turn L4b — the person's own recent categories (bundle 7 D2), read
+   * from their own listings. An admin choosing a category for a seller's
+   * listing passes false: the admin's own recent categories mean nothing there.
+   */
+  showRecent?: boolean;
 }) {
   const { t, entities, language } = useI18n();
   const setTerm = onTerm;
@@ -157,6 +164,7 @@ export function StepCategory({
   // Bundle 7 D2 — asked once on mount; nothing is drawn until it answers ids.
   const [recentIds, setRecentIds] = useState<string[] | null>(null);
   useEffect(() => {
+    if (!showRecent) return;
     let cancelled = false;
     void readRecentCategories().then((ids) => {
       if (!cancelled) setRecentIds(ids);
@@ -164,7 +172,7 @@ export function StepCategory({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showRecent]);
   const chips = recentChips(recentIds, tree);
   const recentRowRef = useRef<HTMLDivElement>(null);
   const recentLabelRef = useRef<HTMLSpanElement>(null);
