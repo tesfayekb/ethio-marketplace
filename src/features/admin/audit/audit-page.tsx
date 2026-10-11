@@ -80,6 +80,17 @@ function DayBars({
 }
 
 /**
+ * Bundle 11 G3b (INC-548) — today in the admin's own calendar, as a date field
+ * writes it (YYYY-MM-DD). The log holds no future events, so no date after it
+ * is offered.
+ */
+function localToday(): string {
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+/**
  * U3 — THE AUDIT & SECURITY PAGE.
  *
  * Gate tier: audit_logs:view (moderator and up). The /admin layout owns the
@@ -153,6 +164,7 @@ export function AdminAuditPage() {
   );
 
   const resetPage = () => setPage(0);
+  const today = localToday();
   const setPageSizeKept = (next: number) => {
     setPageSize(next);
     setPage(0);
@@ -383,7 +395,10 @@ export function AdminAuditPage() {
                   ]}
                 />
                 {/* The dates are typed or picked inside the sheet, which a
-                    focus change never closes (INC-543). */}
+                    focus change never closes (INC-543). INC-548 — From is
+                    never after To or today; To is never before From or after
+                    today: a date outside them is refused and the field keeps
+                    its value. */}
                 <div className="grid min-w-0 grid-cols-2 gap-3">
                   <label className="flex min-w-0 flex-col gap-2 text-sm font-semibold text-foreground">
                     {t("admin.audit.filter.from")}
@@ -391,8 +406,11 @@ export function AdminAuditPage() {
                       type="date"
                       data-testid="audit-filter-from"
                       value={from}
+                      max={to !== "" && to < today ? to : today}
                       onChange={(event) => {
-                        setFrom(event.target.value);
+                        const next = event.target.value;
+                        if (next !== "" && (next > today || (to !== "" && next > to))) return;
+                        setFrom(next);
                         resetPage();
                       }}
                     />
@@ -403,8 +421,12 @@ export function AdminAuditPage() {
                       type="date"
                       data-testid="audit-filter-to"
                       value={to}
+                      min={from !== "" ? from : undefined}
+                      max={today}
                       onChange={(event) => {
-                        setTo(event.target.value);
+                        const next = event.target.value;
+                        if (next !== "" && (next > today || (from !== "" && next < from))) return;
+                        setTo(next);
                         resetPage();
                       }}
                     />

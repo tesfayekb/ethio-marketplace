@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/i18n";
@@ -63,20 +63,26 @@ export function ChartFrame({
   className,
 }: ChartFrameProps) {
   const { t } = useI18n();
-  const plotRef = useRef<HTMLDivElement | null>(null);
+  /**
+   * Bundle 11 G3b (INC-547) — the plot is measured whenever its box appears.
+   * A frame that mounts loading (or empty, or in error) has no plot yet; a
+   * measurement made once at mount found nothing, never ran again, and the
+   * chart stayed blank after the data arrived. The node is held in state (a
+   * callback ref), so the measurement runs when the plot is rendered.
+   */
+  const [plot, setPlot] = useState<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(0);
 
   useEffect(() => {
-    const node = plotRef.current;
-    if (!node) return;
+    if (!plot) return;
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry) setWidth(Math.floor(entry.contentRect.width));
     });
-    observer.observe(node);
-    setWidth(Math.floor(node.getBoundingClientRect().width));
+    observer.observe(plot);
+    setWidth(Math.floor(plot.getBoundingClientRect().width));
     return () => observer.disconnect();
-  }, []);
+  }, [plot]);
 
   const sparkline = variant === "sparkline";
   const height = sparkline
@@ -115,7 +121,7 @@ export function ChartFrame({
   } else {
     body = (
       <div
-        ref={plotRef}
+        ref={setPlot}
         data-testid={`${testid}-plot`}
         className="min-w-0 overflow-hidden"
         style={{ height }}
