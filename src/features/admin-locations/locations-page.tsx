@@ -478,6 +478,7 @@ export function AdminLocationsPage() {
                     <FiltersButton
                       testid="location-filters"
                       count={chips.length}
+                      state={`${level}|${status}`}
                       resultCount={rows.length}
                       onClearAll={() => {
                         setLevel("");

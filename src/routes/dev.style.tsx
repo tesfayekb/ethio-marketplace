@@ -274,6 +274,7 @@ function StyleFixture() {
             <FiltersButton
               testid="style-filters"
               count={chips.length}
+              state={`${colour}|${size}`}
               onClearAll={() => {
                 setColour("");
                 setSize("");

@@ -399,11 +399,14 @@ export function AdminAttributesPage() {
    * PART A — the OPTIONS column shows a count; the full list lives here.
    * DEC-045b PART B — each option renders its LABEL (value as fallback) and a
    * dependent definition is grouped by the parent value it hangs under.
+   * Bundle 11 V2c (the operator's walk) — the line sits inside its row's box in
+   * small text, at most three lines (a model list runs to hundreds of names);
+   * the whole list stays in the page, and Edit shows every option.
    */
   const expandedRow = (row: AttributeRow) =>
     typeHasOptions(row.attrType) && row.options.length > 0 ? (
       <p
-        className="text-sm text-muted-foreground"
+        className="line-clamp-3 break-words text-xs leading-5 text-muted-foreground"
         data-testid={`attribute-optionlist-${row.attrKey}`}
       >
         {`${t("admin.attributes.col.options")}: ${describeOptions(row.options)}`}

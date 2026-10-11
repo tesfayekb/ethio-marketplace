@@ -1120,6 +1120,7 @@ export function AdminCategoriesPage() {
                   <FiltersButton
                     testid="category-filters"
                     count={missingOnly ? 1 : 0}
+                    state={String(missingOnly)}
                     resultCount={filtered.length}
                     onClearAll={() => setMissingOnly(false)}
                   >

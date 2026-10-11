@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ToolbarPanel } from "./toolbar-panel";
@@ -14,6 +15,7 @@ function renderPanel() {
     <ToolbarPanel
       testid="f"
       title="Filters"
+      state="a"
       trigger={<button type="button" data-testid="f" />}
       footer={(close) => (
         <button type="button" data-testid="f-done" onClick={close}>
@@ -51,5 +53,45 @@ describe("ToolbarPanel", () => {
     expect(screen.queryByTestId("f-close")).toBeNull();
     fireEvent.keyDown(screen.getByTestId("f-panel"), { key: "Escape" });
     expect(screen.queryByTestId("f-panel")).toBeNull();
+  });
+
+  it("HS-24 the footer's `changed` is true only while the choices differ from those the panel opened with (V2c)", () => {
+    function Harness() {
+      const [choice, setChoice] = useState("all");
+      return (
+        <ToolbarPanel
+          testid="g"
+          title="Filters"
+          state={choice}
+          trigger={<button type="button" data-testid="g" />}
+          footer={(close, changed) => (
+            <button type="button" data-testid="g-done" disabled={!changed} onClick={close}>
+              done
+            </button>
+          )}
+        >
+          <button type="button" data-testid="g-city" onClick={() => setChoice("city")} />
+          <button type="button" data-testid="g-all" onClick={() => setChoice("all")} />
+        </ToolbarPanel>
+      );
+    }
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 360 });
+    render(<Harness />);
+    fireEvent.click(screen.getByTestId("g"));
+    expect(screen.getByTestId("g-done")).toBeDisabled();
+    fireEvent.click(screen.getByTestId("g-city"));
+    expect(screen.getByTestId("g-done")).toBeEnabled();
+    // A choice set back is no change.
+    fireEvent.click(screen.getByTestId("g-all"));
+    expect(screen.getByTestId("g-done")).toBeDisabled();
+    fireEvent.click(screen.getByTestId("g-city"));
+    fireEvent.click(screen.getByTestId("g-done"));
+    expect(screen.queryByTestId("g-panel")).toBeNull();
+    // Opened again, the panel starts from the choices it now has.
+    fireEvent.click(screen.getByTestId("g"));
+    expect(screen.getByTestId("g-done")).toBeDisabled();
+    // The close always closes.
+    fireEvent.click(screen.getByTestId("g-close"));
+    expect(screen.queryByTestId("g-panel")).toBeNull();
   });
 });

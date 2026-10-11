@@ -1,4 +1,5 @@
 import { act, fireEvent, render, renderHook, screen } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ColumnsButton } from "./columns-button";
@@ -118,7 +119,7 @@ describe("ColumnsButton, useHiddenColumns and TableToolbar", () => {
     expect(screen.queryByTestId("none")).toBeNull();
   });
 
-  it("HS-19 the header carries the page's one heading; Show all brings back every hidden column (D132)", () => {
+  it("HS-19 the header carries the page's one heading; Show all brings back every hidden column (D132); Done waits for a change (V2c)", () => {
     render(
       <TableActions testid="hd" title="Places">
         <button data-testid="hd-new" />
@@ -129,24 +130,39 @@ describe("ColumnsButton, useHiddenColumns and TableToolbar", () => {
     expect(screen.getByTestId("hd2").querySelector("h1")).toHaveTextContent("Coverage");
 
     const onToggle = vi.fn();
-    render(
-      <ColumnsButton
-        testid="cc"
-        columns={[
-          { key: "title", label: "Title", locked: true },
-          { key: "sent", label: "Sent" },
-          { key: "place", label: "Place" },
-        ]}
-        hidden={["sent", "place"]}
-        onToggle={onToggle}
-      />,
-    );
+    function Harness() {
+      const [hidden, setHidden] = useState(["sent", "place"]);
+      return (
+        <ColumnsButton
+          testid="cc"
+          columns={[
+            { key: "title", label: "Title", locked: true },
+            { key: "sent", label: "Sent" },
+            { key: "place", label: "Place" },
+          ]}
+          hidden={hidden}
+          onToggle={(key, visible) => {
+            onToggle(key, visible);
+            setHidden((now) => (visible ? now.filter((k) => k !== key) : [...now, key]));
+          }}
+        />
+      );
+    }
+    render(<Harness />);
     fireEvent.click(screen.getByTestId("cc"));
+    expect(screen.getByTestId("cc-done")).toBeDisabled();
+    // A column switched off and on again is no change.
+    fireEvent.click(screen.getByTestId("cc-sent"));
+    expect(screen.getByTestId("cc-done")).toBeEnabled();
+    fireEvent.click(screen.getByTestId("cc-sent"));
+    expect(screen.getByTestId("cc-done")).toBeDisabled();
+    onToggle.mockClear();
     fireEvent.click(screen.getByTestId("cc-all"));
     expect(onToggle.mock.calls).toEqual([
       ["sent", true],
       ["place", true],
     ]);
+    expect(screen.getByTestId("cc-done")).toBeEnabled();
     fireEvent.click(screen.getByTestId("cc-done"));
     expect(screen.queryByTestId("cc-panel")).toBeNull();
   });

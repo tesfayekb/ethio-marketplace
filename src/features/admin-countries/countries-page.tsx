@@ -370,6 +370,7 @@ export function AdminCountriesPage() {
                     <FiltersButton
                       testid="country-filters"
                       count={chips.length}
+                      state={status}
                       resultCount={rows.length}
                       onClearAll={() => {
                         setStatus("");

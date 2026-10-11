@@ -358,3 +358,25 @@ categories". Test: HS-21 in `src/components/shell/data-table.test.tsx`.
 - **A group never shares a section's glyph.** The rail's Catalog group is a
   library (`LibraryBig`); Categories keeps the folder tree
   (src/features/admin/rail-items.ts).
+
+### The Attributes walk's fixes (bundle 11, turn V2c; the operator's walk, 2026-10-11)
+
+- **A row's expansion stays in its row's box** (`expandedRow`). On a phone it
+  sits inside the card, under the facts and above the footer, in the name's
+  column; in the table the row and its expansion are one band — no line
+  between them, the expansion's cell starting at the row's bottom (`pt-0`), the
+  line after the pair. The operator: "option is between the two attributes and
+  may be confusing … place it back in the box it belongs". Every table with an
+  expansion follows (Attributes' options, Strings' and Data scope's editors,
+  Audit's detail). Test: HS-25.
+- **A panel's primary waits for a change (D133).** `ToolbarPanel` takes `state` (the
+  panel's choices as one string), keeps the string it opened with, and hands
+  `footer` a `changed` flag that is true only while the two differ — a choice
+  set back is no change. Columns' "Done" and Filters' "Show N results" / "Done"
+  are enabled only then; the close (×), Escape and a tap outside always close.
+  `FiltersButton` requires `state` (Categories, Countries, Places, Screening
+  and the style page pass their filter values); `ColumnsButton` derives it from
+  the hidden columns. The operator: "done … should be disabled if not changing,
+  and only enabled after a change". The link manager's "Done" in Admin ›
+  Attributes stays enabled: it is that dialog's only finger-sized way out, and
+  every change there is saved as it is made. Tests: HS-24, HS-19, HS-20.
