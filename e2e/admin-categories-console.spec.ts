@@ -24,6 +24,10 @@ import {
   clearRosterSearch,
   findRow,
   action,
+  actionsOf,
+  deleteButton,
+  rowMenu,
+  toggleMissingAssets,
   openEditor,
   grantRole,
   signInAsSuperAdmin,
@@ -688,7 +692,9 @@ test.describe("C2 categories console", () => {
    * CT-11 (C2c) — the missing-assets flag and the device page size. Page size
    * is asserted ACROSS A RELOAD: a selector that forgets is not a setting.
    */
-  test("CT-11 roster controls: missing-assets filter and a device page size", async ({ page }) => {
+  test("CT-11 roster controls: missing-assets filter (in Filters, as a chip) and a device page size (in the footer)", async ({
+    page,
+  }) => {
     bandOnly(page, "any");
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
@@ -698,7 +704,7 @@ test.describe("C2 categories console", () => {
     await anchorRealRow(page, "vehicles");
     await clearRosterSearch(page);
 
-    await page.getByTestId("category-page-size").selectOption("10");
+    await page.getByTestId("category-pagination-size").selectOption("10");
     await expect(page.getByTestId("category-pagination-range")).toContainText("1–10");
     await page.reload();
     await waitForHydration(page);
@@ -709,11 +715,15 @@ test.describe("C2 categories console", () => {
     // The filter narrows to rows the roster itself marks as missing assets;
     // every surviving row must carry the amber flag (DB truth is the icon and
     // image_url columns the RPC reports).
-    await page.getByTestId("category-missing-filter").click();
+    await toggleMissingAssets(page);
+    await expect(page.getByTestId("category-chips-chip-missing")).toBeVisible();
+    await expect(page.getByTestId("category-filters-count")).toHaveText("1");
+    await page.getByTestId("category-filters").click();
     await expect(page.getByTestId("category-missing-filter")).toHaveAttribute(
       "aria-pressed",
       "true",
     );
+    await page.keyboard.press("Escape");
     const rows = surface(page).locator('[data-testid^="category-row-"]');
     const shown = await rows.count();
     if (shown > 0) {
@@ -765,7 +775,7 @@ test.describe("C2 categories console", () => {
     }
 
     // The rendered truth, read one page at a time (J7: assert what rendered).
-    await page.getByTestId("category-page-size").selectOption("100");
+    await page.getByTestId("category-pagination-size").selectOption("100");
     const rendered = new Map<string, string>();
     for (let guardPage = 0; guardPage < 12; guardPage += 1) {
       await expect
@@ -1046,6 +1056,66 @@ test.describe("C2 categories console", () => {
       await destroyCategory(slugB);
       await destroyCategory(slugA);
       await destroyCategory(rootSlug);
+    }
+  });
+
+  /**
+   * CT-43 (bundle 11 B2, DEC-170) — THE ROW'S ACTIONS. Edit; a red Delete, on
+   * only for a retired category (as the verb bar offers it); the three-dots
+   * menu with the editor's other verbs. A dialog opened from the row closes
+   * back to the table, never into the editor, and the page still takes a click
+   * after it (INC-539). A scratch category (J3), retired through DB truth.
+   */
+  test("CT-43 the row's actions: Edit, a red Delete only when retired, the menu's verbs, a dialog that closes back to the table", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    let slug = "";
+    try {
+      slug = await createViaUi(page, secret);
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, slug);
+      await expect(action(page, slug, "edit")).toBeVisible();
+
+      // Active: Delete is off; the menu offers Retire, never Reactivate.
+      await expect(deleteButton(page, slug)).toBeDisabled();
+      await actionsOf(page, slug).getByTestId(`category-actions-${slug}-more`).click();
+      for (const item of ["window", "exclusions", "attributes", "pointer", "retire"]) {
+        await expect(page.getByTestId(`category-actions-${slug}-more-${item}`)).toBeVisible();
+      }
+      await expect(page.getByTestId(`category-actions-${slug}-more-reactivate`)).toHaveCount(0);
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId(`category-actions-${slug}-menu`)).toHaveCount(0);
+
+      // Visibility from the row: its own dialog; Escape returns to the table.
+      await rowMenu(page, slug, "window");
+      await expect(page.getByTestId("category-window-dialog")).toBeVisible({ timeout: 20000 });
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("category-window-dialog")).toHaveCount(0);
+      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
+      // INC-539 — the page still takes a click after a dialog opened from the menu.
+      await page.getByTestId("category-search").click();
+      await actionsOf(page, slug).getByTestId(`category-actions-${slug}-more`).click();
+      await expect(page.getByTestId(`category-actions-${slug}-menu`)).toBeVisible();
+      await page.keyboard.press("Escape");
+
+      // Retired: Delete is on and opens the typed-slug dialog; Cancel returns
+      // to the table and nothing is deleted.
+      const scratch = await readCategory(slug);
+      await adminClient().from("categories").update({ is_active: false }).eq("id", scratch!.id);
+      await page.reload();
+      await waitForHydration(page);
+      await findRow(page, slug);
+      await expect(deleteButton(page, slug)).toBeEnabled({ timeout: 20000 });
+      await deleteButton(page, slug).click();
+      await expect(page.getByTestId("category-delete-dialog")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("category-dialog-cancel").click();
+      await expect(page.getByTestId("category-delete-dialog")).toHaveCount(0);
+      await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0);
+      expect(await readCategory(slug)).toBeTruthy();
+    } finally {
+      if (slug) await destroyCategory(slug);
     }
   });
 });

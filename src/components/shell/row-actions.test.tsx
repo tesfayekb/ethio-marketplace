@@ -74,4 +74,22 @@ describe("RowActions", () => {
     expect(screen.getByTestId("r-menu")).toBeInTheDocument();
     expect(document.body.style.pointerEvents).not.toBe("none");
   });
+
+  it("a closing menu leaves at once (no fade-out), so a dialog it opens never shares the page with it (INC-541)", () => {
+    render(
+      <RowActions
+        testid="r"
+        name="Alpha"
+        more={[{ key: "a", label: "Copy", onSelect: () => {} }]}
+      />,
+    );
+    fireEvent.pointerDown(screen.getByTestId("r-more"), {
+      button: 0,
+      ctrlKey: false,
+      pointerType: "mouse",
+    });
+    // jsdom runs no animation, so the rule itself is read: the closed state
+    // overrides the shared menu's fade-out (src/components/ui/dropdown-menu.tsx).
+    expect(screen.getByTestId("r-menu").className).toContain("data-[state=closed]:animate-none!");
+  });
 });

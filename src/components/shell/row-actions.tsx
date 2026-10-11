@@ -25,6 +25,13 @@ import { cn } from "@/lib/utils";
  * outlives both and the page takes no click after the dialog closes. The
  * dialog alone locks the page; the menu still closes on a choice, on Escape
  * and on a click outside, and gives focus back to the three-dots.
+ *
+ * Bundle 11 B2 (INC-541) — the menu leaves the page at once when it closes:
+ * no fade-out (`data-[state=closed]:animate-none!`). While a closing menu
+ * faded out (about 0.2 s), a dialog opened from it and closed again inside
+ * that time handed focus back to the fading menu, and the menu took the next
+ * press on the three-dots as a click outside itself: the press reopened
+ * nothing. The menu still fades in.
  */
 
 export type RowAction = { label: string; onSelect: () => void; disabled?: boolean };
@@ -113,7 +120,11 @@ export function RowActions({
               </TooltipTrigger>
               <TooltipContent>{moreLabel}</TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align="end" data-testid={`${testid}-menu`}>
+            <DropdownMenuContent
+              align="end"
+              data-testid={`${testid}-menu`}
+              className="data-[state=closed]:animate-none!"
+            >
               {plain.map(item)}
               {danger.length > 0 ? (
                 <>

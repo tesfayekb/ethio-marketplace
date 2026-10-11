@@ -2,6 +2,7 @@ import type { Locator } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+import { fillOf, isRedFill } from "./helpers/colors";
 import { gotoReady, stepUpIfPrompted, switchUser, waitForHydration } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
@@ -181,6 +182,12 @@ import { destroyAttribute } from "./helpers/admin-attributes";
       await openEditor(page, slug);
       await action(page, slug, "delete").click();
       await page.getByTestId("category-delete-slug").fill(`${slug}-wrong`);
+      // Bundle 11 B2 (G29) — the button that confirms the destruction is red.
+      await expect
+        .poll(async () => isRedFill(await fillOf(page.getByTestId("category-delete-submit"))), {
+          message: "CT-13: the delete confirmation is not red",
+        })
+        .toBe(true);
       await page.getByTestId("category-delete-submit").click();
       await expect(page.getByTestId("category-dialog-error")).toBeVisible();
       expect(await readCategory(slug)).toBeTruthy();

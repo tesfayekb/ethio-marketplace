@@ -5,11 +5,18 @@ import type { ReactNode } from "react";
  * every admin list: the page's own actions on one row above the table, at its
  * end — the plain ones (Export, Import) first, the one primary action
  * ("New …") last. A page with no action renders nothing here.
+ *
+ * B2 — a group inside the row (Export and Import travel together) wraps at
+ * the same end as the row, so a phone shows one right-aligned column, never
+ * a left-aligned pair between right-aligned buttons.
  */
 export function TableActions({ testid, children }: { testid: string; children?: ReactNode }) {
   if (children === null || children === undefined || children === false) return null;
   return (
-    <div data-testid={testid} className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+    <div
+      data-testid={testid}
+      className="flex min-w-0 flex-wrap items-center justify-end gap-2 [&>div]:justify-end"
+    >
       {children}
     </div>
   );

@@ -414,6 +414,8 @@ export function AdminAttributesPage() {
       );
     }
     // INC-539 — the menu is not modal: its entries open dialogs, which alone lock the page.
+    // INC-541 — and it leaves at once when it closes (no fade-out), so a dialog opened from
+    // it never shares the page with a closing menu.
     return mayUpdate || mayRestructure ? (
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
@@ -428,7 +430,11 @@ export function AdminAttributesPage() {
             <MoreHorizontal aria-hidden="true" className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" data-testid="attribute-actions-menu">
+        <DropdownMenuContent
+          align="end"
+          data-testid="attribute-actions-menu"
+          className="data-[state=closed]:animate-none!"
+        >
           {mayUpdate ? (
             <DropdownMenuItem
               className="min-h-11"
