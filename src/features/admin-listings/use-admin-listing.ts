@@ -221,6 +221,7 @@ export async function editAdminListing(
   if (error) throw error;
   return editAnswerOf(data);
 }
+
 export function useAdminListing(listingId: string) {
   return useQuery({
     queryKey: [...ADMIN_LISTINGS_KEY, "detail", listingId],
