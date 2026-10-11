@@ -116,3 +116,24 @@ export function useAdminListings(filters: AdminListingFilters) {
     staleTime: 10_000,
   });
 }
+
+/**
+ * Turn L2b (D136 4, D137) — Remove, Restore or Send back one listing through
+ * the door `admin_move_listing` (listings:enforce with a fresh second factor;
+ * the door writes the state revision, the audit row and the seller's notice).
+ * The door's error is thrown as it came, so the step-up guard can read it.
+ */
+export async function moveAdminListing(
+  listingId: string,
+  to: "removed" | "screening",
+  reason: string,
+  note: string,
+): Promise<void> {
+  const { error } = await supabase.rpc("admin_move_listing", {
+    p_listing_id: listingId,
+    p_to: to,
+    p_reason: reason,
+    ...(note.trim() === "" ? {} : { p_note: note.trim() }),
+  });
+  if (error) throw error;
+}

@@ -730,10 +730,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   /**
-   * Turn L2 — the page passes cardUntil="lg": below 1024 px each listing is a
-   * card, from 1024 px a table row. A listing's row at THIS viewport.
+   * Turn L2b — the page passes cardUntil="xl": below 1280 px each listing is a
+   * card, from 1280 px a table row (L2 had lg, 1024 px). A listing's row at THIS
+   * viewport.
    */
-  const isCardTwin = (page: Page) => (page.viewportSize()?.width ?? 1280) < 1024;
+  const isCardTwin = (page: Page) => (page.viewportSize()?.width ?? 1280) < 1280;
   const listingRow = (page: Page, id: string) =>
     page.getByTestId(`listing-row-${id}${isCardTwin(page) ? "-card" : ""}`);
 
@@ -831,12 +832,18 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
    * and the e-mail is never on the page (the door decides — F3); the seller
    * filter's hint offers no e-mail.
    */
-  test("AL-11 All listings page with listings:view alone: the public name, never the e-mail", async ({
+  test("AL-11 All listings page with listings:view and no other listing right: the public name, never the e-mail, no moves", async ({
     page,
   }) => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
-    const viewer = await scratchHolder([["listings", "view"]]);
+    // INC-550 — the admin shell opens only for admin_panel:access (as in
+    // admin-screening.spec.ts); L2's AL-11 held listings:view alone and never
+    // reached the page.
+    const viewer = await scratchHolder([
+      ["admin_panel", "access"],
+      ["listings", "view"],
+    ]);
 
     await signInViaSession(page, viewer.email, viewer.password);
     await gotoReady(page, "/admin/listings");
@@ -846,6 +853,13 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(listingRow(page, live.id)).toContainText(seller.alias);
     await expect(listingRow(page, live.id)).not.toContainText(seller.email);
     await expect(page.getByTestId("admin-section-listings")).not.toContainText(seller.email);
+    // Turn L2b — no move without listings:enforce, and no View as seller without
+    // impersonation:use: no tick-boxes and no row menu.
+    await expect(page.getByTestId(`listing-actions-${live.id}-more`)).toHaveCount(0);
+    await expect(page.getByTestId("data-table-select-all")).toHaveCount(0);
+    for (const tick of ["select", "select-cell"]) {
+      await expect(page.getByTestId(`listing-row-${live.id}-${tick}`)).toHaveCount(0);
+    }
 
     await page.getByTestId("listings-filters").click();
     await expect(
@@ -853,5 +867,187 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     ).toHaveAttribute("placeholder", en["admin.listings.filter.sellerPlaceholder"]);
     await page.keyboard.press("Escape");
     await expectNoHorizontalOverflow(page);
+  });
+
+  /** Turn L2b — a row's three-dots item, in whichever twin the width draws. */
+  async function rowMenu(page: Page, id: string, item: "remove" | "restore" | "send_back") {
+    const actions = page.getByTestId(
+      isCardTwin(page) ? `listing-row-${id}-actions` : `listing-row-${id}-actions-cell`,
+    );
+    await actions.getByTestId(`listing-actions-${id}-more`).click();
+    await page.getByTestId(`listing-actions-${id}-more-${item}`).click();
+  }
+
+  /** Turn L2b — a row's tick-box, in whichever twin the width draws. */
+  const tickOf = (page: Page, id: string) =>
+    page.getByTestId(
+      isCardTwin(page) ? `listing-row-${id}-select` : `listing-row-${id}-select-cell`,
+    );
+
+  /** Turn L2b — the move dialog: a reason, a note when given, the move; the dialog closes. */
+  async function confirmMove(page: Page, reason: string, note?: string) {
+    const dialog = page.getByTestId("listings-move-dialog");
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId(`listings-move-reason-${reason}`).click();
+    if (note !== undefined) await dialog.getByTestId("listings-move-note").fill(note);
+    await dialog.getByTestId("listings-move-confirm").click();
+    await expect(dialog).toHaveCount(0, { timeout: 20000 });
+  }
+
+  const moveAudits = async (listingId: string, action: string) =>
+    (await auditRows(listingId)).filter((row) => row["action"] === action);
+
+  /**
+   * Bundle 11, turn L2b (D136 4, D137) — Remove then Restore from the row's
+   * three-dots, as the super admin: the dialog sends nothing without a reason;
+   * Remove takes the listing to Removed, Restore to Waiting for review (never
+   * straight to live); each move one audit row and one notice to the seller.
+   */
+  test("AL-13 Remove then Restore from the row: a reason first, then Removed, then Waiting for review", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("listings-search").fill(live.id);
+    await expect(listingRow(page, live.id)).toBeVisible({ timeout: 20000 });
+
+    await rowMenu(page, live.id, "remove");
+    const dialog = page.getByTestId("listings-move-dialog");
+    await dialog.getByTestId("listings-move-confirm").click();
+    await expect(dialog.getByTestId("listings-move-problem")).toHaveText(
+      en["admin.listings.move.pickReason"],
+    );
+    await confirmMove(page, "misleading");
+    await expect(page.getByTestId("listings-notice")).toHaveText(
+      en["admin.listings.move.done.remove"].replace("{count}", "1"),
+    );
+    await expect(listingRow(page, live.id).getByTestId(`listing-row-${live.id}-status`)).toHaveText(
+      en["admin.listings.status.removed"],
+      { timeout: 20000 },
+    );
+    expect((await listingTruth(live.id))?.["status"]).toBe("removed");
+    expect(await moveAudits(live.id, "listing.admin_remove")).toHaveLength(1);
+    expect((await moveAudits(live.id, "listing.admin_remove"))[0]?.["meta"]).toMatchObject({
+      from: "active",
+      to: "removed",
+      reason: "misleading",
+    });
+
+    await rowMenu(page, live.id, "restore");
+    await confirmMove(page, "removed_in_error");
+    await expect(listingRow(page, live.id).getByTestId(`listing-row-${live.id}-status`)).toHaveText(
+      en["admin.listings.status.screening"],
+      { timeout: 20000 },
+    );
+    expect((await listingTruth(live.id))?.["status"]).toBe("screening");
+    expect(await moveAudits(live.id, "listing.admin_restore")).toHaveLength(1);
+    expect((await noticeRows(live.id)).map((row) => [row["kind"], row["reason"]])).toEqual(
+      expect.arrayContaining([
+        ["admin_remove", "misleading"],
+        ["admin_restore", "removed_in_error"],
+      ]),
+    );
+    await expectNoHorizontalOverflow(page);
+  });
+
+  /**
+   * Turn L2b — Send back to review with the reason Other: the dialog asks for
+   * the note, and the note reaches the audit row and the seller's notice.
+   */
+  test("AL-14 Send back to review: Other needs a note, and the note reaches the audit and the seller", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    const note = "The price is per day, not per month.";
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("listings-search").fill(live.id);
+    await expect(listingRow(page, live.id)).toBeVisible({ timeout: 20000 });
+
+    await rowMenu(page, live.id, "send_back");
+    const dialog = page.getByTestId("listings-move-dialog");
+    await dialog.getByTestId("listings-move-reason-other").click();
+    await dialog.getByTestId("listings-move-confirm").click();
+    await expect(dialog.getByTestId("listings-move-problem")).toHaveText(
+      en["admin.listings.move.noteRequired"],
+    );
+    await dialog.getByTestId("listings-move-note").fill(note);
+    await dialog.getByTestId("listings-move-confirm").click();
+    await expect(dialog).toHaveCount(0, { timeout: 20000 });
+    await expect(page.getByTestId("listings-notice")).toHaveText(
+      en["admin.listings.move.done.send_back"],
+    );
+    expect((await listingTruth(live.id))?.["status"]).toBe("screening");
+    const audits = await moveAudits(live.id, "listing.admin_send_back");
+    expect(audits).toHaveLength(1);
+    expect(audits[0]?.["meta"]).toMatchObject({ reason: "other", note });
+    expect(await noticeRows(live.id)).toEqual([
+      expect.objectContaining({ kind: "admin_send_back", reason: "other", note }),
+    ]);
+  });
+
+  /**
+   * Turn L2b (D136 4) — tick-boxes: two ticked listings removed with one
+   * dialog, the door called once for each (two audit rows); then, in the
+   * Removed view, both ticked and restored to Waiting for review.
+   */
+  test("AL-15 Tick-boxes: Remove two listings at once, then Restore both from the Removed view", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const first = await seed(seller, "active");
+    const second = await seed(seller, "active");
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("listings-filters").click();
+    await page
+      .getByTestId("listings-filters-panel")
+      .getByTestId("listings-filter-seller")
+      .fill(seller.alias);
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("listings-pagination-range")).toHaveText("1–2 of 2", {
+      timeout: 20000,
+    });
+
+    for (const listing of [first, second]) await tickOf(page, listing.id).click();
+    await expect(page.getByTestId("listings-bulk-restore")).toHaveCount(0);
+    await page.getByTestId("listings-bulk-remove").click();
+    await expect(page.getByTestId("listings-move-dialog")).toContainText(
+      en["admin.listings.move.remove.titleMany"].replace("{count}", "2"),
+    );
+    await confirmMove(page, "duplicate");
+    await expect(page.getByTestId("listings-notice")).toHaveText(
+      en["admin.listings.move.done.remove"].replace("{count}", "2"),
+    );
+    for (const listing of [first, second]) {
+      expect((await listingTruth(listing.id))?.["status"]).toBe("removed");
+      expect(await moveAudits(listing.id, "listing.admin_remove")).toHaveLength(1);
+    }
+
+    await page.getByTestId("listings-view-removed").click();
+    await expect(page.getByTestId("listings-pagination-range")).toHaveText("1–2 of 2", {
+      timeout: 20000,
+    });
+    for (const listing of [first, second]) await tickOf(page, listing.id).click();
+    await expect(page.getByTestId("listings-bulk-remove")).toHaveCount(0);
+    await page.getByTestId("listings-bulk-restore").click();
+    await confirmMove(page, "appeal_accepted");
+    await expect(page.getByTestId("listings-notice")).toHaveText(
+      en["admin.listings.move.done.restore"].replace("{count}", "2"),
+    );
+    for (const listing of [first, second]) {
+      expect((await listingTruth(listing.id))?.["status"]).toBe("screening");
+      expect(await moveAudits(listing.id, "listing.admin_restore")).toHaveLength(1);
+    }
+    await expect(page.getByTestId("listings-empty")).toBeVisible({ timeout: 20000 });
   });
 });

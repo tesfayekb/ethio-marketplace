@@ -1018,7 +1018,11 @@ test.describe("L2a locations console", () => {
     const values = await select
       .locator("option")
       .evaluateAll((nodes) => nodes.map((node) => (node as HTMLOptionElement).value));
-    const other = (await openMarketCodes()).find((code) => code !== "ET" && values.includes(code));
+    // INC-551 (G29) — a real market only: a scratch market can be reaped between
+    // this read and the selection.
+    const other = (await openMarketCodes({ realOnly: true })).find(
+      (code) => code !== "ET" && values.includes(code),
+    );
     expect(
       other,
       `no second OPEN market to switch to; the select offered ${values.join(", ")}`,

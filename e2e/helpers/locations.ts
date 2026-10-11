@@ -2,7 +2,7 @@ import { type Locator, type Page } from "@playwright/test";
 
 import { expect } from "../fixtures";
 import { assertNoStringifiedLeak, settled } from "./ui";
-import { readAnchor, scratchCountryCode, seedCountry } from "./countries";
+import { isUserAssigned, readAnchor, scratchCountryCode, seedCountry } from "./countries";
 import { adminClient } from "./users";
 import { chunkByLength } from "./chunk-by-length";
 
@@ -199,13 +199,18 @@ export async function activeRosterSpan(): Promise<{ total: number; countries: st
  * "a different market" can be the SELECTED one. The set is therefore read through
  * the service client and a market is chosen by VALUE.
  */
-export async function openMarketCodes(): Promise<string[]> {
+export async function openMarketCodes(options: { realOnly?: boolean } = {}): Promise<string[]> {
   const { data, error } = await adminClient()
     .from("countries")
     .select("code")
     .eq("is_active", true);
   if (error) throw new Error(`[e2e:l2a] reading the open markets failed: ${error.message}`);
-  return (data ?? []).map((row) => row.code).sort();
+  const codes = (data ?? []).map((row) => row.code).sort();
+  // INC-551 — `realOnly` leaves out other tests' scratch markets (user-assigned
+  // codes): one is open only for a moment, may have no anchor yet and is reaped
+  // by its own test, so a test that needs "another market" for its whole run
+  // picks a real one (G28: never a row another test's fixture can crowd).
+  return options.realOnly === true ? codes.filter((code) => !isUserAssigned(code)) : codes;
 }
 
 /** DB truth (J4): the scratch location row read through the service client. */
