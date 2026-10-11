@@ -47,6 +47,9 @@ export interface ScreeningRow {
   pricePeriod: string | null;
   priceBp: number | null;
   priceNegotiable: boolean;
+  /** INC-553 — the price's unit (a token, or `other` with the seller's own word). */
+  priceUnit: string | null;
+  priceUnitText: string | null;
   attributes: Record<string, unknown>;
   photosSoon: boolean;
   updatedAt: string;
@@ -69,7 +72,7 @@ export async function listScreening(
   let query = supabase
     .from("listings")
     .select(
-      "id,title,description,category_id,location_id,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,attributes,photos_soon,updated_at,category:categories(name_en,name_am),place:locations(name_en,name_am)",
+      "id,title,description,category_id,location_id,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,price_unit,price_unit_text,attributes,photos_soon,updated_at,category:categories(name_en,name_am),place:locations(name_en,name_am)",
       { count: "exact" },
     )
     .eq("status", "screening");
@@ -99,6 +102,8 @@ export async function listScreening(
     pricePeriod: row.price_period,
     priceBp: typeof row.price_bp === "number" ? row.price_bp : null,
     priceNegotiable: row.price_negotiable,
+    priceUnit: row.price_unit,
+    priceUnitText: row.price_unit_text,
     attributes:
       row.attributes !== null && typeof row.attributes === "object"
         ? (row.attributes as Record<string, unknown>)

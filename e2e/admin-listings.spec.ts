@@ -1208,6 +1208,8 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       en["admin.listings.history.by.staff"],
     );
     await expect(page.getByTestId("listing-move-restore")).toBeVisible();
+    // Turn L4a — a removed listing is not edited (the door's rule): no Edit.
+    await expect(page.getByTestId("listing-edit")).toHaveCount(0);
     expect((await listingTruth(live.id))?.["status"]).toBe("removed");
 
     await page.getByTestId("listing-buyer-view").click();
@@ -1255,7 +1257,12 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listing-fact-seller")).toContainText(seller.alias);
     await expect(page.getByTestId("admin-listing-detail")).not.toContainText(seller.email);
     await expect(page.getByTestId("listing-open-seller")).toHaveCount(0);
-    for (const control of ["listing-move-remove", "listing-move-send_back", "listing-view-as"]) {
+    for (const control of [
+      "listing-edit",
+      "listing-move-remove",
+      "listing-move-send_back",
+      "listing-view-as",
+    ]) {
       await expect(page.getByTestId(control)).toHaveCount(0);
     }
     await expect(page.getByTestId("listing-buyer-view")).toBeVisible();
@@ -1269,5 +1276,197 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       en["admin.listings.detail.notFound"],
       { timeout: 20000 },
     );
+  });
+
+  /**
+   * Turn L4a — INC-552 (DEC-173): an admin's edit is judged by the seller's
+   * content rules for what an admin can change, never by the seller's own end
+   * date or places. Red against the door of 20261011085637 (posterExpiryTooSoon,
+   * then unknownPlace); the seller's rules still refuse a phone number.
+   */
+  test("AL-19 Edit is judged on what an admin can change: the seller's end date within a day and a switched-off place do not block it", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const soon = await seed(seller, "active");
+    const placed = await seed(seller, "active");
+    const ends = await adminClient()
+      .from("listings")
+      .update({ poster_expires_at: new Date(Date.now() + 2 * 3600 * 1000).toISOString() })
+      .eq("id", soon.id);
+    if (ends.error) throw new Error(`[e2e:al] end date failed: ${ends.error.message}`);
+
+    await useJobSuperAdmin(page);
+    const title = `Corrected listing ${token()}`;
+    const first = await rpcResult(page, "admin_edit_listing", {
+      p_listing_id: soon.id,
+      p_changes: { title },
+      p_reason: "misleading",
+    });
+    expect(first.error).toBeNull();
+    expect(first.data).toEqual({ ok: true, status: "active", fields: ["title"] });
+
+    // The listing's only place is switched off (this test's own scratch city).
+    const off = await adminClient()
+      .from("locations")
+      .update({ is_active: false })
+      .eq("id", seller.cityId);
+    if (off.error) throw new Error(`[e2e:al] switching the place off failed: ${off.error.message}`);
+    const second = await rpcResult(page, "admin_edit_listing", {
+      p_listing_id: placed.id,
+      p_changes: { description: "Corrected by the console" },
+      p_reason: "rules",
+    });
+    expect(second.error).toBeNull();
+    expect(second.data).toEqual({ ok: true, status: "active", fields: ["description"] });
+
+    // The seller's content rules still judge what the admin changes.
+    const third = await rpcResult(page, "admin_edit_listing", {
+      p_listing_id: soon.id,
+      p_changes: { title: "Call me on 0911 223 344" },
+      p_reason: "misleading",
+    });
+    expect(third.error).toBeNull();
+    expect((third.data as { ok: boolean; refusals: Row[] }).refusals).toContainEqual({
+      field: "title",
+      reason: "contactInText",
+    });
+    expect(await listingTruth(soon.id)).toMatchObject({ status: "active", title });
+    expect(await noticeRows(soon.id)).toHaveLength(1);
+  });
+
+  /**
+   * Turn L4a (D140) — Edit on the listing's page: the title and the price, a
+   * reason first, a note; the seller is told; the history's newest line names
+   * what changed. INC-553 — a price prints with its unit on the page and in All
+   * listings ("per bag": the seller's own word), as the card does.
+   */
+  test("AL-20 Edit on the listing's page: the title and the price with a reason and a note; the seller is told; a price prints with its unit", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    const unit = await adminClient()
+      .from("listings")
+      .update({ price_unit: "other", price_unit_text: "bag" })
+      .eq("id", live.id);
+    if (unit.error) throw new Error(`[e2e:al] unit failed: ${unit.error.message}`);
+    const perBag = en["post.review.pricePer"]
+      .replace("{amount}", "100")
+      .replace("{currency}", "ETB")
+      .replace("{basis}", "bag");
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("listings-search").fill(live.id);
+    await expect(listingRow(page, live.id)).toContainText(perBag, { timeout: 20000 });
+    await listingRow(page, live.id).getByTestId(`listing-row-${live.id}-open`).click();
+    await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
+    await expect(page.getByTestId("listing-fact-price")).toContainText(perBag);
+
+    await page.getByTestId("listing-edit").click();
+    const form = page.getByTestId("listing-edit-form");
+    await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("listing-details")).toHaveCount(0);
+    await expectNoHorizontalOverflow(page);
+
+    const title = `Corrected listing ${token()}`;
+    const note = "The title named the wrong model.";
+    await form.getByTestId("listing-edit-title").fill(title);
+    await form.getByTestId("post-price-amount").fill("120");
+    // A reason first.
+    await form.getByTestId("listing-edit-save").click();
+    await expect(form.getByTestId("listing-edit-problem")).toHaveText(
+      en["admin.listings.move.pickReason"],
+    );
+    await form.getByTestId("listing-edit-reason-misleading").click();
+    await form.getByTestId("listing-edit-note").fill(note);
+    await form.getByTestId("listing-edit-save").click();
+
+    await expect(page.getByTestId("listing-notice")).toHaveText(
+      en["admin.listings.edit.done"].replace(
+        "{fields}",
+        `${en["admin.listings.col.price"]}, ${en["admin.listings.col.title"]}`,
+      ),
+      { timeout: 20000 },
+    );
+    await expect(page.getByTestId("listing-edit")).toBeVisible();
+    await expect(page.getByTestId("listing-title")).toHaveText(title, { timeout: 20000 });
+    await expect(page.getByTestId("listing-fact-price").locator("dd")).toHaveText("120 ETB");
+    const newest = page.getByTestId("listing-history-entry-0");
+    await expect(newest.getByTestId("listing-history-what")).toHaveText(
+      en["admin.listings.history.edited"].replace(
+        "{fields}",
+        `${en["admin.listings.col.title"]}, ${en["admin.listings.col.price"]}`,
+      ),
+    );
+    await expect(newest.getByTestId("listing-history-reason")).toHaveText(
+      en["admin.listings.history.reason"].replace(
+        "{reason}",
+        en["admin.listings.reason.misleading"],
+      ),
+    );
+    await expect(newest.getByTestId("listing-history-note")).toHaveText(
+      en["admin.listings.history.note"].replace("{note}", note),
+    );
+
+    expect(await noticeRows(live.id)).toEqual([
+      {
+        seller_id: seller.id,
+        kind: "admin_edit",
+        fields: ["price", "title"],
+        reason: "misleading",
+        note,
+      },
+    ]);
+    const { data: stored, error } = await adminClient()
+      .from("listings")
+      .select("status,title,price_amount,price_unit")
+      .eq("id", live.id)
+      .single();
+    if (error) throw new Error(`[e2e:al] listing read failed: ${error.message}`);
+    expect(stored).toMatchObject({ status: "active", title, price_amount: 120, price_unit: null });
+  });
+
+  /**
+   * Turn L4a — the seller's refusal lands under its field and nothing is
+   * written; Cancel closes the form; Save with nothing changed says so and
+   * calls no door.
+   */
+  test("AL-21 Edit: a refusal under its field and nothing written; Cancel; nothing changed says so", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/listings/${live.id}`);
+    await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
+    await page.getByTestId("listing-edit").click();
+    const form = page.getByTestId("listing-edit-form");
+    await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
+
+    // Nothing changed: said here, before any door.
+    await form.getByTestId("listing-edit-save").click();
+    await expect(form.getByTestId("listing-edit-problem")).toHaveText(
+      en["admin.listings.edit.nothing"],
+    );
+
+    await form.getByTestId("listing-edit-title").fill("Call me on 0911 223 344");
+    await form.getByTestId("listing-edit-reason-contact_in_text").click();
+    await form.getByTestId("listing-edit-save").click();
+    await expect(form.getByTestId("listing-edit-title-field")).toContainText(
+      en["post.refusal.contactInText"],
+      { timeout: 20000 },
+    );
+    await expect(form).toBeVisible();
+    expect(await listingTruth(live.id)).toMatchObject({ status: "active", title: live.title });
+    expect(await noticeRows(live.id)).toEqual([]);
+
+    await form.getByTestId("listing-edit-cancel").click();
+    await expect(page.getByTestId("listing-edit")).toBeVisible();
+    await expect(page.getByTestId("listing-details")).toBeVisible();
+    await expect(page.getByTestId("listing-title")).toHaveText(live.title);
   });
 });

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 394,
-  "dynamicCallSites": 260,
+  "scanned": 397,
+  "dynamicCallSites": 268,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1793,6 +1793,9 @@
     "admin.landing.title": [
       "/admin"
     ],
+    "admin.listings.action.edit": [
+      "/admin/listings/$listingId"
+    ],
     "admin.listings.action.open": [
       "/admin/listings"
     ],
@@ -1876,6 +1879,21 @@
       "/admin/listings/$listingId"
     ],
     "admin.listings.detail.severe": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.edit.done": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.edit.hint": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.edit.priceFailed": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.edit.save": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.edit.title": [
       "/admin/listings/$listingId"
     ],
     "admin.listings.empty": [
@@ -3849,42 +3867,52 @@
       "/post/$listingId"
     ],
     "post.assist.action": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.again": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.done": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.exhausted": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.hint": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.historyLabel": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.suggestionNumber": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.triesLeft": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.use": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.working": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -3995,26 +4023,32 @@
       "/post/$listingId"
     ],
     "post.details.count": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.details.descriptionLabel": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.details.descriptionPlaceholder": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.details.titleBuilt": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.details.titleLabel": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.details.titlePlaceholder": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4031,6 +4065,7 @@
       "/post/$listingId"
     ],
     "post.details.why": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4043,6 +4078,7 @@
       "/post/$listingId"
     ],
     "post.field.required": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4051,6 +4087,7 @@
       "/post/$listingId"
     ],
     "post.optional": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4261,94 +4298,117 @@
       "/post/$listingId"
     ],
     "post.price.amountEnter": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountLabel": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountPer": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountShown": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.basisFixed": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.commissionHelp": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.commissionLabel": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencyFailed": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencyLabel": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencyNone": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencySearch": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.group.price": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.modeLabel": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.moreCurrencies": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.negotiableToggle": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.notAllowed": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.periodFixed": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.periodLabel": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleLabel": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleMillion": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleNone": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleThousand": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.price.why": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4385,10 +4445,12 @@
       "/post/$listingId"
     ],
     "post.refusalSummary": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.refusalSummary.elsewhere": [
+      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],

@@ -30,6 +30,8 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
+import { storedUnitNoun } from "@/features/posting/price-line";
+import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
@@ -111,6 +113,7 @@ export function AdminScreeningPage() {
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   // INC-525 — the preview draws the ad's category picture as the card does.
   const { tree } = useCategoryTree();
+  const unitLabels = usePriceUnitLabels(previewRow !== null && previewRow.priceUnit !== null);
 
   const query = useScreeningQueue(page, search, pageSize, { country });
   const photos = useScreeningPhotos(previewRow?.id ?? null);
@@ -589,6 +592,13 @@ export function AdminScreeningPage() {
                   pricePeriod: previewRow.pricePeriod,
                   priceBp: previewRow.priceBp,
                   priceNegotiable: previewRow.priceNegotiable,
+                  // INC-553 — the price prints with its unit, as the card does.
+                  basisLabel: storedUnitNoun(
+                    previewRow.priceUnit,
+                    previewRow.priceUnitText,
+                    unitLabels,
+                    language,
+                  ),
                   attributes: previewRow.attributes,
                   definitions: schema.data?.definitions ?? [],
                   attributeOptions: schema.data?.attributeOptions ?? {},

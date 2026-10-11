@@ -49,6 +49,9 @@ export interface AdminListingRow {
   priceCurrency: string | null;
   pricePeriod: string | null;
   priceBp: number | null;
+  /** INC-553 — the price's unit (a token, or `other` with the seller's own word). */
+  priceUnit: string | null;
+  priceUnitText: string | null;
   photoCount: number;
   createdAt: string;
   publishedAt: string | null;
@@ -99,6 +102,8 @@ export async function listAdminListings(
     priceCurrency: text(row["price_currency"]),
     pricePeriod: text(row["price_period"]),
     priceBp: number(row["price_bp"]),
+    priceUnit: text(row["price_unit"]),
+    priceUnitText: text(row["price_unit_text"]),
     photoCount: number(row["photo_count"]) ?? 0,
     createdAt: String(row["created_at"]),
     publishedAt: text(row["published_at"]),

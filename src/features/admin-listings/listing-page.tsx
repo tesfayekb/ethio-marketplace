@@ -15,14 +15,23 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useAuth } from "@/features/auth/use-auth";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
-import { priceLine } from "@/features/posting/price-line";
+import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
+import type { Refusal } from "@/features/posting/types";
+import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import { changesOf, GROUP_LABEL, groupOf, summarize } from "./history";
+import { ListingEditForm } from "./edit-form";
+import { editErrorKey } from "./edit-listing";
+import { changesOf, GROUP_LABEL, groupOf, summarize, type FieldGroup } from "./history";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
-import { useAdminListing, type AdminListingHistoryEntry } from "./use-admin-listing";
+import {
+  editAdminListing,
+  useAdminListing,
+  type AdminEditAnswer,
+  type AdminListingHistoryEntry,
+} from "./use-admin-listing";
 import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
 
 /**
@@ -38,7 +47,13 @@ import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
  * revision, newest first: when, who, what, the admin's reason and note, and the
  * values before and after for the content, price, status and dates). One door
  * reads it all, `admin_listing_detail` (listings:view; the door decides what
- * this person may read — F3). Edit comes with turn L4.
+ * this person may read — F3).
+ *
+ * Turn L4a (D140, DEC-173): Edit (listings:enforce, never on the admin's own
+ * listing or a removed one) opens the edit form in place of Details and History
+ * — the title, the description and the price, with a reason and a note for the
+ * seller (`ListingEditForm`, through `admin_edit_listing`). INC-553: every price
+ * here prints with its unit ("per kg"), as the card does.
  */
 
 const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "neutral" | "info"> = {
@@ -81,10 +96,23 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [viewAs, setViewAs] = useState(false);
   const [opened, setOpened] = useState<number[]>([]);
+  const [editing, setEditing] = useState(false);
+  const [editRefusals, setEditRefusals] = useState<Refusal[]>([]);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const detail = query.data ?? null;
   const photos = useScreeningPhotos(buyerView ? listingId : null);
   const schema = useScreeningSchema(buyerView ? (detail?.listing.categoryId ?? null) : null);
+  // INC-553 — the unit words load only when this listing or a revision holds a unit.
+  const unitLabels = usePriceUnitLabels(
+    detail !== null &&
+      (detail.listing.priceUnit !== null ||
+        detail.history.some(
+          (entry) =>
+            typeof entry.before["price_unit"] === "string" ||
+            typeof entry.after["price_unit"] === "string",
+        )),
+  );
 
   const locale = language === "am" ? "am-ET" : "en-GB";
   const dayFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
@@ -123,6 +151,8 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const { listing, seller, channels } = detail;
   const own = user !== null && seller.id === user.id;
   const moves = mayEnforce && !own ? movesFor(listing.status) : [];
+  // The door's own rule: never the admin's own listing, never a removed one (drafts never reach this page).
+  const mayEdit = mayEnforce && !own && listing.status !== "removed";
   const sellerName = seller.businessName ?? seller.alias ?? "—";
   const price = (side: Record<string, unknown> = {}) =>
     priceLine(
@@ -152,7 +182,15 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
               ? side["price_bp"]
               : null
             : listing.priceBp,
-        unit: null,
+        unit:
+          "price_unit" in side
+            ? storedUnitNoun(
+                typeof side["price_unit"] === "string" ? side["price_unit"] : null,
+                typeof side["price_unit_text"] === "string" ? side["price_unit_text"] : null,
+                unitLabels,
+                language,
+              )
+            : storedUnitNoun(listing.priceUnit, listing.priceUnitText, unitLabels, language),
       },
       t,
       "—",
@@ -256,6 +294,50 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
   };
 
+  const runEdit = async (
+    guard: GuardFn,
+    changes: Record<string, unknown>,
+    reason: string,
+    note: string,
+  ) => {
+    setBusy(true);
+    setEditError(null);
+    setEditRefusals([]);
+    let answer: AdminEditAnswer;
+    try {
+      answer = await guard(() => editAdminListing(listingId, changes, reason, note));
+    } catch (error) {
+      setBusy(false);
+      const abort = stepUpAbortKey(error);
+      // A cancelled second factor leaves the form open, as it was.
+      if (abort === null) return;
+      const message =
+        error !== null && typeof error === "object" && "message" in error
+          ? String((error as { message: unknown }).message)
+          : "";
+      setEditError(t(abort ?? editErrorKey(message)));
+      return;
+    }
+    setBusy(false);
+    // F4 — a refusal is an answer: it lands under its field and nothing closes.
+    if (!answer.ok) {
+      setEditRefusals(answer.refusals);
+      return;
+    }
+    setEditing(false);
+    setNotice(
+      t("admin.listings.edit.done").replace(
+        "{fields}",
+        answer.fields
+          .map((field) =>
+            field in GROUP_LABEL ? t(GROUP_LABEL[field as FieldGroup]) : t(GROUP_LABEL.other),
+          )
+          .join(", "),
+      ),
+    );
+    await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
+  };
+
   return (
     <StepUpGate>
       {(guard) => (
@@ -287,44 +369,62 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                 </Badge>
               ) : null}
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
-                data-testid="listing-buyer-view"
-                onClick={() => setBuyerView(true)}
-              >
-                {t("admin.listings.detail.buyerView")}
-              </Button>
-              {moves.map((kind) => (
-                <Button
-                  key={kind}
-                  type="button"
-                  size="touch"
-                  variant={kind === "remove" ? "destructive" : "outline"}
-                  data-testid={`listing-move-${kind}`}
-                  onClick={() => {
-                    setRefusal(null);
-                    setNotice(null);
-                    setMove(kind);
-                  }}
-                >
-                  {t(MOVE_LABEL[kind])}
-                </Button>
-              ))}
-              {mayViewAs && !own ? (
+            {editing ? null : (
+              <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="touch"
-                  data-testid="listing-view-as"
-                  onClick={() => setViewAs(true)}
+                  data-testid="listing-buyer-view"
+                  onClick={() => setBuyerView(true)}
                 >
-                  {t("admin.listings.action.viewAsSeller")}
+                  {t("admin.listings.detail.buyerView")}
                 </Button>
-              ) : null}
-            </div>
+                {mayEdit ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="touch"
+                    data-testid="listing-edit"
+                    onClick={() => {
+                      setNotice(null);
+                      setEditRefusals([]);
+                      setEditError(null);
+                      setEditing(true);
+                    }}
+                  >
+                    {t("admin.listings.action.edit")}
+                  </Button>
+                ) : null}
+                {moves.map((kind) => (
+                  <Button
+                    key={kind}
+                    type="button"
+                    size="touch"
+                    variant={kind === "remove" ? "destructive" : "outline"}
+                    data-testid={`listing-move-${kind}`}
+                    onClick={() => {
+                      setRefusal(null);
+                      setNotice(null);
+                      setMove(kind);
+                    }}
+                  >
+                    {t(MOVE_LABEL[kind])}
+                  </Button>
+                ))}
+                {mayViewAs && !own ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="touch"
+                    data-testid="listing-view-as"
+                    onClick={() => setViewAs(true)}
+                  >
+                    {t("admin.listings.action.viewAsSeller")}
+                  </Button>
+                ) : null}
+              </div>
+            )}
             {notice !== null ? (
               <p
                 role="status"
@@ -337,221 +437,238 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
             ) : null}
           </div>
 
-          <div className="grid min-w-0 gap-4 lg:grid-cols-2">
-            <PageCard testid="listing-details" className="min-w-0 space-y-3">
-              <h2 className="text-sm font-semibold text-foreground">
-                {t("admin.listings.detail.details")}
-              </h2>
-              <dl className="grid min-w-0 gap-3 sm:grid-cols-2">
-                <Fact
-                  testid="listing-fact-seller"
-                  label={t("admin.listings.col.seller")}
-                  value={
-                    <span className="block min-w-0 space-y-0.5">
-                      <span className="block">{sellerName}</span>
-                      {seller.email !== null ? (
-                        <span className="block break-all text-xs text-muted-foreground">
-                          {seller.email}
-                        </span>
-                      ) : null}
-                      {seller.accountStatus === "deactivated" ? (
-                        <span className="block text-xs text-destructive">
-                          {t("admin.listings.detail.deactivated")}
-                        </span>
-                      ) : null}
-                      {mayOpenSeller ? (
-                        <Link
-                          to="/admin/users/$userId"
-                          params={{ userId: seller.id }}
-                          data-testid="listing-open-seller"
-                          className="block text-xs text-primary underline underline-offset-4"
-                        >
-                          {t("admin.listings.detail.openSeller")}
-                        </Link>
-                      ) : null}
-                    </span>
-                  }
-                />
-                <Fact
-                  testid="listing-fact-member-since"
-                  label={t("admin.listings.detail.memberSince")}
-                  value={day(seller.memberSince)}
-                />
-                <Fact
-                  testid="listing-fact-place"
-                  label={t("admin.listings.col.place")}
-                  value={`${both(listing.placeNameEn, listing.placeNameAm)}${
-                    listing.countryCode !== null ? ` · ${listing.countryCode}` : ""
-                  }`}
-                />
-                <Fact
-                  testid="listing-fact-category"
-                  label={t("admin.listings.col.category")}
-                  value={both(listing.categoryNameEn, listing.categoryNameAm)}
-                />
-                <Fact
-                  testid="listing-fact-price"
-                  label={t("admin.listings.col.price")}
-                  value={price()}
-                />
-                <Fact
-                  testid="listing-fact-photos"
-                  label={t("admin.listings.detail.photos")}
-                  value={String(listing.photoCount)}
-                />
-                <Fact
-                  testid="listing-fact-first-posted"
-                  label={t("admin.listings.detail.firstPosted")}
-                  value={day(listing.publishedFirstAt)}
-                />
-                <Fact
-                  testid="listing-fact-last-posted"
-                  label={t("admin.listings.detail.lastPosted")}
-                  value={day(listing.publishedAt)}
-                />
-                <Fact
-                  testid="listing-fact-ends"
-                  label={t("admin.listings.col.expires")}
-                  value={day(listing.expiresAt)}
-                />
-                <Fact
-                  testid="listing-fact-seller-end"
-                  label={t("admin.listings.detail.sellerEnd")}
-                  value={day(listing.posterExpiresAt)}
-                />
-                <Fact
-                  testid="listing-fact-renewed"
-                  label={t("admin.listings.history.field.renewals")}
-                  value={String(listing.renewedCount)}
-                />
-                <Fact
-                  testid="listing-fact-tier"
-                  label={t("admin.listings.filter.tier")}
-                  value={tierLabel(listing.tier)}
-                />
-                <Fact
-                  testid="listing-fact-created"
-                  label={t("admin.listings.detail.created")}
-                  value={day(listing.createdAt)}
-                />
-                <Fact
-                  testid="listing-fact-changed"
-                  label={t("admin.listings.detail.changed")}
-                  value={day(listing.updatedAt)}
-                />
-                <Fact
-                  testid="listing-fact-id"
-                  label={t("admin.listings.detail.id")}
-                  value={<span className="break-all font-mono text-xs">{listing.id}</span>}
-                />
-              </dl>
-            </PageCard>
+          {editing ? (
+            <ListingEditForm
+              listing={listing}
+              busy={busy}
+              refusals={editRefusals}
+              error={editError}
+              onCancel={() => {
+                setEditing(false);
+                setEditRefusals([]);
+                setEditError(null);
+              }}
+              onSave={(changes, reason, note) => void runEdit(guard, changes, reason, note)}
+            />
+          ) : (
+            <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+              <PageCard testid="listing-details" className="min-w-0 space-y-3">
+                <h2 className="text-sm font-semibold text-foreground">
+                  {t("admin.listings.detail.details")}
+                </h2>
+                <dl className="grid min-w-0 gap-3 sm:grid-cols-2">
+                  <Fact
+                    testid="listing-fact-seller"
+                    label={t("admin.listings.col.seller")}
+                    value={
+                      <span className="block min-w-0 space-y-0.5">
+                        <span className="block">{sellerName}</span>
+                        {seller.email !== null ? (
+                          <span className="block break-all text-xs text-muted-foreground">
+                            {seller.email}
+                          </span>
+                        ) : null}
+                        {seller.accountStatus === "deactivated" ? (
+                          <span className="block text-xs text-destructive">
+                            {t("admin.listings.detail.deactivated")}
+                          </span>
+                        ) : null}
+                        {mayOpenSeller ? (
+                          <Link
+                            to="/admin/users/$userId"
+                            params={{ userId: seller.id }}
+                            data-testid="listing-open-seller"
+                            className="block text-xs text-primary underline underline-offset-4"
+                          >
+                            {t("admin.listings.detail.openSeller")}
+                          </Link>
+                        ) : null}
+                      </span>
+                    }
+                  />
+                  <Fact
+                    testid="listing-fact-member-since"
+                    label={t("admin.listings.detail.memberSince")}
+                    value={day(seller.memberSince)}
+                  />
+                  <Fact
+                    testid="listing-fact-place"
+                    label={t("admin.listings.col.place")}
+                    value={`${both(listing.placeNameEn, listing.placeNameAm)}${
+                      listing.countryCode !== null ? ` · ${listing.countryCode}` : ""
+                    }`}
+                  />
+                  <Fact
+                    testid="listing-fact-category"
+                    label={t("admin.listings.col.category")}
+                    value={both(listing.categoryNameEn, listing.categoryNameAm)}
+                  />
+                  <Fact
+                    testid="listing-fact-price"
+                    label={t("admin.listings.col.price")}
+                    value={price()}
+                  />
+                  <Fact
+                    testid="listing-fact-photos"
+                    label={t("admin.listings.detail.photos")}
+                    value={String(listing.photoCount)}
+                  />
+                  <Fact
+                    testid="listing-fact-first-posted"
+                    label={t("admin.listings.detail.firstPosted")}
+                    value={day(listing.publishedFirstAt)}
+                  />
+                  <Fact
+                    testid="listing-fact-last-posted"
+                    label={t("admin.listings.detail.lastPosted")}
+                    value={day(listing.publishedAt)}
+                  />
+                  <Fact
+                    testid="listing-fact-ends"
+                    label={t("admin.listings.col.expires")}
+                    value={day(listing.expiresAt)}
+                  />
+                  <Fact
+                    testid="listing-fact-seller-end"
+                    label={t("admin.listings.detail.sellerEnd")}
+                    value={day(listing.posterExpiresAt)}
+                  />
+                  <Fact
+                    testid="listing-fact-renewed"
+                    label={t("admin.listings.history.field.renewals")}
+                    value={String(listing.renewedCount)}
+                  />
+                  <Fact
+                    testid="listing-fact-tier"
+                    label={t("admin.listings.filter.tier")}
+                    value={tierLabel(listing.tier)}
+                  />
+                  <Fact
+                    testid="listing-fact-created"
+                    label={t("admin.listings.detail.created")}
+                    value={day(listing.createdAt)}
+                  />
+                  <Fact
+                    testid="listing-fact-changed"
+                    label={t("admin.listings.detail.changed")}
+                    value={day(listing.updatedAt)}
+                  />
+                  <Fact
+                    testid="listing-fact-id"
+                    label={t("admin.listings.detail.id")}
+                    value={<span className="break-all font-mono text-xs">{listing.id}</span>}
+                  />
+                </dl>
+              </PageCard>
 
-            <PageCard testid="listing-history" className="min-w-0 space-y-3">
-              <h2 className="text-sm font-semibold text-foreground">
-                {t("admin.listings.detail.history")}
-              </h2>
-              {detail.history.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t("admin.listings.history.empty")}</p>
-              ) : (
-                <ol className="min-w-0 space-y-3">
-                  {detail.history.map((entry, index) => {
-                    const rows = rowsOf(entry);
-                    const open = opened.includes(index);
-                    return (
-                      <li
-                        key={`${entry.at}-${String(index)}`}
-                        data-testid={`listing-history-entry-${String(index)}`}
-                        className="min-w-0 space-y-1 border-b border-border pb-3 last:border-0 last:pb-0"
-                      >
-                        <p className="text-xs text-muted-foreground">
-                          <time dateTime={entry.at}>{momentFmt.format(new Date(entry.at))}</time>
-                          {" · "}
-                          <span data-testid="listing-history-who">{whoOf(entry)}</span>
-                        </p>
-                        <p
-                          data-testid="listing-history-what"
-                          className="break-words text-sm text-foreground"
+              <PageCard testid="listing-history" className="min-w-0 space-y-3">
+                <h2 className="text-sm font-semibold text-foreground">
+                  {t("admin.listings.detail.history")}
+                </h2>
+                {detail.history.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("admin.listings.history.empty")}
+                  </p>
+                ) : (
+                  <ol className="min-w-0 space-y-3">
+                    {detail.history.map((entry, index) => {
+                      const rows = rowsOf(entry);
+                      const open = opened.includes(index);
+                      return (
+                        <li
+                          key={`${entry.at}-${String(index)}`}
+                          data-testid={`listing-history-entry-${String(index)}`}
+                          className="min-w-0 space-y-1 border-b border-border pb-3 last:border-0 last:pb-0"
                         >
-                          {whatOf(entry)}
-                        </p>
-                        {entry.reason !== null ? (
-                          <p
-                            data-testid="listing-history-reason"
-                            className="break-words text-sm text-muted-foreground"
-                          >
-                            {t("admin.listings.history.reason").replace(
-                              "{reason}",
-                              t(`admin.listings.reason.${entry.reason}` as MessageKey),
-                            )}
+                          <p className="text-xs text-muted-foreground">
+                            <time dateTime={entry.at}>{momentFmt.format(new Date(entry.at))}</time>
+                            {" · "}
+                            <span data-testid="listing-history-who">{whoOf(entry)}</span>
                           </p>
-                        ) : null}
-                        {entry.note !== null ? (
                           <p
-                            data-testid="listing-history-note"
-                            className="whitespace-pre-wrap break-words text-sm text-muted-foreground"
+                            data-testid="listing-history-what"
+                            className="break-words text-sm text-foreground"
                           >
-                            {t("admin.listings.history.note").replace("{note}", entry.note)}
+                            {whatOf(entry)}
                           </p>
-                        ) : null}
-                        {rows.length > 0 && entry.kind === "edit" ? (
-                          <div className="min-w-0 space-y-2">
-                            <Button
-                              type="button"
-                              variant="link"
-                              className="h-auto min-h-11 px-0"
-                              aria-expanded={open}
-                              data-testid="listing-history-toggle"
-                              onClick={() =>
-                                setOpened((current) =>
-                                  open
-                                    ? current.filter((value) => value !== index)
-                                    : [...current, index],
-                                )
-                              }
+                          {entry.reason !== null ? (
+                            <p
+                              data-testid="listing-history-reason"
+                              className="break-words text-sm text-muted-foreground"
                             >
-                              {open
-                                ? t("admin.listings.history.hide")
-                                : t("admin.listings.history.show")}
-                            </Button>
-                            {open ? (
-                              <dl
-                                data-testid="listing-history-changes"
-                                className="min-w-0 space-y-2 rounded-md bg-muted/40 p-3"
+                              {t("admin.listings.history.reason").replace(
+                                "{reason}",
+                                t(`admin.listings.reason.${entry.reason}` as MessageKey),
+                              )}
+                            </p>
+                          ) : null}
+                          {entry.note !== null ? (
+                            <p
+                              data-testid="listing-history-note"
+                              className="whitespace-pre-wrap break-words text-sm text-muted-foreground"
+                            >
+                              {t("admin.listings.history.note").replace("{note}", entry.note)}
+                            </p>
+                          ) : null}
+                          {rows.length > 0 && entry.kind === "edit" ? (
+                            <div className="min-w-0 space-y-2">
+                              <Button
+                                type="button"
+                                variant="link"
+                                className="h-auto min-h-11 px-0"
+                                aria-expanded={open}
+                                data-testid="listing-history-toggle"
+                                onClick={() =>
+                                  setOpened((current) =>
+                                    open
+                                      ? current.filter((value) => value !== index)
+                                      : [...current, index],
+                                  )
+                                }
                               >
-                                {rows.map((row) => (
-                                  <div key={row.key} className="min-w-0 space-y-0.5">
-                                    <dt className="text-xs font-semibold text-foreground">
-                                      {row.label}
-                                    </dt>
-                                    <dd className="min-w-0 whitespace-pre-wrap break-words text-sm text-muted-foreground">
-                                      <span className="block">
-                                        {t("admin.listings.history.before")}: {row.before}
-                                      </span>
-                                      <span className="block text-foreground">
-                                        {t("admin.listings.history.after")}: {row.after}
-                                      </span>
-                                    </dd>
-                                  </div>
-                                ))}
-                              </dl>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-              {detail.historyTotal > detail.history.length ? (
-                <p className="text-xs text-muted-foreground" data-testid="listing-history-more">
-                  {t("admin.listings.history.more")
-                    .replace("{shown}", String(detail.history.length))
-                    .replace("{total}", String(detail.historyTotal))}
-                </p>
-              ) : null}
-            </PageCard>
-          </div>
+                                {open
+                                  ? t("admin.listings.history.hide")
+                                  : t("admin.listings.history.show")}
+                              </Button>
+                              {open ? (
+                                <dl
+                                  data-testid="listing-history-changes"
+                                  className="min-w-0 space-y-2 rounded-md bg-muted/40 p-3"
+                                >
+                                  {rows.map((row) => (
+                                    <div key={row.key} className="min-w-0 space-y-0.5">
+                                      <dt className="text-xs font-semibold text-foreground">
+                                        {row.label}
+                                      </dt>
+                                      <dd className="min-w-0 whitespace-pre-wrap break-words text-sm text-muted-foreground">
+                                        <span className="block">
+                                          {t("admin.listings.history.before")}: {row.before}
+                                        </span>
+                                        <span className="block text-foreground">
+                                          {t("admin.listings.history.after")}: {row.after}
+                                        </span>
+                                      </dd>
+                                    </div>
+                                  ))}
+                                </dl>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+                {detail.historyTotal > detail.history.length ? (
+                  <p className="text-xs text-muted-foreground" data-testid="listing-history-more">
+                    {t("admin.listings.history.more")
+                      .replace("{shown}", String(detail.history.length))
+                      .replace("{total}", String(detail.historyTotal))}
+                  </p>
+                ) : null}
+              </PageCard>
+            </div>
+          )}
 
           {move !== null ? (
             <MoveDialog
@@ -588,6 +705,13 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                 pricePeriod: listing.pricePeriod,
                 priceBp: listing.priceBp,
                 priceNegotiable: listing.priceNegotiable,
+                // INC-553 — the price prints with its unit, as the card does.
+                basisLabel: storedUnitNoun(
+                  listing.priceUnit,
+                  listing.priceUnitText,
+                  unitLabels,
+                  language,
+                ),
                 attributes: listing.attributes,
                 definitions: schema.data?.definitions ?? [],
                 attributeOptions: schema.data?.attributeOptions ?? {},

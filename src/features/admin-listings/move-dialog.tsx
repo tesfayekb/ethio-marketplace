@@ -1,20 +1,18 @@
 import { useState } from "react";
 
-import { FilterChoices } from "@/components/shell/filter-choices";
-import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import { MOVE_LABEL, MOVE_REASONS, moveProblem, NOTE_MAX, type MoveKind } from "./move-reasons";
+import { MOVE_LABEL, MOVE_REASONS, moveProblem, type MoveKind } from "./move-reasons";
+import { ReasonNote } from "./reason-note";
 
 /**
  * Bundle 11, the Listings console, turn L2b (D136 4, D137) — the dialog of an
  * admin's move: Remove, Restore or Send back to review, for one listing or for
  * the ticked ones. It asks for the reason (the door's own list for that move)
  * and a note for the seller (required when the reason is Other, at most 500
- * characters), and says what the move does. The door decides (F3); its refusal
+ * characters — the shared block `ReasonNote`, turn L4a), and says what the move does. The door decides (F3); its refusal
  * is shown here and nothing closes on it (F4).
  *
  * Testids: the dialog `listings-move-dialog` (data-kind), the reasons
@@ -72,37 +70,20 @@ export function MoveDialog({ kind, count, busy, refusal, onCancel, onConfirm }: 
     >
       <div data-kind={kind} className="min-w-0 space-y-3">
         <p className="text-sm text-muted-foreground">{t(HINT[kind])}</p>
-        <FilterChoices
-          testid="listings-move-reason"
-          label={t("admin.listings.move.reason")}
-          value={reason}
-          onChange={(value) => {
+        <ReasonNote
+          testid="listings-move"
+          reasons={MOVE_REASONS[kind]}
+          reason={reason}
+          note={note}
+          onReason={(value) => {
             setReason(value);
             setProblem(null);
           }}
-          options={MOVE_REASONS[kind].map((value) => ({
-            value,
-            label: t(`admin.listings.reason.${value}` as MessageKey),
-          }))}
+          onNote={(value) => {
+            setNote(value);
+            setProblem(null);
+          }}
         />
-        <FormField
-          label={t("admin.listings.move.note")}
-          htmlFor="listings-move-note"
-          help={t("admin.listings.move.noteHint")}
-          testid="listings-move-note-field"
-        >
-          <Textarea
-            id="listings-move-note"
-            data-testid="listings-move-note"
-            value={note}
-            maxLength={NOTE_MAX}
-            rows={3}
-            onChange={(event) => {
-              setNote(event.target.value);
-              setProblem(null);
-            }}
-          />
-        </FormField>
         {problem !== null || refusal !== null ? (
           <p role="alert" data-testid="listings-move-problem" className="text-sm text-destructive">
             {problem !== null ? t(problem) : refusal}
