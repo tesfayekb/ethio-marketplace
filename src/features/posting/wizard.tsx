@@ -20,6 +20,7 @@ import { useI18n } from "@/i18n";
 import { RefusalSummary, focusFirstRefusal } from "./field";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { prefillFromMatches } from "./catalog-finder";
+import { useQueuedNext } from "./queued-next";
 import { StepCategory } from "./step-category";
 import { StepDetails } from "./step-details";
 import { StepPhotos } from "./step-photos";
@@ -285,15 +286,24 @@ export function PostingWizard({
   const [basisOptions, setBasisOptions] = useState<AttrOption[] | null>(null);
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
   const [returnToReview, setReturnToReview] = useState(false);
-  /** Rulings 3 — the contact step's own hold on Next, and how often it refused. */
-  const [whoGate, setWhoGate] = useState<"pending" | "blocked" | "open">("pending");
-  /** Rulings 4 item 4 — a Next pressed while the identity is still being read waits for it. */
-  const [whoQueued, setWhoQueued] = useState(false);
   /** Bundle 3 step 19 — the contact step's claim, run before Next leaves it. */
   const [whoSaveRef] = useState<{ current: (() => Promise<boolean>) | null }>(() => ({
     current: null,
   }));
+  /** Rulings 3 — how often the contact step refused a Next. */
   const [whoTried, setWhoTried] = useState(0);
+  /**
+   * Rulings 3 and Rulings 4 item 4 — the contact step's own hold on Next, and a
+   * Next pressed while its identity is still being read, which waits for it.
+   * INC-449: judged over both, whichever arrives last, and set back to pending
+   * on every other step (src/features/posting/queued-next.ts).
+   */
+  const whoQueue = useQueuedNext({
+    step: draft.step,
+    whoStep: 7,
+    onGo: () => goNext(),
+    onRefuse: () => setWhoTried((n) => n + 1),
+  });
   /**
    * U6-C1-R3b-1 STEP 2b — WHAT A CATEGORY CHANGE COST.
    *
@@ -685,16 +695,6 @@ export function PostingWizard({
     })();
   }
 
-  /* Rulings 4 item 4 — a queued Next is judged once the identity read answers. */
-  function onWhoGate(gate: "pending" | "blocked" | "open") {
-    setWhoGate(gate);
-    if (!whoQueued || gate === "pending") return;
-    setWhoQueued(false);
-    if (draft.step !== 7) return;
-    if (gate === "blocked") setWhoTried((n) => n + 1);
-    else goNext();
-  }
-
   /**
    * Step 29 — the pointer's "yes": exactly step 1's choice (chooseLeaf, with its
    * reset offer), carrying every answer whose key the target category also asks
@@ -1080,11 +1080,11 @@ export function PostingWizard({
                             disabled={needsLeaf}
                             onClick={() => {
                               // Rulings 3 — the contact step refuses at its own controls.
-                              if (draft.step === 7 && whoGate === "pending") {
-                                setWhoQueued(true);
+                              if (draft.step === 7 && whoQueue.gate === "pending") {
+                                whoQueue.queue();
                                 return;
                               }
-                              if (draft.step === 7 && whoGate === "blocked") {
+                              if (draft.step === 7 && whoQueue.gate === "blocked") {
                                 setWhoTried((n) => n + 1);
                                 return;
                               }
@@ -1297,7 +1297,7 @@ export function PostingWizard({
                               draft.change({ contactPref }, immediate)
                             }
                             nextTried={whoTried}
-                            onBlocked={onWhoGate}
+                            onBlocked={whoQueue.setGate}
                             saveRef={whoSaveRef}
                             categoryId={draft.values.categoryId}
                           />

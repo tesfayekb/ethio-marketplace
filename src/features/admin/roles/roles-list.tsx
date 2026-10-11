@@ -32,7 +32,7 @@ const LOCKED = ["name"];
  * the page's heading and its line in the header, with Create role as the one
  * header action (it opens the create form under the header); the toolbar holds
  * Columns only (a short roster: no search, no filter); one card per role below
- * lg (the key, the display name under it, members and permissions as facts,
+ * md (the key, the display name under it, members and permissions as facts,
  * the kind pill at the end); the row's three-dots holds View members (the
  * Users list with the role chosen, INC-073). The whole row opens the role's
  * page, where its permissions are changed and a custom role is deleted (RP-9).
@@ -149,7 +149,6 @@ export function AdminRolesList() {
         rowTestId={(role) => `role-row-${role.name}`}
         rowHref={(role) => ({ to: "/admin/roles/$roleId", params: { roleId: role.id } })}
         caption={t("admin.roles.title")}
-        cardUntil="lg"
         cardLead={() => <ShieldCheck />}
         toolbar={
           <TableToolbar

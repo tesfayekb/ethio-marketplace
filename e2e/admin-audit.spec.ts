@@ -132,6 +132,64 @@ test.describe("U3 audit & security", () => {
     await expect(page.getByText(en["admin.audit.empty"])).toBeVisible();
   });
 
+  /**
+   * Bundle 11 G2b (D118, D128, D132) — the log on the agreed blocks: the
+   * page's heading in the header; the toolbar's order (search, Filters,
+   * Columns); the action and the entity type as pills and the two dates inside
+   * Filters, a chosen date as a chip; the action locked in Columns; the
+   * footer's page size kept across a reload.
+   */
+  test("AS-3 the log on the agreed blocks: heading, toolbar, Filters with pills and dates, Columns, page size", async ({
+    page,
+  }) => {
+    const moderator = await leaseUser();
+    await grantRole(moderator.id, "moderator");
+    await switchUser(page, moderator.email, moderator.password);
+    await gotoReady(page, "/admin/audit");
+    await expect(page.getByTestId("audit-search")).toBeVisible({ timeout: 20000 });
+
+    const header = page.getByTestId("audit-header");
+    await expect(header.getByRole("heading", { level: 1 })).toHaveText(en["admin.audit.title"]);
+    const toolbarOrder = await page.getByTestId("audit-toolbar").evaluate((node) =>
+      Array.from(node.querySelectorAll("[data-testid]"))
+        .map((child) => child.getAttribute("data-testid"))
+        .filter((id) => ["audit-search", "audit-filters", "audit-columns"].includes(id ?? "")),
+    );
+    expect(toolbarOrder, "AS-3 the toolbar's order").toEqual([
+      "audit-search",
+      "audit-filters",
+      "audit-columns",
+    ]);
+
+    await page.getByTestId("audit-filters").click();
+    const panel = page.getByTestId("audit-filters-panel");
+    await expect(panel.getByTestId("audit-filter-action-all")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(panel.getByTestId("audit-filter-entity-all")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    const today = new Date().toISOString().slice(0, 10);
+    await panel.getByTestId("audit-filter-from").fill(today);
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+    await expect(page.getByTestId("audit-chips-chip-from")).toContainText(today);
+    await page.getByTestId("audit-chips-chip-from-remove").click();
+    await expect(page.getByTestId("audit-chips-chip-from")).toHaveCount(0);
+
+    await page.getByTestId("audit-columns").click();
+    await expect(page.getByTestId("audit-columns-action")).toBeDisabled();
+    await page.keyboard.press("Escape");
+
+    await page.getByTestId("audit-pagination-size").selectOption("10");
+    await expect(page.getByTestId("audit-pagination-size")).toHaveValue("10");
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("audit-pagination-size")).toHaveValue("10", { timeout: 20000 });
+  });
+
   test(
     "IMP-1 impersonation: super admin opens a read-only session and ends it",
     { tag: "@private-identity" },
@@ -148,6 +206,11 @@ test.describe("U3 audit & security", () => {
       await expect(page.getByTestId("impersonation-view")).toBeVisible({ timeout: 20000 });
       await expect(page.getByTestId("impersonation-banner")).toBeVisible();
       await expect(page.getByTestId("impersonation-readonly-note")).toBeVisible();
+      // Bundle 11 G2b (D132) — the page's heading in the header; Columns on the listings.
+      await expect(
+        page.getByTestId("impersonation-header").getByRole("heading", { level: 1 }),
+      ).toBeVisible();
+      await expect(page.getByTestId("impersonation-listings-columns")).toBeVisible();
       await expectNoHorizontalOverflow(page);
 
       // The banner rides along on an unrelated page (global mount).

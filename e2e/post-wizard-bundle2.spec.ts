@@ -1530,4 +1530,63 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       );
     }
   });
+
+  /**
+   * PW-185 (INC-449) — a Next pressed as the contact step opens again, while
+   * that visit's identity read has not answered, waits for it and then leaves
+   * the step: it neither does nothing nor judges a form whose names have not
+   * loaded. The read is held at the network until after the press.
+   */
+  test("PW-185 a Next pressed while the contact step is still reading waits for it, then reaches review", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page, { named: true });
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    const calls: Record<string, unknown>[] = [];
+    page.on("request", (request) => {
+      if (request.method() === "POST" && request.url().includes("/api/listings/identity")) {
+        calls.push((request.postDataJSON() ?? {}) as Record<string, unknown>);
+      }
+    });
+    await expect(page.getByTestId("post-who-alias")).toBeVisible({ timeout: 20_000 });
+    const alias = `eseller${rand().replace(/[0-9]/g, "q")}`;
+    await page.getByTestId("post-who-alias").fill(alias);
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await typePhone(page, "post-who-value-phone", "0911234567");
+    await page.getByTestId("post-who-value-phone").blur();
+    await page.getByTestId("post-who-show-phone").check();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+
+    // Every identity read after Back is held until after the press.
+    let requested!: () => void;
+    const seen = new Promise<void>((resolve) => (requested = resolve));
+    let release!: () => void;
+    const released = new Promise<void>((resolve) => (release = resolve));
+    let armed = false;
+    const identityRead = (url: URL) =>
+      url.pathname.endsWith("/rest/v1/profiles") &&
+      (url.searchParams.get("select") ?? "").startsWith("seller_alias");
+    await page.route(identityRead, async (route) => {
+      if (armed) {
+        requested();
+        await released;
+      }
+      await route.continue();
+    });
+    armed = true;
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 20_000 });
+    await seen;
+    const mark = calls.length;
+    await page.getByTestId("post-next").click();
+    // Still reading: the press waits and the step stays.
+    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    release();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    expect(calls.length - mark, "PW-185: nothing changed, yet identity was called").toBe(0);
+    await page.unroute(identityRead);
+  });
 });

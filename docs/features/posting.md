@@ -1270,3 +1270,12 @@ Both maps print the tile provider's credit as text, never markup. `creditOf` (sr
 - **Tests** — PW-180 (INC-531: it finds its new draft beside the prior post), PW-181, PW-182; PF-1..PF-3; RP-13..RP-15.
 
 **THE SELLER BOX (bundle 11 A3, D130 — the operator, 2026-10-10).** The preview's seller box is one box, in order: "Seller" with the seller line (a business by its business name with the public name under it, a person by the public name; the name in medium weight), a rule, then "Contact the seller" (`post.preview.contactLabel`) with one method per row — "Messages on ethio.com", then each method the seller shows. The method's name starts its row and any control ends it (`channelAction`: the reviewer's Show number or the number; a refusal on its own line under the row). The detail and list pages, and with them these previews, are redesigned later (the roadmap, stage 3).
+
+### INC-449 — a Next pressed while the contact step is reading is never lost (bundle 11, group 2, turn G2b)
+
+The contact step holds Next while it reads the seller's identity (Rulings 3), and a Next pressed meanwhile waits (Rulings 4 item 4). Two defects let such a press go wrong, both one effect flush wide (PW-57, PW-137 and PW-144 failed at "Next from step 7 does not reach step 8"):
+
+- **The lost press.** The queue was judged inside the step's gate callback, which the step calls from an effect through a ref set at render. When the identity's answer committed just before the press and its effect ran just after it, the callback came from the render before the press, saw no queue, and the press was dropped: Next did nothing.
+- **The stale gate.** The wizard kept the gate after leaving the step, so on the next visit it read "open" until that visit reported "pending"; a press in between ran the step's claim with the names not yet loaded and was refused.
+
+`useQueuedNext` (src/features/posting/queued-next.ts) holds the gate and the queue and judges them in one effect over both — whichever arrives last decides, exactly once (open: the step's claim and the save; blocked: the refusal count; pending: wait) — and sets the gate back to pending, dropping any queue, on every other step. Tests: QN-1 to QN-4 (unit); PW-185 (the identity read held at the network after Back: the press waits, then reaches review, with no identity call). The decision rule, frozen before the result: INC-449 closes when PW-57, PW-137 and PW-144 have no matrix-lane line in the flake ledger in the seven days after this turn lands; one line reopens it with the cause read again.

@@ -139,3 +139,4 @@ re-anchored to the step-up world with the shared `enrollAndStepUp` /
 - **One card per user below lg**: the name, the email under it, Country, Roles (only when the user has one) and Joined as facts, the status pill at the end. The whole row opens the user's page; the row carries no action buttons.
 - **The footer** (`users-pagination`): the range, rows per page (10, 25, 50, 100, kept in this browser) and the pages; the server still pages the roster (`admin_list_users`, limit and offset).
 - Tests: AU-13 (new — the heading, the toolbar's order, the pills, the locked name, the page size kept across a reload); AU-2 (the status chosen by its pill).
+- **G2b (the CI red of G2a):** the cards give way to the table at md (768 px), as before G2a — G2a's lg broke the table law (e2e/shell-table-law.spec.ts holds this list's table at 768 px); "below lg" above reads "below md".
