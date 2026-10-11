@@ -179,13 +179,18 @@ export type AdminEditAnswer =
   | { ok: true; status: string; fields: string[] }
   | { ok: false; refusals: Refusal[] };
 
-/** The door's refusals as the form reads them: a specification is named by its key. */
+/**
+ * The door's refusals as the form reads them. A specification's refusal names
+ * its `attr_key` (the attribute authority's own word), which is exactly the key
+ * its control is drawn under — the seller's routes read it the same way
+ * (posting-service.ts `refusalsOf`), so it lands under its control (turn L4b).
+ */
 export function refusalsOf(value: unknown): Refusal[] {
   if (!Array.isArray(value)) return [];
   return value.map((entry) => {
     const row = object(entry);
-    const field = text(row["field"]) ?? (text(row["attr_key"]) !== null ? "attributes" : "door");
-    const detail = text(row["detail"]) ?? text(row["attr_key"]);
+    const field = text(row["field"]) ?? text(row["attr_key"]) ?? "door";
+    const detail = text(row["detail"]);
     return {
       field,
       reason: String(row["reason"] ?? ""),

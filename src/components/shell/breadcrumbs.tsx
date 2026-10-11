@@ -1,5 +1,6 @@
 import { useRouterState } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
 
 import { useShell } from "@/components/shell-context";
 import {
@@ -34,6 +35,19 @@ import { entityName } from "@/i18n/entity";
  */
 /** Operator directive (U0c): the CURRENT segment is underlined and heavier. */
 const CURRENT = "font-semibold text-foreground underline underline-offset-4";
+
+/** INC-554 — the listing and language crumbs load only on their pages (never in the first paint). */
+const AdminListingCrumb = lazy(() =>
+  import("./admin-detail-crumbs").then((module) => ({ default: module.AdminListingCrumb })),
+);
+const AdminLanguageCrumb = lazy(() =>
+  import("./admin-detail-crumbs").then((module) => ({ default: module.AdminLanguageCrumb })),
+);
+
+/** What a lazy crumb shows while its module loads: the page's place, not a blank. */
+function PendingCrumb() {
+  return <BreadcrumbPage className={CURRENT}>—</BreadcrumbPage>;
+}
 
 export function Breadcrumbs() {
   const { t, entities } = useI18n();
@@ -124,7 +138,16 @@ export function Breadcrumbs() {
     const userDetailId = /^\/admin\/users\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
     /** U2 — the same cache seam for the Roles > <display name> 4th segment. */
     const roleDetailId = /^\/admin\/roles\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
-    const detailId = userDetailId ?? roleDetailId;
+    /** Bundle 11, turn L4b (INC-554) — the listing's page and a language's strings page. */
+    const listingDetailId = /^\/admin\/listings\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
+    const languageDetailCode = /^\/admin\/translations\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
+    /**
+     * INC-554 — ANY PAGE BELOW A SECTION'S OWN links back to the section: the
+     * section crumb is a link whenever the address is deeper than the section's
+     * path, whether or not a last crumb names the page (before, only the user
+     * and role pages linked back, and the listing and language pages did not).
+     */
+    const deeper = section !== null && pathname.replace(/\/$/, "") !== section.path;
     return (
       <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
         <BreadcrumbList>
@@ -173,7 +196,7 @@ export function Breadcrumbs() {
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                {detailId ? (
+                {deeper ? (
                   <BreadcrumbLink asChild>
                     <Link to={section.path} data-testid="breadcrumb-admin-section">
                       {t(section.titleKey)}
@@ -187,15 +210,23 @@ export function Breadcrumbs() {
               </BreadcrumbItem>
             </>
           ) : null}
-          {detailId ? (
+          {userDetailId || roleDetailId || listingDetailId || languageDetailCode ? (
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {userDetailId ? (
                   <AdminUserCrumb userId={userDetailId} />
-                ) : (
-                  <AdminRoleCrumb roleId={detailId} />
-                )}
+                ) : roleDetailId ? (
+                  <AdminRoleCrumb roleId={roleDetailId} />
+                ) : listingDetailId ? (
+                  <Suspense fallback={<PendingCrumb />}>
+                    <AdminListingCrumb listingId={listingDetailId} />
+                  </Suspense>
+                ) : languageDetailCode ? (
+                  <Suspense fallback={<PendingCrumb />}>
+                    <AdminLanguageCrumb code={languageDetailCode} />
+                  </Suspense>
+                ) : null}
               </BreadcrumbItem>
             </>
           ) : null}

@@ -6,14 +6,16 @@ import {
   editErrorKey,
   editProblem,
   priceSent,
+  sameAnswers,
   valuesOf,
 } from "./edit-listing";
 import { MOVE_REASONS } from "./move-reasons";
 import { detailOf, editAnswerOf, refusalsOf } from "./use-admin-listing";
 
 /**
- * Bundle 11, turn L4a (D140, DEC-173) — what an admin's edit of the title, the
- * description and the price sends, and how the door's answers read.
+ * Bundle 11, turns L4a and L4b (D140, DEC-173) — what an admin's edit of the
+ * category, the specifications, the price, the title and the description sends,
+ * and how the door's answers read.
  */
 const listing = (over: Record<string, unknown> = {}) =>
   detailOf({
@@ -30,7 +32,8 @@ const listing = (over: Record<string, unknown> = {}) =>
       price_negotiable: false,
       price_unit: null,
       price_unit_text: null,
-      attributes: {},
+      category_id: "leaf-1",
+      attributes: { size_kg: 5, colour: { value: "red" } },
       created_at: "2026-10-01T00:00:00Z",
       updated_at: "2026-10-01T00:00:00Z",
       ...over,
@@ -102,8 +105,14 @@ describe("an admin's edit (turn L4a)", () => {
     expect(editChanges(free, opened)).toBeNull();
   });
 
-  it("LE-4 the reasons are the door's edit list without the category and the photo; the note rules are the move's", () => {
-    expect([...EDIT_REASONS]).toEqual(["misleading", "contact_in_text", "rules", "other"]);
+  it("LE-4 the reasons are the door's edit list without the photo; the note rules are the move's", () => {
+    expect([...EDIT_REASONS]).toEqual([
+      "wrong_category",
+      "misleading",
+      "contact_in_text",
+      "rules",
+      "other",
+    ]);
     for (const reason of EDIT_REASONS) {
       expect([...MOVE_REASONS.send_back]).toContain(reason);
     }
@@ -132,7 +141,7 @@ describe("an admin's edit (turn L4a)", () => {
       ok: false,
       refusals: [
         { field: "title", reason: "contactInText" },
-        { field: "attributes", reason: "required", detail: "size_kg" },
+        { field: "size_kg", reason: "required" },
         { field: "price_period", reason: "periodLocked", detail: "month" },
       ],
     });
@@ -147,5 +156,26 @@ describe("an admin's edit (turn L4a)", () => {
     expect(editErrorKey("listing not found")).toBe("admin.listings.move.error.notFound");
     expect(editErrorKey("permission denied")).toBe("admin.listings.move.error.denied");
     expect(editErrorKey("something else")).toBe("common.error");
+  });
+
+  it("LE-6 a category change sends the leaf and the answers; answers travel only when the admin worked in them", () => {
+    const values = valuesOf(listing(), null);
+    // The same answers in another key order are the same answers.
+    expect(sameAnswers({ a: 1, b: { value: "x" } }, { b: { value: "x" }, a: 1 })).toBe(true);
+    expect(sameAnswers({ a: 1 }, { a: 2 })).toBe(false);
+    // The form's own tidying (a default filled) is not an edit until the admin works in it.
+    const tidied = { ...values, attributes: { ...values.attributes, condition: "used" } };
+    expect(editChanges(listing(), tidied)).toBeNull();
+    expect(editChanges(listing(), tidied, true)).toEqual({ attributes: tidied.attributes });
+    // Worked in, but the same answers: nothing travels.
+    expect(editChanges(listing(), values, true)).toBeNull();
+    // Another leaf: the leaf travels, and the answers when they differ.
+    expect(editChanges(listing(), { ...values, categoryId: "leaf-2" })).toEqual({
+      category_id: "leaf-2",
+    });
+    expect(editChanges(listing(), { ...tidied, categoryId: "leaf-2" })).toEqual({
+      category_id: "leaf-2",
+      attributes: tidied.attributes,
+    });
   });
 });

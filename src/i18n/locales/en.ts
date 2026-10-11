@@ -741,13 +741,16 @@ export const en = {
   "admin.listings.action.edit": "Edit",
   "admin.listings.edit.title": "Edit this listing",
   "admin.listings.edit.hint":
-    "Change the title, the description or the price. The seller is told what you changed, with your reason and note.",
+    "Change the title, the description, the category, the specifications or the price. The seller is told what you changed, with your reason and note.",
   "admin.listings.edit.save": "Save changes",
   "admin.listings.edit.nothing": "Nothing has changed.",
   "admin.listings.edit.error.removed": "A removed listing is not edited. Restore it first.",
   "admin.listings.edit.priceFailed":
     "This category's price rules did not load, so the price cannot be changed now. The title and the description can.",
   "admin.listings.edit.done": "Saved. The seller is told what changed: {fields}.",
+  "admin.listings.edit.changeCategory": "Change category",
+  "admin.listings.edit.categoryHint":
+    "Answers the new category does not ask are dropped when you save.",
   "admin.screening.search": "Search",
   "admin.screening.col.title": "Title",
   "admin.screening.col.category": "Category",

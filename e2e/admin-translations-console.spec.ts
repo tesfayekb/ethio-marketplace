@@ -206,6 +206,28 @@ test.describe("U4b translations console", () => {
   });
 
   /**
+   * Bundle 11, turn L4b (INC-554) — a language's strings page: the breadcrumb
+   * names the language last (as the page's heading does) and its Translations
+   * segment is a link back to the roster. Before, the segment was plain text.
+   */
+  test("TR-39 a language's page: the breadcrumb names the language and leads back to the roster", async ({
+    page,
+  }) => {
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/translations/am");
+    await expect(page.getByTestId("admin-translations-strings")).toBeVisible();
+    const crumb = page.getByTestId("breadcrumbs");
+    const language = crumb.getByTestId("breadcrumb-admin-language");
+    // The code stands in until the roster's read answers with the language's own name.
+    await expect(language).not.toHaveText("am", { timeout: 15000 });
+    await expect(page.getByTestId("admin-translations-strings").locator("h1")).toContainText(
+      (await language.textContent()) ?? "",
+    );
+    await crumb.getByTestId("breadcrumb-admin-section").click();
+    await expect(page).toHaveURL(/\/admin\/translations$/, { timeout: 15000 });
+  });
+
+  /**
    * TR-6 — the publication gate, deterministic under ANY shard order.
    *
    * INC-095h: the catalog is SHARED RUNTIME whose size depends on whether a

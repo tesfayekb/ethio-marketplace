@@ -7,9 +7,11 @@ import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   destroyCategoryBranch,
   destroyListingsOf,
+  destroySpecSet,
   leaseSeller,
   RUN,
   seedCategoryBranch,
+  seedSpecSet,
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
 import {
@@ -180,6 +182,8 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   const regions: string[] = [];
   const branches: string[][] = [];
   const roles: string[] = [];
+  /** Turn L4b — scratch specification sets (attribute keys), reaped before their branch. */
+  const specSets: string[][] = [];
 
   test.afterEach(async () => {
     const supabase = adminClient();
@@ -188,6 +192,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       if (removed.error) throw new Error(`[e2e:al] listing reap failed: ${removed.error.message}`);
     }
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
+    for (const keys of specSets.splice(0)) await destroySpecSet(keys);
     for (const slug of regions.splice(0)) await destroyLocation(slug);
     for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
     for (const roleId of roles.splice(0)) {
@@ -229,7 +234,14 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   async function seed(
     seller: Pick<Seller, "id" | "leafId" | "cityId">,
     status: string,
-    options: { publishedAt?: string; tier?: string; screening?: Row; own?: boolean } = {},
+    options: {
+      publishedAt?: string;
+      tier?: string;
+      screening?: Row;
+      own?: boolean;
+      /** Turn L4b — the listing's specifications (empty unless given). */
+      attributes?: Row;
+    } = {},
   ) {
     const live = ["active", "reduced", "expired", "sold", "removed"].includes(status);
     const { data, error } = await adminClient()
@@ -241,7 +253,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         home_country_code: "ET",
         title: `E2E admin listing ${RUN.replace(/[0-9]/g, "x")} ${token()}`,
         description: "e2e scratch listing for the admin console",
-        attributes: {},
+        attributes: options.attributes ?? {},
         price_mode: "fixed",
         price_amount: 100,
         price_currency: "ETB",
@@ -311,11 +323,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
     const draft = await seed(seller, "draft");
-
-    const plain = await asPerson(await leaseUser());
-    expect((await plain.rpc("admin_list_listings", { p_search: live.id })).error).toBe(
-      "permission denied",
-    );
+    // INC-555 — the account with no listing right is AL-3's (one leased account fewer here).
 
     const viewer = await asPerson(await scratchHolder([["listings", "view"]]));
     const byId = await viewer.rpc("admin_list_listings", { p_search: live.id });
@@ -389,35 +397,64 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
    * load (its afterEach then reaped the rows the abandoned body still used).
    * AL-3 keeps the people who may not edit; AL-12 the super admin's refusals.
    * Every assertion is kept (G38).
+   *
+   * Turn L4b (INC-555, CI on dfd6555a): AL-3 still leased three accounts one
+   * after another besides the scratch seller, and ran past 60 s on shard 6 and
+   * in the fast lane (63–66 s already on 88c6ed8c); AL-1 and AL-16 (three
+   * leased accounts each) ran 56–59 s. Each refused person now has a test of
+   * their own — AL-3 an account with no listing right (All listings and the
+   * listing's page refuse it too: the plain account AL-1 and AL-16 leased),
+   * AL-24 a reviewer, AL-25 an enforcer without a second factor — at most two
+   * leased accounts in any of these tests; every assertion is kept, and each
+   * checks that nothing was written.
    */
-  test("AL-3 Edit refuses the person who may not edit: no permission, a reviewer, no second factor", async () => {
+  async function refusedEdit(
+    holder: { email: string; password: string },
+    expected: string,
+    also?: (person: Awaited<ReturnType<typeof asPerson>>, listingId: string) => Promise<void>,
+  ) {
     const seller = await scratchSeller();
     const target = await seed(seller, "active");
-    const editAs = async (person: Awaited<ReturnType<typeof asPerson>>, title: string) =>
-      person.rpc("admin_edit_listing", {
-        p_listing_id: target.id,
-        p_changes: { title },
-        p_reason: "misleading",
-      });
-
-    const plain = await asPerson(await leaseUser());
-    expect((await editAs(plain, "Changed by nobody")).error).toBe("permission denied");
-    const reviewer = await asPerson(
-      await scratchHolder([
-        ["listings", "view"],
-        ["listings", "review"],
-      ]),
-    );
-    expect((await editAs(reviewer, "Changed by a reviewer")).error).toBe("permission denied");
-    const enforcer = await asPerson(await scratchHolder([["listings", "enforce"]]));
-    expect((await editAs(enforcer, "Changed with no factor")).error).toBe(
-      "step-up required: no verified factor",
-    );
-
+    const person = await asPerson(holder);
+    if (also !== undefined) await also(person, target.id);
+    const answer = await person.rpc("admin_edit_listing", {
+      p_listing_id: target.id,
+      p_changes: { title: "Changed by someone who may not" },
+      p_reason: "misleading",
+    });
+    expect(answer.error).toBe(expected);
     expect(await auditRows(target.id)).toEqual([]);
     expect(await noticeRows(target.id)).toEqual([]);
     expect(await revisionRows(target.id, "edit")).toEqual([]);
     expect((await listingTruth(target.id))?.["title"]).toBe(target.title);
+  }
+
+  test("AL-3 An account with no listing right: All listings, the listing's page and Edit refuse it; nothing is written", async () => {
+    await refusedEdit(await leaseUser(), "permission denied", async (person, listingId) => {
+      expect((await person.rpc("admin_list_listings", { p_search: listingId })).error).toBe(
+        "permission denied",
+      );
+      expect((await person.rpc("admin_listing_detail", { p_listing_id: listingId })).error).toBe(
+        "permission denied",
+      );
+    });
+  });
+
+  test("AL-24 Edit refuses a reviewer (listings:view and review, not enforce), and writes nothing", async () => {
+    await refusedEdit(
+      await scratchHolder([
+        ["listings", "view"],
+        ["listings", "review"],
+      ]),
+      "permission denied",
+    );
+  });
+
+  test("AL-25 Edit refuses an enforcer without a second factor, and writes nothing", async () => {
+    await refusedEdit(
+      await scratchHolder([["listings", "enforce"]]),
+      "step-up required: no verified factor",
+    );
   });
 
   test("AL-12 Edit refuses as the super admin: the admin's own, a draft, a removed listing, a key not editable, a reason without its note", async ({
@@ -1089,10 +1126,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       });
     if (revision.error) throw new Error(`[e2e:al] revision seed failed: ${revision.error.message}`);
 
-    const plain = await asPerson(await leaseUser());
-    expect((await plain.rpc("admin_listing_detail", { p_listing_id: live.id })).error).toBe(
-      "permission denied",
-    );
+    // INC-555 — the account with no listing right is AL-3's (one leased account fewer here).
     const viewer = await asPerson(await scratchHolder([["listings", "view"]]));
     expect((await viewer.rpc("admin_listing_detail", { p_listing_id: draft.id })).error).toBe(
       "listing not found",
@@ -1443,6 +1477,8 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await useJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
+    // INC-554 (turn L4b) — the breadcrumb names the listing last.
+    await expect(page.getByTestId("breadcrumb-admin-listing")).toHaveText(live.title);
     await page.getByTestId("listing-edit").click();
     const form = page.getByTestId("listing-edit-form");
     await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
@@ -1468,5 +1504,143 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listing-edit")).toBeVisible();
     await expect(page.getByTestId("listing-details")).toBeVisible();
     await expect(page.getByTestId("listing-title")).toHaveText(live.title);
+
+    // INC-554 (turn L4b) — the breadcrumb's section leads back to All listings.
+    await page.getByTestId("breadcrumb-admin-section").click();
+    await expect(page).toHaveURL(/\/admin\/listings$/, { timeout: 20000 });
+  });
+
+  /**
+   * Turn L4b (D140) — Edit moves a listing to another category: the tree behind
+   * "Change category" (filtered by the leaf's name), Wrong category as the
+   * reason; the seller is told "Category"; the history says so. The listing's
+   * answers stay (the scratch leaves ask nothing).
+   */
+  test("AL-22 Edit moves a listing to another category with Wrong category; the seller is told", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    const other = await seedCategoryBranch();
+    branches.push([other.parent.slug as string, other.leaf.slug as string]);
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/listings/${live.id}`);
+    await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
+    await page.getByTestId("listing-edit").click();
+    const form = page.getByTestId("listing-edit-form");
+    await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
+
+    await form.getByTestId("listing-edit-category-change").click();
+    await form.getByTestId("post-category-search").fill(other.leaf.slug as string);
+    const hit = form.locator(`[data-testid="post-category-hit"][data-category="${other.leaf.id}"]`);
+    await expect(hit).toBeVisible({ timeout: 20000 });
+    await hit.click();
+    await expect(form.getByTestId("listing-edit-category-path")).toContainText(
+      other.leaf.slug as string,
+    );
+    await expect(form.getByTestId("post-category-search")).toHaveCount(0);
+    await expectNoHorizontalOverflow(page);
+
+    await form.getByTestId("listing-edit-reason-wrong_category").click();
+    await form.getByTestId("listing-edit-save").click();
+    await expect(page.getByTestId("listing-notice")).toHaveText(
+      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.col.category"]),
+      { timeout: 20000 },
+    );
+    await expect(
+      page.getByTestId("listing-history-entry-0").getByTestId("listing-history-what"),
+    ).toHaveText(
+      en["admin.listings.history.edited"].replace("{fields}", en["admin.listings.col.category"]),
+    );
+    const { data: stored, error } = await adminClient()
+      .from("listings")
+      .select("status,category_id")
+      .eq("id", live.id)
+      .single();
+    if (error) throw new Error(`[e2e:al] listing read failed: ${error.message}`);
+    expect(stored).toEqual({ status: "active", category_id: other.leaf.id });
+    expect(await noticeRows(live.id)).toEqual([
+      {
+        seller_id: seller.id,
+        kind: "admin_edit",
+        fields: ["category"],
+        reason: "wrong_category",
+        note: null,
+      },
+    ]);
+  });
+
+  /**
+   * Turn L4b (D140) — Edit changes a specification with the seller's own form:
+   * a required answer emptied is refused under its own control and nothing is
+   * written; a new answer is saved, the seller is told "Specifications". An
+   * edit of the title alone sends no specifications.
+   */
+  test("AL-23 Edit changes a specification: a refusal under its control, then the answer saved", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const spec = await seedSpecSet(seller.leafId);
+    specSets.push([
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    ]);
+    const live = await seed(seller, "active", {
+      attributes: { [spec.text.attrKey]: "first answer" },
+    });
+    const control = (key: string) =>
+      page.locator(`[data-testid="post-attr-control"][data-attr="${key}"]`);
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/listings/${live.id}`);
+    await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
+
+    // The title alone: the specifications do not travel.
+    await page.getByTestId("listing-edit").click();
+    const form = page.getByTestId("listing-edit-form");
+    await expect(control(spec.text.attrKey)).toHaveValue("first answer", { timeout: 20000 });
+    const title = `Corrected listing ${token()}`;
+    await form.getByTestId("listing-edit-title").fill(title);
+    await form.getByTestId("listing-edit-reason-misleading").click();
+    await form.getByTestId("listing-edit-save").click();
+    await expect(page.getByTestId("listing-notice")).toHaveText(
+      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.col.title"]),
+      { timeout: 20000 },
+    );
+
+    // The required answer emptied: refused under its own control, nothing written.
+    await page.getByTestId("listing-edit").click();
+    await expect(control(spec.text.attrKey)).toHaveValue("first answer", { timeout: 20000 });
+    await control(spec.text.attrKey).fill("");
+    await form.getByTestId("listing-edit-reason-misleading").click();
+    await form.getByTestId("listing-edit-save").click();
+    await expect(
+      form.locator(`[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`),
+    ).toBeVisible({ timeout: 20000 });
+    expect((await noticeRows(live.id)).map((row) => String(row["fields"]))).toEqual(["title"]);
+
+    await control(spec.text.attrKey).fill("second answer");
+    await form.getByTestId("listing-edit-save").click();
+    await expect(page.getByTestId("listing-notice")).toHaveText(
+      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.history.field.specs"]),
+      { timeout: 20000 },
+    );
+    const { data: stored, error } = await adminClient()
+      .from("listings")
+      .select("title,attributes")
+      .eq("id", live.id)
+      .single();
+    if (error) throw new Error(`[e2e:al] listing read failed: ${error.message}`);
+    expect(stored?.["title"]).toBe(title);
+    expect((stored?.["attributes"] as Row)[spec.text.attrKey]).toBe("second answer");
+    // Two edits, two notices (read in any order).
+    expect((await noticeRows(live.id)).map((row) => String(row["fields"])).sort()).toEqual([
+      "specs",
+      "title",
+    ]);
   });
 });
