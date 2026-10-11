@@ -2089,6 +2089,9 @@
     "admin.roles.meta.title": [
       "/admin/roles/$roleId"
     ],
+    "admin.roles.noMatch": [
+      "/admin/roles"
+    ],
     "admin.roles.perm.baselineBadge": [
       "/admin/roles/$roleId"
     ],
@@ -2118,6 +2121,12 @@
     ],
     "admin.roles.perm.title": [
       "/admin/roles/$roleId"
+    ],
+    "admin.roles.searchLabel": [
+      "/admin/roles"
+    ],
+    "admin.roles.searchPlaceholder": [
+      "/admin/roles"
     ],
     "admin.roles.subtitle": [
       "/admin/roles"

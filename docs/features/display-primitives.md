@@ -384,3 +384,7 @@ categories". Test: HS-21 in `src/components/shell/data-table.test.tsx`.
 ### Every table has its footer (bundle 11, group 3, turn G3a; the operator's walk, 2026-10-11)
 
 "I don't see page count, pagination line in roles" — the census found three tables without `DataTablePagination`: Roles, the impersonation view's listings and Languages; each now has the footer (the range, rows per page, the pages). `useKeptPage(storageKey, defaultSize)` (src/components/shell/use-kept-page.ts) holds a table's page and its page size, the size kept in this browser (read after mount; storage that fails keeps the default). Languages opens at 100 rows (its order is set by hand, so the whole order stays on one page). Tests: KP-1, KP-2 (unit); RP-16, IMP-1 and TR-38 read the footers.
+
+### ChartFrame measures the plot whenever it appears (bundle 11, group 3, turn G3b; INC-547)
+
+The frame measured its plot once, at mount. A frame that mounts loading, empty or in error has no plot yet, so the measurement found nothing, never ran again, and the chart stayed blank after the data arrived (Admin › Audit's events-per-day chart, on every device). The plot's node is now held in state through a callback ref, and the measurement and its ResizeObserver run whenever the plot is rendered. Tests: CFM-1 (mounts loading, then draws), CFM-2 (mounts empty, then draws), CFM-3 (mounts with data, draws at once); red against the old frame for CFM-1 and CFM-2.

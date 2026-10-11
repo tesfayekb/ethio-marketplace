@@ -36,11 +36,15 @@ const LOCKED = ["name"];
  * Bundle 11 G2a (D118, D128, D132) — on the agreed blocks and the agreed look:
  * the page's heading and its line in the header, with Create role as the one
  * header action (it opens the create form under the header); the toolbar holds
- * Columns only (a short roster: no search, no filter); one card per role below
+ * the search and Columns (no filter); one card per role below
  * md (the key, the display name under it, members and permissions as facts,
  * the kind pill at the end); the row's three-dots holds View members (the
  * Users list with the role chosen, INC-073). The whole row opens the role's
  * page, where its permissions are changed and a custom role is deleted (RP-9).
+ *
+ * Bundle 11 G3b (G3a's red, G28) — a paged roster is searched, never read by a
+ * row's position: the search matches the role's key or display name, and a
+ * search that matches nothing says so.
  */
 export function AdminRolesList() {
   const { t } = useI18n();
@@ -52,7 +56,14 @@ export function AdminRolesList() {
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   /** G3a (the operator's walk) — every table has its footer. */
   const paging = useKeptPage("ethio.admin.roles.pageSize");
-  const roster = data ?? [];
+  const [search, setSearch] = useState("");
+  const needle = search.trim().toLowerCase();
+  const roster = (data ?? []).filter(
+    (role) =>
+      needle === "" ||
+      role.name.toLowerCase().includes(needle) ||
+      (role.displayName ?? "").toLowerCase().includes(needle),
+  );
 
   const allColumns: DataTableColumn<RoleSummary>[] = [
     {
@@ -161,6 +172,19 @@ export function AdminRolesList() {
         toolbar={
           <TableToolbar
             testid="role-toolbar"
+            search={
+              <Input
+                id="admin-roles-search"
+                data-testid="role-search"
+                aria-label={t("admin.roles.searchLabel")}
+                value={search}
+                placeholder={t("admin.roles.searchPlaceholder")}
+                onChange={(event) => {
+                  paging.setPage(0);
+                  setSearch(event.target.value);
+                }}
+              />
+            }
             columns={
               <ColumnsButton
                 testid="role-columns"
@@ -203,7 +227,11 @@ export function AdminRolesList() {
             {t("admin.roles.error")}
           </p>
         }
-        emptyState={<p className="text-sm text-muted-foreground">{t("admin.roles.empty")}</p>}
+        emptyState={
+          <p className="text-sm text-muted-foreground">
+            {needle === "" ? t("admin.roles.empty") : t("admin.roles.noMatch")}
+          </p>
+        }
       />
     </div>
   );

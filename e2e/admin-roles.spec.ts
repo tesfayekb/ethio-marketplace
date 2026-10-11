@@ -93,6 +93,16 @@ async function createRoleViaUi(page: Page, secret: string) {
 }
 
 /**
+ * Bundle 11 G3b (G3a's red, G28) — the roles roster is paged (G3a) and other
+ * tests' scratch roles crowd it, so a role is found by the list's search, never
+ * by its position on the first page.
+ */
+async function searchRole(page: Page, name: string) {
+  await page.getByTestId("role-search").fill(name);
+  return roleRow(page, name);
+}
+
+/**
  * Bundle 11 G2a — the Users list's role filter is a row of pills in the Filters
  * panel and a chip under the toolbar: the URL's role is the chosen pill.
  */
@@ -197,7 +207,7 @@ test.describe("U2 roles console", () => {
     // The audit row is per-actor; assert it through the same definer read the
     // Users section uses (activity is scoped to the signed-in actor).
     await gotoReady(page, "/admin/roles");
-    const row = roleRow(page, name);
+    const row = await searchRole(page, name);
     await expect(row).toBeVisible();
     await row.click();
     await expect(page.getByTestId("role-permissions")).toBeVisible();
@@ -297,7 +307,9 @@ test.describe("U2 roles console", () => {
     await page.getByTestId("role-delete").click();
     await stepUpIfPrompted(page, secret);
     await expect(page).toHaveURL(/\/admin\/roles\/?$/, { timeout: 20000 });
-    await expect(roleRow(page, name)).toHaveCount(0);
+    await waitForHydration(page);
+    await expect(await searchRole(page, name)).toHaveCount(0);
+    await expect(page.getByText(en["admin.roles.noMatch"])).toBeVisible({ timeout: 20000 });
   });
 
   test(
@@ -406,7 +418,9 @@ test.describe("U2 roles console", () => {
     await page.getByTestId("role-delete").click();
     await stepUpIfPrompted(page, secret);
     await expect(page).toHaveURL(/\/admin\/roles\/?$/, { timeout: 20000 });
-    await expect(roleRow(page, name)).toHaveCount(0);
+    await waitForHydration(page);
+    await expect(await searchRole(page, name)).toHaveCount(0);
+    await expect(page.getByText(en["admin.roles.noMatch"])).toBeVisible({ timeout: 20000 });
   });
 
   test("RP-10 members link preselects the role filter via the URL", async ({ page }) => {
@@ -529,8 +543,16 @@ test.describe("U2 roles console", () => {
     // G3a (the operator's walk) — the footer: the range, rows per page and the pages.
     await expect(page.getByTestId("role-pagination-range")).toContainText("1–");
     await expect(page.getByTestId("role-pagination-size")).toHaveValue("25");
+    // G3b (G28) — the search sits before Columns; it finds the role on any page.
+    const toolbarOrder = await page.getByTestId("role-toolbar").evaluate((node) =>
+      Array.from(node.querySelectorAll("[data-testid]"))
+        .map((child) => child.getAttribute("data-testid"))
+        .filter((id) => ["role-search", "role-columns"].includes(id ?? "")),
+    );
+    expect(toolbarOrder, "RP-16 the toolbar's order").toEqual(["role-search", "role-columns"]);
 
-    await expect(roleRow(page, name)).toBeVisible({ timeout: 20000 });
+    await expect(await searchRole(page, name)).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("role-pagination-range")).toHaveText("1–1 of 1");
     const actions = page.getByTestId(
       isMobile(page) ? `role-row-${name}-actions` : `role-row-${name}-actions-cell`,
     );

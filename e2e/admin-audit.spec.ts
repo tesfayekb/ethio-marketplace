@@ -7,11 +7,21 @@ import {
   useJobSuperAdmin,
   expectNoHorizontalOverflow,
   gotoReady,
+  isMobile,
   stepUpIfPrompted,
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { destroyLocation, seedScratchChain } from "./helpers/locations";
+import {
+  destroyCategoryBranch,
+  destroyListingsOf,
+  leaseSeller,
+  rand,
+  RUN,
+  seedCategoryBranch,
+} from "./helpers/posting";
 
 /**
  * Phase U3 — Audit & Security (AS-*) and impersonation v1 (IMP-*).
@@ -91,6 +101,9 @@ test.describe("U3 audit & security", () => {
     await expect(page.getByTestId("admin-audit")).toBeVisible();
     await expect(page.getByTestId("audit-stats")).toBeVisible();
     await expect(page.getByTestId("audit-chart")).toBeVisible();
+    // G3b (INC-547) — the chart is drawn once its data arrives (the frame
+    // mounts loading; the plot was never measured and stayed blank).
+    await expect(page.getByTestId("audit-chart-svg")).toBeVisible({ timeout: 20000 });
     await expectNoHorizontalOverflow(page);
   });
 
@@ -171,8 +184,30 @@ test.describe("U3 audit & security", () => {
       "aria-pressed",
       "true",
     );
-    const today = new Date().toISOString().slice(0, 10);
-    await panel.getByTestId("audit-filter-from").fill(today);
+    // G3b (INC-548) — today in the browser's own calendar; no date after it,
+    // and To is never before From: such a date is refused and the field keeps
+    // its value.
+    const today = await page.evaluate(() => {
+      const now = new Date();
+      const pad = (value: number) => String(value).padStart(2, "0");
+      return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    });
+    const shift = (day: string, by: number) => {
+      const date = new Date(`${day}T12:00:00Z`);
+      date.setUTCDate(date.getUTCDate() + by);
+      return date.toISOString().slice(0, 10);
+    };
+    const fromField = panel.getByTestId("audit-filter-from");
+    const toField = panel.getByTestId("audit-filter-to");
+    await expect(fromField).toHaveAttribute("max", today);
+    await expect(toField).toHaveAttribute("max", today);
+    await fromField.fill(shift(today, 1));
+    await expect(fromField).toHaveValue("");
+    await fromField.fill(today);
+    await expect(fromField).toHaveValue(today);
+    await expect(toField).toHaveAttribute("min", today);
+    await toField.fill(shift(today, -1));
+    await expect(toField).toHaveValue("");
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
     await expect(page.getByTestId("audit-chips-chip-from")).toContainText(today);
@@ -195,32 +230,66 @@ test.describe("U3 audit & security", () => {
     { tag: "@private-identity" },
     async ({ page }) => {
       const { secret } = await signInAsSuperAdmin(page);
-      const target = await leaseUser();
+      // G3b — a seller with one scratch listing, so the view's footer has a row
+      // to page (J3: scratch rows only, removed in finally).
+      const target = await leaseSeller();
+      const { parent, leaf } = await seedCategoryBranch();
+      const chain = await seedScratchChain("ET");
+      try {
+        const seeded = await adminClient()
+          .from("listings")
+          .insert({
+            category_id: leaf.id,
+            seller_id: target.id,
+            location_id: chain.city.id,
+            home_country_code: "ET",
+            title: `e2e-imp-${RUN}-${rand()}`,
+            description: "e2e scratch listing for the impersonation view",
+            status: "screening",
+          })
+          .select("id")
+          .single();
+        if (seeded.error || !seeded.data) {
+          throw new Error(`[e2e:imp] seeding failed: ${seeded.error?.message ?? "no row"}`);
+        }
+        const listingId = seeded.data.id as string;
 
-      await gotoReady(page, `/admin/users/${target.id}`);
-      await expect(page.getByTestId("impersonation-starter")).toBeVisible();
-      await page.getByTestId("impersonation-reason").fill("e2e support ticket 1234");
-      await page.getByTestId("impersonation-begin").click();
-      await stepUpIfPrompted(page, secret);
+        await gotoReady(page, `/admin/users/${target.id}`);
+        await expect(page.getByTestId("impersonation-starter")).toBeVisible();
+        await page.getByTestId("impersonation-reason").fill("e2e support ticket 1234");
+        await page.getByTestId("impersonation-begin").click();
+        await stepUpIfPrompted(page, secret);
 
-      await expect(page.getByTestId("impersonation-view")).toBeVisible({ timeout: 20000 });
-      await expect(page.getByTestId("impersonation-banner")).toBeVisible();
-      await expect(page.getByTestId("impersonation-readonly-note")).toBeVisible();
-      // Bundle 11 G2b (D132) — the page's heading in the header; Columns on the listings.
-      await expect(
-        page.getByTestId("impersonation-header").getByRole("heading", { level: 1 }),
-      ).toBeVisible();
-      await expect(page.getByTestId("impersonation-listings-columns")).toBeVisible();
-      // G3a (INC-546) — the listings' footer pages through the door.
-      await expect(page.getByTestId("impersonation-listings-pagination-range")).toBeVisible();
-      await expectNoHorizontalOverflow(page);
+        await expect(page.getByTestId("impersonation-view")).toBeVisible({ timeout: 20000 });
+        await expect(page.getByTestId("impersonation-banner")).toBeVisible();
+        await expect(page.getByTestId("impersonation-readonly-note")).toBeVisible();
+        // Bundle 11 G2b (D132) — the page's heading in the header; Columns on the listings.
+        await expect(
+          page.getByTestId("impersonation-header").getByRole("heading", { level: 1 }),
+        ).toBeVisible();
+        await expect(page.getByTestId("impersonation-listings-columns")).toBeVisible();
+        // G3a (INC-546) — the listings' footer pages through the door. G3b: a
+        // pooled account is reaped to no listings, so the test seeds one; an
+        // empty table shows its empty state and no footer.
+        await expect(
+          page.getByTestId(`impersonated-listing-${listingId}${isMobile(page) ? "-card" : ""}`),
+        ).toBeVisible();
+        await expect(page.getByTestId("impersonation-listings-pagination-range")).toHaveText(
+          "1–1 of 1",
+        );
+        await expectNoHorizontalOverflow(page);
 
-      // The banner rides along on an unrelated page (global mount).
-      await gotoReady(page, "/admin/audit");
-      await expect(page.getByTestId("impersonation-banner")).toBeVisible();
+        // The banner rides along on an unrelated page (global mount).
+        await gotoReady(page, "/admin/audit");
+        await expect(page.getByTestId("impersonation-banner")).toBeVisible();
 
-      await page.getByTestId("impersonation-banner-end").click();
-      await expect(page.getByTestId("impersonation-banner")).toHaveCount(0, { timeout: 20000 });
+        await page.getByTestId("impersonation-banner-end").click();
+        await expect(page.getByTestId("impersonation-banner")).toHaveCount(0, { timeout: 20000 });
+      } finally {
+        await destroyListingsOf(target.id);
+        await destroyLocation(chain.region.slug);
+        await destroyCategoryBranch([parent.slug, leaf.slug]);
+      }
     },
   );
 
