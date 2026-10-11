@@ -2,13 +2,14 @@ name: Feed bench
 
 # D101 §5 / DEC-166 — the feed engine's speed judge on ethio-staging:
 # 100,500 scratch listings, six page shapes timed inside the database
-# (feed_bench), everything removed after. Weekly (Sunday 05:10 UTC, DEC-167)
+# (feed_bench), everything removed after. Weekly (Sunday 16:10 UTC, DEC-171 —
+# before the 18:00 UTC nightly; was 05:10 UTC, DEC-167)
 # and on demand; red when a target is missed, or when it was skipped or
 # yielded to another staging run (DEC-168, scripts/staging-gate.ts).
 # Evidence publishes to branch ci-evidence (DEC-098).
 on:
   schedule:
-    - cron: "10 5 * * 0"
+    - cron: "10 16 * * 0"
   workflow_dispatch:
 
 # DEC-153 (a) — read-only by default; only the job that publishes holds write.

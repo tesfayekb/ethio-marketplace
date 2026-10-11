@@ -4,7 +4,10 @@ name: Nightly E2E
 # docs/features/nightly-e2e.md. Deliberately NOT triggered on push.
 on:
   schedule:
-    - cron: "0 6 * * *"
+    # DEC-171 — 18:00 UTC (was 06:00): away from the operator's working hours,
+    # when its @global-state specs and its load shared ethio-staging with the
+    # day's CI runs (INC-545).
+    - cron: "0 18 * * *"
   workflow_dispatch:
 
 # DEC-153 (a) — read-only by default; only the job that publishes the

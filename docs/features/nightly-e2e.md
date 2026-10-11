@@ -20,7 +20,7 @@ operator-ruled cooldown-on-click behaviour**; A-3 only adds the exhaustion tail.
 ## Schedule and manual run
 
 - Workflow: `.github/workflows/nightly-e2e.yml`
-- Trigger: `schedule` at `0 6 * * *` (06:00 UTC) **and** `workflow_dispatch`.
+- Trigger: `schedule` at `0 18 * * *` (18:00 UTC; 06:00 UTC until DEC-171, 2026-10-11) **and** `workflow_dispatch`.
 - It does **not** run on push.
 - Config: `playwright.nightly.config.ts` (`testDir: ./e2e/nightly`, one chromium
   project at 360x740, `retries: 0`, `workers: 1`).

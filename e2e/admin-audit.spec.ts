@@ -185,8 +185,7 @@ test.describe("U3 audit & security", () => {
       "true",
     );
     // G3b (INC-548) — today in the browser's own calendar; no date after it,
-    // and To is never before From: such a date is refused and the field keeps
-    // its value.
+    // and To is never before From.
     const today = await page.evaluate(() => {
       const now = new Date();
       const pad = (value: number) => String(value).padStart(2, "0");
@@ -197,17 +196,24 @@ test.describe("U3 audit & security", () => {
       date.setUTCDate(date.getUTCDate() + by);
       return date.toISOString().slice(0, 10);
     };
-    const fromField = panel.getByTestId("audit-filter-from");
-    const toField = panel.getByTestId("audit-filter-to");
-    await expect(fromField).toHaveAttribute("max", today);
-    await expect(toField).toHaveAttribute("max", today);
-    await fromField.fill(shift(today, 1));
-    await expect(fromField).toHaveValue("");
-    await fromField.fill(today);
-    await expect(fromField).toHaveValue(today);
-    await expect(toField).toHaveAttribute("min", today);
-    await toField.fill(shift(today, -1));
-    await expect(toField).toHaveValue("");
+    // L1b (INC-549) — the app's own calendar: a day it refuses is greyed and
+    // cannot be chosen, and its month stops at the bounds, on every device.
+    const sameMonth = (a: string, b: string) => a.slice(0, 7) === b.slice(0, 7);
+    await panel.getByTestId("audit-filter-from").click();
+    const fromCalendar = panel.getByTestId("audit-filter-from-calendar");
+    await expect(fromCalendar.getByRole("button", { name: en["prim.date.next"] })).toBeDisabled();
+    if (sameMonth(today, shift(today, 1))) {
+      await expect(panel.getByTestId(`audit-filter-from-day-${shift(today, 1)}`)).toBeDisabled();
+    }
+    await panel.getByTestId(`audit-filter-from-day-${today}`).click();
+    await expect(fromCalendar).toHaveCount(0);
+    await panel.getByTestId("audit-filter-to").click();
+    const toCalendar = panel.getByTestId("audit-filter-to-calendar");
+    await expect(toCalendar.getByRole("button", { name: en["prim.date.previous"] })).toBeDisabled();
+    await expect(toCalendar.getByRole("button", { name: en["prim.date.next"] })).toBeDisabled();
+    if (sameMonth(today, shift(today, -1))) {
+      await expect(panel.getByTestId(`audit-filter-to-day-${shift(today, -1)}`)).toBeDisabled();
+    }
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
     await expect(page.getByTestId("audit-chips-chip-from")).toContainText(today);

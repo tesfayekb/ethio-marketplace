@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 383,
+  "scanned": 385,
   "dynamicCallSites": 233,
   "keys": {
     "account.deactivatedBanner": [
@@ -4669,6 +4669,26 @@
       "/admin/impersonation/$sessionId",
       "/admin/screening",
       "/c/$slug",
+      "/post",
+      "/post/$listingId"
+    ],
+    "prim.date.clear": [
+      "/admin/audit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "prim.date.next": [
+      "/admin/audit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "prim.date.pick": [
+      "/admin/audit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "prim.date.previous": [
+      "/admin/audit",
       "/post",
       "/post/$listingId"
     ],

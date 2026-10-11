@@ -15,6 +15,7 @@
 export const POOL_RESET_TABLES = {
   listings: "seller_id rows deleted; photos, places, revisions, verdicts cascade",
   listing_revisions: "seller_id rows deleted (also cascade with listings)",
+  seller_notices: "seller_id rows deleted (also cascade with listings) — L1b",
   profiles: "returned to handle_new_user() defaults",
   user_directory: "returned to handle_new_user() defaults",
   user_roles: "every role except the base user role removed; base role ensured",
