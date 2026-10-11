@@ -1744,17 +1744,11 @@
     "admin.locations.export.countries": [
       "/admin/countries"
     ],
-    "admin.locations.export.countriesHint": [
-      "/admin/countries"
-    ],
     "admin.locations.export.error": [
       "/admin/countries",
       "/admin/places"
     ],
     "admin.locations.export.locations": [
-      "/admin/places"
-    ],
-    "admin.locations.export.locationsHint": [
       "/admin/places"
     ],
     "admin.locations.field.aliasAdd": [

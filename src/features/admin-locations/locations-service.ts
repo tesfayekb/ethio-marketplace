@@ -26,6 +26,15 @@ export const LOCATION_LEVELS: readonly LocationLevel[] = [
   "sub_city",
 ] as const;
 
+/**
+ * Bundle 11 V2b — the levels Admin › Places lists: every level but the
+ * country, whose anchor row is Admin › Countries' (the roster drops it), so
+ * the Level filter offers only levels it can find.
+ */
+export const LISTED_LEVELS: readonly LocationLevel[] = LOCATION_LEVELS.filter(
+  (level) => level !== "country",
+);
+
 /** The level rank the doors and the public read both order by. */
 export function levelRank(level: string): number {
   const index = LOCATION_LEVELS.indexOf(level as LocationLevel);

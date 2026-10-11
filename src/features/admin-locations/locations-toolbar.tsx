@@ -2,7 +2,7 @@ import { FilterChoices } from "@/components/shell/filter-choices";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import { LOCATION_LEVELS, type CountryOption } from "./locations-service";
+import { LISTED_LEVELS, type CountryOption } from "./locations-service";
 
 export const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
@@ -74,7 +74,10 @@ export function LocationFilters({
         onChange={onLevel}
         options={[
           { value: "", label: t("admin.locations.filter.allLevelsOption") },
-          ...LOCATION_LEVELS.map((name) => ({
+          // Bundle 11 V2b (the operator's walk) — no Country choice: a market's
+          // anchor never lists here (Admin › Countries holds it), so it found
+          // nothing.
+          ...LISTED_LEVELS.map((name) => ({
             value: name,
             label: t(`admin.locations.level.${name}` as MessageKey),
           })),

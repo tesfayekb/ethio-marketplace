@@ -395,6 +395,29 @@ describe("DataTable V2 card and frame (D132)", () => {
     expect(screen.getByTestId("place-p1")).toHaveTextContent("Oromia");
   });
 
+  it("HS-22 the card's facts sit side by side: each label beside its value, all on one wrapping line with the pills", () => {
+    renderPlaces({
+      columns: [
+        ...placeColumns,
+        {
+          key: "aliases",
+          header: "Aliases",
+          priority: "detail",
+          card: "meta",
+          cell: () => <span data-testid="aliases-p1">2</span>,
+        },
+      ],
+    });
+    const card = screen.getByTestId("place-p1-card");
+    const listings = card.querySelector('[data-card-fact="listings"]')!;
+    const aliases = card.querySelector('[data-card-fact="aliases"]')!;
+    expect(listings).toHaveTextContent("Listings14");
+    expect(listings.className).toContain("inline-flex");
+    expect(aliases.parentElement).toBe(listings.parentElement);
+    expect(listings.parentElement!.className).toContain("flex-wrap");
+    expect(listings.parentElement!.contains(within(card).getByTestId("pill-p1"))).toBe(true);
+  });
+
   it("HS-21 a fact whose cell names itself draws no label in the card (cardLabel: false)", () => {
     renderPlaces({
       columns: placeColumns.map((column) =>

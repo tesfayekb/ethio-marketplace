@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deleteBlockedKey } from "./locations-service";
+import { deleteBlockedKey, LISTED_LEVELS, LOCATION_LEVELS } from "./locations-service";
 
 /** Bundle 11 B1 — the one delete rule the verb bar and the row's Delete read. */
 describe("deleteBlockedKey", () => {
@@ -19,5 +19,13 @@ describe("deleteBlockedKey", () => {
     expect(deleteBlockedKey({ ...free, profileDefaultCount: 1 })).toBe(
       "admin.locations.error.detail.hasProfileDefaults",
     );
+  });
+});
+
+/** Bundle 11 V2b (the operator's walk) — the Level filter offers only what Places lists. */
+describe("LISTED_LEVELS", () => {
+  it("PL-2 leaves out the country (its anchor is Admin › Countries'), keeps every other level in order", () => {
+    expect(LISTED_LEVELS).not.toContain("country");
+    expect(LISTED_LEVELS).toEqual(LOCATION_LEVELS.filter((level) => level !== "country"));
   });
 });

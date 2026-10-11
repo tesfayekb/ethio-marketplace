@@ -47,7 +47,7 @@ function FeedError({
 function InviteFirst({ invite }: { invite: Invite }) {
   return (
     <section data-testid="feed-section" data-step="1" className="mt-6 first:mt-0">
-      <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
+      <ul className="grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
         <li>
           <InviteCard invite={invite} />
         </li>
@@ -187,7 +187,7 @@ export function Feed() {
                   {label}
                 </h2>
               ) : null}
-              <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
+              <ul className="grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
                 {section.cards.map((listing) => (
                   <li key={listing.id}>
                     <ListingCard listing={listing} />

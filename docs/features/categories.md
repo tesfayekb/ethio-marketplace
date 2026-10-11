@@ -605,3 +605,5 @@ This section is the later word on "C2e + UI-FIX-4 — one row verb, one editor",
 - The page's heading ("Categories") leads the header row; Generate missing (an image-plus icon), Export, Import and Create category (a plus) are icon tiles on a phone, icon and word from md.
 - The phone card: the name (with its glyph and slug) on top with the three-dots in its corner; the parent line under it (a root reads "—"); Listings as a labelled fact; the state and the flags as pills at the end; Order in the footer beside Edit and Delete. The tree's dots are the table's alone.
 - Missing assets, inside the Filters panel (a bottom sheet on a phone), is a one-tap pill; the panel's footer clears it and closes with the count of rows shown.
+
+- Bundle 11 V2b (the operator's walk): on a phone the parent is a fact on the card's facts line ("Parent —" for a root, "Parent Vehicles · Primary" for a child), beside Listings, instead of a line of its own; Generate missing states its spend cap (DEC-032) in the house tooltip instead of the browser's.

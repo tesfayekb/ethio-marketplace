@@ -66,6 +66,10 @@ export function InvitePostButton({ invite }: { invite: Invite }) {
 export function InviteCard({ invite }: { invite: Invite }) {
   // The operator, 2026-10-10: one card among the others, never a wider one; below
   // 11rem (three or four a row) it is compact, as the listing card is.
+  // Bundle 11 V2b (the operator, 2026-10-11: every card one size) — never a
+  // taller one either: it fills its cell and fits a listing card's height (a
+  // smaller star; the sentence held to six lines on a compact card, four on a
+  // wider one — the whole sentence stays in the page for a screen reader).
   return (
     <div
       data-testid="feed-invite"
@@ -73,16 +77,16 @@ export function InviteCard({ invite }: { invite: Invite }) {
       data-category={invite.categoryId ?? undefined}
       className="@container h-full"
     >
-      <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-gold bg-gold/15 p-2 text-center @min-[11rem]:min-h-56 @min-[11rem]:gap-4 @min-[11rem]:p-6">
+      <div className="flex h-full flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border-2 border-gold bg-gold/15 p-2 text-center @min-[11rem]:gap-3 @min-[11rem]:p-4">
         <span
           aria-hidden="true"
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-gold text-gold-foreground @min-[11rem]:h-12 @min-[11rem]:w-12"
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-gold-foreground @min-[11rem]:h-9 @min-[11rem]:w-9"
         >
-          <Star className="h-4 w-4 @min-[11rem]:h-6 @min-[11rem]:w-6" fill="currentColor" />
+          <Star className="h-3 w-3 @min-[11rem]:h-5 @min-[11rem]:w-5" fill="currentColor" />
         </span>
         <InviteText
           invite={invite}
-          className="text-xs font-semibold break-words text-foreground @min-[11rem]:text-base"
+          className="line-clamp-6 text-xs leading-[14px] font-semibold break-words text-foreground @min-[11rem]:line-clamp-4 @min-[11rem]:text-sm @min-[11rem]:leading-5"
         />
         <InvitePostButton invite={invite} />
       </div>

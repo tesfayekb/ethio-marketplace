@@ -5,6 +5,7 @@ import {
   Globe2,
   Image,
   Languages,
+  LibraryBig,
   MapPin,
   ScrollText,
   ShieldCheck,
@@ -50,8 +51,13 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   screening: ClipboardCheck,
 };
 
+/**
+ * Bundle 11 V2b (the operator's walk) — a group never shares its glyph with
+ * one of its sections: the Catalog group is a library, Categories keeps the
+ * folder tree.
+ */
 const GROUP_ICONS: Record<AdminGroupId, LucideIcon> = {
-  categories: FolderTree,
+  categories: LibraryBig,
   locations: Globe2,
 };
 
