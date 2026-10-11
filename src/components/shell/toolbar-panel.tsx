@@ -17,6 +17,12 @@ import { useI18n } from "@/i18n";
  *
  * Testid: the content is `${testid}-panel` in both forms; Escape closes both.
  * `footer` receives `close` for its primary button ("Done", "Show 12 results").
+ *
+ * Bundle 11 V2c (the operator's walk, 2026-10-11) — `state` is the panel's
+ * choices written as one string. The panel keeps the string it opened with,
+ * and `footer` receives `changed`: true only while the choices differ from
+ * that string (a choice set back is no change). The primary button is
+ * enabled only then; the close (×), Escape and a tap outside always close.
  */
 export function ToolbarPanel({
   testid,
@@ -24,24 +30,31 @@ export function ToolbarPanel({
   trigger,
   children,
   footer,
+  state,
   align = "start",
 }: {
   testid: string;
   title: string;
   trigger: ReactNode;
   children: ReactNode;
-  footer?: (close: () => void) => ReactNode;
+  footer?: (close: () => void, changed: boolean) => ReactNode;
+  state: string;
   align?: "start" | "end";
 }) {
   const { t } = useI18n();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
+  const [openedWith, setOpenedWith] = useState(state);
+  const onOpenChange = (next: boolean) => {
+    if (next) setOpenedWith(state);
+    setOpen(next);
+  };
   const close = () => setOpen(false);
-  const foot = footer?.(close) ?? null;
+  const foot = footer?.(close, state !== openedWith) ?? null;
 
   if (isMobile) {
     return (
-      <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
+      <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
         <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-foreground/45" />
@@ -80,7 +93,7 @@ export function ToolbarPanel({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
         align={align}

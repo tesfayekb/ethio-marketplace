@@ -428,4 +428,42 @@ describe("DataTable V2 card and frame (D132)", () => {
     expect(within(card).getByTestId("listings-p1")).toHaveTextContent("14");
     expect(card).not.toHaveTextContent("Listings");
   });
+
+  it("HS-25 a row's expansion stays in its row's box: in the card above its footer, and one band with its table row (V2c)", () => {
+    renderPlaces({
+      rowActions: (r) => (
+        <RowActions
+          testid={`act-${r.id}`}
+          name={r.name}
+          edit={{ label: "Edit", onSelect: () => {} }}
+          remove={{ label: "Delete", onSelect: () => {} }}
+        />
+      ),
+      rows: [
+        ...PLACES,
+        { id: "p2", name: "Bishoftu", path: "Oromia", listings: 2, order: 4, active: true },
+      ],
+      expandedRow: (r) => (r.id === "p1" ? <p data-testid={`opts-${r.id}`}>Options</p> : null),
+    });
+    const cards = screen.getByTestId("data-table-cards");
+    const box = within(cards).getByTestId("place-p1-actions");
+    const expanded = within(box).getByTestId("place-p1-expanded");
+    expect(within(expanded).getByTestId("opts-p1")).toBeTruthy();
+    // Under the facts, in the name's column, before the footer's Edit.
+    const card = within(box).getByTestId("place-p1-card");
+    expect(card.compareDocumentPosition(expanded) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(expanded.parentElement).toBe(card.parentElement);
+    const edit = within(box).getByTestId("act-p1-edit");
+    expect(expanded.compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // A row with no expansion draws none.
+    expect(screen.queryByTestId("place-p2-expanded")).toBeNull();
+    // The table twin: no line between the row and its expansion, the line after the pair.
+    const row = screen.getByTestId("place-p1");
+    expect(row.className).not.toContain("border-b");
+    const band = screen.getByTestId("place-p1-expanded-row");
+    expect(band.className).toContain("border-b");
+    expect(row.nextElementSibling).toBe(band);
+    expect(within(band).getByTestId("place-p1-expanded").className).toContain("pt-0");
+    expect(screen.getByTestId("place-p2").className).toContain("border-b");
+  });
 });

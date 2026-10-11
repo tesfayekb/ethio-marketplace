@@ -159,6 +159,11 @@ export interface DataTableProps<T> {
    * `null`/`undefined` renders nothing. Tabular detail is never allowed to
    * appear at page bottom, detached from the row it describes.
    * Testid: `${rowTestId(row)}-expanded`.
+   *
+   * Bundle 11 V2c (the operator's walk, 2026-10-11) — the region stays in its
+   * row's box: in the card, under the facts and above the footer, in the
+   * name's column; in the table, the row and its expansion are one band (no
+   * line between them, the expansion's cell starting at the row's bottom).
    */
   expandedRow?: (row: T) => ReactNode;
   /** Optional bulk-select support. */
@@ -586,6 +591,7 @@ export function DataTable<T>({
               ? splitRowActions(rowActions(row))
               : { top: null, foot: null };
             const lead = cardLead?.(row);
+            const expansion = expandedRow?.(row);
             const label = (column: DataTableColumn<T>) =>
               column.cardLabel !== false &&
               typeof column.header === "string" &&
@@ -699,19 +705,27 @@ export function DataTable<T>({
                         {lead}
                       </span>
                     ) : null}
-                    {href ? (
-                      <Link
-                        {...href}
-                        data-testid={`${rid}-card`}
-                        className="block min-h-11 min-w-0 flex-1 space-y-1"
-                      >
-                        {body}
-                      </Link>
-                    ) : (
-                      <div data-testid={`${rid}-card`} className="min-w-0 flex-1 space-y-1">
-                        {body}
-                      </div>
-                    )}
+                    <div className="min-w-0 flex-1">
+                      {href ? (
+                        <Link
+                          {...href}
+                          data-testid={`${rid}-card`}
+                          className="block min-h-11 min-w-0 space-y-1"
+                        >
+                          {body}
+                        </Link>
+                      ) : (
+                        <div data-testid={`${rid}-card`} className="min-w-0 space-y-1">
+                          {body}
+                        </div>
+                      )}
+                      {/* The row's expansion stays in its box, in the name's column (V2c). */}
+                      {expansion ? (
+                        <div data-testid={`${rid}-expanded`} className="mt-2 min-w-0">
+                          {expansion}
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                   {top ? <div className="absolute end-1 top-1">{top}</div> : null}
                   {hasFoot ? (
@@ -735,11 +749,6 @@ export function DataTable<T>({
                     </div>
                   ) : null}
                 </div>
-                {expandedRow?.(row) ? (
-                  <div data-testid={`${rid}-expanded`} className="mt-2 min-w-0">
-                    {expandedRow(row)}
-                  </div>
-                ) : null}
               </li>
             );
           })}
@@ -829,7 +838,9 @@ export function DataTable<T>({
                     <tr
                       data-testid={rowTestId(row)}
                       className={cn(
-                        "border-b border-border/70 last:border-0",
+                        // With an expansion, the row and its expansion are one
+                        // band: the line comes after the expansion (V2c).
+                        expansion ? null : "border-b border-border/70 last:border-0",
                         href && "cursor-pointer hover:bg-muted/50",
                       )}
                       {...(href
@@ -908,7 +919,7 @@ export function DataTable<T>({
                         <td
                           colSpan={columns.length + (selection ? 1 : 0) + (rowActions ? 1 : 0)}
                           data-testid={`${rowTestId(row)}-expanded`}
-                          className="min-w-0 p-3 align-top"
+                          className="min-w-0 px-3 pb-3 pt-0 align-top"
                         >
                           {expansion}
                         </td>

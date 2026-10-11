@@ -396,6 +396,7 @@ export function AdminScreeningPage() {
                     <FiltersButton
                       testid="admin-screening-filters"
                       count={chips.length}
+                      state={country ?? ""}
                       onClearAll={() => {
                         setCountry(null);
                         resetPaging();

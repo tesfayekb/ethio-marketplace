@@ -65,16 +65,23 @@ export function FilterChips({
  * panel's footer clears every filter (`onClearAll`) and closes with the result
  * count when the page gives one (`resultCount`: "Show 12 results"), else
  * "Done". The filters inside are FilterChoices pills — never a dropdown.
+ *
+ * Bundle 11 V2c — `state` is the page's filter choices as one string; the
+ * footer's primary ("Show 12 results", "Done") is enabled only while they
+ * differ from the choices the panel opened with.
  */
 export function FiltersButton({
   testid,
   count,
+  state,
   children,
   onClearAll,
   resultCount,
 }: {
   testid: string;
   count: number;
+  /** The filter choices as one string (any stable spelling). */
+  state: string;
   children: ReactNode;
   onClearAll?: () => void;
   resultCount?: number;
@@ -86,6 +93,7 @@ export function FiltersButton({
       <ToolbarPanel
         testid={testid}
         title={label}
+        state={state}
         trigger={
           <Button
             type="button"
@@ -105,7 +113,7 @@ export function FiltersButton({
             ) : null}
           </Button>
         }
-        footer={(close) => (
+        footer={(close, changed) => (
           <>
             {onClearAll ? (
               <Button
@@ -124,6 +132,7 @@ export function FiltersButton({
               size="touch"
               className="ms-auto flex-1 md:pointer-fine:h-9 md:pointer-fine:min-h-9 md:flex-none"
               data-testid={`${testid}-done`}
+              disabled={!changed}
               onClick={close}
             >
               {resultCount === undefined

@@ -18,6 +18,9 @@ import { ToolbarPanel } from "./toolbar-panel";
  * Each column is a row with a switch (the locked one on and greyed). The panel
  * is the shared ToolbarPanel — a popover from md, a bottom sheet on a phone —
  * with "Show all" and "Done" in its footer. The cards follow the same choice.
+ *
+ * Bundle 11 V2c — "Done" is enabled only while the shown columns differ from
+ * those the panel opened with.
  */
 export interface ColumnChoice {
   key: string;
@@ -42,11 +45,17 @@ export function ColumnsButton({
   const hiddenShown = columns.filter(
     (column) => column.locked !== true && hidden.includes(column.key),
   );
+  /** The hidden columns as one string: the panel's choices. */
+  const state = hiddenShown
+    .map((column) => column.key)
+    .sort()
+    .join(",");
   return (
     <PressLabel label={label}>
       <ToolbarPanel
         testid={testid}
         title={label}
+        state={state}
         align="end"
         trigger={
           <Button
@@ -59,7 +68,7 @@ export function ColumnsButton({
             <span className="max-md:sr-only">{label}</span>
           </Button>
         }
-        footer={(close) => (
+        footer={(close, changed) => (
           <>
             <Button
               type="button"
@@ -78,6 +87,7 @@ export function ColumnsButton({
               size="touch"
               className="ms-auto flex-1 md:pointer-fine:h-9 md:pointer-fine:min-h-9 md:flex-none"
               data-testid={`${testid}-done`}
+              disabled={!changed}
               onClick={close}
             >
               {t("prim.table.done")}
