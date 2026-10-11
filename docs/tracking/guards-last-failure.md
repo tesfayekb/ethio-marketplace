@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38147645440
-- Commit: `dfd6555a8dbd6011d3b55f1d7bccc7765a434745`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38177021983
+- Commit: `98b0841bc7c938f243cbf40ecf273d5818f1bd0f`
 - Attempt: 1
-- Written (UTC): 2026-10-11T15:06:23.220Z
+- Written (UTC): 2026-10-11T22:07:45.189Z
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -22,6 +22,9 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1mfi[0m
+[36;1mif [ "$reporter" -ne 0 ]; then[0m
+[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit "$reporter"[0m
 [36;1mfi[0m
 [36;1mexit 0[0m
@@ -32,10 +35,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38147645440
-  E2E_HEAD_COMMIT_MESSAGE: Applied carrier to turn 21
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38177021983
+  E2E_HEAD_COMMIT_MESSAGE: Completed Turn L4b/Turn 22
 
-X-Lovable-Edit-ID: edt-cb919055-731f-41e2-82b2-976489641606
+X-Lovable-Edit-ID: edt-e17414c0-5e84-497d-8c7a-8aaa64c9a980
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -49,10 +52,7 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (11/11 source(s) with usable results, 1 context file(s) found).
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md.
+Wrote docs/tracking/e2e-last-failure.md (11/11 source(s) with usable results, 2 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "smoke=success email=success shards=failure"
 [36;1mecho "smoke=success email=success shards=failure"[0m
@@ -69,7 +69,7 @@ smoke=success email=success shards=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/c3cadcb8-da92-407c-813d-bd7ee6b70aca' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/8b46f8bc-8021-436a-9f4b-281664a42a02' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
