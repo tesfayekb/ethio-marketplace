@@ -401,6 +401,112 @@ import { destroyAttribute } from "./helpers/admin-attributes";
     }
   });
   /**
+   * CT-44 (bundle 11, turn G3c — INC-558's class) — A MOVE WAITS FOR THE ROSTER.
+   * Move up sends the siblings' whole order, computed from the roster. While the
+   * first move is in flight (the door is held here), Move up, Move down and the
+   * editor's Save are greyed out: a second press would compute from the old
+   * order and the second move would be lost. Once the roster has re-read, the
+   * second Move up lands from the new order. Three scratch siblings under a
+   * scratch parent, destroyed in `finally` (J1/J3).
+   */
+  test("CT-44 a second Move up waits for the first and lands from the new order", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const supabase = adminClient();
+    const parentSlug = scratchSlug();
+    const aSlug = `${scratchSlug()}-a`;
+    const bSlug = `${scratchSlug()}-b`;
+    const cSlug = `${scratchSlug()}-c`;
+    const slugs = [parentSlug, aSlug, bSlug, cSlug];
+    const door = "**/rest/v1/rpc/admin_reorder_categories";
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => (release = resolve));
+
+    try {
+      /** CT-15's fixture invariant: a seeded category gets its pointer edge at once. */
+      const seed = async (slug: string, parent: string | null, order: number) => {
+        const { data, error } = await supabase
+          .from("categories")
+          .insert({
+            slug,
+            name_en: slug,
+            is_active: true,
+            is_catchall: false,
+            visible_until: new Date(0).toISOString(),
+          })
+          .select("id")
+          .single();
+        if (error) throw new Error(`[e2e:ct44] seeding ${slug} failed: ${error.message}`);
+        const id = data.id as string;
+        const { error: pointerError } = await supabase
+          .from("category_tree_pointers")
+          .insert({ parent_id: parent, child_id: id, display_order: order });
+        if (pointerError)
+          throw new Error(`[e2e:ct44] seeding pointer for ${slug} failed: ${pointerError.message}`);
+        return id;
+      };
+      // INC-383 — the scratch root sorts after every real root.
+      const parentId = await seed(parentSlug, null, 2_000_000);
+      const aId = await seed(aSlug, parentId, 0);
+      const bId = await seed(bSlug, parentId, 1);
+      const cId = await seed(cSlug, parentId, 2);
+
+      const orderOf = async () => {
+        const { data, error } = await supabase
+          .from("category_tree_pointers")
+          .select("child_id, display_order")
+          .eq("parent_id", parentId)
+          .order("display_order");
+        if (error) throw new Error(`[e2e:ct44] reading order failed: ${error.message}`);
+        const name = new Map([
+          [aId, "a"],
+          [bId, "b"],
+          [cId, "c"],
+        ]);
+        return (data ?? []).map((row) => name.get(row.child_id as string) ?? "?").join("");
+      };
+      expect(await orderOf()).toBe("abc");
+
+      // J7 — seed before navigating; the seeded row is asserted rendered first.
+      await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/categories");
+      await page.getByTestId("category-search").fill(parentSlug.slice(0, 18));
+      await expect(categoryRow(page, cSlug)).toBeVisible({ timeout: 20000 });
+      await openEditor(page, cSlug);
+      await expect(page.getByTestId("category-edit-submit")).toBeEnabled();
+
+      await page.route(door, async (route) => {
+        await held;
+        await route.continue();
+      });
+      await action(page, cSlug, "up").click();
+      // The first move is in flight: everything that computes from the roster waits.
+      await expect(action(page, cSlug, "up"), "CT-44 Move up stayed live mid-move").toBeDisabled();
+      await expect(action(page, cSlug, "down")).toBeDisabled();
+      await expect(
+        page.getByTestId("category-edit-submit"),
+        "CT-44 Save stayed live mid-move",
+      ).toBeDisabled();
+      release();
+      // The held request has gone on and the roster has re-read: Move up is live again.
+      await expect(action(page, cSlug, "up")).toBeEnabled({ timeout: 20000 });
+      await page.unroute(door);
+      await expect.poll(orderOf, { timeout: 20000, message: "CT-44 the first move" }).toBe("acb");
+      await action(page, cSlug, "up").click();
+      await expect
+        .poll(orderOf, { timeout: 20000, message: "CT-44 the second move was lost" })
+        .toBe("cab");
+      await expect(page.getByTestId("category-edit-submit")).toBeEnabled();
+      await expect(page.getByTestId("category-verb-error")).toHaveCount(0);
+    } finally {
+      release();
+      await page.unroute(door).catch(() => undefined);
+      for (const slug of slugs) await destroyCategory(slug);
+    }
+  });
+
+  /**
    * CT-16 (C2-CLOSE Part D, INC-150) — THE DIALOG RETURN PATH. A secondary
    * surface is an axis OF the editor, not a replacement for it: closing
    * Countries returns to the OPEN editor, and only closing the editor returns

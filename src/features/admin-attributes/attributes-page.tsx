@@ -23,6 +23,7 @@ import { toRoster } from "@/features/admin-categories/categories-service";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
+import { useSettling } from "@/lib/use-settling";
 import { categoryFilterOptions } from "@/lib/category-filter-options";
 
 import {
@@ -43,6 +44,7 @@ import {
 import { ImportAttributesDialog } from "./import-dialog";
 import { useAttributeLabel } from "./use-attribute-label";
 import {
+  ADMIN_ATTRIBUTES_KEY,
   useAdminAttributes,
   useAttributeCategories,
   useAttributeCoverage,
@@ -82,6 +84,11 @@ const PAGE_SIZE_STORAGE_KEY = "ethio.admin.attributes.pageSize";
 
 export function AdminAttributesPage() {
   const { t } = useI18n();
+  /**
+   * INC-558's class (turn G3c) — the editors open on this read and send whole
+   * records: their openers wait while it re-reads or a write to it is in flight.
+   */
+  const settling = useSettling(ADMIN_ATTRIBUTES_KEY);
   // C3-UX-2 — every attribute label on this page resolves through the one
   // entity-translation resolver; `nameEn` is the fallback, never the read.
   const attributeLabel = useAttributeLabel();
@@ -470,6 +477,7 @@ export function AdminAttributesPage() {
           mayUpdate
             ? {
                 label: t("admin.attributes.action.edit"),
+                disabled: settling,
                 onSelect: () => setDialog({ kind: "edit", id: row.id }),
               }
             : undefined

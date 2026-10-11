@@ -61,6 +61,8 @@ function useInvalidateCountries() {
 export function useUpsertCountry() {
   const invalidate = useInvalidateCountries();
   return useMutation({
+    // INC-558's class — the page's editors are seeded from this read (useSettling).
+    mutationKey: ADMIN_COUNTRIES_KEY,
     mutationFn: (input: UpsertCountryInput) => upsertCountry(input),
     onSettled: invalidate,
   });
@@ -78,6 +80,8 @@ export function useSetCountryActive() {
 export function useSetCountryRootOrder() {
   const invalidate = useInvalidateCountries();
   return useMutation({
+    // INC-558's class — the page's editors are seeded from this read (useSettling).
+    mutationKey: ADMIN_COUNTRIES_KEY,
     mutationFn: (input: { code: string; categoryIds: string[] }) => setCountryRootOrder(input),
     onSettled: invalidate,
   });

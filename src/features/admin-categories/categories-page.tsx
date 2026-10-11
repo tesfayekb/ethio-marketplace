@@ -43,6 +43,7 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import { categoryFilterOptions, ancestorIds, subtreeCounts } from "@/lib/category-filter-options";
+import { useSettling } from "@/lib/use-settling";
 import { supabase } from "@/integrations/supabase/client";
 
 import { CategoryAttributesDialog } from "@/features/admin-attributes/category-attributes-dialog";
@@ -193,6 +194,11 @@ export function AdminCategoriesPage() {
   const { t } = useI18n();
   const { permissions } = useAdminShell();
   const { data, isLoading, error } = useAdminCategories();
+  /**
+   * INC-558's class (turn G3c) — the roster is settling: a move or an editor
+   * opened now would compute from the old order or seed the old values.
+   */
+  const settling = useSettling(ADMIN_CATEGORIES_KEY);
   const countries = useCountries();
   const reorder = useReorderCategories();
   const reactivate = useReactivateCategory();
@@ -706,12 +712,14 @@ export function AdminCategoriesPage() {
             key: "up",
             label: t("admin.categories.action.up"),
             icon: <ArrowUp />,
+            disabled: settling,
             onSelect: () => move(row, -1),
           },
           {
             key: "down",
             label: t("admin.categories.action.down"),
             icon: <ArrowDown />,
+            disabled: settling,
             onSelect: () => move(row, 1),
           },
         );
@@ -744,6 +752,7 @@ export function AdminCategoriesPage() {
           mayUpdate
             ? {
                 label: t("admin.categories.action.edit"),
+                disabled: settling,
                 onSelect: () => openEditor(row.id, "row-click"),
               }
             : undefined
@@ -896,6 +905,7 @@ export function AdminCategoriesPage() {
                     t("admin.categories.action.up"),
                     <ArrowUp aria-hidden="true" className="size-4" />,
                     () => move(row, -1),
+                    settling,
                   ),
               row.isCatchall
                 ? null
@@ -904,6 +914,7 @@ export function AdminCategoriesPage() {
                     t("admin.categories.action.down"),
                     <ArrowDown aria-hidden="true" className="size-4" />,
                     () => move(row, 1),
+                    settling,
                   ),
 
               // C2d — a retired row swaps Retire for Reactivate and gains the

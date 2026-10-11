@@ -51,6 +51,8 @@ export function useCreateCategory() {
 export function useUpdateCategory() {
   const invalidate = useInvalidateCategories();
   return useMutation({
+    // INC-558's class — a write the roster's order and records are computed from (useSettling).
+    mutationKey: ADMIN_CATEGORIES_KEY,
     mutationFn: (input: UpdateCategoryInput) => updateCategory(input),
     onSettled: invalidate,
   });
@@ -127,6 +129,8 @@ export function useSetPrimaryPointer() {
 export function useReorderCategories() {
   const invalidate = useInvalidateCategories();
   return useMutation({
+    // INC-558's class — a write the roster's order and records are computed from (useSettling).
+    mutationKey: ADMIN_CATEGORIES_KEY,
     mutationFn: (input: { parentId: string | null; orderedChildIds: string[] }) =>
       reorderCategories(input),
     onSettled: invalidate,

@@ -28,8 +28,11 @@ import {
   useEntityTranslationStats,
   useEntityTranslationStatusAction,
   useSaveEntityTranslation,
+  ENTITY_ROWS_KEY,
 } from "./use-translations";
 import { ownValue } from "@/lib/own-key";
+import { useFollowingDraft } from "@/lib/use-following-draft";
+import { useSettling } from "@/lib/use-settling";
 
 const PAGE_SIZE = 25;
 
@@ -369,7 +372,13 @@ function EntityEditor({
   const save = useSaveEntityTranslation(lang);
   const ai = useAiTranslateEntities(lang);
   const statusAction = useEntityTranslationStatusAction(lang);
-  const [draft, setDraft] = useState(row.value ?? "");
+  /**
+   * INC-558's class (turn G3c) — the box follows the stored text until it is
+   * edited (the AI's text), and Save waits while the text is being written or
+   * re-read, so it never sends the old text back.
+   */
+  const [draft, setDraft] = useFollowingDraft(row.value ?? "");
+  const settling = useSettling(ENTITY_ROWS_KEY);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -416,7 +425,7 @@ function EntityEditor({
           <Button
             className="min-h-11"
             data-testid={`entity-save-${id}`}
-            disabled={save.isPending}
+            disabled={save.isPending || settling}
             onClick={() =>
               run(() =>
                 save.mutateAsync({

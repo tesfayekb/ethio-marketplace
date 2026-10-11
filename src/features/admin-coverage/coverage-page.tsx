@@ -16,11 +16,12 @@ import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n } from "@/i18n";
+import { useSettling } from "@/lib/use-settling";
 
 import { CoverageCreateDialog } from "./coverage-create-dialog";
 import { CoverageEditorDialog } from "./coverage-editor";
 import { COVERAGE_COLUMN_PRIORITIES, type CoveragePlanRow } from "./coverage-service";
-import { useCoveragePlans } from "./use-coverage";
+import { ADMIN_COVERAGE_KEY, useCoveragePlans } from "./use-coverage";
 
 /**
  * LOCATIONS ERA L2b-C2 — THE COVERAGE CONSOLE.
@@ -52,6 +53,11 @@ type Dialog =
 
 export function AdminCoveragePage() {
   const { t } = useI18n();
+  /**
+   * INC-558's class (turn G3c) — the editors open on this read and send whole
+   * records: their openers wait while it re-reads or a write to it is in flight.
+   */
+  const settling = useSettling(ADMIN_COVERAGE_KEY);
   const { permissions } = useAdminShell();
   const mayUpdate = permissions.includes("coverage:update");
 
@@ -176,6 +182,7 @@ export function AdminCoveragePage() {
         mayUpdate
           ? {
               label: t("admin.coverage.action.edit"),
+              disabled: settling,
               onSelect: () => open({ kind: "editor", plan: row.plan, openedBy: "row-click" }),
             }
           : undefined

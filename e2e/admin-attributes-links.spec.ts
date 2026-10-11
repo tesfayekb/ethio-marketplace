@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
-import { gotoReady, stepUpIfPrompted } from "./helpers/ui";
+import { awaitGuardedOutcome, gotoReady, stepUpIfPrompted } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
@@ -661,6 +661,103 @@ test.describe("C3 attributes console", () => {
     } finally {
       if (slug) await destroyCategory(slug);
       await destroyAttribute(key);
+    }
+  });
+
+  /**
+   * AT-80 (bundle 11, turn G3c — INC-558's class) — THE CARDS WAIT FOR THE LINKS.
+   * A card tick sends the category's whole card list, computed from the links
+   * read. While the first tick is in flight (the door is held here), the other
+   * attribute's card box and its Up are greyed out: a second tick would compute
+   * from the old list and take the first attribute off the card. Once the links
+   * have re-read, the second tick lands and both are on the card.
+   */
+  test("AT-80 a second card tick waits for the first and both attributes stay on the card", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const { secret } = await signInAsSuperAdmin(page);
+    const first = `e2e_attr_${rand()}`;
+    const second = `e2e_attr_${rand()}`;
+    const door = "**/rest/v1/rpc/admin_set_card_attributes";
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    let slug = "";
+    try {
+      const firstId = await seedAttribute(first);
+      const secondId = await seedAttribute(second);
+      slug = await createViaUi(page, secret);
+      const scratch = await readCategory(slug);
+      const { error } = await adminClient()
+        .from("category_attribute_links")
+        .insert([
+          { category_id: scratch!.id, attribute_id: firstId, is_required: false, display_order: 1 },
+          {
+            category_id: scratch!.id,
+            attribute_id: secondId,
+            is_required: false,
+            display_order: 2,
+          },
+        ]);
+      if (error) throw new Error(`[e2e:at80] linking the scratch pair failed: ${error.message}`);
+      const carded = async () =>
+        (await readLinks(scratch!.id))
+          .filter((link) => link.card_rank !== null)
+          .map((link) => (link.attribute_id === firstId ? "first" : "second"))
+          .sort()
+          .join(",");
+
+      // J7 — the links exist before the dialog opens, and both rows render.
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, slug);
+      await openEditor(page, slug);
+      await action(page, slug, "attributes").click();
+      await expect(page.getByTestId("category-attributes-dialog")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId(`category-attribute-card-${second}`)).toBeEnabled({
+        timeout: 20000,
+      });
+      await expect(page.getByTestId(`category-attribute-up-${second}`)).toBeEnabled();
+
+      await page.route(door, async (route) => {
+        await held;
+        await route.continue();
+      });
+      await page.getByTestId(`category-attribute-card-${first}`).click();
+      // INC-210 — the step-up gate or the outcome, whichever comes (no 5 s wait).
+      await awaitGuardedOutcome(page, secret, {
+        poll: () => page.getByTestId(`category-attribute-card-${second}`).isDisabled(),
+        describe: "the second card box greyed out while the first tick is held",
+      });
+      // The first tick is in flight: the boxes and the order wait for the links.
+      await expect(
+        page.getByTestId(`category-attribute-card-${second}`),
+        "AT-80 the second card box stayed live mid-write",
+      ).toBeDisabled();
+      await expect(page.getByTestId(`category-attribute-up-${second}`)).toBeDisabled();
+      release();
+      // The held request has gone on and the links have re-read: the box is live again.
+      await expect(page.getByTestId(`category-attribute-card-${second}`)).toBeEnabled({
+        timeout: 20000,
+      });
+      await page.unroute(door);
+      await expect.poll(carded, { timeout: 20000, message: "AT-80 the first tick" }).toBe("first");
+      await page.getByTestId(`category-attribute-card-${second}`).click();
+      await awaitGuardedOutcome(page, secret, {
+        poll: async () => (await carded()) === "first,second",
+        describe: "both attributes on the card",
+      });
+      await expect
+        .poll(carded, {
+          timeout: 20000,
+          message: await dialogDump(page, "AT-80 the second tick took the first off the card"),
+        })
+        .toBe("first,second");
+    } finally {
+      release();
+      await page.unroute(door).catch(() => undefined);
+      if (slug) await destroyCategory(slug);
+      await destroyAttribute(first);
+      await destroyAttribute(second);
     }
   });
 

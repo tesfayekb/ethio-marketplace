@@ -70,6 +70,8 @@ function useInvalidateAttributes() {
 export function useUpsertAttribute() {
   const invalidate = useInvalidateAttributes();
   return useMutation({
+    // INC-558's class — the page's editors are seeded from this read (useSettling).
+    mutationKey: ADMIN_ATTRIBUTES_KEY,
     mutationFn: (input: UpsertAttributeInput) => upsertAttribute(input),
     onSettled: invalidate,
   });
@@ -148,6 +150,8 @@ export function useUnlinkAttribute() {
 export function useSetCardAttributes() {
   const invalidate = useInvalidateAttributes();
   return useMutation({
+    // INC-558's class — a whole list computed from the category's links (useSettling).
+    mutationKey: ADMIN_ATTRIBUTES_KEY,
     mutationFn: (input: { categoryId: string; orderedAttributeIds: string[] }) =>
       setCardAttributes(input),
     onSettled: invalidate,
@@ -157,6 +161,8 @@ export function useSetCardAttributes() {
 export function useSetAttributeLinkOrder() {
   const invalidate = useInvalidateAttributes();
   return useMutation({
+    // INC-558's class — a whole list computed from the category's links (useSettling).
+    mutationKey: ADMIN_ATTRIBUTES_KEY,
     mutationFn: (input: { categoryId: string; orderedLinkIds: string[] }) =>
       setAttributeLinkOrder(input),
     onSettled: invalidate,

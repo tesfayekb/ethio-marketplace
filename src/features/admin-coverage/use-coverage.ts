@@ -24,6 +24,8 @@ export function useCoveragePlans(options?: { enabled?: boolean }) {
 export function useSetCoveragePlan() {
   const queryClient = useQueryClient();
   return useMutation({
+    // INC-558's class — the page's editors are seeded from this read (useSettling).
+    mutationKey: ADMIN_COVERAGE_KEY,
     mutationFn: (input: SetCoveragePlanInput) => setCoveragePlan(input),
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: ADMIN_COVERAGE_KEY });

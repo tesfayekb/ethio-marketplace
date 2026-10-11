@@ -18,6 +18,8 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 import { relativeTime } from "@/lib/relative-time";
+import { useFollowingDraft } from "@/lib/use-following-draft";
+import { useSettling } from "@/lib/use-settling";
 
 import { AiBulkBar } from "./ai-bulk-bar";
 import { ApproveAllBar } from "./approve-bar";
@@ -43,6 +45,7 @@ import {
   useEntityTranslationStats,
   useTranslations,
   useTranslationStats,
+  TRANSLATION_ROWS_KEY,
 } from "./use-translations";
 import { ownValue } from "@/lib/own-key";
 
@@ -613,7 +616,13 @@ function StringEditor({
   const ai = useAiTranslate(lang);
   const statusAction = useTranslationStatusAction(lang);
   const contextAction = useSetKeyContext();
-  const [draft, setDraft] = useState(row.value ?? "");
+  /**
+   * INC-558's class (turn G3c) — the box follows the stored text until it is
+   * edited (the AI's text, a History restore), and Save waits while the text is
+   * being written or re-read, so it never sends the old text back.
+   */
+  const [draft, setDraft] = useFollowingDraft(row.value ?? "");
+  const settling = useSettling(TRANSLATION_ROWS_KEY);
   const [contextDraft, setContextDraft] = useState(row.context);
   // U4i-3 (a): the just-saved note, shown until the refetch carries it.
   const [savedContext, setSavedContext] = useState<string | null>(null);
@@ -820,7 +829,7 @@ function StringEditor({
           <Button
             className="min-h-11"
             data-testid={`string-save-${id}`}
-            disabled={save.isPending}
+            disabled={save.isPending || settling}
             onClick={() => run(() => save.mutateAsync({ key: row.key, value: draft }))}
           >
             {t("admin.translations.editor.save")}

@@ -1088,6 +1088,11 @@ test.describe("U4b translations console", () => {
           `route /api/translate → ${aiResult}\n` +
           `pooled user ${user.id}\nDB row: ${await readRowEvidence(key, "am")}`,
       );
+      // INC-558's class (turn G3c) — the box shows the AI's text (it kept the old
+      // text, and Save would have written it back).
+      await expect(expansionControl(page, id, "string-input")).toHaveValue(/⟪am⟫/, {
+        timeout: 20000,
+      });
       await expansionControl(page, id, "string-input").fill("የሰው እርማት");
       await expansionControl(page, id, "string-save").click();
       await stepUpIfPrompted(page, secret);
@@ -1129,6 +1134,10 @@ test.describe("U4b translations console", () => {
           { timeout: 30000, message: "restore never landed as an edited value" },
         )
         .toBe("edited|true");
+      // INC-558's class (turn G3c) — the box follows the restored text.
+      await expect(expansionControl(page, id, "string-input")).toHaveValue(/⟪am⟫/, {
+        timeout: 20000,
+      });
 
       // …and the restore is itself history: exactly three revisions now.
       // INC-096f-c — on the final mismatch the FULL dump names the extra
