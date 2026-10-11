@@ -988,7 +988,9 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     page,
     baseURL,
   }) => {
-    const markets = await openMarketCodes();
+    // INC-551 — a real second market: another test's scratch market (QX, QU)
+    // was picked twice on 2026-10-11 and had no anchor ("no anchor in QX").
+    const markets = await openMarketCodes({ realOnly: true });
     const other = markets.find((code) => code !== "ET");
     expect(other, "PW-173 needs a second open market on ethio-staging").toBeDefined();
     await signedInSeller(page);
