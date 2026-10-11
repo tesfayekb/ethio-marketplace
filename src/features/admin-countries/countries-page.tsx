@@ -301,7 +301,6 @@ export function AdminCountriesPage() {
                 {`${t("admin.countries.transfer.scope")} ·`}
               </span>
               <TableActionButton
-                title={t("admin.locations.export.countriesHint")}
                 data-testid="country-export"
                 disabled={exporting}
                 onClick={() => void runExport()}

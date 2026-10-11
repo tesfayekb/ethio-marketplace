@@ -340,3 +340,21 @@ card's footer, depth Soft, page tone Cool grey (tokens: docs/features/design-fou
 `cardLabel: false` on a column drops the label the phone card draws above a
 fact, for a cell whose words already name it — Admin › Attributes' "Used by 3
 categories". Test: HS-21 in `src/components/shell/data-table.test.tsx`.
+
+### The re-walk's fixes (bundle 11, turn V2b; the operator's phone walk, 2026-10-11)
+
+- **The card's facts sit side by side.** A `meta` fact is its label and its
+  value on one line (the label muted, the value set off); the facts flow on one
+  line and wrap only when they must, a value that does not fit beside its label
+  moves under it whole, and the state pills end the same line. Coverage's four
+  limits, Categories' parent and listings, and every table that leaves its
+  columns to the default now take a line or two, not a line per column. Each
+  fact carries `data-card-fact="<column key>"`. Test: HS-22.
+- **No browser tooltip on a header action.** `TableActionButton` takes no
+  `title`; a `hint` (a cost stated where it is spent — Categories' Generate
+  missing, DEC-032) shows in the house tooltip on hover or keyboard focus.
+  Places' and Countries' Download dropped their native hints (the scope beside
+  the buttons already says what the file holds). Test: HS-23.
+- **A group never shares a section's glyph.** The rail's Catalog group is a
+  library (`LibraryBig`); Categories keeps the folder tree
+  (src/features/admin/rail-items.ts).

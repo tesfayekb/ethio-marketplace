@@ -77,3 +77,13 @@ The E2a migration follows it with its own self-mark, recorded in docs/\_changelo
 The E2b migration follows with its own self-mark, recorded in docs/\_changelog.md.
 
 Tests: scripts/feed-bench.test.ts (FB-1..FB-4), e2e/feed-index.spec.ts (FE-1..FE-14), e2e/feed-route.spec.ts (FR-1..FR-8), e2e/feed-screens.spec.ts (FS-1..FS-10), src/features/feed/feed-page.test.ts (FP-1..FP-8), area `feed` in scripts/e2e-select.ts.
+
+## One card size (bundle 11 V2b; the operator, 2026-10-11)
+
+"Cards … consistent same size and no size difference between the different cards in all screens." Every card on the listings pages (home and category, `src/components/marketplace/feed.tsx`) is one size at a given width:
+
+- the grid's rows are equal (`auto-rows-fr`) and each card fills its cell (`h-full`);
+- the listing card lays out the same slots in the same places: the picture (4 : 3) with the Premium or Featured pill on its top corner (no longer beside the title); the title on one line; the price slot sized for its longest common case — a compact card (below 11rem: three or four a row) reserves 58 px, room for two lines of price and the Negotiable pill; a wider card 44 px; the place on the last line, kept (empty) when the card has none;
+- the invitation (D119, DEC-169) fills its cell and fits a listing card's height: a smaller star, the sentence held to six lines on a compact card and four on a wider one (the whole sentence stays in the page for a screen reader).
+
+Measured on a local build at 360, 400, 640, 768, 1024, 1280 and 1440 px, across two sections and with the invitation: every card within 1 px. A rarer, longer price (three lines of price and the Negotiable pill on a compact card) still shows whole, and its row grows with it. Tests: LC-1 and LC-2 (src/components/marketplace/listing-card.test.tsx); FS-12 (the invitation is a card's height on a phone) and FS-3 (every card on the page one height).

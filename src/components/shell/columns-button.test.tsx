@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ColumnsButton } from "./columns-button";
 import { useHiddenColumns, visibleColumns } from "./columns-state";
-import { TableActions } from "./table-actions";
+import { TableActionButton, TableActions } from "./table-actions";
 import { TableToolbar } from "./table-toolbar";
 
 vi.mock("@/i18n", () => ({
@@ -149,5 +149,17 @@ describe("ColumnsButton, useHiddenColumns and TableToolbar", () => {
     ]);
     fireEvent.click(screen.getByTestId("cc-done"));
     expect(screen.queryByTestId("cc-panel")).toBeNull();
+  });
+
+  it("HS-23 a header action never carries the browser's title tooltip; a hint goes to the house tooltip (V2b)", () => {
+    render(
+      <TableActions testid="hx" title="Categories">
+        <TableActionButton data-testid="hx-gen" icon={<span />} label="Generate" hint="Costs" />
+        <TableActionButton data-testid="hx-new" icon={<span />} label="New" />
+      </TableActions>,
+    );
+    expect(screen.getByTestId("hx-gen")).not.toHaveAttribute("title");
+    expect(screen.getByTestId("hx-new")).not.toHaveAttribute("title");
+    expect(screen.getByTestId("hx-gen")).toHaveAccessibleName("Generate");
   });
 });

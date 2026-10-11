@@ -477,7 +477,9 @@ export function AdminCategoriesPage() {
     {
       key: "parent",
       header: t("admin.categories.col.parent"),
-      card: "sub",
+      // V2b (the operator's walk) — the parent is a fact on the card's facts
+      // line ("Parent —" for a root), not a line of its own.
+      card: "meta",
       priority: ROSTER_COLUMN_PRIORITIES.parent,
       /**
        * C3c PART D — THE PRIMARY/SECONDARY PARENT CELL. Line 1 is the parent
@@ -960,7 +962,7 @@ export function AdminCategoriesPage() {
               <TableActionButton
                 data-testid="category-bulk-generate"
                 /* DEC-032 — the spend cap is stated where it is spent. */
-                title={t("admin.categories.bulk.generateHint")}
+                hint={t("admin.categories.bulk.generateHint")}
                 disabled={bulkBusy}
                 onClick={() => void runBulkFill(filtered.filter((row) => !row.hasImage))}
                 icon={<ImagePlus />}

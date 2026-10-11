@@ -57,60 +57,87 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
           entities,
         );
 
+  /**
+   * Bundle 11 V2b (the operator, 2026-10-11: "cards … consistent same size and
+   * no size difference between the different cards in all screens") — ONE CARD
+   * SHAPE. Every card fills its grid cell (`h-full`; the feed's rows are equal,
+   * `auto-rows-fr`) and lays out the same slots in the same places: the picture
+   * with the tier pill on its corner; the title on one line; the price slot
+   * sized for its longest common case (a compact card: two lines of price and
+   * the Negotiable pill — 58 px; a wider one: 44 px), so cards in different
+   * sections match too (a rarer, longer price still shows whole and its row
+   * grows with it); the place on the last line, kept even when the card has
+   * none.
+   */
+  const tierPill =
+    listing.tier === "premium" ? (
+      <span
+        data-testid="listing-card-tier"
+        data-tier="premium"
+        className="absolute start-1 top-1 rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-medium leading-4 text-primary-foreground shadow-sm @min-[11rem]:start-2 @min-[11rem]:top-2 @min-[11rem]:px-2 @min-[11rem]:text-xs"
+      >
+        {t("tier.premium")}
+      </span>
+    ) : listing.tier === "featured" ? (
+      <span
+        data-testid="listing-card-tier"
+        data-tier="featured"
+        className="absolute start-1 top-1 rounded-full bg-gold px-1.5 py-0.5 text-[11px] font-medium leading-4 text-gold-foreground shadow-sm @min-[11rem]:start-2 @min-[11rem]:top-2 @min-[11rem]:px-2 @min-[11rem]:text-xs"
+      >
+        {t("tier.featured")}
+      </span>
+    ) : null;
+
   return (
     <article
       data-testid="listing-card"
       data-listing={listing.id}
-      className="@container flex flex-col overflow-hidden rounded-lg border border-border bg-card"
+      className="@container flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card"
     >
       {/*
         Photo area. Listing photos stay un-surfaced here until the photo
         clean-up bundle (RLS gates listing_photos on exif_stripped); the card
         draws the category's picture from the public tree (bundle 4 step 14).
       */}
-      <ListingPicture
-        photoUrl={null}
-        categoryUrl={nearestCategoryPicture(tree, listing.categoryId)}
-        photosSoon={listing.photosSoon}
-        boxTestId="listing-card-picture"
-        rounded=""
-        fill
-      />
+      <div className="relative">
+        <ListingPicture
+          photoUrl={null}
+          categoryUrl={nearestCategoryPicture(tree, listing.categoryId)}
+          photosSoon={listing.photosSoon}
+          boxTestId="listing-card-picture"
+          rounded=""
+          fill
+        />
+        {tierPill}
+      </div>
 
       {/* D123 — below 11rem (three or four a row) the card is compact. */}
       <div className="flex flex-1 flex-col gap-1 p-2 @min-[11rem]:gap-2 @min-[11rem]:p-3">
-        <div className="flex flex-wrap items-start justify-between gap-1 @min-[11rem]:gap-2">
-          <h3 className="min-w-0 text-xs font-semibold text-foreground @min-[11rem]:text-sm">
-            <CutText text={listing.title} />
-          </h3>
-          {listing.tier === "premium" ? (
-            <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
-              {t("tier.premium")}
-            </span>
-          ) : null}
-          {listing.tier === "featured" ? (
-            <span className="shrink-0 rounded-full bg-gold px-2 py-0.5 text-xs font-medium text-gold-foreground">
-              {t("tier.featured")}
-            </span>
-          ) : null}
-        </div>
+        <h3 className="min-w-0 text-xs font-semibold leading-4 text-foreground @min-[11rem]:text-sm @min-[11rem]:leading-5">
+          <CutText text={listing.title} />
+        </h3>
 
-        <p className="flex flex-wrap items-center gap-1 text-xs font-semibold text-foreground @min-[11rem]:gap-2 @min-[11rem]:text-sm">
+        <p className="flex min-h-[3.625rem] flex-wrap content-start items-center gap-x-1 gap-y-0.5 text-xs font-semibold leading-4 text-foreground @min-[11rem]:min-h-[2.75rem] @min-[11rem]:gap-x-2 @min-[11rem]:text-sm @min-[11rem]:leading-5">
           <span data-testid="listing-card-price" data-period={listing.pricePeriod}>
             {cardPrice}
           </span>
           {listing.priceNegotiable ? <NegotiableBadge /> : null}
         </p>
 
-        {locationName ? (
-          <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-            <MapPin
-              className="h-3 w-3 shrink-0 @min-[11rem]:h-3.5 @min-[11rem]:w-3.5"
-              aria-hidden="true"
-            />
-            <CutText text={locationName} />
-          </p>
-        ) : null}
+        <p
+          data-testid="listing-card-place"
+          className="mt-auto flex min-h-[1lh] min-w-0 items-center gap-1 text-xs leading-4 text-muted-foreground"
+        >
+          {locationName ? (
+            <>
+              <MapPin
+                className="h-3 w-3 shrink-0 @min-[11rem]:h-3.5 @min-[11rem]:w-3.5"
+                aria-hidden="true"
+              />
+              <CutText text={locationName} />
+            </>
+          ) : null}
+        </p>
       </div>
     </article>
   );

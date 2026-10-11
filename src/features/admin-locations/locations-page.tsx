@@ -389,7 +389,6 @@ export function AdminLocationsPage() {
                   : `${t("admin.locations.transfer.scope").replace("{country}", countryName)} ·`}
               </span>
               <TableActionButton
-                title={t("admin.locations.export.locationsHint")}
                 data-testid="location-export-locations"
                 disabled={exporting}
                 onClick={() => void runExport("locations")}

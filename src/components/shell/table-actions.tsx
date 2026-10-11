@@ -1,6 +1,7 @@
 import { forwardRef, type ReactNode } from "react";
 
 import { Button, type ButtonProps } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 import { PressLabel } from "./press-label";
@@ -54,12 +55,16 @@ export function TableActions({
  * Bundle 11 V2 (D132) — one header action: icon and words from md, the icon
  * alone in a 44 px tile below it (the words stay for screen readers and show
  * under the tile on a long press). The primary action keeps the filled look.
+ *
+ * Bundle 11 V2b (the operator's walk) — no header action carries the
+ * browser's own `title` tooltip. A `hint` (a cost to state where it is spent,
+ * DEC-032) shows in the house tooltip on hover or keyboard focus.
  */
 export const TableActionButton = forwardRef<
   HTMLButtonElement,
-  Omit<ButtonProps, "children"> & { icon: ReactNode; label: string }
->(({ icon, label, className, variant = "outline", type, ...props }, ref) => (
-  <PressLabel label={label}>
+  Omit<ButtonProps, "children" | "title"> & { icon: ReactNode; label: string; hint?: string }
+>(({ icon, label, hint, className, variant = "outline", type, ...props }, ref) => {
+  const button = (
     <Button
       ref={ref}
       type={type ?? "button"}
@@ -76,6 +81,20 @@ export const TableActionButton = forwardRef<
       </span>
       <span className="max-md:sr-only">{label}</span>
     </Button>
-  </PressLabel>
-));
+  );
+  return (
+    <PressLabel label={label}>
+      {hint ? (
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>{button}</TooltipTrigger>
+            <TooltipContent className="max-w-72">{hint}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        button
+      )}
+    </PressLabel>
+  );
+});
 TableActionButton.displayName = "TableActionButton";

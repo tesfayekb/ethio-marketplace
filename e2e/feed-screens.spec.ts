@@ -268,6 +268,16 @@ test.describe("FEED SCREENS", () => {
     await expect
       .poll(() => rowOrder(page, 1))
       .toEqual(["listing-card", "listing-card", "feed-invite"]);
+    // Bundle 11 V2b (the operator, 2026-10-11) — every card on the page is one
+    // size: the chosen place's row (two listings and the invitation) and the
+    // wider place's row alike.
+    const heights = await page
+      .locator('[data-testid="feed-section"] ul > li > *')
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
+    expect(
+      Math.max(...heights) - Math.min(...heights),
+      `FS-3: the cards differ in height (${heights.map(Math.round).join(", ")})`,
+    ).toBeLessThanOrEqual(1);
     await expect(inviteOf(page).getByTestId("feed-invite-text")).toHaveText(
       // The place has ads, so not "Be the first" (the operator, 2026-10-10).
       en["feed.invite.placeCategoryMore"]
@@ -488,6 +498,11 @@ test.describe("FEED SCREENS", () => {
     expect(
       Math.abs(invite!.width - card!.width),
       "FS-12: the invitation is not the size of a card",
+    ).toBeLessThanOrEqual(1);
+    // Bundle 11 V2b (the operator, 2026-10-11) — nor taller or shorter.
+    expect(
+      Math.abs(invite!.height - card!.height),
+      "FS-12: the invitation is not the height of a card",
     ).toBeLessThanOrEqual(1);
   });
 

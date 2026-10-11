@@ -65,7 +65,8 @@ export type CardUntil = "md" | "lg" | "xl";
  * stacked-on-mobile layout, the agreed board):
  *   title — the card's first line (the row's name), one per card;
  *   sub   — the muted line under the name;
- *   meta  — a labelled fact in the card's grid (label above, value below);
+ *   meta  — a labelled fact on the card's facts line (label and value side
+ *           by side; the facts wrap only when they must);
  *   badge — a state pill at the end of the facts line;
  *   foot  — a labelled note in the card's footer, beside Edit and Delete;
  *   hide  — the table only.
@@ -633,27 +634,30 @@ export function DataTable<T>({
                   </span>
                 ) : null}
                 {/*
-                  The facts line: the labelled facts first, the state pills at
-                  its end; pills that do not fit move under the facts and wrap.
+                  The facts line (the operator's walk, 2026-10-11): each fact is
+                  its label and its value side by side (a value that does not
+                  fit beside its label moves under it whole), the facts flow on
+                  one line and wrap only when they must; the state pills end
+                  the line, and move under the facts when they do not fit.
                 */}
                 {metas.length > 0 || badges.length > 0 ? (
-                  <span className="flex min-w-0 flex-wrap items-end gap-x-3 gap-y-2 pt-1">
-                    {metas.length > 0 ? (
-                      <span className="grid min-w-[6.5rem] flex-1 grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-x-3 gap-y-1.5">
-                        {metas.map(({ column, value }) => (
-                          <span key={column.key} className="block min-w-0">
-                            {label(column) ? (
-                              <span className="block truncate text-xs text-muted-foreground">
-                                {label(column)}
-                              </span>
-                            ) : null}
-                            <span className="block min-w-0 break-words text-sm tabular-nums text-foreground">
-                              {value}
-                            </span>
+                  <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 pt-1">
+                    {metas.map(({ column, value }) => (
+                      <span
+                        key={column.key}
+                        data-card-fact={column.key}
+                        className="inline-flex min-w-0 max-w-full flex-wrap items-baseline gap-x-1.5 text-sm"
+                      >
+                        {label(column) ? (
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            {label(column)}
                           </span>
-                        ))}
+                        ) : null}
+                        <span className="min-w-0 break-words font-medium tabular-nums text-foreground">
+                          {value}
+                        </span>
                       </span>
-                    ) : null}
+                    ))}
                     {/*
                       A cell that draws a group of pills in its own flex span
                       (Categories' flags) is flattened into this one row, so
