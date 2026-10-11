@@ -90,7 +90,7 @@ const sameKeys = (a: string[], b: string[]) =>
   a.length === b.length && a.every((key, index) => key === b[index]);
 
 export function ListingEditForm({
-  listing,
+  listing: current,
   busy,
   refusals,
   error,
@@ -98,6 +98,15 @@ export function ListingEditForm({
   onSave,
 }: ListingEditFormProps) {
   const { t, language, entities } = useI18n();
+  /**
+   * INC-558 — THE LISTING AS THE FORM OPENED ON IT. Everything the edit sends
+   * is measured against this snapshot, never against the page's live read: the
+   * page refetches after a save, and a form opened before the new read arrived
+   * held the old values — measured against the new read, the admin's untouched
+   * title looked "changed" and was sent back, undoing the previous edit (AL-23,
+   * CI on 98b0841b). Only what the admin changed in THIS form travels.
+   */
+  const [listing] = useState(current);
   const [values, setValues] = useState<EditValues>(() => valuesOf(listing, null));
   const [load, setLoad] = useState<Load>({ state: "loading" });
   const [currencyReady, setCurrencyReady] = useState(false);

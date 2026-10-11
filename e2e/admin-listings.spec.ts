@@ -1479,6 +1479,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     // INC-554 (turn L4b) — the breadcrumb names the listing last.
     await expect(page.getByTestId("breadcrumb-admin-listing")).toHaveText(live.title);
+    // INC-557 — the Listings group (no page of its own) is a plain name; the listing is the current segment.
+    const group = page.getByTestId("breadcrumbs").getByTestId("breadcrumb-admin-group");
+    await expect(group).toHaveText(en["admin.nav.group.listings"]);
+    await expect(group).not.toHaveAttribute("aria-current");
+    await expect(group).not.toHaveClass(/underline/);
     await page.getByTestId("listing-edit").click();
     const form = page.getByTestId("listing-edit-form");
     await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });

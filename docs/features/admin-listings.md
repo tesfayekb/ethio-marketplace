@@ -51,6 +51,11 @@ The operator's choice (D140, 2026-10-11): Edit in two turns — L4a the title, t
 - **The reasons** gain Wrong category.
 - **INC-554 — the breadcrumb:** on every admin page below a section's own (a user, a role, a listing, a language's strings), the section is a link back to it; the listing's page ends with the listing's title and a language's page with the language's own name. Before, only the user and role pages linked back. The two new crumbs load only on their pages (src/components/shell/admin-detail-crumbs.tsx, a lazy module), so the first paint grows by about 1 KiB.
 
+## Turn L4c (CI on 98b0841b; the operator's walk of L4b)
+
+- **INC-558:** AL-23 saved a title, opened Edit again at once and changed a specification; the door was told the title had changed too and wrote the previous title back. The form had opened on the page's old read (the page re-reads after a save) and measured its values against the new one. The form now measures everything it sends against the listing it opened on, and Edit waits until the page's read has settled.
+- **INC-557:** in the breadcrumb, a group with no page of its own (Listings, Catalog) wore the current segment's look (bold, underlined, `aria-current`) beside the real current page; it is now a plain name (AL-21, A-5).
+
 ## Reasons
 
 - Edit: `wrong_category`, `misleading`, `contact_in_text`, `photo`, `rules`, `other` (the form offers all but `photo`, which comes with photo removal; `wrong_category` since turn L4b).

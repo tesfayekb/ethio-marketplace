@@ -341,6 +341,13 @@ test.describe("Admin shell (U0)", () => {
     await expect(crumb.getByTestId("breadcrumb-admin-section")).toHaveText(
       en[visible[0]!.titleKey],
     );
+    // INC-557 — Catalog has no page of its own: a plain name, never the current segment.
+    await expect(crumb.getByTestId("breadcrumb-admin-group")).not.toHaveAttribute("aria-current");
+    await expect(crumb.getByTestId("breadcrumb-admin-group")).not.toHaveClass(/underline/);
+    await expect(crumb.getByTestId("breadcrumb-admin-section")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
 
     const locationsScope = isMobile(page)
       ? await openRailScope(page)
