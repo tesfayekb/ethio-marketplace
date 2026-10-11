@@ -2825,6 +2825,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_listing_detail: { Args: { p_listing_id: string }; Returns: Json }
       admin_machine_entity_translation: {
         Args: {
           p_field: string

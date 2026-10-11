@@ -854,9 +854,20 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(listingRow(page, live.id)).not.toContainText(seller.email);
     await expect(page.getByTestId("admin-section-listings")).not.toContainText(seller.email);
     // Turn L2b — no move without listings:enforce, and no View as seller without
-    // impersonation:use: no tick-boxes and no row menu.
-    await expect(page.getByTestId(`listing-actions-${live.id}-more`)).toHaveCount(0);
+    // impersonation:use: no tick-boxes, and (turn L3) the row's three-dots holds
+    // Open alone.
     await expect(page.getByTestId("data-table-select-all")).toHaveCount(0);
+    await page
+      .getByTestId(
+        isCardTwin(page) ? `listing-row-${live.id}-actions` : `listing-row-${live.id}-actions-cell`,
+      )
+      .getByTestId(`listing-actions-${live.id}-more`)
+      .click();
+    await expect(page.getByTestId(`listing-actions-${live.id}-more-open`)).toBeVisible();
+    for (const item of ["send_back", "remove", "restore", "view_as"]) {
+      await expect(page.getByTestId(`listing-actions-${live.id}-more-${item}`)).toHaveCount(0);
+    }
+    await page.keyboard.press("Escape");
     for (const tick of ["select", "select-cell"]) {
       await expect(page.getByTestId(`listing-row-${live.id}-${tick}`)).toHaveCount(0);
     }
@@ -1049,5 +1060,214 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       expect(await moveAudits(listing.id, "listing.admin_restore")).toHaveLength(1);
     }
     await expect(page.getByTestId("listings-empty")).toBeVisible({ timeout: 20000 });
+  });
+
+  /**
+   * Bundle 11, turn L3 (D138, D139) — the listing page's door,
+   * `admin_listing_detail`: listings:view reads a listing, never a draft; the
+   * seller's e-mail only for profiles:view and a staff member's name in the
+   * history only for audit_logs:view; a history value is shown for the content,
+   * price, status and dates, while a pin and an address are named, never shown;
+   * an admin's reason travels with the revision it explains.
+   */
+  test("AL-16 The listing page's door: who reads what, drafts never, a pin and an address named but never shown", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    const draft = await seed(seller, "draft");
+    // A seller's edit that touched the pin and the address: a scratch revision of this listing.
+    const revision = await adminClient()
+      .from("listing_revisions")
+      .insert({
+        listing_id: live.id,
+        seller_id: seller.id,
+        kind: "edit",
+        actor: seller.id,
+        before: { title: "Before the edit", pin_lat: 8.9, street_address: "Old street one" },
+        after: { title: live.title, pin_lat: 9.01, street_address: "New street two" },
+      });
+    if (revision.error) throw new Error(`[e2e:al] revision seed failed: ${revision.error.message}`);
+
+    const plain = await asPerson(await leaseUser());
+    expect((await plain.rpc("admin_listing_detail", { p_listing_id: live.id })).error).toBe(
+      "permission denied",
+    );
+    const viewer = await asPerson(await scratchHolder([["listings", "view"]]));
+    expect((await viewer.rpc("admin_listing_detail", { p_listing_id: draft.id })).error).toBe(
+      "listing not found",
+    );
+    const seen = await viewer.rpc("admin_listing_detail", { p_listing_id: live.id });
+    expect(seen.error).toBeNull();
+    const body = seen.data as Row;
+    expect(body["listing"]).toMatchObject({
+      id: live.id,
+      title: live.title,
+      status: "active",
+      country_code: "ET",
+    });
+    expect(body["seller"]).toMatchObject({ id: seller.id, alias: seller.alias, email: null });
+    expect(body["channels"]).toEqual({
+      phone: false,
+      phone2: false,
+      telegram: false,
+      whatsapp: false,
+    });
+    const edit = (body["history"] as Row[]).find((entry) => entry["kind"] === "edit");
+    expect(edit).toMatchObject({
+      by: "seller",
+      by_name: null,
+      before: { title: "Before the edit" },
+      after: { title: live.title },
+    });
+    expect(edit?.["fields"]).toEqual(
+      expect.arrayContaining(["pin_lat", "street_address", "title"]),
+    );
+    const text = JSON.stringify(body);
+    for (const hidden of ["Old street one", "New street two", "8.9", "9.01"]) {
+      expect(text, `AL-16 the door showed ${hidden}`).not.toContain(hidden);
+    }
+
+    await useJobSuperAdmin(page);
+    const removed = await rpcResult(page, "admin_move_listing", {
+      p_listing_id: live.id,
+      p_to: "removed",
+      p_reason: "misleading",
+    });
+    expect(removed.error).toBeNull();
+    const full = (await rpcResult(page, "admin_listing_detail", { p_listing_id: live.id }))
+      .data as Row;
+    expect((full["seller"] as Row)["email"]).toBe(seller.email);
+    const latest = (full["history"] as Row[])[0];
+    expect(latest).toMatchObject({
+      kind: "state",
+      by: "staff",
+      reason: "misleading",
+      note: null,
+      before: { status: "active" },
+      after: { status: "removed" },
+    });
+    expect(typeof latest?.["by_name"]).toBe("string");
+    const again = (await viewer.rpc("admin_listing_detail", { p_listing_id: live.id })).data as Row;
+    expect((again["history"] as Row[])[0]).toMatchObject({
+      by: "staff",
+      by_name: null,
+      reason: "misleading",
+    });
+  });
+
+  /**
+   * Turn L3 — the listing's page as the super admin: opened from its title in
+   * All listings; the heading and the status pill; the seller with the e-mail and
+   * the link to the account; Remove from the page with a reason, then the pill,
+   * the line above and the history's newest entry; the buyer's view; back to All
+   * listings.
+   */
+  test("AL-17 The listing's page: opened from All listings, Remove with a reason, the history's newest line, the buyer's view", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("listings-search").fill(live.id);
+    await listingRow(page, live.id).getByTestId(`listing-row-${live.id}-open`).click();
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}$`), { timeout: 20000 });
+    await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
+    await expect(page.getByTestId("listing-status")).toHaveText(en["admin.listings.status.active"]);
+    await expect(page.getByTestId("listing-fact-seller")).toContainText(seller.alias);
+    await expect(page.getByTestId("listing-fact-seller")).toContainText(seller.email);
+    await expect(page.getByTestId("listing-open-seller")).toBeVisible();
+
+    await page.getByTestId("listing-move-remove").click();
+    await confirmMove(page, "misleading");
+    await expect(page.getByTestId("listing-notice")).toHaveText(
+      en["admin.listings.move.done.remove"].replace("{count}", "1"),
+    );
+    await expect(page.getByTestId("listing-status")).toHaveText(
+      en["admin.listings.status.removed"],
+      {
+        timeout: 20000,
+      },
+    );
+    const newest = page.getByTestId("listing-history-entry-0");
+    await expect(newest.getByTestId("listing-history-what")).toHaveText(
+      en["admin.listings.history.status"]
+        .replace("{from}", en["admin.listings.status.active"])
+        .replace("{to}", en["admin.listings.status.removed"]),
+    );
+    await expect(newest.getByTestId("listing-history-reason")).toHaveText(
+      en["admin.listings.history.reason"].replace(
+        "{reason}",
+        en["admin.listings.reason.misleading"],
+      ),
+    );
+    await expect(newest.getByTestId("listing-history-who")).toContainText(
+      en["admin.listings.history.by.staff"],
+    );
+    await expect(page.getByTestId("listing-move-restore")).toBeVisible();
+    expect((await listingTruth(live.id))?.["status"]).toBe("removed");
+
+    await page.getByTestId("listing-buyer-view").click();
+    await expect(page.getByTestId("post-preview-sheet")).toContainText(live.title);
+    await page.getByTestId("post-preview-close").click();
+    await expect(page.getByTestId("post-preview-sheet")).toHaveCount(0);
+    await expectNoHorizontalOverflow(page);
+
+    await page.getByTestId("listing-back").click();
+    await expect(page).toHaveURL(/\/admin\/listings$/, { timeout: 20000 });
+  });
+
+  /**
+   * Turn L3 — the page for someone who holds listings:view and no other listing
+   * right: the facts without the e-mail and without the account link, no move
+   * and no View as seller, a staff line without the staff member's name; a
+   * draft's address answers "not found".
+   */
+  test("AL-18 The listing's page with listings:view alone: no e-mail, no moves, a staff line without a name, drafts not found", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    const draft = await seed(seller, "draft");
+    const viewer = await scratchHolder([
+      ["admin_panel", "access"],
+      ["listings", "view"],
+    ]);
+    // A staff member's status change: a scratch revision of this listing.
+    const revision = await adminClient()
+      .from("listing_revisions")
+      .insert({
+        listing_id: live.id,
+        seller_id: seller.id,
+        kind: "state",
+        actor: viewer.id,
+        before: { status: "active" },
+        after: { status: "reduced" },
+      });
+    if (revision.error) throw new Error(`[e2e:al] revision seed failed: ${revision.error.message}`);
+
+    await signInViaSession(page, viewer.email, viewer.password);
+    await gotoReady(page, `/admin/listings/${live.id}`);
+    await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
+    await expect(page.getByTestId("listing-fact-seller")).toContainText(seller.alias);
+    await expect(page.getByTestId("admin-listing-detail")).not.toContainText(seller.email);
+    await expect(page.getByTestId("listing-open-seller")).toHaveCount(0);
+    for (const control of ["listing-move-remove", "listing-move-send_back", "listing-view-as"]) {
+      await expect(page.getByTestId(control)).toHaveCount(0);
+    }
+    await expect(page.getByTestId("listing-buyer-view")).toBeVisible();
+    await expect(
+      page.getByTestId("listing-history-entry-0").getByTestId("listing-history-who"),
+    ).toHaveText(en["admin.listings.history.by.staff"]);
+    await expectNoHorizontalOverflow(page);
+
+    await gotoReady(page, `/admin/listings/${draft.id}`);
+    await expect(page.getByTestId("listing-error")).toHaveText(
+      en["admin.listings.detail.notFound"],
+      { timeout: 20000 },
+    );
   });
 });

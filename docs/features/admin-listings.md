@@ -24,6 +24,15 @@ Bundle 11, the Listings console (D134, D136, D137; spec: docs/governance/listing
 - **The layout:** with the tick-boxes and the three-dots the table needs a wide desktop, so cards run up to 1280 px and the table starts there (`cardUntil="xl"`; L2 had 1024 px).
 - **Strings changed by the operator (2026-10-11):** "Live" (the view and the status pill) «በቀጥታ»; "Posted" «የተለጠፈ».
 
+## One listing's page (turn L3)
+
+The operator's choice (D139, 2026-10-11): a page per listing with the full history of its changes; Edit follows in turn L4.
+
+- **The door:** `admin_listing_detail(listing)` — STABLE definer, `listings:view`; a draft answers "listing not found". One answer: the listing (content, status, tier, the severe flag, place and country, category, price, photo count, and its dates: created, first posted, last posted, ends, the seller's own end date, renewals, last changed); the seller (public name, a business's name, member since, the account's state; the e-mail only for `profiles:view`); the contact methods the seller shows, as true or false; and the history.
+- **The history:** the listing's revisions, newest first (at most 200, with the total): when, the kind, who acted (the seller, a staff member, or the system — a staff member's name only for `audit_logs:view`), the columns changed, the values before and after for the content, price, status, place, tier and dates only — an exact pin, an address and the contact settings are named, never shown — and a removed photo counted, never its storage path; the reason and note an admin gave, from the seller's notice written in the same transaction.
+- **The page** (`/admin/listings/<id>`, src/features/admin-listings/listing-page.tsx; opened by the title in All listings or Open, first in every row's three-dots): back to All listings; the heading with the status pill (the tier and the severe flag when they apply); Preview as buyer (the buyer's view, as Screening shows it); the moves the person holds (Send back, Restore, Remove — the same dialog as the list) and View as seller; Details; History — one line per revision ("Status: Live → Removed", "Edited: Title, Price", "Created", "Renewed"), who, the reason and the note, and for an edit "Show changes" with each value before and after. Details and History sit side by side from 1024 px.
+- A holder of `listings:view` alone sees the page without the e-mail, the account link, the moves and View as seller; the row's three-dots then holds Open alone.
+
 ## Reasons
 
 - Edit: `wrong_category`, `misleading`, `contact_in_text`, `photo`, `rules`, `other`.
@@ -45,6 +54,8 @@ AL-10 and AL-11 (turn L2): the page on the agreed blocks for the super admin —
 AL-13..AL-15 (turn L2b), as the super admin, each on its own scratch listings: AL-13 Remove from the row (the dialog first asks for a reason), the pill "Removed", one audit row and one notice; then Restore to Waiting for review; AL-14 Send back to review with Other: the note is asked for, then reaches the audit row and the seller's notice; AL-15 two ticked listings removed with one dialog (two audit rows), then both ticked in the Removed view and restored. AL-11 also checks that `listings:view` without the move rights shows no tick-box and no three-dots; its holder now also holds `admin_panel:access` (INC-550: L2's AL-11 held `listings:view` alone, and the admin shell, which opens only for `admin_panel:access`, never showed it the page). Unit: MR-1..MR-4 (the reasons equal the door's lists, the moves per state, the note's rules, the refusals' sentences) and MD-1..MD-4 (the dialog sends nothing without a reason, Other needs a note, each move offers its own reasons, the door's refusal is shown).
 
 INC-551 (turn L2b): PW-173 (e2e/post-wizard-where.spec.ts) and LT-11 (e2e/admin-locations.spec.ts) pick "another open market" with `openMarketCodes({ realOnly: true })` (e2e/helpers/locations.ts), which leaves out other tests' scratch markets; PW-173 had picked one twice ("no anchor in QX", "no anchor in QU").
+
+AL-16..AL-18 (turn L3): the page's door (a plain account refused, a draft not found, the viewer without the e-mail or a staff name, a pin and an address named but never shown, the super admin's removal with its reason); the page as the super admin (opened from the title, Remove with a reason, the pill, the line above, the history's newest line, the buyer's view, back); the page with `listings:view` alone (no e-mail, no account link, no moves, a staff line without a name, a draft not found). AL-11: the three-dots holds Open alone. Unit: LH-1..LH-4 (the groups, the lines, the values kept, the door's answer mapped). The migration's proofs B1–B4 check the door's header and grants, its gates and redactions in order, and the refusals with no session and with an identity that holds nothing.
 
 ## Turn L1b (CI on 63f6b687)
 

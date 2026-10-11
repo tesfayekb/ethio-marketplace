@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Package } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -69,7 +70,10 @@ import {
  * ticks clear when the view, the search, a filter or the page changes. All
  * three moves go through `admin_move_listing` (listings:enforce with a fresh
  * second factor); the admin's own listings get no move (the door refuses
- * them). Open and Edit come with turn L3.
+ * them).
+ *
+ * Turn L3 (D139) — Open, first in every row's three-dots, and the title open
+ * the listing's page (/admin/listings/<id>). Edit comes with turn L4.
  */
 
 type Move = { kind: MoveKind; ids: string[] } | null;
@@ -97,6 +101,7 @@ export function AdminListingsPage() {
   const mayViewAs = permissions.includes("impersonation:use");
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const section = sectionById("listings");
   const markets = useOpenMarkets();
   const { tree } = useCategoryTree();
@@ -204,6 +209,12 @@ export function AdminListingsPage() {
       testid={`listing-actions-${row.id}`}
       name={row.title}
       more={[
+        {
+          key: "open",
+          label: t("admin.listings.action.open"),
+          onSelect: () =>
+            void navigate({ to: "/admin/listings/$listingId", params: { listingId: row.id } }),
+        },
         ...rowMoves(row).map((kind) => ({
           key: kind,
           label: t(MOVE_LABEL[kind]),
@@ -305,8 +316,16 @@ export function AdminListingsPage() {
       priority: "primary",
       width: "w-[17%]",
       card: "title",
+      // Turn L3 — the title opens the listing's page.
       cell: (row) => (
-        <span className="block min-w-0 break-words font-medium text-foreground">{row.title}</span>
+        <Link
+          to="/admin/listings/$listingId"
+          params={{ listingId: row.id }}
+          data-testid={`listing-row-${row.id}-open`}
+          className="block min-w-0 break-words font-medium text-foreground underline-offset-4 hover:underline"
+        >
+          {row.title}
+        </Link>
       ),
     },
     {
@@ -729,7 +748,7 @@ export function AdminListingsPage() {
                 </>
               ) : undefined
             }
-            rowActions={mayEnforce || mayViewAs ? rowActions : undefined}
+            rowActions={rowActions}
             pagination={
               <DataTablePagination
                 testid="listings-pagination"

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 390,
-  "dynamicCallSites": 250,
+  "scanned": 394,
+  "dynamicCallSites": 260,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -829,6 +829,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.create.countriesHint": [
@@ -837,6 +838,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.create.open": [
@@ -848,6 +850,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.create.parentRoot": [
@@ -856,6 +859,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.create.position": [
@@ -864,6 +868,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.create.positionBefore": [
@@ -872,6 +877,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.create.positionCount": [
@@ -880,6 +886,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.create.positionEnd": [
@@ -888,6 +895,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.create.slugPreview": [
@@ -896,6 +904,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.create.title": [
@@ -904,6 +913,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.delete.confirm": [
@@ -912,6 +922,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.delete.confirmLabel": [
@@ -920,6 +931,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.delete.hint": [
@@ -928,6 +940,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.delete.mismatch": [
@@ -936,6 +949,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.delete.title": [
@@ -944,6 +958,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.edit.title": [
@@ -952,6 +967,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.empty": [
@@ -966,6 +982,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.error.nameRequired": [
@@ -974,6 +991,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.error.parentRequired": [
@@ -982,6 +1000,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.error.reassignRequired": [
@@ -990,6 +1009,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.error.saveFailed": [
@@ -998,6 +1018,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.exclusions.current": [
@@ -1006,6 +1027,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.exclusions.hint": [
@@ -1014,6 +1036,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.exclusions.title": [
@@ -1022,6 +1045,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.export.busy": [
@@ -1039,6 +1063,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.icon": [
@@ -1047,6 +1072,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.iconChange": [
@@ -1055,6 +1081,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.iconFallbackNote": [
@@ -1063,6 +1090,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.iconHint": [
@@ -1071,6 +1099,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.lifetimeDays": [
@@ -1079,6 +1108,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.lifetimeNone": [
@@ -1087,6 +1117,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.name": [
@@ -1095,6 +1126,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.order": [
@@ -1103,6 +1135,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.orderManaged": [
@@ -1111,6 +1144,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.field.priceEnabled": [
@@ -1119,6 +1153,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.filter.allCategories": [
@@ -1143,6 +1178,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.acceptToast": [
@@ -1151,6 +1187,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.accepted": [
@@ -1159,6 +1196,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.busy": [
@@ -1167,6 +1205,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.card": [
@@ -1175,6 +1214,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.empty": [
@@ -1183,6 +1223,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.generate": [
@@ -1191,6 +1232,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.loading": [
@@ -1199,6 +1241,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.og": [
@@ -1207,6 +1250,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.regenerate": [
@@ -1215,6 +1259,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.review": [
@@ -1223,6 +1268,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.stageLabel": [
@@ -1231,6 +1277,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.thumb": [
@@ -1239,6 +1286,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.image.title": [
@@ -1247,6 +1295,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.import.open": [
@@ -1267,6 +1316,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.addSubmit": [
@@ -1275,6 +1325,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.empty": [
@@ -1283,6 +1334,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.error": [
@@ -1291,6 +1343,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.hint": [
@@ -1299,6 +1352,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.loading": [
@@ -1307,6 +1361,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.makePrimary": [
@@ -1315,6 +1370,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.moveTo": [
@@ -1323,6 +1379,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.primary": [
@@ -1331,6 +1388,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.primaryTip": [
@@ -1339,6 +1397,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.remove": [
@@ -1347,6 +1406,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.root": [
@@ -1355,6 +1415,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.paths.title": [
@@ -1363,6 +1424,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.pointer.hint": [
@@ -1371,6 +1433,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.pointer.parent": [
@@ -1379,6 +1442,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.pointer.parentPlaceholder": [
@@ -1387,6 +1451,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.pointer.title": [
@@ -1395,6 +1460,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.retire.confirm": [
@@ -1403,6 +1469,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.retire.hint": [
@@ -1411,6 +1478,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.retire.noListings": [
@@ -1419,6 +1487,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.retire.reassignCount": [
@@ -1427,6 +1496,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.retire.reassignPlaceholder": [
@@ -1435,6 +1505,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.retire.title": [
@@ -1443,6 +1514,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.searchPlaceholder": [
@@ -1481,6 +1553,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.window.hint": [
@@ -1489,6 +1562,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.window.title": [
@@ -1497,6 +1571,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.categories.window.until": [
@@ -1505,6 +1580,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places"
     ],
     "admin.comingSoon": [
@@ -1717,32 +1793,90 @@
     "admin.landing.title": [
       "/admin"
     ],
-    "admin.listings.action.viewAsSeller": [
+    "admin.listings.action.open": [
       "/admin/listings"
+    ],
+    "admin.listings.action.viewAsSeller": [
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.col.category": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.col.expires": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.col.place": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.col.posted": [
       "/admin/listings"
     ],
     "admin.listings.col.price": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.col.seller": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.col.status": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.col.title": [
       "/admin/listings"
+    ],
+    "admin.listings.detail.back": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.buyerView": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.changed": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.created": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.deactivated": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.details": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.firstPosted": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.history": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.id": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.lastPosted": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.memberSince": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.notFound": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.openSeller": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.photos": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.sellerEnd": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.detail.severe": [
+      "/admin/listings/$listingId"
     ],
     "admin.listings.empty": [
       "/admin/listings"
@@ -1763,22 +1897,72 @@
       "/admin/listings"
     ],
     "admin.listings.filter.tier": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.filter.to": [
       "/admin/listings"
     ],
+    "admin.listings.history.after": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.before": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.by.staff": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.created": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.edited": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.empty": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.field.renewals": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.hide": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.more": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.note": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.photosRemoved": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.reason": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.renewed": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.show": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.history.status": [
+      "/admin/listings/$listingId"
+    ],
     "admin.listings.move.done.send_back": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.move.note": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.move.noteHint": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.move.reason": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.move.refused": [
       "/admin/listings"
@@ -1790,7 +1974,8 @@
       "/admin/listings"
     ],
     "admin.listings.tier.regular": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/listings/$listingId"
     ],
     "admin.listings.view": [
       "/admin/listings"
@@ -3213,6 +3398,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
@@ -3227,6 +3413,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3242,6 +3429,7 @@
     ],
     "common.error": [
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/screening"
     ],
     "common.goHome": [
@@ -3252,6 +3440,7 @@
       "/account",
       "/admin/categories",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/settings"
     ],
@@ -3267,6 +3456,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/dev/primitives"
     ],
@@ -3316,6 +3506,7 @@
     "feed.noPhoto": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
@@ -3382,14 +3573,17 @@
     "impersonation.readOnlyNote": [
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
     "impersonation.reasonLabel": [
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
     "impersonation.reasonPlaceholder": [
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
     "impersonation.roadmapNote": [
@@ -3397,6 +3591,7 @@
     ],
     "impersonation.start": [
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
     "impersonation.title": [
@@ -3408,6 +3603,7 @@
     ],
     "impersonation.viewAs": [
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
     "language.label": [
@@ -3416,6 +3612,7 @@
     "listing.photosSoon": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
@@ -3449,6 +3646,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3464,6 +3662,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3515,6 +3714,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3529,6 +3729,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3543,6 +3744,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3557,6 +3759,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3572,6 +3775,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3586,6 +3790,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3696,6 +3901,7 @@
       "/post/$listingId"
     ],
     "post.catalog.yourCountry": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -3997,6 +4203,7 @@
       "/post/$listingId"
     ],
     "post.pin.title": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4006,41 +4213,49 @@
       "/post/$listingId"
     ],
     "post.preview.close": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.contactLabel": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.descriptionLabel": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.detailsLabel": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.mapPlaceholder": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.photoCount": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.sellerLabel": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.title": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4207,21 +4422,25 @@
     ],
     "post.review.no": [
       "/admin/categories",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.review.noPrice": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.review.noTitle": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.review.notGiven": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4242,6 +4461,7 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
@@ -4251,6 +4471,7 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
@@ -4273,6 +4494,7 @@
       "/post/$listingId"
     ],
     "post.review.sizeLine": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4307,6 +4529,7 @@
     ],
     "post.review.yes": [
       "/admin/categories",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4328,11 +4551,13 @@
       "/post/$listingId"
     ],
     "post.seller.memberSince": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.seller.previously": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4426,6 +4651,7 @@
       "/post/$listingId"
     ],
     "post.specs.yearEcSuffix": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4471,6 +4697,7 @@
       "/post/$listingId"
     ],
     "post.where.detailsLabel": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4488,6 +4715,7 @@
       "/post/$listingId"
     ],
     "post.where.directionsLabel": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4657,26 +4885,31 @@
       "/post/$listingId"
     ],
     "post.who.channel.messages": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.phone": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.phone2": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.telegram": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.whatsapp": [
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"
@@ -4829,6 +5062,7 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
@@ -4838,6 +5072,7 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
@@ -4847,6 +5082,7 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
@@ -4855,6 +5091,7 @@
     "price.negotiable": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
@@ -5152,6 +5389,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -5312,6 +5550,7 @@
     "tier.featured": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
@@ -5320,6 +5559,7 @@
     "tier.premium": [
       "/",
       "/admin/impersonation/$sessionId",
+      "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
       "/post",
