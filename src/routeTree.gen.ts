@@ -41,6 +41,7 @@ import { Route as DevStyleRouteImport } from './routes/dev.style'
 import { Route as DevTallRouteImport } from './routes/dev.tall'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
+import { Route as AdminListingsListingIdRouteImport } from './routes/admin.listings_.$listingId'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
 import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
 import { Route as AdminUsersUserIdRouteImport } from './routes/admin.users_.$userId'
@@ -231,6 +232,11 @@ const AdminImpersonationSessionIdRoute =
     path: '/impersonation/$sessionId',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminListingsListingIdRoute = AdminListingsListingIdRouteImport.update({
+  id: '/listings_/$listingId',
+  path: '/listings/$listingId',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminRolesRoleIdRoute = AdminRolesRoleIdRouteImport.update({
   id: '/roles_/$roleId',
   path: '/roles/$roleId',
@@ -412,6 +418,7 @@ export interface FileRoutesByFullPath {
   '/post/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
+  '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -473,6 +480,7 @@ export interface FileRoutesByTo {
   '/post/$listingId': typeof PostListingIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
+  '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
@@ -536,6 +544,7 @@ export interface FileRoutesById {
   '/post_/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
+  '/admin/listings_/$listingId': typeof AdminListingsListingIdRoute
   '/admin/roles_/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations_/$lang': typeof AdminTranslationsLangRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
@@ -600,6 +609,7 @@ export interface FileRouteTypes {
     | '/post/$listingId'
     | '/admin/'
     | '/admin/impersonation/$sessionId'
+    | '/admin/listings/$listingId'
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
@@ -661,6 +671,7 @@ export interface FileRouteTypes {
     | '/post/$listingId'
     | '/admin'
     | '/admin/impersonation/$sessionId'
+    | '/admin/listings/$listingId'
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
@@ -723,6 +734,7 @@ export interface FileRouteTypes {
     | '/post_/$listingId'
     | '/admin/'
     | '/admin/impersonation_/$sessionId'
+    | '/admin/listings_/$listingId'
     | '/admin/roles_/$roleId'
     | '/admin/translations_/$lang'
     | '/admin/users_/$userId'
@@ -1020,6 +1032,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonationSessionIdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/listings_/$listingId': {
+      id: '/admin/listings_/$listingId'
+      path: '/listings/$listingId'
+      fullPath: '/admin/listings/$listingId'
+      preLoaderRoute: typeof AdminListingsListingIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/roles_/$roleId': {
       id: '/admin/roles_/$roleId'
       path: '/roles/$roleId'
@@ -1235,6 +1254,7 @@ interface AdminRouteChildren {
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminImpersonationSessionIdRoute: typeof AdminImpersonationSessionIdRoute
+  AdminListingsListingIdRoute: typeof AdminListingsListingIdRoute
   AdminRolesRoleIdRoute: typeof AdminRolesRoleIdRoute
   AdminTranslationsLangRoute: typeof AdminTranslationsLangRoute
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
@@ -1256,6 +1276,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminImpersonationSessionIdRoute: AdminImpersonationSessionIdRoute,
+  AdminListingsListingIdRoute: AdminListingsListingIdRoute,
   AdminRolesRoleIdRoute: AdminRolesRoleIdRoute,
   AdminTranslationsLangRoute: AdminTranslationsLangRoute,
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,
