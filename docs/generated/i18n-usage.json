@@ -2783,9 +2783,6 @@
     "admin.translations.delete.pending": [
       "/admin/translations"
     ],
-    "admin.translations.delete.publishedBlocked": [
-      "/admin/translations"
-    ],
     "admin.translations.delete.title": [
       "/admin/translations"
     ],
