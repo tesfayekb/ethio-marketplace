@@ -1134,7 +1134,11 @@ test.describe("U4b translations console", () => {
           { timeout: 30000, message: "restore never landed as an edited value" },
         )
         .toBe("edited|true");
-      // INC-558's class (turn G3c) — the box follows the restored text.
+      // INC-558's class (turn G3c) — the box follows the restored text. INC-560: the
+      // drawer is modal and hides the page from role locators (the desktop twin is
+      // found through its table), so the drawer is closed first, as a person would.
+      await page.keyboard.press("Escape");
+      await expect(drawer).toBeHidden({ timeout: 20000 });
       await expect(expansionControl(page, id, "string-input")).toHaveValue(/⟪am⟫/, {
         timeout: 20000,
       });
