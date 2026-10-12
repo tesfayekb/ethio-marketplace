@@ -243,7 +243,7 @@ bundler named a shared chunk "client-…". JS is now the entry chunk's static
 import closure (`scripts/bundle-closure.mjs`: every chunk reached through
 `import … from "./x.js"` and `import "./x.js"`; a dynamic `import("./x.js")` is
 left out; BC-1..BC-4 in `scripts/bundle-closure.test.ts`); CSS keeps the name
-rule. The ceiling stays 320 KiB until the operator decides it again (G52).
+rule. The ceiling stays 320 KiB: the operator kept it on 2026-10-12 (D144, G52).
 
 ## The vertical stack (final layout refinement, 2026-08-04)
 

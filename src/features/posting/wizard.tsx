@@ -45,6 +45,7 @@ import { answerOtherText } from "./answer-tokens";
 import { basisInForce, basisNoun, basisToken } from "./price-basis";
 import {
   clearPin,
+  pinDoorQueue,
   readPlaceCountry,
   readPostingSchema,
   readPostingSchemaAnswer,
@@ -271,7 +272,10 @@ export function PostingWizard({
     if (!pinCarried || draft.listingId === null) return;
     if (facts === null || !facts.capabilities.includes("own_place")) return;
     const listingId = draft.listingId;
-    void clearPin(listingId, { street: null, directions: null }).then((ok) => {
+    // INC-526 — through the draft's one pin-door queue, behind any call the step has in flight.
+    void pinDoorQueue(listingId)(() =>
+      clearPin(listingId, { street: null, directions: null }),
+    ).then((ok) => {
       if (!ok) return; // logged by the service (F4); the step shows the pin to remove
       draft.setPin(null);
       draft.setDirections(null);
