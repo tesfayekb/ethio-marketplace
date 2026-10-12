@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 400,
-  "dynamicCallSites": 270,
+  "dynamicCallSites": 272,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2167,6 +2167,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "admin.locations.filter.allCountriesOption": [
@@ -2177,6 +2178,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "admin.locations.filter.allLevelsOption": [
@@ -2187,6 +2189,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "admin.locations.filter.allStatusesOption": [
@@ -2197,6 +2200,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "admin.locations.filter.closedSuffix": [
@@ -2207,6 +2211,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "admin.locations.filter.country": [
@@ -2217,6 +2222,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "admin.locations.filter.level": [
@@ -2227,6 +2233,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "admin.locations.filter.retiredOnly": [
@@ -2237,6 +2244,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "admin.locations.filter.search": [
@@ -2250,6 +2258,7 @@
       "/admin/places",
       "/admin/roles",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "admin.locations.import.openPlaces": [
@@ -2971,9 +2980,6 @@
       "/admin/translations"
     ],
     "admin.translations.status.flagged": [
-      "/admin/translations/$lang"
-    ],
-    "admin.translations.strings.back": [
       "/admin/translations/$lang"
     ],
     "admin.translations.strings.caption": [
@@ -5278,6 +5284,7 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations/$lang",
       "/admin/users",
       "/dev/style"
     ],
@@ -5293,6 +5300,7 @@
       "/admin/roles",
       "/admin/screening",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "prim.table.done": [
@@ -5307,6 +5315,7 @@
       "/admin/roles",
       "/admin/screening",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users",
       "/dev/style"
     ],
@@ -5317,6 +5326,7 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations/$lang",
       "/admin/users",
       "/dev/style"
     ],
@@ -5412,6 +5422,7 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations/$lang",
       "/admin/users",
       "/dev/style"
     ],
@@ -5478,6 +5489,7 @@
       "/admin/roles",
       "/admin/screening",
       "/admin/translations",
+      "/admin/translations/$lang",
       "/admin/users"
     ],
     "prim.table.showResults": [
@@ -5487,6 +5499,7 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations/$lang",
       "/admin/users",
       "/dev/style"
     ],
