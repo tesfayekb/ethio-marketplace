@@ -21,6 +21,7 @@ import {
 import { adminClient, leaseUser } from "./helpers/users";
 import {
   langRow,
+  actionsOf,
   stringRow,
   surfaceControl,
   expansionOf,
@@ -139,6 +140,15 @@ test.describe("U4b translations console", () => {
     await expect(page.getByTestId("lang-pagination-range")).toContainText("1–");
     await expect(page.getByTestId("lang-pagination-size")).toHaveValue("100");
     await expectNoHorizontalOverflow(page);
+    // Bundle 11 G3d (DEC-170) — the row's actions on the agreed blocks: Open
+    // strings (the row's edit), the red Delete and the three-dots; Open leads to
+    // the language's strings page.
+    const actions = actionsOf(page, "lang-row-am");
+    await expect(actions.getByTestId("lang-actions-am-more")).toBeVisible();
+    await expect(actions.getByTestId("lang-actions-am-delete")).toBeVisible();
+    await actions.getByTestId("lang-actions-am-edit").click();
+    await expect(page).toHaveURL(/\/admin\/translations\/am(\?|$)/, { timeout: 20000 });
+    await expect(page.getByTestId("admin-translations-strings")).toBeVisible({ timeout: 20000 });
   });
 
   test("TR-2 roster shows every language including admin-only ones", async ({ page }) => {

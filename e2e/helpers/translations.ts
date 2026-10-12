@@ -1,6 +1,6 @@
 import { type Locator, type Page } from "@playwright/test";
 
-import { test } from "../fixtures";
+import { expect, test } from "../fixtures";
 import { fenceLang, processId } from "../global-setup";
 import { isMobile, switchUser, useJobSuperAdmin, waitForHydration } from "./ui";
 import { adminClient } from "./users";
@@ -65,6 +65,19 @@ export function langRow(page: Page, code: string): Locator {
  */
 export function actionsOf(page: Page, base: string): Locator {
   return surfaceControl(page, isMobile(page) ? `${base}-actions` : `${base}-actions-cell`);
+}
+
+/**
+ * Bundle 11 G3d (DEC-170) — a language row's three-dots menu entry (`up`,
+ * `down`). The three-dots sit in the row's actions region (the card's corner on
+ * a phone, the actions cell on a computer); the menu itself opens in a portal,
+ * so its entries are read from the page, after the menu has opened.
+ */
+export async function langMenuItem(page: Page, code: string, item: string): Promise<Locator> {
+  await actionsOf(page, `lang-row-${code}`).getByTestId(`lang-actions-${code}-more`).click();
+  const entry = page.getByTestId(`lang-actions-${code}-more-${item}`);
+  await expect(entry, `the ${code} row's menu has no ${item}`).toBeVisible({ timeout: 20000 });
+  return entry;
 }
 
 /**

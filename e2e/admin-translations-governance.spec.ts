@@ -17,6 +17,7 @@ import { adminClient } from "./helpers/users";
 import {
   langRow,
   actionsOf,
+  langMenuItem,
   stringRow,
   slug,
   scratchAxes,
@@ -393,8 +394,9 @@ test.describe("U4g bulk approval, order and orphans", () => {
       // reaches the poll's own 30s budget (that is what the earlier anonymous
       // 120s timeout actually was).
       await test.step("TR-20 move up", async () => {
-        const up = actionsOf(page, `lang-row-${fence}`).getByTestId(`lang-up-${fence}`);
         await test.step("TR-20 move up · click", async () => {
+          // Bundle 11 G3d (DEC-170) — the order moves live in the row's three-dots menu.
+          const up = await langMenuItem(page, fence, "up");
           await expect(up, "the fence's up control must be enabled before the move").toBeEnabled({
             timeout: 20000,
           });
@@ -414,8 +416,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
       });
 
       await test.step("TR-20 move down", async () => {
-        const down = actionsOf(page, `lang-row-${fence}`).getByTestId(`lang-down-${fence}`);
         await test.step("TR-20 move down · click", async () => {
+          const down = await langMenuItem(page, fence, "down");
           await expect(down, "the fence's down control must be enabled").toBeEnabled({
             timeout: 20000,
           });
@@ -489,14 +491,15 @@ test.describe("U4g bulk approval, order and orphans", () => {
     await gotoReady(page, "/admin/translations");
     await expect(langRow(page, fence)).toBeVisible({ timeout: 20000 });
 
-    const actions = actionsOf(page, `lang-row-${fence}`);
-    const up = actions.getByTestId(`lang-up-${fence}`);
-    const down = actions.getByTestId(`lang-down-${fence}`);
+    // Bundle 11 G3d (DEC-170) — the card's three-dots (its top corner) hold the moves.
+    const up = await langMenuItem(page, fence, "up");
+    const down = page.getByTestId(`lang-actions-${fence}-more-down`);
     await expect(up, "mobile must expose the up control").toBeVisible({ timeout: 20000 });
     await expect(down, "mobile must expose the down control").toBeVisible({ timeout: 20000 });
     await expect(up, "the parked fence's up control must be enabled").toBeEnabled({
       timeout: 20000,
     });
+    await page.keyboard.press("Escape");
   });
 
   test(
@@ -1124,7 +1127,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
       // primitive's single rowActions slot (same law as INC-106b), so a bare
       // `lang-delete-…` resolves to two elements. Every row action routes
       // through the viewport-aware twin helper (J5).
-      await actionsOf(page, `lang-row-${code}`).getByTestId(`lang-delete-${code}`).click();
+      // Bundle 11 G3d (DEC-170) — the row's red Delete (RowActions).
+      await actionsOf(page, `lang-row-${code}`).getByTestId(`lang-actions-${code}-delete`).click();
       await expect(page.getByTestId(`lang-delete-counts-${code}`)).toBeVisible({ timeout: 20000 });
       const submit = page.getByTestId(`lang-delete-submit-${code}`);
       // The gate itself: nothing is armed until the code is typed.
