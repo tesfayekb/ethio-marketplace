@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { scratchSlug, destroyCategory } from "./helpers/categories";
 import { gotoReady, isMobile, openRailScope } from "./helpers/ui";
+import { anyMenuRows, catalogueRows } from "./helpers/category-menu";
 import { adminClient } from "./helpers/users";
 
 /**
@@ -28,9 +29,7 @@ test.describe("category selection navigates", () => {
    */
   async function firstCategory(page: import("@playwright/test").Page) {
     const scope = await openRailScope(page);
-    const rows = scope.locator(
-      "nav li > a[data-testid^='rail-category-']:not([data-testid^='rail-category-e2e-'])",
-    );
+    const rows = catalogueRows(scope, "nav li > a");
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(rows.first()).toBeVisible();
     /**
@@ -153,9 +152,10 @@ test.describe("category selection navigates", () => {
           timeout: 20_000,
         });
         await expect(b, "C-5 the second scratch root is not in the rail").toHaveCount(1);
-        const testids = await scope
-          .locator("[data-testid^='rail-category-']")
-          .evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")));
+        // This test's own two scratch roots are the subject: every row is read.
+        const testids = await anyMenuRows(scope).evaluateAll((els) =>
+          els.map((el) => el.getAttribute("data-testid")),
+        );
         return {
           first: testids.indexOf(`rail-category-${first}`),
           second: testids.indexOf(`rail-category-${second}`),
