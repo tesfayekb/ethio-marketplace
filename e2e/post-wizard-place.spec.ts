@@ -17,6 +17,7 @@ import {
   activeCityOf,
   attributesOf,
   bearerOf,
+  nextToStep,
   pinOf,
   postRoute,
   reasonsOf,
@@ -290,8 +291,8 @@ test.describe("POSTING WIZARD", () => {
     // Step 5 is not this test's subject: `free` is the one mode that asks for
     // nothing, so the price step is answered honestly and left behind.
     await page.getByTestId("post-price-mode-free").click();
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    // INC-562 — Next, and when step 5 does not come, the draft save's answer says why.
+    await nextToStep(page, 5);
     await page.getByTestId("post-title").fill("e2e c2a listing title");
     await page.getByTestId("post-description").fill("e2e c2a listing description");
     await page.getByTestId("post-next").click();

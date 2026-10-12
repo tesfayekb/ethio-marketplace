@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Page, type Response } from "@playwright/test";
 
 import { adminClient, leaseUser, type TestUser } from "./users";
 
@@ -2740,4 +2740,57 @@ export async function seedDealSet(
     volumeKey,
     attrKeys: data.map((row) => row.attr_key),
   };
+}
+
+/**
+ * INC-562 (the class of INC-533 and INC-430: a posting test whose step does not
+ * come after Next) — press Next and wait for the step, exactly as
+ * `expect(post-step-<n>).toBeVisible()` waits (its default 10 s). When the step
+ * does not come, the failure says why: each draft save answered meanwhile (its
+ * status, how long it took, and `ok` or the refusal reasons — never the body)
+ * and the refusal lines the wizard shows. Evidence only: the wait is unchanged.
+ */
+export async function nextToStep(page: Page, step: number): Promise<void> {
+  const started = Date.now();
+  const saves: Promise<string>[] = [];
+  const onResponse = (response: Response) => {
+    if (!response.url().includes("/api/listings/draft")) return;
+    const took = Date.now() - started;
+    saves.push(
+      response.json().then(
+        (body: unknown) => {
+          const answer = (body ?? {}) as { ok?: unknown; refusals?: unknown };
+          const reasons = Array.isArray(answer.refusals)
+            ? answer.refusals
+                .map((r) => {
+                  const row = (r ?? {}) as Record<string, unknown>;
+                  return `${String(row["field"] ?? row["attr_key"] ?? "?")}:${String(row["reason"] ?? "?")}`;
+                })
+                .join(",")
+            : "";
+          return `${response.status()} after ${took} ms, ok=${String(answer.ok)}${reasons ? ` (${reasons})` : ""}`;
+        },
+        () => `${response.status()} after ${took} ms (no JSON)`,
+      ),
+    );
+  };
+  page.on("response", onResponse);
+  try {
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId(`post-step-${String(step)}`)).toBeVisible();
+  } catch (error) {
+    const answered = await Promise.all(saves);
+    const shown = await page
+      .locator('[data-testid^="post-refusal"]')
+      .allInnerTexts()
+      .catch(() => [] as string[]);
+    throw new Error(
+      `[INC-562] step ${String(step)} did not come after Next. Draft saves: ${
+        answered.join(" | ") || "none answered"
+      }. Refusal lines shown: ${shown.join(" | ") || "none"}.`,
+      { cause: error },
+    );
+  } finally {
+    page.off("response", onResponse);
+  }
 }

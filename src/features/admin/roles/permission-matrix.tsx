@@ -175,7 +175,8 @@ export function PermissionMatrix({
                         ) : (
                           <Button
                             type="button"
-                            variant={row.granted ? "outline" : "default"}
+                            // Bundle 11 C2 — Revoke is a destructive act: red.
+                            variant={row.granted ? "destructiveOutline" : "default"}
                             className="min-h-11 w-full md:w-auto"
                             data-testid={`role-permission-toggle-${slug}`}
                             disabled={setPermission.isPending}

@@ -12,6 +12,9 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground shadow-button hover:bg-primary/90",
         destructive:
           "bg-destructive text-destructive-foreground shadow-button hover:bg-destructive/90",
+        // Bundle 11 C2 — a destructive act that opens its confirmation or sits in a list: red words and border.
+        destructiveOutline:
+          "border border-destructive/50 bg-card text-destructive shadow-tile hover:bg-destructive/10",
         outline:
           "border border-input bg-card shadow-tile hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
