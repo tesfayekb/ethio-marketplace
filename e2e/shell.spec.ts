@@ -2399,7 +2399,13 @@ test.describe("L4b location picker", () => {
     if (shard === "changed") return 7;
     if (shard === "email") return 8;
     const n = Number(shard);
-    return Number.isInteger(n) && n >= 1 && n <= 6 ? n : 9;
+    // INC-573 — the grid holds six shard rows. Under eight shards (DEC-171) shards
+    // 7 and 8 both took row 9 and shared their fixtures' places; a shard number the
+    // grid has no row for now fails loudly instead.
+    if (Number.isInteger(n) && (n < 1 || n > 6)) {
+      throw new Error(`[e2e:guess] shard ${String(n)} has no row in the location grid (rows 1–6)`);
+    }
+    return Number.isInteger(n) ? n : 9;
   }
 
   function gridPoint(row: number, column: number) {
