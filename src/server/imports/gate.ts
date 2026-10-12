@@ -853,6 +853,10 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
   if (caller.reason === "missingBearer") {
     return { ok: false, response: json({ error: "missing bearer token" }, 401) };
   }
+  // INC-574 — the auth server did not answer: 503, never "not signed in".
+  if (caller.reason === "upstream") {
+    return refuse(path, caller.message, 503, { error: "upstream unavailable" });
+  }
   if (caller.supabase === null || caller.userId === null) {
     console.error(`[ssr-error] ${path} not signed in ${caller.message}`.trim());
     return { ok: false, response: json({ error: "not signed in" }, 401) };
@@ -963,6 +967,10 @@ export async function openExportGate(
   }
   if (caller.reason === "missingBearer") {
     return { ok: false, response: json({ error: "missing bearer token" }, 401) };
+  }
+  // INC-574 — the auth server did not answer: 503, never "not signed in".
+  if (caller.reason === "upstream") {
+    return refuse(path, caller.message, 503, { error: "upstream unavailable" });
   }
   if (caller.supabase === null || caller.userId === null) {
     console.error(`[ssr-error] ${path} not signed in ${caller.message}`.trim());

@@ -1,4 +1,8 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  createClient,
+  isAuthRetryableFetchError,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 
@@ -25,7 +29,12 @@ import type { Database } from "@/integrations/supabase/types";
  * proof).
  */
 
-export type UserClientRefusal = "missingBearer" | "serverEnv" | "notSignedIn";
+/**
+ * INC-574 — `upstream`: the auth server did not answer for itself (no answer, a
+ * gateway status, an error page), so the bearer was never judged. It is not
+ * "not signed in": the route answers 503 and the client tries again.
+ */
+export type UserClientRefusal = "missingBearer" | "serverEnv" | "notSignedIn" | "upstream";
 
 export interface UserClientAnswer {
   /** The caller-context client, or null when a step before it refused. */
@@ -65,6 +74,14 @@ export async function userClientFromRequest(request: Request): Promise<UserClien
   });
 
   const { data, error } = await supabase.auth.getUser();
+  if (error && isAuthRetryableFetchError(error)) {
+    return {
+      supabase,
+      userId: null,
+      reason: "upstream",
+      message: `auth upstream unavailable (${error.status})`,
+    };
+  }
   if (error || !data?.user?.id) {
     return {
       supabase,
@@ -87,13 +104,49 @@ export function routeJson(body: unknown, status: number): Response {
   });
 }
 
-/** I4 — one `[ssr-error]` line for every throw and every deliberate 5xx. */
+/** INC-328 / INC-574 — an upstream HTML error page, from its first tag to the end. */
+const HTML_PAGE = /<(?:!doctype|html)\b[\s\S]*$/i;
+
+/**
+ * I4 — one `[ssr-error]` line for every throw and every deliberate 5xx.
+ * INC-328 / INC-574 — an upstream HTML error page is named, never dumped into
+ * the log: what came before it (a prefix such as "remove: ") is kept.
+ */
 export function logRouteError(path: string, error: unknown): void {
-  const message =
+  const raw =
     error instanceof Error
       ? `${error.message} | ${(error.stack ?? "").split("\n")[1]?.trim() ?? "no stack"}`
       : String(error);
+  const message = raw.replace(HTML_PAGE, "upstream returned an HTML error page");
   console.error("[ssr-error]", path, message);
+}
+
+/** INC-574 — gateway statuses: a gateway answered in the door's place. */
+const GATEWAY_STATUSES = new Set([
+  502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530,
+]);
+
+/**
+ * INC-574 — AN UPSTREAM FAILURE IS NOT A VERDICT. A door call that came back
+ * with no answer (status 0: the fetch failed), a gateway status, or an HTML
+ * page where the door's JSON should be never reached the door's judgement.
+ * Run 38250004537: the draft door's call answered an HTML error page, the route
+ * sent it as `ok:false` / `doorError`, and the wizard showed a refusal nobody
+ * made. A status-500 answer with the database's own JSON stays a door error.
+ */
+export function upstreamFailed(error: { message?: string } | null, status: number): boolean {
+  if (error === null) return false;
+  if (status === 0 || GATEWAY_STATUSES.has(status)) return true;
+  return HTML_PAGE.test(error.message ?? "");
+}
+
+/**
+ * INC-574 — the answer for an upstream failure: 503, which the clients read as
+ * "not reached" and try again (INC-228), never as a refusal.
+ */
+export function upstreamUnavailable(path: string, what: string, status: number): Response {
+  console.error("[ssr-error]", path, `${what}: upstream unavailable (${status})`);
+  return routeJson({ error: "upstream unavailable" }, 503);
 }
 
 /** A refusal is the door's own vocabulary: status 200, `ok:false` (F4). */
@@ -105,14 +158,18 @@ export function refusal(field: string, reason: string, detail?: string): Respons
 }
 
 /**
- * The 401/500 answers every authenticated posting route shares, so the wording
- * of "not signed in" is written once.
+ * The 401/500/503 answers every authenticated posting route shares, so the
+ * wording of "not signed in" is written once.
  */
 export function refuseUserClient(path: string, answer: UserClientAnswer): Response | null {
   if (answer.reason === null) return null;
   if (answer.reason === "serverEnv") {
     logRouteError(path, answer.message);
     return routeJson({ error: "server error" }, 500);
+  }
+  if (answer.reason === "upstream") {
+    console.error("[ssr-error]", path, answer.message);
+    return routeJson({ error: "upstream unavailable" }, 503);
   }
   if (answer.reason === "notSignedIn" && answer.message !== "") {
     console.error(`[ssr-error] ${path} not signed in ${answer.message}`);

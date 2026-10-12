@@ -6,6 +6,8 @@ import {
   readJsonBody,
   refuseUserClient,
   routeJson,
+  upstreamFailed,
+  upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 
@@ -34,7 +36,7 @@ async function handlePost(request: Request): Promise<Response> {
   const supabase = caller.supabase!;
   const body = await readJsonBody(request);
 
-  const { data, error } =
+  const { data, error, status } =
     body["suggest"] === true
       ? await supabase.rpc("suggest_seller_aliases", {
           p_business_name: text(body["businessName"]) ?? undefined,
@@ -44,6 +46,8 @@ async function handlePost(request: Request): Promise<Response> {
           p_category_id: text(body["categoryId"]) ?? undefined,
         })
       : await supabase.rpc("check_seller_alias", { p_alias: text(body["alias"]) ?? "" });
+  // INC-574 — the door was never reached: 503, not a refusal.
+  if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, "alias", status);
   if (error) {
     logRouteError(PATH, error.message);
     return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);

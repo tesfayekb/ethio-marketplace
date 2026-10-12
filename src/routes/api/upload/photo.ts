@@ -17,6 +17,8 @@ import {
   refusal,
   refuseUserClient,
   routeJson,
+  upstreamFailed,
+  upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 
@@ -232,7 +234,7 @@ async function handlePost(request: Request): Promise<Response> {
     // cover IS the original here, because the strip never re-encodes.
     paths["original"] = paths["cover"]!;
 
-    const { data, error } = await supabaseAdmin.rpc("register_listing_photo", {
+    const { data, error, status } = await supabaseAdmin.rpc("register_listing_photo", {
       p_listing_id: listingId,
       p_photo_id: photoId,
       p_paths: {
@@ -249,6 +251,10 @@ async function handlePost(request: Request): Promise<Response> {
     });
     if (error) {
       await rollback();
+      // INC-574 — the door was never reached: 503 after the rollback, not a refusal.
+      if (upstreamFailed(error, status)) {
+        return upstreamUnavailable(PATH, "register_listing_photo", status);
+      }
       logRouteError(PATH, `register: ${error.message}`);
       return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
     }

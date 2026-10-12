@@ -105,6 +105,8 @@ async function handleGet(request: Request, id: string): Promise<Response> {
   // the reads run as the caller (anon no longer holds EXECUTE).
   const caller = await userClientFromRequest(request);
   if (caller.reason !== null || caller.supabase === null) {
+    // INC-574 — the auth server did not answer: 503, never "not signed in".
+    if (caller.reason === "upstream") return fail(id, caller.message, 503);
     return fail(id, "not signed in", caller.reason === "serverEnv" ? 500 : 401);
   }
   const supabase = caller.supabase;

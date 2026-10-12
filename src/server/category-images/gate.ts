@@ -8,7 +8,11 @@
  * F3 — the server is the only authority; there is NO service-role client on the
  * gate path, so this route cannot read or write past RLS while deciding.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  createClient,
+  isAuthRetryableFetchError,
+  type SupabaseClient,
+} from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 
@@ -56,6 +60,13 @@ export async function gateCategoriesAssets(
   });
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
+  // INC-574 — the auth server did not answer: 503, never "not signed in".
+  if (userError && isAuthRetryableFetchError(userError)) {
+    return {
+      ok: false,
+      response: fail5xx(path, `auth upstream unavailable (${userError.status})`, 503),
+    };
+  }
   const uid = userData?.user?.id;
   if (userError || !uid) {
     return { ok: false, response: json({ error: "not signed in" }, 401) };
