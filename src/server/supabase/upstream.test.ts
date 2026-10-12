@@ -20,6 +20,8 @@ vi.mock("@/integrations/supabase/client.server", () => ({
 const { logRouteError, refuseUserClient, upstreamFailed, userClientFromRequest } =
   await import("./user-client");
 const { Route: DraftRoute } = await import("@/routes/api/listings/draft");
+const { Route: IdentityRoute } = await import("@/routes/api/listings/identity");
+const { Route: AliasRoute } = await import("@/routes/api/listings/alias");
 
 const PAGE =
   "<html>\r\n<head><title>502 Bad Gateway</title></head>\r\n<body>gateway</body>\r\n</html>\r\n";
@@ -168,6 +170,57 @@ describe("INC-574 — an upstream failure is not a verdict", () => {
     network.rpc = () =>
       json({ code: "P0001", details: null, hint: null, message: "listing not found" }, 400);
     const refused = await save();
+    expect(refused.status).toBe(200);
+    expect(await refused.json()).toEqual({
+      ok: false,
+      refusals: [{ field: "door", reason: "doorError" }],
+    });
+  });
+});
+
+type PostHandlers = {
+  server: { handlers: { POST: (ctx: { request: Request }) => Promise<Response> } };
+};
+
+/**
+ * INC-578 — a door's own sentence never travels raw (INC-447). The identity and
+ * alias routes sent a door's exception text as the refusal's reason ("account is
+ * deactivated"); they now answer as every other posting route does: a machine
+ * code is kept, anything else is `doorError`.
+ */
+describe("INC-578 — a door's own words never travel raw", () => {
+  const sentence = () =>
+    json({ code: "P0001", details: null, hint: null, message: "account is deactivated" }, 400);
+  const machineCode = () =>
+    json({ code: "P0001", details: null, hint: null, message: "aliasTaken" }, 400);
+
+  it("UP-5 the identity route answers a door's sentence as doorError and keeps a machine code", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const handlers = (IdentityRoute.options as unknown as PostHandlers).server.handlers;
+    const save = () => handlers.POST({ request: signedRequest("/api/listings/identity", {}) });
+
+    network.rpc = sentence;
+    const refused = await save();
+    expect(refused.status).toBe(200);
+    expect(await refused.json()).toEqual({
+      ok: false,
+      refusals: [{ field: "door", reason: "doorError" }],
+    });
+
+    network.rpc = machineCode;
+    expect(await (await save()).json()).toEqual({
+      ok: false,
+      refusals: [{ field: "door", reason: "aliasTaken" }],
+    });
+  });
+
+  it("UP-6 the alias route answers a door's sentence as doorError", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const handlers = (AliasRoute.options as unknown as PostHandlers).server.handlers;
+    network.rpc = sentence;
+    const refused = await handlers.POST({
+      request: signedRequest("/api/listings/alias", { alias: "e2e-alias" }),
+    });
     expect(refused.status).toBe(200);
     expect(await refused.json()).toEqual({
       ok: false,

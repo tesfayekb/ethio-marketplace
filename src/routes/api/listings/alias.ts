@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { doorRefusal } from "@/features/posting/door-error";
 
 import {
   doorAnswer,
@@ -50,7 +51,8 @@ async function handlePost(request: Request): Promise<Response> {
   if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, "alias", status);
   if (error) {
     logRouteError(PATH, error.message);
-    return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
+    // INC-578 — a door's own sentence never travels raw (INC-447).
+    return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
   }
   return routeJson(doorAnswer(asRefusals(data)), 200);
 }

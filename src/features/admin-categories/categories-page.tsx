@@ -16,7 +16,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
@@ -265,6 +265,13 @@ export function AdminCategoriesPage() {
   const [bulkSummary, setBulkSummary] = useState<string | null>(null);
 
   const roster = useMemo(() => toRoster(data ?? []), [data]);
+  /**
+   * INC-579 — the roster is one whole read, re-read after every write; the search
+   * narrows what that read holds. The search box says whether a re-read is in
+   * flight and how many rows the read holds, so a test that misses a row it just
+   * created can name why (nothing on screen changes).
+   */
+  const rosterReading = useIsFetching({ queryKey: [...ADMIN_CATEGORIES_KEY, "list"] }) > 0;
   const byId = useMemo(() => new Map(roster.map((row) => [row.id, row])), [roster]);
   /**
    * C3-UX-5 — the filter is a SUBTREE PICKER: every category in roster order,
@@ -1103,6 +1110,9 @@ export function AdminCategoriesPage() {
                 search={
                   <Input
                     data-testid="category-search"
+                    data-reading={rosterReading ? "1" : "0"}
+                    data-roster={roster.length}
+                    data-results={filtered.length}
                     aria-label={t("admin.categories.searchPlaceholder")}
                     placeholder={t("admin.categories.searchPlaceholder")}
                     value={search}
