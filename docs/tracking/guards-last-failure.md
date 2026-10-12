@@ -1,95 +1,75 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38235379780
-- Commit: `6a9b0dda4e620a6059aaaee62e8d17c86bdb526d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38240133851
+- Commit: `3a26255f91e3414bc8135393a7550310c505f210`
 - Attempt: 1
-- Written (UTC): 2026-10-12T10:50:16.377Z
+- Written (UTC): 2026-10-12T11:16:05.045Z
 
-## Component tests — failure
+## E2E (Playwright, ethio-staging) — failure
 
 ### Evidence lines
 
 ```text
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
- [31m❯[39m scripts/e2e-leases.test.ts [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 5084[2mms[22m[39m
-[22m[39m[ssr-error] /api/example Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}     at normalizeCatastrophicSsrResponse (/home/runner/work/ethio-marketplace/ethio-marketplace/src/server.ts:65:47)
-Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
-[41m[1m FAIL [22m[49m scripts/e2e-leases.test.ts[2m > [22mthe pooled-lease check (DEC-174)[2m > [22mEL-4 no e2e test or hook leases more than two pooled accounts
-[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m116 passed[39m[22m[90m (117)[39m
-[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m697 passed[39m[22m[90m (698)[39m
-##[error]Error: Test timed out in 5000ms.
+[36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
+[36;1mPUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \[0m
+[36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
+Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
+[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
+##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
- [32m✓[39m src/features/posting/validate.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m src/features/posting/map/approx-radius.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 149[2mms[22m[39m
- [32m✓[39m src/lib/place-order.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 20[2mms[22m[39m
- [32m✓[39m src/i18n/bundle.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m src/test/chunk-by-length.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
- [32m✓[39m src/features/posting/catalog-finder.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m src/features/posting/catalog-scope.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m src/features/posting/answer-tokens.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m src/features/account/saved-channels.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 8[2mms[22m[39m
- [32m✓[39m src/providers/pre-paint-scripts.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m src/features/auth/password-pair.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m src/features/posting/same-channels.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m src/lib/own-key.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m src/features/posting/step-details-limits.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+[36;1m  exit "$reporter"[0m
+[36;1mfi[0m
+[36;1mexit 0[0m
+shell: /usr/bin/bash -e {0}
+env:
+  E2E_RESULTS_DIR: shard-results
+  E2E_LOGS_DIR: shard-logs
+  E2E_CONTEXT_DIR: shard-contexts
+  E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,changed?
+  E2E_GREEN: 0
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38240133851
+  E2E_HEAD_COMMIT_MESSAGE: Applied carrier turn B11 update
 
-[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
-
-[41m[1m FAIL [22m[49m scripts/e2e-leases.test.ts[2m > [22mthe pooled-lease check (DEC-174)[2m > [22mEL-4 no e2e test or hook leases more than two pooled accounts
-[31m[1mError[22m: Test timed out in 5000ms.
-If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
-[36m [2m❯[22m scripts/e2e-leases.test.ts:[2m93:3[22m[39m
-    [90m 91|[39m   })[33m;[39m
-    [90m 92|[39m
-    [90m 93|[39m   it("EL-4 no e2e test or hook leases more than two pooled accounts", …
-    [90m   |[39m   [31m^[39m
-    [90m 94|[39m     [35mconst[39m sources [33m=[39m [34mreadE2e[39m()[33m;[39m
-    [90m 95|[39m     [35mconst[39m all [33m=[39m [34mcounts[39m(sources)[33m;[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
-
-
-[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m116 passed[39m[22m[90m (117)[39m
-[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m697 passed[39m[22m[90m (698)[39m
-[2m   Start at [22m 10:17:39
-[2m   Duration [22m 63.46s[2m (transform 3.27s, setup 22.54s, import 18.30s, tests 18.36s, environment 106.68s)[22m
-
-
-##[error]Error: Test timed out in 5000ms.
-If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
- ❯ scripts/e2e-leases.test.ts:93:3
-
-
-error: script "test:unit" exited with code 1
+X-Lovable-Edit-ID: edt-b27ed2a0-8e2c-488e-9eac-ab65db60c574
+Co-authored-by: tesfayekb <tesfayekb@me.com>
+##[endgroup]
+  layout OK — per-artifact subdir: 1 context file(s), report rendered.
+  layout OK — merged flat: 1 context file(s), report rendered.
+  layout OK — zero artifacts: 0 context file(s), report rendered.
+  layout OK — missing directory: 0 context file(s), report rendered.
+DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
+DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.
+ok — R1a census names the missing log
+ok — R1a a11y never states zero with a gap
+ok — R1b census: all N logs read
+ok — R1b a11y: all N logs read
+Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).
+context download: 0 context files found.
+  glob: shard-contexts/**/error-context.md
+  searched: shard-contexts (unreadable or absent)
+Wrote docs/tracking/e2e-last-failure.md (0/10 source(s) with usable results, 0 context file(s) found).
+publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
+##[group]Run echo "smoke=cancelled email=success shards=cancelled"
+[36;1mecho "smoke=cancelled email=success shards=cancelled"[0m
+[36;1mif [ "cancelled" != "success" ] || [ "cancelled" != "success" ] || [ "success" != "success" ]; then[0m
+[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
+[36;1m  exit 1[0m
+[36;1mfi[0m
+[36;1mecho "All E2E shards and the smoke tier passed."[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+smoke=cancelled email=success shards=cancelled
+##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/ac460b74-5679-4b15-ac21-fe71708b5c08' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/189dac75-4178-4dca-8c8c-1b0ccff414d8' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
