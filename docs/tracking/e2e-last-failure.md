@@ -1,185 +1,97 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 38209410930 passed
+last E2E run 38215613134 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38209410930
-- Commit: `0386cd694b7cfba755000e7a5b2e73c411508044`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38215613134
+- Commit: `4e111104bfe5bd15ad6195c71abb819af429432b`
 - Attempt: 1
-- Written (UTC): 2026-10-12T06:18:35.103Z
+- Written (UTC): 2026-10-12T07:35:56.093Z
 - Post-test warnings: 33
-- Flaky (passed on retry, DEC-030, non-gating): 3
+- Flaky (passed on retry, DEC-030, non-gating): 2
 
 ## Flake ledger (DEC-030)
 
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · post-wizard-place.spec.ts › POSTING WIZARD › PW-39 an approximate pin is stored as approx and drawn as an area, never a point — Error: expect(locator).toBeVisible() failed
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · admin-attributes-safety.spec.ts › Bundle 7 attribute safety › AT-73 Remove from a category names the listings that hold an answer, and removes — Error: expect(locator).toHaveText(expected) failed
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 7` · post-wizard-pricing.spec.ts › POSTING WIZARD › PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081) — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-178 a late read of the place text never replaces a newer save — Error: PW-178: the held answer was not the older text
+- FLAKY (passed on retry) · `mobile-360` · source `changed` · post-wizard-place.spec.ts › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored — Error: PW-12: saving the step did not claim the name
 
 ## Flaky bodies (DEC-078)
 
-### post-wizard-place.spec.ts › POSTING WIZARD › PW-39 an approximate pin is stored as approx and drawn as an area, never a point
+### post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-178 a late read of the place text never replaces a newer save
 
 - Source: `shard 3`
 - Project: `mobile-360`
 
 ```text
-Error: expect(locator).toBeVisible() failed
+Error: PW-178: the held answer was not the older text
 
-Locator: getByTestId('post-step-5')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
+expect(received).toBeNull()
 
-Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-step-5')
-
+Received: "Behind the blue gate, 2nd floor"
 --- further error 1 ---
-Error: expect(locator).toBeVisible() failed
+Error: PW-178: the held answer was not the older text
 
-Locator: getByTestId('post-step-5')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
+expect(received).toBeNull()
 
-Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-step-5')
+Received: "Behind the blue gate, 2nd floor"
 
-
-  1256 |     await page.getByTestId("post-price-mode-free").click();
-  1257 |     await page.getByTestId("post-next").click();
-> 1258 |     await expect(page.getByTestId("post-step-5")).toBeVisible();
-       |                                                   ^
-  1259 |     await page.getByTestId("post-title").fill("e2e listing title");
-  1260 |     await page.getByTestId("post-description").fill("e2e listing description");
-  1261 |     await page.getByTestId("post-next").click();
-    at openPinAt6 (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-place.spec.ts:1258:51)
+  292 |     release();
+  293 |     await answered;
+> 294 |     expect(staleDirections, "PW-178: the held answer was not the older text").toBeNull();
+      |                                                                               ^
+  295 |     expect(deliveredAfterSave, "PW-178: the held answer arrived before the save").toBe(true);
+  296 |
+  297 |     await savePinOnMap(page, 120, 90);
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-bundle2.spec.ts:294:79
 ```
 
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-39-an-approximate-pin-is-stored-as-approx-and-drawn-as-an-area-never-a-point-mobile-360`
+Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-178-a-late-read-of-the-place-text-never-replaces-a-newer-save-mobile-360`
 
-### admin-attributes-safety.spec.ts › Bundle 7 attribute safety › AT-73 Remove from a category names the listings that hold an answer, and removes
+### post-wizard-place.spec.ts › POSTING WIZARD › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored
 
-- Source: `shard 5`
-- Project: `desktop-1280`
+- Source: `changed`
+- Project: `mobile-360`
 
 ```text
-Error: expect(locator).toHaveText(expected) failed
+Error: PW-12: saving the step did not claim the name
 
-Locator: getByTestId('attribute-remove-holders')
-Expected: "1 listings there hold an answer to it. They will stop showing it; no seller is blocked."
-Timeout: 20000ms
-Error: element(s) not found
+expect(received).toBe(expected) // Object.is equality
 
-Call log:
-  - Expect "toHaveText" with timeout 20000ms
-  - waiting for getByTestId('attribute-remove-holders')
-
+Expected: "e2e_98jjfp"
+Received: null
 --- further error 1 ---
-Error: expect(locator).toHaveText(expected) failed
+Error: PW-12: saving the step did not claim the name
 
-Locator: getByTestId('attribute-remove-holders')
-Expected: "1 listings there hold an answer to it. They will stop showing it; no seller is blocked."
-Timeout: 20000ms
-Error: element(s) not found
+expect(received).toBe(expected) // Object.is equality
 
-Call log:
-  - Expect "toHaveText" with timeout 20000ms
-  - waiting for getByTestId('attribute-remove-holders')
+Expected: "e2e_98jjfp"
+Received: null
 
-
-  170 |         .getByTestId(`attribute-actions-${held}-more-remove`)
-  171 |         .click();
-> 172 |       await expect(page.getByTestId("attribute-remove-holders")).toHaveText(
-      |                                                                  ^
-  173 |         fill(en["admin.attributes.remove.holders"], { count: 1 }),
-  174 |         { timeout: 20000 },
-  175 |       );
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-attributes-safety.spec.ts:172:66
+  531 |       "PW-12: messages was not stored true",
+  532 |     ).toBe(true);
+> 533 |     expect((await identityOf(user.id)).alias, "PW-12: saving the step did not claim the name").toBe(
+      |                                                                                                ^
+  534 |       wanted,
+  535 |     );
+  536 |   });
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-place.spec.ts:533:96
 ```
 
-Context:
-
-```text
-                - generic: Privacy
-        - generic:
-          - paragraph: © 2026 ethio.com — All rights reserved.
-  - dialog "Remove from a category — e2e_held_5mdil5" [ref=e2]:
-    - heading "Remove from a category — e2e_held_5mdil5" [level=2] [ref=e3]
-    - generic [ref=e4]:
-      - paragraph [ref=e5]: Remove from a category — e2e_held_5mdil5
-      - paragraph [ref=e6]: The attribute stays in the library; only this category stops asking for it.
-      - generic [ref=e7]:
-        - generic [ref=e8]: Category
-        - combobox "Category" [ref=e9]:
-          - option "Choose a category" [selected]
-          - option "e2e-cat-5-1-l4frtx (e2e-cat-5-1-l4frtx)"
-      - generic [ref=e10]:
-        - button "Cancel" [ref=e11] [cursor=pointer]
-        - button "Remove from category" [ref=e12] [cursor=pointer]
-    - button "Close" [active] [ref=e13] [cursor=pointer]:
-      - img [ref=e14]
-      - generic [ref=e17]: Close
-```
-```
-
-### post-wizard-pricing.spec.ts › POSTING WIZARD › PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081)
-
-- Source: `shard 7`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-4')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-step-4')
-
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-4')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-step-4')
-
-
-  326 |     await specControl(page, basis.identityKey).selectOption(basis.identityValue);
-  327 |     await nextThroughPhotos(page);
-> 328 |     await expect(page.getByTestId("post-step-4")).toBeVisible();
-      |                                                   ^
-  329 |     await expect(page.getByTestId("post-price-basis")).toHaveAttribute("data-options", "1", {
-  330 |       timeout: 20_000,
-  331 |     });
-    at reachPricingWithBasis (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-pricing.spec.ts:328:51)
-```
-
-Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-64-the-negotiable-toggle-stores-the-flag-shows-a-badge-on-review-and-a-contact-price-clears-it-DEC-081-desktop-1280`
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-12-who-the-alias-is-checked-against-the-door-messages-cannot-be-switched-off-and-a-shown-channel-is-stored-mobile-360`
 
 ## Server errors — census (DEC-083, non-gating)
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, changed · unavailable: none
 
-109 line(s), 37 message(s): 2 off the allowlist, 35 allowlisted.
+115 line(s), 36 message(s): 1 off the allowlist, 35 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
+| `listing not found` | 15 | shard 4, shard 7, shard 8, changed |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 3, shard 5, shard 7 |
 | `too many previews` (quiet) | 10 | shard 3, shard 7 |
-| `listing not found` | 8 | shard 3, shard 4, shard 8 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 3, shard 5, shard 7 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 3, shard 5, shard 7 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 5, shard 6 |
@@ -211,28 +123,19 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, s
 | `strings tooManyRows` (quiet) | 2 | shard 3, shard 7 |
 | `strings unknownColumn` (quiet) | 2 | shard 3, shard 7 |
 | `strings wrongFile` (quiet) | 2 | shard 3, shard 7 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>r<n>kq<n>: e<n>e_par_<n>n<n>dh<n> → e<n>e_chi_dvnzfj` (quiet) | 1 | shard 5 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-nh<n>f<n>q: e<n>e_par_klc<n>cc → e<n>e_chi_<n>ssryz` (quiet) | 1 | shard 1 |
-| `name_folds_rebuild: canceling statement due to statement timeout` | 1 | shard 4 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-suhj<n>: e<n>e_par_so<n>suj → e<n>e_chi_qzyfa<n>` (quiet) | 1 | shard 1 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-ywu<n>oh: e<n>e_par_qgm<n>x<n> → e<n>e_chi_gtpgf<n>` (quiet) | 1 | shard 5 |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>r<n>kq<n>: e<n>e_par_<n>n<n>dh<n> → e<n>e_chi_dvnzfj ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-nh<n>f<n>q: e<n>e_par_klc<n>cc → e<n>e_chi_<n>ssryz ×1
+Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-suhj<n>: e<n>e_par_so<n>suj → e<n>e_chi_qzyfa<n> ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-ywu<n>oh: e<n>e_par_qgm<n>x<n> → e<n>e_chi_gtpgf<n> ×1
 
 Off the allowlist:
 
 ### listing not found
 
-- Count: 8 · Sources: shard 3, shard 4, shard 8
+- Count: 15 · Sources: shard 4, shard 7, shard 8, changed
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
-```
-
-### name_folds_rebuild: canceling statement due to statement timeout
-
-- Count: 1 · Sources: shard 4
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import name_folds_rebuild: canceling statement due to statement timeout
 ```
 
 ## Accessibility (DEC-084, gating)
@@ -247,83 +150,83 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-12T05:47:45.118Z | 18.6 min |
-| email | 2026-10-12T05:47:46.729Z | 0.2 min |
-| shard 1 | 2026-10-12T05:47:48.587Z | 25.7 min |
-| shard 2 | 2026-10-12T05:47:44.470Z | 27.7 min |
-| shard 3 | 2026-10-12T05:47:44.770Z | 29.1 min |
-| shard 4 | 2026-10-12T05:47:40.253Z | 29.2 min |
-| shard 5 | 2026-10-12T05:47:50.045Z | 29.5 min |
-| shard 6 | 2026-10-12T05:47:52.242Z | 22.1 min |
-| shard 7 | 2026-10-12T05:47:49.706Z | 30.4 min |
-| shard 8 | 2026-10-12T05:47:47.107Z | 30.2 min |
-| changed | 2026-10-12T05:47:51.651Z | 17.1 min |
+| smoke | 2026-10-12T07:04:19.449Z | 20.4 min |
+| email | 2026-10-12T07:04:18.660Z | 0.3 min |
+| shard 1 | 2026-10-12T07:04:11.706Z | 24.0 min |
+| shard 2 | 2026-10-12T07:04:12.954Z | 27.3 min |
+| shard 3 | 2026-10-12T07:04:14.083Z | 28.6 min |
+| shard 4 | 2026-10-12T07:04:16.878Z | 31.3 min |
+| shard 5 | 2026-10-12T07:04:28.399Z | 26.4 min |
+| shard 6 | 2026-10-12T07:04:08.022Z | 21.8 min |
+| shard 7 | 2026-10-12T07:04:17.685Z | 29.6 min |
+| shard 8 | 2026-10-12T07:04:15.370Z | 29.8 min |
+| changed | 2026-10-12T07:04:11.034Z | 19.5 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `admin-listings.spec.ts` | 108 | 59.7 min | shard 2, shard 5, changed |
-| `post-wizard-specs.spec.ts` | 78 | 31.7 min | shard 4, shard 8 |
-| `post-wizard-bundle2.spec.ts` | 66 | 26.7 min | shard 3, shard 7 |
+| `post-wizard-specs.spec.ts` | 78 | 35.2 min | shard 4, shard 8 |
+| `post-wizard-pricing.spec.ts` | 100 | 30.9 min | shard 3, shard 7, changed |
+| `post-wizard-place.spec.ts` | 76 | 30.0 min | shard 3, shard 7, changed |
+| `post-wizard-bundle2.spec.ts` | 66 | 28.1 min | shard 3, shard 7 |
+| `admin-listings.spec.ts` | 54 | 24.9 min | shard 2, shard 5 |
 | `shell.spec.ts` | 336 | 21.4 min | smoke, shard 4, shard 8 |
-| `post-wizard-category.spec.ts` | 46 | 17.1 min | shard 3, shard 7 |
-| `admin-screening.spec.ts` | 30 | 16.9 min | shard 2, shard 6 |
-| `post-wizard-resets.spec.ts` | 34 | 16.6 min | shard 4, shard 8 |
-| `admin-categories-lifecycle.spec.ts` | 50 | 15.9 min | shard 1, shard 5 |
-| `feed-screens.spec.ts` | 28 | 15.0 min | shard 3, shard 7 |
-| `post-wizard-where.spec.ts` | 32 | 14.8 min | shard 4, shard 8 |
-| `post-wizard-pricing.spec.ts` | 50 | 14.3 min | shard 3, shard 7 |
-| `post-wizard-place.spec.ts` | 38 | 14.0 min | shard 3, shard 7 |
-| `admin-attributes-library.spec.ts` | 42 | 13.4 min | shard 1, shard 5 |
-| `admin-categories-console.spec.ts` | 34 | 11.4 min | shard 1, shard 5 |
-| `auth-signout.spec.ts` | 44 | 10.9 min | smoke, shard 2, shard 6 |
-| `posting-routes.spec.ts` | 50 | 10.9 min | shard 4, shard 8 |
-| `admin-attributes-links.spec.ts` | 32 | 10.7 min | shard 1, shard 5 |
-| `admin-attributes-import.spec.ts` | 40 | 10.1 min | shard 1, shard 5 |
-| `admin-locations.spec.ts` | 38 | 10.0 min | shard 2, shard 6 |
-| `admin-users.spec.ts` | 26 | 8.9 min | shard 2, shard 6 |
-| `posting-routes-catalog.spec.ts` | 18 | 8.7 min | shard 4, shard 8 |
-| `photo-pipeline.spec.ts` | 20 | 8.7 min | shard 3, shard 7 |
-| `admin-attributes-editor.spec.ts` | 34 | 8.4 min | shard 1, shard 4 |
-| `admin-translations-console.spec.ts` | 42 | 8.1 min | shard 2, shard 6 |
-| `import-security.spec.ts` | 34 | 7.8 min | shard 3, shard 7 |
-| `admin-attributes-safety.spec.ts` | 14 | 7.3 min | shard 1, shard 5 |
-| `feed-index.spec.ts` | 28 | 7.2 min | shard 2, shard 6 |
-| `admin-roles.spec.ts` | 26 | 6.9 min | shard 2, shard 6 |
-| `viewing-place.spec.ts` | 22 | 6.2 min | shard 4, shard 8 |
-| `admin-audit.spec.ts` | 12 | 5.3 min | shard 1, shard 5 |
+| `post-wizard-resets.spec.ts` | 34 | 18.7 min | shard 4, shard 8 |
+| `post-wizard-category.spec.ts` | 46 | 18.6 min | shard 3, shard 7 |
+| `post-wizard-where.spec.ts` | 32 | 16.9 min | shard 4, shard 8 |
+| `admin-screening.spec.ts` | 30 | 16.6 min | shard 2, shard 6 |
+| `admin-categories-lifecycle.spec.ts` | 50 | 15.7 min | shard 1, shard 5 |
+| `feed-screens.spec.ts` | 28 | 15.2 min | shard 3, shard 7 |
+| `admin-attributes-library.spec.ts` | 42 | 12.9 min | shard 1, shard 5 |
+| `admin-categories-console.spec.ts` | 34 | 10.8 min | shard 1, shard 5 |
+| `auth-signout.spec.ts` | 44 | 10.8 min | smoke, shard 2, shard 6 |
+| `admin-attributes-links.spec.ts` | 32 | 10.1 min | shard 1, shard 5 |
+| `admin-locations.spec.ts` | 38 | 9.8 min | shard 2, shard 6 |
+| `photo-pipeline.spec.ts` | 20 | 9.4 min | shard 3, shard 7 |
+| `admin-attributes-import.spec.ts` | 40 | 9.0 min | shard 1, shard 5 |
+| `posting-routes.spec.ts` | 50 | 8.7 min | shard 4, shard 8 |
+| `admin-translations-console.spec.ts` | 42 | 8.7 min | shard 2, shard 6 |
+| `posting-routes-catalog.spec.ts` | 18 | 8.3 min | shard 4, shard 8 |
+| `import-security.spec.ts` | 34 | 8.1 min | shard 3, shard 7 |
+| `admin-users.spec.ts` | 26 | 8.1 min | shard 2, shard 6 |
+| `admin-attributes-editor.spec.ts` | 34 | 7.3 min | shard 1, shard 4 |
+| `feed-index.spec.ts` | 28 | 7.1 min | shard 2, shard 6 |
+| `admin-roles.spec.ts` | 26 | 7.0 min | shard 2, shard 6 |
+| `admin-attributes-safety.spec.ts` | 14 | 6.2 min | shard 1, shard 5 |
+| `viewing-place.spec.ts` | 22 | 5.8 min | shard 4, shard 8 |
 | `feed-route.spec.ts` | 16 | 4.9 min | shard 2, shard 6 |
-| `admin-countries.spec.ts` | 18 | 4.2 min | shard 1, shard 5 |
-| `posting-routes-dials.spec.ts` | 14 | 4.1 min | shard 4, shard 8 |
-| `admin-categories-home.spec.ts` | 8 | 3.6 min | shard 1, shard 5 |
-| `post-wizard-details.spec.ts` | 8 | 3.4 min | shard 3, shard 7 |
-| `admin-shell.spec.ts` | 10 | 3.1 min | shard 2, shard 6 |
-| `admin-translations-data.spec.ts` | 8 | 3.0 min | shard 2, shard 6 |
+| `admin-audit.spec.ts` | 12 | 4.6 min | shard 1, shard 5 |
+| `posting-routes-dials.spec.ts` | 14 | 4.5 min | shard 4, shard 8 |
+| `admin-countries.spec.ts` | 18 | 3.9 min | shard 1, shard 5 |
+| `admin-categories-home.spec.ts` | 8 | 3.5 min | shard 1, shard 5 |
+| `admin-shell.spec.ts` | 10 | 3.5 min | shard 2, shard 6 |
+| `admin-translations-data.spec.ts` | 8 | 3.2 min | shard 2, shard 6 |
+| `post-wizard-removed.spec.ts` | 4 | 3.1 min | shard 4, shard 8 |
 | `admin-translations-governance.spec.ts` | 8 | 3.0 min | shard 2, shard 6 |
-| `mfa-stepup.spec.ts` | 18 | 2.7 min | shard 3, shard 7 |
-| `post-wizard-finder.spec.ts` | 8 | 2.6 min | shard 3, shard 7 |
-| `post-wizard-removed.spec.ts` | 4 | 2.6 min | shard 4, shard 8 |
-| `admin-coverage.spec.ts` | 14 | 1.9 min | shard 1, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 1.8 min | shard 2, shard 6 |
-| `post-wizard-units.spec.ts` | 4 | 1.5 min | shard 4, shard 8 |
-| `posting-routes-identity.spec.ts` | 4 | 1.4 min | shard 4, shard 8 |
-| `locations-tree.spec.ts` | 8 | 1.1 min | shard 3, shard 7 |
-| `i18n-coverage.spec.ts` | 8 | 1.0 min | shard 3, shard 7 |
-| `post-wizard-recent.spec.ts` | 2 | 1.0 min | shard 4, shard 8 |
+| `mfa-stepup.spec.ts` | 18 | 2.8 min | shard 3, shard 7 |
+| `post-wizard-details.spec.ts` | 8 | 2.6 min | shard 3, shard 7 |
+| `post-wizard-finder.spec.ts` | 8 | 2.1 min | shard 3, shard 7 |
+| `admin-coverage.spec.ts` | 14 | 2.0 min | shard 1, shard 5 |
+| `post-wizard-units.spec.ts` | 4 | 1.7 min | shard 4, shard 8 |
+| `post-wizard-recent.spec.ts` | 2 | 1.4 min | shard 4, shard 8 |
+| `category-image-routes.spec.ts` | 10 | 1.2 min | shard 2, shard 6 |
+| `posting-routes-identity.spec.ts` | 4 | 1.2 min | shard 4, shard 8 |
+| `i18n-coverage.spec.ts` | 8 | 1.1 min | shard 3, shard 7 |
+| `phone-frame.spec.ts` | 18 | 1.0 min | shard 3, shard 7 |
+| `locations-tree.spec.ts` | 8 | 1.0 min | shard 3, shard 7 |
+| `a11y.spec.ts` | 4 | 1.0 min | smoke |
 | `admin-categories-images.spec.ts` | 2 | 0.9 min | shard 1, shard 5 |
-| `smoke-auth-i18n.spec.ts` | 4 | 0.9 min | smoke, shard 4, shard 8 |
-| `phone-frame.spec.ts` | 18 | 0.8 min | shard 3, shard 7 |
-| `i18n-bundle.spec.ts` | 6 | 0.7 min | shard 3, shard 7 |
-| `a11y.spec.ts` | 4 | 0.7 min | smoke |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.8 min | smoke, shard 4, shard 8 |
+| `i18n-bundle.spec.ts` | 6 | 0.8 min | shard 3, shard 7 |
 | `rbac.spec.ts` | 6 | 0.6 min | shard 4, shard 8 |
-| `settings.spec.ts` | 4 | 0.6 min | shard 4 |
-| `category-nav.spec.ts` | 10 | 0.5 min | shard 2, shard 6 |
-| `primitives-law.spec.ts` | 24 | 0.4 min | shard 4, shard 8 |
-| `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
-| `house-style.spec.ts` | 12 | 0.3 min | shard 3, shard 7 |
+| `category-nav.spec.ts` | 10 | 0.6 min | shard 2, shard 6 |
+| `settings.spec.ts` | 4 | 0.5 min | shard 4 |
+| `house-style.spec.ts` | 12 | 0.4 min | shard 3, shard 7 |
+| `primitives-law.spec.ts` | 24 | 0.3 min | shard 4, shard 8 |
 | `layout.spec.ts` | 10 | 0.3 min | shard 3, shard 7 |
+| `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
-| `shell-table-law.spec.ts` | 2 | 0.2 min | shard 4, shard 8 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 4, shard 8 |
 | `auth-signup.spec.ts` | 1 | 0.1 min | email |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 3, shard 7 |
@@ -332,18 +235,18 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-attributes-safety.spec.ts` › AT-73 Remove from a category names the listings that hold an answer, and removes | desktop-1280 | 79.2 s |
-| `admin-screening.spec.ts` › SC-12 two ticked ads are approved together, after one confirmation that counts them | mobile-360 | 67.7 s |
-| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 61.3 s |
-| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | desktop-1280 | 59.3 s |
-| `admin-screening.spec.ts` › SC-12 two ticked ads are approved together, after one confirmation that counts them | desktop-1280 | 58.7 s |
-| `admin-audit.spec.ts` › IMP-3 server refusals: self, super-admin target, and a non-super caller | mobile-360 | 57.2 s |
-| `admin-screening.spec.ts` › SC-4 only a reviewer with a fresh second factor decides | desktop-1280 | 57.0 s |
-| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 56.8 s |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 56.2 s |
-| `admin-screening.spec.ts` › SC-4 only a reviewer with a fresh second factor decides | mobile-360 | 56.1 s |
-| `admin-listings.spec.ts` › AL-25 Edit refuses an enforcer without a second factor, and writes nothing | mobile-360 | 55.4 s |
-| `admin-listings.spec.ts` › AL-25 Edit refuses an enforcer without a second factor, and writes nothing | desktop-1280 | 54.7 s |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | desktop-1280 | 54.6 s |
-| `admin-listings.spec.ts` › AL-25 Edit refuses an enforcer without a second factor, and writes nothing | mobile-360 | 54.1 s |
-| `admin-screening.spec.ts` › SC-8 a person who is not a reviewer reads nothing; a reviewer without a second factor reads the facts and reveals a shown number, logged once (D129) | mobile-360 | 52.9 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 73.6 s |
+| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 70.0 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 67.4 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | desktop-1280 | 65.5 s |
+| `admin-screening.spec.ts` › SC-12 two ticked ads are approved together, after one confirmation that counts them | mobile-360 | 58.5 s |
+| `admin-screening.spec.ts` › SC-4 only a reviewer with a fresh second factor decides | mobile-360 | 56.7 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 56.6 s |
+| `admin-screening.spec.ts` › SC-12 two ticked ads are approved together, after one confirmation that counts them | desktop-1280 | 56.5 s |
+| `post-wizard-where.spec.ts` › PW-173 a draft placed in another market opens there, on resume and after Back | mobile-360 | 56.3 s |
+| `admin-screening.spec.ts` › SC-8 a person who is not a reviewer reads nothing; a reviewer without a second factor reads the facts and reveals a shown number, logged once (D129) | mobile-360 | 55.4 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 53.4 s |
+| `post-wizard-where.spec.ts` › PW-173 a draft placed in another market opens there, on resume and after Back | desktop-1280 | 53.4 s |
+| `admin-screening.spec.ts` › SC-4 only a reviewer with a fresh second factor decides | desktop-1280 | 53.3 s |
+| `admin-screening.spec.ts` › SC-8 a person who is not a reviewer reads nothing; a reviewer without a second factor reads the facts and reveals a shown number, logged once (D129) | desktop-1280 | 53.3 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 52.7 s |
