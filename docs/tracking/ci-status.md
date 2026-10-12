@@ -1,39 +1,39 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `33bba75870349b7c247f944fd810645e118f07be` (short `33bba75`)
-- Conclusion: **FAILURE**
-- Completed (UTC): 2026-10-11T23:49:06Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38183335583
+- Commit: `3c94ec650fd4d858a0e9af297b571c36c9d95b4a` (short `3c94ec6`)
+- Conclusion: **SUCCESS**
+- Completed (UTC): 2026-10-12T00:52:34Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38187451874
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Hardcoded string scan (enforcing) | success |
-| E2E preflight (migration parity, staging) | success |
-| Import gate guard (with self-test) | success |
-| Build, typecheck, lint | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
 | Component tests | success |
-| Listing-write seam guard (with self-test) | success |
-| Migration linter (with self-test) | success |
-| Gitleaks secrets scan | success |
-| Semgrep (enforcing on ERROR) | success |
 | i18n used-on map is fresh (U4i ②) | success |
+| Gitleaks secrets scan | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Migration linter (with self-test) | success |
+| Semgrep (enforcing on ERROR) | success |
+| Listing-write seam guard (with self-test) | success |
+| E2E preflight (migration parity, staging) | success |
+| Build, typecheck, lint | success |
+| Hardcoded string scan (enforcing) | success |
+| First-paint bundle budget (gzipped ceiling) | success |
 | Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Import gate guard (with self-test) | success |
 | E2E build (shared dist) | success |
-| E2E changed specs (fast lane) | failure |
-| E2E email (serial, quota-bound) | success |
-| E2E shard 6/8 | failure |
-| E2E shard 8/8 | success |
-| E2E shard 5/8 | success |
-| E2E shard 4/8 | success |
-| E2E shard 2/8 | failure |
-| E2E shard 7/8 | success |
 | E2E smoke tier | success |
-| E2E shard 1/8 | failure |
-| E2E shard 3/8 | failure |
-| E2E (Playwright, ethio-staging) | failure |
-| Promote to main (fast-forward on green) | skipped |
+| E2E shard 6/8 | success |
+| E2E shard 8/8 | success |
+| E2E shard 1/8 | success |
+| E2E email (serial, quota-bound) | success |
+| E2E shard 3/8 | success |
+| E2E shard 7/8 | success |
+| E2E changed specs (fast lane) | success |
+| E2E shard 4/8 | success |
+| E2E shard 2/8 | success |
+| E2E shard 5/8 | success |
+| E2E (Playwright, ethio-staging) | success |
+| Promote to main (fast-forward on green) | success |
