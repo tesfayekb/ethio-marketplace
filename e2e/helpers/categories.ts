@@ -88,19 +88,65 @@ export function categoryRow(page: Page, slug: string): Locator {
  * Every site that expects such a row narrows the roster with the roster
  * search first (the proven anchor, CT-2) and then asserts the twin row.
  */
-export async function findRow(page: Page, slug: string): Promise<Locator> {
+export async function findRow(page: Page, slug: string, createdAt?: number): Promise<Locator> {
   await page.getByTestId("category-search").fill(slug);
   const row = categoryRow(page, slug);
   try {
     await expect(row).toBeVisible({ timeout: 20000 });
   } catch (error) {
     throw new Error(
-      `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `findRow(${slug})`)}`,
+      `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `findRow(${slug})`)}\n${await rosterDump(page, slug, createdAt)}`,
     );
   }
   // DEC-045b PART D — the roster is on screen; it may not carry a leak.
   await assertNoStringifiedLeak(page, `findRow(${slug})`);
   return row;
+}
+
+/**
+ * INC-579 — WHY A ROW IS MISSING. Six times in two runs (2026-10-12) a category
+ * the console had just created was not found by its search for 20 s, with no
+ * error on the page. The roster is one whole read, re-read after every write,
+ * and the search narrows what it holds. The dump names the database's truth
+ * (the row, active or not, and its tree pointer), what the page holds (a
+ * re-read in flight, the rows the read holds, the rows the search shows) and
+ * the seconds since the create returned. It never throws.
+ */
+async function rosterDump(page: Page, slug: string, createdAt?: number): Promise<string> {
+  const parts: string[] = [];
+  try {
+    const search = page.getByTestId("category-search");
+    const [reading, held, shown] = await Promise.all([
+      search.getAttribute("data-reading"),
+      search.getAttribute("data-roster"),
+      search.getAttribute("data-results"),
+    ]);
+    parts.push(`page: reading=${reading ?? "?"} roster=${held ?? "?"} shown=${shown ?? "?"}`);
+  } catch {
+    parts.push("page: unreadable");
+  }
+  try {
+    const { data: row } = await adminClient()
+      .from("categories")
+      .select("id, is_active")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (row === null) {
+      parts.push("db: no row");
+    } else {
+      const { count } = await adminClient()
+        .from("category_tree_pointers")
+        .select("id", { count: "exact", head: true })
+        .eq("child_id", row.id);
+      parts.push(`db: row active=${String(row.is_active)} pointers=${count ?? "?"}`);
+    }
+  } catch {
+    parts.push("db: unreadable");
+  }
+  if (createdAt !== undefined) {
+    parts.push(`since create: ${((Date.now() - createdAt) / 1000).toFixed(1)} s`);
+  }
+  return `[roster-dump ${slug}] ${parts.join(" · ")}`;
 }
 
 /**
@@ -343,13 +389,14 @@ export async function createViaUi(page: Page, secret: string) {
   // C5m — ONE dialog: the SAME testid persists and now shows the Image
   // surface; Escape leaves it, and the roster is asserted after it is gone.
   await expect(page.getByTestId("category-editor-image")).toBeVisible({ timeout: 20000 });
+  const createdAt = Date.now();
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("category-edit-dialog")).toHaveCount(0, { timeout: 20000 });
   // C2-GHOST PART B — the state right after the create dialog closes is the
   // ghost's birthplace; the dump names any dialog still open.
   const afterCreate = await dialogDump(page, `createViaUi(${slug}) after create`);
   try {
-    await findRow(page, slug);
+    await findRow(page, slug, createdAt);
   } catch (error) {
     throw new Error(`${error instanceof Error ? error.message : String(error)}\n${afterCreate}`);
   }

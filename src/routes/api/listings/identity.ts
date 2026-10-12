@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { doorRefusal } from "@/features/posting/door-error";
 
 import type { Database } from "@/integrations/supabase/types";
 import {
@@ -170,7 +171,9 @@ async function handlePost(request: Request): Promise<Response> {
     }
     if (error) {
       logRouteError(PATH, error.message);
-      return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
+      // INC-578 — a door's own sentence never travels raw (INC-447): its machine
+      // code is kept, anything else is `doorError`.
+      return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
     }
     return routeJson(doorAnswer(data), 200);
   }
@@ -213,10 +216,8 @@ async function handlePost(request: Request): Promise<Response> {
     }
     if (checkError) {
       logRouteError(PATH, checkError.message);
-      return routeJson(
-        { ok: false, refusals: [{ field: "door", reason: checkError.message }] },
-        200,
-      );
+      // INC-578 — never the raw sentence (INC-447).
+      return routeJson({ ok: false, refusals: [doorRefusal(checkError.message)] }, 200);
     }
     const refusals = Array.isArray(found) ? found : [];
     if (refusals.length > 0) return routeJson({ ok: false, refusals }, 200);
@@ -241,7 +242,8 @@ async function handlePost(request: Request): Promise<Response> {
   }
   if (error) {
     logRouteError(PATH, error.message);
-    return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
+    // INC-578 — never the raw sentence (INC-447).
+    return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
   }
   const answer = doorAnswer(data);
   if (
