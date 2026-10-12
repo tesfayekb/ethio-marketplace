@@ -3227,3 +3227,212 @@ NAMED AND NOT BUILT, EACH WITH ITS PLACE.
 - INC-529 (block S60; code-scanning alert #418) — the fix landed with bundle 10's records turn; the alert's close is read with the operator's open code-scanning count at the weekly review of 2026-10-12.
 
 NUMBERING: next free INC-537; next free DEC-170; D-rulings next free D128; slips next S153 (highest used: INC-536, DEC-169, D127, S152). Highest test ids at `5b963ca7`: PW-182, FE-14, FR-8, FS-13, FP-10, FB-6, SC-6, SG-4, TR-35, PR-43, VP-11, PC-6, PF-3, AT-77 (with AT-73b and AT-76b), CT-42, IB-3, LT-15, IG-5, CO-8, LS-13, AU-12, HS-6. Migrations: two in this period (above). The newest mark by value is `20261010190000`.
+
+S62 · 2026-10-10 → 2026-10-12 · BUNDLE 11 (EVERY ADMIN TABLE IN THE AGREED HOUSE STYLE; ADMIN › SCREENING'S PREVIEW; THE LISTINGS CONSOLE; PART C — THE TABLES' RULES AND THEIR CHECKS) · THIRTY-FIVE EXECUTOR TURNS, SEVEN MIGRATIONS · DEC-170–DEC-174 · D128–D143 · INC-537–INC-570 · SLIPS S153–S178
+
+TIME AND NAMES. This block covers 2026-10-10 08:13Z (where block S61 ends) to 10:30Z on 2026-10-12 — Saturday morning to Monday morning in the operator's time (America/New_York, UTC−4). Times are UTC unless marked local. Its running record is imported word for word as `docs/governance/handoffs/2026-10-12-bundle11-running-record.md` (from the entry "2026-10-10 08:13 UTC — AFTER THE BUNDLE-10-FOLLOW-UPS IMPORT POINT"; the operator's account-security question of 2026-10-12 and its first-pass findings are replaced there by one line — G51). The thirty-five briefs, each saved by the executor in docs/governance/briefs/ and checked by sha256 (the base is the commit each brief names; turn C6's brief names "the commit that landed turn C5" and proves its files by content):
+- turn 1 — bundle-11-turn-1.md (INC-536: a test id is assigned once; base `9c40c53f`; 9,406 bytes; `2fc221ec36495ea59b698f21b56dcccd2f20cd555d6c4d16c716f2fad80271d9`);
+- turn A1 — bundle-11-turn-2.md (Screening's preview doors (one migration); base `78c7f665`; 20,747 bytes; `878ea57cb28d1333523a4062201dc710ccd50a2b4430147eb9b7026d21f90f30`);
+- turn A2 — bundle-11-turn-3.md (the shared toolbar; Screening on the agreed blocks; base `f194d5cd`; 10,262 bytes; `30455b9d951684792f74d106cbe4a185558fe48f0b7b21d6ae39966ad61529b3`);
+- turn A3 — bundle-11-turn-4.md (Screening's walk fixes; D129 (one migration); base `6f3d3bfe`; 25,308 bytes; `5ed933ecda8db82b420666594bf99f853637f868bb1157511b0c2f8b6792ab7d`);
+- turn B1 — bundle-11-turn-5.md (Countries, Coverage and Places on the blocks; base `0160270f`; 13,796 bytes; `cb02f1efc70fe0990d92ea4c6f7670658ed53b26d15d7ffd25cf7ce374c42625`);
+- turn B1 fix — bundle-11-turn-6.md (the row menu not modal (INC-539); base `5958c368`; 6,716 bytes; `b5df97d55adb15ddfd1ef0cbc9fa678b7efd582bddf9e1afe18b54f4571ac924`);
+- turn B2 — bundle-11-turn-7.md (INC-541; Categories on the blocks; DEC-170; base `7c3953ae`; 13,194 bytes; `1c33477046a971923149f1272733a799f5ef65300bae5bd4a3ce1ad32354d331`);
+- turn V2 — bundle-11-turn-8.md (the agreed look (D132); INC-542, INC-543; base `e6ef28be`; 24,476 bytes; `b9ac40c94f1d49cbdcc25147a69daf1779ee9c70ebc40dc9fe8fb5ba74769a6e`);
+- turn B3 — bundle-11-turn-9.md (Attributes on the blocks and the look; base `ebaccefd`; 12,819 bytes; `bdfafa563ab2db8b601d7a80015471e3742ecaa22bba149cab9ff8bcac7ac4b8`);
+- turn V2b — bundle-11-turn-10.md (the phone walk's fixes; one card size; base `dfbb8ec0`; 15,796 bytes; `66f95f84fa4a8e885f2737dba88855f27028eb89de6e98dc9ec2cd22ad5cb382`);
+- turn V2c — bundle-11-turn-11.md (the Attributes walk's fixes; D133; base `5f688c28`; 14,122 bytes; `063046527ba985418bfee6441f99a20ff3d6957c0c2226695f129afa47bf35cc`);
+- turn G2a — bundle-11-turn-12.md (Users and Roles on the blocks; base `46f5549c`; 12,558 bytes; `6538923545a6e4934456368aae1ebd31119c7311f225b4bc0f44f73f6a7605ce`);
+- turn G2b — bundle-11-turn-13.md (G2a's red; INC-449's queued Next; Audit and the impersonation view; base `6694c76b`; 15,446 bytes; `b8eaafafe50b29935ab2bc8490077bc54b1fd906c24520614100dde7e624b3f8`);
+- turn G3a — bundle-11-turn-14.md (every table's footer (INC-546); Languages' header; base `6e055589`; 12,377 bytes; `6df58de5465cd95b0f9ec431d20c39c65cbe690131b425e7f69803689354e925`);
+- turn G3b — bundle-11-turn-15.md (G3a's red; INC-547, INC-548; base `7f2db333`; 13,374 bytes; `d6728258a78ed9563cd4ad460e9ffcfe60d563ec6efa0eb9d5e32ef5c74854af`);
+- turn L1 — bundle-11-turn-16.md (the Listings console's doors and the seller's notices (one migration); base `232bfc02`; 53,830 bytes; `009a71f2128a54cc91f54be2e5d3e2c81e468c389e841a5a86f3217487418e71`);
+- turn L1b — bundle-11-turn-17.md (L1's red; the house date field (INC-549); DEC-171; base `63f6b687`; 17,654 bytes; `0ccce789abaa1b5abdefe12da2653c55dc8153738b8c8dfe2df0239046a3cef3`);
+- turn L2 — bundle-11-turn-18.md (All listings and the Listings group; base `cf7187ab`; 20,529 bytes; `eeba195668258d1c8576b3ff89046b3e5871e105ebfca09f2c4fbd5317a2bf94`);
+- turn L2b — bundle-11-turn-19.md (the row's moves, View as seller, tick-boxes; base `fe7ebe2b`; 22,399 bytes; `b26c44433cb7de145754f05286988bf63ca41bc4714b24f19142923b65acd27b`);
+- turn L3 — bundle-11-turn-20.md (one listing's page with its history (D139; one migration); base `f7638ec8`; 36,431 bytes; `efd9af34b264faae3c3fd56a552f6dc81f8992f9de964adc27a403fee2f15281`);
+- turn L4a — bundle-11-turn-21.md (Edit: title, description, price (D140, DEC-173; one migration); base `88c6ed8c`; 46,599 bytes; `db41b4938b708ea249007334390d8e59118f3429f31e5e66aedc5eddc509f0f8`);
+- turn L4b — bundle-11-turn-22.md (Edit: category and specifications; INC-554; AL-3 split; base `dfd6555a`; 16,869 bytes; `36da0176a5ace27a9c7a72447314d71d9a50aa5d10c70105285438c86e10a6d4`);
+- turn L4c — bundle-11-turn-23.md (L4b's red (INC-558); the breadcrumb's group (INC-557); base `98b0841b`; 9,020 bytes; `94ff30a02b839196b2c677f144472ea589c3edd9e7aad757d387bd09b417f197`);
+- turn G3c — bundle-11-turn-24.md (INC-558's class census; base `ea8c54d9`; 17,584 bytes; `d874944d4b95cf324822fb757c4028a3d183f24340e59aa98b49cdf1d504ca7d`);
+- turn G3c2 — bundle-11-turn-25.md (G3c's red (INC-560); base `33bba758`; 7,038 bytes; `a0920e06b7441dd8fc6912e886b571ccffa75d87530e9c6848bdfce700814b19`);
+- turn G3d — bundle-11-turn-26.md (the Languages roster on the blocks; base `3c94ec65`; 10,746 bytes; `c0b76c4df8c44f61d95c48dc05a9c240bb4126a378751a09b8693abfe4f71529`);
+- turn G3d2 — bundle-11-turn-27.md (G3d's red (INC-561); base `6148f2ef`; 7,213 bytes; `6aedbe2e613522d920a40a322afeecaed2fd16e4c9a67075b802eadabf10f914`);
+- turn G3e — bundle-11-turn-28.md (Strings and its Data scope on the blocks; base `4913e366`; 11,689 bytes; `13b862754b470da991284594393c15bc1ed19e57446d0c34a64160ff1181d54d`);
+- turn L4d — bundle-11-turn-29.md (Undo this edit (D141; one migration); base `b6aa7bc5`; 42,030 bytes; `7022f7260e78db6970061c3f7ec823bfb8d8259f5bb7f5d582bfe23a5e7e3dc6`);
+- turn C1 — bundle-11-turn-30.md (the agreed tables' rules and their check; base `e1c251c1`; 13,845 bytes; `7a0b5b7b9009a6f571878d1f979f74a896034b077ede7832236f9b3d2b94fd82`);
+- turn C2 — bundle-11-turn-31.md (a destructive act is red; PW-11 evidence; base `0386cd69`; 13,718 bytes; `a95a7de22cfbdf0310870e83cc33f052f95a554c10ea0db769a9f7f406bfba6e`);
+- turn C3 — bundle-11-turn-32.md (the public menu's one reader (INC-561's class); base `4e111104`; 9,804 bytes; `9ec7a2d5b8a1c9ebb9798f9e317d8e0e499637e337e928721bf6f9f2ef6c4379`);
+- turn C4 — bundle-11-turn-33.md (the roles menu's Open (D142); passwords confirmed and typed twice (D143); base `07c1e2b6`; 14,330 bytes; `763020745b81ed75df1167952bdc5ad98a8f1537354bcf31a4f4176228435bd4`);
+- turn C5 — bundle-11-turn-34.md (two pooled accounts a test at most (DEC-174); guards that ran nowhere (INC-563); base `2fb73b85`; 12,796 bytes; `960d54c4946574edb2dce7c2b8836f6ea4bf3c41195e0a2d2158b162da5db7b0`);
+- turn C6 — bundle-11-turn-35.md (the translations export by key (INC-568; one migration); headers on the own page (INC-569); base `c9e70fa9`; 22,601 bytes; `665f30c9ac43790298f3b2621a7afce06c078e6aa088dd379a008a23c2b3d468`).
+Delivery: every turn's code went as a carrier written by the executor's own script (modes REPLACE, NEW, APPEND, INSERT-AFTER, REPLACE-LINES), each resulting file checked against a sha256 table; the supervisor proved every carrier by an independent split on a clean worktree before sending it, and from turn C1 built each turn on a local stand-in of the landing before it (the operator's standing directive of 2026-10-12, below), then verified the real landing equal to the stand-in byte for byte. The executor's sandbox still cannot start a browser (INC-506): CI on each final commit was the browser proof.
+
+THE TURNS, LANDINGS AND CI.
+- Before bundle 11: the records turn of bundle 10's follow-ups (`2c986991`; its run 38037552627 cancelled by D127's push) and D127 (docs/governance/briefs/bundle-10-d127.md → `9c40c53f`; run 38038561003 GREEN, promoted) — D127 CLEAN, the records turn CLEAN with it, bundle 10's follow-ups CLOSED.
+- Turn 1 → `78c7f665`: run 38042467630 GREEN, promoted. INC-536 FIXED (19 colliding ids renamed; scripts/test-ids.ts, TI-1..TI-4).
+- Turn A1 → `f194d5cd`: migration `20261010103356_7ed3323f-15d8-463c-bd24-47e39986647a.sql`, mark `20261010230000` (ethio-prod by the executor's tool; ethio-staging by the operator); run 38045483368 attempt 2 GREEN after the staging apply, promoted.
+- Turn A2 → `6f3d3bfe`: run 38048479148 GREEN, promoted. The operator's walk of Screening gave INC-537, INC-538, D129 and D130.
+- Turn A3 → `0160270f`: migration `20261010145454_392f2c82-27b1-44ca-bb28-321a16652847.sql`, mark `20261011030000` (D129); run 38061577911 attempt 2 GREEN after the staging apply, promoted. INC-537 and INC-538 FIXED.
+- Turn B1 → `5958c368`: run 38089961758 RED — CO-9 (INC-539: a dialog opened from the row's menu left the page unclickable) and staging Auth's 429 answers in shards 2 and 3 (INC-540).
+- Turn B1 fix → `7c3953ae`: run 38093041404 RED, CO-9 only (INC-541: the menu's fade-out took the next press).
+- Turn B2 → `e6ef28be`: run 38097283598 GREEN, promoted. INC-539 and INC-541 FIXED; B1 and B2 CLEAN.
+- Turn V2 → `ebaccefd`: run 38106720513 GREEN, promoted. D132's look on every table; INC-542 and INC-543 FIXED.
+- Turn B3 → `dfbb8ec0`: run 38109538933 GREEN, promoted.
+- Turn V2b → `5f688c28`: run 38111819958 GREEN, promoted. The operator's walk 8 of 8.
+- Turn V2c → `46f5549c`: run 38113854515 RED, PW-144 only (INC-449's class; fixed in G2b).
+- Turn G2a → `6694c76b`: run 38115748403 RED — shell-table-law's 768 px table assertion (S163) and FE-13 beside the weekly feed bench (INC-545).
+- Turn G2b → `6e055589`: run 38118045016 GREEN, promoted. INC-449's queued Next (`useQueuedNext`).
+- Turn G3a → `7f2db333`: run 38120714250 RED — the Roles tests on a paged roster crowded by other tests' roles (S164) and IMP-1's empty footer.
+- Turn G3b → `232bfc02`: run 38123872191 GREEN, promoted. INC-547 and INC-548 FIXED (closed on the operator's walk).
+- Turn L1 → `63f6b687`: migration `20261011085637_3c0e90be-87cd-4103-9264-d4fcdc2beb99.sql`, mark `20261011210000`; run 38126648954 attempt 2 RED after the staging apply — the pool-reset map test (`seller_notices`, S165) and the fast lane's AL-3 (S166).
+- Turn L1b → `cf7187ab`: run 38131355354 GREEN, promoted. INC-549's house date field; DEC-171's eight shards.
+- Turn L2 → `fe7ebe2b`: run 38134773102 RED — AL-11 (INC-550) and PW-173 (INC-551).
+- Turn L2b → `f7638ec8`: run 38137596774 GREEN, promoted. INC-550 and INC-551 CLOSED.
+- Turn L3 → `88c6ed8c`: migration `20261011124548_db211b18-cd71-4144-9838-0bf3af0fdfe1.sql`, mark `20261012010000` (D139); run 38140549121 attempt 2 GREEN after the staging apply, promoted.
+- Turn L4a → `dfd6555a`: migration `20261011143218_5f10ade9-fd56-4f2a-8a31-5c8885ed48c1.sql`, mark `20261012030000` (DEC-173; INC-552); run 38147645440 RED, AL-3 past its 60 s budget (INC-555).
+- Turn L4b → `98b0841b`: run 38177021983 RED, AL-23 (INC-558).
+- Turn L4c → `ea8c54d9`: run 38180273767 GREEN, promoted. INC-557 and INC-558 CLOSED.
+- Turn G3c → `33bba758`: run 38183335583 RED — TR-16 (INC-560) and staging's auth gateway answering 504 (transport, classified (b)).
+- Turn G3c2 → `3c94ec65`: run 38187451874 GREEN, promoted. INC-560 CLOSED.
+- Turn G3d → `6148f2ef`: run 38195005620 RED — the Amharic coverage check read another test's scratch category (INC-561).
+- Turn G3d2 → `4913e366`: run 38198364284 GREEN, promoted.
+- Turn G3e → `b6aa7bc5`: run 38200921488 GREEN, promoted.
+- Turn L4d → `e1c251c1`: migration `20261012042142_e741c21a-d2aa-438e-8cc5-1e4d19b43d19.sql`, mark `20261012170000` (D141); run 38203524897 attempt 2 RED after the staging apply, PW-11 only (INC-562 — not L4d's code).
+- Turn C1 → `0386cd69`: run 38209410930 GREEN, promoted (it judged L4d's code too).
+- Turn C2 → `4e111104`: run 38215613134 GREEN, promoted.
+- Turn C3 → `07c1e2b6`: run 38218977877 GREEN, promoted.
+- Turn C4 → `2fb73b85`: run 38223982726 RED — TR-29 (INC-568) and VP-11 (INC-569); every C4 test passed.
+- Turn C5 → `c9e70fa9`: run 38227878716 GREEN, promoted. INC-563 FIXED; DEC-174 landed (its judge counts from this run); C4's code on a green main with it.
+- Turn C6 → `6a9b0dda`: migration `20261012101642_241cc49a-39e5-4fa0-843d-db74955dcbcb.sql`, mark `20261012180000` (INC-568: `admin_export_translations`); landed byte for byte as sent. Its CI run was in flight when this record was built; the run on this records turn's commit judges its code with the records (pipelined), read by the supervisor in the next period's record.
+- The operator Published after green runs and walked the published site; his walks and answers gave INC-537, INC-543, INC-547–INC-549, INC-554, INC-557, D128–D143 and the fixes of turns V2b, V2c, G3b and C4.
+
+DECISIONS (his words are in the imported record).
+- DEC-170 (supervisor under D118, listed to the operator as overridable; 2026-10-10) — on every table built on the agreed blocks the row carries Edit, Delete (red; off while the door would refuse it) and the three-dots menu with the editor's other verbs; the editor keeps its verb bar. It replaces C2e / UI-FIX-4's "one row verb, one editor" for Admin › Categories and confirms turn B1's rows (Countries, Coverage, Places). A dialog opened from the row closes back to the table; one opened from the editor closes back to the editor (INC-150 kept).
+- DEC-171 (supervisor under the operator's request "anyway to reduce this?", 2026-10-11 05:26 local; the rule frozen before the numbers) — eight E2E shards; the preflight waits up to 25 minutes for a staging apply; the nightly 06:00 → 18:00 UTC; the feed bench Sunday 05:10 → 16:10 UTC. Measured: 40 green runs, median ~26 min on 10-08 → 31–33 min on 10-11. REVERT RULE: over the next five green runs on dev, median > 29 min or two staging-load reds → six shards; median ≤ 26 min keeps eight. Its count was overridden by DEC-172 (below) after one run of 34.3 min — the supervisor's expectation of about 26–28 min was wrong (G5, recorded).
+- DEC-172 (supervisor under G17 and the operator's request; the count restart overrides DEC-171's frozen count and was listed for his paste as approval; 2026-10-11) — `PWTEST_SHARD_WEIGHTS` on the shard step (read by Playwright 1.58.1; undocumented — a version that drops it falls back to equal slices), first `160:202:145:236:160:185:145:232`, re-tuned under its own rule to `148:174:195:235:148:157:195:231`. RULE frozen: five green runs after landing — median wall ≤ 30 min keeps eight weighted shards; > 30 min or two staging-load reds → weights off, six shards. Re-tune when a green run's slowest shard is ≥ 4 min longer than its quickest (docs/features/ci-guards.md).
+- DEC-173 (supervisor, G17; listed for the operator's paste as approval; amends the approved Listings console spec's content-rules line; 2026-10-11) — an admin's edit is judged through step 5 of the seller's judge, with `NULL, NULL` for the end date and the places: the category postable, the specifications, the price, the title and the description; the contact step (7) and step 8 are not reached; the video link stays as sent (the table's own check matches the judge's shape). INC-552. Proof: AL-19 (red against the old door) and proofs C2.
+- DEC-174 (supervisor, G17; approved by the operator's paste of bundle-11-turn-34.md; 2026-10-12) — an e2e test, or a `beforeAll`, leases at most two pooled accounts; scripts/e2e-leases.ts (EL-1..EL-4) counts each test's leases through every helper and file-local function and the `beforeEach` hooks around it, and refuses a lease in a loop. JUDGE frozen: over the ten CI runs after the landing, the matrix-lane timeouts of tests that lease two pooled accounts — 0–1 keep the limit; 2 or more make the parallel reset the next harness item under its own DEC (G22), the limit unchanged until it lands. INC-555.
+- D128 (operator, 2026-10-10, question cards; all three as recommended) — (a) tick-boxes for acting on several rows only where a bulk action exists: Admin › Screening and Translations › Strings; (b) the Columns button on every table — the standard toolbar is Search · Filters (with its count) · Columns everywhere; (c) a reviewer's "Show number" reveal is logged and read in Admin › Audit by holders of audit access, an internal moderation record never shown to the seller.
+- D129 (operator, 2026-10-10, question card "No code; keep the log (Recommended)"; a security trade-off, his call) — "Show number" in Screening's preview asks for no second factor; listings:review, the review_reveal dial (60 an hour per reviewer), ads in screening only, the channel list and one audit row per reveal all stay; Approve and Reject keep their second factor. Built in A3.
+- D130 (operator, 2026-10-10) — the preview's seller box organised now (the name first, then "Contact the seller" with one method per row, its Show number or number on the right, an outcome under its own row); the listing detail and list pages' redesign, and with it the previews, is a future task.
+- D131 (operator, 2026-10-10; a future task) — admin side only: on each listing's admin view, the list of people who viewed its contact; on each user's admin profile, the contacts that user viewed and who viewed that user's contacts (stage 3, beside Show contact). D128 stands: the seller is not shown reviewers' reveals.
+- D132 (operator, 2026-10-11; the v2 boards approved "as drawn, for all") — every admin table: one card per table from its breakpoint up, one card per row below it (the name and the three-dots on top, a line under it, labelled facts, pills at the end, a footer with a note and Edit / Delete); the page's heading beside icon tiles; Filters and Columns as tiles whose panels are bottom sheets on a phone; filters as one-tap pills; depth Soft; the cool-grey page (#F3F5F8); pills for badges.
+- D133 (operator, 2026-10-11, in his walk) — a panel's primary button is enabled only after a change (`ToolbarPanel` `state`); Columns' Done and Filters' "Show N results" / "Done"; ×, Escape and a tap outside always close. Decided under G17, overridable: the Assign-to-category dialog's "Done" stays enabled.
+- D134 (operator, 2026-10-11, four answers as recommended) — the Listings console: a Listings group in the side menu with All listings and the Screening queue; an admin's Edit changes status and content (a new admin door; every edit logged in Audit, re-screened, the seller told); sellers' drafts stay private; built after group 2. One table with views (Live, Waiting, Ended, Removed, All), filters, row actions Open, Edit, the status verbs, View as seller.
+- D135 (operator request, 2026-10-11; queued) — a more modern, elegant, simple look with fewer lines across the layout and every page (lines softened or replaced by soft shadows and surfaces; a 3-D feel weighed): researched, drawn as options for his choice, then built with the shell brief. Nothing changes before his choice.
+- D136 (operator, 2026-10-11, four answers as recommended) — the console's admin edit passes the same screening door as a seller's edit and the listing stays live; before and after logged in Audit; the seller told by a notice recorded now (shown when My ads and notifications exist); an admin may change the title and description, the category and specifications, the price, and remove a photo (never upload one); All listings has tick-boxes with Remove and Restore, each logged one by one.
+- D137 (operator, 2026-10-11, two answers as recommended) — the Listings console spec APPROVED: REQ-022 amended — a removed listing is restored only to Waiting (screening), never straight to live; an enforcer with step-up restores it; one removed for a severe screening reason is restored by a super admin only; the console's edit and remove belong to `listings:enforce` holders with step-up; reviewers keep Approve and Reject in the Screening queue.
+- D138 (operator, 2026-10-11; logged for stage 4) — My listings, one of the most-used pages: the agreed house style, security-tested (only the owner's ads), light, walked item by item; each ad's full detail (status and history, dates, the screening outcome, every admin change from the seller's notices); Edit opens the posting form on that ad as an edit; views and filters; later the viewers, reviews and comments. A spec first, peers researched and his questions asked (G49).
+- D139 (operator, 2026-10-11) — turn L3: a page per listing with the full history (the seller's and admins' changes, with reasons); Edit in L4.
+- D140 (operator, 2026-10-11) — L4 in two turns: L4a the title, description and price, each with a reason and a note; L4b the category and specifications. Removing a photo waits until the console shows photos.
+- D141 (operator, 2026-10-12 02:3xZ, "Add it") — "Undo this edit" on the newest edit in a listing's History, offered only while nothing has changed the listing since; it puts the entry's before-values back as a new logged edit with reason "Undo"; the seller is told. Built in L4d (Amharic «ቀልበስ», his own word).
+- D142 (operator, 2026-10-12, his walk of C2) — the roles table's three-dots opens the role's page as well as the row does: Open first, then View members; the agreed tables' check gains T9 (a row that opens its own page offers Open in its menu). Built in C4.
+- D143 (operator, 2026-10-12, his walk of C2) — Remove password asks for the current password; a new password is typed twice and must match on Change password, on the reset page after "Forgot password" and on sign-up. Built in C4 (decided under G17, overridable: Remove password's check runs on a throwaway client as Change password's does). His wider question about account security (2026-10-12) became a review in its own thread (below).
+- STANDING DIRECTIVE (operator, 2026-10-12 03:05Z, 23:05 local; saved to project memory the same turn; carried into the instructions' next version) — "we should not just send fix alone … when ci finishes at every turn we should have the next turn ready (before even seeing the ci can give next turn, and we can review and comeup the fix for the turn after that". From then: each brief is built at once on a stand-in of the landing before it; a red is read from the evidence files and fixed in the turn after (S173, S175).
+
+INCIDENTS (entries in docs/tracking/incidental-findings.md).
+- INC-537 — Admin › Screening's market filter read a column the signed-in role may not read — FIXED (A3).
+- INC-538 — SC-11 passed while every filtered read failed — FIXED (A3).
+- INC-539 — a dialog opened from a row's three-dots menu could leave the page unclickable — FIXED (B1 fix; B2).
+- INC-540 — staging Auth refused the E2E password grants with 429 in two shards — WATCH (one occurrence).
+- INC-541 — a dialog closed within the menu's fade-out left the next press on the three-dots opening no menu — FIXED (B2).
+- INC-542 — the table's actions column held one icon, so two or three spilled over the column before them — FIXED (V2).
+- INC-543 — on a phone, a drop-down inside the Filters panel did not open — FIXED (V2: no drop-down inside a panel; a sheet on a phone).
+- INC-544 — StatCard breaks a long label or value mid-word at 360 — OPEN (with D135's look).
+- INC-545 — the weekly feed bench and the nightly ran on ethio-staging during CI runs — MITIGATED (DEC-171's schedule); the overlap rule waits for its own DEC.
+- INC-546 — the impersonation view drew a server-paged list with no pager — FIXED (G3a).
+- INC-547 — Admin › Audit's events-per-day chart was blank — FIXED (G3b).
+- INC-548 — Admin › Audit's dates accepted a future day and a To before From — FIXED (G3b).
+- INC-549 — a date field's calendar offered days its bounds refuse — FIXED (L1b: the house date field).
+- INC-550 — AL-11's scratch role lacked the admin panel's permission — FIXED (L2b).
+- INC-551 — PW-173 took another test's scratch market as the second open market — FIXED (L2b).
+- INC-552 — `admin_edit_listing` judged the seller's own choices, so an admin could not correct some listings — FIXED (L4a, DEC-173).
+- INC-553 — a price printed without its unit on the console — FIXED (L4a).
+- INC-554 — detail pages' breadcrumbs did not lead back to their section — FIXED (L4b).
+- INC-555 — tests that leased three pooled accounts ran past their 60 s budget — FIXED (L4b's split) and GUARDED (C5, DEC-174).
+- INC-556 — the first-paint budget guard counts chunks by name, not the entry's import closure — OPEN (needs the operator's budget decision, G52).
+- INC-557 — the breadcrumb drew a group without a page as the current page — FIXED (L4c).
+- INC-558 — an admin edit form opened before the page's re-read sent the previous values back — FIXED (L4c); its class census done (G3c).
+- INC-559 — AL-16's absence probe was a short number that a timestamp can contain — FIXED (G3c).
+- INC-560 — TR-16 read the table through a role locator while a modal drawer hid it — FIXED (G3c2).
+- INC-561 — the Amharic coverage check read another test's scratch category — FIXED (G3d2) and GUARDED (C3: the public menu's one reader).
+- INC-562 — PW-11: a posting step's Next did not advance, a place save did not reach the draft — OPEN (evidence capture in C2; the posting-area turn).
+- INC-563 — two enforcing guards ran nowhere — FIXED (C5: run by the unit tests).
+- INC-564–INC-567 — account-security findings (2026-10-12) — entries written when their fixes are live (G51); the review runs in its own thread.
+- INC-568 — the translations export paged by position, so a write between two pages repeated or dropped a row — FIXED (C6; one migration).
+- INC-569 — VP-11 timed out with no page snapshot; eight tests opened a second context only to set a header — FIXED (C6: evidence restored; what timed out stays a hypothesis).
+- INC-570 — Settings showed every action's outcome under the page header, screens above the control on a phone (the operator's walk of C4) — OPEN (fixed in turn C8; the admin Listings list and Screening carry the same class).
+
+CLASS RULES AND STANDING PRACTICE FROM THIS PERIOD.
+- A client filter's column is checked against the role's column grant before a brief names it, and a filter test asserts a result the unfiltered list cannot give (INC-537, INC-538, S155).
+- A row's three-dots menu is not modal and leaves at once when it closes; a dialog opened from the row closes back to the table (INC-539, INC-541, DEC-170).
+- A table's actions column is sized for the icons its rows carry (`actionsWidth`), read box by box against its cell at 768/1024/1280 (INC-542, S158).
+- No drop-down inside a toolbar panel; on a phone a panel is a modal sheet (INC-543).
+- A server-paged read is drawn with its pager (INC-546); every admin table's page size is kept (`useKeptPage`; C1's T6).
+- A scratch role signed into /admin holds `admin_panel:access` besides the section's permission (INC-550); a test that takes "another market" takes a real one (`openMarketCodes({ realOnly: true })`, INC-551).
+- A door acting for an admin on a seller's listing judges only what the admin can change (INC-552, DEC-173).
+- A detail route teaches the breadcrumb its section and its last crumb; a group without a page is plain text (INC-554, INC-557).
+- An admin control that sends values computed from a read, or a form seeded from one, waits while that read re-reads or a write keyed to it is in flight (INC-558; `useSettling`, `useFollowingDraft`).
+- An absence check on serialized text uses a probe that cannot occur by chance, or checks the structure (INC-559); no role-based locator while a modal is open (INC-560).
+- The public category menu's rows are read through e2e/helpers/category-menu.ts only; scripts/e2e-menu-readers.ts refuses a reader built by hand (INC-561's class at its third occurrence, C3).
+- An e2e test leases at most two pooled accounts (DEC-174; INC-555's class at its third occurrence).
+- A test sets request headers on its own page's context; a second context only for a second person or an isolated browser state (INC-569).
+- A read-everything loop pages by key, never by position (INC-568, INC-452's class); `readAllPages` is the one helper.
+- A guard runs in CI or in the unit tests, proven on its planted file first; a guard no job runs is a finding (INC-563).
+- A test id is assigned once; a title wrapped onto the line after `test(` is read too (INC-536; TI-5).
+- The agreed tables' rules T1–T9 are written in display-primitives.md and checked by scripts/admin-tables.ts with no baseline (C1, C4); a destructive act is red on every control that performs or confirms it, checked by scripts/destructive-red.ts (C2).
+- Each turn is built on a stand-in of the landing before it, and the real landing is verified equal to the stand-in byte for byte (the standing directive of 2026-10-12).
+- No brief stops on the CI read: step 1 pastes what it shows and goes on; the CI read is the supervisor's (S176, S177 — the raw address is served up to 300 s stale).
+- An action's outcome is drawn beside the control that produced it and comes into view when it appears (INC-570); a test of an outcome asserts it on screen, not only visible.
+
+SUPERVISOR SLIPS S153–S178 (each in the imported record with its cause and corrective).
+- S153 — INC-536's first census matched titles by one pattern and missed the same-file repeats (fourteen counted; nineteen).
+- S154 — a walk line put its precondition inside "wherever those have listings" instead of stating it (G31).
+- S155 — A2's market filter named a column outside the role's column grant, and SC-11 was accepted asserting a row present under a filter (INC-537, INC-538).
+- S156 — B1's brief claimed the row's menu opens the editor's dialogs without exercising a menu-opened dialog's close in a browser (INC-539).
+- S157 — S156's corrective was checked as "the click lands", not "the menu opens" (INC-541).
+- S158 — B2 moved Categories without the cut-names census's two lines, and local renders did not read each button's box against its cell (INC-542).
+- S159 — the phone presentation of A2, B1 and B2 did not follow the approved boards (D83–D85); corrected by V2 (D132).
+- S160 — the V2 builder emitted an insertion after a file's last line, past its line count; caught by the executor.
+- S161 — the first V2b build left a new test file out of the carrier; caught by counting the hash table before delivery.
+- S162 — a walk line named Cars as an inherited example without reading the catalogue.
+- S163 — G2a's census recorded shell-table-law.spec.ts "unchanged" without reading the test whole.
+- S164 — G3a's Roles lines and paging were written without reading the roster's order against concurrent scratch roles.
+- S165 — L1's brief created `seller_notices` without its line on the pool reset map; the local unit run used the old generated types.
+- S166 — L1's AL-3 signed four people into the browser and ran past its budget.
+- S167 — AL-11 was written from the section's permission without reading the admin route guard (INC-550).
+- S168 — DEC-172's re-tune rule fired on green run 1 and was not acted on until run 2.
+- S169 — L2's split left three leased accounts in AL-3 (INC-555).
+- S170 — the edit form was designed against the live prop without asking what the page does between a save and the next open (INC-558).
+- S171 — AL-16's "never shown" probe was a short number (INC-559).
+- S172 — a check was added through a role locator while the drawer was still open (INC-560).
+- S173 — three fixes went alone or with a filler study although project memory held the operator's rules against it.
+- S174 — the first draft of the edit door's reason check let 'undo' through when the setting was unset (a NULL comparison); caught by the local trial before sending.
+- S175 — the next turn was not ready when C3 landed (flagged by the operator); the corrective is the stand-in practice above.
+- S176 — C6's step 1 stopped on a CI status older than C5's landing, although a turn sent as soon as the previous lands always meets the older status; one executor turn spent on the stop. Corrective: a brief built ahead expects the previous landing or the commit before it, and goes on either way.
+- S177 — C6 was re-sent unchanged on the supervisor's own read of the evidence branch, although the executor reads the raw address, which is served up to 300 s stale; the stop fired a second time (the class's second occurrence — the rule above).
+- S178 — C4's walk asked for a production reset e-mail, which production cannot send to a test address (Resend's test domain; the launch gate, INC-010b): the walk line was written without reading the record (G40, G31).
+
+AMENDMENTS TO EARLIER LINES OF THIS LEDGER (the lines stay as written; this paragraph is the later word).
+- (1) Block S61's NUMBERING line (next free INC-537, DEC-170, D128, S153) is superseded by this block's.
+- (2) S61's INC-536 line ("fourteen test ids") — nineteen colliding ids (fifteen in two files, four on two tests of one file), counted by the check itself on `9c40c53f`.
+- (3) C2e / UI-FIX-4's "one row verb, one editor" (Admin › Categories) is superseded by DEC-170.
+- (4) REQ-022 is amended by D137 (a removed listing is restored to screening only; severe removals by a super admin).
+- (5) The approved Listings console spec's content-rules line is amended by DEC-173.
+- (6) DEC-171's frozen count was overridden by DEC-172, its count restarted (the override rule of §3); DEC-172's re-tune was done under its own rule.
+- (7) S61's "INC-533 … parked with INC-449's class" now carries INC-562 (PW-11) as the class's third occurrence.
+
+NAMED AND NOT BUILT, EACH WITH ITS PLACE.
+- The account-security review (operator, 2026-10-12: every way into and control over an account against current standards and peers) — in its own read-only thread (charter: Project doc `claude/account-security-review-charter-2026-10-12.md`); its findings become a phase of turns before launch; INC-564–INC-567 recorded privately until their fixes are live (G51).
+- Turn C8, built and ready at this record: the failure report names every refusal (the posting-area turn's evidence first), INC-556 (the first-paint guard measured by the entry's import closure; the ceiling then decided again with the operator, G52, under its own DEC) and INC-570.
+- The posting-area turn: INC-449's class (PW-57, PW-137, PW-144), INC-533 (PW-64), INC-430's PW-55, INC-526 and INC-562 (PW-11), written from the first failure the new evidence explains.
+- D135 (the look) — researched and drawn as options for his choice, then built with the shell brief; INC-544 with it.
+- The admin groups' summary pages — last in the admin work (operator, 2026-10-11).
+- The shell brief — D110–D117, D98's subcategory menus, D93/D114's scroll area, D107 (the amber notice) — then stage 1.
+- D131 (who viewed a contact, admin side) — stage 3, beside Show contact. D138 (My listings) — stage 4, spec first.
+- D121, D122's one-picture trial and D124's style research, D126 (the performance review) — as placed in block S61.
+- The parallel lease reset — when DEC-174's judge says so.
+- Walk lines owed: the photo's red Remove (C2, on a draft with a photo); Change password on a phone after turn C8 (INC-570). C4's walk (2026-10-12): the roles menu's Open, sign-up's two boxes and Remove password's ask passed; Change password failed (INC-570); the reset page cannot be walked until production sends mail (S178; the launch gate's custom sending domain).
+
+NUMBERING: next free INC-571; next free DEC-175; D-rulings next free D144; slips next S179 (highest used: INC-570, DEC-174, D143, S178). Highest test ids at the base of this records turn: A-8, A11Y-2, AL-27, AS-3, AT-80, AU-13, B-5, C-9, CFM-3, CI-5, CMR-3, CO-9, CT-44, CV-7, DF-5, DR-4, EL-4, FB-6, FD-3, FE-14, FP-10, FR-8, FS-14, G-2, GE-5, GW-2, HS-25, IB-3, IG-5, IMP-5, KP-3, LC-2, LE-6, LH-4, LR-4, LS-13, LT-16, LY-6, MD-4, MF-7, MR-4, OV-1, PC-6, PF-3, PL-2, PP-10, PPR-1, PR-44, PW-185, QN-4, R-9, RP-16, S-4, SC-17, SF-3, SG-4, SO-4, SP-7, SU-1, TBL-4, TR-39, UD-2, UE-3, US-2, VP-11. Migrations: seven in this period (A1, A3, L1, L3, L4a, L4d above, and C6's); the newest mark by value is `20261012180000`.

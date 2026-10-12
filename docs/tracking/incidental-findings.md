@@ -3689,6 +3689,132 @@ Defect: a supervisor census of every `it(`/`test(` title id in src/, e2e/ and sc
 
 The entries stay as written; these lines are the later word. INC-449's class (Next from step 7 does not reach step 8 — PW-57, PW-137, PW-144) and INC-533 (PW-64, the same symptom with 429s) go together to the next posting-area turn with INC-526 and INC-430's PW-55. INC-497 (CT-18), INC-345 (TR-29), INC-440 (PW-76) and INC-523 (TR-28) stand at three or more lines in seven days, each with its incident (watch list below). INC-506 (the executor's sandbox cannot start a browser) is OPEN: every test of turns 1–10 was dictated to the locator and proven in CI. INC-534's wording is revised by D127 (2026-10-10: "in" at every level, each wider place named — never "near"), built in the turn after this records turn. INC-398 ("listing not found", the one server-error message off the allowlist) stands on every run. INC-521 stays OPEN until a nightly's lints step reads 13 (the nightly of 2026-10-10, run 38031284786 on `270ee85f`, was running when this tail was written). INC-529's alert (#418) is read closed or open with the operator's code-scanning count at the weekly review of 2026-10-12.
 
-Numbering: next free INC-537.
+## INC-537 — Admin › Screening's market filter read a column the signed-in role may not read (2026-10-10; Tier A screen, Tier B read; found by the operator's walk)
 
-Watch list (DEC-030 rule, three flakes in seven days, counted by run — INC-495 — as of run 38035039212 on 2026-10-10; window 2026-10-04 → 2026-10-10, matrix lanes): PW-57 (seven), PW-144 (four) and PW-137 (three) — INC-449; PW-76 (six — INC-440); LS-6 (five — INC-285 reopened / INC-428, with INC-502); TR-29 (five, one of them on turn 10's run — INC-345); TR-28 (three, all before its fix at `be21faa4` — INC-523); CT-18 (three — INC-497); two each with an incident, both before their fixes: LT-13 (INC-334) and "the menu closes back to the icons" (INC-528); two each with no incident — a third is one: PW-130, PW-123, AT-56, AT-2, AT-48, LS-13, CO-2, PW-74. The fast-lane-only flakes are contention noise by DEC-023-B. The server-error census carries one standing message off the allowlist: "listing not found" (INC-398).
+Defect: use-screening.ts `listScreening` added `.eq("home_country_code", …)` when a market was chosen; `listings` is column-granted to anon and authenticated (`20261003215007` :187–193) and `home_country_code` is not in the grant, so PostgREST answered 42501 "permission denied for table listings" and the page showed "Something went wrong" (F4 held: an error, never an empty queue). Evidence: the operator's walk; reproduced on a local PostgREST 12.2.3 over Postgres 16 with the same column grant. Class: a client filter on a column outside the role's column grant (S155). Fix (turn A3, `0160270f`): filter on the ad's place's market (`locations.country_code`, granted — the market admin_screening_facts reports); SF-2. Status (2026-10-12): FIXED (run 38061577911 green).
+
+## INC-538 — SC-11 passed while every filtered read failed (2026-10-10; Tier B test; found with INC-537)
+
+Defect: SC-11 filtered to ET and asserted the seeded row visible; the query client keeps the previous rows on screen (`placeholderData: keepPreviousData`) while it retries a failed read three times, so the old unfiltered rows satisfied the assertion before the error state arrived. Class: a filter test that asserts a row present can pass on the placeholder; a filter is proven by a result the unfiltered list cannot give, with the read settled. Fix (turn A3): SC-11 searches the ad's unique title, filters to US (expects the empty message, no error state), then to ET (expects the row, no error state) — red on A2's code, green on the fix. Status (2026-10-12): FIXED.
+
+## INC-539 — a dialog opened from a row's three-dots menu could leave the page unclickable (2026-10-10; Tier B shared primitive; found by CI run 38089961758)
+
+Defect: RowActions' DropdownMenu was modal (Radix default), so the menu locked the page's pointer events; its entries open modal dialogs that lock them too; when the dialog mounted while the menu was still closing, the lock outlived both — after the dialog closed with Escape nothing took a click (CO-9, every run, both widths). Evidence: the four CO-9 bodies; a jsdom unit test shows the modal menu sets `document.body.style.pointerEvents = "none"` while open. The mechanism was recorded as a hypothesis (a local reproduction did not lock); INC-541 later showed the same overlap through another path. Fix (the B1 fix turn, `7c3953ae`, at the primitive — G29): `DropdownMenu modal={false}` in RowActions and in Admin › Attributes' own row menu. Status (2026-10-12): FIXED (run 38097283598 green, CO-9 passed).
+
+## INC-540 — staging Auth refused the E2E password grants with 429 in shards 2 and 3 (2026-10-10; Tier B test infrastructure; found by CI run 38089961758)
+
+Defect: `over_request_rate_limit` answers to the password grants in two shards (mobile-360); not caused by turn B1. Evidence: the flake ledger's first 429 lines, all from that run. Disposition: watch; at a second occurrence the limit (per IP or per project) and what consumed it are read, and the staging setting or the harness's sign-in rate is dispositioned by a DEC (G38: never by loosening a test). Status (2026-10-12): WATCH — no second occurrence in this period.
+
+## INC-541 — a dialog closed within the menu's fade-out left the next press on the three-dots opening no menu (2026-10-10; Tier B shared primitive; found by CI run 38093041404)
+
+Defect: the menu's content kept its place during its fade-out (about 0.2 s); a dialog opened from an entry mounted while the menu was fading, recorded it as the element to give focus back to, and — closed inside that time — handed focus back to it; the fading menu's dismiss layer then took the next press on the three-dots as an outside interaction and cancelled the open. Evidence: CO-9's bodies (the press landed; the menu never appeared); a local reproduction on the real Countries page failed to reopen in 3 of 10 runs, with an event timeline. Fix (turn B2, `e6ef28be`, at the primitive): the menu's fade-out removed — it leaves at once when it closes. Status (2026-10-12): FIXED (run 38097283598 green).
+
+## INC-542 — the table's actions column held one icon, so two or three spilled over the column before them (2026-10-11; Tier B shared primitive; found by the supervisor's renders)
+
+Defect: DataTable drew the actions header `w-24` in a fixed table layout while RowActions drew Edit + ⋯ or Edit + Delete + ⋯, so the icons overflowed leftwards from md up. Evidence: the B2 render at 1280 and the B3 render of Attributes at 1024. Class: a table's actions column is sized for the icons its rows carry, read box by box against its cell (S158). Fix (turn B3's fix, carried by turn V2, `ebaccefd`): `actionsWidth` on DataTable; `expectActionsInsideCell` in CO-9, LT-16, CT-43, AT-79. Status (2026-10-12): FIXED.
+
+## INC-543 — on a phone, a drop-down inside the Filters panel did not open (2026-10-11; Tier B shared primitive; found by the operator's walk)
+
+Defect: Countries' Status and Places' Level could not be opened on his phone; large screens worked. The mechanism was a hypothesis (a native picker inside the non-modal popover took the focus and the popover, which dismisses on focus outside, closed under it; not reproducible headless). Fix (turn V2, D132): no drop-down inside any Filters panel (one-tap pills, `FilterChoices`), and on a phone the panel is a modal sheet; touch-emulated taps at 360 open both sheets. Status (2026-10-12): FIXED (the operator's walk of V2b, 8 of 8).
+
+## INC-544 — StatCard breaks a long label or value mid-word at 360 (2026-10-11; cosmetic; found by the supervisor's render of G2b)
+
+Defect: the shared StatCard (src/components/shell/stat-card.tsx :71, :73) breaks a word wider than its column in a two-column phone grid (Audit's "Active impersonation / s"). Fix: with D135's look (tile type sizes at 360, hyphenation by the page's language). Status (2026-10-12): OPEN.
+
+## INC-545 — the weekly feed bench and the nightly ran on ethio-staging during CI runs (2026-10-11; Tier B CI; found by CI run 38115748403)
+
+Defect: the Sunday feed bench (05:10 UTC) and the nightly (06:00 UTC) shared ethio-staging with the morning's CI runs and pushed statements past their timeout (FE-13; the nightly of 2026-10-10 failed SC-4 on a statement timeout). Class: two writers of one staging database unscheduled against each other. Mitigation (DEC-171, landed in L1b): the nightly at 18:00 UTC and the bench on Sunday at 16:10 UTC, outside the operator's working hours. The overlap rule itself (a shared concurrency group or a quiet slot) is a harness change for its own DEC. Status (2026-10-12): MITIGATED; a red that falls in a bench or nightly window is read against it first.
+
+## INC-546 — the impersonation view drew a server-paged list with no pager (2026-10-11; Tier B; found while adding G3a's footer)
+
+Defect: the view read the seller's listings once with the door's defaults (25, offset 0) and drew them with no footer, so a seller with more than 25 listings showed only the first 25 and nothing said so (use-impersonation.ts :70–76). Class: a server-paged read drawn without its pager. Fix (turn G3a, `7f2db333`): the hook takes the limit and offset; the view's footer pages through the door; IMP-1 seeds a scratch listing for it (G3b). Status (2026-10-12): FIXED.
+
+## INC-547 — Admin › Audit's events-per-day chart was blank (2026-10-11; Tier B shared primitive; found by the operator's walk)
+
+Defect: chart-frame.tsx measured the plot once at mount through `useEffect(..., [])`; while loading the plot was not drawn, so the effect found no node and never ran again; the width stayed 0 and nothing was drawn. Census (G29): the only frame that mounts while loading. Fix (turn G3b, `232bfc02`): the frame measures through a callback ref held in state; CFM-1..CFM-3; AS-1 asserts the chart's svg. Status (2026-10-12): FIXED (closed on the operator's walk).
+
+## INC-548 — Admin › Audit's dates accepted a future day and a To before From (2026-10-11; Tier B; found by the operator's walk)
+
+Defect: the only date pair without bounds. Fix (turn G3b): From's max = To or today; To's min = From, max = today; a value outside them is refused and the field keeps its value; AS-3. Status (2026-10-12): FIXED (closed on its behaviour; INC-549 followed).
+
+## INC-549 — a date field's calendar offered days its bounds refuse (2026-10-11; Tier B shared primitive; found by the operator's walk)
+
+Defect: native date inputs with `min`/`max` set still let the phone's own picker show days after today as choosable; the refusal came only after the pick. Census (G29): Audit From/To, the seller's end date (step-review.tsx — the same failure on a phone), a date question in the posting form, the category window (datetime, unbounded). Fix (turn L1b, `cf7187ab`): the house date field `DateField` (the app's own calendar; local calendar days; impossible days refused), DF-1..DF-5, used by Audit, the seller's end date (its bounds now local days — they were UTC) and the posting form's date question; four strings approved by the operator (G43). Status (2026-10-12): FIXED (closed on the operator's walk).
+
+## INC-550 — AL-11's scratch role lacked the admin panel's permission (2026-10-11; Tier B test; found by CI run 38134773102)
+
+Defect: AL-11's scratch role held listings:view alone; src/routes/admin.tsx opens the shell only for `admin_panel:access`. Class: a scratch role signed into /admin needs `admin_panel:access` besides the section's permission (S167: a harness render proves layout, never access). Fix (turn L2b, `f7638ec8`): the holder gets admin_panel:access too. Status (2026-10-12): FIXED.
+
+## INC-551 — PW-173 took another test's scratch market as the second open market (2026-10-11; Tier B test; found by the flake ledger)
+
+Defect: `openMarketCodes()` returns every open market, including other tests' scratch markets; PW-173 took the first code that is not ET (three flaky lines in seven days). G28's class. Fix (turn L2b): `openMarketCodes({ realOnly: true })` (default unchanged), used by PW-173 and LT-11. Status (2026-10-12): FIXED.
+
+## INC-552 — `admin_edit_listing` judged the seller's own choices, so an admin could not correct some listings (2026-10-11; Tier A door; found by the supervisor's census for L4a)
+
+Defect: the door (`20261011085637`) called the seller's judge at step 7 with the listing's end date and places, so a listing whose end date was under a day away or past, whose place was switched off, or whose contact settings failed today's rules could not be corrected by an admin at all. Class: a door acting for an admin on a seller's listing judges only what the admin can change. Fix (turn L4a, `dfd6555a`; DEC-173): judged through step 5 with `NULL, NULL` for the end date and the places; AL-19 red against the old door; proofs C2. Status (2026-10-12): FIXED.
+
+## INC-553 — a price printed without its unit on the console (2026-10-11; Tier B; found by the supervisor's walk of L3)
+
+Defect: `priceLine` with `unit: null`, or PreviewSheet with no `basisLabel`. Fix (turn L4a): `admin_list_listings` returns the unit columns (dropped and created again with the same arguments, attributes, body and grants); Details, History's price values and Preview as buyer print the unit; All listings' price with its unit. Status (2026-10-12): FIXED.
+
+## INC-554 — detail pages' breadcrumbs did not lead back to their section (2026-10-11; Tier B shared primitive; found by the operator's walk of L3)
+
+Defect: breadcrumbs.tsx made the section crumb a link only for two hard-coded detail patterns (users, roles), so `/admin/listings/<id>` and `/admin/translations/<lang>` showed their section as the current page with no last crumb. Class: a detail route added without teaching the breadcrumb. Fix (turn L4b, `98b0841b`): the section crumb links whenever the path is deeper than the section's own page; last crumbs for the listing (its title) and the language (its native name), in a lazy module (admin-detail-crumbs.tsx); AL-21, TR-39. Status (2026-10-12): FIXED.
+
+## INC-555 — tests that leased three pooled accounts ran past their 60 s budget (2026-10-11; Tier B test; found by CI run 38147645440)
+
+Defect: AL-3 leased three accounts one after another plus the scratch seller; it took 63–66 s on a green run and then timed out. Class (third occurrence: L1b's AL-3, L2's AL-3/AL-12, L4a's AL-3): a pooled lease resets its account with about 21 calls one after another, so a test that leases three runs past its budget under the matrix's load (S166, S169). Fix: turn L4b split AL-3 (AL-3, AL-24, AL-25), every assertion kept; turn C5 made the class a guard under DEC-174 — scripts/e2e-leases.ts (EL-1..EL-4) refuses a test leasing more than two, and IMP-3, SC-4, SC-8 and PR-24 were split (IMP-5, SC-16, SC-17, PR-44). Status (2026-10-12): FIXED and GUARDED; the parallel reset waits for DEC-174's judge.
+
+## INC-556 — the first-paint budget guard counts chunks by name, not the entry's import closure (2026-10-11; Tier B CI guard; found while building L4b)
+
+Defect: scripts/check-bundle-size.mjs counts only chunks whose names start with client, entry, index, main or styles (the build emits no HTML), so it read 173 KiB where the entry's static import closure measures 307 KiB; when the bundler named the shared Supabase chunk "client-…", the guard's figure jumped to 231 KiB with no code change of that size. Fix direction: the guard measures the entry's closure; the budget (320) is decided again with the operator (G52) under its own DEC. Status (2026-10-12): OPEN.
+
+## INC-557 — the breadcrumb drew a group without a page as the current page (2026-10-11; Tier B; found by the operator's walk of L4b)
+
+Defect: "Listings" (the parent of All listings) was bold and underlined: ADMIN_GROUPS listings and categories have no page of their own, so breadcrumbs.tsx rendered them as BreadcrumbPage with the current class. Fix (turn L4c, `ea8c54d9`): a group without a page is plain text; AL-21 and A-5 assert it. Status (2026-10-12): FIXED.
+
+## INC-558 — an admin edit form opened before the page's re-read sent the previous values back (2026-10-11; Tier A data path; found by CI run 38177021983)
+
+Defect: the edit form seeded from the page's read and measured its values against the live `listing` prop; after a save the page re-reads, and an Edit opened before the new read arrived held the old title — measured against the new read, the untouched title counted as changed and was sent back, undoing the previous edit (AL-23's quick re-open; S170). Fix (turn L4c): the form keeps its opening values as its baseline; Edit is disabled while the page re-reads. Class census (turn G3c, `33bba758`; G29): every admin control that sends values computed from a read, or opens a form seeded from one, waits while that read re-reads or a write keyed to it is in flight — `useSettling` and `useFollowingDraft` across categories, attributes, countries, places, coverage, users, roles, languages and strings. Status (2026-10-12): FIXED.
+
+## INC-559 — AL-16's absence probe was a short number that a timestamp can contain (2026-10-11; Tier B test; found by the flake ledger)
+
+Defect: AL-16 searched the door's JSON for the seeded pin values "8.9" and "9.01"; a short number can occur by chance in the answer's timestamps. Class: an absence check on serialized text uses a probe that cannot occur by chance, or checks the structure (S171). Fix (turn G3c): pins with nine decimals and `not.toHaveProperty` on the history's before and after. Status (2026-10-12): FIXED.
+
+## INC-560 — TR-16 read the table through a role locator while a modal drawer hid it (2026-10-11; Tier B test; found by CI run 38183335583)
+
+Defect: the supervisor's new restore check read the strings table with `getByRole('table')` while the History drawer (a modal sheet) was open; the page is aria-hidden then and role locators skip it (S172). Census: no other spec checks between a dialog opening and its closing. Fix (turn G3c2, `3c94ec65`): Escape, the drawer hidden, then the check. Status (2026-10-12): FIXED.
+
+## INC-561 — the Amharic coverage check read another test's scratch category (2026-10-12; Tier B test; found by CI run 38195005620)
+
+Defect: i18n-coverage.spec.ts judged every row of the public menu, and PW-171 renames its scratch postable root to its slug's last three letters, so "ipg" was read as an English label. Class: INC-170's (a reader of the public menu judges only the catalogue's rows) — third occurrence. Fix: turn G3d2 (`4913e366`) left `e2e-` slugs out of that check; turn C3 (`07c1e2b6`) made the class a guard — e2e/helpers/category-menu.ts is the one reader and scripts/e2e-menu-readers.ts (CMR-1..CMR-3) refuses a reader built by hand. Status (2026-10-12): FIXED and GUARDED.
+
+## INC-562 — PW-11: a posting step's Next did not advance, a place save did not reach the draft (2026-10-12; Tier B; found by CI run 38203524897)
+
+Defect: on mobile the step did not advance; on desktop a place save did not reach the draft. Class: INC-533's (PW-64) and INC-430's (PW-55) — a posting test whose step save is refused or lost; the third occurrence. Evidence gap: the body cannot say why the step did not advance (no context file; the test reads only the next step's testid). Evidence capture (turn C2, `4e111104`): `nextToStep` (e2e/helpers/posting.ts) in PW-11 and `pricingToReview`. Status (2026-10-12): OPEN — the posting-area turn takes the class with INC-449's, INC-526 and INC-533.
+
+## INC-563 — two enforcing guards ran nowhere (2026-10-12; Tier B CI guards; found while building C5)
+
+Defect: no workflow and no unit test called scripts/check-identity-tags.sh (L4b part C, 2026-09-06) or scripts/check-datatable-minwidth.sh (C3-UX-1d). On the tree the identity-tag guard refused LT-6 (it enrols a factor on its own leased account, untagged), and it read a title only on the line that opens `test(`, so wrapped titles were unread — the same gap as the test-id check (seventeen wrapped titles, none colliding). Class: a guard no job runs. Fix (turn C5): GW-1 and GW-2 run both from the unit tests, each on its planted file first; the guard and the test-id check read wrapped titles (self-test X-3; TI-5); LT-6 carries `@private-identity`. Status (2026-10-12): FIXED.
+
+## INC-564 to INC-567 — account-security findings (2026-10-12; Tier A identity; found by the supervisor's first pass on the operator's question)
+
+Registered on 2026-10-12. Their defect, evidence and fix are written here when each fix is live: until then no detail of them enters this public file (G51). The full account-security review runs in its own read-only thread; its findings become a phase of turns before launch.
+
+## INC-568 — the translations export paged by position, so a write between two pages repeated or dropped a row (2026-10-12; Tier A translations dashboard; found by CI run 38223982726)
+
+Defect: `fetchAllTranslationRows` read `admin_list_translations` by offset, 200 rows at a time (ORDER BY key); a row added or removed in the language between two pages repeated or dropped a row of the file — TR-29: "2252 stable+own rows against a 2251-row expectation" on both attempts. INC-452's class ("a page is asked for by KEY, never by position"), missed by its census. TR-29's own count also read a shared fence after the download while other jobs' setup clears fence rows older than an hour (the 2026-10-04 "2030 against 30" line; INC-345, eleven ledger lines since 2026-09-17). Fix (turn C6; one migration): the read door `admin_export_translations(p_lang, p_after, p_limit)` (translations:view, read only, by key, at most 1,000 a page; proofs B1–B4, each shown failing on a broken copy); the export on `readAllPages`; export-all.test.ts covers a write between pages; TR-29 reads the file with the app's own CSV reader and judges it by key against the fence's stable keys before the click and after the download. A local trial with 2,500 rows and a writer between pages: 2,500 rows, none repeated, none dropped; the old offset walk under the same writes repeated one. Status (2026-10-12): FIXED when turn C6's CI is green; INC-345 closes with it after two green runs.
+
+## INC-569 — VP-11 timed out with no page snapshot; eight tests opened a second context only to set a header (2026-10-12; Tier B tests; found by CI run 38223982726)
+
+Defect: VP-11 timed out at 60 s on both attempts (shard 8, desktop-1280, 97.8 s) with "context file not found": it opened a second browser context only to set `cf-ipcountry`, so the run kept no page snapshot and none of the fixture's error capture. LS-3, LS-4 and LS-6..LS-10 did the same (LS-6's flakes, INC-285 / INC-428 / INC-502, were diagnosed without either). Census of the fifteen `browser.newContext(` calls: eight header-only; seven a second person or an isolated cache. Fix (turn C6): the eight set their headers on their own page's context; the rule written in e2e-harness.md. What timed out stays a hypothesis (the lease under load, INC-555's class) until a failure can be read. Status (2026-10-12): FIXED (evidence restored).
+
+## INC-570 — Settings showed every action's outcome under the page header, screens above the control on a phone (2026-10-12; Tier B UI; found by the operator's walk of turn C4)
+
+Defect: the operator's walk of Change password on a phone: "doesnt work at all, change password doenst do anything, doesnt give alert, i dont think it is chaking existing password as well". Settings drew every refusal and confirmation once, under the page header (src/routes/settings.tsx, `errorKey` / `successKey`): Change password (too short, the mismatch, a wrong current password, the change), Change email, Sign out other devices, Unlink, Link Google and Remove password (whose comment said "its message beside it"; it was not). At 360 the Security section starts several screens below, so a press looked like nothing happened. The checks themselves ran: S-3 proves the mismatch refusal, the wrong current password and the change on staging, but asserted `toBeVisible()`, which is true off-screen (G26: the test is fixed to see what the walk saw). Census of every action message in src/ (G29): the same class in the admin Listings list (`listings-notice` above the table) and Screening (`admin-screening-notice` above the queue); already beside their controls: the sign-in page, the listing page, the category and location verb bars, the countries export, every dialog, the translations bars and cards, the user and role cards. Class: an action's outcome drawn away from the control that produced it. Fix (turn C8): `ActionMessage` (src/components/ui/action-message.tsx), a live region beside its control that brings itself into view when its text appears or changes; Settings answers beside each control; Listings and Screening use it for a row's outcome; SETM-1..SETM-4 (SETM-1 and SETM-2 fail on the base), AMSG-1..AMSG-3; S-3 finds each outcome inside its form and on screen. Status (2026-10-12): OPEN (fixed in turn C8).
+
+The entries stay as written; these lines are the later word. INC-536's "fourteen" is nineteen (S153). INC-533 (PW-64) and INC-430's PW-55 go with INC-449's class, INC-526 and INC-562 (PW-11, the class's third occurrence) to the posting-area turn. INC-345 (TR-29) closes with INC-568 after two green runs. INC-285 / INC-428 / INC-502 (LS-6) are read again with the page snapshot INC-569 restored. INC-506 (the executor's sandbox cannot start a browser) is OPEN: every test of this period was proven in CI. INC-398 ("listing not found", the one server-error message off the allowlist) stands on every run.
+
+Numbering: next free INC-571.
+
+Watch list (DEC-030 rule, three flakes in seven days, counted by run — INC-495 — as of run 38223982726 on 2026-10-12; window 2026-10-06 → 2026-10-12; matrix lanes): TR-29 (six — INC-345, with INC-568); CT-18 (five — INC-497); PW-57 and PW-144 (five each — INC-449); PW-76 (five — INC-440); PW-173 (four — INC-551: three before its fix, one a timeout on `07c1e2b6`, a run with nine retried timeouts); PW-55 (three — INC-430); two each — a third is an incident unless one exists: AT-2, AT-48, AT-56, AT-73, CO-2, CT-7, CT-43, LS-7, LS-9, LS-13, PR-26, PR-33, PW-30, PW-48, PW-74, PW-178, PW-137 (INC-449), PW-64 (INC-533), TR-28 (INC-523), "the bottom bar, signed in" (INC-501) and "the menu closes back to the icons" (INC-528). The fast-lane-only flakes are contention noise by DEC-023-B. The server-error census carries one standing message off the allowlist: "listing not found" (INC-398).
