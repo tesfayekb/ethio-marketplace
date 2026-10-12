@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { FilterChoices } from "@/components/shell/filter-choices";
+import { RowActions } from "@/components/shell/row-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,8 +40,6 @@ import {
 import { ownValue } from "@/lib/own-key";
 import { useFollowingDraft } from "@/lib/use-following-draft";
 import { useSettling } from "@/lib/use-settling";
-
-const PAGE_SIZE = 25;
 
 /** U4k — the Data scope's own status chips (entity rows carry no flag). */
 const DATA_STATUS_CHIPS = [
@@ -76,6 +81,7 @@ export function DataScope({
   rtl,
   status,
   query,
+  search,
   mayUpdate,
   mayApprove,
   mayMachine,
@@ -85,6 +91,8 @@ export function DataScope({
   rtl: boolean;
   status: string;
   query: string;
+  /** Bundle 11 G3e — the page's search box (it drives the URL), drawn in this table's toolbar. */
+  search?: ReactNode;
   mayUpdate: boolean;
   mayApprove: boolean;
   /** Already base-guarded by the caller: the base language is never machine-filled. */
@@ -92,7 +100,10 @@ export function DataScope({
   guard: GuardFn;
 }) {
   const { t } = useI18n();
-  const [page, setPage] = useState(0);
+  /** Bundle 11 G3e (D128, D132) — the footer's page size, kept in this browser. */
+  const paging = useKeptPage("ethio.admin.data.pageSize", 25);
+  const { page, setPage, pageSize } = paging;
+  const [hidden, toggleColumn] = useHiddenColumns("admin-data");
   const [expanded, setExpanded] = useState<string | null>(null);
   /**
    * U4k — the STATUS CHIPS of the Data scope, mirroring the Interface ones.
@@ -108,8 +119,8 @@ export function DataScope({
       lang,
       status: activeStatus === "flagged" ? "all" : activeStatus,
       search: query,
-      limit: PAGE_SIZE,
-      offset: page * PAGE_SIZE,
+      limit: pageSize,
+      offset: page * pageSize,
     },
     true,
   );
@@ -145,6 +156,17 @@ export function DataScope({
 
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
+  const allColumns = dataColumns(t, rtl);
+  /** Bundle 11 G3e — the Filters panel's status pills; the chosen one is a chip. */
+  const chooseStatus = (value: string) => {
+    setPage(0);
+    setChip(value);
+  };
+  const chosen = DATA_STATUS_CHIPS.find((entry) => entry.value === activeStatus);
+  const chips =
+    activeStatus !== "all" && chosen
+      ? [{ key: activeStatus, label: t(chosen.labelKey), onRemove: () => chooseStatus("all") }]
+      : [];
 
   return (
     <div className="min-w-0 space-y-4" data-testid="admin-translations-data">
@@ -168,24 +190,6 @@ export function DataScope({
         {t("admin.translations.data.aiNote")}
       </p>
 
-      <div className="flex min-w-0 flex-wrap gap-2" data-testid="data-chips">
-        {DATA_STATUS_CHIPS.map((entry) => (
-          <Button
-            key={entry.value}
-            type="button"
-            variant={activeStatus === entry.value ? "default" : "outline"}
-            className="min-h-11"
-            data-testid={`data-chip-${entry.value}`}
-            onClick={() => {
-              setPage(0);
-              setChip(entry.value);
-            }}
-          >
-            {`${t(entry.labelKey)} · ${chipCounts[entry.value] ?? 0}`}
-          </Button>
-        ))}
-      </div>
-
       <div className="flex min-w-0 flex-wrap items-start gap-3">
         {mayMachine ? (
           <AiBulkBar
@@ -203,7 +207,7 @@ export function DataScope({
       </div>
 
       <DataTable
-        columns={dataColumns(t, rtl)}
+        columns={visibleColumns(allColumns, hidden, ["entity"])}
         rows={rows}
         rowKey={(row) => row.key}
         rowTestId={(row) => `entity-row-${entityRowSlug(row)}`}
@@ -219,6 +223,51 @@ export function DataScope({
         emptyState={
           <p className="text-sm text-muted-foreground">{t("admin.translations.data.empty")}</p>
         }
+        toolbar={
+          <TableToolbar
+            testid="data-toolbar"
+            search={search}
+            filters={
+              <FiltersButton
+                testid="data-filters"
+                count={chips.length}
+                state={activeStatus}
+                resultCount={total}
+                onClearAll={() => chooseStatus("all")}
+              >
+                <FilterChoices
+                  testid="data-status-filter"
+                  label={t("admin.translations.col.status")}
+                  value={activeStatus}
+                  options={DATA_STATUS_CHIPS.map((entry) => ({
+                    value: entry.value,
+                    label: `${t(entry.labelKey)} · ${chipCounts[entry.value] ?? 0}`,
+                  }))}
+                  onChange={chooseStatus}
+                />
+              </FiltersButton>
+            }
+            columns={
+              <ColumnsButton
+                testid="data-columns"
+                columns={allColumns.map((column) => ({
+                  key: column.key,
+                  label: String(column.header),
+                  locked: column.key === "entity",
+                }))}
+                hidden={hidden}
+                onToggle={toggleColumn}
+              />
+            }
+            chips={
+              <FilterChips
+                testid="data-chips"
+                chips={chips}
+                onClearAll={() => chooseStatus("all")}
+              />
+            }
+          />
+        }
         expandedRow={(row) =>
           row.key === expanded ? (
             <EntityEditor
@@ -232,29 +281,33 @@ export function DataScope({
             />
           ) : null
         }
+        /** Bundle 11 G3e (DEC-170) — the row's Edit opens its editor in the row's own box (V2c). */
         rowActions={(row) => (
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11"
-            data-testid={`entity-expand-${entityRowSlug(row)}`}
-            onClick={() => setExpanded((current) => (current === row.key ? null : row.key))}
-          >
-            {expanded === row.key
-              ? t("admin.translations.collapse")
-              : t("admin.translations.expand")}
-          </Button>
+          <RowActions
+            testid={`entity-actions-${entityRowSlug(row)}`}
+            name={row.label}
+            edit={{
+              label:
+                expanded === row.key
+                  ? t("admin.translations.collapse")
+                  : t("admin.translations.expand"),
+              onSelect: () => setExpanded((current) => (current === row.key ? null : row.key)),
+            }}
+          />
         )}
         pagination={
           <DataTablePagination
             testid="data-pagination"
-            offset={page * PAGE_SIZE}
-            pageSize={PAGE_SIZE}
+            offset={page * pageSize}
+            pageSize={pageSize}
             total={total}
             onPrevious={() => setPage((current) => Math.max(0, current - 1))}
             onNext={() =>
-              setPage((current) => ((current + 1) * PAGE_SIZE < total ? current + 1 : current))
+              setPage((current) => ((current + 1) * pageSize < total ? current + 1 : current))
             }
+            onPage={setPage}
+            pageSizeOptions={paging.pageSizeOptions}
+            onPageSize={paging.setPageSize}
           />
         }
       />
@@ -271,6 +324,7 @@ function dataColumns(
       key: "entity",
       header: t("admin.translations.col.entity"),
       priority: "primary",
+      card: "title",
       width: "w-[30%]",
       cell: (row) => (
         <span className="block min-w-0">
@@ -300,6 +354,7 @@ function dataColumns(
       key: "type",
       header: t("admin.translations.col.entityType"),
       priority: "detail",
+      card: "sub",
       width: "w-[14%]",
       cell: (row) => (
         <span className="block truncate text-xs text-muted-foreground">
@@ -311,6 +366,7 @@ function dataColumns(
       key: "source",
       header: t("admin.translations.col.source"),
       priority: "secondary",
+      card: "meta",
       width: "w-[22%]",
       cell: (row) => (
         <span className="block truncate text-muted-foreground" title={row.sourceValue ?? undefined}>
@@ -322,6 +378,7 @@ function dataColumns(
       key: "value",
       header: t("admin.translations.col.value"),
       priority: "primary",
+      card: "meta",
       width: "w-[22%]",
       cell: (row) => (
         <span
@@ -337,6 +394,7 @@ function dataColumns(
       key: "status",
       header: t("admin.translations.col.status"),
       priority: "primary",
+      card: "badge",
       width: "w-[12%]",
       cell: (row) => (
         <Badge variant="outline" data-testid={`entity-status-${entityRowSlug(row)}`}>

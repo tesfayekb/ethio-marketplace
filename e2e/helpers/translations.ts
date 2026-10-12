@@ -81,6 +81,17 @@ export async function langMenuItem(page: Page, code: string, item: string): Prom
 }
 
 /**
+ * Bundle 11 G3e (D118, INC-543) — a filter of the strings or the Data table
+ * lives in its Filters panel as a pill: open the panel, choose, close it.
+ */
+export async function chooseFilter(page: Page, filters: string, choice: string): Promise<void> {
+  await page.getByTestId(filters).click();
+  await page.getByTestId(choice).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId(`${filters}-panel`)).toHaveCount(0);
+}
+
+/**
  * UX-2 item 7 — THE DATA-SCOPE ROW, RESOLVED STRUCTURALLY (J5). Entity rows
  * carry the composite `entity-row-<type>-<id>-<field>` stem in both twins; the
  * `-card` suffix belongs to the mobile twin alone. The secondary identifier
