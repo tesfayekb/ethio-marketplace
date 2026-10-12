@@ -1,12 +1,20 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { FilterChoices } from "@/components/shell/filter-choices";
 import { PageCard } from "@/components/shell/page-card";
+import { RowActions } from "@/components/shell/row-actions";
+import { TableActions } from "@/components/shell/table-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { PageShell } from "@/components/layout/page-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,9 +56,6 @@ import {
   TRANSLATION_ROWS_KEY,
 } from "./use-translations";
 import { ownValue } from "@/lib/own-key";
-
-const PAGE_SIZE = 25;
-
 interface MutationAction {
   (): Promise<void>;
 }
@@ -117,7 +122,13 @@ export function AdminTranslationsStringsPage({
   const status = search.status ?? "all";
   const flagged = search.flagged === true || status === "flagged";
   const query = search.q ?? "";
-  const [page, setPage] = useState(0);
+  /**
+   * Bundle 11 G3e (D128, D132) — the footer's page size, kept in this browser;
+   * the page itself returns to the first on every filter change.
+   */
+  const paging = useKeptPage("ethio.admin.strings.pageSize", 25);
+  const { page, setPage, pageSize } = paging;
+  const [hidden, toggleColumn] = useHiddenColumns("admin-strings");
   const [expanded, setExpanded] = useState<string | null>(null);
   /**
    * INC-104 — POST-ACTION FEEDBACK IS PAGE-LEVEL STATE, NEVER EXPANSION-LOCAL.
@@ -141,8 +152,8 @@ export function AdminTranslationsStringsPage({
     status: status === "flagged" ? "all" : status,
     ...(flagged ? { flagged: true } : {}),
     search: query,
-    limit: PAGE_SIZE,
-    offset: page * PAGE_SIZE,
+    limit: pageSize,
+    offset: page * pageSize,
     orphaned: orphanedView,
   });
 
@@ -225,92 +236,119 @@ export function AdminTranslationsStringsPage({
     !scope.data.includes(lang) &&
     (mayUpdate || mayApprove);
 
+  /**
+   * Bundle 11 G3e — the Filters panel's one choice: a status from the URL
+   * (INC-073), or the orphaned view (component state, U4g). Choosing one clears
+   * the other, as the old chips did; the chip under the toolbar names it.
+   */
+  const filterValue = orphanedView ? "orphaned" : status;
+  const keepQuery = query === "" ? {} : { q: query };
+  const clearFilters = () => {
+    setOrphanedView(false);
+    setSearchParams(keepQuery);
+  };
+  const chooseFilter = (value: string) => {
+    if (value === "orphaned") {
+      setOrphanedView(true);
+      setSearchParams(keepQuery);
+      return;
+    }
+    setOrphanedView(false);
+    setSearchParams({ ...(value === "all" ? {} : { status: value }), ...keepQuery });
+  };
+  const chosenStatus = STATUS_CHIPS.find((chip) => chip.value === status);
+  const filterChips = orphanedView
+    ? [
+        {
+          key: "orphaned",
+          label: t("admin.translations.orphaned.chip").replace(
+            "{count}",
+            String(counts["orphaned"] ?? 0),
+          ),
+          onRemove: clearFilters,
+        },
+      ]
+    : status !== "all" && chosenStatus
+      ? [{ key: status, label: t(chosenStatus.labelKey), onRemove: clearFilters }]
+      : [];
+  const allStringColumns = stringColumns(t, known?.rtl ?? false);
   return (
     <StepUpGate>
       {(guard) => (
         <PageShell width="full" data-testid="admin-translations-strings" className="space-y-4">
-          <div className="flex min-w-0 flex-wrap items-center gap-3">
-            <h1 className="min-w-0 truncate text-lg font-semibold text-foreground">
-              {t("admin.translations.strings.title").replace(
+          {/* Bundle 11 G3e (D132) — the page's heading in the header; the breadcrumb leads back. */}
+          <div className="min-w-0 space-y-1">
+            <TableActions
+              testid="strings-header"
+              title={t("admin.translations.strings.title").replace(
                 "{language}",
                 known?.nameNative ?? lang,
               )}
-            </h1>
-            <Link
-              to="/admin/translations"
-              data-testid="strings-back"
-              className="text-sm text-muted-foreground underline underline-offset-4"
-            >
-              {t("admin.translations.strings.back")}
-            </Link>
+            />
+            <p data-testid="strings-coverage" className="text-sm text-muted-foreground">
+              {t("admin.translations.coverage")
+                .replace("{approved}", String(counts["approved"] ?? 0))
+                .replace("{total}", String(counts["all"] ?? 0))}
+            </p>
+            {/* U4k — both meters side by side: interface AND content names. */}
+            <p data-testid="strings-meters" className="text-sm text-muted-foreground">
+              {t("admin.translations.meters")
+                .replace("{uiApproved}", String(counts["approved"] ?? 0))
+                .replace("{uiTotal}", String(counts["all"] ?? 0))
+                .replace("{dataApproved}", String(dataStats?.approved ?? 0))
+                .replace("{dataTotal}", String(dataStats?.total ?? 0))}
+            </p>
           </div>
 
-          <p data-testid="strings-coverage" className="text-sm text-muted-foreground">
-            {t("admin.translations.coverage")
-              .replace("{approved}", String(counts["approved"] ?? 0))
-              .replace("{total}", String(counts["all"] ?? 0))}
-          </p>
-
-          {/* U4k — both meters side by side: interface AND content names. */}
-          <p data-testid="strings-meters" className="text-sm text-muted-foreground">
-            {t("admin.translations.meters")
-              .replace("{uiApproved}", String(counts["approved"] ?? 0))
-              .replace("{uiTotal}", String(counts["all"] ?? 0))
-              .replace("{dataApproved}", String(dataStats?.approved ?? 0))
-              .replace("{dataTotal}", String(dataStats?.total ?? 0))}
-          </p>
-
-          <div
-            className="flex min-w-0 flex-wrap gap-2"
-            role="group"
-            aria-label={t("admin.translations.scope.label")}
-            data-testid="strings-scope"
-          >
-            {(["interface", "data"] as const).map((value) => (
-              <Button
-                key={value}
-                type="button"
-                variant={viewScope === value ? "default" : "outline"}
-                className="min-h-11"
-                data-testid={`strings-scope-${value}`}
-                onClick={() =>
-                  void navigate({
-                    to: "/admin/translations/$lang",
-                    params: { lang },
-                    search: {
-                      ...(value === "data" ? { scope: "data" } : {}),
-                      ...(query === "" ? {} : { q: query }),
-                    },
-                    replace: true,
-                  })
-                }
-              >
-                {t(
-                  value === "data"
-                    ? "admin.translations.scope.data"
-                    : "admin.translations.scope.interface",
-                )}
-              </Button>
-            ))}
-          </div>
+          {/**
+           * The SCOPE decides what is read (the interface keys or the content
+           * names), so it stays a row of pills above the tools and the table,
+           * never a filter inside the panel (TableToolbar's scope rule, B1).
+           */}
+          <FilterChoices
+            testid="strings-scope"
+            label={t("admin.translations.scope.label")}
+            value={viewScope}
+            options={(["interface", "data"] as const).map((value) => ({
+              value,
+              label: t(
+                value === "data"
+                  ? "admin.translations.scope.data"
+                  : "admin.translations.scope.interface",
+              ),
+            }))}
+            onChange={(value) =>
+              void navigate({
+                to: "/admin/translations/$lang",
+                params: { lang },
+                search: {
+                  ...(value === "data" ? { scope: "data" } : {}),
+                  ...(query === "" ? {} : { q: query }),
+                },
+                replace: true,
+              })
+            }
+          />
 
           {viewScope === "data" ? (
             <>
               <p className="text-sm text-muted-foreground" data-testid="data-gate-note">
                 {t("admin.translations.data.gateNote")}
               </p>
-              <Input
-                data-testid="data-search"
-                value={searchDraft}
-                aria-label={t("admin.translations.filter.search")}
-                placeholder={t("admin.translations.filter.search")}
-                onChange={(event) => setSearchDraft(event.target.value)}
-              />
               <DataScope
                 lang={lang}
                 rtl={known?.rtl ?? false}
                 status="all"
                 query={query}
+                search={
+                  <Input
+                    data-testid="data-search"
+                    value={searchDraft}
+                    aria-label={t("admin.translations.filter.search")}
+                    placeholder={t("admin.translations.filter.search")}
+                    onChange={(event) => setSearchDraft(event.target.value)}
+                  />
+                }
                 mayUpdate={mayUpdate}
                 mayApprove={mayApprove && !(known?.isBase ?? false)}
                 mayMachine={mayMachine && !(known?.isBase ?? false)}
@@ -342,7 +380,7 @@ export function AdminTranslationsStringsPage({
               ) : null}
 
               <DataTable
-                columns={stringColumns(t, known?.rtl ?? false)}
+                columns={visibleColumns(allStringColumns, hidden, ["key"])}
                 rows={rows}
                 rowKey={(row) => row.key}
                 rowTestId={(row) => `string-row-${slug(row.key)}`}
@@ -365,59 +403,82 @@ export function AdminTranslationsStringsPage({
                   </p>
                 }
                 toolbar={
-                  <div className="flex min-w-0 flex-col gap-2">
-                    <Input
-                      data-testid="strings-search"
-                      value={searchDraft}
-                      aria-label={t("admin.translations.filter.search")}
-                      placeholder={t("admin.translations.filter.search")}
-                      onChange={(event) => setSearchDraft(event.target.value)}
-                    />
-                    <div className="flex min-w-0 flex-wrap gap-2" data-testid="strings-chips">
-                      {STATUS_CHIPS.map((chip) => (
-                        <Button
-                          key={chip.value}
-                          type="button"
-                          variant={status === chip.value ? "default" : "outline"}
-                          className="min-h-11"
-                          data-testid={`strings-chip-${chip.value}`}
-                          onClick={() => {
-                            setOrphanedView(false);
-                            setSearchParams({
-                              ...(chip.value === "all" ? {} : { status: chip.value }),
-                              ...(query === "" ? {} : { q: query }),
-                            });
-                          }}
+                  <>
+                    {/**
+                     * Bundle 11 G3e (D118, D128, D132) — the agreed toolbar:
+                     * the search, Filters with the status pills (the orphaned
+                     * set is one of them: a view, not a status, U4g), Columns,
+                     * and the chosen filter as a chip under it.
+                     */}
+                    <TableToolbar
+                      testid="strings-toolbar"
+                      search={
+                        <Input
+                          data-testid="strings-search"
+                          value={searchDraft}
+                          aria-label={t("admin.translations.filter.search")}
+                          placeholder={t("admin.translations.filter.search")}
+                          onChange={(event) => setSearchDraft(event.target.value)}
+                        />
+                      }
+                      filters={
+                        <FiltersButton
+                          testid="strings-filters"
+                          count={filterChips.length}
+                          state={filterValue}
+                          resultCount={total}
+                          onClearAll={clearFilters}
                         >
-                          {`${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`}
-                        </Button>
-                      ))}
-                      {/* U4g — orphaned keys: excluded from coverage, never shipped. */}
-                      <Button
-                        type="button"
-                        variant={orphanedView ? "default" : "outline"}
-                        className="min-h-11"
-                        data-testid="strings-chip-orphaned"
-                        onClick={() => {
-                          setPage(0);
-                          setOrphanedView((current) => !current);
-                        }}
-                      >
-                        {t("admin.translations.orphaned.chip").replace(
-                          "{count}",
-                          String(counts["orphaned"] ?? 0),
-                        )}
-                      </Button>
-                    </div>
+                          <FilterChoices
+                            testid="strings-status-filter"
+                            label={t("admin.translations.col.status")}
+                            value={filterValue}
+                            options={[
+                              ...STATUS_CHIPS.map((chip) => ({
+                                value: chip.value,
+                                label: `${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`,
+                              })),
+                              {
+                                value: "orphaned",
+                                label: t("admin.translations.orphaned.chip").replace(
+                                  "{count}",
+                                  String(counts["orphaned"] ?? 0),
+                                ),
+                              },
+                            ]}
+                            onChange={chooseFilter}
+                          />
+                        </FiltersButton>
+                      }
+                      columns={
+                        <ColumnsButton
+                          testid="strings-columns"
+                          columns={allStringColumns.map((column) => ({
+                            key: column.key,
+                            label: String(column.header),
+                            locked: column.key === "key",
+                          }))}
+                          hidden={hidden}
+                          onToggle={toggleColumn}
+                        />
+                      }
+                      chips={
+                        <FilterChips
+                          testid="strings-chips"
+                          chips={filterChips}
+                          onClearAll={clearFilters}
+                        />
+                      }
+                    />
                     {orphanedView ? (
                       <p
                         data-testid="strings-orphaned-note"
-                        className="text-xs text-muted-foreground"
+                        className="basis-full text-xs text-muted-foreground"
                       >
                         {t("admin.translations.orphaned.note")}
                       </p>
                     ) : null}
-                  </div>
+                  </>
                 }
                 expandedRow={(row) =>
                   row.key === expanded ? (
@@ -436,31 +497,40 @@ export function AdminTranslationsStringsPage({
                     />
                   ) : null
                 }
+                /**
+                 * Bundle 11 G3e (DEC-170) — the row's Edit opens its editor in
+                 * the row's own box (V2c) and closes it again; the editor holds
+                 * every other verb (save, AI, approve, history).
+                 */
                 rowActions={(row) => (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="min-h-11"
-                    data-testid={`string-expand-${slug(row.key)}`}
-                    onClick={() => setExpanded((current) => (current === row.key ? null : row.key))}
-                  >
-                    {expanded === row.key
-                      ? t("admin.translations.collapse")
-                      : t("admin.translations.expand")}
-                  </Button>
+                  <RowActions
+                    testid={`string-actions-${slug(row.key)}`}
+                    name={row.key}
+                    edit={{
+                      label:
+                        expanded === row.key
+                          ? t("admin.translations.collapse")
+                          : t("admin.translations.expand"),
+                      onSelect: () =>
+                        setExpanded((current) => (current === row.key ? null : row.key)),
+                    }}
+                  />
                 )}
                 pagination={
                   <DataTablePagination
                     testid="strings-pagination"
-                    offset={page * PAGE_SIZE}
-                    pageSize={PAGE_SIZE}
+                    offset={page * pageSize}
+                    pageSize={pageSize}
                     total={total}
                     onPrevious={() => setPage((current) => Math.max(0, current - 1))}
                     onNext={() =>
                       setPage((current) =>
-                        (current + 1) * PAGE_SIZE < total ? current + 1 : current,
+                        (current + 1) * pageSize < total ? current + 1 : current,
                       )
                     }
+                    onPage={setPage}
+                    pageSizeOptions={paging.pageSizeOptions}
+                    onPageSize={paging.setPageSize}
                   />
                 }
               />
@@ -500,6 +570,7 @@ function stringColumns(
       key: "key",
       header: t("admin.translations.col.key"),
       priority: "primary",
+      card: "title",
       width: "w-[26%]",
       cell: (row) => (
         <span className="block truncate font-mono text-xs text-foreground" title={row.key}>
@@ -511,6 +582,7 @@ function stringColumns(
       key: "source",
       header: t("admin.translations.col.source"),
       priority: "secondary",
+      card: "sub",
       width: "w-[26%]",
       cell: (row) => (
         <span className="block truncate text-muted-foreground" title={row.sourceValue ?? undefined}>
@@ -522,6 +594,7 @@ function stringColumns(
       key: "value",
       header: t("admin.translations.col.value"),
       priority: "primary",
+      card: "meta",
       width: "w-[26%]",
       cell: (row) => (
         <span
@@ -537,6 +610,7 @@ function stringColumns(
       key: "status",
       header: t("admin.translations.col.status"),
       priority: "primary",
+      card: "badge",
       width: "w-[12%]",
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
@@ -555,6 +629,7 @@ function stringColumns(
       key: "provenance",
       header: t("admin.translations.col.provenance"),
       priority: "detail",
+      card: "foot",
       width: "w-[10%]",
       /**
        * U4g-24 (INC-115) — PROVENANCE IS THE TEXT'S ORIGIN, NEVER ITS REVIEW

@@ -196,7 +196,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       const row = entityRow(page, `location-${id}-name`);
       await expect(row).toBeVisible({ timeout: 20000 });
 
-      await surfaceControl(page, `entity-expand-location-${id}-name`).click();
+      await surfaceControl(page, `entity-actions-location-${id}-name-edit`).click();
       const editor = surfaceControl(page, `entity-editor-location-${id}-name`);
       await expect(editor).toBeVisible();
       await editor.getByTestId(`entity-input-location-${id}-name`).fill(marker);
@@ -317,7 +317,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       await expect(row.getByTestId(`entity-status-location-${one.id}-name`)).toHaveText(
         /untranslated/i,
       );
-      await surfaceControl(page, `entity-expand-location-${one.id}-name`).click();
+      await surfaceControl(page, `entity-actions-location-${one.id}-name-edit`).click();
       const editor = surfaceControl(page, `entity-editor-location-${one.id}-name`);
       await expect(editor).toBeVisible();
       await editor.getByTestId(`entity-ai-location-${one.id}-name`).click();
@@ -477,9 +477,11 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       return data;
     };
     const statusOf = async (id: string) => (await rowOf(id))?.status ?? "missing";
+    // Bundle 11 G3e — the counts sit on the status pills inside the Filters panel.
     const chipCount = async (name: string) =>
       Number(
-        (await page.getByTestId(`data-chip-${name}`).innerText()).replace(/[^0-9]/g, "") || "0",
+        (await page.getByTestId(`data-status-filter-${name}`).innerText()).replace(/[^0-9]/g, "") ||
+          "0",
       );
 
     try {
@@ -519,13 +521,16 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       // 2. CHIPS before approval: machine work exists, approved does not yet
       //    include it (the counts come from the same stats RPC as the bar).
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
-      await expect(page.getByTestId("data-chips")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("data-filters").click();
+      await expect(page.getByTestId("data-status-filter")).toBeVisible({ timeout: 20000 });
       await expect
         .poll(() => chipCount("machine"), {
           timeout: 20000,
           message: "the machine chip never counted the sweep",
         })
         .toBeGreaterThan(0);
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("data-filters-panel")).toHaveCount(0);
 
       // 3. APPROVE — the gated writer runs behind the same step-up.
       const approveButton = page.getByTestId("entity-approve-all-start");

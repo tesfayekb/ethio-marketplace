@@ -22,6 +22,7 @@ import { adminClient, leaseUser } from "./helpers/users";
 import {
   langRow,
   actionsOf,
+  chooseFilter,
   stringRow,
   surfaceControl,
   expansionOf,
@@ -195,7 +196,7 @@ test.describe("U4b translations console", () => {
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
-      await surfaceControl(page, `string-expand-${id}`).click();
+      await surfaceControl(page, `string-actions-${id}-edit`).click();
       // INC-095d — the editor is scoped to the VISIBLE twin, never `.first()`.
       await expect(expansionOf(page, id)).toBeVisible();
       await stepUpIfPrompted(page, secret);
@@ -207,11 +208,12 @@ test.describe("U4b translations console", () => {
   test("TR-5 filters live in the URL and survive a reload", async ({ page }) => {
     await signInAsSuperAdmin(page);
     await gotoReady(page, "/admin/translations/am");
-    await page.getByTestId("strings-chip-approved").click();
+    // Bundle 11 G3e — the status is a pill in the Filters panel; the choice is a chip.
+    await chooseFilter(page, "strings-filters", "strings-status-filter-approved");
     await expect(page).toHaveURL(/status=approved/);
     await page.reload();
     await waitForHydration(page);
-    await expect(page.getByTestId("strings-chip-approved")).toBeVisible();
+    await expect(page.getByTestId("strings-chips-chip-approved")).toBeVisible();
     await expect(page).toHaveURL(/status=approved/);
   });
 
@@ -375,7 +377,7 @@ test.describe("U4b translations console", () => {
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
-      await surfaceControl(page, `string-expand-${id}`).click();
+      await surfaceControl(page, `string-actions-${id}-edit`).click();
       await expansionControl(page, id, "string-input").fill("የሙከራ ምንጭ");
       await expansionControl(page, id, "string-save").click();
       await stepUpIfPrompted(page, secret);
@@ -561,7 +563,7 @@ test.describe("U4b translations console", () => {
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
-      await surfaceControl(page, `string-expand-${id}`).click();
+      await surfaceControl(page, `string-actions-${id}-edit`).click();
       const aiRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, id, "string-ai").click();
       await stepUpIfPrompted(page, secret);
@@ -748,7 +750,7 @@ test.describe("U4b translations console", () => {
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
-      await surfaceControl(page, `string-expand-${id}`).click();
+      await surfaceControl(page, `string-actions-${id}-edit`).click();
       const aiRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, id, "string-ai").click();
       await stepUpIfPrompted(page, secret);
@@ -806,7 +808,7 @@ test.describe("U4b translations console", () => {
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
-      await surfaceControl(page, `string-expand-${id}`).click();
+      await surfaceControl(page, `string-actions-${id}-edit`).click();
       const route = watchRoute(page, "/api/translate");
       await expansionControl(page, id, "string-ai").click();
       await stepUpIfPrompted(page, secret);
@@ -849,7 +851,7 @@ test.describe("U4b translations console", () => {
       const keptId = slug(keptKey);
       await page.getByTestId("strings-search").fill(keptKey);
       await expect(stringRow(page, keptId)).toBeVisible({ timeout: 20000 });
-      await surfaceControl(page, `string-expand-${keptId}`).click();
+      await surfaceControl(page, `string-actions-${keptId}-edit`).click();
       const keptRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, keptId, "string-ai").click();
       await stepUpIfPrompted(page, secret);
@@ -882,7 +884,7 @@ test.describe("U4b translations console", () => {
       const brokenId = slug(brokenKey);
       await page.getByTestId("strings-search").fill(brokenKey);
       await expect(stringRow(page, brokenId)).toBeVisible({ timeout: 20000 });
-      await surfaceControl(page, `string-expand-${brokenId}`).click();
+      await surfaceControl(page, `string-actions-${brokenId}-edit`).click();
       const brokenRoute = watchRoute(page, "/api/translate");
       await expansionControl(page, brokenId, "string-ai").click();
       await stepUpIfPrompted(page, secret);
@@ -1085,7 +1087,7 @@ test.describe("U4b translations console", () => {
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
       await expect(stringRow(page, id)).toBeVisible({ timeout: 20000 });
-      await surfaceControl(page, `string-expand-${id}`).click();
+      await surfaceControl(page, `string-actions-${id}-edit`).click();
 
       // 1) machine write, then 2) a human edit — the U4c pair (TR-11's shape).
       const aiRoute = watchRoute(page, "/api/translate");

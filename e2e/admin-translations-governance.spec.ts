@@ -565,8 +565,12 @@ test.describe("U4g bulk approval, order and orphans", () => {
 
         // Coverage excludes it, and the console shows it behind its own chip.
         await gotoReady(page, `/admin/translations/${fence}`);
-        await expect(page.getByTestId("strings-chip-orphaned")).toContainText(/\d/);
-        await page.getByTestId("strings-chip-orphaned").click();
+        // Bundle 11 G3e — the orphaned set is a pill in the Filters panel.
+        await page.getByTestId("strings-filters").click();
+        await expect(page.getByTestId("strings-status-filter-orphaned")).toContainText(/\d/);
+        await page.getByTestId("strings-status-filter-orphaned").click();
+        await page.keyboard.press("Escape");
+        await expect(page.getByTestId("strings-filters-panel")).toHaveCount(0);
         await page.getByTestId("strings-search").fill(key);
         await expect(stringRow(page, slug(key))).toBeVisible({ timeout: 20000 });
 
