@@ -56,6 +56,7 @@ import {
   TRANSLATION_ROWS_KEY,
 } from "./use-translations";
 import { ownValue } from "@/lib/own-key";
+
 interface MutationAction {
   (): Promise<void>;
 }
@@ -272,6 +273,7 @@ export function AdminTranslationsStringsPage({
       ? [{ key: status, label: t(chosenStatus.labelKey), onRemove: clearFilters }]
       : [];
   const allStringColumns = stringColumns(t, known?.rtl ?? false);
+
   return (
     <StepUpGate>
       {(guard) => (

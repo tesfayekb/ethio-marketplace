@@ -40,6 +40,7 @@ import {
 import { ownValue } from "@/lib/own-key";
 import { useFollowingDraft } from "@/lib/use-following-draft";
 import { useSettling } from "@/lib/use-settling";
+
 /** U4k — the Data scope's own status chips (entity rows carry no flag). */
 const DATA_STATUS_CHIPS = [
   { value: "all", labelKey: "admin.translations.filter.all" },
