@@ -122,6 +122,73 @@ export async function assertSsrHealthy(page: Page): Promise<void> {
  */
 const CLIENT_ERROR_BUFFER = 20;
 const CLIENT_ERROR_MESSAGE_CHARS = 2000;
+/** DEC-175 — the refusals kept apart, so they never push a page error out of the buffer. */
+const REFUSAL_BUFFER = 12;
+/** The posting doors whose 200 answer can still say `ok: false`. */
+const POSTING_DOORS = new Set([
+  "/api/listings/draft",
+  "/api/listings/identity",
+  "/api/listings/publish",
+]);
+
+/**
+ * DEC-175 (bundle 11 turn C8; INC-562's class) — a refusal nobody recorded is as
+ * undiagnosable as a 500 (INC-109). Every 4xx answer of the app's own routes
+ * (`/api/…`) and of the database and sign-in services (`/auth/v1/…`,
+ * `/rest/v1/…`, `/functions/v1/…`) is named — method, path and status, never
+ * the query (it can carry ids and filters), and the body's first 200
+ * characters; and a 200 from a posting door that says `ok: false` names its
+ * refusals. Printed with the other client errors, only when the test fails.
+ */
+function armRefusalCapture(page: Page, refusals: string[]): void {
+  const push = (line: string) => {
+    refusals.push(line);
+    if (refusals.length > REFUSAL_BUFFER) refusals.shift();
+  };
+  page.on("response", (response) => {
+    let path: string;
+    try {
+      path = new URL(response.url()).pathname;
+    } catch {
+      return;
+    }
+    const status = response.status();
+    const watched = path.startsWith("/api/") || /^\/(auth|rest|functions)\/v1\//.test(path);
+    if (!watched) return;
+    const method = response.request().method();
+    if (status >= 400 && status < 500) {
+      void (async () => {
+        let body = "";
+        try {
+          body = (await response.text()).replace(/\s+/g, " ").slice(0, 200);
+        } catch {
+          body = "(body unavailable)";
+        }
+        push(`HTTP ${status} ${method} ${path} (${body})`);
+      })();
+      return;
+    }
+    if (status === 200 && POSTING_DOORS.has(path)) {
+      void (async () => {
+        try {
+          const answer = (await response.json()) as { ok?: unknown; refusals?: unknown };
+          if (answer.ok !== false) return;
+          const reasons = Array.isArray(answer.refusals)
+            ? answer.refusals
+                .map((r) => {
+                  const row = (r ?? {}) as Record<string, unknown>;
+                  return `${String(row["field"] ?? row["attr_key"] ?? "?")}:${String(row["reason"] ?? "?")}`;
+                })
+                .join(",")
+            : "";
+          push(`refused ${method} ${path}: ok=false (${reasons || "no reasons"})`);
+        } catch {
+          /* an answer that is not JSON is not a refusal this capture can name */
+        }
+      })();
+    }
+  });
+}
 
 function armClientErrorCapture(page: Page, buffer: string[]): void {
   const push = (line: string) => {
@@ -187,14 +254,17 @@ export const test = base.extend<{ ssrGuard: void; clientErrors: string[] }>({
   clientErrors: [
     async ({ page }, use, testInfo) => {
       const buffer: string[] = [];
+      const refusals: string[] = [];
       armClientErrorCapture(page, buffer);
+      armRefusalCapture(page, refusals);
       await use(buffer);
-      if (testInfo.status === testInfo.expectedStatus || buffer.length === 0) return;
+      const lines = [...buffer, ...refusals];
+      if (testInfo.status === testInfo.expectedStatus || lines.length === 0) return;
       await testInfo.attach("client-errors", {
-        body: buffer.join("\n"),
+        body: lines.join("\n"),
         contentType: "text/plain",
       });
-      for (const entry of buffer) {
+      for (const entry of lines) {
         console.log(
           `[client-error] ${entry.replace(/\s+/g, " ").slice(0, CLIENT_ERROR_MESSAGE_CHARS)}`,
         );

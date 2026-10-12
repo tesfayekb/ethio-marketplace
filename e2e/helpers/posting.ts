@@ -2754,7 +2754,9 @@ export async function nextToStep(page: Page, step: number): Promise<void> {
   const started = Date.now();
   const saves: Promise<string>[] = [];
   const onResponse = (response: Response) => {
-    if (!response.url().includes("/api/listings/draft")) return;
+    // DEC-175 (turn C8) — the contact step's Next also waits on the identity save.
+    const door = /\/api\/listings\/(draft|identity)\b/.exec(response.url())?.[1];
+    if (door === undefined) return;
     const took = Date.now() - started;
     saves.push(
       response.json().then(
@@ -2768,9 +2770,9 @@ export async function nextToStep(page: Page, step: number): Promise<void> {
                 })
                 .join(",")
             : "";
-          return `${response.status()} after ${took} ms, ok=${String(answer.ok)}${reasons ? ` (${reasons})` : ""}`;
+          return `${door} ${response.status()} after ${took} ms, ok=${String(answer.ok)}${reasons ? ` (${reasons})` : ""}`;
         },
-        () => `${response.status()} after ${took} ms (no JSON)`,
+        () => `${door} ${response.status()} after ${took} ms (no JSON)`,
       ),
     );
   };
@@ -2785,7 +2787,7 @@ export async function nextToStep(page: Page, step: number): Promise<void> {
       .allInnerTexts()
       .catch(() => [] as string[]);
     throw new Error(
-      `[INC-562] step ${String(step)} did not come after Next. Draft saves: ${
+      `[INC-562] step ${String(step)} did not come after Next. Saves (draft, identity): ${
         answered.join(" | ") || "none answered"
       }. Refusal lines shown: ${shown.join(" | ") || "none"}.`,
       { cause: error },

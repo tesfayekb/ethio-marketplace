@@ -67,21 +67,30 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   const next = page.locator("#new-password");
   const again = page.locator("#new-password-confirm");
   const submit = page.getByRole("button", { name: en["settings.changePassword"] });
+  // Bundle 11 C8 (INC-570; G26 — the operator's walk saw nothing happen): every
+  // outcome is inside the Change password form, beside its button, and on screen
+  // where the button was pressed — not only somewhere on the page.
+  const form = page.locator("form").filter({ has: current });
 
   // Bundle 11 C4 (D143) — the new password typed twice; a mismatch is refused on the form.
   await current.fill(user.password);
   await next.fill(newPassword);
   await again.fill(`${newPassword}x`);
   await submit.click();
-  await expect(page.getByRole("alert")).toHaveText(en["auth.errorPasswordMismatch"]);
+  await expect(form.getByRole("alert")).toHaveText(en["auth.errorPasswordMismatch"]);
+  await expect(form.getByRole("alert")).toBeInViewport();
+  await expect(page.getByRole("alert")).toHaveCount(1);
 
   // Wrong current password: rejected, alert visible, session intact.
   await current.fill("definitely-not-the-password");
   await next.fill(newPassword);
   await again.fill(newPassword);
   await submit.click();
-  await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
-  await expect(page.getByRole("alert")).toHaveText(en["auth.errorWrongCurrentPassword"]);
+  await expect(form.getByRole("alert")).toHaveText(en["auth.errorWrongCurrentPassword"], {
+    timeout: 15000,
+  });
+  await expect(form.getByRole("alert")).toBeInViewport();
+  await expect(page.getByRole("alert")).toHaveCount(1);
   // Session intact: the header account menu (the shell's authenticated-branch
   // control, successor to the old header sign-out button) is still present.
   await expect(signedInMarker(page)).toBeVisible();
@@ -91,7 +100,11 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   await next.fill(newPassword);
   await again.fill(newPassword);
   await submit.click();
-  await expect(page.getByText(en["settings.passwordChanged"])).toBeVisible({ timeout: 15000 });
+  await expect(form.getByRole("status")).toHaveText(en["settings.passwordChanged"], {
+    timeout: 15000,
+  });
+  await expect(form.getByRole("status")).toBeInViewport();
+  await expect(page.getByText(en["settings.passwordChanged"])).toBeVisible();
 
   await signOutViaUi(page);
   await expectSignedOut(page);

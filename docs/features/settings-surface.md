@@ -181,3 +181,15 @@ than the only one. See `docs/features/auth-password-recovery.md`.
 - **Remove password** asks for the current password in its confirmation (`#remove-password-current`; "Yes, remove" stays greyed until it is filled). The password is checked on a throwaway client that persists nothing — the same check Change password uses (`verifyCurrentPassword` in src/features/auth/auth-service.ts) — before `remove_own_password` is called; a wrong password keeps the confirmation open with "That current password is not correct." Cancel clears it. The server door's own guard (another sign-in method must remain) is unchanged.
 - **Change password** asks for the new password twice (`#new-password-confirm`); two that differ are refused on the form ("The passwords do not match.") and nothing is sent.
 - Tests: S-3 (a mismatch refused, then the wrong current password, then the change); S-4 unchanged. A successful removal needs a second sign-in method (a Google identity), which the e2e accounts cannot hold; its check is the one Change password's S-3 proves.
+
+## Each outcome beside its control (bundle 11 turn C8; INC-570, the operator's walk of C4, 2026-10-12)
+
+Settings drew every refusal and confirmation once, under the page header. On a phone the Security section starts several screens below, so Change password looked like it did nothing ("doesnt do anything, doesnt give alert"), although its checks ran. Each action now answers beside its own control through `ActionMessage` (docs/features/display-primitives.md), which also brings the message into view when it appears:
+
+- **Sign-in methods** — Unlink, Link Google's refusal and Remove password's success: under the section (`settings-message-methods`).
+- **Remove password** — a refusal (a wrong password) inside its confirmation, above "Yes, remove" (`settings-message-removePassword`); the confirmation stays open.
+- **Change password** — too short, the mismatch, a wrong current password and "Your password has been changed.": inside its form, above its button (`settings-message-password`).
+- **Change email** — inside its form, above its button (`settings-message-email`).
+- **Sign out other devices** — under its button (`settings-message-devices`).
+
+Tests: SETM-1..SETM-4 (src/test/settings-messages.test.tsx — each outcome inside its own form or block; SETM-1 and SETM-2 failed on the base); S-3 now finds every outcome inside the Change password form and on screen (`toBeInViewport()`) on both projects.

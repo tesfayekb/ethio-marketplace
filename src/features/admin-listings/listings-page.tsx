@@ -19,6 +19,7 @@ import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { RowActions } from "@/components/shell/row-actions";
 import { useKeptPage } from "@/components/shell/use-kept-page";
+import { ActionMessage } from "@/components/ui/action-message";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -504,18 +505,14 @@ export function AdminListingsPage() {
             <p className="text-sm text-muted-foreground">{t(section.bodyKey)}</p>
           </div>
 
-          {notice !== null ? (
-            <p
-              role="status"
-              aria-live="polite"
-              data-testid="listings-notice"
-              className={
-                notice.tone === "error" ? "text-sm text-destructive" : "text-sm text-foreground"
-              }
-            >
-              {notice.text}
-            </p>
-          ) : null}
+          {/* INC-570 — the outcome of a row's move comes into view wherever the row was. */}
+          <ActionMessage
+            role="status"
+            testid="listings-notice"
+            tone={notice?.tone === "error" ? "error" : "done"}
+            text={notice?.text ?? null}
+            className={notice?.tone === "error" ? undefined : "text-foreground"}
+          />
 
           <FilterChoices
             testid="listings-view"
