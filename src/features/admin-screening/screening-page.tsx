@@ -15,6 +15,7 @@ import { useOpenMarkets } from "@/components/shell/location-data";
 import { RowActions } from "@/components/shell/row-actions";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -92,8 +93,12 @@ export function AdminScreeningPage() {
 
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(SCREENING_PAGE_SIZE);
+  // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
+  const { page, setPage, pageSize, setPageSize, pageSizeOptions } = useKeptPage(
+    "ethio.admin.screening.pageSize",
+    SCREENING_PAGE_SIZE,
+    SCREENING_PAGE_SIZES,
+  );
   const [selected, setSelected] = useState<string[]>([]);
   const [decision, setDecision] = useState<Decision>(null);
   const [busy, setBusy] = useState(false);
@@ -504,7 +509,7 @@ export function AdminScreeningPage() {
                     setPage(index);
                     setSelected([]);
                   }}
-                  pageSizeOptions={SCREENING_PAGE_SIZES}
+                  pageSizeOptions={pageSizeOptions}
                   onPageSize={(size) => {
                     setPageSize(size);
                     resetPaging();

@@ -10,20 +10,25 @@ import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar"
  * storage that fails or is missing keeps the default). The size is read after
  * mount, so the server's render and the first client render agree.
  */
-export function useKeptPage(storageKey: string, defaultSize = 25) {
+export function useKeptPage(
+  storageKey: string,
+  defaultSize = 25,
+  /** Bundle 11 C1 — a table whose door pages differently names its own sizes (Screening: 25, 50, 100). */
+  options: readonly number[] = PAGE_SIZE_OPTIONS,
+) {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState<number>(defaultSize);
 
   useEffect(() => {
     try {
       const stored = Number(window.localStorage.getItem(storageKey) ?? "");
-      if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
+      if (options.includes(stored)) {
         setPageSize(stored);
       }
     } catch {
       // Storage refused: the default stands.
     }
-  }, [storageKey]);
+  }, [storageKey, options]);
 
   const setPageSizeKept = (next: number) => {
     setPageSize(next);
@@ -40,6 +45,6 @@ export function useKeptPage(storageKey: string, defaultSize = 25) {
     setPage,
     pageSize,
     setPageSize: setPageSizeKept,
-    pageSizeOptions: [...PAGE_SIZE_OPTIONS],
+    pageSizeOptions: [...options],
   };
 }

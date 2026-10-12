@@ -1,5 +1,5 @@
 import { ArrowDownUp, Download, MapPin, MoveRight, Plus, RotateCcw, Upload } from "lucide-react";
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
@@ -13,6 +13,7 @@ import { RowActions, type RowMoreAction } from "@/components/shell/row-actions";
 import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -30,7 +31,7 @@ import {
   LocationMoveDialog,
   LocationReorderDialog,
 } from "./location-verb-dialogs";
-import { LocationFilters, MarketPicker, PAGE_SIZE_OPTIONS } from "./locations-toolbar";
+import { LocationFilters, MarketPicker } from "./locations-toolbar";
 import {
   childLevelOf,
   deleteBlockedKey,
@@ -68,7 +69,6 @@ import { ADMIN_LOCATIONS_KEY, useAdminLocations, useAllCountries } from "./use-l
  * toolbar transfers places alone.
  */
 
-const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.locations.pageSize";
 const TABLE_ID = "admin-places";
 const LOCKED = ["name"];
@@ -102,20 +102,13 @@ export function AdminLocationsPage() {
   const [search, setSearch] = useState("");
   const [level, setLevel] = useState("");
   const [status, setStatus] = useState("");
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
+  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
+    useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
-
-  /** Page size is a device setting, read after mount so SSR and hydration agree. */
-  useEffect(() => {
-    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY) ?? "");
-    if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
-      setPageSize(stored);
-    }
-  }, []);
 
   /** Every market: open first A–Z, then closed A–Z. */
   const markets = useMemo(() => {
@@ -274,12 +267,6 @@ export function AdminLocationsPage() {
   ];
 
   const columns = visibleColumns(allColumns, hidden, LOCKED);
-
-  const setPageSizeKept = (next: number) => {
-    setPageSize(next);
-    setPage(0);
-    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-  };
 
   /** Bundle 11 B1 — the verb bar's own gates, the same doors (F3). */
   const rowActions = (row: LocationNode) => {
@@ -567,8 +554,8 @@ export function AdminLocationsPage() {
                 onPrevious={() => setPage((current) => Math.max(0, current - 1))}
                 onNext={() => setPage((current) => current + 1)}
                 onPage={setPage}
-                pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
-                onPageSize={setPageSizeKept}
+                pageSizeOptions={pageSizeOptions}
+                onPageSize={setPageSize}
               />
             }
           />

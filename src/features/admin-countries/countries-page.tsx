@@ -1,5 +1,5 @@
 import { Download, Globe, Upload } from "lucide-react";
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
@@ -13,9 +13,9 @@ import { RowActions } from "@/components/shell/row-actions";
 import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
-import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
@@ -50,7 +50,6 @@ import { ADMIN_COUNTRIES_KEY, useAdminCountries } from "./use-countries";
 const TABLE_ID = "admin-countries";
 const LOCKED = ["name"];
 
-const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.countries.pageSize";
 
 type Dialog =
@@ -79,20 +78,13 @@ export function AdminCountriesPage() {
   const query = useAdminCountries();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
+  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
+    useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
-
-  /** Page size is a device setting, read after mount so SSR and hydration agree. */
-  useEffect(() => {
-    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY) ?? "");
-    if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
-      setPageSize(stored);
-    }
-  }, []);
 
   const roster = useMemo(() => query.data ?? [], [query.data]);
   const byCode = useMemo(() => new Map(roster.map((row) => [row.code, row])), [roster]);
@@ -227,12 +219,6 @@ export function AdminCountriesPage() {
   ];
 
   const columns = visibleColumns(allColumns, hidden, LOCKED);
-
-  const setPageSizeKept = (next: number) => {
-    setPageSize(next);
-    setPage(0);
-    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-  };
 
   /** Bundle 11 B1 — Edit, then the menu; each door re-checks (F3). */
   const rowActions = (row: CountryRow) => (
@@ -438,8 +424,8 @@ export function AdminCountriesPage() {
                 onPrevious={() => setPage((current) => Math.max(0, current - 1))}
                 onNext={() => setPage((current) => current + 1)}
                 onPage={setPage}
-                pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
-                onPageSize={setPageSizeKept}
+                pageSizeOptions={pageSizeOptions}
+                onPageSize={setPageSize}
               />
             }
           />

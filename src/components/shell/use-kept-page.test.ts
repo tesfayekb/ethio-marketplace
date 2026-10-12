@@ -38,4 +38,18 @@ describe("useKeptPage", () => {
     act(() => blocked.result.current.setPageSize(50));
     expect(blocked.result.current.pageSize).toBe(50);
   });
+
+  it("KP-3 a table with its own sizes offers them and keeps only one of them (bundle 11 C1)", () => {
+    const sizes = [25, 50, 100];
+    window.localStorage.setItem("kp-own", "10");
+    const odd = renderHook(() => useKeptPage("kp-own", 25, sizes));
+    expect(odd.result.current.pageSize).toBe(25);
+    expect(odd.result.current.pageSizeOptions).toEqual([25, 50, 100]);
+    odd.unmount();
+    window.localStorage.setItem("kp-own", "50");
+    expect(renderHook(() => useKeptPage("kp-own", 25, sizes)).result.current.pageSize).toBe(50);
+    expect(renderHook(() => useKeptPage("kp-default")).result.current.pageSizeOptions).toEqual([
+      10, 25, 50, 100,
+    ]);
+  });
 });

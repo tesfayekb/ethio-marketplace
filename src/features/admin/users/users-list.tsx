@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { UserRound } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterChoices } from "@/components/shell/filter-choices";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
-import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { useI18n } from "@/i18n";
 
 import type { AdminUserRow } from "./admin-users-service";
@@ -23,7 +23,6 @@ import { useAdminRoles, useAdminUsers, useDebounced } from "./use-admin-users";
 
 const TABLE_ID = "admin-users";
 const LOCKED = ["name"];
-const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.users.pageSize";
 
 function StatusBadge({ status }: { status: string }) {
@@ -77,18 +76,11 @@ export function AdminUsersList() {
   const navigate = useNavigate();
   const { role: roleParam } = useSearch({ from: "/admin/users" });
   const role = roleParam ?? "";
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
+  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
+    useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   const debouncedSearch = useDebounced(search);
-
-  /** Page size is a device setting, read after mount so SSR and hydration agree. */
-  useEffect(() => {
-    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY) ?? "");
-    if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
-      setPageSize(stored);
-    }
-  }, []);
 
   const { data, isLoading, error } = useAdminUsers({
     search: debouncedSearch,
@@ -130,12 +122,6 @@ export function AdminUsersList() {
     setPage(0);
     setStatus(next);
   };
-  const setPageSizeKept = (next: number) => {
-    setPageSize(next);
-    setPage(0);
-    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-  };
-
   const allColumns: DataTableColumn<AdminUserRow>[] = [
     {
       key: "name",
@@ -332,8 +318,8 @@ export function AdminUsersList() {
             onPrevious={() => setPage((current) => Math.max(0, current - 1))}
             onNext={() => setPage((current) => current + 1)}
             onPage={setPage}
-            pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
-            onPageSize={setPageSizeKept}
+            pageSizeOptions={pageSizeOptions}
+            onPageSize={setPageSize}
           />
         }
       />

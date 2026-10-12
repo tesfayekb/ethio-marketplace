@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Download, Link2, Merge, Plus, Tags, Unlink, Upload } from "lucide-react";
 
@@ -14,6 +14,7 @@ import {
 import { RowActions, type RowMoreAction } from "@/components/shell/row-actions";
 import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Button } from "@/components/ui/button";
 import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
@@ -78,8 +79,6 @@ import {
 
 const TABLE_ID = "admin-attributes";
 const LOCKED = ["name"];
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
-const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.attributes.pageSize";
 
 export function AdminAttributesPage() {
@@ -98,30 +97,12 @@ export function AdminAttributesPage() {
   const search = useSearch({ from: "/admin/attributes" });
   const navigate = useNavigate({ from: "/admin/attributes" });
   const [needleInput, setNeedleInput] = useState("");
-  const [offset, setOffset] = useState(0);
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
+  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
+    useKeptPage(PAGE_SIZE_STORAGE_KEY);
+  const offset = page * pageSize;
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
-  useEffect(() => {
-    try {
-      const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
-      if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
-        setPageSize(stored);
-      }
-    } catch {
-      /* no storage access on this device; the default answers */
-    }
-  }, []);
-
-  const choosePageSize = (next: number) => {
-    setPageSize(next);
-    setOffset(0);
-    try {
-      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-    } catch {
-      /* the choice still holds for this session */
-    }
-  };
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState(false);
 
@@ -210,7 +191,7 @@ export function AdminAttributesPage() {
   }, [coverage.data]);
 
   const chooseCategory = (slug: string) => {
-    setOffset(0);
+    setPage(0);
     void navigate({ search: slug === "" ? {} : { category: slug } });
   };
 
@@ -562,7 +543,7 @@ export function AdminAttributesPage() {
           <DataTable<AttributeRow>
             columns={columns}
             rows={filtered}
-            page={Math.floor(offset / pageSize)}
+            page={page}
             pageSize={pageSize}
             rowKey={(row) => row.id}
             rowTestId={(row) => `attribute-row-${row.attrKey}`}
@@ -642,7 +623,7 @@ export function AdminAttributesPage() {
                     value={needleInput}
                     onChange={(event) => {
                       setNeedleInput(event.target.value);
-                      setOffset(0);
+                      setPage(0);
                     }}
                   />
                 }
@@ -665,11 +646,11 @@ export function AdminAttributesPage() {
                 offset={offset}
                 pageSize={pageSize}
                 total={filtered.length}
-                onPrevious={() => setOffset((prev) => Math.max(0, prev - pageSize))}
-                onNext={() => setOffset((prev) => prev + pageSize)}
-                onPage={(index) => setOffset(index * pageSize)}
-                pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
-                onPageSize={choosePageSize}
+                onPrevious={() => setPage((current) => Math.max(0, current - 1))}
+                onNext={() => setPage((current) => current + 1)}
+                onPage={setPage}
+                pageSizeOptions={pageSizeOptions}
+                onPageSize={setPageSize}
                 testid="attribute-pagination"
               />
             }
