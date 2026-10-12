@@ -236,24 +236,42 @@ function fitted(input: ScopeInput, def: AttrDef, value: unknown, answers: Record
 /**
  * Apply a move of `moved` (its new answer already in `answers`). Returns the new
  * answers and provenance; `changed` is true when any answer moved.
+ *
+ * INC-576 — `replacedHeld` is true when the pass replaced or removed an answer
+ * the form held (the seller's own or a prefill). A pass that only fills empty
+ * details — a first choice whose option carries facts — replaces nothing: it
+ * changes the answers, and there is nothing to take back (DEC-139: no Undo offer
+ * unless something changed).
  */
 export function resetAfterMove(
   input: ScopeInput,
   moved: string,
   answers: Record<string, unknown>,
   prefills: Record<string, unknown>,
-): { answers: Record<string, unknown>; prefills: Record<string, unknown>; changed: boolean } {
+): {
+  answers: Record<string, unknown>;
+  prefills: Record<string, unknown>;
+  changed: boolean;
+  replacedHeld: boolean;
+} {
   const deps = dependencyMap(input);
   const byKey = new Map(input.definitions.map((def) => [def.attrKey, def] as const));
   const next = { ...answers };
   const owned = { ...prefills };
   let changed = false;
+  let replacedHeld = false;
   const write = (key: string, value: unknown) => {
     if (isEmpty(value)) {
-      if (!isEmpty(next[key])) changed = true;
+      if (!isEmpty(next[key])) {
+        changed = true;
+        replacedHeld = true;
+      }
       delete next[key];
     } else {
-      if (!same(next[key], value)) changed = true;
+      if (!same(next[key], value)) {
+        changed = true;
+        if (!isEmpty(next[key])) replacedHeld = true;
+      }
       next[key] = value;
     }
   };
@@ -311,5 +329,5 @@ export function resetAfterMove(
       if (!same(before, next[key]) && (deps[key]?.length ?? 0) > 0) queue.push(key);
     }
   }
-  return { answers: next, prefills: owned, changed };
+  return { answers: next, prefills: owned, changed, replacedHeld };
 }

@@ -932,12 +932,23 @@ test.describe("POSTING WIZARD", () => {
       // small fact picker is answered before the model and the year it bounds.
       await control("kind").selectOption(k("tread"));
       await expect(control("power")).toHaveValue(k("electric"), { timeout: 20_000 });
+      // INC-576 — a first choice that only fills an empty detail takes nothing
+      // back, so it says no "Details reset". Read once, in the render that shows
+      // the fill: a wait for "none" would pass by waiting a ten-second offer out.
+      expect(
+        await page.getByTestId("post-specs-reset").count(),
+        "PW-74: the first kind offered a reset (INC-576)",
+      ).toBe(0);
       await control("make").selectOption(make);
       await expect(model).toBeEnabled();
       await model.focus();
       await expect(model).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
       await model.selectOption(chosenModel);
       await expect(control("doors")).toHaveValue("3", { timeout: 20_000 });
+      expect(
+        await page.getByTestId("post-specs-reset").count(),
+        "PW-74: the first model offered a reset (INC-576)",
+      ).toBe(0);
       await control("year").selectOption("2015");
       await control("colour").selectOption(k("red"));
       await page

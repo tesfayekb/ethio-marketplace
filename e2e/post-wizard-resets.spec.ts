@@ -935,6 +935,12 @@ test.describe("POSTING WIZARD", () => {
     await expect(control(sz.attr_key), "PW-60: sz survived the system change").toHaveValue("", {
       timeout: 20_000,
     });
+    // INC-576 — the change cleared the seller's size, so it is said (the offer is
+    // drawn in the render that empties sz, and lives ten seconds).
+    await expect(
+      page.getByTestId("post-specs-reset"),
+      "PW-60: the system change was not announced",
+    ).toContainText(`${us} label`);
     await expect(control(n.attr_key), "PW-60: n was wiped by a system change").toHaveValue("5");
     await expect(control(idn.attr_key), "PW-60: idn was wiped by a system change").toHaveValue(a);
     await expect
@@ -955,7 +961,12 @@ test.describe("POSTING WIZARD", () => {
       .toBe(b);
     await expect(control(n.attr_key), "PW-60: an identity change wiped n").toHaveValue("5");
     await expect(control(sys.attr_key), "PW-60: an identity change wiped sys").toHaveValue(us);
-    await expect(page.getByTestId("post-specs-reset"), "PW-60: a reset was offered").toHaveCount(0);
+    // INC-576 — the system change's offer can still be on screen (it lives ten
+    // seconds), and a ten-second wait for "no offer" passed by waiting it out.
+    // One read, once the identity's change is saved: no offer names b.
+    const offer = page.getByTestId("post-specs-reset");
+    const offered = (await offer.count()) === 0 ? "" : ((await offer.textContent()) ?? "");
+    expect(offered, "PW-60: the identity change offered a reset").not.toContain(`${b} label`);
   });
 
   /**

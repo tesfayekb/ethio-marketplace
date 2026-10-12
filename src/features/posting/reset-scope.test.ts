@@ -245,4 +245,48 @@ describe("reset-scope (DEC-144 rule 1)", () => {
     expect(out.answers).toEqual({ p1: "new", p2: "u", d: "suv" });
     expect(out.prefills).toEqual({ d: "suv" });
   });
+
+  /**
+   * INC-576 — the Undo offer takes back what the form held. `replacedHeld` says
+   * whether the pass replaced or removed an answer; filling an empty detail does
+   * neither (DEC-139: no Undo offer unless something changed).
+   */
+  it("(xi) INC-576: a first choice that only fills empty details replaces nothing held", () => {
+    const scope = input(
+      [def("model", "single_select"), def("doors", "number"), def("seats", "number")],
+      { model: [opt("golf", { facts: { doors: 3, seats: 5 } }), opt("polo")] },
+    );
+    const out = resetAfterMove(scope, "model", { model: "golf" }, {});
+    expect(out.answers).toEqual({ model: "golf", doors: 3, seats: 5 });
+    expect(out.changed).toBe(true);
+    expect(out.replacedHeld).toBe(false);
+  });
+
+  it("(xii) INC-576: a new fact over a held prefill, or a held answer cleared, replaces what was held", () => {
+    const scope = input(
+      [
+        def("model", "single_select"),
+        def("doors", "number"),
+        def("bed", "number", { visibleWhen: { key: "model", in: ["truck"] } }),
+      ],
+      {
+        model: [opt("truck", { facts: { doors: 2 } }), opt("car", { facts: { doors: 4 } })],
+      },
+    );
+    const refilled = resetAfterMove(scope, "model", { model: "car", doors: 2 }, { doors: 2 });
+    expect(refilled.answers).toEqual({ model: "car", doors: 4 });
+    expect(refilled.replacedHeld).toBe(true);
+    const hidden = resetAfterMove(scope, "model", { model: "car", doors: 4, bed: 6 }, {});
+    expect(hidden.answers).toEqual({ model: "car", doors: 4 });
+    expect(hidden.replacedHeld).toBe(true);
+  });
+
+  it("(xiii) INC-576: a move that changes nothing replaces nothing", () => {
+    const scope = input([def("model", "single_select"), def("doors", "number")], {
+      model: [opt("golf", { facts: { doors: 3 } }), opt("polo", { facts: { doors: 3 } })],
+    });
+    const out = resetAfterMove(scope, "model", { model: "polo", doors: 3 }, { doors: 3 });
+    expect(out.changed).toBe(false);
+    expect(out.replacedHeld).toBe(false);
+  });
 });
