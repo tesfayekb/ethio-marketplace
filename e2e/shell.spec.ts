@@ -2317,40 +2317,37 @@ test.describe("L4b location picker", () => {
     }
   });
 
-  test("LS-3 an open market is guessed from the edge country, never saved", async ({ browser }) => {
-    const context = await browser.newContext({ extraHTTPHeaders: { "cf-ipcountry": "ET" } });
-    const page = await context.newPage();
-    try {
-      const ethiopia = await marketName(page, "ET");
-      await gotoReady(page, "/");
-      await expect(page.getByTestId("location-level-country")).toHaveText(
-        new RegExp(escapeRe(ethiopia)),
-      );
-      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
-      // LAW 10 — the guess is never written to the saved-area cookie.
-      expect(await page.evaluate("document.cookie")).not.toContain("ethio_area=");
-    } finally {
-      await context.close();
-    }
+  /**
+   * Turn C6 (INC-569) — LS-3, LS-4 and LS-6..LS-10 set the edge headers on their
+   * own page's context. They used to open a second browser context only to set
+   * them, so a failure left the run no page snapshot and no client-error capture
+   * (LS-6's flakes, INC-285 / INC-428 / INC-502, were read without either). LS-11
+   * keeps its second context: it needs a context that has never asked the routes.
+   */
+  test("LS-3 an open market is guessed from the edge country, never saved", async ({ page }) => {
+    await page.context().setExtraHTTPHeaders({ "cf-ipcountry": "ET" });
+    const ethiopia = await marketName(page, "ET");
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("location-level-country")).toHaveText(
+      new RegExp(escapeRe(ethiopia)),
+    );
+    await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
+    // LAW 10 — the guess is never written to the saved-area cookie.
+    expect(await page.evaluate("document.cookie")).not.toContain("ethio_area=");
   });
 
-  test("LS-4 a closed market is not guessed", async ({ browser }) => {
-    const context = await browser.newContext({ extraHTTPHeaders: { "cf-ipcountry": "CA" } });
-    const page = await context.newPage();
-    try {
-      const markets = await openMarkets(page);
-      expect(
-        markets.some((row) => row.code === "CA"),
-        "CA must stay a closed market",
-      ).toBe(false);
-      await gotoReady(page, "/");
-      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
-      await expect(page.getByTestId("location-level-country")).toHaveText(
-        new RegExp(escapeRe(en["location.country"])),
-      );
-    } finally {
-      await context.close();
-    }
+  test("LS-4 a closed market is not guessed", async ({ page }) => {
+    await page.context().setExtraHTTPHeaders({ "cf-ipcountry": "CA" });
+    const markets = await openMarkets(page);
+    expect(
+      markets.some((row) => row.code === "CA"),
+      "CA must stay a closed market",
+    ).toBe(false);
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
+    await expect(page.getByTestId("location-level-country")).toHaveText(
+      new RegExp(escapeRe(en["location.country"])),
+    );
   });
 
   test("LS-5 no header and no cookie: no guess, and the markets route caches", async ({ page }) => {
@@ -2447,19 +2444,16 @@ test.describe("L4b location picker", () => {
     }
   });
 
-  test("LS-6 the nearest curated metro wins by geometry", async ({ browser }) => {
+  test("LS-6 the nearest curated metro wins by geometry", async ({ page }) => {
     const point = guessPoint(test.info().project.name, test.info().workerIndex);
     const fixture = await seedGuessFixture("ET", point);
-    const context = await browser.newContext({
-      extraHTTPHeaders: {
-        "cf-ipcountry": "ET",
-        "cf-iplatitude": String(point.lat),
-        "cf-iplongitude": String(point.lng),
-        // A city NAME that matches nothing: geometry alone must decide.
-        "cf-ipcity": "Somewhere Else",
-      },
+    await page.context().setExtraHTTPHeaders({
+      "cf-ipcountry": "ET",
+      "cf-iplatitude": String(point.lat),
+      "cf-iplongitude": String(point.lng),
+      // A city NAME that matches nothing: geometry alone must decide.
+      "cf-ipcity": "Somewhere Else",
     });
-    const page = await context.newPage();
     try {
       await waitForTreeSlug(page, "ET", fixture.city.slug);
       await gotoReady(page, "/");
@@ -2469,18 +2463,16 @@ test.describe("L4b location picker", () => {
       await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
       expect(await page.evaluate("document.cookie")).not.toContain("ethio_area=");
     } finally {
-      await context.close();
       await destroyLocation(fixture.region.slug);
     }
   });
 
-  test("LS-7 a region code alone selects the region", async ({ browser }) => {
+  test("LS-7 a region code alone selects the region", async ({ page }) => {
     const point = guessPoint(test.info().project.name, test.info().workerIndex);
     const fixture = await seedGuessFixture("ET", point);
-    const context = await browser.newContext({
-      extraHTTPHeaders: { "cf-ipcountry": "ET", "cf-region-code": fixture.regionCode },
-    });
-    const page = await context.newPage();
+    await page
+      .context()
+      .setExtraHTTPHeaders({ "cf-ipcountry": "ET", "cf-region-code": fixture.regionCode });
     try {
       await waitForTreeSlug(page, "ET", fixture.region.slug);
       await gotoReady(page, "/");
@@ -2494,18 +2486,16 @@ test.describe("L4b location picker", () => {
       );
       await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
     } finally {
-      await context.close();
       await destroyLocation(fixture.region.slug);
     }
   });
 
-  test("LS-8 a city name alone selects that city", async ({ browser }) => {
+  test("LS-8 a city name alone selects that city", async ({ page }) => {
     const point = guessPoint(test.info().project.name, test.info().workerIndex);
     const fixture = await seedGuessFixture("ET", point);
-    const context = await browser.newContext({
-      extraHTTPHeaders: { "cf-ipcountry": "ET", "cf-ipcity": fixture.cityName },
-    });
-    const page = await context.newPage();
+    await page
+      .context()
+      .setExtraHTTPHeaders({ "cf-ipcountry": "ET", "cf-ipcity": fixture.cityName });
     try {
       await waitForTreeSlug(page, "ET", fixture.city.slug);
       await gotoReady(page, "/");
@@ -2514,22 +2504,18 @@ test.describe("L4b location picker", () => {
       );
       await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
     } finally {
-      await context.close();
       await destroyLocation(fixture.region.slug);
     }
   });
 
-  test("LS-9 coordinates far from every metro stop at the market", async ({ browser }) => {
+  test("LS-9 coordinates far from every metro stop at the market", async ({ page }) => {
     const point = guessPoint(test.info().project.name, test.info().workerIndex);
     const fixture = await seedGuessFixture("ET", point);
-    const context = await browser.newContext({
-      extraHTTPHeaders: {
-        "cf-ipcountry": "ET",
-        "cf-iplatitude": "0.0001",
-        "cf-iplongitude": "0.0001",
-      },
+    await page.context().setExtraHTTPHeaders({
+      "cf-ipcountry": "ET",
+      "cf-iplatitude": "0.0001",
+      "cf-iplongitude": "0.0001",
     });
-    const page = await context.newPage();
     try {
       const ethiopia = await marketName(page, "ET");
       await waitForTreeSlug(page, "ET", fixture.city.slug);
@@ -2540,27 +2526,23 @@ test.describe("L4b location picker", () => {
       await expect(page.locator("[data-testid^='location-level-']")).toHaveCount(2);
       await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
     } finally {
-      await context.close();
       await destroyLocation(fixture.region.slug);
     }
   });
 
-  test("LS-10 a saved area beats the deepest guess", async ({ browser, baseURL }) => {
+  test("LS-10 a saved area beats the deepest guess", async ({ page, baseURL }) => {
     const point = guessPoint(test.info().project.name, test.info().workerIndex);
     const fixture = await seedGuessFixture("ET", point);
     const chain = await seedScratchChain("ET");
-    const context = await browser.newContext({
-      extraHTTPHeaders: {
-        "cf-ipcountry": "ET",
-        "cf-iplatitude": String(point.lat),
-        "cf-iplongitude": String(point.lng),
-        "cf-ipcity": fixture.cityName,
-      },
+    await page.context().setExtraHTTPHeaders({
+      "cf-ipcountry": "ET",
+      "cf-iplatitude": String(point.lat),
+      "cf-iplongitude": String(point.lng),
+      "cf-ipcity": fixture.cityName,
     });
-    const page = await context.newPage();
     try {
       await waitForTreeSlug(page, "ET", chain.city.slug);
-      await context.addCookies([
+      await page.context().addCookies([
         {
           name: "ethio_area",
           value: `ET:${chain.city.id}`,
@@ -2573,7 +2555,6 @@ test.describe("L4b location picker", () => {
       );
       await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
     } finally {
-      await context.close();
       await destroyLocation(chain.region.slug);
       await destroyLocation(fixture.region.slug);
     }

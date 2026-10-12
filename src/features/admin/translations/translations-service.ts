@@ -1,6 +1,8 @@
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 
 import { PSEUDO_LANG, PSEUDO_LANG_NAME_EN, PSEUDO_LANG_NAME_NATIVE } from "./pseudo";
 
@@ -127,6 +129,29 @@ function asStatus(value: string): TranslationStatus {
   return value === "machine" || value === "edited" || value === "approved" ? value : "untranslated";
 }
 
+/** A row of the list or the export door, as the console and the export use it. */
+type TranslationDbRow =
+  Database["public"]["Functions"]["admin_export_translations"]["Returns"][number];
+
+function translationRowOf(row: TranslationDbRow): TranslationRow {
+  return {
+    key: row.key,
+    langCode: row.lang_code,
+    value: row.value ?? null,
+    sourceValue: row.source_value ?? null,
+    status: asStatus(row.status),
+    machine: row.machine,
+    flagged: row.flagged,
+    flagNote: row.flag_note ?? null,
+    updatedBy: row.updated_by ?? null,
+    updatedAt: row.updated_at,
+    approvedBy: row.approved_by ?? null,
+    approvedAt: row.approved_at ?? null,
+    orphaned: row.orphaned,
+    context: row.context ?? "",
+  };
+}
+
 export async function listTranslations({
   lang,
   status = "all",
@@ -150,22 +175,7 @@ export async function listTranslations({
   const rows = data ?? [];
   const first = rows[0];
   return {
-    rows: rows.map((row) => ({
-      key: row.key,
-      langCode: row.lang_code,
-      value: row.value ?? null,
-      sourceValue: row.source_value ?? null,
-      status: asStatus(row.status),
-      machine: row.machine,
-      flagged: row.flagged,
-      flagNote: row.flag_note ?? null,
-      updatedBy: row.updated_by ?? null,
-      updatedAt: row.updated_at,
-      approvedBy: row.approved_by ?? null,
-      approvedAt: row.approved_at ?? null,
-      orphaned: row.orphaned,
-      context: row.context ?? "",
-    })),
+    rows: rows.map(translationRowOf),
     totalCount: first ? Number(first.total_count) : 0,
   };
 }
@@ -970,44 +980,48 @@ export async function writePseudoRow(input: { key: string; value: string }): Pro
  *
  * The walk exported 25 rows because the bar serialised the rows the console
  * happened to be holding — one PAGE. An export of "the catalog" that silently
- * means "the page" is a phantom success (F4). The exporter therefore pages the
- * SAME list RPC the console reads, in batches of `EXPORT_PAGE_SIZE`, until the
- * language is exhausted. The current search/status chips are deliberately NOT
- * applied: an export is the whole language + scope, always.
+ * means "the page" is a phantom success (F4). The exporter therefore reads the
+ * whole language, page after page, until it is exhausted. The current
+ * search/status chips are deliberately NOT applied: an export is the whole
+ * language + scope, always.
  *
- * C2-UI-FIX-5 / INC-141 — the LOOP was already total-complete (short page OR
- * the server's own `total_count`); what was not total was its SCOPE. The
- * reader filtered `orphaned = false`, so an export of a catalog holding
- * orphaned keys came back short of the language's real row count. The reader
- * now passes NO orphan predicate, so "every page until exhausted" and "every
- * row the language owns" finally mean the same thing.
+ * C2-UI-FIX-5 / INC-141 — every row the language owns, orphaned or not.
+ *
+ * Bundle 11 turn C6 (INC-568, INC-452's class) — the pages are asked for by KEY,
+ * never by position. The export used to page the console's list by offset, so
+ * another writer adding or removing a row in the language between two pages
+ * repeated or dropped a row of the file (CI: 2,252 rows exported where 2,251
+ * stood). It now reads `admin_export_translations` through `readAllPages`: each
+ * next page comes after the last key it already has, so a row that was there
+ * throughout is in the file exactly once.
  */
-export const EXPORT_PAGE_SIZE = 200;
+export const EXPORT_PAGE_SIZE = PAGE_ROWS;
 
-/** Hard stop so a server that keeps returning full pages cannot loop forever. */
-const EXPORT_MAX_PAGES = 500;
+export type TranslationPageFetcher = (
+  after: string | null,
+  limit: number,
+) => PromiseLike<{ data: TranslationRow[] | null; error: unknown }>;
 
-export type TranslationPageFetcher = (offset: number, limit: number) => Promise<TranslationPage>;
+async function readExportPage(
+  lang: string,
+  after: string | null,
+  limit: number,
+): Promise<{ data: TranslationRow[] | null; error: unknown }> {
+  const { data, error } = await supabase.rpc("admin_export_translations", {
+    p_lang: lang,
+    ...(after === null ? {} : { p_after: after }),
+    p_limit: limit,
+  });
+  return { data: data ? data.map(translationRowOf) : null, error };
+}
 
 export async function fetchAllTranslationRows(
   lang: string,
   fetchPage?: TranslationPageFetcher,
 ): Promise<TranslationRow[]> {
   const read: TranslationPageFetcher =
-    fetchPage ??
-    ((offset, limit) =>
-      listTranslations({ lang, status: "all", search: "", limit, offset, orphaned: null }));
-
-  const rows: TranslationRow[] = [];
-  for (let page = 0; page < EXPORT_MAX_PAGES; page += 1) {
-    const result = await read(page * EXPORT_PAGE_SIZE, EXPORT_PAGE_SIZE);
-    rows.push(...result.rows);
-    // A short page is the end of the catalog; a full page that already covers
-    // the server's own total is too (the RPC reports `total_count` per row).
-    if (result.rows.length < EXPORT_PAGE_SIZE) return rows;
-    if (result.totalCount > 0 && rows.length >= result.totalCount) return rows;
-  }
-  throw new Error(`[export] ${lang}: page limit reached before the catalog was exhausted`);
+    fetchPage ?? ((after, limit) => readExportPage(lang, after, limit));
+  return readAllPages(read, (row) => row.key, EXPORT_PAGE_SIZE);
 }
 
 /** `<lang>-<scope>-<yyyymmdd>.csv|.xlf` — the language, the scope, the day. */

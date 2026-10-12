@@ -793,12 +793,22 @@ the pseudo catalog can never reach a real user.
 
 ## U4i-4 — export-all, language deletion, switcher density (INC-123)
 
-**Export is catalog-scoped.** `fetchAllTranslationRows()` pages the list RPC in
-batches of `EXPORT_PAGE_SIZE` (200) until the language is exhausted, stopping on
-a short page or once the server's own `total_count` is covered, with a hard page
-cap that throws rather than looping. The console's search/status chips are NOT
+**Export is catalog-scoped.** `fetchAllTranslationRows()` reads the whole
+language until it is exhausted. The console's search/status chips are NOT
 applied to an export; the button's tooltip says so. Files are named
 `<lang>-<scope>-<yyyymmdd>.csv|.xlf`.
+
+**The export reads by key (bundle 11 turn C6, INC-568 — INC-452's class).** It
+used to page the console's list RPC by offset, 200 rows at a time, so another
+writer adding or removing a row in the language between two pages repeated or
+dropped a row of the file (CI on 2fb73b85: 2,252 rows exported where 2,251
+stood; TR-29's flakes, INC-345). It now reads `admin_export_translations(p_lang,
+p_after, p_limit)` through `readAllPages` (src/lib/read-all-pages.ts): each
+next page is asked for after the last key it already has, at most 1,000 rows
+(`EXPORT_PAGE_SIZE` = `PAGE_ROWS`), ending on a short page; a failed page fails
+the export; a page that makes no progress throws. The door is
+`translations:view`, read only, every status and orphaned or not, with the base
+language's value and context — the same rows the list returned for the export.
 
 **Deleting a language** (`translations:manage` + step-up) runs entirely
 server-side in `admin_delete_language(p_code)`:
@@ -823,12 +833,18 @@ target below `md` and shrinks to 36px above it (C2).
 
 ### Coverage (U4i-4)
 
-- `export-all.test.ts` — the pagination loop against a mocked three-page reader,
-  the short-page stop, the exact-multiple stop, and the filename stamp.
+- `export-all.test.ts` — the pages asked for by key (three pages, in order), a
+  write between two pages that repeats and drops nothing (INC-568), the
+  short-page stop, the exact multiple (one more, empty page), a failed page, and
+  the filename stamp.
 - `language-switcher-compact.test.tsx` — N gated languages render N single-line
   items, each carrying its own star.
-- TR-29 addendum — the exported CSV's data-line count equals the fence
-  language's service-client row count (page-scoped export fails here).
+- TR-29 addendum — read with the app's own CSV reader and judged by key against
+  the fence's stable keys read before the click and after the download (turn
+  C6): no key twice, every key present throughout in the file, nothing the
+  language held at neither reading, its own key once. (It used to compare a line
+  count with a count read after the download, while other tests and other jobs'
+  setup changed the shared fence: INC-345, INC-568.)
 - TR-31 — a per-axes scratch language is created and seeded, deleted through the
   operator's typed-confirm + step-up flow, and proven gone from the roster and
   from all four tables.

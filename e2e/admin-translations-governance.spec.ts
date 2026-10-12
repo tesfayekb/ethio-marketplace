@@ -32,6 +32,7 @@ import {
   serializeRevisions,
   signInAsSuperAdmin,
 } from "./helpers/translations";
+import { fromCsv } from "../src/features/admin/translations/io-formats";
 import { isPseudo, PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
 /**
  * Phases U4f/U4g/U4i — publication gate, bulk approval, roster order, orphans,
@@ -714,6 +715,32 @@ test.describe("U4g bulk approval, order and orphans", () => {
   });
 
   /**
+   * Turn C6 (INC-568) — a language's stable keys (no `e2e.scratch.` key), read
+   * through the service client by key, a thousand at a time (the data API's
+   * row cap), never by position.
+   */
+  async function stableKeys(lang: string): Promise<Set<string>> {
+    const keys = new Set<string>();
+    let after: string | null = null;
+    for (;;) {
+      let query = adminClient()
+        .from("ui_translations")
+        .select("key")
+        .eq("lang_code", lang)
+        .not("key", "like", `${SCRATCH_PREFIX}%`)
+        .order("key")
+        .limit(1000);
+      if (after !== null) query = query.gt("key", after);
+      const { data, error } = await query;
+      if (error) throw new Error(`[e2e:u4i] TR-29 reading ${lang}'s keys failed: ${error.message}`);
+      const page = (data ?? []).map((row) => row.key as string);
+      for (const k of page) keys.add(k);
+      if (page.length < 1000) return keys;
+      after = page[page.length - 1]!;
+    }
+  }
+
+  /**
    * TR-29 (U4i ⑤) — EXPORT → EDIT → IMPORT, the offline-translator round trip.
    *
    * Walk: seed an axes-namespaced scratch key in this project's BULK FENCE,
@@ -745,6 +772,8 @@ test.describe("U4g bulk approval, order and orphans", () => {
       await expect(stringRow(page, slug(key))).toBeVisible({ timeout: 20000 });
       await page.getByTestId("strings-search").fill("");
 
+      // Turn C6 (INC-568) — the fence's stable keys before the click (see below).
+      const before = await stableKeys(fence);
       const [download] = await Promise.all([
         page.waitForEvent("download", { timeout: 30000 }),
         page.getByTestId("strings-export-csv").click(),
@@ -758,40 +787,41 @@ test.describe("U4g bulk approval, order and orphans", () => {
       }
 
       /**
-       * U4i-4 (a) ADDENDUM — EXPORT IS CATALOG-SCOPED (INC-123). The walk
-       * exported one PAGE and called it the catalog. The file's data-line count
-       * is asserted against the fence language's OWN row count read with the
-       * service client (J4): per-key/DB truth, never the console's summary.
+       * U4i-4 (a) ADDENDUM — EXPORT IS CATALOG-SCOPED (INC-123), judged by KEY.
+       *
+       * Bundle 11 turn C6 (INC-568, INC-345) — the fence language is shared:
+       * other tests add and remove their scratch rows in it, and another job's
+       * setup clears its rows older than an hour, so a count read after the
+       * download judged a moving roster (G28's class, INC-437) — and the export
+       * itself paged by position, so a write between two pages repeated a row
+       * (2,252 against 2,251 on 2fb73b85). The export now reads by key; this
+       * test reads the file with the app's own CSV reader (a quoted line break
+       * stays inside its row) and judges it against the stable keys the
+       * database held before the click AND after the download: no key twice,
+       * every key present throughout in the file, nothing in the file that the
+       * language held at neither reading, and this test's own key once.
        */
-      /**
-       * DEC-059 (INC-184) — THE COUNT EXCLUDES OTHER TESTS' SCRATCH ROWS (J6).
-       * The fence language is shared: a sibling test seeding or reaping its own
-       * `e2e-` key between the export bytes and this count made the two sides
-       * differ by one and reddened a green walk. Both sides are therefore
-       * counted over the STABLE catalog plus THIS test's own key: `e2e-` rows
-       * are excluded from the DB count and from the exported lines, and the own
-       * key is added back on both sides.
-       */
-      const { count: stableCount, error: catalogError } = await adminClient()
-        .from("ui_translations")
-        .select("key", { count: "exact", head: true })
-        .eq("lang_code", fence)
-        .not("key", "like", `${SCRATCH_PREFIX}%`);
-      if (catalogError)
-        throw new Error(`[e2e:u4i] TR-29 catalog count failed: ${catalogError.message}`);
-      const dataLines = exported
-        .split(/\r?\n/)
-        .filter((line) => line.trim() !== "")
-        .slice(1);
-      const ownLines = dataLines.filter((line) => line.startsWith(key));
-      const stableLines = dataLines.filter((line) => !line.startsWith(SCRATCH_PREFIX));
-      const expectedRows = (stableCount ?? 0) + 1;
-      const exportedRows = stableLines.length + ownLines.length;
+      const after = await stableKeys(fence);
+      const parsed = fromCsv(exported);
+      expect(parsed.malformed, "TR-29: the export wrote a row its own reader cannot read").toBe(0);
+      const fileKeys = parsed.rows.map((r) => r.key);
+      const seen = new Set<string>();
+      const repeated = fileKeys.filter((k) => (seen.has(k) ? true : (seen.add(k), false)));
+      expect(repeated, "TR-29: a key appears twice in the export").toEqual([]);
+      const throughout = [...before].filter((k) => after.has(k));
+      expect(throughout.length, "TR-29: the fence language held no stable row").toBeGreaterThan(0);
+      const dropped = throughout.filter((k) => !seen.has(k));
+      expect(dropped, "TR-29: the export dropped rows present throughout").toEqual([]);
+      const stray = fileKeys.filter(
+        (k) => !k.startsWith(SCRATCH_PREFIX) && !before.has(k) && !after.has(k),
+      );
+      expect(stray, "TR-29: the export holds a row the language held at neither reading").toEqual(
+        [],
+      );
       expect(
-        exportedRows,
-        `the CSV export was page-scoped: ${exportedRows} stable+own rows against a ${expectedRows}-row expectation`,
-      ).toBe(expectedRows);
-      expect(ownLines.length, `TR-29 exported ${ownLines.length} lines for ${key}`).toBe(1);
+        fileKeys.filter((k) => k === key),
+        `TR-29 exported its own key ${key} once`,
+      ).toHaveLength(1);
 
       // The operator's edit, expressed as the file they would send back.
       const csv = ["key,source,translation", `${key},"${source}","${imported}"`, `${ghost},"x","y"`]
