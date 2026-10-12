@@ -1,4 +1,5 @@
 import { PasswordInput } from "@/components/ui/password-input";
+import { passwordPairProblem } from "@/features/auth/password-pair";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 
@@ -55,6 +56,8 @@ function ResetScreen() {
   const [checking, setChecking] = useState(true);
   const [hasRecoverySession, setHasRecoverySession] = useState(false);
   const [password, setPassword] = useState("");
+  /** Bundle 11 turn C4 (D143) — the new password is typed twice. */
+  const [passwordAgain, setPasswordAgain] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
@@ -85,6 +88,11 @@ function ResetScreen() {
       setErrorKey("auth.errorPasswordTooShort");
       return;
     }
+    const mismatch = passwordPairProblem(password, passwordAgain);
+    if (mismatch !== null) {
+      setErrorKey(mismatch);
+      return;
+    }
     setBusy(true);
     const result = await completePasswordReset(password);
     setBusy(false);
@@ -93,6 +101,7 @@ function ResetScreen() {
       return;
     }
     setPassword("");
+    setPasswordAgain("");
     setDone(true);
   }
 
@@ -158,6 +167,23 @@ function ResetScreen() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={t("auth.passwordPlaceholder")}
+            className={fieldClass}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="reset-password-confirm" className="text-sm font-medium text-foreground">
+            {t("settings.newPasswordConfirm")}
+          </label>
+          <PasswordInput
+            id="reset-password-confirm"
+            name="password-confirm"
+            type="password"
+            autoComplete="new-password"
+            minLength={MIN_PASSWORD_LENGTH}
+            required
+            value={passwordAgain}
+            onChange={(e) => setPasswordAgain(e.target.value)}
             className={fieldClass}
           />
         </div>

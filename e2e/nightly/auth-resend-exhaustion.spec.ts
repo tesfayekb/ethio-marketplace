@@ -22,6 +22,8 @@ async function signUpFresh(page: import("@playwright/test").Page, n: number) {
 
   await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
   await fillUntilStable(page.locator("#auth-password"), password, "password");
+  // Bundle 11 C4 (D143) — sign-up asks for the password twice.
+  await fillUntilStable(page.locator("#auth-password-confirm"), password, "password confirmation");
   await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
 
   return email;

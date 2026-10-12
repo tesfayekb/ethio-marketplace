@@ -175,3 +175,9 @@ be removed directly via `public.remove_own_password()` when another door exists.
 The INC-024 trigger above still stands — unlinking the email identity still kills
 its password — but it is now one of two paths to a passwordless account rather
 than the only one. See `docs/features/auth-password-recovery.md`.
+
+## Passwords confirmed and typed twice (bundle 11 turn C4; D143, the operator's walk of C2, 2026-10-12)
+
+- **Remove password** asks for the current password in its confirmation (`#remove-password-current`; "Yes, remove" stays greyed until it is filled). The password is checked on a throwaway client that persists nothing — the same check Change password uses (`verifyCurrentPassword` in src/features/auth/auth-service.ts) — before `remove_own_password` is called; a wrong password keeps the confirmation open with "That current password is not correct." Cancel clears it. The server door's own guard (another sign-in method must remain) is unchanged.
+- **Change password** asks for the new password twice (`#new-password-confirm`); two that differ are refused on the form ("The passwords do not match.") and nothing is sent.
+- Tests: S-3 (a mismatch refused, then the wrong current password, then the change); S-4 unchanged. A successful removal needs a second sign-in method (a Google identity), which the e2e accounts cannot hold; its check is the one Change password's S-3 proves.

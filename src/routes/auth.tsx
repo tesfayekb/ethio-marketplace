@@ -1,4 +1,5 @@
 import { PasswordInput } from "@/components/ui/password-input";
+import { passwordPairProblem } from "@/features/auth/password-pair";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -88,6 +89,8 @@ function AuthScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  /** Bundle 11 turn C4 (D143) — sign-up asks for the password twice. */
+  const [passwordAgain, setPasswordAgain] = useState("");
   const [busy, setBusy] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [canResend, setCanResend] = useState(false);
@@ -208,6 +211,13 @@ function AuthScreen() {
     if (!email.trim() || !password) {
       setErrorKey("auth.errorMissingFields");
       return;
+    }
+    if (!isSignIn) {
+      const mismatch = passwordPairProblem(password, passwordAgain);
+      if (mismatch !== null) {
+        setErrorKey(mismatch);
+        return;
+      }
     }
 
     const address = email.trim();
@@ -528,6 +538,27 @@ function AuthScreen() {
               className={fieldClass}
             />
           </div>
+
+          {isSignIn ? null : (
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="auth-password-confirm"
+                className="text-sm font-medium text-foreground"
+              >
+                {t("auth.passwordConfirm")}
+              </label>
+              <PasswordInput
+                id="auth-password-confirm"
+                name="password-confirm"
+                type="password"
+                autoComplete="new-password"
+                required
+                value={passwordAgain}
+                onChange={(e) => setPasswordAgain(e.target.value)}
+                className={fieldClass}
+              />
+            </div>
+          )}
 
           {errorKey ? (
             <p role="alert" className="text-sm text-destructive">

@@ -94,3 +94,7 @@ server-side send limit remains the backstop.
 Production SMTP is not yet delivering, so the _send_ leg of recovery is proven
 against staging (Ethereal sink, ruling R1) and by admin-minted links in CI. The
 production send remains a launch-gate item alongside custom SMTP.
+
+## The new password typed twice (bundle 11 turn C4; D143, 2026-10-12)
+
+The reset page asks for the new password twice (`#reset-password-confirm`); two that differ are refused on the form ("The passwords do not match.") and nothing is sent. Sign-up does the same (`#auth-password-confirm`, shown only in the sign-up view). The rule is `passwordPairProblem` (src/features/auth/password-pair.ts; PPR-1). Tests: R-3 (a mismatch refused, then the reset), R-9, SU-1 (a mismatch on sign-up sends no request), A-1+A-2 and the nightly A-3 fill both fields.

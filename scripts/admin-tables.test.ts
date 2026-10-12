@@ -54,6 +54,20 @@ describe("the agreed tables' check — planted files", () => {
         ),
       ),
     ).toEqual([]);
+    // T9 (D142) — a row that opens its page and has a three-dots menu offers Open.
+    const linked = GOOD.replace(
+      "pagination={",
+      "rowHref={(row) => ({ to: row.id })}\n        pagination={",
+    );
+    expect(breaches(f, linked)).toEqual([]);
+    const withMenu = linked.replace(
+      '<RowActions testid={row.id} name="x" />',
+      '<RowActions testid={row.id} name="x" more={[{ key: "members", label: "M", onSelect }]} />',
+    );
+    expect(breaches(f, withMenu)).toEqual(["T9"]);
+    expect(
+      breaches(f, withMenu.replace("more={[{", 'more={[{ key: "open", label: "O", onSelect }, {')),
+    ).toEqual([]);
   });
 
   it("TBL-2 the conditional rules: no Filters asks no chips; a details toggle may stand for RowActions; any localStorage breaks T6; comments are not blocks", () => {

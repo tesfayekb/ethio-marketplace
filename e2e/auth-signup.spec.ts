@@ -71,6 +71,8 @@ async function signUpFresh(page: Page, n: number) {
 
   await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
   await fillUntilStable(page.locator("#auth-password"), password, "password");
+  // Bundle 11 C4 (D143) — sign-up asks for the password twice.
+  await fillUntilStable(page.locator("#auth-password-confirm"), password, "password confirmation");
   await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
 
   return email;
@@ -148,4 +150,36 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     await expect(throttled).toBeVisible({ timeout: 15000 });
     await expect(throttled).toBeDisabled();
   });
+});
+
+/**
+ * Bundle 11 C4 (D143, the operator) — sign-up asks for the password twice; two
+ * passwords that differ are refused on the form and no sign-up request leaves.
+ * Needs no mail sink: nothing is sent.
+ */
+test("SU-1 sign-up asks for the password twice, and a mismatch sends nothing", async ({ page }) => {
+  const signups: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/auth/v1/signup")) signups.push(request.url());
+  });
+  await page.goto("/auth");
+  await waitForHydration(page);
+  await expect(page.locator("#auth-password-confirm")).toHaveCount(0);
+  await page.getByTestId("auth-toggle-view").click();
+  await expect(page.locator("#auth-password-confirm")).toBeVisible();
+
+  await fillUntilStable(
+    page.getByRole("textbox", { name: /email/i }),
+    testEmail(RUN_ID, 191),
+    "email",
+  );
+  await fillUntilStable(page.locator("#auth-password"), "Pw-191-aX9!qmzT", "password");
+  await fillUntilStable(
+    page.locator("#auth-password-confirm"),
+    "Pw-191-aX9!qmzt",
+    "password confirmation",
+  );
+  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
+  await expect(page.getByRole("alert")).toHaveText(en["auth.errorPasswordMismatch"]);
+  expect(signups, "SU-1 a mismatch sent a sign-up request").toEqual([]);
 });

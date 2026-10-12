@@ -68,7 +68,12 @@ test("R-3: a recovery link sets a new password, and the old one stops working", 
     timeout: 20000,
   });
 
+  // Bundle 11 C4 (D143) — the new password is typed twice; a mismatch is refused on the form.
   await page.locator("#reset-password").fill(newPassword);
+  await page.locator("#reset-password-confirm").fill(`${newPassword}x`);
+  await page.getByRole("button", { name: en["auth.resetSubmit"] }).click();
+  await expect(page.getByRole("alert")).toHaveText(en["auth.errorPasswordMismatch"]);
+  await page.locator("#reset-password-confirm").fill(newPassword);
   await page.getByRole("button", { name: en["auth.resetSubmit"] }).click();
   await expect(page.getByText(en["auth.resetDone"])).toBeVisible({ timeout: 20000 });
 
@@ -96,6 +101,7 @@ test("R-9: recovery leaves an email identity in place (truth-model read-back)", 
   await page.goto(link);
   await page.waitForURL(/\/auth\/reset/, { timeout: 20000 });
   await page.locator("#reset-password").fill(newPassword);
+  await page.locator("#reset-password-confirm").fill(newPassword);
   await page.getByRole("button", { name: en["auth.resetSubmit"] }).click();
   await expect(page.getByText(en["auth.resetDone"])).toBeVisible({ timeout: 20000 });
 
