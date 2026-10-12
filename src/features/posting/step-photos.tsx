@@ -41,6 +41,10 @@ const NO_CAP = Number.POSITIVE_INFINITY;
 const tileButtonClass =
   "min-h-11 grow rounded-md border border-input px-2 text-xs font-medium text-foreground " +
   "hover:bg-accent disabled:opacity-60";
+/** Bundle 11 C2 — Remove deletes the photo at once: a destructive act, red. */
+const tileDangerClass =
+  "min-h-11 grow rounded-md border border-destructive/50 px-2 text-xs font-medium text-destructive " +
+  "hover:bg-destructive/10 disabled:opacity-60";
 
 const addButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm " +
@@ -375,7 +379,7 @@ export function StepPhotos({
               <button
                 type="button"
                 data-testid="post-photo-remove"
-                className={tileButtonClass}
+                className={tileDangerClass}
                 onClick={() => void remove(item)}
               >
                 {t("post.photos.remove")}

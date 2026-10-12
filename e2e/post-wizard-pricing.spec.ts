@@ -14,6 +14,7 @@ import { seedActiveListing } from "./helpers/categories";
 import {
   leaseSeller,
   activeCityOf,
+  nextToStep,
   postRoute,
   pricingOf,
   destroyCategoryBranch,
@@ -335,17 +336,15 @@ test.describe("POSTING WIZARD", () => {
 
   /** From step 5 (Next already valid) through place and contact to review. */
   async function pricingToReview(page: Page) {
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    // INC-562 — each Next, and when its step does not come, the draft save's answer says why
+    // (PW-55, INC-430; PW-64, INC-533). The waits are unchanged.
+    await nextToStep(page, 5);
     await page.getByTestId("post-title").fill("e2e d31c listing title");
     await page.getByTestId("post-description").fill("e2e d31c listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    await nextToStep(page, 6);
     await chooseOneCity(page);
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-7")).toBeVisible();
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-8")).toBeVisible();
+    await nextToStep(page, 7);
+    await nextToStep(page, 8);
   }
 
   const reviewPrice = (page: Page) =>

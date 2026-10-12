@@ -1699,7 +1699,7 @@ export function StepWhere({
               {pin !== null && (
                 <button
                   type="button"
-                  className="min-h-11 rounded-md border border-input px-3 py-2 text-sm text-foreground"
+                  className="min-h-11 rounded-md border border-destructive/50 px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
                   onClick={() => {
                     if (pinCarried) {
                       dropCarried();

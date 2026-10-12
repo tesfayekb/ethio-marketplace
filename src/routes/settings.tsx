@@ -61,6 +61,14 @@ const primaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm " +
   "font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60";
 
+/** Bundle 11 C2 — a destructive act is red: the act in a list (or opening its confirmation), then its confirmation. */
+const dangerOutlineClass =
+  "min-h-11 rounded-md border border-destructive/50 px-3 text-sm font-medium text-destructive " +
+  "hover:bg-destructive/10 disabled:opacity-60";
+const dangerButtonClass =
+  "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-destructive px-4 text-sm " +
+  "font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-60";
+
 const secondaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md border border-input px-4 " +
   "text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60";
@@ -400,7 +408,7 @@ function SettingsScreen() {
                     onClick={() => void handleUnlink(identity)}
                     disabled={busy || onlyOneMethod}
                     title={onlyOneMethod ? t("settings.lastMethodGuard") : undefined}
-                    className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
+                    className={dangerOutlineClass}
                   >
                     {t("settings.unlink")}
                   </button>
@@ -446,7 +454,7 @@ function SettingsScreen() {
                   }}
                   disabled={busy || !canRemovePassword}
                   title={canRemovePassword ? undefined : t("settings.lastMethodGuard")}
-                  className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
+                  className={dangerOutlineClass}
                 >
                   {t("settings.removePassword")}
                 </button>
@@ -465,7 +473,7 @@ function SettingsScreen() {
                 type="button"
                 onClick={() => void handleRemovePassword()}
                 disabled={busy}
-                className={primaryButtonClass}
+                className={dangerButtonClass}
               >
                 {busy ? t("auth.working") : t("settings.removePasswordConfirmYes")}
               </button>
@@ -555,7 +563,7 @@ function SettingsScreen() {
                   setRemovingFactorId(factor.id);
                 }}
                 disabled={mfa.busy}
-                className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-60"
+                className={dangerOutlineClass}
               >
                 {t("mfa.remove")}
               </button>
@@ -592,7 +600,7 @@ function SettingsScreen() {
                     }
                   });
                 }}
-                className={primaryButtonClass}
+                className={dangerButtonClass}
               >
                 {mfa.busy ? t("auth.working") : t("mfa.removeConfirmYes")}
               </button>

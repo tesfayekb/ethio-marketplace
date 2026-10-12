@@ -283,7 +283,8 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                       ) : mayAssign ? (
                         <Button
                           variant="ghost"
-                          className="min-h-11 px-2 text-xs"
+                          // Bundle 11 C2 — removing a role is a destructive act: red.
+                          className="min-h-11 px-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
                           data-testid={`role-remove-${role}`}
                           disabled={revoke.isPending}
                           onClick={() =>
