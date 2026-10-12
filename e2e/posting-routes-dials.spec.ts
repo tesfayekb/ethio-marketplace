@@ -199,15 +199,34 @@ test.describe("POSTING DOOR DIALS", () => {
   test("PR-33 the map fallback report is capped at 60 an hour per address", async ({ page }) => {
     // INC-446 — one fresh address per run (J1), so no other run's count is read.
     const address = `198.51.100.${Math.floor(Math.random() * 250) + 1}-${Date.now()}`;
-    const answers: boolean[] = [];
-    for (let i = 0; i < 61; i += 1) {
+    // INC-572 — the count lives in clock-hour windows (consume_rate_limit floors
+    // the time to the hour), so the 61 reports must fall in one window: within
+    // the last 30 s of an hour, the test waits until the next hour has begun.
+    await expect
+      .poll(() => 3_600_000 - (Date.now() % 3_600_000), {
+        message: "PR-33: the next clock hour did not begin",
+        timeout: 35_000,
+        intervals: [1_000],
+      })
+      .toBeGreaterThanOrEqual(30_000);
+    const report = async (): Promise<boolean> => {
       const response = await page.request.post("/api/map/tiles", {
         data: { reason: "e2e" },
         headers: { "x-forwarded-for": address },
       });
       const body = (await response.json()) as { ok?: unknown };
-      answers.push(body.ok === true);
+      return body.ok === true;
+    };
+    // INC-572 — sixty sequential round trips ran past the 60 s test budget on a
+    // slow staging. The door counts with one atomic INSERT … ON CONFLICT DO
+    // UPDATE … RETURNING, so the first sixty go ten at a time; the 61st goes
+    // only after all sixty have answered.
+    const answers: boolean[] = [];
+    for (let batch = 0; batch < 6; batch += 1) {
+      answers.push(...(await Promise.all(Array.from({ length: 10 }, () => report()))));
     }
+    answers.push(await report());
+    expect(answers, "PR-33: not 61 answers").toHaveLength(61);
     expect(answers.slice(0, 60).every(Boolean), JSON.stringify(answers)).toBe(true);
     expect(answers[60]).toBe(false);
   });

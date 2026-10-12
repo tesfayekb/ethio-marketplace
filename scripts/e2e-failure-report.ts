@@ -45,6 +45,8 @@ const OUT =
     : "docs/tracking/e2e-last-failure.md");
 const SINGLE_SOURCE_LABEL = process.env["E2E_SOURCE_LABEL"] ?? "all";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
+/** DEC-177 — a REAL captured results.json (Playwright 1.58.1): a flaky test whose first attempt printed `[client-error]` lines. */
+const FLAKY_STDOUT_FIXTURE = "scripts/fixtures/e2e-results-flaky-stdout.json";
 /** DEC-083 — the quiet list; every entry names the test that provokes it. */
 const SSR_ALLOWLIST = "docs/tracking/ssr-error-allowlist.txt";
 /** DEC-083 — a REAL captured job log (local e2e run) for the census self-test. */
@@ -87,6 +89,8 @@ type PwResult = {
   error?: { message?: string };
   errors?: Array<{ message?: string }>;
   duration?: number;
+  /** DEC-177 — what the attempt printed (the e2e fixture prints `[client-error]` lines on a failed attempt). */
+  stdout?: Array<{ text?: string; buffer?: string }>;
 };
 type PwTest = { projectName?: string; status?: string; results?: PwResult[] };
 type PwSpec = { title?: string; ok?: boolean; file?: string; tests?: PwTest[] };
@@ -357,6 +361,31 @@ export type Flake = {
   titlePath: string[];
 };
 
+/** DEC-177 — at most this many of a flaky attempt's own `[client-error]` lines in its body. */
+export const ATTEMPT_CLIENT_LINES = 24;
+
+/**
+ * DEC-177 (bundle 11 turn C10) — A FLAKY BODY CARRIES ITS OWN ATTEMPT'S CLIENT
+ * ERRORS. The e2e fixture prints a failed test's `[client-error]` lines (page
+ * errors, console errors, 5xx, and DEC-175's 4xx answers and posting-door
+ * refusals) to the attempt's stdout. The shard-wide "Client errors" section is
+ * written only for a source with a hard failure, so a test that failed and passed
+ * on retry left its refusals unread. Here they come from the attempt itself,
+ * redacted and capped; other stdout lines are left out.
+ */
+export function attemptClientErrors(result: PwResult | undefined): string[] {
+  const out: string[] = [];
+  for (const entry of result?.stdout ?? []) {
+    const text =
+      entry.text ??
+      (entry.buffer === undefined ? "" : Buffer.from(entry.buffer, "base64").toString("utf8"));
+    for (const line of text.split("\n")) {
+      if (line.startsWith("[client-error]")) out.push(redact(line));
+    }
+  }
+  return out.slice(0, ATTEMPT_CLIENT_LINES);
+}
+
 export function collect(json: PwJson): {
   failures: Failure[];
   flaky: Flake[];
@@ -394,12 +423,20 @@ export function collect(json: PwJson): {
         const specTitle = spec.title ?? "(untitled)";
         const title = redact([suiteFile, ...path, specTitle].filter(Boolean).join(" › "));
         if (status === "flaky") {
+          const attemptLines = attemptClientErrors(result);
           flaky.push({
             project: test.projectName ?? "unknown",
             title,
             message: message.split("\n")[0] ?? "(no error message captured)",
             file: spec.file ?? suiteFile,
-            body: message,
+            body:
+              attemptLines.length === 0
+                ? message
+                : [
+                    message,
+                    "--- client errors of this attempt (DEC-177) ---",
+                    ...attemptLines,
+                  ].join("\n"),
             specTitle,
             titlePath: [...path, specTitle],
           });
@@ -1747,6 +1784,33 @@ async function main() {
       lines[0] !== expectedLedger
     ) {
       console.error("SELF-TEST FAILED — DEC-078 flaky body missing, misplaced or ledger changed.");
+      process.exit(1);
+    }
+    // DEC-177 — on a REAL capture whose first attempt printed two `[client-error]`
+    // lines and one ordinary line, the flaky body carries exactly the two; the
+    // ledger line stays the first message line; the capture above, whose stdout
+    // is empty, carries no such block.
+    const stdoutJson = JSON.parse(readFileSync(FLAKY_STDOUT_FIXTURE, "utf8")) as PwJson;
+    const stdoutFlaky = collect(stdoutJson).flaky;
+    const stdoutBody = stdoutFlaky[0]?.body ?? "";
+    const blockAt = stdoutBody.indexOf("--- client errors of this attempt (DEC-177) ---");
+    const printed = stdoutBody
+      .slice(blockAt)
+      .split("\n")
+      .filter((line) => line.startsWith("[client-error]"));
+    if (
+      stdoutFlaky.length !== 1 ||
+      blockAt < 0 ||
+      printed.length !== 2 ||
+      !printed[0]?.startsWith("[client-error] HTTP 429 POST /api/listings/identity") ||
+      !printed[1]?.startsWith("[client-error] refused POST /api/listings/draft") ||
+      stdoutBody.slice(blockAt).includes("an ordinary line") ||
+      (stdoutFlaky[0]?.message ?? "").includes("[client-error]") ||
+      (flakeCollected.flaky[0]?.body ?? "").includes("(DEC-177)")
+    ) {
+      console.error(
+        "SELF-TEST FAILED — DEC-177 a flaky attempt's client errors not carried exactly.",
+      );
       process.exit(1);
     }
     // A second flip of 11 tests: 10 bodies, one "body omitted: cap" line.

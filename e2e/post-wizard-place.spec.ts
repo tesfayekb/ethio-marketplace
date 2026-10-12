@@ -434,16 +434,16 @@ test.describe("POSTING WIZARD", () => {
   ) {
     const listingId = await reachStep5(page, userId, category);
     await page.getByTestId("post-price-mode-free").click();
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    // INC-562's class (PW-112 and PW-13, run 38241194130: a step did not come after
+    // Next) — each Next names its saves when its step does not come; the waits are
+    // unchanged (nextToStep waits exactly as the expect it replaces).
+    await nextToStep(page, 5);
     await page.getByTestId("post-title").fill("e2e listing title");
     await page.getByTestId("post-description").fill("e2e listing description");
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    await nextToStep(page, 6);
 
     await chooseOneCity(page);
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-7")).toBeVisible();
+    await nextToStep(page, 7);
     return listingId;
   }
 
