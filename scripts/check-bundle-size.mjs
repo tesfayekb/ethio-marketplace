@@ -15,8 +15,10 @@
  * Measured GZIPPED, because that is what the phone actually downloads.
  */
 import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
-import { join, extname } from "node:path";
+import { basename, dirname, join, extname } from "node:path";
 import { gzipSync } from "node:zlib";
+
+import { entryChunks, staticClosure } from "./bundle-closure.mjs";
 
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
 const BUDGET_KIB = {
@@ -79,15 +81,39 @@ const isEntry = (f) => {
     : /^(client|entry|index|main|styles)[.-]/.test(base);
 };
 
+/**
+ * INC-556 (DEC-176, bundle 11 turn C8) — JS is the entry chunk's STATIC IMPORT
+ * CLOSURE (scripts/bundle-closure.mjs): every chunk the browser must fetch
+ * before the entry runs, whatever its file name. The name rule above stays for
+ * CSS only. With prerendered HTML, its script tags name the entries.
+ */
+const jsEntries = files.filter(
+  (f) =>
+    extname(f) === ".js" &&
+    (referenced.size > 0 ? referenced.has(basename(f)) : entryChunks([basename(f)]).length === 1),
+);
+const eager = new Set();
+for (const entry of jsEntries) {
+  for (const name of staticClosure(dirname(entry), [basename(entry)]))
+    eager.add(join(dirname(entry), name));
+}
+for (const file of files) {
+  if (extname(file) === ".css" && isEntry(file)) eager.add(file);
+}
+
 const totals = { js: 0, css: 0 };
 const counted = [];
-for (const file of files) {
+for (const file of eager) {
   const ext = extname(file).slice(1);
-  if (ext !== "js" && ext !== "css") continue;
-  if (!isEntry(file)) continue;
   const size = gzipSync(readFileSync(file)).length;
   totals[ext] += size;
   counted.push({ file, size });
+}
+if (jsEntries.length === 0) {
+  console.error(
+    "Bundle budget: found no entry chunk (index-, entry- or main-) — failing instead of passing vacuously.",
+  );
+  process.exit(1);
 }
 
 if (counted.length === 0) {
@@ -98,7 +124,7 @@ if (counted.length === 0) {
 }
 
 const kib = (bytes) => (bytes / 1024).toFixed(1);
-console.log(`Bundle budget — first-paint assets under ${buildDir} (gzipped):`);
+console.log(`Bundle budget — the entry's static import closure under ${buildDir} (gzipped):`);
 for (const { file, size } of counted.sort((a, b) => b.size - a.size)) {
   console.log(`  ${kib(size).padStart(8)} KiB  ${file}`);
 }

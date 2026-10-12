@@ -287,7 +287,15 @@ export function counts(sources: Source[]): Count[] {
 
 /** Every test and hook over the limit: "<file>:<line> <id> leases N pooled accounts (limit 2)". */
 export function check(sources: Source[]): string[] {
-  return counts(sources)
+  return overLimit(counts(sources));
+}
+
+/**
+ * The refusals of counts already made. INC-571 (bundle 11 turn C8): the tree is
+ * parsed once — `check` after `counts` parsed every e2e file a second time.
+ */
+export function overLimit(all: Count[]): string[] {
+  return all
     .filter((count) => count.leases > LIMIT)
     .map((count) => {
       const leases = Number.isFinite(count.leases)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { check, counts, LIMIT, readE2e, type Source } from "./e2e-leases";
+import { check, counts, LIMIT, overLimit, readE2e, type Source } from "./e2e-leases";
 
 /**
  * Bundle 11 turn C5 — INC-555's class (DEC-174): no e2e test leases more than
@@ -90,11 +90,13 @@ describe("the pooled-lease check (DEC-174)", () => {
     expect(counts(sources).find((count) => count.what === "Z10")?.leases).toBe(1);
   });
 
+  // INC-571 — this case parses the whole e2e tree (about ninety files, 2.3 MB) with the
+  // TypeScript parser, once: about 2 s alone, slower while the component job runs every
+  // test file at once. It timed out at the 5 s default when it parsed the tree twice.
   it("EL-4 no e2e test or hook leases more than two pooled accounts", () => {
-    const sources = readE2e();
-    const all = counts(sources);
+    const all = counts(readE2e());
     expect(all.length).toBeGreaterThan(500);
     expect(all.some((count) => count.leases > 0)).toBe(true);
-    expect(check(sources)).toEqual([]);
-  });
+    expect(overLimit(all)).toEqual([]);
+  }, 20_000);
 });

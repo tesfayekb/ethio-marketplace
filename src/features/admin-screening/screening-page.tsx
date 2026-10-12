@@ -23,6 +23,7 @@ import {
   AlertDialogFooter,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ActionMessage } from "@/components/ui/action-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
@@ -343,16 +344,15 @@ export function AdminScreeningPage() {
               <p className="text-sm text-muted-foreground">{t(section.bodyKey)}</p>
             </div>
 
-            <p
+            {/* INC-570 — the outcome of a decision comes into view wherever the row was. */}
+            <ActionMessage
+              persistent
               role="status"
-              aria-live="polite"
-              data-testid="admin-screening-notice"
-              className={
-                notice?.tone === "error" ? "text-sm text-destructive" : "text-sm text-foreground"
-              }
-            >
-              {notice === null ? null : t(notice.key)}
-            </p>
+              testid="admin-screening-notice"
+              tone={notice?.tone === "error" ? "error" : "done"}
+              text={notice === null ? null : t(notice.key)}
+              className={notice?.tone === "error" ? undefined : "text-foreground"}
+            />
 
             <DataTable<ScreeningRow>
               columns={columns}

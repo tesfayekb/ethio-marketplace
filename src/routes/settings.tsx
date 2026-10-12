@@ -5,6 +5,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
 import { ContentGrid } from "@/components/layout/content-grid";
+import { ActionMessage } from "@/components/ui/action-message";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
@@ -35,6 +36,16 @@ type ActionOutcome = { ok: boolean; errorKey?: MessageKey };
 
 /** An action the surface can run; call-signature form keeps the scanner quiet. */
 type SettingsAction = { (): Promise<ActionOutcome> };
+
+/**
+ * Bundle 11 turn C8 (INC-570) — WHERE AN OUTCOME IS SHOWN. Each action's refusal
+ * or confirmation is drawn beside the control that produced it (never once under
+ * the page header, screens above the form on a phone): the sign-in methods'
+ * actions under that section, Remove password's refusal inside its confirmation,
+ * and each form under its own button.
+ */
+type MessageSlot = "methods" | "removePassword" | "password" | "email" | "devices";
+type SlotMessage = { slot: MessageSlot; tone: "error" | "done"; key: MessageKey };
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -91,8 +102,7 @@ function SettingsScreen() {
   const [identitiesErrorKey, setIdentitiesErrorKey] = useState<MessageKey | null>(null);
 
   const [busy, setBusy] = useState(false);
-  const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
-  const [successKey, setSuccessKey] = useState<MessageKey | null>(null);
+  const [message, setMessage] = useState<SlotMessage | null>(null);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -199,27 +209,56 @@ function SettingsScreen() {
   }, [checkingSession, loadIdentities, loadPasswordState]);
 
   function reset() {
-    setErrorKey(null);
-    setSuccessKey(null);
+    setMessage(null);
   }
 
-  /** INC-017 precedent: busy engages on INITIATION, before the request leaves. */
-  async function run(action: SettingsAction, done: MessageKey) {
+  function refuse(slot: MessageSlot, key: MessageKey) {
+    setMessage({ slot, tone: "error", key });
+  }
+
+  /**
+   * INC-017 precedent: busy engages on INITIATION, before the request leaves.
+   * INC-570: a refusal is shown in `slot`; the confirmation in `doneSlot` (a
+   * confirmation that closes as it succeeds answers in the section around it).
+   */
+  async function run(
+    action: SettingsAction,
+    done: MessageKey,
+    slot: MessageSlot,
+    doneSlot: MessageSlot = slot,
+  ) {
     if (busy) return false;
     reset();
     setBusy(true);
     const result = await action();
     setBusy(false);
     if (!result.ok) {
-      setErrorKey(result.errorKey ?? "auth.errorGeneric");
+      refuse(slot, result.errorKey ?? "auth.errorGeneric");
       return false;
     }
-    setSuccessKey(done);
+    setMessage({ slot: doneSlot, tone: "done", key: done });
     return true;
   }
 
+  /** INC-570 — the outcome drawn beside its own control; nothing when it belongs elsewhere. */
+  function messageAt(slot: MessageSlot, className?: string) {
+    const here = message !== null && message.slot === slot ? message : null;
+    return (
+      <ActionMessage
+        testid={`settings-message-${slot}`}
+        tone={here?.tone ?? "done"}
+        text={here === null ? null : t(here.key)}
+        className={className}
+      />
+    );
+  }
+
   async function handleUnlink(identity: IdentitySummary) {
-    const ok = await run(() => unlinkProviderIdentity(identity.identityId), "settings.unlinked");
+    const ok = await run(
+      () => unlinkProviderIdentity(identity.identityId),
+      "settings.unlinked",
+      "methods",
+    );
     if (ok) {
       await loadIdentities();
       // INC-024: unlinking the email identity also kills the password. Re-read
@@ -236,6 +275,8 @@ function SettingsScreen() {
     const ok = await run(
       () => removeOwnPassword(removePasswordCurrent),
       "settings.passwordRemoved",
+      "removePassword",
+      "methods",
     );
     // A wrong password keeps the confirmation open, its message beside it.
     if (!ok) return;
@@ -252,7 +293,7 @@ function SettingsScreen() {
     const result = await linkGoogleIdentity();
     if (!result.ok) {
       setBusy(false);
-      setErrorKey(result.errorKey);
+      refuse("methods", result.errorKey);
     }
     // On success the browser navigates away; busy stays engaged deliberately.
   }
@@ -260,19 +301,18 @@ function SettingsScreen() {
   async function handleChangePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (newPassword.length < MIN_PASSWORD_LENGTH) {
-      reset();
-      setErrorKey("auth.errorPasswordTooShort");
+      refuse("password", "auth.errorPasswordTooShort");
       return;
     }
     const mismatch = passwordPairProblem(newPassword, newPasswordAgain);
     if (mismatch !== null) {
-      reset();
-      setErrorKey(mismatch);
+      refuse("password", mismatch);
       return;
     }
     const ok = await run(
       () => changePassword(currentPassword, newPassword),
       "settings.passwordChanged",
+      "password",
     );
     if (ok) {
       setCurrentPassword("");
@@ -285,17 +325,16 @@ function SettingsScreen() {
     event.preventDefault();
     const address = newEmail.trim();
     if (!address) {
-      reset();
-      setErrorKey("auth.errorMissingFields");
+      refuse("email", "auth.errorMissingFields");
       return;
     }
-    const ok = await run(() => changeEmail(address), "settings.emailChangeSent");
+    const ok = await run(() => changeEmail(address), "settings.emailChangeSent", "email");
     if (ok) setNewEmail("");
   }
 
   async function handleSignOutOthers() {
     setConfirmingSignOutOthers(false);
-    await run(() => signOutOtherDevices(), "settings.signOutOthersDone");
+    await run(() => signOutOtherDevices(), "settings.signOutOthersDone", "devices");
   }
 
   if (checkingSession) {
@@ -324,17 +363,6 @@ function SettingsScreen() {
             {t("account.deactivatedBanner")}
           </p>
         </Section>
-      ) : null}
-
-      {errorKey ? (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          {t(errorKey)}
-        </p>
-      ) : null}
-      {successKey ? (
-        <p role="status" className="mt-4 text-sm text-muted-foreground">
-          {t(successKey)}
-        </p>
       ) : null}
 
       <ContentGrid className="mt-6">
@@ -482,7 +510,10 @@ function SettingsScreen() {
           ) : null}
 
           {confirmingRemovePassword ? (
-            <div className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3">
+            <div
+              data-testid="remove-password-confirmation"
+              className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3"
+            >
               <p className="text-sm text-foreground">{t("settings.removePasswordConfirm")}</p>
               <label htmlFor="remove-password-current" className="text-sm text-muted-foreground">
                 {t("settings.removePasswordAsk")}
@@ -496,6 +527,7 @@ function SettingsScreen() {
                 onChange={(e) => setRemovePasswordCurrent(e.target.value)}
                 className={fieldClass}
               />
+              {messageAt("removePassword")}
               <button
                 type="button"
                 onClick={() => void handleRemovePassword()}
@@ -532,6 +564,7 @@ function SettingsScreen() {
               {busy ? t("auth.working") : t("settings.linkGoogle")}
             </button>
           ) : null}
+          {messageAt("methods", "mt-3")}
         </Section>
 
         {/* Section 3 — two-factor authentication (U1f) */}
@@ -788,6 +821,7 @@ function SettingsScreen() {
                 className={fieldClass}
               />
             </div>
+            {messageAt("password")}
             <button type="submit" disabled={busy} className={primaryButtonClass}>
               {busy ? t("auth.working") : t("settings.changePassword")}
             </button>
@@ -811,12 +845,13 @@ function SettingsScreen() {
                 className={fieldClass}
               />
             </div>
+            {messageAt("email")}
             <button type="submit" disabled={busy} className={secondaryButtonClass}>
               {busy ? t("auth.working") : t("settings.changeEmail")}
             </button>
           </form>
 
-          <div className="mt-8 flex flex-col gap-3">
+          <div data-testid="settings-devices" className="mt-8 flex flex-col gap-3">
             {confirmingSignOutOthers ? (
               <>
                 <p className="text-sm text-foreground">{t("settings.signOutOthersConfirm")}</p>
@@ -850,6 +885,7 @@ function SettingsScreen() {
                 {t("settings.signOutOthers")}
               </button>
             )}
+            {messageAt("devices")}
           </div>
         </Section>
       </ContentGrid>

@@ -235,6 +235,16 @@ weight guard: that one catches a banned library, this one catches a hundred
 small additions doing the same damage. The ceiling is a ratchet — raising it is
 a deliberate commit that says why.
 
+What it measures (INC-556, DEC-176, bundle 11 turn C8): the build emits no HTML,
+so the guard used to count the chunks whose file name starts with client, entry,
+index, main or styles — 231.0 KiB at turn C8's base, while the entry chunk's
+static import closure was 309.6 KiB, and the figure moved by 57 KiB whenever the
+bundler named a shared chunk "client-…". JS is now the entry chunk's static
+import closure (`scripts/bundle-closure.mjs`: every chunk reached through
+`import … from "./x.js"` and `import "./x.js"`; a dynamic `import("./x.js")` is
+left out; BC-1..BC-4 in `scripts/bundle-closure.test.ts`); CSS keeps the name
+rule. The ceiling stays 320 KiB until the operator decides it again (G52).
+
 ## The vertical stack (final layout refinement, 2026-08-04)
 
 The shell renders five bands, top to bottom, inside the preserved corner-block
