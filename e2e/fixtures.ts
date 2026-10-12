@@ -132,6 +132,41 @@ const POSTING_DOORS = new Set([
 ]);
 
 /**
+ * DEC-178 (bundle 11 turn C13; INC-577) — THE CATEGORY FINDER ANSWERS AS THE TEST
+ * DECIDES. In CI every browser test reaches `/api/catalog/find` from one address,
+ * so the route's E2E dial (two an hour on that one key) refused nearly every
+ * search and let a few through. A search that got through was answered from the
+ * finder's index, which holds no scratch leaf made since its last rebuild, so a
+ * test's own leaf could drop out of step 1's list (PW-157, run 38218977877). And
+ * the refusals were printed beside the posting doors' own (INC-533's two 429s).
+ *
+ * So every fixture page answers the finder with the route's own spent-dial answer
+ * (429, `rateLimited`): step 1 shows the name matches and its notice, as nearly
+ * every test saw already. A test that needs the finder routes it itself — a route
+ * registered later runs first (PW-85 gives each request its own key; PW-86 and
+ * PW-105 answer it). Pages a helper opens itself are not stubbed. The stub's
+ * answers are left out of the client-error evidence: they say nothing about the test.
+ */
+const FINDER_ROUTE = "**/api/catalog/find**";
+const FINDER_STUB_HEADER = "x-e2e-finder-stub";
+/** The finder requests each page's stub answered, so their console lines are left out. */
+const finderStubbed = new WeakMap<Page, Set<string>>();
+
+async function stubFinder(page: Page): Promise<void> {
+  const answered = new Set<string>();
+  finderStubbed.set(page, answered);
+  await page.route(FINDER_ROUTE, async (route) => {
+    answered.add(route.request().url());
+    await route.fulfill({
+      status: 429,
+      contentType: "application/json",
+      headers: { [FINDER_STUB_HEADER]: "1" },
+      body: JSON.stringify({ error: "rateLimited" }),
+    });
+  });
+}
+
+/**
  * DEC-175 (bundle 11 turn C8; INC-562's class) — a refusal nobody recorded is as
  * undiagnosable as a 500 (INC-109). Every 4xx answer of the app's own routes
  * (`/api/…`) and of the database and sign-in services (`/auth/v1/…`,
@@ -155,6 +190,8 @@ function armRefusalCapture(page: Page, refusals: string[]): void {
     const status = response.status();
     const watched = path.startsWith("/api/") || /^\/(auth|rest|functions)\/v1\//.test(path);
     if (!watched) return;
+    // DEC-178 — the finder stub's answer says nothing about the test.
+    if (response.headers()[FINDER_STUB_HEADER] === "1") return;
     const method = response.request().method();
     if (status >= 400 && status < 500) {
       void (async () => {
@@ -215,6 +252,9 @@ function armClientErrorCapture(page: Page, buffer: string[]): void {
   });
   page.on("console", (message) => {
     if (message.type() !== "error") return;
+    // DEC-178 — the browser's "Failed to load resource" line for a stubbed finder
+    // request names that request's address as its location.
+    if (finderStubbed.get(page)?.has(message.location().url) === true) return;
     // INC-085g — React prints the message in arg 0 and the COMPONENT STACK in a
     // later arg; message.text() alone threw the only useful half away.
     // INC-085h — but jsonValue() on an Error yields `{"name":"Error"}`: the
@@ -250,7 +290,14 @@ function armClientErrorCapture(page: Page, buffer: string[]): void {
   });
 }
 
-export const test = base.extend<{ ssrGuard: void; clientErrors: string[] }>({
+export const test = base.extend<{ ssrGuard: void; clientErrors: string[]; finderStub: void }>({
+  finderStub: [
+    async ({ page }, use) => {
+      await stubFinder(page);
+      await use();
+    },
+    { auto: true },
+  ],
   clientErrors: [
     async ({ page }, use, testInfo) => {
       const buffer: string[] = [];

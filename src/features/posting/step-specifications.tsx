@@ -836,7 +836,12 @@ export function StepSpecifications({
       for (const key of Object.keys(owned)) if (!(key in result.prefills)) delete owned[key];
       Object.assign(owned, result.prefills);
       if (result.changed) changed = true;
-      if (result.changed) {
+      /**
+       * INC-576 — THE OFFER TAKES BACK WHAT THE FORM HELD. A move that only
+       * fills empty details (a first choice whose option carries facts) took
+       * nothing, so "Details reset" is not said and no Undo is offered (DEC-139).
+       */
+      if (result.changed && result.replacedHeld) {
         const parentDef = definitions.find((def) => def.attrKey === movedKey) ?? null;
         const option =
           parentDef === null
@@ -847,6 +852,8 @@ export function StepSpecifications({
           prefills: heldPrefills,
           model: option === undefined ? "" : optionLabel(option, entities.lang, catalogScope),
         });
+      }
+      if (result.changed) {
         // INC-245 — a reset empties fields the LINK has a default for, and a
         // default is what an empty field starts from. So the defaults pass below
         // is re-opened by this reset, not spent once per category.
