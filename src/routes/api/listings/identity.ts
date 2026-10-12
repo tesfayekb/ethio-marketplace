@@ -9,6 +9,8 @@ import {
   refusal,
   refuseUserClient,
   routeJson,
+  upstreamFailed,
+  upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 
@@ -159,9 +161,13 @@ async function handlePost(request: Request): Promise<Response> {
    */
   const countryChange = text(body["homeCountryChange"]);
   if (countryChange !== null) {
-    const { data, error } = await supabase.rpc("change_home_country", {
+    const { data, error, status } = await supabase.rpc("change_home_country", {
       p_country: countryChange,
     });
+    // INC-574 — the door was never reached: 503, not a refusal.
+    if (upstreamFailed(error, status)) {
+      return upstreamUnavailable(PATH, "change_home_country", status);
+    }
     if (error) {
       logRouteError(PATH, error.message);
       return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);
@@ -194,9 +200,17 @@ async function handlePost(request: Request): Promise<Response> {
    */
   const pref = body["contactPref"];
   if (pref !== undefined && pref !== null) {
-    const { data: found, error: checkError } = await supabase.rpc("listing_contact_refusals", {
+    const {
+      data: found,
+      error: checkError,
+      status: checkStatus,
+    } = await supabase.rpc("listing_contact_refusals", {
       p_pref: pref as never,
     });
+    // INC-574 — the validator was never reached: 503, not a refusal.
+    if (upstreamFailed(checkError, checkStatus)) {
+      return upstreamUnavailable(PATH, "listing_contact_refusals", checkStatus);
+    }
     if (checkError) {
       logRouteError(PATH, checkError.message);
       return routeJson(
@@ -220,7 +234,11 @@ async function handlePost(request: Request): Promise<Response> {
     p_home_country_code: text(body["homeCountryCode"]),
   } as unknown as IdentityArgs;
 
-  const { data, error } = await supabase.rpc("save_posting_identity", args);
+  const { data, error, status } = await supabase.rpc("save_posting_identity", args);
+  // INC-574 — the door was never reached: 503, not a refusal.
+  if (upstreamFailed(error, status)) {
+    return upstreamUnavailable(PATH, "save_posting_identity", status);
+  }
   if (error) {
     logRouteError(PATH, error.message);
     return routeJson({ ok: false, refusals: [{ field: "door", reason: error.message }] }, 200);

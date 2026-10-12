@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, isAuthRetryableFetchError } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 
@@ -330,6 +330,10 @@ async function handlePost(request: Request): Promise<Response> {
   });
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
+  // INC-574 — the auth server did not answer: 503, never "not signed in".
+  if (userError && isAuthRetryableFetchError(userError)) {
+    return fail5xx("auth upstream unavailable", 503);
+  }
   const uid = userData?.user?.id;
   if (userError || !uid) return json({ error: "not signed in" }, 401);
 
@@ -511,6 +515,10 @@ async function handleGet(request: Request): Promise<Response> {
   });
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
+  // INC-574 — the auth server did not answer: 503, never "not signed in".
+  if (userError && isAuthRetryableFetchError(userError)) {
+    return fail5xx("auth upstream unavailable", 503);
+  }
   const uid = userData?.user?.id;
   if (userError || !uid) return json({ error: "not signed in" }, 401);
 

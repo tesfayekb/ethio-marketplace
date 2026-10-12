@@ -10,6 +10,8 @@ import {
   refusal,
   refuseUserClient,
   routeJson,
+  upstreamFailed,
+  upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 
@@ -110,7 +112,9 @@ async function handlePost(request: Request): Promise<Response> {
     p_price_negotiable: body["priceNegotiable"] === true,
   } as unknown as SubmitArgs;
 
-  const { data, error } = await supabase.rpc("submit_listing", args);
+  const { data, error, status } = await supabase.rpc("submit_listing", args);
+  // INC-574 — the door was never reached: 503, and the wizard tries again.
+  if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, "submit_listing", status);
   if (error) {
     // INC-368 — a seller's mistake is not a server error: the two constraint
     // translations below are expected refusals and are NOT logged as [ssr-error].

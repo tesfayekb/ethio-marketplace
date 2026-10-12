@@ -8,6 +8,8 @@ import {
   refusal,
   refuseUserClient,
   routeJson,
+  upstreamFailed,
+  upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 
@@ -36,7 +38,11 @@ async function handlePost(request: Request): Promise<Response> {
   const listingId = typeof body["listingId"] === "string" ? body["listingId"] : "";
   if (listingId === "") return refusal("listingId", "required");
 
-  const { data, error } = await supabase.rpc("publish_listing", { p_listing_id: listingId });
+  const { data, error, status } = await supabase.rpc("publish_listing", {
+    p_listing_id: listingId,
+  });
+  // INC-574 — the door was never reached: 503, not a refusal.
+  if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, "publish_listing", status);
   if (error) {
     logRouteError(PATH, error.message);
     return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);

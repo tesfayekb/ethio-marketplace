@@ -423,6 +423,17 @@ bearer, with `userId` resolved from `auth.getUser()`. It also carries the shared
 former inline sites; each gate keeps its own refusal wording and status, so the
 import routes' behaviour is unchanged (the import-security suite is the proof).
 
+INC-574 (bundle 11 turn C12) — an upstream failure is not a verdict. A door
+call that comes back with no answer (status 0), a gateway status (502–504,
+520–530) or an HTML error page where the door's JSON should be never reached
+the door: `upstreamFailed(error, status)` names it, and the route answers 503
+`{ "error": "upstream unavailable" }` (`upstreamUnavailable`), which the clients
+read as "not reached" and retry, never as a refusal. A status-500 answer with
+the database's own JSON stays a door error. The same holds for `auth.getUser()`:
+a retryable auth failure is the `upstream` reason (503), never "not signed in".
+`logRouteError` names an error page ("upstream returned an HTML error page")
+instead of writing it into the log.
+
 ### The routes
 
 | Route                              | Door                    | Dial (env)                    | Default   |

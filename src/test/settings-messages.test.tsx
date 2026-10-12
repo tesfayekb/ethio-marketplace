@@ -82,9 +82,18 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 const Settings = (Route as unknown as { options: { component: ComponentType } }).options.component;
 
+/**
+ * INC-575 — the page's first render in this file is cold: the reads it awaits
+ * before the password method shows are mocked and resolve at once, but rendering
+ * the whole page takes far longer the first time (SETM-1: 344 ms locally against
+ * 77 ms for SETM-2), and in CI, beside the other test files, it passed the 1 s
+ * default of `findBy` (run 38254910194). The wait is sized for that first render.
+ */
+const FIRST_RENDER_MS = 5_000;
+
 async function renderSettings() {
   render(<Settings />);
-  await screen.findByTestId("password-method");
+  await screen.findByTestId("password-method", undefined, { timeout: FIRST_RENDER_MS });
   const passwordForm = document.getElementById("current-password")?.closest("form") ?? null;
   const emailForm = document.getElementById("new-email")?.closest("form") ?? null;
   if (passwordForm === null || emailForm === null)

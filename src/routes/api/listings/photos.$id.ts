@@ -8,6 +8,8 @@ import {
   refusal,
   refuseUserClient,
   routeJson,
+  upstreamFailed,
+  upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 
@@ -93,10 +95,14 @@ async function handleDelete(request: Request, photoId: string): Promise<Response
     }
   }
 
-  const { data, error } = await supabase.rpc("remove_listing_photo", {
+  const { data, error, status } = await supabase.rpc("remove_listing_photo", {
     p_listing_id: photo.listing_id,
     p_photo_id: photoId,
   });
+  // INC-574 — the door was never reached: 503, not a refusal.
+  if (upstreamFailed(error, status)) {
+    return upstreamUnavailable(PATH, "remove_listing_photo", status);
+  }
   if (error) {
     logRouteError(PATH, `remove: ${error.message}`);
     return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
@@ -120,10 +126,12 @@ async function handlePost(request: Request, photoId: string): Promise<Response> 
     return routeJson({ ok: false, refusals: [{ field: "id", reason: "notYourListing" }] }, 403);
   }
 
-  const { data, error } = await supabase.rpc("set_cover_photo", {
+  const { data, error, status } = await supabase.rpc("set_cover_photo", {
     p_listing_id: photo.listing_id,
     p_photo_id: photoId,
   });
+  // INC-574 — the door was never reached: 503, not a refusal.
+  if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, "set_cover_photo", status);
   if (error) {
     logRouteError(PATH, `cover: ${error.message}`);
     return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
