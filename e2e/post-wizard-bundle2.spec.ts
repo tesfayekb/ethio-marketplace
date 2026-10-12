@@ -353,6 +353,80 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
   });
 
   /**
+   * PW-186 (INC-526) — TWO SAVES SENT TOGETHER KEEP BOTH. The directions save is
+   * held unanswered while the seller saves a pin; the pin save must not leave
+   * before the directions save has answered, and when it leaves it restates the
+   * new directions. Every later pin-door call is also held until the first has
+   * landed, so a pin save sent early, restating the older directions, would land
+   * last and clear them (the defect's order). Positive controls: the held call is
+   * the directions save, the pin dropper was busy saving while it was held, and
+   * both lines landed.
+   */
+  test("PW-186 a pin saved while the directions save is unanswered keeps both", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page);
+    const leaf = await category();
+    const value = "Third gate after the pharmacy";
+    const sent: Array<Record<string, unknown>> = [];
+    let release: () => void = () => {};
+    const released = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let firstLanded: Promise<void> | null = null;
+    await page.route("**/rest/v1/rpc/set_listing_pin", async (route) => {
+      const body = (route.request().postDataJSON() ?? {}) as Record<string, unknown>;
+      sent.push(body);
+      if (firstLanded === null && body["p_directions"] === value) {
+        firstLanded = (async () => {
+          await released;
+          const response = await route.fetch();
+          await route.fulfill({ response });
+        })();
+        await firstLanded;
+        return;
+      }
+      if (firstLanded !== null) await firstLanded;
+      await route.continue();
+    });
+    const listingId = await openDraft(page, user.id, leaf.id, 5);
+
+    const directions = page.getByTestId("post-where-directions");
+    await directions.fill(value);
+    await directions.blur();
+    await expect
+      .poll(() => sent.length, { message: "PW-186: the directions save was never sent" })
+      .toBe(1);
+    expect(sent[0]?.["p_directions"], "PW-186: the held call is not the directions save").toBe(
+      value,
+    );
+
+    await page.getByTestId("post-where-pin-open").click();
+    const map = page.getByTestId("post-pin-map");
+    await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
+    await map.click({ position: { x: 120, y: 90 } });
+    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    await page.getByTestId("post-pin-save").click();
+    await expect(
+      page.getByTestId("post-pin-save"),
+      "PW-186: the pin dropper was not saving",
+    ).toBeDisabled();
+    expect(sent.length, "PW-186: the pin save left while the directions save was unanswered").toBe(
+      1,
+    );
+
+    release();
+    await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-where-directions-saved")).toBeVisible({ timeout: 20_000 });
+    expect(sent.length, "PW-186: the pin save was never sent").toBe(2);
+    expect(sent[1]?.["p_directions"], "PW-186: the pin save restated older directions").toBe(value);
+    expect((await placeTextOf(listingId)).directions, "PW-186: the directions were lost").toBe(
+      value,
+    );
+    expect((await pinOf(listingId)).lat, "PW-186: the pin was lost").not.toBeNull();
+  });
+
+  /**
    * PW-129 (bundle 3 rulings 4 item 4) — Next on the contact step never judges
    * before the seller's identity has been read: the read is held back, Next is
    * pressed, nothing is refused; the read is released and Next moves on.

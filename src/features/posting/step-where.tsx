@@ -26,6 +26,7 @@ import {
   readPlaceText,
   savePlaceText,
   savePin,
+  pinDoorQueue,
   type LastPlaces,
   readPlaceFacts,
 } from "./posting-service";
@@ -758,6 +759,15 @@ export function StepWhere({
    */
   const saveCount = useRef(0);
   const textUnknown = useRef(true);
+  /**
+   * INC-526 — THE PIN AS THE DOOR LAST HELD IT. Every door call runs in the draft's
+   * one queue (`pinDoorQueue`) and restates the pin and the lines from these
+   * records when its job runs; a job that saved moves them before the next runs.
+   */
+  const pinNow = useRef<PinValue | null>(pin ?? null);
+  useEffect(() => {
+    pinNow.current = pin ?? null;
+  }, [pin]);
   const noteSaved = () => {
     saveCount.current += 1;
     textUnknown.current = false;
@@ -1100,13 +1110,20 @@ export function StepWhere({
       return;
     if (from === null && lines !== null) {
       // A saved place with lines but no pin carries its lines alone.
-      void clearPin(listingId, lines).then((ok) => {
+      // INC-526 — the step's records move inside the queued job.
+      void pinDoorQueue(listingId)(async () => {
+        const ok = await clearPin(listingId, lines);
+        if (ok) {
+          savedText.current = lines;
+          pinNow.current = null;
+          noteSaved();
+        }
+        return ok;
+      }).then((ok) => {
         if (!ok) {
           setPinState("failed");
           return;
         }
-        savedText.current = lines;
-        noteSaved();
         setNote(lines.street ?? "");
         setDirections(lines.directions ?? "");
         onDirectionsSaved?.(lines.directions);
@@ -1116,23 +1133,31 @@ export function StepWhere({
     }
     if (from === null) return;
     const text = { street: from.street, directions: from.directions };
-    void savePin(listingId, from.lat, from.lng, from.precision, text, from.zoom).then((ok) => {
+    const carried = {
+      lat: from.lat,
+      lng: from.lng,
+      precision: from.precision,
+      street: from.street,
+      zoom: from.zoom,
+    };
+    // INC-526 — the step's records move inside the queued job.
+    void pinDoorQueue(listingId)(async () => {
+      const ok = await savePin(listingId, from.lat, from.lng, from.precision, text, from.zoom);
+      if (ok) {
+        savedText.current = text;
+        pinNow.current = carried;
+        noteSaved();
+      }
+      return ok;
+    }).then((ok) => {
       if (!ok) {
         setPinState("failed");
         return;
       }
-      savedText.current = text;
-      noteSaved();
       setNote(from.street ?? "");
       setDirections(from.directions ?? "");
       onDirectionsSaved?.(from.directions);
-      onPinSaved?.({
-        lat: from.lat,
-        lng: from.lng,
-        precision: from.precision,
-        street: from.street,
-        zoom: from.zoom,
-      });
+      onPinSaved?.(carried);
       onPinCarried?.(true);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1141,13 +1166,20 @@ export function StepWhere({
   /** Bundle 2 Q4 — a carried pin is cleared when the leaf no longer fits. */
   const dropCarried = (onDone?: () => void) => {
     if (listingId === null) return;
-    void clearPin(listingId, { street: null, directions: null }).then((ok) => {
+    // INC-526 — the step's records move inside the queued job.
+    void pinDoorQueue(listingId)(async () => {
+      const ok = await clearPin(listingId, { street: null, directions: null });
+      if (ok) {
+        savedText.current = { street: null, directions: null };
+        pinNow.current = null;
+        noteSaved();
+      }
+      return ok;
+    }).then((ok) => {
       if (!ok) {
         setPinState("failed");
         return;
       }
-      savedText.current = { street: null, directions: null };
-      noteSaved();
       setNote("");
       setDirections("");
       onDirectionsSaved?.(null);
@@ -1709,20 +1741,23 @@ export function StepWhere({
                     // PW-40 — Remove clears the details with the pin; the
                     // directions line is restated so it is kept (step 10).
                     void (async () => {
-                      // INC-522 (A2) — never restate directions the step has not read.
-                      if (!(await ensureText())) {
-                        setPinState("failed");
-                        return;
-                      }
-                      const kept = savedText.current.directions;
-                      const ok = await clearPin(listingId, { street: null, directions: kept });
-                      if (ok) {
+                      // INC-526 — built and sent when its turn in the queue comes.
+                      const outcome = await pinDoorQueue(listingId)(async () => {
+                        // INC-522 (A2) — never restate directions the step has not read.
+                        if (!(await ensureText())) return "failed" as const;
+                        const kept = savedText.current.directions;
+                        const ok = await clearPin(listingId, { street: null, directions: kept });
+                        if (!ok) return "failed" as const;
                         savedText.current = { street: null, directions: kept };
+                        pinNow.current = null;
                         noteSaved();
+                        return "removed" as const;
+                      });
+                      if (outcome === "removed") {
                         onPinSaved?.(null);
                         setNote("");
                       }
-                      setPinState(ok ? "removed" : "failed");
+                      setPinState(outcome);
                     })();
                   }}
                   data-testid="post-pin-remove"
@@ -1816,37 +1851,46 @@ export function StepWhere({
                   onNote={setNote}
                   onClose={() => setPinOpen(false)}
                   onSave={async (value) => {
-                    // INC-522 (A2) — read the text again while it is unknown.
-                    const wasUnknown = textUnknown.current;
-                    if (!(await ensureText())) {
+                    const typed = sanitizeDetails(note);
+                    // INC-526 — the lines it restates are read when its turn in the queue comes.
+                    const outcome = await pinDoorQueue(listingId)(async () => {
+                      // INC-522 (A2) — read the text again while it is unknown.
+                      const wasUnknown = textUnknown.current;
+                      if (!(await ensureText()))
+                        return { ok: false, readFailed: true, street: null };
+                      const street =
+                        typed === "" && wasUnknown ? (savedText.current.street ?? "") : typed;
+                      const text = {
+                        street: street === "" ? null : street,
+                        directions: savedText.current.directions,
+                      };
+                      const ok = await savePin(
+                        listingId,
+                        value.lat,
+                        value.lng,
+                        value.precision,
+                        text,
+                        value.zoom,
+                      );
+                      if (ok) {
+                        savedText.current = text;
+                        pinNow.current = { ...value, street: text.street };
+                        noteSaved();
+                      }
+                      return { ok, readFailed: false, street: text.street };
+                    });
+                    if (outcome.readFailed) {
                       setPinState("failed");
                       return false;
                     }
-                    const typed = sanitizeDetails(note);
-                    const street =
-                      typed === "" && wasUnknown ? (savedText.current.street ?? "") : typed;
-                    const text = {
-                      street: street === "" ? null : street,
-                      directions: savedText.current.directions,
-                    };
-                    const ok = await savePin(
-                      listingId,
-                      value.lat,
-                      value.lng,
-                      value.precision,
-                      text,
-                      value.zoom,
-                    );
-                    if (ok) {
-                      savedText.current = text;
-                      noteSaved();
+                    if (outcome.ok) {
                       // A pin the seller sets is the draft's own (Q4).
                       onPinCarried?.(false);
-                      onPinSaved?.({ ...value, street: street === "" ? null : street });
+                      onPinSaved?.({ ...value, street: outcome.street });
                       setPinState("saved");
                       setPinOpen(false);
                     }
-                    return ok;
+                    return outcome.ok;
                   }}
                 />
               </Suspense>
@@ -1884,24 +1928,25 @@ export function StepWhere({
               }
               setDirState("busy");
               void (async () => {
-                // INC-522 (A2) — read the text again while it is unknown.
-                const wasUnknown = textUnknown.current;
-                if (!(await ensureText())) {
-                  setDirState("failed");
-                  return;
-                }
-                const own = clean === "" && wasUnknown ? savedText.current.directions : clean;
-                const text = {
-                  street: savedText.current.street,
-                  directions: own === null || own === "" ? null : own,
-                };
-                const answer = await savePlaceText(listingId, text, pin);
-                if (answer === "saved") {
-                  savedText.current = text;
-                  noteSaved();
-                  onDirectionsSaved?.(text.directions);
-                }
-                setDirState(answer === "contactInNote" ? "contact" : answer);
+                // INC-526 — the street and the pin it restates are read when its turn comes.
+                const outcome = await pinDoorQueue(listingId)(async () => {
+                  // INC-522 (A2) — read the text again while it is unknown.
+                  const wasUnknown = textUnknown.current;
+                  if (!(await ensureText())) return { answer: "failed" as const, directions: null };
+                  const own = clean === "" && wasUnknown ? savedText.current.directions : clean;
+                  const text = {
+                    street: savedText.current.street,
+                    directions: own === null || own === "" ? null : own,
+                  };
+                  const answer = await savePlaceText(listingId, text, pinNow.current);
+                  if (answer === "saved") {
+                    savedText.current = text;
+                    noteSaved();
+                  }
+                  return { answer, directions: text.directions };
+                });
+                if (outcome.answer === "saved") onDirectionsSaved?.(outcome.directions);
+                setDirState(outcome.answer === "contactInNote" ? "contact" : outcome.answer);
               })();
             }}
           />
@@ -1974,23 +2019,29 @@ export function StepWhere({
               }
               setNoteState("busy");
               void (async () => {
-                // INC-522 (A2) — read the text again while it is unknown.
-                const wasUnknown = textUnknown.current;
-                if (!(await ensureText())) {
-                  setNoteState("failed");
-                  return;
+                // INC-526 — the directions and the pin it restates are read when its turn comes.
+                const outcome = await pinDoorQueue(listingId)(async () => {
+                  // INC-522 (A2) — read the text again while it is unknown.
+                  const wasUnknown = textUnknown.current;
+                  if (!(await ensureText())) {
+                    return { answer: "failed" as const, street: null, pin: null };
+                  }
+                  const own = clean === "" && wasUnknown ? savedText.current.street : clean;
+                  const street = own === null || own === "" ? null : own;
+                  const text = { street, directions: savedText.current.directions };
+                  const pinAtSend = pinNow.current;
+                  const answer = await savePlaceText(listingId, text, pinAtSend);
+                  if (answer === "saved") {
+                    savedText.current = text;
+                    if (pinAtSend !== null) pinNow.current = { ...pinAtSend, street };
+                    noteSaved();
+                  }
+                  return { answer, street, pin: pinAtSend };
+                });
+                setNoteState(outcome.answer === "contactInNote" ? "contact" : outcome.answer);
+                if (outcome.answer === "saved" && outcome.pin !== null) {
+                  onPinSaved?.({ ...outcome.pin, street: outcome.street });
                 }
-                const own = clean === "" && wasUnknown ? savedText.current.street : clean;
-                const street = own === null || own === "" ? null : own;
-                const text = { street, directions: savedText.current.directions };
-                const answer = await savePlaceText(listingId, text, pin);
-                const ok = answer === "saved";
-                if (ok) {
-                  savedText.current = text;
-                  noteSaved();
-                }
-                setNoteState(answer === "contactInNote" ? "contact" : answer);
-                if (ok && pin !== null) onPinSaved?.({ ...pin, street });
               })();
             }}
           />

@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
+import { createDoorQueue, type DoorQueue } from "./door-queue";
 import type { CategoryFacts, DoorAnswer, Refusal } from "./types";
 import { shapeCondition, type VisibleWhen } from "./visible-when";
 import type { PlaceFact } from "./where-seed";
@@ -1102,6 +1103,23 @@ function pinAnswer(message: string): "contactInNote" | "rateLimited" | "failed" 
   if (message.includes("contactInNote")) return "contactInNote";
   // M9b / INC-444 — the revise dial refuses by exception naming rateLimited.
   return message.includes("rateLimited") ? "rateLimited" : "failed";
+}
+
+const pinQueues = new Map<string, DoorQueue>();
+
+/**
+ * INC-526 (bundle 11 turn C9) — A DRAFT'S PIN-DOOR CALLS RUN ONE AT A TIME, through
+ * one queue per draft shared by the place step and the wizard. Every call below
+ * restates the lines it does not change, so a caller builds what it restates
+ * inside its queued job, when the job runs (src/features/posting/door-queue.ts).
+ */
+export function pinDoorQueue(listingId: string): DoorQueue {
+  let queue = pinQueues.get(listingId);
+  if (queue === undefined) {
+    queue = createDoorQueue();
+    pinQueues.set(listingId, queue);
+  }
+  return queue;
 }
 
 /**
