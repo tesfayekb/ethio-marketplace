@@ -1,5 +1,6 @@
 import { CutText } from "@/components/ui/cut-text";
 import { PasswordInput } from "@/components/ui/password-input";
+import { passwordPairProblem } from "@/features/auth/password-pair";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -102,6 +103,9 @@ function SettingsScreen() {
   const [passwordPresent, setPasswordPresent] = useState<boolean | null>(null);
   const [passwordStateErrorKey, setPasswordStateErrorKey] = useState<MessageKey | null>(null);
   const [confirmingRemovePassword, setConfirmingRemovePassword] = useState(false);
+  /** Bundle 11 turn C4 (D143) — Remove password asks for the password; a new one is typed twice. */
+  const [removePasswordCurrent, setRemovePasswordCurrent] = useState("");
+  const [newPasswordAgain, setNewPasswordAgain] = useState("");
 
   /** U1f — two-factor authentication (TOTP), the step-up enrollment surface. */
   const mfa = useMfa();
@@ -229,12 +233,16 @@ function SettingsScreen() {
    * non-email identity remains; the disabled control below is honesty only.
    */
   async function handleRemovePassword() {
+    const ok = await run(
+      () => removeOwnPassword(removePasswordCurrent),
+      "settings.passwordRemoved",
+    );
+    // A wrong password keeps the confirmation open, its message beside it.
+    if (!ok) return;
     setConfirmingRemovePassword(false);
-    const ok = await run(() => removeOwnPassword(), "settings.passwordRemoved");
-    if (ok) {
-      await loadPasswordState();
-      await loadIdentities();
-    }
+    setRemovePasswordCurrent("");
+    await loadPasswordState();
+    await loadIdentities();
   }
 
   async function handleLinkGoogle() {
@@ -256,6 +264,12 @@ function SettingsScreen() {
       setErrorKey("auth.errorPasswordTooShort");
       return;
     }
+    const mismatch = passwordPairProblem(newPassword, newPasswordAgain);
+    if (mismatch !== null) {
+      reset();
+      setErrorKey(mismatch);
+      return;
+    }
     const ok = await run(
       () => changePassword(currentPassword, newPassword),
       "settings.passwordChanged",
@@ -263,6 +277,7 @@ function SettingsScreen() {
     if (ok) {
       setCurrentPassword("");
       setNewPassword("");
+      setNewPasswordAgain("");
     }
   }
 
@@ -469,17 +484,32 @@ function SettingsScreen() {
           {confirmingRemovePassword ? (
             <div className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3">
               <p className="text-sm text-foreground">{t("settings.removePasswordConfirm")}</p>
+              <label htmlFor="remove-password-current" className="text-sm text-muted-foreground">
+                {t("settings.removePasswordAsk")}
+              </label>
+              <PasswordInput
+                id="remove-password-current"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={removePasswordCurrent}
+                onChange={(e) => setRemovePasswordCurrent(e.target.value)}
+                className={fieldClass}
+              />
               <button
                 type="button"
                 onClick={() => void handleRemovePassword()}
-                disabled={busy}
+                disabled={busy || removePasswordCurrent === ""}
                 className={dangerButtonClass}
               >
                 {busy ? t("auth.working") : t("settings.removePasswordConfirmYes")}
               </button>
               <button
                 type="button"
-                onClick={() => setConfirmingRemovePassword(false)}
+                onClick={() => {
+                  setConfirmingRemovePassword(false);
+                  setRemovePasswordCurrent("");
+                }}
                 disabled={busy}
                 className={secondaryButtonClass}
               >
@@ -740,6 +770,21 @@ function SettingsScreen() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder={t("auth.passwordPlaceholder")}
+                className={fieldClass}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="new-password-confirm" className="text-sm text-muted-foreground">
+                {t("settings.newPasswordConfirm")}
+              </label>
+              <PasswordInput
+                id="new-password-confirm"
+                type="password"
+                autoComplete="new-password"
+                minLength={MIN_PASSWORD_LENGTH}
+                required
+                value={newPasswordAgain}
+                onChange={(e) => setNewPasswordAgain(e.target.value)}
                 className={fieldClass}
               />
             </div>

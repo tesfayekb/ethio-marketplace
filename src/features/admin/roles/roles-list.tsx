@@ -124,12 +124,22 @@ export function AdminRolesList() {
   ];
   const columns = visibleColumns(allColumns, hidden, LOCKED);
 
-  /** View members: the Users list with this role chosen (INC-073: the URL is the state). */
+  /**
+   * Open (D142, the operator's walk of C2: the three-dots opens the role, as the
+   * row does), then View members: the Users list with this role chosen (INC-073:
+   * the URL is the state).
+   */
   const rowActions = (role: RoleSummary) => (
     <RowActions
       testid={`role-actions-${role.name}`}
       name={role.name}
       more={[
+        {
+          key: "open",
+          label: t("admin.roles.action.open"),
+          onSelect: () =>
+            void navigate({ to: "/admin/roles/$roleId", params: { roleId: role.id } }),
+        },
         {
           key: "members",
           label: t("admin.roles.members.view"),

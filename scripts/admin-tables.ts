@@ -21,6 +21,8 @@
  * - T7 a phone card: one column is the card's title (`card: "title"`).
  * - T8 tick-boxes (`selection`) only where a bulk action acts on the ticked
  *   rows (`selectionActions`; D128).
+ * - T9 a row that opens its own page (`rowHref`) and carries a three-dots menu
+ *   offers Open in it (`key: "open"`; D142, turn C4).
  *
  * The baseline of existing screens reached zero in this turn, so there is
  * none: a new admin table is built on the blocks or the check refuses it.
@@ -30,7 +32,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export type Rule = "T1" | "T2" | "T3" | "T4" | "T5" | "T6" | "T7" | "T8";
+export type Rule = "T1" | "T2" | "T3" | "T4" | "T5" | "T6" | "T7" | "T8" | "T9";
 
 export const RULES: Record<Rule, string> = {
   T1: "the page's heading in the header (TableActions)",
@@ -41,6 +43,7 @@ export const RULES: Record<Rule, string> = {
   T6: "the footer (DataTablePagination) with the page size kept by useKeptPage, never by localStorage",
   T7: 'a phone card with a title (a column with card: "title")',
   T8: "tick-boxes only with a bulk action (selection with selectionActions)",
+  T9: 'a row that opens its page offers Open in its three-dots menu (key: "open")',
 };
 
 /** Tables drawn inside another page: the section's file → its host page's file. */
@@ -81,6 +84,13 @@ export function breaches(file: string, text: string): Rule[] {
   }
   if (!/\bcard:\s*["']title["']/.test(code)) out.push("T7");
   if (/\bselection=/.test(code) && !/\bselectionActions=/.test(code)) out.push("T8");
+  if (
+    /\browHref=/.test(code) &&
+    /\bmore(?:=\{|\.push\()/.test(code) &&
+    !/\bkey:\s*["']open["']/.test(code)
+  ) {
+    out.push("T9");
+  }
   return out;
 }
 

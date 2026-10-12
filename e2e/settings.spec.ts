@@ -65,11 +65,20 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
 
   const current = page.locator("#current-password");
   const next = page.locator("#new-password");
+  const again = page.locator("#new-password-confirm");
   const submit = page.getByRole("button", { name: en["settings.changePassword"] });
+
+  // Bundle 11 C4 (D143) — the new password typed twice; a mismatch is refused on the form.
+  await current.fill(user.password);
+  await next.fill(newPassword);
+  await again.fill(`${newPassword}x`);
+  await submit.click();
+  await expect(page.getByRole("alert")).toHaveText(en["auth.errorPasswordMismatch"]);
 
   // Wrong current password: rejected, alert visible, session intact.
   await current.fill("definitely-not-the-password");
   await next.fill(newPassword);
+  await again.fill(newPassword);
   await submit.click();
   await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole("alert")).toHaveText(en["auth.errorWrongCurrentPassword"]);
@@ -80,6 +89,7 @@ test("S-3 (U-4): wrong current password is rejected; correct one rotates the pas
   // Correct current password: success feedback.
   await current.fill(user.password);
   await next.fill(newPassword);
+  await again.fill(newPassword);
   await submit.click();
   await expect(page.getByText(en["settings.passwordChanged"])).toBeVisible({ timeout: 15000 });
 

@@ -141,3 +141,7 @@ badge without a toggle; an ordinary row still toggles).
 - **G2b:** the cards give way to the table at md (768 px), like the Users list (the twin helpers `roleRow` and `userRow` read the cards below 768 px); "below lg" above reads "below md".
 - **G3a (the operator's walk):** the footer — the range, rows per page (kept under `ethio.admin.roles.pageSize`) and the pages (`role-pagination`). RP-16 reads it.
 - **G3b (G3a's red, G28):** the toolbar holds a search before Columns (`role-search`: the role's key or display name; a search that matches nothing says so, `admin.roles.noMatch`). The roster is paged since G3a and other tests' scratch roles crowd its first page, so the tests find a role by the search, never by its position (RP-2, RP-16, and the absence checks of RP-5 and RP-9, which first show "No role matches this search.").
+
+## The row's menu opens the role (bundle 11 turn C4; D142, the operator's walk of C2, 2026-10-12)
+
+The roles table's three-dots menu holds Open first (`role-actions-<name>-more-open`, the role's page — as the row itself opens it), then View members. The agreed tables' check gains T9: a row that opens its own page and carries a three-dots menu offers Open in it (scripts/admin-tables.ts; TBL-1). RP-16 reads the menu's order and opens the role through it.

@@ -288,6 +288,26 @@ export async function changePassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<AuthResult> {
+  const verified = await verifyCurrentPassword(currentPassword);
+  if (!verified.ok) return verified;
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) return failure(error);
+  // U0k session hardening (c): a credential change invalidates every OTHER
+  // device's session. Best-effort — the password IS already changed, so a
+  // failure here is reported to the console, never surfaced as a failed change.
+  const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
+  if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
+  return { ok: true };
+}
+
+/**
+ * The signed-in person's current password, checked on a THROWAWAY client that
+ * persists nothing (see `changePassword`): a wrong password answers
+ * `auth.errorWrongCurrentPassword` and nothing else runs. Bundle 11 turn C4
+ * (D143): Remove password asks for it too.
+ */
+async function verifyCurrentPassword(currentPassword: string): Promise<AuthResult> {
   const { data: userData } = await supabase.auth.getUser();
   const email = userData.user?.email;
   if (!email) return { ok: false, errorKey: "auth.errorGeneric" };
@@ -305,14 +325,6 @@ export async function changePassword(
   });
   await verifier.auth.signOut({ scope: "local" });
   if (verifyError) return { ok: false, errorKey: "auth.errorWrongCurrentPassword" };
-
-  const { error } = await supabase.auth.updateUser({ password: newPassword });
-  if (error) return failure(error);
-  // U0k session hardening (c): a credential change invalidates every OTHER
-  // device's session. Best-effort — the password IS already changed, so a
-  // failure here is reported to the console, never surfaced as a failed change.
-  const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
-  if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
   return { ok: true };
 }
 
@@ -476,7 +488,10 @@ export async function hasPassword(): Promise<PasswordStateResult> {
  * Removes the CURRENT user's password. The server refuses when no non-email
  * identity remains; that refusal is surfaced as `auth.errorLastMethod`.
  */
-export async function removeOwnPassword(): Promise<AuthResult> {
+export async function removeOwnPassword(currentPassword: string): Promise<AuthResult> {
+  // Bundle 11 turn C4 (D143) — the password is confirmed before it is removed.
+  const verified = await verifyCurrentPassword(currentPassword);
+  if (!verified.ok) return verified;
   const { error } = await supabase.rpc("remove_own_password");
   if (!error) return { ok: true };
   if (/last sign-in method/i.test(error.message ?? "")) {

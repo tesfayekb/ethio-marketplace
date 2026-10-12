@@ -522,7 +522,7 @@ test.describe("U2 roles console", () => {
    * locked; a role's three-dots holds View members, which opens the Users list
    * with the role chosen (INC-073).
    */
-  test("RP-16 the roles list on the agreed blocks: heading, Create role, Columns, View members", async ({
+  test("RP-16 the roles list on the agreed blocks: heading, Create role, Columns, Open and View members", async ({
     page,
   }) => {
     const { secret } = await signInAsSuperAdmin(page);
@@ -556,6 +556,20 @@ test.describe("U2 roles console", () => {
     const actions = page.getByTestId(
       isMobile(page) ? `role-row-${name}-actions` : `role-row-${name}-actions-cell`,
     );
+    // D142 (the operator's walk of C2) — the three-dots opens the role first, as the row does.
+    await actions.getByTestId(`role-actions-${name}-more`).click();
+    const items = await page
+      .getByTestId(`role-actions-${name}-menu`)
+      .locator('[data-testid^="role-actions-"]')
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")));
+    expect(items, "RP-16 the menu's order").toEqual([
+      `role-actions-${name}-more-open`,
+      `role-actions-${name}-more-members`,
+    ]);
+    await page.getByTestId(`role-actions-${name}-more-open`).click();
+    await expect(page).toHaveURL(/\/admin\/roles\/[0-9a-f-]{36}$/, { timeout: 20000 });
+    await gotoReady(page, "/admin/roles");
+    await expect(await searchRole(page, name)).toBeVisible({ timeout: 20000 });
     await actions.getByTestId(`role-actions-${name}-more`).click();
     await page.getByTestId(`role-actions-${name}-more-members`).click();
     await expect(page).toHaveURL(new RegExp(`/admin/users\\?role=${name}$`), { timeout: 20000 });
