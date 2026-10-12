@@ -400,20 +400,20 @@ test.describe("VIEWING PLACE — the shell carries it (D106 part 2)", () => {
     expect(await areaCookie(page)).toBe(`ET:${a.city.id}:${at}`);
   });
 
+  /**
+   * Turn C6 (INC-569) — the test's own page carries the edge header: a test that
+   * opened a second browser context only to set a header left the run no page
+   * snapshot when it failed (2fb73b85: a 60 s timeout with no line to read).
+   */
   test("VP-11 with nothing saved here or on the account, the guess shows and nothing is saved", async ({
-    browser,
+    page,
   }) => {
     const user = await lease();
-    const context = await browser.newContext({ extraHTTPHeaders: { "cf-ipcountry": "ET" } });
-    const page = await context.newPage();
-    try {
-      await signInViaSession(page, user.email, user.password);
-      await carried(page);
-      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
-      expect(await accountOf(user.id)).toEqual({ id: null, at: null });
-      expect(await areaCookie(page)).toBeNull();
-    } finally {
-      await context.close();
-    }
+    await page.context().setExtraHTTPHeaders({ "cf-ipcountry": "ET" });
+    await signInViaSession(page, user.email, user.password);
+    await carried(page);
+    await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "guess");
+    expect(await accountOf(user.id)).toEqual({ id: null, at: null });
+    expect(await areaCookie(page)).toBeNull();
   });
 });

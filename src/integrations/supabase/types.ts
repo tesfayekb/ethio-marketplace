@@ -2402,6 +2402,25 @@ export type Database = {
         | { Args: { p_scope_slug: string }; Returns: Json }
       admin_export_categories: { Args: { p_scope?: string }; Returns: Json }
       admin_export_locations: { Args: { p_scope?: string }; Returns: Json }
+      admin_export_translations: {
+        Args: { p_after?: string; p_lang: string; p_limit?: number }
+        Returns: {
+          approved_at: string
+          approved_by: string
+          context: string
+          flag_note: string
+          flagged: boolean
+          key: string
+          lang_code: string
+          machine: boolean
+          orphaned: boolean
+          source_value: string
+          status: string
+          updated_at: string
+          updated_by: string
+          value: string
+        }[]
+      }
       admin_get_category_images: {
         Args: { p_id: string }
         Returns: {
