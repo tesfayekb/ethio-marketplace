@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { ArrowDown, ArrowUp, Languages } from "lucide-react";
 import { useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
@@ -10,6 +10,7 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { FormField, FormSection } from "@/components/shell/form-section";
+import { RowActions } from "@/components/shell/row-actions";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
@@ -196,9 +197,17 @@ function LanguagesTable({
   guard: GuardFn;
 }) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const flags = useSetLanguageFlags();
   const order = useSetLanguageOrder();
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+  /**
+   * Bundle 11 G3d — the row's red Delete opens ONE typed-confirm dialog for the
+   * row it names; its result line lives here, because the deleted row (and
+   * anything it drew) leaves the roster when the list re-reads.
+   */
+  const [deleting, setDeleting] = useState<LanguageRow | null>(null);
+  const [deleteSummary, setDeleteSummary] = useState<string | null>(null);
   /**
    * Bundle 11 G3a (D128; the operator's walk, 2026-10-11) — Columns and the
    * footer, as every table. The roster is ordered by hand (the moves below), so
@@ -264,42 +273,52 @@ function LanguagesTable({
   };
 
   /**
-   * U4g-13/14 (INC-106, INC-106b) — BOTH TWINS, ONE COPY EACH. The move
-   * controls are one function rendered from the primitive's single rowActions
-   * slot, which each twin renders in its own DOM (card actions region at 360,
-   * actions cell at md+). Identical testids, identical disabled predicates
-   * read from the one sorted source, same manage gate, ≥44px targets (C2).
+   * Bundle 11 G3d (DEC-170) — the order moves live in the row's three-dots menu,
+   * read from the one sorted source (INC-103): Move up is off for the row under
+   * the pinned base language, Move down for the last row, and both while an
+   * order write is in flight (it spans the re-read).
    */
-  const moveControls = (row: LanguageRow) => {
+  const moveItems = (row: LanguageRow) => {
     const index = ordered.findIndex((entry) => entry.code === row.code);
     const above = index > 0 ? ordered[index - 1] : undefined;
+    return [
+      {
+        key: "up",
+        label: t("admin.translations.order.up").replace("{language}", row.nameNative),
+        icon: <ArrowUp />,
+        disabled: order.isPending || above === undefined || above.isBase,
+        onSelect: () => move(row, -1),
+      },
+      {
+        key: "down",
+        label: t("admin.translations.order.down").replace("{language}", row.nameNative),
+        icon: <ArrowDown />,
+        disabled: order.isPending || index < 0 || index >= ordered.length - 1,
+        onSelect: () => move(row, 1),
+      },
+    ];
+  };
+
+  /**
+   * Bundle 11 G3d — a coverage meter as ONE fact of the phone card: its word,
+   * a short bar and the count on one line (the table keeps the full-width bar).
+   */
+  const cardMeter = (
+    testid: string,
+    label: string,
+    approved: number,
+    total: number,
+    tone: string,
+  ) => {
+    const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
     return (
-      <>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="min-h-11 min-w-11 p-0 md:h-8 md:min-h-8 md:w-8 md:min-w-8"
-          data-testid={`lang-up-${row.code}`}
-          aria-label={t("admin.translations.order.up").replace("{language}", row.nameNative)}
-          disabled={order.isPending || above === undefined || above.isBase}
-          onClick={() => move(row, -1)}
-        >
-          <ArrowUp aria-hidden="true" />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="min-h-11 min-w-11 p-0 md:h-8 md:min-h-8 md:w-8 md:min-w-8"
-          data-testid={`lang-down-${row.code}`}
-          aria-label={t("admin.translations.order.down").replace("{language}", row.nameNative)}
-          disabled={order.isPending || index < 0 || index >= ordered.length - 1}
-          onClick={() => move(row, 1)}
-        >
-          <ArrowDown aria-hidden="true" />
-        </Button>
-      </>
+      <span data-testid={testid} className="inline-flex min-w-0 items-center gap-1.5">
+        <span className="text-xs font-normal text-muted-foreground">{label}</span>
+        <span aria-hidden="true" className="block h-1.5 w-14 overflow-hidden rounded-full bg-muted">
+          <span className={`block h-full rounded-full ${tone}`} style={{ width: `${pct}%` }} />
+        </span>
+        <span className="text-xs tabular-nums">{`${approved} / ${total}`}</span>
+      </span>
     );
   };
 
@@ -318,6 +337,7 @@ function LanguagesTable({
       key: "language",
       header: t("admin.translations.col.language"),
       priority: "primary",
+      card: "title",
       width: "w-fit max-w-40",
       cell: (row) => (
         <span className="flex min-w-0 flex-nowrap items-center gap-1.5">
@@ -342,6 +362,7 @@ function LanguagesTable({
       key: "nameEn",
       header: t("admin.translations.col.nameEn"),
       priority: "detail",
+      card: "sub",
       width: "w-fit max-w-32",
       cell: (row) => (
         <span className="block max-w-28 truncate text-muted-foreground" title={row.nameEn}>
@@ -357,6 +378,17 @@ function LanguagesTable({
         </span>
       ),
       priority: "primary",
+      card: "meta",
+      cardCell: (row) => {
+        const { total, approved } = coverageOf(statsByLang.get(row.code));
+        return cardMeter(
+          `lang-coverage-${row.code}`,
+          t("admin.translations.col.coverage"),
+          approved,
+          total,
+          "bg-primary",
+        );
+      },
       width: "w-auto",
       cell: (row) => {
         const { total, approved } = coverageOf(statsByLang.get(row.code));
@@ -389,6 +421,17 @@ function LanguagesTable({
         </span>
       ),
       priority: "secondary",
+      card: "meta",
+      cardCell: (row) => {
+        const entry = dataByLang.get(row.code);
+        return cardMeter(
+          `lang-data-coverage-${row.code}`,
+          t("admin.translations.col.coverageData"),
+          entry?.approved ?? 0,
+          entry?.total ?? 0,
+          "bg-secondary-foreground",
+        );
+      },
       width: "w-auto",
       cell: (row) => {
         const entry = dataByLang.get(row.code);
@@ -426,10 +469,11 @@ function LanguagesTable({
         </span>
       ),
       priority: "secondary",
+      card: "meta",
       width: "w-16",
       cell: (row) => (
-        <span className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:block">
-          <span className="text-sm text-foreground md:hidden">
+        <span className="inline-flex min-w-0 items-center gap-2 xl:block">
+          <span className="text-xs font-normal text-muted-foreground xl:hidden">
             {t("admin.translations.col.admin")}
           </span>
           <Switch
@@ -450,7 +494,9 @@ function LanguagesTable({
         </span>
       ),
       priority: "secondary",
-      width: "w-16",
+      card: "meta",
+      // Bundle 11 G3d — room for the gate's line under the switch (it broke inside words at w-16).
+      width: "w-36",
       cell: (row) => {
         const { total, remaining } = coverageOf(statsByLang.get(row.code));
         // EMPTY-SET LAW (INC-095h): an empty catalog is not vacuously complete.
@@ -464,10 +510,10 @@ function LanguagesTable({
               .replace("{total}", String(total));
         return (
           <span
-            className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:block"
+            className="inline-flex min-w-0 flex-wrap items-center gap-x-2 xl:block"
             title={blocked ? hint : undefined}
           >
-            <span className="text-sm text-foreground md:hidden">
+            <span className="text-xs font-normal text-muted-foreground xl:hidden">
               {t("admin.translations.col.public")}
             </span>
             <Switch
@@ -480,7 +526,7 @@ function LanguagesTable({
             {blocked ? (
               <span
                 data-testid={`lang-public-gate-${row.code}`}
-                className="col-span-2 mt-1 block text-xs text-muted-foreground"
+                className="mt-1 block basis-full text-xs font-normal text-muted-foreground"
               >
                 {hint}
               </span>
@@ -542,9 +588,17 @@ function LanguagesTable({
         emptyState={
           <p className="text-sm text-muted-foreground">{t("admin.translations.empty")}</p>
         }
-        className="md:[&_table]:min-w-[56rem] [&_[data-testid=data-table-col-actions]]:w-60 [&_[data-testid$=-actions-cell]>span]:flex-nowrap"
-        rowActions={(row) => {
-          return row.isBase ? (
+        className="md:[&_table]:min-w-[56rem]"
+        /**
+         * Bundle 11 G3d — seven columns and the actions need about 56rem: below
+         * xl the roster is cards (two to a row from md), never a table that
+         * scrolls sideways inside its frame.
+         */
+        cardUntil="xl"
+        cardLead={() => <Languages />}
+        actionsWidth="w-44"
+        rowActions={(row) =>
+          row.isBase ? (
             <span
               data-testid={`lang-source-${row.code}`}
               className="block max-w-52 text-xs text-muted-foreground"
@@ -552,29 +606,54 @@ function LanguagesTable({
               {t("admin.translations.badge.source")}
             </span>
           ) : (
-            <span className="flex min-w-0 flex-wrap items-center gap-1 md:flex-nowrap md:justify-end [&>[data-testid^=lang-delete-]]:px-2 [&>[data-testid^=lang-delete-]]:text-xs md:[&>[data-testid^=lang-delete-]]:h-8 md:[&>[data-testid^=lang-delete-]]:min-h-8">
-              {mayManage
-                ? // INC-106b — ONE copy per twin: the primitive renders this
-                  // actions region once inside the card twin and once inside the
-                  // table twin's actions cell, so no visibility class is needed
-                  // and neither DOM ever holds two `lang-up-*`/`lang-down-*`.
-                  moveControls(row)
-                : null}
-              <Link
-                to="/admin/translations/$lang"
-                params={{ lang: row.code }}
-                data-testid={`lang-open-${row.code}`}
-                className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-md border border-input px-2 text-xs text-foreground hover:bg-accent hover:text-accent-foreground md:h-8 md:min-h-8"
-              >
-                {t("admin.translations.open")}
-              </Link>
-              {/* U4i-4 (b) — destructive, so it is last, typed-confirmed and
-                  step-upped. Base/published rows never reach here armed. */}
-              {mayManage ? <DeleteLanguageDialog row={row} guard={guard} /> : null}
-            </span>
-          );
-        }}
+            /**
+             * Bundle 11 G3d (DEC-170) — the row's actions on the agreed blocks:
+             * Open strings (the row's edit: the language's strings page), the
+             * red Delete (off for a published language — the door refuses it,
+             * turn Public off first), and the three-dots with the order moves.
+             * On a phone the three-dots sit in the card's corner, Open and
+             * Delete in its footer.
+             */
+            <RowActions
+              testid={`lang-actions-${row.code}`}
+              name={row.nameNative}
+              edit={{
+                label: t("admin.translations.open"),
+                onSelect: () =>
+                  void navigate({ to: "/admin/translations/$lang", params: { lang: row.code } }),
+              }}
+              remove={
+                mayManage
+                  ? {
+                      label: t("admin.translations.delete.action"),
+                      disabled: row.enabledPublic,
+                      onSelect: () => {
+                        setDeleteSummary(null);
+                        setDeleting(row);
+                      },
+                    }
+                  : undefined
+              }
+              more={mayManage ? moveItems(row) : undefined}
+            />
+          )
+        }
       />
+      {/* U4i-4 (b) — destructive, typed-confirmed and step-upped (INC-123). */}
+      {deleting !== null ? (
+        <DeleteLanguageDialog
+          key={deleting.code}
+          row={deleting}
+          guard={guard}
+          onClose={() => setDeleting(null)}
+          onDeleted={setDeleteSummary}
+        />
+      ) : null}
+      {deleteSummary ? (
+        <p role="status" data-testid="lang-delete-summary" className="text-xs text-foreground">
+          {deleteSummary}
+        </p>
+      ) : null}
       {mayManage ? (
         <p data-testid="lang-order-note" className="text-xs text-muted-foreground">
           {t("admin.translations.order.note")}
