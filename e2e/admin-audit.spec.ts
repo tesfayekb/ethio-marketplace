@@ -27,7 +27,7 @@ import {
  * Phase U3 — Audit & Security (AS-*) and impersonation v1 (IMP-*).
  *
  * Law F3 restated: the browser cases prove what RENDERS; the refusal cases
- * (IMP-3) prove the SERVER is the authority — they call the RPC directly from
+ * (IMP-3, IMP-5) prove the SERVER is the authority — they call the RPC directly from
  * the signed-in browser client, bypassing every piece of UI.
  */
 
@@ -329,7 +329,7 @@ test.describe("U3 audit & security", () => {
   );
 
   test(
-    "IMP-3 server refusals: self, super-admin target, and a non-super caller",
+    "IMP-3 server refusals: self and a super-admin target",
     { tag: "@private-identity" },
     async ({ page }) => {
       const { user, secret } = await signInAsSuperAdmin(page);
@@ -349,7 +349,19 @@ test.describe("U3 audit & security", () => {
         p_reason: "e2e super target",
       });
       expect(superTarget ?? "").toContain("cannot impersonate a super admin");
+    },
+  );
 
+  /**
+   * Turn C5 (INC-555, DEC-174) — IMP-3's third refusal, on its own: IMP-3
+   * leased three pooled accounts; each test now leases at most two. (IMP-4 is
+   * not used: a comment in use-impersonation.ts already names the banner's
+   * expiry probe so.)
+   */
+  test(
+    "IMP-5 server refusal: a caller who is not a super admin",
+    { tag: "@private-identity" },
+    async ({ page }) => {
       const admin = await leaseUser();
       await grantRole(admin.id, "admin");
       await switchUser(page, admin.email, admin.password);

@@ -37,4 +37,23 @@ describe("test ids (INC-536)", () => {
     expect(uses.map((u) => u.id)).toEqual(["ZZ-3", "ZZ-4", "ZZ-5"]);
     expect(uses.map((u) => u.line)).toEqual([1, 1, 3]);
   });
+
+  it("TI-5 a title wrapped onto the line after `test(` is read, at its own line", () => {
+    const text = [
+      "test.describe('d', () => {",
+      "  test(",
+      '    "ZZ-6 a long title the formatter wrapped",',
+      '    { tag: "@x" },',
+      "    async () => {},",
+      "  );",
+      '  it("ZZ-6 again", () => {});',
+      "});",
+    ].join("\n");
+    const uses = idsIn("e2e/a.spec.ts", text);
+    expect(uses).toEqual([
+      { id: "ZZ-6", file: "e2e/a.spec.ts", line: 3 },
+      { id: "ZZ-6", file: "e2e/a.spec.ts", line: 7 },
+    ]);
+    expect([...collisions(uses).keys()]).toEqual(["ZZ-6"]);
+  });
 });

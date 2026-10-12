@@ -49,14 +49,19 @@ scan_file() {
         printf "%s:%d  %s  [missing %s]\n", file, line, title, tag
         bad = 1
       }
-      title = ""; used = 0; tagged = 0
+      title = ""; used = 0; tagged = 0; pending = 0
     }
     /^[[:space:]]*(test|test\.only)\(/ {
       flush()
       line = NR
       if (match($0, /"[^"]+"/)) title = substr($0, RSTART + 1, RLENGTH - 2)
+      else pending = 1
       header = $0
       getline_ok = 1
+    }
+    # Turn C5 (INC-563): a title the formatter wrapped onto the next line.
+    pending && NR > line && match($0, /"[^"]+"/) {
+      title = substr($0, RSTART + 1, RLENGTH - 2); pending = 0
     }
     { if (title != "") { if ($0 ~ tag) tagged = 1; if ($0 ~ tokens) used = 1 } }
     END { flush(); exit bad ? 1 : 0 }
@@ -75,8 +80,15 @@ test("X-1 untagged test that unenrols its factor", async ({ page }) => {
 test("X-2 tagged test that unenrols its factor", { tag: "@private-identity" }, async ({ page }) => {
   await page.getByTestId("mfa-remove-confirm").click();
 });
+
+test(
+  "X-3 untagged test whose title the formatter wrapped",
+  async ({ page }) => {
+    await page.getByTestId("mfa-remove-confirm").click();
+  },
+);
 EOF
-  echo "[identity-tags] self-test fixture: one untagged violation + one tagged control"
+  echo "[identity-tags] self-test fixture: two untagged violations (one title wrapped) + one tagged control"
   out="$(scan_file "$tmp/violation.spec.ts" <"$tmp/violation.spec.ts")"
   status=$?
   echo "$out"
@@ -85,11 +97,15 @@ EOF
     echo "[identity-tags] SELF-TEST FAILED: the guard did not flag the violation"
     exit 1
   fi
+  if ! echo "$out" | grep -q "X-3"; then
+    echo "[identity-tags] SELF-TEST FAILED: the guard did not read the wrapped title"
+    exit 1
+  fi
   if echo "$out" | grep -q "X-2"; then
     echo "[identity-tags] SELF-TEST FAILED: the guard flagged the tagged control"
     exit 1
   fi
-  echo "[identity-tags] self-test OK (flagged X-1 only)"
+  echo "[identity-tags] self-test OK (flagged X-1 and X-3 only)"
 }
 
 if [ "${1:-}" = "--self-test" ]; then

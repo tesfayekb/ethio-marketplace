@@ -19,8 +19,9 @@ import { adminClient, leaseUser } from "./helpers/users";
  * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6); bundle 11 A1 — the preview's doors (SC-7..SC-10);
  * bundle 11 A2 — the page on the agreed blocks (SC-11..SC-14; SC-2, SC-3, SC-6 open the row's menu);
  * bundle 11 A3 — the market filter settles (SC-11, INC-537/538), every Reject is red (SC-12, SC-14),
- * "Show number" asks for no second factor (SC-8, SC-13, SC-15 — D129), the seller box in rows (SC-13, D130). Seeded as feed-route seeds;
- * every row is found by its unique title in the page's search (G28); DB truth
+ * "Show number" asks for no second factor (SC-17, SC-13, SC-15 — D129), the seller box in rows (SC-13, D130);
+ * turn C5 — SC-4 and SC-8 split so that no test leases more than two pooled accounts (SC-16, SC-17; INC-555,
+ * DEC-174). Seeded as feed-route seeds; every row is found by its unique title in the page's search (G28); DB truth
  * through the service client; cleanup in afterEach (J3).
  */
 
@@ -307,10 +308,15 @@ test.describe("ADMIN SCREENING", () => {
     await expect(page.locator(`[data-testid^="admin-screening-row-${ad.id}"]`)).toHaveCount(0);
   });
 
-  test("SC-4 only a reviewer with a fresh second factor decides", async ({ page }) => {
+  /**
+   * Turn C5 (INC-555, DEC-174) — SC-4 leased three pooled accounts (the
+   * scratch seller, a person with no role, a reviewer); it is split, each test
+   * leasing two: SC-4 the person with no role, SC-16 the reviewer without a
+   * second factor. Every assertion kept.
+   */
+  test("SC-4 a person with no role cannot decide", async ({ page }) => {
     test.setTimeout(180_000);
     const ad = await seedWaiting();
-    const supabase = adminClient();
 
     // (a) a pool user with no role.
     const plain = await leaseUser();
@@ -322,6 +328,12 @@ test.describe("ADMIN SCREENING", () => {
     });
     expect(deniedPlain).not.toBeNull();
     expect((await listingTruth(ad.id)).status).toBe("screening");
+  });
+
+  test("SC-16 a reviewer without a fresh second factor cannot decide", async ({ page }) => {
+    test.setTimeout(180_000);
+    const ad = await seedWaiting();
+    const supabase = adminClient();
 
     // (b) a scratch role holding listings:review only, no second factor.
     const roleName = `e2e_screen_reviewer_${rand()}`;
@@ -330,23 +342,23 @@ test.describe("ADMIN SCREENING", () => {
       .insert({ name: roleName, display_name: roleName, priority: 1 })
       .select("id")
       .single();
-    if (roleError || !role) throw new Error(`SC-4 scratch role failed: ${roleError?.message}`);
+    if (roleError || !role) throw new Error(`SC-16 scratch role failed: ${roleError?.message}`);
     roles.push(role.id as string);
     const { data: perms } = await supabase
       .from("permissions")
       .select("id, action, resources!inner(name)")
       .in("resources.name", ["listings"]);
     const wanted = (perms ?? []).filter((p) => p.action === "review");
-    expect(wanted, "SC-4 expected exactly listings:review").toHaveLength(1);
+    expect(wanted, "SC-16 expected exactly listings:review").toHaveLength(1);
     const granted = await supabase
       .from("role_permissions")
       .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`SC-4 grant failed: ${granted.error.message}`);
+    if (granted.error) throw new Error(`SC-16 grant failed: ${granted.error.message}`);
     const reviewer = await leaseUser();
     const assigned = await supabase
       .from("user_roles")
       .insert({ user_id: reviewer.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`SC-4 assignment failed: ${assigned.error.message}`);
+    if (assigned.error) throw new Error(`SC-16 assignment failed: ${assigned.error.message}`);
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
     const deniedReviewer = await rpcFromBrowser(page, "transition_listing", {
@@ -420,7 +432,12 @@ test.describe("ADMIN SCREENING", () => {
     if (profile?.display_name) expect(text).not.toContain(profile.display_name);
   });
 
-  test("SC-8 a person who is not a reviewer reads nothing; a reviewer without a second factor reads the facts and reveals a shown number, logged once (D129)", async ({
+  /**
+   * Turn C5 (INC-555, DEC-174) — SC-8 leased three pooled accounts; it is
+   * split, each test leasing two: SC-8 the person who is not a reviewer, SC-17
+   * the reviewer without a second factor. Every assertion kept.
+   */
+  test("SC-8 a person who is not a reviewer reads nothing and reveals nothing, and no row is written", async ({
     page,
   }) => {
     test.setTimeout(180_000);
@@ -437,17 +454,24 @@ test.describe("ADMIN SCREENING", () => {
     });
     expect(shown.error).toBe("permission denied");
     expect(await revealRows(ad.id), "SC-8: a refused reveal wrote a row").toHaveLength(0);
+  });
+
+  test("SC-17 a reviewer without a second factor reads the facts and reveals a shown number, logged once (D129)", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    const ad = await seedWaiting({ contactPref: PREF });
 
     const reviewer = await scratchHolder([["listings", "review"]]);
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
     const read = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
-    expect(read.error, "SC-8: a reviewer reads the facts without a second factor").toBeNull();
+    expect(read.error, "SC-17: a reviewer reads the facts without a second factor").toBeNull();
     const revealed = await rpcResult(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone",
     });
-    expect(revealed.error, "SC-8: the reveal asked for a second factor (D129)").toBeNull();
+    expect(revealed.error, "SC-17: the reveal asked for a second factor (D129)").toBeNull();
     expect(revealed.data).toEqual({ ok: true, channel: "phone", value: "+251911000101" });
     expect(await revealRows(ad.id)).toEqual([
       { actor_id: reviewer.id, action: "listing.contact_revealed", meta: { channel: "phone" } },

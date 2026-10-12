@@ -1084,7 +1084,9 @@ test.describe("POSTING ROUTES", () => {
     expect(await statusOf(dated)).toBe("expired");
   });
 
-  test("PR-24 a seller is named before an ad is published (INC-423)", async ({ page }) => {
+  test("PR-24 a seller without a public name, or a person without a first name, is refused at publish (INC-423)", async ({
+    page,
+  }) => {
     const cat = await category();
     const city = await activeCityOf("ET");
 
@@ -1149,8 +1151,17 @@ test.describe("POSTING ROUTES", () => {
       reason: "required",
     });
     expect(await statusOf(listingB)).toBe("draft");
+  });
 
-    // A business with its name and no first or last name publishes.
+  /**
+   * Turn C5 (INC-555, DEC-174) — PR-24 leased three sellers; the business that
+   * publishes is its own test now, so each leases at most two.
+   */
+  test("PR-44 a business with its name and no first or last name publishes (INC-423)", async ({
+    page,
+  }) => {
+    const cat = await category();
+    const city = await activeCityOf("ET");
     const business = await seller(page);
     await nameSeller(page, business.token, {
       alias: freeAlias(),
