@@ -110,6 +110,7 @@ Read again at dev `7f2db333` while the doors were written (G3 addendum 2):
   - Restore: removed in error, an appeal accepted, other.
   - Send back: wrong category, misleading details, contact details in the text, a photo, the site's rules, other.
   - "Other" needs a note; a note is at most 500 characters.
+  - *Added 2026-10-12 (turn L4d, D141): Undo — "Undo this edit" on the newest History line when it is an edit by staff, while every value it wrote is still the listing's; the edit's before-values go back through the edit door with the reason "undo" (the same rules, a revision, an audit row and a seller notice). An undo is not undone again; a photo removal is not undone.*
 - **The notice's kinds:** `admin_edit`, `admin_remove`, `admin_restore`, `admin_send_back` (the spec's `review` kind — a reviewer's decision — comes with the screening work that writes it). The notice names the fields as the seller reads them: title, description, category, specs, price, photos, or status for a move. The notice carries no admin's identity; the audit row does.
 - **A removed photo:** its row leaves the listing (the next photo becomes the cover); its file stays in storage, and the revision's `before.photos_removed` keeps the whole row, paths included, for a later Restore-photo.
 - **The seller's e-mail** is returned, and searchable, only for holders of `profiles:view` (the Users console's own rule); everyone with `listings:view` sees the public name, and the business name of a business.

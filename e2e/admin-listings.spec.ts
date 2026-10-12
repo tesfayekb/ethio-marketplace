@@ -1662,4 +1662,207 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       "title",
     ]);
   });
+
+  /** Turn L4d — the moment of a listing's newest revision, as its History names it. */
+  async function newestRevisionAt(listingId: string) {
+    const { data, error } = await adminClient()
+      .from("listing_revisions")
+      .select("created_at")
+      .eq("listing_id", listingId)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(1)
+      .single();
+    if (error || !data) throw new Error(`[e2e:al] revision read failed: ${error?.message}`);
+    return data.created_at as string;
+  }
+
+  /**
+   * Turn L4d (D141) — "Undo this edit" on the newest History line only: two
+   * admin edits (the title, then the price); the price's edit is undone from the
+   * listing's page with a note. The price comes back and the title stays; the
+   * newest line is the undo (Reason: Undo, no Undo on it); the seller is told.
+   */
+  test("AL-26 Undo this edit: the newest edit's before-values come back as a new edit with the reason Undo; the seller is told", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    await useJobSuperAdmin(page);
+    const title = `Corrected listing ${token()}`;
+    const first = await rpcResult(page, "admin_edit_listing", {
+      p_listing_id: live.id,
+      p_changes: { title },
+      p_reason: "misleading",
+    });
+    expect(first.error).toBeNull();
+    const second = await rpcResult(page, "admin_edit_listing", {
+      p_listing_id: live.id,
+      p_changes: { price_amount: 120 },
+      p_reason: "rules",
+    });
+    expect(second.error).toBeNull();
+
+    await gotoReady(page, `/admin/listings/${live.id}`);
+    await expect(page.getByTestId("listing-title")).toHaveText(title, { timeout: 20000 });
+    await expect(page.getByTestId("listing-fact-price").locator("dd")).toHaveText("120 ETB");
+    // The newest line offers Undo; the older edit does not.
+    await expect(
+      page.getByTestId("listing-history-entry-0").getByTestId("listing-history-undo"),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("listing-history-entry-1").getByTestId("listing-history-undo"),
+    ).toHaveCount(0);
+
+    await page.getByTestId("listing-history-entry-0").getByTestId("listing-history-undo").click();
+    const dialog = page.getByTestId("listing-undo-dialog");
+    await expect(dialog).toContainText(en["admin.listings.undo.hint"]);
+    const note = "The price was right before.";
+    await dialog.getByTestId("listing-undo-note").fill(note);
+    await dialog.getByTestId("listing-undo-confirm").click();
+
+    await expect(page.getByTestId("listing-notice")).toHaveText(
+      en["admin.listings.undo.done"].replace("{fields}", en["admin.listings.col.price"]),
+      { timeout: 20000 },
+    );
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByTestId("listing-fact-price").locator("dd")).toHaveText("100 ETB", {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("listing-title")).toHaveText(title);
+    const newest = page.getByTestId("listing-history-entry-0");
+    await expect(newest.getByTestId("listing-history-what")).toHaveText(
+      en["admin.listings.history.edited"].replace("{fields}", en["admin.listings.col.price"]),
+    );
+    await expect(newest.getByTestId("listing-history-reason")).toHaveText(
+      en["admin.listings.history.reason"].replace("{reason}", en["admin.listings.reason.undo"]),
+    );
+    await expect(newest.getByTestId("listing-history-note")).toHaveText(
+      en["admin.listings.history.note"].replace("{note}", note),
+    );
+    // An undo is not undone again; the older lines offer nothing.
+    await expect(page.getByTestId("listing-history-undo")).toHaveCount(0);
+    await expectNoHorizontalOverflow(page);
+
+    const { data: stored, error } = await adminClient()
+      .from("listings")
+      .select("status,title,price_amount")
+      .eq("id", live.id)
+      .single();
+    if (error) throw new Error(`[e2e:al] listing read failed: ${error.message}`);
+    expect(stored).toMatchObject({ status: "active", title, price_amount: 100 });
+    const notices = await noticeRows(live.id);
+    expect(notices).toHaveLength(3);
+    expect(notices.filter((row) => row["reason"] === "undo")).toEqual([
+      { seller_id: seller.id, kind: "admin_edit", fields: ["price"], reason: "undo", note },
+    ]);
+    const edits = await revisionRows(live.id, "edit");
+    expect(edits).toHaveLength(3);
+    expect(edits[2]).toMatchObject({ before: { price_amount: 120 }, after: { price_amount: 100 } });
+  });
+
+  /**
+   * Turn L4d (D141) — the undo door's refusals, called as the super admin:
+   * nothing to undo; a line that is no longer the newest; a listing changed
+   * since the edit; an undo undone again; a seller's own line; before-values
+   * that break today's rules (a refusal, nothing written). "undo" is not a
+   * reason the edit door takes from anyone else.
+   */
+  test("AL-27 Undo refuses: nothing to undo, a stale line, a listing changed since, an undo, the seller's own line, today's rules", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    await useJobSuperAdmin(page);
+    const undo = (listingId: string, at: string) =>
+      rpcResult(page, "admin_undo_listing_edit", { p_listing_id: listingId, p_at: at });
+
+    // Nothing to undo yet; "undo" is not an edit reason; nothing is written.
+    expect((await undo(live.id, new Date().toISOString())).error).toBe("nothing to undo");
+    const asReason = await rpcResult(page, "admin_edit_listing", {
+      p_listing_id: live.id,
+      p_changes: { title: `Corrected listing ${token()}` },
+      p_reason: "undo",
+    });
+    expect(asReason.error).toBe("unknown reason");
+    expect(await revisionRows(live.id, "edit")).toHaveLength(0);
+
+    // An edit; a line that is not the newest is refused.
+    const title = `Corrected listing ${token()}`;
+    expect(
+      (
+        await rpcResult(page, "admin_edit_listing", {
+          p_listing_id: live.id,
+          p_changes: { title },
+          p_reason: "misleading",
+        })
+      ).error,
+    ).toBeNull();
+    expect((await undo(live.id, "2000-01-01T00:00:00+00:00")).error).toBe(
+      "the listing has changed since this edit",
+    );
+
+    // The listing changed since the edit (this test's own row): refused; put back, the undo lands.
+    const changed = await adminClient()
+      .from("listings")
+      .update({ title: `Changed since ${token()}` })
+      .eq("id", live.id);
+    if (changed.error) throw new Error(`[e2e:al] change failed: ${changed.error.message}`);
+    const at = await newestRevisionAt(live.id);
+    expect((await undo(live.id, at)).error).toBe("the listing has changed since this edit");
+    const putBack = await adminClient().from("listings").update({ title }).eq("id", live.id);
+    if (putBack.error) throw new Error(`[e2e:al] put back failed: ${putBack.error.message}`);
+    const undone = await undo(live.id, at);
+    expect(undone.error).toBeNull();
+    expect(undone.data).toEqual({ ok: true, status: "active", fields: ["title"] });
+    expect(await listingTruth(live.id)).toMatchObject({ status: "active", title: live.title });
+
+    // The undo is not undone again.
+    expect((await undo(live.id, await newestRevisionAt(live.id))).error).toBe("nothing to undo");
+
+    // The seller's own line is the newest (a scratch revision of this listing): nothing to undo.
+    const own = await adminClient()
+      .from("listing_revisions")
+      .insert({
+        listing_id: live.id,
+        seller_id: seller.id,
+        kind: "edit",
+        actor: seller.id,
+        before: { description: "before" },
+        after: { description: "after" },
+      });
+    if (own.error) throw new Error(`[e2e:al] revision seed failed: ${own.error.message}`);
+    expect((await undo(live.id, await newestRevisionAt(live.id))).error).toBe("nothing to undo");
+    expect((await noticeRows(live.id)).map((row) => `${String(row["reason"])}`).sort()).toEqual([
+      "misleading",
+      "undo",
+    ]);
+
+    // Before-values that break today's rules: a refusal under the title, nothing written.
+    const phoned = await seed(seller, "active");
+    const phone = await adminClient()
+      .from("listings")
+      .update({ title: "Call me on 0911 223 344" })
+      .eq("id", phoned.id);
+    if (phone.error) throw new Error(`[e2e:al] title seed failed: ${phone.error.message}`);
+    expect(
+      (
+        await rpcResult(page, "admin_edit_listing", {
+          p_listing_id: phoned.id,
+          p_changes: { title: `Corrected listing ${token()}` },
+          p_reason: "contact_in_text",
+        })
+      ).error,
+    ).toBeNull();
+    const refused = await undo(phoned.id, await newestRevisionAt(phoned.id));
+    expect(refused.error).toBeNull();
+    expect(refused.data).toMatchObject({
+      ok: false,
+      refusals: expect.arrayContaining([
+        expect.objectContaining({ field: "title", reason: "contactInText" }),
+      ]),
+    });
+    expect(await revisionRows(phoned.id, "edit")).toHaveLength(1);
+    expect(await noticeRows(phoned.id)).toHaveLength(1);
+  });
 });

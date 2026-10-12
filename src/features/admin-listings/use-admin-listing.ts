@@ -227,6 +227,27 @@ export async function editAdminListing(
   return editAnswerOf(data);
 }
 
+/**
+ * Turn L4d (D141) — undo an admin's edit through the one door
+ * `admin_undo_listing_edit` (listings:enforce with a fresh second factor): the
+ * History line's own moment names the edit. The answer is the edit door's
+ * (done, or a refusal list); every other error is thrown as it came, so the
+ * step-up guard can read it.
+ */
+export async function undoAdminListingEdit(
+  listingId: string,
+  at: string,
+  note: string,
+): Promise<AdminEditAnswer> {
+  const { data, error } = await supabase.rpc("admin_undo_listing_edit", {
+    p_listing_id: listingId,
+    p_at: at,
+    ...(note.trim() === "" ? {} : { p_note: note.trim() }),
+  });
+  if (error) throw error;
+  return editAnswerOf(data);
+}
+
 export function useAdminListing(listingId: string) {
   return useQuery({
     queryKey: [...ADMIN_LISTINGS_KEY, "detail", listingId],

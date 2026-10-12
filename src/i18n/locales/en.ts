@@ -751,6 +751,15 @@ export const en = {
   "admin.listings.edit.changeCategory": "Change category",
   "admin.listings.edit.categoryHint":
     "Answers the new category does not ask are dropped when you save.",
+  "admin.listings.history.undo": "Undo this edit",
+  "admin.listings.reason.undo": "Undo",
+  "admin.listings.undo.title": "Undo this edit?",
+  "admin.listings.undo.hint": "The values from before this edit come back. The seller is told.",
+  "admin.listings.undo.confirm": "Undo",
+  "admin.listings.undo.done": "Undone. The seller is told what changed: {fields}.",
+  "admin.listings.undo.changed": "The listing has changed since this edit, so it cannot be undone.",
+  "admin.listings.undo.refused":
+    "The values from before this edit do not meet today's rules, so it cannot be undone: {fields}.",
   "admin.screening.search": "Search",
   "admin.screening.col.title": "Title",
   "admin.screening.col.category": "Category",
