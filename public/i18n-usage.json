@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 402,
+  "scanned": 403,
   "dynamicCallSites": 274,
   "keys": {
     "account.deactivatedBanner": [
@@ -2417,6 +2417,9 @@
     "admin.overview.stats": [
       "/admin/locations"
     ],
+    "admin.roles.action.open": [
+      "/admin/roles"
+    ],
     "admin.roles.col.display": [
       "/admin/roles"
     ],
@@ -3393,6 +3396,9 @@
       "/auth"
     ],
     "auth.password": [
+      "/auth"
+    ],
+    "auth.passwordConfirm": [
       "/auth"
     ],
     "auth.passwordPlaceholder": [
@@ -5631,6 +5637,10 @@
       "/auth/reset",
       "/settings"
     ],
+    "settings.newPasswordConfirm": [
+      "/auth/reset",
+      "/settings"
+    ],
     "settings.passwordMethod": [
       "/settings"
     ],
@@ -5641,6 +5651,9 @@
       "/settings"
     ],
     "settings.removePassword": [
+      "/settings"
+    ],
+    "settings.removePasswordAsk": [
       "/settings"
     ],
     "settings.removePasswordConfirm": [
