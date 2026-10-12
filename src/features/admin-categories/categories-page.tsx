@@ -32,6 +32,7 @@ import { TableActionButton, TableActions } from "@/components/shell/table-action
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { PageShell } from "@/components/layout/page-shell";
 import { TipBadge } from "@/components/shell/tip-badge";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CutText } from "@/components/ui/cut-text";
@@ -100,12 +101,10 @@ const TABLE_ID = "admin-categories";
 const LOCKED = ["name"];
 
 /**
- * C2c — PAGE SIZE IS A DEVICE SETTING. Same storage discipline as the language
- * star: localStorage is the durable per-device record, read after mount so SSR
- * and the first client frame agree.
+ * C2c — PAGE SIZE IS A DEVICE SETTING, kept in this browser by `useKeptPage`
+ * (bundle 11 C1: one hook for every table; read after mount so SSR and the
+ * first client frame agree).
  */
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
-const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.categories.pageSize";
 
 /**
@@ -205,29 +204,11 @@ export function AdminCategoriesPage() {
   const [search, setSearch] = useState("");
   const [rootFilter, setRootFilter] = useState("");
   const [missingOnly, setMissingOnly] = useState(false);
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
-  const [offset, setOffset] = useState(0);
+  // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
+  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
+    useKeptPage(PAGE_SIZE_STORAGE_KEY);
+  const offset = page * pageSize;
 
-  useEffect(() => {
-    try {
-      const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
-      if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
-        setPageSize(stored);
-      }
-    } catch {
-      /* no storage access on this device; the default answers */
-    }
-  }, []);
-
-  const choosePageSize = (next: number) => {
-    setPageSize(next);
-    setOffset(0);
-    try {
-      window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-    } catch {
-      /* the choice still holds for this session */
-    }
-  };
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
   /** C2-GHOST — the only close path, so no surface can forget the transition. */
   const closeDialog = (next: DialogState) => setDialog(next);
@@ -359,8 +340,9 @@ export function AdminCategoriesPage() {
   const rootCounts = useMemo(() => subtreeCounts(roster), [roster]);
 
   useEffect(() => {
-    setOffset(0);
-  }, [needle, rootFilter, missingOnly]);
+    setPage(0);
+    // `setPage` is the kept page's state setter: stable, listed for the rule.
+  }, [needle, rootFilter, missingOnly, setPage]);
 
   /**
    * INC-142 — the dialog stores ONLY the id; the rendered row is looked up in
@@ -1070,7 +1052,7 @@ export function AdminCategoriesPage() {
           <DataTable<CategoryNode>
             columns={columns}
             rows={filtered}
-            page={Math.floor(offset / pageSize)}
+            page={page}
             pageSize={pageSize}
             rowKey={(row) => row.id}
             rowTestId={(row) => `category-row-${row.slug}`}
@@ -1185,11 +1167,11 @@ export function AdminCategoriesPage() {
                 offset={offset}
                 pageSize={pageSize}
                 total={filtered.length}
-                onPrevious={() => setOffset((prev) => Math.max(0, prev - pageSize))}
-                onNext={() => setOffset((prev) => prev + pageSize)}
-                onPage={(index) => setOffset(index * pageSize)}
-                pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
-                onPageSize={choosePageSize}
+                onPrevious={() => setPage((current) => Math.max(0, current - 1))}
+                onNext={() => setPage((current) => current + 1)}
+                onPage={setPage}
+                pageSizeOptions={pageSizeOptions}
+                onPageSize={setPageSize}
                 testid="category-pagination"
               />
             }

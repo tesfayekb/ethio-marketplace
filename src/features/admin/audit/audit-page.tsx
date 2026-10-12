@@ -1,5 +1,5 @@
 import { History } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { ChartFrame } from "@/components/shell/chart-frame";
 import { ColumnsButton } from "@/components/shell/columns-button";
@@ -17,9 +17,9 @@ import { FilterChoices } from "@/components/shell/filter-choices";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
 import { useI18n } from "@/i18n";
 
 import type { AuditRow } from "./audit-service";
@@ -27,7 +27,6 @@ import { useAuditFacets, useAuditList, useAuditStats } from "./use-audit";
 
 const TABLE_ID = "admin-audit";
 const LOCKED = ["action"];
-const DEFAULT_PAGE_SIZE = 25;
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.audit.pageSize";
 
 /**
@@ -104,18 +103,11 @@ export function AdminAuditPage() {
   const [entityType, setEntityType] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
+  // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
+  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
+    useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
-
-  /** Page size is a device setting, read after mount so SSR and hydration agree. */
-  useEffect(() => {
-    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY) ?? "");
-    if (PAGE_SIZE_OPTIONS.includes(stored as (typeof PAGE_SIZE_OPTIONS)[number])) {
-      setPageSize(stored);
-    }
-  }, []);
 
   const filters = {
     search,
@@ -157,12 +149,6 @@ export function AdminAuditPage() {
   const resetPage = () => setPage(0);
   // INC-548 — the log holds no future events, so no day after today is offered.
   const today = todayIso();
-  const setPageSizeKept = (next: number) => {
-    setPageSize(next);
-    setPage(0);
-    window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(next));
-  };
-
   const allColumns: DataTableColumn<AuditRow>[] = [
     {
       key: "time",
@@ -495,8 +481,8 @@ export function AdminAuditPage() {
               setPage((current) => ((current + 1) * pageSize < total ? current + 1 : current))
             }
             onPage={setPage}
-            pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
-            onPageSize={setPageSizeKept}
+            pageSizeOptions={pageSizeOptions}
+            onPageSize={setPageSize}
           />
         }
       />

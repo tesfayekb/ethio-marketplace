@@ -12,6 +12,7 @@ import { RowActions } from "@/components/shell/row-actions";
 import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
+import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -41,8 +42,7 @@ import { ADMIN_COVERAGE_KEY, useCoveragePlans } from "./use-coverage";
  * zones with the page size.
  */
 
-const PAGE_SIZE = 25;
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const PAGE_SIZE_STORAGE_KEY = "ethio.admin.coverage.pageSize";
 const TABLE_ID = "admin-coverage";
 const LOCKED = ["plan"];
 
@@ -62,8 +62,9 @@ export function AdminCoveragePage() {
   const mayUpdate = permissions.includes("coverage:update");
 
   const query = useCoveragePlans();
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
+  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
+    useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
@@ -271,11 +272,8 @@ export function AdminCoveragePage() {
                 onPrevious={() => setPage((current) => Math.max(0, current - 1))}
                 onNext={() => setPage((current) => current + 1)}
                 onPage={setPage}
-                pageSizeOptions={PAGE_SIZE_OPTIONS}
-                onPageSize={(next) => {
-                  setPageSize(next);
-                  setPage(0);
-                }}
+                pageSizeOptions={pageSizeOptions}
+                onPageSize={setPageSize}
               />
             }
           />

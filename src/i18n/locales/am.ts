@@ -729,7 +729,7 @@ export const am: Messages = {
   "admin.listings.edit.changeCategory": "ምድብ ቀይር",
   "admin.listings.edit.categoryHint": "አዲሱ ምድብ የማይጠይቃቸው መልሶች ሲያስቀምጡ ይወገዳሉ።",
   "admin.listings.history.undo": "ይህን ማስተካከያ ቀልብስ",
-  "admin.listings.reason.undo": "መቀልበስ",
+  "admin.listings.reason.undo": "ቀልበስ",
   "admin.listings.undo.title": "ይህ ማስተካከያ ይቀለበስ?",
   "admin.listings.undo.hint": "ከዚህ ማስተካከያ በፊት የነበሩት እሴቶች ይመለሳሉ። ለሻጩ ይነገራል።",
   "admin.listings.undo.confirm": "ቀልብስ",
