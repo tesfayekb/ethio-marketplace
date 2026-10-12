@@ -56,17 +56,27 @@ The operator's choice (D140, 2026-10-11): Edit in two turns — L4a the title, t
 - **INC-558:** AL-23 saved a title, opened Edit again at once and changed a specification; the door was told the title had changed too and wrote the previous title back. The form had opened on the page's old read (the page re-reads after a save) and measured its values against the new one. The form now measures everything it sends against the listing it opened on, and Edit waits until the page's read has settled.
 - **INC-557:** in the breadcrumb, a group with no page of its own (Listings, Catalog) wore the current segment's look (bold, underlined, `aria-current`) beside the real current page; it is now a plain name (AL-21, A-5).
 
+## Undo this edit (turn L4d)
+
+The operator's decision (D141, 2026-10-12): an admin's saved edit can be undone from the listing's History.
+
+- **Where:** "Undo this edit" (`listing-history-undo`) on the newest History line, when that line is an edit by staff — not itself an undo, and no photo removed (`mayUndo`, src/features/admin-listings/undo-edit.ts) — for those who may edit the listing (`listings:enforce`, never the admin's own or a removed listing). It waits while the page's read is being replaced (INC-558's class).
+- **The dialog** (`listing-undo-dialog`, src/features/admin-listings/undo-dialog.tsx): what the undo does, an optional note for the seller (at most 500 characters), Cancel and Undo.
+- **The door** `admin_undo_listing_edit(listing, at, note)` (listings:enforce with a fresh second factor): the History line's moment must be the listing's newest revision, an edit by staff that is not an undo and removed no photo; every value that edit wrote must still be the listing's ("The listing has changed since this edit, so it cannot be undone." — the page then reads the History again); then the edit's before-values (the title, the description, the category, the specifications, the price) go back through `admin_edit_listing` with the reason `undo`: the same content rules, a new History line ("Reason: Undo"), an audit row and a seller notice. Before-values that break today's rules are refused in the dialog, naming the fields, and nothing is written. An undo is not undone again: the admin edits the listing instead.
+- **The edit door** takes the reason `undo` only from the undo door (a setting the undo door turns on for its own call); from anyone else it is "unknown reason".
+
 ## Reasons
 
 - Edit: `wrong_category`, `misleading`, `contact_in_text`, `photo`, `rules`, `other` (the form offers all but `photo`, which comes with photo removal; `wrong_category` since turn L4b).
 - Remove: `prohibited`, `misleading`, `duplicate`, `contact_in_text`, `photo`, `rules`, `other`.
 - Restore: `removed_in_error`, `appeal_accepted`, `other`.
 - Send back: `wrong_category`, `misleading`, `contact_in_text`, `photo`, `rules`, `other`.
+- Undo (turn L4d): `undo`, set by the undo door only; the note is optional.
 - `other` needs a note; a note is at most 500 characters.
 
 ## The seller's notices
 
-`seller_notices`: the seller, the listing, the kind (`admin_edit`, `admin_remove`, `admin_restore`, `admin_send_back`), the fields as the seller reads them (title, description, category, specs, price, photos; status for a move), the reason, the note, when, and when read. Row security: the seller reads only their own; no browser role writes. Nothing shows them yet: My ads (stage 4, D138) and notifications (stage 6) will.
+`seller_notices`: the seller, the listing, the kind (`admin_edit`, `admin_remove`, `admin_restore`, `admin_send_back`), the fields as the seller reads them (title, description, category, specs, price, photos; status for a move), the reason (`undo` since turn L4d), the note, when, and when read. Row security: the seller reads only their own; no browser role writes. Nothing shows them yet: My ads (stage 4, D138) and notifications (stage 6) will.
 
 ## Tests
 
@@ -83,6 +93,8 @@ AL-16..AL-18 (turn L3): the page's door (a plain account refused, a draft not fo
 AL-19..AL-21 (turn L4a): the door judged on what an admin can change — a seller's end date two hours away and a switched-off place no longer block an edit, a phone number in the title is still refused (red against the door of 20261011085637); Edit on the page as the super admin — the price "per bag" in All listings and on the page, a reason asked for first, the title and the price saved with a reason and a note, the line above, History's newest line, the seller's notice, the unit released with the new price; and a refusal under the title with nothing written, Cancel, and "Nothing has changed." without a door. AL-17: a removed listing shows no Edit; AL-18: no Edit for `listings:view` alone. Unit: LE-1..LE-5 (the form's starting values, only what changed travels, the price as the door stores it, the reasons and the note's rules, the door's answers). The migration's proofs C1–C5 check both doors' headers and grants, the edit's gates and its content rules through step 5 with no end date and no places, the list's unit columns, and the refusals with no session and with an identity that holds nothing.
 
 AL-22 and AL-23 (turn L4b): a listing moved to another scratch leaf through "Change category" with Wrong category — the line above, History's "Edited: Category", the stored leaf, the seller's notice; a specification edited with the seller's form — a title-only edit sends no specifications, an emptied required answer is refused under its own control with nothing written, then a new answer is saved and the seller is told "Specifications". AL-21: the breadcrumb ends with the listing's title, and its All listings segment leads back. TR-39 (e2e/admin-translations-console.spec.ts): a language's page — the breadcrumb names the language as the heading does, and Translations leads back to the roster. Unit: LE-4 and LE-5 updated (Wrong category; a specification's refusal under its key), LE-6 (a category change, and answers sent only when the admin worked in them). INC-555 (CI on dfd6555a): AL-3 leased three accounts one after another besides the scratch seller and ran past its 60 s budget (63–66 s already on 88c6ed8c); it is split — AL-3 an account with no listing right, AL-24 a reviewer, AL-25 an enforcer without a second factor — every assertion kept, each checking that nothing was written.
+
+AL-26 and AL-27 (turn L4d): two admin edits, the newest undone from the page with a note — the price comes back and the title stays, the line above, History's newest line ("Edited: Price", "Reason: Undo", the note) with no Undo left on the page, the stored values, the seller's notice and the revision; the undo door's refusals called as the super admin — nothing to undo, `undo` refused as an edit reason, a line that is no longer the newest, a listing changed since the edit (then put back and undone), an undo undone again, the seller's own line, and before-values that break today's rules (a refusal under the title, nothing written). Unit: UE-1..UE-3 (which line offers Undo; the door's refusals in words; the refused fields as groups) and UD-1, UD-2 (the dialog's note; the door's refusal). The migration's proofs D1–D6 check both doors' headers and grants, the edit door's gates with `undo` from the undo door only, the undo door's gates and checks and that it writes only through the edit door, the notices' reason list, and the refusals with no session and with an identity that holds nothing.
 
 ## Turn L1b (CI on 63f6b687)
 

@@ -26,8 +26,11 @@ import { editErrorKey } from "./edit-listing";
 import { changesOf, GROUP_LABEL, groupOf, summarize, type FieldGroup } from "./history";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
+import { UndoDialog } from "./undo-dialog";
+import { mayUndo, undoErrorKey, undoRefusalGroups } from "./undo-edit";
 import {
   editAdminListing,
+  undoAdminListingEdit,
   useAdminListing,
   type AdminEditAnswer,
   type AdminListingHistoryEntry,
@@ -54,6 +57,11 @@ import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
  * — the title, the description and the price, with a reason and a note for the
  * seller (`ListingEditForm`, through `admin_edit_listing`). INC-553: every price
  * here prints with its unit ("per kg"), as the card does.
+ *
+ * Turn L4d (D141): "Undo this edit" on the newest History line when it is an
+ * edit by staff (`mayUndo`), for those who may edit; a dialog takes an optional
+ * note, and the door (`admin_undo_listing_edit`) puts the edit's before-values
+ * back as a new edit with the reason Undo, while nothing has changed since.
  */
 
 const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "neutral" | "info"> = {
@@ -99,6 +107,9 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const [editing, setEditing] = useState(false);
   const [editRefusals, setEditRefusals] = useState<Refusal[]>([]);
   const [editError, setEditError] = useState<string | null>(null);
+  /** Turn L4d — the History line being undone (its moment), and the door's refusal in words. */
+  const [undoing, setUndoing] = useState<string | null>(null);
+  const [undoProblem, setUndoProblem] = useState<string | null>(null);
 
   const detail = query.data ?? null;
   const photos = useScreeningPhotos(buyerView ? listingId : null);
@@ -294,6 +305,14 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
   };
 
+  /** The fields a door names (title, price, …), as the person reads them. */
+  const fieldNames = (fields: string[]) =>
+    fields
+      .map((field) =>
+        field in GROUP_LABEL ? t(GROUP_LABEL[field as FieldGroup]) : t(GROUP_LABEL.other),
+      )
+      .join(", ");
+
   const runEdit = async (
     guard: GuardFn,
     changes: Record<string, unknown>,
@@ -325,16 +344,51 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
       return;
     }
     setEditing(false);
-    setNotice(
-      t("admin.listings.edit.done").replace(
-        "{fields}",
-        answer.fields
-          .map((field) =>
-            field in GROUP_LABEL ? t(GROUP_LABEL[field as FieldGroup]) : t(GROUP_LABEL.other),
-          )
-          .join(", "),
-      ),
-    );
+    setNotice(t("admin.listings.edit.done").replace("{fields}", fieldNames(answer.fields)));
+    await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
+  };
+
+  const runUndo = async (guard: GuardFn, note: string) => {
+    if (undoing === null) return;
+    const at = undoing;
+    setBusy(true);
+    setUndoProblem(null);
+    let answer: AdminEditAnswer;
+    try {
+      answer = await guard(() => undoAdminListingEdit(listingId, at, note));
+    } catch (error) {
+      setBusy(false);
+      const abort = stepUpAbortKey(error);
+      // A cancelled second factor leaves the dialog open, as it was.
+      if (abort === null) return;
+      const message =
+        error !== null && typeof error === "object" && "message" in error
+          ? String((error as { message: unknown }).message)
+          : "";
+      const key = abort ?? undoErrorKey(message);
+      setUndoProblem(t(key));
+      // The History is stale: read it again, so the line it shows is the newest.
+      if (key === "admin.listings.undo.changed") {
+        await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
+      }
+      return;
+    }
+    setBusy(false);
+    // F4 — the before-values break today's rules: said in the dialog, nothing written.
+    if (!answer.ok) {
+      const groups = undoRefusalGroups(answer.refusals);
+      setUndoProblem(
+        t("admin.listings.undo.refused").replace(
+          "{fields}",
+          (groups.length > 0 ? groups : (["other"] as FieldGroup[]))
+            .map((group) => t(GROUP_LABEL[group]))
+            .join(", "),
+        ),
+      );
+      return;
+    }
+    setUndoing(null);
+    setNotice(t("admin.listings.undo.done").replace("{fields}", fieldNames(answer.fields)));
     await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
   };
 
@@ -656,6 +710,23 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                               ) : null}
                             </div>
                           ) : null}
+                          {mayEdit && mayUndo(entry, index) ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="touch"
+                              data-testid="listing-history-undo"
+                              // INC-558's class — never on a read that is being replaced.
+                              disabled={query.isFetching || busy}
+                              onClick={() => {
+                                setNotice(null);
+                                setUndoProblem(null);
+                                setUndoing(entry.at);
+                              }}
+                            >
+                              {t("admin.listings.history.undo")}
+                            </Button>
+                          ) : null}
                         </li>
                       );
                     })}
@@ -683,6 +754,17 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                 setRefusal(null);
               }}
               onConfirm={(reason, note) => void runMove(guard, reason, note)}
+            />
+          ) : null}
+          {undoing !== null ? (
+            <UndoDialog
+              busy={busy}
+              problem={undoProblem}
+              onCancel={() => {
+                setUndoing(null);
+                setUndoProblem(null);
+              }}
+              onConfirm={(note) => void runUndo(guard, note)}
             />
           ) : null}
           {viewAs ? (

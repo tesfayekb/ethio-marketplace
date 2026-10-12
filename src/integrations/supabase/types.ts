@@ -3024,6 +3024,10 @@ export type Database = {
       admin_undo_attribute_import: { Args: { p_batch: string }; Returns: Json }
       admin_undo_category_import: { Args: { p_batch: string }; Returns: Json }
       admin_undo_import: { Args: { p_batch: string }; Returns: Json }
+      admin_undo_listing_edit: {
+        Args: { p_at: string; p_listing_id: string; p_note?: string }
+        Returns: Json
+      }
       admin_undo_location_import: { Args: { p_batch: string }; Returns: Json }
       admin_unlink_attribute: {
         Args: { p_link_id: string }

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 400,
-  "dynamicCallSites": 272,
+  "scanned": 402,
+  "dynamicCallSites": 274,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1975,6 +1975,9 @@
     "admin.listings.history.status": [
       "/admin/listings/$listingId"
     ],
+    "admin.listings.history.undo": [
+      "/admin/listings/$listingId"
+    ],
     "admin.listings.move.done.send_back": [
       "/admin/listings",
       "/admin/listings/$listingId"
@@ -2002,6 +2005,21 @@
     ],
     "admin.listings.tier.regular": [
       "/admin/listings",
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.undo.confirm": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.undo.done": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.undo.hint": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.undo.refused": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.undo.title": [
       "/admin/listings/$listingId"
     ],
     "admin.listings.view": [
