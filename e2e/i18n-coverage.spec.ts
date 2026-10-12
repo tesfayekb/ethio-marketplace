@@ -173,9 +173,17 @@ async function assertAmharicCategories(page: Page, scope: string, where: string)
     },
     [scope, am["shell.categoriesLabel"]] as const,
   );
+  /**
+   * INC-561 (INC-170's class) — other tests' scratch roots (`e2e-…` slugs, J1)
+   * share the public rail while this test reads it; their names are the
+   * fixtures', not the catalogue's (PW-171 names one by its slug's last three
+   * letters). Only the catalogue's own rows are judged, as every other rail
+   * reader does (`:not([data-testid^="rail-category-e2e-"])`).
+   */
+  const catalogue = labels.filter((row) => !row.slug.startsWith("e2e-"));
 
-  expect(labels.length, `${where}: no category rows rendered`).toBeGreaterThan(0);
-  const english = labels.filter((row) => !ALLOW.has(row.label) && LATIN_ONLY.test(row.label));
+  expect(catalogue.length, `${where}: no category rows rendered`).toBeGreaterThan(0);
+  const english = catalogue.filter((row) => !ALLOW.has(row.label) && LATIN_ONLY.test(row.label));
   // INC-361 — the message names the slug of each English label.
   expect(
     english.map((row) => `${row.slug} => "${row.label}"`),
