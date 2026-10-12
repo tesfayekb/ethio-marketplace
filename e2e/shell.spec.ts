@@ -19,6 +19,7 @@ import {
   switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
+import { anyMenuRows, catalogueRows, slugOfRow } from "./helpers/category-menu";
 import {
   destroyLocation,
   readLocationById,
@@ -1004,14 +1005,12 @@ test.describe("mobile chrome", () => {
 
     // INC-528 — other tests' scratch categories (slugs "e2e-…") come and go in
     // the rail while this test runs; the anchor is a real category.
-    const realRows = menu.locator(
-      '[data-testid^="rail-category-"]:not([data-testid^="rail-category-e2e-"])',
-    );
+    const realRows = catalogueRows(menu);
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the geometry anchor
     const row = realRows.first();
     const testid = await row.getAttribute("data-testid");
     if (!testid) throw new Error("Missing first menu category test id");
-    const slug = testid.replace("rail-category-", "");
+    const slug = slugOfRow(testid);
     const stripRow = page.getByTestId(`strip-category-${slug}`);
     const rowBox = await row.boundingBox();
     const stripBox = await stripRow.boundingBox();
@@ -1040,14 +1039,14 @@ test.describe("mobile chrome", () => {
 
     const menu = await openRailScope(page);
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; any first category proves the active panel
-    await expect(menu.locator('[data-testid^="rail-category-"]').first()).toBeVisible();
+    await expect(catalogueRows(menu).first()).toBeVisible();
     await expect(menu.getByTestId("rail-item-ac-overview")).toHaveCount(0);
     await page.keyboard.press("Escape");
     await page.getByTestId("bottom-bar-account").click();
     await expect(page).toHaveURL(/\/account$/);
     const accountMenu = await openRailScope(page);
     await expect(accountMenu.getByTestId("rail-item-ac-overview")).toBeVisible();
-    await expect(accountMenu.locator('[data-testid^="rail-category-"]')).toHaveCount(0);
+    await expect(anyMenuRows(accountMenu)).toHaveCount(0);
     await expect(accountMenu).toHaveAttribute("data-panel", "account");
   });
 
@@ -1075,9 +1074,7 @@ test.describe("mobile chrome", () => {
     menu = await openRailScope(page);
     // INC-528 — other tests' scratch categories (slugs "e2e-…") come and go in
     // the rail while this test runs; the navigation subject is a real category.
-    const realRows = menu.locator(
-      '[data-testid^="rail-category-"]:not([data-testid^="rail-category-e2e-"])',
-    );
+    const realRows = catalogueRows(menu);
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the navigation subject
     const category = realRows.first();
     const testid = await category.getAttribute("data-testid");
@@ -1086,7 +1083,7 @@ test.describe("mobile chrome", () => {
     await category.click();
     await expect(page).toHaveURL(new RegExp(`${href}$`));
     await expect(menu).toBeHidden();
-    const slug = testid.replace("rail-category-", "");
+    const slug = slugOfRow(testid);
     await expect(page.getByTestId(`strip-category-${slug}`)).toHaveAttribute(
       "aria-current",
       "page",
@@ -1110,7 +1107,7 @@ test.describe("mobile chrome", () => {
     const menu = await openRailScope(page);
     await expect(menu).toHaveAttribute("data-panel", "marketplace");
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; any first category proves Marketplace content
-    await expect(menu.locator('[data-testid^="rail-category-"]').first()).toBeVisible();
+    await expect(catalogueRows(menu).first()).toBeVisible();
     await expect(menu.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
 
@@ -1181,10 +1178,7 @@ test.describe("mobile chrome", () => {
     // Category rows inside the opened menu share the strip's fitted height.
     const menu = await openRailScope(page);
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the fitted-row anchor
-    const firstMenuRow = await menu
-      .locator('[data-testid^="rail-category-"]')
-      .first()
-      .boundingBox();
+    const firstMenuRow = await catalogueRows(menu).first().boundingBox();
     if (!firstMenuRow) throw new Error("Missing menu category");
     expect(firstMenuRow.height).toBeGreaterThanOrEqual(27);
     expect(firstMenuRow.height).toBeLessThanOrEqual(45);

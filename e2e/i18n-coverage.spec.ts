@@ -6,6 +6,7 @@ import { en } from "../src/i18n/locales/en";
 import { LANGUAGE_STORAGE_KEY } from "../src/i18n/provider";
 
 import { gotoReady, openRailScope, signIn } from "./helpers/ui";
+import { ANY_MENU_ROW, isScratchSlug, slugOfRow } from "./helpers/category-menu";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -156,31 +157,28 @@ function assertAmharicChrome(texts: string[], where: string) {
 const LATIN_ONLY = /^[A-Za-z][A-Za-z\s&'’\-.,()/]*$/;
 
 async function assertAmharicCategories(page: Page, scope: string, where: string) {
-  const labels = await page.evaluate(
-    ([sel, catLabel]) => {
+  const rows = await page.evaluate(
+    ([sel, catLabel, anyRow]) => {
       const nav = document.querySelector(`${sel} nav[aria-label="${catLabel}"]`);
       if (!nav) return [];
       return Array.from(nav.querySelectorAll("li button, li a, li span[aria-disabled]"))
-        .map((el) => {
-          const testid =
-            el.closest('[data-testid^="rail-category-"]')?.getAttribute("data-testid") ?? "";
-          return {
-            label: (el.textContent ?? "").trim(),
-            slug: testid.replace(/^rail-category-/, "") || "?",
-          };
-        })
+        .map((el) => ({
+          label: (el.textContent ?? "").trim(),
+          testid: el.closest(anyRow)?.getAttribute("data-testid") ?? "",
+        }))
         .filter((row) => row.label !== "");
     },
-    [scope, am["shell.categoriesLabel"]] as const,
+    [scope, am["shell.categoriesLabel"], ANY_MENU_ROW] as const,
   );
+  const labels = rows.map((row) => ({ label: row.label, slug: slugOfRow(row.testid) || "?" }));
   /**
    * INC-561 (INC-170's class) — other tests' scratch roots (`e2e-…` slugs, J1)
    * share the public rail while this test reads it; their names are the
    * fixtures', not the catalogue's (PW-171 names one by its slug's last three
    * letters). Only the catalogue's own rows are judged, as every other rail
-   * reader does (`:not([data-testid^="rail-category-e2e-"])`).
+   * reader does — through e2e/helpers/category-menu.ts (turn C3: the class's guard).
    */
-  const catalogue = labels.filter((row) => !row.slug.startsWith("e2e-"));
+  const catalogue = labels.filter((row) => !isScratchSlug(row.slug));
 
   expect(catalogue.length, `${where}: no category rows rendered`).toBeGreaterThan(0);
   const english = catalogue.filter((row) => !ALLOW.has(row.label) && LATIN_ONLY.test(row.label));
