@@ -16,7 +16,8 @@ scripts/test-ids.ts reads every `it(` / `test(` title (with `.skip`, `.only`, `.
 - TI-1 — the repository has no repeated id (red on `9c40c53f`, with the 19 ids below);
 - TI-2 — an id in two files is refused;
 - TI-3 — one id on two tests of one file is refused, unless the file declares the case group;
-- TI-4 — a compound title counts each id; a record number is not a test id.
+- TI-4 — a compound title counts each id; a record number is not a test id;
+- TI-5 — a title the formatter wrapped onto the line after `test(` is read, at its own line (turn C5: the check read one line at a time and so missed seventeen such titles; none of them collided).
 
 ## The renames of 2026-10-10 (INC-536)
 

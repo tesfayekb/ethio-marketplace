@@ -35,18 +35,21 @@ export interface IdUse {
   line: number;
 }
 
-/** Every test id used in one file's text. */
+/**
+ * Every test id used in one file's text. The whole text is read at once, so a
+ * title the formatter wrapped onto the line after `test(` is read too (turn
+ * C5: seventeen such titles were not); the line is the title's own.
+ */
 export function idsIn(file: string, text: string): IdUse[] {
   const uses: IdUse[] = [];
-  const lines = text.split("\n");
-  lines.forEach((content, index) => {
-    for (const match of content.matchAll(TITLE)) {
-      for (const id of match[1]!.split("+")) {
-        if (RECORD_PREFIXES.has(id.split("-")[0]!)) continue;
-        uses.push({ id, file, line: index + 1 });
-      }
+  for (const match of text.matchAll(TITLE)) {
+    const at = match.index! + match[0].length - match[1]!.length;
+    const line = text.slice(0, at).split("\n").length;
+    for (const id of match[1]!.split("+")) {
+      if (RECORD_PREFIXES.has(id.split("-")[0]!)) continue;
+      uses.push({ id, file, line });
     }
-  });
+  }
   return uses;
 }
 

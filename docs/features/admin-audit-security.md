@@ -60,8 +60,11 @@ surface reads the target's profile and listings through the definer RPCs above.
 - In-migration proofs P0–P10 (self-target, super target, short reason,
   non-super caller, step-up, expiry, deny-all grants).
 - `e2e/admin-audit.spec.ts` — AS-1/AS-2 (gating, stats, filters, overflow law),
-  IMP-1 (open → banner → end), IMP-2 (dual-actor audit rows), IMP-3 (server
-  refusals called straight from the browser client).
+  IMP-1 (open → banner → end), IMP-2 (dual-actor audit rows), IMP-3 and IMP-5
+  (server refusals called straight from the browser client: IMP-3 the self
+  target and a super-admin target, IMP-5 a caller who is not a super admin —
+  split in turn C5 so that no test leases more than two pooled accounts,
+  INC-555, DEC-174).
 
 ## Impersonation — model & roadmap
 

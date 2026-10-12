@@ -503,100 +503,104 @@ test.describe("L2a locations console", () => {
     }
   });
 
-  test("LT-6 step-up: an unproven factor cannot move a row; once proven the move carries the descendants", async ({
-    page,
-  }) => {
-    const regionA = scratchSlug("lt6a");
-    const regionB = scratchSlug("lt6b");
-    const citySlug = scratchSlug("lt6c");
+  // Turn C5 (INC-563): LT-6 enrols a factor on its own leased account, so it
+  // declares @private-identity, as the identity-tag guard requires.
+  test(
+    "LT-6 step-up: an unproven factor cannot move a row; once proven the move carries the descendants",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const regionA = scratchSlug("lt6a");
+      const regionB = scratchSlug("lt6b");
+      const citySlug = scratchSlug("lt6c");
 
-    try {
-      const supabase = adminClient();
-      const anchor = await anchorOf("ET");
-      const rows = [regionA, regionB].map((slug) => ({
-        parent_id: anchor.id,
-        level: "region",
-        country_code: "ET",
-        name_en: slug,
-        slug,
-        is_active: false,
-      }));
-      const { data: regions, error: regionError } = await supabase
-        .from("locations")
-        .insert(rows)
-        .select("id, slug");
-      if (regionError || !regions) {
-        throw new Error(`[e2e:l2a] seeding LT-6 failed: ${regionError?.message ?? "none"}`);
-      }
-      const first = regions.find((row) => row.slug === regionA);
-      const second = regions.find((row) => row.slug === regionB);
-      const { data: city } = await supabase
-        .from("locations")
-        .insert({
-          parent_id: first!.id,
-          level: "city",
+      try {
+        const supabase = adminClient();
+        const anchor = await anchorOf("ET");
+        const rows = [regionA, regionB].map((slug) => ({
+          parent_id: anchor.id,
+          level: "region",
           country_code: "ET",
-          name_en: citySlug,
-          slug: citySlug,
-          center_lat: 9.03,
-          center_lng: 38.74,
+          name_en: slug,
+          slug,
           is_active: false,
-        })
-        .select("id")
-        .single();
+        }));
+        const { data: regions, error: regionError } = await supabase
+          .from("locations")
+          .insert(rows)
+          .select("id, slug");
+        if (regionError || !regions) {
+          throw new Error(`[e2e:l2a] seeding LT-6 failed: ${regionError?.message ?? "none"}`);
+        }
+        const first = regions.find((row) => row.slug === regionA);
+        const second = regions.find((row) => row.slug === regionB);
+        const { data: city } = await supabase
+          .from("locations")
+          .insert({
+            parent_id: first!.id,
+            level: "city",
+            country_code: "ET",
+            name_en: citySlug,
+            slug: citySlug,
+            center_lat: 9.03,
+            center_lng: 38.74,
+            is_active: false,
+          })
+          .select("id")
+          .single();
 
-      // A super admin with NO enrolled factor: the gate can never be satisfied,
-      // so the server refuses and DB truth stays byte-identical (F5).
-      const weak = await leaseUser();
-      await grantRole(weak.id, "super_admin");
-      await switchUser(page, weak.email, weak.password);
-      await gotoReady(page, "/admin/places");
-      await selectMarket(page, "ET");
+        // A super admin with NO enrolled factor: the gate can never be satisfied,
+        // so the server refuses and DB truth stays byte-identical (F5).
+        const weak = await leaseUser();
+        await grantRole(weak.id, "super_admin");
+        await switchUser(page, weak.email, weak.password);
+        await gotoReady(page, "/admin/places");
+        await selectMarket(page, "ET");
 
-      const cityKey = `${ANCHOR}/${regionA}/${citySlug}`;
-      await openVerb(page, cityKey, "move", citySlug);
-      await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("location-move-parent").selectOption(second!.id);
-      await page.getByTestId("location-move-submit").click();
+        const cityKey = `${ANCHOR}/${regionA}/${citySlug}`;
+        await openVerb(page, cityKey, "move", citySlug);
+        await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
+        await page.getByTestId("location-move-parent").selectOption(second!.id);
+        await page.getByTestId("location-move-submit").click();
 
-      await expect
-        .poll(async () => (await readLocation(citySlug))?.parent_id, {
-          timeout: 5000,
-          intervals: [500, 500, 500, 500, 500],
-        })
-        .toBe(first!.id);
+        await expect
+          .poll(async () => (await readLocation(citySlug))?.parent_id, {
+            timeout: 5000,
+            intervals: [500, 500, 500, 500, 500],
+          })
+          .toBe(first!.id);
 
-      // Prove the factor; the same move now succeeds and the ancestry follows.
-      const secret = await enrollAndStepUp(page);
-      await gotoReady(page, "/admin/places");
-      await selectMarket(page, "ET");
-      await openVerb(page, cityKey, "move", citySlug);
-      await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
-      await page.getByTestId("location-move-parent").selectOption(second!.id);
-      await page.getByTestId("location-move-submit").click();
-      await awaitGuardedOutcome(
-        page,
-        secret,
-        {
-          poll: async () => (await readLocation(citySlug))?.parent_id === second!.id,
-          describe: `LT-6: locations.parent_id = ${second!.id}`,
-        },
-        { timeout: 30000 },
-      );
+        // Prove the factor; the same move now succeeds and the ancestry follows.
+        const secret = await enrollAndStepUp(page);
+        await gotoReady(page, "/admin/places");
+        await selectMarket(page, "ET");
+        await openVerb(page, cityKey, "move", citySlug);
+        await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
+        await page.getByTestId("location-move-parent").selectOption(second!.id);
+        await page.getByTestId("location-move-submit").click();
+        await awaitGuardedOutcome(
+          page,
+          secret,
+          {
+            poll: async () => (await readLocation(citySlug))?.parent_id === second!.id,
+            describe: `LT-6: locations.parent_id = ${second!.id}`,
+          },
+          { timeout: 30000 },
+        );
 
-      await expect
-        .poll(async () => (await readLocation(citySlug))?.parent_id, {
-          timeout: 20000,
-          intervals: [500, 1000, 1000, 2000],
-        })
-        .toBe(second!.id);
-      expect((await readLocation(citySlug))?.region_id).toBe(second!.id);
-      expect(city?.id).toBeTruthy();
-    } finally {
-      await destroyLocation(regionA);
-      await destroyLocation(regionB);
-    }
-  });
+        await expect
+          .poll(async () => (await readLocation(citySlug))?.parent_id, {
+            timeout: 20000,
+            intervals: [500, 1000, 1000, 2000],
+          })
+          .toBe(second!.id);
+        expect((await readLocation(citySlug))?.region_id).toBe(second!.id);
+        expect(city?.id).toBeTruthy();
+      } finally {
+        await destroyLocation(regionA);
+        await destroyLocation(regionB);
+      }
+    },
+  );
 
   test("LT-7 import round trip: a three-row file previews, commits, exports, deletes and undoes with the original ids", async ({
     page,
