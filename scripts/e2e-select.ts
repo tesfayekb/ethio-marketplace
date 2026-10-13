@@ -116,6 +116,12 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-listings.spec.ts"],
   },
   {
+    // Bundle 13 (D158) — the AI switches and meter; the page joins in its next turn.
+    name: "admin-services",
+    src: ["src/server/ai/**", "src/routes/admin.services*.tsx", "src/features/admin-services/**"],
+    specs: ["e2e/admin-services.spec.ts"],
+  },
+  {
     name: "admin-imports",
     src: ["src/routes/api/admin/*/import*", "src/features/admin-*/**/*import*"],
     specs: ["e2e/import-security.spec.ts"],

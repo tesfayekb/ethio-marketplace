@@ -405,6 +405,20 @@ async function handlePost(request: Request): Promise<Response> {
     }
   }
 
+  // ---- D158 — THE SWITCH AND THE METER ----------------------------
+  // Machine translation is asked for only while `translations` is switched on
+  // (off: 409; a switch that could not be read: 503), and the characters the
+  // provider (or fake mode) was sent are metered once the chunks have answered.
+  const { aiGate, recordAiSpend } = await import("@/server/ai/meter");
+  const meterLog = (message: string) => logRouteError(message);
+  const gate = await aiGate("translations", meterLog);
+  if (!gate.on) {
+    return json(
+      { error: `machine translation is switched off (${gate.reason})` },
+      gate.reason === "unavailable" ? 503 : 409,
+    );
+  }
+
   // ---- PROVIDER --------------------------------------------------
   const fake = serverEnv("E2E_FAKE_TRANSLATE") === "1";
   const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
@@ -414,9 +428,11 @@ async function handlePost(request: Request): Promise<Response> {
 
   const failed: Failure[] = [];
   const translated = new Map<string, string>();
+  let sentCharacters = 0;
 
   if (fake) {
     for (const item of items) translated.set(item.key, fakeTranslate(target, item.source));
+    sentCharacters = items.reduce((sum, item) => sum + item.source.length, 0);
   } else {
     try {
       const supported = await loadSupportedTargets(apiKey);
@@ -430,6 +446,7 @@ async function handlePost(request: Request): Promise<Response> {
       const chunk = items.slice(index, index + GOOGLE_CHUNK);
       try {
         const result = await googleTranslate(apiKey, target, chunk);
+        sentCharacters += chunk.reduce((sum, item) => sum + item.source.length, 0);
         for (const item of chunk) {
           const value = result.get(item.key);
           if (value === undefined) {
@@ -447,6 +464,8 @@ async function handlePost(request: Request): Promise<Response> {
       }
     }
   }
+
+  if (sentCharacters > 0) await recordAiSpend("translations", sentCharacters, meterLog);
 
   // ---- WRITES (the RPC is the single writer) ---------------------
   let done = 0;

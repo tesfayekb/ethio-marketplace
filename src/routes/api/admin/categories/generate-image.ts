@@ -17,6 +17,11 @@
  *
  * Server-only modules are loaded with dynamic `import()` INSIDE the handlers so
  * nothing from `src/server/**` can enter the client graph.
+ *
+ * D158 — THE SWITCH AND THE METER: the model call (POST and the probe alike) is
+ * asked for only while `category_images` is switched on; off is a 409 with the
+ * stage `switched-off` (503 when the switch could not be read), and every image
+ * the provider (or fake mode) returns is metered.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -39,6 +44,16 @@ class ModelCallError extends Error {
     super(message);
     this.name = "ModelCallError";
     this.status = status;
+  }
+}
+
+/** D158 — the feature is switched off (409), or its switch could not be read (503). */
+class FeatureOffError extends Error {
+  readonly status: number;
+  constructor(reason: string) {
+    super(`AI feature category_images is off (${reason})`);
+    this.name = "FeatureOffError";
+    this.status = reason === "unavailable" ? 503 : 409;
   }
 }
 
@@ -98,6 +113,11 @@ async function generate(
 
   const prompt = buildPrompt({ nameEn: category.name_en, parentName, customPrompt });
 
+  const { aiGate, recordAiSpend } = await import("@/server/ai/meter");
+  const log = (message: string) => console.error(`[ssr-error] ${PATH} ${message}`);
+  const gate = await aiGate("category_images", log);
+  if (!gate.on) throw new FeatureOffError(gate.reason);
+
   const genStart = performance.now();
   let bytes: Uint8Array;
   try {
@@ -110,6 +130,7 @@ async function generate(
         : 500;
     throw new ModelCallError(message, status);
   }
+  await recordAiSpend("category_images", 1, log);
   return { prompt, genMs: Math.round(performance.now() - genStart), bytes };
 }
 
@@ -145,6 +166,9 @@ function noStore(body: unknown, status: number): Response {
 function failure(error: unknown, probe: boolean): Response {
   if (error instanceof CategoryNotFoundError) {
     return noStore({ error: "category not found" }, 404);
+  }
+  if (error instanceof FeatureOffError) {
+    return noStore({ error: error.message, stage: "switched-off" }, error.status);
   }
   const message = error instanceof Error ? error.message : "unknown error";
   const status = error instanceof ModelCallError ? error.status : 500;

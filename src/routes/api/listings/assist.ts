@@ -14,6 +14,7 @@ import {
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 import { assistDealLines, assistFactLines, composeAssistPrompt } from "@/lib/assist-prompt";
+import { aiGate, recordAiSpend } from "@/server/ai/meter";
 import { signPhotoRows } from "@/server/media/links";
 
 /**
@@ -53,6 +54,12 @@ import { signPhotoRows } from "@/server/media/links";
  * A PROVIDER FAILURE IS A REFUSAL, NOT A DRAFT (F4): a 5xx or an unusable answer
  * comes back as `{ ok:false, refusals:[{ field:'assist', reason:
  * 'providerUnavailable' }] }`, so nothing is ever written from a guess.
+ *
+ * THE SWITCH AND THE METER (D158): the helper is asked first whether it is
+ * switched on — off is the refusal `featureOff`, asked before any dial so a
+ * switched-off helper spends none of the seller's tries — and every answer it
+ * gives (fake mode's too) is metered. Over the hourly dial sits a daily one
+ * (`assist:day`, RATE_LIMIT_ASSIST_PER_DAY, 60).
  */
 
 const PATH = "/api/listings/assist";
@@ -243,6 +250,13 @@ async function handlePost(request: Request): Promise<Response> {
   if (refused !== null) return refused;
   const supabase = caller.supabase!;
   const userId = caller.userId!;
+  const log = (message: string) => logRouteError(PATH, message);
+
+  // D158 — the switch first: a switched-off helper spends none of the seller's tries.
+  const gate = await aiGate("writing_helper", log);
+  if (!gate.on) {
+    return refusal("assist", gate.reason === "unavailable" ? "providerUnavailable" : "featureOff");
+  }
 
   const rate = await consumeRate(
     "assist",
@@ -251,6 +265,13 @@ async function handlePost(request: Request): Promise<Response> {
     "1 hour",
   );
   if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
+  const daily = await consumeRate(
+    "assist:day",
+    userId,
+    envDial("RATE_LIMIT_ASSIST_PER_DAY", 60),
+    "1 day",
+  );
+  if (!daily.allowed) return refusal("rate", "rateLimited", daily.resetsAt ?? undefined);
 
   const body = await readJsonBody(request);
   const categoryId = typeof body["categoryId"] === "string" ? body["categoryId"] : "";
@@ -303,6 +324,7 @@ async function handlePost(request: Request): Promise<Response> {
       sellerTitle,
       sellerDescription,
     );
+    await recordAiSpend("writing_helper", 1, log);
     return routeJson({ ok: true, ...fake, triesLeft }, 200);
   }
 
@@ -319,6 +341,7 @@ async function handlePost(request: Request): Promise<Response> {
 
   const answer = await callProvider(prompt, urls);
   if (answer === null) return refusal("assist", "providerUnavailable");
+  await recordAiSpend("writing_helper", 1, log);
   return routeJson({ ok: true, ...answer, triesLeft }, 200);
 }
 
