@@ -12,11 +12,13 @@ import {
   destroyCategory,
   findRow,
   openEditor,
+  rand,
   readCategory,
   scratchSlug,
   seedActiveListing,
   signInAsSuperAdmin,
 } from "./helpers/categories";
+import { destroyAttribute } from "./helpers/admin-attributes";
 
 /**
  * Bundle 7 Part E — THE CATEGORY DOORS (CT-38..CT-41).
@@ -312,6 +314,121 @@ test.describe("Bundle 7 category doors", () => {
       await expect.poll(async () => await readCategory(slug), { timeout: 20000 }).toBeNull();
     } finally {
       if (slug) await destroyCategory(slug);
+    }
+  });
+
+  /**
+   * T7 (DEC-144 rule 2) — A MOVE IS JUDGED PARENT FIRST. P2 asks A (place 1);
+   * the leaf, under P1, asks C, which depends on A (place 0). Moved under P2 it
+   * would inherit A and ask C before it: the move door refuses with the
+   * parent-first refusal and the leaf stays under P1. Moved under P3, which asks
+   * nothing, it passes. Scratch rows only, seeded through the service client
+   * before the door is called (J3, J7); the door is called as the super admin.
+   */
+  test("CT-45 a move that would ask a question before its parent is refused; another move passes", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const supabase = adminClient();
+    const [p1, p2, p3, leaf] = [scratchSlug(), scratchSlug(), scratchSlug(), scratchSlug()];
+    const keyA = `e2e_attr_${rand()}_a`;
+    const keyC = `e2e_attr_${rand()}_c`;
+    try {
+      const p1Id = await seedCategory(p1, null);
+      const p2Id = await seedCategory(p2, null);
+      const p3Id = await seedCategory(p3, null);
+      const leafId = await seedCategory(leaf, p1Id);
+      const a = await supabase
+        .from("attributes")
+        .insert({
+          attr_key: keyA,
+          name_en: keyA,
+          attr_type: "single_select",
+          options: [{ value: "a", label_en: "A" }],
+        })
+        .select("id")
+        .single();
+      if (a.error || !a.data) throw new Error(`[e2e:ct-45] seeding A: ${a.error?.message}`);
+      const c = await supabase
+        .from("attributes")
+        .insert({
+          attr_key: keyC,
+          name_en: keyC,
+          attr_type: "single_select",
+          options: [{ value: "x", label_en: "X" }],
+          depends_on: a.data.id,
+        })
+        .select("id")
+        .single();
+      if (c.error || !c.data) throw new Error(`[e2e:ct-45] seeding C: ${c.error?.message}`);
+      const links = await supabase.from("category_attribute_links").insert([
+        { category_id: p2Id, attribute_id: a.data.id, display_order: 1 },
+        { category_id: leafId, attribute_id: c.data.id, display_order: 0 },
+      ]);
+      if (links.error) throw new Error(`[e2e:ct-45] seeding links: ${links.error.message}`);
+      const pointers = await pointersOf(leafId);
+      expect(
+        pointers.map((pointer) => pointer.parent_id),
+        "CT-45 the leaf starts under P1",
+      ).toEqual([p1Id]);
+      const pointerId = pointers[0]!.id;
+
+      const token = await page.evaluate(() => {
+        for (let i = 0; i < localStorage.length; i += 1) {
+          const name = localStorage.key(i) ?? "";
+          if (name.startsWith("sb-") && name.endsWith("-auth-token")) {
+            return (JSON.parse(localStorage.getItem(name) ?? "{}") as { access_token?: string })
+              .access_token;
+          }
+        }
+        return undefined;
+      });
+      expect(token, "CT-45 the page holds the admin's session").toBeTruthy();
+      /** The console's own door, called with the admin's session. */
+      const move = async (parentId: string) => {
+        const response = await fetch(
+          `${process.env["E2E_SUPABASE_URL"]!}/rest/v1/rpc/admin_move_category_pointer`,
+          {
+            method: "POST",
+            headers: {
+              apikey: process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ p_pointer_id: pointerId, p_new_parent_id: parentId }),
+          },
+        );
+        const text = await response.text();
+        let message = "";
+        try {
+          message = String((JSON.parse(text) as { message?: unknown }).message ?? "");
+        } catch {
+          message = "";
+        }
+        return { ok: response.ok, status: response.status, text, message };
+      };
+
+      const refused = await move(p2Id);
+      expect(refused.ok, `CT-45 the move under P2 was not refused: ${refused.text}`).toBe(false);
+      expect(refused.message, "CT-45 the refusal is the parent-first key").toBe(
+        `admin.attributes.error.parentAfterChild:${leaf}: ${keyA} → ${keyC}`,
+      );
+      expect(
+        (await pointersOf(leafId)).map((pointer) => pointer.parent_id),
+        "CT-45 the refused move left the leaf under P1",
+      ).toEqual([p1Id]);
+
+      const moved = await move(p3Id);
+      expect(moved.ok, `CT-45 the move under P3 was refused: ${moved.text}`).toBe(true);
+      expect(
+        (await pointersOf(leafId)).map((pointer) => pointer.parent_id),
+        "CT-45 the leaf is now under P3",
+      ).toEqual([p3Id]);
+    } finally {
+      await destroyAttribute(keyC);
+      await destroyAttribute(keyA);
+      for (const slug of [leaf, p1, p2, p3]) await destroyCategory(slug);
     }
   });
 });

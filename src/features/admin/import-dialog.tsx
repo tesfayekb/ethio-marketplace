@@ -7,7 +7,7 @@ import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
-import { fillRefusal, splitRefusal } from "@/lib/refusal-tail";
+import { doorKeyText } from "@/lib/refusal-tail";
 
 /**
  * THE IMPORT DIALOG SHELL (IE-2, generalised by CAT-IE).
@@ -232,14 +232,10 @@ export function ImportDialog({
   const reasonOf = (payload: { message?: string; detail?: string }): string | null => {
     const message = (payload.message ?? "").trim();
     if (message === "") return null;
-    // ES6 — a door key may carry a tail after its first colon ({count}, {detail}).
-    const { key: messageKey, tail } = splitRefusal(message);
-    if (/^admin\.[a-z_-]+\.error\.[A-Za-z0-9_.-]+$/.test(messageKey)) {
-      const translated = t(messageKey as MessageKey) as string | undefined;
-      if (translated !== undefined && translated !== "" && translated !== messageKey) {
-        return fillRefusal(translated, tail);
-      }
-    }
+    // ES6 — a door key may carry a tail after its first colon ({count}, {detail});
+    // the shared helper reads it (T7: the categories console reads the same way).
+    const words = doorKeyText(message, (key) => t(key as MessageKey) as string | undefined);
+    if (words !== null) return words;
     const detail = (payload.detail ?? "").trim();
     return detail === "" ? message : `${message} — ${detail}`;
   };
