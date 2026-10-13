@@ -1328,6 +1328,8 @@ export const am: Messages = {
   "admin.attributes.import.reason.tooManyOptions": "ይህ መስመር በጣም ብዙ አማራጮችን ይዘረዝራል",
   "admin.attributes.import.reason.optionValueTooLong": "በዚህ መስመር ያለ የአማራጭ ዋጋ በጣም ረጅም ነው",
   "admin.attributes.import.reason.optionLabelTooLong": "በዚህ መስመር ያለ የአማራጭ ስም በጣም ረጅም ነው",
+  "admin.attributes.import.reason.optionOtherValue":
+    "በዚህ መስመር Other የሚል ስም ያለው አማራጭ ዋጋው other መሆን አለበት",
   "admin.attributes.import.reason.duplicateIdentity": "ይህ መስመር ፋይሉ ቀድሞ የተጠቀመውን ማንነት ይጠራል",
   "admin.attributes.import.reason.badHeader":
     "የፋይሉ አምዶች ከዚህ ማስገባት ጋር አይመሳሰሉም — አዲስ ፋይል አውርደው እሱን ያስተካክሉ",

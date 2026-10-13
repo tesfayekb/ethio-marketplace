@@ -5,6 +5,7 @@ import { expectCutFloor, gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import {
   destroyListingsOf,
+  stopPageBeforePurge,
   destroyPostableCategory,
   leaseSeller,
   seedPostableCategory,
@@ -18,7 +19,10 @@ import {
 test.describe("POSTING WIZARD — USED BEFORE", () => {
   const sellers: string[] = [];
   const categories: string[] = [];
-  test.afterEach(async () => {
+  test.afterEach(async ({ page }) => {
+    // INC-398 (INC-323's rule): the page is stopped before its drafts are
+    // purged, so an autosave in flight never lands after them.
+    await stopPageBeforePurge(page);
     for (const id of sellers.splice(0)) await destroyListingsOf(id);
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
   });

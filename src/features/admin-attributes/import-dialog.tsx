@@ -68,6 +68,8 @@ const REASON_KEYS = new Set([
   "tooManyOptions",
   "optionValueTooLong",
   "optionLabelTooLong",
+  // INC-582 — an option named Other carries the value `other`.
+  "optionOtherValue",
   "duplicateIdentity",
   "badHeader",
   "wrongFile",

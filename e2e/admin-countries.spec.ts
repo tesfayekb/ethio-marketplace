@@ -93,12 +93,22 @@ test.describe("L2b countries console", () => {
     // whatever the catalog and other runs' fixtures make it (J6). The unfiltered
     // pagination total must name the number of market rows the service client
     // counts, and it is read BEFORE any needle narrows the roster.
+    // INC-586 — the page read its total ONCE; a scratch market another test
+    // created or removed after that read kept the two apart for the whole wait.
+    // Each try now reads the database, reloads the roster, reads its total and
+    // the database again: a try whose two counts differ saw a write in between
+    // and does not count; one whose counts agree must show that total.
     await expect
       .poll(
         async () => {
-          const text = await page.getByTestId("country-pagination-range").innerText();
-          const digits = (text.match(/\d+/g) ?? []).map((value) => Number(value));
-          return Math.max(...digits, 0) === (await countCountries());
+          const before = await countCountries();
+          await page.reload();
+          await waitForHydration(page);
+          const range = page.getByTestId("country-pagination-range");
+          await expect(range).toHaveText(/[1-9]/, { timeout: 10000 });
+          const digits = ((await range.innerText()).match(/\d+/g) ?? []).map(Number);
+          const after = await countCountries();
+          return before === after && Math.max(...digits, 0) === after;
         },
         { timeout: 20000 },
       )

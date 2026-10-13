@@ -1401,6 +1401,8 @@ export const en = {
   "admin.attributes.import.reason.tooManyOptions": "This row lists too many options",
   "admin.attributes.import.reason.optionValueTooLong": "An option value on this row is too long",
   "admin.attributes.import.reason.optionLabelTooLong": "An option label on this row is too long",
+  "admin.attributes.import.reason.optionOtherValue":
+    "An option named Other on this row must have the value other",
   "admin.attributes.import.reason.duplicateIdentity":
     "This row names an identity the file already used",
   "admin.attributes.import.reason.badHeader":
