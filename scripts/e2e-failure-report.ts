@@ -74,6 +74,14 @@ const EMPTY_FIXTURE = "scripts/fixtures/e2e-results-empty.json";
  */
 const POST_TEST_FIXTURE =
   "scripts/fixtures/e2e-post-test-error/shard-6-log-tail-run-34741970648.txt";
+/**
+ * INC-589 — a REAL capture (Playwright 1.58.1, two projects, `--reporter` as in
+ * CI): both tests passed and the run exited 1 because its global teardown
+ * threw. The JSON lists the error under the top-level `errors`; the log ends
+ * "1 error was not a part of any test, see above for details".
+ */
+const OUTSIDE_FIXTURE = "scripts/fixtures/e2e-outside-error/results.json";
+const OUTSIDE_LOG_FIXTURE = "scripts/fixtures/e2e-outside-error/changed.log.txt";
 
 /** DEC-030 — the ledger's header, written once when the file does not exist. */
 export const FLAKE_LEDGER_HEADER = [
@@ -99,6 +107,8 @@ type PwSuite = { title?: string; file?: string; specs?: PwSpec[]; suites?: PwSui
 type PwJson = {
   suites?: PwSuite[];
   stats?: { expected?: number; skipped?: number; startTime?: string; duration?: number };
+  /** INC-589 — Playwright's errors outside any test (global setup or teardown, a worker's own fixture). */
+  errors?: Array<{ message?: string; stack?: string; location?: { file?: string; line?: number } }>;
 };
 
 // eslint-disable-next-line no-control-regex -- stripping real ANSI colour codes is the point
@@ -596,6 +606,8 @@ export type Source = {
   a11yLines?: string[];
   /** DEC-083/084 R1 — true when this source's log was read; absent = unavailable. */
   logRead?: boolean;
+  /** INC-589 — the count in the log's "N error(s) … not a part of any test" line; 0 when absent. */
+  outsideSummary?: number;
 };
 
 /** DEC-083/084 R1 (G20) — which expected logs a section read. */
@@ -1007,6 +1019,104 @@ export function summarizeLog(text: string | null): string | null {
 }
 
 /**
+ * INC-589 — ERRORS OUTSIDE ANY TEST. Playwright fails a run whose every test
+ * passed when an error happens outside any test (global setup or teardown, a
+ * worker's own fixture). Its JSON reporter lists those errors under the
+ * top-level `errors`, and its list reporter ends with "1 error was not a part
+ * of any test". The fast lane of run 38339977292 exited 1 with every test
+ * green and this file named no cause: neither channel was read. Both are read
+ * now, for every source, and rendered on both forms. The verdict file is
+ * unchanged: a job's own exit still decides its colour.
+ */
+const OUTSIDE_SUMMARY = /(\d+) errors? (?:was|were) not a part of any test/;
+const OUTSIDE_ERROR_CAP = 5;
+const OUTSIDE_LINE_CAP = 12;
+
+export function outsideSummaryCount(text: string | null): number {
+  if (!text) return 0;
+  let count = 0;
+  for (const line of text.split("\n")) {
+    const hit = OUTSIDE_SUMMARY.exec(line.replace(ANSI, ""));
+    if (hit) count = Math.max(count, Number(hit[1]));
+  }
+  return count;
+}
+
+/** Each listed error as its own lines (the stack carries its place), redacted and capped. */
+export function outsideErrors(json: PwJson | null): string[][] {
+  return (json?.errors ?? []).slice(0, OUTSIDE_ERROR_CAP).map((error) => {
+    const where = error.location?.file
+      ? `at ${error.location.file}:${error.location.line ?? "?"}`
+      : "(no place given)";
+    const text = error.stack ?? [error.message ?? "(no message)", where].join("\n");
+    return redact(text)
+      .split("\n")
+      .map((line) => line.trimEnd())
+      .filter((line) => line.trim().length > 0)
+      .slice(0, OUTSIDE_LINE_CAP);
+  });
+}
+
+function outsideEntries(sources: Source[]) {
+  return sources
+    .map((source) => ({
+      source,
+      listed: source.json?.errors?.length ?? 0,
+      summary: source.outsideSummary ?? 0,
+    }))
+    .filter((entry) => entry.listed > 0 || entry.summary > 0);
+}
+
+/** The header line: "none", or each source with the larger of its two counts. */
+export function outsideHeadline(sources: Source[]): string {
+  const named = outsideEntries(sources);
+  return `- Errors outside any test (INC-589): ${
+    named.length === 0
+      ? "none"
+      : named.map((e) => `${e.source.label} (${Math.max(e.listed, e.summary)})`).join(", ")
+  }`;
+}
+
+export function outsideErrorsSection(sources: Source[]): string[] {
+  const named = outsideEntries(sources);
+  const read = sources.filter((source) => source.json !== null).length;
+  const logs = sources.filter((source) => source.logRead === true).length;
+  const lines = ["## Errors outside any test (INC-589)", ""];
+  if (named.length === 0) {
+    lines.push(
+      `None: no results file lists one and no log's summary names one (${read} of ${sources.length} results files read, ${logs} of ${sources.length} logs read).`,
+      "",
+    );
+    return lines;
+  }
+  lines.push(
+    "Playwright fails a run whose every test passed when an error happens outside any test (global setup or teardown, a worker's own fixture). A source named here can have a red job while every one of its tests passed.",
+    "",
+  );
+  for (const { source, listed, summary } of named) {
+    lines.push(
+      `### ${source.label}: ${listed} in the results file; the log's summary says ${summary}`,
+      "",
+    );
+    for (const error of outsideErrors(source.json)) lines.push("```text", ...error, "```", "");
+    if (listed > OUTSIDE_ERROR_CAP) {
+      lines.push(`(${listed - OUTSIDE_ERROR_CAP} more in the results file, not shown)`, "");
+    }
+    if (listed === 0) {
+      lines.push(
+        "The results file lists none, so the log's own lines are quoted:",
+        "",
+        "```text",
+        source.logTail ?? "(no log was uploaded for this source)",
+        "```",
+        "",
+      );
+    }
+  }
+  return lines;
+}
+
+/**
  * INC-088 — PLATFORM-ORIGIN LABEL. Lovable's own auto-pushes land on main with
  * a fixed commit subject; a red run on such a commit is very likely not ours.
  * One string check, no heuristics, and it only ever ADDS a hint.
@@ -1191,9 +1301,12 @@ export function renderSources(
     // DEC-059 — post-test errors are reported, never counted as failures.
     `- Post-test errors (DEC-059, non-gating): ${postTestSources.length === 0 ? "none" : postTestSources.map((s) => s.label).join(", ")}`,
     `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
+    outsideHeadline(sources),
     "",
     ...flakeSection,
     ...flakyBodiesSection(flaky, contexts),
+    // INC-589 — rendered on every red form, whatever else failed.
+    ...outsideErrorsSection(sources),
     // DEC-083 / DEC-084 — rendered on every red form, failed sources or not.
     ...ssrCensusSection(ssrCensus(sources, ssrAllowlist), sources),
     ...a11ySection(sources),
@@ -1354,9 +1467,12 @@ export function renderGreen(
     `- Post-test warnings: ${postTestWarnings}`,
     // DEC-078 part 2 — a green run names its flaky count and carries the sections.
     `- Flaky (passed on retry, DEC-030, non-gating): ${flaky.length}`,
+    outsideHeadline(sources),
     "",
     ...flakeLedgerSection(flaky),
     ...flakyBodiesSection(flaky, contexts),
+    // INC-589 — a green verdict can sit beside a red job that failed outside any test.
+    ...outsideErrorsSection(sources),
     // DEC-083 / DEC-084 — the green form carries the same census and summary.
     ...ssrCensusSection(ssrCensus(sources, ssrAllowlist), sources),
     ...a11ySection(sources),
@@ -1780,6 +1896,75 @@ async function main() {
         console.error(
           `SELF-TEST FAILED — INC-495: the ledger keeps one line per test, source and run: ${JSON.stringify(fresh)}`,
         );
+        process.exit(1);
+      }
+    }
+    // INC-589 — ERRORS OUTSIDE ANY TEST, on the real capture: both tests passed
+    // and the run exited 1 (its teardown threw). Both forms name the source, the
+    // count from each channel and the error itself; either channel alone is
+    // enough; a source with neither renders "None" with what was read.
+    {
+      const outsideJson = (await readJson(OUTSIDE_FIXTURE)).json;
+      const outsideLog = await Bun.file(OUTSIDE_LOG_FIXTURE).text();
+      const cleanJson = (await readJson(FIXTURE)).json;
+      const outside: Source = {
+        label: "changed",
+        json: outsideJson,
+        logTail: summarizeLog(outsideLog),
+        outsideSummary: outsideSummaryCount(outsideLog),
+        logRead: true,
+      };
+      const clean: Source = { label: "shard 1", json: cleanJson, logTail: null, logRead: true };
+      const logOnly: Source = { ...outside, json: { ...outsideJson, errors: [] } };
+      const jsonOnly: Source = { ...outside, outsideSummary: 0 };
+      const green = renderGreen(meta, 0, [], new Map(), [outside, clean]);
+      const red = renderSources([outside, clean], meta);
+      const none = renderGreen(meta, 0, [], new Map(), [clean]);
+      const fromLog = renderGreen(meta, 0, [], new Map(), [logOnly]);
+      const fromJson = renderGreen(meta, 0, [], new Map(), [jsonOnly]);
+      const checks: [string, boolean][] = [
+        ["O1 the capture's tests all passed", collect(outsideJson!).failures.length === 0],
+        ["O2 the log's summary counts 1", outside.outsideSummary === 1],
+        [
+          "O3 the green form's headline",
+          green.includes("- Errors outside any test (INC-589): changed (1)"),
+        ],
+        [
+          "O4 the green form's section",
+          green.includes("### changed: 1 in the results file; the log's summary says 1"),
+        ],
+        [
+          "O5 the error itself, with its place",
+          green.includes("TypeError: fetch failed") && green.includes("global-teardown.ts:2:9"),
+        ],
+        [
+          "O6 the red form carries the same",
+          red.includes("- Errors outside any test (INC-589): changed (1)") &&
+            red.includes("TypeError: fetch failed"),
+        ],
+        ["O7 a clean source is never named", !green.includes("### shard 1")],
+        [
+          "O8 none: says what was read",
+          none.includes(
+            "None: no results file lists one and no log's summary names one (1 of 1 results files read, 1 of 1 logs read).",
+          ) && none.includes("- Errors outside any test (INC-589): none"),
+        ],
+        [
+          "O9 the log alone quotes the log",
+          fromLog.includes("### changed: 0 in the results file; the log's summary says 1") &&
+            fromLog.includes("The results file lists none") &&
+            fromLog.includes("1 error was not a part of any test"),
+        ],
+        [
+          "O10 the results file alone",
+          fromJson.includes("### changed: 1 in the results file; the log's summary says 0") &&
+            fromJson.includes("TypeError: fetch failed"),
+        ],
+      ];
+      const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
+      if (failed.length > 0) {
+        console.error(`SELF-TEST FAILED — INC-589 errors outside any test: ${failed.join("; ")}`);
+        console.error(green);
         process.exit(1);
       }
     }
@@ -2290,7 +2475,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) verified (real captured fixtures).",
+      "Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).",
     );
 
     return;
@@ -2355,6 +2540,8 @@ async function main() {
         ssrAll: allSsrLines(log),
         a11yLines: grepA11y(log),
         logRead: log !== null,
+        // INC-589 — the log's own count of errors outside any test.
+        outsideSummary: outsideSummaryCount(log),
       });
     }
   } else {

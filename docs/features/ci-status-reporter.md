@@ -37,6 +37,13 @@ Per failed job it writes two blocks:
   DEC-179), capped at 80 lines, ISO log timestamps stripped.
 - **Tail** — the last 60 lines of the log.
 
+**Warnings (INC-492, DEC-180).** After the header, every file carries
+`## Warnings (non-gating steps that ran, INC-492)`: each step of this run whose name
+starts with `Warn: ` and that ran, as `- <job> › <step>`, read from the jobs' own step
+list, or `No warning step ran in this run.` A `Warn: ` step runs only when something
+non-gating went wrong (today: the Semgrep job's failed SARIF upload), so its job stays
+green and the failed-job list never shows it.
+
 The file is written on **every** completed run: with no failures it says
 `No failed build/guard jobs in this run.`, so a stale file is always visible as a stale
 run URL rather than as silence. The header carries the run URL, commit SHA, run attempt

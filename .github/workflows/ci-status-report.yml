@@ -111,6 +111,18 @@ jobs:
               '',
             ];
 
+            // INC-492 — a "Warn: " step runs only when something non-gating went
+            // wrong (a failed upload of a scan's evidence); its job stays green,
+            // so the failed-job list below never shows it. Every one that ran is
+            // named here, read from the jobs' own step list.
+            const warned = jobs.flatMap((j) =>
+              (j.steps ?? [])
+                .filter((step) => String(step.name).startsWith('Warn: ') && step.conclusion === 'success')
+                .map((step) => `- ${j.name} › ${step.name}`),
+            );
+            guardLines.push('## Warnings (non-gating steps that ran, INC-492)', '');
+            guardLines.push(...(warned.length ? warned : ['No warning step ran in this run.']), '');
+
             if (failedJobs.length === 0) {
               guardLines.push('No failed build/guard jobs in this run.', '');
             } else {
