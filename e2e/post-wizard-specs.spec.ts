@@ -1286,6 +1286,54 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * INC-609 — THE SHARED OTHER IS OFFERED UNDER EVERY PARENT. The importer keeps
+   * an Other only under the value `other` with no parent (`optionOtherValue`), so
+   * a list that hangs under another answer (Series under Brand, Model under
+   * Make) carries one Other for every parent; the form dropped it, and a seller
+   * whose model was not listed had no way to say so (the operator's walk of
+   * 2026-10-13: "I DONT SEE OTHERS OPTION").
+   */
+  test("PW-188 a list that hangs under another answer offers its shared Other last under every parent, and stores the seller's words (INC-609)", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const fold = await seedFoldSet(category.id, { sharedOther: true });
+    specs.push(...fold.attrKeys);
+    const listingId = await reachStep3(page, user.id, category);
+    const make = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.make.attrKey}"]`,
+    );
+    const model = page.locator(
+      `[data-testid="post-attr-control"][data-attr="${fold.model.attrKey}"]`,
+    );
+    const offered = async () =>
+      model
+        .locator("option")
+        .evaluateAll((rows) => rows.map((row) => (row as HTMLOptionElement).value));
+
+    await make.selectOption(fold.makeValues[0]);
+    await expect
+      .poll(offered, { message: "PW-188: the first make's list has no Other, or not last" })
+      .toEqual(["", fold.modelValues[0], fold.modelValues[1], "other"]);
+    await make.selectOption(fold.makeValues[1]);
+    await expect
+      .poll(offered, { message: "PW-188: the second make's list has no Other, or not last" })
+      .toEqual(["", fold.modelValues[2], "other"]);
+
+    await model.selectOption("other");
+    const box = page.locator(`[data-testid="post-attr-other"][data-attr="${fold.model.attrKey}"]`);
+    await expect(box, "PW-188: choosing Other opened no box to type in").toBeVisible();
+    await box.fill("e2e own model");
+    await expect
+      .poll(async () => (await attributesOf(listingId))[fold.model.attrKey], {
+        message: "PW-188: the seller's Other was not stored",
+        timeout: 20_000,
+      })
+      .toEqual({ value: "other", text: "e2e own model" });
+  });
+
+  /**
    * M-MAINT-2 §12 — the LINK narrows the shortlist and opens on a default. The
    * door refuses anything outside `allowed_options` (`optionNotAllowed`); this is
    * the seam's half of that law.

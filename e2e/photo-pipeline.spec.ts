@@ -29,7 +29,7 @@ import {
   seedPostableCategory,
   stopPageBeforePurge,
 } from "./helpers/posting";
-import { signInAsSuperAdmin } from "./helpers/categories";
+import { seedActiveListing, signInAsSuperAdmin } from "./helpers/categories";
 import { gotoReady, isMobile, signInViaSession } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -494,8 +494,9 @@ test.describe("PHOTO PIPELINE", () => {
   /**
    * INC-588 / D151 — WHO GETS A LINK. The rows are read as the caller, so the
    * owner and staff who may view listings get links; another seller gets none
-   * (the same answer as a photo that does not exist); no session is a 401. The
-   * owner's link serves the image itself.
+   * (the same answer as a photo that does not exist); no session gets none for a
+   * draft's photo (INC-606: a visitor is read as the anonymous role, which reads
+   * an active listing's photos only). The owner's link serves the image itself.
    */
   test("PP-13 photo links: the owner and staff get them; another seller and no session do not", async ({
     page,
@@ -529,8 +530,10 @@ test.describe("PHOTO PIPELINE", () => {
       /^image\//,
     );
 
+    // INC-606 — no session is read as the anonymous role: a draft's photo gets no link.
     const anonymous = await postRoute(page, LINKS, { photoIds: [photoId] });
-    expect(anonymous.status, "PP-13: no session must be refused").toBe(401);
+    expect(anonymous.status, JSON.stringify(anonymous.payload)).toBe(200);
+    expect(anonymous.payload["links"], "PP-13: no session got a draft's link").toEqual({});
 
     // A second person: another seller, in a context of their own.
     const otherContext = await browser.newContext();
@@ -966,5 +969,73 @@ test.describe("PHOTO PIPELINE", () => {
       (await draftsOf(user.id)).map((row) => row.id),
       "PP-20: a second draft",
     ).toEqual([listingId]);
+  });
+
+  /**
+   * PP-21 — INC-606 (the operator, 2026-10-13: "after publishing I dont see the
+   * photo in listing page after approval of the advert. It only has default
+   * category image"). The feed names each card's cover photo, the links route
+   * signs an active listing's photo for a visitor without a session (the card
+   * and thumb sizes it asks for, nothing else, and never a draft's photo), and
+   * the listing card draws it.
+   */
+  test("PP-21 a published ad's cover photo reaches the feed card, signed for a visitor without a session", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    const { user, token } = await seller(page);
+    const leaf = await seedPostableCategory();
+    categories.push(leaf.slug);
+    const listingId = await seedActiveListing(leaf.id, user.id);
+    objects.push({ userId: user.id, listingId });
+    const shown = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+    expect(shown.status, JSON.stringify(shown.payload)).toBe(200);
+    const coverId = String(shown.payload["photoId"] ?? "");
+    const draftId = await draft(page, token, user.id);
+    const hidden = await uploadPhoto(page, {
+      listingId: draftId,
+      token,
+      cover: { name: "meta.webp" },
+    });
+    expect(hidden.status, JSON.stringify(hidden.payload)).toBe(200);
+    const draftPhotoId = String(hidden.payload["photoId"] ?? "");
+
+    // The feed's card names its cover.
+    await expect
+      .poll(
+        async () => {
+          const response = await page.request.get(`/api/feed?category=${leaf.id}`);
+          const body = (await response.json()) as {
+            cards?: { id: string; coverPhotoId?: unknown }[];
+          };
+          return body.cards?.find((card) => card.id === listingId)?.coverPhotoId ?? "absent";
+        },
+        { message: "PP-21: the feed did not name the card's cover", timeout: 20_000 },
+      )
+      .toBe(coverId);
+
+    // A visitor without a session gets the sizes asked for, and nothing of a draft.
+    const asked = await page.request.post("/api/media/photo-links", {
+      data: { photoIds: [coverId, draftPhotoId], variants: ["card", "thumb"] },
+    });
+    expect(asked.status()).toBe(200);
+    const answer = (await asked.json()) as { links?: Record<string, Record<string, string>> };
+    expect(Object.keys(answer.links ?? {}), "PP-21: a draft's photo was signed").toEqual([coverId]);
+    expect(Object.keys(answer.links?.[coverId] ?? {}).sort()).toEqual(["card", "thumb"]);
+    const bad = await page.request.post("/api/media/photo-links", {
+      data: { photoIds: [coverId], variants: ["original"] },
+    });
+    expect(reasons((await bad.json()) as Record<string, unknown>)).toEqual([
+      { field: "variants", reason: "badShape" },
+    ]);
+
+    // The listing card draws it.
+    await gotoReady(page, `/c/${leaf.slug}`);
+    const card = page.locator(`[data-testid="listing-card"][data-listing="${listingId}"]`);
+    await expect(card.getByTestId("listing-card-picture").locator("img")).toHaveAttribute(
+      "src",
+      /\/object\/sign\/listing-photos\//,
+      { timeout: 20_000 },
+    );
   });
 });

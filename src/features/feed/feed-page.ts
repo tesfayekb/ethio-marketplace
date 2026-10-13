@@ -22,6 +22,8 @@ export interface FeedListing {
   priceUnit: string | null;
   priceUnitText: string | null;
   photosSoon: boolean;
+  /** INC-606 — the listing's cover photo (its first stripped photo), or null. */
+  coverPhotoId: string | null;
   publishedAt: string;
   categoryId: string;
   locationId: string | null;
@@ -64,6 +66,9 @@ function parseCard(value: unknown, ladderLength: number): FeedListing | null {
   if (typeof v.priceNegotiable !== "boolean" || !isStr(v.pricePeriod)) return null;
   if (!isStrOrNull(v.priceUnit) || !isStrOrNull(v.priceUnitText)) return null;
   if (typeof v.photosSoon !== "boolean") return null;
+  // INC-606 — a door from before the cover was added answers without it: no photo.
+  const coverPhotoId = v.coverPhotoId === undefined ? null : v.coverPhotoId;
+  if (!isStrOrNull(coverPhotoId)) return null;
   if (!isStr(v.publishedAt) || !isStr(v.categoryId)) return null;
   if (!isStrOrNull(v.locationId) || !isStrOrNull(v.locationNameEn)) return null;
   if (!isStrOrNull(v.locationNameAm)) return null;
@@ -82,6 +87,7 @@ function parseCard(value: unknown, ladderLength: number): FeedListing | null {
     priceUnit: v.priceUnit,
     priceUnitText: v.priceUnitText,
     photosSoon: v.photosSoon,
+    coverPhotoId,
     publishedAt: v.publishedAt,
     categoryId: v.categoryId,
     locationId: v.locationId,

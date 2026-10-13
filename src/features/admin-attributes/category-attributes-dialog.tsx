@@ -6,6 +6,7 @@ import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
+import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
 
@@ -444,9 +445,12 @@ export function CategoryAttributesDialog({
                 >
                   {child.options
                     .filter(
+                      // INC-609 — the seller's list: the shared Other under
+                      // every parent; a switched-off option is not offered.
                       (option) =>
                         (chosen[child.attrKey] ?? "") !== "" &&
-                        option.parent === chosen[child.attrKey],
+                        option.active !== false &&
+                        optionBelongsToParent(option, chosen[child.attrKey] ?? ""),
                     )
                     .map((option) => (
                       <li

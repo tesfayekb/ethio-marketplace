@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 411,
+  "scanned": 412,
   "dynamicCallSites": 275,
   "keys": {
     "account.deactivatedBanner": [
@@ -170,6 +170,10 @@
       "/admin/categories"
     ],
     "admin.attributes.dependsOn.optionsFor": [
+      "/admin/attributes",
+      "/admin/categories"
+    ],
+    "admin.attributes.dependsOn.optionsForEvery": [
       "/admin/attributes",
       "/admin/categories"
     ],

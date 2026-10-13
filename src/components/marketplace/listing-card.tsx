@@ -25,7 +25,14 @@ export function NegotiableBadge() {
   );
 }
 
-export function ListingCard({ listing }: { listing: FeedListing }) {
+export function ListingCard({
+  listing,
+  photoUrl = null,
+}: {
+  listing: FeedListing;
+  /** INC-606 — the cover photo's card-size link, when the feed has one; else the category's picture. */
+  photoUrl?: string | null;
+}) {
   const { t, entities, language } = useI18n();
   const { tree } = useCategoryTree();
   // Bundle 4 step 10 — the unit words load only when this card holds a unit.
@@ -95,13 +102,14 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
       className="@container flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card"
     >
       {/*
-        Photo area. Listing photos stay un-surfaced here until the photo
-        clean-up bundle (RLS gates listing_photos on exif_stripped); the card
-        draws the category's picture from the public tree (bundle 4 step 14).
+        Photo area. INC-606 — the seller's cover photo when the feed gave one
+        and its link came back (an active listing's stripped photo, signed for
+        an hour); otherwise the category's picture from the public tree (bundle
+        4 step 14), never a broken image.
       */}
       <div className="relative">
         <ListingPicture
-          photoUrl={null}
+          photoUrl={photoUrl}
           categoryUrl={nearestCategoryPicture(tree, listing.categoryId)}
           photosSoon={listing.photosSoon}
           boxTestId="listing-card-picture"

@@ -59,6 +59,18 @@ export function variantRefs(paths: unknown): VariantRef[] {
   return refs;
 }
 
+/**
+ * INC-606 — the variants a request asks for (`["card", "thumb"]` for a listing
+ * card), or every readable variant when it names none. Null for a malformed list.
+ */
+export function variantsOf(raw: unknown): readonly string[] | null {
+  if (raw === undefined) return READ_VARIANTS;
+  if (!Array.isArray(raw) || raw.length === 0) return null;
+  const known = new Set<string>(READ_VARIANTS);
+  if (!raw.every((variant) => typeof variant === "string" && known.has(variant))) return null;
+  return [...new Set(raw as string[])];
+}
+
 /** The photo ids of a request body: strings only, each once, at most MAX_LINK_PHOTOS. */
 export function photoIdsOf(raw: unknown): string[] | null {
   if (!Array.isArray(raw)) return null;
@@ -74,10 +86,14 @@ export function photoIdsOf(raw: unknown): string[] | null {
 export async function signPhotoRows(
   service: SupabaseClient<Database>,
   rows: PhotoRowForLinks[],
+  variants: readonly string[] = READ_VARIANTS,
 ): Promise<Record<string, Record<string, string>>> {
   const wanted = rows
     .filter((row) => row.exif_stripped === true)
-    .map((row) => ({ id: row.id, refs: variantRefs(row.paths) }));
+    .map((row) => ({
+      id: row.id,
+      refs: variantRefs(row.paths).filter((ref) => variants.includes(ref.variant)),
+    }));
   const out: Record<string, Record<string, string>> = {};
   for (const partition of PARTITIONS) {
     const keys = wanted.flatMap((row) =>

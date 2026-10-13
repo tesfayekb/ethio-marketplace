@@ -108,13 +108,20 @@ async function readScratch(feature: string) {
   return data;
 }
 
+/**
+ * INC-608 — the feature's audit rows in the order they were written. Rows one
+ * call writes share its transaction's `now()` (at 100 % the alert and the
+ * switch-off), so their order is broken by the action's name, never left to the
+ * index's order of equal times.
+ */
 async function auditActions(feature: string): Promise<string[]> {
   const { data, error } = await adminClient()
     .from("audit_log")
     .select("action")
     .eq("entity_type", "ai_feature")
     .eq("entity_id", feature)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .order("action", { ascending: true });
   if (error) throw new Error(`[e2e:sv] reading the audit rows failed: ${error.message}`);
   return (data ?? []).map((row) => row.action);
 }

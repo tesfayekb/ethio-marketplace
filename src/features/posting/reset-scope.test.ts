@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import type { AttrOption } from "./attribute-options";
 import type { AttrDef } from "./posting-service";
-import { dependencyMap, resetAfterMove, type ScopeInput } from "./reset-scope";
+import {
+  dependencyMap,
+  optionBelongsToParent,
+  resetAfterMove,
+  type ScopeInput,
+} from "./reset-scope";
 
 /**
  * Bundle 7 Part A (DEC-144 rule 1) — a changed answer resets only the questions
@@ -288,5 +293,37 @@ describe("reset-scope (DEC-144 rule 1)", () => {
     const out = resetAfterMove(scope, "model", { model: "polo", doors: 3 }, { doors: 3 });
     expect(out.changed).toBe(false);
     expect(out.replacedHeld).toBe(false);
+  });
+
+  it("(xiv) INC-609: the shared Other hangs under every parent; a per-parent option only under its own", () => {
+    const shared = opt("other");
+    expect(optionBelongsToParent(shared, "hp")).toBe(true);
+    expect(optionBelongsToParent(shared, "msi")).toBe(true);
+    expect(optionBelongsToParent({ value: "other", parent: "" }, "dell")).toBe(true);
+    expect(optionBelongsToParent(opt("hp_other", { parent: "hp" }), "msi")).toBe(false);
+    expect(optionBelongsToParent(opt("pavilion", { parent: "hp" }), "hp")).toBe(true);
+    expect(optionBelongsToParent(opt("pavilion", { parent: "hp" }), "msi")).toBe(false);
+    // Models under the make "Other" are that make's, not every make's.
+    expect(optionBelongsToParent(opt("kit", { parent: "other" }), "hp")).toBe(false);
+  });
+
+  it("(xv) INC-609: a parent's move keeps the seller's Other and its words (rule 4, as before), and clears a model of the old parent", () => {
+    const scope = input(
+      [def("brand", "single_select"), def("series", "single_select")],
+      {
+        brand: [opt("hp"), opt("msi")],
+        series: [opt("pavilion", { parent: "hp" }), opt("katana", { parent: "msi" }), opt("other")],
+      },
+      { series: "brand" },
+    );
+    const kept = resetAfterMove(
+      scope,
+      "brand",
+      { brand: "msi", series: { value: "other", text: "Prestige" } },
+      {},
+    );
+    expect(kept.answers["series"]).toEqual({ value: "other", text: "Prestige" });
+    const cleared = resetAfterMove(scope, "brand", { brand: "msi", series: "pavilion" }, {});
+    expect(cleared.answers["series"] ?? null).toBeNull();
   });
 });

@@ -66,7 +66,7 @@ The writing helper keeps its five tries per listing (`assist:listing`).
 ## Tests
 
 - Migration proofs E1–E7 (headers, grants, closed tables, the seed and the permissions, the door bodies, the refusals with no caller and with a caller without the permission, and the meter on a scratch feature inside a block that rolls itself back).
-- E2E (e2e/admin-services.spec.ts): SV-1 a seller is refused everywhere; SV-2 the super admin reads the six features and changes a scratch switch, and the door's refusals; SV-3 the meter on the app's own connection.
+- E2E (e2e/admin-services.spec.ts): SV-1 a seller is refused everywhere; SV-2 the super admin reads the six features and changes a scratch switch, and the door's refusals; SV-3 the meter on the app's own connection (INC-608: its audit rows are read by time, then by action — the alert and the switch-off one call writes share that call's instant).
 - Unit: AIM-1..AIM-4 (src/server/ai/meter.test.ts); AIM-5 (src/server/category-images/suggest-icon-route.test.ts, the icon route switched off and on).
 
 ## Not yet

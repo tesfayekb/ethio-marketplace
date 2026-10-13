@@ -11,6 +11,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import type { CategoryNode } from "@/features/admin-categories/categories-service";
 import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
+import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n, type MessageKey } from "@/i18n";
 import { fillRefusal, splitRefusal } from "@/lib/refusal-tail";
 
@@ -471,7 +472,14 @@ export function AttributeEditorDialog({
               </FormField>
               <ul data-testid="attribute-cascade-child" className="space-y-1">
                 {optionRows
-                  .filter((option) => preview !== "" && option.parent === preview)
+                  .filter(
+                    // INC-609 — the seller's list: the shared Other under every
+                    // parent; a switched-off option is not offered.
+                    (option) =>
+                      preview !== "" &&
+                      option.active !== false &&
+                      optionBelongsToParent(option, preview),
+                  )
                   .map((option) => (
                     <li
                       key={option.value}
