@@ -10,7 +10,12 @@ import { useCountryTree, type TreeNode } from "@/components/shell/location-data"
 import { formatCommission } from "./price-basis";
 import { priceLine as sharedPriceLine } from "./price-line";
 import { fill } from "./refusal-text";
-import { attributeDisplayValue, rangeDisplayValue, settledRanges } from "./attribute-display";
+import {
+  attributeDisplayValue,
+  choiceHeldKnown,
+  rangeDisplayValue,
+  settledRanges,
+} from "./attribute-display";
 import type { AttrOption } from "./attribute-options";
 import type { AttrDef, DraftPhotoRow } from "./posting-service";
 import type { DealLists, PricePeriod } from "./types";
@@ -210,8 +215,12 @@ export function ListingPreview({
           {definitions
             .filter((definition) => {
               const value = attributes[definition.attrKey];
+              // INC-587 — a choice whose option has no words left is not printed raw.
               return (
-                (value !== undefined && value !== null && value !== "") ||
+                (value !== undefined &&
+                  value !== null &&
+                  value !== "" &&
+                  choiceHeldKnown(definition, value, attributeOptions[definition.attrKey] ?? [])) ||
                 definition.attrKey in ranges
               );
             })
