@@ -34,3 +34,25 @@ export function fillRefusal(text: string, tail: string | undefined): string {
     .split("{detail}")
     .join(tail);
 }
+
+/** A door's refusal key: `admin.<family>.error.<name>`. */
+export const DOOR_KEY = /^admin\.[a-z_-]+\.error\.[A-Za-z0-9_.-]+$/;
+
+/**
+ * T7 (INC-578's class, G29) — ONE reading of a door's words. A refusal that IS
+ * a known translation key, with or without a tail, comes back as its sentence,
+ * filled; anything else is null, so the caller decides its fallback. The
+ * categories console used to translate only `admin.categories.error.*`, so the
+ * parent-first refusal a move can now raise
+ * (`admin.attributes.error.parentAfterChild:…`) would have been printed raw.
+ */
+export function doorKeyText(
+  raw: string,
+  translate: (key: string) => string | undefined,
+): string | null {
+  const { key, tail } = splitRefusal(raw.trim());
+  if (!DOOR_KEY.test(key)) return null;
+  const text = translate(key);
+  if (text === undefined || text === "" || text === key) return null;
+  return fillRefusal(text, tail);
+}

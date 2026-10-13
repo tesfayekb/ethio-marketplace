@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-12-turn-6.md (bundle 12 — the tidy-up round, D145 — turn T6: INC-588 / D151 a stored photo shows on the photo step, in the side preview and on the preview page through links that expire; no migration).
+The brief in force: docs/governance/briefs/bundle-12-turn-7.md (bundle 12 — the tidy-up round, D145 — turn T7: PP-12's red fixed first (INC-591); DEC-144 rule 2 on a move — the parent-first guard judges a category's paths, with its migration; INC-398's evidence — the census names the tests that finished next).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -246,6 +246,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] Turn T4 — INC-587 (the side preview, the preview page and the review leave out a held answer whose option or question has no words left — `choiceHeldKnown`; DSP-1..DSP-3); INC-588's measurement (read only: the photo bucket's settings on both projects and which media configuration names are set)
 - [x] Turn T5 — INC-497 (CT-20's rows state no place for its scratch top-level category, so the import's order pass no longer shifts the real ones — T2's measurement read their places as 0, 2–16; a control proves the scratch one sorts after every real one after each commit); DEC-180: INC-589 (the E2E evidence file names errors outside any test, from the results file and from the log's summary, on both forms) and INC-492 (a failed SARIF upload is a `Warn:` step, named in guards-last-failure.md)
 - [x] Turn T6 — INC-588 / D151 (the operator chose links that expire, 2026-10-13): a stored photo shows on the photo step, in the side preview and on the listing's preview page (the review, the admin's preview as buyer, screening) — `POST /api/media/photo-links` reads the rows as the caller and signs them for one hour; the writing helper sends photo ids (LK-1..LK-3, PU-1..PU-3, PP-12, PP-13)
+- [x] Turn T7 — first, PP-12's red (INC-591: a draft holding a photo opens on the price page, D39, so the test goes Back to the photos before its image checks); then bundle 7's named item "a pointer move that changes what a category inherits is not judged by the parent-first guard" (M11's stop report): the guard judges a new path, a moved path and a path made home (two deferred triggers on `category_tree_pointers`; five proofs; CT-45), and the categories console reads every door key through `doorKeyText`; INC-398's evidence (the census names the tests that finished next after each line off the allowlist). Still open from bundle 7: the import preview does not show the parent-first refusal (the commit refuses whole)
 - [ ] D149's publishing statement (D150: one statement and one tick, its photo clause numbered, each listing recording the version agreed to) — the legal texts drafted first for the operator's review
 - [ ] Next turns: INC-582's rows through the curator (D147, from T1's census), INC-579 and INC-494 when the `[roster-dump]` arrives, the flaky tests (INC-449, INC-440, INC-430's PW-55, INC-533, INC-562), the rest of ACT-009's line in the order of work below
 

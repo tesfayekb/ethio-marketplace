@@ -608,6 +608,8 @@ export type Source = {
   logRead?: boolean;
   /** INC-589 — the count in the log's "N error(s) … not a part of any test" line; 0 when absent. */
   outsideSummary?: number;
+  /** INC-398 — every `[ssr-error]` line with the tests that finished next in its log. */
+  ssrNext?: { line: string; next: string[] }[];
 };
 
 /** DEC-083/084 R1 (G20) — which expected logs a section read. */
@@ -838,28 +840,80 @@ export type SsrCensusRow = {
   sources: string[];
   example: string;
   quiet: boolean;
+  /** INC-398 — for a line off the allowlist: the tests that finished next, counted. */
+  next?: Record<string, number>;
 };
+
+/**
+ * INC-398 — WHO WROTE A LINE OFF THE ALLOWLIST. A server line names no test.
+ * The list reporter prints a test's line when the test finishes, so the tests
+ * that finish next in the same log include the one that was running when the
+ * server wrote the line (two workers: two candidates). Counted per message over
+ * a run, they name the test that keeps provoking it. The real capture behind
+ * the census self-test shows it: its "listing not found" lines were followed by
+ * A11Y-2, the wizard walk that then purged its seller's draft.
+ */
+const SSR_NEIGHBOURS = 2;
+
+export function ssrNeighbours(text: string | null): { line: string; next: string[] }[] {
+  if (!text) return [];
+  const lines = text.split("\n").map((line) => redact(line).trim());
+  const out: { line: string; next: string[] }[] = [];
+  lines.forEach((line, index) => {
+    if (!line.includes("[ssr-error]")) return;
+    const next: string[] = [];
+    for (let j = index + 1; j < lines.length && next.length < SSR_NEIGHBOURS; j += 1) {
+      const candidate = lines[j] ?? "";
+      if (TEST_RESULT_LINE.test(candidate)) next.push(resultTitle(candidate));
+    }
+    out.push({ line, next });
+  });
+  return out;
+}
+
+/** A result line's test title: its last segment, without the duration (both projects count as one test). */
+export function resultTitle(line: string): string {
+  const parts = line.split(" › ");
+  return (parts[parts.length - 1] ?? line)
+    .replace(/\s*\(\d+(?:\.\d+)?(?:ms|s|m|h)\)$/, "")
+    .trim()
+    .slice(0, 80);
+}
 
 /** DEC-083 — count by normalised message, across every source. */
 export function ssrCensus(
-  sources: { label: string; ssrAll?: string[] }[],
+  sources: {
+    label: string;
+    ssrAll?: string[];
+    ssrNext?: { line: string; next: string[] }[];
+  }[],
   allowlist: string[],
 ): SsrCensusRow[] {
   const rows = new Map<string, SsrCensusRow>();
+  const keyOf = (line: string) => {
+    const message = normaliseSsr(line);
+    // Quietness is judged per LINE, on the key and on the redacted line, so a
+    // pattern may name a quoted value (a constraint) the key replaced. A key
+    // whose lines split is two rows: the quiet part never hides the loud part.
+    const quiet = allowlist.some((pattern) => message.includes(pattern) || line.includes(pattern));
+    return { message, quiet, key: `${quiet ? "q" : "l"}\u0000${message}` };
+  };
   for (const source of sources) {
     for (const line of source.ssrAll ?? []) {
-      const message = normaliseSsr(line);
-      // Quietness is judged per LINE, on the key and on the redacted line, so a
-      // pattern may name a quoted value (a constraint) the key replaced. A key
-      // whose lines split is two rows: the quiet part never hides the loud part.
-      const quiet = allowlist.some(
-        (pattern) => message.includes(pattern) || line.includes(pattern),
-      );
-      const key = `${quiet ? "q" : "l"}\u0000${message}`;
+      const { message, quiet, key } = keyOf(line);
       const row = rows.get(key) ?? { message, count: 0, sources: [], example: line, quiet };
       row.count += 1;
       if (!row.sources.includes(source.label)) row.sources.push(source.label);
       rows.set(key, row);
+    }
+    // INC-398 — the tests that finished next, for the lines off the allowlist.
+    for (const entry of source.ssrNext ?? []) {
+      const { quiet, key } = keyOf(entry.line);
+      const row = rows.get(key);
+      if (quiet || row === undefined) continue;
+      const next = row.next ?? {};
+      for (const title of entry.next) next[title] = (next[title] ?? 0) + 1;
+      row.next = next;
     }
   }
   return [...rows.values()].sort((a, b) => b.count - a.count || a.message.localeCompare(b.message));
@@ -871,6 +925,17 @@ export function ssrCensus(
  */
 export function mdCell(text: string): string {
   return text.replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
+}
+
+/** INC-398 — the six tests that most often finished next, most first; "none read" without result lines. */
+export function nextLine(next: Record<string, number> | undefined): string {
+  const entries = Object.entries(next ?? {});
+  if (entries.length === 0) return "none read";
+  return entries
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 6)
+    .map(([title, count]) => `${title} ×${count}`)
+    .join(" · ");
 }
 
 /** DEC-083 — the census section, identical in the red and the green forms. */
@@ -909,6 +974,7 @@ export function ssrCensusSection(
       `### ${row.message}`,
       "",
       `- Count: ${row.count} · Sources: ${row.sources.join(", ")}`,
+      `- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): ${nextLine(row.next)}`,
       "",
       "```text",
       row.example,
@@ -2327,6 +2393,7 @@ async function main() {
         json: null,
         logTail: null,
         ssrAll: allSsrLines(log),
+        ssrNext: ssrNeighbours(log),
         a11yLines: grepA11y(log),
         logRead: true,
       };
@@ -2341,6 +2408,22 @@ async function main() {
         ["27 rows", rows.length === 27],
         ["one off-allowlist row", loud.length === 1],
         ["listing not found ×2 is loud", notFound?.count === 2 && !notFound.quiet],
+        // INC-398 — on this capture both "listing not found" lines were followed by
+        // A11Y-2 (one in each project), the wizard walk that purged its seller's draft.
+        [
+          "INC-398 the lines off the allowlist name the test that finished next",
+          notFound?.next?.["A11Y-2 wizard steps 1, 3 and 5 for a scratch seller"] === 2,
+        ],
+        [
+          "INC-398 the section prints them, most first",
+          green.includes(
+            "- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): A11Y-2 wizard steps 1, 3 and 5 for a scratch seller ×2",
+          ),
+        ],
+        [
+          "INC-398 a quiet row carries none",
+          rows.every((row) => !row.quiet || row.next === undefined),
+        ],
         [
           "path, quotes and ANSI stripped from the key",
           rows.every(
@@ -2475,7 +2558,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).",
+      "Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).",
     );
 
     return;
@@ -2538,6 +2621,8 @@ async function main() {
         postTestErrors: grepPostTestErrors(log),
         // DEC-083 — uncapped, for counting; DEC-084 — the a11y summary lines.
         ssrAll: allSsrLines(log),
+        // INC-398 — which tests finished next after each server line.
+        ssrNext: ssrNeighbours(log),
         a11yLines: grepA11y(log),
         logRead: log !== null,
         // INC-589 — the log's own count of errors outside any test.

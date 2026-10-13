@@ -450,6 +450,10 @@ test.describe("PHOTO PIPELINE", () => {
    * photo bucket is private and the row stores `{ partition, key }`, never an
    * address: the stored tile's image is the signed link the photo-links route
    * gave this seller, and it draws.
+   *
+   * INC-591 — D39: a draft that holds a registered photo has passed the photo
+   * step (`isStepFinished`, types.ts), so it resumes on the price page; the
+   * seller's way back to the photos is Back.
    */
   test("PP-12 a stored photo is drawn on the photo step through a link that expires", async ({
     page,
@@ -460,6 +464,11 @@ test.describe("PHOTO PIPELINE", () => {
     expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
 
     await gotoReady(page, `/post/${listingId}`);
+    await expect(
+      page.getByTestId("post-step-4"),
+      "PP-12: a draft holding a photo resumes past the photo step (D39)",
+    ).toBeVisible();
+    await page.getByTestId("post-back").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible();
     const image = page.getByTestId("post-photo-stored").locator("img");
     await expect(image, "PP-12: the stored photo has no signed link").toHaveAttribute(

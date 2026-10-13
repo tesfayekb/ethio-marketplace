@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
-import { fillRefusal, splitRefusal } from "@/lib/refusal-tail";
+import { doorKeyText } from "@/lib/refusal-tail";
 import { useSettling } from "@/lib/use-settling";
 
 import { suggestCategoryIcon } from "./category-images-service";
@@ -128,10 +128,12 @@ export function useSubmitError() {
       typeof (error as { message?: unknown } | null)?.message === "string"
         ? (error as { message: string }).message
         : "";
-    const { key, tail } = splitRefusal(raw);
-    if (key.startsWith("admin.categories.error.")) {
-      // ES4 — the tail ({count}, {detail}) is read by the shared helper.
-      setMessage(fillRefusal(t(key as Parameters<typeof t>[0]), tail));
+    // ES4 / T7 — any door's key, of any family (a move can raise the
+    // parent-first refusal, `admin.attributes.error.parentAfterChild`), is read
+    // by the shared helper with its tail ({count}, {detail}).
+    const words = doorKeyText(raw, (key) => t(key as Parameters<typeof t>[0]));
+    if (words !== null) {
+      setMessage(words);
       return;
     }
     setMessage(raw === "" ? t("admin.categories.error.saveFailed") : raw);
