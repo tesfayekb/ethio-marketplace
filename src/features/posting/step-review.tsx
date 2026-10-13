@@ -12,7 +12,12 @@ import { Switch } from "@/components/ui/switch";
 
 import { controlClass, Field } from "./field";
 import { ListingPreview } from "./listing-preview";
-import { attributeDisplayValue, rangeDisplayValue, settledRanges } from "./attribute-display";
+import {
+  attributeDisplayValue,
+  choiceHeldKnown,
+  rangeDisplayValue,
+  settledRanges,
+} from "./attribute-display";
 import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { entityName } from "@/i18n/entity";
 import { drawCatalog } from "@/i18n";
@@ -260,6 +265,12 @@ export function StepReview({
           [...deal.basis, ...deal.size, ...deal.quantity, ...deal.terms].includes(key)
         ),
     )
+    // INC-587 — no raw key or raw value: a held answer whose question or option
+    // has no words left is not described.
+    .filter(([key, value]) => {
+      const def = definitions.find((entry) => entry.attrKey === key);
+      return def !== undefined && choiceHeldKnown(def, value, attributeOptions[key] ?? []);
+    })
     .map(describe)
     // INC-374 — a number the chosen model settles reads as its range.
     .concat(

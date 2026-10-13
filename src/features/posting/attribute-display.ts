@@ -1,8 +1,37 @@
 import { answerTokens } from "./answer-tokens";
-import { optionLabel, retiredAttributeOptions, type AttrOption } from "./attribute-options";
+import {
+  findHeldOption,
+  optionLabel,
+  retiredAttributeOptions,
+  type AttrOption,
+} from "./attribute-options";
 import type { AttrDef } from "./posting-service";
 import { conditionMet } from "./visible-when";
 import { catalogWords, type CatalogTokens } from "@/i18n";
+
+/**
+ * INC-587 — A HELD CHOICE IS SHOWN ONLY WHEN IT HAS WORDS. An answer whose
+ * option was deleted (not switched off) has no label anywhere, and the readers
+ * printed its raw value (`toyota_other`). A choice answer is shown when every
+ * picked value is offered or switched off (its label is kept, INC-466), or is
+ * `other` with its text; the readers leave the row out otherwise, as the title
+ * and the deal lines already did. Any other type is always shown.
+ */
+export function choiceHeldKnown(
+  definition: AttrDef,
+  value: unknown,
+  options: readonly AttrOption[],
+): boolean {
+  if (!["single_select", "select", "multi_select"].includes(definition.attrType)) return true;
+  const entries = Array.isArray(value) ? value : [value];
+  return entries.every((entry) => {
+    if (entry !== null && typeof entry === "object" && !Array.isArray(entry)) {
+      const other = entry as { value?: unknown; text?: unknown };
+      return other.value === "other" && typeof other.text === "string";
+    }
+    return findHeldOption(String(entry), options, definition.attributeId) !== undefined;
+  });
+}
 
 export function attributeDisplayValue(
   definition: AttrDef,
