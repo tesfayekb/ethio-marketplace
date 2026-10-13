@@ -1215,6 +1215,68 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
+   * PW-187 — INC-581 (the operator's walk, 2026-10-13: "for a few microseconds i
+   * see it shows the home page … and reverts"). The router sets its location
+   * when a navigation starts and commits the new page when its code has run;
+   * the shell's frame read the location, so it switched to the posting form's
+   * frame (no location band) while the body still showed the home page. Every
+   * DOM state after the tap is recorded: none may hold the home page's body
+   * without its band.
+   */
+  test("PW-187 Post from the home page never shows the home page inside the form's frame (INC-581)", async ({
+    page,
+  }) => {
+    test.skip(
+      !isMobile(page),
+      "INC-581 — the bottom bar's Post is the phone's tap the operator walked; the fix is one hook every width uses",
+    );
+    await seller(page);
+    await gotoReady(page, "/");
+    const homeBody =
+      '[data-testid="feed-section"], [data-testid="feed-invite"], [data-testid="feed-step-none"]';
+    await expect
+      .poll(
+        () => page.evaluate((selector) => document.querySelector(selector) !== null, homeBody),
+        {
+          message: "PW-187: the home page's body",
+          timeout: 20_000,
+        },
+      )
+      .toBe(true);
+    await expect(page.getByTestId("location-row"), "PW-187: the home page's band").toBeVisible();
+    await page.evaluate((selector) => {
+      const w = window as unknown as { __inc581?: string[] };
+      const states: string[] = [];
+      w.__inc581 = states;
+      let last = "";
+      const read = () => {
+        const home = document.querySelector(selector) !== null;
+        const band = document.querySelector('[data-testid="location-row"]') !== null;
+        const form = document.querySelector('[data-testid="post-step-1"]') !== null;
+        const state = `${location.pathname} home=${home} band=${band} form=${form}`;
+        if (state !== last) {
+          states.push(state);
+          last = state;
+        }
+      };
+      read();
+      new MutationObserver(read).observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+      });
+    }, homeBody);
+
+    await page.getByTestId("bottom-bar-post").click();
+    await expect(page.getByTestId("post-step-1")).toBeVisible({ timeout: 20_000 });
+    const states = await page.evaluate(
+      () => (window as unknown as { __inc581?: string[] }).__inc581 ?? [],
+    );
+    const mixed = states.filter((state) => state.includes("home=true band=false"));
+    expect(mixed, `PW-187: the frame changed before the page — ${states.join(" → ")}`).toEqual([]);
+  });
+
+  /**
    * D22 — THE PHOTO CAP IS THE PLAN'S. Plans are NOT per-seller yet (there is no
    * seller→plan column), so `seller_plan()` hands every seller the same row: this
    * test asserts the caption FOLLOWS THE DOCUMENT, reading the same cap from the

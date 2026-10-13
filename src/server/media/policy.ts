@@ -48,7 +48,15 @@ function visionModel(): string {
   return value === "" ? "gemini-3.1-flash-image" : value;
 }
 
-const SYSTEM_PROMPT = [
+/**
+ * INC-584 — a photograph of a business card was refused `not_a_photo`, a code
+ * this instruction keeps for screenshots, drawings, blank frames and test
+ * patterns. D148 (the operator, 2026-10-12): everything on a business card is
+ * allowed, its phone numbers and e-mail addresses included, and the photo step
+ * says that everything in a photo is public. Any other printed item
+ * photographed is a photograph; what is printed on it is judged by the codes.
+ */
+export const PHOTO_POLICY_INSTRUCTION = [
   "You screen photographs uploaded to a public classifieds marketplace.",
   "Answer with one verdict for the image you are shown.",
   "Refuse the image only when you can see the reason in it.",
@@ -57,6 +65,8 @@ const SYSTEM_PROMPT = [
   "contact_in_image covers a phone number, email address or messaging handle printed on the image.",
   "stock_watermark covers a stock-library or reseller watermark over the subject.",
   "not_a_photo covers a screenshot, a drawing, a blank frame or a test pattern.",
+  "A business card is allowed with everything printed on it, its phone numbers, email addresses and handles included: never refuse a business card as contact_in_image or not_a_photo.",
+  "A photograph of another printed item, such as a flyer, a label, a menu or a price list, is a photograph and is never not_a_photo; judge what is printed on it by the other codes.",
   'Return JSON only: {"allowed": boolean, "code": string, "evidence": string}.',
   'When the image is acceptable, return {"allowed": true, "code": "", "evidence": ""}.',
   "Keep evidence to one short phrase naming what you saw.",
@@ -106,7 +116,7 @@ export async function screenPhotoPolicy(
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        systemInstruction: { parts: [{ text: PHOTO_POLICY_INSTRUCTION }] },
         contents: [
           {
             role: "user",

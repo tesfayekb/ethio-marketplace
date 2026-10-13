@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { BottomBar } from "@/components/shell/bottom-bar";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
+import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import {
   anchorOf,
   asLocationNode,
@@ -440,7 +441,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       });
   }, [authLoading, userId, resetLocationState, saveToAccount]);
 
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // INC-581 — the frame follows the page the body shows, never the address ahead of it.
+  const pathname = useShownPathname();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 

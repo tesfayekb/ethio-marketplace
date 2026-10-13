@@ -392,4 +392,52 @@ test.describe("PHOTO PIPELINE", () => {
     expect(await photoRowsOf(listingId), "PP-10: nothing was registered").toHaveLength(0);
     await page.unroute("**/api/upload/photo");
   });
+
+  /**
+   * PP-11 — INC-585 (the operator's walk, 2026-10-13): a photo the site did not
+   * add holds Next until the seller removes it, and the step says why under
+   * Next; removed, Next opens again and no photo stands for it. D148: the step
+   * says that everything in a photo is public.
+   */
+  test("PP-11 a refused photo holds Next until it is removed; the step says photos are public", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+
+    await page.route("**/api/upload/photo", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ok: false,
+          refusals: [{ field: "photo", reason: "not_a_photo", detail: "fake mode" }],
+        }),
+      });
+    });
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-photos-public"), "PP-11: D148's notice").toBeVisible();
+    await expect(
+      page.getByTestId("post-next"),
+      "PP-11: Next is open before any photo",
+    ).toBeEnabled();
+    await expect(page.getByTestId("post-next-photos-held")).toHaveCount(0);
+
+    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
+    const tile = page.getByTestId("post-photo-tile");
+    await expect(tile).toHaveAttribute("data-state", "refused", { timeout: 45_000 });
+    await expect(page.getByTestId("post-next"), "PP-11: a refused photo holds Next").toBeDisabled();
+    await expect(
+      page.getByTestId("post-next-photos-held"),
+      "PP-11: the hold says why",
+    ).toBeVisible();
+
+    await tile.getByTestId("post-photo-remove").click();
+    await expect(tile).toHaveCount(0);
+    await expect(page.getByTestId("post-next"), "PP-11: removed, Next opens").toBeEnabled();
+    await expect(page.getByTestId("post-next-photos-held")).toHaveCount(0);
+    expect(await photoRowsOf(listingId), "PP-11: nothing was registered").toHaveLength(0);
+    await page.unroute("**/api/upload/photo");
+  });
 });
