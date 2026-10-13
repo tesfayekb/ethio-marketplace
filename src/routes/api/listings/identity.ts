@@ -14,6 +14,7 @@ import {
   upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
+import { aiGate, recordAiSpend } from "@/server/ai/meter";
 
 /**
  * U6-A2-C — THE POSTING IDENTITY ROUTE (D17).
@@ -189,7 +190,16 @@ async function handlePost(request: Request): Promise<Response> {
       IMITATION_WINDOW,
     );
     if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
-    const imitated = await imitationOf(alias.toLowerCase());
+    // D158 — the check is a paid call behind its switch. Switched off (or a gate
+    // that could not be read), the name is not asked about: it goes to the door
+    // unchecked and is audited `alias.unchecked`, exactly as when the provider
+    // cannot answer — a switch never becomes a ban list. An answer is metered.
+    const log = (message: string) => logRouteError(PATH, message);
+    const gate = await aiGate("name_check", log);
+    const imitated: Imitation = gate.on
+      ? await imitationOf(alias.toLowerCase())
+      : { of: null, checked: false };
+    if (gate.on && imitated.checked) await recordAiSpend("name_check", 1, log);
     if (imitated.of !== null) return refusal("alias", "aliasImitatesBrand", imitated.of);
     unchecked = !imitated.checked;
   }

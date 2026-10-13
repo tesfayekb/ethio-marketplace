@@ -29,6 +29,7 @@ export const POOL_RESET_TABLES = {
 } as const;
 
 export const POOL_EXEMPT_TABLES = {
+  ai_features: "updated_by is attribution on a global switch row (D158)",
   attribute_import_revisions: "created_by is attribution on import history",
   audit_log: "actor_id is append-only audit history",
   category_country_exclusions: "created_by is attribution on a catalogue row",

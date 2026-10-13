@@ -14,6 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_features: {
+        Row: {
+          alert_level: number
+          alert_month: string | null
+          enabled: boolean
+          feature: string
+          monthly_budget_cents: number | null
+          off_at: string | null
+          off_reason: string | null
+          unit: string
+          unit_cost_microusd: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          alert_level?: number
+          alert_month?: string | null
+          enabled?: boolean
+          feature: string
+          monthly_budget_cents?: number | null
+          off_at?: string | null
+          off_reason?: string | null
+          unit?: string
+          unit_cost_microusd: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          alert_level?: number
+          alert_month?: string | null
+          enabled?: boolean
+          feature?: string
+          monthly_budget_cents?: number | null
+          off_at?: string | null
+          off_reason?: string | null
+          unit?: string
+          unit_cost_microusd?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      ai_spend_days: {
+        Row: {
+          calls: number
+          cost_microusd: number
+          day: string
+          feature: string
+          units: number
+        }
+        Insert: {
+          calls?: number
+          cost_microusd?: number
+          day: string
+          feature: string
+          units?: number
+        }
+        Update: {
+          calls?: number
+          cost_microusd?: number
+          day?: string
+          feature?: string
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_spend_days_feature_fkey"
+            columns: ["feature"]
+            isOneToOne: false
+            referencedRelation: "ai_features"
+            referencedColumns: ["feature"]
+          },
+        ]
+      }
       alias_history: {
         Row: {
           alias: string
@@ -2281,6 +2355,7 @@ export type Database = {
         Args: { p_child_id: string; p_parent_id: string }
         Returns: string
       }
+      admin_ai_features: { Args: never; Returns: Json }
       admin_approve_all_entity_translations: {
         Args: { p_lang: string }
         Returns: Json
@@ -2934,6 +3009,15 @@ export type Database = {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: undefined
       }
+      admin_set_ai_feature: {
+        Args: {
+          p_enabled: boolean
+          p_feature: string
+          p_monthly_budget_cents: number
+          p_unit_cost_microusd: number
+        }
+        Returns: Json
+      }
       admin_set_attribute_link_order: {
         Args: { p_category_id: string; p_ordered_link_ids: string[] }
         Returns: undefined
@@ -3161,6 +3245,11 @@ export type Database = {
           id: string
           meta: Json
         }[]
+      }
+      ai_feature_gate: { Args: { p_feature: string }; Returns: Json }
+      ai_record_spend: {
+        Args: { p_feature: string; p_units: number }
+        Returns: Json
       }
       alias_next_change_at: { Args: { p_uid: string }; Returns: string }
       alias_reason: { Args: { p_rule: string }; Returns: string }

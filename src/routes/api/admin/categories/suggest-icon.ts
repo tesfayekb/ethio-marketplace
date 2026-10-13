@@ -7,6 +7,10 @@
  * with `fallback: true` (bundle 2 step 18); a listed answer has `fallback: false`. Same gate as
  * the image route (`categories:assets`), same [ssr-error] logging, same honest
  * provider statuses.
+ *
+ * D158 — asked for only while `category_icons` is switched on (off: 409, stage
+ * `switched-off`; a switch that could not be read: 503); every answer the
+ * provider (or fake mode) gives is metered.
  */
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -44,12 +48,27 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
         const { isFakeMode, suggestIconName, GeminiError } =
           await import("@/server/category-images/gemini");
 
+        const { aiGate, recordAiSpend } = await import("@/server/ai/meter");
+        const log = (message: string) => console.error(`[ssr-error] ${PATH} ${message}`);
+        const feature = await aiGate("category_icons", log);
+        if (!feature.on) {
+          return json(
+            {
+              error: `AI feature category_icons is off (${feature.reason})`,
+              stage: "switched-off",
+            },
+            feature.reason === "unavailable" ? 503 : 409,
+          );
+        }
+
         if (isFakeMode()) {
+          await recordAiSpend("category_icons", 1, log);
           return json({ ...checkIcon(FAKE_ICON), fake: true }, 200);
         }
 
         try {
           const raw = await suggestIconName(name, parentName, ICON_ALLOWLIST);
+          await recordAiSpend("category_icons", 1, log);
           return json({ ...checkIcon(raw), fake: false }, 200);
         } catch (error) {
           const message = error instanceof Error ? error.message : "unknown error";

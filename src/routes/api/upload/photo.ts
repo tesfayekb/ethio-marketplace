@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { doorRefusal } from "@/features/posting/door-error";
 
+import { aiGate, recordAiSpend } from "@/server/ai/meter";
 import { screenPhotoPolicy } from "@/server/media/policy";
 import {
   deleteObject,
@@ -30,7 +31,8 @@ import {
  * THE ORDER IS THE LAW (F5 — gates, then capture, then mutate):
  *
  *   1 the caller           — the bearer, or 401
- *   2 the dial (DEC-071)   — `consume_rate_limit('upload', …)` before any work
+ *   2 the dials (DEC-071)  — `consume_rate_limit('upload', …)` an hour and
+ *                            `('upload:day', …)` a day (D158), before any work
  *   3 ownership            — the listing is read AS THE CALLER, so RLS is the
  *                            authority; a listing that is not the caller's is a
  *                            403 by name, and a wrong status a 409 by name
@@ -39,7 +41,8 @@ import {
  *                            dimension cap; the strip's own self-check runs on
  *                            what it produced before a byte can be stored
  *   6 the policy pass      — the cover, the card and the thumb, in ONE call (D15,
- *                            INC-601): every size that will be stored is screened
+ *                            INC-601): every size that will be stored is screened;
+ *                            behind its switch, and metered (D158)
  *   7 the objects          — three puts through the partition-keyed adapter
  *   8 the door             — `register_listing_photo` (service-only), which is
  *                            the ONE place `exif_stripped = true` is ever written
@@ -97,6 +100,14 @@ async function handlePost(request: Request): Promise<Response> {
     "1 hour",
   );
   if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
+  // D158 — a seller's daily limit, over the hourly one: a day of uploads has a ceiling.
+  const daily = await consumeRate(
+    "upload:day",
+    userId,
+    envDial("RATE_LIMIT_UPLOAD_PER_DAY", 200),
+    "1 day",
+  );
+  if (!daily.allowed) return refusal("rate", "rateLimited", daily.resetsAt ?? undefined);
 
   // A7 — the Start primitive hands the handler a web `Request`, so the multipart
   // body is `request.formData()`; nothing else is needed for an upload.
@@ -183,11 +194,27 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   // 6 — the policy pass: every size that will be stored, in one call (D15, INC-601).
+  // D158 — behind its switch, and metered. Photo screening cannot be switched off
+  // until photos can be held for staff (its door refuses), so only a gate that
+  // could not be read lands here: `providerUnavailable` with a retry, and nothing
+  // is ever stored unscreened.
+  const log = (message: string) => logRouteError(PATH, message);
+  const gate = await aiGate("photo_screen", log);
+  if (!gate.on) {
+    return routeJson(
+      { ok: false, refusals: [{ field: "cover", reason: "providerUnavailable", retry: true }] },
+      200,
+    );
+  }
   const cover = stripped.cover;
   const verdict = await screenPhotoPolicy(
     { cover: stripped.cover, card: stripped.card, thumb: stripped.thumb },
-    (message) => logRouteError(PATH, message),
+    log,
   );
+  // The provider answered (a pass or a refusal): one call is metered.
+  if (verdict.ok || verdict.code !== "providerUnavailable") {
+    await recordAiSpend("photo_screen", 1, log);
+  }
   if (!verdict.ok) {
     return routeJson(
       {
