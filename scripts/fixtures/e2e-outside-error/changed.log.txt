@@ -1,0 +1,18 @@
+
+Running 2 tests using 2 workers
+
+  ✓  1 [desktop-1280] › e2e/outside.spec.ts:2:5 › OUT-1 a green test in a run that fails outside any test (6ms)
+  ✓  2 [mobile-360] › e2e/outside.spec.ts:2:5 › OUT-1 a green test in a run that fails outside any test (6ms)
+TypeError: fetch failed
+
+   at global-teardown.ts:2
+
+  1 | export default async function globalTeardown() {
+> 2 |   throw new TypeError("fetch failed");
+    |         ^
+  3 | }
+  4 |
+    at globalTeardown (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-teardown.ts:2:9)
+
+  2 passed (1.6s)
+  1 error was not a part of any test, see above for details

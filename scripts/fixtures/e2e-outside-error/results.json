@@ -1,0 +1,175 @@
+{
+  "config": {
+    "configFile": "/home/runner/work/ethio-marketplace/ethio-marketplace/playwright.config.ts",
+    "rootDir": "/home/runner/work/ethio-marketplace/ethio-marketplace/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": "/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/ethio-marketplace/ethio-marketplace/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "mobile-360",
+        "name": "mobile-360",
+        "testDir": "/home/runner/work/ethio-marketplace/ethio-marketplace/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/runner/work/ethio-marketplace/ethio-marketplace/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "desktop-1280",
+        "name": "desktop-1280",
+        "testDir": "/home/runner/work/ethio-marketplace/ethio-marketplace/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.1",
+    "workers": 2,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "outside.spec.ts",
+      "file": "outside.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "OUT-1 a green test in a run that fails outside any test",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile-360",
+              "projectName": "mobile-360",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-13T03:58:21.054Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8cb6430f63050b7ff623-9559a34449fdde7b261f",
+          "file": "outside.spec.ts",
+          "line": 2,
+          "column": 5
+        },
+        {
+          "title": "OUT-1 a green test in a run that fails outside any test",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop-1280",
+              "projectName": "desktop-1280",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "passed",
+                  "duration": 6,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-13T03:58:20.972Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "8cb6430f63050b7ff623-917dc55c71851814fb34",
+          "file": "outside.spec.ts",
+          "line": 2,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "message": "TypeError: fetch failed",
+      "stack": "TypeError: fetch failed\n    at globalTeardown (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-teardown.ts:2:9)",
+      "location": {
+        "file": "/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-teardown.ts",
+        "column": 9,
+        "line": 2
+      },
+      "snippet": "   at global-teardown.ts:2\n\n\u001b[0m \u001b[90m 1 |\u001b[39m \u001b[36mexport\u001b[39m \u001b[36mdefault\u001b[39m \u001b[36masync\u001b[39m \u001b[36mfunction\u001b[39m globalTeardown() {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 2 |\u001b[39m   \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mTypeError\u001b[39m(\u001b[32m\"fetch failed\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m   |\u001b[39m         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 3 |\u001b[39m }\n \u001b[90m 4 |\u001b[39m\u001b[0m"
+    }
+  ],
+  "stats": {
+    "startTime": "2026-10-13T03:58:19.594Z",
+    "duration": 1587.037,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

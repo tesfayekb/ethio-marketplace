@@ -324,12 +324,22 @@ jobs:
           # ERROR, WARNINGs outside test code, no reviewed (suppressed) site.
           python3 scripts/semgrep-sarif-filter.py --self-test
           python3 scripts/semgrep-sarif-filter.py semgrep.sarif
+      # INC-492 — publishing the scan's evidence is not the scan. A failed upload
+      # (GitHub's incident of 2026-10-07) turned this job red while the scan had
+      # passed; the scan's own steps above decide the job now, and a failed
+      # upload is the warning step below. The CI status reporter names every
+      # "Warn: " step that ran in guards-last-failure.md.
       - name: Upload SARIF
+        id: sarif
         if: always() && hashFiles('semgrep.sarif') != ''
+        continue-on-error: true
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: semgrep.sarif
           category: semgrep
+      - name: "Warn: the SARIF upload failed"
+        if: always() && steps.sarif.outcome == 'failure'
+        run: echo "::warning::INC-492 the SARIF upload failed; the scan's own steps decided this job"
 
   dependency-audit:
     name: Dependency vulnerability audit (enforcing on high/critical)

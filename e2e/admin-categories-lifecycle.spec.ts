@@ -1431,7 +1431,54 @@ test.describe("CAT-IE categories import/export", () => {
       await gotoReady(page, "/admin/categories");
       const token = await bearerOf(page);
 
-      const rowValues = { category_slug: slug, name_en: slug, display_order: "0" };
+      /**
+       * INC-497 — the import's order pass renumbers every sibling of a row it
+       * places. This file once stated "0" for the scratch root, which put it
+       * before the real top-level categories and shifted every real one after
+       * the first; CT-18's round trip in the other project then read "15
+       * changed". The rows state no place now, and this proves the scratch root
+       * still sorts after every real top-level category.
+       */
+      const assertAfterEveryRealRoot = async (moment: string) => {
+        const supabase = adminClient();
+        const { data: roots, error: rootsError } = await supabase
+          .from("category_tree_pointers")
+          .select("child_id, display_order")
+          .is("parent_id", null);
+        if (rootsError) {
+          throw new Error(`[e2e:ct-20] reading the top level failed: ${rootsError.message}`);
+        }
+        const { data: named, error: namedError } = await supabase
+          .from("categories")
+          .select("id, slug")
+          .in(
+            "id",
+            (roots ?? []).map((root) => root.child_id as string),
+          );
+        if (namedError) {
+          throw new Error(`[e2e:ct-20] reading the top-level slugs failed: ${namedError.message}`);
+        }
+        const slugOf = new Map((named ?? []).map((row) => [row.id as string, row.slug as string]));
+        const own = (roots ?? []).find((root) => root.child_id === id)?.display_order as
+          | number
+          | undefined;
+        const realOrders = (roots ?? [])
+          .filter((root) => !(slugOf.get(root.child_id as string) ?? "e2e-").startsWith("e2e-"))
+          .map((root) => root.display_order as number);
+        expect(own, `CT-20 ${moment}: the scratch root has no top-level place`).toBeDefined();
+        expect(
+          realOrders.length,
+          `CT-20 ${moment}: no real top-level category was read`,
+        ).toBeGreaterThan(0);
+        expect(
+          own ?? -1,
+          `CT-20 ${moment}: the import placed the scratch root before a real top-level category (INC-497); real places ${realOrders.join(",")}`,
+        ).toBeGreaterThan(Math.max(...realOrders));
+      };
+      await assertAfterEveryRealRoot("seeded");
+
+      // INC-497 — no display_order: the row keeps its stored place.
+      const rowValues = { category_slug: slug, name_en: slug };
       const retireFile = file([line(rowValues, "retire")], true);
       const retirePreview = await importPost(page, token, {
         mode: "preview",
@@ -1446,6 +1493,7 @@ test.describe("CAT-IE categories import/export", () => {
       });
       expect(retire.status, JSON.stringify(retire.payload)).toBe(200);
       expect((await readCategory(slug))?.is_active).toBe(false);
+      await assertAfterEveryRealRoot("after the retire");
 
       const reactivateFile = file([line(rowValues, "reactivate")], true);
       const reactivatePreview = await importPost(page, token, {
@@ -1460,6 +1508,7 @@ test.describe("CAT-IE categories import/export", () => {
       });
       expect(reactivate.status, JSON.stringify(reactivate.payload)).toBe(200);
       expect((await readCategory(slug))?.is_active).toBe(true);
+      await assertAfterEveryRealRoot("after the reactivate");
 
       // The doors audited both walks (F5 capture).
       const { data: audits } = await adminClient()

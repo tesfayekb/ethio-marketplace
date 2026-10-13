@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-12-turn-4.md (bundle 12 — the tidy-up round, D145 — turn T4: INC-587 a held answer is never printed raw; INC-588's measurement — how stored photos may be served; no migration).
+The brief in force: docs/governance/briefs/bundle-12-turn-5.md (bundle 12 — the tidy-up round, D145 — turn T5: INC-497 CT-20 no longer moves the real top-level categories; DEC-180 — INC-589 the E2E evidence file names errors outside any test, INC-492 a failed SARIF upload is a warning step named in the guards file; no migration).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -244,8 +244,9 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] Turn T2 — INC-586 (CO-2: the database counted before and after a reload of the roster), INC-398 (post-wizard-recent and photo-pipeline stop the page before purging drafts; judged by three runs at most two lines), INC-582 (the import gate refuses an option named Other whose value is not `other`, `optionOtherValue`)
 - [x] Turn T3 — bundle 7's named item: the definition editor names the listings that hold an answer its save removes (a type change off a choice type; AT-81); INC-582's import rule spares a switched-off option (`"active": false`), so the old per-parent Others are switched off and keep their words; the truth pass: the reset function's unit case for a prefill from an unmoved parent's fact exists (reset-scope case (x), 2026-10-07)
 - [x] Turn T4 — INC-587 (the side preview, the preview page and the review leave out a held answer whose option or question has no words left — `choiceHeldKnown`; DSP-1..DSP-3); INC-588's measurement (read only: the photo bucket's settings on both projects and which media configuration names are set)
+- [x] Turn T5 — INC-497 (CT-20's rows state no place for its scratch top-level category, so the import's order pass no longer shifts the real ones — T2's measurement read their places as 0, 2–16; a control proves the scratch one sorts after every real one after each commit); DEC-180: INC-589 (the E2E evidence file names errors outside any test, from the results file and from the log's summary, on both forms) and INC-492 (a failed SARIF upload is a `Warn:` step, named in guards-last-failure.md)
 - [ ] INC-588 (the operator's walk of T1, 2026-10-13): a stored photo shows in the side preview, the review and the admin's preview as buyer — the readers build the URL from the stored `{ partition, key }` once the measurement settles how photos may be served (a public base, or signed URLs for a private bucket); then D149's publishing statement
-- [ ] Next turns: INC-582's rows through the curator (D147, from T1's census), INC-579 and INC-494 when the `[roster-dump]` arrives, INC-497 (CT-18: the import's order pass renumbers the real roots — the trigger read first), the flaky tests (INC-449, INC-440, INC-430's PW-55, INC-533, INC-562), the rest of ACT-009's line in the order of work below
+- [ ] Next turns: INC-582's rows through the curator (D147, from T1's census), INC-579 and INC-494 when the `[roster-dump]` arrives, the flaky tests (INC-449, INC-440, INC-430's PW-55, INC-533, INC-562), the rest of ACT-009's line in the order of work below
 
 ### After bundle 7, in this order
 
