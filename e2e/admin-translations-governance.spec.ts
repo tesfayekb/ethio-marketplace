@@ -763,6 +763,10 @@ test.describe("U4g bulk approval, order and orphans", () => {
     const source = `Round trip source ${key}`;
     const imported = `⟪io⟫ ${key}`;
     await seedScratchKey(key, source, fence);
+    // INC-580 — two more keys of this test's own: with `key`, the positive control of
+    // the "nothing dropped" check below, which the fence's other rows cannot be.
+    const companions = [`${key}-b`, `${key}-c`];
+    for (const own of companions) await seedScratchKey(own, `Round trip source ${own}`, fence);
     try {
       const { secret } = await signInAsSuperAdmin(page);
       await gotoReady(page, `/admin/translations/${fence}`);
@@ -808,8 +812,14 @@ test.describe("U4g bulk approval, order and orphans", () => {
       const seen = new Set<string>();
       const repeated = fileKeys.filter((k) => (seen.has(k) ? true : (seen.add(k), false)));
       expect(repeated, "TR-29: a key appears twice in the export").toEqual([]);
+      /**
+       * INC-580 — the fence's other rows are not this test's: each run's setup reaps
+       * fence rows older than an hour (e2e/global-setup.ts), so after a quiet hour
+       * the language holds none of them (run 38307275746). This check reads whatever
+       * the language held at both readings; its positive control is this test's own
+       * three keys, seeded before the click and each in the file once (below).
+       */
       const throughout = [...before].filter((k) => after.has(k));
-      expect(throughout.length, "TR-29: the fence language held no stable row").toBeGreaterThan(0);
       const dropped = throughout.filter((k) => !seen.has(k));
       expect(dropped, "TR-29: the export dropped rows present throughout").toEqual([]);
       const stray = fileKeys.filter(
@@ -818,10 +828,12 @@ test.describe("U4g bulk approval, order and orphans", () => {
       expect(stray, "TR-29: the export holds a row the language held at neither reading").toEqual(
         [],
       );
-      expect(
-        fileKeys.filter((k) => k === key),
-        `TR-29 exported its own key ${key} once`,
-      ).toHaveLength(1);
+      for (const own of [key, ...companions]) {
+        expect(
+          fileKeys.filter((k) => k === own),
+          `TR-29 exported its own key ${own} once`,
+        ).toHaveLength(1);
+      }
 
       // The operator's edit, expressed as the file they would send back.
       const csv = ["key,source,translation", `${key},"${source}","${imported}"`, `${ghost},"x","y"`]
@@ -961,6 +973,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
     } finally {
       await adminClient().from("ui_translation_revisions").delete().eq("key", key);
       await reapScratchKey(key);
+      for (const own of companions) await reapScratchKey(own);
       await adminClient().from("ui_translations").delete().eq("key", ghost);
     }
   });

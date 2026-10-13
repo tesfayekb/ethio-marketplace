@@ -810,6 +810,15 @@ the export; a page that makes no progress throws. The door is
 `translations:view`, read only, every status and orphaned or not, with the base
 language's value and context — the same rows the list returned for the export.
 
+**TR-29 judges the export by rows it owns (bundle 11 turn C15, INC-580).** Turn
+C6 had TR-29 require that the fence language hold at least one non-scratch row
+both before the click and after the download. Those rows are not the test's:
+each run's setup reaps fence rows older than an hour (e2e/global-setup.ts), so
+after a quiet hour the language holds none, and TR-29 failed on both attempts
+in run 38307275746. The "nothing dropped" check still reads whatever the
+language held at both readings; its positive control is now the test's own
+three keys, seeded before the click and each in the file exactly once.
+
 **Deleting a language** (`translations:manage` + step-up) runs entirely
 server-side in `admin_delete_language(p_code)`:
 
