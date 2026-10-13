@@ -3,10 +3,12 @@ import type { ImageFormat } from "./strip";
 /**
  * U6-B1 — THE UPLOAD-TIME POLICY PASS (spec §12 D15).
  *
- * NOTHING IS STORED UNSCREENED. The cover variant is shown to the provider once,
- * with a fixed code list and a JSON schema, and a PROVIDER FAILURE IS A REFUSAL
- * (F4): `providerUnavailable` with a retry hint, never a quiet accept. The card
- * and thumb variants are derived from the cover, so they are not screened twice.
+ * NOTHING IS STORED UNSCREENED. EVERY variant that will be stored — the cover,
+ * the card and the thumb — is shown to the provider in ONE call (INC-601), with a
+ * fixed code list and a JSON schema, and a PROVIDER FAILURE IS A REFUSAL (F4):
+ * `providerUnavailable` with a retry hint, never a quiet accept. The card and the
+ * thumb must show the same photo as the cover; a smaller copy that does not is
+ * refused `variant_mismatch`, so no stored size escapes the screen.
  *
  * THE PROVIDER is the same Gemini endpoint and the same server-side key name the
  * category-images pipeline and the assist route already use (`GEMINI_API_KEY`),
@@ -28,11 +30,26 @@ export const POLICY_CODES = [
   "contact_in_image",
   "stock_watermark",
   "not_a_photo",
+  "variant_mismatch",
 ] as const;
 
 export type PolicyCode = (typeof POLICY_CODES)[number] | "providerUnavailable";
 
 export type PolicyVerdict = { ok: true } | { ok: false; code: PolicyCode; evidence: string };
+
+/** One stored size of an upload, as the strip produced it. */
+export interface PolicyImage {
+  bytes: Uint8Array;
+  format: ImageFormat;
+  width: number;
+}
+
+/** INC-601 — the three sizes one upload stores, screened together. */
+export interface PolicyVariants {
+  cover: PolicyImage;
+  card: PolicyImage;
+  thumb: PolicyImage;
+}
 
 /** The width a fixture uses to ask fake mode for a refusal. */
 export const FAKE_REFUSAL_WIDTH = 13;
@@ -61,19 +78,21 @@ function visionModel(): string {
  */
 export const PHOTO_POLICY_INSTRUCTION = [
   "You screen photographs uploaded to a public classifieds marketplace.",
-  "Answer with one verdict for the image you are shown.",
-  "Refuse the image only when you can see the reason in it.",
+  "You are shown three images of one upload: the photo, then a smaller copy of it, then a smallest copy of it.",
+  "Answer with one verdict for the upload: judge every one of the three images by the codes below, and refuse the upload if any of them must be refused.",
+  "Refuse only when you can see the reason in an image.",
   `The only refusal codes are: ${POLICY_CODES.join(", ")}.`,
   "personal_document covers an ID card, passport, licence or bank card.",
   "contact_in_image covers a phone number, email address or messaging handle printed on the image.",
   "stock_watermark covers a stock-library or reseller watermark over the subject.",
   "not_a_photo covers a screenshot, a drawing, a blank frame or a test pattern.",
+  "variant_mismatch covers a smaller copy that shows a different picture from the first image; a smaller copy is less sharp, and that alone is never a reason to refuse.",
   "A business card is allowed with everything printed on it, its phone numbers, email addresses and handles included: never refuse a business card as contact_in_image or not_a_photo.",
   "A logo, or another graphic a business designed for itself, is allowed with everything on it, like a business card: never refuse one as not_a_photo or contact_in_image.",
   "A photograph of another printed item, such as a flyer, a label, a menu or a price list, is a photograph and is never not_a_photo; judge what is printed on it by the other codes.",
   'Return JSON only: {"allowed": boolean, "code": string, "evidence": string}.',
   'When the image is acceptable, return {"allowed": true, "code": "", "evidence": ""}.',
-  "Keep evidence to one short phrase naming what you saw.",
+  "Keep evidence to one short phrase naming what you saw and in which image (first, second or third).",
 ].join(" ");
 
 function mimeOf(format: ImageFormat): string {
@@ -94,16 +113,14 @@ function isPolicyCode(value: string): value is (typeof POLICY_CODES)[number] {
 }
 
 export async function screenPhotoPolicy(
-  bytes: Uint8Array,
-  format: ImageFormat,
-  width: number,
+  variants: PolicyVariants,
   log: (message: string) => void,
 ): Promise<PolicyVerdict> {
   // FAKE MODE: `E2E_FAKE_PHOTO_POLICY=1`, or the harness's standing
   // `E2E_FAKE_TRANSLATE=1` — the flag every e2e job already exports, which the
   // assist route reads the same way, so a test run never reaches the provider.
   if (serverEnv("E2E_FAKE_PHOTO_POLICY") === "1" || serverEnv("E2E_FAKE_TRANSLATE") === "1") {
-    return width === FAKE_REFUSAL_WIDTH
+    return variants.cover.width === FAKE_REFUSAL_WIDTH
       ? { ok: false, code: "not_a_photo", evidence: "fake mode: fixture marker width" }
       : { ok: true };
   }
@@ -121,10 +138,13 @@ export async function screenPhotoPolicy(
       headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: PHOTO_POLICY_INSTRUCTION }] },
+        // INC-601 — the three stored sizes, in this order, in ONE call.
         contents: [
           {
             role: "user",
-            parts: [{ inlineData: { mimeType: mimeOf(format), data: base64(bytes) } }],
+            parts: [variants.cover, variants.card, variants.thumb].map((image) => ({
+              inlineData: { mimeType: mimeOf(image.format), data: base64(image.bytes) },
+            })),
           },
         ],
         generationConfig: {

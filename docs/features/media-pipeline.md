@@ -66,13 +66,20 @@ a copy.
 
 ## The policy pass (`src/server/media/policy.ts`, D15)
 
-`screenPhotoPolicy` sends the COVER ONLY (the card and thumb are derived from it)
-to one Gemini image call — `GEMINI_API_KEY`, model `GEMINI_VISION_MODEL`
+`screenPhotoPolicy` sends EVERY size that will be stored — the cover, the card and
+the thumb, in that order (turn T17) — to one Gemini image call — `GEMINI_API_KEY`, model `GEMINI_VISION_MODEL`
 (default the images model the category-image route uses) — with a JSON-schema
 answer over a fixed code list:
 
 `nudity` · `violence` · `weapon` · `drugs` · `hate_symbol` ·
-`personal_document` · `contact_in_image` · `stock_watermark` · `not_a_photo`
+`personal_document` · `contact_in_image` · `stock_watermark` · `not_a_photo` ·
+`variant_mismatch`
+
+Each of the three images is judged by the codes, and the upload is refused if any
+must be. `variant_mismatch` covers a smaller copy that shows a different picture
+from the cover; a smaller copy is less sharp, and that alone is never a reason
+(PPOL-5..PPOL-8). The seller sees the generic "This photo was not accepted." for
+it: the app's own uploads always send three copies of one photo.
 
 D148 (the operator, 2026-10-12; INC-584): a business card passes with everything
 printed on it, its phone numbers, e-mail addresses and handles included, and the photo
@@ -109,7 +116,7 @@ first-of-kind; `PP-1` is the smoke proof). In order:
    `held`, `expired` may).
 3. The cap, counted from DB truth → `{ field: 'photos', reason: 'tooManyPhotos' }`.
 4. Per variant: the size dial, `stripImage`, the dimension cap, `assertStripped`.
-5. The policy pass on the cover.
+5. The policy pass on all three sizes, in one call.
 6. Three `putObject`s, then `register_listing_photo` as the service role, then
    `set_cover_photo` when it is the listing's first photo.
 
@@ -130,9 +137,9 @@ nothing rather than an unreachable object. `POST { action: 'cover' }` calls
 | Dial                        | Env                          | Default |
 | --------------------------- | ---------------------------- | ------- |
 | photos per listing          | `MAX_PHOTOS_PER_LISTING`     | 10      |
-| cover bytes                 | `MAX_COVER_BYTES`            | 6 MB    |
-| card bytes                  | `MAX_CARD_BYTES`             | 600 KB  |
-| thumb bytes                 | `MAX_THUMB_BYTES`            | 120 KB  |
+| cover bytes                 | `MAX_COVER_BYTES`            | 1 MB    |
+| card bytes                  | `MAX_CARD_BYTES`             | 150 KB  |
+| thumb bytes                 | `MAX_THUMB_BYTES`            | 30 KB   |
 | cover long edge             | `MAX_COVER_EDGE`             | 2000 px |
 | card long edge              | `MAX_CARD_EDGE`              | 640 px  |
 | thumb long edge             | `MAX_THUMB_EDGE`             | 240 px  |

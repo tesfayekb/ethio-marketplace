@@ -2447,7 +2447,7 @@ export const en = {
   "post.photos.soonTick": "Don't have photos ready yet? Show “Photos coming soon” on the picture.",
   "post.photos.soonFailed": "That could not be saved. Please try again.",
   "post.photos.rules":
-    "JPG, PNG or WebP \u00b7 up to 6 MB each \u00b7 at least 480 px wide \u00b7 good light, plain background, the whole item in frame",
+    "JPG, PNG or WebP \u00b7 at least 480 px wide \u00b7 good light, plain background, the whole item in frame",
   "post.photos.skip": "Continue without photos",
   "post.save.paused": "Saving paused for {seconds} s",
   "post.review.activeFromLabel": "Active from",
@@ -2461,7 +2461,7 @@ export const en = {
   "post.review.lifetimeCapHint": "Ads in this category run for at most {days} days.",
 
   // ---- U6-C1-R2 — the second operator walk's corrections -------------------
-  "post.photos.helper": "Up to {max} photos · JPG, PNG or WebP · up to 6 MB · at least 480 px wide",
+  "post.photos.helper": "Up to {max} photos · JPG, PNG or WebP · at least 480 px wide",
   "post.specs.unitsLater": "Unit lists and default amounts per category come later.",
   "post.assist.triesLeft": "{left} of {max} tries left",
   "post.assist.exhausted": "You have used all {max} writing tries for this listing.",

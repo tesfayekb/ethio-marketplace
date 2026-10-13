@@ -38,7 +38,8 @@ import {
  *   5 per file             — size cap, THE STRIP (allowlist re-writer, DEC-069),
  *                            dimension cap; the strip's own self-check runs on
  *                            what it produced before a byte can be stored
- *   6 the policy pass      — the COVER only (D15); the card and thumb are derived
+ *   6 the policy pass      — the cover, the card and the thumb, in ONE call (D15,
+ *                            INC-601): every size that will be stored is screened
  *   7 the objects          — three puts through the partition-keyed adapter
  *   8 the door             — `register_listing_photo` (service-only), which is
  *                            the ONE place `exif_stripped = true` is ever written
@@ -56,10 +57,16 @@ type Variant = (typeof VARIANTS)[number];
 /** The statuses that may still gain a photo. */
 const OPEN_STATUSES = new Set(["draft", "active", "reduced", "rejected", "held", "expired"]);
 
+/**
+ * D157 — the size dials sit over the measured encoder (the operator's 15 photos,
+ * 2026-10-13: largest cover 333 KB at 1448 px, card 45 KB, thumb 6 KB) with a
+ * margin for a phone's full 1600-px cover and the JPEG fallback. A variant over
+ * its dial is refused by name; no hand-made request stores a 6 MB cover.
+ */
 const SIZE_DIALS: Record<Variant, { env: string; bytes: number }> = {
-  cover: { env: "MAX_COVER_BYTES", bytes: 6 * 1024 * 1024 },
-  card: { env: "MAX_CARD_BYTES", bytes: 600 * 1024 },
-  thumb: { env: "MAX_THUMB_BYTES", bytes: 120 * 1024 },
+  cover: { env: "MAX_COVER_BYTES", bytes: 1024 * 1024 },
+  card: { env: "MAX_CARD_BYTES", bytes: 150 * 1024 },
+  thumb: { env: "MAX_THUMB_BYTES", bytes: 30 * 1024 },
 };
 
 const EDGE_DIALS: Record<Variant, { env: string; px: number }> = {
@@ -175,10 +182,11 @@ async function handlePost(request: Request): Promise<Response> {
     stripped[variant] = result;
   }
 
-  // 6 — the policy pass, on the cover only (D15).
+  // 6 — the policy pass: every size that will be stored, in one call (D15, INC-601).
   const cover = stripped.cover;
-  const verdict = await screenPhotoPolicy(cover.bytes, cover.format, cover.width, (message) =>
-    logRouteError(PATH, message),
+  const verdict = await screenPhotoPolicy(
+    { cover: stripped.cover, card: stripped.card, thumb: stripped.thumb },
+    (message) => logRouteError(PATH, message),
   );
   if (!verdict.ok) {
     return routeJson(

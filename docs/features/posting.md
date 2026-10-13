@@ -143,14 +143,17 @@ through their own door and validates nothing here), so the step does not pretend
 otherwise: it opens on the CATEGORY ILLUSTRATION as a stand-in ("this picture
 will stand in until you add your own") and offers "Add photos" beside "Continue
 without photos". The rules are stated before the picker, not after a rejection:
-JPG, PNG or WebP · up to 6 MB each · at least 480 px wide · good light, plain
+JPG, PNG or WebP · at least 480 px wide · good light, plain
 background, the whole item in frame. The YouTube link lives here too, beside the
 photos it belongs with (moved off step 4), with the DEC-073 shape hint.
 
 The device encodes before anything is sent: `createImageBitmap` with
 `imageOrientation: "from-image"` (so a portrait phone photo is not served
 sideways), a resize that never upscales, and WebP where the browser can encode
-it, else JPEG at 0.82 — three variants (cover 1600, card 480, thumb 160).
+it, else JPEG at 0.82 — three variants (cover 1600, card 480, thumb 160). Since
+turn T17 (D157, INC-599) every draw uses the canvas's high-quality filter and
+the WebP qualities are cover 0.82, card 0.84, thumb 0.82; the rules line no longer
+names a file size, because the device shrinks any photo before it is sent.
 
 Uploads are SEQUENTIAL and report real progress (`XMLHttpRequest`, because
 `fetch` cannot report upload progress and a stuck tile is indistinguishable from
@@ -418,7 +421,7 @@ Publish lands `screening` in DB truth.
 
 **Photos (step 2).** Nothing offers to skip: `Next` already carries a seller with
 no photo. The rules are ONE line — `post.photos.helper`, "Up to <n> photos · JPG,
-PNG or WebP · up to 6 MB · at least 480 px wide" — and `<n>` is one dial,
+PNG or WebP · at least 480 px wide" (no file size since T17) — and `<n>` is one dial,
 `MAX_PHOTOS_PER_LISTING` in `types.ts` (M-MAINT-2 will source it from the plan).
 The stand-in illustration WALKS UP the tree: the chosen leaf's own picture, else
 the nearest ancestor that has one, derived from the shared tree reader, so a leaf
@@ -1356,3 +1359,9 @@ The operator's decision of 2026-10-13: the first photo is the cover; every photo
 - Tests: PP-17 (the buttons, both ends disabled, the order and the cover as DB truth, the refused places, a place past the end, another seller refused), PP-18 (a drag on a computer; skipped on the phone project, which has the buttons).
 
 Still to build, in bundle 13 (D154, D155): rotate and crop; the screen's warning when a photo may not fit the ad, flagged for staff; staff removing a photo; the screening step listing photo changes on published ads; light photos (D155a); remove background (D155b).
+
+## The tidy-up round, turn T17 — every stored size is screened; lighter, sharper photos (INC-599, INC-601, D157)
+
+- **INC-601 — the policy pass screens every stored size.** The upload stores three sizes of a photo (cover, card, thumb). The pass sends all three to the provider in ONE call, in that order, and the upload is refused if any of them must be; a smaller copy that shows a different picture from the cover is refused `variant_mismatch` (src/server/media/policy.ts; PPOL-5..PPOL-8). Fake mode is unchanged: it reads the cover's width.
+- **INC-599 — the high-quality filter.** The canvas's default filter aliases a large downscale (thumbs measured at SSIM 0.70 against a 0.95 bar), so every draw sets `imageSmoothingQuality = "high"`: sharper, and smaller (src/features/posting/photo-encode.ts; PE-1, PE-2).
+- **D157 — the qualities and the dials, from a frozen judge.** On the operator's 15 photos, the smallest quality with SSIM ≥ 0.95 on every photo: cover 0.82, card 0.84, thumb 0.82 (WebP; JPEG stays 0.82). The server's size dials tighten to the measured sizes plus a margin: cover 1 MB, card 150 KB, thumb 30 KB (were 6 MB, 600 KB, 120 KB). The photo rules line no longer names a file size: the device shrinks any photo before it is sent.
