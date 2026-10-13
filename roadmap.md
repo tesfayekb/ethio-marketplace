@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-12-turn-12.md (bundle 12 — the tidy-up round, D145 — turn T12: D153, a logo passes the photo screen like a business card).
+The brief in force: docs/governance/briefs/bundle-12-turn-13.md (bundle 12 — the tidy-up round, D145 — turn T13: PW-187's red — the home page's body is the listings' container in every state, INC-593).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -252,6 +252,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] Turn T10 — the import gate's audit row (`import_gate_audit`) is written only for a caller who holds that family's own permission (one migration; IG-6: a signed-in account with no role is refused for every family and writes nothing, the super admin's preview still writes its row); the census of signed-in functions finished (chat only, G51). INC-592 closed with no defect: the walk's tab predated the Publish, and after a full reload the photo showed on the photo step, the side card and both previews
 - [x] Turn T11 — read only: INC-488 after the operator's Sync keys (the texts `get_ui_bundle` serves compared key by key with en.ts and am.ts); the columns and public functions that expose a person's id (chat only, G51); the unit run keeps its whole output and names any failure
 - [x] Turn T12 — D153 (the operator, 2026-10-13): a logo, or another graphic a business designed for itself, passes the photo screen like a business card (`PHOTO_POLICY_INSTRUCTION`; PPOL-4); no logo recognition and no banned-logo list — a mark used without right is removed on report
+- [x] Turn T13 — INC-593 (PW-187 red twice on a busy staging: it waited 20 s for the home page's cards, invitation or note, and counted a home page still loading its listings as no home page): PW-187 counts `feed-container`, which the home page draws in every state of its listings, as its body, and each recorded state names the listings' own state
 - [ ] D149's publishing statement (D150: one statement and one tick, its photo clause numbered, each listing recording the version agreed to) — the texts agreed by the operator on 2026-10-13 (D152: point 6, "everything my photos show is public", with the matching lines in Terms 3 and Privacy 7); built after the tidy-up round
 - [ ] Next turns: INC-582's rows through the curator (D147, from T1's census), INC-579 and INC-494 when the `[roster-dump]` arrives, the flaky tests (INC-449, INC-440, INC-430's PW-55, INC-533, INC-562), the rest of ACT-009's line in the order of work below
 

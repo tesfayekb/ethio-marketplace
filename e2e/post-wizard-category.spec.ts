@@ -1222,6 +1222,14 @@ test.describe("POSTING WIZARD", () => {
    * frame (no location band) while the body still showed the home page. Every
    * DOM state after the tap is recorded: none may hold the home page's body
    * without its band.
+   *
+   * INC-593 — the home page's body is `feed-container`: the home page draws it in
+   * every state of its listings (loading, cards, the invitation, the note, none,
+   * a failed read — src/components/marketplace/feed.tsx). The test used to wait
+   * for the cards, the invitation or the note within 20 s, and failed twice on
+   * a busy staging before any came (runs 38357590372 and 38394886154); a home
+   * page still loading its listings was not counted as the home page's body
+   * either. Each recorded state names the listings' own state (`feed=`).
    */
   test("PW-187 Post from the home page never shows the home page inside the form's frame (INC-581)", async ({
     page,
@@ -1232,17 +1240,10 @@ test.describe("POSTING WIZARD", () => {
     );
     await seller(page);
     await gotoReady(page, "/");
-    const homeBody =
-      '[data-testid="feed-section"], [data-testid="feed-invite"], [data-testid="feed-step-none"]';
-    await expect
-      .poll(
-        () => page.evaluate((selector) => document.querySelector(selector) !== null, homeBody),
-        {
-          message: "PW-187: the home page's body",
-          timeout: 20_000,
-        },
-      )
-      .toBe(true);
+    const homeBody = '[data-testid="feed-container"]';
+    await expect(page.getByTestId("feed-container"), "PW-187: the home page's body").toBeAttached({
+      timeout: 20_000,
+    });
     await expect(page.getByTestId("location-row"), "PW-187: the home page's band").toBeVisible();
     await page.evaluate((selector) => {
       const w = window as unknown as { __inc581?: string[] };
@@ -1253,7 +1254,11 @@ test.describe("POSTING WIZARD", () => {
         const home = document.querySelector(selector) !== null;
         const band = document.querySelector('[data-testid="location-row"]') !== null;
         const form = document.querySelector('[data-testid="post-step-1"]') !== null;
-        const state = `${location.pathname} home=${home} band=${band} form=${form}`;
+        const feed =
+          ["feed-section", "feed-step-none", "feed-empty", "feed-error"].find(
+            (id) => document.querySelector(`[data-testid="${id}"]`) !== null,
+          ) ?? "-";
+        const state = `${location.pathname} home=${home} band=${band} form=${form} feed=${feed}`;
         if (state !== last) {
           states.push(state);
           last = state;
