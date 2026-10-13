@@ -1211,4 +1211,84 @@ test.describe("U4b translations console", () => {
     // The whole language, not the (empty) filtered view: a header plus rows.
     expect(body.split(/\r?\n/).filter((line) => line.trim() !== "").length).toBeGreaterThan(10);
   });
+
+  /**
+   * TR-40 — INC-603 (the operator's walk, 2026-10-13: the site still said "up to
+   * 6 MB" after the code dropped it) and INC-607 (Sync keys always said 0). Sync
+   * keys sets an Amharic text the code changed when no person wrote it, keeps one
+   * a person wrote (a 'save' revision), and its answer names what it did. Two
+   * scratch keys of this test; real keys are only read.
+   */
+  test("TR-40 sync follows a changed Amharic text no person wrote, and keeps one a person wrote", async ({
+    page,
+  }) => {
+    const followed = scratchKey("tr40-followed");
+    const kept = scratchKey("tr40-kept");
+    const service = adminClient();
+    for (const key of [followed, kept]) {
+      const { error } = await service.from("ui_translations").upsert(
+        [
+          { key, lang_code: "en", value: "TR-40 source", status: "approved", machine: false },
+          { key, lang_code: "am", value: "TR-40 old", status: "approved", machine: false },
+        ],
+        { onConflict: "key,lang_code" },
+      );
+      if (error) throw new Error(`[e2e:tr40] seeding ${key} failed: ${error.message}`);
+    }
+    const revision = await service
+      .from("ui_translation_revisions")
+      .insert({ key: kept, lang_code: "am", action: "save", prev_status: "untranslated" });
+    if (revision.error)
+      throw new Error(`[e2e:tr40] the revision failed: ${revision.error.message}`);
+    try {
+      await signInAsSuperAdmin(page);
+      await gotoReady(page, "/admin/translations");
+      const answer = await page.evaluate(
+        async ({ p_en, p_am }) => {
+          const client = (
+            window as unknown as {
+              __ethioSupabase: {
+                rpc: (
+                  fn: string,
+                  args: Record<string, unknown>,
+                ) => Promise<{ data: unknown; error: { message: string } | null }>;
+              };
+            }
+          ).__ethioSupabase;
+          const { data, error } = await client.rpc("admin_sync_ui_keys", { p_en, p_am });
+          return { data, error: error?.message ?? null };
+        },
+        {
+          p_en: { ...en, [followed]: "TR-40 source", [kept]: "TR-40 source" },
+          p_am: { ...am, [followed]: "TR-40 new", [kept]: "TR-40 new" },
+        },
+      );
+      expect(answer.error).toBeNull();
+      const result = answer.data as Record<string, unknown>;
+      expect(typeof result["keys_added"], "TR-40: the answer names the keys added").toBe("number");
+      expect(Number(result["languages"])).toBeGreaterThanOrEqual(1);
+      expect(Number(result["am_seeded"]), "TR-40: no Amharic text was set").toBeGreaterThanOrEqual(
+        1,
+      );
+
+      const amOf = async (key: string) => {
+        const { data, error } = await service
+          .from("ui_translations")
+          .select("value")
+          .eq("key", key)
+          .eq("lang_code", "am")
+          .single();
+        if (error) throw new Error(`[e2e:tr40] reading ${key} failed: ${error.message}`);
+        return data.value;
+      };
+      expect(await amOf(followed), "TR-40: the text no person wrote did not follow").toBe(
+        "TR-40 new",
+      );
+      expect(await amOf(kept), "TR-40: the text a person wrote was overwritten").toBe("TR-40 old");
+    } finally {
+      await reapScratchKey(followed);
+      await reapScratchKey(kept);
+      await service.from("ui_translation_revisions").delete().in("key", [followed, kept]);
+    }
+  });
 });

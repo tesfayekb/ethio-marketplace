@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import { expect, test } from "./fixtures";
 
+import { en } from "../src/i18n/locales/en";
+
 import {
   clearUploadCounter,
   downloadObject,
@@ -22,6 +24,7 @@ import {
   bearerOf,
   destroyListingsOf,
   destroyPostableCategory,
+  draftsOf,
   postRoute,
   seedPostableCategory,
   stopPageBeforePurge,
@@ -853,5 +856,115 @@ test.describe("PHOTO PIPELINE", () => {
       .toEqual([c, a, b]);
     await expect(stored.nth(0)).toHaveAttribute("data-photo-id", c);
     await expect(stored.nth(0).getByTestId("post-photo-cover")).toBeVisible();
+  });
+
+  /**
+   * PP-19 — INC-605 and D160 (the operator's walk, 2026-10-13: "when a photo is
+   * uploading add photo is grayed out, so should next button and back buttons";
+   * "a red ribbon saying cover photo"). While a photo is on its way, Next and
+   * Back wait and say why; once it is stored they work again, and the cover
+   * carries the ribbon "Cover photo".
+   */
+  test("PP-19 Next and Back wait while a photo is sent, and the cover carries its ribbon", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/upload/photo", async (route) => {
+      await held;
+      await route.continue();
+    });
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-next")).toBeEnabled();
+    await expect(page.getByTestId("post-back")).toBeEnabled();
+
+    await page.getByTestId("post-photos-input").setInputFiles([FIXTURE]);
+    const tile = page.getByTestId("post-photo-tile");
+    await expect(tile).toHaveAttribute("data-state", "uploading", { timeout: 45_000 });
+    await expect(page.getByTestId("post-next"), "PP-19: Next while a photo is sent").toBeDisabled();
+    await expect(page.getByTestId("post-back"), "PP-19: Back while a photo is sent").toBeDisabled();
+    await expect(page.getByTestId("post-nav-photos-sending")).toHaveText(
+      en["post.photos.waitSending"],
+    );
+
+    release();
+    await expect(tile).toHaveAttribute("data-state", "stored", { timeout: 45_000 });
+    await page.unroute("**/api/upload/photo");
+    await expect(page.getByTestId("post-next")).toBeEnabled();
+    await expect(page.getByTestId("post-back")).toBeEnabled();
+    await expect(page.getByTestId("post-nav-photos-sending")).toHaveCount(0);
+    // D160 — the cover's ribbon.
+    await expect(tile.getByTestId("post-photo-cover")).toHaveText(en["post.photos.coverRibbon"]);
+  });
+
+  /**
+   * PP-20 — INC-604 (the operator's walk, 2026-10-13: "reload by refreshing takes
+   * back to first step selecting category and none is saved"). A draft begun on
+   * /post takes its own address the moment it exists, so a reload opens the same
+   * draft, its photo with it, and no second draft is made.
+   */
+  test("PP-20 a draft begun on /post takes its own address, and a reload opens it again", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    // DEC-068 — the residency fact arrives as the edge sends it.
+    for (const path of ["**/api/listings/**", "**/api/geo"]) {
+      await page.route(path, async (route) => {
+        await route.fallback({ headers: { ...route.request().headers(), "cf-ipcountry": "ET" } });
+      });
+    }
+    const { user, token } = await seller(page);
+    const leaf = await seedPostableCategory();
+    categories.push(leaf.slug);
+
+    await gotoReady(page, "/post");
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    await page.getByTestId("post-category-search").fill(leaf.slug);
+    await page.locator(`[data-testid="post-category-hit"][data-category="${leaf.id}"]`).click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    await expect(page, "PP-20: the draft did not take its address").toHaveURL(
+      /\/post\/[0-9a-f-]{36}$/,
+    );
+    const listingId = new URL(page.url()).pathname.split("/").pop() ?? "";
+    objects.push({ userId: user.id, listingId });
+    expect(
+      (await draftsOf(user.id)).map((row) => row.id),
+      "PP-20: one draft",
+    ).toEqual([listingId]);
+    const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+    expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
+
+    await page.reload();
+    const shown = async () => {
+      for (const step of [2, 3, 4, 5]) {
+        if (await page.getByTestId(`post-step-${step}`).isVisible()) return step;
+      }
+      return 0;
+    };
+    await expect
+      .poll(shown, { message: "PP-20: the reload did not open the draft", timeout: 20_000 })
+      .toBeGreaterThan(0);
+    expect(new URL(page.url()).pathname, "PP-20: the reload left the address").toBe(
+      `/post/${listingId}`,
+    );
+    await expect(page.getByTestId("post-step-1"), "PP-20: the reload began again").toHaveCount(0);
+    // D39 — the draft resumes at its first unfinished step; Back reaches the photos.
+    for (let tries = 0; tries < 3; tries += 1) {
+      if (await page.getByTestId("post-step-2").isVisible()) break;
+      await page.getByTestId("post-back").click();
+    }
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-photo-stored")).toHaveCount(1);
+    expect(
+      (await draftsOf(user.id)).map((row) => row.id),
+      "PP-20: a second draft",
+    ).toEqual([listingId]);
   });
 });

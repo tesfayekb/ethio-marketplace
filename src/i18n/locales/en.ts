@@ -2150,7 +2150,7 @@ export const en = {
   "post.photos.addHint": "Up to {max} photos. The first one is the cover.",
   "post.photos.count": "{count} of {max}",
   "post.photos.none": "No photos yet — the category illustration stands in until you add one.",
-  "post.photos.cover": "Cover",
+  "post.photos.coverRibbon": "Cover photo",
   "post.photos.makeCover": "Make cover",
   "post.photos.remove": "Remove",
   "post.photos.moveUp": "Move earlier",
@@ -2375,6 +2375,7 @@ export const en = {
   "post.photos.couldNotSend": "Couldn't send — try again.",
   "post.photos.refusedFinal": "This photo can't be used. Choose a different one.",
   "post.photos.nextHeld": "Remove the photo that could not be added to continue.",
+  "post.photos.waitSending": "Wait until your photos are sent.",
   "post.photos.public":
     "Everything in your photos is public: anyone can see it, including the phone number, e-mail and address on a business card.",
   // U6-C2b — step 7: who is selling.
