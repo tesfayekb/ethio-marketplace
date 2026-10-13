@@ -111,6 +111,17 @@ describe("INC-582 — an option named Other has the value other", () => {
       "optionOtherValue",
     );
   });
+  it("passes a switched-off Other under another value (the ads that hold it keep its words)", () => {
+    expect(
+      checkCell(
+        rule,
+        '{"value":"toyota_other","label_en":"Other","active":false}|{"value":"other","label_en":"Other"}',
+      ),
+    ).toBeNull();
+    expect(checkCell(rule, '{"value":"toyota_other","label_en":"Other","active":true}')).toBe(
+      "optionOtherValue",
+    );
+  });
   it("passes a label that only starts with the letters (Otherwise, Otterbox)", () => {
     expect(
       checkCell(

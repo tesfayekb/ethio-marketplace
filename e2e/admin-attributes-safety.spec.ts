@@ -18,6 +18,7 @@ import {
 } from "./helpers/categories";
 import {
   destroyAttribute,
+  attributeEdit,
   openAttributeMenu,
   readAttribute,
   readLinks,
@@ -147,6 +148,44 @@ async function attachLinks(page: Page, text: string, definitions?: string) {
 }
 
 test.describe("Bundle 7 attribute safety", () => {
+  /**
+   * AT-81 — bundle 7's named item (block S56; the tidy-up round, turn T3). The
+   * definition editor names the listings that hold an answer its save would
+   * remove: changing a held choice question to text removes every stored
+   * option. The line comes once the holders are read; nothing is saved here.
+   */
+  test("AT-81 the editor names the listings holding an answer a type change removes", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
+    try {
+      const leaf = await seedLeaf();
+      fx.slug = leaf.slug;
+      fx.categoryId = leaf.id;
+      const held = attrKey("edit");
+      fx.keys.push(held);
+      await seedLink(leaf.id, await seedSelect(held), 0);
+      await holdAnswer(fx, { [held]: "a1" });
+
+      await openLibrary(page);
+      await page.getByTestId("attribute-search").fill(held);
+      await attributeEdit(page, held).click();
+      await expect(page.getByTestId("attribute-edit-dialog")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("attribute-edit-removed-holders")).toHaveCount(0);
+      await page.getByTestId("attribute-type").selectOption("text");
+      await expect(page.getByTestId("attribute-edit-removed-holders")).toHaveText(
+        fill(en["admin.attributes.edit.removedHolders"], { count: 1 }),
+        { timeout: 20000 },
+      );
+      await page.getByTestId("attribute-type").selectOption("single_select");
+      await expect(page.getByTestId("attribute-edit-removed-holders")).toHaveCount(0);
+    } finally {
+      await reap(fx);
+    }
+  });
+
   test("AT-73 Remove from a category names the listings that hold an answer, and removes", async ({
     page,
   }) => {

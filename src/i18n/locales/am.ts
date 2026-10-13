@@ -1071,6 +1071,8 @@ export const am: Messages = {
   "admin.attributes.error.mergeHasHolders":
     "{count} ዝርዝሮች ለሚወገደው ባህሪ መልስ ይዘዋል። እነዚህ እስካሉ ድረስ ማዋሃድ አይቻልም።",
   "admin.attributes.import.holders": "በ{count} ዝርዝሮች የተያዘ",
+  "admin.attributes.edit.removedHolders":
+    "{count} ዝርዝሮች ይህ ለውጥ የሚያስወግደውን መልስ ይዘዋል። ቃሉ በእነዚያ ዝርዝሮች ላይ እንዲቆይ፣ አማራጩን ከማስወገድ ይልቅ «በማስታወቂያ ጊዜ ይቀርባል» የሚለውን ምልክት ያንሱ።",
   "admin.attributes.error.parentAfterChild":
     "በ{detail} ቅደም ተከተሉ አልተፈቀደም፦ ሁለተኛው ባህሪ በመጀመሪያው ይመሠረታል፣ ግን ከእሱ በፊት ይጠየቃል። የመጀመሪያውን ከላይ ያድርጉት።",
   "admin.categories.paths.add": "ሌላ የአሰሳ መንገድ ጨምር",

@@ -1128,6 +1128,8 @@ export const en = {
   "admin.attributes.error.mergeHasHolders":
     "{count} listings hold an answer to an attribute being merged away. Merging is refused while they do.",
   "admin.attributes.import.holders": "Held by {count} listings",
+  "admin.attributes.edit.removedHolders":
+    "{count} listings hold an answer this change removes. To keep its words on those listings, untick “Offered when posting” instead of removing the option.",
   "admin.attributes.error.parentAfterChild":
     "Order refused in {detail}: the second attribute depends on the first and is asked before it. Put the first one above it.",
   "admin.categories.paths.add": "Add another browse path",
