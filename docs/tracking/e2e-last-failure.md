@@ -1,58 +1,206 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38347100745
-- Commit: `28832d59fecabdd3d4b623c16fc819319dac31c2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38347651345
+- Commit: `cd51ab03e9bd1c458f3bb3ced617b7b8aa13e83b`
 - Attempt: 1
-- Written (UTC): 2026-10-13T04:42:07.176Z
-- Passed: 0 · Skipped: 0 · Failed: 0
-- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
+- Written (UTC): 2026-10-13T05:16:48.769Z
+- Passed: 1666 · Skipped: 125 · Failed: 4
+- Gating failures: 4 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): email
-- Sources without results: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+- Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
+- Sources without results: none
 - Errors outside any test (INC-589): none
 
 ## Errors outside any test (INC-589)
 
-None: no results file lists one and no log's summary names one (0 of 8 results files read, 8 of 8 logs read).
+None: no results file lists one and no log's summary names one (9 of 9 results files read, 9 of 9 logs read).
 
 ## Server errors — census (DEC-083, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
-15 line(s), 6 message(s): 1 off the allowlist, 5 allowlisted.
+118 line(s), 37 message(s): 2 off the allowlist, 35 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
-| `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
-| `listing not found` | 3 | shard 3 |
-| `definitions badHeader` (quiet) | 2 | shard 1, shard 4 |
-| `definitions wrongFile` (quiet) | 2 | shard 1, shard 4 |
-| `digest mismatch` (quiet) | 2 | shard 1, shard 4 |
-| `preview_failed permission denied` (quiet) | 2 | shard 1, shard 4 |
+| `digest mismatch` (quiet) | 14 | shard 1, shard 2, shard 4, shard 5, changed |
+| `too many previews` (quiet) | 10 | shard 2, shard 5 |
+| `categories badHeader` (quiet) | 6 | shard 1, shard 2, shard 4, shard 5, changed |
+| `categories wrongFile` (quiet) | 6 | shard 1, shard 2, shard 4, shard 5, changed |
+| `listing not found` | 6 | shard 3, shard 6 |
+| `preview_failed permission denied` (quiet) | 6 | shard 1, shard 4, changed |
+| `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 5 | shard 1, shard 2, shard 4, shard 5, changed |
+| `commit_failed step-up required: no verified factor` (quiet) | 4 | shard 1, shard 4, changed |
+| `definitions badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
+| `definitions wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
+| `export_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
+| `categories file too large` (quiet) | 2 | shard 2, shard 5 |
+| `categories nulByte` (quiet) | 2 | shard 2, shard 5 |
+| `categories unknownColumn` (quiet) | 2 | shard 2, shard 5 |
+| `countries badHeader` (quiet) | 2 | shard 2, shard 5 |
+| `countries nulByte` (quiet) | 2 | shard 2, shard 5 |
+| `countries tooManyRows` (quiet) | 2 | shard 2, shard 5 |
+| `countries unknownColumn` (quiet) | 2 | shard 2, shard 5 |
+| `countries wrongFile` (quiet) | 2 | shard 2, shard 5 |
+| `definitions nulByte` (quiet) | 2 | shard 2, shard 5 |
+| `definitions tooManyRows` (quiet) | 2 | shard 2, shard 5 |
+| `definitions unknownColumn` (quiet) | 2 | shard 2, shard 5 |
+| `links unknownColumn` (quiet) | 2 | shard 2, shard 5 |
+| `locations badHeader` (quiet) | 2 | shard 2, shard 5 |
+| `locations file too large` (quiet) | 2 | shard 2, shard 5 |
+| `locations nulByte` (quiet) | 2 | shard 2, shard 5 |
+| `locations unknownColumn` (quiet) | 2 | shard 2, shard 5 |
+| `locations wrongFile` (quiet) | 2 | shard 2, shard 5 |
+| `strings badHeader` (quiet) | 2 | shard 2, shard 5 |
+| `strings emptyFile` (quiet) | 2 | shard 2, shard 5 |
+| `strings nulByte` (quiet) | 2 | shard 2, shard 5 |
+| `strings tooManyRows` (quiet) | 2 | shard 2, shard 5 |
+| `strings unknownColumn` (quiet) | 2 | shard 2, shard 5 |
+| `strings wrongFile` (quiet) | 2 | shard 2, shard 5 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>haga: e<n>e_par_n<n>un<n>x → e<n>e_chi_<n>nzkm<n>` (quiet) | 1 | shard 4 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-mdrk<n>m: e<n>e_par_rajm<n> → e<n>e_chi_hj<n>wap` (quiet) | 1 | shard 1 |
+| `TimeoutError: The operation timed out.` | 1 | shard 2 |
 
-Quiet (allowlisted): category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×2 · definitions wrongFile ×2 · digest mismatch ×2 · preview_failed permission denied ×2
+Quiet (allowlisted): digest mismatch ×14 · too many previews ×10 · categories badHeader ×6 · categories wrongFile ×6 · preview_failed permission denied ×6 · category-images: no GEMINI_API_KEY — fake mode ×5 · commit_failed step-up required: no verified factor ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>haga: e<n>e_par_n<n>un<n>x → e<n>e_chi_<n>nzkm<n> ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-mdrk<n>m: e<n>e_par_rajm<n> → e<n>e_chi_hj<n>wap ×1
 
 Off the allowlist:
 
 ### listing not found
 
-- Count: 3 · Sources: shard 3
+- Count: 6 · Sources: shard 3, shard 6
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
 ```
 
+### TimeoutError: The operation timed out.
+
+- Count: 1 · Sources: shard 2
+
+```text
+[WebServer] [ssr-error] /api/locations TimeoutError: The operation timed out.
+```
+
 ## Accessibility (DEC-084, gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
-5 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0
+10 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0 · wizard-5 desktop-1280 serious=0 critical=0
 
 ## Timing (DEC-087, non-gating)
 
-Results read: none · unavailable: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
+Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
 
-No timing: no source carried a results.json.
+| Source | Started (UTC) | Wall time |
+| --- | --- | --- |
+| smoke | 2026-10-13T04:43:24.975Z | 15.6 min |
+| email | 2026-10-13T04:43:34.720Z | 0.3 min |
+| shard 1 | 2026-10-13T04:43:26.403Z | 29.7 min |
+| shard 2 | 2026-10-13T04:43:33.794Z | 31.9 min |
+| shard 3 | 2026-10-13T04:43:49.499Z | 27.6 min |
+| shard 4 | 2026-10-13T04:43:56.024Z | 32.5 min |
+| shard 5 | 2026-10-13T04:43:27.625Z | 29.5 min |
+| shard 6 | 2026-10-13T04:43:35.609Z | 27.5 min |
+| changed | 2026-10-13T04:43:36.386Z | 13.8 min |
+
+| Spec file | Tests | Summed duration | Ran in |
+| --- | --- | --- | --- |
+| `admin-categories-lifecycle.spec.ts` | 100 | 28.0 min | shard 1, shard 4, changed |
+| `post-wizard-specs.spec.ts` | 78 | 25.1 min | shard 3, shard 6 |
+| `photo-pipeline.spec.ts` | 52 | 20.8 min | shard 2, shard 5, changed |
+| `shell.spec.ts` | 336 | 19.6 min | smoke, shard 3, shard 6 |
+| `post-wizard-bundle2.spec.ts` | 68 | 19.4 min | shard 2, shard 5 |
+| `admin-listings.spec.ts` | 54 | 16.5 min | shard 1, shard 4 |
+| `post-wizard-resets.spec.ts` | 34 | 14.5 min | shard 3, shard 6 |
+| `post-wizard-pricing.spec.ts` | 50 | 14.4 min | shard 3, shard 5 |
+| `post-wizard-where.spec.ts` | 32 | 11.8 min | shard 3, shard 6 |
+| `admin-attributes-library.spec.ts` | 42 | 11.6 min | shard 1, shard 4 |
+| `post-wizard-category.spec.ts` | 48 | 11.6 min | shard 2, shard 5 |
+| `posting-routes.spec.ts` | 52 | 10.4 min | shard 3, shard 6 |
+| `feed-screens.spec.ts` | 28 | 10.2 min | shard 2, shard 5 |
+| `auth-signout.spec.ts` | 44 | 9.8 min | smoke, shard 2, shard 5 |
+| `post-wizard-place.spec.ts` | 38 | 9.7 min | shard 2, shard 5 |
+| `admin-attributes-links.spec.ts` | 32 | 9.3 min | shard 1, shard 4 |
+| `admin-attributes-editor.spec.ts` | 34 | 8.8 min | shard 1, shard 4 |
+| `admin-users.spec.ts` | 26 | 8.7 min | shard 2, shard 5 |
+| `admin-categories-console.spec.ts` | 34 | 8.7 min | shard 1, shard 4 |
+| `admin-attributes-import.spec.ts` | 40 | 7.9 min | shard 1, shard 4 |
+| `feed-index.spec.ts` | 28 | 7.7 min | shard 2, shard 5 |
+| `admin-locations.spec.ts` | 38 | 7.5 min | shard 1, shard 4 |
+| `posting-routes-catalog.spec.ts` | 18 | 7.3 min | shard 3, shard 6 |
+| `admin-screening.spec.ts` | 34 | 7.0 min | shard 1, shard 4 |
+| `viewing-place.spec.ts` | 22 | 6.4 min | shard 3, shard 6 |
+| `import-security.spec.ts` | 34 | 6.3 min | shard 2, shard 5 |
+| `admin-attributes-safety.spec.ts` | 16 | 6.2 min | shard 1, shard 4 |
+| `admin-translations-console.spec.ts` | 42 | 5.7 min | shard 1, shard 4 |
+| `admin-roles.spec.ts` | 26 | 5.5 min | shard 1, shard 4 |
+| `feed-route.spec.ts` | 16 | 5.0 min | shard 2, shard 5 |
+| `admin-audit.spec.ts` | 14 | 4.3 min | shard 1, shard 4 |
+| `admin-countries.spec.ts` | 18 | 3.7 min | shard 1, shard 4 |
+| `admin-translations-data.spec.ts` | 8 | 3.0 min | shard 2, shard 5 |
+| `admin-translations-governance.spec.ts` | 8 | 3.0 min | shard 2, shard 5 |
+| `admin-categories-home.spec.ts` | 8 | 2.8 min | shard 1, shard 4 |
+| `post-wizard-removed.spec.ts` | 4 | 2.6 min | shard 3, shard 6 |
+| `mfa-stepup.spec.ts` | 18 | 2.5 min | shard 2, shard 5 |
+| `posting-routes-dials.spec.ts` | 14 | 2.5 min | shard 3, shard 6 |
+| `post-wizard-details.spec.ts` | 8 | 1.9 min | shard 2, shard 5 |
+| `admin-coverage.spec.ts` | 14 | 1.7 min | shard 1, shard 4 |
+| `post-wizard-finder.spec.ts` | 8 | 1.6 min | shard 2, shard 5 |
+| `post-wizard-units.spec.ts` | 4 | 1.6 min | shard 3, shard 6 |
+| `admin-shell.spec.ts` | 10 | 1.5 min | shard 1, shard 4 |
+| `category-image-routes.spec.ts` | 10 | 1.4 min | shard 2, shard 5 |
+| `posting-routes-identity.spec.ts` | 4 | 1.2 min | shard 3, shard 6 |
+| `post-wizard-recent.spec.ts` | 2 | 1.1 min | shard 3, shard 6 |
+| `phone-frame.spec.ts` | 18 | 0.9 min | shard 2, shard 5 |
+| `locations-tree.spec.ts` | 8 | 0.9 min | shard 2, shard 5 |
+| `i18n-coverage.spec.ts` | 8 | 0.8 min | shard 2, shard 5 |
+| `admin-categories-images.spec.ts` | 2 | 0.8 min | shard 1, shard 4 |
+| `i18n-bundle.spec.ts` | 6 | 0.7 min | shard 2, shard 5 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.7 min | smoke, shard 3, shard 6 |
+| `settings.spec.ts` | 4 | 0.7 min | shard 3 |
+| `rbac.spec.ts` | 6 | 0.6 min | shard 3, shard 6 |
+| `a11y.spec.ts` | 4 | 0.5 min | smoke |
+| `category-nav.spec.ts` | 10 | 0.5 min | shard 2, shard 5 |
+| `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
+| `auth-reset.spec.ts` | 6 | 0.4 min | shard 2 |
+| `house-style.spec.ts` | 12 | 0.3 min | shard 2, shard 5 |
+| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 3, shard 6 |
+| `auth-signup.spec.ts` | 2 | 0.1 min | email |
+| `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
+| `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
+
+15 slowest tests:
+
+| Test | Project | Duration |
+| --- | --- | --- |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 61.2 s |
+| `photo-pipeline.spec.ts` › PP-12 a stored photo is drawn on the photo step through a link that expires | mobile-360 | 60.2 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | desktop-1280 | 58.9 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | desktop-1280 | 58.4 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 54.5 s |
+| `photo-pipeline.spec.ts` › PP-12 a stored photo is drawn on the photo step through a link that expires | desktop-1280 | 54.4 s |
+| `photo-pipeline.spec.ts` › PP-12 a stored photo is drawn on the photo step through a link that expires | desktop-1280 | 52.9 s |
+| `photo-pipeline.spec.ts` › PP-12 a stored photo is drawn on the photo step through a link that expires | mobile-360 | 51.2 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 49.1 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | desktop-1280 | 48.6 s |
+| `post-wizard-removed.spec.ts` › PW-177 a question removed while the form is open never blocks the next edits | desktop-1280 | 46.7 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 43.2 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | mobile-360 | 41.5 s |
+| `posting-routes-catalog.spec.ts` › PR-39 recent categories are caller-only published leaves in count/date/id order | desktop-1280 | 41.1 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | mobile-360 | 41.1 s |
+
+## Post-test errors: smoke
+
+smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 3 user(s) owned by process 38347651345-smoke
+```
 
 ## Post-test errors: email
 
@@ -61,253 +209,325 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 38347100745-email
+[e2e:teardown] deleted 4 user(s) owned by process 38347651345-email
 ```
 
-## Server errors: smoke
+## Post-test errors: shard 1
 
-No `[ssr-error]` lines in the `smoke` log (or no log was uploaded).
-
-## Client errors: smoke
-
-No `[client-error]` lines in the `smoke` log (or no log was uploaded).
-
-## Server errors: email
-
-No `[ssr-error]` lines in the `email` log (or no log was uploaded).
-
-## Client errors: email
-
-No `[client-error]` lines in the `email` log (or no log was uploaded).
-
-## Server errors: shard 1
+shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+[e2e:teardown] accounts signed in this run: 11 (pool 4, fresh 7)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 8 user(s) owned by process 38347651345-1
 ```
 
-## Client errors: shard 1
+## Post-test errors: shard 2
 
-No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
+shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 35 (pool 4, fresh 31)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 47 user(s) owned by process 38347651345-2
+```
+
+## Post-test errors: shard 3
+
+shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 4 user(s) owned by process 38347651345-3
+```
+
+## Post-test errors: shard 4
+
+shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 11 (pool 4, fresh 7)
+[e2e:teardown] transport retries this run: 1 (by method: GET 1; by code: ECONNRESET 1; ran out: 0)
+[e2e:teardown] deleted 8 user(s) owned by process 38347651345-4
+```
+
+## Post-test errors: shard 5
+
+shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 30 (pool 4, fresh 26)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 40 user(s) owned by process 38347651345-5
+```
+
+## Post-test errors: shard 6
+
+shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 4 user(s) owned by process 38347651345-6
+```
+
+## Post-test errors: changed
+
+changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 3 user(s) owned by process 38347651345-changed
+```
+
+## photo-pipeline.spec.ts › PHOTO PIPELINE › PP-12 a stored photo is drawn on the photo step through a link that expires
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-2')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-2')
+
+--- further error 1 ---
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-2')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-2')
+
+
+  461 |
+  462 |     await gotoReady(page, `/post/${listingId}`);
+> 463 |     await expect(page.getByTestId("post-step-2")).toBeVisible();
+      |                                                   ^
+  464 |     const image = page.getByTestId("post-photo-stored").locator("img");
+  465 |     await expect(image, "PP-12: the stored photo has no signed link").toHaveAttribute(
+  466 |       "src",
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/photo-pipeline.spec.ts:463:51
+```
+
+Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-12-a-stored-photo-is-drawn-on-the-photo-step-through-a-link-that-expires-mobile-360` — Playwright's name `photo-pipeline-PHOTO-PIPEL-18dfa-through-a-link-that-expires-mobile-360`; this run carried 0 context file(s); of the same spec: none
+
+## photo-pipeline.spec.ts › PHOTO PIPELINE › PP-12 a stored photo is drawn on the photo step through a link that expires
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-2')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-2')
+
+--- further error 1 ---
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-2')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-2')
+
+
+  461 |
+  462 |     await gotoReady(page, `/post/${listingId}`);
+> 463 |     await expect(page.getByTestId("post-step-2")).toBeVisible();
+      |                                                   ^
+  464 |     const image = page.getByTestId("post-photo-stored").locator("img");
+  465 |     await expect(image, "PP-12: the stored photo has no signed link").toHaveAttribute(
+  466 |       "src",
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/photo-pipeline.spec.ts:463:51
+```
+
+Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-12-a-stored-photo-is-drawn-on-the-photo-step-through-a-link-that-expires-desktop-1280` — Playwright's name `photo-pipeline-PHOTO-PIPEL-18dfa-through-a-link-that-expires-desktop-1280`; this run carried 0 context file(s); of the same spec: none
+
+## photo-pipeline.spec.ts › PHOTO PIPELINE › PP-12 a stored photo is drawn on the photo step through a link that expires
+
+- Source: `changed`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-2')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-2')
+
+--- further error 1 ---
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-2')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-2')
+
+
+  461 |
+  462 |     await gotoReady(page, `/post/${listingId}`);
+> 463 |     await expect(page.getByTestId("post-step-2")).toBeVisible();
+      |                                                   ^
+  464 |     const image = page.getByTestId("post-photo-stored").locator("img");
+  465 |     await expect(image, "PP-12: the stored photo has no signed link").toHaveAttribute(
+  466 |       "src",
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/photo-pipeline.spec.ts:463:51
+```
+
+Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-12-a-stored-photo-is-drawn-on-the-photo-step-through-a-link-that-expires-mobile-360` — Playwright's name `photo-pipeline-PHOTO-PIPEL-18dfa-through-a-link-that-expires-mobile-360`; this run carried 0 context file(s); of the same spec: none
+
+## photo-pipeline.spec.ts › PHOTO PIPELINE › PP-12 a stored photo is drawn on the photo step through a link that expires
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-2')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-2')
+
+--- further error 1 ---
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-2')
+Expected: visible
+Timeout: 10000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('post-step-2')
+
+
+  461 |
+  462 |     await gotoReady(page, `/post/${listingId}`);
+> 463 |     await expect(page.getByTestId("post-step-2")).toBeVisible();
+      |                                                   ^
+  464 |     const image = page.getByTestId("post-photo-stored").locator("img");
+  465 |     await expect(image, "PP-12: the stored photo has no signed link").toHaveAttribute(
+  466 |       "src",
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/photo-pipeline.spec.ts:463:51
+```
+
+Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-12-a-stored-photo-is-drawn-on-the-photo-step-through-a-link-that-expires-desktop-1280` — Playwright's name `photo-pipeline-PHOTO-PIPEL-18dfa-through-a-link-that-expires-desktop-1280`; this run carried 0 context file(s); of the same spec: none
 
 ## Server errors: shard 2
 
 ```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
+[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
+[WebServer] [ssr-error] /api/admin/translations/import too many previews
+[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
+[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
+[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
+[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
+[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
+[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
+[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
+[WebServer] [ssr-error] /api/admin/locations/import too many previews
+[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
+[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
+[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
+[WebServer] [ssr-error] /api/admin/locations/import locations file too large
+[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
+[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
+[WebServer] [ssr-error] /api/admin/locations/import too many previews
+[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
+[WebServer] [ssr-error] /api/locations TimeoutError: The operation timed out.
 ```
 
 ## Client errors: shard 2
 
-No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
-
-## Server errors: shard 3
-
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
+[client-error] console.error: [feed] first page failed TypeError: Failed to fetch at readPage (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:34085:25) at http://127.0.0.1:4173/assets/index-5qJsUhHb.js:34117:3 at commitHookEffectListMount (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:5121:20) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6026:21) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6025:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6025:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6025:5)
 ```
-
-## Client errors: shard 3
-
-No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
-
-## Server errors: shard 4
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-```
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 
 ## Server errors: shard 5
 
 ```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
+[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
+[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
+[WebServer] [ssr-error] /api/admin/translations/import too many previews
+[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
+[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
+[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
+[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
+[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
+[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
+[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
+[WebServer] [ssr-error] /api/admin/locations/import too many previews
+[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
+[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
+[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
+[WebServer] [ssr-error] /api/admin/locations/import locations file too large
+[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
+[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
+[WebServer] [ssr-error] /api/admin/locations/import too many previews
+[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
 ```
 
 ## Client errors: shard 5
 
 No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
 
-## Server errors: shard 6
-
-No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## Client errors: shard 6
-
-No `[client-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## smoke: no results file
-
-smoke: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
--   73 [mobile-360] › e2e/shell.spec.ts:1701:3 › desktop layout laws (U0g) › L1/L2: the top band and the rail stay put while content scrolls
-  -   74 [mobile-360] › e2e/shell.spec.ts:1771:3 › desktop layout laws (U0g) › L3: the footer spans the full width beneath the fixed rail
-  -   75 [mobile-360] › e2e/shell.spec.ts:1835:3 › desktop layout laws (U0g) › U0i: the rail ends at the footer top and its last item stays reachable
-  ✓   76 [mobile-360] › e2e/shell.spec.ts:1862:3 › desktop layout laws (U0g) › the tall fixture does not overflow horizontally at 360 (692ms)
-  ✓   77 [mobile-360] › e2e/shell.spec.ts:1894:3 › i18n gate is non-blocking (U4f-2) › TR-36 the header renders while the languages read is still in flight (705ms)
-  ✓   78 [mobile-360] › e2e/shell.spec.ts:1906:3 › i18n gate is non-blocking (U4f-2) › TR-18 a regular user is still redirected off /admin before the list resolves (11.7s)
-  ✓   79 [mobile-360] › e2e/shell.spec.ts:1962:3 › U4h device language star › TR-27 a star set signed-out survives reload, sign-in and sign-out (12.2s)
-  ✓   80 [mobile-360] › e2e/shell.spec.ts:1977:3 › U4h device language star › TR-37 the account carries onto a starless device, and never over a star (18.1s)
-  ✓   81 [mobile-360] › e2e/shell.spec.ts:2044:3 › U4h device language star › TR-28 hreflang alternates equal the anon publication gate (2.8s)
-```
-
-## email: no results file
-
-email: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-Running 2 tests using 1 worker
-
-  ✓  1 [email-serial] › e2e/auth-signup.spec.ts:123:3 › A: sign-up + resend (needs a recipient-agnostic mail sink) › A-1+A-2: sign-up reaches check-email, and one resend click engages the throttle (3.8s)
-  ✓  2 [email-serial] › e2e/auth-signup.spec.ts:160:1 › SU-1 sign-up asks for the password twice, and a mismatch sends nothing (1.5s)
-[e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 38347100745-email
-
-  2 passed (11.3s)
-```
-
-## shard 1: no results file
-
-shard 1: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+38347100745-1-3066-2-cz9h9x@ethio-e2e.invalid)
-  ✓   43 [mobile-360] › e2e/admin-attributes-library.spec.ts:131:3 › C3 attributes console › AT-3 link manager: an attribute is linked to a scratch category and unlinked (27.8s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+38347100745-1-3066-3-7a7wh6@ethio-e2e.invalid)
-  ✓   44 [mobile-360] › e2e/admin-attributes-links.spec.ts:444:3 › C3 attributes console › AT-38 an inherited echo does not collide with a direct row (15.5s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+38347100745-1-3066-2-cz9h9x@ethio-e2e.invalid)
-  ✓   46 [mobile-360] › e2e/admin-attributes-links.spec.ts:539:3 › C3 attributes console › AT-39 empty read-only cells are never reported as edits (8.3s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+38347100745-1-3066-2-cz9h9x@ethio-e2e.invalid)
-  ✓   45 [mobile-360] › e2e/admin-attributes-library.spec.ts:176:3 › C3 attributes console › AT-4 card picker: two ranked attributes clear the amber flag (28.1s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+38347100745-1-3066-3-7a7wh6@ethio-e2e.invalid)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-```
-
-## shard 2: no results file
-
-shard 2: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- error lines (1) ---
-[WebServer] Error in renderToReadableStream: ReferenceError: window is not defined ×4
---- final 10 lines ---
-✓   51 [mobile-360] › e2e/category-image-routes.spec.ts:176:3 › C5a — category AI foundation routes › CI-4b stored truth: generate, accept, and the reader returns assets + stamp (12.0s)
-  ✓   52 [mobile-360] › e2e/category-image-routes.spec.ts:252:3 › C5a — category AI foundation routes › CI-3 suggest-icon returns an allowlisted value (7.1s)
-  ✓   53 [mobile-360] › e2e/category-nav.spec.ts:53:3 › category selection navigates › C-6: clicking a category changes the URL and survives reload (1.9s)
-  ✓   54 [mobile-360] › e2e/category-nav.spec.ts:67:3 › category selection navigates › C-7: the rail highlight follows the URL (2.0s)
-  ✓   55 [mobile-360] › e2e/category-nav.spec.ts:77:3 › category selection navigates › C-8: Home clears the category (2.1s)
-  ✓   56 [mobile-360] › e2e/category-nav.spec.ts:94:3 › category selection navigates › C-9: /auth is a page — Home > Sign in, no category selected (676ms)
-  ✓   57 [mobile-360] › e2e/category-nav.spec.ts:108:3 › category selection navigates › C-5: the rail follows root pointer order, and a pointer reorder reaches it (5.9s)
-  ✓   50 [mobile-360] › e2e/admin-users.spec.ts:456:3 › U1 admin users › AU-12 edit: a reserved name needs a reason of ten characters (35.6s)
-  ✓   59 [mobile-360] › e2e/admin-users.spec.ts:519:3 › U1 admin users › AU-11 own row: no edit form on your own record (10.3s)
-```
+## Server errors: changed
 
 ```text
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
+[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
+[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
+[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
 ```
 
-## shard 3: no results file
-
-shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+## Client errors: changed
 
 ```text
---- final 10 lines ---
-✓   26 [mobile-360] › e2e/post-wizard-resets.spec.ts:842:3 › POSTING WIZARD › PW-60 a non-identity fold owner change clears only its fold child; an identity change clears nothing it does not hold (19.6s)
-  ✓   28 [mobile-360] › e2e/post-wizard-resets.spec.ts:982:3 › POSTING WIZARD › PW-32 model-dependent details reset on a model change, seller-only details survive, and Undo restores (19.3s)
-[pw162] mobile-360 a: summary=none photos=true | c: summary=none photos=true | d: summary=none photos=true
-  ✓   27 [mobile-360] › e2e/post-wizard-pricing.spec.ts:753:3 › POSTING WIZARD › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) (32.5s)
-  -   30 [mobile-360] › e2e/post-wizard-pricing.spec.ts:850:3 › POSTING WIZARD › PW-135 at 1280 the step list opens a finished step with its answers kept; a step not reached is not a button (bundle 4 step 5)
-  ✓   29 [mobile-360] › e2e/post-wizard-resets.spec.ts:1106:3 › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332) (14.3s)
-  ✓   31 [mobile-360] › e2e/post-wizard-pricing.spec.ts:876:3 › POSTING WIZARD › LY-6 at 360 the open currency list is above the sticky action bar (11.0s)
-  ✓   32 [mobile-360] › e2e/post-wizard-resets.spec.ts:1151:3 › POSTING WIZARD › PW-152 a two-pair condition shows its row only when both answers match (12.9s)
-  ✓   33 [mobile-360] › e2e/post-wizard-pricing.spec.ts:1077:3 › POSTING WIZARD › PW-136 a product type that allows only some units narrows the unit list on the price page (bundle 4 step 9) (15.7s)
-```
-
-```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
-```
-
-## shard 4: no results file
-
-shard 4: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓   39 [desktop-1280] › e2e/admin-attributes-links.spec.ts:175:3 › C3 attributes console › AT-29 an imported label_am is pending, silent when blank, and undone (17.3s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+38347100745-4-3069-2-ccw7rg@ethio-e2e.invalid)
-  ✓   40 [desktop-1280] › e2e/admin-attributes-library.spec.ts:72:3 › C3 attributes console › AT-2 definitions: a scratch attribute is created and renamed (DB truth) (18.4s)
-[e2e:pool] slot 1 minted a fresh aal2 session in node (e2e+38347100745-4-3069-3-vfhzjy@ethio-e2e.invalid)
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-  ✓   41 [desktop-1280] › e2e/admin-attributes-links.spec.ts:251:3 › C3 attributes console › AT-30 an unlinked delete undoes and a linked delete names its categories (19.0s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+38347100745-4-3069-2-ccw7rg@ethio-e2e.invalid)
-  ✓   43 [desktop-1280] › e2e/admin-attributes-links.spec.ts:353:3 › C3 attributes console › AT-37 a delete after the file's own unlink is accepted and undone (14.4s)
-[e2e:pool] slot 0 minted a fresh aal2 session in node (e2e+38347100745-4-3069-2-ccw7rg@ethio-e2e.invalid)
-```
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-```
-
-## shard 5: no results file
-
-shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓   34 [desktop-1280] › e2e/category-image-routes.spec.ts:252:3 › C5a — category AI foundation routes › CI-3 suggest-icon returns an allowlisted value (10.1s)
-  ✓   36 [desktop-1280] › e2e/category-nav.spec.ts:53:3 › category selection navigates › C-6: clicking a category changes the URL and survives reload (1.7s)
-  ✓   37 [desktop-1280] › e2e/category-nav.spec.ts:67:3 › category selection navigates › C-7: the rail highlight follows the URL (3.1s)
-  ✓   38 [desktop-1280] › e2e/category-nav.spec.ts:77:3 › category selection navigates › C-8: Home clears the category (2.4s)
-  ✓   39 [desktop-1280] › e2e/category-nav.spec.ts:94:3 › category selection navigates › C-9: /auth is a page — Home > Sign in, no category selected (660ms)
-  ✓   40 [desktop-1280] › e2e/category-nav.spec.ts:108:3 › category selection navigates › C-5: the rail follows root pointer order, and a pointer reorder reaches it (8.8s)
-  ✓   35 [desktop-1280] › e2e/admin-users.spec.ts:456:3 › U1 admin users › AU-12 edit: a reserved name needs a reason of ten characters (36.3s)
-  ✓   41 [desktop-1280] › e2e/feed-index.spec.ts:177:3 › FEED INDEX › FE-1 the refresh writes one row per category key and place key (24.4s)
-  ✓   42 [desktop-1280] › e2e/admin-users.spec.ts:519:3 › U1 admin users › AU-11 own row: no edit form on your own record (12.0s)
-```
-
-```text
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-```
-
-## shard 6: no results file
-
-shard 6: no results file — the process failed outside test results (setup/teardown/preflight).
-
-```text
---- final 10 lines ---
-✓   17 [desktop-1280] › e2e/post-wizard-resets.spec.ts:719:3 › POSTING WIZARD › PW-163 a first identity answer keeps the details filled above it; a change keeps them too (28.0s)
-  ✓   18 [desktop-1280] › e2e/post-wizard-specs.spec.ts:600:3 › POSTING WIZARD › PW-107 a multi-choice Other carries its write-in to the draft (INC-370) (21.3s)
-  ✓   19 [desktop-1280] › e2e/post-wizard-resets.spec.ts:842:3 › POSTING WIZARD › PW-60 a non-identity fold owner change clears only its fold child; an identity change clears nothing it does not hold (26.5s)
-  ✓   20 [desktop-1280] › e2e/post-wizard-specs.spec.ts:621:3 › POSTING WIZARD › PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320) (28.5s)
-  ✓   21 [desktop-1280] › e2e/post-wizard-resets.spec.ts:982:3 › POSTING WIZARD › PW-32 model-dependent details reset on a model change, seller-only details survive, and Undo restores (20.9s)
-  ✓   22 [desktop-1280] › e2e/post-wizard-specs.spec.ts:697:3 › POSTING WIZARD › PW-70 a strict refusal focuses the first refused field (D70) (24.8s)
-  ✓   23 [desktop-1280] › e2e/post-wizard-resets.spec.ts:1106:3 › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332) (23.8s)
-  ✓   24 [desktop-1280] › e2e/post-wizard-specs.spec.ts:724:5 › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, no-preference) (23.9s)
-  ✓   25 [desktop-1280] › e2e/post-wizard-resets.spec.ts:1151:3 › POSTING WIZARD › PW-152 a two-pair condition shows its row only when both answers match (17.1s)
+[client-error] console.error: [feed] first page failed TypeError: Failed to fetch at readPage (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:34085:25) at http://127.0.0.1:4173/assets/index-5qJsUhHb.js:34117:3 at commitHookEffectListMount (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:5121:20) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6026:21) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6025:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6025:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-5qJsUhHb.js:6025:5) ×3
 ```
