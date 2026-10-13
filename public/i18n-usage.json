@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 405,
+  "scanned": 406,
   "dynamicCallSites": 273,
   "keys": {
     "account.deactivatedBanner": [
@@ -4205,11 +4205,19 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.photos.nextHeld": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.photos.none": [
       "/post",
       "/post/$listingId"
     ],
     "post.photos.preparing": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.public": [
       "/post",
       "/post/$listingId"
     ],
