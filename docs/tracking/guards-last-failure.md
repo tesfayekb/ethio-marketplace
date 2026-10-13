@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38347100745
-- Commit: `28832d59fecabdd3d4b623c16fc819319dac31c2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38347651345
+- Commit: `cd51ab03e9bd1c458f3bb3ced617b7b8aa13e83b`
 - Attempt: 1
-- Written (UTC): 2026-10-13T04:42:22.356Z
+- Written (UTC): 2026-10-13T05:17:05.740Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -36,10 +36,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38347100745
-  E2E_HEAD_COMMIT_MESSAGE: Completed T5-TURN-CARRIER run
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38347651345
+  E2E_HEAD_COMMIT_MESSAGE: Finalized T6 carrier bundle
 
-X-Lovable-Edit-ID: edt-4d5da7f8-70f4-4954-9af1-e99c85aa0daf
+X-Lovable-Edit-ID: edt-10b36f61-feab-4867-9504-4e24e9995ca5
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -56,24 +56,24 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (9/9 source(s) with usable results, 0 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
-##[group]Run echo "smoke=cancelled email=success shards=cancelled"
-[36;1mecho "smoke=cancelled email=success shards=cancelled"[0m
-[36;1mif [ "cancelled" != "success" ] || [ "cancelled" != "success" ] || [ "success" != "success" ]; then[0m
+##[group]Run echo "smoke=success email=success shards=failure"
+[36;1mecho "smoke=success email=success shards=failure"[0m
+[36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
 [36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit 1[0m
 [36;1mfi[0m
 [36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=cancelled email=success shards=cancelled
+smoke=success email=success shards=failure
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/0874bbf4-9480-4717-a582-9ed7288a8385' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/623def34-d2f6-4f78-87e5-e0c07f65b212' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
