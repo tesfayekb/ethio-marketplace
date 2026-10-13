@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-12-turn-1.md (bundle 12 — the tidy-up round, D145 — turn T1: the operator's walk of 2026-10-13 first — INC-581 the frame follows the page, INC-585 a photo not added holds Next, INC-584 / D148 business cards and the public notice; DEC-179 the CI evidence files' gaps; INC-471; INC-582's census; no migration).
+The brief in force: docs/governance/briefs/bundle-12-turn-2.md (bundle 12 — the tidy-up round, D145 — turn T2: INC-586 CO-2 reads its total in a window no write crosses; INC-398 the two specs that purged drafts with the form open stop the page first; INC-582 the import gate refuses an Other whose value is not `other`; no migration).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -241,7 +241,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 ### Bundle 12 — the tidy-up round (D145, the operator, 2026-10-12; ACT-009's close-out, before the shell brief and stage 1)
 
 - [x] Turn T1 — the operator's walk of 2026-10-13 first: INC-581 (the shell's frame follows the page the body shows — `useShownPathname`; PW-187), INC-585 (a photo that was not added holds Next until it is removed; PP-11), INC-584 / D148 (a business card passes with everything on it; the photo step says photos are public; PPOL-1..PPOL-3); DEC-179 (INC-429 Playwright's exact directory name, INC-495 one ledger line per test, source and run, INC-419 ESLint errors in the guards file); INC-471 (listings.md); INC-582's census read on ethio-prod
-- [ ] Next turns: INC-582's fix from its census (the rows through the curator, D147; a check that refuses an Other row whose value is not `other`), INC-579 when its dump arrives, the flaky tests (INC-586 CO-2, INC-497 CT-18, INC-449, INC-440, INC-494, INC-430's PW-55, INC-533, INC-562), INC-398, the rest of ACT-009's line in the order of work below
+- [x] Turn T2 — INC-586 (CO-2: the database counted before and after a reload of the roster), INC-398 (post-wizard-recent and photo-pipeline stop the page before purging drafts; judged by three runs at most two lines), INC-582 (the import gate refuses an option named Other whose value is not `other`, `optionOtherValue`)
+- [ ] Next turns: INC-582's rows through the curator (D147, from T1's census), INC-579 and INC-494 when the `[roster-dump]` arrives, INC-497 (CT-18: the import's order pass renumbers the real roots — the trigger read first), the flaky tests (INC-449, INC-440, INC-430's PW-55, INC-533, INC-562), the rest of ACT-009's line in the order of work below
 
 ### After bundle 7, in this order
 

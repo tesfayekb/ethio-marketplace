@@ -523,6 +523,10 @@ export function checkCell(rule: ColumnRule, value: string): string | null {
       for (const cell of cells) {
         if (cell.value.length > MAX_OPTION_VALUE) return "optionValueTooLong";
         if (cell.label.length > MAX_OPTION_LABEL) return "optionLabelTooLong";
+        // INC-582 — the form opens "say what it is" only for the value `other`:
+        // an option named Other (or Others) under any other value is an answer
+        // that asks nothing (the operator's walk, Tablets › Alcatel › Series).
+        if (/^\s*others?\b/i.test(cell.label) && cell.value !== "other") return "optionOtherValue";
       }
       return null;
     }

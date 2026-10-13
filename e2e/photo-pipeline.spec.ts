@@ -23,6 +23,7 @@ import {
   destroyPostableCategory,
   postRoute,
   seedPostableCategory,
+  stopPageBeforePurge,
 } from "./helpers/posting";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
@@ -55,8 +56,10 @@ test.describe("PHOTO PIPELINE", () => {
   const objects: { userId: string; listingId: string }[] = [];
 
   test.afterEach(async ({ page }) => {
-    // INC-323 — stop the page first, so no debounced autosave lands after the purge.
-    await page.goto("about:blank");
+    // INC-323 / INC-398 — stop the page first: wait out a save in flight, then
+    // blank it, so no autosave lands after the purge (about:blank alone left a
+    // save already sent to land as "listing not found").
+    await stopPageBeforePurge(page);
     // J3 — an afterEach survives a body timeout; a `finally` in the body does not.
     for (const ref of objects.splice(0)) await purgeListingObjects(ref.userId, ref.listingId);
     for (const sellerId of sellers.splice(0)) {

@@ -95,6 +95,32 @@ describe("INC-316 — the icon column is judged against the allowlist", () => {
   });
 });
 
+describe("INC-582 — an option named Other has the value other", () => {
+  const rule = { name: "options", klass: "editable", type: "options" } as const;
+  it("passes Other under the value other", () => {
+    expect(
+      checkCell(rule, '{"value":"a","label_en":"A"}|{"value":"other","label_en":"Other"}'),
+    ).toBeNull();
+  });
+  it("refuses Other or Others under another value as optionOtherValue", () => {
+    expect(checkCell(rule, '{"value":"alcatel-other","label_en":"Other"}')).toBe(
+      "optionOtherValue",
+    );
+    expect(checkCell(rule, '{"value":"others","label_en":"Others"}')).toBe("optionOtherValue");
+    expect(checkCell(rule, '[{"value":"x","label_en":" other (say which)"}]')).toBe(
+      "optionOtherValue",
+    );
+  });
+  it("passes a label that only starts with the letters (Otherwise, Otterbox)", () => {
+    expect(
+      checkCell(
+        rule,
+        '{"value":"otherwise","label_en":"Otherwise"}|{"value":"otterbox","label_en":"Otterbox"}',
+      ),
+    ).toBeNull();
+  });
+});
+
 describe("DEC-103 — the option ceiling is 1,500", () => {
   const rule = { name: "options", klass: "editable", type: "options" } as const;
   const cell = (n: number) =>
