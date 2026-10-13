@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { expect, test } from "./fixtures";
@@ -30,7 +31,8 @@ import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
- * U6-B1 — THE PHOTO PIPELINE (PP-1..PP-9), REQ-036's acceptance.
+ * U6-B1 — THE PHOTO PIPELINE (PP-1..PP-9), REQ-036's acceptance; the photo step's
+ * tiles (PP-10..PP-12, PP-14..PP-16) and the photo links (PP-13).
  *
  * PP-1 and PP-2 ARE THE DENY-PROOF: a real camera-shaped JPEG, PNG and WebP go
  * in carrying GPS, XMP and ICC containers; what comes BACK OUT OF STORAGE is
@@ -566,5 +568,173 @@ test.describe("PHOTO PIPELINE", () => {
     } finally {
       await staffContext.close();
     }
+  });
+
+  /**
+   * PP-14 — INC-596 (the operator's walk, 2026-10-13: "i remove the uploaded, but
+   * it will still be there"). Remove stops a photo that is not stored yet: one
+   * waiting its turn is never sent, and one already on its way is deleted the
+   * moment the server names it. Neither comes back, a reload included.
+   */
+  test("PP-14 a photo removed while it uploads, or while it waits its turn, never comes back", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+
+    let release: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let sends = 0;
+    await page.route("**/api/upload/photo", async (route) => {
+      sends += 1;
+      await held;
+      await route.continue();
+    });
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await page.getByTestId("post-photos-input").setInputFiles([FIXTURE, FIXTURE]);
+    const tiles = page.getByTestId("post-photo-tile");
+    await expect(tiles).toHaveCount(2);
+    // The first is on its way, held at the door; the second waits its turn.
+    await expect(tiles.nth(0)).toHaveAttribute("data-state", "uploading", { timeout: 45_000 });
+    await expect.poll(() => sends, { message: "PP-14: the first photo was not sent" }).toBe(1);
+
+    await tiles.nth(1).getByTestId("post-photo-remove").click();
+    await tiles.nth(0).getByTestId("post-photo-remove").click();
+    await expect(tiles, "PP-14: a removed tile stayed on the step").toHaveCount(0);
+
+    // The held send now reaches the server, which stores the photo …
+    const answer = page.waitForResponse("**/api/upload/photo");
+    release();
+    const stored = (await (await answer).json()) as Record<string, unknown>;
+    expect(stored["ok"], `PP-14: the held send was not stored: ${JSON.stringify(stored)}`).toBe(
+      true,
+    );
+    // … and the step deletes it at once.
+    await expect
+      .poll(async () => (await photoRowsOf(listingId)).length, {
+        message: "PP-14: the photo removed on its way was left on the listing",
+        timeout: 20_000,
+      })
+      .toBe(0);
+    // The batch is over: the photo that waited its turn was never sent.
+    await expect(page.getByTestId("post-photos-add")).toBeEnabled();
+    expect(sends, "PP-14: the photo removed while it waited was sent").toBe(1);
+    await page.unroute("**/api/upload/photo");
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-photos-empty")).toBeVisible();
+    await expect(
+      page.getByTestId("post-photo-stored"),
+      "PP-14: a removed photo came back",
+    ).toHaveCount(0);
+    expect(await photoRowsOf(listingId), "PP-14: a removed photo is on the listing").toHaveLength(
+      0,
+    );
+  });
+
+  /**
+   * PP-15 — INC-595 (the operator's walk, 2026-10-13: "once a photo is added, is
+   * there anyway to remove it, no remove or edit button"). A photo stored in an
+   * earlier visit carries the same buttons as one added now: Remove on every
+   * photo, Make cover on every photo but the cover. INC-597 / D154: the cover is
+   * the first photo, and Make cover moves the photo to the front — on the
+   * listing (DB truth) and on the step.
+   */
+  test("PP-15 a photo stored in an earlier visit can be made the cover, which moves it first, and removed", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    for (const name of ["meta.png", "meta.webp"] as const) {
+      const uploaded = await uploadPhoto(page, { listingId, token, cover: { name } });
+      expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
+    }
+    const rows = await photoRowsOf(listingId);
+    expect(rows, "PP-15: two photos were uploaded").toHaveLength(2);
+    const [first, second] = [rows[0]!.id, rows[1]!.id];
+    const order = async () => (await photoRowsOf(listingId)).map((row) => row.id);
+
+    // D39 — a draft holding a photo resumes on the price page; Back is the way to the photos.
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const stored = page.getByTestId("post-photo-stored");
+    await expect(stored).toHaveCount(2);
+    await expect(stored.nth(0)).toHaveAttribute("data-photo-id", first);
+    await expect(
+      stored.getByTestId("post-photo-remove"),
+      "PP-15: a stored photo has no Remove",
+    ).toHaveCount(2);
+    await expect(
+      stored.getByTestId("post-photo-makecover"),
+      "PP-15: Make cover is offered on every photo but the cover",
+    ).toHaveCount(1);
+    await expect(stored.nth(0).getByTestId("post-photo-cover")).toBeVisible();
+
+    // Make cover moves the second photo to the front.
+    await stored.nth(1).getByTestId("post-photo-makecover").click();
+    await expect
+      .poll(order, { message: "PP-15: Make cover did not move the photo first" })
+      .toEqual([second, first]);
+    await expect(
+      stored.nth(0),
+      "PP-15: the step does not show the new cover first",
+    ).toHaveAttribute("data-photo-id", second);
+    await expect(stored.nth(0).getByTestId("post-photo-cover")).toBeVisible();
+    await expect(stored.nth(0).getByTestId("post-photo-makecover")).toHaveCount(0);
+    await expect(stored.nth(1).getByTestId("post-photo-makecover")).toHaveCount(1);
+
+    // Remove deletes the other one.
+    await stored.nth(1).getByTestId("post-photo-remove").click();
+    await expect
+      .poll(order, { message: "PP-15: Remove on a stored photo did not delete it" })
+      .toEqual([second]);
+    await expect(stored).toHaveCount(1);
+    await expect(stored.getByTestId("post-photo-remove")).toHaveCount(1);
+    await expect(stored.getByTestId("post-photo-makecover")).toHaveCount(0);
+  });
+
+  /**
+   * PP-16 — D154: on a computer, photos dropped on the step take the picker's
+   * way — the same queue, the same cap and the same screen.
+   */
+  test("PP-16 a photo dropped on the step is added like a picked one", async ({ page }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+
+    const bytes = readFileSync(FIXTURE).toString("base64");
+    const transfer = await page.evaluateHandle((data) => {
+      const raw = atob(data);
+      const array = new Uint8Array(raw.length);
+      for (let index = 0; index < raw.length; index += 1) array[index] = raw.charCodeAt(index);
+      const files = new DataTransfer();
+      files.items.add(new File([array], "dropped.jpg", { type: "image/jpeg" }));
+      return files;
+    }, bytes);
+    const zone = page.getByTestId("post-photos-drop");
+    await zone.dispatchEvent("dragover", { dataTransfer: transfer });
+    await expect(zone, "PP-16: the drop area is not outlined").toHaveAttribute(
+      "data-dragging",
+      "1",
+    );
+    await zone.dispatchEvent("drop", { dataTransfer: transfer });
+    await expect(zone).toHaveAttribute("data-dragging", "0");
+    await expect(
+      page.getByTestId("post-photo-tile"),
+      "PP-16: the dropped photo was not stored",
+    ).toHaveAttribute("data-state", "stored", { timeout: 45_000 });
+    await expect
+      .poll(async () => (await photoRowsOf(listingId)).length, {
+        message: "PP-16: the dropped photo was not registered",
+      })
+      .toBe(1);
   });
 });
