@@ -1,6 +1,6 @@
 # Roadmap
 
-No bundle brief is in force: bundle 11 closed on 2026-10-13 after forty-three executor turns (their briefs stay at docs/governance/briefs/bundle-11-turn-1.md … bundle-11-turn-43.md; spec-ledger blocks S62 and S63). Next comes the tidy-up round (D145, the operator, 2026-10-12: ACT-009's close-out brought forward before the shell brief and stage 1), in consolidated turns of several fixes each; its first brief names itself on this line when it is saved.
+The brief in force: docs/governance/briefs/bundle-12-turn-1.md (bundle 12 — the tidy-up round, D145 — turn T1: the operator's walk of 2026-10-13 first — INC-581 the frame follows the page, INC-585 a photo not added holds Next, INC-584 / D148 business cards and the public notice; DEC-179 the CI evidence files' gaps; INC-471; INC-582's census; no migration).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -237,6 +237,11 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [ ] The operator's walk of 2026-10-13, first in the tidy-up round (G26): INC-581 — the home page shows for a moment before the posting form or My listings ("fast instant and no other page seen"); INC-582 — on every specification, Other opens its write-in box (a census of Other rows whose value is not `other`); INC-584 — a photo of a business card goes through (a card's phone number or e-mail: the operator's ruling owed); INC-585 — a refused photo must be removed before Next works, the category's picture shows again without a photo, and a passed photo shows in the preview and the review
 - [ ] D147 (the operator, 2026-10-12): the curator reviews every category and every specification — every list's Other opens its write-in, every brand carries its series, models and years where the trade has them, zero gaps (INC-582, INC-583); with it, the rulings of the curator's C36 plan (phone locks and SIMs, delivered 2026-10-07, never ruled until the operator brought it on 2026-10-13)
 - [x] Records turn (bundle 11 closed, 2026-10-13) — spec-ledger S63 (DEC-175–DEC-178, D144–D147, S179–S182), INC-571–INC-585; see docs/governance/handoffs/2026-10-13-bundle11-close-handover.md
+
+### Bundle 12 — the tidy-up round (D145, the operator, 2026-10-12; ACT-009's close-out, before the shell brief and stage 1)
+
+- [x] Turn T1 — the operator's walk of 2026-10-13 first: INC-581 (the shell's frame follows the page the body shows — `useShownPathname`; PW-187), INC-585 (a photo that was not added holds Next until it is removed; PP-11), INC-584 / D148 (a business card passes with everything on it; the photo step says photos are public; PPOL-1..PPOL-3); DEC-179 (INC-429 Playwright's exact directory name, INC-495 one ledger line per test, source and run, INC-419 ESLint errors in the guards file); INC-471 (listings.md); INC-582's census read on ethio-prod
+- [ ] Next turns: INC-582's fix from its census (the rows through the curator, D147; a check that refuses an Other row whose value is not `other`), INC-579 when its dump arrives, the flaky tests (INC-586 CO-2, INC-497 CT-18, INC-449, INC-440, INC-494, INC-430's PW-55, INC-533, INC-562), INC-398, the rest of ACT-009's line in the order of work below
 
 ### After bundle 7, in this order
 

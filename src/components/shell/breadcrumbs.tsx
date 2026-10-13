@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 
 import { useShell } from "@/components/shell-context";
+import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -51,7 +52,8 @@ function PendingCrumb() {
 
 export function Breadcrumbs() {
   const { t, entities } = useI18n();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // INC-581 — the trail names the page the body shows.
+  const pathname = useShownPathname();
   const searchView = useRouterState({
     select: (s) => (s.location.search as { view?: string }).view,
   });

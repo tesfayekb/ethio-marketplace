@@ -74,6 +74,11 @@ answer over a fixed code list:
 `nudity` · `violence` · `weapon` · `drugs` · `hate_symbol` ·
 `personal_document` · `contact_in_image` · `stock_watermark` · `not_a_photo`
 
+D148 (the operator, 2026-10-12; INC-584): a business card passes with everything
+printed on it, its phone numbers, e-mail addresses and handles included, and the photo
+step says that everything in a photo is public. Any other printed item photographed is a
+photograph (never `not_a_photo`); its print is judged by the other codes.
+
 Two rules make it safe: an unusable answer is the provider's own failure, never a
 silent accept; and a provider failure answers `providerUnavailable`, which
 REFUSES the upload with a retry hint. **No photo is ever stored unscreened.**

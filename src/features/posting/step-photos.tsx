@@ -72,6 +72,7 @@ export function StepPhotos({
   videoRefusal,
   onChangeVideo,
   maxPhotos,
+  onHeldChange,
 }: {
   listingId: string | null;
   photos: DraftPhotoRow[];
@@ -87,6 +88,11 @@ export function StepPhotos({
   onChangeVideo: (value: string) => void;
   /** D22 — the plan's cap from the posting document; `null` = not read yet. */
   maxPhotos: number | null;
+  /**
+   * INC-585 — how many tiles hold a photo that was not added (refused, or not
+   * sent): the wizard closes Next while any is on the step. 0 on leaving it.
+   */
+  onHeldChange?: (count: number) => void;
 }) {
   const { t } = useI18n();
   /** The one dial, for this render: the plan's number, or no cap of our own. */
@@ -105,6 +111,14 @@ export function StepPhotos({
       aliveRef.current = false;
     };
   }, []);
+
+  // INC-585 — a refused or unsent photo is on the step until the seller
+  // removes it (or sends it again); the wizard holds Next meanwhile.
+  const held = items.filter((item) => item.state === "refused" || item.state === "failed").length;
+  useEffect(() => {
+    onHeldChange?.(held);
+  }, [held, onHeldChange]);
+  useEffect(() => () => onHeldChange?.(0), [onHeldChange]);
 
   const patchItem = useCallback((localId: string, patch: Partial<PhotoItem>) => {
     setItems((prev) =>
@@ -448,6 +462,11 @@ export function StepPhotos({
             no photos and the category illustration stands in for them. */}
         <p className="text-xs text-muted-foreground" data-testid="post-photos-helper">
           {fill(t("post.photos.helper"), { max: MAX_PHOTOS })}
+        </p>
+        {/* D148 — everything on a business card is allowed, so the step says
+            plainly that what a photo shows is public. */}
+        <p className="text-xs text-muted-foreground" data-testid="post-photos-public">
+          {t("post.photos.public")}
         </p>
       </div>
 

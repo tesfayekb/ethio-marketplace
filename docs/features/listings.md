@@ -18,7 +18,7 @@ bypass guard. **No `src/` code this task** — the post form is a sibling task.
 | price_amount            | numeric(12,2) — never float (Rule E4); NULL allowed         |
 | price_currency          | char(3); NULL iff `price_amount` is NULL                    |
 | price_mode              | fixed / negotiable / free / contact (REQ-018)               |
-| status                  | draft / active / expired / sold / removed (REQ-022)         |
+| status                  | nine states — see "The state set" below (DEC-070, INC-471)  |
 | home_country_code       | char(2) → `countries.code` — partition seam (REQ-012)       |
 | published_at            | set on first draft→active; feed recency (REQ-023)           |
 | expires_at              | computed from `categories.expiry_days` at publish (REQ-022) |
@@ -44,6 +44,12 @@ image to the public.
 
 ## The state machine (REQ-022)
 
+> **Superseded (INC-471, 2026-10-13).** The diagram below is the first P2 machine
+> of five states. The live machine has nine states and screening: see
+> "The state set" and "The state machine" further down, which follow
+> `transition_listing` as last declared (migration `20261011085637_3c0e90be`).
+> The diagram is kept as the record of the first design.
+
 ```text
         ┌──────── renewal (resets expires_at) ────────┐
         │                                             │
@@ -60,6 +66,11 @@ image to the public.
 `transition_listing`.
 
 ## The two seam functions — the ONLY write paths
+
+> **Superseded in part (INC-471, 2026-10-13).** This section and the two after
+> it are the first P2 design. The doors as built — the draft door, `publish_listing`,
+> the owner doors and the nine-state `transition_listing` — are described from
+> "U6-A1 — the posting schema" on; where the two differ, the later section stands.
 
 There is **no INSERT/UPDATE/DELETE policy and no write grant** on `listings`.
 Deny-by-default at the table; the `SECURITY DEFINER` functions are the gate.
@@ -367,16 +378,17 @@ re-screened.
 
 `transition_listing(id, new_status)` over the nine states:
 
-| From            | To                              | Who                                                                                                              |
-| --------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| draft           | screening                       | owner (`publish_listing`)                                                                                        |
-| screening       | active, reduced, rejected, held | gateway (`service_role`) or `listings:review`                                                                    |
-| held            | active, reduced, rejected       | reviewer                                                                                                         |
-| active, reduced | screening                       | owner (edit)                                                                                                     |
-| active, reduced | sold, expired                   | owner                                                                                                            |
-| rejected        | screening                       | owner (re-publish after an edit)                                                                                 |
-| expired, sold   | screening                       | owner (`relist_listing`)                                                                                         |
-| any             | removed                         | `listings:enforce` or the owner — except a listing rejected for a severe reason, which enforcement alone removes |
+| From            | To                              | Who                                                                                                                  |
+| --------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| draft           | screening                       | owner (`publish_listing`)                                                                                            |
+| screening       | active, reduced, rejected, held | gateway (`service_role`) or `listings:review`                                                                        |
+| held            | active, reduced, rejected       | reviewer                                                                                                             |
+| active, reduced | screening                       | owner (edit)                                                                                                         |
+| active, reduced | sold, expired                   | owner                                                                                                                |
+| rejected        | screening                       | owner (re-publish after an edit)                                                                                     |
+| expired, sold   | screening                       | owner (`relist_listing`)                                                                                             |
+| any             | removed                         | `listings:enforce` or the owner — except a listing rejected for a severe reason, which enforcement alone removes     |
+| removed         | screening                       | `listings:enforce` with a fresh second factor (Restore, D137); one removed for a severe reason by a super admin only |
 
 Promotion to `active`/`reduced` stamps `published_at`, `published_first_at` and
 `expires_at = now() + expiry_days`. Every move writes a `state` revision.

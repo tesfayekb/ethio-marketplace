@@ -343,6 +343,9 @@ export function PostingWizard({
   const categoryId = draft.values.categoryId;
   /** U6-C1-R3a-2 — step 1's only answer: a leaf. No leaf, nothing to send. */
   const needsLeaf = draft.step === 1 && categoryId === null;
+  /** INC-585 — photos on step 2 that were not added (refused or unsent). */
+  const [photosHeld, setPhotosHeld] = useState(0);
+  const photosBlockNext = draft.step === 2 && photosHeld > 0;
   const [triedWithoutLeaf, setTriedWithoutLeaf] = useState(false);
   /**
    * U6-C1-R3b-3d STEP 5 — WHICH LEVEL OF THE TREE STEP 1 STANDS ON. It lives here,
@@ -1081,7 +1084,7 @@ export function PostingWizard({
                              with none chosen there is nothing to send, so Next is
                              closed and says why underneath. Every later step keeps
                              sending (the door is the judge, F3). */
-                            disabled={needsLeaf}
+                            disabled={needsLeaf || photosBlockNext}
                             onClick={() => {
                               // Rulings 3 — the contact step refuses at its own controls.
                               if (draft.step === 7 && whoQueue.gate === "pending") {
@@ -1111,6 +1114,12 @@ export function PostingWizard({
                           data-testid="post-next-blocked"
                         >
                           {t("post.category.nextBlocked")}
+                        </p>
+                      )}
+                      {/* INC-585 — a photo that was not added is removed before Next. */}
+                      {photosBlockNext && (
+                        <p className="text-xs text-destructive" data-testid="post-next-photos-held">
+                          {t("post.photos.nextHeld")}
                         </p>
                       )}
                     </div>
@@ -1180,6 +1189,7 @@ export function PostingWizard({
                             }
                             onChangeVideo={(videoUrl) => draft.change({ videoUrl }, false)}
                             maxPhotos={planCaps?.maxPhotos ?? null}
+                            onHeldChange={setPhotosHeld}
                           />
                         )}
                         {draft.step === 3 && (

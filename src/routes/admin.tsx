@@ -1,4 +1,6 @@
-import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+
+import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useEffect, useState } from "react";
 
 import { useShell } from "@/components/shell-context";
@@ -39,7 +41,8 @@ function AdminGate() {
   const { permissions, loading } = usePermissions({ enabled: user !== null });
   const pending = authLoading || loading;
 
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // INC-581 — the admin section follows the page the body shows.
+  const pathname = useShownPathname();
   const section = sectionForPath(pathname);
 
   /**

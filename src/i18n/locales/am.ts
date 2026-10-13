@@ -2260,6 +2260,8 @@ export const am: Messages = {
   // U6-C2b — የፎቶ ዳግም መሞከር ሕግ (PP-10)።
   "post.photos.couldNotSend": "መላክ አልተቻለም — እንደገና ይሞክሩ።",
   "post.photos.refusedFinal": "ይህ ፎቶ መጠቀም አይቻልም። ሌላ ይምረጡ።",
+  "post.photos.nextHeld": "ለመቀጠል ያልተጨመረውን ፎቶ ያስወግዱ።",
+  "post.photos.public": "በፎቶዎችዎ ላይ ያለው ሁሉ ለማንም ይታያል፤ በቢዝነስ ካርድ ላይ ያለ ስልክ ቁጥር፣ ኢሜይልና አድራሻም ጭምር።",
   // U6-C2b — ደረጃ 7፦ ማን እየሸጠ ነው።
   "post.who.why": "ገዢዎች የሚያምኑት ስምና የሚያገኙበት መንገድ ያስፈልጋቸዋል።",
   "post.who.saveFailed": "ዝርዝሮችዎ አልተቀመጡም። እንደገና ለመሞከር ቀጣይ ይንኩ።",

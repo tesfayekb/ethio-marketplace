@@ -26,6 +26,7 @@
  *    real output, never authored from assumption.
  */
 
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -161,7 +162,56 @@ function contextCore(spec: ContextSpec): string {
   return sanitizeSlug([specBase(spec.file), ...spec.titlePath].join("-"));
 }
 
+/**
+ * INC-429 — PLAYWRIGHT'S OWN NAME, computed the way Playwright computes it
+ * (playwright 1.58.1, lib/worker/testInfo.js `outputDir`): the spec's path
+ * under the test directory without `.spec.ts`, "/" as "-"; then "-" and the
+ * describe chain and title joined by spaces through `sanitizeForFilePath`;
+ * the whole cut to 60 characters by `trimLongString` (the head, "-" and the
+ * first five hex digits of its sha1 and "-", the tail); then "-<project>".
+ * Playwright's sanitiser keeps runs of "-", letters outside ASCII and a
+ * trailing "-" (a title that ends in ")"), which `sanitizeSlug` drops, so a
+ * title ending in punctuation never matched: AT-7 "… (DB truth)" and PW-74
+ * "… (INC-329, big model list)" in run 38245598293.
+ */
+export function playwrightOutputDir(spec: ContextSpec): string {
+  // `sanitizeForFilePath`: every run of ASCII other than "-", digits and
+  // letters becomes one "-" (written as the complement, which is the same set).
+  const sanitize = (text: string) => text.replace(/[^\-0-9A-Za-z\u0080-\uFFFF]+/g, "-");
+  const trim = (text: string, length = 60) => {
+    if (text.length <= length) return text;
+    const middle = `-${createHash("sha1").update(text).digest("hex").slice(0, 5)}-`;
+    const start = Math.floor((length - middle.length) / 2);
+    const end = length - middle.length - start;
+    return text.slice(0, start) + middle + text.slice(-end);
+  };
+  const file = spec.file.includes("/e2e/")
+    ? spec.file.slice(spec.file.lastIndexOf("/e2e/") + "/e2e/".length)
+    : spec.file;
+  const relative = file
+    .replace(/\.(spec|test)\.(js|ts|jsx|tsx|mjs|mts|cjs|cts)$/, "")
+    .replace(/\//g, "-");
+  return `${trim(`${relative}-${sanitize(spec.titlePath.join(" "))}`)}-${sanitize(spec.project)}`;
+}
+
+/**
+ * INC-429 — WHEN NO CONTEXT MATCHES, THE LINE SAYS WHY: Playwright's own name
+ * for the directory, how many context files the run carried, and the ones of
+ * the same spec and project (at most five), so a missing upload is told apart
+ * from a name the matcher cannot read.
+ */
+export function missingContextLine(spec: ContextSpec, candidates: string[]): string {
+  const exact = playwrightOutputDir(spec);
+  const head = exact.slice(0, 20);
+  const near = candidates.filter((c) => c.startsWith(head)).slice(0, 5);
+  return `Context: context file not found for \`${contextSlug(spec)}\` — Playwright's name \`${exact}\`; this run carried ${candidates.length} context file(s); of the same spec: ${near.length > 0 ? near.map((c) => `\`${c}\``).join(", ") : "none"}`;
+}
+
 export function matchContextDir(candidates: string[], spec: ContextSpec): string | null {
+  // INC-429 — Playwright's exact name first.
+  const exact = playwrightOutputDir(spec);
+  if (candidates.includes(exact)) return exact;
+
   const core = contextCore(spec);
   const projectSlug = sanitizeSlug(spec.project);
   const suffix = `-${projectSlug}`;
@@ -477,6 +527,36 @@ export function ledgerLines(
     (f) =>
       `- ${date} · \`${f.project}\` · ${f.title}${f.source ? ` · source \`${f.source}\`` : ""} · run ${run} · commit \`${meta.sha}\` · ${f.message}`,
   );
+}
+
+/**
+ * INC-495 — ONE LINE PER TEST, SOURCE AND RUN. A re-run of failed jobs reads
+ * the first attempt's results again for the jobs it did not re-run, and the
+ * publish step re-runs this pass on every retry, so the same flaky test of the
+ * same run came back as a second line. A line is keyed by everything from the
+ * project to the commit (project, title, source, run, commit) — never by the
+ * date or the message, which a re-run on another day can change — and a line
+ * whose key the ledger already holds is not written again.
+ */
+export function ledgerKey(line: string): string | null {
+  const match = /^- \d{4}-\d{2}-\d{2} · (`[^`]*` · .+? · run \S+ · commit `[^`]*`)/.exec(line);
+  return match ? match[1]! : null;
+}
+
+export function newLedgerLines(existing: string, lines: string[]): string[] {
+  const seen = new Set(
+    existing
+      .split("\n")
+      .map(ledgerKey)
+      .filter((key): key is string => key !== null),
+  );
+  return lines.filter((line) => {
+    const key = ledgerKey(line);
+    if (key === null) return true;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /**
@@ -1022,7 +1102,7 @@ export function flakyBodiesSection(
     const spec = { file: f.file, titlePath: f.titlePath, project: f.project };
     const dir = matchContextDir(candidates, spec);
     if (dir) out.push("Context:", "", "```text", contextTail(contexts.get(dir)!), "```", "");
-    else out.push(`Context: context file not found for \`${contextSlug(spec)}\``, "");
+    else out.push(missingContextLine(spec, candidates), "");
   });
   if (flaky.length > FLAKY_BODY_CAP) out.push("");
   return out;
@@ -1175,11 +1255,10 @@ export function renderSources(
     // missing. Never leave a failure body without one of the two.
     const spec = { file: f.file, titlePath: f.titlePath, project: f.project };
     const dir = matchContextDir(candidates, spec);
-    const slug = contextSlug(spec);
     if (dir) {
       lines.push("Context:", "", "```text", contextTail(contexts.get(dir)!), "```", "");
     } else {
-      lines.push(`Context: context file not found for \`${slug}\``, "");
+      lines.push(missingContextLine(spec, candidates), "");
     }
   }
 
@@ -1603,6 +1682,106 @@ async function main() {
         "SELF-TEST FAILED — describe-nested failure did not resolve its error-context (titlePath matching regressed).",
       );
       process.exit(1);
+    }
+    // INC-429 — PLAYWRIGHT'S EXACT NAME. The two fixture directories are REAL
+    // captures (hash included); the two run-38245598293 names were computed by
+    // Playwright 1.58.1's own `sanitizeForFilePath` and `trimLongString` for
+    // titles ending in ")", which the slug matcher never found.
+    {
+      const named: Array<[ContextSpec, string]> = [
+        [
+          {
+            file: "tmp-capture.spec.ts",
+            titlePath: ["CAP-1 a missing testid fails with a locator error"],
+            project: "desktop-1280",
+          },
+          "tmp-capture-CAP-1-a-missin-57ad1--fails-with-a-locator-error-desktop-1280",
+        ],
+        [
+          {
+            file: "tmp-capture-describe.spec.ts",
+            titlePath: ["panel-scoped chrome", "CAP-3 a describe-nested failure records its chain"],
+            project: "desktop-1280",
+          },
+          "tmp-capture-describe-panel-d893b-d-failure-records-its-chain-desktop-1280",
+        ],
+        [
+          {
+            file: "post-wizard-specs.spec.ts",
+            titlePath: [
+              "POSTING WIZARD",
+              "PW-74 a step-3 round trip keeps every answer (INC-329, big model list)",
+            ],
+            project: "mobile-360",
+          },
+          "post-wizard-specs-POSTING--c2c01-wer-INC-329-big-model-list--mobile-360",
+        ],
+        [
+          {
+            file: "admin-attributes-library.spec.ts",
+            titlePath: [
+              "C3 attributes console",
+              "AT-7 filter: a category narrows the library to its linked attributes (DB truth)",
+            ],
+            project: "desktop-1280",
+          },
+          "admin-attributes-library-C-fa897-linked-attributes-DB-truth--desktop-1280",
+        ],
+      ];
+      for (const [spec, name] of named) {
+        if (playwrightOutputDir(spec) !== name || matchContextDir([name], spec) !== name) {
+          console.error(
+            `SELF-TEST FAILED — INC-429: Playwright's name for ${spec.titlePath.join(" › ")} is ${name}; got ${playwrightOutputDir(spec)}.`,
+          );
+          process.exit(1);
+        }
+      }
+      const missLine = missingContextLine(named[2]![0], [
+        named[3]![1],
+        "post-wizard-specs-POSTING--00000-another-test-mobile-360",
+      ]);
+      if (
+        !missLine.startsWith(
+          "Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-74-",
+        ) ||
+        !missLine.includes(
+          "Playwright's name `post-wizard-specs-POSTING--c2c01-wer-INC-329-big-model-list--mobile-360`",
+        ) ||
+        !missLine.includes("this run carried 2 context file(s)") ||
+        !missLine.includes(
+          "of the same spec: `post-wizard-specs-POSTING--00000-another-test-mobile-360`",
+        )
+      ) {
+        console.error(
+          `SELF-TEST FAILED — INC-429: the missing-context line does not say why: ${missLine}`,
+        );
+        process.exit(1);
+      }
+    }
+    // INC-495 — a re-run writes no second line for a test, source and run the
+    // ledger already holds; a new test, or the same test in another run, is written.
+    {
+      const run = "https://github.com/tesfayekb/ethio-marketplace/actions/runs/1";
+      const line = (date: string, title: string, runUrl: string, message: string) =>
+        `- ${date} · \`mobile-360\` · ${title} · source \`shard 3\` · run ${runUrl} · commit \`abc\` · ${message}`;
+      const existing = `${FLAKE_LEDGER_HEADER}${line("2026-10-08", "a.spec.ts › R-4 one", run, "Timeout")}\n`;
+      const fresh = newLedgerLines(existing, [
+        line("2026-10-09", "a.spec.ts › R-4 one", run, "another message"),
+        line("2026-10-09", "a.spec.ts › AT-3 two", run, "Timeout"),
+        line("2026-10-09", "a.spec.ts › R-4 one", `${run}0`, "Timeout"),
+        line("2026-10-09", "a.spec.ts › AT-3 two", run, "Timeout"),
+      ]);
+      if (
+        fresh.length !== 2 ||
+        !fresh[0]!.includes("AT-3 two") ||
+        !fresh[1]!.includes(`runs/10 `) ||
+        ledgerKey("- not a ledger line") !== null
+      ) {
+        console.error(
+          `SELF-TEST FAILED — INC-495: the ledger keeps one line per test, source and run: ${JSON.stringify(fresh)}`,
+        );
+        process.exit(1);
+      }
     }
     // INC-088 — BANNER-THEN-CRASH. The cause is printed near the TOP of the
     // log and the tail is 35 lines of "waiting for the web server": a raw tail
@@ -2111,7 +2290,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival and the REPORTER ERROR path verified (real captured fixtures).",
+      "Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message, quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) verified (real captured fixtures).",
     );
 
     return;
@@ -2256,8 +2435,11 @@ async function main() {
       .text()
       .catch(() => FLAKE_LEDGER_HEADER);
     const body = existing.endsWith("\n") ? existing : `${existing}\n`;
-    await Bun.write(ledgerPath, `${body}${ledgerLines(allFlaky, meta).join("\n")}\n`);
-    console.log(`Flake ledger: appended ${allFlaky.length} line(s) to ${ledgerPath}.`);
+    const fresh = newLedgerLines(existing, ledgerLines(allFlaky, meta));
+    if (fresh.length > 0) await Bun.write(ledgerPath, `${body}${fresh.join("\n")}\n`);
+    console.log(
+      `Flake ledger: appended ${fresh.length} line(s) to ${ledgerPath}; ${allFlaky.length - fresh.length} already there for this run (INC-495).`,
+    );
   }
 
   // DEC-028 — THE VERDICT FILE. The nightly (the only lane that runs

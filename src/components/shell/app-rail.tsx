@@ -14,6 +14,7 @@ import {
 import { useShell } from "@/components/shell-context";
 import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
+import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useFooterInset } from "@/components/shell/use-footer-inset";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -486,7 +487,8 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   );
   // Active state for routed items — the current section is highlighted the
   // same way for every panel (U0b).
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // INC-581 — the rail marks the page the body shows.
+  const pathname = useShownPathname();
   const hash = useRouterState({ select: (s) => s.location.hash }).replace(/^#/, "");
 
   /**

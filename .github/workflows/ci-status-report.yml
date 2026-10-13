@@ -78,6 +78,12 @@ jobs:
             const PLAYWRIGHT_SOURCES = /^E2E (smoke tier|shard \d+\/\d+|email|changed specs)/;
             const EVIDENCE =
               /error TS\d+|\[warn\]|✖|##\[error\]|\bERROR\b|Error:|FAIL\b|failed\b|exit code [1-9]/;
+            // INC-419 — an ESLint error line ("  12:5  error  …  rule") has no
+            // ERROR or Error: in it, so a failed lint showed only its warnings
+            // in the tail. It is evidence, with the file line ESLint prints
+            // above it (an absolute path), so the error names its file.
+            const ESLINT_ERROR = /^\s*\d+:\d+\s+error\s/;
+            const ESLINT_FILE = /^\/\S+\.[cm]?[jt]sx?$/;
             const MAX_EVIDENCE = 80;
             const MAX_TAIL = 60;
             const MAX_FILE_LINES = 400;
@@ -129,7 +135,20 @@ jobs:
                 }
 
                 const all = text.split('\n').map(strip);
-                const evidence = all.filter((l) => EVIDENCE.test(l)).slice(0, MAX_EVIDENCE);
+                const matched = [];
+                let eslintFile = null;
+                for (const l of all) {
+                  if (ESLINT_FILE.test(l.trim())) {
+                    eslintFile = l.trim();
+                  } else if (ESLINT_ERROR.test(l)) {
+                    if (eslintFile) matched.push(eslintFile);
+                    eslintFile = null;
+                    matched.push(l);
+                  } else if (EVIDENCE.test(l)) {
+                    matched.push(l);
+                  }
+                }
+                const evidence = matched.slice(0, MAX_EVIDENCE);
                 const tail = all.slice(-MAX_TAIL);
                 sections.push({ job, unavailable: null, evidence, tail });
               }

@@ -33,7 +33,8 @@ Per failed job it writes two blocks:
 
 - **Evidence lines** — every line matching
   `error TS\d+ | [warn] | ✖ | ##[error] | ERROR | Error: | FAIL | failed | exit code [1-9]`,
-  capped at 80 lines, ISO log timestamps stripped.
+  and every ESLint error line (` N:N  error  …`) with the file line above it (INC-419,
+  DEC-179), capped at 80 lines, ISO log timestamps stripped.
 - **Tail** — the last 60 lines of the log.
 
 The file is written on **every** completed run: with no failures it says

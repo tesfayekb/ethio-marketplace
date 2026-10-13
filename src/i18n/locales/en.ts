@@ -2369,6 +2369,9 @@ export const en = {
   // U6-C2b — the retry law on a photo tile (PP-10).
   "post.photos.couldNotSend": "Couldn't send — try again.",
   "post.photos.refusedFinal": "This photo can't be used. Choose a different one.",
+  "post.photos.nextHeld": "Remove the photo that could not be added to continue.",
+  "post.photos.public":
+    "Everything in your photos is public: anyone can see it, including the phone number, e-mail and address on a business card.",
   // U6-C2b — step 7: who is selling.
   "post.who.why": "Buyers need a name to trust and a way to reach you.",
   "post.who.saveFailed": "Your details were not saved. Please tap Next to try again.",
