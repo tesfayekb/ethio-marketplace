@@ -1333,3 +1333,15 @@ An answer whose option was deleted (not switched off) has no label anywhere, and
 ### INC-588 — a stored photo shows in the form and its previews (the tidy-up round, turn T6; D151)
 
 The photo step's stored tiles, the side preview, the review's preview, the admin's preview as buyer and the screening preview draw a stored photo through a link that expires (docs/features/media-pipeline.md, "Read links that expire"). Until the links arrive, and when none comes back, the category's picture shows. The writing helper sends its three photos by id (`photoIds`), never by address.
+
+## The tidy-up round, turn T15 — every photo can be removed and made the cover (INC-595, INC-596, INC-597, D154)
+
+The operator's walk of 2026-10-13: "once a photo is added, is there anyway to remove it, no remove or edit button … when adding a photo, i remove the uploaded, but it will still be there."
+
+- **INC-595 — a stored photo had no buttons.** A photo stored in an earlier visit (Back to the step, a resumed draft, a reload) was drawn with its picture and "Cover" only. It now carries the same buttons as a photo added in this visit: Remove on every photo, Make cover on every photo but the cover, each through the same door (`DELETE` and `POST /api/listings/photos/$id`). A refusal is shown under the photo. Every tile carries `data-photo-id`.
+- **INC-596 — Remove did not stop an upload.** Remove on a photo with no id yet only cleared its tile; its send went on and the photo came back. Now the tile's local id is recorded as removed (`removedRef`, src/features/posting/step-photos.tsx): a photo waiting its turn, or still being prepared on the device, is never sent; a photo already on its way is deleted the moment the server names it, even if the step has closed. If that delete fails, the step re-reads the server and the photo shows again with its own Remove (F4).
+- **INC-597 / D154 — the cover is the first photo.** Make cover wrote `listings.cover_photo_id`, which no screen reads: the step's Cover label and every preview take the first photo by `display_order`. `set_cover_photo` now moves the chosen photo to the front (place 0) and the others behind it in their old order, in two passes because the order is unique per listing; it still sets `cover_photo_id`.
+- **D154 — photos can be dropped on the step on a computer** (`post-photos-drop`, outlined while files are over it). They take the picker's way: the same queue, the same cap, the same screen.
+- Tests: PP-14 (removed while uploading or waiting: never sent, or deleted, and not back after a reload), PP-15 (a stored photo is made the cover, moving it first, and removed), PP-16 (a dropped photo is added).
+
+Still to build, in bundle 13 (D154): Move earlier and Move later on every photo and drag on a computer; rotate and crop; the screen's warning when a photo may not fit the ad, flagged for staff; staff removing a photo; the screening step listing photo changes on published ads. Photos on a published ad wait for the seller's My listings page (today a placeholder).

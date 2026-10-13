@@ -397,13 +397,22 @@ export async function leaseUser(): Promise<TestUser> {
  * first. A cancelled run's scratch user can still hold a reserved handle
  * (teardown never ran; the nightly sweep waits 24h). This releases `alias`
  * from SCRATCH accounts only (e2e+…@ethio-e2e.invalid, never a pool seat or a
- * real account) created more than ten minutes ago, with their alias_history
- * rows for it. Returns the released user ids for the test's trail.
+ * real account), with their alias_history rows for it. Returns the released
+ * user ids for the test's trail.
+ *
+ * INC-598 — WHICH HOLDER IS STALE. A scratch account minted by ANOTHER CI run
+ * (its address carries that run's id, `mintEmail`) is released at once: a run
+ * cancelled by a newer push never ran its `finally`, and AU-12 on the next run,
+ * minutes later, was refused "already taken" by its account (run 38407106478,
+ * after run 38406458515 was cancelled). The ten-minute guard now applies only
+ * to an account of THIS run, which could still be a sibling's in use.
  */
 export async function releaseStaleScratchAlias(alias: string): Promise<string[]> {
   const supabase = adminClient();
   const fold = alias.toLowerCase();
   const cutoff = Date.now() - 10 * 60 * 1000;
+  // `processId()` is "<run>-<shard>": this run's accounts start with "e2e+<run>-".
+  const thisRun = `e2e+${processId().split("-")[0]}-`;
   const holders = new Set<string>();
   const profiles = await supabase.from("profiles").select("user_id").ilike("seller_alias", fold);
   if (profiles.error) throw new Error(`[e2e:alias] holder read failed: ${profiles.error.message}`);
@@ -412,13 +421,26 @@ export async function releaseStaleScratchAlias(alias: string): Promise<string[]>
   for (const row of [...(profiles.data ?? []), ...(history.data ?? [])]) holders.add(row.user_id);
 
   const released: string[] = [];
+  /** INC-598 — every holder left in place, with why, so a refusal names its holder. */
+  const kept: string[] = [];
   for (const id of holders) {
     const { data, error } = await supabase.auth.admin.getUserById(id);
-    if (error || !data?.user) continue;
+    if (error || !data?.user) {
+      kept.push(`${id} (unreadable: ${error?.message ?? "no user"})`);
+      continue;
+    }
     const email = data.user.email ?? "";
     const scratch = email.startsWith("e2e+") && email.endsWith("@ethio-e2e.invalid");
     const created = Date.parse(data.user.created_at ?? "");
-    if (!scratch || !Number.isFinite(created) || created >= cutoff) continue;
+    const otherRun = !email.startsWith(thisRun);
+    if (!scratch) {
+      kept.push(`${id} (not a scratch account)`);
+      continue;
+    }
+    if (!otherRun && (!Number.isFinite(created) || created >= cutoff)) {
+      kept.push(`${id} (this run, under ten minutes old)`);
+      continue;
+    }
     const cleared = await supabase
       .from("profiles")
       .update({ seller_alias: null })
@@ -439,6 +461,9 @@ export async function releaseStaleScratchAlias(alias: string): Promise<string[]>
     console.log(
       `[e2e:alias] released "${alias}" from stale scratch account(s) ${released.join(", ")}`,
     );
+  }
+  if (kept.length > 0) {
+    console.log(`[e2e:alias] "${alias}" is still held by ${kept.join(", ")}`);
   }
   return released;
 }

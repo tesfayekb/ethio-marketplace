@@ -98,9 +98,23 @@ export function StepPhotos({
   /** Tiles for photos this session picked; server rows fill the rest. */
   const [items, setItems] = useState<PhotoItem[]>([]);
   const [busy, setBusy] = useState(false);
+  /** D154 — files dragged over the step on a computer: the drop area is outlined. */
+  const [dragging, setDragging] = useState(false);
   const [soonBusy, setSoonBusy] = useState(false);
   const [soonFailed, setSoonFailed] = useState(false);
   const aliveRef = useRef(true);
+  /**
+   * INC-596 — PHOTOS THE SELLER REMOVED BEFORE THEY WERE STORED. Remove on a tile
+   * that has no photo id yet (preparing, uploading or waiting its turn) puts its
+   * local id here. A waiting photo is then never sent; a photo already on its
+   * way is deleted on the server the moment its id comes back — even if the
+   * step has closed meanwhile — so it never returns.
+   */
+  const removedRef = useRef(new Set<string>());
+  /** INC-595 — a stored photo's Remove or Make cover in flight, by photo id. */
+  const [rowBusy, setRowBusy] = useState<ReadonlySet<string>>(new Set());
+  /** INC-595 — a stored photo's last refusal (its Remove or Make cover), by photo id. */
+  const [rowRefusal, setRowRefusal] = useState<Readonly<Record<string, MessageKey>>>({});
 
   useEffect(() => {
     aliveRef.current = true;
@@ -135,6 +149,8 @@ export function StepPhotos({
   const send = useCallback(
     async (localId: string, file: File, attempt = 0) => {
       if (listingId === null) return;
+      // INC-596 — a photo removed while it waited its turn is never sent.
+      if (removedRef.current.has(localId)) return;
       patchItem(localId, {
         state: "preparing",
         percent: 0,
@@ -150,6 +166,8 @@ export function StepPhotos({
         patchItem(localId, { state: "failed", refusalKey: "post.photos.deviceFailed" });
         return;
       }
+      // INC-596 — removed while the device prepared it: nothing is sent.
+      if (removedRef.current.has(localId)) return;
       if (!aliveRef.current) return;
 
       patchItem(localId, { state: "uploading", percent: 1 });
@@ -161,6 +179,18 @@ export function StepPhotos({
           if (aliveRef.current) patchItem(localId, { percent });
         },
       );
+      // INC-596 — removed while it was on its way: a photo the server stored is
+      // deleted now, whether or not the step is still open. A failed delete is
+      // not hidden: the step re-reads the server, and the photo shows again with
+      // its own Remove (F4).
+      if (removedRef.current.has(localId)) {
+        const id = answer.ok ? answer.payload["photoId"] : null;
+        if (typeof id === "string") {
+          const gone = await deletePhoto(id);
+          if (!gone.ok && aliveRef.current) onChanged();
+        }
+        return;
+      }
       if (!aliveRef.current) return;
 
       if (answer.ok) {
@@ -229,8 +259,15 @@ export function StepPhotos({
   const remove = useCallback(
     async (item: PhotoItem) => {
       if (item.photoId === null) {
+        // INC-596 — not stored yet: the tile goes now, and the photo is stopped
+        // or deleted when its send reaches the next point (see `send`).
+        removedRef.current.add(item.localId);
         URL.revokeObjectURL(item.previewUrl);
         setItems((prev) => prev.filter((entry) => entry.localId !== item.localId));
+        // A tile stored without an id (an answer that named none) has no send
+        // left to delete it: the step re-reads the server, and the stored photo
+        // shows with its own Remove.
+        if (item.state === "stored") onChanged();
         return;
       }
       const answer = await deletePhoto(item.photoId);
@@ -257,13 +294,85 @@ export function StepPhotos({
     [onChanged, patchItem],
   );
 
+  /** INC-595 — a stored photo from an earlier visit is removed through the same door. */
+  const removeStored = useCallback(
+    async (photoId: string) => {
+      setRowBusy((prev) => new Set(prev).add(photoId));
+      const answer = await deletePhoto(photoId);
+      if (!aliveRef.current) return;
+      setRowBusy((prev) => {
+        const next = new Set(prev);
+        next.delete(photoId);
+        return next;
+      });
+      if (!answer.ok) {
+        const key = photoRefusalKey(answer.refusals[0]?.reason ?? "");
+        setRowRefusal((prev) => ({ ...prev, [photoId]: key }));
+        return;
+      }
+      setRowRefusal((prev) => {
+        const next = { ...prev };
+        delete next[photoId];
+        return next;
+      });
+      onChanged();
+    },
+    [onChanged],
+  );
+
+  /** INC-595 — a stored photo from an earlier visit is made the cover through the same door. */
+  const coverStored = useCallback(
+    async (photoId: string) => {
+      setRowBusy((prev) => new Set(prev).add(photoId));
+      const answer = await setCoverPhoto(photoId);
+      if (!aliveRef.current) return;
+      setRowBusy((prev) => {
+        const next = new Set(prev);
+        next.delete(photoId);
+        return next;
+      });
+      if (!answer.ok) {
+        const key = photoRefusalKey(answer.refusals[0]?.reason ?? "");
+        setRowRefusal((prev) => ({ ...prev, [photoId]: key }));
+        return;
+      }
+      onChanged();
+    },
+    [onChanged],
+  );
+
   const stored = items.filter((item) => item.state === "stored").length;
   const total = Math.max(photos.length, stored);
   /** The cover is the first registered photo — the server's own order. */
   const coverId = photos[0]?.id ?? null;
 
   return (
-    <div className="space-y-4">
+    <div
+      data-testid="post-photos-drop"
+      data-dragging={dragging ? "1" : "0"}
+      className={
+        dragging ? "space-y-4 rounded-md outline-dashed outline-2 outline-primary" : "space-y-4"
+      }
+      // D154 — on a computer, photos can be dropped anywhere on the step. They take
+      // the same way as the picker's: the same queue, the same cap, the same screen.
+      onDragOver={(event) => {
+        if (!Array.from(event.dataTransfer.types).includes("Files")) return;
+        event.preventDefault();
+        if (!dragging) setDragging(true);
+      }}
+      onDragLeave={(event) => {
+        const next = event.relatedTarget;
+        if (next instanceof Node && event.currentTarget.contains(next)) return;
+        setDragging(false);
+      }}
+      onDrop={(event) => {
+        if (!Array.from(event.dataTransfer.types).includes("Files")) return;
+        event.preventDefault();
+        setDragging(false);
+        if (busy || total >= MAX_PHOTOS) return;
+        void pick(event.dataTransfer.files);
+      }}
+    >
       <p className="text-sm text-muted-foreground">{t("post.photos.why")}</p>
 
       {/* D22 — the count SAYS the plan's cap, so it waits for the plan rather than
@@ -332,6 +441,7 @@ export function StepPhotos({
           <li
             key={item.localId}
             data-testid="post-photo-tile"
+            data-photo-id={item.photoId ?? ""}
             data-state={item.state}
             className="space-y-2 rounded-md border border-border p-2"
           >
@@ -407,6 +517,7 @@ export function StepPhotos({
               <li
                 key={row.id}
                 data-testid="post-photo-stored"
+                data-photo-id={row.id}
                 className="space-y-2 rounded-md border border-border p-2"
               >
                 {url !== null ? (
@@ -422,8 +533,42 @@ export function StepPhotos({
                   <p className="text-xs text-muted-foreground">{t("post.photos.done")}</p>
                 )}
                 {row.id === coverId && (
-                  <p className="text-xs font-medium text-foreground">{t("post.photos.cover")}</p>
+                  <p className="text-xs font-medium text-foreground" data-testid="post-photo-cover">
+                    {t("post.photos.cover")}
+                  </p>
                 )}
+                {rowRefusal[row.id] !== undefined && (
+                  <p
+                    className="text-xs text-destructive"
+                    role="alert"
+                    data-testid="post-photo-state"
+                  >
+                    {t(rowRefusal[row.id]!)}
+                  </p>
+                )}
+                {/* INC-595 — the same buttons as a photo added in this visit. */}
+                <div className="flex gap-2">
+                  {row.id !== coverId && (
+                    <button
+                      type="button"
+                      data-testid="post-photo-makecover"
+                      className={tileButtonClass}
+                      disabled={rowBusy.has(row.id)}
+                      onClick={() => void coverStored(row.id)}
+                    >
+                      {t("post.photos.makeCover")}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    data-testid="post-photo-remove"
+                    className={tileDangerClass}
+                    disabled={rowBusy.has(row.id)}
+                    onClick={() => void removeStored(row.id)}
+                  >
+                    {t("post.photos.remove")}
+                  </button>
+                </div>
               </li>
             );
           })}
