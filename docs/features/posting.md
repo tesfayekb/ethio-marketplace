@@ -1345,3 +1345,14 @@ The operator's walk of 2026-10-13: "once a photo is added, is there anyway to re
 - Tests: PP-14 (removed while uploading or waiting: never sent, or deleted, and not back after a reload), PP-15 (a stored photo is made the cover, moving it first, and removed), PP-16 (a dropped photo is added).
 
 Still to build, in bundle 13 (D154): Move earlier and Move later on every photo and drag on a computer; rotate and crop; the screen's warning when a photo may not fit the ad, flagged for staff; staff removing a photo; the screening step listing photo changes on published ads. Photos on a published ad wait for the seller's My listings page (today a placeholder).
+
+## The tidy-up round, turn T16 — photos in the seller's order (D154)
+
+The operator's decision of 2026-10-13: the first photo is the cover; every photo has Move earlier and Move later at every width, and on a computer a photo can be dragged to another place.
+
+- **One door for every move.** `move_listing_photo(listing, photo, position)` puts the photo at that place (0 = first; a place past the end means last) and closes the others up around it in their old order, in two passes because `display_order` is unique per listing. The cover follows the first place: the door sets `cover_photo_id` to the photo at place 0. Owner only (the listing's seller is `auth.uid()`); the photo must be on that listing; the place must be 0 or more. The route is `POST /api/listings/photos/$id { action: 'move', position }`; a place that is not a whole number from 0 to 999 is refused as `position` / `badValue` before the door is called.
+- **The grid is the server's order.** Every stored photo is drawn at its place — by its own tile with its local preview when it was added in this visit, else by its stored tile — and the photos not stored yet follow, as picked. Each stored photo carries Move earlier and Move later (`post-photo-earlier`, `post-photo-later`; the existing words `post.photos.moveUp` and `post.photos.moveDown` as their names); the first cannot move earlier and the last cannot move later. A refusal shows under the photo.
+- **Drag on a computer.** Where the pointer is fine (`(pointer: fine)`), a stored photo is draggable; dropped on another photo, it takes that photo's place through the same door. A drag of files is not a photo drag: it still reaches the drop area (T15).
+- Tests: PP-17 (the buttons, both ends disabled, the order and the cover as DB truth, the refused places, a place past the end, another seller refused), PP-18 (a drag on a computer; skipped on the phone project, which has the buttons).
+
+Still to build, in bundle 13 (D154, D155): rotate and crop; the screen's warning when a photo may not fit the ad, flagged for staff; staff removing a photo; the screening step listing photo changes on published ads; light photos (D155a); remove background (D155b).

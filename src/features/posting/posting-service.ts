@@ -187,6 +187,16 @@ export function setCoverPhoto(photoId: string): Promise<DoorAnswer> {
   });
 }
 
+/**
+ * D154 — `POST /api/listings/photos/$id { action: 'move', position }`: the photo to
+ * that place in the order (0 = first, the cover; a place past the end means last).
+ */
+export function movePhoto(photoId: string, position: number): Promise<DoorAnswer> {
+  return call(`/api/listings/photos/${photoId}`, JSON.stringify({ action: "move", position }), {
+    "Content-Type": "application/json",
+  });
+}
+
 /** `DELETE /api/listings/photos/$id`. */
 export async function deletePhoto(photoId: string): Promise<DoorAnswer> {
   const token = await bearer();

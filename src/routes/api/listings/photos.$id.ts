@@ -18,14 +18,17 @@ import {
  *
  *   DELETE /api/listings/photos/$id            — remove the photo
  *   POST   /api/listings/photos/$id  { action: 'cover' }  — make it the cover
+ *   POST   /api/listings/photos/$id  { action: 'move', position }  — D154: put it
+ *          at that place in the order (0 = first, the cover; past the end = last)
  *
  * SCOPE NOTE (A1): the brief names ONE file for both verbs, so the cover action
  * is the POST on this same path rather than a `…/cover` child route, which would
  * be a second route file outside the named scope. The body names the action, so
  * a later child route can be added without changing the contract.
  *
- * The doors (`remove_listing_photo`, `set_cover_photo`) are the authority: both
- * check `seller_id = auth.uid()` themselves, and both are called AS THE CALLER.
+ * The doors (`remove_listing_photo`, `set_cover_photo`, `move_listing_photo`) are
+ * the authority: each checks `seller_id = auth.uid()` itself, and each is called
+ * AS THE CALLER.
  * The route's only extra work is the storage objects, deleted BEFORE the row so
  * a failure leaves a row pointing at nothing rather than an unreachable object.
  */
@@ -117,8 +120,17 @@ async function handlePost(request: Request, photoId: string): Promise<Response> 
   const supabase = caller.supabase!;
 
   const body = await readJsonBody(request);
-  if (body["action"] !== undefined && body["action"] !== "cover") {
+  const action = body["action"] ?? "cover";
+  if (action !== "cover" && action !== "move") {
     return refusal("action", "badValue");
+  }
+  // D154 — a place is a whole number from 0; the door closes a place past the end to the last.
+  const position = body["position"];
+  if (
+    action === "move" &&
+    (typeof position !== "number" || !Number.isInteger(position) || position < 0 || position > 999)
+  ) {
+    return refusal("position", "badValue");
   }
 
   const photo = await ownedPhoto(supabase, photoId);
@@ -126,14 +138,22 @@ async function handlePost(request: Request, photoId: string): Promise<Response> 
     return routeJson({ ok: false, refusals: [{ field: "id", reason: "notYourListing" }] }, 403);
   }
 
-  const { data, error, status } = await supabase.rpc("set_cover_photo", {
-    p_listing_id: photo.listing_id,
-    p_photo_id: photoId,
-  });
+  const door = action === "move" ? "move_listing_photo" : "set_cover_photo";
+  const { data, error, status } =
+    action === "move"
+      ? await supabase.rpc("move_listing_photo", {
+          p_listing_id: photo.listing_id,
+          p_photo_id: photoId,
+          p_position: position as number,
+        })
+      : await supabase.rpc("set_cover_photo", {
+          p_listing_id: photo.listing_id,
+          p_photo_id: photoId,
+        });
   // INC-574 — the door was never reached: 503, not a refusal.
-  if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, "set_cover_photo", status);
+  if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, door, status);
   if (error) {
-    logRouteError(PATH, `cover: ${error.message}`);
+    logRouteError(PATH, `${action}: ${error.message}`);
     return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
   }
   return routeJson(data, 200);

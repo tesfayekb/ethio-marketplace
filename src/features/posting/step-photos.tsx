@@ -1,5 +1,6 @@
 import { ListingPicture } from "@/components/marketplace/listing-picture";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
@@ -7,7 +8,13 @@ import type { MessageKey } from "@/i18n";
 import { controlClass, Field } from "./field";
 import { encodeVariants } from "./photo-encode";
 import { CARD_THEN_THUMB, photoUrl } from "./photo-links";
-import { deletePhoto, setCoverPhoto, uploadPhoto, type DraftPhotoRow } from "./posting-service";
+import {
+  deletePhoto,
+  movePhoto,
+  setCoverPhoto,
+  uploadPhoto,
+  type DraftPhotoRow,
+} from "./posting-service";
 import { fill, photoRefusalKey } from "./refusal-text";
 import type { PhotoItem, Refusal } from "./types";
 import { usePhotoLinks } from "./use-photo-links";
@@ -51,6 +58,13 @@ const tileDangerClass =
 const addButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm " +
   "font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60";
+
+/** D154 — the drag of a stored photo to another place carries its id under this type. */
+const PHOTO_DRAG = "application/x-ethio-photo";
+
+const moveButtonClass =
+  "inline-flex min-h-11 grow items-center justify-center rounded-md border border-input text-foreground " +
+  "hover:bg-accent disabled:opacity-40";
 
 function makeLocalId(): string {
   return `local-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
@@ -341,10 +355,253 @@ export function StepPhotos({
     [onChanged],
   );
 
+  /**
+   * D154 — Move earlier, Move later and a drag on a computer: one door
+   * (`move_listing_photo`), which puts the photo at the place and closes the
+   * others up; the first place is the cover.
+   */
+  const moveStored = useCallback(
+    async (photoId: string, position: number) => {
+      setRowBusy((prev) => new Set(prev).add(photoId));
+      const answer = await movePhoto(photoId, position);
+      if (!aliveRef.current) return;
+      setRowBusy((prev) => {
+        const next = new Set(prev);
+        next.delete(photoId);
+        return next;
+      });
+      if (!answer.ok) {
+        const key = photoRefusalKey(answer.refusals[0]?.reason ?? "");
+        setRowRefusal((prev) => ({ ...prev, [photoId]: key }));
+        return;
+      }
+      setRowRefusal((prev) => {
+        const next = { ...prev };
+        delete next[photoId];
+        return next;
+      });
+      onChanged();
+    },
+    [onChanged],
+  );
+
   const stored = items.filter((item) => item.state === "stored").length;
   const total = Math.max(photos.length, stored);
   /** The cover is the first registered photo — the server's own order. */
   const coverId = photos[0]?.id ?? null;
+  const placed = photos.map((row, index) => ({
+    row,
+    index,
+    item: items.find((entry) => entry.photoId === row.id) ?? null,
+  }));
+  const pending = items.filter(
+    (entry) => entry.photoId === null || !photos.some((row) => row.id === entry.photoId),
+  );
+  /** D154 — a drag to another place only where a fine pointer can drag (a computer). */
+  const canDrag =
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(pointer: fine)").matches;
+
+  /** D154 — the drag handlers of a photo at its place in the order. */
+  function placeProps(photoId: string, index: number) {
+    return {
+      "data-place": index,
+      draggable: canDrag && !rowBusy.has(photoId),
+      onDragStart: (event: React.DragEvent<HTMLLIElement>) => {
+        event.dataTransfer.setData(PHOTO_DRAG, photoId);
+        event.dataTransfer.effectAllowed = "move";
+      },
+      onDragOver: (event: React.DragEvent<HTMLLIElement>) => {
+        if (!Array.from(event.dataTransfer.types).includes(PHOTO_DRAG)) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      },
+      onDrop: (event: React.DragEvent<HTMLLIElement>) => {
+        const dragged = event.dataTransfer.getData(PHOTO_DRAG);
+        if (!dragged) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (dragged !== photoId) void moveStored(dragged, index);
+      },
+    };
+  }
+
+  /**
+   * A photo added in this visit: its local preview, its state, and its buttons.
+   * `index` is its place once the server has it in the order, else null.
+   */
+  function sessionTile(item: PhotoItem, index: number | null): ReactNode {
+    const atPlace = index !== null && item.photoId !== null;
+    return (
+      <li
+        key={item.localId}
+        data-testid="post-photo-tile"
+        data-photo-id={item.photoId ?? ""}
+        data-state={item.state}
+        className="space-y-2 rounded-md border border-border p-2"
+        {...(atPlace ? placeProps(item.photoId as string, index) : {})}
+      >
+        <img
+          src={item.previewUrl}
+          alt=""
+          width={160}
+          height={120}
+          className="h-24 w-full rounded-sm object-cover"
+        />
+        <p className="text-xs text-muted-foreground" data-testid="post-photo-state">
+          {item.state === "preparing" && t("post.photos.preparing")}
+          {item.state === "uploading" &&
+            fill(t("post.photos.uploading"), { percent: item.percent })}
+          {item.state === "stored" && t("post.photos.done")}
+          {(item.state === "failed" || item.state === "refused") &&
+            item.refusalKey !== null &&
+            t(item.refusalKey)}
+        </p>
+        {/* PP-10 — a refusal says so once, and says it is final. */}
+        {item.state === "refused" && (
+          <p className="text-xs text-destructive" data-testid="post-photo-refused">
+            {t("post.photos.refusedFinal")}
+          </p>
+        )}
+        {item.photoId !== null && item.photoId === coverId && (
+          <p className="text-xs font-medium text-foreground" data-testid="post-photo-cover">
+            {t("post.photos.cover")}
+          </p>
+        )}
+        {item.photoId !== null && rowRefusal[item.photoId] !== undefined && (
+          <p className="text-xs text-destructive" role="alert" data-testid="post-photo-row-refusal">
+            {t(rowRefusal[item.photoId]!)}
+          </p>
+        )}
+        <div className="flex gap-2">
+          {/* Only a failure to REACH a verdict is retryable (PP-10). */}
+          {item.state === "failed" && item.file !== null && (
+            <button
+              type="button"
+              data-testid="post-photo-retry"
+              className={tileButtonClass}
+              onClick={() => {
+                if (item.file) void send(item.localId, item.file, 1);
+              }}
+            >
+              {t("post.photos.retry")}
+            </button>
+          )}
+          {item.photoId !== null && item.photoId !== coverId && (
+            <button
+              type="button"
+              data-testid="post-photo-makecover"
+              className={tileButtonClass}
+              onClick={() => void makeCover(item.photoId as string, item.localId)}
+            >
+              {t("post.photos.makeCover")}
+            </button>
+          )}
+          <button
+            type="button"
+            data-testid="post-photo-remove"
+            className={tileDangerClass}
+            onClick={() => void remove(item)}
+          >
+            {t("post.photos.remove")}
+          </button>
+        </div>
+        {atPlace && moveRow(item.photoId as string, index)}
+      </li>
+    );
+  }
+
+  /** INC-595 — a photo stored in an earlier visit: server truth, the same buttons. */
+  function storedTile(row: DraftPhotoRow, index: number): ReactNode {
+    const url = photoUrl(row, CARD_THEN_THUMB, storedLinks);
+    return (
+      <li
+        key={row.id}
+        data-testid="post-photo-stored"
+        data-photo-id={row.id}
+        className="space-y-2 rounded-md border border-border p-2"
+        {...placeProps(row.id, index)}
+      >
+        {url !== null ? (
+          <img
+            src={url}
+            alt=""
+            width={160}
+            height={120}
+            loading="lazy"
+            className="h-24 w-full rounded-sm object-cover"
+          />
+        ) : (
+          <p className="text-xs text-muted-foreground">{t("post.photos.done")}</p>
+        )}
+        {row.id === coverId && (
+          <p className="text-xs font-medium text-foreground" data-testid="post-photo-cover">
+            {t("post.photos.cover")}
+          </p>
+        )}
+        {rowRefusal[row.id] !== undefined && (
+          <p className="text-xs text-destructive" role="alert" data-testid="post-photo-state">
+            {t(rowRefusal[row.id]!)}
+          </p>
+        )}
+        <div className="flex gap-2">
+          {row.id !== coverId && (
+            <button
+              type="button"
+              data-testid="post-photo-makecover"
+              className={tileButtonClass}
+              disabled={rowBusy.has(row.id)}
+              onClick={() => void coverStored(row.id)}
+            >
+              {t("post.photos.makeCover")}
+            </button>
+          )}
+          <button
+            type="button"
+            data-testid="post-photo-remove"
+            className={tileDangerClass}
+            disabled={rowBusy.has(row.id)}
+            onClick={() => void removeStored(row.id)}
+          >
+            {t("post.photos.remove")}
+          </button>
+        </div>
+        {moveRow(row.id, index)}
+      </li>
+    );
+  }
+
+  /** D154 — Move earlier and Move later, on every photo at its place. */
+  function moveRow(photoId: string, index: number): ReactNode {
+    const busyRow = rowBusy.has(photoId);
+    return (
+      <div className="flex gap-2">
+        <button
+          type="button"
+          data-testid="post-photo-earlier"
+          className={moveButtonClass}
+          aria-label={t("post.photos.moveUp")}
+          title={t("post.photos.moveUp")}
+          disabled={busyRow || index === 0}
+          onClick={() => void moveStored(photoId, index - 1)}
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          data-testid="post-photo-later"
+          className={moveButtonClass}
+          aria-label={t("post.photos.moveDown")}
+          title={t("post.photos.moveDown")}
+          disabled={busyRow || index === photos.length - 1}
+          onClick={() => void moveStored(photoId, index + 1)}
+        >
+          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -437,141 +694,13 @@ export function StepPhotos({
       )}
 
       <ul className="grid grid-cols-2 gap-3" data-testid="post-photos-grid">
-        {items.map((item) => (
-          <li
-            key={item.localId}
-            data-testid="post-photo-tile"
-            data-photo-id={item.photoId ?? ""}
-            data-state={item.state}
-            className="space-y-2 rounded-md border border-border p-2"
-          >
-            <img
-              src={item.previewUrl}
-              alt=""
-              width={160}
-              height={120}
-              className="h-24 w-full rounded-sm object-cover"
-            />
-            <p className="text-xs text-muted-foreground" data-testid="post-photo-state">
-              {item.state === "preparing" && t("post.photos.preparing")}
-              {item.state === "uploading" &&
-                fill(t("post.photos.uploading"), { percent: item.percent })}
-              {item.state === "stored" && t("post.photos.done")}
-              {(item.state === "failed" || item.state === "refused") &&
-                item.refusalKey !== null &&
-                t(item.refusalKey)}
-            </p>
-            {/* PP-10 — a refusal says so once, and says it is final. */}
-            {item.state === "refused" && (
-              <p className="text-xs text-destructive" data-testid="post-photo-refused">
-                {t("post.photos.refusedFinal")}
-              </p>
-            )}
-            {item.photoId !== null && item.photoId === coverId && (
-              <p className="text-xs font-medium text-foreground" data-testid="post-photo-cover">
-                {t("post.photos.cover")}
-              </p>
-            )}
-            <div className="flex gap-2">
-              {/* Only a failure to REACH a verdict is retryable (PP-10). */}
-              {item.state === "failed" && item.file !== null && (
-                <button
-                  type="button"
-                  data-testid="post-photo-retry"
-                  className={tileButtonClass}
-                  onClick={() => {
-                    if (item.file) void send(item.localId, item.file, 1);
-                  }}
-                >
-                  {t("post.photos.retry")}
-                </button>
-              )}
-
-              {item.photoId !== null && item.photoId !== coverId && (
-                <button
-                  type="button"
-                  data-testid="post-photo-makecover"
-                  className={tileButtonClass}
-                  onClick={() => void makeCover(item.photoId as string, item.localId)}
-                >
-                  {t("post.photos.makeCover")}
-                </button>
-              )}
-              <button
-                type="button"
-                data-testid="post-photo-remove"
-                className={tileDangerClass}
-                onClick={() => void remove(item)}
-              >
-                {t("post.photos.remove")}
-              </button>
-            </div>
-          </li>
-        ))}
-        {/* Photos stored in an earlier session: server truth, no local preview. */}
-        {photos
-          .filter((row) => !items.some((item) => item.photoId === row.id))
-          .map((row) => {
-            const url = photoUrl(row, CARD_THEN_THUMB, storedLinks);
-            return (
-              <li
-                key={row.id}
-                data-testid="post-photo-stored"
-                data-photo-id={row.id}
-                className="space-y-2 rounded-md border border-border p-2"
-              >
-                {url !== null ? (
-                  <img
-                    src={url}
-                    alt=""
-                    width={160}
-                    height={120}
-                    loading="lazy"
-                    className="h-24 w-full rounded-sm object-cover"
-                  />
-                ) : (
-                  <p className="text-xs text-muted-foreground">{t("post.photos.done")}</p>
-                )}
-                {row.id === coverId && (
-                  <p className="text-xs font-medium text-foreground" data-testid="post-photo-cover">
-                    {t("post.photos.cover")}
-                  </p>
-                )}
-                {rowRefusal[row.id] !== undefined && (
-                  <p
-                    className="text-xs text-destructive"
-                    role="alert"
-                    data-testid="post-photo-state"
-                  >
-                    {t(rowRefusal[row.id]!)}
-                  </p>
-                )}
-                {/* INC-595 — the same buttons as a photo added in this visit. */}
-                <div className="flex gap-2">
-                  {row.id !== coverId && (
-                    <button
-                      type="button"
-                      data-testid="post-photo-makecover"
-                      className={tileButtonClass}
-                      disabled={rowBusy.has(row.id)}
-                      onClick={() => void coverStored(row.id)}
-                    >
-                      {t("post.photos.makeCover")}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    data-testid="post-photo-remove"
-                    className={tileDangerClass}
-                    disabled={rowBusy.has(row.id)}
-                    onClick={() => void removeStored(row.id)}
-                  >
-                    {t("post.photos.remove")}
-                  </button>
-                </div>
-              </li>
-            );
-          })}
+        {/* D154 — THE GRID IS THE SERVER'S ORDER: each stored photo at its place, by
+            its own tile when it was added in this visit (its local preview), else
+            by its stored tile; the photos not stored yet follow, as picked. */}
+        {placed.map(({ row, index, item }) =>
+          item !== null ? sessionTile(item, index) : storedTile(row, index),
+        )}
+        {pending.map((item) => sessionTile(item, null))}
       </ul>
 
       <div className="space-y-1">
