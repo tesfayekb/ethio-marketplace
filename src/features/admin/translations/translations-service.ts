@@ -302,9 +302,14 @@ export async function syncUiKeys(input: {
     data !== null && typeof data === "object" && !Array.isArray(data)
       ? (data as Record<string, unknown>)
       : {};
+  // INC-607 — the door's own names. `keys_added` counts the keys this sync
+  // added; `am_seeded` the Amharic texts it set from the code (empty ones, and,
+  // since INC-603, changed ones no person wrote); `languages` the staff
+  // languages it reached. The screen used to read names the door never
+  // returned, so it always said 0.
   return {
-    inserted: Number(record["inserted"] ?? 0),
-    seeded: Number(record["seeded"] ?? 0),
+    inserted: Number(record["keys_added"] ?? 0),
+    seeded: Number(record["am_seeded"] ?? 0),
     languages: Number(record["languages"] ?? 0),
   };
 }

@@ -2057,7 +2057,7 @@ export const am: Messages = {
   "post.photos.addHint": "እስከ {max} ፎቶዎች። የመጀመሪያው ሽፋን ነው።",
   "post.photos.count": "{count} ከ{max}",
   "post.photos.none": "እስካሁን ፎቶ የለም — አንድ እስኪጨምሩ የምድቡ ምስል ይተካል።",
-  "post.photos.cover": "ሽፋን",
+  "post.photos.coverRibbon": "የሽፋን ፎቶ",
   "post.photos.makeCover": "ሽፋን አድርግ",
   "post.photos.remove": "አስወግድ",
   "post.photos.moveUp": "ወደ ፊት አንቀሳቅስ",
@@ -2266,6 +2266,7 @@ export const am: Messages = {
   "post.photos.couldNotSend": "መላክ አልተቻለም — እንደገና ይሞክሩ።",
   "post.photos.refusedFinal": "ይህ ፎቶ መጠቀም አይቻልም። ሌላ ይምረጡ።",
   "post.photos.nextHeld": "ለመቀጠል ያልተጨመረውን ፎቶ ያስወግዱ።",
+  "post.photos.waitSending": "ፎቶዎችዎ እስኪላኩ ይጠብቁ።",
   "post.photos.public": "በፎቶዎችዎ ላይ ያለው ሁሉ ለማንም ይታያል፤ በቢዝነስ ካርድ ላይ ያለ ስልክ ቁጥር፣ ኢሜይልና አድራሻም ጭምር።",
   // U6-C2b — ደረጃ 7፦ ማን እየሸጠ ነው።
   "post.who.why": "ገዢዎች የሚያምኑት ስምና የሚያገኙበት መንገድ ያስፈልጋቸዋል።",

@@ -4193,7 +4193,7 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.photos.cover": [
+    "post.photos.coverRibbon": [
       "/post",
       "/post/$listingId"
     ],
@@ -4258,6 +4258,10 @@
       "/post/$listingId"
     ],
     "post.photos.uploading": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.waitSending": [
       "/post",
       "/post/$listingId"
     ],

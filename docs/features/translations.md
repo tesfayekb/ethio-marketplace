@@ -1043,6 +1043,9 @@ INC-287 also covers TR-26: its fill is filtered to its own stem (two rows, a thi
 - A changed text of another language reaches it after an import or an edit, and its approval.
 - Why: the store's approved rows lie over the compiled catalogs, so a seed change alone is hidden by the row above it.
 - INC-488.
+- Since bundle 13 turn 2 (INC-603, the class's second occurrence): "Sync keys" also sets an Amharic text the code changed when no person wrote it — no 'save' or 'machine' revision for its key (the console, an import and machine translation each write one). A text a person wrote is kept. After any Publish that changes a text in en.ts or am.ts, the operator presses "Sync keys" (Admin › Translations); every brief that changes a text names that step.
+- INC-607: the sync's message reads the door's own answer — `keys_added` (keys this sync added), `languages` (the staff languages it reached), `am_seeded` (the Amharic texts it set from the code). It used to read names the door never returned and always said 0.
+- Test: TR-40 (two scratch keys; the text no person wrote follows, the one a person wrote is kept).
 
 ## The delete confirmation is red (bundle 11, turn A3)
 

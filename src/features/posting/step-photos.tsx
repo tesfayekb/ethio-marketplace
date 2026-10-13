@@ -82,6 +82,7 @@ export function StepPhotos({
   onChangeVideo,
   maxPhotos,
   onHeldChange,
+  onSendingChange,
 }: {
   listingId: string | null;
   photos: DraftPhotoRow[];
@@ -102,6 +103,12 @@ export function StepPhotos({
    * sent): the wizard closes Next while any is on the step. 0 on leaving it.
    */
   onHeldChange?: (count: number) => void;
+  /**
+   * INC-605 — how many photos are still being prepared or sent: the wizard
+   * holds Next and Back while any is on its way, as Add photos is held. 0 on
+   * leaving the step.
+   */
+  onSendingChange?: (count: number) => void;
 }) {
   const { t } = useI18n();
   /** The one dial, for this render: the plan's number, or no cap of our own. */
@@ -144,6 +151,13 @@ export function StepPhotos({
     onHeldChange?.(held);
   }, [held, onHeldChange]);
   useEffect(() => () => onHeldChange?.(0), [onHeldChange]);
+  const sending = items.filter(
+    (item) => item.state === "preparing" || item.state === "uploading",
+  ).length;
+  useEffect(() => {
+    onSendingChange?.(sending);
+  }, [sending, onSendingChange]);
+  useEffect(() => () => onSendingChange?.(0), [onSendingChange]);
 
   const patchItem = useCallback((localId: string, patch: Partial<PhotoItem>) => {
     setItems((prev) =>
@@ -428,6 +442,28 @@ export function StepPhotos({
   }
 
   /**
+   * D160 (the operator, 2026-10-13: "make the cover box more prominent and have
+   * a red ribbon saying cover photo") — the cover's tile is outlined in the
+   * ribbon's red, and a ribbon reading "Cover photo" sits on its picture.
+   */
+  function tileClass(isCover: boolean): string {
+    return isCover
+      ? "space-y-2 rounded-md border-2 border-destructive p-2"
+      : "space-y-2 rounded-md border border-border p-2";
+  }
+
+  function coverRibbon(): ReactNode {
+    return (
+      <span
+        data-testid="post-photo-cover"
+        className="absolute start-0 top-2 rounded-e-md bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground shadow-sm"
+      >
+        {t("post.photos.coverRibbon")}
+      </span>
+    );
+  }
+
+  /**
    * A photo added in this visit: its local preview, its state, and its buttons.
    * `index` is its place once the server has it in the order, else null.
    */
@@ -439,16 +475,19 @@ export function StepPhotos({
         data-testid="post-photo-tile"
         data-photo-id={item.photoId ?? ""}
         data-state={item.state}
-        className="space-y-2 rounded-md border border-border p-2"
+        className={tileClass(item.photoId !== null && item.photoId === coverId)}
         {...(atPlace ? placeProps(item.photoId as string, index) : {})}
       >
-        <img
-          src={item.previewUrl}
-          alt=""
-          width={160}
-          height={120}
-          className="h-24 w-full rounded-sm object-cover"
-        />
+        <div className="relative">
+          <img
+            src={item.previewUrl}
+            alt=""
+            width={160}
+            height={120}
+            className="h-24 w-full rounded-sm object-cover"
+          />
+          {item.photoId !== null && item.photoId === coverId && coverRibbon()}
+        </div>
         <p className="text-xs text-muted-foreground" data-testid="post-photo-state">
           {item.state === "preparing" && t("post.photos.preparing")}
           {item.state === "uploading" &&
@@ -462,11 +501,6 @@ export function StepPhotos({
         {item.state === "refused" && (
           <p className="text-xs text-destructive" data-testid="post-photo-refused">
             {t("post.photos.refusedFinal")}
-          </p>
-        )}
-        {item.photoId !== null && item.photoId === coverId && (
-          <p className="text-xs font-medium text-foreground" data-testid="post-photo-cover">
-            {t("post.photos.cover")}
           </p>
         )}
         {item.photoId !== null && rowRefusal[item.photoId] !== undefined && (
@@ -520,26 +554,24 @@ export function StepPhotos({
         key={row.id}
         data-testid="post-photo-stored"
         data-photo-id={row.id}
-        className="space-y-2 rounded-md border border-border p-2"
+        className={tileClass(row.id === coverId)}
         {...placeProps(row.id, index)}
       >
-        {url !== null ? (
-          <img
-            src={url}
-            alt=""
-            width={160}
-            height={120}
-            loading="lazy"
-            className="h-24 w-full rounded-sm object-cover"
-          />
-        ) : (
-          <p className="text-xs text-muted-foreground">{t("post.photos.done")}</p>
-        )}
-        {row.id === coverId && (
-          <p className="text-xs font-medium text-foreground" data-testid="post-photo-cover">
-            {t("post.photos.cover")}
-          </p>
-        )}
+        <div className="relative">
+          {url !== null ? (
+            <img
+              src={url}
+              alt=""
+              width={160}
+              height={120}
+              loading="lazy"
+              className="h-24 w-full rounded-sm object-cover"
+            />
+          ) : (
+            <p className="h-24 text-xs text-muted-foreground">{t("post.photos.done")}</p>
+          )}
+          {row.id === coverId && coverRibbon()}
+        </div>
         {rowRefusal[row.id] !== undefined && (
           <p className="text-xs text-destructive" role="alert" data-testid="post-photo-state">
             {t(rowRefusal[row.id]!)}

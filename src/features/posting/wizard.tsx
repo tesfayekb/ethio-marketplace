@@ -346,6 +346,29 @@ export function PostingWizard({
   /** INC-585 — photos on step 2 that were not added (refused or unsent). */
   const [photosHeld, setPhotosHeld] = useState(0);
   const photosBlockNext = draft.step === 2 && photosHeld > 0;
+  /**
+   * INC-605 (the operator's walk, 2026-10-13) — photos still being prepared or
+   * sent: Next and Back wait for them, as Add photos already does.
+   */
+  const [photosSending, setPhotosSending] = useState(0);
+  const photosSendingNow = draft.step === 2 && photosSending > 0;
+  /**
+   * INC-604 (the operator's walk, 2026-10-13: "reload by refreshing takes back
+   * to first step selecting category and none is saved") — THE DRAFT'S OWN
+   * ADDRESS. The draft is created at step 1, the moment a category is chosen,
+   * but /post kept its address, so a reload started a new wizard and the draft
+   * (its photos with it) was reachable nowhere. Once the draft exists the
+   * address becomes /post/<id>, replaced in place — no navigation, no remount,
+   * the wizard keeps its step — and a reload opens the draft again (D39). A
+   * Back from a later page lands on /post/<id> too.
+   */
+  useEffect(() => {
+    if (listingId !== null || draft.listingId === null) return;
+    if (typeof window === "undefined") return;
+    const own = `/post/${draft.listingId}`;
+    if (window.location.pathname === own) return;
+    window.history.replaceState(window.history.state, "", own);
+  }, [listingId, draft.listingId]);
   const [triedWithoutLeaf, setTriedWithoutLeaf] = useState(false);
   /**
    * U6-C1-R3b-3d STEP 5 — WHICH LEVEL OF THE TREE STEP 1 STANDS ON. It lives here,
@@ -1026,9 +1049,10 @@ export function PostingWizard({
                            disabled next to the filled Next. */
                           className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
                           disabled={
-                            draft.step === 1 &&
-                            categoryCursor === null &&
-                            categoryTerm.trim() === ""
+                            photosSendingNow ||
+                            (draft.step === 1 &&
+                              categoryCursor === null &&
+                              categoryTerm.trim() === "")
                           }
                           onClick={() => {
                             // INC-277 — while the filter holds a term the tree shows hits,
@@ -1062,6 +1086,7 @@ export function PostingWizard({
                             type="button"
                             data-testid="post-back-to-review"
                             className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
+                            disabled={photosSendingNow}
                             onClick={() => {
                               setReturnToReview(false);
                               draft.goTo(TOTAL_STEPS);
@@ -1079,7 +1104,7 @@ export function PostingWizard({
                              with none chosen there is nothing to send, so Next is
                              closed and says why underneath. Every later step keeps
                              sending (the door is the judge, F3). */
-                            disabled={needsLeaf || photosBlockNext}
+                            disabled={needsLeaf || photosBlockNext || photosSendingNow}
                             onClick={() => {
                               // Rulings 3 — the contact step refuses at its own controls.
                               if (draft.step === 7 && whoQueue.gate === "pending") {
@@ -1109,6 +1134,15 @@ export function PostingWizard({
                           data-testid="post-next-blocked"
                         >
                           {t("post.category.nextBlocked")}
+                        </p>
+                      )}
+                      {/* INC-605 — the photos on their way are sent before Next or Back. */}
+                      {photosSendingNow && (
+                        <p
+                          className="text-xs text-muted-foreground"
+                          data-testid="post-nav-photos-sending"
+                        >
+                          {t("post.photos.waitSending")}
                         </p>
                       )}
                       {/* INC-585 — a photo that was not added is removed before Next. */}
@@ -1185,6 +1219,7 @@ export function PostingWizard({
                             onChangeVideo={(videoUrl) => draft.change({ videoUrl }, false)}
                             maxPhotos={planCaps?.maxPhotos ?? null}
                             onHeldChange={setPhotosHeld}
+                            onSendingChange={setPhotosSending}
                           />
                         )}
                         {draft.step === 3 && (
