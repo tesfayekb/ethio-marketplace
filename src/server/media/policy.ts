@@ -55,6 +55,9 @@ function visionModel(): string {
  * allowed, its phone numbers and e-mail addresses included, and the photo step
  * says that everything in a photo is public. Any other printed item
  * photographed is a photograph; what is printed on it is judged by the codes.
+ * D153 (the operator, 2026-10-13): a logo, or another graphic a business
+ * designed for itself, passes like a business card. No logo is recognised and
+ * no list of banned logos exists; a mark used without right is removed on report.
  */
 export const PHOTO_POLICY_INSTRUCTION = [
   "You screen photographs uploaded to a public classifieds marketplace.",
@@ -66,6 +69,7 @@ export const PHOTO_POLICY_INSTRUCTION = [
   "stock_watermark covers a stock-library or reseller watermark over the subject.",
   "not_a_photo covers a screenshot, a drawing, a blank frame or a test pattern.",
   "A business card is allowed with everything printed on it, its phone numbers, email addresses and handles included: never refuse a business card as contact_in_image or not_a_photo.",
+  "A logo, or another graphic a business designed for itself, is allowed with everything on it, like a business card: never refuse one as not_a_photo or contact_in_image.",
   "A photograph of another printed item, such as a flyer, a label, a menu or a price list, is a photograph and is never not_a_photo; judge what is printed on it by the other codes.",
   'Return JSON only: {"allowed": boolean, "code": string, "evidence": string}.',
   'When the image is acceptable, return {"allowed": true, "code": "", "evidence": ""}.',
