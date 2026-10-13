@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 
 import { gotoReady, switchUser } from "./helpers/ui";
@@ -950,5 +951,92 @@ test.describe("IMPORT-GATE attributes-links", () => {
       `IG-5 a declared links header was refused: ${JSON.stringify(real.payload)}`,
     ).toBe(200);
     expect(real.payload["error"] ?? null).toBeNull();
+  });
+});
+
+/**
+ * IG-6 — bundle 12 turn T10 (F1): the gate's audit row is written only by a
+ * caller who may run that family's import. A signed-in account with no role,
+ * calling `import_gate_audit` straight at the database, is refused for every
+ * family and writes nothing; the super admin's preview through the gate still
+ * writes its `import.preview` row.
+ */
+test.describe("IMPORT-GATE audit", () => {
+  test("IG-6 the import audit row is written only by a caller who may run that family's import", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    const url = process.env["E2E_SUPABASE_URL"] ?? "";
+    const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"] ?? "";
+    expect(url !== "" && key !== "", "IG-6 the staging address and key are set").toBe(true);
+
+    const importRows = async (actor: string, action: string, entity: string) => {
+      const { count, error } = await adminClient()
+        .from("audit_log")
+        .select("id", { count: "exact", head: true })
+        .eq("actor_id", actor)
+        .like("action", action)
+        .like("entity_type", entity);
+      if (error) throw new Error(`[e2e:ig-6] reading the audit log failed: ${error.message}`);
+      return count ?? 0;
+    };
+
+    // (a) A signed-in account with no role, straight at the database.
+    const plain = await leaseUser();
+    const signedIn = await createClient(url, key, {
+      auth: { persistSession: false },
+    }).auth.signInWithPassword({ email: plain.email, password: plain.password });
+    const plainToken = signedIn.data.session?.access_token ?? "";
+    expect(
+      plainToken,
+      `IG-6 the account did not sign in: ${signedIn.error?.message ?? ""}`,
+    ).not.toBe("");
+    const before = await importRows(plain.id, "import.%", "import:%");
+    for (const family of ["attributes", "categories", "locations", "translations"]) {
+      const response = await fetch(`${url}/rest/v1/rpc/import_gate_audit`, {
+        method: "POST",
+        headers: {
+          apikey: key,
+          Authorization: `Bearer ${plainToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ p_family: family, p_event: "preview", p_batch: null, p_counts: {} }),
+      });
+      const text = await response.text();
+      expect(
+        response.ok,
+        `IG-6 ${family}: an account with no role wrote an audit row: ${text}`,
+      ).toBe(false);
+      expect(text, `IG-6 ${family}: the refusal is not the permission's`).toContain(
+        `permission denied: import ${family}`,
+      );
+    }
+    expect(
+      await importRows(plain.id, "import.%", "import:%"),
+      "IG-6 a refused call wrote an audit row",
+    ).toBe(before);
+
+    // (b) The super admin's preview through the gate still writes its row.
+    const { user: admin } = await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/attributes");
+    const token = await bearerOf(page);
+    const adminBefore = await importRows(admin.id, "import.preview", "import:attributes");
+    const response = await page.request.post("/api/admin/attributes/import", {
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      data: {
+        mode: "preview",
+        digest: true,
+        links:
+          "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin\r\n",
+      },
+    });
+    expect(response.status(), `IG-6 the admin's preview: ${await response.text()}`).toBe(200);
+    await expect
+      .poll(() => importRows(admin.id, "import.preview", "import:attributes"), {
+        message: "IG-6 the admin's preview wrote no audit row",
+        timeout: 10_000,
+      })
+      .toBe(adminBefore + 1);
   });
 });

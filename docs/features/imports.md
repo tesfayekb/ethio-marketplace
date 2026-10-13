@@ -33,6 +33,10 @@ A file never gets past a step it failed.
     RPC remains the only authority on meaning and on permission (F3, E7).
 11. **Audit** — one `import.preview` / `import.commit` / `import.undo` row per
     door through `import_gate_audit`; every failure logs `[ssr-error] <path>`.
+    The function writes the row only for a caller who holds that family's own
+    permission (attributes and categories `categories:import`, locations
+    `locations:import`, translations `translations:manage` — the registry's),
+    and refuses anyone else with `42501` (bundle 12 turn T10; IG-6).
 
 A refused file is never stored anywhere. Preview writes nothing.
 
