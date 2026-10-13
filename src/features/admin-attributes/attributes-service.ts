@@ -466,10 +466,13 @@ export async function updateAttributeLink(input: {
 export async function readAttributeHolders(input: {
   attributeId: string;
   linkId: string | null;
+  /** Bundle 7's named item (tidy-up round T3) — the holders of one answer value. */
+  value?: string;
 }): Promise<number> {
   const { data, error } = await supabase.rpc("admin_attribute_holders", {
     p_attribute_id: input.attributeId,
     ...(input.linkId === null ? {} : { p_link_id: input.linkId }),
+    ...(input.value === undefined ? {} : { p_value: input.value }),
   });
   if (error) throw error;
   // Turn 7b item 4a — a null or non-numeric answer is a FAILED read, never zero.

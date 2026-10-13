@@ -30,6 +30,7 @@ import {
   useLinkAttribute,
   useMergeAttributes,
   useAttributeHolders,
+  useRemovedAnswerHolders,
   useUnlinkAttribute,
   useUpsertAttribute,
 } from "./use-attributes";
@@ -270,6 +271,20 @@ export function AttributeEditorDialog({
     ? optionRows.filter((option) => option.value.trim() === "").length
     : 0;
   const [blankCount, setBlankCount] = useState(0);
+  /**
+   * Bundle 7's named item (block S56) — the values this save removes from the
+   * stored options, and how many listings hold one. A stored row is locked (it
+   * can only be switched off, which keeps it and its words on those listings),
+   * so a save removes answers when the type changes to one without options:
+   * every stored value goes. A missing stored row would count the same way.
+   */
+  const storedHasOptions = attribute !== null && typeHasOptions(attribute.attrType);
+  const removedValues = !storedHasOptions
+    ? []
+    : typeHasOptions(attrType)
+      ? storedValues.filter((value) => !composed.some((option) => option.value === value))
+      : storedValues;
+  const removedHolders = useRemovedAnswerHolders(attribute?.id ?? null, removedValues);
 
   /** Empty is null; a non-number for an integer cell is left to the door. */
   const text = (raw: string): string | null => (raw.trim() === "" ? null : raw.trim());
@@ -502,6 +517,17 @@ export function AttributeEditorDialog({
           onChange={(event) => setHelpTextAm(event.target.value)}
         />
       </FormField>
+      {removedValues.length > 0 && removedHolders.known && removedHolders.total > 0 ? (
+        <p data-testid="attribute-edit-removed-holders" className="text-sm text-foreground">
+          {t("admin.attributes.edit.removedHolders").replace(
+            "{count}",
+            String(removedHolders.total),
+          )}
+        </p>
+      ) : null}
+      {removedValues.length > 0 && removedHolders.failed ? (
+        <AttributeErrorLine message={t("admin.attributes.links.error")} />
+      ) : null}
       <AttributeErrorLine message={message} />
       <DialogActions
         onCancel={onClose}

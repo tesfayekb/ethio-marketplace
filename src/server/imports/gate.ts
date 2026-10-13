@@ -185,6 +185,8 @@ export function hasNul(text: string): boolean {
 interface OptionCell {
   value: string;
   label: string;
+  /** INC-582 — `false` when the option is switched off (kept only for held answers' words). */
+  active?: boolean;
 }
 
 /**
@@ -239,6 +241,7 @@ function optionsOf(raw: string): OptionCell[] | null {
     return {
       value: String(record["value"] ?? ""),
       label: String(record["label"] ?? record["label_en"] ?? ""),
+      ...(record["active"] === false ? { active: false } : {}),
     };
   };
   if (text.startsWith("[")) {
@@ -526,7 +529,11 @@ export function checkCell(rule: ColumnRule, value: string): string | null {
         // INC-582 — the form opens "say what it is" only for the value `other`:
         // an option named Other (or Others) under any other value is an answer
         // that asks nothing (the operator's walk, Tablets › Alcatel › Series).
-        if (/^\s*others?\b/i.test(cell.label) && cell.value !== "other") return "optionOtherValue";
+        // A switched-off option (`"active": false`) is never offered, so it asks
+        // nothing either way: it stays, so the ads that hold it keep its words
+        // (INC-466) — switching the old per-parent Others off is the way out.
+        if (cell.active !== false && /^\s*others?\b/i.test(cell.label) && cell.value !== "other")
+          return "optionOtherValue";
       }
       return null;
     }

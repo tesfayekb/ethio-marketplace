@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
@@ -136,6 +136,32 @@ export function useAttributeHolders(attributeId: string, linkId: string | null) 
     staleTime: 0,
     gcTime: 0,
     retry: false,
+  });
+}
+
+/**
+ * Bundle 7's named item (block S56; the tidy-up round, turn T3) — THE EDITOR'S
+ * HOLDERS COUNT. A save that removes options from a definition names how many
+ * listings hold an answer it removes, as "Remove from a category" does; one
+ * read per removed value (`admin_attribute_holders(attribute, null, value)`).
+ * `known` is false until every read has answered; a failed read is `failed`,
+ * never zero. Removal is never blocked.
+ */
+export function useRemovedAnswerHolders(attributeId: string | null, values: readonly string[]) {
+  return useQueries({
+    queries: values.map((value) => ({
+      queryKey: [...ADMIN_ATTRIBUTES_KEY, "holders", attributeId ?? "none", "value", value],
+      queryFn: () => readAttributeHolders({ attributeId: attributeId ?? "", linkId: null, value }),
+      enabled: attributeId !== null,
+      staleTime: 0,
+      gcTime: 0,
+      retry: false,
+    })),
+    combine: (results) => ({
+      total: results.reduce((sum, result) => sum + (result.data ?? 0), 0),
+      known: results.every((result) => result.data !== undefined),
+      failed: results.some((result) => result.isError),
+    }),
   });
 }
 

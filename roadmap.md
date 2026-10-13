@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-12-turn-2.md (bundle 12 — the tidy-up round, D145 — turn T2: INC-586 CO-2 reads its total in a window no write crosses; INC-398 the two specs that purged drafts with the form open stop the page first; INC-582 the import gate refuses an Other whose value is not `other`; no migration).
+The brief in force: docs/governance/briefs/bundle-12-turn-3.md (bundle 12 — the tidy-up round, D145 — turn T3: the definition editor names the listings holding an answer its save removes (bundle 7's named item); INC-582's rule spares a switched-off option; the truth pass; no migration).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -242,6 +242,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 
 - [x] Turn T1 — the operator's walk of 2026-10-13 first: INC-581 (the shell's frame follows the page the body shows — `useShownPathname`; PW-187), INC-585 (a photo that was not added holds Next until it is removed; PP-11), INC-584 / D148 (a business card passes with everything on it; the photo step says photos are public; PPOL-1..PPOL-3); DEC-179 (INC-429 Playwright's exact directory name, INC-495 one ledger line per test, source and run, INC-419 ESLint errors in the guards file); INC-471 (listings.md); INC-582's census read on ethio-prod
 - [x] Turn T2 — INC-586 (CO-2: the database counted before and after a reload of the roster), INC-398 (post-wizard-recent and photo-pipeline stop the page before purging drafts; judged by three runs at most two lines), INC-582 (the import gate refuses an option named Other whose value is not `other`, `optionOtherValue`)
+- [x] Turn T3 — bundle 7's named item: the definition editor names the listings that hold an answer its save removes (a type change off a choice type; AT-81); INC-582's import rule spares a switched-off option (`"active": false`), so the old per-parent Others are switched off and keep their words; the truth pass: the reset function's unit case for a prefill from an unmoved parent's fact exists (reset-scope case (x), 2026-10-07)
 - [ ] Next turns: INC-582's rows through the curator (D147, from T1's census), INC-579 and INC-494 when the `[roster-dump]` arrives, INC-497 (CT-18: the import's order pass renumbers the real roots — the trigger read first), the flaky tests (INC-449, INC-440, INC-430's PW-55, INC-533, INC-562), the rest of ACT-009's line in the order of work below
 
 ### After bundle 7, in this order
