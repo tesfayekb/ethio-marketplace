@@ -195,7 +195,7 @@ test.describe("PHOTO PIPELINE", () => {
     const { user, token } = await seller(page);
     const listingId = await draft(page, token, user.id);
 
-    // The thumb's dial is 120 KB and `gps.jpg` is far over it. (A >6 MB fixture
+    // The thumb's dial is 30 KB (D157) and `gps.jpg` is far over it. (A >1 MB fixture
     // for the cover's own dial would exercise the same line of the same loop, so
     // the smallest dial is the one proved — the refusal is named per variant.)
     const answer = await uploadPhoto(page, {

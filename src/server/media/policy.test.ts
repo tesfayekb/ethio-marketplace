@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { PHOTO_POLICY_INSTRUCTION, POLICY_CODES } from "./policy";
+import { PHOTO_POLICY_INSTRUCTION, POLICY_CODES, screenPhotoPolicy } from "./policy";
 
 /**
  * INC-584 / D148 — the policy pass's instruction. A business card passes with
@@ -36,5 +36,86 @@ describe("the photo policy instruction (INC-584)", () => {
     expect(PHOTO_POLICY_INSTRUCTION).toContain(
       "contact_in_image covers a phone number, email address or messaging handle printed on the image.",
     );
+  });
+});
+
+/**
+ * INC-601 — every size that will be stored is screened, in ONE call: the cover,
+ * the card and the thumb go to the provider together, in that order, and a
+ * smaller copy that shows a different picture is refused `variant_mismatch`.
+ */
+describe("the photo policy pass screens every stored size (INC-601)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  const variants = {
+    cover: { bytes: new Uint8Array([1, 2, 3]), format: "jpeg" as const, width: 1600 },
+    card: { bytes: new Uint8Array([4, 5]), format: "webp" as const, width: 480 },
+    thumb: { bytes: new Uint8Array([6]), format: "png" as const, width: 160 },
+  };
+
+  /** The real call path: no fake mode, a key, and the provider answering `verdict`. */
+  function provider(verdict: Record<string, unknown>) {
+    vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "");
+    vi.stubEnv("E2E_FAKE_TRANSLATE", "");
+    vi.stubEnv("GEMINI_API_KEY", "stub-key");
+    const calls: { url: string; body: Record<string, unknown> }[] = [];
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      calls.push({ url, body: JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown> });
+      const envelope = {
+        candidates: [{ content: { parts: [{ text: JSON.stringify(verdict) }] } }],
+      };
+      return new Response(JSON.stringify(envelope), { status: 200 });
+    });
+    return calls;
+  }
+
+  it("PPOL-5 sends the cover, the card and the thumb in one call, in that order, with their types", async () => {
+    const calls = provider({ allowed: true, code: "", evidence: "" });
+    const verdict = await screenPhotoPolicy(variants, () => {});
+    expect(verdict).toEqual({ ok: true });
+    expect(calls).toHaveLength(1);
+    const contents = calls[0]!.body["contents"] as { parts: { inlineData: unknown }[] }[];
+    expect(contents[0]!.parts.map((part) => part.inlineData)).toEqual([
+      { mimeType: "image/jpeg", data: btoa(String.fromCharCode(1, 2, 3)) },
+      { mimeType: "image/webp", data: btoa(String.fromCharCode(4, 5)) },
+      { mimeType: "image/png", data: btoa(String.fromCharCode(6)) },
+    ]);
+  });
+
+  it("PPOL-6 refuses an upload whose smaller copy shows a different picture", async () => {
+    provider({ allowed: false, code: "variant_mismatch", evidence: "second image differs" });
+    const verdict = await screenPhotoPolicy(variants, () => {});
+    expect(verdict).toEqual({
+      ok: false,
+      code: "variant_mismatch",
+      evidence: "second image differs",
+    });
+  });
+
+  it("PPOL-7 tells the provider to judge all three images, and that less sharp is not a reason", () => {
+    expect(POLICY_CODES).toContain("variant_mismatch");
+    expect(PHOTO_POLICY_INSTRUCTION).toContain(
+      "You are shown three images of one upload: the photo, then a smaller copy of it, then a smallest copy of it.",
+    );
+    expect(PHOTO_POLICY_INSTRUCTION).toContain(
+      "variant_mismatch covers a smaller copy that shows a different picture from the first image; a smaller copy is less sharp, and that alone is never a reason to refuse.",
+    );
+  });
+
+  it("PPOL-8 keeps fake mode on the cover's width, so no test run reaches the provider", async () => {
+    vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "1");
+    const fetched = vi.fn();
+    vi.stubGlobal("fetch", fetched);
+    expect(await screenPhotoPolicy(variants, () => {})).toEqual({ ok: true });
+    const marked = { ...variants, cover: { ...variants.cover, width: 13 } };
+    expect(await screenPhotoPolicy(marked, () => {})).toMatchObject({
+      ok: false,
+      code: "not_a_photo",
+    });
+    expect(fetched).not.toHaveBeenCalled();
   });
 });

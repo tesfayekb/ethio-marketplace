@@ -10,12 +10,18 @@
  *     strip deletes EXIF wholesale (DEC-069), so a photo that arrived sideways
  *     with a rotation flag would stay sideways forever.
  *   2 RESIZE to three variants, never UPSCALING (a small photo stays small —
- *     which is also why the 13-px policy fixture survives the pipeline intact).
- *   3 ENCODE to WebP where the canvas supports it, else JPEG at 0.82.
+ *     which is also why the 13-px policy fixture survives the pipeline intact),
+ *     with the canvas's HIGH-QUALITY filter (INC-599): the default filter
+ *     aliases a large downscale — thumbs measured at SSIM 0.70 against 0.95 —
+ *     and the sharper picture is also the SMALLER file.
+ *   3 ENCODE to WebP where the canvas supports it, at the qualities D157's judge
+ *     chose (cover 0.82, card 0.84, thumb 0.82), else JPEG at 0.82.
  *
  * The three long edges sit UNDER the route's own caps (2000 / 640 / 240), so the
  * device's output can never be refused for size by the server it is aimed at.
- * Ten photos come to roughly 2–3 MB in total.
+ * Measured (D157, 15 photos of 1448 px): a photo comes to about 236 KB in all
+ * three sizes, so ten photos come to about 2.4 MB (ESTIMATE about 2.9 MB from a
+ * phone's full-size photos).
  *
  * This module is pure browser work: no dependency, no image library, and no
  * knowledge of the routes.
@@ -23,7 +29,8 @@
 
 export const EDGES = { cover: 1600, card: 480, thumb: 160 } as const;
 const JPEG_QUALITY = 0.82;
-const WEBP_QUALITY = 0.82;
+/** D157 — the judge's verdict: the smallest quality with SSIM ≥ 0.95 on every photo. */
+export const WEBP_QUALITY = { cover: 0.82, card: 0.84, thumb: 0.82 } as const;
 
 export interface EncodedVariants {
   cover: Blob;
@@ -54,7 +61,7 @@ async function supportsWebp(): Promise<boolean> {
     canvas.width = 1;
     canvas.height = 1;
     const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, "image/webp", WEBP_QUALITY);
+      canvas.toBlob(resolve, "image/webp", WEBP_QUALITY.cover);
     });
     // A browser that does not know WebP silently answers PNG, so the TYPE is
     // the only honest test — asking for the format is not getting it.
@@ -88,6 +95,9 @@ async function draw(
   canvas.height = h;
   const context = canvas.getContext("2d");
   if (!context) throw new EncodeError("no 2d context");
+  // INC-599 — the high-quality filter: sharper and smaller than the default.
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
   context.drawImage(bitmap, 0, 0, w, h);
   const blob = await new Promise<Blob | null>((resolve) => {
     canvas.toBlob(resolve, mime, quality);
@@ -111,11 +121,12 @@ export async function encodeVariants(file: File): Promise<EncodedVariants> {
   try {
     const webp = await supportsWebp();
     const mime = webp ? "image/webp" : "image/jpeg";
-    const quality = webp ? WEBP_QUALITY : JPEG_QUALITY;
+    const quality = (variant: keyof typeof WEBP_QUALITY) =>
+      webp ? WEBP_QUALITY[variant] : JPEG_QUALITY;
 
-    const cover = await draw(bitmap, EDGES.cover, mime, quality);
-    const card = await draw(bitmap, EDGES.card, mime, quality);
-    const thumb = await draw(bitmap, EDGES.thumb, mime, quality);
+    const cover = await draw(bitmap, EDGES.cover, mime, quality("cover"));
+    const card = await draw(bitmap, EDGES.card, mime, quality("card"));
+    const thumb = await draw(bitmap, EDGES.thumb, mime, quality("thumb"));
 
     return {
       cover: cover.blob,

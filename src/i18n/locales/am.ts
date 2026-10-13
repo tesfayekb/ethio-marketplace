@@ -2334,7 +2334,7 @@ export const am: Messages = {
   "post.photos.soonTick": "ፎቶዎች ገና አልተዘጋጁም? በምስሉ ላይ “ፎቶዎች በቅርቡ ይመጣሉ” ያሳዩ።",
   "post.photos.soonFailed": "ማስቀመጥ አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
   "post.photos.rules":
-    "JPG፣ PNG ወይም WebP \u00b7 እያንዳንዱ እስከ 6 ሜባ \u00b7 ቢያንስ 480 ፒክስል ስፋት \u00b7 ጥሩ ብርሃን፣ ንጹህ ዳራ፣ ሙሉ እቃው በምስሉ ውስጥ",
+    "JPG፣ PNG ወይም WebP \u00b7 ቢያንስ 480 ፒክስል ስፋት \u00b7 ጥሩ ብርሃን፣ ንጹህ ዳራ፣ ሙሉ እቃው በምስሉ ውስጥ",
   "post.photos.skip": "ያለ ፎቶ ይቀጥሉ",
   "post.save.paused": "ማስቀመጥ ለ {seconds} ሰከንድ ቆሟል",
   "post.review.activeFromLabel": "ከመቼ ጀምሮ",
@@ -2347,7 +2347,7 @@ export const am: Messages = {
   "post.review.lifetimeCapHint": "በዚህ ምድብ ማስታወቂያዎች ቢበዛ ለ{days} ቀናት ይቆያሉ።",
 
   // ---- U6-C1-R2 — የሁለተኛው ግምገማ እርማቶች ------------------------------------
-  "post.photos.helper": "እስከ {max} ፎቶዎች · JPG፣ PNG ወይም WebP · እስከ 6 ሜባ · ቢያንስ 480 ፒክስል ስፋት",
+  "post.photos.helper": "እስከ {max} ፎቶዎች · JPG፣ PNG ወይም WebP · ቢያንስ 480 ፒክስል ስፋት",
   "post.specs.unitsLater": "በምድብ የተወሰኑ የመለኪያ ዝርዝሮችና ነባሪ መጠኖች ቆይተው ይመጣሉ።",
   "post.assist.triesLeft": "ከ{max} ሙከራዎች {left} ቀርተዋል",
   "post.assist.exhausted": "ለዚህ ማስታወቂያ ሁሉንም {max} የጽሑፍ ሙከራዎች ተጠቅመዋል።",
