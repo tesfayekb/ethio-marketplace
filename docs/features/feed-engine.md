@@ -87,3 +87,7 @@ Tests: scripts/feed-bench.test.ts (FB-1..FB-4), e2e/feed-index.spec.ts (FE-1..FE
 - the invitation (D119, DEC-169) fills its cell and fits a listing card's height: a smaller star, the sentence held to six lines on a compact card and four on a wider one (the whole sentence stays in the page for a screen reader).
 
 Measured on a local build at 360, 400, 640, 768, 1024, 1280 and 1440 px, across two sections and with the invitation: every card within 1 px. A rarer, longer price (three lines of price and the Negotiable pill on a compact card) still shows whole, and its row grows with it. Tests: LC-1 and LC-2 (src/components/marketplace/listing-card.test.tsx); FS-12 (the invitation is a card's height on a phone) and FS-3 (every card on the page one height).
+
+## Bundle 13, turn 3 — each card's cover photo (INC-606)
+
+`feed_page` adds `coverPhotoId` to every card: `(SELECT p.id FROM listing_photos p WHERE p.listing_id = f.listing_id AND p.exif_stripped ORDER BY p.display_order LIMIT 1)`, one indexed lookup per card. The card draws the photo through the links route (docs/features/media-pipeline.md); a card without one draws the category's picture.

@@ -23,6 +23,7 @@ function card(id: string, step: number, extra: Record<string, unknown> = {}) {
     priceUnit: null,
     priceUnitText: null,
     photosSoon: false,
+    coverPhotoId: null,
     publishedAt: "2026-10-09T00:00:00+00:00",
     categoryId: "c1",
     locationId: "p1",
@@ -45,6 +46,17 @@ describe("parseFeedPage", () => {
       ladder: ["A", EVERYWHERE],
       next: "abc",
     });
+  });
+
+  it("FP-11 keeps a card's cover photo id, reads a card without one as no photo, and refuses a wrong one (INC-606)", () => {
+    const parsed = parseFeedPage(
+      page([card("a", 1, { coverPhotoId: "photo-a" }), card("b", 1, { coverPhotoId: null })]),
+    );
+    expect(parsed?.cards.map((one) => one.coverPhotoId)).toEqual(["photo-a", null]);
+    // A door from before INC-606 answers without the field: no photo, not a failure.
+    const { coverPhotoId: _absent, ...bare } = card("c", 1);
+    expect(parseFeedPage(page([bare]))?.cards[0]?.coverPhotoId).toBeNull();
+    expect(parseFeedPage(page([card("d", 1, { coverPhotoId: 7 })]))).toBeNull();
   });
 
   it("FP-2 refuses a page without cards, or with an empty ladder", () => {

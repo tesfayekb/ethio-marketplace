@@ -874,6 +874,24 @@ PW-44 carries that shape: a decoy first question offering `other`, a model filed
 under `other`, and the assertion that the stray model never joins a chosen make's
 list.
 
+## INC-609 — the shared Other hangs under every parent
+
+The importer keeps an Other only under the value `other` (`optionOtherValue`), so
+a list that hangs under another answer (Series under Brand, Model under Make)
+carries ONE Other with no parent; the old per-parent Others (`hp_other`) are
+switched off. The form's list kept only options under the chosen parent, so the
+shared Other was never offered (the operator's walk of 2026-10-13 on Laptops and
+MSI; Phones' Series and Model since that morning's import). `optionBelongsToParent`
+(reset-scope.ts) now counts the shared Other under every parent — as the door
+already did (`validate_listing_draft`: "'other' counts, and is a valid answer") —
+so it is offered last under every parent, opens its box to type in, and a parent's
+move keeps it with the seller's words (DEC-144 rule 4, unchanged). The console reads
+the same rule: the editor's cascade preview and the category's cascade preview show
+it under every parent and leave out a switched-off option, and the definition
+editor lists a dependent list's rows with no parent in their own group, "Options
+for every answer" (`option-group-flat`), where before no group showed them. Tests:
+reset-scope (xiv), (xv); PW-188; AT-31.
+
 ## U6-C1-R3b-4 — the map pin
 
 A pin is OPTIONAL for every category and it is NOT part of the draft's autosave:

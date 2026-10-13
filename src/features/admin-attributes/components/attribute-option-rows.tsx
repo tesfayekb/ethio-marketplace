@@ -76,13 +76,21 @@ export function AttributeOptionRows({
     option.labelEn.toLowerCase().includes(needle) ||
     option.labelAm.toLowerCase().includes(needle);
 
+  /**
+   * INC-609 — a dependent list's rows with NO parent (the shared Other, which
+   * the form offers under every parent) have their own group, last, so they are
+   * seen and edited; before, no group matched them and they were hidden.
+   */
   const groups: { parent: string; label: string }[] = dependent
-    ? parentValues
-        .filter((value) => parentFilter === "" || value === parentFilter)
-        .map((value) => ({
-          parent: value,
-          label: t("admin.attributes.dependsOn.optionsFor").replace("{parent}", value),
-        }))
+    ? [
+        ...parentValues
+          .filter((value) => parentFilter === "" || value === parentFilter)
+          .map((value) => ({
+            parent: value,
+            label: t("admin.attributes.dependsOn.optionsFor").replace("{parent}", value),
+          })),
+        { parent: "", label: t("admin.attributes.dependsOn.optionsForEvery") },
+      ]
     : [{ parent: "", label: t("admin.attributes.options.rowsLabel") }];
 
   /** "n of N": the rows the operator can see out of the rows being edited. */

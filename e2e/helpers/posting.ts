@@ -575,7 +575,15 @@ export interface FoldSet {
   attrKeys: string[];
 }
 
-export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
+export async function seedFoldSet(
+  categoryId: string,
+  /**
+   * INC-609 — `sharedOther` adds the ONE shared Other (value `other`, no parent)
+   * last in the model list, the shape the importer keeps (`optionOtherValue`).
+   * Off by default: every existing caller keeps its list as it was.
+   */
+  options: { sharedOther?: boolean } = {},
+): Promise<FoldSet> {
   const supabase = adminClient();
   const stem = `e2e_fold_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
   const yearKey = `${stem}_year`;
@@ -646,6 +654,9 @@ export async function seedFoldSet(categoryId: string): Promise<FoldSet> {
           facts: { [yearKey]: modelYearValue, [dualKey]: true },
         }),
         option(modelValues[2], { parent: makeValues[1] }),
+        ...(options.sharedOther === true
+          ? [option("other", { label_en: "Other", label_am: "ሌላ" })]
+          : []),
       ],
     },
     {

@@ -38,6 +38,7 @@ const BASE: FeedListing = {
   priceUnit: null,
   priceUnitText: null,
   photosSoon: false,
+  coverPhotoId: null,
   publishedAt: "2026-10-10T08:00:00Z",
   categoryId: "c1",
   locationId: null,
@@ -99,5 +100,18 @@ describe("ListingCard and InviteCard — one card shape", () => {
     expect(text.className).toContain("@min-[11rem]:line-clamp-4");
     // The whole sentence stays in the page.
     expect(text).toHaveTextContent("feed.invite.place");
+  });
+
+  it("LC-3 the seller's cover photo is drawn when the feed gives its link, else the category's picture (INC-606)", () => {
+    const link = "https://stub.supabase.co/storage/v1/object/sign/listing-photos/card.webp?token=t";
+    const { unmount } = render(
+      <ListingCard listing={{ ...BASE, coverPhotoId: "p1" }} photoUrl={link} />,
+    );
+    const picture = screen.getByTestId("listing-card-picture");
+    expect(picture.querySelector("img")).toHaveAttribute("src", link);
+    unmount();
+
+    render(<ListingCard listing={BASE} />);
+    expect(screen.getByTestId("listing-card-picture").querySelector("img")).toBeNull();
   });
 });

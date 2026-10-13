@@ -1628,6 +1628,7 @@ export const en = {
   "admin.attributes.dependsOn.parentEmpty":
     "The chosen attribute has no options yet, so there is nothing to depend on.",
   "admin.attributes.dependsOn.optionsFor": "Options for {parent}",
+  "admin.attributes.dependsOn.optionsForEvery": "Options for every answer",
   "admin.attributes.dependsOn.previewLabel": "Preview the cascade",
   "admin.attributes.dependsOn.previewNone": "Choose a value",
   /* DEC-045b — the cascade preview speaks in the two attributes' own names. */

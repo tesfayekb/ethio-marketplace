@@ -119,8 +119,22 @@ function optionStems(value: string): string[] {
   return out;
 }
 
-export function optionBelongsToParent(option: AttrOption, parentValue: string): boolean {
+/**
+ * Whether an option hangs under this parent answer: its own `parent`, the
+ * published parent-prefixed value (INC-260), or — INC-609 — the ONE shared
+ * "Other" of a list that hangs under another answer (value `other`, no parent),
+ * which belongs to every parent. The door counts it so (`validate_listing_draft`,
+ * DEC-086: "'other' counts, and is a valid answer"), and the importer keeps an
+ * Other only under the value `other` (`optionOtherValue`), so a per-parent
+ * Other is switched off and this one takes its place under every parent. Read
+ * by the form's list, the reset rules and the console's cascade previews.
+ */
+export function optionBelongsToParent(
+  option: { value: string; parent: string | null },
+  parentValue: string,
+): boolean {
   if (option.parent === parentValue) return true;
+  if (option.value === "other" && (option.parent ?? "") === "") return true;
   return optionStems(option.value).some((stem) => stem.startsWith(`${parentValue}_`));
 }
 

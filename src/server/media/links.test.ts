@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_LINK_PHOTOS, photoIdsOf, variantRefs } from "./links";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { Database } from "@/integrations/supabase/types";
+
+import { MAX_LINK_PHOTOS, photoIdsOf, signPhotoRows, variantRefs, variantsOf } from "./links";
 
 /**
  * INC-588 / D151 — what may be signed. The stored shape is the upload route's
@@ -37,5 +41,40 @@ describe("photo links (INC-588)", () => {
     expect(
       photoIdsOf(Array.from({ length: MAX_LINK_PHOTOS + 1 }, (_, index) => `p${index}`)),
     ).toBeNull();
+  });
+
+  it("LK-4 a request may name the sizes it needs; only those are signed (INC-606)", async () => {
+    expect(variantsOf(undefined)).toEqual(["card", "thumb", "cover"]);
+    expect(variantsOf(["card", "thumb", "card"])).toEqual(["card", "thumb"]);
+    expect(variantsOf([])).toBeNull();
+    expect(variantsOf(["original"])).toBeNull();
+    expect(variantsOf("card")).toBeNull();
+
+    const asked: string[][] = [];
+    const service = {
+      storage: {
+        from: () => ({
+          createSignedUrls: async (keys: string[]) => {
+            asked.push(keys);
+            return {
+              data: keys.map((key) => ({
+                path: key,
+                signedUrl: `https://signed/${key}`,
+                error: null,
+              })),
+              error: null,
+            };
+          },
+        }),
+      },
+    } as unknown as SupabaseClient<Database>;
+    const rows = [{ id: "p", paths, exif_stripped: true }];
+    expect(await signPhotoRows(service, rows, ["card", "thumb"])).toEqual({
+      p: {
+        card: "https://signed/default/u/l/p/card.webp",
+        thumb: "https://signed/default/u/l/p/thumb.webp",
+      },
+    });
+    expect(asked).toEqual([["default/u/l/p/card.webp", "default/u/l/p/thumb.webp"]]);
   });
 });

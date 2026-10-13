@@ -1543,6 +1543,7 @@ export const am: Messages = {
   "admin.attributes.dependsOn.none": "ጥገኝነት የለም",
   "admin.attributes.dependsOn.parentEmpty": "የተመረጠው ባህርይ እስካሁን አማራጮች የሉትም።",
   "admin.attributes.dependsOn.optionsFor": "የ{parent} አማራጮች",
+  "admin.attributes.dependsOn.optionsForEvery": "የሁሉም መልሶች አማራጮች",
   "admin.attributes.dependsOn.previewLabel": "ቅደም ተከተሉን ይመልከቱ",
   "admin.attributes.dependsOn.previewNone": "እሴት ይምረጡ",
   "admin.attributes.dependsOn.previewPrompt": "{parent}፡ የ{child} አማራጮችን ለመመልከት እሴት ይምረጡ",

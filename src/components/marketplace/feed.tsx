@@ -9,6 +9,7 @@ import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { useCategoryTree } from "@/features/categories/category-tree";
 import { feedSections, inviteShown, placeCount } from "@/features/feed/feed-page";
+import { useCardPhotos } from "@/features/feed/use-card-photos";
 import { useFeed } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
@@ -99,6 +100,8 @@ export function Feed() {
   }, [hasMore, loadMore]);
 
   const sections = feedSections(cards, ladder);
+  // INC-606 — each card's cover photo, at card size.
+  const coverOf = useCardPhotos(cards);
 
   const { tree } = useCategoryTree();
   const categoryNode =
@@ -190,7 +193,7 @@ export function Feed() {
               <ul className="grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
                 {section.cards.map((listing) => (
                   <li key={listing.id}>
-                    <ListingCard listing={listing} />
+                    <ListingCard listing={listing} photoUrl={coverOf(listing.coverPhotoId)} />
                   </li>
                 ))}
                 {section.step === 1 && invite !== null ? (

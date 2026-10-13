@@ -217,15 +217,25 @@ test.describe("C3 attributes console", () => {
       await addOptionRow(page, "alfa", "alfa-1");
       await addOptionRow(page, "alfa", "alfa-2");
       await addOptionRow(page, "beta", "beta-1");
+      // INC-609 — the shared Other: no parent, its own group, offered under every parent.
+      await addOptionRow(page, "", "other", { en: "Other", am: "ሌላ" });
 
       // THE CASCADE: empty until a parent value is chosen.
       await expect(page.getByTestId("attribute-cascade-option-alfa-1")).toHaveCount(0);
       await page.getByTestId("attribute-cascade-parent").selectOption("alfa");
       await expect(page.getByTestId("attribute-cascade-option-alfa-1")).toBeVisible();
       await expect(page.getByTestId("attribute-cascade-option-beta-1")).toHaveCount(0);
+      await expect(
+        page.getByTestId("attribute-cascade-option-other"),
+        "AT-31: the shared Other is not under alfa",
+      ).toBeVisible();
       await page.getByTestId("attribute-cascade-parent").selectOption("beta");
       await expect(page.getByTestId("attribute-cascade-option-beta-1")).toBeVisible();
       await expect(page.getByTestId("attribute-cascade-option-alfa-1")).toHaveCount(0);
+      await expect(
+        page.getByTestId("attribute-cascade-option-other"),
+        "AT-31: the shared Other is not under beta",
+      ).toBeVisible();
       await page.getByTestId("attribute-cascade-parent").selectOption("");
       await expect(page.getByTestId("attribute-cascade-option-beta-1")).toHaveCount(0);
 
@@ -240,10 +250,10 @@ test.describe("C3 attributes console", () => {
         .single();
       expect(data, "AT-31 the dependent definition was not created").toBeTruthy();
       expect(data!.depends_on, "AT-31 the dependency was not stored").toBeTruthy();
-      const parents = (data!.options as { value: string; parent: string }[]).map(
-        (option) => `${option.parent}/${option.value}`,
+      const parents = (data!.options as { value: string; parent?: string | null }[]).map(
+        (option) => `${option.parent ?? ""}/${option.value}`,
       );
-      expect(parents.sort()).toEqual(["alfa/alfa-1", "alfa/alfa-2", "beta/beta-1"]);
+      expect(parents.sort()).toEqual(["/other", "alfa/alfa-1", "alfa/alfa-2", "beta/beta-1"]);
     } finally {
       await destroyAttribute(modelKey);
       await destroyAttribute(makeKey);
