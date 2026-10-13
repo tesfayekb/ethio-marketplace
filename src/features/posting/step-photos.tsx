@@ -6,9 +6,11 @@ import type { MessageKey } from "@/i18n";
 
 import { controlClass, Field } from "./field";
 import { encodeVariants } from "./photo-encode";
+import { CARD_THEN_THUMB, photoUrl } from "./photo-links";
 import { deletePhoto, setCoverPhoto, uploadPhoto, type DraftPhotoRow } from "./posting-service";
 import { fill, photoRefusalKey } from "./refusal-text";
 import type { PhotoItem, Refusal } from "./types";
+import { usePhotoLinks } from "./use-photo-links";
 
 /**
  * U6-C1a — STEP 2: PHOTOS, PREPARED ON THE DEVICE AND SENT ONE AT A TIME.
@@ -54,13 +56,6 @@ function makeLocalId(): string {
   return `local-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
 }
 
-/** A stored photo's card image, from the registered variant paths. */
-function cardUrlOf(row: DraftPhotoRow): string | null {
-  const paths = row.paths ?? {};
-  const card = paths["card"] ?? paths["thumb"] ?? paths["cover"];
-  return typeof card === "string" ? card : null;
-}
-
 export function StepPhotos({
   listingId,
   photos,
@@ -98,6 +93,8 @@ export function StepPhotos({
   /** The one dial, for this render: the plan's number, or no cap of our own. */
   const MAX_PHOTOS = maxPhotos ?? NO_CAP;
   const inputRef = useRef<HTMLInputElement>(null);
+  /** INC-588 / D151 — the stored photos' links, which expire. */
+  const storedLinks = usePhotoLinks(photos);
   /** Tiles for photos this session picked; server rows fill the rest. */
   const [items, setItems] = useState<PhotoItem[]>([]);
   const [busy, setBusy] = useState(false);
@@ -405,7 +402,7 @@ export function StepPhotos({
         {photos
           .filter((row) => !items.some((item) => item.photoId === row.id))
           .map((row) => {
-            const url = cardUrlOf(row);
+            const url = photoUrl(row, CARD_THEN_THUMB, storedLinks);
             return (
               <li
                 key={row.id}

@@ -1,0 +1,34 @@
+import { useQuery } from "@tanstack/react-query";
+
+import { linksOf, type PhotoLinks } from "./photo-links";
+import { call } from "./posting-service";
+
+/** The route caps a request at thirty photos (src/server/media/links.ts); a listing holds ten. */
+const MAX_PHOTOS = 30;
+
+async function readPhotoLinks(photoIds: string[]): Promise<PhotoLinks> {
+  const answer = await call("/api/media/photo-links", JSON.stringify({ photoIds }), {
+    "Content-Type": "application/json",
+  });
+  if (!answer.ok) throw new Error(`photo links: ${answer.status}`);
+  return linksOf(answer.payload);
+}
+
+/**
+ * INC-588 / D151 — the links of these stored photos, read once per set of
+ * photos and kept 45 minutes (they expire after 60). A failed read leaves every
+ * photo as "no photo" (the category's picture), never a broken image.
+ */
+export function usePhotoLinks(photos: readonly { id: string }[]): PhotoLinks | undefined {
+  const ids = [...new Set(photos.map((photo) => photo.id).filter((id) => id !== ""))]
+    .sort()
+    .slice(0, MAX_PHOTOS);
+  return useQuery({
+    queryKey: ["media", "photo-links", ids.join(",")],
+    queryFn: () => readPhotoLinks(ids),
+    enabled: ids.length > 0,
+    staleTime: 45 * 60_000,
+    gcTime: 50 * 60_000,
+    retry: 2,
+  }).data;
+}

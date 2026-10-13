@@ -20,6 +20,8 @@ import type { AttrOption } from "./attribute-options";
 import type { AttrDef, DraftPhotoRow } from "./posting-service";
 import type { DealLists, PricePeriod } from "./types";
 import { dealLines } from "./deal-lines";
+import { CARD_FIRST, photoUrl } from "./photo-links";
+import { usePhotoLinks } from "./use-photo-links";
 import type { MessageKey } from "@/i18n";
 
 /**
@@ -47,13 +49,6 @@ const PERIOD_KEYS: Record<PricePeriod, MessageKey> = {
 
 function isPeriod(value: string | null): value is PricePeriod {
   return value !== null && value in PERIOD_KEYS;
-}
-
-function coverUrlOf(photos: DraftPhotoRow[]): string | null {
-  const paths = photos[0]?.paths ?? null;
-  if (paths === null) return null;
-  const url = paths["card"] ?? paths["cover"] ?? paths["thumb"];
-  return typeof url === "string" ? url : null;
 }
 
 export function ListingPreview({
@@ -111,7 +106,10 @@ export function ListingPreview({
   const scope = useCatalogScope();
   const tree = useCountryTree(country);
   const nodes: TreeNode[] = tree.loadedCountry === country ? tree.nodes : [];
-  const cover = coverUrlOf(photos);
+  // INC-588 / D151 — the first stored photo, through a link that expires.
+  const links = usePhotoLinks(photos.slice(0, 1));
+  const first = photos[0];
+  const cover = first === undefined ? null : photoUrl(first, CARD_FIRST, links);
 
   const places = coverage
     .map((id) => nodes.find((node) => node.id === id) ?? null)

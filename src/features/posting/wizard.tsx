@@ -679,14 +679,9 @@ export function PostingWizard({
       : pathOf(tree, chosenCategory.id)
           .map((node) => entityName("category", node, entities))
           .join(" › ");
-  const assistPhotoUrls = draft.photos
-    .map((row) => {
-      const paths = row.paths ?? {};
-      const card = paths["card"] ?? paths["cover"] ?? paths["thumb"];
-      return typeof card === "string" ? card : null;
-    })
-    .filter((url): url is string => url !== null)
-    .slice(0, 3);
+  // INC-588 / D151 — the helper names the first three stored photos by id; the
+  // server reads them as this seller and signs their images itself.
+  const assistPhotoIds = draft.photos.map((row) => row.id).slice(0, 3);
 
   function goNext() {
     void (async () => {
@@ -1267,7 +1262,7 @@ export function PostingWizard({
                             listingId={draft.listingId}
                             categoryId={draft.values.categoryId}
                             categoryPath={categoryPath}
-                            photoUrls={assistPhotoUrls}
+                            photoIds={assistPhotoIds}
                             attributes={draft.values.attributes}
                             definitions={definitions}
                             dealKeys={dealExclude}

@@ -850,8 +850,8 @@ export function requestAssist(body: {
   negotiable: boolean;
   period: string | null;
   locale: string;
-  /** The first three stored photos (card variant) — the model may look at them. */
-  photoUrls: string[];
+  /** The first three stored photos, by id: the server reads and signs them (INC-588, D151). */
+  photoIds: string[];
   /** The seller's own draft; their words win over the model's phrasing. */
   title: string;
   description: string;
