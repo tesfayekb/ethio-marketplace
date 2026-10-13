@@ -79,6 +79,11 @@ printed on it, its phone numbers, e-mail addresses and handles included, and the
 step says that everything in a photo is public. Any other printed item photographed is a
 photograph (never `not_a_photo`); its print is judged by the other codes.
 
+D153 (the operator, 2026-10-13): a logo, or another graphic a business designed for itself,
+passes like a business card, with everything on it (PPOL-4). No logo is recognised and no
+list of banned logos exists; a mark used without right is removed on report (Terms 3, 4
+and 15).
+
 Two rules make it safe: an unusable answer is the provider's own failure, never a
 silent accept; and a provider failure answers `providerUnavailable`, which
 REFUSES the upload with a retry hint. **No photo is ever stored unscreened.**

@@ -14,6 +14,12 @@ describe("the photo policy instruction (INC-584)", () => {
     );
   });
 
+  it("PPOL-4 allows a logo, or a graphic a business designed for itself, like a business card (D153)", () => {
+    expect(PHOTO_POLICY_INSTRUCTION).toContain(
+      "A logo, or another graphic a business designed for itself, is allowed with everything on it, like a business card: never refuse one as not_a_photo or contact_in_image.",
+    );
+  });
+
   it("PPOL-3 names any other printed item photographed as a photograph", () => {
     expect(PHOTO_POLICY_INSTRUCTION).toContain(
       "A photograph of another printed item, such as a flyer, a label, a menu or a price list, is a photograph and is never not_a_photo; judge what is printed on it by the other codes.",
