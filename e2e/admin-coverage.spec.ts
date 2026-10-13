@@ -1,4 +1,5 @@
 import { type Locator, type Page } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
 
@@ -16,7 +17,7 @@ import {
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
- * LOCATIONS ERA L2b-C2 — THE COVERAGE CONSOLE (CV-1..CV-7).
+ * LOCATIONS ERA L2b-C2 — THE COVERAGE CONSOLE (CV-1..CV-8).
  *
  * Identity: the pooled job super admin for consumers (J9). Truth: the service
  * client, never a rendered summary (J4). Anchors: structure and testids, never
@@ -350,5 +351,47 @@ test.describe("L2b coverage console", () => {
     }
     await page.getByTestId("coverage-dialog-cancel").click();
     await expectNoHorizontalOverflow(page);
+  });
+});
+
+/**
+ * CV-8 — bundle 12 turn T14: the browser roles read every column of the plans
+ * table except updated_by, which no screen shows. Anonymous and signed-in reads
+ * of the plan's own columns answer; a read naming updated_by, or every column,
+ * is refused (42501). Every read asks for a plan no row has, so no row is read.
+ */
+test.describe("L2b coverage plans — the browser's columns", () => {
+  test("CV-8 the browser roles read the plan's own columns, never updated_by", async () => {
+    const url = process.env["E2E_SUPABASE_URL"] ?? "";
+    const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"] ?? "";
+    expect(url !== "" && key !== "", "CV-8 the staging address and key are set").toBe(true);
+    const none = "e_probe_none";
+    const own =
+      "plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere, updated_at";
+
+    const anon = createClient(url, key, { auth: { persistSession: false } });
+    const plain = await leaseUser();
+    const signedIn = createClient(url, key, { auth: { persistSession: false } });
+    const { error: signInError } = await signedIn.auth.signInWithPassword({
+      email: plain.email,
+      password: plain.password,
+    });
+    expect(
+      signInError,
+      `CV-8 the account did not sign in: ${signInError?.message ?? ""}`,
+    ).toBeNull();
+
+    for (const [who, client] of [
+      ["anon", anon],
+      ["signed-in", signedIn],
+    ] as const) {
+      const ownRead = await client.from("coverage_plans").select(own).eq("plan", none);
+      expect(ownRead.error, `CV-8 ${who}: the plan's own columns were refused`).toBeNull();
+      expect(ownRead.data, `CV-8 ${who}: a plan no row has was found`).toEqual([]);
+      const hidden = await client.from("coverage_plans").select("updated_by").eq("plan", none);
+      expect(hidden.error?.code, `CV-8 ${who}: updated_by was readable`).toBe("42501");
+      const every = await client.from("coverage_plans").select("*").eq("plan", none);
+      expect(every.error?.code, `CV-8 ${who}: every column was readable`).toBe("42501");
+    }
   });
 });

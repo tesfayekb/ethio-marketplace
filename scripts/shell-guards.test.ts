@@ -19,23 +19,40 @@ function run(script: string, args: string[]): { status: number | null; out: stri
   return { status: result.status, out: `${result.stdout}${result.stderr}` };
 }
 
-describe("shell guards run by the unit tests (INC-563)", () => {
-  it("GW-1 the identity-tag guard flags its planted tests and passes the tree", () => {
-    const self = run("scripts/check-identity-tags.sh", ["--self-test"]);
-    expect(self.out).toContain("[identity-tags] self-test OK (flagged X-1 and X-3 only)");
-    expect(self.status).toBe(0);
-    const tree = run("scripts/check-identity-tags.sh", []);
-    expect(tree.out).toContain("[identity-tags] OK");
-    expect(tree.status).toBe(0);
-  });
+/**
+ * INC-594 — each of these tests spawns a shell guard over the whole tree, twice.
+ * The scans take 0.3 s alone, but GW-1 took 6.4 s in the executor's sandbox while
+ * the rest of the suite ran beside it (turn T12), past vitest's 5 s default. The
+ * time is the spawned process waiting for a CPU, not the guard's work, so the
+ * two whole-tree tests carry their own timeout.
+ */
+const TREE_SCAN_MS = 30_000;
 
-  it("GW-2 the DataTable min-width guard flags its planted file and passes the tree", () => {
-    const planted = run("scripts/check-datatable-minwidth.sh", ["scripts/fixtures"]);
-    expect(planted.out).toContain("bad-datatable-minwidth-example.tsx.txt");
-    expect(planted.out).toContain("findings: 1");
-    expect(planted.status).toBe(1);
-    const tree = run("scripts/check-datatable-minwidth.sh", []);
-    expect(tree.out).toContain("findings: 0");
-    expect(tree.status).toBe(0);
-  });
+describe("shell guards run by the unit tests (INC-563)", () => {
+  it(
+    "GW-1 the identity-tag guard flags its planted tests and passes the tree",
+    () => {
+      const self = run("scripts/check-identity-tags.sh", ["--self-test"]);
+      expect(self.out).toContain("[identity-tags] self-test OK (flagged X-1 and X-3 only)");
+      expect(self.status).toBe(0);
+      const tree = run("scripts/check-identity-tags.sh", []);
+      expect(tree.out).toContain("[identity-tags] OK");
+      expect(tree.status).toBe(0);
+    },
+    TREE_SCAN_MS,
+  );
+
+  it(
+    "GW-2 the DataTable min-width guard flags its planted file and passes the tree",
+    () => {
+      const planted = run("scripts/check-datatable-minwidth.sh", ["scripts/fixtures"]);
+      expect(planted.out).toContain("bad-datatable-minwidth-example.tsx.txt");
+      expect(planted.out).toContain("findings: 1");
+      expect(planted.status).toBe(1);
+      const tree = run("scripts/check-datatable-minwidth.sh", []);
+      expect(tree.out).toContain("findings: 0");
+      expect(tree.status).toBe(0);
+    },
+    TREE_SCAN_MS,
+  );
 });
