@@ -73,7 +73,7 @@ export function StepDetails({
   dealKeys = null,
   negotiable = false,
   period = null,
-  photoUrls,
+  photoIds,
   title,
   description,
   onChange,
@@ -91,8 +91,8 @@ export function StepDetails({
   /** Step 13 — the negotiable switch and the period, sent to the writing helper as facts. */
   negotiable?: boolean;
   period?: string | null;
-  /** The first three stored photos (card variant), passed to the assistant. */
-  photoUrls: string[];
+  /** The first three stored photos, by id: the server reads and signs them (INC-588, D151). */
+  photoIds: string[];
   title: string;
   description: string;
   onChange: (
@@ -216,7 +216,7 @@ export function StepDetails({
       negotiable,
       period,
       locale: language,
-      photoUrls: photoUrls.slice(0, 3),
+      photoIds: photoIds.slice(0, 3),
       title,
       description,
       previous: history,

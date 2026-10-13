@@ -1,4 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { Database } from "@/integrations/supabase/types";
 
 import {
   consumeRate,
@@ -11,13 +14,14 @@ import {
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 import { assistDealLines, assistFactLines, composeAssistPrompt } from "@/lib/assist-prompt";
+import { signPhotoRows } from "@/server/media/links";
 
 /**
  * U6-A2-C / U6-C1-R2 — THE WRITING ASSISTANT (DEC-072, in full).
  *
  *   POST /api/listings/assist
  *     { listingId?, categoryId, categoryPath?, attrs, locale, negotiable?, period?,
- *       photoUrls?, title?, description?, previous? }
+ *       photoIds?, title?, description?, previous? }
  *       →  { ok, title, description, triesLeft }
  *
  * THE ASSISTANT WRITES TO SELL, AND STILL NEVER INVENTS. The prompt carries the
@@ -73,12 +77,40 @@ function clamp(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ").slice(0, max) : "";
 }
 
-/** The first three photo URLs, as given — https only, nothing constructed here. */
-function photoUrls(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .filter((entry): entry is string => typeof entry === "string" && entry.startsWith("https://"))
-    .slice(0, MAX_PHOTOS_SENT);
+/**
+ * INC-588 / D151 — the first three photos the model may look at. The browser
+ * names them by id; their rows are read as the CALLER (the listing_photos
+ * policies decide which come back) and their card images are signed by the
+ * service client for this one request (src/server/media/links.ts). The server
+ * fetches only links it signed itself — never an address from the request.
+ */
+async function photoLinks(supabase: SupabaseClient<Database>, raw: unknown): Promise<string[]> {
+  const ids = Array.isArray(raw)
+    ? raw
+        .filter((id): id is string => typeof id === "string" && id !== "")
+        .slice(0, MAX_PHOTOS_SENT)
+    : [];
+  if (ids.length === 0) return [];
+  const { data: rows, error } = await supabase
+    .from("listing_photos")
+    .select("id, paths, exif_stripped")
+    .in("id", ids);
+  if (error) {
+    logRouteError(PATH, `photo rows: ${error.message}`);
+    return [];
+  }
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  let links: Record<string, Record<string, string>>;
+  try {
+    links = await signPhotoRows(supabaseAdmin, rows ?? []);
+  } catch (error) {
+    // The helper writes without the photos rather than not at all.
+    logRouteError(PATH, error);
+    return [];
+  }
+  return ids
+    .map((id) => links[id]?.["card"] ?? links[id]?.["cover"] ?? links[id]?.["thumb"] ?? null)
+    .filter((link): link is string => link !== null);
 }
 
 /** The suggestions already shown, so the next one takes a different angle. */
@@ -252,7 +284,6 @@ async function handlePost(request: Request): Promise<Response> {
     ...assistFactLines(body["attrs"], body["photoFacts"]),
     ...assistDealLines(body["negotiable"], body["period"]),
   ];
-  const urls = photoUrls(body["photoUrls"]);
   const previous = previousPairs(body["previous"]);
   const sellerTitle = clamp(body["title"], TITLE_MAX);
   const sellerDescription = clamp(body["description"], DESCRIPTION_MAX);
@@ -275,6 +306,7 @@ async function handlePost(request: Request): Promise<Response> {
     return routeJson({ ok: true, ...fake, triesLeft }, 200);
   }
 
+  const urls = await photoLinks(supabase, body["photoIds"]);
   const prompt = composeAssistPrompt({
     locale,
     categoryPath,

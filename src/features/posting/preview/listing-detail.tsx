@@ -1,5 +1,7 @@
 import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { dealLines } from "../deal-lines";
+import { CARD_FIRST, photoUrl } from "../photo-links";
+import { usePhotoLinks } from "../use-photo-links";
 import { lazy, Suspense, type ReactNode } from "react";
 import { SellerLine } from "../seller-line";
 
@@ -67,13 +69,6 @@ function isPeriod(value: string | null): value is PricePeriod {
   return value !== null && value in PERIOD_KEYS;
 }
 
-/** A stored photo's best available rendering, in the server's own order. */
-function urlOf(row: DraftPhotoRow): string | null {
-  const paths = row.paths ?? {};
-  const url = paths["card"] ?? paths["cover"] ?? paths["thumb"];
-  return typeof url === "string" && url !== "" ? url : null;
-}
-
 export interface ListingDetailView {
   title: string;
   description: string;
@@ -134,7 +129,11 @@ export function ListingDetail(view: ListingDetailView) {
   const tree = useCountryTree(view.country);
   const nodes: TreeNode[] = tree.loadedCountry === view.country ? tree.nodes : [];
 
-  const images = view.photos.map(urlOf).filter((url): url is string => url !== null);
+  // INC-588 / D151 — every stored photo, through links that expire.
+  const links = usePhotoLinks(view.photos);
+  const images = view.photos
+    .map((row) => photoUrl(row, CARD_FIRST, links))
+    .filter((url): url is string => url !== null);
 
   const places = view.coverage
     .map((id) => nodes.find((node) => node.id === id) ?? null)

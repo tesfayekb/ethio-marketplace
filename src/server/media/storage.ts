@@ -85,6 +85,38 @@ export function publicUrl(partition: Partition, key: string): string {
   return `${target.publicBase.replace(/\/$/, "")}/${key}`;
 }
 
+/**
+ * INC-588 / D151 — READ LINKS THAT EXPIRE. The `supabase` provider's bucket is
+ * private, so a reader gets a link signed by the service client that works for
+ * `seconds` and then stops. Callers sign only rows the CALLER could already read
+ * (src/server/media/links.ts). R2 has no signer here yet: its links are its
+ * public base, and none when that base is not set. A key the provider could not
+ * sign is left out, never guessed (F4).
+ */
+export async function readLinks(
+  service: SupabaseClient<Database>,
+  partition: Partition,
+  keys: string[],
+  seconds: number,
+): Promise<Map<string, string>> {
+  const links = new Map<string, string>();
+  if (keys.length === 0) return links;
+  const target = storageTargetFor(partition);
+  if (target.provider === "r2") {
+    if (target.publicBase === "") return links;
+    for (const key of keys) links.set(key, publicUrl(partition, key));
+    return links;
+  }
+  const { data, error } = await service.storage.from(target.bucket).createSignedUrls(keys, seconds);
+  if (error) throw new Error(`storage sign: ${error.message}`);
+  for (const entry of data ?? []) {
+    if (entry.error === null && typeof entry.path === "string" && entry.signedUrl) {
+      links.set(entry.path, entry.signedUrl);
+    }
+  }
+  return links;
+}
+
 /* ------------------------------ AWS SigV4 (R2) ---------------------------- */
 
 const encoder = new TextEncoder();

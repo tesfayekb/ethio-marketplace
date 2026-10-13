@@ -1327,3 +1327,7 @@ The upload-time policy pass refused a photograph of a business card as `not_a_ph
 ### INC-587 — a held answer is never printed raw (the tidy-up round, turn T4)
 
 An answer whose option was deleted (not switched off) has no label anywhere, and three readers printed its raw value (`toyota_other`): the side preview (`listing-preview.tsx`), the listing's preview page (`preview/listing-detail.tsx`) and the review (`step-review.tsx`, which also printed a removed question's raw key). The title builder and the deal lines already left such an answer out. `choiceHeldKnown(definition, value, options)` (attribute-display.ts) decides for all three: a choice is shown when every picked value is offered or switched off (its label is kept, INC-466), or is `other` with its text; any other type is always shown. The review leaves out an answer whose question no longer exists. Tests: DSP-1..DSP-3.
+
+### INC-588 — a stored photo shows in the form and its previews (the tidy-up round, turn T6; D151)
+
+The photo step's stored tiles, the side preview, the review's preview, the admin's preview as buyer and the screening preview draw a stored photo through a link that expires (docs/features/media-pipeline.md, "Read links that expire"). Until the links arrive, and when none comes back, the category's picture shows. The writing helper sends its three photos by id (`photoIds`), never by address.

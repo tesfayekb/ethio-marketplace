@@ -25,6 +25,7 @@ import {
   seedPostableCategory,
   stopPageBeforePurge,
 } from "./helpers/posting";
+import { signInAsSuperAdmin } from "./helpers/categories";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -442,5 +443,119 @@ test.describe("PHOTO PIPELINE", () => {
     await expect(page.getByTestId("post-next-photos-held")).toHaveCount(0);
     expect(await photoRowsOf(listingId), "PP-11: nothing was registered").toHaveLength(0);
     await page.unroute("**/api/upload/photo");
+  });
+
+  /**
+   * INC-588 / D151 — a stored photo is drawn through a link that expires. The
+   * photo bucket is private and the row stores `{ partition, key }`, never an
+   * address: the stored tile's image is the signed link the photo-links route
+   * gave this seller, and it draws.
+   */
+  test("PP-12 a stored photo is drawn on the photo step through a link that expires", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "gps.jpg" } });
+    expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const image = page.getByTestId("post-photo-stored").locator("img");
+    await expect(image, "PP-12: the stored photo has no signed link").toHaveAttribute(
+      "src",
+      /^https:\/\/.+\/storage\/v1\/object\/sign\/listing-photos\/.+token=/,
+      { timeout: 20_000 },
+    );
+    // The image loads lazily: bring it into view, then it must draw.
+    await image.scrollIntoViewIfNeeded();
+    await expect
+      .poll(async () => image.evaluate((element) => (element as HTMLImageElement).naturalWidth), {
+        message: "PP-12: the signed link did not draw",
+        timeout: 20_000,
+      })
+      .toBeGreaterThan(0);
+  });
+
+  /**
+   * INC-588 / D151 — WHO GETS A LINK. The rows are read as the caller, so the
+   * owner and staff who may view listings get links; another seller gets none
+   * (the same answer as a photo that does not exist); no session is a 401. The
+   * owner's link serves the image itself.
+   */
+  test("PP-13 photo links: the owner and staff get them; another seller and no session do not", async ({
+    page,
+    browser,
+  }) => {
+    const LINKS = "/api/media/photo-links";
+    const owner = await seller(page);
+    const listingId = await draft(page, owner.token, owner.user.id);
+    const uploaded = await uploadPhoto(page, {
+      listingId,
+      token: owner.token,
+      cover: { name: "gps.jpg" },
+    });
+    expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
+    const rows = await photoRowsOf(listingId);
+    expect(rows, "PP-13: the door registered no photo row").toHaveLength(1);
+    const photoId = rows[0]!.id;
+
+    const own = await postRoute(page, LINKS, { photoIds: [photoId] }, { token: owner.token });
+    expect(own.status, JSON.stringify(own.payload)).toBe(200);
+    expect(own.payload["expiresIn"], "PP-13: links last one hour").toBe(3600);
+    const ownLinks = (own.payload["links"] ?? {}) as Record<string, Record<string, string>>;
+    for (const variant of ["card", "thumb", "cover"]) {
+      expect(ownLinks[photoId]?.[variant] ?? "", `PP-13: no ${variant} link for the owner`).toMatch(
+        /\/storage\/v1\/object\/sign\/listing-photos\//,
+      );
+    }
+    const served = await page.request.get(ownLinks[photoId]?.["card"] ?? "");
+    expect(served.status(), "PP-13: the owner's link does not serve").toBe(200);
+    expect(served.headers()["content-type"] ?? "", "PP-13: the link serves no image").toMatch(
+      /^image\//,
+    );
+
+    const anonymous = await postRoute(page, LINKS, { photoIds: [photoId] });
+    expect(anonymous.status, "PP-13: no session must be refused").toBe(401);
+
+    // A second person: another seller, in a context of their own.
+    const otherContext = await browser.newContext();
+    try {
+      const other = await otherContext.newPage();
+      const intruder = await leaseUser();
+      sellers.push(intruder.id);
+      await signInViaSession(other, intruder.email, intruder.password);
+      await gotoReady(other, "/");
+      const foreign = await postRoute(
+        other,
+        LINKS,
+        { photoIds: [photoId] },
+        { token: await bearerOf(other) },
+      );
+      expect(foreign.status, JSON.stringify(foreign.payload)).toBe(200);
+      expect(foreign.payload["links"], "PP-13: another seller got a link").toEqual({});
+    } finally {
+      await otherContext.close();
+    }
+
+    // A third person: staff who may view listings (the job super admin).
+    const staffContext = await browser.newContext();
+    try {
+      const staff = await staffContext.newPage();
+      await signInAsSuperAdmin(staff);
+      const viewed = await postRoute(
+        staff,
+        LINKS,
+        { photoIds: [photoId] },
+        { token: await bearerOf(staff) },
+      );
+      expect(viewed.status, JSON.stringify(viewed.payload)).toBe(200);
+      const staffLinks = (viewed.payload["links"] ?? {}) as Record<string, Record<string, string>>;
+      expect(staffLinks[photoId]?.["card"] ?? "", "PP-13: staff got no link").toMatch(
+        /\/storage\/v1\/object\/sign\/listing-photos\//,
+      );
+    } finally {
+      await staffContext.close();
+    }
   });
 });

@@ -58,6 +58,7 @@ import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/i
 import { Route as ApiListingsPublishRouteImport } from './routes/api/listings/publish'
 import { Route as ApiLocationsCountryRouteImport } from './routes/api/locations.$country'
 import { Route as ApiMapTilesRouteImport } from './routes/api/map/tiles'
+import { Route as ApiMediaPhotoLinksRouteImport } from './routes/api/media/photo-links'
 import { Route as ApiUploadPhotoRouteImport } from './routes/api/upload/photo'
 import { Route as ApiAdminAttributesExportRouteImport } from './routes/api/admin/attributes/export'
 import { Route as ApiAdminAttributesImportRouteImport } from './routes/api/admin/attributes/import'
@@ -317,6 +318,11 @@ const ApiMapTilesRoute = ApiMapTilesRouteImport.update({
   path: '/api/map/tiles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMediaPhotoLinksRoute = ApiMediaPhotoLinksRouteImport.update({
+  id: '/api/media/photo-links',
+  path: '/api/media/photo-links',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUploadPhotoRoute = ApiUploadPhotoRouteImport.update({
   id: '/api/upload/photo',
   path: '/api/upload/photo',
@@ -435,6 +441,7 @@ export interface FileRoutesByFullPath {
   '/api/listings/publish': typeof ApiListingsPublishRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/map/tiles': typeof ApiMapTilesRoute
+  '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
@@ -497,6 +504,7 @@ export interface FileRoutesByTo {
   '/api/listings/publish': typeof ApiListingsPublishRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/map/tiles': typeof ApiMapTilesRoute
+  '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
@@ -561,6 +569,7 @@ export interface FileRoutesById {
   '/api/listings/publish': typeof ApiListingsPublishRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/map/tiles': typeof ApiMapTilesRoute
+  '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
@@ -626,6 +635,7 @@ export interface FileRouteTypes {
     | '/api/listings/publish'
     | '/api/locations/$country'
     | '/api/map/tiles'
+    | '/api/media/photo-links'
     | '/api/upload/photo'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
@@ -688,6 +698,7 @@ export interface FileRouteTypes {
     | '/api/listings/publish'
     | '/api/locations/$country'
     | '/api/map/tiles'
+    | '/api/media/photo-links'
     | '/api/upload/photo'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
@@ -751,6 +762,7 @@ export interface FileRouteTypes {
     | '/api/listings/publish'
     | '/api/locations/$country'
     | '/api/map/tiles'
+    | '/api/media/photo-links'
     | '/api/upload/photo'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
@@ -792,6 +804,7 @@ export interface RootRouteChildren {
   ApiListingsIdentityRoute: typeof ApiListingsIdentityRoute
   ApiListingsPublishRoute: typeof ApiListingsPublishRoute
   ApiMapTilesRoute: typeof ApiMapTilesRoute
+  ApiMediaPhotoLinksRoute: typeof ApiMediaPhotoLinksRoute
   ApiUploadPhotoRoute: typeof ApiUploadPhotoRoute
   ApiAdminAttributesExportRoute: typeof ApiAdminAttributesExportRoute
   ApiAdminAttributesImportRoute: typeof ApiAdminAttributesImportRoute
@@ -1151,6 +1164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMapTilesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/media/photo-links': {
+      id: '/api/media/photo-links'
+      path: '/api/media/photo-links'
+      fullPath: '/api/media/photo-links'
+      preLoaderRoute: typeof ApiMediaPhotoLinksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/upload/photo': {
       id: '/api/upload/photo'
       path: '/api/upload/photo'
@@ -1338,6 +1358,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiListingsIdentityRoute: ApiListingsIdentityRoute,
   ApiListingsPublishRoute: ApiListingsPublishRoute,
   ApiMapTilesRoute: ApiMapTilesRoute,
+  ApiMediaPhotoLinksRoute: ApiMediaPhotoLinksRoute,
   ApiUploadPhotoRoute: ApiUploadPhotoRoute,
   ApiAdminAttributesExportRoute: ApiAdminAttributesExportRoute,
   ApiAdminAttributesImportRoute: ApiAdminAttributesImportRoute,
