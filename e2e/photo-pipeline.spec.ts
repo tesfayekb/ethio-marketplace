@@ -27,12 +27,12 @@ import {
   stopPageBeforePurge,
 } from "./helpers/posting";
 import { signInAsSuperAdmin } from "./helpers/categories";
-import { gotoReady, signInViaSession } from "./helpers/ui";
+import { gotoReady, isMobile, signInViaSession } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * U6-B1 — THE PHOTO PIPELINE (PP-1..PP-9), REQ-036's acceptance; the photo step's
- * tiles (PP-10..PP-12, PP-14..PP-16) and the photo links (PP-13).
+ * tiles (PP-10..PP-12, PP-14..PP-18) and the photo links (PP-13).
  *
  * PP-1 and PP-2 ARE THE DENY-PROOF: a real camera-shaped JPEG, PNG and WebP go
  * in carrying GPS, XMP and ICC containers; what comes BACK OUT OF STORAGE is
@@ -736,5 +736,122 @@ test.describe("PHOTO PIPELINE", () => {
         message: "PP-16: the dropped photo was not registered",
       })
       .toBe(1);
+  });
+
+  /**
+   * PP-17 — D154 (the operator, 2026-10-13): every photo has Move earlier and
+   * Move later, and the first photo is the cover. One door puts a photo at a
+   * place (`move_listing_photo` through the photo route's `move` action); the
+   * order is DB truth, and the step draws it. The route refuses a place that is
+   * not a whole number from 0, and another seller's photo.
+   */
+  test("PP-17 Move earlier and Move later put a photo at its place, and the first is the cover", async ({
+    page,
+    browser,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    for (const name of ["meta.png", "meta.webp", "gps.jpg"] as const) {
+      const uploaded = await uploadPhoto(page, { listingId, token, cover: { name } });
+      expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
+    }
+    const rows = await photoRowsOf(listingId);
+    expect(rows, "PP-17: three photos were uploaded").toHaveLength(3);
+    const [a, b, c] = [rows[0]!.id, rows[1]!.id, rows[2]!.id];
+    const order = async () => (await photoRowsOf(listingId)).map((row) => row.id);
+
+    // D39 — a draft holding a photo resumes on the price page; Back is the way to the photos.
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const stored = page.getByTestId("post-photo-stored");
+    await expect(stored).toHaveCount(3);
+    // The ends cannot move past themselves.
+    await expect(stored.nth(0).getByTestId("post-photo-earlier")).toBeDisabled();
+    await expect(stored.nth(2).getByTestId("post-photo-later")).toBeDisabled();
+
+    // Move later on the first: [b, a, c], and b is the cover.
+    await stored.nth(0).getByTestId("post-photo-later").click();
+    await expect
+      .poll(order, { message: "PP-17: Move later did not move the photo" })
+      .toEqual([b, a, c]);
+    await expect(stored.nth(0)).toHaveAttribute("data-photo-id", b);
+    await expect(stored.nth(0).getByTestId("post-photo-cover")).toBeVisible();
+    // Move earlier on the last: [b, c, a].
+    await stored.nth(2).getByTestId("post-photo-earlier").click();
+    await expect
+      .poll(order, { message: "PP-17: Move earlier did not move the photo" })
+      .toEqual([b, c, a]);
+    await expect(stored.nth(1)).toHaveAttribute("data-photo-id", c);
+
+    // The route: a place that is not a whole number from 0 is refused by name (a refusal
+    // answers 200 with `ok: false`, as every refusal of this route does), and nothing moves.
+    for (const bad of [-1, 1.5, "1", null]) {
+      const answer = await photoAction(page, a, "move", token, bad);
+      expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
+      expect(reasons(answer.payload), `PP-17: position ${String(bad)}`).toEqual([
+        { field: "position", reason: "badValue" },
+      ]);
+    }
+    expect(await order(), "PP-17: a refused place moved a photo").toEqual([b, c, a]);
+    // A place past the end means last.
+    const last = await photoAction(page, b, "move", token, 99);
+    expect(last.status, JSON.stringify(last.payload)).toBe(200);
+    expect(await order(), "PP-17: a place past the end is the last").toEqual([c, a, b]);
+
+    // Another seller cannot move this seller's photo.
+    const otherContext = await browser.newContext();
+    try {
+      const other = await otherContext.newPage();
+      const stranger = await seller(other);
+      const foreign = await photoAction(other, a, "move", stranger.token, 0);
+      expect(foreign.status, JSON.stringify(foreign.payload)).toBe(403);
+      expect(await order(), "PP-17: another seller moved a photo").toEqual([c, a, b]);
+    } finally {
+      await otherContext.close();
+    }
+  });
+
+  /**
+   * PP-18 — D154: on a computer a photo is dragged to another place. The drag
+   * carries the photo's id; the drop on another photo puts it at that place.
+   */
+  test("PP-18 a photo dragged onto another photo takes its place (computer)", async ({ page }) => {
+    test.skip(
+      isMobile(page),
+      "D154 — a drag is a computer's gesture; a phone has the buttons (PP-17)",
+    );
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    for (const name of ["meta.png", "meta.webp", "gps.jpg"] as const) {
+      const uploaded = await uploadPhoto(page, { listingId, token, cover: { name } });
+      expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
+    }
+    const rows = await photoRowsOf(listingId);
+    const [a, b, c] = [rows[0]!.id, rows[1]!.id, rows[2]!.id];
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const stored = page.getByTestId("post-photo-stored");
+    await expect(stored).toHaveCount(3);
+    await expect(stored.nth(2), "PP-18: a photo cannot be dragged").toHaveAttribute(
+      "draggable",
+      "true",
+    );
+
+    // The last photo dropped on the first takes the first place, and is the cover.
+    const transfer = await page.evaluateHandle(() => new DataTransfer());
+    await stored.nth(2).dispatchEvent("dragstart", { dataTransfer: transfer });
+    await stored.nth(0).dispatchEvent("dragover", { dataTransfer: transfer });
+    await stored.nth(0).dispatchEvent("drop", { dataTransfer: transfer });
+    await expect
+      .poll(async () => (await photoRowsOf(listingId)).map((row) => row.id), {
+        message: "PP-18: the drop did not move the photo",
+      })
+      .toEqual([c, a, b]);
+    await expect(stored.nth(0)).toHaveAttribute("data-photo-id", c);
+    await expect(stored.nth(0).getByTestId("post-photo-cover")).toBeVisible();
   });
 });

@@ -3679,6 +3679,10 @@ export type Database = {
         Args: { p_sources: string[]; p_target: string }
         Returns: Json
       }
+      move_listing_photo: {
+        Args: { p_listing_id: string; p_photo_id: string; p_position: number }
+        Returns: Json
+      }
       my_last_listing_private: { Args: { p_exclude?: string }; Returns: Json }
       my_listing_private: { Args: { p_listing_id: string }; Returns: Json }
       my_recent_categories: { Args: never; Returns: Json }

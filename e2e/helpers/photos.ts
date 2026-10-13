@@ -90,8 +90,10 @@ export async function uploadPhoto(
 export async function photoAction(
   page: Page,
   photoId: string,
-  verb: "delete" | "cover",
+  verb: "delete" | "cover" | "move",
   token: string | null,
+  /** D154 — `move` only: the place sent as `position` (any value, so a bad one can be tried). */
+  position?: unknown,
 ): Promise<UploadAnswer> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
@@ -99,7 +101,10 @@ export async function photoAction(
   const response =
     verb === "delete"
       ? await page.request.delete(url, { headers })
-      : await page.request.post(url, { headers, data: { action: "cover" } });
+      : await page.request.post(url, {
+          headers,
+          data: verb === "move" ? { action: "move", position } : { action: "cover" },
+        });
   let payload: Record<string, unknown> = {};
   try {
     payload = (await response.json()) as Record<string, unknown>;
