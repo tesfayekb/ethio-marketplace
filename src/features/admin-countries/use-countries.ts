@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { listCategories, toRoster } from "@/features/admin-categories/categories-service";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
@@ -49,10 +50,10 @@ export function useRootCategories() {
 function useInvalidateCountries() {
   const queryClient = useQueryClient();
   return async () => {
-    await queryClient.invalidateQueries({ queryKey: ADMIN_COUNTRIES_KEY });
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_COUNTRIES_KEY });
     // A market's anchor and its open state are also places: the roster next
     // door must not keep a stale market in its picker (F4 — no stale truth).
-    await queryClient.invalidateQueries({
+    await refreshAfterWrite(queryClient, {
       queryKey: [AUTH_DERIVED_ROOT, "admin", "locations"],
     });
   };

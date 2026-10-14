@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Package } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
@@ -286,7 +287,7 @@ export function AdminListingsPage() {
       return;
     }
     setBusy(false);
-    await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
     const done = moved.current.size;
     if (done === 0 && refused.length > 0) {
       setRefusal(refused[0] ?? t("common.error"));

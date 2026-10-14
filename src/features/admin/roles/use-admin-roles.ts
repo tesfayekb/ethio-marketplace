@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
@@ -36,7 +37,7 @@ export function useAdminRole(roleId: string) {
 
 function useInvalidateRoles() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: ADMIN_ROLES_KEY });
+  return () => refreshAfterWrite(queryClient, { queryKey: ADMIN_ROLES_KEY });
 }
 
 export function useCreateRole() {

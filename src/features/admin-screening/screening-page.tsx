@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ImageIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
@@ -348,7 +349,7 @@ export function AdminScreeningPage() {
             setNotice({ key: abort ?? "common.error", tone: "error" });
           } finally {
             setBusy(false);
-            await queryClient.invalidateQueries({ queryKey: ADMIN_SCREENING_KEY });
+            await refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
           }
         };
 

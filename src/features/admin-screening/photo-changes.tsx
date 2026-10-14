@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
@@ -77,7 +78,7 @@ export function PhotoChanges({
       onNotice(photoChangeErrorKey(message), "error");
     } finally {
       setBusy(null);
-      await queryClient.invalidateQueries({ queryKey: ADMIN_SCREENING_KEY });
+      await refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
     }
   };
 

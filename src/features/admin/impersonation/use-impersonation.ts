@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
@@ -37,7 +38,7 @@ export function useActiveImpersonation(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) return;
-    void queryClient.invalidateQueries({ queryKey: [...IMPERSONATION_KEY, "active"] });
+    void refreshAfterWrite(queryClient, { queryKey: [...IMPERSONATION_KEY, "active"] });
   }, [pathname, enabled, queryClient]);
 
   return query;
@@ -47,7 +48,7 @@ export function useBeginImpersonation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: { targetId: string; reason: string }) => beginImpersonation(input),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: IMPERSONATION_KEY }),
+    onSettled: () => refreshAfterWrite(queryClient, { queryKey: IMPERSONATION_KEY }),
   });
 }
 
@@ -55,7 +56,7 @@ export function useEndImpersonation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (sessionId: string) => endImpersonation(sessionId),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: IMPERSONATION_KEY }),
+    onSettled: () => refreshAfterWrite(queryClient, { queryKey: IMPERSONATION_KEY }),
   });
 }
 

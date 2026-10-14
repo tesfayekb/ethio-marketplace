@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import { listCoveragePlans, setCoveragePlan, type SetCoveragePlanInput } from "./coverage-service";
@@ -28,7 +29,7 @@ export function useSetCoveragePlan() {
     mutationKey: ADMIN_COVERAGE_KEY,
     mutationFn: (input: SetCoveragePlanInput) => setCoveragePlan(input),
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ADMIN_COVERAGE_KEY });
+      await refreshAfterWrite(queryClient, { queryKey: ADMIN_COVERAGE_KEY });
     },
   });
 }

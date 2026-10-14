@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { ImportDialog } from "@/features/admin/import-dialog";
 
@@ -85,7 +86,7 @@ export function ImportCategoriesDialog({
       guard={guard}
       onClose={onClose}
       onWritten={async () => {
-        await queryClient.invalidateQueries({ queryKey: ADMIN_CATEGORIES_KEY });
+        await refreshAfterWrite(queryClient, { queryKey: ADMIN_CATEGORIES_KEY });
       }}
     />
   );

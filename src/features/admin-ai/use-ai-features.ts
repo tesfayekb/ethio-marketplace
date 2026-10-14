@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import { listAiFeatures, setAiFeature, type SetAiFeatureInput } from "./ai-service";
@@ -26,7 +27,7 @@ export function useSetAiFeature() {
     mutationKey: ADMIN_AI_KEY,
     mutationFn: (input: SetAiFeatureInput) => setAiFeature(input),
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ADMIN_AI_KEY });
+      await refreshAfterWrite(queryClient, { queryKey: ADMIN_AI_KEY });
     },
   });
 }

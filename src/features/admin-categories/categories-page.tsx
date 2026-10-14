@@ -18,6 +18,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
@@ -789,7 +790,7 @@ export function AdminCategoriesPage() {
     );
     setBulkBusy(false);
     setBulkProgress(null);
-    await queryClient.invalidateQueries({ queryKey: ADMIN_CATEGORIES_KEY });
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_CATEGORIES_KEY });
   };
 
   /**

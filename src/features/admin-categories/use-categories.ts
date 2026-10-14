@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
@@ -37,7 +38,7 @@ export function useAdminCategories() {
 
 function useInvalidateCategories() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: ADMIN_CATEGORIES_KEY });
+  return () => refreshAfterWrite(queryClient, { queryKey: ADMIN_CATEGORIES_KEY });
 }
 
 export function useCreateCategory() {

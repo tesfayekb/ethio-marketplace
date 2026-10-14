@@ -1,5 +1,6 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
@@ -62,8 +63,8 @@ export function useCategoryLinks(categoryId: string | null) {
 function useInvalidateAttributes() {
   const queryClient = useQueryClient();
   return async () => {
-    await queryClient.invalidateQueries({ queryKey: ADMIN_ATTRIBUTES_KEY });
-    await queryClient.invalidateQueries({ queryKey: ADMIN_CATEGORIES_KEY });
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_ATTRIBUTES_KEY });
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_CATEGORIES_KEY });
   };
 }
 
