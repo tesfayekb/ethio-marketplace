@@ -1439,3 +1439,9 @@ Still to build, in bundle 13 (D154, D155): rotate and crop; the screen's warning
 
 - The cover's tile on the photo step has Remove background (an eraser icon after Edit); no other photo has it. The dialog says the background becomes ethio.com's own colour, the same on every ad, that the seller sees it before keeping it, and that each ad can do this once and try again once.
 - Start shows the cut-out on the house background with the tries left; Keep stores it as the cover through the whole pipeline (the AI screen included); Retry asks once more while a try is left; Cancel keeps the photo as it was. The whole rule: docs/features/media-pipeline.md, "Bundle 13, turn 12".
+
+## Bundle 13, turn 16 — the photo tools say their word; the preview keeps a dialog's focus (D168, INC-618)
+
+- D168 (the operator's walk, 2026-10-14: "the crop buttons at the end can be made more informative, please check what other sites use"): each stored photo's tools stand two a row, each with its icon and a short word under it — Earlier, Later, Edit and, on the cover, Background. The full name ("Move earlier", "Edit photo", "Remove background") stays each button's accessible name and tooltip. eBay's listing tool names its photo tools in an Edit photo screen; Etsy's app names "Edit" in words.
+- Under the photos, one line says that only the cover photo (the first one) can have its background removed (the operator, the same walk).
+- INC-618: the preview sheet ("Preview as buyer") moved the focus to its Close button whenever its parent handed it a new close function — and Screening re-rendered it on every keystroke of the step-up code, so the code took one character. The sheet now moves the focus once, when it opens; Escape calls the newest close function (PSH-1, PSH-2). Census of every effect that moves the focus: the sheet was the only one keyed on a function its parent re-creates.

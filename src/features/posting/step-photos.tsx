@@ -64,9 +64,15 @@ const addButtonClass =
 /** D154 — the drag of a stored photo to another place carries its id under this type. */
 const PHOTO_DRAG = "application/x-ethio-photo";
 
+/**
+ * D168 (the operator, 2026-10-14: "the crop buttons at the end can be made more
+ * informative, please check what other sites use") — each photo tool shows its
+ * icon AND a short word under it (eBay and Etsy name their photo tools in words).
+ */
 const moveButtonClass =
-  "inline-flex min-h-11 grow items-center justify-center rounded-md border border-input text-foreground " +
-  "hover:bg-accent disabled:opacity-40";
+  "inline-flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md border " +
+  "border-input px-1 text-[11px] font-medium leading-tight text-foreground hover:bg-accent " +
+  "disabled:opacity-40";
 
 function makeLocalId(): string {
   return `local-${Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
@@ -705,13 +711,15 @@ export function StepPhotos({
   /**
    * D154 — Move earlier and Move later, on every photo at its place; D154 B2 —
    * and Edit, which opens the editor on the photo's stored cover; bundle 13
-   * turn 12 (D159) — and, on the cover only, Remove background.
+   * turn 12 (D159) — and, on the cover only, Remove background. D168 — two
+   * tools a row, each with its word under the icon (the full name stays the
+   * button's accessible name and its tooltip).
    */
   function moveRow(photoId: string, index: number): ReactNode {
     const busyRow = rowBusy.has(photoId);
     const editUrl = photoUrl({ id: photoId }, ["cover"], storedLinks);
     return (
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2" data-testid="post-photo-tools">
         <button
           type="button"
           data-testid="post-photo-earlier"
@@ -722,6 +730,7 @@ export function StepPhotos({
           onClick={() => void moveStored(photoId, index - 1)}
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          <span className="truncate">{t("post.photos.earlierShort")}</span>
         </button>
         <button
           type="button"
@@ -733,6 +742,7 @@ export function StepPhotos({
           onClick={() => void moveStored(photoId, index + 1)}
         >
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          <span className="truncate">{t("post.photos.laterShort")}</span>
         </button>
         <button
           type="button"
@@ -746,6 +756,7 @@ export function StepPhotos({
           }}
         >
           <Crop className="h-4 w-4" aria-hidden="true" />
+          <span className="truncate">{t("post.photos.editShort")}</span>
         </button>
         {photoId === coverId && (
           <button
@@ -758,6 +769,7 @@ export function StepPhotos({
             onClick={() => setCleaning(photoId)}
           >
             <Eraser className="h-4 w-4" aria-hidden="true" />
+            <span className="truncate">{t("post.photos.backgroundShort")}</span>
           </button>
         )}
       </div>
@@ -863,6 +875,12 @@ export function StepPhotos({
         )}
         {pending.map((item) => sessionTile(item, null))}
       </ul>
+      {/* The operator (2026-10-14): say that only the cover's background can be removed. */}
+      {photos.length > 0 ? (
+        <p className="text-xs text-muted-foreground" data-testid="post-photos-background-hint">
+          {t("post.photos.backgroundCoverOnly")}
+        </p>
+      ) : null}
 
       <div className="space-y-1">
         <input
