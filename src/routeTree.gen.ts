@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as MyListingsRouteImport } from './routes/my-listings'
 import { Route as PostRouteImport } from './routes/post'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -92,6 +93,11 @@ const AdminRoute = AdminRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyListingsRoute = MyListingsRouteImport.update({
+  id: '/my-listings',
+  path: '/my-listings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PostRoute = PostRouteImport.update({
@@ -408,6 +414,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
   '/admin/ai': typeof AdminAiRoute
@@ -473,6 +480,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
+  '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
   '/admin/ai': typeof AdminAiRoute
@@ -540,6 +548,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
   '/admin/ai': typeof AdminAiRoute
@@ -608,6 +617,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/auth'
+    | '/my-listings'
     | '/post'
     | '/settings'
     | '/admin/ai'
@@ -673,6 +683,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/auth'
+    | '/my-listings'
     | '/post'
     | '/settings'
     | '/admin/ai'
@@ -739,6 +750,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/auth'
+    | '/my-listings'
     | '/post'
     | '/settings'
     | '/admin/ai'
@@ -806,6 +818,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  MyListingsRoute: typeof MyListingsRoute
   PostRoute: typeof PostRoute
   SettingsRoute: typeof SettingsRoute
   ApiFeedRoute: typeof ApiFeedRoute
@@ -872,6 +885,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-listings': {
+      id: '/my-listings'
+      path: '/my-listings'
+      fullPath: '/my-listings'
+      preLoaderRoute: typeof MyListingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/post': {
@@ -1377,6 +1397,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  MyListingsRoute: MyListingsRoute,
   PostRoute: PostRoute,
   SettingsRoute: SettingsRoute,
   ApiFeedRoute: ApiFeedRoute,

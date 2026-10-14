@@ -459,7 +459,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         ? "admin"
         : // INC-359 (restored from 6fea44fd) — posting pages belong to My
           // Listings: the panel and its menu stay visible while posting.
-          pathname === "/post" || pathname.startsWith("/post/")
+          // Bundle 16 turn 2 — and the panel's own page, /my-listings.
+          pathname === "/post" ||
+            pathname.startsWith("/post/") ||
+            pathname === "/my-listings" ||
+            pathname.startsWith("/my-listings/")
           ? "my-listings"
           : null;
   /** The marketplace feed is "/" and every category route /c/<slug>. */
@@ -662,7 +666,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const gatedRoute =
     pathname.startsWith("/admin") ||
     pathname.startsWith("/settings") ||
-    pathname.startsWith("/account");
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/my-listings");
   useEffect(() => {
     if (authLoading || user !== null) return;
     void queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });

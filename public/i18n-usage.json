@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 435,
-  "dynamicCallSites": 291,
+  "scanned": 438,
+  "dynamicCallSites": 293,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -46,6 +46,9 @@
       "/account"
     ],
     "account.overview.notifications": [
+      "/account"
+    ],
+    "account.overview.openListings": [
       "/account"
     ],
     "account.overview.profile": [
@@ -2092,7 +2095,8 @@
     ],
     "admin.listings.col.price": [
       "/admin/listings",
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings"
     ],
     "admin.listings.col.seller": [
       "/admin/listings",
@@ -2103,7 +2107,8 @@
       "/admin/listings/$listingId"
     ],
     "admin.listings.col.title": [
-      "/admin/listings"
+      "/admin/listings",
+      "/my-listings"
     ],
     "admin.listings.detail.back": [
       "/admin/listings/$listingId"
@@ -2479,7 +2484,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "admin.locations.filter.allCountriesOption": [
       "/admin/ai",
@@ -2495,7 +2501,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "admin.locations.filter.allLevelsOption": [
       "/admin/ai",
@@ -2511,7 +2518,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "admin.locations.filter.allStatusesOption": [
       "/admin/ai",
@@ -2527,7 +2535,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "admin.locations.filter.closedSuffix": [
       "/admin/ai",
@@ -2543,7 +2552,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "admin.locations.filter.country": [
       "/admin/ai",
@@ -2559,7 +2569,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "admin.locations.filter.level": [
       "/admin/ai",
@@ -2575,7 +2586,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "admin.locations.filter.retiredOnly": [
       "/admin/ai",
@@ -2591,7 +2603,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "admin.locations.filter.search": [
       "/admin/places"
@@ -2610,7 +2623,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "admin.locations.import.openPlaces": [
       "/admin/places"
@@ -3862,6 +3876,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings",
       "/post",
       "/post/$listingId",
       "/settings"
@@ -3872,6 +3887,7 @@
       "/admin/listings",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -3938,6 +3954,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -4044,6 +4061,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -4242,12 +4260,72 @@
     "mfa.verifyActivate": [
       "/settings"
     ],
+    "myListings.closedLine": [
+      "/my-listings"
+    ],
+    "myListings.continue": [
+      "/my-listings"
+    ],
+    "myListings.daysKept": [
+      "/my-listings"
+    ],
+    "myListings.daysLeft": [
+      "/my-listings"
+    ],
+    "myListings.empty": [
+      "/my-listings"
+    ],
+    "myListings.endsToday": [
+      "/my-listings"
+    ],
+    "myListings.expiredOn": [
+      "/my-listings"
+    ],
+    "myListings.groupLabel": [
+      "/my-listings"
+    ],
+    "myListings.inReview": [
+      "/my-listings"
+    ],
+    "myListings.loadError": [
+      "/my-listings"
+    ],
+    "myListings.noEnd": [
+      "/my-listings"
+    ],
+    "myListings.notApproved": [
+      "/my-listings"
+    ],
+    "myListings.priceReduced": [
+      "/my-listings"
+    ],
+    "myListings.removed": [
+      "/my-listings"
+    ],
+    "myListings.removedBecause": [
+      "/my-listings"
+    ],
+    "myListings.reserved": [
+      "/my-listings"
+    ],
+    "myListings.savedOn": [
+      "/my-listings"
+    ],
+    "myListings.soldOn": [
+      "/my-listings"
+    ],
+    "myListings.untitled": [
+      "/my-listings"
+    ],
     "nav.allListings": [
       "/",
       "/c/$slug"
     ],
     "nav.home": [
       "(every page)"
+    ],
+    "nav.myListings": [
+      "/my-listings"
     ],
     "nav.postListing": [
       "/",
@@ -4265,9 +4343,6 @@
     ],
     "panel.admin": [
       "(every page)"
-    ],
-    "panel.myListings": [
-      "/account"
     ],
     "post.action.back": [
       "/post",
@@ -5102,6 +5177,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -5112,6 +5188,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -5734,6 +5811,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -5744,6 +5822,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -5754,6 +5833,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -5763,6 +5843,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -5826,7 +5907,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.all": [
       "/admin/listings",
@@ -5903,7 +5985,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.of": [
       "/admin/ai",
@@ -5921,7 +6004,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.page": [
       "/admin/ai",
@@ -5939,7 +6023,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.pageSize": [
       "/admin/ai",
@@ -5957,7 +6042,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.previous": [
       "/admin/ai",
@@ -5975,7 +6061,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.removeFilter": [
       "/admin/audit",
@@ -6004,7 +6091,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.selectRow": [
       "/admin/ai",
@@ -6022,7 +6110,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.selected": [
       "/admin/ai",
@@ -6040,7 +6129,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/dev/primitives",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.showAll": [
       "/admin/ai",
@@ -6253,6 +6343,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ],
@@ -6262,6 +6353,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/c/$slug",
+      "/my-listings",
       "/post",
       "/post/$listingId"
     ]

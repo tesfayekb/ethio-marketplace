@@ -155,3 +155,5 @@ only authorization authority).
 ## Switching to My Listings from another panel's page (INC-501)
 
 My Listings has no home page (the INC-071 grandfather), so `useSwitchPanel` sets it by state. The shell's setter goes to `/` first when the current page is not the feed (`src/components/app-shell.tsx`), where that state can own the panel. Tests cover the switch from `/account` and `/settings` at phone and desktop widths.
+
+Later word (bundle 16 turn 2): My Listings has its home page, `/my-listings` (`homePath`; its "My listings" item links there), so it activates by navigation like Account and Admin, and the shell derives it from the path. The state path is left to Marketplace; the same tests still prove the switch from `/account` and `/settings`. See `docs/features/my-listings.md`.

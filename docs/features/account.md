@@ -10,6 +10,9 @@ posting: a signed-out visitor is redirected before load to
 The profile card reads the signed-in user's existing RLS-protected profile row
 and auth creation date. The listings card reads the owner's listing statuses
 through the existing `seller_id = auth.uid()` policy and counts them locally.
+Later word (bundle 16 turn 2, INC-469): the listings card reads the counts of
+the six My listings groups from `my_listings`, shows the groups that hold ads
+with the page's own words, and opens `/my-listings` (docs/features/my-listings.md).
 Profile editing links to Settings; posting and sign-in security are quick
 actions. The Account breadcrumb is `Home › Account`.
 
