@@ -1989,4 +1989,64 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     ]);
     expect((await listingTruth(live.id))?.["status"]).toBe("active");
   });
+
+  /**
+   * D172 (the operator, 2026-10-14) — a posted ad's category is never changed, by its
+   * seller or by staff: the seller's `edit_listing` and staff's `admin_edit_listing`
+   * both refuse another leaf, and nothing is written (no revision, no notice; the ad
+   * stays live in its own category). The ad's own leaf is no move: AL-5's seller edit
+   * names it and reaches the content judge.
+   */
+  test("AL-29 Neither door moves a posted ad to another category; nothing is written (D172)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    const other = await seedCategoryBranch();
+    branches.push([other.parent.slug as string, other.leaf.slug as string]);
+    const stored = async () => {
+      const { data, error } = await adminClient()
+        .from("listings")
+        .select("category_id,status")
+        .eq("id", live.id)
+        .single();
+      if (error) throw new Error(`[e2e:al] listing read failed: ${error.message}`);
+      return data;
+    };
+    const kept = { category_id: seller.leafId, status: "active" };
+
+    // The seller's own door.
+    const asSeller = await (
+      await asPerson(seller)
+    ).rpc("edit_listing", {
+      p_listing_id: live.id,
+      p_category_id: other.leaf.id,
+      p_title: live.title,
+      p_description: "e2e scratch listing for the admin console",
+      p_video_url: null,
+      p_attributes: {},
+      p_price_mode: "fixed",
+      p_price_amount: 100,
+      p_price_currency: "ETB",
+      p_price_period: "once",
+      p_poster_expires_at: null,
+      p_coverage: [seller.cityId],
+      p_contact_pref: { messages: true },
+    });
+    expect(asSeller).toMatchObject({ error: "the category of a posted listing is not changed" });
+    expect(await stored()).toEqual(kept);
+
+    // Staff's door.
+    await useJobSuperAdmin(page);
+    expect(
+      await rpcResult(page, "admin_edit_listing", {
+        p_listing_id: live.id,
+        p_changes: { category_id: other.leaf.id },
+        p_reason: "misleading",
+      }),
+    ).toMatchObject({ error: "the category of a posted listing is not changed" });
+    expect(await stored()).toEqual(kept);
+    expect(await revisionRows(live.id, "edit")).toEqual([]);
+    expect(await noticeRows(live.id)).toEqual([]);
+  });
 });
