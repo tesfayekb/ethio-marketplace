@@ -128,8 +128,7 @@ function box(page: Page, id: string) {
 }
 
 const randomId = () => crypto.randomUUID();
-const startsWith = (text: string) =>
-  new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
+const startsWith = (text: string) => new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
 
 async function openAd(page: Page, id: string) {
   await gotoReady(page, `/my-listings/${id}`);
@@ -346,10 +345,9 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     );
 
     await page.getByTestId("my-listing-action-reserve").click();
-    await expect(page.getByTestId("my-listing-notice")).toHaveText(
-      en["myListings.done.reserve"],
-      { timeout: 15000 },
-    );
+    await expect(page.getByTestId("my-listing-notice")).toHaveText(en["myListings.done.reserve"], {
+      timeout: 15000,
+    });
     await expect(page.getByTestId("my-listing-reserved")).toHaveText(en["myListings.reserved"], {
       timeout: 15000,
     });
