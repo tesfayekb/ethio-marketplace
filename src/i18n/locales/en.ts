@@ -649,6 +649,7 @@ export const en = {
   "admin.ai.feature.category_images": "Category pictures",
   "admin.ai.feature.category_icons": "Category icons",
   "admin.ai.feature.translations": "Machine translation",
+  "admin.ai.feature.background_removal": "Background removal",
   "admin.ai.state.on": "On",
   "admin.ai.state.off": "Off",
   "admin.ai.state.tipOn": "The feature is in use.",
@@ -2256,6 +2257,18 @@ export const en = {
   "post.photos.editor.kept": "Your photo was kept as it was.",
   "post.photos.notRelevant":
     "This photo may not show what you are selling. You can keep it or remove it.",
+  "post.photos.background": "Remove background",
+  "post.photos.background.hint":
+    "Your cover photo's background is replaced with ethio.com's own colour, the same on every ad. You see it before you keep it. Each ad can do this once, and try again once.",
+  "post.photos.background.working": "Removing the background…",
+  "post.photos.background.triesLeft": "Tries left for this ad: {count}",
+  "post.photos.background.keep": "Keep",
+  "post.photos.background.failed":
+    "The background could not be removed right now. Please try again later.",
+  "post.photos.background.off": "Background removal is switched off for now.",
+  "post.photos.background.spent": "This ad has used its background removals.",
+  "post.photos.background.notCover":
+    "Only the cover photo's background can be removed. Make this photo the cover first.",
   "post.photo.refusal.nudity": "This photo shows nudity, which is not allowed.",
   "post.photo.refusal.violence": "This photo shows violence, which is not allowed.",
   "post.photo.refusal.weapon": "Weapons cannot be shown here.",

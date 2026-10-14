@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -55,6 +56,8 @@ import { adminClient, leaseUser } from "./helpers/users";
  */
 
 const DRAFT = "/api/listings/draft";
+/** Bundle 13 turn 12 (D155b / D159) — the cover's background removal. */
+const BACKGROUND = "/api/listings/background";
 
 /**
  * D162 / INC-613 — a WIDE photo (16:9), made in memory by the fixture
@@ -1703,5 +1706,143 @@ test.describe("PHOTO PIPELINE", () => {
     );
     await expect(tiles.nth(1)).toHaveAttribute("data-photo-id", second!.id);
     await expect(tiles.nth(1).getByTestId("post-photo-warning")).toHaveCount(0);
+  });
+
+  /** An RGBA pixel within two steps of another, channel by channel (the canvas may round). */
+  function near(actual: number[], expected: number[]): boolean {
+    return (
+      actual.length === expected.length && actual.every((v, i) => Math.abs(v - expected[i]!) <= 2)
+    );
+  }
+
+  /**
+   * PP-30 — D155b / D159: Remove background is offered on the cover only; the
+   * dialog asks nothing until Start; the preview is the cut-out (fake mode: 400 x
+   * 300, a green block on a transparent ground) laid on the house background
+   * (#F3F5F8); Keep stores it through the whole pipeline in the cover's place.
+   */
+  test("PP-30 Remove background is on the cover only; the preview lies on the house background; Keep stores it as the cover (D159)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    for (const name of ["meta.png", "meta.webp"] as const) {
+      const uploaded = await uploadPhoto(page, { listingId, token, cover: { name } });
+      expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
+    }
+    const [first, second] = await photoRowsOf(listingId);
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const tiles = page.getByTestId("post-photo-stored");
+    await expect(tiles).toHaveCount(2);
+    await expect(tiles.nth(0).getByTestId("post-photo-background")).toBeVisible();
+    await expect(
+      tiles.nth(1).getByTestId("post-photo-background"),
+      "PP-30: a photo that is not the cover offers the tool",
+    ).toHaveCount(0);
+
+    await tiles.nth(0).getByTestId("post-photo-background").click();
+    const dialog = page.getByTestId("post-photo-background-dialog");
+    await expect(dialog.getByTestId("post-photo-background-start")).toBeVisible();
+    await expect(dialog.getByTestId("post-photo-background-preview")).toHaveCount(0);
+    await dialog.getByTestId("post-photo-background-start").click();
+    const preview = dialog.getByTestId("post-photo-background-preview");
+    await expect(preview).toHaveAttribute("data-width", "400", { timeout: 20_000 });
+    await expect(preview).toHaveAttribute("data-height", "300");
+    await expect(dialog.getByTestId("post-photo-background-tries")).toHaveText(
+      en["post.photos.background.triesLeft"].replace("{count}", "1"),
+    );
+    // The corner is the house background; the middle is the item.
+    const pixels = await preview.evaluate((canvas: HTMLCanvasElement) => {
+      const context = canvas.getContext("2d")!;
+      const at = (x: number, y: number) => Array.from(context.getImageData(x, y, 1, 1).data);
+      return {
+        corner: at(2, 2),
+        middle: at(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2)),
+      };
+    });
+    expect(
+      near(pixels.corner, [0xf3, 0xf5, 0xf8, 255]),
+      `PP-30: the corner is ${pixels.corner.join(",")}, not the house background`,
+    ).toBe(true);
+    expect(
+      near(pixels.middle, [0x1e, 0x5a, 0x43, 255]),
+      `PP-30: the middle is ${pixels.middle.join(",")}, not the item`,
+    ).toBe(true);
+
+    await dialog.getByTestId("post-photo-background-keep").click();
+    await expect(dialog, "PP-30: the dialog did not close after Keep").toHaveCount(0);
+    await expect
+      .poll(async () => (await photoRowsOf(listingId)).map((row) => row.width), {
+        message: "PP-30: the cut-out is not stored first",
+      })
+      .toEqual([400, second!.width]);
+    const kept = await photoRowsOf(listingId);
+    expect(kept[0]!.id, "PP-30: the kept photo kept the old id").not.toBe(first!.id);
+    expect(kept[1]!.id).toBe(second!.id);
+    expect(await coverOf(listingId), "PP-30: the kept photo is not the cover").toBe(kept[0]!.id);
+    await expect(tiles.nth(0)).toHaveAttribute("data-photo-id", kept[0]!.id);
+    await expect(tiles.nth(0).getByTestId("post-photo-cover")).toBeVisible();
+  });
+
+  /**
+   * PP-31 — D159 at the route: a signed-in seller only; two ids; an ad that is
+   * not the caller's; the cover only (no try spent on a refusal); two tries an
+   * ad, each answered as the image itself, then `backgroundSpent`; the route
+   * stores nothing.
+   */
+  test("PP-31 the background route: the seller's own cover only, two tries an ad, then spent; nothing stored (D159)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    for (const name of ["meta.png", "meta.webp"] as const) {
+      const uploaded = await uploadPhoto(page, { listingId, token, cover: { name } });
+      expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
+    }
+    const [first, second] = await photoRowsOf(listingId);
+    const call = (body: Record<string, unknown>, bearer: string | null = token) =>
+      page.request.post(BACKGROUND, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(bearer === null ? {} : { Authorization: `Bearer ${bearer}` }),
+        },
+        data: body,
+      });
+    const refusalOf = async (response: Awaited<ReturnType<typeof call>>) =>
+      reasons((await response.json()) as Record<string, unknown>);
+
+    expect((await call({ listingId, photoId: first!.id }, null)).status()).toBe(401);
+    expect(await refusalOf(await call({ listingId: "not-an-id", photoId: first!.id }))).toEqual([
+      { field: "listingId", reason: "badValue" },
+    ]);
+    const notMine = await call({ listingId: randomUUID(), photoId: first!.id });
+    expect(notMine.status()).toBe(403);
+    expect(await refusalOf(notMine)).toEqual([{ field: "listingId", reason: "notYourListing" }]);
+    const notCover = await call({ listingId, photoId: second!.id });
+    expect(notCover.status()).toBe(409);
+    expect(await refusalOf(notCover)).toEqual([{ field: "photoId", reason: "notCover" }]);
+
+    for (const left of ["1", "0"]) {
+      const answer = await call({ listingId, photoId: first!.id });
+      expect(answer.status(), `PP-31: try ${left === "1" ? 1 : 2} was refused`).toBe(200);
+      const headers = answer.headers();
+      expect(headers["content-type"]).toBe("image/png");
+      expect(headers["cache-control"]).toBe("no-store");
+      expect(headers["x-tries-left"]).toBe(left);
+      expect([...(await answer.body()).subarray(0, 8)]).toEqual([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+      ]);
+    }
+    expect(await refusalOf(await call({ listingId, photoId: first!.id }))).toEqual([
+      { field: "background", reason: "backgroundSpent" },
+    ]);
+    expect(
+      (await photoRowsOf(listingId)).map((row) => row.id),
+      "PP-31: the route stored or moved a photo",
+    ).toEqual([first!.id, second!.id]);
   });
 });

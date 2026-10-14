@@ -1434,3 +1434,8 @@ Still to build, in bundle 13 (D154, D155): rotate and crop; the screen's warning
 ## Bundle 13, turn 10 — a photo that may not fit the ad (D154 B3)
 
 - A photo the AI screen warned `not_relevant` about is stored; its tile on the photo step says "This photo may not show what you are selling. You can keep it or remove it." The seller keeps it by doing nothing, or removes it. The whole rule: docs/features/media-pipeline.md, "Bundle 13, turn 10".
+
+## Bundle 13, turn 12 — remove the cover's background (D155b / D159)
+
+- The cover's tile on the photo step has Remove background (an eraser icon after Edit); no other photo has it. The dialog says the background becomes ethio.com's own colour, the same on every ad, that the seller sees it before keeping it, and that each ad can do this once and try again once.
+- Start shows the cut-out on the house background with the tries left; Keep stores it as the cover through the whole pipeline (the AI screen included); Retry asks once more while a try is left; Cancel keeps the photo as it was. The whole rule: docs/features/media-pipeline.md, "Bundle 13, turn 12".

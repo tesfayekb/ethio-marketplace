@@ -8,14 +8,15 @@ The operator's rule (D158, 2026-10-13): every AI feature has an on/off switch, a
 
 ## The features
 
-| Feature           | Where the paid call is                                                                    | Unit      | Starting price (ESTIMATE, staff edit it) |
-| ----------------- | ----------------------------------------------------------------------------------------- | --------- | ---------------------------------------- |
-| `photo_screen`    | `POST /api/upload/photo` (Gemini vision, every stored size in one call — four since D162) | call      | $0.002                                   |
-| `writing_helper`  | `POST /api/listings/assist` (Gemini text, up to three photos)                             | call      | $0.003                                   |
-| `name_check`      | `POST /api/listings/identity`, a new seller name (Gemini text)                            | call      | $0.0003                                  |
-| `category_images` | `POST` and the probe `GET /api/admin/categories/generate-image`                           | call      | $0.04                                    |
-| `category_icons`  | `POST /api/admin/categories/suggest-icon` (Gemini text)                                   | call      | $0.0003                                  |
-| `translations`    | `POST /api/translate` (Google Translate)                                                  | character | $0.00002 ($20 per million characters)    |
+| Feature              | Where the paid call is                                                                    | Unit      | Starting price (ESTIMATE, staff edit it) |
+| -------------------- | ----------------------------------------------------------------------------------------- | --------- | ---------------------------------------- |
+| `photo_screen`       | `POST /api/upload/photo` (Gemini vision, every stored size in one call — four since D162) | call      | $0.002                                   |
+| `writing_helper`     | `POST /api/listings/assist` (Gemini text, up to three photos)                             | call      | $0.003                                   |
+| `name_check`         | `POST /api/listings/identity`, a new seller name (Gemini text)                            | call      | $0.0003                                  |
+| `category_images`    | `POST` and the probe `GET /api/admin/categories/generate-image`                           | call      | $0.04                                    |
+| `category_icons`     | `POST /api/admin/categories/suggest-icon` (Gemini text)                                   | call      | $0.0003                                  |
+| `translations`       | `POST /api/translate` (Google Translate)                                                  | character | $0.00002 ($20 per million characters)    |
+| `background_removal` | `POST /api/listings/background` (Photoroom, the cover's cut-out; turn 12)                 | call      | $0.02                                    |
 
 Prices are kept in millionths of a dollar (`unit_cost_microusd`) and budgets in cents (`monthly_budget_cents`; empty = no budget). No budget is set by the migration: the operator sets them.
 
@@ -49,6 +50,7 @@ What each route does when its feature is off:
 | `/api/admin/categories/generate-image` | 409, stage `switched-off`                                                                                                                                                      | 503, stage `switched-off`           |
 | `/api/admin/categories/suggest-icon`   | 409, stage `switched-off`                                                                                                                                                      | 503, stage `switched-off`           |
 | `/api/translate` (POST)                | 409                                                                                                                                                                            | 503                                 |
+| `/api/listings/background`             | refusal `featureOff` ("Background removal is switched off for now.") — asked before any dial, so no try is spent; the same when no `PHOTOROOM_API_KEY` is set                  | `providerUnavailable`               |
 
 What is metered: one call per answer the provider gives (a photo's pass or refusal; a writing suggestion; a name check that answered; an image; an icon); for translations, the characters of every chunk the provider answered.
 
@@ -56,26 +58,27 @@ What is metered: one call per answer the provider gives (a photo's pass or refus
 
 Over the hourly dials sit daily ones, each counted per seller by `consume_rate_limit` (and reset with a pooled test account, INC-377):
 
-| Action   | Hourly (existing)                | Daily (new)                      |
-| -------- | -------------------------------- | -------------------------------- |
-| `upload` | `RATE_LIMIT_UPLOAD_PER_HOUR`, 60 | `RATE_LIMIT_UPLOAD_PER_DAY`, 200 |
-| `assist` | `RATE_LIMIT_ASSIST_PER_HOUR`, 30 | `RATE_LIMIT_ASSIST_PER_DAY`, 60  |
+| Action       | Hourly (existing)                | Daily (new)                         |
+| ------------ | -------------------------------- | ----------------------------------- |
+| `upload`     | `RATE_LIMIT_UPLOAD_PER_HOUR`, 60 | `RATE_LIMIT_UPLOAD_PER_DAY`, 200    |
+| `assist`     | `RATE_LIMIT_ASSIST_PER_HOUR`, 30 | `RATE_LIMIT_ASSIST_PER_DAY`, 60     |
+| `background` | —                                | `RATE_LIMIT_BACKGROUND_PER_DAY`, 10 |
 
-The writing helper keeps its five tries per listing (`assist:listing`).
+The writing helper keeps its five tries per listing (`assist:listing`); background removal has two per ad, for good (`background:listing`, D159).
 
 ## Tests
 
 - Migration proofs E1–E7 (headers, grants, closed tables, the seed and the permissions, the door bodies, the refusals with no caller and with a caller without the permission, and the meter on a scratch feature inside a block that rolls itself back).
-- E2E (e2e/admin-services.spec.ts): SV-1 a seller is refused everywhere; SV-2 the super admin reads the six features and changes a scratch switch, and the door's refusals; SV-3 the meter on the app's own connection (INC-608: its audit rows are read by time, then by action — the alert and the switch-off one call writes share that call's instant).
+- E2E (e2e/admin-services.spec.ts): SV-1 a seller is refused everywhere; SV-2 the super admin reads the seven features and changes a scratch switch, and the door's refusals; SV-3 the meter on the app's own connection (INC-608: its audit rows are read by time, then by action — the alert and the switch-off one call writes share that call's instant).
 - Unit: AIM-1..AIM-4 (src/server/ai/meter.test.ts); AIM-5 (src/server/category-images/suggest-icon-route.test.ts, the icon route switched off and on).
 
 ## The page — Admin › Services › AI (turn 5)
 
 - **Where:** the admin menu's new group **Services** (`admin.nav.group.services`, glyph Plug) holds the section **AI** (`/admin/ai`, `services:view`, glyph Sparkles; src/routes/admin.ai.tsx). The group carries no permission of its own; the section keeps its gate (F3). DEC-091's other outside services join the group when they are built.
-- **One read, one table** (src/features/admin-ai/ai-page.tsx, the coverage console's convention, on the agreed blocks of D118 / D128 — the header, the toolbar with a search and Columns, the row's Edit, the footer with the page size): `admin_ai_features()` in the order photo screening, writing help, seller-name check, category pictures, category icons, machine translation. Each row: the feature's name; its state — On, or Off with the reason and the day in its tip (switched off by staff; its budget reached, back on next month or when the budget is raised); this month's spend against the budget ("$1.23 of $5.00", or "· no budget"), with the alert of the month (80 % of budget; Budget reached); the calls this month and today (and, for machine translation, the characters); the price ("$0.003 a call"; "$20.00 per million characters"); the day it was last changed. Below 1024 px the rows are cards. A row the door answers out of shape refuses the whole read (F4): the page says it could not load.
+- **One read, one table** (src/features/admin-ai/ai-page.tsx, the coverage console's convention, on the agreed blocks of D118 / D128 — the header, the toolbar with a search and Columns, the row's Edit, the footer with the page size): `admin_ai_features()` in the order photo screening, writing help, seller-name check, category pictures, category icons, machine translation, background removal. Each row: the feature's name; its state — On, or Off with the reason and the day in its tip (switched off by staff; its budget reached, back on next month or when the budget is raised); this month's spend against the budget ("$1.23 of $5.00", or "· no budget"), with the alert of the month (80 % of budget; Budget reached); the calls this month and today (and, for machine translation, the characters); the price ("$0.003 a call"; "$20.00 per million characters"); the day it was last changed. Below 1024 px the rows are cards. A row the door answers out of shape refuses the whole read (F4): the page says it could not load.
 - **Edit** (the row's one action, `services:manage` only): the switch, the monthly budget in dollars (empty = no budget) and the price (dollars a call, or dollars a million characters — the same number as millionths a character). The form checks both numbers against the door's ceilings first ($1,000,000 a month; $10 a call), then the save runs through the second factor (`StepUpGate`) and the door; its refusals are sentences (`overBudget`, `unknownFeature`, the bad values; no permission; no fresh code). Photo screening's switch can be turned off (turn 6); the form says what that does (`admin.ai.field.screeningOffNote`).
 - **Money:** spends to the cent (under a cent reads "<$0.01"); budgets in cents; prices to the millionth (src/features/admin-ai/ai-service.ts).
-- **Tests:** AIS-1..AIS-5 (the door's rows, the order, money, the form's fields, the refusals), AIF-1..AIF-3 (the form), AIP-1 (the page's cells and Edit only with `services:manage`), SV-4 (E2E, read only: the six rows by name with state, spend and price; the editor for photo screening; Cancel writes nothing — the real rows are never written, G27).
+- **Tests:** AIS-1..AIS-5 (the door's rows, the order, money, the form's fields, the refusals), AIF-1..AIF-3 (the form), AIP-1 (the page's cells and Edit only with `services:manage`), SV-4 (E2E, read only: the seven rows by name with state, spend and price; the editor for photo screening; Cancel writes nothing — the real rows are never written, G27).
 
 ## Not yet
 
@@ -106,3 +109,14 @@ The operator (2026-10-14): "should also not follow any instructions inside descr
 - **The calls.** The photo screen (src/server/media/policy.ts: the ad's category and title; text written on a photo), the writing helper (src/routes/api/listings/assist.ts with src/lib/assist-prompt.ts: the category path the page sends, every fact, the draft title and description, the earlier suggestions; the language is a code or English), the shop-name check (src/routes/api/listings/identity.ts: the seller name), the category pictures (src/server/category-images: the category's names). The one exception is the category picture's `customPrompt`, staff's own direction (categories:assets), cleaned and cut but read as direction; the console no longer sends it. Translations go to a translation service, not a model that takes instructions.
 - **The guard.** UNT-4 lists every file under src/ that calls a model (`:generateContent`) and fails when one is not in the list or does not take the module.
 - Tests: UNT-1..UNT-5 (src/lib/untrusted-text.test.ts); src/lib/assist-prompt.test.ts reads the facts as quoted lines.
+
+## Bundle 13 turn 12 — background removal (D155b / D159)
+
+The operator: one fixed background in the house colour, previewed before the seller keeps it (D155); the tool on the cover only, once per ad plus one retry, in every category (D159); the provider Photoroom (D156), its terms read before building.
+
+- **The feature `background_removal`** (one migration): its name joins `ai_features`' check; its row is on, priced $0.02 a call (Photoroom's listed price, 2026-10-13), with no budget — the operator sets one in Admin › Services › AI. At its budget it switches itself off, as every feature but photo screening (D158).
+- **The route `POST /api/listings/background`** (src/routes/api/listings/background.ts): the caller; the switch (off, or no `PHOTOROOM_API_KEY`: `featureOff`, before any dial); the daily dial `background:day` (10); the two ids; the listing read as the caller (`notYourListing`, `listingNotOpenForPhotos` — the statuses the upload route takes, one set in src/server/media/hold.ts); the photos read as the caller in their order (`photoGone`; any photo but the first: `notCover`); the ad's two tries (`background:listing`, spent before the provider: `backgroundSpent`); the stored cover, read through a link the server signs for it, sent to Photoroom with nothing else (src/server/media/background.ts: a WebP cut-out on a transparent ground, at most 4 megapixels); one call metered; the answer is the image itself (`x-tries-left`, `no-store`). Nothing is stored by the route. A provider failure is `providerUnavailable`.
+- **The colour and the keeping** (src/features/posting/photo-background.ts, background-dialog.tsx): the seller's device lays the cut-out on #F3F5F8 (the page tone, D132), shows it, and Keep sends it through the upload route in the cover's place (`replaces`: the four sizes on the device, the strip, the AI screen). The server does no image work (DEC-082).
+- **Photoroom's terms** (photoroom.com/platform/security, read 2026-10-14): images sent to its synchronous endpoint are discarded as soon as the response returns; self-serve API plans may train on them unless the account's opt-out is set (the operator sets it); its infrastructure runs in the United States, on Google Cloud and AWS. The Privacy draft names it (docs/spec/legal/privacy-policy-v1, section 6).
+- **Fake mode** (`E2E_FAKE_BACKGROUND=1`, or the harness's `E2E_FAKE_TRANSLATE=1`): a fixed 400 × 300 PNG, a green block on a transparent ground; metered like the provider.
+- Tests: BGR-1..BGR-4 (src/server/media/background.test.ts), BGR-5..BGR-10 (src/server/media/background-route.test.ts), PBG-1..PBG-3 (src/features/posting/photo-background.test.ts), PBG-4..PBG-7 (src/features/posting/background-dialog.test.tsx), AIM-4; E2E PP-30, PP-31 (e2e/photo-pipeline.spec.ts), SV-2 and SV-4 (the seven features).

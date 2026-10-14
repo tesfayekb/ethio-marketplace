@@ -54,6 +54,7 @@ import { Route as ApiGeoSearchRouteImport } from './routes/api/geo/search'
 import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
 import { Route as ApiListingsAliasRouteImport } from './routes/api/listings/alias'
 import { Route as ApiListingsAssistRouteImport } from './routes/api/listings/assist'
+import { Route as ApiListingsBackgroundRouteImport } from './routes/api/listings/background'
 import { Route as ApiListingsDraftRouteImport } from './routes/api/listings/draft'
 import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/identity'
 import { Route as ApiListingsPublishRouteImport } from './routes/api/listings/publish'
@@ -299,6 +300,11 @@ const ApiListingsAssistRoute = ApiListingsAssistRouteImport.update({
   path: '/api/listings/assist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiListingsBackgroundRoute = ApiListingsBackgroundRouteImport.update({
+  id: '/api/listings/background',
+  path: '/api/listings/background',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiListingsDraftRoute = ApiListingsDraftRouteImport.update({
   id: '/api/listings/draft',
   path: '/api/listings/draft',
@@ -443,6 +449,7 @@ export interface FileRoutesByFullPath {
   '/api/i18n/$lang': typeof ApiI18nLangRoute
   '/api/listings/alias': typeof ApiListingsAliasRoute
   '/api/listings/assist': typeof ApiListingsAssistRoute
+  '/api/listings/background': typeof ApiListingsBackgroundRoute
   '/api/listings/draft': typeof ApiListingsDraftRoute
   '/api/listings/identity': typeof ApiListingsIdentityRoute
   '/api/listings/publish': typeof ApiListingsPublishRoute
@@ -507,6 +514,7 @@ export interface FileRoutesByTo {
   '/api/i18n/$lang': typeof ApiI18nLangRoute
   '/api/listings/alias': typeof ApiListingsAliasRoute
   '/api/listings/assist': typeof ApiListingsAssistRoute
+  '/api/listings/background': typeof ApiListingsBackgroundRoute
   '/api/listings/draft': typeof ApiListingsDraftRoute
   '/api/listings/identity': typeof ApiListingsIdentityRoute
   '/api/listings/publish': typeof ApiListingsPublishRoute
@@ -573,6 +581,7 @@ export interface FileRoutesById {
   '/api/i18n/$lang': typeof ApiI18nLangRoute
   '/api/listings/alias': typeof ApiListingsAliasRoute
   '/api/listings/assist': typeof ApiListingsAssistRoute
+  '/api/listings/background': typeof ApiListingsBackgroundRoute
   '/api/listings/draft': typeof ApiListingsDraftRoute
   '/api/listings/identity': typeof ApiListingsIdentityRoute
   '/api/listings/publish': typeof ApiListingsPublishRoute
@@ -640,6 +649,7 @@ export interface FileRouteTypes {
     | '/api/i18n/$lang'
     | '/api/listings/alias'
     | '/api/listings/assist'
+    | '/api/listings/background'
     | '/api/listings/draft'
     | '/api/listings/identity'
     | '/api/listings/publish'
@@ -704,6 +714,7 @@ export interface FileRouteTypes {
     | '/api/i18n/$lang'
     | '/api/listings/alias'
     | '/api/listings/assist'
+    | '/api/listings/background'
     | '/api/listings/draft'
     | '/api/listings/identity'
     | '/api/listings/publish'
@@ -769,6 +780,7 @@ export interface FileRouteTypes {
     | '/api/i18n/$lang'
     | '/api/listings/alias'
     | '/api/listings/assist'
+    | '/api/listings/background'
     | '/api/listings/draft'
     | '/api/listings/identity'
     | '/api/listings/publish'
@@ -812,6 +824,7 @@ export interface RootRouteChildren {
   ApiI18nLangRoute: typeof ApiI18nLangRoute
   ApiListingsAliasRoute: typeof ApiListingsAliasRoute
   ApiListingsAssistRoute: typeof ApiListingsAssistRoute
+  ApiListingsBackgroundRoute: typeof ApiListingsBackgroundRoute
   ApiListingsDraftRoute: typeof ApiListingsDraftRoute
   ApiListingsIdentityRoute: typeof ApiListingsIdentityRoute
   ApiListingsPublishRoute: typeof ApiListingsPublishRoute
@@ -1148,6 +1161,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiListingsAssistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/listings/background': {
+      id: '/api/listings/background'
+      path: '/api/listings/background'
+      fullPath: '/api/listings/background'
+      preLoaderRoute: typeof ApiListingsBackgroundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/listings/draft': {
       id: '/api/listings/draft'
       path: '/api/listings/draft'
@@ -1375,6 +1395,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiI18nLangRoute: ApiI18nLangRoute,
   ApiListingsAliasRoute: ApiListingsAliasRoute,
   ApiListingsAssistRoute: ApiListingsAssistRoute,
+  ApiListingsBackgroundRoute: ApiListingsBackgroundRoute,
   ApiListingsDraftRoute: ApiListingsDraftRoute,
   ApiListingsIdentityRoute: ApiListingsIdentityRoute,
   ApiListingsPublishRoute: ApiListingsPublishRoute,

@@ -127,6 +127,22 @@ const PHOTO_REASONS: Record<string, MessageKey> = {
   photoGone: "post.photo.refusal.photoGone",
 };
 
+/**
+ * Bundle 13 turn 12 (D155b / D159) — the background tool's own refusals; every
+ * other reason (a closed ad, another seller's ad, a photo gone, the dial) reads
+ * as the upload route's.
+ */
+const BACKGROUND_REASONS: Record<string, MessageKey> = {
+  featureOff: "post.photos.background.off",
+  providerUnavailable: "post.photos.background.failed",
+  backgroundSpent: "post.photos.background.spent",
+  notCover: "post.photos.background.notCover",
+};
+
+/** A background-route refusal, in the seller's language. */
+export function backgroundRefusalKey(reason: string): MessageKey {
+  return ownValue(BACKGROUND_REASONS, base(reason)) ?? photoRefusalKey(reason);
+}
 /** A draft-route refusal, in the seller's language. */
 export function draftRefusalKey(reason: string): MessageKey {
   return ownValue(DRAFT_REASONS, base(reason)) ?? "post.refusal.unknown";
