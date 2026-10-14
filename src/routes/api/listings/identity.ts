@@ -15,6 +15,7 @@ import {
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
+import { untrustedText, withUntrustedRule } from "@/lib/untrusted-text";
 
 /**
  * U6-A2-C — THE POSTING IDENTITY ROUTE (D17).
@@ -59,12 +60,15 @@ const IMITATION_WINDOW = "24 hours";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
-const IMITATION_PROMPT = [
-  "Does this marketplace seller name imitate or impersonate a well-known company,",
-  "brand, bank, government body or public figure?",
-  'Answer JSON only: {"imitates": boolean, "of": string}.',
-  "Answer false for ordinary personal names, generic words and small local shops.",
-].join(" ");
+/** D166 — the shared rule about a person's words closes the instruction. */
+const IMITATION_PROMPT = withUntrustedRule(
+  [
+    "Does this marketplace seller name imitate or impersonate a well-known company,",
+    "brand, bank, government body or public figure?",
+    'Answer JSON only: {"imitates": boolean, "of": string}.',
+    "Answer false for ordinary personal names, generic words and small local shops.",
+  ].join(" "),
+);
 
 /**
  * U6-C1-R2 — THE IMITATION CHECK (Tier A rigor, F3).
@@ -100,7 +104,8 @@ async function imitationOf(alias: string): Promise<Imitation> {
       headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: IMITATION_PROMPT }] },
-        contents: [{ role: "user", parts: [{ text: `Seller name: ${alias}` }] }],
+        // D166 — the seller's name enters as one quoted string.
+        contents: [{ role: "user", parts: [{ text: untrustedText("Seller name", alias, 120) }] }],
         generationConfig: { responseMimeType: "application/json", temperature: 0 },
       }),
     });

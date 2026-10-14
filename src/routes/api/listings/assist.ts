@@ -14,6 +14,7 @@ import {
   userClientFromRequest,
 } from "@/server/supabase/user-client";
 import { assistDealLines, assistFactLines, composeAssistPrompt } from "@/lib/assist-prompt";
+import { withUntrustedRule } from "@/lib/untrusted-text";
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
 import { signPhotoRows } from "@/server/media/links";
 
@@ -161,20 +162,23 @@ function fakeAssist(
   return { title, description: clamp(body, DESCRIPTION_MAX) };
 }
 
-const SYSTEM_PROMPT = [
-  "You write marketplace listing copy for a classifieds app.",
-  "Write to sell: a natural, specific title and a persuasive but truthful description.",
-  "You are given a category path, the facts the seller entered, the seller's own draft",
-  "title and description, and up to three photos of the item.",
-  "KEEP EVERY FACT AND PHRASE THE SELLER GAVE — their words win over your phrasing.",
-  "Add nothing that is not visible in the photos or stated in the facts: never invent a",
-  "condition, measurement, age, brand, history, price, delivery term, guarantee or contact detail.",
-  "If a fact is missing, leave it out rather than guessing.",
-  "Never state a price, an amount or a currency. You may say what the item is sold per, and that the price is negotiable, when the facts say so.",
-  "If earlier suggestions are listed, take a clearly different angle from all of them.",
-  `Return JSON only: {"title": string (max ${TITLE_MAX} characters), "description": string (max ${DESCRIPTION_MAX} characters)}.`,
-  "Write both fields in the requested language.",
-].join(" ");
+/** D166 — the shared rule about a person's words and text inside a photo closes it. */
+const SYSTEM_PROMPT = withUntrustedRule(
+  [
+    "You write marketplace listing copy for a classifieds app.",
+    "Write to sell: a natural, specific title and a persuasive but truthful description.",
+    "You are given a category path, the facts the seller entered, the seller's own draft",
+    "title and description, and up to three photos of the item.",
+    "KEEP EVERY FACT AND PHRASE THE SELLER GAVE — their words win over your phrasing.",
+    "Add nothing that is not visible in the photos or stated in the facts: never invent a",
+    "condition, measurement, age, brand, history, price, delivery term, guarantee or contact detail.",
+    "If a fact is missing, leave it out rather than guessing.",
+    "Never state a price, an amount or a currency. You may say what the item is sold per, and that the price is negotiable, when the facts say so.",
+    "If earlier suggestions are listed, take a clearly different angle from all of them.",
+    `Return JSON only: {"title": string (max ${TITLE_MAX} characters), "description": string (max ${DESCRIPTION_MAX} characters)}.`,
+    "Write both fields in the requested language.",
+  ].join(" "),
+);
 
 /** A photo the model may look at, fetched server-side and passed inline. */
 async function inlinePhoto(url: string): Promise<{ mimeType: string; data: string } | null> {

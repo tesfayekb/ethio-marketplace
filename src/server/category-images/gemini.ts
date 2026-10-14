@@ -6,6 +6,8 @@
  * F4: a provider failure is surfaced honestly with its own status (429/402 pass
  * straight through), never swallowed into a fake success.
  */
+import { UNTRUSTED_RULE, untrustedText } from "@/lib/untrusted-text";
+
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export function serverEnv(name: string, fallback = ""): string {
@@ -131,11 +133,13 @@ export async function suggestIconName(
         parts: [
           {
             text: [
+              // D166 — the names are quoted material; the shared rule closes the ask.
               "Pick the single best lucide-react icon for an online marketplace category.",
-              `Category name: ${name}.`,
-              parentName ? `Parent section: ${parentName}.` : "",
+              `${untrustedText("Category name", name, 120)}.`,
+              parentName ? `${untrustedText("Parent section", parentName, 120)}.` : "",
               `Allowed names: ${allowlist.join(", ")}.`,
               'Answer with JSON only: {"icon": "<one name from the allowed list>"}.',
+              UNTRUSTED_RULE,
             ]
               .filter(Boolean)
               .join(" "),
