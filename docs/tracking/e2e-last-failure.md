@@ -1,22 +1,22 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 38565539442 passed
+last E2E run 38569399995 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38565539442
-- Commit: `117612fa4de88fddf71e536232d6b24dfac987ab`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38569399995
+- Commit: `d52170662f1acd0236b773c8d2fc0185833ca0d2`
 - Attempt: 1
-- Written (UTC): 2026-10-14T13:15:44.729Z
-- Post-test warnings: 27
+- Written (UTC): 2026-10-14T13:50:01.998Z
+- Post-test warnings: 24
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Errors outside any test (INC-589): none
 
 ## Errors outside any test (INC-589)
 
-None: no results file lists one and no log's summary names one (9 of 9 results files read, 9 of 9 logs read).
+None: no results file lists one and no log's summary names one (8 of 8 results files read, 8 of 8 logs read).
 
 ## Server errors — census (DEC-083, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
 108 line(s), 36 message(s): 1 off the allowlist, 35 allowlisted.
 
@@ -56,17 +56,17 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 | `strings tooManyRows` (quiet) | 2 | shard 2, shard 5 |
 | `strings unknownColumn` (quiet) | 2 | shard 2, shard 5 |
 | `strings wrongFile` (quiet) | 2 | shard 2, shard 5 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>vosq: e<n>e_par_crcmxo → e<n>e_chi_<n>jnw<n>` (quiet) | 1 | shard 1 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-if<n>n<n>y: e<n>e_par_o<n>gi<n> → e<n>e_chi_<n>l<n>` (quiet) | 1 | shard 4 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>mqx<n>g: e<n>e_par_fa<n>t<n>q → e<n>e_chi_c<n>y<n>k` (quiet) | 1 | shard 4 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>qwa<n>: e<n>e_par_<n>p<n>xjl → e<n>e_chi_msrffl` (quiet) | 1 | shard 1 |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>vosq: e<n>e_par_crcmxo → e<n>e_chi_<n>jnw<n> ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-if<n>n<n>y: e<n>e_par_o<n>gi<n> → e<n>e_chi_<n>l<n> ×1
+Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>mqx<n>g: e<n>e_par_fa<n>t<n>q → e<n>e_chi_c<n>y<n>k ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>qwa<n>: e<n>e_par_<n>p<n>xjl → e<n>e_chi_msrffl ×1
 
 Off the allowlist:
 
 ### listing not found
 
 - Count: 8 · Sources: shard 3, shard 6
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-45 a declared swatch renders one ink, a two-tone and a pattern tile ×2 · exactly one collapse toggle, and the wordmark moves into the bar when collapsed ×1 · PR-15 a save on a deleted draft is a refusal, never a 5xx or a null revision (IN ×1 · PR-39 recent categories are caller-only published leaves in count/date/id order ×1 · PR-42 the door reads a padded answer as the value it stores ×1 · PW-100 every category offers the map; after Save the preview shows the pin ×1
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PR-15 a save on a deleted draft is a refusal, never a 5xx or a null revision (IN ×2 · PW-109 a quote basis forces contact, and a changed basis releases it (INC-375) ×2 · PW-61 a category change resets details, title, description and price, and Undo w ×2 · PW-63 the pricing basis is asked on the price step, refused there when empty, an ×2 · PR-39 recent categories are caller-only published leaves in count/date/id order ×1 · PW-162 (e) a basis emptied by a specification change after the title step leaves ×1
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -74,92 +74,91 @@ Off the allowlist:
 
 ## Accessibility (DEC-084, gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
 10 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0 · wizard-5 desktop-1280 serious=0 critical=0
 
 ## Timing (DEC-087, non-gating)
 
-Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed · unavailable: none
+Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-14T12:41:16.682Z | 17.1 min |
-| email | 2026-10-14T12:41:05.169Z | 0.2 min |
-| shard 1 | 2026-10-14T12:41:07.727Z | 30.9 min |
-| shard 2 | 2026-10-14T12:41:08.481Z | 29.4 min |
-| shard 3 | 2026-10-14T12:41:08.177Z | 27.9 min |
-| shard 4 | 2026-10-14T12:41:21.878Z | 34.1 min |
-| shard 5 | 2026-10-14T12:41:33.832Z | 33.0 min |
-| shard 6 | 2026-10-14T12:41:08.300Z | 26.8 min |
-| changed | 2026-10-14T12:41:24.679Z | 15.0 min |
+| smoke | 2026-10-14T13:17:18.341Z | 13.9 min |
+| email | 2026-10-14T13:17:21.518Z | 0.2 min |
+| shard 1 | 2026-10-14T13:17:26.932Z | 30.5 min |
+| shard 2 | 2026-10-14T13:17:26.584Z | 31.6 min |
+| shard 3 | 2026-10-14T13:17:17.008Z | 23.1 min |
+| shard 4 | 2026-10-14T13:17:22.251Z | 32.3 min |
+| shard 5 | 2026-10-14T13:17:19.328Z | 29.4 min |
+| shard 6 | 2026-10-14T13:17:15.510Z | 23.8 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `photo-pipeline.spec.ts` | 124 | 52.0 min | shard 2, shard 5, changed |
-| `post-wizard-specs.spec.ts` | 80 | 23.5 min | shard 3, shard 6 |
-| `shell.spec.ts` | 336 | 19.1 min | smoke, shard 3, shard 6 |
+| `photo-pipeline.spec.ts` | 62 | 22.4 min | shard 2, shard 5 |
 | `post-wizard-bundle2.spec.ts` | 68 | 18.6 min | shard 2, shard 5 |
-| `admin-listings.spec.ts` | 56 | 16.9 min | shard 1, shard 4 |
-| `post-wizard-pricing.spec.ts` | 50 | 16.2 min | shard 3, shard 6 |
+| `post-wizard-specs.spec.ts` | 80 | 18.2 min | shard 3, shard 6 |
+| `shell.spec.ts` | 336 | 18.2 min | smoke, shard 3, shard 6 |
+| `admin-listings.spec.ts` | 56 | 14.7 min | shard 1, shard 4 |
 | `admin-categories-lifecycle.spec.ts` | 50 | 13.4 min | shard 1, shard 4 |
-| `post-wizard-resets.spec.ts` | 34 | 12.2 min | shard 3, shard 6 |
-| `post-wizard-where.spec.ts` | 32 | 11.6 min | shard 3, shard 6 |
-| `admin-attributes-library.spec.ts` | 42 | 11.3 min | shard 1, shard 4 |
-| `auth-signout.spec.ts` | 44 | 10.4 min | smoke, shard 2, shard 5 |
-| `admin-categories-console.spec.ts` | 34 | 9.4 min | shard 1, shard 4 |
-| `feed-screens.spec.ts` | 28 | 9.4 min | shard 2, shard 5 |
-| `admin-screening.spec.ts` | 44 | 9.3 min | shard 1, shard 4 |
-| `posting-routes.spec.ts` | 52 | 9.3 min | shard 3, shard 6 |
-| `admin-attributes-links.spec.ts` | 32 | 8.9 min | shard 1, shard 4 |
-| `post-wizard-category.spec.ts` | 48 | 8.8 min | shard 2, shard 5 |
-| `admin-attributes-editor.spec.ts` | 34 | 8.8 min | shard 1, shard 4 |
-| `post-wizard-place.spec.ts` | 38 | 8.5 min | shard 2, shard 5 |
-| `admin-users.spec.ts` | 26 | 8.4 min | shard 2, shard 5 |
-| `admin-attributes-import.spec.ts` | 40 | 8.1 min | shard 1, shard 4 |
-| `admin-locations.spec.ts` | 38 | 7.3 min | shard 1, shard 4 |
-| `feed-index.spec.ts` | 28 | 6.3 min | shard 2, shard 5 |
+| `post-wizard-pricing.spec.ts` | 50 | 13.2 min | shard 3, shard 6 |
+| `admin-attributes-library.spec.ts` | 42 | 11.0 min | shard 1, shard 4 |
+| `post-wizard-resets.spec.ts` | 34 | 10.3 min | shard 3, shard 6 |
+| `post-wizard-where.spec.ts` | 32 | 9.8 min | shard 3, shard 6 |
+| `admin-screening.spec.ts` | 44 | 9.7 min | shard 1, shard 4 |
+| `posting-routes.spec.ts` | 52 | 9.5 min | shard 3, shard 6 |
+| `post-wizard-place.spec.ts` | 38 | 9.3 min | shard 2, shard 5 |
+| `admin-categories-console.spec.ts` | 34 | 9.1 min | shard 1, shard 4 |
+| `admin-attributes-links.spec.ts` | 32 | 8.7 min | shard 1, shard 4 |
+| `feed-screens.spec.ts` | 28 | 8.5 min | shard 2, shard 5 |
+| `post-wizard-category.spec.ts` | 48 | 8.5 min | shard 2, shard 5 |
+| `auth-signout.spec.ts` | 44 | 8.5 min | smoke, shard 2, shard 5 |
+| `admin-attributes-editor.spec.ts` | 34 | 8.2 min | shard 1, shard 4 |
+| `admin-users.spec.ts` | 26 | 8.0 min | shard 2, shard 5 |
+| `admin-attributes-import.spec.ts` | 40 | 7.3 min | shard 1, shard 4 |
+| `admin-locations.spec.ts` | 38 | 7.2 min | shard 1, shard 4 |
 | `import-security.spec.ts` | 36 | 6.3 min | shard 2, shard 5 |
-| `admin-attributes-safety.spec.ts` | 16 | 6.2 min | shard 1, shard 4 |
-| `posting-routes-catalog.spec.ts` | 18 | 6.2 min | shard 3, shard 6 |
-| `admin-translations-console.spec.ts` | 44 | 6.0 min | shard 1, shard 4 |
-| `viewing-place.spec.ts` | 22 | 5.9 min | shard 3, shard 6 |
-| `admin-roles.spec.ts` | 26 | 5.6 min | shard 1, shard 4 |
-| `admin-audit.spec.ts` | 14 | 4.3 min | shard 1, shard 4 |
-| `feed-route.spec.ts` | 16 | 4.0 min | shard 2, shard 5 |
+| `admin-translations-console.spec.ts` | 44 | 6.2 min | shard 1, shard 4 |
+| `viewing-place.spec.ts` | 22 | 5.8 min | shard 3, shard 6 |
+| `feed-index.spec.ts` | 28 | 5.8 min | shard 2, shard 5 |
+| `admin-attributes-safety.spec.ts` | 16 | 5.7 min | shard 1, shard 4 |
+| `admin-roles.spec.ts` | 26 | 5.5 min | shard 1, shard 4 |
+| `posting-routes-catalog.spec.ts` | 18 | 4.5 min | shard 3, shard 6 |
+| `admin-audit.spec.ts` | 14 | 4.0 min | shard 1, shard 4 |
 | `admin-countries.spec.ts` | 18 | 3.8 min | shard 1, shard 4 |
-| `admin-categories-home.spec.ts` | 10 | 3.6 min | shard 1, shard 4 |
-| `posting-routes-dials.spec.ts` | 14 | 3.4 min | shard 3, shard 6 |
-| `admin-translations-data.spec.ts` | 8 | 3.0 min | shard 2, shard 5 |
+| `feed-route.spec.ts` | 16 | 3.4 min | shard 2, shard 5 |
+| `admin-categories-home.spec.ts` | 10 | 3.2 min | shard 1, shard 4 |
 | `admin-translations-governance.spec.ts` | 8 | 2.9 min | shard 2, shard 5 |
-| `mfa-stepup.spec.ts` | 18 | 2.3 min | shard 2, shard 5 |
-| `post-wizard-removed.spec.ts` | 4 | 2.3 min | shard 3, shard 6 |
+| `admin-translations-data.spec.ts` | 8 | 2.7 min | shard 2, shard 5 |
+| `mfa-stepup.spec.ts` | 18 | 2.6 min | shard 2, shard 5 |
 | `admin-coverage.spec.ts` | 16 | 2.2 min | shard 1, shard 4 |
+| `posting-routes-dials.spec.ts` | 14 | 2.0 min | shard 3, shard 6 |
+| `post-wizard-removed.spec.ts` | 4 | 1.8 min | shard 3, shard 6 |
+| `admin-shell.spec.ts` | 10 | 1.7 min | shard 1, shard 4 |
 | `post-wizard-details.spec.ts` | 8 | 1.7 min | shard 2, shard 5 |
-| `admin-shell.spec.ts` | 10 | 1.6 min | shard 1, shard 4 |
-| `posting-routes-identity.spec.ts` | 4 | 1.5 min | shard 3, shard 6 |
+| `posting-routes-identity.spec.ts` | 4 | 1.4 min | shard 3, shard 6 |
 | `post-wizard-finder.spec.ts` | 8 | 1.4 min | shard 2, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 1.4 min | shard 2, shard 5 |
-| `post-wizard-units.spec.ts` | 4 | 1.2 min | shard 3, shard 6 |
+| `category-image-routes.spec.ts` | 10 | 1.3 min | shard 2, shard 5 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `phone-frame.spec.ts` | 18 | 1.0 min | shard 2, shard 5 |
-| `admin-categories-images.spec.ts` | 2 | 0.9 min | shard 1, shard 4 |
-| `a11y.spec.ts` | 4 | 0.8 min | smoke |
+| `phone-frame.spec.ts` | 18 | 1.1 min | shard 2, shard 5 |
+| `post-wizard-units.spec.ts` | 4 | 1.0 min | shard 3, shard 6 |
+| `admin-categories-images.spec.ts` | 2 | 0.8 min | shard 1, shard 4 |
+| `settings.spec.ts` | 4 | 0.7 min | shard 3 |
 | `i18n-coverage.spec.ts` | 8 | 0.7 min | shard 2, shard 5 |
-| `rbac.spec.ts` | 6 | 0.7 min | shard 3, shard 6 |
 | `i18n-bundle.spec.ts` | 6 | 0.7 min | shard 2, shard 5 |
-| `smoke-auth-i18n.spec.ts` | 4 | 0.7 min | smoke, shard 3, shard 6 |
-| `post-wizard-recent.spec.ts` | 2 | 0.6 min | shard 3, shard 6 |
 | `admin-services.spec.ts` | 10 | 0.6 min | shard 1, shard 4 |
-| `settings.spec.ts` | 4 | 0.6 min | shard 3 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.6 min | smoke, shard 3, shard 6 |
+| `rbac.spec.ts` | 6 | 0.6 min | shard 3, shard 6 |
+| `a11y.spec.ts` | 4 | 0.5 min | smoke |
+| `post-wizard-recent.spec.ts` | 2 | 0.5 min | shard 3, shard 6 |
 | `category-nav.spec.ts` | 10 | 0.5 min | shard 2, shard 5 |
-| `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
-| `house-style.spec.ts` | 12 | 0.3 min | shard 2, shard 5 |
-| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `primitives-law.spec.ts` | 24 | 0.5 min | shard 3, shard 6 |
+| `house-style.spec.ts` | 12 | 0.4 min | shard 2, shard 5 |
 | `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
+| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
 | `shell-table-law.spec.ts` | 2 | 0.2 min | shard 3, shard 6 |
-| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `auth-signup.spec.ts` | 2 | 0.1 min | email |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
@@ -168,18 +167,18 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | mobile-360 | 68.4 s |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | desktop-1280 | 67.7 s |
-| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | mobile-360 | 64.2 s |
-| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 63.2 s |
-| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 54.5 s |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | desktop-1280 | 50.0 s |
-| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | desktop-1280 | 49.9 s |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | mobile-360 | 49.4 s |
-| `photo-pipeline.spec.ts` › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover | desktop-1280 | 46.9 s |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | desktop-1280 | 45.1 s |
-| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 44.8 s |
-| `photo-pipeline.spec.ts` › PP-27 Edit turns a photo and crops the cover, each saved in its place (D154 B2) | desktop-1280 | 43.4 s |
-| `photo-pipeline.spec.ts` › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover | desktop-1280 | 43.2 s |
-| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 42.9 s |
-| `photo-pipeline.spec.ts` › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover | mobile-360 | 41.7 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | mobile-360 | 61.1 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 57.5 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | desktop-1280 | 51.8 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | desktop-1280 | 49.2 s |
+| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | mobile-360 | 46.4 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 44.2 s |
+| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | desktop-1280 | 44.2 s |
+| `photo-pipeline.spec.ts` › PP-13 photo links: the owner and staff get them; another seller and no session do not | desktop-1280 | 41.2 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 39.2 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 36.9 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 36.6 s |
+| `photo-pipeline.spec.ts` › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover | desktop-1280 | 36.5 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 36.3 s |
+| `photo-pipeline.spec.ts` › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover | mobile-360 | 36.1 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 35.3 s |
