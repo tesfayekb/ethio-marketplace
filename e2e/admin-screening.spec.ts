@@ -6,6 +6,15 @@ import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
+  BUCKET,
+  clearUploadCounter,
+  keyOf,
+  photoAction,
+  photoRowsOf,
+  purgeListingObjects,
+  uploadPhoto,
+} from "./helpers/photos";
+import {
   destroyCategoryBranch,
   destroyListingsOf,
   leaseSeller,
@@ -13,6 +22,7 @@ import {
   RUN,
   seedCategoryBranch,
 } from "./helpers/posting";
+import { passwordGrant } from "./helpers/session";
 import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -150,8 +160,14 @@ test.describe("ADMIN SCREENING", () => {
   const regions: string[] = [];
   const branches: string[][] = [];
   const roles: string[] = [];
+  /** Bundle 13 turn 10 — photos a test stored through the upload route: their objects and the seller's dial. */
+  const uploads: { userId: string; listingId: string }[] = [];
 
   test.afterEach(async () => {
+    for (const ref of uploads.splice(0)) {
+      await purgeListingObjects(ref.userId, ref.listingId);
+      await clearUploadCounter(ref.userId);
+    }
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
     for (const slug of regions.splice(0)) await destroyLocation(slug);
     for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
@@ -173,6 +189,11 @@ test.describe("ADMIN SCREENING", () => {
       business?: string;
       status?: "screening" | "active";
       title?: string;
+      /**
+       * INC-615 — a fixed price (100 ETB, once): the ad then meets today's rules,
+       * which `admin_edit_listing` checks before it removes a photo.
+       */
+      priced?: boolean;
     } = {},
   ) {
     const seller = await leaseSeller({ alias: true });
@@ -202,6 +223,9 @@ test.describe("ADMIN SCREENING", () => {
         description: "e2e scratch listing for the screening queue",
         status: options.status ?? "screening",
         published_at: options.status === "active" ? new Date().toISOString() : null,
+        ...(options.priced === true
+          ? { price_mode: "fixed", price_amount: 100, price_currency: "ETB", price_period: "once" }
+          : {}),
         ...(options.contactPref === undefined ? {} : { contact_pref: options.contactPref }),
       })
       .select("id")
@@ -210,6 +234,8 @@ test.describe("ADMIN SCREENING", () => {
     return {
       id: data.id as string,
       sellerId: seller.id,
+      // Bundle 13 turn 10 — the seller, to send photos as them through the upload route.
+      seller,
       title,
       categoryName: leaf.slug as string,
       cityName: chain.city.name_en as string,
@@ -939,7 +965,8 @@ test.describe("ADMIN SCREENING", () => {
   test("SC-20 Preview as buyer lists the ad's photos with Remove; one is removed with a reason and the seller is told (D154 B4)", async ({
     page,
   }) => {
-    const ad = await seedWaiting();
+    // INC-615 — priced, so the ad meets today's rules and the door removes the photo.
+    const ad = await seedWaiting({ priced: true });
     const photos = await seedHeldPhotos(ad.id);
     await useJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
@@ -976,5 +1003,169 @@ test.describe("ADMIN SCREENING", () => {
     expect(notices![0]).toMatchObject({ kind: "admin_edit", reason: "photo" });
     expect(notices![0]!.fields).toContain("photos");
     expect((await listingTruth(ad.id)).status).toBe("screening");
+  });
+
+  /** Bundle 13 turn 10 — the photo changes of one ad, oldest first, as the service client reads them. */
+  async function changesOf(listingId: string) {
+    const { data, error } = await adminClient()
+      .from("listing_photo_changes")
+      .select("id, kind, photo_id, replaced_photo_id, codes, reviewed_at, reviewed_by")
+      .eq("listing_id", listingId)
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true });
+    if (error || !data) throw new Error(`[e2e:sc] reading the changes failed: ${error?.message}`);
+    return data;
+  }
+
+  /**
+   * SC-21 — bundle 13 turn 10 (D154 B5): the photos a seller adds, edits and
+   * removes on a live ad, each already screened, are listed for staff with the
+   * warning the screen gave; Mark reviewed takes one off the list through the
+   * door, which audits it; Show photos opens the ad's photos with Remove.
+   */
+  test("SC-21 Photo changes on live ads: a seller's additions, edit and removal are listed with their warnings and marked reviewed (D154 B5)", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    const ad = await seedWaiting({ status: "active" });
+    uploads.push({ userId: ad.sellerId, listingId: ad.id });
+    const token = (await passwordGrant(ad.seller.email, ad.seller.password)).access_token;
+
+    const warned = await uploadPhoto(page, { listingId: ad.id, token, cover: { made: [17, 17] } });
+    expect(warned.payload["ok"], JSON.stringify(warned.payload)).toBe(true);
+    const plain = await uploadPhoto(page, { listingId: ad.id, token, cover: { name: "meta.png" } });
+    expect(plain.payload["ok"], JSON.stringify(plain.payload)).toBe(true);
+    const [warnedId, plainId] = [
+      String(warned.payload["photoId"]),
+      String(plain.payload["photoId"]),
+    ];
+    const edited = await uploadPhoto(page, {
+      listingId: ad.id,
+      token,
+      cover: { name: "meta.webp" },
+      replaces: plainId,
+    });
+    expect(edited.payload["ok"], JSON.stringify(edited.payload)).toBe(true);
+    const editedId = String(edited.payload["photoId"]);
+    const removed = await photoAction(page, warnedId, "delete", token);
+    expect(removed.payload["ok"], JSON.stringify(removed.payload)).toBe(true);
+    const left = await photoRowsOf(ad.id);
+    expect(left.map((row) => row.id)).toEqual([editedId]);
+    // The live ad's photo is never read straight from the bucket by a visitor: only
+    // through the link the server signs (bundle 13 turn 10, part G).
+    const direct = await buyer().storage.from(BUCKET).download(keyOf(left[0]!, "cover"));
+    expect(
+      direct.error,
+      "SC-21: a visitor downloaded a live ad's photo from the bucket",
+    ).not.toBeNull();
+
+    const truth = await changesOf(ad.id);
+    expect(
+      truth.map((row) => [row.kind, row.photo_id, row.replaced_photo_id, row.codes]),
+      "SC-21: the changes are not as the seller made them",
+    ).toEqual([
+      ["added", warnedId, null, ["not_relevant"]],
+      ["added", plainId, null, []],
+      ["edited", editedId, plainId, []],
+      ["removed", warnedId, null, []],
+    ]);
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/screening");
+    const section = page.getByTestId("admin-photo-changes");
+    const mine = section.locator(`[data-testid="admin-photo-change"][data-listing-id="${ad.id}"]`);
+    await expect(mine).toHaveCount(4, { timeout: 20000 });
+    for (const [index, row] of truth.entries()) {
+      await expect(mine.nth(index)).toHaveAttribute("data-change-id", row.id);
+      await expect(mine.nth(index)).toHaveAttribute("data-kind", row.kind);
+    }
+    await expect(mine.nth(0).getByTestId("admin-photo-change-warning")).toHaveText(
+      en["admin.listings.photos.notRelevant"],
+    );
+    await expect(mine.nth(1).getByTestId("admin-photo-change-warning")).toHaveCount(0);
+    await expect(mine.nth(0).getByTestId("admin-photo-change-ad")).toHaveText(ad.title);
+
+    // Show photos: the one photo left, with Remove (B4).
+    await mine.nth(2).getByTestId("admin-photo-change-photos").click();
+    const photos = mine.nth(2).getByTestId("admin-photo-change-ad-photos-item");
+    await expect(photos).toHaveCount(1, { timeout: 20000 });
+    await expect(photos.nth(0)).toHaveAttribute("data-photo-id", editedId);
+    await expect(photos.nth(0).getByTestId("admin-photo-change-ad-photos-remove")).toBeVisible();
+
+    // Mark reviewed: the removal leaves the list, the door wrote who and when, and an audit row.
+    const removal = truth[3]!;
+    await mine.nth(3).getByTestId("admin-photo-change-review").click();
+    await expect(mine).toHaveCount(3, { timeout: 20000 });
+    await expect(section.locator(`[data-change-id="${removal.id}"]`)).toHaveCount(0);
+    const after = await changesOf(ad.id);
+    expect(after.filter((row) => row.reviewed_at !== null).map((row) => row.id)).toEqual([
+      removal.id,
+    ]);
+    expect(after.find((row) => row.id === removal.id)!.reviewed_by).not.toBeNull();
+    const { data: audit, error } = await adminClient()
+      .from("audit_log")
+      .select("action, meta")
+      .eq("entity_type", "listing")
+      .eq("entity_id", ad.id)
+      .eq("action", "listing.photo_change_reviewed");
+    if (error) throw new Error(`[e2e:sc] reading audit_log failed: ${error.message}`);
+    expect(audit).toEqual([
+      { action: "listing.photo_change_reviewed", meta: { change: removal.id } },
+    ]);
+  });
+
+  /**
+   * SC-22 — bundle 13 turn 10 (D154 B3): an ad holding a photo the screen warned
+   * `not_relevant` about is flagged in the screening queue and in Admin ›
+   * Listings, and the photo is marked in the preview's photos. One scratch photo
+   * row and its warning row, every column named (INC-614).
+   */
+  test("SC-22 an ad with a photo that may not fit it is flagged in the queue, in Admin › Listings and on the photo (D154 B3)", async ({
+    page,
+  }) => {
+    const ad = await seedWaiting();
+    const { data: photo, error } = await adminClient()
+      .from("listing_photos")
+      .insert({
+        listing_id: ad.id,
+        storage_path: `e2e-sc/${rand()}-warned.webp`,
+        display_order: 0,
+        exif_stripped: true,
+        unscreened: false,
+      })
+      .select("id")
+      .single();
+    if (error || !photo) throw new Error(`[e2e:sc] seeding the photo failed: ${error?.message}`);
+    const warning = await adminClient()
+      .from("listing_photo_warnings")
+      .insert({ photo_id: photo.id, listing_id: ad.id, codes: ["not_relevant"] });
+    if (warning.error)
+      throw new Error(`[e2e:sc] seeding the warning failed: ${warning.error.message}`);
+
+    await useJobSuperAdmin(page);
+    const row = await findRow(page, ad.title, ad.id);
+    await expect(row.getByTestId(`admin-screening-row-${ad.id}-photo-warning`)).toHaveText(
+      en["admin.screening.photoWarning"],
+      { timeout: 20000 },
+    );
+    await rowMenu(page, ad.id, "open");
+    await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
+    const item = page
+      .getByTestId("admin-screening-photos")
+      .getByTestId("admin-screening-photos-item");
+    await expect(item).toHaveCount(1, { timeout: 20000 });
+    await expect(item.getByTestId("admin-screening-photos-warning")).toHaveText(
+      en["admin.listings.photos.notRelevant"],
+    );
+
+    // Admin › Listings: the ad's row, found by its title (G28), carries the same flag.
+    await gotoReady(page, "/admin/listings");
+    await page.getByTestId("listings-search").fill(ad.title);
+    const twin = (page.viewportSize()?.width ?? 1280) < 1280 ? "-card" : "";
+    const listing = page.getByTestId(`listing-row-${ad.id}${twin}`);
+    await expect(listing).toBeVisible({ timeout: 20000 });
+    await expect(listing.getByTestId(`listing-row-${ad.id}-photo-warning`)).toHaveText(
+      en["admin.screening.photoWarning"],
+    );
   });
 });

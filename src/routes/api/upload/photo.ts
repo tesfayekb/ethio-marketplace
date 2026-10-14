@@ -3,7 +3,7 @@ import { doorRefusal } from "@/features/posting/door-error";
 
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
 import { photoScreenPlan } from "@/server/media/hold";
-import { screenPhotoPolicy } from "@/server/media/policy";
+import { screenPhotoPolicy, type PolicyVerdict } from "@/server/media/policy";
 import {
   deleteObject,
   objectKey,
@@ -53,7 +53,9 @@ import {
  *                            what it produced before a byte can be stored
  *   6 the policy pass      — the cover, the middle size, the card and the thumb,
  *                            in ONE call (D15, INC-601, D162): every size that
- *                            will be stored is screened;
+ *                            will be stored is screened; with the ad's category
+ *                            and title, so the screen may warn `not_relevant`
+ *                            (D154 B3: stored, and handed to the door);
  *                            behind its switch, and metered (D158). With the switch
  *                            off (bundle 13 turn 6), a draft's photo is HELD —
  *                            stored `unscreened`, shown to no buyer until staff
@@ -167,7 +169,7 @@ async function handlePost(request: Request): Promise<Response> {
   // 3 — ownership, as the caller: `listings_seller_read` is the authority (F3).
   const { data: listing, error: listingError } = await supabase
     .from("listings")
-    .select("id, status, seller_id")
+    .select("id, status, seller_id, title, category_id")
     .eq("id", listingId)
     .maybeSingle();
   if (listingError) {
@@ -272,8 +274,18 @@ async function handlePost(request: Request): Promise<Response> {
   }
   const unscreened = plan === "hold";
   const cover = stripped.cover!;
-  const verdict = unscreened
-    ? ({ ok: true } as const)
+  // D154 B3 — the ad's category (its English name, public) and title, for relevance.
+  let categoryName: string | null = null;
+  if (!unscreened && typeof listing.category_id === "string") {
+    const { data: category } = await supabase
+      .from("categories")
+      .select("name_en")
+      .eq("id", listing.category_id)
+      .maybeSingle();
+    categoryName = typeof category?.name_en === "string" ? category.name_en : null;
+  }
+  const verdict: PolicyVerdict = unscreened
+    ? { ok: true }
     : await screenPhotoPolicy(
         {
           cover,
@@ -282,7 +294,10 @@ async function handlePost(request: Request): Promise<Response> {
           thumb: stripped.thumb!,
         },
         log,
+        { category: categoryName, title: typeof listing.title === "string" ? listing.title : null },
       );
+  // D154 B3 — the screen's warnings: stored with the photo, never a refusal.
+  const warnings = verdict.ok ? (verdict.warnings ?? []) : [];
   // The provider answered (a pass or a refusal): one call is metered.
   if (!unscreened && (verdict.ok || verdict.code !== "providerUnavailable")) {
     await recordAiSpend("photo_screen", 1, log);
@@ -358,6 +373,8 @@ async function handlePost(request: Request): Promise<Response> {
       p_bytes: cover.bytes.length,
       // D158 — held for staff: shown to no buyer until the ad is approved.
       p_unscreened: unscreened,
+      // D154 B3 — seen by the seller and staff only (listing_photo_warnings).
+      p_warnings: warnings,
     };
     // D154 B2 — an edit takes the old photo's place in one transaction.
     const door = replaced === null ? "register_listing_photo" : "replace_listing_photo";
@@ -399,6 +416,7 @@ async function handlePost(request: Request): Promise<Response> {
         height: cover.height,
         bytes: cover.bytes.length,
         unscreened,
+        warnings,
         ...(replaced === null ? {} : { replaced: replaces }),
         ...(data && typeof data === "object" ? { door: data } : {}),
       },

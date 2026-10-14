@@ -1430,3 +1430,7 @@ Still to build, in bundle 13 (D154, D155): rotate and crop; the screen's warning
 - Every stored photo on the photo step has Edit (a crop icon beside Move earlier and Move later). The editor shows the photo with a crop box: Turn left, Turn right, the box moved and sized by its body and its corners or with the keyboard, Cancel and Save. Save is offered once something changed.
 - Saved, the picture goes through the whole pipeline as a new photo in the old one's place (the AI screen included); Next and Back wait while it is sent, as for a new photo. A refusal keeps the editor open with the reason and the line "Your photo was kept as it was."; the old photo stays.
 - The whole rule: docs/features/media-pipeline.md, "Bundle 13, turn 9".
+
+## Bundle 13, turn 10 — a photo that may not fit the ad (D154 B3)
+
+- A photo the AI screen warned `not_relevant` about is stored; its tile on the photo step says "This photo may not show what you are selling. You can keep it or remove it." The seller keeps it by doing nothing, or removes it. The whole rule: docs/features/media-pipeline.md, "Bundle 13, turn 10".

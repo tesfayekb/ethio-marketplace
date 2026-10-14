@@ -1,5 +1,5 @@
 import { ListingPicture } from "@/components/marketplace/listing-picture";
-import { ChevronLeft, ChevronRight, Crop } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, Crop } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useI18n } from "@/i18n";
@@ -522,6 +522,28 @@ export function StepPhotos({
       : "space-y-2 rounded-md border border-border p-2";
   }
 
+  /**
+   * D154 B3 — the screen warned that this stored photo may not show what the ad
+   * sells: the seller is told, and may keep it or remove it.
+   */
+  function relevanceWarning(photoId: string | null): ReactNode {
+    if (photoId === null) return null;
+    const row = photos.find((entry) => entry.id === photoId);
+    if (row?.warnings?.includes("not_relevant") !== true) return null;
+    return (
+      <p
+        className="flex items-start gap-1 text-xs text-foreground"
+        data-testid="post-photo-warning"
+      >
+        <AlertTriangle
+          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
+          aria-hidden="true"
+        />
+        <span>{t("post.photos.notRelevant")}</span>
+      </p>
+    );
+  }
+
   function coverRibbon(): ReactNode {
     return (
       <span
@@ -573,6 +595,7 @@ export function StepPhotos({
             {t("post.photos.refusedFinal")}
           </p>
         )}
+        {relevanceWarning(item.photoId)}
         {item.photoId !== null && rowRefusal[item.photoId] !== undefined && (
           <p className="text-xs text-destructive" role="alert" data-testid="post-photo-row-refusal">
             {t(rowRefusal[item.photoId]!)}
@@ -642,6 +665,7 @@ export function StepPhotos({
           )}
           {row.id === coverId && coverRibbon()}
         </div>
+        {relevanceWarning(row.id)}
         {rowRefusal[row.id] !== undefined && (
           <p className="text-xs text-destructive" role="alert" data-testid="post-photo-state">
             {t(rowRefusal[row.id]!)}

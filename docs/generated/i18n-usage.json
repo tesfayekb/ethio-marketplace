@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 425,
-  "dynamicCallSites": 287,
+  "scanned": 427,
+  "dynamicCallSites": 288,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2257,6 +2257,10 @@
       "/admin/listings/$listingId",
       "/admin/screening"
     ],
+    "admin.listings.photos.notRelevant": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
+    ],
     "admin.listings.photos.refused": [
       "/admin/listings/$listingId",
       "/admin/screening"
@@ -2862,6 +2866,21 @@
     "admin.screening.approve": [
       "/admin/screening"
     ],
+    "admin.screening.changes.empty": [
+      "/admin/screening"
+    ],
+    "admin.screening.changes.hint": [
+      "/admin/screening"
+    ],
+    "admin.screening.changes.photos": [
+      "/admin/screening"
+    ],
+    "admin.screening.changes.review": [
+      "/admin/screening"
+    ],
+    "admin.screening.changes.title": [
+      "/admin/screening"
+    ],
     "admin.screening.col.category": [
       "/admin/screening"
     ],
@@ -2884,6 +2903,10 @@
       "/admin/screening"
     ],
     "admin.screening.open": [
+      "/admin/screening"
+    ],
+    "admin.screening.photoWarning": [
+      "/admin/listings",
       "/admin/screening"
     ],
     "admin.screening.reject": [
@@ -4591,6 +4614,10 @@
       "/post/$listingId"
     ],
     "post.photos.none": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.notRelevant": [
       "/post",
       "/post/$listingId"
     ],

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 import type { Page } from "@playwright/test";
+import jpeg from "jpeg-js";
 
 import { adminClient } from "./users";
 
@@ -45,6 +46,34 @@ function part(name: FixtureName, as?: string) {
   };
 }
 
+/**
+ * D154 B3 — a plain JPEG of any size, made in memory by the fixture generator's
+ * own encoder (`jpeg-js`, I1): fake mode warns `not_relevant` on a cover exactly
+ * 17 px wide, which no committed fixture is.
+ */
+export function madeJpeg(width: number, height: number): Buffer {
+  const data = Buffer.alloc(width * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const at = (y * width + x) * 4;
+      data[at] = Math.round((x / width) * 255);
+      data[at + 1] = Math.round((y / height) * 255);
+      data[at + 2] = 96;
+      data[at + 3] = 255;
+    }
+  }
+  return Buffer.from(jpeg.encode({ data, width, height }, 85).data);
+}
+
+/** A cover named by its fixture, or made in memory at `made` = [width, height] (D154 B3). */
+export type CoverSpec = { name: FixtureName; as?: string } | { made: [number, number] };
+
+function coverPart(cover: CoverSpec) {
+  return "made" in cover
+    ? { name: "made.jpg", mimeType: "image/jpeg", buffer: madeJpeg(cover.made[0], cover.made[1]) }
+    : part(cover.name, cover.as);
+}
+
 export interface UploadAnswer {
   status: number;
   payload: Record<string, unknown>;
@@ -60,7 +89,7 @@ export async function uploadPhoto(
   options: {
     listingId: string;
     token: string | null;
-    cover: { name: FixtureName; as?: string };
+    cover: CoverSpec;
     card?: { name: FixtureName; as?: string };
     thumb?: { name: FixtureName; as?: string };
     /** D154 B2 — the stored photo this upload replaces (an edit); absent, a new photo. */
@@ -74,7 +103,7 @@ export async function uploadPhoto(
     headers,
     multipart: {
       listingId: options.listingId,
-      cover: part(options.cover.name, options.cover.as),
+      cover: coverPart(options.cover),
       card: part((options.card ?? small).name, (options.card ?? small).as),
       thumb: part((options.thumb ?? small).name, (options.thumb ?? small).as),
       ...(options.replaces === undefined ? {} : { replaces: options.replaces }),

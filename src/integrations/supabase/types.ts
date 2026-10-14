@@ -1143,6 +1143,79 @@ export type Database = {
           },
         ]
       }
+      listing_photo_changes: {
+        Row: {
+          codes: string[]
+          created_at: string
+          id: string
+          kind: string
+          listing_id: string
+          photo_id: string
+          replaced_photo_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+        }
+        Insert: {
+          codes?: string[]
+          created_at?: string
+          id?: string
+          kind: string
+          listing_id: string
+          photo_id: string
+          replaced_photo_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Update: {
+          codes?: string[]
+          created_at?: string
+          id?: string
+          kind?: string
+          listing_id?: string
+          photo_id?: string
+          replaced_photo_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_photo_changes_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_photo_warnings: {
+        Row: {
+          codes: string[]
+          created_at: string
+          listing_id: string
+          photo_id: string
+        }
+        Insert: {
+          codes: string[]
+          created_at?: string
+          listing_id: string
+          photo_id: string
+        }
+        Update: {
+          codes?: string[]
+          created_at?: string
+          listing_id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_photo_warnings_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: true
+            referencedRelation: "listing_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_photos: {
         Row: {
           bytes: number | null
@@ -2993,6 +3066,10 @@ export type Database = {
         Args: { p_channel: string; p_listing_id: string }
         Returns: Json
       }
+      admin_review_photo_change: {
+        Args: { p_change_id: string }
+        Returns: Json
+      }
       admin_save_entity_translation: {
         Args: {
           p_field: string
@@ -3824,6 +3901,7 @@ export type Database = {
           p_paths: Json
           p_photo_id: string
           p_unscreened?: boolean
+          p_warnings?: string[]
           p_width: number
         }
         Returns: Json
@@ -3844,6 +3922,7 @@ export type Database = {
           p_paths: Json
           p_photo_id: string
           p_unscreened?: boolean
+          p_warnings?: string[]
           p_width: number
         }
         Returns: Json

@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useAdminShell } from "@/features/admin/admin-context";
+import { useWarnedListings } from "@/features/admin-screening/use-photo-changes";
 import { ImpersonationStarter } from "@/features/admin/impersonation/impersonation-starter";
 import { sectionById } from "@/features/admin/sections";
 import { useDebounced } from "@/features/admin/users/use-admin-users";
@@ -145,6 +146,8 @@ export function AdminListingsPage() {
   });
   const rows = query.data?.rows ?? [];
   const total = query.data?.total ?? 0;
+  // D154 B3 (bundle 13 turn 10) — the page's ads that hold a photo the screen warned about.
+  const warned = useWarnedListings(rows.map((row) => row.id)).data ?? new Set<string>();
   // INC-553 — the unit words load only when a row on this page holds a unit (the card's rule).
   const unitLabels = usePriceUnitLabels(rows.some((row) => row.priceUnit !== null));
 
@@ -329,6 +332,14 @@ export function AdminListingsPage() {
           className="block min-w-0 break-words font-medium text-foreground underline-offset-4 hover:underline"
         >
           {row.title}
+          {warned.has(row.id) ? (
+            <span
+              className="mt-0.5 block text-xs font-normal text-foreground"
+              data-testid={`listing-row-${row.id}-photo-warning`}
+            >
+              {t("admin.screening.photoWarning")}
+            </span>
+          ) : null}
         </Link>
       ),
     },

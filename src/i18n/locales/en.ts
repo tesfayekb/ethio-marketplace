@@ -786,6 +786,7 @@ export const en = {
   "admin.listings.photos.refused":
     "The photo was not removed: the ad no longer meets today's rules for {fields}. Edit those first.",
   "admin.listings.photos.error.gone": "This photo is no longer on the ad.",
+  "admin.listings.photos.notRelevant": "May not fit the ad",
   "admin.listings.detail.severe": "Removed for a severe reason",
   "admin.listings.detail.deactivated": "The seller's account is deactivated",
   "admin.listings.detail.openSeller": "Open the seller's account",
@@ -847,6 +848,17 @@ export const en = {
   "admin.screening.empty": "Nothing is waiting for review.",
   "admin.screening.unscreenedNote":
     "Photos not checked by AI: {count}. Approving the ad approves them too.",
+  "admin.screening.photoWarning": "A photo may not fit the ad",
+  "admin.screening.changes.title": "Photo changes on live ads",
+  "admin.screening.changes.hint":
+    "Photos sellers added, edited or removed on live ads. Each was checked by AI when it was saved. Mark each one reviewed; a photo can be removed from the ad's photos.",
+  "admin.screening.changes.empty": "No photo changes are waiting.",
+  "admin.screening.changes.added": "Added",
+  "admin.screening.changes.edited": "Edited",
+  "admin.screening.changes.removed": "Removed",
+  "admin.screening.changes.photos": "Show photos",
+  "admin.screening.changes.review": "Mark reviewed",
+  "admin.screening.changes.gone": "This change was already reviewed.",
   "admin.screening.confirmApprove": "Approve this ad? It goes on the site now.",
   "admin.screening.confirmReject": "Reject this ad? It stays off the site.",
   "admin.screening.showNumber": "Show number",
@@ -2242,6 +2254,8 @@ export const en = {
   "post.photos.editor.saving": "Saving and checking the photo…",
   "post.photos.editor.failed": "This photo could not be opened here. Close and try again.",
   "post.photos.editor.kept": "Your photo was kept as it was.",
+  "post.photos.notRelevant":
+    "This photo may not show what you are selling. You can keep it or remove it.",
   "post.photo.refusal.nudity": "This photo shows nudity, which is not allowed.",
   "post.photo.refusal.violence": "This photo shows violence, which is not allowed.",
   "post.photo.refusal.weapon": "Weapons cannot be shown here.",

@@ -762,6 +762,7 @@ export const am: Messages = {
   "admin.listings.photos.refused":
     "ፎቶው አልተወገደም፦ ማስታወቂያው ለ{fields} የአሁኑን ደንቦች አያሟላም። መጀመሪያ እነሱን ያስተካክሉ።",
   "admin.listings.photos.error.gone": "ይህ ፎቶ ከአሁን በኋላ በማስታወቂያው ላይ የለም።",
+  "admin.listings.photos.notRelevant": "ከማስታወቂያው ጋር ላይስማማ ይችላል",
   "admin.listings.detail.severe": "በከባድ ምክንያት የተወገደ",
   "admin.listings.detail.deactivated": "የሻጩ መለያ ተቋርጧል",
   "admin.listings.detail.openSeller": "የሻጩን መለያ ይክፈቱ",
@@ -822,6 +823,17 @@ export const am: Messages = {
   "admin.screening.empty": "ለግምገማ የቀረበ ምንም ነገር የለም።",
   "admin.screening.unscreenedNote":
     "በሰው ሰራሽ አስተውሎት ያልተፈተሹ ፎቶዎች፦ {count}። ማስታወቂያውን ማጽደቅ እነሱንም ያጸድቃል።",
+  "admin.screening.photoWarning": "አንድ ፎቶ ከማስታወቂያው ጋር ላይስማማ ይችላል",
+  "admin.screening.changes.title": "በቀጥታ ማስታወቂያዎች ላይ የፎቶ ለውጦች",
+  "admin.screening.changes.hint":
+    "ሻጮች በቀጥታ ማስታወቂያዎች ላይ የጨመሯቸው፣ ያስተካከሏቸው ወይም ያስወገዷቸው ፎቶዎች። እያንዳንዱ ሲቀመጥ በሰው ሰራሽ አስተውሎት ተፈትሿል። እያንዳንዱን እንደታየ ምልክት ያድርጉ፤ ፎቶ ከማስታወቂያው ፎቶዎች ውስጥ ሊወገድ ይችላል።",
+  "admin.screening.changes.empty": "የሚጠብቅ የፎቶ ለውጥ የለም።",
+  "admin.screening.changes.added": "ተጨምሯል",
+  "admin.screening.changes.edited": "ተስተካክሏል",
+  "admin.screening.changes.removed": "ተወግዷል",
+  "admin.screening.changes.photos": "ፎቶዎቹን አሳይ",
+  "admin.screening.changes.review": "እንደታየ ምልክት አድርግ",
+  "admin.screening.changes.gone": "ይህ ለውጥ አስቀድሞ ታይቷል።",
   "admin.screening.confirmApprove": "ይህ ማስታወቂያ ይጽደቅ? አሁን በገጹ ላይ ይጫናል።",
   "admin.screening.confirmReject": "ይህ ማስታወቂያ ውድቅ ይደረግ? ከገጹ ውጪ ሆኖ ይቆያል።",
   "admin.screening.showNumber": "ቁጥሩን አሳይ",
@@ -2146,6 +2158,7 @@ export const am: Messages = {
   "post.photos.editor.saving": "ፎቶው እየተቀመጠና እየተመረመረ ነው…",
   "post.photos.editor.failed": "ይህ ፎቶ እዚህ ሊከፈት አልቻለም። ይዝጉና እንደገና ይሞክሩ።",
   "post.photos.editor.kept": "ፎቶዎ እንደነበረ ቀርቷል።",
+  "post.photos.notRelevant": "ይህ ፎቶ የሚሸጡትን ላያሳይ ይችላል። ሊያቆዩት ወይም ሊያስወግዱት ይችላሉ።",
   "post.photo.refusal.nudity": "ይህ ፎቶ ራቁትነት ያሳያል፣ ይህ አይፈቀድም።",
   "post.photo.refusal.violence": "ይህ ፎቶ ጥቃት ያሳያል፣ ይህ አይፈቀድም።",
   "post.photo.refusal.weapon": "የጦር መሣሪያ በዚህ መታየት አይችልም።",

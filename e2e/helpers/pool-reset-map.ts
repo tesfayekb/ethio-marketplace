@@ -38,6 +38,8 @@ export const POOL_EXEMPT_TABLES = {
   coverage_plans: "updated_by is attribution on a global plan row",
   entity_translations: "updated_by / approved_by are attribution",
   location_import_revisions: "created_by is attribution on import history",
+  listing_photo_changes:
+    "reviewed_by is attribution on a review; the account's own changes cascade with its listings (bundle 13 turn 10)",
   screening_verdicts: "reviewer is attribution; the account's own verdicts cascade with listings",
   ui_translation_revisions: "changed_by is attribution on revision history",
   ui_translations: "updated_by / approved_by are attribution",
