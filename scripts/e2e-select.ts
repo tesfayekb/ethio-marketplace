@@ -116,6 +116,12 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-listings.spec.ts"],
   },
   {
+    // Bundle 16 (D138, D172–D177) — the seller's My listings page and its state doors.
+    name: "my-listings",
+    src: ["src/features/my-listings/**", "src/routes/my-listings*.tsx"],
+    specs: ["e2e/my-listings*.spec.ts"],
+  },
+  {
     // Bundle 13 (D158) — the AI switches and meter (turn 1) and their page, /admin/ai (turn 5).
     name: "admin-services",
     src: ["src/server/ai/**", "src/routes/admin.ai.tsx", "src/features/admin-ai/**"],
