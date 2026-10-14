@@ -221,7 +221,11 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
 
   const actionButtons = (page: Page) =>
     page.getByTestId("my-listing-actions").locator('[data-testid^="my-listing-action-"]');
-  const firstHistory = (page: Page) => page.getByTestId("my-listing-history-line").first();
+  /** The newest history line: the history's one list is single (no twin), its first item by structure. */
+  const firstHistory = (page: Page) =>
+    page
+      .getByTestId("my-listing-history")
+      .locator('ol > li[data-testid="my-listing-history-line"]:first-child');
 
   test("MLA-1 my_listing: the seller's own ad with the list's row, its group, the status it reopens to and the renew setting; nobody else's", async () => {
     const sellerA = await scratchSeller();
