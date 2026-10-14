@@ -73,3 +73,8 @@ No test writes the global `listing_policy` row: the off switch (`renewOff`) and 
 - **The Account overview** reads the same door's counts and shows the groups that hold ads, with the same words, and **Open My listings**. The seven status-by-status words (`account.overview.status.*`) are gone, with the "Paused" no ad could have (INC-469 closed).
 
 Proven by MLP-1…MLP-4 (e2e/my-listings-page.spec.ts) and ML-U1…ML-U4 (src/features/my-listings/my-listings.test.ts).
+
+## Turn 2b — the fixes of turn 2 (bundle 16)
+
+- **INC-627** — a fresh signed-out visit to `/my-listings` (and to `/account`) landed on the marketplace: the shell's live guard won the race against the page's own sign-in redirect. The guard now evacuates these two only after a sign-out in this tab; a signed-out visitor goes to sign in and comes back. Proven by MLP-3 (`/my-listings` and `/account` signed out; a sign-out on `/my-listings` still leaves for the marketplace).
+- **MLP-2 at 360 px** looked for a draft's Continue inside the card's body; the table primitive puts a card's actions in the card's foot, beside the body (`my-listing-<id>-actions` holds both). The test looks in the card's box.

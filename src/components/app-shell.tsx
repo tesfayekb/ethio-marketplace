@@ -668,6 +668,19 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname.startsWith("/settings") ||
     pathname.startsWith("/account") ||
     pathname.startsWith("/my-listings");
+  /**
+   * Bundle 16 turn 2b (INC-627) — A FRESH SIGNED-OUT VISIT IS NOT A SIGN-OUT.
+   * /account and /my-listings send a signed-out visitor to sign in and back
+   * (their own `beforeLoad`, D20's rule). This guard used to win that race and
+   * drop the visitor on the marketplace instead. It now evacuates those two only
+   * once a session this tab held has gone; /admin and /settings, which have no
+   * sign-in redirect of their own, are evacuated as before.
+   */
+  const ownSignIn = pathname.startsWith("/account") || pathname.startsWith("/my-listings");
+  const hadUser = useRef(false);
+  useEffect(() => {
+    if (user !== null) hadUser.current = true;
+  }, [user]);
   useEffect(() => {
     if (authLoading || user !== null) return;
     void queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });
@@ -675,8 +688,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     setPermissionsState({ permissions: [], loading: false });
     setPanelChoice("marketplace");
     setNavOpen(false);
-    if (gatedRoute) void navigate({ to: "/", replace: true });
-  }, [authLoading, user, gatedRoute, navigate, queryClient]);
+    if (gatedRoute && (!ownSignIn || hadUser.current)) void navigate({ to: "/", replace: true });
+  }, [authLoading, user, gatedRoute, ownSignIn, navigate, queryClient]);
 
   /**
    * U0j-2 — TEST HOOK, dev-only. The E2E live-guard proof must fire a REAL
