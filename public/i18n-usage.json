@@ -4593,6 +4593,14 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.photos.backgroundCoverOnly": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.backgroundShort": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.photos.count": [
       "/post",
       "/post/$listingId"
@@ -4605,7 +4613,15 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.photos.earlierShort": [
+      "/post",
+      "/post/$listingId"
+    ],
     "post.photos.edit": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editShort": [
       "/post",
       "/post/$listingId"
     ],
@@ -4642,6 +4658,10 @@
       "/post/$listingId"
     ],
     "post.photos.helper": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.laterShort": [
       "/post",
       "/post/$listingId"
     ],

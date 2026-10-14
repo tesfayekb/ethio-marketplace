@@ -2288,6 +2288,12 @@ export const en = {
   "post.photos.background.spent": "This ad has used its background removals.",
   "post.photos.background.notCover":
     "Only the cover photo's background can be removed. Make this photo the cover first.",
+  "post.photos.earlierShort": "Earlier",
+  "post.photos.laterShort": "Later",
+  "post.photos.editShort": "Edit",
+  "post.photos.backgroundShort": "Background",
+  "post.photos.backgroundCoverOnly":
+    "Only the cover photo (the first one) can have its background removed.",
   "post.photo.refusal.nudity": "This photo shows nudity, which is not allowed.",
   "post.photo.refusal.violence": "This photo shows violence, which is not allowed.",
   "post.photo.refusal.weapon": "Weapons cannot be shown here.",

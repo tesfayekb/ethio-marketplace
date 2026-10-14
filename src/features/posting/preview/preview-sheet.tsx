@@ -31,11 +31,21 @@ export function PreviewSheet({
 }) {
   const { t } = useI18n();
   const closeRef = useRef<HTMLButtonElement | null>(null);
+  // INC-618 — the newest `onClose`, for the Escape key. A parent may hand a new
+  // function on every render (a step-up dialog re-renders it on each keystroke);
+  // the sheet's own effect must not run again for it.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
+  // INC-618 — focus moves to Close ONCE, when the sheet opens. It ran on every
+  // new `onClose`, so a dialog opened over the sheet (the step-up's code) lost its
+  // focus after one character.
   useEffect(() => {
     closeRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
     };
     document.addEventListener("keydown", onKey);
     // The page behind must not scroll while the sheet is open.
@@ -45,7 +55,7 @@ export function PreviewSheet({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = previous;
     };
-  }, [onClose]);
+  }, []);
 
   // SSR renders nothing: `document` belongs to the browser, and the sheet only
   // ever opens from a tap.

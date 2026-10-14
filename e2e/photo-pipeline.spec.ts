@@ -1747,6 +1747,23 @@ test.describe("PHOTO PIPELINE", () => {
       tiles.nth(1).getByTestId("post-photo-background"),
       "PP-30: a photo that is not the cover offers the tool",
     ).toHaveCount(0);
+    // D168 — each tool says its word under its icon, and the step says the tool is
+    // the cover's.
+    await expect(tiles.nth(0).getByTestId("post-photo-background")).toHaveText(
+      en["post.photos.backgroundShort"],
+    );
+    await expect(tiles.nth(1).getByTestId("post-photo-earlier")).toHaveText(
+      en["post.photos.earlierShort"],
+    );
+    await expect(tiles.nth(0).getByTestId("post-photo-later")).toHaveText(
+      en["post.photos.laterShort"],
+    );
+    await expect(tiles.nth(1).getByTestId("post-photo-edit")).toHaveText(
+      en["post.photos.editShort"],
+    );
+    await expect(page.getByTestId("post-photos-background-hint")).toHaveText(
+      en["post.photos.backgroundCoverOnly"],
+    );
 
     await tiles.nth(0).getByTestId("post-photo-background").click();
     const dialog = page.getByTestId("post-photo-background-dialog");
