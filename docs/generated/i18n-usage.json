@@ -3857,8 +3857,6 @@
       "/c/$slug",
       "/post",
       "/post/$listingId"
-      "/post",
-      "/post/$listingId"
     ],
     "common.save": [
       "/admin/ai",
@@ -4544,26 +4542,6 @@
       "/admin/screening",
       "/post",
       "/post/$listingId"
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.photos.background": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.photos.background.hint": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.photos.background.keep": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.photos.background.triesLeft": [
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.photos.background.working": [
     ],
     "post.photos.add": [
       "/post",

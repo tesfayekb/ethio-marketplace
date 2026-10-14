@@ -88,6 +88,9 @@ type Variant = (typeof VARIANTS)[number];
  */
 const OPTIONAL: ReadonlySet<Variant> = new Set<Variant>(["mid"]);
 
+/**
+ * D157 — the size dials sit over the measured encoder (the operator's 15 photos,
+ * 2026-10-13: largest cover 333 KB at 1448 px, card 45 KB, thumb 6 KB) with a
  * margin for a phone's full 1600-px cover and the JPEG fallback. A variant over
  * its dial is refused by name; no hand-made request stores a 6 MB cover.
  * D162 — the middle size was not measured: its dial is ESTIMATE ×3 over the
@@ -179,7 +182,7 @@ async function handlePost(request: Request): Promise<Response> {
   if (!PHOTO_OPEN_STATUSES.has(String(listing.status))) {
     return routeJson(
       { ok: false, refusals: [{ field: "status", reason: "listingNotOpenForPhotos" }] },
-  if (!PHOTO_OPEN_STATUSES.has(String(listing.status))) {
+      409,
     );
   }
 

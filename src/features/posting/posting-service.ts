@@ -240,59 +240,6 @@ export async function removeBackground(
   }
 }
 
-/** Bundle 13 turn 12 (D155b / D159) — the background tool's answer. */
-export type BackgroundAnswer =
-  | { ok: true; picture: Blob; triesLeft: number | null }
-  | { ok: false; reason: string; unreachable: boolean };
-
-/** The provider can take a few seconds; past this the call is a transport failure. */
-export const BACKGROUND_TIMEOUT_MS = 60_000;
-
-/**
- * `POST /api/listings/background { listingId, photoId }` — the cover's cut-out as
- * an image, with the ad's tries left (`x-tries-left`), or a refusal by name.
- * Nothing is stored by this call: Keep sends the picture through `uploadPhoto`
- * with `replaces`.
- */
-export async function removeBackground(
-  listingId: string,
-  photoId: string,
-): Promise<BackgroundAnswer> {
-  const token = await bearer();
-  if (token === null) return { ok: false, reason: "", unreachable: true };
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), BACKGROUND_TIMEOUT_MS);
-  try {
-    const response = await fetch("/api/listings/background", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ listingId, photoId }),
-      signal: controller.signal,
-    });
-    const type = response.headers.get("content-type") ?? "";
-    if (response.ok && type.startsWith("image/")) {
-      const left = Number(response.headers.get("x-tries-left"));
-      return {
-        ok: true,
-        picture: await response.blob(),
-        triesLeft: Number.isInteger(left) && left >= 0 ? left : null,
-      };
-    }
-    let payload: Record<string, unknown> = {};
-    try {
-      payload = (await response.json()) as Record<string, unknown>;
-    } catch {
-      payload = {};
-    }
-    const reason = refusalsOf(payload)[0]?.reason ?? "";
-    return { ok: false, reason, unreachable: reason === "" || response.status >= 500 };
-  } catch {
-    return { ok: false, reason: "", unreachable: true };
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 /** `POST /api/listings/photos/$id { action: 'cover' }`. */
 export function setCoverPhoto(photoId: string): Promise<DoorAnswer> {
   return call(`/api/listings/photos/${photoId}`, JSON.stringify({ action: "cover" }), {

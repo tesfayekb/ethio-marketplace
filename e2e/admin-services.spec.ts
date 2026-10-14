@@ -31,8 +31,6 @@ import { adminClient } from "./helpers/users";
 /** The six features of turn 1 and background removal (bundle 13 turn 12, D155b). */
 const SEVEN = [
   "background_removal",
-const SEVEN = [
-  "background_removal",
   "category_icons",
   "category_images",
   "name_check",
@@ -168,7 +166,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
       const read = await selectAsPage(page, table);
       expect(read.error ?? "", `${table} read`).toContain("permission denied");
     }
-  test("SV-2 the super admin reads the seven features and changes a switch through its door", async ({
+  });
 
   test("SV-2 the super admin reads the seven features and changes a switch through its door", async ({
     page,
@@ -180,8 +178,8 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
       await gotoReady(page, "/admin");
 
       const list = await rpcAsPage(page, "admin_ai_features", {});
-      // The seven features, and never a test's scratch row.
-      expect(rows.map((row) => row.feature).sort()).toEqual(SEVEN);
+      expect(list.error).toBeNull();
+      const rows = list.data as { feature: string; unit: string; on: boolean }[];
       // The seven features, and never a test's scratch row.
       expect(rows.map((row) => row.feature).sort()).toEqual(SEVEN);
       expect(rows.find((row) => row.feature === "translations")?.unit).toBe("character");
@@ -294,7 +292,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
 
   /**
    * Bundle 13 turn 5 (D158) — the page. Below 1024 px the table is drawn as cards
-  test("SV-4 the page Admin › Services › AI lists the seven features, and photo screening's switch says what off does", async ({
+   * (`cardUntil="lg"`), so every row is read inside the twin on screen.
    */
   test("SV-4 the page Admin › Services › AI lists the seven features, and photo screening's switch says what off does", async ({
     page,
@@ -303,7 +301,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     await gotoReady(page, "/admin/ai");
     await expect(page.getByTestId("admin-section-ai")).toBeVisible({ timeout: 20_000 });
     const cards = (page.viewportSize()?.width ?? 1024) < 1024;
-    for (const feature of SEVEN) {
+    const surface: Locator = cards ? page.getByTestId("data-table-cards") : page.getByRole("table");
 
     for (const feature of SEVEN) {
       const key = `admin.ai.feature.${feature}` as keyof typeof en;

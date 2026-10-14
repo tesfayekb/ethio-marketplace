@@ -33,19 +33,6 @@ export const PHOTO_OPEN_STATUSES: ReadonlySet<string> = new Set([
   "held",
   "expired",
 ]);
-/**
- * The statuses whose ad may still gain, lose or change a photo: the upload route
- * (src/routes/api/upload/photo.ts) and background removal
- * (src/routes/api/listings/background.ts) read this one set.
- */
-export const PHOTO_OPEN_STATUSES: ReadonlySet<string> = new Set([
-  "draft",
-  "active",
-  "reduced",
-  "rejected",
-  "held",
-  "expired",
-]);
 /** The statuses whose next step is the screening queue (publish_listing: draft and rejected). */
 export const HOLD_STATUSES: ReadonlySet<string> = new Set(["draft", "rejected"]);
 

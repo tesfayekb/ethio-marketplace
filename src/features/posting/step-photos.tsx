@@ -8,7 +8,6 @@ import type { MessageKey } from "@/i18n";
 import { controlClass, Field } from "./field";
 import { encodeBitmap, encodeVariants } from "./photo-encode";
 import { BackgroundDialog } from "./background-dialog";
-import { BackgroundDialog } from "./background-dialog";
 import { PhotoEditor } from "./photo-editor";
 import { CARD_THEN_THUMB, photoUrl } from "./photo-links";
 import {
@@ -140,8 +139,6 @@ export function StepPhotos({
   /** INC-595 — a stored photo's last refusal (its Remove or Make cover), by photo id. */
   const [rowRefusal, setRowRefusal] = useState<Readonly<Record<string, MessageKey>>>({});
   /** D154 B2 — the stored photo open in the editor, and its stored cover's link. */
-  /** Bundle 13 turn 12 (D159) — the cover open in the background tool. */
-  const [cleaning, setCleaning] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ photoId: string; url: string } | null>(null);
   /** Bundle 13 turn 12 (D159) — the cover open in the background tool. */
   const [cleaning, setCleaning] = useState<string | null>(null);
@@ -450,7 +447,6 @@ export function StepPhotos({
           setRowRefusal((prev) => {
             const next = { ...prev };
             delete next[photoId];
-          setCleaning(null);
             return next;
           });
           setEditing(null);
@@ -704,8 +700,7 @@ export function StepPhotos({
         {moveRow(row.id, index)}
       </li>
     );
-   * and Edit, which opens the editor on the photo's stored cover; bundle 13
-   * turn 12 (D159) — and, on the cover only, Remove background.
+  }
 
   /**
    * D154 — Move earlier and Move later, on every photo at its place; D154 B2 —
@@ -747,19 +742,6 @@ export function StepPhotos({
           title={t("post.photos.edit")}
           disabled={busyRow || editUrl === null || editSaving}
           onClick={() => {
-        {photoId === coverId && (
-          <button
-            type="button"
-            data-testid="post-photo-background"
-            className={moveButtonClass}
-            aria-label={t("post.photos.background")}
-            title={t("post.photos.background")}
-            disabled={busyRow || editSaving || listingId === null}
-            onClick={() => setCleaning(photoId)}
-          >
-            <Eraser className="h-4 w-4" aria-hidden="true" />
-          </button>
-        )}
             if (editUrl !== null) setEditing({ photoId, url: editUrl });
           }}
         >
@@ -921,17 +903,6 @@ export function StepPhotos({
         {/* D158 (bundle 13 turn 6) — photo screening is off: the photos were saved
             and staff check them, with the ad, before any buyer sees them. */}
         {photos.some((row) => row.unscreened === true) ? (
-      <BackgroundDialog
-        target={cleaning !== null && listingId !== null ? { listingId, photoId: cleaning } : null}
-        onCancel={() => setCleaning(null)}
-        onSave={(picture) => {
-          if (cleaning === null) {
-            picture.close();
-            return Promise.resolve(null);
-          }
-          return saveEdit(cleaning, picture);
-        }}
-      />
           <p className="text-xs text-muted-foreground" data-testid="post-photos-held-note">
             {t("post.photos.heldNote")}
           </p>
