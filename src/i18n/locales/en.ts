@@ -650,6 +650,16 @@ export const en = {
   "admin.ai.feature.category_icons": "Category icons",
   "admin.ai.feature.translations": "Machine translation",
   "admin.ai.feature.background_removal": "Background removal",
+  "admin.ai.about.photo_screen": "Checks every photo sellers upload (Google Gemini).",
+  "admin.ai.about.writing_helper":
+    "Suggests an ad's title and description when the seller asks (Google Gemini).",
+  "admin.ai.about.name_check":
+    "Checks whether a new seller name imitates a well-known company, brand or person (Google Gemini).",
+  "admin.ai.about.category_images": "Makes category pictures for staff (Google Gemini).",
+  "admin.ai.about.category_icons": "Suggests category icons for staff (Google Gemini).",
+  "admin.ai.about.translations": "Machine-translates text for staff (Google Translate).",
+  "admin.ai.about.background_removal":
+    "Removes the background of a seller's cover photo when the seller asks (Photoroom).",
   "admin.ai.state.on": "On",
   "admin.ai.state.off": "Off",
   "admin.ai.state.tipOn": "The feature is in use.",
@@ -686,6 +696,15 @@ export const en = {
   "admin.ai.error.badBudget": "A budget is a number of dollars from 0 to 1,000,000, or empty.",
   "admin.ai.error.badPrice": "Enter a price of 0 or more, at most {max}.",
   "admin.ai.error.badPriceDoor": "That price is out of range.",
+  "admin.ai.days.title": "Spend by day",
+  "admin.ai.days.hint":
+    "The last {days} days (UTC), counted by our server: each call at its feature's price, the same count the month's spend and the budgets use. The provider's own bill is the final figure.",
+  "admin.ai.days.all": "All features",
+  "admin.ai.days.day": "Day",
+  "admin.ai.days.spend": "Spend",
+  "admin.ai.days.empty": "No AI calls in the last {days} days.",
+  "admin.ai.days.total": "Last {days} days: {spend} for {calls} calls",
+  "admin.ai.days.error": "The spend by day could not be loaded.",
   "admin.section.listings.title": "All listings",
   "admin.section.listings.body":
     "Every listing on the site except drafts: its seller, place, price and state.",

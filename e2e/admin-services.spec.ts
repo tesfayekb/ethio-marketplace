@@ -22,6 +22,10 @@ import { adminClient } from "./helpers/users";
  *      spend and price; Edit opens the editor, where photo screening's switch says what
  *      switching it off does (turn 6).
  *      It only READS: no real switch row is written (G27); the door's writes are SV-2's.
+ * SV-5 (turn 14) the spend by day: the door answers the last 30 UTC days of the seven
+ *      features, newest first, with no scratch row, and refuses a window outside 1–92
+ *      days; the page shows each feature's line of what it does and, under the table,
+ *      the days with a picker of the seven features. Read only (G27).
  *
  * G27: no real switch row is changed. Every change is made on a scratch feature named
  * e2e-sv-…, which no code path names and the admin list leaves out; it is deleted in
@@ -144,6 +148,9 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
 
     const list = await rpcAsPage(page, "admin_ai_features", {});
     expect(list.error).toBe("permission denied");
+    // Bundle 13 turn 14 — nor the spend by day.
+    const days = await rpcAsPage(page, "admin_ai_spend_days", { p_days: 30 });
+    expect(days.error).toBe("permission denied");
 
     const set = await rpcAsPage(page, "admin_set_ai_feature", {
       p_feature: "writing_helper",
@@ -301,7 +308,10 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     await gotoReady(page, "/admin/ai");
     await expect(page.getByTestId("admin-section-ai")).toBeVisible({ timeout: 20_000 });
     const cards = (page.viewportSize()?.width ?? 1024) < 1024;
-    const surface: Locator = cards ? page.getByTestId("data-table-cards") : page.getByRole("table");
+    // Bundle 13 turn 14 — the spend by day below is a table too: the features' table is named by its caption.
+    const surface: Locator = cards
+      ? page.getByTestId("data-table-cards")
+      : page.getByRole("table", { name: en["admin.ai.caption"] });
 
     for (const feature of SEVEN) {
       const key = `admin.ai.feature.${feature}` as keyof typeof en;
@@ -337,5 +347,61 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     );
     await editor.getByTestId("ai-editor-cancel").click();
     await expect(editor).toHaveCount(0);
+  });
+
+  test("SV-5 the spend by day: the last 30 days of the seven features, newest first; the page shows it under the table", async ({
+    page,
+  }) => {
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin");
+
+    const answer = await rpcAsPage(page, "admin_ai_spend_days", { p_days: 30 });
+    expect(answer.error).toBeNull();
+    const rows = answer.data as {
+      feature: string;
+      day: string;
+      calls: number;
+      units: number;
+      cost_microusd: number;
+    }[];
+    const today = new Date().toISOString().slice(0, 10);
+    const first = new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10);
+    for (const row of rows) {
+      expect(SEVEN, `SV-5: ${row.feature} is not one of the seven`).toContain(row.feature);
+      expect(row.day >= first && row.day <= today, `SV-5: ${row.day} is outside the window`).toBe(
+        true,
+      );
+      for (const value of [row.calls, row.units, row.cost_microusd]) {
+        expect(Number.isInteger(value) && value >= 0, `SV-5: ${JSON.stringify(row)}`).toBe(true);
+      }
+    }
+    const order = rows.map((row) => row.day);
+    expect(order, "SV-5: the days are not newest first").toEqual([...order].sort().reverse());
+    for (const days of [0, 93]) {
+      const refused = await rpcAsPage(page, "admin_ai_spend_days", { p_days: days });
+      expect(refused.error, `SV-5: a ${days}-day window`).toBe("badValue:days");
+    }
+
+    await gotoReady(page, "/admin/ai");
+    await expect(page.getByTestId("admin-section-ai")).toBeVisible({ timeout: 20_000 });
+    const cards = (page.viewportSize()?.width ?? 1024) < 1024;
+    // Bundle 13 turn 14 — the spend by day below is a table too: the features' table is named by its caption.
+    const surface: Locator = cards
+      ? page.getByTestId("data-table-cards")
+      : page.getByRole("table", { name: en["admin.ai.caption"] });
+    await expect(surface.getByTestId("ai-background_removal-about")).toHaveText(
+      en["admin.ai.about.background_removal"],
+      { timeout: 20_000 },
+    );
+    const section = page.getByTestId("ai-days");
+    await expect(section).toBeVisible();
+    await expect(section.getByTestId("ai-days-feature").locator("option")).toHaveCount(8);
+    if (rows.length === 0) {
+      await expect(section.getByTestId("ai-days-empty")).toBeVisible();
+    } else {
+      // The section is drawn once (no table-and-cards twin), so its first row is its own.
+      await expect(section.getByTestId("ai-days-row").nth(0)).toBeVisible();
+      await expect(section.getByTestId("ai-days-total")).toBeVisible();
+    }
   });
 });

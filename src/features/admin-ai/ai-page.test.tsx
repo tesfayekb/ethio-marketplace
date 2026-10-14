@@ -74,6 +74,8 @@ vi.mock("./use-ai-features", () => ({
   ADMIN_AI_KEY: ["ai"],
   useAiFeatures: () => ({ data: ROWS, isLoading: false, error: null }),
   useSetAiFeature: () => ({ isPending: false, mutateAsync: vi.fn() }),
+  // Bundle 13 turn 14 — the spend by day below the table (its own tests: ai-spend-days.test.tsx).
+  useAiSpendDays: () => ({ data: [], isLoading: false, error: null, refetch: vi.fn() }),
 }));
 
 import { AdminAiPage } from "./ai-page";
@@ -115,5 +117,18 @@ describe("AdminAiPage (D158)", () => {
     shell.permissions = ["services:view", "services:manage"];
     render(<AdminAiPage />);
     expect(screen.getAllByTestId("ai-actions-writing_helper-edit").length).toBeGreaterThan(0);
+  });
+
+  it("AIP-2 each feature says what it does and who provides it under its name, and the spend by day follows the table", () => {
+    shell.permissions = ["services:view"];
+    render(<AdminAiPage />);
+    const table = screen.getByRole("table");
+    expect(within(table).getByTestId("ai-photo_screen-name").textContent).toBe(
+      "admin.ai.feature.photo_screen",
+    );
+    expect(within(table).getByTestId("ai-photo_screen-about").textContent).toBe(
+      "admin.ai.about.photo_screen",
+    );
+    expect(screen.getByTestId("ai-days")).toBeInTheDocument();
   });
 });

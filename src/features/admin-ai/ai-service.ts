@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * Bundle 13 turn 5 (D158) — THE AI SERVICES CONSOLE CLIENT SEAM.
@@ -66,9 +67,32 @@ const FEATURE_LABELS: Record<(typeof AI_FEATURE_ORDER)[number], MessageKey> = {
   background_removal: "admin.ai.feature.background_removal",
 };
 
-/** A feature's name key, or null for a feature this build does not name (its id is shown). */
+/**
+ * Bundle 13 turn 14 (the operator, 2026-10-14: "have the documentation in the
+ * admin section") — what each feature does and who provides it, shown under
+ * its name.
+ */
+const FEATURE_ABOUT: Record<(typeof AI_FEATURE_ORDER)[number], MessageKey> = {
+  photo_screen: "admin.ai.about.photo_screen",
+  writing_helper: "admin.ai.about.writing_helper",
+  name_check: "admin.ai.about.name_check",
+  category_images: "admin.ai.about.category_images",
+  category_icons: "admin.ai.about.category_icons",
+  translations: "admin.ai.about.translations",
+  background_removal: "admin.ai.about.background_removal",
+};
+
+/** A feature's line of what it does, or null for a feature this build does not name. */
+export function featureAboutKey(feature: string): MessageKey | null {
+  return ownValue<MessageKey>(FEATURE_ABOUT, feature) ?? null;
+}
+
+/**
+ * A feature's name key, or null for a feature this build does not name (its id is shown).
+ * The feature comes from a row, so only the map's own members are read (the own-key rule).
+ */
 export function featureLabelKey(feature: string): MessageKey | null {
-  return (FEATURE_LABELS as Record<string, MessageKey | undefined>)[feature] ?? null;
+  return ownValue<MessageKey>(FEATURE_LABELS, feature) ?? null;
 }
 
 const whole = (value: unknown): number | null =>
@@ -139,6 +163,73 @@ export async function listAiFeatures(): Promise<AiFeatureRow[]> {
   const { data, error } = await supabase.rpc("admin_ai_features");
   if (error) throw error;
   return aiFeaturesOf(data);
+}
+
+/* ------------------------------ spend by day ------------------------------ */
+
+/** Bundle 13 turn 14 — how many UTC days the page shows (the door allows 1–92). */
+export const SPEND_DAYS = 30;
+
+/** One feature's spend on one UTC day, as `admin_ai_spend_days` answers it. */
+export interface AiSpendDay {
+  feature: string;
+  /** YYYY-MM-DD (UTC). */
+  day: string;
+  calls: number;
+  units: number;
+  costMicrousd: number;
+}
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The door's whole answer, every row as promised, or a thrown error (F4: never invented numbers). */
+export function aiSpendDaysOf(payload: unknown): AiSpendDay[] {
+  if (!Array.isArray(payload)) throw new Error("admin_ai_spend_days: not a list");
+  return payload.map((raw) => {
+    const row = (raw ?? {}) as Record<string, unknown>;
+    const feature = row["feature"];
+    const day = row["day"];
+    const numbers = ["calls", "units", "cost_microusd"].map((key) => whole(row[key]));
+    if (typeof feature !== "string" || feature === "") {
+      throw new Error("admin_ai_spend_days: a row out of shape");
+    }
+    if (typeof day !== "string" || !DAY.test(day)) {
+      throw new Error("admin_ai_spend_days: a row out of shape");
+    }
+    if (numbers.some((value) => value === null)) {
+      throw new Error("admin_ai_spend_days: a row out of shape");
+    }
+    const [calls, units, cost] = numbers as number[];
+    return { feature, day, calls: calls!, units: units!, costMicrousd: cost! };
+  });
+}
+
+export async function listAiSpendDays(days: number = SPEND_DAYS): Promise<AiSpendDay[]> {
+  const { data, error } = await supabase.rpc("admin_ai_spend_days", { p_days: days });
+  if (error) throw error;
+  return aiSpendDaysOf(data);
+}
+
+/** One day's line on the page: a feature's, or every feature's together. */
+export interface DaySpend {
+  day: string;
+  calls: number;
+  costMicrousd: number;
+}
+
+/** The days with any call, newest first, for one feature or (null) for all of them summed. */
+export function spendByDay(rows: readonly AiSpendDay[], feature: string | null): DaySpend[] {
+  const byDay = new Map<string, DaySpend>();
+  for (const row of rows) {
+    if (feature !== null && row.feature !== feature) continue;
+    const line = byDay.get(row.day) ?? { day: row.day, calls: 0, costMicrousd: 0 };
+    line.calls += row.calls;
+    line.costMicrousd += row.costMicrousd;
+    byDay.set(row.day, line);
+  }
+  return [...byDay.values()]
+    .filter((line) => line.calls > 0 || line.costMicrousd > 0)
+    .sort((a, b) => (a.day < b.day ? 1 : a.day > b.day ? -1 : 0));
 }
 
 export interface SetAiFeatureInput {
