@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { ImageIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -93,8 +94,10 @@ export function AdminScreeningPage() {
   const { t, language, entities } = useI18n();
   const { permissions } = useAdminShell();
   const mayReview = permissions.includes("listings:review");
-  /** Bundle 13 turn 8 (D154 B4) — staff who may edit a listing may remove one of its photos. */
+  /** Bundle 13 turn 8 (D154 B4) — staff who may edit a listing see its photos with their marks. */
   const mayEnforce = permissions.includes("listings:enforce");
+  /** D169 — the preview links to the ad's own page in Admin › Listings, where Edit removes a photo. */
+  const mayOpenListing = permissions.includes("listings:view");
   const section = sectionById("screening");
   const queryClient = useQueryClient();
   const markets = useOpenMarkets();
@@ -544,7 +547,6 @@ export function AdminScreeningPage() {
             {/* D154 B5 (bundle 13 turn 10) — the photo changes sellers made on live ads. */}
             <PhotoChanges
               mayReview={mayReview}
-              mayEnforce={mayEnforce}
               guard={guard}
               onNotice={(key, tone) => setNotice({ key, tone })}
             />
@@ -593,18 +595,29 @@ export function AdminScreeningPage() {
                 footer={
                   mayReview || mayEnforce ? (
                     <>
-                      {/* Bundle 13 turn 8 (D154 B4) — the ad's photos, each with Remove for
-                          staff who may edit a listing; the door decides again (F3). */}
+                      {/* Bundle 13 turn 8 (D154 B4) — the ad's photos with their marks. D169
+                          (the operator, 2026-10-14): the preview is view-only; a photo is
+                          removed in Edit on the ad's own page, which the link opens. */}
                       {mayEnforce ? (
                         <div className="basis-full">
                           <ListingPhotos
                             listingId={previewRow.id}
-                            mayRemove
+                            mayRemove={false}
                             guard={guard}
                             testid="admin-screening-photos"
                             onRemoved={(key) => setNotice({ key, tone: "ok" })}
                           />
                         </div>
+                      ) : null}
+                      {mayOpenListing ? (
+                        <Link
+                          to="/admin/listings/$listingId"
+                          params={{ listingId: previewRow.id }}
+                          data-testid="admin-screening-open-listing"
+                          className="basis-full text-sm text-primary underline underline-offset-4"
+                        >
+                          {t("admin.screening.openListing")}
+                        </Link>
                       ) : null}
                       {/* D158 (bundle 13 turn 6) — photos held while photo screening was
                           off: approving the ad approves them (the operator's answer). */}

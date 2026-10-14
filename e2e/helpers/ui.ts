@@ -911,8 +911,17 @@ export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
  * Answers the StepUpGate modal IF it opened; a no-op when the session is
  * already AAL2. Never weakens an assertion — it only supplies the code the
  * gate asks for.
+ *
+ * INC-618 (bundle 14 turn 1) — `typed: true` types the code key by key, as a
+ * person does, and reads the field back before submitting: a field that loses
+ * its focus after one character (the preview sheet stole it on every
+ * keystroke) holds one digit and the test says so. The default stays `fill()`.
  */
-export async function stepUpIfPrompted(page: Page, secret: string) {
+export async function stepUpIfPrompted(
+  page: Page,
+  secret: string,
+  options: { typed?: boolean } = {},
+) {
   const modal = page.getByTestId("step-up-modal");
   try {
     await modal.waitFor({ state: "visible", timeout: 5000 });
@@ -922,12 +931,35 @@ export async function stepUpIfPrompted(page: Page, secret: string) {
     // failure — the caller's own assertions cover the mutation that follows.
     return;
   }
-  await page.getByTestId("step-up-code").fill(totp(secret));
+  const field = page.getByTestId("step-up-code");
+  if (options.typed === true) {
+    const code = totp(secret);
+    await field.pressSequentially(code);
+    await expect(field, "the step-up code did not keep every typed digit").toHaveValue(code);
+  } else {
+    await field.fill(totp(secret));
+  }
   await page.getByTestId("step-up-submit").click();
   await expect(modal).toBeHidden({ timeout: 20000 });
   // The client's AAL flips asynchronously after verification — settle on the
   // achieved state, never on the click (U1g-2).
   await expectAal2(page);
+}
+
+/**
+ * FRESHNESS (mfa-service.isStepUpFresh): the shared guard treats a session as
+ * stepped up only when a verified TOTP factor exists, the session claims aal2,
+ * AND the local stamp `sb-<ref>-stepped-up-at` is inside the window. Setting the
+ * stamp to 0 — what unenroll does (markSteppedUp(0)) — makes the next guarded
+ * action open the modal. Moved here from e2e/mfa-stepup.spec.ts (bundle 14
+ * turn 1) so a console test can prove its step-up by keyboard.
+ */
+export async function clearStepUpFreshness(page: Page) {
+  await page.evaluate(() => {
+    for (const key of Object.keys(window.localStorage)) {
+      if (key.endsWith("-stepped-up-at")) window.localStorage.setItem(key, "0");
+    }
+  });
 }
 
 /**

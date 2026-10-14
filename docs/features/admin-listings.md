@@ -116,3 +116,9 @@ The operator's spec (2026-10-13, D154 point 3: "Staff can also remove a photo").
 ## Bundle 13 turn 10 — the photo flag (D154 B3)
 
 - An ad holding a photo the AI screen warned `not_relevant` about shows "A photo may not fit the ad" under its title in the list (`listing-row-<id>-photo-warning`), read for the page's rows from `listing_photo_warnings`; its Photos card marks the photo "May not fit the ad" (`listing-photos-warning`). The whole rule: docs/features/admin-screening.md, "Bundle 13 turn 10".
+
+## Bundle 14 turn 1 — the ad as buyers see it; photos in Edit (D169)
+
+- The operator (2026-10-14): "There should have been a view just like a seller views its preview including activity on the add. the remove button is more should be in edit panel for the admin rather than preview as buyer." One listing's page now shows the ad as buyers and its seller see it — the same `ListingDetail` the previews draw, in a card "As buyers see it" (`listing-as-seen`) — above Details and History, its activity. The page's "Preview as buyer" button and sheet are gone.
+- The photos, with their marks (not checked by AI, may not fit the ad) and Remove, are in Edit (`listing-edit-panel`), above the form; the page outside Edit draws them only in the ad's gallery. Remove works as before: a reason, a note, the second factor, `admin_edit_listing`'s `remove_photos`.
+- AL-28 removes a photo from Edit and answers the second factor by keyboard (`stepUpIfPrompted(…, { typed: true })`, after `clearStepUpFreshness` — both in e2e/helpers/ui.ts), the proof INC-618's class needed: a test types the code as a person does. AL-17 and AL-18 read the card.

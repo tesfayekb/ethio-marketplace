@@ -2108,9 +2108,6 @@
     "admin.listings.detail.back": [
       "/admin/listings/$listingId"
     ],
-    "admin.listings.detail.buyerView": [
-      "/admin/listings/$listingId"
-    ],
     "admin.listings.detail.changed": [
       "/admin/listings/$listingId"
     ],
@@ -2927,6 +2924,9 @@
       "/admin/screening"
     ],
     "admin.screening.open": [
+      "/admin/screening"
+    ],
+    "admin.screening.openListing": [
       "/admin/screening"
     ],
     "admin.screening.photoWarning": [
@@ -4828,7 +4828,6 @@
       "/post/$listingId"
     ],
     "post.preview.close": [
-      "/admin/listings/$listingId",
       "/admin/screening",
       "/post",
       "/post/$listingId"

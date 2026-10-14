@@ -4,7 +4,13 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 
 import { totp, wrongCode } from "./helpers/totp";
-import { gotoReady, isMobile, switchUser, waitForHydration } from "./helpers/ui";
+import {
+  clearStepUpFreshness,
+  gotoReady,
+  isMobile,
+  switchUser,
+  waitForHydration,
+} from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
@@ -71,22 +77,12 @@ async function enrollThroughSettings(page: Page): Promise<string> {
   return secret;
 }
 
-/**
- * FRESHNESS CENSUS (mfa-service.isStepUpFresh): the shared guard treats a
- * session as stepped up only when (1) a verified TOTP factor exists, (2) the
- * session claims aal2, AND (3) the local stamp `sb-<ref>-stepped-up-at`
- * (session-policy.markSteppedUp / readSteppedUpAt) is inside the window.
- * A nightly session can still carry the aal2 claim after a re-sign-in, so the
- * spec neutralizes condition (3) the supported way — the same stamp reset
- * unenroll performs (markSteppedUp(0)) — leaving the modal guaranteed.
+/*
+ * FRESHNESS CENSUS (mfa-service.isStepUpFresh): a nightly session can still
+ * carry the aal2 claim after a re-sign-in, so this spec neutralizes the local
+ * stamp the supported way — `clearStepUpFreshness` (e2e/helpers/ui.ts, moved
+ * there in bundle 14 turn 1) — leaving the modal guaranteed.
  */
-async function clearStepUpFreshness(page: Page) {
-  await page.evaluate(() => {
-    for (const key of Object.keys(window.localStorage)) {
-      if (key.endsWith("-stepped-up-at")) window.localStorage.setItem(key, "0");
-    }
-  });
-}
 
 /** DB truth for the profile the edit form writes. */
 async function displayName(userId: string): Promise<string | null> {

@@ -69,7 +69,7 @@ vi.mock("./use-photo-changes", async (importOriginal) => ({
   reviewPhotoChange: (...args: unknown[]) => reads.review(...args),
 }));
 
-function mount(options: { mayReview: boolean; mayEnforce: boolean }, onNotice = vi.fn()) {
+function mount(options: { mayReview: boolean }, onNotice = vi.fn()) {
   const guard = vi.fn() as unknown as GuardFn;
   render(
     <QueryClientProvider client={new QueryClient()}>
@@ -82,11 +82,11 @@ function mount(options: { mayReview: boolean; mayEnforce: boolean }, onNotice = 
 /**
  * Bundle 13 turn 10 — D154 B5: the photo changes on live ads, for staff with
  * listings:review: each change with its kind, its time, its ad and its warning;
- * Mark reviewed through the door; the ad's photos with Remove (B4).
+ * Mark reviewed through the door; the ad's photos, view-only (D169).
  */
 describe("PhotoChanges (D154 B5)", () => {
   it("PCH-3 lists each change with its kind, its ad and its warning; a removal has no picture", () => {
-    mount({ mayReview: true, mayEnforce: false });
+    mount({ mayReview: true });
     const items = screen.getAllByTestId("admin-photo-change");
     expect(items.map((item) => item.getAttribute("data-kind"))).toEqual(["added", "removed"]);
     expect(within(items[0]!).getByTestId("admin-photo-change-kind")).toHaveTextContent(
@@ -110,7 +110,7 @@ describe("PhotoChanges (D154 B5)", () => {
 
   it("PCH-4 Mark reviewed calls the door with the change; a change already reviewed is said so", async () => {
     reads.review.mockResolvedValueOnce(undefined);
-    const { onNotice } = mount({ mayReview: true, mayEnforce: false });
+    const { onNotice } = mount({ mayReview: true });
     const items = screen.getAllByTestId("admin-photo-change");
     fireEvent.click(within(items[0]!).getByTestId("admin-photo-change-review"));
     await waitFor(() => expect(reads.review).toHaveBeenCalledWith("c1"));
@@ -122,8 +122,8 @@ describe("PhotoChanges (D154 B5)", () => {
     );
   });
 
-  it("PCH-5 Show photos opens the ad's photos, with Remove only for a person who may edit a listing", () => {
-    mount({ mayReview: true, mayEnforce: true });
+  it("PCH-5 Show photos opens the ad's photos view-only: a photo is removed in Edit on the ad's page (D169)", () => {
+    mount({ mayReview: true });
     const items = screen.getAllByTestId("admin-photo-change");
     const toggle = within(items[0]!).getByTestId("admin-photo-change-photos");
     expect(toggle).toHaveAttribute("aria-expanded", "false");
@@ -131,11 +131,11 @@ describe("PhotoChanges (D154 B5)", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     const photos = within(items[0]!).getByTestId("admin-photo-change-ad-photos");
     expect(photos).toHaveAttribute("data-listing", "L1");
-    expect(photos).toHaveAttribute("data-may-remove", "true");
+    expect(photos).toHaveAttribute("data-may-remove", "false");
   });
 
   it("PCH-6 a person without listings:review sees no list", () => {
-    mount({ mayReview: false, mayEnforce: true });
+    mount({ mayReview: false });
     expect(screen.queryByTestId("admin-photo-changes")).toBeNull();
   });
 });

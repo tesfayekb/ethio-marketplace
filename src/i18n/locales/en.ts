@@ -879,6 +879,7 @@ export const en = {
   "admin.screening.changes.photos": "Show photos",
   "admin.screening.changes.review": "Mark reviewed",
   "admin.screening.changes.gone": "This change was already reviewed.",
+  "admin.screening.openListing": "Open the ad's page",
   "admin.screening.confirmApprove": "Approve this ad? It goes on the site now.",
   "admin.screening.confirmReject": "Reject this ad? It stays off the site.",
   "admin.screening.showNumber": "Show number",
