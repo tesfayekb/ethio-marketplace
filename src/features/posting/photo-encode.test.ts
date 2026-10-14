@@ -4,7 +4,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
  * INC-599 / D157 — the device's encoder. Every variant is drawn with the
  * canvas's high-quality filter (the default aliases a large downscale) and
  * encoded at the quality D157's judge chose: WebP cover 0.82, card 0.84,
- * thumb 0.82; JPEG 0.82 where the canvas makes no WebP. The canvas is a stub:
+ * thumb 0.82, and the middle size of D162 (960 px) at the cover's 0.82; JPEG
+ * 0.82 where the canvas makes no WebP. The canvas is a stub:
  * jsdom has none, and what is checked is what the encoder ASKS of it.
  */
 
@@ -68,7 +69,7 @@ afterEach(() => {
 });
 
 describe("the device's photo encoder (INC-599, D157)", () => {
-  it("PE-1 draws every variant with the high-quality filter and encodes WebP at 0.82 / 0.84 / 0.82", async () => {
+  it("PE-1 draws every variant with the high-quality filter and encodes WebP at 0.82 / 0.82 / 0.84 / 0.82", async () => {
     const { draws, encodes } = stubCanvas(true);
     const { encodeVariants } = await import("./photo-encode");
     const out = await encodeVariants(
@@ -77,12 +78,14 @@ describe("the device's photo encoder (INC-599, D157)", () => {
     expect(out.extension).toBe("webp");
     expect(draws).toEqual([
       { smoothingEnabled: true, smoothingQuality: "high", width: 1600, height: 1200 },
+      { smoothingEnabled: true, smoothingQuality: "high", width: 960, height: 720 },
       { smoothingEnabled: true, smoothingQuality: "high", width: 480, height: 360 },
       { smoothingEnabled: true, smoothingQuality: "high", width: 160, height: 120 },
     ]);
-    // The first toBlob is the 1-px WebP probe; the three after it are the variants.
+    // The first toBlob is the 1-px WebP probe; the four after it are the variants.
     expect(encodes.slice(1)).toEqual([
       { mime: "image/webp", quality: 0.82, width: 1600, height: 1200 },
+      { mime: "image/webp", quality: 0.82, width: 960, height: 720 },
       { mime: "image/webp", quality: 0.84, width: 480, height: 360 },
       { mime: "image/webp", quality: 0.82, width: 160, height: 120 },
     ]);
@@ -97,6 +100,7 @@ describe("the device's photo encoder (INC-599, D157)", () => {
     expect(out.extension).toBe("jpg");
     expect(draws.every((draw) => draw.smoothingQuality === "high")).toBe(true);
     expect(encodes.slice(1).map((encode) => [encode.mime, encode.quality])).toEqual([
+      ["image/jpeg", 0.82],
       ["image/jpeg", 0.82],
       ["image/jpeg", 0.82],
       ["image/jpeg", 0.82],

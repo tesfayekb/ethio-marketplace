@@ -27,7 +27,9 @@ import {
 /**
  * U6-B1 — THE STRIP ROUTE.
  *
- *   POST /api/upload/photo   multipart: listingId, cover, card, thumb
+ *   POST /api/upload/photo   multipart: listingId, cover, mid, card, thumb
+ *                            (`mid`, the middle size of D162, may be absent:
+ *                            a page loaded before it sends three sizes)
  *
  * THE ORDER IS THE LAW (F5 — gates, then capture, then mutate):
  *
@@ -41,14 +43,15 @@ import {
  *   5 per file             — size cap, THE STRIP (allowlist re-writer, DEC-069),
  *                            dimension cap; the strip's own self-check runs on
  *                            what it produced before a byte can be stored
- *   6 the policy pass      — the cover, the card and the thumb, in ONE call (D15,
- *                            INC-601): every size that will be stored is screened;
+ *   6 the policy pass      — the cover, the middle size, the card and the thumb,
+ *                            in ONE call (D15, INC-601, D162): every size that
+ *                            will be stored is screened;
  *                            behind its switch, and metered (D158). With the switch
  *                            off (bundle 13 turn 6), a draft's photo is HELD —
  *                            stored `unscreened`, shown to no buyer until staff
  *                            approve the ad — and a live ad's is refused
  *                            (`photoScreenPlan`, src/server/media/hold.ts)
- *   7 the objects          — three puts through the partition-keyed adapter
+ *   7 the objects          — a put per size through the partition-keyed adapter
  *   8 the door             — `register_listing_photo` (service-only), which is
  *                            the ONE place `exif_stripped = true` is ever written
  *
@@ -59,8 +62,15 @@ import {
 const PATH = "/api/upload/photo";
 const PARTITION: Partition = "default";
 
-const VARIANTS = ["cover", "card", "thumb"] as const;
+const VARIANTS = ["cover", "mid", "card", "thumb"] as const;
 type Variant = (typeof VARIANTS)[number];
+
+/**
+ * D162 — the middle size (960 px) is taken when it is sent and stored like the
+ * others; a request without it stores three sizes, and every reader falls back
+ * to the cover for that photo. The other three are required.
+ */
+const OPTIONAL: ReadonlySet<Variant> = new Set<Variant>(["mid"]);
 
 /** The statuses that may still gain a photo. */
 const OPEN_STATUSES = new Set(["draft", "active", "reduced", "rejected", "held", "expired"]);
@@ -70,15 +80,19 @@ const OPEN_STATUSES = new Set(["draft", "active", "reduced", "rejected", "held",
  * 2026-10-13: largest cover 333 KB at 1448 px, card 45 KB, thumb 6 KB) with a
  * margin for a phone's full 1600-px cover and the JPEG fallback. A variant over
  * its dial is refused by name; no hand-made request stores a 6 MB cover.
+ * D162 — the middle size was not measured: its dial is ESTIMATE ×3 over the
+ * largest cover scaled to 960 px (333 KB × (960/1448)² ≈ 146 KB).
  */
 const SIZE_DIALS: Record<Variant, { env: string; bytes: number }> = {
   cover: { env: "MAX_COVER_BYTES", bytes: 1024 * 1024 },
+  mid: { env: "MAX_MID_BYTES", bytes: 450 * 1024 },
   card: { env: "MAX_CARD_BYTES", bytes: 150 * 1024 },
   thumb: { env: "MAX_THUMB_BYTES", bytes: 30 * 1024 },
 };
 
 const EDGE_DIALS: Record<Variant, { env: string; px: number }> = {
   cover: { env: "MAX_COVER_EDGE", px: 2000 },
+  mid: { env: "MAX_MID_EDGE", px: 1200 },
   card: { env: "MAX_CARD_EDGE", px: 640 },
   thumb: { env: "MAX_THUMB_EDGE", px: 240 },
 };
@@ -167,10 +181,13 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   // 5 — every variant: size, strip, dimensions.
-  const stripped: Record<Variant, StrippedImage> = {} as Record<Variant, StrippedImage>;
+  const stripped: Partial<Record<Variant, StrippedImage>> = {};
   for (const variant of VARIANTS) {
     const file = form.get(variant);
-    if (!(file instanceof File)) return refusal(variant, "required");
+    if (!(file instanceof File)) {
+      if (OPTIONAL.has(variant) && file === null) continue;
+      return refusal(variant, "required");
+    }
     const limit = envDial(SIZE_DIALS[variant].env, SIZE_DIALS[variant].bytes);
     if (file.size > limit) return refusal(variant, "tooLarge", String(limit));
 
@@ -216,11 +233,16 @@ async function handlePost(request: Request): Promise<Response> {
     return routeJson({ ok: false, refusals: [{ field: "cover", reason: "screeningPaused" }] }, 200);
   }
   const unscreened = plan === "hold";
-  const cover = stripped.cover;
+  const cover = stripped.cover!;
   const verdict = unscreened
     ? ({ ok: true } as const)
     : await screenPhotoPolicy(
-        { cover: stripped.cover, card: stripped.card, thumb: stripped.thumb },
+        {
+          cover,
+          ...(stripped.mid === undefined ? {} : { mid: stripped.mid }),
+          card: stripped.card!,
+          thumb: stripped.thumb!,
+        },
         log,
       );
   // The provider answered (a pass or a refusal): one call is metered.
@@ -265,6 +287,7 @@ async function handlePost(request: Request): Promise<Response> {
   try {
     for (const variant of VARIANTS) {
       const image = stripped[variant];
+      if (image === undefined) continue;
       const key = objectKey(
         PARTITION,
         userId,

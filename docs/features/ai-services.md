@@ -8,14 +8,14 @@ The operator's rule (D158, 2026-10-13): every AI feature has an on/off switch, a
 
 ## The features
 
-| Feature           | Where the paid call is                                            | Unit      | Starting price (ESTIMATE, staff edit it) |
-| ----------------- | ----------------------------------------------------------------- | --------- | ---------------------------------------- |
-| `photo_screen`    | `POST /api/upload/photo` (Gemini vision, three sizes in one call) | call      | $0.002                                   |
-| `writing_helper`  | `POST /api/listings/assist` (Gemini text, up to three photos)     | call      | $0.003                                   |
-| `name_check`      | `POST /api/listings/identity`, a new seller name (Gemini text)    | call      | $0.0003                                  |
-| `category_images` | `POST` and the probe `GET /api/admin/categories/generate-image`   | call      | $0.04                                    |
-| `category_icons`  | `POST /api/admin/categories/suggest-icon` (Gemini text)           | call      | $0.0003                                  |
-| `translations`    | `POST /api/translate` (Google Translate)                          | character | $0.00002 ($20 per million characters)    |
+| Feature           | Where the paid call is                                                                    | Unit      | Starting price (ESTIMATE, staff edit it) |
+| ----------------- | ----------------------------------------------------------------------------------------- | --------- | ---------------------------------------- |
+| `photo_screen`    | `POST /api/upload/photo` (Gemini vision, every stored size in one call — four since D162) | call      | $0.002                                   |
+| `writing_helper`  | `POST /api/listings/assist` (Gemini text, up to three photos)                             | call      | $0.003                                   |
+| `name_check`      | `POST /api/listings/identity`, a new seller name (Gemini text)                            | call      | $0.0003                                  |
+| `category_images` | `POST` and the probe `GET /api/admin/categories/generate-image`                           | call      | $0.04                                    |
+| `category_icons`  | `POST /api/admin/categories/suggest-icon` (Gemini text)                                   | call      | $0.0003                                  |
+| `translations`    | `POST /api/translate` (Google Translate)                                                  | character | $0.00002 ($20 per million characters)    |
 
 Prices are kept in millionths of a dollar (`unit_cost_microusd`) and budgets in cents (`monthly_budget_cents`; empty = no budget). No budget is set by the migration: the operator sets them.
 

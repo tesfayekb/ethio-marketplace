@@ -128,7 +128,8 @@ export function saveDraft(body: DraftBody): Promise<DoorAnswer> {
 }
 
 /**
- * `POST /api/upload/photo` — the three device-encoded variants, multipart.
+ * `POST /api/upload/photo` — the four device-encoded variants, multipart (D162
+ * added the middle size, `mid`).
  *
  * XHR rather than `fetch`, for ONE reason: `fetch` cannot report upload
  * progress, and on a slow Ethiopian mobile connection a photo tile that sits at
@@ -137,7 +138,7 @@ export function saveDraft(body: DraftBody): Promise<DoorAnswer> {
  */
 export async function uploadPhoto(
   listingId: string,
-  variants: { cover: Blob; card: Blob; thumb: Blob },
+  variants: { cover: Blob; mid: Blob; card: Blob; thumb: Blob },
   extension: string,
   onProgress?: (percent: number) => void,
 ): Promise<DoorAnswer> {
@@ -146,7 +147,7 @@ export async function uploadPhoto(
 
   const form = new FormData();
   form.set("listingId", listingId);
-  for (const variant of ["cover", "card", "thumb"] as const) {
+  for (const variant of ["cover", "mid", "card", "thumb"] as const) {
     // No Content-Type header: the browser sets the multipart boundary itself.
     form.set(variant, variants[variant], `${variant}.${extension}`);
   }

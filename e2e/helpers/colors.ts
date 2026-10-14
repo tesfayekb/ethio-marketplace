@@ -11,6 +11,25 @@ export async function fillOf(locator: Locator): Promise<string> {
   return locator.evaluate((element) => getComputedStyle(element).backgroundColor);
 }
 
+/**
+ * D163 — whether a colour is the system's gold: oklch(0.681 0.13 72.5) in light
+ * and oklch(0.769 0.128 78.3) in dark (src/styles.css; #C98A2B and #E0A94A).
+ */
+export function isGoldFill(color: string): boolean {
+  const lch = /^oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+([\d.]+)/i.exec(color);
+  if (lch) {
+    const chroma = Number(lch[2]);
+    const hue = Number(lch[3]);
+    return chroma >= 0.08 && hue >= 60 && hue <= 95;
+  }
+  const rgb = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(color);
+  if (rgb) {
+    const [red, green, blue] = [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
+    return red >= 150 && red > green && green >= 100 && green - blue >= 40;
+  }
+  return false;
+}
+
 export function isRedFill(color: string): boolean {
   const lch = /^oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+([\d.]+)/i.exec(color);
   if (lch) {
