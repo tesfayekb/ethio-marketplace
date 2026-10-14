@@ -65,3 +65,7 @@ move_listing_photo | seller-only door, bundle 12 turn T16 (D154): puts a photo a
 admin_ai_features | admin door, bundle 13 turn 1 (D158): services:view checked inside; reads every AI feature's switch, budget, price and this month's spend; read only
 admin_set_ai_feature | admin door, bundle 13 turn 1 (D158): services:manage and a fresh second factor checked inside; switches an AI feature on or off and sets its budget and price; refuses photo screening off; writes an audit row
 admin_sync_ui_keys | restated grant (not a new surface), bundle 13 turn 2 (INC-603, INC-607): Sync keys; translations:manage and a fresh second factor checked inside; an Amharic text no person wrote follows the code's changed text; its answer names the keys it added
+listing_photo_warnings | SELECT to authenticated only, bundle 13 turn 10 (D154 B3): a photo's screen warnings; row security lets the seller read his own photos' rows and listings:view read every row; no write grant; anon has none
+listing_photo_changes | SELECT to authenticated only, bundle 13 turn 10 (D154 B5): the photo changes sellers make on live ads; row security lets listings:review read them; no write grant; anon has none
+remove_listing_photo | restated grant (not a new surface), bundle 13 turn 10 (D154 B5): the seller's Remove; owner-only on auth.uid(), the photo must be on the caller's listing; on a live ad it lists the removal for staff
+admin_review_photo_change | admin door, bundle 13 turn 10 (D154 B5): listings:review checked inside; marks one photo change reviewed and writes an audit row

@@ -2,6 +2,8 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { loadAttributeOptions, type AttrOption } from "@/features/posting/attribute-options";
 import {
+  PHOTO_ROW_SELECT,
+  photoWarningsOf,
   readPostingSchema,
   type AttrDef,
   type DraftPhotoRow,
@@ -133,7 +135,7 @@ export function useScreeningQueue(
 export async function listScreeningPhotos(listingId: string): Promise<DraftPhotoRow[]> {
   const { data, error } = await supabase
     .from("listing_photos")
-    .select("id,display_order,paths,storage_path,unscreened")
+    .select(PHOTO_ROW_SELECT)
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
   if (error) throw new Error(error.message);
@@ -147,6 +149,8 @@ export async function listScreeningPhotos(listingId: string): Promise<DraftPhoto
     storagePath: row.storage_path,
     // D158 — held while photo screening was off; approving the ad approves it.
     unscreened: row.unscreened === true,
+    // D154 B3 — the screen's warnings: staff see the photo marked.
+    warnings: photoWarningsOf(row.warning),
   }));
 }
 

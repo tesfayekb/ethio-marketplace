@@ -140,6 +140,12 @@ export function ListingPhotos({
                   </span>
                 ) : null}
               </div>
+              {/* D154 B3 — the screen warned that this photo may not fit the ad. */}
+              {row.warnings?.includes("not_relevant") === true ? (
+                <p className="text-xs text-foreground" data-testid={`${testid}-warning`}>
+                  {t("admin.listings.photos.notRelevant")}
+                </p>
+              ) : null}
               {mayRemove ? (
                 <Button
                   type="button"

@@ -112,3 +112,7 @@ The operator's spec (2026-10-13, D154 point 3: "Staff can also remove a photo").
 - **The door:** `admin_edit_listing(listing, { remove_photos: [id] }, reason, note)` through the second factor — one revision (Edited: Photos, with the reason and the note in History), one audit row, one notice to the seller (fields `photos`); the row goes and the file stays with the revision; a removed cover passes the cover to the next photo. A refusal stays in the dialog: "This photo is no longer on the ad." (`admin.listings.photos.error.gone`), or the ad's other fields no longer meeting today's rules (`admin.listings.photos.refused`, naming them). Undo (D141) does not bring a photo back.
 - **Screening:** Preview as buyer shows the same Photos with Remove (`admin-screening-photos`) above Approve and Reject, for a person who holds listings:enforce; done, the page's line says "Photo removed. The seller is told why." and the preview's gallery reads the photos again.
 - Tests: LP-1, LP-2 (src/features/admin-listings/photo-remove.test.ts), LP-3..LP-5 (listing-photos.test.tsx); E2E AL-28 (the listing's page), SC-20 (Screening's preview).
+
+## Bundle 13 turn 10 — the photo flag (D154 B3)
+
+- An ad holding a photo the AI screen warned `not_relevant` about shows "A photo may not fit the ad" under its title in the list (`listing-row-<id>-photo-warning`), read for the page's rows from `listing_photo_warnings`; its Photos card marks the photo "May not fit the ad" (`listing-photos-warning`). The whole rule: docs/features/admin-screening.md, "Bundle 13 turn 10".

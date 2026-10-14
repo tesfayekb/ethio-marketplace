@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { createClient } from "@supabase/supabase-js";
 import jpeg from "jpeg-js";
 
 import { expect, test } from "./fixtures";
@@ -1643,5 +1644,64 @@ test.describe("PHOTO PIPELINE", () => {
     await editor.getByTestId("post-photo-editor-cancel").click();
     await expect(editor).toHaveCount(0);
     await expect(tile).toHaveAttribute("data-photo-id", photo!.id);
+  });
+
+  /**
+   * PP-29 — D154 B3: a photo the screen warns `not_relevant` about (fake mode: a
+   * cover exactly 17 px wide) is stored, with its warning in its own table; the
+   * seller's tile says so, a plain photo's does not; no visitor reads a warning or
+   * a change; a draft's photo is not a change on a live ad (B5).
+   */
+  test("PP-29 a photo that may not fit the ad is stored with a warning the seller sees and no visitor reads (D154 B3)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    const warned = await uploadPhoto(page, { listingId, token, cover: { made: [17, 17] } });
+    expect(warned.status, JSON.stringify(warned.payload)).toBe(200);
+    expect(warned.payload["ok"], JSON.stringify(warned.payload)).toBe(true);
+    expect(warned.payload["warnings"]).toEqual(["not_relevant"]);
+    const plain = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+    expect(plain.payload["ok"], JSON.stringify(plain.payload)).toBe(true);
+    expect(plain.payload["warnings"]).toEqual([]);
+    const [first, second] = await photoRowsOf(listingId);
+
+    const { data: warnings, error } = await adminClient()
+      .from("listing_photo_warnings")
+      .select("photo_id, listing_id, codes")
+      .eq("listing_id", listingId);
+    if (error) throw new Error(`[e2e:pp] reading the warnings failed: ${error.message}`);
+    expect(warnings).toEqual([
+      { photo_id: first!.id, listing_id: listingId, codes: ["not_relevant"] },
+    ]);
+    const { count: changes } = await adminClient()
+      .from("listing_photo_changes")
+      .select("id", { count: "exact", head: true })
+      .eq("listing_id", listingId);
+    expect(changes, "PP-29: a draft's photo was listed as a change on a live ad").toBe(0);
+
+    // No visitor reads a warning or a change: the anonymous role has no grant.
+    const visitor = createClient(
+      process.env["E2E_SUPABASE_URL"]!,
+      process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
+      { auth: { persistSession: false } },
+    );
+    for (const table of ["listing_photo_warnings", "listing_photo_changes"] as const) {
+      const read = await visitor.from(table).select("*").limit(1);
+      expect(read.error, `PP-29: a visitor read ${table}`).not.toBeNull();
+    }
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const tiles = page.getByTestId("post-photo-stored");
+    await expect(tiles).toHaveCount(2);
+    await expect(tiles.nth(0)).toHaveAttribute("data-photo-id", first!.id);
+    await expect(tiles.nth(0).getByTestId("post-photo-warning")).toHaveText(
+      en["post.photos.notRelevant"],
+    );
+    await expect(tiles.nth(1)).toHaveAttribute("data-photo-id", second!.id);
+    await expect(tiles.nth(1).getByTestId("post-photo-warning")).toHaveCount(0);
   });
 });

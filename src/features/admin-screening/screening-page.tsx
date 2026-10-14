@@ -39,6 +39,8 @@ import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
+import { PhotoChanges } from "./photo-changes";
+import { useWarnedListings } from "./use-photo-changes";
 import {
   ADMIN_SCREENING_KEY,
   SCREENING_PAGE_SIZE,
@@ -157,7 +159,20 @@ export function AdminScreeningPage() {
       header: t("admin.screening.col.title"),
       card: "title",
       priority: "primary",
-      cell: (row) => <span className="min-w-0 break-words font-medium">{row.title}</span>,
+      cell: (row) => (
+        <span className="block min-w-0">
+          <span className="break-words font-medium">{row.title}</span>
+          {/* D154 B3 — the screen warned that a photo of this ad may not fit it. */}
+          {warned.has(row.id) ? (
+            <span
+              className="mt-0.5 block text-xs font-normal text-foreground"
+              data-testid={`admin-screening-row-${row.id}-photo-warning`}
+            >
+              {t("admin.screening.photoWarning")}
+            </span>
+          ) : null}
+        </span>
+      ),
     },
     {
       key: "category",
@@ -289,6 +304,8 @@ export function AdminScreeningPage() {
 
   const data = query.data;
   const rows = data?.rows ?? [];
+  // D154 B3 — the page's ads that hold a photo the screen warned about.
+  const warned = useWarnedListings(rows.map((row) => row.id)).data ?? new Set<string>();
 
   const chips =
     country === null
@@ -521,6 +538,14 @@ export function AdminScreeningPage() {
                   }}
                 />
               }
+            />
+
+            {/* D154 B5 (bundle 13 turn 10) — the photo changes sellers made on live ads. */}
+            <PhotoChanges
+              mayReview={mayReview}
+              mayEnforce={mayEnforce}
+              guard={guard}
+              onNotice={(key, tone) => setNotice({ key, tone })}
             />
 
             <AlertDialog

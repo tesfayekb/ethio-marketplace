@@ -265,6 +265,25 @@ export interface DraftPhotoRow {
   storagePath: string | null;
   /** D158 — stored while photo screening was off: shown to no buyer until staff approve the ad. */
   unscreened?: boolean;
+  /** D154 B3 — the screen's warnings (`not_relevant`), read by the seller and staff only. */
+  warnings?: string[];
+}
+
+/** D154 B3 — the photo row's selected columns, with its warnings embedded. */
+export const PHOTO_ROW_SELECT =
+  "id,display_order,paths,storage_path,unscreened,warning:listing_photo_warnings(codes)";
+
+/**
+ * D154 B3 — the codes of an embedded `listing_photo_warnings` row: one row per
+ * photo (or none), read as an object or a one-item list; anything else is none.
+ */
+export function photoWarningsOf(embedded: unknown): string[] {
+  const row = Array.isArray(embedded) ? embedded[0] : embedded;
+  if (row === null || typeof row !== "object") return [];
+  const codes = (row as Record<string, unknown>)["codes"];
+  return Array.isArray(codes)
+    ? codes.filter((code): code is string => typeof code === "string")
+    : [];
 }
 
 function numOrNull(value: unknown): number | null {
@@ -312,7 +331,7 @@ export async function readDraft(
 
   const { data: photos, error: photoError } = await supabase
     .from("listing_photos")
-    .select("id,display_order,paths,storage_path,unscreened")
+    .select(PHOTO_ROW_SELECT)
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
   if (photoError) throw new Error(photoError.message);
@@ -371,6 +390,7 @@ export async function readDraft(
       paths: (row.paths ?? null) as Record<string, unknown> | null,
       storagePath: row.storage_path,
       unscreened: row.unscreened === true,
+      warnings: photoWarningsOf(row.warning),
     })),
   };
 }
