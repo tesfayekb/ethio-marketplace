@@ -17,9 +17,11 @@ vi.mock("@/i18n", () => ({
 const link = (id: string, size: string) =>
   `https://staging.example/storage/v1/object/sign/listing-photos/default/u/l/${id}/${size}.webp?token=t`;
 
+/** A photo stored before the middle size (D162): the page offers its cover. */
 const photo = (id: string): GalleryPhoto => ({
   id,
   main: link(id, "card"),
+  middle: null,
   large: link(id, "cover"),
   thumb: link(id, "thumb"),
 });
@@ -178,5 +180,31 @@ describe("PhotoGallery — a held photo (D158)", () => {
 
     render(<PhotoGallery photos={[held]} />);
     expect(screen.queryByTestId("gallery-unscreened")).toBeNull();
+  });
+});
+
+/**
+ * D162 (the operator, 2026-10-13: "Add a middle size") — the page's photo is
+ * drawn from the card or the middle size; the full size is fetched for the
+ * full-screen viewer only.
+ */
+describe("PhotoGallery — the middle size (D162)", () => {
+  it("GAL-6 a photo with a middle size offers the card and the middle size, never the cover; the viewer draws the cover", () => {
+    const withMiddle: GalleryPhoto = { ...photo("p1"), middle: link("p1", "mid") };
+    render(<PhotoGallery photos={[withMiddle, photo("p2")]} />);
+    expect(mainImage()).toHaveAttribute("src", link("p1", "card"));
+    expect(mainImage()).toHaveAttribute(
+      "srcset",
+      `${link("p1", "card")} 480w, ${link("p1", "mid")} 960w`,
+    );
+    fireEvent.click(screen.getByTestId("gallery-main"));
+    expect(screen.getByTestId("gallery-viewer-image")).toHaveAttribute("src", link("p1", "cover"));
+    fireEvent.click(screen.getByTestId("gallery-viewer-close"));
+    // A photo stored before the middle size keeps the cover in its page sizes.
+    fireEvent.click(screen.getByTestId("gallery-next"));
+    expect(mainImage()).toHaveAttribute(
+      "srcset",
+      `${link("p2", "card")} 480w, ${link("p2", "cover")} 1600w`,
+    );
   });
 });

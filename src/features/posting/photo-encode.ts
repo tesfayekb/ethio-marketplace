@@ -9,31 +9,37 @@
  *     APPLIED to the pixels here, which is the only place it can be: the server
  *     strip deletes EXIF wholesale (DEC-069), so a photo that arrived sideways
  *     with a rotation flag would stay sideways forever.
- *   2 RESIZE to three variants, never UPSCALING (a small photo stays small —
+ *   2 RESIZE to four variants (D162 added the middle size), never UPSCALING (a small photo stays small —
  *     which is also why the 13-px policy fixture survives the pipeline intact),
  *     with the canvas's HIGH-QUALITY filter (INC-599): the default filter
  *     aliases a large downscale — thumbs measured at SSIM 0.70 against 0.95 —
  *     and the sharper picture is also the SMALLER file.
  *   3 ENCODE to WebP where the canvas supports it, at the qualities D157's judge
- *     chose (cover 0.82, card 0.84, thumb 0.82), else JPEG at 0.82.
+ *     chose (cover 0.82, card 0.84, thumb 0.82; the middle size, which the judge
+ *     did not measure, at the cover's 0.82), else JPEG at 0.82.
  *
- * The three long edges sit UNDER the route's own caps (2000 / 640 / 240), so the
- * device's output can never be refused for size by the server it is aimed at.
- * Measured (D157, 15 photos of 1448 px): a photo comes to about 236 KB in all
- * three sizes, so ten photos come to about 2.4 MB (ESTIMATE about 2.9 MB from a
- * phone's full-size photos).
+ * The four long edges sit UNDER the route's own caps (2000 / 1200 / 640 / 240),
+ * so the device's output can never be refused for size by the server it is
+ * aimed at. D162 (the operator, 2026-10-13): the gallery's photo is drawn from
+ * the middle size (960 px), so the full size is fetched only for the
+ * full-screen viewer.
+ * Measured (D157, 15 photos of 1448 px): a photo came to about 236 KB in the
+ * three sizes before the middle size, so ten photos came to about 2.4 MB; the
+ * middle size adds ESTIMATE 50–120 KB a photo (not yet measured).
  *
  * This module is pure browser work: no dependency, no image library, and no
  * knowledge of the routes.
  */
 
-export const EDGES = { cover: 1600, card: 480, thumb: 160 } as const;
+export const EDGES = { cover: 1600, mid: 960, card: 480, thumb: 160 } as const;
 const JPEG_QUALITY = 0.82;
 /** D157 — the judge's verdict: the smallest quality with SSIM ≥ 0.95 on every photo. */
-export const WEBP_QUALITY = { cover: 0.82, card: 0.84, thumb: 0.82 } as const;
+export const WEBP_QUALITY = { cover: 0.82, mid: 0.82, card: 0.84, thumb: 0.82 } as const;
 
 export interface EncodedVariants {
   cover: Blob;
+  /** D162 — the middle size, drawn in the gallery. */
+  mid: Blob;
   card: Blob;
   thumb: Blob;
   /** The file extension the variants carry, for the multipart file names. */
@@ -106,7 +112,7 @@ async function draw(
   return { blob, width: w, height: h };
 }
 
-/** The three variants the upload route expects, encoded on the device. */
+/** The four variants the upload route takes, encoded on the device. */
 export async function encodeVariants(file: File): Promise<EncodedVariants> {
   let bitmap: ImageBitmap;
   try {
@@ -125,11 +131,13 @@ export async function encodeVariants(file: File): Promise<EncodedVariants> {
       webp ? WEBP_QUALITY[variant] : JPEG_QUALITY;
 
     const cover = await draw(bitmap, EDGES.cover, mime, quality("cover"));
+    const mid = await draw(bitmap, EDGES.mid, mime, quality("mid"));
     const card = await draw(bitmap, EDGES.card, mime, quality("card"));
     const thumb = await draw(bitmap, EDGES.thumb, mime, quality("thumb"));
 
     return {
       cover: cover.blob,
+      mid: mid.blob,
       card: card.blob,
       thumb: thumb.blob,
       extension: webp ? "webp" : "jpg",

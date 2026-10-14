@@ -70,9 +70,10 @@
  * a warm/cream wash on hover states all over the app. They now carry the SAME
  * cool-slate neutral as --muted, so the surface system is ONE uniform neutral.
  * The gold itself was not re-picked: its exact values moved to --gold /
- * --gold-foreground, which are used in exactly three places — the logo dot, the
- * Featured badge and the invite card (DEC-169, 2026-10-09). Selection/emphasis
- * is green (sidebar-accent) everywhere.
+ * --gold-foreground, which are used in exactly four places — the logo dot, the
+ * Featured badge, the invite card (DEC-169, 2026-10-09) and the cover photo's
+ * ribbon and outline on the photo step (D163, 2026-10-13: red is for danger).
+ * Selection/emphasis is green (sidebar-accent) everywhere.
  *
  * Flat surfaces only — soft shadows are allowed; images and gradients are not
  * (performance stance — see docs/features/design-foundation.md).
@@ -107,7 +108,7 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  /* Gold micro-accent. ONLY the logo dot and the Featured badge may use this. */
+  /* Gold micro-accent: ONLY the four placements named in the header (logo dot, Featured, invite card, cover ribbon). */
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
   --color-destructive: var(--destructive);

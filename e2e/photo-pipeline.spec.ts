@@ -1,9 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import jpeg from "jpeg-js";
+
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+
+import { fillOf, isGoldFill, isRedFill } from "./helpers/colors";
 
 import {
   clearUploadCounter,
@@ -50,6 +54,26 @@ import { adminClient, leaseUser } from "./helpers/users";
  */
 
 const DRAFT = "/api/listings/draft";
+
+/**
+ * D162 / INC-613 — a WIDE photo (16:9), made in memory by the fixture
+ * generator's own encoder (`jpeg-js`, I1) from a smooth gradient: the committed
+ * fixtures are all 4:3, which a 4:3 frame draws edge to edge, so none of them
+ * can show where a wider photo sits.
+ */
+function wideJpeg(width: number, height: number): Buffer {
+  const data = Buffer.alloc(width * height * 4);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const at = (y * width + x) * 4;
+      data[at] = Math.round((x / width) * 255);
+      data[at + 1] = Math.round((y / height) * 255);
+      data[at + 2] = 128;
+      data[at + 3] = 255;
+    }
+  }
+  return Buffer.from(jpeg.encode({ data, width, height }, 85).data);
+}
 
 /** The tile tests (PP-10) pick a real file from the device, as a seller does. */
 const FIXTURE = join(
@@ -909,6 +933,30 @@ test.describe("PHOTO PIPELINE", () => {
     await expect(page.getByTestId("post-nav-photos-sending")).toHaveCount(0);
     // D160 — the cover's ribbon.
     await expect(tile.getByTestId("post-photo-cover")).toHaveText(en["post.photos.coverRibbon"]);
+    // D163 — the ribbon and the tile's outline in the system's gold, as a person
+    // sees them; Remove keeps the destructive red.
+    await expect
+      .poll(async () => isGoldFill(await fillOf(tile.getByTestId("post-photo-cover"))), {
+        message: "PP-19: the cover's ribbon is not gold",
+      })
+      .toBe(true);
+    await expect
+      .poll(
+        async () => isGoldFill(await tile.evaluate((e) => getComputedStyle(e).borderTopColor)),
+        {
+          message: "PP-19: the cover's outline is not gold",
+        },
+      )
+      .toBe(true);
+    await expect
+      .poll(
+        async () =>
+          isRedFill(
+            await tile.getByTestId("post-photo-remove").evaluate((e) => getComputedStyle(e).color),
+          ),
+        { message: "PP-19: Remove is no longer red" },
+      )
+      .toBe(true);
   });
 
   /**
@@ -1174,5 +1222,132 @@ test.describe("PHOTO PIPELINE", () => {
     await expect(count, "PP-22: the gallery does not show the viewer's photo").toHaveText("2 / 3");
     await page.keyboard.press("Escape");
     await expect(sheet).toHaveCount(0);
+  });
+
+  /**
+   * PP-23 — D162 (the operator, 2026-10-13: "Add a middle size") and INC-613 (his
+   * walk the same evening: the thumbnails sat "above the top border of the top of
+   * the main image"). Two wide photos picked on the photo step, as a seller picks
+   * them: the device stores four sizes, the middle one 960 px; the buyer's
+   * preview draws the page's photo from the card and the middle size, never the
+   * cover, which only the full-screen viewer draws; and on a computer the wide
+   * photo's top meets the first thumbnail's top.
+   */
+  test("PP-23 the gallery draws the middle size, and on a computer a wide photo's top meets the first thumbnail (D162, INC-613)", async ({
+    page,
+  }) => {
+    test.setTimeout(150_000);
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const buffer = wideJpeg(1600, 900);
+    await page.getByTestId("post-photos-input").setInputFiles([
+      { name: "wide-1.jpg", mimeType: "image/jpeg", buffer },
+      { name: "wide-2.jpg", mimeType: "image/jpeg", buffer },
+    ]);
+    const tiles = page.getByTestId("post-photo-tile");
+    await expect(tiles).toHaveCount(2, { timeout: 45_000 });
+    for (const tile of await tiles.all()) {
+      await expect(tile).toHaveAttribute("data-state", "stored", { timeout: 60_000 });
+    }
+    const rows = await photoRowsOf(listingId);
+    expect(rows, "PP-23: two photos were stored").toHaveLength(2);
+    const midKeys = rows.map((row) => {
+      const mid = row.paths["mid"] as { key?: unknown } | undefined;
+      expect(typeof mid?.key, "PP-23: a photo was stored without its middle size").toBe("string");
+      return String(mid!.key);
+    });
+    expect([rows[0]!.width, rows[0]!.height], "PP-23: the cover is not the wide photo").toEqual([
+      1600, 900,
+    ]);
+    /** A signed link carries the stored key of the size it serves. */
+    const inLink = (key: string) => new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    // Recorded as past contact (service client, this scratch row only), so the
+    // draft opens on review, where the preview is.
+    const { error } = await adminClient()
+      .from("listings")
+      .update({ draft_step: 7 })
+      .eq("id", listingId)
+      .eq("seller_id", user.id);
+    if (error) throw new Error(`[e2e:pp] seeding draft_step failed: ${error.message}`);
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-preview-open").click();
+    const gallery = page.getByTestId("post-preview-sheet").getByTestId("listing-detail-gallery");
+    const main = gallery.getByTestId("gallery-main");
+    const image = main.locator("img");
+    await expect(image, "PP-23: the page does not offer the middle size").toHaveAttribute(
+      "srcset",
+      inLink(midKeys[0]!),
+      { timeout: 20_000 },
+    );
+    await expect(image, "PP-23: the page offers the full size").not.toHaveAttribute(
+      "srcset",
+      inLink(keyOf(rows[0]!, "cover")),
+    );
+
+    if (!isMobile(page)) {
+      // What a person sees: the top edge of the photo as drawn in its frame
+      // (object-fit contain, at its object-position), against the first thumbnail.
+      const first = gallery.getByTestId("gallery-thumb").nth(0);
+      await expect
+        .poll(
+          async () => {
+            const drawnTop = await image.evaluate((element: HTMLImageElement) => {
+              if (!element.complete || element.naturalWidth === 0) return null;
+              const box = element.getBoundingClientRect();
+              const scale = Math.min(
+                box.width / element.naturalWidth,
+                box.height / element.naturalHeight,
+              );
+              const drawn = element.naturalHeight * scale;
+              const along = parseFloat(
+                getComputedStyle(element).objectPosition.split(" ")[1] ?? "",
+              );
+              return box.top + (box.height - drawn) * (Number.isFinite(along) ? along / 100 : 0.5);
+            });
+            const thumb = await first.boundingBox();
+            return drawnTop === null || thumb === null ? null : Math.abs(drawnTop - thumb.y);
+          },
+          {
+            message:
+              "PP-23: on a computer the wide photo's top does not meet the first thumbnail's",
+            timeout: 20_000,
+          },
+        )
+        .toBeLessThanOrEqual(1);
+    }
+
+    // The full-screen viewer draws the cover.
+    await main.click();
+    await expect(page.getByTestId("gallery-viewer-image")).toHaveAttribute(
+      "src",
+      inLink(keyOf(rows[0]!, "cover")),
+    );
+  });
+
+  /** PP-24 — D162: a middle size over its own cap (1,200 px) is refused by name, and nothing is stored. */
+  test("PP-24 a middle size over its cap is refused by name and nothing is stored (D162)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    const response = await page.request.post("/api/upload/photo", {
+      headers: { Authorization: `Bearer ${token}` },
+      multipart: {
+        listingId,
+        cover: { name: "cover.jpg", mimeType: "image/jpeg", buffer: wideJpeg(1600, 900) },
+        mid: { name: "mid.jpg", mimeType: "image/jpeg", buffer: wideJpeg(1300, 731) },
+        card: { name: "card.jpg", mimeType: "image/jpeg", buffer: wideJpeg(480, 270) },
+        thumb: { name: "thumb.jpg", mimeType: "image/jpeg", buffer: wideJpeg(160, 90) },
+      },
+    });
+    const payload = (await response.json()) as Record<string, unknown>;
+    expect(reasons(payload), JSON.stringify(payload)).toEqual([
+      { field: "mid", reason: "tooLarge" },
+    ]);
+    expect(await photoRowsOf(listingId), "PP-24: a refused upload stored a row").toHaveLength(0);
   });
 });

@@ -44,7 +44,7 @@ describe("photo links (INC-588)", () => {
   });
 
   it("LK-4 a request may name the sizes it needs; only those are signed (INC-606)", async () => {
-    expect(variantsOf(undefined)).toEqual(["card", "thumb", "cover"]);
+    expect(variantsOf(undefined)).toEqual(["card", "thumb", "mid", "cover"]);
     expect(variantsOf(["card", "thumb", "card"])).toEqual(["card", "thumb"]);
     expect(variantsOf([])).toBeNull();
     expect(variantsOf(["original"])).toBeNull();
@@ -76,5 +76,16 @@ describe("photo links (INC-588)", () => {
       },
     });
     expect(asked).toEqual([["default/u/l/p/card.webp", "default/u/l/p/thumb.webp"]]);
+  });
+
+  it("LK-5 a stored middle size is signable and may be asked for alone (D162)", () => {
+    const withMid = { ...paths, mid: { partition: "default", key: "default/u/l/p/mid.webp" } };
+    expect(variantRefs(withMid).map((ref) => ref.variant)).toEqual([
+      "card",
+      "thumb",
+      "mid",
+      "cover",
+    ]);
+    expect(variantsOf(["mid"])).toEqual(["mid"]);
   });
 });

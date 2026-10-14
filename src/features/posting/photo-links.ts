@@ -48,15 +48,18 @@ export function linksOf(payload: Record<string, unknown>): PhotoLinks {
 }
 
 /**
- * D161 — a gallery photo: the card size drawn in the page, the cover size for
- * a sharp page on a dense screen and for the full-screen viewer, and the thumb
- * size for the thumbnails. Every link passes `photoUrl`, so a photo with no
- * https link at any size is left out — never a broken image.
+ * D161 — a gallery photo: the card size drawn in the page, the middle size for
+ * a sharp page on a wide or dense screen (D162), the cover size for the
+ * full-screen viewer, and the thumb size for the thumbnails. Every link passes
+ * `photoUrl`, so a photo with no https link at any size is left out — never a
+ * broken image.
  */
 export interface GalleryPhoto {
   id: string;
   /** The card size (480 px), drawn in the page; the cover or the thumb when it is missing. */
   main: string;
+  /** D162 — the middle size (960 px); null for a photo stored before it existed. */
+  middle: string | null;
   /** The cover size (up to 1600 px); null when absent. */
   large: string | null;
   /** The thumb size (160 px); the main link when it is missing. */
@@ -76,6 +79,7 @@ export function galleryPhotos(
       {
         id: row.id,
         main,
+        middle: photoUrl(row, ["mid"], links),
         large: photoUrl(row, ["cover"], links),
         thumb: photoUrl(row, ["thumb"], links) ?? main,
         ...(row.unscreened === true ? { unscreened: true as const } : {}),

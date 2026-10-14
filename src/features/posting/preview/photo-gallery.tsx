@@ -61,10 +61,15 @@ const arrowClass =
  *     leave; a double click doubles the size, and a phone's own pinch zoom
  *     works.
  *
- * Light by design: only the photo shown is drawn at a large size (the card
- * size, or the cover where the screen needs it, chosen by the browser from
- * `srcSet`); thumbnails are the thumb size (about 5 KB); the full-screen viewer
- * draws the cover only when it is opened.
+ * Light by design: only the photo shown is drawn at a large size — the card
+ * size or the middle size (960 px, D162), chosen by the browser from `srcSet`;
+ * a photo stored before the middle size offers the cover instead. Thumbnails
+ * are the thumb size (about 6 KB); the full-screen viewer draws the cover only
+ * when it is opened.
+ *
+ * INC-613 — on a computer the photo sits at the TOP of its 4:3 frame, so a
+ * photo wider than 4:3 lines up with the first thumbnail beside it (centred, a
+ * wide photo sat below the thumbnails' top). On a phone it stays centred.
  */
 export function PhotoGallery({
   photos,
@@ -111,12 +116,12 @@ export function PhotoGallery({
           >
             <img
               src={photo.main}
-              srcSet={photo.large === null ? undefined : `${photo.main} 480w, ${photo.large} 1600w`}
+              srcSet={srcSetOf(photo)}
               sizes="(min-width: 640px) 36rem, 100vw"
               alt=""
               width={480}
               height={360}
-              className="h-full w-full object-contain"
+              className="h-full w-full object-contain @min-[32rem]:object-top"
               draggable={false}
             />
           </button>
@@ -186,6 +191,17 @@ export function PhotoGallery({
       ) : null}
     </div>
   );
+}
+
+/**
+ * D162 — the sizes the page's photo may be drawn from: the card and the middle
+ * size; the cover only for a photo stored before the middle size existed, so
+ * the full size is never fetched for the page when a middle size exists.
+ */
+function srcSetOf(photo: GalleryPhoto): string | undefined {
+  if (photo.middle !== null) return `${photo.main} 480w, ${photo.middle} 960w`;
+  if (photo.large !== null) return `${photo.main} 480w, ${photo.large} 1600w`;
+  return undefined;
 }
 
 function Thumbs({

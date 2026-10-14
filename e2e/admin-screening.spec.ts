@@ -782,6 +782,10 @@ test.describe("ADMIN SCREENING", () => {
    * Bundle 13 turn 6 (D158) — two stripped photo rows on a scratch ad: the first held
    * (`unscreened`, as the upload stores it while photo screening is off), the second
    * screened. Rows only, no stored file (the preview's note reads the rows).
+   *
+   * INC-614 — both rows name `unscreened`: in a many-row insert the server sends
+   * NULL, not the column's default, for a key a row leaves out, and the column is
+   * NOT NULL.
    */
   async function seedHeldPhotos(listingId: string) {
     const { data, error } = await adminClient()
@@ -799,6 +803,7 @@ test.describe("ADMIN SCREENING", () => {
           storage_path: `e2e-sc/${rand()}-screened.webp`,
           display_order: 1,
           exif_stripped: true,
+          unscreened: false,
         },
       ])
       .select("id, display_order");

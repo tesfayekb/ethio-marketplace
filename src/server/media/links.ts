@@ -22,8 +22,11 @@ import { readLinks, type Partition } from "./storage";
 /** One hour: a page left open longer asks again (the client refreshes at 45 minutes). */
 export const PHOTO_LINK_SECONDS = 3600;
 
-/** The variants a reader may draw. `original` is the cover's key under its legacy name. */
-export const READ_VARIANTS = ["card", "thumb", "cover"] as const;
+/**
+ * The variants a reader may draw. `original` is the cover's key under its legacy name.
+ * D162 adds the middle size (`mid`, 960 px), which photos stored before it lack.
+ */
+export const READ_VARIANTS = ["card", "thumb", "mid", "cover"] as const;
 
 /** A request names at most this many photos (a listing holds at most ten). */
 export const MAX_LINK_PHOTOS = 30;

@@ -4,10 +4,11 @@ import type { ImageFormat } from "./strip";
  * U6-B1 — THE UPLOAD-TIME POLICY PASS (spec §12 D15).
  *
  * NOTHING IS STORED UNSCREENED. EVERY variant that will be stored — the cover,
- * the card and the thumb — is shown to the provider in ONE call (INC-601), with a
+ * the middle size when it is sent (D162), the card and the thumb — is shown to
+ * the provider in ONE call (INC-601), with a
  * fixed code list and a JSON schema, and a PROVIDER FAILURE IS A REFUSAL (F4):
- * `providerUnavailable` with a retry hint, never a quiet accept. The card and the
- * thumb must show the same photo as the cover; a smaller copy that does not is
+ * `providerUnavailable` with a retry hint, never a quiet accept. Every smaller
+ * copy must show the same photo as the cover; a smaller copy that does not is
  * refused `variant_mismatch`, so no stored size escapes the screen.
  *
  * THE PROVIDER is the same Gemini endpoint and the same server-side key name the
@@ -44,9 +45,10 @@ export interface PolicyImage {
   width: number;
 }
 
-/** INC-601 — the three sizes one upload stores, screened together. */
+/** INC-601 — the sizes one upload stores, screened together (D162: the middle size when sent). */
 export interface PolicyVariants {
   cover: PolicyImage;
+  mid?: PolicyImage;
   card: PolicyImage;
   thumb: PolicyImage;
 }
@@ -78,8 +80,8 @@ function visionModel(): string {
  */
 export const PHOTO_POLICY_INSTRUCTION = [
   "You screen photographs uploaded to a public classifieds marketplace.",
-  "You are shown three images of one upload: the photo, then a smaller copy of it, then a smallest copy of it.",
-  "Answer with one verdict for the upload: judge every one of the three images by the codes below, and refuse the upload if any of them must be refused.",
+  "You are shown the images of one upload: first the photo, then smaller copies of it, each smaller than the one before.",
+  "Answer with one verdict for the upload: judge every one of the images by the codes below, and refuse the upload if any of them must be refused.",
   "Refuse only when you can see the reason in an image.",
   `The only refusal codes are: ${POLICY_CODES.join(", ")}.`,
   "personal_document covers an ID card, passport, licence or bank card.",
@@ -92,8 +94,18 @@ export const PHOTO_POLICY_INSTRUCTION = [
   "A photograph of another printed item, such as a flyer, a label, a menu or a price list, is a photograph and is never not_a_photo; judge what is printed on it by the other codes.",
   'Return JSON only: {"allowed": boolean, "code": string, "evidence": string}.',
   'When the image is acceptable, return {"allowed": true, "code": "", "evidence": ""}.',
-  "Keep evidence to one short phrase naming what you saw and in which image (first, second or third).",
+  "Keep evidence to one short phrase naming what you saw and in which image (first, second, third or fourth).",
 ].join(" ");
+
+/** The stored sizes in the order the instruction names them: largest first. */
+export function imagesOf(variants: PolicyVariants): PolicyImage[] {
+  return [
+    variants.cover,
+    ...(variants.mid === undefined ? [] : [variants.mid]),
+    variants.card,
+    variants.thumb,
+  ];
+}
 
 function mimeOf(format: ImageFormat): string {
   return format === "jpeg" ? "image/jpeg" : format === "png" ? "image/png" : "image/webp";
@@ -138,11 +150,11 @@ export async function screenPhotoPolicy(
       headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: PHOTO_POLICY_INSTRUCTION }] },
-        // INC-601 — the three stored sizes, in this order, in ONE call.
+        // INC-601 — every stored size, largest first, in ONE call (D162: the middle size when sent).
         contents: [
           {
             role: "user",
-            parts: [variants.cover, variants.card, variants.thumb].map((image) => ({
+            parts: imagesOf(variants).map((image) => ({
               inlineData: { mimeType: mimeOf(image.format), data: base64(image.bytes) },
             })),
           },

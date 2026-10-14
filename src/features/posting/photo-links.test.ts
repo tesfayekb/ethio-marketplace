@@ -48,14 +48,26 @@ describe("a stored photo's link (INC-588)", () => {
 
   it("PU-4 a gallery photo carries its card, cover and thumb links; a photo with no https link is left out (D161)", () => {
     expect(galleryPhotos([{ id: "p1" }, { id: "p2" }, { id: "p3" }], links)).toEqual([
-      { id: "p1", main: links.p1.card, large: links.p1.cover, thumb: links.p1.thumb },
-      { id: "p2", main: links.p2.cover, large: links.p2.cover, thumb: links.p2.thumb },
+      {
+        id: "p1",
+        main: links.p1.card,
+        middle: null,
+        large: links.p1.cover,
+        thumb: links.p1.thumb,
+      },
+      {
+        id: "p2",
+        main: links.p2.cover,
+        middle: null,
+        large: links.p2.cover,
+        thumb: links.p2.thumb,
+      },
     ]);
     expect(
       galleryPhotos([{ id: "p1" }], {
         p1: { card: links.p1.card, cover: "javascript:alert(1)" },
       }),
-    ).toEqual([{ id: "p1", main: links.p1.card, large: null, thumb: links.p1.card }]);
+    ).toEqual([{ id: "p1", main: links.p1.card, middle: null, large: null, thumb: links.p1.card }]);
     expect(galleryPhotos([{ id: "p1" }], undefined)).toEqual([]);
   });
 
@@ -72,11 +84,26 @@ describe("a stored photo's link (INC-588)", () => {
       {
         id: "p1",
         main: links.p1.card,
+        middle: null,
         large: links.p1.cover,
         thumb: links.p1.thumb,
         unscreened: true,
       },
-      { id: "p2", main: links.p2.cover, large: links.p2.cover, thumb: links.p2.thumb },
+      {
+        id: "p2",
+        main: links.p2.cover,
+        middle: null,
+        large: links.p2.cover,
+        thumb: links.p2.thumb,
+      },
+    ]);
+  });
+
+  it("PU-6 a photo stored with the middle size carries its link; the card stays the main link (D162)", () => {
+    const mid =
+      "https://staging.example/storage/v1/object/sign/listing-photos/default/u/l/p1/mid.webp?token=m";
+    expect(galleryPhotos([{ id: "p1" }], { p1: { ...links.p1, mid } })).toEqual([
+      { id: "p1", main: links.p1.card, middle: mid, large: links.p1.cover, thumb: links.p1.thumb },
     ]);
   });
 });

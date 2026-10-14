@@ -201,7 +201,7 @@ export function StepPhotos({
       patchItem(localId, { state: "uploading", percent: 1 });
       const answer = await uploadPhoto(
         listingId,
-        { cover: encoded.cover, card: encoded.card, thumb: encoded.thumb },
+        { cover: encoded.cover, mid: encoded.mid, card: encoded.card, thumb: encoded.thumb },
         encoded.extension,
         (percent) => {
           if (aliveRef.current) patchItem(localId, { percent });
@@ -444,11 +444,14 @@ export function StepPhotos({
   /**
    * D160 (the operator, 2026-10-13: "make the cover box more prominent and have
    * a red ribbon saying cover photo") — the cover's tile is outlined in the
-   * ribbon's red, and a ribbon reading "Cover photo" sits on its picture.
+   * ribbon's colour, and a ribbon reading "Cover photo" sits on its picture.
+   * D163 (his walk the same evening: "RED GENERALLY SIGNALS DANGER, CAN WE MAKE
+   * IT THE GOLD COLOR … BUT REMOVE REMAINS RED") — the ribbon and the outline
+   * are the system's gold; red stays for Remove, the one destructive act.
    */
   function tileClass(isCover: boolean): string {
     return isCover
-      ? "space-y-2 rounded-md border-2 border-destructive p-2"
+      ? "space-y-2 rounded-md border-2 border-gold p-2"
       : "space-y-2 rounded-md border border-border p-2";
   }
 
@@ -456,7 +459,7 @@ export function StepPhotos({
     return (
       <span
         data-testid="post-photo-cover"
-        className="absolute start-0 top-2 rounded-e-md bg-destructive px-2 py-0.5 text-xs font-semibold text-destructive-foreground shadow-sm"
+        className="absolute start-0 top-2 rounded-e-md bg-gold px-2 py-0.5 text-xs font-semibold text-gold-foreground shadow-sm"
       >
         {t("post.photos.coverRibbon")}
       </span>

@@ -96,14 +96,29 @@ describe("the photo policy pass screens every stored size (INC-601)", () => {
     });
   });
 
-  it("PPOL-7 tells the provider to judge all three images, and that less sharp is not a reason", () => {
+  it("PPOL-7 tells the provider to judge every image, and that less sharp is not a reason", () => {
     expect(POLICY_CODES).toContain("variant_mismatch");
     expect(PHOTO_POLICY_INSTRUCTION).toContain(
-      "You are shown three images of one upload: the photo, then a smaller copy of it, then a smallest copy of it.",
+      "You are shown the images of one upload: first the photo, then smaller copies of it, each smaller than the one before.",
     );
+    expect(PHOTO_POLICY_INSTRUCTION).toContain("judge every one of the images by the codes below");
     expect(PHOTO_POLICY_INSTRUCTION).toContain(
       "variant_mismatch covers a smaller copy that shows a different picture from the first image; a smaller copy is less sharp, and that alone is never a reason to refuse.",
     );
+  });
+
+  it("PPOL-9 sends the middle size second when it is stored: cover, middle, card, thumb (D162)", async () => {
+    const calls = provider({ allowed: true, code: "", evidence: "" });
+    const mid = { bytes: new Uint8Array([7, 8]), format: "webp" as const, width: 960 };
+    expect(await screenPhotoPolicy({ ...variants, mid }, () => {})).toEqual({ ok: true });
+    expect(calls).toHaveLength(1);
+    const contents = calls[0]!.body["contents"] as { parts: { inlineData: unknown }[] }[];
+    expect(contents[0]!.parts.map((part) => part.inlineData)).toEqual([
+      { mimeType: "image/jpeg", data: btoa(String.fromCharCode(1, 2, 3)) },
+      { mimeType: "image/webp", data: btoa(String.fromCharCode(7, 8)) },
+      { mimeType: "image/webp", data: btoa(String.fromCharCode(4, 5)) },
+      { mimeType: "image/png", data: btoa(String.fromCharCode(6)) },
+    ]);
   });
 
   it("PPOL-8 keeps fake mode on the cover's width, so no test run reaches the provider", async () => {
