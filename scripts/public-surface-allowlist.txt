@@ -69,3 +69,4 @@ listing_photo_warnings | SELECT to authenticated only, bundle 13 turn 10 (D154 B
 listing_photo_changes | SELECT to authenticated only, bundle 13 turn 10 (D154 B5): the photo changes sellers make on live ads; row security lets listings:review read them; no write grant; anon has none
 remove_listing_photo | restated grant (not a new surface), bundle 13 turn 10 (D154 B5): the seller's Remove; owner-only on auth.uid(), the photo must be on the caller's listing; on a live ad it lists the removal for staff
 admin_review_photo_change | admin door, bundle 13 turn 10 (D154 B5): listings:review checked inside; marks one photo change reviewed and writes an audit row
+admin_ai_spend_days | admin door, bundle 13 turn 14: services:view checked inside; reads each AI feature's calls and cost per UTC day for the last 1 to 92 days, scratch e2e- features left out; read only

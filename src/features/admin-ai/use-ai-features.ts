@@ -3,7 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
-import { listAiFeatures, setAiFeature, type SetAiFeatureInput } from "./ai-service";
+import {
+  listAiFeatures,
+  listAiSpendDays,
+  setAiFeature,
+  SPEND_DAYS,
+  type SetAiFeatureInput,
+} from "./ai-service";
 
 /**
  * Bundle 13 turn 5 (D158) — the AI console's cache namespace. It starts at
@@ -16,6 +22,15 @@ export function useAiFeatures() {
   return useQuery({
     queryKey: [...ADMIN_AI_KEY, "list"],
     queryFn: listAiFeatures,
+    staleTime: 15_000,
+  });
+}
+
+/** Bundle 13 turn 14 — the last SPEND_DAYS UTC days of every feature's spend, re-read as often as the list. */
+export function useAiSpendDays() {
+  return useQuery({
+    queryKey: [...ADMIN_AI_KEY, "days", SPEND_DAYS],
+    queryFn: () => listAiSpendDays(SPEND_DAYS),
     staleTime: 15_000,
   });
 }

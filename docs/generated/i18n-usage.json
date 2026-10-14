@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 433,
-  "dynamicCallSites": 289,
+  "scanned": 434,
+  "dynamicCallSites": 291,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -94,6 +94,30 @@
       "/admin/ai"
     ],
     "admin.ai.col.updated": [
+      "/admin/ai"
+    ],
+    "admin.ai.days.all": [
+      "/admin/ai"
+    ],
+    "admin.ai.days.day": [
+      "/admin/ai"
+    ],
+    "admin.ai.days.empty": [
+      "/admin/ai"
+    ],
+    "admin.ai.days.error": [
+      "/admin/ai"
+    ],
+    "admin.ai.days.hint": [
+      "/admin/ai"
+    ],
+    "admin.ai.days.spend": [
+      "/admin/ai"
+    ],
+    "admin.ai.days.title": [
+      "/admin/ai"
+    ],
+    "admin.ai.days.total": [
       "/admin/ai"
     ],
     "admin.ai.edit.title": [
@@ -3842,6 +3866,7 @@
     "common.loading": [
       "(every page)",
       "/account",
+      "/admin/ai",
       "/admin/categories",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -3852,6 +3877,7 @@
     ],
     "common.retry": [
       "/",
+      "/admin/ai",
       "/admin/listings",
       "/admin/screening",
       "/c/$slug",

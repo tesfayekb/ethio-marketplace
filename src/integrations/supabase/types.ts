@@ -2432,6 +2432,7 @@ export type Database = {
         Returns: string
       }
       admin_ai_features: { Args: never; Returns: Json }
+      admin_ai_spend_days: { Args: { p_days?: number }; Returns: Json }
       admin_approve_all_entity_translations: {
         Args: { p_lang: string }
         Returns: Json

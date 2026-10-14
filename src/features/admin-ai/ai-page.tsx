@@ -20,10 +20,12 @@ import { useI18n } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
 
 import { AiEditorDialog } from "./ai-editor";
+import { AiSpendDays } from "./ai-spend-days";
 import {
   AI_COLUMN_PRIORITIES,
   budgetText,
   countText,
+  featureAboutKey,
   featureLabelKey,
   priceText,
   spendText,
@@ -40,10 +42,12 @@ import { ADMIN_AI_KEY, useAiFeatures } from "./use-ai-features";
  * so the hidden Edit below is convenience, never authority.
  *
  * ONE READ, ONE TABLE (the coverage console's convention, on the agreed blocks
- * of D118 / D128): six rows from `admin_ai_features`, the header, the toolbar
+ * of D118 / D128): the rows of `admin_ai_features` (seven since bundle 13 turn
+ * 12), each with a line of what it does (turn 14), the header, the toolbar
  * (search · Columns), the row's one action (Edit) and the footer with the page
  * size. The alerts at 80 % and 100 % are audit rows until the app has an e-mail
- * sender (DEC-091); the month's level is shown on the row.
+ * sender (DEC-091); the month's level is shown on the row. Below the table, the
+ * spend of each of the last 30 days (turn 14, src/features/admin-ai/ai-spend-days.tsx).
  */
 
 const PAGE_SIZE_STORAGE_KEY = "ethio.admin.ai.pageSize";
@@ -90,11 +94,28 @@ export function AdminAiPage() {
       header: t("admin.ai.col.feature"),
       priority: AI_COLUMN_PRIORITIES.feature,
       card: "title",
-      cell: (row) => (
-        <span className="min-w-0 break-words font-medium" data-testid={`ai-${row.feature}-name`}>
-          {nameOf(row)}
-        </span>
-      ),
+      cell: (row) => {
+        // Bundle 13 turn 14 — what the feature does and who provides it, under its name.
+        const about = featureAboutKey(row.feature);
+        return (
+          <span className="min-w-0">
+            <span
+              className="block min-w-0 break-words font-medium"
+              data-testid={`ai-${row.feature}-name`}
+            >
+              {nameOf(row)}
+            </span>
+            {about === null ? null : (
+              <span
+                className="block min-w-0 break-words text-xs font-normal text-muted-foreground"
+                data-testid={`ai-${row.feature}-about`}
+              >
+                {t(about)}
+              </span>
+            )}
+          </span>
+        );
+      },
     },
     {
       key: "state",
@@ -276,6 +297,7 @@ export function AdminAiPage() {
               />
             }
           />
+          <AiSpendDays />
           {selected !== null && dialog.kind === "editor" ? (
             <AiEditorDialog
               key={selected.feature}

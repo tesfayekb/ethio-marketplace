@@ -4,11 +4,15 @@ import {
   aiErrorKey,
   aiFeatureOf,
   aiFeaturesOf,
+  aiSpendDaysOf,
   budgetCentsOf,
   budgetField,
   budgetText,
+  featureAboutKey,
+  featureLabelKey,
   priceField,
   priceText,
+  spendByDay,
   spendText,
   unitCostOf,
 } from "./ai-service";
@@ -136,5 +140,69 @@ describe("the AI console's seam (D158)", () => {
     });
     expect(aiErrorKey("boom")).toEqual({ key: "admin.ai.error.unknown", raw: "boom" });
     expect(aiErrorKey("")).toEqual({ key: "admin.ai.error.unknown", raw: null });
+  });
+
+  /** Bundle 13 turn 14 — the spend of each day, read from its door and summed for the page. */
+  const DAY_ROW = {
+    feature: "photo_screen",
+    day: "2026-10-14",
+    calls: 3,
+    units: 3,
+    cost_microusd: 6000,
+  };
+
+  it("AID-1 the door's day rows are read as promised; a row out of shape refuses the whole read", () => {
+    expect(aiSpendDaysOf([DAY_ROW])).toEqual([
+      { feature: "photo_screen", day: "2026-10-14", calls: 3, units: 3, costMicrousd: 6000 },
+    ]);
+    expect(aiSpendDaysOf([])).toEqual([]);
+    expect(() => aiSpendDaysOf(null)).toThrow("not a list");
+    for (const bad of [
+      { ...DAY_ROW, feature: "" },
+      { ...DAY_ROW, day: "14/10/2026" },
+      { ...DAY_ROW, calls: -1 },
+      { ...DAY_ROW, units: 1.5 },
+      { ...DAY_ROW, cost_microusd: "6000" },
+    ]) {
+      expect(() => aiSpendDaysOf([DAY_ROW, bad])).toThrow("out of shape");
+    }
+  });
+
+  it("AID-2 the days are summed over every feature or kept for one, newest first, and a day with no call is left out", () => {
+    const rows = aiSpendDaysOf([
+      DAY_ROW,
+      { feature: "writing_helper", day: "2026-10-14", calls: 2, units: 2, cost_microusd: 6000 },
+      { feature: "photo_screen", day: "2026-10-12", calls: 1, units: 1, cost_microusd: 2000 },
+      { feature: "translations", day: "2026-10-13", calls: 0, units: 0, cost_microusd: 0 },
+    ]);
+    expect(spendByDay(rows, null)).toEqual([
+      { day: "2026-10-14", calls: 5, costMicrousd: 12000 },
+      { day: "2026-10-12", calls: 1, costMicrousd: 2000 },
+    ]);
+    expect(spendByDay(rows, "photo_screen")).toEqual([
+      { day: "2026-10-14", calls: 3, costMicrousd: 6000 },
+      { day: "2026-10-12", calls: 1, costMicrousd: 2000 },
+    ]);
+    expect(spendByDay(rows, "background_removal")).toEqual([]);
+  });
+
+  it("AID-3 every feature the console names has a line of what it does and a name; an unknown one, or a name every object has, has neither", () => {
+    for (const feature of [
+      "photo_screen",
+      "writing_helper",
+      "name_check",
+      "category_images",
+      "category_icons",
+      "translations",
+      "background_removal",
+    ]) {
+      expect(featureAboutKey(feature)).toBe(`admin.ai.about.${feature}`);
+    }
+    expect(featureAboutKey("e2e-sv-x")).toBeNull();
+    expect(featureAboutKey("toString")).toBeNull();
+    // The own-key rule: a feature named like a member every object has is not looked up there.
+    expect(featureLabelKey("toString")).toBeNull();
+    expect(featureLabelKey("constructor")).toBeNull();
+    expect(featureLabelKey("background_removal")).toBe("admin.ai.feature.background_removal");
   });
 });
