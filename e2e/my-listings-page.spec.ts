@@ -125,6 +125,16 @@ function twin(page: Page, id: string) {
   return page.getByTestId(width >= 1280 ? `my-listing-${id}` : `my-listing-${id}-card`);
 }
 
+/**
+ * Turn 2b — the box holding a row's actions: the table row from 1280 px; below
+ * it the card's box (`my-listing-<id>-actions`), whose foot carries the actions
+ * beside the card's body (`twin`).
+ */
+function box(page: Page, id: string) {
+  const width = page.viewportSize()?.width ?? 0;
+  return page.getByTestId(width >= 1280 ? `my-listing-${id}` : `my-listing-${id}-actions`);
+}
+
 test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
   const sellers: string[] = [];
   const listingIds: string[] = [];
@@ -401,7 +411,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       await expect(page.getByTestId(`my-listing-${s.B1}-card`)).toHaveCount(0);
     }
 
-    const cont = twin(page, s.D).getByTestId(`my-listing-${s.D}-continue`);
+    const cont = box(page, s.D).getByTestId(`my-listing-${s.D}-continue`);
     await expect(cont).toBeVisible({ timeout: 15000 });
     await cont.click();
     await expect(page).toHaveURL(new RegExp(`/post/${s.D}(?:[?#].*)?$`), { timeout: 15000 });
@@ -431,9 +441,29 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       await expect(anonymous).toHaveURL(/\/auth\?return=(?:%2F|\/)my-listings/, {
         timeout: 15000,
       });
+      const account = await fresh.newPage();
+      await account.goto("/account");
+      await expect(account).toHaveURL(/\/auth\?return=(?:%2F|\/)account/, {
+        timeout: 15000,
+      });
     } finally {
       await fresh.close();
     }
+
+    // INC-627 — a sign-out in this tab still leaves for the marketplace.
+    await page.evaluate(async () => {
+      await window.__ethioSupabase!.auth.signOut({ scope: "local" });
+    });
+    await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
+    await expect(page.getByTestId("my-listings-page")).toHaveCount(0);
+
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, "/account");
+    await expect(page).toHaveURL(/\/account(?:[?#].*)?$/, { timeout: 15000 });
+    await page.evaluate(async () => {
+      await window.__ethioSupabase!.auth.signOut({ scope: "local" });
+    });
+    await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
   });
 
   test("MLP-4 The Account overview counts the six groups with the page's words and opens My listings (INC-469)", async ({
