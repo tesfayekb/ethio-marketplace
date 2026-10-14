@@ -85,6 +85,7 @@ describe("the AI meter (D158)", () => {
   it("AIM-4 the seven features the doors know, in the server's own list", () => {
     expect([...AI_FEATURES].sort()).toEqual([
       "background_removal",
+      "background_removal",
       "category_icons",
       "category_images",
       "name_check",

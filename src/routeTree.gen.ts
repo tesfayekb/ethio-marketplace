@@ -55,6 +55,7 @@ import { Route as ApiI18nLangRouteImport } from './routes/api/i18n.$lang'
 import { Route as ApiListingsAliasRouteImport } from './routes/api/listings/alias'
 import { Route as ApiListingsAssistRouteImport } from './routes/api/listings/assist'
 import { Route as ApiListingsBackgroundRouteImport } from './routes/api/listings/background'
+import { Route as ApiListingsBackgroundRouteImport } from './routes/api/listings/background'
 import { Route as ApiListingsDraftRouteImport } from './routes/api/listings/draft'
 import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/identity'
 import { Route as ApiListingsPublishRouteImport } from './routes/api/listings/publish'
@@ -299,6 +300,11 @@ const ApiListingsAssistRoute = ApiListingsAssistRouteImport.update({
   id: '/api/listings/assist',
   path: '/api/listings/assist',
   getParentRoute: () => rootRouteImport,
+const ApiListingsBackgroundRoute = ApiListingsBackgroundRouteImport.update({
+  id: '/api/listings/background',
+  path: '/api/listings/background',
+  getParentRoute: () => rootRouteImport,
+} as any)
 } as any)
 const ApiListingsBackgroundRoute = ApiListingsBackgroundRouteImport.update({
   id: '/api/listings/background',
@@ -443,6 +449,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/api/catalog/find': typeof ApiCatalogFindRoute
   '/api/categories/tree': typeof ApiCategoriesTreeRoute
+  '/api/listings/background': typeof ApiListingsBackgroundRoute
   '/api/geo/outline': typeof ApiGeoOutlineRoute
   '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/geo/search': typeof ApiGeoSearchRoute
@@ -507,6 +514,7 @@ export interface FileRoutesByTo {
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
   '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/api/catalog/find': typeof ApiCatalogFindRoute
+  '/api/listings/background': typeof ApiListingsBackgroundRoute
   '/api/categories/tree': typeof ApiCategoriesTreeRoute
   '/api/geo/outline': typeof ApiGeoOutlineRoute
   '/api/geo/reverse': typeof ApiGeoReverseRoute
@@ -573,6 +581,7 @@ export interface FileRoutesById {
   '/admin/roles_/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations_/$lang': typeof AdminTranslationsLangRoute
   '/admin/users_/$userId': typeof AdminUsersUserIdRoute
+  '/api/listings/background': typeof ApiListingsBackgroundRoute
   '/api/catalog/find': typeof ApiCatalogFindRoute
   '/api/categories/tree': typeof ApiCategoriesTreeRoute
   '/api/geo/outline': typeof ApiGeoOutlineRoute
@@ -640,6 +649,7 @@ export interface FileRouteTypes {
     | '/admin/listings/$listingId'
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
+    | '/api/listings/background'
     | '/admin/users/$userId'
     | '/api/catalog/find'
     | '/api/categories/tree'
@@ -704,6 +714,7 @@ export interface FileRouteTypes {
     | '/admin/impersonation/$sessionId'
     | '/admin/listings/$listingId'
     | '/admin/roles/$roleId'
+    | '/api/listings/background'
     | '/admin/translations/$lang'
     | '/admin/users/$userId'
     | '/api/catalog/find'
@@ -769,6 +780,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/admin/impersonation_/$sessionId'
     | '/admin/listings_/$listingId'
+    | '/api/listings/background'
     | '/admin/roles_/$roleId'
     | '/admin/translations_/$lang'
     | '/admin/users_/$userId'
@@ -812,6 +824,7 @@ export interface RootRouteChildren {
   ApiGeoRoute: typeof ApiGeoRouteWithChildren
   ApiLocationsRoute: typeof ApiLocationsRouteWithChildren
   ApiTranslateRoute: typeof ApiTranslateRoute
+  ApiListingsBackgroundRoute: typeof ApiListingsBackgroundRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetRoute: typeof AuthResetRoute
   CSlugRoute: typeof CSlugRoute
@@ -1148,6 +1161,13 @@ declare module '@tanstack/react-router' {
       parentRoute: typeof rootRouteImport
     }
     '/api/listings/alias': {
+    '/api/listings/background': {
+      id: '/api/listings/background'
+      path: '/api/listings/background'
+      fullPath: '/api/listings/background'
+      preLoaderRoute: typeof ApiListingsBackgroundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
       id: '/api/listings/alias'
       path: '/api/listings/alias'
       fullPath: '/api/listings/alias'
@@ -1375,6 +1395,7 @@ const ApiLocationsRouteWithChildren = ApiLocationsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  ApiListingsBackgroundRoute: ApiListingsBackgroundRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   PostRoute: PostRoute,
