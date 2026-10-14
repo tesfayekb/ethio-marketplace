@@ -1347,7 +1347,7 @@ export type Database = {
           expires_at: string | null
           home_country_code: string
           id: string
-          kept_remaining: unknown
+          kept_remaining: string | null
           location_id: string | null
           photos_soon: boolean
           pin_lat: number | null
@@ -1400,7 +1400,7 @@ export type Database = {
           expires_at?: string | null
           home_country_code: string
           id?: string
-          kept_remaining?: unknown
+          kept_remaining?: string | null
           location_id?: string | null
           photos_soon?: boolean
           pin_lat?: number | null
@@ -1453,7 +1453,7 @@ export type Database = {
           expires_at?: string | null
           home_country_code?: string
           id?: string
-          kept_remaining?: unknown
+          kept_remaining?: string | null
           location_id?: string | null
           photos_soon?: boolean
           pin_lat?: number | null
