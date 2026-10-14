@@ -34,17 +34,16 @@ const KIND_LABEL: Record<PhotoChangeKind, MessageKey> = {
  * see each change here with its warnings, oldest first: the photo (none for a
  * removal), what happened and when, and the ad (its page in Admin › Listings).
  * "Mark reviewed" (listings:review) takes the change off the list through the
- * door, which audits it; "Show photos" opens the ad's photos with Remove
- * for a person who may edit a listing (B4, the same card and door).
+ * door, which audits it; "Show photos" opens the ad's photos with their marks.
+ * D169 (bundle 14 turn 1): Remove is in Edit on the ad's own page, which the ad's
+ * title links to — no photo is removed from Screening.
  */
 export function PhotoChanges({
   mayReview,
-  mayEnforce,
   guard,
   onNotice,
 }: {
   mayReview: boolean;
-  mayEnforce: boolean;
   guard: GuardFn;
   onNotice: (key: MessageKey, tone: "ok" | "error") => void;
 }) {
@@ -195,10 +194,12 @@ export function PhotoChanges({
                   </Button>
                 </div>
               </div>
+              {/* D169 — the ad's photos are shown here; a photo is removed in Edit on the
+                  ad's own page (the title above links to it). */}
               {opened && row.listing !== null ? (
                 <ListingPhotos
                   listingId={row.listing.id}
-                  mayRemove={mayEnforce}
+                  mayRemove={false}
                   guard={guard}
                   onRemoved={(key) => onNotice(key, "ok")}
                   testid="admin-photo-change-ad-photos"

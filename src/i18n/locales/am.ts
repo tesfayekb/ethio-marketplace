@@ -852,6 +852,7 @@ export const am: Messages = {
   "admin.screening.changes.photos": "ፎቶዎቹን አሳይ",
   "admin.screening.changes.review": "እንደታየ ምልክት አድርግ",
   "admin.screening.changes.gone": "ይህ ለውጥ አስቀድሞ ታይቷል።",
+  "admin.screening.openListing": "የማስታወቂያውን ገጽ ክፈት",
   "admin.screening.confirmApprove": "ይህ ማስታወቂያ ይጽደቅ? አሁን በገጹ ላይ ይጫናል።",
   "admin.screening.confirmReject": "ይህ ማስታወቂያ ውድቅ ይደረግ? ከገጹ ውጪ ሆኖ ይቆያል።",
   "admin.screening.showNumber": "ቁጥሩን አሳይ",

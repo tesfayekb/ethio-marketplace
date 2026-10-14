@@ -15,9 +15,11 @@ import {
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
 import {
+  clearStepUpFreshness,
   expectNoHorizontalOverflow,
   gotoReady,
   signInViaSession,
+  stepUpIfPrompted,
   useJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
@@ -1260,10 +1262,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listing-edit")).toHaveCount(0);
     expect((await listingTruth(live.id))?.["status"]).toBe("removed");
 
-    await page.getByTestId("listing-buyer-view").click();
-    await expect(page.getByTestId("post-preview-sheet")).toContainText(live.title);
-    await page.getByTestId("post-preview-close").click();
-    await expect(page.getByTestId("post-preview-sheet")).toHaveCount(0);
+    // D169 — the ad as buyers see it is on the page itself; there is no sheet to open.
+    await expect(page.getByTestId("listing-as-seen")).toContainText(live.title);
+    await expect(page.getByTestId("listing-buyer-view")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
 
     await page.getByTestId("listing-back").click();
@@ -1313,7 +1314,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     ]) {
       await expect(page.getByTestId(control)).toHaveCount(0);
     }
-    await expect(page.getByTestId("listing-buyer-view")).toBeVisible();
+    await expect(page.getByTestId("listing-as-seen")).toBeVisible();
     await expect(
       page.getByTestId("listing-history-entry-0").getByTestId("listing-history-who"),
     ).toHaveText(en["admin.listings.history.by.staff"]);
@@ -1868,14 +1869,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
 
   /**
    * AL-28 — bundle 13 turn 8 (D154 B4, the operator's spec of 2026-10-13: "Staff
-   * can also remove a photo"): the listing's page lists its photos in order, each
-   * with Remove for a person who may edit it; a reason (and a note) is asked; the
-   * photo goes through `admin_edit_listing`'s `remove_photos`, the other stays,
-   * History's newest line is an edit of Photos with the reason and the note, and
-   * the seller is told. Two stripped photo rows, no stored file; both rows name
-   * every column (INC-614).
+   * can also remove a photo"): the listing's photos in order, each with Remove for
+   * a person who may edit it; a reason (and a note) is asked; the photo goes
+   * through `admin_edit_listing`'s `remove_photos`, the other stays, History's
+   * newest line is an edit of Photos with the reason and the note, and the seller
+   * is told. Two stripped photo rows, no stored file; both rows name every column
+   * (INC-614). Bundle 14 turn 1 (D169): the photos and Remove are in Edit, not on
+   * the page; the step-up is answered by keyboard (INC-618's class).
    */
-  test("AL-28 The listing's page lists its photos; Remove takes one with a reason and a note, History says so and the seller is told (D154 B4)", async ({
+  test("AL-28 Edit lists the listing's photos; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D154 B4, D169)", async ({
     page,
   }) => {
     const seller = await scratchSeller();
@@ -1907,9 +1909,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     }>;
     const note = "A phone number is written across the photo.";
 
-    await useJobSuperAdmin(page);
+    const { secret } = await useJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
-    const card = page.getByTestId("listing-photos");
+    // D169 — the page shows the ad as buyers see it; the photos and Remove are in Edit.
+    await expect(page.getByTestId("listing-as-seen")).toContainText(live.title, {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("listing-photos")).toHaveCount(0);
+    await page.getByTestId("listing-edit").click();
+    const card = page.getByTestId("listing-edit-panel").getByTestId("listing-photos");
     const items = card.getByTestId("listing-photos-item");
     await expect(items).toHaveCount(2, { timeout: 20000 });
     await expect(items.nth(0)).toHaveAttribute("data-photo-id", first!.id);
@@ -1925,7 +1933,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     );
     await dialog.getByTestId("listing-photo-remove-reason-photo").click();
     await dialog.getByTestId("listing-photo-remove-note").fill(note);
+    // INC-618's class — the second factor is asked, and its code is typed key by key.
+    await clearStepUpFreshness(page);
     await dialog.getByTestId("listing-photo-remove-confirm").click();
+    await expect(page.getByTestId("step-up-modal")).toBeVisible({ timeout: 20000 });
+    await stepUpIfPrompted(page, secret, { typed: true });
 
     await expect(page.getByTestId("listing-notice")).toHaveText(en["admin.listings.photos.done"], {
       timeout: 20000,
@@ -1939,6 +1951,8 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .select("id")
       .eq("listing_id", live.id);
     expect((left ?? []).map((row) => row.id)).toEqual([first!.id]);
+    // History is on the page, out of Edit.
+    await page.getByTestId("listing-edit-cancel").click();
     const newest = page.getByTestId("listing-history-entry-0");
     await expect(newest.getByTestId("listing-history-what")).toContainText(
       en["admin.listings.detail.photos"],

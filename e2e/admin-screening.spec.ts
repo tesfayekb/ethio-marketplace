@@ -958,11 +958,12 @@ test.describe("ADMIN SCREENING", () => {
   });
 
   /**
-   * SC-20 — bundle 13 turn 8 (D154 B4): Preview as buyer lists the ad's photos,
-   * each with Remove for a person who may edit a listing; one is removed with a
-   * reason, through the same door as the listing's page, and the seller is told.
+   * SC-20 — bundle 13 turn 8 (D154 B4): Preview as buyer lists the ad's photos
+   * with their marks. Bundle 14 turn 1 (D169, the operator, 2026-10-14): the
+   * preview is view-only — no Remove — and links to the ad's own page, where Edit
+   * removes one with a reason, through the same door, and the seller is told.
    */
-  test("SC-20 Preview as buyer lists the ad's photos with Remove; one is removed with a reason and the seller is told (D154 B4)", async ({
+  test("SC-20 Preview as buyer lists the ad's photos view-only and links to the ad's page, where Edit removes one with a reason and the seller is told (D154 B4, D169)", async ({
     page,
   }) => {
     // INC-615 — priced, so the ad meets today's rules and the door removes the photo.
@@ -976,19 +977,30 @@ test.describe("ADMIN SCREENING", () => {
     const items = panel.getByTestId("admin-screening-photos-item");
     await expect(items).toHaveCount(2, { timeout: 20000 });
     await expect(items.nth(0)).toHaveAttribute("data-photo-id", photos.held);
+    // D169 — the preview is view-only.
+    await expect(panel.getByTestId("admin-screening-photos-remove")).toHaveCount(0);
 
-    await items.nth(0).getByTestId("admin-screening-photos-remove").click();
+    // Its link opens the ad's own page; there, Edit holds the photos with Remove.
+    await page.getByTestId("admin-screening-open-listing").click();
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${ad.id}$`), { timeout: 20000 });
+    await page.getByTestId("listing-edit").click();
+    const edited = page
+      .getByTestId("listing-edit-panel")
+      .getByTestId("listing-photos")
+      .getByTestId("listing-photos-item");
+    await expect(edited).toHaveCount(2, { timeout: 20000 });
+    await expect(edited.nth(0)).toHaveAttribute("data-photo-id", photos.held);
+    await edited.nth(0).getByTestId("listing-photos-remove").click();
     const dialog = page.getByTestId("listing-photo-remove-dialog");
     await expect(dialog).toBeVisible();
     await dialog.getByTestId("listing-photo-remove-reason-photo").click();
     await dialog.getByTestId("listing-photo-remove-confirm").click();
 
-    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
-      en["admin.listings.photos.done"],
-      { timeout: 20000 },
-    );
-    await expect(items).toHaveCount(1, { timeout: 20000 });
-    await expect(items.nth(0)).toHaveAttribute("data-photo-id", photos.screened);
+    await expect(page.getByTestId("listing-notice")).toHaveText(en["admin.listings.photos.done"], {
+      timeout: 20000,
+    });
+    await expect(edited).toHaveCount(1, { timeout: 20000 });
+    await expect(edited.nth(0)).toHaveAttribute("data-photo-id", photos.screened);
     const { data: left } = await adminClient()
       .from("listing_photos")
       .select("id")
@@ -1021,7 +1033,7 @@ test.describe("ADMIN SCREENING", () => {
    * SC-21 — bundle 13 turn 10 (D154 B5): the photos a seller adds, edits and
    * removes on a live ad, each already screened, are listed for staff with the
    * warning the screen gave; Mark reviewed takes one off the list through the
-   * door, which audits it; Show photos opens the ad's photos with Remove.
+   * door, which audits it; Show photos opens the ad's photos, view-only (D169).
    */
   test("SC-21 Photo changes on live ads: a seller's additions, edit and removal are listed with their warnings and marked reviewed (D154 B5)", async ({
     page,
@@ -1085,12 +1097,12 @@ test.describe("ADMIN SCREENING", () => {
     await expect(mine.nth(1).getByTestId("admin-photo-change-warning")).toHaveCount(0);
     await expect(mine.nth(0).getByTestId("admin-photo-change-ad")).toHaveText(ad.title);
 
-    // Show photos: the one photo left, with Remove (B4).
+    // Show photos: the one photo left, view-only (D169: Remove is in Edit on the ad's page).
     await mine.nth(2).getByTestId("admin-photo-change-photos").click();
     const photos = mine.nth(2).getByTestId("admin-photo-change-ad-photos-item");
     await expect(photos).toHaveCount(1, { timeout: 20000 });
     await expect(photos.nth(0)).toHaveAttribute("data-photo-id", editedId);
-    await expect(photos.nth(0).getByTestId("admin-photo-change-ad-photos-remove")).toBeVisible();
+    await expect(photos.nth(0).getByTestId("admin-photo-change-ad-photos-remove")).toHaveCount(0);
 
     // Mark reviewed: the removal leaves the list, the door wrote who and when, and an audit row.
     const removal = truth[3]!;
