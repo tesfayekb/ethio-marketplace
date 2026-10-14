@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 423,
-  "dynamicCallSites": 286,
+  "scanned": 425,
+  "dynamicCallSites": 287,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3823,6 +3823,8 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/post",
+      "/post/$listingId",
       "/settings"
     ],
     "common.retry": [
@@ -3841,7 +3843,9 @@
       "/admin/listings/$listingId",
       "/admin/places",
       "/admin/screening",
-      "/dev/primitives"
+      "/dev/primitives",
+      "/post",
+      "/post/$listingId"
     ],
     "common.tryAgain": [
       "(every page)"
@@ -4527,6 +4531,38 @@
       "/post/$listingId"
     ],
     "post.photos.done": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.edit": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.box": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.failed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.hint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.kept": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.rotateLeft": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.rotateRight": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.saving": [
       "/post",
       "/post/$listingId"
     ],

@@ -2232,6 +2232,16 @@ export const en = {
   "post.photos.retry": "Send again",
   "post.photos.deviceFailed": "This photo could not be prepared on your device.",
   "post.photos.needOne": "Add at least one photo.",
+  "post.photos.edit": "Edit photo",
+  "post.photos.editor.hint":
+    "Turn the photo, or move the box and its corners to crop it. When you save, it is checked again like a new photo.",
+  "post.photos.editor.rotateLeft": "Turn left",
+  "post.photos.editor.rotateRight": "Turn right",
+  "post.photos.editor.box":
+    "Crop box: the arrow keys move it; Shift with an arrow key changes its size.",
+  "post.photos.editor.saving": "Saving and checking the photo…",
+  "post.photos.editor.failed": "This photo could not be opened here. Close and try again.",
+  "post.photos.editor.kept": "Your photo was kept as it was.",
   "post.photo.refusal.nudity": "This photo shows nudity, which is not allowed.",
   "post.photo.refusal.violence": "This photo shows violence, which is not allowed.",
   "post.photo.refusal.weapon": "Weapons cannot be shown here.",
@@ -2247,6 +2257,7 @@ export const en = {
     "Photo checking is unavailable right now. Please try again.",
   "post.photo.refusal.screeningPaused":
     "Photo checking is paused, so this ad cannot take new photos right now. Please try again later.",
+  "post.photo.refusal.photoGone": "This photo is no longer on the ad.",
   "post.photo.refusal.unsupportedFormat": "Only JPEG, PNG and WebP photos are accepted.",
   "post.photo.refusal.corruptImage": "This file is damaged and could not be read.",
   "post.photo.refusal.tooLarge": "This photo is too large.",

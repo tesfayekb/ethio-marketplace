@@ -16,6 +16,17 @@ import type { ImageFormat } from "./strip";
  * read INSIDE the call, with the vision model from `GEMINI_VISION_MODEL`
  * (default: the images model the category route uses).
  *
+ * D165 (the operator, 2026-10-14: "Phone sizes, cheap check") — THE PHOTO IN
+ * FULL, ITS SMALLER COPIES AT LOW DETAIL. The phone keeps making the sizes (no
+ * image work on our server: DEC-082, INC-308), and the one call still shows the
+ * provider every stored size; the first image, the photo, at the default detail
+ * (1,120 tokens for Gemini 3), and every smaller copy at low detail (280 tokens,
+ * `mediaResolution` MEDIA_RESOLUTION_LOW on its part), which is enough to see that
+ * it is the same picture and nothing it must refuse. Should the model refuse the
+ * per-image setting (it is marked experimental), the call is made once more
+ * without it — every image at the default detail, as before D165 — and the log
+ * says so; the photo is never let through unscreened.
+ *
  * FAKE MODE (`E2E_FAKE_PHOTO_POLICY=1`) is DETERMINISTIC and costs nothing: an
  * image exactly 13 px wide is the fixture marker and comes back refused
  * `not_a_photo`; everything else passes. No network, no spend, no flake.
@@ -120,6 +131,24 @@ function base64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+/** D165 — the detail every smaller copy is shown at. */
+export const SMALL_COPY_DETAIL = { level: "MEDIA_RESOLUTION_LOW" } as const;
+
+/**
+ * The request's image parts, largest first: the photo at the default detail and,
+ * when `lowDetail`, every smaller copy at low detail (D165).
+ */
+export function policyParts(variants: PolicyVariants, lowDetail: boolean) {
+  return imagesOf(variants).map((image, index) => ({
+    inlineData: { mimeType: mimeOf(image.format), data: base64(image.bytes) },
+    ...(lowDetail && index > 0 ? { mediaResolution: SMALL_COPY_DETAIL } : {}),
+  }));
+}
+
+/** A 400 that names the per-image detail: the model does not take it (D165). */
+function refusesDetail(status: number, raw: string): boolean {
+  return status === 400 && /media_?resolution/i.test(raw);
+}
 function isPolicyCode(value: string): value is (typeof POLICY_CODES)[number] {
   return (POLICY_CODES as readonly string[]).includes(value);
 }
@@ -143,22 +172,15 @@ export async function screenPhotoPolicy(
     return { ok: false, code: "providerUnavailable", evidence: "screening is unavailable" };
   }
 
-  let response: Response;
-  try {
-    response = await fetch(`${BASE}/${encodeURIComponent(visionModel())}:generateContent`, {
+  const call = (lowDetail: boolean) =>
+    fetch(`${BASE}/${encodeURIComponent(visionModel())}:generateContent`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: PHOTO_POLICY_INSTRUCTION }] },
-        // INC-601 — every stored size, largest first, in ONE call (D162: the middle size when sent).
-        contents: [
-          {
-            role: "user",
-            parts: imagesOf(variants).map((image) => ({
-              inlineData: { mimeType: mimeOf(image.format), data: base64(image.bytes) },
-            })),
-          },
-        ],
+        // INC-601 — every stored size, largest first, in ONE call (D162: the middle
+        // size when sent); D165 — the smaller copies at low detail.
+        contents: [{ role: "user", parts: policyParts(variants, lowDetail) }],
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
@@ -174,12 +196,24 @@ export async function screenPhotoPolicy(
         },
       }),
     });
+
+  let response: Response;
+  let raw: string;
+  try {
+    response = await call(true);
+    raw = await response.text();
+    if (refusesDetail(response.status, raw)) {
+      log(
+        "photo policy: the model refused the low detail for smaller copies; every image sent at the default detail",
+      );
+      response = await call(false);
+      raw = await response.text();
+    }
   } catch (error) {
     log(`photo policy: provider unreachable — ${error instanceof Error ? error.message : ""}`);
     return { ok: false, code: "providerUnavailable", evidence: "screening is unavailable" };
   }
 
-  const raw = await response.text();
   if (!response.ok) {
     log(`photo policy: provider ${response.status} — ${raw.slice(0, 200)}`);
     return { ok: false, code: "providerUnavailable", evidence: "screening is unavailable" };

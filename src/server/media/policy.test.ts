@@ -121,6 +121,70 @@ describe("the photo policy pass screens every stored size (INC-601)", () => {
     ]);
   });
 
+  it("PPOL-10 shows the photo at the default detail and every smaller copy at low detail (D165)", async () => {
+    const calls = provider({ allowed: true, code: "", evidence: "" });
+    const mid = { bytes: new Uint8Array([7, 8]), format: "webp" as const, width: 960 };
+    expect(await screenPhotoPolicy({ ...variants, mid }, () => {})).toEqual({ ok: true });
+    expect(calls).toHaveLength(1);
+    const contents = calls[0]!.body["contents"] as { parts: Record<string, unknown>[] }[];
+    expect(contents[0]!.parts.map((part) => part["mediaResolution"])).toEqual([
+      undefined,
+      { level: "MEDIA_RESOLUTION_LOW" },
+      { level: "MEDIA_RESOLUTION_LOW" },
+      { level: "MEDIA_RESOLUTION_LOW" },
+    ]);
+  });
+
+  /** The provider answers `first` to the first call, then the verdict. */
+  function refusingFirst(first: { status: number; body: string }) {
+    vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "");
+    vi.stubEnv("E2E_FAKE_TRANSLATE", "");
+    vi.stubEnv("GEMINI_API_KEY", "stub-key");
+    const bodies: Record<string, unknown>[] = [];
+    vi.stubGlobal("fetch", async (_input: RequestInfo | URL, init?: RequestInit) => {
+      bodies.push(JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>);
+      if (bodies.length === 1) return new Response(first.body, { status: first.status });
+      const envelope = {
+        candidates: [
+          {
+            content: {
+              parts: [{ text: JSON.stringify({ allowed: true, code: "", evidence: "" }) }],
+            },
+          },
+        ],
+      };
+      return new Response(JSON.stringify(envelope), { status: 200 });
+    });
+    return bodies;
+  }
+
+  it("PPOL-11 a model that refuses the low detail is asked once more with every image at the default detail, and the log says so (D165)", async () => {
+    const bodies = refusingFirst({
+      status: 400,
+      body: '{"error":{"code":400,"message":"Invalid JSON payload received. Unknown name \\"mediaResolution\\" at \'contents[0].parts[1]\': Cannot find field."}}',
+    });
+    const lines: string[] = [];
+    expect(await screenPhotoPolicy(variants, (line) => lines.push(line))).toEqual({ ok: true });
+    expect(bodies).toHaveLength(2);
+    const second = bodies[1]!["contents"] as { parts: Record<string, unknown>[] }[];
+    expect(second[0]!.parts.every((part) => !("mediaResolution" in part))).toBe(true);
+    expect(lines).toEqual([
+      "photo policy: the model refused the low detail for smaller copies; every image sent at the default detail",
+    ]);
+  });
+
+  it("PPOL-12 any other provider failure is not asked again: the upload is refused providerUnavailable (D165)", async () => {
+    const bodies = refusingFirst({
+      status: 400,
+      body: '{"error":{"message":"API key not valid"}}',
+    });
+    expect(await screenPhotoPolicy(variants, () => {})).toEqual({
+      ok: false,
+      code: "providerUnavailable",
+      evidence: "screening is unavailable",
+    });
+    expect(bodies).toHaveLength(1);
+  });
   it("PPOL-8 keeps fake mode on the cover's width, so no test run reaches the provider", async () => {
     vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "1");
     const fetched = vi.fn();

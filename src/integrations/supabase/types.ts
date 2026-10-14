@@ -3835,6 +3835,19 @@ export type Database = {
       }
       remove_own_password: { Args: never; Returns: undefined }
       renew_listing: { Args: { p_listing_id: string }; Returns: Json }
+      replace_listing_photo: {
+        Args: {
+          p_bytes: number
+          p_height: number
+          p_listing_id: string
+          p_old_photo_id: string
+          p_paths: Json
+          p_photo_id: string
+          p_unscreened?: boolean
+          p_width: number
+        }
+        Returns: Json
+      }
       require_step_up_if_needed: {
         Args: { p_action: string; p_resource: string }
         Returns: undefined

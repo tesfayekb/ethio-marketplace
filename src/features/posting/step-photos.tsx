@@ -1,12 +1,13 @@
 import { ListingPicture } from "@/components/marketplace/listing-picture";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Crop } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
 import { controlClass, Field } from "./field";
-import { encodeVariants } from "./photo-encode";
+import { encodeBitmap, encodeVariants } from "./photo-encode";
+import { PhotoEditor } from "./photo-editor";
 import { CARD_THEN_THUMB, photoUrl } from "./photo-links";
 import {
   deletePhoto,
@@ -136,6 +137,10 @@ export function StepPhotos({
   const [rowBusy, setRowBusy] = useState<ReadonlySet<string>>(new Set());
   /** INC-595 — a stored photo's last refusal (its Remove or Make cover), by photo id. */
   const [rowRefusal, setRowRefusal] = useState<Readonly<Record<string, MessageKey>>>({});
+  /** D154 B2 — the stored photo open in the editor, and its stored cover's link. */
+  const [editing, setEditing] = useState<{ photoId: string; url: string } | null>(null);
+  /** D154 B2 — an edited photo on its way: Next and Back wait for it, as for a new one. */
+  const [editSaving, setEditSaving] = useState(false);
 
   useEffect(() => {
     aliveRef.current = true;
@@ -151,9 +156,9 @@ export function StepPhotos({
     onHeldChange?.(held);
   }, [held, onHeldChange]);
   useEffect(() => () => onHeldChange?.(0), [onHeldChange]);
-  const sending = items.filter(
-    (item) => item.state === "preparing" || item.state === "uploading",
-  ).length;
+  const sending =
+    items.filter((item) => item.state === "preparing" || item.state === "uploading").length +
+    (editSaving ? 1 : 0);
   useEffect(() => {
     onSendingChange?.(sending);
   }, [sending, onSendingChange]);
@@ -399,6 +404,67 @@ export function StepPhotos({
     [onChanged],
   );
 
+  /**
+   * D154 B2 — SAVE IN THE EDITOR: the turned and cropped picture goes the whole
+   * way as a new photo (the four sizes on the device, the strip, the AI screen)
+   * and takes the old photo's place (`replaces`). Resolves null when stored —
+   * the editor closes and the step re-reads the server — or the words of the
+   * refusal, which the editor shows while the old photo stays as it was.
+   */
+  const saveEdit = useCallback(
+    async (photoId: string, picture: ImageBitmap): Promise<MessageKey | null> => {
+      if (listingId === null) {
+        picture.close();
+        return "post.photos.couldNotSend";
+      }
+      setEditSaving(true);
+      setRowBusy((prev) => new Set(prev).add(photoId));
+      try {
+        let encoded;
+        try {
+          encoded = await encodeBitmap(picture);
+        } catch {
+          return "post.photos.deviceFailed";
+        }
+        const answer = await uploadPhoto(
+          listingId,
+          { cover: encoded.cover, mid: encoded.mid, card: encoded.card, thumb: encoded.thumb },
+          encoded.extension,
+          undefined,
+          photoId,
+        );
+        if (answer.ok) {
+          // The old photo's tile from this visit leaves with it.
+          setItems((prev) => {
+            for (const item of prev) {
+              if (item.photoId === photoId) URL.revokeObjectURL(item.previewUrl);
+            }
+            return prev.filter((item) => item.photoId !== photoId);
+          });
+          setRowRefusal((prev) => {
+            const next = { ...prev };
+            delete next[photoId];
+            return next;
+          });
+          setEditing(null);
+          onChanged();
+          return null;
+        }
+        if (answer.unreachable) return "post.photos.couldNotSend";
+        return photoRefusalKey(answer.refusals[0]?.reason ?? "");
+      } finally {
+        if (aliveRef.current) {
+          setEditSaving(false);
+          setRowBusy((prev) => {
+            const next = new Set(prev);
+            next.delete(photoId);
+            return next;
+          });
+        }
+      }
+    },
+    [listingId, onChanged],
+  );
   const stored = items.filter((item) => item.state === "stored").length;
   const total = Math.max(photos.length, stored);
   /** The cover is the first registered photo — the server's own order. */
@@ -607,9 +673,13 @@ export function StepPhotos({
     );
   }
 
-  /** D154 — Move earlier and Move later, on every photo at its place. */
+  /**
+   * D154 — Move earlier and Move later, on every photo at its place; D154 B2 —
+   * and Edit, which opens the editor on the photo's stored cover.
+   */
   function moveRow(photoId: string, index: number): ReactNode {
     const busyRow = rowBusy.has(photoId);
+    const editUrl = photoUrl({ id: photoId }, ["cover"], storedLinks);
     return (
       <div className="flex gap-2">
         <button
@@ -633,6 +703,19 @@ export function StepPhotos({
           onClick={() => void moveStored(photoId, index + 1)}
         >
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          data-testid="post-photo-edit"
+          className={moveButtonClass}
+          aria-label={t("post.photos.edit")}
+          title={t("post.photos.edit")}
+          disabled={busyRow || editUrl === null || editSaving}
+          onClick={() => {
+            if (editUrl !== null) setEditing({ photoId, url: editUrl });
+          }}
+        >
+          <Crop className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
     );
@@ -783,6 +866,17 @@ export function StepPhotos({
         ) : null}
       </div>
 
+      <PhotoEditor
+        sourceUrl={editing?.url ?? null}
+        onCancel={() => setEditing(null)}
+        onSave={(picture) => {
+          if (editing === null) {
+            picture.close();
+            return Promise.resolve(null);
+          }
+          return saveEdit(editing.photoId, picture);
+        }}
+      />
       <Field
         id="post-video"
         label={t("post.details.videoLabel")}
