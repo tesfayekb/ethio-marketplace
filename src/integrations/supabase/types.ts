@@ -3066,7 +3066,10 @@ export type Database = {
         Args: { p_channel: string; p_listing_id: string }
         Returns: Json
       }
-      admin_review_photo_change: { Args: { p_change_id: string }; Returns: Json }
+      admin_review_photo_change: {
+        Args: { p_change_id: string }
+        Returns: Json
+      }
       admin_save_entity_translation: {
         Args: {
           p_field: string
