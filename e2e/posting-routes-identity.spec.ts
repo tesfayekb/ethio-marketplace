@@ -5,6 +5,7 @@ import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { leaseSeller, bearerOf, destroyListingsOf, postRoute, reasonsOf } from "./helpers/posting";
 import { adminClient } from "./helpers/users";
+import { inOneWindow } from "./helpers/rate-window";
 
 /**
  * Bundle 5 Part F — INC-442: THE IMITATION CHECK IS GATED BEFORE THE MODEL.
@@ -53,10 +54,15 @@ test.describe("POSTING ROUTES — IDENTITY GATE", () => {
     const token = await bearerOf(page);
 
     const stem = `eimit${letters(6)}`;
+    // INC-617 — the imitation bucket counts in UTC-day windows: the 21 calls are
+    // made in one (the test's whole budget is the need).
+    await inOneWindow(86_400, 120_000, "PR-26");
     for (let call = 0; call < LIMIT; call++) {
       const alias = `${stem}${letters(4)}`;
       const answer = await postRoute(page, IDENTITY, { alias }, { token, country: "ET" });
-      expect(answer.status).toBe(200);
+      // INC-616 — a status that is not 200 names the answer (a 503 is the door
+      // never reached, INC-574), so the next retried pass says why.
+      expect(answer.status, `call ${call + 1}: ${JSON.stringify(answer.payload)}`).toBe(200);
       const reasons = reasonsOf(answer.payload);
       expect(
         reasons.filter((r) => r.field === "rate"),

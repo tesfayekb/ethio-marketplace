@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { inOneWindow } from "./helpers/rate-window";
 import {
   leaseSeller,
   destroyListingsOf,
@@ -119,6 +120,8 @@ test.describe("POSTING DOOR DIALS", () => {
     args: Record<string, unknown>,
   ) {
     const listingId = String(args["p_listing_id"]);
+    // INC-617 — the revise dial counts in clock-hour windows: both calls in one.
+    await inOneWindow(3600, 20_000, fn);
     const first = await rpcAsPage(page, "set_listing_pin", { p_listing_id: listingId });
     const second = await rpcAsPage(page, fn, args);
     expect(first.error, `first set_listing_pin: ${JSON.stringify(first)}`).toBeNull();
@@ -201,14 +204,9 @@ test.describe("POSTING DOOR DIALS", () => {
     const address = `198.51.100.${Math.floor(Math.random() * 250) + 1}-${Date.now()}`;
     // INC-572 — the count lives in clock-hour windows (consume_rate_limit floors
     // the time to the hour), so the 61 reports must fall in one window: within
-    // the last 30 s of an hour, the test waits until the next hour has begun.
-    await expect
-      .poll(() => 3_600_000 - (Date.now() % 3_600_000), {
-        message: "PR-33: the next clock hour did not begin",
-        timeout: 35_000,
-        intervals: [1_000],
-      })
-      .toBeGreaterThanOrEqual(30_000);
+    // the last 30 s of an hour, the test waits until the next hour has begun
+    // (the shared helper since INC-617).
+    await inOneWindow(3600, 30_000, "PR-33");
     const report = async (): Promise<boolean> => {
       const response = await page.request.post("/api/map/tiles", {
         data: { reason: "e2e" },

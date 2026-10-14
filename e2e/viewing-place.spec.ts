@@ -7,6 +7,7 @@ import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/lo
 import { bearerOf } from "./helpers/posting";
 import { gotoReady, signInViaSession, signOutViaUi } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { inOneWindow } from "./helpers/rate-window";
 
 /**
  * D106 part 1 (2026-10-10) — THE BROWSING PLACE ON THE ACCOUNT: its two doors.
@@ -167,6 +168,8 @@ test.describe("VIEWING PLACE — the account doors (D106)", () => {
       .insert({ user_id: id, action: "viewing_place", max_count: 2 });
     expect(override.error).toBeNull();
 
+    // INC-617 — the viewing_place dial counts in clock-hour windows.
+    await inOneWindow(3600, 20_000, "VP-4");
     expect(await setPlace(own, c.region.id)).toMatchObject({ ok: true });
     expect(await setPlace(own, c.city.id)).toMatchObject({ ok: true });
     const third = await setPlace(own, c.subCity.id);

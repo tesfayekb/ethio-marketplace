@@ -12,6 +12,7 @@ import {
 } from "./helpers/locations";
 import { seedActiveListing } from "./helpers/categories";
 import { adminClient } from "./helpers/users";
+import { inOneWindow } from "./helpers/rate-window";
 import {
   leaseSeller,
   activeCityOf,
@@ -1443,6 +1444,9 @@ test.describe("POSTING WIZARD", () => {
     const bearer = await bearerOf(page);
     const ceiling = 60;
 
+    // INC-617 — the geocode dial counts in clock-hour windows: the 62 calls are
+    // made in one.
+    await inOneWindow(3600, 60_000, "PW-41");
     let refusedAt = 0;
     let refusal: { field: string; reason: string } | null = null;
     for (let attempt = 1; attempt <= ceiling + 2; attempt += 1) {
