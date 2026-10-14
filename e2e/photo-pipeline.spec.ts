@@ -39,6 +39,7 @@ import { signInAsSuperAdmin } from "./helpers/categories";
 import { destroyLocation, rand, RUN, seedScratchChain } from "./helpers/locations";
 import { gotoReady, isMobile, signInViaSession } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { inOneWindow } from "./helpers/rate-window";
 
 /**
  * U6-B1 — THE PHOTO PIPELINE (PP-1..PP-9), REQ-036's acceptance; the photo step's
@@ -347,6 +348,9 @@ test.describe("PHOTO PIPELINE", () => {
     const { user, token } = await seller(page);
     const listingId = await draft(page, token, user.id);
 
+    // INC-617 — the counter is written into this clock hour's window; the upload
+    // must reach the door in the same window.
+    await inOneWindow(3600, 30_000, "PP-9");
     await fillUploadCounter(user.id);
     const answer = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
     expect(answer.status, JSON.stringify(answer.payload)).toBe(200);

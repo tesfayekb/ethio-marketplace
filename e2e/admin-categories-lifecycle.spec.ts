@@ -927,6 +927,95 @@ test.describe("CAT-IE categories import/export", () => {
   }
 
   /**
+   * INC-497 — THE ROOTS AT ONE MOMENT. The top-level rows and their places,
+   * read through the service client: the real ones as a count and their
+   * places, each scratch one by slug and place. It never throws.
+   */
+  async function rootsLine(): Promise<string> {
+    try {
+      const client = adminClient();
+      const { data: pointers, error } = await client
+        .from("category_tree_pointers")
+        .select("child_id, display_order")
+        .is("parent_id", null);
+      if (error || !pointers) return "roots: unreadable";
+      const ids = pointers.map((pointer) => pointer.child_id);
+      const { data: rows } = await client.from("categories").select("id, slug").in("id", ids);
+      const slugOf = new Map((rows ?? []).map((row) => [row.id, row.slug]));
+      const real: number[] = [];
+      const scratch: string[] = [];
+      for (const pointer of pointers) {
+        const slug = slugOf.get(pointer.child_id) ?? "?";
+        if (stripScratchRows([{ slug }]).length === 0) {
+          scratch.push(`${slug}@${pointer.display_order}`);
+        } else {
+          real.push(pointer.display_order);
+        }
+      }
+      real.sort((a, b) => a - b);
+      return `roots: real ${real.length} at ${real.join(",")} · scratch ${scratch.length}${scratch.length > 0 ? `: ${scratch.join(", ")}` : ""}`;
+    } catch {
+      return "roots: unreadable";
+    }
+  }
+
+  /** The record of one slug in an export, as written (the dump's evidence). */
+  function exportLineOf(text: string, slug: string): string {
+    const found = text.split(/\r?\n/).find((record) => record.includes(`,${slug},`));
+    return found === undefined ? "(absent)" : found.slice(0, 240);
+  }
+
+  /**
+   * INC-497 — WHY A ROUND TRIP CHANGED. Twice after bundle 12 turn T5 the
+   * preview of an unedited real export counted changed rows ("15 changed" on
+   * 2026-10-13, "16 changed" on 2026-10-14) and passed on retry. The preview's
+   * own answer names each changed row (`items`, `op: "update"`: its slug, the
+   * changed cells and their names); the dump prints each beside the same row in
+   * the file and in a second export read at once, and the roots at the export
+   * and now — so a red names the cell that moved and the scratch rows alive
+   * while it moved. Ten rows at most: the evidence file keeps the first 40
+   * lines of a failure's message (scripts/e2e-failure-report.ts). It never
+   * throws.
+   */
+  const DUMP_ROWS = 10;
+  async function roundTripDump(
+    page: import("@playwright/test").Page,
+    token: string,
+    plan: Record<string, unknown> | null,
+    sent: string,
+    rootsAtExport: string,
+  ): Promise<string> {
+    const lines: string[] = [`[ct18-dump] at export: ${rootsAtExport}`];
+    lines.push(`[ct18-dump] now: ${await rootsLine()}`);
+    try {
+      const again = await page.request.get("/api/admin/categories/export", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const second = again.status() === 200 ? await again.text() : "";
+      const listed = plan === null ? undefined : plan["items"];
+      const items = Array.isArray(listed) ? (listed as Record<string, unknown>[]) : [];
+      const changed = items.filter((item) => item["op"] === "update");
+      lines.push(`[ct18-dump] preview: ${changed.length} changed row(s) in its answer`);
+      for (const item of changed.slice(0, DUMP_ROWS)) {
+        const slug = String(item["slug"] ?? "?");
+        lines.push(
+          `[ct18-dump] ${slug} · ${String(item["detail"] ?? "?")} · file ${JSON.stringify(item["fields"] ?? {}).slice(0, 200)}`,
+        );
+        lines.push(`[ct18-dump]   sent: ${exportLineOf(sent, slug)}`);
+        lines.push(`[ct18-dump]   now:  ${exportLineOf(second, slug)}`);
+      }
+      if (changed.length > DUMP_ROWS) {
+        lines.push(`[ct18-dump] (${changed.length - DUMP_ROWS} more changed rows not printed)`);
+      }
+    } catch (error) {
+      lines.push(
+        `[ct18-dump] unreadable: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    return lines.join("\n");
+  }
+
+  /**
    * CT-18 — THE ROUND-TRIP INVARIANT. The whole roster is exported through the
    * real route and re-imported through the DIALOG's file picker: nothing is
    * added, changed, retired, reactivated, deleted or refused. Discard then
@@ -946,6 +1035,7 @@ test.describe("CAT-IE categories import/export", () => {
     expect(response.status()).toBe(200);
     const exported = stripScratchRows(await response.text());
     expect(exported.rows, "CT-18 the export produced no rows to re-import").toBeGreaterThan(0);
+    const rootsAtExport = await rootsLine();
 
     const startedAt = new Date().toISOString();
 
@@ -957,6 +1047,16 @@ test.describe("CAT-IE categories import/export", () => {
       buffer: Buffer.from(exported.text, "utf8"),
     });
 
+    // INC-497 — the preview's own answer is kept for the dump.
+    const previewAnswer = page
+      .waitForResponse(
+        (answer) =>
+          answer.url().includes("/api/admin/categories/import") &&
+          answer.request().method() === "POST",
+        { timeout: 120_000 },
+      )
+      .then(async (answer) => (await answer.json()) as Record<string, unknown>)
+      .catch(() => null);
     await page.getByTestId("category-import-preview").click();
     const counts = page.getByTestId("category-import-counts");
     await expect(counts).toBeVisible({ timeout: 120_000 });
@@ -964,9 +1064,15 @@ test.describe("CAT-IE categories import/export", () => {
     const numbers = countsOf((await counts.textContent()) ?? "");
     expect(numbers, `CT-18 counts line: ${await counts.textContent()}`).toHaveLength(7);
     const [adds, changes, retires, reactivations, deletes, unchanged, refused] = numbers;
+    const quiet = [adds, changes, retires, reactivations, deletes, refused].every(
+      (count) => count === 0,
+    );
+    const dump = quiet
+      ? ""
+      : `\n${await roundTripDump(page, token, await previewAnswer, exported.text, rootsAtExport)}`;
     expect(
       { adds, changes, retires, reactivations, deletes, refused },
-      `CT-18 the round trip was not a no-op: ${await counts.textContent()}`,
+      `CT-18 the round trip was not a no-op: ${await counts.textContent()}${dump}`,
     ).toEqual({ adds: 0, changes: 0, retires: 0, reactivations: 0, deletes: 0, refused: 0 });
     expect(unchanged).toBe(exported.rows);
     await expect(page.getByTestId("category-import-refusals")).toHaveCount(0);

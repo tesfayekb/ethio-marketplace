@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { inOneWindow } from "./helpers/rate-window";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   leaseSeller,
@@ -531,6 +532,8 @@ test.describe("POSTING ROUTES", () => {
       .upsert({ user_id: user.id, action: "draft", max_count: ceiling });
     if (lowered.error) throw new Error(`PR-7 override: ${lowered.error.message}`);
     try {
+      // INC-617 — the draft dial counts in clock-hour windows.
+      await inOneWindow(3600, 30_000, "PR-7");
       let refusal: Record<string, unknown> | null = null;
       for (let attempt = 0; attempt < ceiling + 2; attempt += 1) {
         const answer = await postRoute(
@@ -578,6 +581,9 @@ test.describe("POSTING ROUTES", () => {
     categories.push(leaf.slug);
     const key = `e2e-${rand()}`;
     const headers = { "x-e2e-catalog-find-key": key };
+    // INC-617 — the finder counts in clock-hour windows: the three counted calls
+    // below are made in one window.
+    await inOneWindow(3600, 20_000, "PR-9");
     const english = await page.request.get(`${CATALOG_FIND}?q=${leaf.english}&lang=en`, {
       headers,
     });
