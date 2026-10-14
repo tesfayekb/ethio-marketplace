@@ -44,6 +44,9 @@ export const ADMIN_GROUPS = {
   // Bundle 11, the Listings console, L2 (D134) — All listings and the Screening
   // queue under one group, as Catalog holds Categories; no page of its own.
   listings: { id: "listings", titleKey: "admin.nav.group.listings" },
+  // Bundle 13 turn 5 (D158, DEC-091) — the outside services the product pays
+  // for; AI first. No page of its own; each section keeps its gate (F3).
+  services: { id: "services", titleKey: "admin.nav.group.services" },
 } as const satisfies Record<
   string,
   { readonly id: string; readonly titleKey: MessageKey; readonly path?: string }
@@ -143,6 +146,14 @@ export const ADMIN_SECTIONS = [
     permission: "translations:view",
     titleKey: "admin.section.translations.title",
     bodyKey: "admin.section.translations.body",
+  },
+  {
+    id: "ai",
+    path: "/admin/ai",
+    permission: "services:view",
+    titleKey: "admin.section.ai.title",
+    bodyKey: "admin.section.ai.body",
+    group: "services",
   },
 ] as const satisfies readonly AdminSectionShape[];
 

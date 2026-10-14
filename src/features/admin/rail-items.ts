@@ -8,6 +8,8 @@ import {
   LibraryBig,
   List,
   MapPin,
+  Plug,
+  Sparkles,
   Store,
   ScrollText,
   ShieldCheck,
@@ -52,6 +54,7 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   translations: Languages,
   screening: ClipboardCheck,
   listings: List,
+  ai: Sparkles,
 };
 
 /**
@@ -63,6 +66,7 @@ const GROUP_ICONS: Record<AdminGroupId, LucideIcon> = {
   categories: LibraryBig,
   locations: Globe2,
   listings: Store,
+  services: Plug,
 };
 
 function toItem(section: AdminSection): NavItem {
