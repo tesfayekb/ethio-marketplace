@@ -2137,6 +2137,15 @@ export const am: Messages = {
   "post.photos.retry": "እንደገና ላክ",
   "post.photos.deviceFailed": "ይህ ፎቶ በመሣሪያዎ ላይ መዘጋጀት አልቻለም።",
   "post.photos.needOne": "ቢያንስ አንድ ፎቶ ይጨምሩ።",
+  "post.photos.edit": "ፎቶውን አስተካክል",
+  "post.photos.editor.hint":
+    "ፎቶውን ያዙሩት፤ ወይም ለመከርከም ሳጥኑንና ማዕዘኖቹን ያንቀሳቅሱ። ሲያስቀምጡት እንደ አዲስ ፎቶ እንደገና ይመረመራል።",
+  "post.photos.editor.rotateLeft": "ወደ ግራ አዙር",
+  "post.photos.editor.rotateRight": "ወደ ቀኝ አዙር",
+  "post.photos.editor.box": "የመከርከሚያ ሳጥን፦ የቀስት ቁልፎች ያንቀሳቅሱታል፤ Shift ከቀስት ቁልፍ ጋር መጠኑን ይቀይራል።",
+  "post.photos.editor.saving": "ፎቶው እየተቀመጠና እየተመረመረ ነው…",
+  "post.photos.editor.failed": "ይህ ፎቶ እዚህ ሊከፈት አልቻለም። ይዝጉና እንደገና ይሞክሩ።",
+  "post.photos.editor.kept": "ፎቶዎ እንደነበረ ቀርቷል።",
   "post.photo.refusal.nudity": "ይህ ፎቶ ራቁትነት ያሳያል፣ ይህ አይፈቀድም።",
   "post.photo.refusal.violence": "ይህ ፎቶ ጥቃት ያሳያል፣ ይህ አይፈቀድም።",
   "post.photo.refusal.weapon": "የጦር መሣሪያ በዚህ መታየት አይችልም።",
@@ -2149,6 +2158,7 @@ export const am: Messages = {
   "post.photo.refusal.providerUnavailable": "የፎቶ ማረጋገጫ አሁን አይሠራም። እባክዎ እንደገና ይሞክሩ።",
   "post.photo.refusal.screeningPaused":
     "የፎቶ ምርመራ ለጊዜው ቆሟል፤ ስለዚህ ይህ ማስታወቂያ አሁን አዲስ ፎቶ መቀበል አይችልም። እባክዎ ቆይተው እንደገና ይሞክሩ።",
+  "post.photo.refusal.photoGone": "ይህ ፎቶ ከአሁን በኋላ በማስታወቂያው ላይ የለም።",
   "post.photo.refusal.unsupportedFormat": "JPEG፣ PNG እና WebP ፎቶዎች ብቻ ይቀበላሉ።",
   "post.photo.refusal.corruptImage": "ይህ ፋይል ተበላሽቷል መነበብም አልቻለም።",
   "post.photo.refusal.tooLarge": "ይህ ፎቶ በጣም ትልቅ ነው።",

@@ -1424,3 +1424,9 @@ Still to build, in bundle 13 (D154, D155): rotate and crop; the screen's warning
 - The page's photo is drawn from the card or the middle size (960 px, D162); the full size loads only in the full-screen viewer. A photo stored before D162 offers its cover as before. The whole rule: docs/features/media-pipeline.md, "Bundle 13, turn 7".
 - On a computer the photo sits at the top of its frame, so a wide photo lines up with the first thumbnail (INC-613, the operator's walk). On a phone it stays centred.
 - D163 (the operator's walk, 2026-10-13: "RED GENERALLY SIGNALS DANGER, CAN WE MAKE IT THE GOLD COLOR … BUT REMOVE REMAINS RED. BOARDER ALSO GOLD COLOR"): on the photo step the cover's ribbon ("Cover photo") and its tile's outline are the system's gold (`bg-gold` with `text-gold-foreground`, `border-gold`) — the token's fourth placement (src/styles.css). Remove stays red. The census of red used for anything but danger found this one place: every other red is an error, a removal, a deactivation or the impersonation banner. PP-19 reads the ribbon's and the outline's colours as a person sees them, and Remove's red.
+
+## Bundle 13, turn 9 — Edit a photo: turn and crop (D154 B2)
+
+- Every stored photo on the photo step has Edit (a crop icon beside Move earlier and Move later). The editor shows the photo with a crop box: Turn left, Turn right, the box moved and sized by its body and its corners or with the keyboard, Cancel and Save. Save is offered once something changed.
+- Saved, the picture goes through the whole pipeline as a new photo in the old one's place (the AI screen included); Next and Back wait while it is sent, as for a new photo. A refusal keeps the editor open with the reason and the line "Your photo was kept as it was."; the old photo stays.
+- The whole rule: docs/features/media-pipeline.md, "Bundle 13, turn 9".

@@ -123,7 +123,15 @@ export async function encodeVariants(file: File): Promise<EncodedVariants> {
       `the device could not decode this file: ${error instanceof Error ? error.message : ""}`,
     );
   }
+  return encodeBitmap(bitmap);
+}
 
+/**
+ * D154 B2 — the four variants of a picture already decoded: a picked file's
+ * (above), or a photo turned and cropped in the editor (photo-editor.tsx). The
+ * same sizes and qualities either way, and the bitmap is closed when done.
+ */
+export async function encodeBitmap(bitmap: ImageBitmap): Promise<EncodedVariants> {
   try {
     const webp = await supportsWebp();
     const mime = webp ? "image/webp" : "image/jpeg";

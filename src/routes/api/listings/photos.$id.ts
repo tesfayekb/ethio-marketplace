@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { doorRefusal } from "@/features/posting/door-error";
 
-import { deleteObject, type Partition } from "@/server/media/storage";
+import { deleteObject, objectRefsOf } from "@/server/media/storage";
 import {
   logRouteError,
   readJsonBody,
@@ -35,32 +35,6 @@ import {
 
 const PATH = "/api/listings/photos/$id";
 
-interface StoredRef {
-  partition: Partition;
-  key: string;
-}
-
-/** Every `{ partition, key }` a row's `paths` carries, deduplicated. */
-function refsOf(paths: unknown, storagePath: unknown): StoredRef[] {
-  const refs = new Map<string, StoredRef>();
-  if (paths !== null && typeof paths === "object" && !Array.isArray(paths)) {
-    for (const value of Object.values(paths as Record<string, unknown>)) {
-      if (value === null || typeof value !== "object") continue;
-      const row = value as Record<string, unknown>;
-      const key = typeof row["key"] === "string" ? row["key"] : "";
-      if (key === "") continue;
-      const partition = (
-        typeof row["partition"] === "string" ? row["partition"] : "default"
-      ) as Partition;
-      refs.set(key, { partition, key });
-    }
-  }
-  if (typeof storagePath === "string" && storagePath !== "" && !refs.has(storagePath)) {
-    refs.set(storagePath, { partition: "default", key: storagePath });
-  }
-  return [...refs.values()];
-}
-
 async function ownedPhoto(
   supabase: NonNullable<Awaited<ReturnType<typeof userClientFromRequest>>["supabase"]>,
   photoId: string,
@@ -88,7 +62,7 @@ async function handleDelete(request: Request, photoId: string): Promise<Response
   }
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  for (const ref of refsOf(photo.paths, photo.storage_path)) {
+  for (const ref of objectRefsOf(photo.paths, photo.storage_path)) {
     try {
       await deleteObject(supabaseAdmin, ref.partition, ref.key);
     } catch (error) {

@@ -135,18 +135,24 @@ export function saveDraft(body: DraftBody): Promise<DoorAnswer> {
  * progress, and on a slow Ethiopian mobile connection a photo tile that sits at
  * "Sending…" with no number is indistinguishable from a stuck one. The progress
  * here is the browser's real byte count, not an animation.
+ *
+ * D154 B2 — `replaces` names a stored photo of this listing: the upload is that
+ * photo turned or cropped in the editor, and takes its place in the order once
+ * it passes every check; a refusal leaves the old photo as it was.
  */
 export async function uploadPhoto(
   listingId: string,
   variants: { cover: Blob; mid: Blob; card: Blob; thumb: Blob },
   extension: string,
   onProgress?: (percent: number) => void,
+  replaces?: string,
 ): Promise<DoorAnswer> {
   const token = await bearer();
   if (token === null) return { ...UNREACHABLE, status: 401 };
 
   const form = new FormData();
   form.set("listingId", listingId);
+  if (replaces !== undefined) form.set("replaces", replaces);
   for (const variant of ["cover", "mid", "card", "thumb"] as const) {
     // No Content-Type header: the browser sets the multipart boundary itself.
     form.set(variant, variants[variant], `${variant}.${extension}`);

@@ -123,6 +123,8 @@ const PHOTO_REASONS: Record<string, MessageKey> = {
   listingNotOpenForPhotos: "post.photo.refusal.listingNotOpenForPhotos",
   // D158 (bundle 13 turn 6) — photo screening is off and the ad is live.
   screeningPaused: "post.photo.refusal.screeningPaused",
+  // D154 B2 — the photo an edit replaces was removed meanwhile.
+  photoGone: "post.photo.refusal.photoGone",
 };
 
 /** A draft-route refusal, in the seller's language. */
