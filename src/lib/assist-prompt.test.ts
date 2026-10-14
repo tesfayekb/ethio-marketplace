@@ -27,9 +27,9 @@ describe("writing helper prompt (bundle 4 step 13)", () => {
   });
 
   it("carries the unit, negotiable and the period as facts", () => {
-    expect(prompt).toContain("- unit_of_sale: per_pack");
-    expect(prompt).toContain("- negotiable: yes");
-    expect(prompt).toContain("- price period: per day");
+    expect(prompt).toContain('- "unit_of_sale: per_pack"');
+    expect(prompt).toContain('- "negotiable: yes"');
+    expect(prompt).toContain('- "price period: per day"');
   });
 
   it("adds no period line for a one-off and no negotiable line when off", () => {

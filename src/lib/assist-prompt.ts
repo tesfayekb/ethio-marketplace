@@ -5,7 +5,15 @@
  * "negotiable" when the switch is on and one for the period when it is not
  * "once". The amount and the currency are never part of it: the body carries
  * neither, and any attribute key that names a price is dropped here as well.
+ *
+ * D166 — every line a person could have written (the category path the page
+ * sends, each fact, the draft title and description, the earlier suggestions)
+ * enters as ONE quoted string through src/lib/untrusted-text.ts, so nothing in
+ * it can pose as a line of the instruction; the route's instruction ends with
+ * the shared rule.
  */
+
+import { untrustedLine, untrustedText } from "./untrusted-text";
 
 const PRICE_KEY = /^(price|amount|currency)(_|$)/i;
 
@@ -52,20 +60,26 @@ export function composeAssistPrompt(input: {
   const { locale, categoryPath, facts, sellerTitle, sellerDescription, photoCount, previous } =
     input;
   return [
-    `Language: ${locale}`,
-    `Category: ${categoryPath}`,
+    // A language code only (the page's own), else English: never a person's words.
+    `Language: ${/^[a-z]{2}(-[A-Z]{2})?$/.test(locale) ? locale : "en"}`,
+    untrustedText("Category", categoryPath, 300),
     "Facts:",
-    ...(facts.length === 0 ? ["(none)"] : facts.map((line) => `- ${line}`)),
-    sellerTitle === "" ? "Seller's draft title: (none)" : `Seller's draft title: ${sellerTitle}`,
+    ...(facts.length === 0 ? ["(none)"] : facts.map((line) => `- ${untrustedLine(line, 240)}`)),
+    sellerTitle === ""
+      ? "Seller's draft title: (none)"
+      : untrustedText("Seller's draft title", sellerTitle, 200),
     sellerDescription === ""
       ? "Seller's draft description: (none)"
-      : `Seller's draft description: ${sellerDescription}`,
+      : untrustedText("Seller's draft description", sellerDescription, 5000, { lines: true }),
     photoCount === 0 ? "Photos: (none)" : `Photos attached: ${photoCount}`,
     ...(previous.length === 0
       ? []
       : [
           "Earlier suggestions to differ from:",
-          ...previous.map((pair, index) => `- ${index + 1}: ${pair.title} — ${pair.description}`),
+          ...previous.map(
+            (pair, index) =>
+              `- ${index + 1}: ${untrustedLine(pair.title, 200)} — ${untrustedLine(pair.description, 5000, { lines: true })}`,
+          ),
         ]),
   ].join("\n");
 }
