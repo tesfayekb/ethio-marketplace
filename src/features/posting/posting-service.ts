@@ -139,14 +139,20 @@ export function saveDraft(body: DraftBody): Promise<DoorAnswer> {
  * D154 B2 — `replaces` names a stored photo of this listing: the upload is that
  * photo turned or cropped in the editor, and takes its place in the order once
  * it passes every check; a refusal leaves the old photo as it was.
+ *
+ * D154 B2 — `replaces` names a stored photo of this listing: the upload is that
+ * photo turned or cropped in the editor, and takes its place in the order once
+ * it passes every check; a refusal leaves the old photo as it was.
  */
 export async function uploadPhoto(
+  replaces?: string,
   listingId: string,
   variants: { cover: Blob; mid: Blob; card: Blob; thumb: Blob },
   extension: string,
   onProgress?: (percent: number) => void,
   replaces?: string,
 ): Promise<DoorAnswer> {
+  if (replaces !== undefined) form.set("replaces", replaces);
   const token = await bearer();
   if (token === null) return { ...UNREACHABLE, status: 401 };
 

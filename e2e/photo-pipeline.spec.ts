@@ -1644,4 +1644,298 @@ test.describe("PHOTO PIPELINE", () => {
     await expect(editor).toHaveCount(0);
     await expect(tile).toHaveAttribute("data-photo-id", photo!.id);
   });
+
+  /** D154 B2 — the cover photo the listing row names, read through the service client. */
+  async function coverOf(listingId: string): Promise<string | null> {
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("cover_photo_id")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:pp] reading the cover failed: ${error.message}`);
+    return (data?.cover_photo_id as string | null | undefined) ?? null;
+  }
+
+  /**
+   * PP-25 — D154 B2: an upload that `replaces` a stored photo takes its place in
+   * the order, the old row and its objects go, and the cover follows the order;
+   * at the plan's cap an edit is still taken, because it adds no photo.
+   */
+  test("PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2)", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    for (const name of ["meta.png", "meta.webp"] as const) {
+      const uploaded = await uploadPhoto(page, { listingId, token, cover: { name } });
+      expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
+    }
+    const before = await photoRowsOf(listingId);
+    expect(before, "PP-25: two photos were uploaded").toHaveLength(2);
+    const [first, second] = [before[0]!, before[1]!];
+    const oldKeys = ["cover", "card", "thumb"].map((variant) =>
+      keyOf(second, variant as "cover" | "card" | "thumb"),
+    );
+
+    // The second photo, edited: it keeps the second place; the cover stays first.
+    const edited = await uploadPhoto(page, {
+      listingId,
+      token,
+      cover: { name: "gps.jpg" },
+      replaces: second.id,
+    });
+    expect(edited.status, JSON.stringify(edited.payload)).toBe(200);
+    expect(edited.payload["ok"], JSON.stringify(edited.payload)).toBe(true);
+    expect(edited.payload["replaced"]).toBe(second.id);
+    const newId = String(edited.payload["photoId"]);
+    const after = await photoRowsOf(listingId);
+    expect(
+      after.map((row) => row.id),
+      "PP-25: the edit is not in the old photo's place",
+    ).toEqual([first.id, newId]);
+    expect(after[1]!.width, "PP-25: the edit's cover is not the uploaded picture").toBe(800);
+    expect(after[1]!.exif_stripped).toBe(true);
+    expect(await coverOf(listingId), "PP-25: the cover moved").toBe(first.id);
+    for (const key of oldKeys) {
+      expect(await objectExists(key), `PP-25: the old photo's ${key} is still stored`).toBe(false);
+    }
+
+    // The cover, edited: the new photo is first, and it is the cover.
+    const cover = await uploadPhoto(page, {
+      listingId,
+      token,
+      cover: { name: "meta.webp" },
+      replaces: first.id,
+    });
+    expect(cover.payload["ok"], JSON.stringify(cover.payload)).toBe(true);
+    const coverId = String(cover.payload["photoId"]);
+    expect((await photoRowsOf(listingId)).map((row) => row.id)).toEqual([coverId, newId]);
+    expect(await coverOf(listingId), "PP-25: the edited cover is not the cover").toBe(coverId);
+
+    // At the cap: a new photo is refused, an edit is taken.
+    for (let index = 2; index < 10; index += 1) {
+      const answer = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+      expect(answer.payload["ok"], `upload ${index + 1}: ${JSON.stringify(answer.payload)}`).toBe(
+        true,
+      );
+    }
+    const full = await photoRowsOf(listingId);
+    expect(full, "PP-25: the listing is at its cap").toHaveLength(10);
+    const eleventh = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+    expect(reasons(eleventh.payload)).toEqual([{ field: "photos", reason: "tooManyPhotos" }]);
+    const atCap = await uploadPhoto(page, {
+      listingId,
+      token,
+      cover: { name: "meta.png" },
+      replaces: full[9]!.id,
+    });
+    expect(atCap.payload["ok"], JSON.stringify(atCap.payload)).toBe(true);
+    const last = await photoRowsOf(listingId);
+    expect(last, "PP-25: an edit at the cap changed the count").toHaveLength(10);
+    expect(last[9]!.id).toBe(String(atCap.payload["photoId"]));
+  });
+
+  /**
+   * PP-26 — D154 B2: an edit is refused, and the old photo stays as it was,
+   * when the photo it names is not on the listing, when the name is not an id,
+   * and when the AI screen refuses the edited picture.
+   */
+  test("PP-26 a refused edit leaves the old photo as it was; a photo not on the listing is gone (D154 B2)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    const otherId = await draft(page, token, user.id);
+    const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+    expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
+    const [photo] = await photoRowsOf(listingId);
+    const keys = ["cover", "card", "thumb"].map((variant) =>
+      keyOf(photo!, variant as "cover" | "card" | "thumb"),
+    );
+    const unchanged = async (label: string) => {
+      const rows = await photoRowsOf(listingId);
+      expect(
+        rows.map((row) => row.id),
+        `PP-26 (${label}): the photo changed`,
+      ).toEqual([photo!.id]);
+      for (const key of keys) {
+        expect(await objectExists(key), `PP-26 (${label}): ${key} was deleted`).toBe(true);
+      }
+    };
+
+    // A photo of another listing (the seller's own): not on this one, so gone.
+    const elsewhere = await uploadPhoto(page, {
+      listingId: otherId,
+      token,
+      cover: { name: "meta.webp" },
+      replaces: photo!.id,
+    });
+    expect(elsewhere.status, JSON.stringify(elsewhere.payload)).toBe(409);
+    expect(reasons(elsewhere.payload)).toEqual([{ field: "replaces", reason: "photoGone" }]);
+    expect(await photoRowsOf(otherId), "PP-26: the refused edit stored a row").toHaveLength(0);
+    await unchanged("another listing");
+
+    // Not an id.
+    const notAnId = await uploadPhoto(page, {
+      listingId,
+      token,
+      cover: { name: "meta.webp" },
+      replaces: "photo-1",
+    });
+    expect(reasons(notAnId.payload)).toEqual([{ field: "replaces", reason: "badValue" }]);
+    await unchanged("not an id");
+
+    // The AI screen refuses the edited picture (fake mode's 13-px marker).
+    const refused = await uploadPhoto(page, {
+      listingId,
+      token,
+      cover: { name: "marker-13px.jpg" },
+      replaces: photo!.id,
+    });
+    expect(reasons(refused.payload)).toEqual([{ field: "cover", reason: "not_a_photo" }]);
+    await unchanged("refused by the screen");
+  });
+
+  /**
+   * PP-27 — D154 B2, the seller's way: Edit on a stored photo opens the editor on
+   * its stored cover; a turn to the right is saved as a new photo in the same
+   * place; the keyboard's crop of the cover is saved as the new cover.
+   */
+  test("PP-27 Edit turns a photo and crops the cover, each saved in its place (D154 B2)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    for (const name of ["meta.png", "meta.webp"] as const) {
+      const uploaded = await uploadPhoto(page, { listingId, token, cover: { name } });
+      expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
+    }
+    const [first, second] = await photoRowsOf(listingId);
+    expect([first!.width, second!.width], "PP-27: the fixtures are 320 px wide").toEqual([
+      320, 320,
+    ]);
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const tiles = page.getByTestId("post-photo-stored");
+    await expect(tiles).toHaveCount(2);
+
+    // The second photo, turned right: 320 x 240 becomes 240 x 320 in the same place.
+    await tiles.nth(1).getByTestId("post-photo-edit").click();
+    const editor = page.getByTestId("post-photo-editor");
+    await expect(editor.getByTestId("post-photo-editor-preview")).toBeVisible();
+    await expect(editor.getByTestId("post-photo-editor-save")).toBeDisabled();
+    await editor.getByTestId("post-photo-editor-right").click();
+    await expect(editor.getByTestId("post-photo-editor-frame")).toHaveAttribute("data-turns", "1");
+    await editor.getByTestId("post-photo-editor-save").click();
+    await expect(editor, "PP-27: the editor did not close after Save").toHaveCount(0);
+    await expect
+      .poll(async () => (await photoRowsOf(listingId)).map((row) => [row.width, row.height]), {
+        message: "PP-27: the turned photo is not stored in the second place",
+      })
+      .toEqual([
+        [320, 240],
+        [240, 320],
+      ]);
+    const turned = await photoRowsOf(listingId);
+    expect(turned[0]!.id).toBe(first!.id);
+    expect(turned[1]!.id, "PP-27: the turned photo kept the old id").not.toBe(second!.id);
+    await expect(tiles.nth(1)).toHaveAttribute("data-photo-id", turned[1]!.id);
+
+    // The cover, cropped with the keyboard: Shift and the left arrow ten times
+    // take a fifth off its width (320 -> 256); it stays the cover.
+    await tiles.nth(0).getByTestId("post-photo-edit").click();
+    await expect(editor.getByTestId("post-photo-editor-preview")).toBeVisible();
+    const box = editor.getByTestId("post-photo-editor-box");
+    await box.focus();
+    for (let press = 0; press < 10; press += 1) await page.keyboard.press("Shift+ArrowLeft");
+    await expect(box).toHaveAttribute("data-box", "0.0000,0.0000,0.8000,1.0000");
+    await editor.getByTestId("post-photo-editor-save").click();
+    await expect(editor).toHaveCount(0);
+    await expect
+      .poll(async () => (await photoRowsOf(listingId))[0]?.width, {
+        message: "PP-27: the cropped cover is not stored first",
+      })
+      .toBe(256);
+    const cropped = await photoRowsOf(listingId);
+    expect(cropped).toHaveLength(2);
+    expect(cropped[0]!.id).not.toBe(first!.id);
+    expect(await coverOf(listingId), "PP-27: the cropped photo is not the cover").toBe(
+      cropped[0]!.id,
+    );
+    await expect(tiles.nth(0).getByTestId("post-photo-cover")).toBeVisible();
+  });
+
+  /**
+   * PP-28 — D154 B2: a refused edit keeps the editor open with the reason, and
+   * the photo stays as it was; on a computer the crop box's corner is dragged.
+   */
+  test("PP-28 a refused edit keeps the editor open with its reason and the photo as it was (D154 B2)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+    expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
+    const [photo] = await photoRowsOf(listingId);
+
+    // The edit's upload answers a refusal: what the AI screen would say of it.
+    let edits = 0;
+    await page.route("**/api/upload/photo", async (route) => {
+      const body = route.request().postDataBuffer()?.toString("latin1") ?? "";
+      if (!body.includes('name="replaces"')) return route.continue();
+      edits += 1;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: false, refusals: [{ field: "cover", reason: "not_a_photo" }] }),
+      });
+    });
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const tile = page.getByTestId("post-photo-stored");
+    await expect(tile).toHaveCount(1);
+    await tile.getByTestId("post-photo-edit").click();
+    const editor = page.getByTestId("post-photo-editor");
+    await expect(editor.getByTestId("post-photo-editor-preview")).toBeVisible();
+
+    if (!isMobile(page)) {
+      // A computer: the bottom-right corner dragged inwards makes the box smaller.
+      const corner = editor.getByTestId("post-photo-editor-corner-se");
+      const frame = await editor.getByTestId("post-photo-editor-frame").boundingBox();
+      const handle = await corner.boundingBox();
+      expect(frame, "PP-28: the editor's frame has no box").not.toBeNull();
+      expect(handle, "PP-28: the corner has no box").not.toBeNull();
+      const startX = handle!.x + handle!.width - 2;
+      const startY = handle!.y + handle!.height - 2;
+      await page.mouse.move(startX, startY);
+      await page.mouse.down();
+      await page.mouse.move(startX - frame!.width / 4, startY - frame!.height / 4, { steps: 5 });
+      await page.mouse.up();
+      const box = await editor.getByTestId("post-photo-editor-box").getAttribute("data-box");
+      const [, , w, h] = (box ?? "").split(",").map(Number);
+      expect(w, "PP-28: the drag did not narrow the box").toBeLessThan(0.9);
+      expect(h, "PP-28: the drag did not shorten the box").toBeLessThan(0.9);
+    } else {
+      await editor.getByTestId("post-photo-editor-left").click();
+    }
+    await editor.getByTestId("post-photo-editor-save").click();
+
+    const refusal = editor.getByTestId("post-photo-editor-refusal");
+    await expect(refusal).toContainText(en["post.photo.refusal.not_a_photo"]);
+    await expect(refusal).toContainText(en["post.photos.editor.kept"]);
+    expect(edits, "PP-28: the edit was not sent").toBe(1);
+    await expect(editor.getByTestId("post-photo-editor-save")).toBeEnabled();
+    expect((await photoRowsOf(listingId)).map((row) => row.id)).toEqual([photo!.id]);
+
+    await editor.getByTestId("post-photo-editor-cancel").click();
+    await expect(editor).toHaveCount(0);
+    await expect(tile).toHaveAttribute("data-photo-id", photo!.id);
+  });
 });

@@ -3825,6 +3825,8 @@
       "/admin/screening",
       "/post",
       "/post/$listingId",
+      "/post",
+      "/post/$listingId",
       "/settings"
     ],
     "common.retry": [
@@ -3841,7 +3843,9 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places",
+      "/dev/primitives",
+      "/post",
+      "/post/$listingId"
       "/admin/screening",
       "/dev/primitives",
       "/post",
@@ -4527,6 +4531,38 @@
       "/post/$listingId"
     ],
     "post.photos.coverRibbon": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.edit": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.box": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.failed": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.hint": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.kept": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.rotateLeft": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.rotateRight": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.editor.saving": [
       "/post",
       "/post/$listingId"
     ],
