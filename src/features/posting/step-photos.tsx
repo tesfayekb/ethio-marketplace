@@ -932,6 +932,7 @@ export function StepPhotos({
           return saveEdit(cleaning, picture);
         }}
       />
+
       <Field
         id="post-video"
         label={t("post.details.videoLabel")}

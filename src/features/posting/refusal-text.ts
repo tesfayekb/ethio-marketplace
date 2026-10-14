@@ -143,6 +143,7 @@ const BACKGROUND_REASONS: Record<string, MessageKey> = {
 export function backgroundRefusalKey(reason: string): MessageKey {
   return ownValue(BACKGROUND_REASONS, base(reason)) ?? photoRefusalKey(reason);
 }
+
 /** A draft-route refusal, in the seller's language. */
 export function draftRefusalKey(reason: string): MessageKey {
   return ownValue(DRAFT_REASONS, base(reason)) ?? "post.refusal.unknown";
