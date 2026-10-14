@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PostRouteImport } from './routes/post'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
@@ -105,6 +106,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAiRoute = AdminAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAttributesRoute = AdminAttributesRouteImport.update({
@@ -398,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
+  '/admin/ai': typeof AdminAiRoute
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -461,6 +468,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
+  '/admin/ai': typeof AdminAiRoute
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -526,6 +534,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
+  '/admin/ai': typeof AdminAiRoute
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -592,6 +601,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/post'
     | '/settings'
+    | '/admin/ai'
     | '/admin/attributes'
     | '/admin/audit'
     | '/admin/categories'
@@ -655,6 +665,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/post'
     | '/settings'
+    | '/admin/ai'
     | '/admin/attributes'
     | '/admin/audit'
     | '/admin/categories'
@@ -719,6 +730,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/post'
     | '/settings'
+    | '/admin/ai'
     | '/admin/attributes'
     | '/admin/audit'
     | '/admin/categories'
@@ -868,6 +880,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/ai': {
+      id: '/admin/ai'
+      path: '/ai'
+      fullPath: '/admin/ai'
+      preLoaderRoute: typeof AdminAiRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/attributes': {
@@ -1259,6 +1278,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminAiRoute: typeof AdminAiRoute
   AdminAttributesRoute: typeof AdminAttributesRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
@@ -1281,6 +1301,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAiRoute: AdminAiRoute,
   AdminAttributesRoute: AdminAttributesRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,

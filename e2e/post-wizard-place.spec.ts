@@ -515,7 +515,10 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-who-value-phone")).toHaveValue("911234567");
     await typePhone(page, "post-who-value-phone", "0911 234-567");
     await page.getByTestId("post-who-show-phone").check();
-    await page.getByTestId("post-next").click();
+    // INC-612 — the claim runs as the step is left (a queued Next, INC-449), while
+    // the channels were already saved as they were typed: wait for the review step
+    // before reading what saving the step wrote, as PW-130 and PW-148 do.
+    await nextToStep(page, 8);
     await expect
       .poll(
         async () => {

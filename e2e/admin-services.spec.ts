@@ -1,6 +1,8 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+
+import { en } from "../src/i18n/locales/en";
 
 import { signInAsSuperAdmin } from "./helpers/categories";
 import { leaseSeller } from "./helpers/posting";
@@ -16,6 +18,9 @@ import { adminClient } from "./helpers/users";
  * SV-3 the meter on the app's own connection (the service role, as the routes call it):
  *      calls and units on today's row, the 80 % and 100 % audit rows, off at the budget,
  *      the gate's answer, bad units and an unknown feature refused.
+ * SV-4 (turn 5) the page Admin › Services › AI lists the six features with their state,
+ *      spend and price; Edit opens the editor, where photo screening's switch stays on.
+ *      It only READS: no real switch row is written (G27); the door's writes are SV-2's.
  *
  * G27: no real switch row is changed. Every change is made on a scratch feature named
  * e2e-sv-…, which no code path names and the admin list leaves out; it is deleted in
@@ -281,5 +286,54 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     } finally {
       await dropScratch(feature);
     }
+  });
+
+  /**
+   * Bundle 13 turn 5 (D158) — the page. Below 1024 px the table is drawn as cards
+   * (`cardUntil="lg"`), so every row is read inside the twin on screen.
+   */
+  test("SV-4 the page Admin › Services › AI lists the six features, and photo screening's switch stays on", async ({
+    page,
+  }) => {
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/ai");
+    await expect(page.getByTestId("admin-section-ai")).toBeVisible({ timeout: 20_000 });
+    const cards = (page.viewportSize()?.width ?? 1024) < 1024;
+    const surface: Locator = cards ? page.getByTestId("data-table-cards") : page.getByRole("table");
+
+    for (const feature of SIX) {
+      const key = `admin.ai.feature.${feature}` as keyof typeof en;
+      await expect(
+        surface.getByTestId(`ai-${feature}-name`),
+        `SV-4: ${feature} is not listed by its name`,
+      ).toHaveText(en[key], { timeout: 20_000 });
+      await expect(surface.getByTestId(`ai-${feature}-state`)).toBeVisible();
+      await expect(surface.getByTestId(`ai-${feature}-spend`)).toBeVisible();
+    }
+    await expect(surface.getByTestId("ai-photo_screen-state")).toHaveText(en["admin.ai.state.on"]);
+    await expect(surface.getByTestId("ai-translations-price")).toContainText(
+      en["admin.ai.price.perMillion"].replace("{price}", "").trim(),
+    );
+    await expect(surface.getByTestId("ai-writing_helper-price")).toContainText(
+      en["admin.ai.price.perCall"].replace("{price}", "").trim(),
+    );
+
+    // The row's one action opens the editor; Cancel writes nothing.
+    const actions = surface.getByTestId(
+      cards ? "ai-photo_screen-actions" : "ai-photo_screen-actions-cell",
+    );
+    await actions.getByTestId("ai-actions-photo_screen-edit").click();
+    const editor = page.getByTestId("ai-editor");
+    await expect(editor).toBeVisible({ timeout: 20_000 });
+    await expect(editor.getByTestId("ai-editor-feature")).toHaveText(
+      en["admin.ai.feature.photo_screen"],
+    );
+    await expect(editor.getByTestId("ai-editor-on")).toBeChecked();
+    await expect(editor.getByTestId("ai-editor-on")).toBeDisabled();
+    await expect(editor.getByTestId("ai-editor-screening-note")).toHaveText(
+      en["admin.ai.field.screeningStaysOn"],
+    );
+    await editor.getByTestId("ai-editor-cancel").click();
+    await expect(editor).toHaveCount(0);
   });
 });

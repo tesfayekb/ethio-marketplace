@@ -2,9 +2,9 @@
 
 The operator's rule (D158, 2026-10-13): every AI feature has an on/off switch, a monthly budget and the spend so far; at its budget every feature switches itself off except photo screening, which only alerts; while photo screening is off, new photos are held for staff. INC-600 recorded that none of this existed. Bundle 13 builds it in three turns:
 
-1. **Turn 1 (this page):** the doors and the server — the switches, the meter, the budgets' automatic switch-off, and a seller's daily limits.
-2. **Turn 2:** the page, Admin › Services › AI (a card per feature: switch, budget, price, spend this month).
-3. **Turn 3:** photos held for staff while photo screening is off. Until then the switch for photo screening cannot be turned off; its door refuses (`screeningStaysOn`).
+1. **Turn 1:** the doors and the server — the switches, the meter, the budgets' automatic switch-off, and a seller's daily limits.
+2. **Turn 5 (turns 2–4 were the operator's photo walk and its fixes):** the page, Admin › Services › AI — below.
+3. **Next:** photos held for staff while photo screening is off. Until then the switch for photo screening cannot be turned off; its door refuses (`screeningStaysOn`).
 
 ## The features
 
@@ -69,8 +69,16 @@ The writing helper keeps its five tries per listing (`assist:listing`).
 - E2E (e2e/admin-services.spec.ts): SV-1 a seller is refused everywhere; SV-2 the super admin reads the six features and changes a scratch switch, and the door's refusals; SV-3 the meter on the app's own connection (INC-608: its audit rows are read by time, then by action — the alert and the switch-off one call writes share that call's instant).
 - Unit: AIM-1..AIM-4 (src/server/ai/meter.test.ts); AIM-5 (src/server/category-images/suggest-icon-route.test.ts, the icon route switched off and on).
 
+## The page — Admin › Services › AI (turn 5)
+
+- **Where:** the admin menu's new group **Services** (`admin.nav.group.services`, glyph Plug) holds the section **AI** (`/admin/ai`, `services:view`, glyph Sparkles; src/routes/admin.ai.tsx). The group carries no permission of its own; the section keeps its gate (F3). DEC-091's other outside services join the group when they are built.
+- **One read, one table** (src/features/admin-ai/ai-page.tsx, the coverage console's convention, on the agreed blocks of D118 / D128 — the header, the toolbar with a search and Columns, the row's Edit, the footer with the page size): `admin_ai_features()` in the order photo screening, writing help, seller-name check, category pictures, category icons, machine translation. Each row: the feature's name; its state — On, or Off with the reason and the day in its tip (switched off by staff; its budget reached, back on next month or when the budget is raised); this month's spend against the budget ("$1.23 of $5.00", or "· no budget"), with the alert of the month (80 % of budget; Budget reached); the calls this month and today (and, for machine translation, the characters); the price ("$0.003 a call"; "$20.00 per million characters"); the day it was last changed. Below 1024 px the rows are cards. A row the door answers out of shape refuses the whole read (F4): the page says it could not load.
+- **Edit** (the row's one action, `services:manage` only): the switch, the monthly budget in dollars (empty = no budget) and the price (dollars a call, or dollars a million characters — the same number as millionths a character). The form checks both numbers against the door's ceilings first ($1,000,000 a month; $10 a call), then the save runs through the second factor (`StepUpGate`) and the door; its refusals are sentences (`screeningStaysOn`, `overBudget`, `unknownFeature`, the bad values; no permission; no fresh code). Photo screening's switch is shown on and cannot be changed, with the reason.
+- **Money:** spends to the cent (under a cent reads "<$0.01"); budgets in cents; prices to the millionth (src/features/admin-ai/ai-service.ts).
+- **Tests:** AIS-1..AIS-5 (the door's rows, the order, money, the form's fields, the refusals), AIF-1..AIF-3 (the form), AIP-1 (the page's cells and Edit only with `services:manage`), SV-4 (E2E, read only: the six rows by name with state, spend and price; the editor for photo screening; Cancel writes nothing — the real rows are never written, G27).
+
 ## Not yet
 
-- The page (turn 2) and photos held for staff (turn 3).
+- Photos held for staff while photo screening is off (the next turn).
 - E-mails to admins at 80 % and 100 %: the app has no e-mail sender of its own yet (DEC-091's sender); until one is chosen, the alerts are audit rows, shown on the page from turn 2.
 - The provider walls (D158 item 5) are set in the operator's own provider accounts, outside the code.
