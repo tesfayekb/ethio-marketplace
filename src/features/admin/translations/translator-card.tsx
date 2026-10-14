@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -154,7 +155,7 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
                 .then(async () => {
                   setSaved(true);
                   // Server truth, not the optimistic set (law F4).
-                  await queryClient.invalidateQueries({
+                  await refreshAfterWrite(queryClient, {
                     queryKey: authKey("admin", "translator-scope", userId),
                   });
                 })

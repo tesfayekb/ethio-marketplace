@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import {
@@ -93,12 +94,12 @@ function useUserMutationInvalidator(userId: string) {
   const queryClient = useQueryClient();
   return () =>
     Promise.all([
-      queryClient.invalidateQueries({ queryKey: ADMIN_USERS_KEY }),
-      queryClient.invalidateQueries({
+      refreshAfterWrite(queryClient, { queryKey: ADMIN_USERS_KEY }),
+      refreshAfterWrite(queryClient, {
         queryKey: adminUserDetailKey(userId),
         refetchType: "all",
       }),
-      queryClient.invalidateQueries({
+      refreshAfterWrite(queryClient, {
         queryKey: adminUserActivityKey(userId),
         refetchType: "all",
       }),

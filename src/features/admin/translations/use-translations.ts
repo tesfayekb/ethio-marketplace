@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
 import { PSEUDO_LANG } from "./pseudo";
@@ -95,7 +96,7 @@ export function useMyTranslatorLanguages(enabled: boolean) {
 
 function useInvalidateTranslations() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: ADMIN_TRANSLATIONS_KEY });
+  return () => refreshAfterWrite(queryClient, { queryKey: ADMIN_TRANSLATIONS_KEY });
 }
 
 export function useSaveTranslation(lang: string) {

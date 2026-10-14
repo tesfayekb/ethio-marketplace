@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { ImportDialog } from "@/features/admin/import-dialog";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -112,7 +113,7 @@ export function ImportLocationsDialog({
       guard={guard}
       onClose={onClose}
       onWritten={async () => {
-        await queryClient.invalidateQueries({ queryKey: ADMIN_LOCATIONS_KEY });
+        await refreshAfterWrite(queryClient, { queryKey: ADMIN_LOCATIONS_KEY });
       }}
     />
   );

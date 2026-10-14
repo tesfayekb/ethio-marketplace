@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
@@ -104,8 +105,8 @@ export function ListingPhotos({
     }
     setRemoving(null);
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ADMIN_SCREENING_KEY }),
-      queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY }),
+      refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY }),
+      refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY }),
     ]);
     onRemoved("admin.listings.photos.done");
   };

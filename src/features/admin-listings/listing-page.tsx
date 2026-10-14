@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -308,7 +309,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
         ? t("admin.listings.move.done.send_back")
         : t(`admin.listings.move.done.${kind}` as MessageKey).replace("{count}", "1"),
     );
-    await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
   };
 
   /** The fields a door names (title, price, …), as the person reads them. */
@@ -351,7 +352,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     }
     setEditing(false);
     setNotice(t("admin.listings.edit.done").replace("{fields}", fieldNames(answer.fields)));
-    await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
   };
 
   const runUndo = async (guard: GuardFn, note: string) => {
@@ -375,7 +376,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
       setUndoProblem(t(key));
       // The History is stale: read it again, so the line it shows is the newest.
       if (key === "admin.listings.undo.changed") {
-        await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
+        await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
       }
       return;
     }
@@ -395,7 +396,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     }
     setUndoing(null);
     setNotice(t("admin.listings.undo.done").replace("{fields}", fieldNames(answer.fields)));
-    await queryClient.invalidateQueries({ queryKey: ADMIN_LISTINGS_KEY });
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
   };
 
   return (
