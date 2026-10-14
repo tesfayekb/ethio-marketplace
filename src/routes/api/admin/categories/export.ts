@@ -14,6 +14,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { openExportGate } from "@/server/imports/gate";
+import { errorText } from "@/lib/error-text";
 
 const PATH = "/api/admin/categories/export";
 
@@ -115,7 +116,7 @@ export const Route = createFileRoute("/api/admin/categories/export")({
           p_scope: scope as unknown as string,
         });
         if (error) {
-          console.error(`[ssr-error] ${PATH} export_failed ${error.message}`);
+          console.error(`[ssr-error] ${PATH} export_failed ${errorText(error)}`);
           if (error.message.includes("permission denied")) {
             return json({ error: "permission denied" }, 403);
           }

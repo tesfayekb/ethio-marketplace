@@ -15,6 +15,7 @@ import {
 } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { errorText } from "@/lib/error-text";
 
 export function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -25,7 +26,8 @@ export function json(body: unknown, status: number): Response {
 
 /** Every 5xx — thrown or deliberate — is logged before it leaves (I4). */
 export function fail5xx(path: string, message: string, status = 500): Response {
-  console.error(`[ssr-error] ${path} ${message}`);
+  // INC-625 — a provider's or the database's text is named by one rule.
+  console.error(`[ssr-error] ${path} ${errorText(message)}`);
   return json({ error: "server error" }, status);
 }
 

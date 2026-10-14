@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import type { Database } from "@/integrations/supabase/types";
 import { isE2E } from "@/lib/env-flags";
+import { errorText } from "@/lib/error-text";
 
 export const CATALOG_FIND_LIMIT = 120;
 export const CATALOG_FIND_TTL_MS = 60_000;
@@ -86,9 +87,9 @@ export async function refreshCatalogFindAfterCommit(path: string): Promise<void>
   try {
     const client = await adminClient();
     const { error } = await client.rpc("catalog_find_refresh", { p_force: false });
-    if (error) console.error(`[ssr-error] ${path} catalog_find_refresh: ${error.message}`);
+    if (error) console.error(`[ssr-error] ${path} catalog_find_refresh: ${errorText(error)}`);
   } catch (error) {
-    console.error(`[ssr-error] ${path} catalog_find_refresh: ${String(error)}`);
+    console.error(`[ssr-error] ${path} catalog_find_refresh: ${errorText(error)}`);
   }
 }
 
@@ -104,9 +105,9 @@ export async function refreshNameFoldsAfterCommit(path: string): Promise<void> {
   try {
     const client = await adminClient();
     const { error } = await client.rpc("name_folds_rebuild");
-    if (error) console.error(`[ssr-error] ${path} name_folds_rebuild: ${error.message}`);
+    if (error) console.error(`[ssr-error] ${path} name_folds_rebuild: ${errorText(error)}`);
   } catch (error) {
-    console.error(`[ssr-error] ${path} name_folds_rebuild: ${String(error)}`);
+    console.error(`[ssr-error] ${path} name_folds_rebuild: ${errorText(error)}`);
   }
   const elapsed = performance.now() - started;
   if (elapsed > 5_000)

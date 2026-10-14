@@ -27,6 +27,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { errorText } from "@/lib/error-text";
 
 const PATH = "/api/admin/categories/generate-image";
 
@@ -123,7 +124,7 @@ async function generate(
   try {
     bytes = isFakeMode() ? fakeGeneratedPng() : (await generateImageBytes(prompt)).bytes;
   } catch (error) {
-    const message = error instanceof Error ? error.message : "unknown error";
+    const message = errorText(error); // INC-625
     const status =
       typeof (error as { status?: unknown })?.status === "number"
         ? (error as { status: number }).status
@@ -170,7 +171,7 @@ function failure(error: unknown, probe: boolean): Response {
   if (error instanceof FeatureOffError) {
     return noStore({ error: error.message, stage: "switched-off" }, error.status);
   }
-  const message = error instanceof Error ? error.message : "unknown error";
+  const message = errorText(error); // INC-625
   const status = error instanceof ModelCallError ? error.status : 500;
   console.error(`[ssr-error] ${PATH} image_generate_failed stage=model-call ${message}`);
   if (status >= 400 && status < 500)

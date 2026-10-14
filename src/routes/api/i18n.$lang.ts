@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { bundleEtag } from "@/i18n/bundle";
 import type { Database } from "@/integrations/supabase/types";
+import { errorText, errorWithStack } from "@/lib/error-text";
 
 /**
  * U4i ④ — THE CACHEABLE UI BUNDLE.
@@ -35,10 +36,8 @@ const LANG_RE = /^[a-z]{2,8}(-[a-z0-9]{2,8})?$/;
 const MAX_AGE = 300;
 
 function logRouteError(error: unknown): void {
-  const message =
-    error instanceof Error
-      ? `${error.message} | ${(error.stack ?? "").split("\n")[1]?.trim() ?? "no stack"}`
-      : String(error);
+  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
+  const message = errorWithStack(error);
   console.error("[ssr-error]", "/api/i18n", message);
 }
 
@@ -164,7 +163,7 @@ export const Route = createFileRoute("/api/i18n/$lang")({
           return await handleGet(request, params.lang);
         } catch (error) {
           logRouteError(error);
-          return fail(error instanceof Error ? error.message : "internal error", 500);
+          return fail(errorText(error), 500);
         }
       },
     },

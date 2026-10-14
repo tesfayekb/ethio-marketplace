@@ -30,6 +30,7 @@
  * a fixed 400 x 300 cut-out — a green block on a transparent ground — and no
  * network.
  */
+import { errorText } from "@/lib/error-text";
 
 /** D159 — once per ad, plus one retry. */
 export const BACKGROUND_TRIES = 2;
@@ -113,7 +114,7 @@ export async function readSource(url: string, log: Log): Promise<Blob | null> {
     }
     return new Blob([bytes], { type });
   } catch (error) {
-    log(`cover read: ${error instanceof Error ? error.message : String(error)}`);
+    log(`cover read: ${errorText(error)}`);
     return null;
   }
 }
@@ -139,11 +140,11 @@ export async function cutOut(source: Blob, key: string, log: Log): Promise<Cutou
       body: form,
     });
   } catch (error) {
-    log(`photoroom unreachable: ${error instanceof Error ? error.message : String(error)}`);
+    log(`photoroom unreachable: ${errorText(error)}`);
     return null;
   }
   if (!response.ok) {
-    log(`photoroom ${response.status}: ${(await response.text()).slice(0, 200)}`);
+    log(`photoroom ${response.status}: ${errorText((await response.text()).slice(0, 200))}`);
     return null;
   }
   const type = mediaType(response);

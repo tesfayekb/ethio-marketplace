@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient, isAuthRetryableFetchError } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { errorText, errorWithStack } from "@/lib/error-text";
 
 /**
  * U4c — AI TRANSLATION ENDPOINT.
@@ -111,10 +112,8 @@ function json(body: unknown, status: number): Response {
 // endpoint issues (deliberate or thrown) logs into the reporter-grepped
 // [ssr-error] channel BEFORE the structured body goes out.
 function logRouteError(error: unknown): void {
-  const message =
-    error instanceof Error
-      ? `${error.message} | ${(error.stack ?? "").split("\n")[1]?.trim() ?? "no stack"}`
-      : String(error);
+  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
+  const message = errorWithStack(error);
   console.error("[ssr-error]", "/api/translate", message);
 }
 
@@ -440,7 +439,7 @@ async function handlePost(request: Request): Promise<Response> {
         return json({ error: `target language ${target} is not supported by the provider` }, 422);
       }
     } catch (error) {
-      return fail5xx((error as Error).message, 502);
+      return fail5xx(errorText(error), 502);
     }
     for (let index = 0; index < items.length; index += GOOGLE_CHUNK) {
       const chunk = items.slice(index, index + GOOGLE_CHUNK);
@@ -459,7 +458,7 @@ async function handlePost(request: Request): Promise<Response> {
         // Per-item honesty: the chunk failed, so every key in it is
         // reported and NOTHING is written for any of them.
         for (const item of chunk) {
-          failed.push({ key: item.key, reason: (error as Error).message });
+          failed.push({ key: item.key, reason: errorText(error) });
         }
       }
     }
@@ -558,7 +557,7 @@ async function handleGet(request: Request): Promise<Response> {
   try {
     return json({ languages: await loadSupportedLanguages(apiKey) }, 200);
   } catch (error) {
-    return fail5xx((error as Error).message, 502);
+    return fail5xx(errorText(error), 502);
   }
 }
 

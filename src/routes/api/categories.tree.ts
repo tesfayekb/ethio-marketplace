@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { readAllPages } from "@/lib/read-all-pages";
 
 import type { Database } from "@/integrations/supabase/types";
+import { errorText } from "@/lib/error-text";
 
 /**
  * INC-263 — THE PUBLIC CATEGORY TREE, VERSION-KEYED.
@@ -66,12 +67,9 @@ interface CacheEntry {
 let cached: CacheEntry | null = null;
 
 function logRouteError(error: unknown): void {
-  const raw = error instanceof Error ? error.message : String(error);
-  // INC-328 — an upstream HTML error page is named, never dumped into the log.
-  const status = /\b([45]\d\d)\b/.exec(raw)?.[1] ?? "unknown";
-  const message = raw.trimStart().startsWith("<")
-    ? `upstream returned an HTML error page (${status})`
-    : raw;
+  // INC-328, INC-625 — an upstream HTML error page is named, never dumped into the
+  // log; an error with no message says so (src/lib/error-text.ts).
+  const message = errorText(error);
   console.error("[ssr-error]", "/api/categories/tree", message);
 }
 
@@ -119,11 +117,8 @@ const NODE_COLUMNS =
 
 /** A thrown page read, as the `{ message }` the failure path below reads. */
 function errorOf(error: unknown): { message: string } {
-  if (error instanceof Error) return { message: error.message };
-  if (error !== null && typeof error === "object" && "message" in error) {
-    return { message: String((error as { message: unknown }).message) };
-  }
-  return { message: String(error) };
+  // INC-625 — an error object with no message read as "undefined" here.
+  return { message: errorText(error) };
 }
 
 async function handleGet(request: Request): Promise<Response> {
@@ -241,7 +236,7 @@ export const Route = createFileRoute("/api/categories/tree")({
           return await handleGet(request);
         } catch (error) {
           logRouteError(error);
-          return fail(error instanceof Error ? error.message : "internal error", 500);
+          return fail(errorText(error), 500);
         }
       },
     },

@@ -16,6 +16,7 @@ import {
 } from "@/server/supabase/user-client";
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
 import { untrustedText, withUntrustedRule } from "@/lib/untrusted-text";
+import { errorText } from "@/lib/error-text";
 
 /**
  * U6-A2-C — THE POSTING IDENTITY ROUTE (D17).
@@ -124,7 +125,7 @@ async function imitationOf(alias: string): Promise<Imitation> {
     const of = typeof answer.of === "string" && answer.of.trim() !== "" ? answer.of.trim() : alias;
     return { of, checked: true };
   } catch (error) {
-    logRouteError(PATH, `imitation check unusable: ${error instanceof Error ? error.message : ""}`);
+    logRouteError(PATH, `imitation check unusable: ${errorText(error)}`);
     return { of: null, checked: false };
   }
 }

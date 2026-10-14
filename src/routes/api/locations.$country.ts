@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { bundleEtag } from "@/i18n/bundle";
 import type { Database } from "@/integrations/supabase/types";
+import { errorText, errorWithStack } from "@/lib/error-text";
 
 /**
  * L1c-C — THE PUBLIC PER-COUNTRY LOCATION TREE.
@@ -54,10 +55,8 @@ interface CacheEntry {
 const treeCache = new Map<string, CacheEntry>();
 
 function logRouteError(error: unknown): void {
-  const message =
-    error instanceof Error
-      ? `${error.message} | ${(error.stack ?? "").split("\n")[1]?.trim() ?? "no stack"}`
-      : String(error);
+  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
+  const message = errorWithStack(error);
   console.error("[ssr-error]", "/api/locations", message);
 }
 
@@ -186,7 +185,7 @@ export const Route = createFileRoute("/api/locations/$country")({
           return await handleGet(request, params.country);
         } catch (error) {
           logRouteError(error);
-          return fail(error instanceof Error ? error.message : "internal error", 500);
+          return fail(errorText(error), 500);
         }
       },
     },

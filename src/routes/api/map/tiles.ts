@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { clientAddress, hashAddress } from "@/server/catalog-find.server";
 import { consumeRate } from "@/server/supabase/user-client";
+import { errorText } from "@/lib/error-text";
 
 /**
  * W6b-2 C1/C2 — THE MAP'S TILE TEMPLATES.
@@ -100,11 +101,7 @@ export const Route = createFileRoute("/api/map/tiles")({
           const plan = key === "" ? osmPlan() : esriPlan(key);
           return json(plan, 200, "private, max-age=3600");
         } catch (error) {
-          console.error(
-            "[ssr-error]",
-            "/api/map/tiles",
-            error instanceof Error ? error.message : String(error),
-          );
+          console.error("[ssr-error]", "/api/map/tiles", errorText(error));
           return json(osmPlan(), 200, "no-store");
         }
       },
@@ -126,11 +123,7 @@ export const Route = createFileRoute("/api/map/tiles")({
           console.warn(`[map] fallback provider=osm reason=${reason}`);
           return json({ ok: true }, 200, "no-store");
         } catch (error) {
-          console.error(
-            "[ssr-error]",
-            "/api/map/tiles",
-            error instanceof Error ? error.message : String(error),
-          );
+          console.error("[ssr-error]", "/api/map/tiles", errorText(error));
           return json({ ok: false }, 500, "no-store");
         }
       },

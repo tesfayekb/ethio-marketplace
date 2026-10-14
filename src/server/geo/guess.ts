@@ -33,6 +33,8 @@
  * are trimmed to 64 characters and are never rendered as HTML.
  */
 
+import { errorText } from "@/lib/error-text";
+
 export type GeoSource = "cf-object" | "cf-visitor" | "cf-header" | "none";
 
 export interface GeoAnswer {
@@ -168,11 +170,7 @@ export function geoGuess(request: Request): GeoAnswer {
     // (4) no guess
     return GEO_NONE;
   } catch (error) {
-    console.error(
-      "[ssr-error]",
-      "geo-guess",
-      error instanceof Error ? error.message : String(error),
-    );
+    console.error("[ssr-error]", "geo-guess", errorText(error));
     return GEO_NONE;
   }
 }
