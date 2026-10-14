@@ -721,6 +721,7 @@ export const en = {
   "admin.listings.status.sold": "Sold",
   "admin.listings.status.rejected": "Rejected",
   "admin.listings.status.removed": "Removed",
+  "admin.listings.status.closed": "Closed",
   "admin.listings.col.title": "Title",
   "admin.listings.col.seller": "Seller",
   "admin.listings.col.status": "Status",

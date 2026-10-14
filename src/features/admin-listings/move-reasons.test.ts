@@ -28,7 +28,7 @@ describe("the listing moves (turn L2b)", () => {
   it("MR-2 a listing's state decides its moves", () => {
     expect(movesFor("active")).toEqual(["send_back", "remove"]);
     expect(movesFor("reduced")).toEqual(["send_back", "remove"]);
-    for (const status of ["screening", "held", "rejected", "expired", "sold"]) {
+    for (const status of ["screening", "held", "rejected", "expired", "sold", "closed"]) {
       expect(movesFor(status)).toEqual(["remove"]);
     }
     expect(movesFor("removed")).toEqual(["restore"]);

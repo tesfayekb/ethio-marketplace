@@ -700,6 +700,7 @@ export const am: Messages = {
   "admin.listings.status.sold": "የተሸጠ",
   "admin.listings.status.rejected": "ውድቅ የተደረገ",
   "admin.listings.status.removed": "የተወገደ",
+  "admin.listings.status.closed": "የተዘጋ",
   "admin.listings.col.title": "አርዕስት",
   "admin.listings.col.seller": "ሻጭ",
   "admin.listings.col.status": "ሁኔታ",

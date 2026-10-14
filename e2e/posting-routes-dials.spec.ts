@@ -24,6 +24,8 @@ import {
  * answer is the rate refusal by name.
  *
  * J-laws: a leased seller and a scratch category; cleanup in afterEach (J3).
+ *
+ * Bundle 16 turn 1 — PR-45, PR-46: the two new seller doors count against the same dial before they read the listing.
  */
 
 const DRAFT = "/api/listings/draft";
@@ -196,6 +198,30 @@ test.describe("POSTING DOOR DIALS", () => {
       await twice(page, "relist_listing", { p_listing_id: listingId });
     } finally {
       await removeOverride(user.id, "PR-32");
+    }
+  });
+
+  test("PR-45 set_listing_reserved counts against the revise dial", async ({ page }) => {
+    const { user, listingId } = await sellerWithDraft(page);
+    try {
+      await twice(page, "set_listing_reserved", { p_listing_id: listingId, p_reserved: true });
+    } finally {
+      await removeOverride(user.id, "PR-45");
+    }
+  });
+
+  test("PR-46 set_listing_price counts against the revise dial", async ({ page }) => {
+    const { user, listingId } = await sellerWithDraft(page);
+    try {
+      await twice(page, "set_listing_price", {
+        p_listing_id: listingId,
+        p_price_mode: "fixed",
+        p_price_amount: 100,
+        p_price_currency: "ETB",
+        p_price_period: "once",
+      });
+    } finally {
+      await removeOverride(user.id, "PR-46");
     }
   });
 

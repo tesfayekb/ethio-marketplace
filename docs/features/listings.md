@@ -110,6 +110,11 @@ Flips `active → expired` where `expires_at < now()`. Idempotent, safe to run
 repeatedly. `EXECUTE` to `service_role` only. **Its schedule (pg_cron or an
 external scheduler) is a named follow-up** — nothing calls it yet.
 
+Later word: the sweep is scheduled hourly since M5 (see "Bundle 4 columns and the
+sweep" below). Since bundle 16 turn 1 it expires every due ad with full or
+reduced reach through `transition_listing`, which writes the `state` revision
+(INC-470, INC-626) — see `docs/features/my-listings.md`.
+
 ## RLS posture
 
 `listings`:
@@ -204,7 +209,9 @@ dictionary per listing language is U7's call. Index
 `status` widens to
 `draft | screening | active | reduced | rejected | held | expired | sold | removed`
 (DEC-070). The machine that governs the moves lands with A2's
-`transition_listing`.
+`transition_listing`. Bundle 16 turn 1 adds `closed` ("No longer available",
+D174 2): the seller's own close and reopen, with the days left kept — see
+`docs/features/my-listings.md`.
 
 ### One resolution, two readers
 
@@ -399,6 +406,13 @@ Owner doors: `mark_sold` (state `sold`, `contact_pref` reduced to
 `relist_listing` (expired|sold → screening), `delete_draft` (draft only;
 deletes the photo, coverage and revision rows — **the storage objects behind
 them are A2-C/B1's concern**, this door owns rows).
+
+Later word (bundle 16 turn 1, `docs/features/my-listings.md`): `mark_sold` also
+takes a closed ad and no longer changes `contact_pref` (a sold ad's contact is
+closed by its status); `renew_listing` takes an expired ad only, with no
+seven-day wait, under the admin's `listing_policy`, and puts it live at once;
+`relist_listing` takes a sold ad only (an expired ad is renewed). The owner
+closes a live ad (`closed`) and reopens it to the status it had.
 
 ### Photo doors
 

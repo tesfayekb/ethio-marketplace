@@ -70,3 +70,8 @@ listing_photo_changes | SELECT to authenticated only, bundle 13 turn 10 (D154 B5
 remove_listing_photo | restated grant (not a new surface), bundle 13 turn 10 (D154 B5): the seller's Remove; owner-only on auth.uid(), the photo must be on the caller's listing; on a live ad it lists the removal for staff
 admin_review_photo_change | admin door, bundle 13 turn 10 (D154 B5): listings:review checked inside; marks one photo change reviewed and writes an audit row
 admin_ai_spend_days | admin door, bundle 13 turn 14: services:view checked inside; reads each AI feature's calls and cost per UTC day for the last 1 to 92 days, scratch e2e- features left out; read only
+listing_policy | Bundle 16 turn 1 (D174 3, D175 2): signed-in users read renew_allowed and renew_days only (column grant; RLS read policy); no browser role writes
+set_listing_reserved | Bundle 16 turn 1 (D173 1): owner-only door on auth.uid(); a live ad only; rate-gated revise; one revision
+set_listing_price | Bundle 16 turn 1 (D174 1, D177): owner-only door on auth.uid(); live or closed ad; judged at step 8; rate-gated revise; one revision
+listing_history | Bundle 16 turn 1: owner-only read; one answer for not yours and not there; no staff identity in the answer
+admin_set_listing_policy | Bundle 16 turn 1 (D174 3): listings:enforce with a fresh second factor; days 1 to 365; audited listing.policy_set

@@ -1266,6 +1266,30 @@ export type Database = {
           },
         ]
       }
+      listing_policy: {
+        Row: {
+          id: boolean
+          renew_allowed: boolean
+          renew_days: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: boolean
+          renew_allowed?: boolean
+          renew_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: boolean
+          renew_allowed?: boolean
+          renew_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       listing_revisions: {
         Row: {
           actor: string | null
@@ -1312,6 +1336,7 @@ export type Database = {
           attested_at: string | null
           attributes: Json
           category_id: string
+          clock_kept: boolean
           contact_pref: Json
           cover_photo_id: string | null
           created_at: string
@@ -1322,6 +1347,7 @@ export type Database = {
           expires_at: string | null
           home_country_code: string
           id: string
+          kept_remaining: unknown
           location_id: string | null
           photos_soon: boolean
           pin_lat: number | null
@@ -1334,17 +1360,24 @@ export type Database = {
           price_amount: number | null
           price_bp: number | null
           price_currency: string | null
+          price_drop_at: string | null
           price_mode: string
           price_negotiable: boolean
           price_period: string
+          price_set_at: string | null
           price_unit: string | null
           price_unit_text: string | null
+          price_was: number | null
           published_at: string | null
           published_first_at: string | null
+          renewed_at: string | null
           renewed_count: number
+          reserved_at: string | null
+          resume_status: string | null
           screening: Json | null
           search_tsv: unknown
           seller_id: string
+          sold_at: string | null
           status: string
           street_address: string | null
           tier: string
@@ -1356,6 +1389,7 @@ export type Database = {
           attested_at?: string | null
           attributes?: Json
           category_id: string
+          clock_kept?: boolean
           contact_pref?: Json
           cover_photo_id?: string | null
           created_at?: string
@@ -1366,6 +1400,7 @@ export type Database = {
           expires_at?: string | null
           home_country_code: string
           id?: string
+          kept_remaining?: unknown
           location_id?: string | null
           photos_soon?: boolean
           pin_lat?: number | null
@@ -1378,17 +1413,24 @@ export type Database = {
           price_amount?: number | null
           price_bp?: number | null
           price_currency?: string | null
+          price_drop_at?: string | null
           price_mode?: string
           price_negotiable?: boolean
           price_period?: string
+          price_set_at?: string | null
           price_unit?: string | null
           price_unit_text?: string | null
+          price_was?: number | null
           published_at?: string | null
           published_first_at?: string | null
+          renewed_at?: string | null
           renewed_count?: number
+          reserved_at?: string | null
+          resume_status?: string | null
           screening?: Json | null
           search_tsv?: unknown
           seller_id: string
+          sold_at?: string | null
           status?: string
           street_address?: string | null
           tier?: string
@@ -1400,6 +1442,7 @@ export type Database = {
           attested_at?: string | null
           attributes?: Json
           category_id?: string
+          clock_kept?: boolean
           contact_pref?: Json
           cover_photo_id?: string | null
           created_at?: string
@@ -1410,6 +1453,7 @@ export type Database = {
           expires_at?: string | null
           home_country_code?: string
           id?: string
+          kept_remaining?: unknown
           location_id?: string | null
           photos_soon?: boolean
           pin_lat?: number | null
@@ -1422,17 +1466,24 @@ export type Database = {
           price_amount?: number | null
           price_bp?: number | null
           price_currency?: string | null
+          price_drop_at?: string | null
           price_mode?: string
           price_negotiable?: boolean
           price_period?: string
+          price_set_at?: string | null
           price_unit?: string | null
           price_unit_text?: string | null
+          price_was?: number | null
           published_at?: string | null
           published_first_at?: string | null
+          renewed_at?: string | null
           renewed_count?: number
+          reserved_at?: string | null
+          resume_status?: string | null
           screening?: Json | null
           search_tsv?: unknown
           seller_id?: string
+          sold_at?: string | null
           status?: string
           street_address?: string | null
           tier?: string
@@ -3170,6 +3221,10 @@ export type Database = {
         Args: { p_codes: string[] }
         Returns: undefined
       }
+      admin_set_listing_policy: {
+        Args: { p_renew_allowed: boolean; p_renew_days: number }
+        Returns: Json
+      }
       admin_set_location_active: {
         Args: { p_active: boolean; p_id: string }
         Returns: undefined
@@ -3805,6 +3860,7 @@ export type Database = {
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
+      listing_history: { Args: { p_listing_id: string }; Returns: Json }
       listing_reveal_count: { Args: { p_listing_id: string }; Returns: number }
       loc_export_row: { Args: { p_id: string }; Returns: Json }
       loc_id_of_key: { Args: { p_key: string }; Returns: string }
@@ -3979,6 +4035,22 @@ export type Database = {
           p_street?: string
           p_zoom?: number
         }
+        Returns: Json
+      }
+      set_listing_price: {
+        Args: {
+          p_listing_id: string
+          p_price_amount: number
+          p_price_bp?: number
+          p_price_currency: string
+          p_price_mode: string
+          p_price_negotiable?: boolean
+          p_price_period: string
+        }
+        Returns: Json
+      }
+      set_listing_reserved: {
+        Args: { p_listing_id: string; p_reserved: boolean }
         Returns: Json
       }
       show_limit: { Args: never; Returns: number }
