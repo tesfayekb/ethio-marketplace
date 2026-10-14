@@ -1,0 +1,517 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
+import { useState, type ReactNode } from "react";
+
+import { PageHeader } from "@/components/layout/page-header";
+import { PageShell } from "@/components/layout/page-shell";
+import { PageCard } from "@/components/shell/page-card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { GROUP_LABEL as FIELD_WORD, groupsOf } from "@/features/admin-listings/history";
+import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
+import { loadAttributeOptions, type AttrOption } from "@/features/posting/attribute-options";
+import {
+  readDraft,
+  readPostingSchema,
+  readSellerIdentity,
+  readSellerLine,
+  type AttrDef,
+} from "@/features/posting/posting-service";
+import { storedUnitNoun } from "@/features/posting/price-line";
+import { ListingDetail } from "@/features/posting/preview/listing-detail";
+import { fill } from "@/features/posting/refusal-text";
+import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
+import { useI18n } from "@/i18n";
+import { ownValue } from "@/lib/own-key";
+import { authKey } from "@/lib/query-keys";
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
+
+import {
+  ACTION_KEY,
+  actionsFor,
+  DONE_KEY,
+  readHistory,
+  readMyListing,
+  runAction,
+  sellerLines,
+  STATUS_WORD,
+  type HistoryLine,
+  type ListingAction,
+  type MyListing,
+} from "./my-listing";
+import { GROUP_LABEL } from "./my-listings";
+import { REASON_WORD, stateLine } from "./state-line";
+
+/**
+ * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS (/my-listings/<id>; D138; D173–D176;
+ * docs/features/my-listings.md, "One ad's page").
+ *
+ * From the top: the way back to My listings; the title; the status card — the
+ * ad's group, its Reserved and "Price reduced" marks, its state in the same words
+ * as the list (`stateLine`), and its dates: first posted, renewed (D175 3), ends,
+ * sold; the actions card — the one-tap actions this ad offers (`actionsFor`), Mark
+ * as sold behind a confirm because it cannot be undone; the ad as buyers see it
+ * (the same `ListingDetail` the posting preview and the admin page draw); and its
+ * history (`listing_history`: you, staff or the system, never a staff member's
+ * name, with staff's reason and note).
+ *
+ * Every action goes to its own door, which re-checks everything (F3). Whatever the
+ * answer, the ad, its history and the list are read again, so the page never
+ * shows a state the database does not hold (F4); a refusal is said in words.
+ *
+ * Testids: the page `my-listing-page`; back `my-listing-back`; status
+ * `my-listing-status`, its group `my-listing-group`, its state `my-listing-state`,
+ * Reserved `my-listing-reserved`, "Price reduced" `my-listing-price-reduced`, the
+ * dates `my-listing-first-posted`, `my-listing-renewed`, `my-listing-ends`,
+ * `my-listing-sold`; actions `my-listing-actions`, each button
+ * `my-listing-action-<reserve|unreserve|sell|close|reopen|renew>`, Continue on a
+ * draft `my-listing-continue`, the done line `my-listing-notice`, the refusal
+ * `my-listing-problem`, the words for no action `my-listing-no-action`; the
+ * confirm `my-listing-confirm` with `my-listing-confirm-cancel` and
+ * `my-listing-confirm-yes`; the ad `my-listing-as-seen`; history
+ * `my-listing-history`, each line `my-listing-history-line`; the refusal to read
+ * `my-listing-not-found`, a failed read `my-listing-error`.
+ */
+
+const adKey = (listingId: string) => authKey("my-listing", listingId);
+const historyKey = (listingId: string) => authKey("my-listing-history", listingId);
+
+function BackLink() {
+  const { t } = useI18n();
+  return (
+    <Link
+      to="/my-listings"
+      data-testid="my-listing-back"
+      className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground underline underline-offset-4"
+    >
+      <ArrowLeft aria-hidden="true" className="size-4" />
+      {t("nav.myListings")}
+    </Link>
+  );
+}
+
+function Mark({ testid, children }: { testid: string; children: ReactNode }) {
+  return (
+    <span
+      data-testid={testid}
+      className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-foreground"
+    >
+      {children}
+    </span>
+  );
+}
+
+export function MyListingPage({ listingId }: { listingId: string }) {
+  const { t, language } = useI18n();
+  const queryClient = useQueryClient();
+  const { tree } = useCategoryTree();
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
+
+  const query = useQuery({
+    queryKey: adKey(listingId),
+    queryFn: () => readMyListing(listingId),
+  });
+  const ad: MyListing | null =
+    query.data !== undefined && query.data !== "notYours" ? query.data : null;
+  const row = ad?.listing ?? null;
+
+  // The ad as buyers see it: its content (the owner's own read, as the posting form reads it), its category's
+  // questions and answers, the seller's public line, and the unit words when its price has a unit.
+  const content = useQuery({
+    queryKey: authKey("my-listing-content", listingId),
+    queryFn: () => readDraft(listingId),
+    enabled: ad !== null,
+  });
+  const categoryId = row?.categoryId ?? null;
+  const schema = useQuery({
+    queryKey: ["my-listing-schema", categoryId],
+    enabled: categoryId !== null,
+    queryFn: async (): Promise<{
+      definitions: AttrDef[];
+      attributeOptions: Record<string, AttrOption[]>;
+    }> => {
+      const found = await readPostingSchema(categoryId as string);
+      const definitions = found?.attributes ?? [];
+      const entries = await Promise.all(
+        definitions
+          .filter((definition) => ["single_select", "multi_select"].includes(definition.attrType))
+          .map(
+            async (definition) =>
+              [
+                definition.attrKey,
+                (await loadAttributeOptions(definition.attributeId)) ?? [],
+              ] as const,
+          ),
+      );
+      return { definitions, attributeOptions: Object.fromEntries(entries) };
+    },
+  });
+  const identity = useQuery({
+    queryKey: authKey("seller-identity"),
+    queryFn: readSellerIdentity,
+    enabled: ad !== null,
+  });
+  const line = useQuery({
+    queryKey: authKey("seller-line"),
+    queryFn: readSellerLine,
+    enabled: ad !== null,
+  });
+  const history = useQuery({
+    queryKey: historyKey(listingId),
+    queryFn: () => readHistory(listingId),
+    enabled: ad !== null,
+  });
+  const unitLabels = usePriceUnitLabels(row !== null && row.priceUnit !== null);
+
+  const day = (iso: string | null) =>
+    iso === null
+      ? ""
+      : new Intl.DateTimeFormat(language, { dateStyle: "medium" }).format(new Date(iso));
+  const moment = (iso: string) =>
+    new Intl.DateTimeFormat(language, { dateStyle: "medium", timeStyle: "short" }).format(
+      new Date(iso),
+    );
+
+  const reload = async () => {
+    await refreshAfterWrite(queryClient, { queryKey: adKey(listingId) });
+    await refreshAfterWrite(queryClient, { queryKey: historyKey(listingId) });
+    await refreshAfterWrite(queryClient, { queryKey: authKey("my-listings") });
+  };
+
+  const act = async (action: ListingAction) => {
+    if (ad === null || busy) return;
+    setBusy(true);
+    setNotice(null);
+    setProblem(null);
+    try {
+      const outcome = await runAction(ad, action);
+      if (outcome.ok) setNotice(t(DONE_KEY[action]));
+      else setProblem(t(outcome.key));
+    } catch {
+      setProblem(t("myListings.error.failed"));
+    } finally {
+      await reload();
+      setBusy(false);
+    }
+  };
+
+  if (query.isLoading) {
+    return (
+      <PageShell as="main" width="wide" data-testid="my-listing-page">
+        <BackLink />
+        <p role="status" aria-live="polite" className="mt-4 text-sm text-muted-foreground">
+          {t("common.loading")}
+        </p>
+      </PageShell>
+    );
+  }
+  if (query.isError) {
+    return (
+      <PageShell as="main" width="wide" data-testid="my-listing-page">
+        <BackLink />
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <p role="alert" data-testid="my-listing-error" className="text-sm text-destructive">
+            {t("myListings.ad.loadError")}
+          </p>
+          <Button type="button" variant="outline" size="touch" onClick={() => void query.refetch()}>
+            {t("common.retry")}
+          </Button>
+        </div>
+      </PageShell>
+    );
+  }
+  if (ad === null || row === null) {
+    return (
+      <PageShell as="main" width="wide" data-testid="my-listing-page">
+        <BackLink />
+        <p data-testid="my-listing-not-found" className="mt-4 text-sm text-muted-foreground">
+          {t("myListings.ad.notFound")}
+        </p>
+      </PageShell>
+    );
+  }
+
+  const actions = actionsFor(ad);
+  const live = row.status === "active" || row.status === "reduced";
+
+  const noAction = (): string => {
+    if (ad.group === "review") return t("myListings.ad.waiting");
+    if (row.status === "expired" && !ad.renewAllowed) return t("myListings.renewOff");
+    return t("myListings.ad.none");
+  };
+
+  const historyWhat = (entry: HistoryLine): string => {
+    const word = (status: string | null) => {
+      const key = status === null ? undefined : ownValue(STATUS_WORD, status);
+      return key === undefined ? (status ?? "") : t(key);
+    };
+    if (entry.kind === "create") return t("admin.listings.history.created");
+    if (entry.fields.includes("renewed_count")) return t("admin.listings.history.renewed");
+    if (entry.reserved !== null)
+      return t(entry.reserved ? "myListings.history.reserved" : "myListings.history.unreserved");
+    if (entry.to !== null)
+      return fill(t("admin.listings.history.status"), {
+        from: word(entry.from),
+        to: word(entry.to),
+      });
+    return fill(t("admin.listings.history.edited"), {
+      fields: groupsOf(entry.fields)
+        .map((group) => t(FIELD_WORD[group]))
+        .join(", "),
+    });
+  };
+  const historyWho = (entry: HistoryLine): string =>
+    entry.by === "you"
+      ? t("myListings.history.you")
+      : entry.by === "staff"
+        ? t("admin.listings.history.by.staff")
+        : t("admin.listings.history.by.system");
+
+  const draft = content.data ?? null;
+  const lines = history.data === undefined ? undefined : sellerLines(history.data);
+
+  return (
+    <PageShell as="main" width="wide" data-testid="my-listing-page">
+      <BackLink />
+      <PageHeader
+        className="mt-2"
+        title={<span className="break-words">{row.title ?? t("myListings.untitled")}</span>}
+      />
+      <div className="mt-4 min-w-0 space-y-4">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+          <PageCard testid="my-listing-status" className="min-w-0 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                data-testid="my-listing-group"
+                className="text-sm font-semibold text-foreground"
+              >
+                {t(GROUP_LABEL[ad.group])}
+              </span>
+              {row.reserved ? (
+                <Mark testid="my-listing-reserved">{t("myListings.reserved")}</Mark>
+              ) : null}
+              {row.priceWas !== null ? (
+                <Mark testid="my-listing-price-reduced">{t("myListings.priceReduced")}</Mark>
+              ) : null}
+            </div>
+            <p data-testid="my-listing-state" className="text-sm text-muted-foreground">
+              {stateLine(row, t, day)}
+            </p>
+            <ul className="space-y-0.5 text-sm text-muted-foreground">
+              {row.publishedFirstAt !== null ? (
+                <li data-testid="my-listing-first-posted">
+                  {fill(t("myListings.ad.firstPosted"), { date: day(row.publishedFirstAt) })}
+                </li>
+              ) : null}
+              {row.renewedAt !== null ? (
+                <li data-testid="my-listing-renewed">
+                  {fill(t("myListings.ad.renewed"), { date: day(row.renewedAt) })}
+                </li>
+              ) : null}
+              {live && row.expiresAt !== null ? (
+                <li data-testid="my-listing-ends">
+                  {fill(t("myListings.ad.ends"), { date: day(row.expiresAt) })}
+                </li>
+              ) : null}
+              {row.soldAt !== null ? (
+                <li data-testid="my-listing-sold">
+                  {fill(t("myListings.soldOn"), { date: day(row.soldAt) })}
+                </li>
+              ) : null}
+            </ul>
+          </PageCard>
+
+          <PageCard testid="my-listing-actions" className="min-w-0 space-y-3">
+            <h2 className="text-sm font-semibold text-foreground">{t("myListings.ad.actions")}</h2>
+            {row.status === "draft" ? (
+              <Button asChild variant="outline" size="touch">
+                <Link
+                  to="/post/$listingId"
+                  params={{ listingId: row.id }}
+                  data-testid="my-listing-continue"
+                >
+                  {t("myListings.continue")}
+                </Link>
+              </Button>
+            ) : actions.length === 0 ? (
+              <p data-testid="my-listing-no-action" className="text-sm text-muted-foreground">
+                {noAction()}
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                {actions.map((action) => (
+                  <Button
+                    key={action}
+                    type="button"
+                    size="touch"
+                    variant={action === "sell" ? "default" : "outline"}
+                    data-testid={`my-listing-action-${action}`}
+                    disabled={busy}
+                    onClick={() => {
+                      if (action === "sell") setConfirming(true);
+                      else void act(action);
+                    }}
+                  >
+                    {action === "renew"
+                      ? fill(t(ACTION_KEY.renew), { days: String(ad.renewDays ?? "") })
+                      : t(ACTION_KEY[action])}
+                  </Button>
+                ))}
+              </div>
+            )}
+            {notice !== null ? (
+              <p
+                role="status"
+                aria-live="polite"
+                data-testid="my-listing-notice"
+                className="text-sm text-foreground"
+              >
+                {notice}
+              </p>
+            ) : null}
+            {problem !== null ? (
+              <p role="alert" data-testid="my-listing-problem" className="text-sm text-destructive">
+                {problem}
+              </p>
+            ) : null}
+          </PageCard>
+        </div>
+
+        <PageCard testid="my-listing-as-seen" className="min-w-0 space-y-3">
+          <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
+          {draft === null ? (
+            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+              {/* readDraft answers null for an ad that is not the caller's: a refusal, never a wait. */}
+              {content.isError || content.isSuccess
+                ? t("myListings.ad.loadError")
+                : t("common.loading")}
+            </p>
+          ) : (
+            <ListingDetail
+              title={draft.draft.title ?? ""}
+              description={draft.draft.description ?? ""}
+              priceMode={draft.draft.priceMode ?? "contact"}
+              priceAmount={draft.draft.priceAmount}
+              priceCurrency={draft.draft.priceCurrency}
+              pricePeriod={draft.draft.pricePeriod}
+              priceBp={draft.draft.priceBp}
+              priceNegotiable={draft.draft.priceNegotiable}
+              basisLabel={storedUnitNoun(row.priceUnit, row.priceUnitText, unitLabels, language)}
+              attributes={draft.draft.attributes}
+              definitions={schema.data?.definitions ?? []}
+              attributeOptions={schema.data?.attributeOptions ?? {}}
+              photos={draft.photos}
+              illustrationUrl={
+                categoryId === null ? null : nearestCategoryPicture(tree, categoryId)
+              }
+              photosSoon={draft.draft.photosSoon}
+              coverage={draft.coverage}
+              country={ad.countryCode}
+              contactPref={draft.draft.contactPref}
+              sellerAlias={identity.data?.alias ?? null}
+              sellerBusinessName={
+                identity.data?.sellerType === "business"
+                  ? (identity.data.businessName ?? null)
+                  : null
+              }
+              sellerPreviousAlias={line.data?.previousAlias ?? null}
+              sellerMemberSince={line.data?.memberSince ?? null}
+              pinLat={draft.draft.pinLat}
+              pinLng={draft.draft.pinLng}
+              pinPrecision={draft.draft.pinPrecision}
+              pinZoom={draft.draft.pinZoom}
+              directions={draft.draft.directions}
+              streetAddress={draft.draft.streetAddress}
+            />
+          )}
+        </PageCard>
+
+        <PageCard testid="my-listing-history" className="min-w-0 space-y-3">
+          <h2 className="text-sm font-semibold text-foreground">
+            {t("admin.listings.detail.history")}
+          </h2>
+          {lines === undefined ? (
+            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+              {history.isError ? t("myListings.ad.loadError") : t("common.loading")}
+            </p>
+          ) : lines.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("myListings.history.empty")}</p>
+          ) : (
+            <ol className="min-w-0 space-y-3">
+              {lines.map((entry, index) => {
+                const reason =
+                  entry.reason === null ? undefined : ownValue(REASON_WORD, entry.reason);
+                return (
+                  <li
+                    key={`${entry.at}-${index}`}
+                    data-testid="my-listing-history-line"
+                    className="min-w-0 space-y-0.5 border-b border-border pb-2 text-sm last:border-b-0"
+                  >
+                    <p className="text-xs text-muted-foreground">
+                      {moment(entry.at)} · {historyWho(entry)}
+                    </p>
+                    <p className="break-words text-foreground">{historyWhat(entry)}</p>
+                    {reason !== undefined ? (
+                      <p className="text-muted-foreground">
+                        {fill(t("admin.listings.history.reason"), { reason: t(reason) })}
+                      </p>
+                    ) : null}
+                    {entry.note !== null ? (
+                      <p className="break-words text-muted-foreground">
+                        {fill(t("admin.listings.history.note"), { note: entry.note })}
+                      </p>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </PageCard>
+      </div>
+
+      <AlertDialog
+        open={confirming}
+        onOpenChange={(open) => {
+          if (!open) setConfirming(false);
+        }}
+      >
+        <AlertDialogContent data-testid="my-listing-confirm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("myListings.confirm.sellTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("myListings.confirm.sellBody")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="min-h-11" data-testid="my-listing-confirm-cancel">
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="min-h-11"
+              data-testid="my-listing-confirm-yes"
+              onClick={() => {
+                setConfirming(false);
+                void act("sell");
+              }}
+            >
+              {t("myListings.action.sell")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </PageShell>
+  );
+}
+
+export default MyListingPage;

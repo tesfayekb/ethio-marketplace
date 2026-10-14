@@ -18,11 +18,9 @@ import { CutText } from "@/components/ui/cut-text";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { CARD_THEN_THUMB, photoUrl } from "@/features/posting/photo-links";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
-import { fill } from "@/features/posting/refusal-text";
 import { usePhotoLinks } from "@/features/posting/use-photo-links";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
-import { useI18n, type MessageKey } from "@/i18n";
-import { ownValue } from "@/lib/own-key";
+import { useI18n } from "@/i18n";
 import { authKey } from "@/lib/query-keys";
 
 import {
@@ -33,6 +31,7 @@ import {
   type ListingGroup,
   type MyListingRow,
 } from "./my-listings";
+import { stateLine } from "./state-line";
 
 /**
  * Bundle 16 turn 2 — THE MY LISTINGS PAGE (D138; D173–D175; docs/features/my-listings.md).
@@ -43,22 +42,12 @@ import {
  * below it (mobile first, 360 / 768 / 1280). Each row: the cover photo (with the
  * seller's session — a photo of an ad that is not live is the seller's own), the
  * title, the price, the state in words and its date, and the Reserved and "Price
- * reduced" marks. A draft continues in the posting form. One ad's page and its
- * actions come in turn 3; until then a row that is not a draft opens nothing.
+ * reduced" marks. A draft continues in the posting form; any other ad opens its
+ * own page (turn 3, /my-listings/<id>: the ad, its dates, its history and its
+ * actions).
  *
  * A refused or malformed answer is an error with Retry, never an empty list (F4).
  */
-
-/** The removal reasons a seller may be told (admin_move_listing's list for a removal). */
-const REMOVAL_REASON: Record<string, MessageKey> = {
-  prohibited: "admin.listings.reason.prohibited",
-  misleading: "admin.listings.reason.misleading",
-  duplicate: "admin.listings.reason.duplicate",
-  contact_in_text: "admin.listings.reason.contact_in_text",
-  photo: "admin.listings.reason.photo",
-  rules: "admin.listings.reason.rules",
-  other: "admin.listings.reason.other",
-};
 
 const EMPTY_COUNTS: GroupCounts = {
   live: 0,
@@ -130,41 +119,6 @@ export function MyListingsPage() {
           language,
         );
 
-  /** The state in words, with its date or its days — one line per status. */
-  const stateLine = (row: MyListingRow): string => {
-    switch (row.status) {
-      case "active":
-      case "reduced":
-        if (row.daysLeft === null) return t("myListings.noEnd");
-        if (row.daysLeft === 0) return t("myListings.endsToday");
-        return fill(t("myListings.daysLeft"), { count: String(row.daysLeft) });
-      case "screening":
-      case "held":
-        return t("myListings.inReview");
-      case "rejected":
-        return t("myListings.notApproved");
-      case "removed": {
-        const reason =
-          row.removedReason === null ? undefined : ownValue(REMOVAL_REASON, row.removedReason);
-        return reason === undefined
-          ? t("myListings.removed")
-          : fill(t("myListings.removedBecause"), { reason: t(reason) });
-      }
-      case "closed":
-        return row.daysKept === null
-          ? t("myListings.closedLine")
-          : `${t("myListings.closedLine")} · ${fill(t("myListings.daysKept"), { count: String(row.daysKept) })}`;
-      case "expired":
-        return fill(t("myListings.expiredOn"), { date: day(row.expiresAt) });
-      case "sold":
-        return fill(t("myListings.soldOn"), { date: day(row.soldAt) });
-      case "draft":
-        return fill(t("myListings.savedOn"), { date: day(row.updatedAt ?? row.createdAt) });
-      default:
-        return "";
-    }
-  };
-
   const marks = (row: MyListingRow) =>
     row.reserved || row.priceWas !== null ? (
       <span className="mt-1 flex flex-wrap gap-1">
@@ -232,7 +186,7 @@ export function MyListingsPage() {
       card: "meta",
       cell: (row) => (
         <span className="block text-muted-foreground" data-testid={`my-listing-${row.id}-state`}>
-          {stateLine(row)}
+          {stateLine(row, t, day)}
         </span>
       ),
     },
@@ -303,7 +257,18 @@ export function MyListingsPage() {
                   {t("myListings.continue")}
                 </Link>
               </Button>
-            ) : null
+            ) : (
+              // Bundle 16 turn 3 — every other ad opens its own page.
+              <Button asChild variant="outline" size="touch">
+                <Link
+                  to="/my-listings/$listingId"
+                  params={{ listingId: row.id }}
+                  data-testid={`my-listing-${row.id}-open`}
+                >
+                  {t("myListings.open")}
+                </Link>
+              </Button>
+            )
           }
           pagination={
             <DataTablePagination

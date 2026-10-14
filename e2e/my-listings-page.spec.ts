@@ -457,7 +457,10 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
     await expect(page.getByTestId("my-listings-page")).toHaveCount(0);
 
-    await signInViaSession(page, seller.email, seller.password);
+    // INC-628 — the session helper keeps a same-user injection a no-op after a sign-out,
+    // so the /account leg signs in a second scratch seller (a different user).
+    const second = await scratchSeller();
+    await signInViaSession(page, second.email, second.password);
     await gotoReady(page, "/account");
     await expect(page).toHaveURL(/\/account(?:[?#].*)?$/, { timeout: 15000 });
     await page.evaluate(async () => {

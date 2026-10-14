@@ -41,6 +41,7 @@ import { Route as CSlugRouteImport } from './routes/c.$slug'
 import { Route as DevPrimitivesRouteImport } from './routes/dev.primitives'
 import { Route as DevStyleRouteImport } from './routes/dev.style'
 import { Route as DevTallRouteImport } from './routes/dev.tall'
+import { Route as MyListingsListingIdRouteImport } from './routes/my-listings_.$listingId'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 import { Route as AdminListingsListingIdRouteImport } from './routes/admin.listings_.$listingId'
@@ -233,6 +234,11 @@ const DevStyleRoute = DevStyleRouteImport.update({
 const DevTallRoute = DevTallRouteImport.update({
   id: '/dev/tall',
   path: '/dev/tall',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyListingsListingIdRoute = MyListingsListingIdRouteImport.update({
+  id: '/my-listings_/$listingId',
+  path: '/my-listings/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PostListingIdRoute = PostListingIdRouteImport.update({
@@ -441,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
+  '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
@@ -507,6 +514,7 @@ export interface FileRoutesByTo {
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
+  '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
@@ -575,6 +583,7 @@ export interface FileRoutesById {
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
+  '/my-listings_/$listingId': typeof MyListingsListingIdRoute
   '/post_/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
@@ -644,6 +653,7 @@ export interface FileRouteTypes {
     | '/dev/primitives'
     | '/dev/style'
     | '/dev/tall'
+    | '/my-listings/$listingId'
     | '/post/$listingId'
     | '/admin/'
     | '/admin/impersonation/$sessionId'
@@ -710,6 +720,7 @@ export interface FileRouteTypes {
     | '/dev/primitives'
     | '/dev/style'
     | '/dev/tall'
+    | '/my-listings/$listingId'
     | '/post/$listingId'
     | '/admin'
     | '/admin/impersonation/$sessionId'
@@ -777,6 +788,7 @@ export interface FileRouteTypes {
     | '/dev/primitives'
     | '/dev/style'
     | '/dev/tall'
+    | '/my-listings_/$listingId'
     | '/post_/$listingId'
     | '/admin/'
     | '/admin/impersonation_/$sessionId'
@@ -831,6 +843,7 @@ export interface RootRouteChildren {
   DevPrimitivesRoute: typeof DevPrimitivesRoute
   DevStyleRoute: typeof DevStyleRoute
   DevTallRoute: typeof DevTallRoute
+  MyListingsListingIdRoute: typeof MyListingsListingIdRoute
   PostListingIdRoute: typeof PostListingIdRoute
   ApiCatalogFindRoute: typeof ApiCatalogFindRoute
   ApiCategoriesTreeRoute: typeof ApiCategoriesTreeRoute
@@ -1081,6 +1094,13 @@ declare module '@tanstack/react-router' {
       path: '/dev/tall'
       fullPath: '/dev/tall'
       preLoaderRoute: typeof DevTallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-listings_/$listingId': {
+      id: '/my-listings_/$listingId'
+      path: '/my-listings/$listingId'
+      fullPath: '/my-listings/$listingId'
+      preLoaderRoute: typeof MyListingsListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/post_/$listingId': {
@@ -1410,6 +1430,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevPrimitivesRoute: DevPrimitivesRoute,
   DevStyleRoute: DevStyleRoute,
   DevTallRoute: DevTallRoute,
+  MyListingsListingIdRoute: MyListingsListingIdRoute,
   PostListingIdRoute: PostListingIdRoute,
   ApiCatalogFindRoute: ApiCatalogFindRoute,
   ApiCategoriesTreeRoute: ApiCategoriesTreeRoute,
