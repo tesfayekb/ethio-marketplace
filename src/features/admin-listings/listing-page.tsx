@@ -24,6 +24,7 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { ListingEditForm } from "./edit-form";
 import { editErrorKey } from "./edit-listing";
 import { changesOf, GROUP_LABEL, groupOf, summarize, type FieldGroup } from "./history";
+import { ListingPhotos } from "./listing-photos";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
 import { UndoDialog } from "./undo-dialog";
@@ -62,6 +63,11 @@ import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
  * edit by staff (`mayUndo`), for those who may edit; a dialog takes an optional
  * note, and the door (`admin_undo_listing_edit`) puts the edit's before-values
  * back as a new edit with the reason Undo, while nothing has changed since.
+ *
+ * Bundle 13 turn 8 (D154 B4): Photos — every stored photo, each with Remove for
+ * those who may edit (`ListingPhotos`, through `admin_edit_listing`'s
+ * `remove_photos` with a reason and a note for the seller). Undo does not bring
+ * a removed photo back (D141: "removed no photo").
  */
 
 const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "neutral" | "info"> = {
@@ -492,6 +498,15 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
               </p>
             ) : null}
           </div>
+
+          {editing ? null : (
+            <ListingPhotos
+              listingId={listingId}
+              mayRemove={mayEdit}
+              guard={guard}
+              onRemoved={(key) => setNotice(t(key))}
+            />
+          )}
 
           {editing ? (
             <ListingEditForm

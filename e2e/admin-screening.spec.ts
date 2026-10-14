@@ -930,4 +930,51 @@ test.describe("ADMIN SCREENING", () => {
     expect(await buyerPhotoIds(ad.id)).toEqual([photos.held, photos.screened].sort());
     expect(await buyerCover(ad)).toBe(photos.held);
   });
+
+  /**
+   * SC-20 — bundle 13 turn 8 (D154 B4): Preview as buyer lists the ad's photos,
+   * each with Remove for a person who may edit a listing; one is removed with a
+   * reason, through the same door as the listing's page, and the seller is told.
+   */
+  test("SC-20 Preview as buyer lists the ad's photos with Remove; one is removed with a reason and the seller is told (D154 B4)", async ({
+    page,
+  }) => {
+    const ad = await seedWaiting();
+    const photos = await seedHeldPhotos(ad.id);
+    await useJobSuperAdmin(page);
+    await findRow(page, ad.title, ad.id);
+    await rowMenu(page, ad.id, "open");
+    await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
+    const panel = page.getByTestId("admin-screening-photos");
+    const items = panel.getByTestId("admin-screening-photos-item");
+    await expect(items).toHaveCount(2, { timeout: 20000 });
+    await expect(items.nth(0)).toHaveAttribute("data-photo-id", photos.held);
+
+    await items.nth(0).getByTestId("admin-screening-photos-remove").click();
+    const dialog = page.getByTestId("listing-photo-remove-dialog");
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId("listing-photo-remove-reason-photo").click();
+    await dialog.getByTestId("listing-photo-remove-confirm").click();
+
+    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
+      en["admin.listings.photos.done"],
+      { timeout: 20000 },
+    );
+    await expect(items).toHaveCount(1, { timeout: 20000 });
+    await expect(items.nth(0)).toHaveAttribute("data-photo-id", photos.screened);
+    const { data: left } = await adminClient()
+      .from("listing_photos")
+      .select("id")
+      .eq("listing_id", ad.id);
+    expect((left ?? []).map((row) => row.id)).toEqual([photos.screened]);
+    const { data: notices, error } = await adminClient()
+      .from("seller_notices")
+      .select("kind,fields,reason")
+      .eq("listing_id", ad.id);
+    if (error) throw new Error(`[e2e:sc] reading notices failed: ${error.message}`);
+    expect(notices).toHaveLength(1);
+    expect(notices![0]).toMatchObject({ kind: "admin_edit", reason: "photo" });
+    expect(notices![0]!.fields).toContain("photos");
+    expect((await listingTruth(ad.id)).status).toBe("screening");
+  });
 });

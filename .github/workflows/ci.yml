@@ -18,9 +18,19 @@ on:
 # Lovable's platform pushes several commits per task, so an in-flight run for an
 # older HEAD is obsolete the moment a newer one starts. Cancelling it keeps the
 # status file (G18) unambiguous: it always reflects the newest push.
+#
+# DEC-181 (the operator, 2026-10-14: "How can we wait for >50 mins each time for
+# each turn …"): runs QUEUE instead. A run that has started always finishes, so
+# a push from the next turn never throws away a run in progress. GitHub keeps
+# at most one run waiting behind it and replaces a waiting run with a newer
+# push's, so the platform's commits still collapse into the newest; the
+# replaced run is reported CANCELLED at once. Every run tests the whole suite,
+# so the next completed run judges every commit before it. Each report names
+# the commit its run tested (DEC-098): a reader compares that SHA with the
+# head, as before, and reads branch ci-evidence's history for earlier runs.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 # DEC-153 (a) — the workflow's token is read-only unless a job says otherwise.
 # Jobs that hold more declare it themselves: semgrep (security-events: write,

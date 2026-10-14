@@ -64,3 +64,7 @@ SC-4 and SC-8 each leased three pooled accounts (the scratch seller and two peop
 ## Bundle 13 turn 6 — photos not checked by AI (D158)
 
 While photo screening is switched off, a draft's new photos are held (docs/features/ai-services.md, "Photos held for staff"). Preview as buyer reads each photo's `unscreened` and, when any is held, says above Approve and Reject "Photos not checked by AI: {count}. Approving the ad approves them too." (`admin.screening.unscreenedNote`); the gallery marks each held photo "Not checked by AI" (`post.gallery.unscreened`). Approve (`transition_listing` as the reviewer) clears them through the trigger `listing_photos_approved_with_ad` and writes one audit row `listing.photos_approved` with the count. Reject leaves them held. Tests: SC-18, SC-19.
+
+## Bundle 13 turn 8 — Remove a photo from the preview (D154 B4)
+
+Preview as buyer lists the ad's photos, each with Remove, for a person who holds listings:enforce (`admin-screening-photos`), above Approve and Reject; the dialog, the reasons and the door are the listing page's (docs/features/admin-listings.md, "Bundle 13 turn 8"). A reviewer without listings:enforce sees the preview as before. Test: SC-20.
