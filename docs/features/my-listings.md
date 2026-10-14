@@ -2,7 +2,7 @@
 
 The seller's page of his own ads (D138), with the states and the rules the operator decided on 2026-10-14: D172 (the category of a posted ad never changes; edits in boxes), D173 (Sold, Reserved, No longer available; "Price reduced"), D174 (what applies at once and what is reviewed; close and reopen; renew), D175 (a sold ad for 30 days; the renew days an admin setting; both dates shown), D176 (renewals live at once until the screening gateway exists), D177 (free text is reviewed, picked answers and amounts are not), D178 (every photo labelled by the AI; only a pass is shown). The supervisor's spec, approved with D175: Project doc `claude/my-listings-spec-v2.md`.
 
-Built in bundle 16, one turn at a time: (1) the doors; (2) a sold ad visible for 30 days, and the list page; (3) one ad's page and its actions; (4) the photo review of D178; (5) the edit in boxes.
+Built in bundle 16, one turn at a time: (1) the doors; (2) the list page and the Account overview's six groups; (3) one ad's page and its actions, and a sold ad visible for 30 days in the feed with its ribbons on the card; (4) the photo review of D178; (5) the edit in boxes. (Turn 2 first planned the sold ad's 30 days too; they move to turn 3, with the actions that make an ad sold and the ribbons that say so — no screen marks an ad sold before turn 3.)
 
 ## The rules
 
@@ -54,3 +54,22 @@ Every seller door counts against the `revise` dial before it reads the listing (
 - ML-10 the renew setting: who reads it, who may not change it.
 
 No test writes the global `listing_policy` row: the off switch (`renewOff`) and a change of days are proven on the supervisor's local stand-in only, and turn 5's Settings box is tested without saving.
+
+## The list page (bundle 16 turn 2)
+
+- **`/my-listings`** — the My Listings panel's home (`homePath`, and its "My listings" item); signed-in only, like `/account` (a signed-out visitor goes to sign-in and comes back). The shell derives the panel from the path, as it does from `/post`, and leaves it on sign-out like `/account`.
+- **The door, `my_listings(group, limit, offset)`** (STABLE definer; the caller's own ads only — its only key is `auth.uid()`): one group at a time, newest change first, at most 100 a page, with the counts of all six groups. The groups:
+
+| Group           | Statuses                                                  | The row's line                                                                        |
+| --------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Live            | active, reduced (reach is staff's lever and is not shown) | "Days left: N", "Ends today" or "No end date"; the Reserved and "Price reduced" marks |
+| In review       | screening, held                                           | "Waiting for review"                                                                  |
+| Needs attention | rejected, removed                                         | "Not approved"; "Removed by staff: <reason>" (the latest staff notice's reason)       |
+| Closed          | closed, expired                                           | "No longer available · Days kept: N"; "Expired <date>"                                |
+| Sold            | sold                                                      | "Sold <date>"                                                                         |
+| Drafts          | draft                                                     | "Last saved <date>" and **Continue** (the posting form)                               |
+
+- **The page** — the group selector with each group's count, then the rows: the cover photo (with the seller's session: a photo of an ad that is not live is still the seller's own), the title (or "Untitled draft"), the price and the line above. A table from 1280 px, cards below it. A refused or malformed answer shows an error with Retry, never an empty list. One ad's page and its actions come in turn 3; until then only a draft's row does something (Continue).
+- **The Account overview** reads the same door's counts and shows the groups that hold ads, with the same words, and **Open My listings**. The seven status-by-status words (`account.overview.status.*`) are gone, with the "Paused" no ad could have (INC-469 closed).
+
+Proven by MLP-1…MLP-4 (e2e/my-listings-page.spec.ts) and ML-U1…ML-U4 (src/features/my-listings/my-listings.test.ts).

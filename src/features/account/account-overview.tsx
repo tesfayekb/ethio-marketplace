@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { readAllPages } from "@/lib/read-all-pages";
 
-import { useShell } from "@/components/shell-context";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
@@ -11,10 +9,15 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import type { MessageKey } from "@/i18n";
 
 import { CHANNEL_LABELS, savedChannels } from "./saved-channels";
-import { ownValue } from "@/lib/own-key";
+import {
+  GROUP_LABEL,
+  LISTING_GROUPS,
+  readMyListings,
+  totalOf,
+  type GroupCounts,
+} from "@/features/my-listings/my-listings";
 
 type Profile = {
   seller_alias: string | null;
@@ -30,26 +33,17 @@ type Profile = {
 type State = {
   profile: Profile | null;
   memberSince: string | null;
-  counts: Record<string, number>;
+  /** Bundle 16 turn 2 (INC-469) — the six groups of My listings, counted by the door. */
+  counts: GroupCounts | null;
   error: boolean;
 };
 
-const initialState: State = { profile: null, memberSince: null, counts: {}, error: false };
-const STATUS_KEYS: Record<string, MessageKey> = {
-  draft: "account.overview.status.draft",
-  screening: "account.overview.status.screening",
-  active: "account.overview.status.active",
-  paused: "account.overview.status.paused",
-  sold: "account.overview.status.sold",
-  expired: "account.overview.status.expired",
-  rejected: "account.overview.status.rejected",
-};
+const initialState: State = { profile: null, memberSince: null, counts: null, error: false };
 
 /** The signed-in Account overview, composed only from existing owner reads. */
 export function AccountOverview() {
   const { t, language } = useI18n();
   const { user } = useAuth();
-  const { setActivePanel } = useShell();
   const [state, setState] = useState<State>(initialState);
   const [loading, setLoading] = useState(true);
 
@@ -65,40 +59,22 @@ export function AccountOverview() {
           )
           .eq("user_id", user.id)
           .maybeSingle(),
-        // INC-459 — every own listing's status, paged after the last id
-        // (listings.id, the PRIMARY KEY): one request for any seller under
-        // 1,000 ads, and no status list to keep in step with the door.
-        readAllPages(
-          (after, limit) => {
-            const query = supabase
-              .from("listings")
-              .select("id,status")
-              .eq("seller_id", user.id)
-              .order("id")
-              .limit(limit);
-            return after === null ? query : query.gt("id", after);
-          },
-          (row) => row.id,
-        ).then(
-          (data) => ({ data, error: null }),
-          (error: unknown) => ({ data: null, error }),
-        ),
+        // Bundle 16 turn 2 (INC-469) — the counts of the six groups come from the
+        // door that serves My listings (one row asked for; the counts cover all),
+        // so no status is mapped twice and none can fall through to a wrong word.
+        readMyListings("live", 1, 0),
         supabase.auth.getUser(),
       ]);
       if (!active) return;
-      if (profile.error || listings.error || authUser.error) {
+      if (profile.error || listings === null || authUser.error) {
         setState((current) => ({ ...current, error: true }));
         setLoading(false);
         return;
       }
-      const counts = (listings.data ?? []).reduce<Record<string, number>>((result, row) => {
-        result[row.status] = (result[row.status] ?? 0) + 1;
-        return result;
-      }, {});
       setState({
         profile: profile.data,
         memberSince: authUser.data.user?.created_at ?? null,
-        counts,
+        counts: listings.counts,
         error: false,
       });
       setLoading(false);
@@ -197,28 +173,26 @@ export function AccountOverview() {
             </Button>
           </Section>
           <Section title={t("account.overview.listings")} testid="account-listings-card">
-            {Object.keys(state.counts).length === 0 ? (
+            {state.counts === null || totalOf(state.counts) === 0 ? (
               <p className="mt-3 text-sm text-muted-foreground">
                 {t("account.overview.noListings")}
               </p>
             ) : (
-              <dl className="mt-3 grid grid-cols-2 gap-3">
-                {Object.entries(state.counts).map(([status, count]) => (
-                  <div key={status}>
-                    <dt className="text-xs text-muted-foreground">
-                      {t(ownValue(STATUS_KEYS, status) ?? "account.overview.status.draft")}
-                    </dt>
-                    <dd className="text-lg font-semibold text-foreground">{count}</dd>
+              <dl className="mt-3 grid grid-cols-2 gap-3" data-testid="account-listings-counts">
+                {LISTING_GROUPS.filter((group) => (state.counts?.[group] ?? 0) > 0).map((group) => (
+                  <div key={group} data-group={group}>
+                    <dt className="text-xs text-muted-foreground">{t(GROUP_LABEL[group])}</dt>
+                    <dd className="text-lg font-semibold text-foreground">
+                      {state.counts?.[group]}
+                    </dd>
                   </div>
                 ))}
               </dl>
             )}
-            <Button
-              variant="outline"
-              className="mt-4 min-h-11"
-              onClick={() => setActivePanel("my-listings")}
-            >
-              {t("panel.myListings")}
+            <Button asChild variant="outline" className="mt-4 min-h-11">
+              <Link to="/my-listings" data-testid="account-open-listings">
+                {t("account.overview.openListings")}
+              </Link>
             </Button>
           </Section>
           <Section title={t("account.overview.saved")} testid="account-saved-card">

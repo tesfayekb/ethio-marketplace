@@ -63,15 +63,12 @@ export const PANELS: Record<PanelId, Panel> = {
     labelKey: "panel.myListings",
     icon: ClipboardList,
     /**
-     * U6-C2a — My Listings STAYS on the INC-071 grandfather (`homePath: null`).
-     *
-     * A panel with a `homePath` activates by NAVIGATION alone (useSwitchPanel),
-     * and the shell derives the active panel from the path — a derivation that
-     * knows /settings and /admin and nothing else. Pointing this panel at /post
-     * would therefore open the wizard with the MARKETPLACE rail beside it
-     * (INC-058, exactly). Its own page arrives with E1 and brings the mapping.
+     * Bundle 16 turn 2 — My Listings' own page arrived (/my-listings, D138), and
+     * with it the mapping U6-C2a waited for: the shell derives this panel from
+     * /my-listings as it does from /post (app-shell.tsx, `routePanel`), so the
+     * panel activates by navigation like every other (useSwitchPanel).
      */
-    homePath: null,
+    homePath: "/my-listings",
 
     items: [
       /**
@@ -91,7 +88,7 @@ export const PANELS: Record<PanelId, Panel> = {
         testid: "post-entry",
       },
       { id: "ml-dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
-      { id: "ml-listings", labelKey: "nav.myListings", icon: ListChecks },
+      { id: "ml-listings", labelKey: "nav.myListings", icon: ListChecks, path: "/my-listings" },
       { id: "ml-messages", labelKey: "nav.messages", icon: MessageSquare },
       { id: "ml-featured", labelKey: "nav.featured", icon: Sparkles },
       {
