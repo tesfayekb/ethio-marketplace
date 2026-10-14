@@ -1865,4 +1865,94 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(await revisionRows(phoned.id, "edit")).toHaveLength(1);
     expect(await noticeRows(phoned.id)).toHaveLength(1);
   });
+
+  /**
+   * AL-28 — bundle 13 turn 8 (D154 B4, the operator's spec of 2026-10-13: "Staff
+   * can also remove a photo"): the listing's page lists its photos in order, each
+   * with Remove for a person who may edit it; a reason (and a note) is asked; the
+   * photo goes through `admin_edit_listing`'s `remove_photos`, the other stays,
+   * History's newest line is an edit of Photos with the reason and the note, and
+   * the seller is told. Two stripped photo rows, no stored file; both rows name
+   * every column (INC-614).
+   */
+  test("AL-28 The listing's page lists its photos; Remove takes one with a reason and a note, History says so and the seller is told (D154 B4)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller, "active");
+    const { data: photos, error } = await adminClient()
+      .from("listing_photos")
+      .insert([
+        {
+          listing_id: live.id,
+          storage_path: `e2e-al/${token()}-a.webp`,
+          display_order: 0,
+          exif_stripped: true,
+          unscreened: false,
+        },
+        {
+          listing_id: live.id,
+          storage_path: `e2e-al/${token()}-b.webp`,
+          display_order: 1,
+          exif_stripped: true,
+          unscreened: false,
+        },
+      ])
+      .select("id,display_order");
+    if (error || !photos || photos.length !== 2) {
+      throw new Error(`[e2e:al] seeding photos failed: ${error?.message ?? "no rows"}`);
+    }
+    const [first, second] = [...photos].sort((a, b) => a.display_order - b.display_order) as Array<{
+      id: string;
+    }>;
+    const note = "A phone number is written across the photo.";
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/listings/${live.id}`);
+    const card = page.getByTestId("listing-photos");
+    const items = card.getByTestId("listing-photos-item");
+    await expect(items).toHaveCount(2, { timeout: 20000 });
+    await expect(items.nth(0)).toHaveAttribute("data-photo-id", first!.id);
+    await expect(items.nth(1)).toHaveAttribute("data-photo-id", second!.id);
+
+    await items.nth(1).getByTestId("listing-photos-remove").click();
+    const dialog = page.getByTestId("listing-photo-remove-dialog");
+    await expect(dialog).toBeVisible();
+    // A reason first.
+    await dialog.getByTestId("listing-photo-remove-confirm").click();
+    await expect(dialog.getByTestId("listing-photo-remove-problem")).toHaveText(
+      en["admin.listings.move.pickReason"],
+    );
+    await dialog.getByTestId("listing-photo-remove-reason-photo").click();
+    await dialog.getByTestId("listing-photo-remove-note").fill(note);
+    await dialog.getByTestId("listing-photo-remove-confirm").click();
+
+    await expect(page.getByTestId("listing-notice")).toHaveText(en["admin.listings.photos.done"], {
+      timeout: 20000,
+    });
+    await expect(dialog).toHaveCount(0);
+    await expect(items).toHaveCount(1, { timeout: 20000 });
+    await expect(items.nth(0)).toHaveAttribute("data-photo-id", first!.id);
+
+    const { data: left } = await adminClient()
+      .from("listing_photos")
+      .select("id")
+      .eq("listing_id", live.id);
+    expect((left ?? []).map((row) => row.id)).toEqual([first!.id]);
+    const newest = page.getByTestId("listing-history-entry-0");
+    await expect(newest.getByTestId("listing-history-what")).toContainText(
+      en["admin.listings.detail.photos"],
+      { timeout: 20000 },
+    );
+    await expect(newest.getByTestId("listing-history-reason")).toHaveText(
+      en["admin.listings.history.reason"].replace("{reason}", en["admin.listings.reason.photo"]),
+    );
+    await expect(newest.getByTestId("listing-history-note")).toHaveText(
+      en["admin.listings.history.note"].replace("{note}", note),
+    );
+    expect(await noticeRows(live.id)).toEqual([
+      { seller_id: seller.id, kind: "admin_edit", fields: ["photos"], reason: "photo", note },
+    ]);
+    expect((await listingTruth(live.id))?.["status"]).toBe("active");
+  });
 });

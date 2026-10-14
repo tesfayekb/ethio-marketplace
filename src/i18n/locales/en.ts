@@ -777,6 +777,15 @@ export const en = {
   "admin.listings.detail.created": "Created",
   "admin.listings.detail.changed": "Last changed",
   "admin.listings.detail.photos": "Photos",
+  "admin.listings.photos.removeOne": "Remove photo {index}",
+  "admin.listings.photos.title": "Remove this photo?",
+  "admin.listings.photos.hint":
+    "The photo leaves the ad at once. The seller is told the reason and your note. Undo does not bring a photo back.",
+  "admin.listings.photos.confirm": "Remove photo",
+  "admin.listings.photos.done": "Photo removed. The seller is told why.",
+  "admin.listings.photos.refused":
+    "The photo was not removed: the ad no longer meets today's rules for {fields}. Edit those first.",
+  "admin.listings.photos.error.gone": "This photo is no longer on the ad.",
   "admin.listings.detail.severe": "Removed for a severe reason",
   "admin.listings.detail.deactivated": "The seller's account is deactivated",
   "admin.listings.detail.openSeller": "Open the seller's account",

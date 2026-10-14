@@ -753,6 +753,15 @@ export const am: Messages = {
   "admin.listings.detail.created": "የተፈጠረበት",
   "admin.listings.detail.changed": "መጨረሻ የተቀየረበት",
   "admin.listings.detail.photos": "ፎቶዎች",
+  "admin.listings.photos.removeOne": "{index}ኛውን ፎቶ አስወግድ",
+  "admin.listings.photos.title": "ይህ ፎቶ ይወገድ?",
+  "admin.listings.photos.hint":
+    "ፎቶው ወዲያውኑ ከማስታወቂያው ይወርዳል። ለሻጩ ምክንያቱና ማስታወሻዎ ይነገራል። መቀልበስ ፎቶን አይመልስም።",
+  "admin.listings.photos.confirm": "ፎቶውን አስወግድ",
+  "admin.listings.photos.done": "ፎቶው ተወግዷል። ምክንያቱ ለሻጩ ይነገራል።",
+  "admin.listings.photos.refused":
+    "ፎቶው አልተወገደም፦ ማስታወቂያው ለ{fields} የአሁኑን ደንቦች አያሟላም። መጀመሪያ እነሱን ያስተካክሉ።",
+  "admin.listings.photos.error.gone": "ይህ ፎቶ ከአሁን በኋላ በማስታወቂያው ላይ የለም።",
   "admin.listings.detail.severe": "በከባድ ምክንያት የተወገደ",
   "admin.listings.detail.deactivated": "የሻጩ መለያ ተቋርጧል",
   "admin.listings.detail.openSeller": "የሻጩን መለያ ይክፈቱ",

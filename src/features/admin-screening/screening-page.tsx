@@ -30,6 +30,7 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { sectionById } from "@/features/admin/sections";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
+import { ListingPhotos } from "@/features/admin-listings/listing-photos";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
 import { fill } from "@/features/posting/refusal-text";
@@ -89,6 +90,8 @@ export function AdminScreeningPage() {
   const { t, language, entities } = useI18n();
   const { permissions } = useAdminShell();
   const mayReview = permissions.includes("listings:review");
+  /** Bundle 13 turn 8 (D154 B4) — staff who may edit a listing may remove one of its photos. */
+  const mayEnforce = permissions.includes("listings:enforce");
   const section = sectionById("screening");
   const queryClient = useQueryClient();
   const markets = useOpenMarkets();
@@ -562,11 +565,24 @@ export function AdminScreeningPage() {
               <PreviewSheet
                 onClose={() => setPreviewRow(null)}
                 footer={
-                  mayReview ? (
+                  mayReview || mayEnforce ? (
                     <>
+                      {/* Bundle 13 turn 8 (D154 B4) — the ad's photos, each with Remove for
+                          staff who may edit a listing; the door decides again (F3). */}
+                      {mayEnforce ? (
+                        <div className="basis-full">
+                          <ListingPhotos
+                            listingId={previewRow.id}
+                            mayRemove
+                            guard={guard}
+                            testid="admin-screening-photos"
+                            onRemoved={(key) => setNotice({ key, tone: "ok" })}
+                          />
+                        </div>
+                      ) : null}
                       {/* D158 (bundle 13 turn 6) — photos held while photo screening was
                           off: approving the ad approves them (the operator's answer). */}
-                      {heldCount > 0 ? (
+                      {mayReview && heldCount > 0 ? (
                         <p
                           className="basis-full text-sm text-muted-foreground"
                           data-testid="admin-screening-preview-unscreened"
@@ -574,29 +590,33 @@ export function AdminScreeningPage() {
                           {fill(t("admin.screening.unscreenedNote"), { count: heldCount })}
                         </p>
                       ) : null}
-                      <Button
-                        type="button"
-                        className="min-h-11"
-                        data-testid="admin-screening-preview-approve"
-                        onClick={() => {
-                          setDecision({ ids: [previewRow.id], next: "active" });
-                          setPreviewRow(null);
-                        }}
-                      >
-                        {t("admin.screening.approve")}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        className="min-h-11"
-                        data-testid="admin-screening-preview-reject"
-                        onClick={() => {
-                          setDecision({ ids: [previewRow.id], next: "rejected" });
-                          setPreviewRow(null);
-                        }}
-                      >
-                        {t("admin.screening.reject")}
-                      </Button>
+                      {mayReview ? (
+                        <>
+                          <Button
+                            type="button"
+                            className="min-h-11"
+                            data-testid="admin-screening-preview-approve"
+                            onClick={() => {
+                              setDecision({ ids: [previewRow.id], next: "active" });
+                              setPreviewRow(null);
+                            }}
+                          >
+                            {t("admin.screening.approve")}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            className="min-h-11"
+                            data-testid="admin-screening-preview-reject"
+                            onClick={() => {
+                              setDecision({ ids: [previewRow.id], next: "rejected" });
+                              setPreviewRow(null);
+                            }}
+                          >
+                            {t("admin.screening.reject")}
+                          </Button>
+                        </>
+                      ) : null}
                     </>
                   ) : undefined
                 }

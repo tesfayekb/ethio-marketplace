@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 421,
-  "dynamicCallSites": 282,
+  "scanned": 423,
+  "dynamicCallSites": 286,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -923,7 +923,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.create.countriesHint": [
       "/admin/ai",
@@ -933,7 +934,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.create.open": [
       "/admin/categories"
@@ -946,7 +948,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.create.parentRoot": [
       "/admin/ai",
@@ -956,7 +959,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.create.position": [
       "/admin/ai",
@@ -966,7 +970,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.create.positionBefore": [
       "/admin/ai",
@@ -976,7 +981,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.create.positionCount": [
       "/admin/ai",
@@ -986,7 +992,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.create.positionEnd": [
       "/admin/ai",
@@ -996,7 +1003,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.create.slugPreview": [
       "/admin/ai",
@@ -1006,7 +1014,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.create.title": [
       "/admin/ai",
@@ -1016,7 +1025,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.delete.confirm": [
       "/admin/ai",
@@ -1026,7 +1036,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.delete.confirmLabel": [
       "/admin/ai",
@@ -1036,7 +1047,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.delete.hint": [
       "/admin/ai",
@@ -1046,7 +1058,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.delete.mismatch": [
       "/admin/ai",
@@ -1056,7 +1069,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.delete.title": [
       "/admin/ai",
@@ -1066,7 +1080,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.edit.title": [
       "/admin/ai",
@@ -1076,7 +1091,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.empty": [
       "/admin/categories"
@@ -1092,7 +1108,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.error.nameRequired": [
       "/admin/ai",
@@ -1102,7 +1119,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.error.parentRequired": [
       "/admin/ai",
@@ -1112,7 +1130,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.error.reassignRequired": [
       "/admin/ai",
@@ -1122,7 +1141,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.error.saveFailed": [
       "/admin/ai",
@@ -1132,7 +1152,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.exclusions.current": [
       "/admin/ai",
@@ -1142,7 +1163,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.exclusions.hint": [
       "/admin/ai",
@@ -1152,7 +1174,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.exclusions.title": [
       "/admin/ai",
@@ -1162,7 +1185,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.export.busy": [
       "/admin/categories"
@@ -1181,7 +1205,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.icon": [
       "/admin/ai",
@@ -1191,7 +1216,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.iconChange": [
       "/admin/ai",
@@ -1201,7 +1227,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.iconFallbackNote": [
       "/admin/ai",
@@ -1211,7 +1238,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.iconHint": [
       "/admin/ai",
@@ -1221,7 +1249,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.lifetimeDays": [
       "/admin/ai",
@@ -1231,7 +1260,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.lifetimeNone": [
       "/admin/ai",
@@ -1241,7 +1271,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.name": [
       "/admin/ai",
@@ -1251,7 +1282,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.order": [
       "/admin/ai",
@@ -1261,7 +1293,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.orderManaged": [
       "/admin/ai",
@@ -1271,7 +1304,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.field.priceEnabled": [
       "/admin/ai",
@@ -1281,7 +1315,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.filter.allCategories": [
       "/admin/categories"
@@ -1307,7 +1342,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.acceptToast": [
       "/admin/ai",
@@ -1317,7 +1353,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.accepted": [
       "/admin/ai",
@@ -1327,7 +1364,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.busy": [
       "/admin/ai",
@@ -1337,7 +1375,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.card": [
       "/admin/ai",
@@ -1347,7 +1386,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.empty": [
       "/admin/ai",
@@ -1357,7 +1397,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.generate": [
       "/admin/ai",
@@ -1367,7 +1408,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.loading": [
       "/admin/ai",
@@ -1377,7 +1419,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.og": [
       "/admin/ai",
@@ -1387,7 +1430,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.regenerate": [
       "/admin/ai",
@@ -1397,7 +1441,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.review": [
       "/admin/ai",
@@ -1407,7 +1452,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.stageLabel": [
       "/admin/ai",
@@ -1417,7 +1463,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.thumb": [
       "/admin/ai",
@@ -1427,7 +1474,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.image.title": [
       "/admin/ai",
@@ -1437,7 +1485,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.import.open": [
       "/admin/categories"
@@ -1459,7 +1508,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.addSubmit": [
       "/admin/ai",
@@ -1469,7 +1519,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.empty": [
       "/admin/ai",
@@ -1479,7 +1530,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.error": [
       "/admin/ai",
@@ -1489,7 +1541,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.hint": [
       "/admin/ai",
@@ -1499,7 +1552,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.loading": [
       "/admin/ai",
@@ -1509,7 +1563,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.makePrimary": [
       "/admin/ai",
@@ -1519,7 +1574,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.moveTo": [
       "/admin/ai",
@@ -1529,7 +1585,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.primary": [
       "/admin/ai",
@@ -1539,7 +1596,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.primaryTip": [
       "/admin/ai",
@@ -1549,7 +1607,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.remove": [
       "/admin/ai",
@@ -1559,7 +1618,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.root": [
       "/admin/ai",
@@ -1569,7 +1629,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.paths.title": [
       "/admin/ai",
@@ -1579,7 +1640,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.pointer.hint": [
       "/admin/ai",
@@ -1589,7 +1651,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.pointer.parent": [
       "/admin/ai",
@@ -1599,7 +1662,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.pointer.parentPlaceholder": [
       "/admin/ai",
@@ -1609,7 +1673,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.pointer.title": [
       "/admin/ai",
@@ -1619,7 +1684,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.retire.confirm": [
       "/admin/ai",
@@ -1629,7 +1695,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.retire.hint": [
       "/admin/ai",
@@ -1639,7 +1706,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.retire.noListings": [
       "/admin/ai",
@@ -1649,7 +1717,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.retire.reassignCount": [
       "/admin/ai",
@@ -1659,7 +1728,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.retire.reassignPlaceholder": [
       "/admin/ai",
@@ -1669,7 +1739,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.retire.title": [
       "/admin/ai",
@@ -1679,7 +1750,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.searchPlaceholder": [
       "/admin/categories"
@@ -1719,7 +1791,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.window.hint": [
       "/admin/ai",
@@ -1729,7 +1802,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.window.title": [
       "/admin/ai",
@@ -1739,7 +1813,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.categories.window.until": [
       "/admin/ai",
@@ -1749,7 +1824,8 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/places"
+      "/admin/places",
+      "/admin/screening"
     ],
     "admin.comingSoon": [
       "/admin/images"
@@ -1967,6 +2043,10 @@
     "admin.listings.action.open": [
       "/admin/listings"
     ],
+    "admin.listings.action.remove": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
+    ],
     "admin.listings.action.viewAsSeller": [
       "/admin/listings",
       "/admin/listings/$listingId"
@@ -2041,7 +2121,8 @@
       "/admin/listings/$listingId"
     ],
     "admin.listings.detail.photos": [
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/admin/screening"
     ],
     "admin.listings.detail.sellerEnd": [
       "/admin/listings/$listingId"
@@ -2152,18 +2233,41 @@
     ],
     "admin.listings.move.note": [
       "/admin/listings",
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/admin/screening"
     ],
     "admin.listings.move.noteHint": [
       "/admin/listings",
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/admin/screening"
     ],
     "admin.listings.move.reason": [
       "/admin/listings",
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/admin/screening"
     ],
     "admin.listings.move.refused": [
       "/admin/listings"
+    ],
+    "admin.listings.photos.confirm": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
+    ],
+    "admin.listings.photos.hint": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
+    ],
+    "admin.listings.photos.refused": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
+    ],
+    "admin.listings.photos.removeOne": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
+    ],
+    "admin.listings.photos.title": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
     ],
     "admin.listings.searchLabel": [
       "/admin/listings"
@@ -3736,6 +3840,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/places",
+      "/admin/screening",
       "/dev/primitives"
     ],
     "common.tryAgain": [
@@ -4364,6 +4469,7 @@
     ],
     "post.field.required": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -4404,6 +4510,7 @@
     ],
     "post.optional": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -4639,116 +4746,139 @@
     ],
     "post.price.amountEnter": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountLabel": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountPer": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountShown": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.basisFixed": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.commissionHelp": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.commissionLabel": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencyFailed": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencyLabel": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencyNone": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencySearch": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.group.price": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.modeLabel": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.moreCurrencies": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.negotiableToggle": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.notAllowed": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.periodFixed": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.periodLabel": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleLabel": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleMillion": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleNone": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleThousand": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.price.why": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
@@ -4786,11 +4916,13 @@
     ],
     "post.refusalSummary": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],
     "post.refusalSummary.elsewhere": [
       "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],

@@ -317,6 +317,8 @@ HEAD's run can finish after a newer one and overwrite the status file. With it,
 the only surviving run is the newest push's, so `docs/tracking/ci-status.md`
 and `e2e-last-failure.md` always describe HEAD.
 
+**DEC-181 (2026-10-14) — runs queue; this section is the later word on the one above.** `cancel-in-progress: false`: a run that has started always finishes. GitHub keeps one run waiting in the group and replaces it with each newer push's, so the platform's commits still collapse into the newest; the replaced run never starts and is reported CANCELLED at once, so `ci-status.md` can name that commit for a while before the run in progress reports. Every run tests the whole suite, so the next completed run judges every commit before it. Runs in one group never overlap; each report names the commit its run tested (DEC-098), the reader compares it with the head, and every report is a commit on branch `ci-evidence`, so its history lists the runs in order. The promote job is unchanged: runs finish in order, so main only moves forward. Why (the operator, 2026-10-14): every turn waited for its whole run (30–60 minutes) before the next could start, because any push cancelled the run in flight and lost its verdict. Now the next turn starts at once; the supervisor reads each run as it lands, a red is fixed first in the next prompt, and Publish waits for a green run on the head. The rule frozen with it: over the next ten turns, keep it if no run is cancelled while it runs and no turn waits for CI; go back to cancelling if a run is cancelled while it runs, or a completed run publishes no report.
+
 ### Fixture ownership under sharding (INC-080, 2026-08-17)
 
 Every parallel test process derives
