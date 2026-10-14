@@ -61,6 +61,7 @@ We do not sell personal data. We do not share it with advertisers. We send no ma
 | Supabase | Database, sign-in and file storage |
 | Cloudflare | Delivers and protects the site; tells us the approximate location of a visit |
 | Google | Sign-in with Google, if you choose it; its Gemini AI screens ads and photos and drafts text |
+| Photoroom | Removes the background of your cover photo when you ask it to; it receives only the photo |
 | Telegram | Sign-in with Telegram, if you choose it |
 | OpenStreetMap | Map pictures and address lookup when you place a map pin; your device loads map pictures directly from its servers |
 | Resend | Sends our emails |

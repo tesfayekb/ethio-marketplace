@@ -36,6 +36,8 @@ export const AI_FEATURES = [
   "category_images",
   "category_icons",
   "translations",
+  // Bundle 13 turn 12 — D155b / D159: the cover photo's background, removed by Photoroom.
+  "background_removal",
 ] as const;
 
 export type AiFeature = (typeof AI_FEATURES)[number];

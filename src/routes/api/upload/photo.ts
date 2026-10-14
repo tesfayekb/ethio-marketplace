@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { doorRefusal } from "@/features/posting/door-error";
 
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
-import { photoScreenPlan } from "@/server/media/hold";
+import { PHOTO_OPEN_STATUSES, photoScreenPlan } from "@/server/media/hold";
 import { screenPhotoPolicy, type PolicyVerdict } from "@/server/media/policy";
 import {
   deleteObject,
@@ -87,9 +87,6 @@ type Variant = (typeof VARIANTS)[number];
  * to the cover for that photo. The other three are required.
  */
 const OPTIONAL: ReadonlySet<Variant> = new Set<Variant>(["mid"]);
-
-/** The statuses that may still gain a photo. */
-const OPEN_STATUSES = new Set(["draft", "active", "reduced", "rejected", "held", "expired"]);
 
 /**
  * D157 — the size dials sit over the measured encoder (the operator's 15 photos,
@@ -182,7 +179,7 @@ async function handlePost(request: Request): Promise<Response> {
       403,
     );
   }
-  if (!OPEN_STATUSES.has(String(listing.status))) {
+  if (!PHOTO_OPEN_STATUSES.has(String(listing.status))) {
     return routeJson(
       { ok: false, refusals: [{ field: "status", reason: "listingNotOpenForPhotos" }] },
       409,

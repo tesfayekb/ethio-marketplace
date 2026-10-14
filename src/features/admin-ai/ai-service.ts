@@ -42,7 +42,10 @@ export interface AiFeatureRow {
   updatedAt: string;
 }
 
-/** The six features turn 1 seeded, in the order the console lists them. */
+/**
+ * The six features turn 1 seeded and background removal (turn 12, D155b), in
+ * the order the console lists them.
+ */
 export const AI_FEATURE_ORDER = [
   "photo_screen",
   "writing_helper",
@@ -50,6 +53,7 @@ export const AI_FEATURE_ORDER = [
   "category_images",
   "category_icons",
   "translations",
+  "background_removal",
 ] as const;
 
 const FEATURE_LABELS: Record<(typeof AI_FEATURE_ORDER)[number], MessageKey> = {
@@ -59,6 +63,7 @@ const FEATURE_LABELS: Record<(typeof AI_FEATURE_ORDER)[number], MessageKey> = {
   category_images: "admin.ai.feature.category_images",
   category_icons: "admin.ai.feature.category_icons",
   translations: "admin.ai.feature.translations",
+  background_removal: "admin.ai.feature.background_removal",
 };
 
 /** A feature's name key, or null for a feature this build does not name (its id is shown). */

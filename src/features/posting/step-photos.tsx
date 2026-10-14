@@ -1,5 +1,5 @@
 import { ListingPicture } from "@/components/marketplace/listing-picture";
-import { AlertTriangle, ChevronLeft, ChevronRight, Crop } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, Crop, Eraser } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useI18n } from "@/i18n";
@@ -7,6 +7,7 @@ import type { MessageKey } from "@/i18n";
 
 import { controlClass, Field } from "./field";
 import { encodeBitmap, encodeVariants } from "./photo-encode";
+import { BackgroundDialog } from "./background-dialog";
 import { PhotoEditor } from "./photo-editor";
 import { CARD_THEN_THUMB, photoUrl } from "./photo-links";
 import {
@@ -139,6 +140,8 @@ export function StepPhotos({
   const [rowRefusal, setRowRefusal] = useState<Readonly<Record<string, MessageKey>>>({});
   /** D154 B2 — the stored photo open in the editor, and its stored cover's link. */
   const [editing, setEditing] = useState<{ photoId: string; url: string } | null>(null);
+  /** Bundle 13 turn 12 (D159) — the cover open in the background tool. */
+  const [cleaning, setCleaning] = useState<string | null>(null);
   /** D154 B2 — an edited photo on its way: Next and Back wait for it, as for a new one. */
   const [editSaving, setEditSaving] = useState(false);
 
@@ -447,6 +450,7 @@ export function StepPhotos({
             return next;
           });
           setEditing(null);
+          setCleaning(null);
           onChanged();
           return null;
         }
@@ -700,7 +704,8 @@ export function StepPhotos({
 
   /**
    * D154 — Move earlier and Move later, on every photo at its place; D154 B2 —
-   * and Edit, which opens the editor on the photo's stored cover.
+   * and Edit, which opens the editor on the photo's stored cover; bundle 13
+   * turn 12 (D159) — and, on the cover only, Remove background.
    */
   function moveRow(photoId: string, index: number): ReactNode {
     const busyRow = rowBusy.has(photoId);
@@ -742,6 +747,19 @@ export function StepPhotos({
         >
           <Crop className="h-4 w-4" aria-hidden="true" />
         </button>
+        {photoId === coverId && (
+          <button
+            type="button"
+            data-testid="post-photo-background"
+            className={moveButtonClass}
+            aria-label={t("post.photos.background")}
+            title={t("post.photos.background")}
+            disabled={busyRow || editSaving || listingId === null}
+            onClick={() => setCleaning(photoId)}
+          >
+            <Eraser className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
       </div>
     );
   }
@@ -900,6 +918,18 @@ export function StepPhotos({
             return Promise.resolve(null);
           }
           return saveEdit(editing.photoId, picture);
+        }}
+      />
+
+      <BackgroundDialog
+        target={cleaning !== null && listingId !== null ? { listingId, photoId: cleaning } : null}
+        onCancel={() => setCleaning(null)}
+        onSave={(picture) => {
+          if (cleaning === null) {
+            picture.close();
+            return Promise.resolve(null);
+          }
+          return saveEdit(cleaning, picture);
         }}
       />
 

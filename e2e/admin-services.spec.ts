@@ -13,12 +13,12 @@ import { adminClient } from "./helpers/users";
  * Bundle 13, turn 1 — THE AI SWITCHES AND METER (D158, INC-600), at the doors.
  *
  * SV-1 a seller can neither read nor change a switch, call the meter or read its tables.
- * SV-2 the super admin reads the six features and changes a switch; the door refuses
+ * SV-2 the super admin reads the seven features and changes a switch; the door refuses
  *      an unknown feature and a bad budget, and writes its audit row.
  * SV-3 the meter on the app's own connection (the service role, as the routes call it):
  *      calls and units on today's row, the 80 % and 100 % audit rows, off at the budget,
  *      the gate's answer, bad units and an unknown feature refused.
- * SV-4 (turn 5) the page Admin › Services › AI lists the six features with their state,
+ * SV-4 (turn 5) the page Admin › Services › AI lists the seven features with their state,
  *      spend and price; Edit opens the editor, where photo screening's switch says what
  *      switching it off does (turn 6).
  *      It only READS: no real switch row is written (G27); the door's writes are SV-2's.
@@ -28,7 +28,9 @@ import { adminClient } from "./helpers/users";
  * `finally` (its day rows cascade; audit rows are append-only and stay).
  */
 
-const SIX = [
+/** The six features of turn 1 and background removal (bundle 13 turn 12, D155b). */
+const SEVEN = [
+  "background_removal",
   "category_icons",
   "category_images",
   "name_check",
@@ -166,7 +168,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     }
   });
 
-  test("SV-2 the super admin reads the six features and changes a switch through its door", async ({
+  test("SV-2 the super admin reads the seven features and changes a switch through its door", async ({
     page,
   }) => {
     const feature = scratchFeature();
@@ -178,8 +180,8 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
       const list = await rpcAsPage(page, "admin_ai_features", {});
       expect(list.error).toBeNull();
       const rows = list.data as { feature: string; unit: string; on: boolean }[];
-      // The six features, and never a test's scratch row.
-      expect(rows.map((row) => row.feature).sort()).toEqual(SIX);
+      // The seven features, and never a test's scratch row.
+      expect(rows.map((row) => row.feature).sort()).toEqual(SEVEN);
       expect(rows.find((row) => row.feature === "translations")?.unit).toBe("character");
       expect(rows.find((row) => row.feature === "photo_screen")?.on).toBe(true);
 
@@ -292,7 +294,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
    * Bundle 13 turn 5 (D158) — the page. Below 1024 px the table is drawn as cards
    * (`cardUntil="lg"`), so every row is read inside the twin on screen.
    */
-  test("SV-4 the page Admin › Services › AI lists the six features, and photo screening's switch says what off does", async ({
+  test("SV-4 the page Admin › Services › AI lists the seven features, and photo screening's switch says what off does", async ({
     page,
   }) => {
     await signInAsSuperAdmin(page);
@@ -301,7 +303,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     const cards = (page.viewportSize()?.width ?? 1024) < 1024;
     const surface: Locator = cards ? page.getByTestId("data-table-cards") : page.getByRole("table");
 
-    for (const feature of SIX) {
+    for (const feature of SEVEN) {
       const key = `admin.ai.feature.${feature}` as keyof typeof en;
       await expect(
         surface.getByTestId(`ai-${feature}-name`),
