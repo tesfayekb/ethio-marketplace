@@ -2151,12 +2151,6 @@
     "admin.listings.detail.severe": [
       "/admin/listings/$listingId"
     ],
-    "admin.listings.edit.categoryHint": [
-      "/admin/listings/$listingId"
-    ],
-    "admin.listings.edit.changeCategory": [
-      "/admin/listings/$listingId"
-    ],
     "admin.listings.edit.done": [
       "/admin/listings/$listingId"
     ],
@@ -2216,9 +2210,6 @@
       "/admin/listings/$listingId"
     ],
     "admin.listings.history.field.renewals": [
-      "/admin/listings/$listingId"
-    ],
-    "admin.listings.history.field.specs": [
       "/admin/listings/$listingId"
     ],
     "admin.listings.history.hide": [
@@ -4363,7 +4354,6 @@
       "/post/$listingId"
     ],
     "post.category.allRoots": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4384,47 +4374,38 @@
       "/post/$listingId"
     ],
     "post.category.chooseOne": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.currentChoice": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.empty": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.filterHint": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.filterLabel": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.folder": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.keepIt": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.matchLine": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.nameMatchesOnly": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4433,37 +4414,30 @@
       "/post/$listingId"
     ],
     "post.category.noHits": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.recentLabel": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.searchPlaceholder": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.searching": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.trailLabel": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.treeError": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.category.why": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5343,9 +5317,17 @@
       "/post/$listingId"
     ],
     "post.step.category": [
-      "/admin/listings/$listingId",
       "/post",
       "/post/$listingId"
+    ],
+    "post.step.details": [
+      "/admin/listings/$listingId"
+    ],
+    "post.step.price": [
+      "/admin/listings/$listingId"
+    ],
+    "post.step.specifications": [
+      "/admin/listings/$listingId"
     ],
     "post.stepLater": [
       "/post",

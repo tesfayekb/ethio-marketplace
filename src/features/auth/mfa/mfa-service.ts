@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
+import { isE2E } from "@/lib/env-flags";
 
 /**
  * U1f-4 (INC-081) — A BEARER CLAIM IS NOT A STEP-UP.
@@ -53,9 +54,14 @@ function lastTotpVerificationAt(claims: JwtClaims): number | null {
   return Math.max(...stamps) * 1000;
 }
 
-/** DEV/E2E only: a shorter window so expiry is testable without waiting. */
+/**
+ * DEV/E2E only: a shorter window so expiry is testable without waiting.
+ * INC-621 — gated on `isE2E` (DEC-018) like every other window instrument, so
+ * a production build never reads `window.__ethioStepUp`. The server's window
+ * (public.require_step_up_if_needed) was never affected by it (law F3).
+ */
 function stepUpWindowMs(): number {
-  if (typeof window === "undefined") return STEP_UP_WINDOW_MS;
+  if (!isE2E || typeof window === "undefined") return STEP_UP_WINDOW_MS;
   const override = (window as unknown as { __ethioStepUp?: { windowMs?: number } }).__ethioStepUp;
   const value = override?.windowMs;
   return typeof value === "number" && value > 0 ? value : STEP_UP_WINDOW_MS;

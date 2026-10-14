@@ -4,6 +4,7 @@ import { en } from "../src/i18n/locales/en";
 import { geometryDump, grantRole } from "./helpers/categories";
 import {
   actionsOf,
+  awaitConsole,
   awaitRoster,
   chooseFilter,
   countCountries,
@@ -86,7 +87,7 @@ test.describe("L2b countries console", () => {
   }) => {
     await useJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
-    await expect(page.getByTestId("country-search")).toBeVisible({ timeout: 20000 });
+    await awaitConsole(page);
 
     // R-LT13 — EVERY MARKET RENDERS is a COUNT against DB truth (J4), never a
     // page-1 sighting: the roster orders OPEN markets first, so its first page is

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
-import { PageCard } from "@/components/shell/page-card";
+import { FormField, FormSection } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +10,6 @@ import { storedUnitNoun } from "@/features/posting/price-line";
 import { FALLBACK_CURRENCY, readMarketCurrencies } from "@/features/posting/pricing-data";
 import { readPostingSchemaAnswer, type AttrDef } from "@/features/posting/posting-service";
 import { draftRefusalKey, fill, refusalFor } from "@/features/posting/refusal-text";
-import { StepCategory } from "@/features/posting/step-category";
 import { DESCRIPTION_MAX, TITLE_MAX } from "@/features/posting/step-details";
 import { StepPricing, type PricingValues } from "@/features/posting/step-pricing";
 import { StepSpecifications, type DealGroup } from "@/features/posting/step-specifications";
@@ -35,39 +33,41 @@ import type { AdminListingDetail } from "./use-admin-listing";
 /**
  * Bundle 11, the Listings console, turns L4a and L4b (D136, D140, DEC-173) — AN
  * ADMIN'S EDIT of a listing, on the listing's page: the title and the
- * description; the category; the specifications; the price.
+ * description; the specifications; the price. D172 (the operator, 2026-10-14):
+ * the category of a posted ad is never changed — it is shown, and "Change
+ * category" is gone; an ad in the wrong category is sent back to review with
+ * the reason Wrong category (the page's own action), and so is not an edit's
+ * reason any more (`EDIT_REASONS`).
  *
- * Every section is the seller's own control, so the edit offers what the door
- * accepts: the category tree with its filter (`StepCategory`, behind "Change
- * category"; the admin's own recent categories are not offered), the
- * specifications form (`StepSpecifications`) for the category in the form, and
- * the price form (`StepPricing`) with the category's price rules — drawn, as on
- * the seller's price page, inside the "How it is sold" rows when the category
- * has them. The price is drawn only once the category's rules and the market
- * money are read: a failed read leaves the price as it is and says so. A price
- * with none opens on the listing's market money, never the admin's.
+ * Every box is the seller's own control, named as the seller's step (D171: the
+ * console's FormSection, one box each — Title and description, Specifications,
+ * Price — then the reason and Save): the specifications form
+ * (`StepSpecifications`) for the listing's category, and the price form
+ * (`StepPricing`) with the category's price rules — drawn, as on the seller's
+ * price page, inside the "How it is sold" rows when the category has them. The
+ * price is drawn only once the category's rules and the market money are read:
+ * a failed read leaves the price as it is and says so. A price with none opens
+ * on the listing's market money, never the admin's.
  *
- * Only the changed fields travel (`editChanges`): the category when another
- * leaf was chosen; the specifications when they differ AND the admin changed
- * the category or worked in them (the seller's form fills defaults and tidies
- * hidden answers on its own — an admin who only looked must not send that); the
- * price whole. The door judges them with the seller's content rules for what an
- * admin can change (DEC-173): a moved listing keeps the answers its new
- * category also asks. Its refusals land under their field; one naming a field
- * the form does not draw is listed above Save.
+ * Only the changed fields travel (`editChanges`): the specifications when they
+ * differ AND the admin worked in them (the seller's form fills defaults and
+ * tidies hidden answers on its own — an admin who only looked must not send
+ * that); the price whole. The door judges them with the seller's content rules
+ * for what an admin can change (DEC-173). Its refusals land under their field;
+ * one naming a field the form does not draw is listed above Save.
  *
- * Testids: the card `listing-edit-form` (the page's Edit button is
- * `listing-edit`), the title `listing-edit-title`, the description
- * `listing-edit-description`, the category `listing-edit-category` (its path
- * `listing-edit-category-path`, "Change category" `listing-edit-category-change`,
- * the tree `post-category-*`, its Cancel `listing-edit-category-cancel`, its
- * refusal `listing-edit-category-refusal`), the specifications
- * `listing-edit-specs` (the seller's `post-spec` rows), the price `post-price-*`
- * (the seller's form), the reasons `listing-edit-reason-<reason>`, the note
- * `listing-edit-note`, the price's state `listing-edit-price-loading` /
- * `listing-edit-price-failed`, other refusals `listing-edit-other-refusals`, the
- * problem line `listing-edit-problem`, Cancel `listing-edit-cancel`, Save
- * `listing-edit-save`.
+ * Testids: the boxes inside `listing-edit-form` (the page's Edit button is
+ * `listing-edit`) — `listing-edit-text` (the title `listing-edit-title`, the
+ * description `listing-edit-description`), `listing-edit-specs-box` (the
+ * category `listing-edit-category`, its path `listing-edit-category-path`, its
+ * refusal `listing-edit-category-refusal`; the specifications
+ * `listing-edit-specs`, the seller's `post-spec` rows), `listing-edit-price-box`
+ * (the price `post-price-*`, the seller's form; its state
+ * `listing-edit-price-loading` / `listing-edit-price-failed`) and
+ * `listing-edit-save-box` (the reasons `listing-edit-reason-<reason>`, the note
+ * `listing-edit-note`, other refusals `listing-edit-other-refusals`, the problem
+ * line `listing-edit-problem`; its bar `listing-edit-save-box-actions` with Save
+ * `listing-edit-save` and Cancel `listing-edit-cancel`).
  */
 
 type Load =
@@ -115,13 +115,10 @@ export function ListingEditForm({
   const [problem, setProblem] = useState<MessageKey | null>(null);
   /** Turn L4b — true once the admin worked in the specifications (see `editChanges`). */
   const [specsEdited, setSpecsEdited] = useState(false);
-  const [picking, setPicking] = useState(false);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [term, setTerm] = useState("");
   const [specFields, setSpecFields] = useState<string[]>([]);
   const [priceFields, setPriceFields] = useState<string[]>([]);
   const unitLabels = usePriceUnitLabels(listing.priceUnit !== null);
-  const { tree, isLoading: treeLoading, error: treeError } = useCategoryTree();
+  const { tree } = useCategoryTree();
 
   /** A price with none (free, on request) opens on the listing's market money. */
   const countryCode = listing.countryCode;
@@ -226,7 +223,6 @@ export function ListingEditForm({
       : pathOf(tree, values.categoryId)
           .map((node) => entityName("category", node, entities))
           .join(" › ") || "—";
-  const moved = values.categoryId !== listing.categoryId;
 
   const titleRefusal = refusalFor(refusals, "title");
   const descriptionRefusal = refusalFor(refusals, "description");
@@ -258,185 +254,170 @@ export function ListingEditForm({
       />
     ) : null;
 
+  // D171, D172 — Edit in the console's own boxes (FormSection, as Users and Roles), each
+  // at the page's width and named as the seller's own steps: the title and the
+  // description, the specifications, the price; then the reason, with Save and Cancel in
+  // a bar that stays at the bottom on a phone. The category is shown, never changed.
   return (
-    <PageCard testid="listing-edit-form" className="min-w-0 max-w-2xl space-y-5">
-      <div className="space-y-1">
-        <h2 className="text-base font-semibold text-foreground">
-          {t("admin.listings.edit.title")}
-        </h2>
-        <p className="text-sm text-muted-foreground">{t("admin.listings.edit.hint")}</p>
-      </div>
+    <div data-testid="listing-edit-form" className="min-w-0 space-y-4">
+      <FormSection testid="listing-edit-text" title={t("post.step.details")}>
+        <FormField
+          label={t("post.details.titleLabel")}
+          htmlFor="listing-edit-title"
+          help={fill(t("post.details.count"), { count: values.title.length, max: TITLE_MAX })}
+          error={titleRefusal === null ? undefined : t(draftRefusalKey(titleRefusal.reason))}
+          testid="listing-edit-title-field"
+        >
+          <Input
+            id="listing-edit-title"
+            data-testid="listing-edit-title"
+            value={values.title}
+            maxLength={TITLE_MAX}
+            aria-invalid={titleRefusal !== null}
+            onChange={(event) => {
+              setProblem(null);
+              setValues((current) => ({ ...current, title: event.target.value }));
+            }}
+          />
+        </FormField>
 
-      <FormField
-        label={t("post.details.titleLabel")}
-        htmlFor="listing-edit-title"
-        help={fill(t("post.details.count"), { count: values.title.length, max: TITLE_MAX })}
-        error={titleRefusal === null ? undefined : t(draftRefusalKey(titleRefusal.reason))}
-        testid="listing-edit-title-field"
-      >
-        <Input
-          id="listing-edit-title"
-          data-testid="listing-edit-title"
-          value={values.title}
-          maxLength={TITLE_MAX}
-          aria-invalid={titleRefusal !== null}
-          onChange={(event) => {
-            setProblem(null);
-            setValues((current) => ({ ...current, title: event.target.value }));
-          }}
-        />
-      </FormField>
+        <FormField
+          label={t("post.details.descriptionLabel")}
+          htmlFor="listing-edit-description"
+          help={fill(t("post.details.count"), {
+            count: values.description.length,
+            max: DESCRIPTION_MAX,
+          })}
+          error={
+            descriptionRefusal === null ? undefined : t(draftRefusalKey(descriptionRefusal.reason))
+          }
+          testid="listing-edit-description-field"
+        >
+          <Textarea
+            id="listing-edit-description"
+            data-testid="listing-edit-description"
+            value={values.description}
+            maxLength={DESCRIPTION_MAX}
+            rows={8}
+            aria-invalid={descriptionRefusal !== null}
+            onChange={(event) => {
+              setProblem(null);
+              setValues((current) => ({ ...current, description: event.target.value }));
+            }}
+          />
+        </FormField>
+      </FormSection>
 
-      <FormField
-        label={t("post.details.descriptionLabel")}
-        htmlFor="listing-edit-description"
-        help={fill(t("post.details.count"), {
-          count: values.description.length,
-          max: DESCRIPTION_MAX,
-        })}
-        error={
-          descriptionRefusal === null ? undefined : t(draftRefusalKey(descriptionRefusal.reason))
-        }
-        testid="listing-edit-description-field"
-      >
-        <Textarea
-          id="listing-edit-description"
-          data-testid="listing-edit-description"
-          value={values.description}
-          maxLength={DESCRIPTION_MAX}
-          rows={8}
-          aria-invalid={descriptionRefusal !== null}
-          onChange={(event) => {
-            setProblem(null);
-            setValues((current) => ({ ...current, description: event.target.value }));
-          }}
-        />
-      </FormField>
-
-      <section data-testid="listing-edit-category" className="min-w-0 space-y-2">
-        <h3 className="text-sm font-semibold text-foreground">
-          {t("admin.listings.col.category")}
-        </h3>
-        <p data-testid="listing-edit-category-path" className="break-words text-sm text-foreground">
-          {categoryPath}
-        </p>
-        {moved ? (
-          <p className="text-xs text-muted-foreground">{t("admin.listings.edit.categoryHint")}</p>
-        ) : null}
-        {categoryRefusal !== null ? (
+      <FormSection testid="listing-edit-specs-box" title={t("post.step.specifications")}>
+        {/* D172 — the category is the ad's for good: shown, never changed here. */}
+        <section data-testid="listing-edit-category" className="min-w-0 space-y-1">
+          <h4 className="text-sm font-semibold text-foreground">
+            {t("admin.listings.col.category")}
+          </h4>
           <p
-            role="alert"
-            data-testid="listing-edit-category-refusal"
-            className="text-sm text-destructive"
+            data-testid="listing-edit-category-path"
+            className="break-words text-sm text-foreground"
           >
-            {t(draftRefusalKey(categoryRefusal.reason))}
+            {categoryPath}
           </p>
-        ) : null}
-        {picking ? (
-          <div className="min-w-0 space-y-2 rounded-md border border-border p-3">
-            <StepCategory
-              tree={tree}
-              isLoading={treeLoading}
-              treeError={treeError}
-              cursor={cursor}
-              onCursor={setCursor}
-              term={term}
-              onTerm={setTerm}
-              selectedId={values.categoryId}
-              showRecent={false}
-              onChoose={(nextId) => {
-                setProblem(null);
-                setValues((current) => ({ ...current, categoryId: nextId }));
-                setPicking(false);
-                setTerm("");
-                setCursor(null);
-              }}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="touch"
-              data-testid="listing-edit-category-cancel"
-              onClick={() => {
-                setPicking(false);
-                setTerm("");
-                setCursor(null);
-              }}
+          {categoryRefusal !== null ? (
+            <p
+              role="alert"
+              data-testid="listing-edit-category-refusal"
+              className="text-sm text-destructive"
             >
-              {t("common.cancel")}
-            </Button>
-          </div>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            data-testid="listing-edit-category-change"
-            onClick={() => setPicking(true)}
-          >
-            {t("admin.listings.edit.changeCategory")}
-          </Button>
-        )}
-      </section>
+              {t(draftRefusalKey(categoryRefusal.reason))}
+            </p>
+          ) : null}
+        </section>
 
-      <section
-        data-testid="listing-edit-specs"
-        className="min-w-0 space-y-2"
-        onClickCapture={markSpecs}
-        onKeyDownCapture={markSpecs}
-        onChangeCapture={markSpecs}
-      >
-        <h3 className="text-sm font-semibold text-foreground">
-          {t("admin.listings.history.field.specs")}
-        </h3>
-        <StepSpecifications
-          key={values.categoryId ?? "none"}
-          categoryId={values.categoryId}
-          values={values.attributes}
-          onChange={onAttributes}
-          refusals={refusals}
-          onFields={onSpecFields}
-          exclude={dealKeys.length === 0 ? null : dealKeys}
-        />
-      </section>
-
-      <div
-        className="min-w-0"
-        onClickCapture={dealKeys.length === 0 ? undefined : markSpecs}
-        onKeyDownCapture={dealKeys.length === 0 ? undefined : markSpecs}
-        onChangeCapture={dealKeys.length === 0 ? undefined : markSpecs}
-      >
-        {load.state === "failed" ? (
-          <p data-testid="listing-edit-price-failed" className="text-sm text-destructive">
-            {t("admin.listings.edit.priceFailed")}
-          </p>
-        ) : pricing === null ? (
-          <p
-            role="status"
-            aria-live="polite"
-            data-testid="listing-edit-price-loading"
-            className="text-sm text-muted-foreground"
-          >
-            {t("common.loading")}
-          </p>
-        ) : dealKeys.length === 0 ? (
-          pricing
-        ) : (
+        <section
+          data-testid="listing-edit-specs"
+          className="min-w-0 space-y-2"
+          onClickCapture={markSpecs}
+          onKeyDownCapture={markSpecs}
+          onChangeCapture={markSpecs}
+        >
           <StepSpecifications
             key={values.categoryId ?? "none"}
             categoryId={values.categoryId}
             values={values.attributes}
             onChange={onAttributes}
             refusals={refusals}
-            onFields={onPriceFields}
-            only={dealKeys}
-            groups={dealGroups}
-            around={{ after: "sold", node: pricing }}
+            onFields={onSpecFields}
+            exclude={dealKeys.length === 0 ? null : dealKeys}
           />
-        )}
-      </div>
+        </section>
+      </FormSection>
 
-      <div className="min-w-0 space-y-3">
+      <FormSection testid="listing-edit-price-box" title={t("post.step.price")}>
+        <div
+          className="min-w-0"
+          onClickCapture={dealKeys.length === 0 ? undefined : markSpecs}
+          onKeyDownCapture={dealKeys.length === 0 ? undefined : markSpecs}
+          onChangeCapture={dealKeys.length === 0 ? undefined : markSpecs}
+        >
+          {load.state === "failed" ? (
+            <p data-testid="listing-edit-price-failed" className="text-sm text-destructive">
+              {t("admin.listings.edit.priceFailed")}
+            </p>
+          ) : pricing === null ? (
+            <p
+              role="status"
+              aria-live="polite"
+              data-testid="listing-edit-price-loading"
+              className="text-sm text-muted-foreground"
+            >
+              {t("common.loading")}
+            </p>
+          ) : dealKeys.length === 0 ? (
+            pricing
+          ) : (
+            <StepSpecifications
+              key={values.categoryId ?? "none"}
+              categoryId={values.categoryId}
+              values={values.attributes}
+              onChange={onAttributes}
+              refusals={refusals}
+              onFields={onPriceFields}
+              only={dealKeys}
+              groups={dealGroups}
+              around={{ after: "sold", node: pricing }}
+            />
+          )}
+        </div>
+      </FormSection>
+
+      <FormSection
+        testid="listing-edit-save-box"
+        title={t("admin.listings.edit.save")}
+        description={t("admin.listings.edit.hint")}
+        actions={
+          <>
+            <Button
+              type="button"
+              size="touch"
+              className="flex-1 sm:flex-none"
+              data-testid="listing-edit-save"
+              disabled={busy}
+              onClick={save}
+            >
+              {t("admin.listings.edit.save")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="touch"
+              className="flex-1 sm:flex-none"
+              data-testid="listing-edit-cancel"
+              disabled={busy}
+              onClick={onCancel}
+            >
+              {t("common.cancel")}
+            </Button>
+          </>
+        }
+      >
         <ReasonNote
           testid="listing-edit"
           reasons={EDIT_REASONS}
@@ -451,54 +432,32 @@ export function ListingEditForm({
             setProblem(null);
           }}
         />
-      </div>
 
-      {others.length > 0 ? (
-        <ul
-          data-testid="listing-edit-other-refusals"
-          className="min-w-0 space-y-1 text-sm text-destructive"
-        >
-          {others.map((entry, index) => (
-            <li key={`${entry.field}-${entry.reason}-${String(index)}`} className="break-words">
-              {t(
-                definitions?.some((def) => def.attrKey === entry.field)
-                  ? GROUP_LABEL.specs
-                  : GROUP_LABEL[groupOf(entry.field)],
-              )}
-              : {t(draftRefusalKey(entry.reason))}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+        {others.length > 0 ? (
+          <ul
+            data-testid="listing-edit-other-refusals"
+            className="min-w-0 space-y-1 text-sm text-destructive"
+          >
+            {others.map((entry, index) => (
+              <li key={`${entry.field}-${entry.reason}-${String(index)}`} className="break-words">
+                {t(
+                  definitions?.some((def) => def.attrKey === entry.field)
+                    ? GROUP_LABEL.specs
+                    : GROUP_LABEL[groupOf(entry.field)],
+                )}
+                : {t(draftRefusalKey(entry.reason))}
+              </li>
+            ))}
+          </ul>
+        ) : null}
 
-      {problem !== null || error !== null ? (
-        <p role="alert" data-testid="listing-edit-problem" className="text-sm text-destructive">
-          {problem !== null ? t(problem) : error}
-        </p>
-      ) : null}
-
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          size="touch"
-          data-testid="listing-edit-cancel"
-          disabled={busy}
-          onClick={onCancel}
-        >
-          {t("common.cancel")}
-        </Button>
-        <Button
-          type="button"
-          size="touch"
-          data-testid="listing-edit-save"
-          disabled={busy}
-          onClick={save}
-        >
-          {t("admin.listings.edit.save")}
-        </Button>
-      </div>
-    </PageCard>
+        {problem !== null || error !== null ? (
+          <p role="alert" data-testid="listing-edit-problem" className="text-sm text-destructive">
+            {problem !== null ? t(problem) : error}
+          </p>
+        ) : null}
+      </FormSection>
+    </div>
   );
 }
 

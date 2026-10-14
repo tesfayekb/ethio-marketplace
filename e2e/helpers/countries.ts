@@ -137,6 +137,51 @@ export async function dialogDump(page: Page, label: string): Promise<string> {
 }
 
 /**
+ * INC-623 (bundle 14 turn 2) — WHAT THE CONSOLE SHOWED INSTEAD. CO-5 and CO-1
+ * waited 20 s for the search box and their failures said only "not found"
+ * (the snapshot ended in the footer). The table draws its toolbar only when it
+ * is neither loading nor in error (src/components/shell/data-table.tsx), so the
+ * dump names the state the page was in, its address and the start of its main
+ * text: the `[country-dump]` lines of the next failure decide the fix.
+ */
+async function rosterDump(page: Page): Promise<string> {
+  try {
+    const state = await page.evaluate(() => {
+      const has = (id: string) => document.querySelector(`[data-testid="${id}"]`) !== null;
+      const main = document.querySelector("main");
+      return {
+        path: window.location.pathname,
+        section: has("admin-section-countries"),
+        loading: has("data-table-loading"),
+        error: has("data-table-error"),
+        stepUp: has("step-up-modal"),
+        text: (main?.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 300),
+      };
+    });
+    return [
+      `[country-dump] at ${state.path}: section ${state.section}, loading ${state.loading}, ` +
+        `error ${state.error}, step-up ${state.stepUp}`,
+      `[country-dump] main: ${state.text === "" ? "(empty)" : state.text}`,
+    ].join("\n");
+  } catch (error) {
+    return `[country-dump] unreadable: ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+
+/**
+ * The console has drawn its table (its search box shows). INC-623 — the same
+ * verdict as a bare `toBeVisible`, with what the page showed in its place.
+ */
+export async function awaitConsole(page: Page) {
+  try {
+    await expect(page.getByTestId("country-search")).toBeVisible({ timeout: 20000 });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`${reason}\n${await rosterDump(page)}`);
+  }
+}
+
+/**
  * R-LT13 — THE ROSTER IS READY WHEN ITS SEARCH FINDS ETHIOPIA. The door orders
  * OPEN markets first (`is_active DESC, display_order, name_en`), so page 1 is
  * whatever the catalog and other runs' fixtures make it (J6): a real market is
@@ -144,7 +189,7 @@ export async function dialogDump(page: Page, label: string): Promise<string> {
  * in place, so the assertions that follow read the searched row.
  */
 export async function awaitRoster(page: Page, code = "ET", needle = "eth") {
-  await expect(page.getByTestId("country-search")).toBeVisible({ timeout: 20000 });
+  await awaitConsole(page);
   await findRow(page, code, needle);
 }
 

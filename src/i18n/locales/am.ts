@@ -741,7 +741,7 @@ export const am: Messages = {
   "admin.listings.reason.misleading": "አሳሳች መረጃ",
   "admin.listings.reason.duplicate": "የተደገመ ማስታወቂያ",
   "admin.listings.reason.contact_in_text": "በጽሑፉ ውስጥ የመገናኛ መረጃ",
-  "admin.listings.reason.photo": "ፎቶ",
+  "admin.listings.reason.photo": "ተገቢ ያልሆነ ፎቶ",
   "admin.listings.reason.rules": "የጣቢያው ደንቦች",
   "admin.listings.reason.other": "ሌላ",
   "admin.listings.reason.wrong_category": "የተሳሳተ ምድብ",
@@ -810,7 +810,7 @@ export const am: Messages = {
   "admin.listings.action.edit": "አርትዕ",
   "admin.listings.edit.title": "ይህን ማስታወቂያ ያርትዑ",
   "admin.listings.edit.hint":
-    "አርዕስቱን፣ መግለጫውን፣ ምድቡን፣ ዝርዝሮቹን ወይም ዋጋውን ይቀይሩ። የቀየሩት ነገር ከምክንያትዎና ከማስታወሻዎ ጋር ለሻጩ ይነገራል።",
+    "ከላይ አርዕስቱን፣ መግለጫውን፣ ዝርዝሮቹን ወይም ዋጋውን ይቀይሩ። የቀየሩት ነገር ከምክንያትዎና ከማስታወሻዎ ጋር ለሻጩ ይነገራል።",
   "admin.listings.edit.save": "ለውጦችን አስቀምጥ",
   "admin.listings.edit.nothing": "ምንም አልተቀየረም።",
   "admin.listings.edit.error.removed": "የተወገደ ማስታወቂያ አይታረምም። መጀመሪያ ይመልሱት።",
