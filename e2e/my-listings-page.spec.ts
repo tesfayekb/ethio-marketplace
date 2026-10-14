@@ -8,8 +8,8 @@ import {
   destroyListingsOf,
   leaseSeller,
   RUN,
+  seedCategoryBranch,
 } from "./helpers/posting";
-import { seedCategoryBranch } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
 import { expectActivePanel, gotoReady, isMobile, openPanel, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
@@ -419,7 +419,9 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     await expectActivePanel(page, "my-listings");
     await expect(page.getByText(en["shell.placeholderTitle"])).toHaveCount(0);
 
-    const item = page.getByTestId(isMobile(page) ? "strip-item-ml-listings" : "rail-item-ml-listings");
+    const item = page.getByTestId(
+      isMobile(page) ? "strip-item-ml-listings" : "rail-item-ml-listings",
+    );
     await expect(item).toHaveAttribute("href", /\/my-listings$/);
 
     const fresh = await browser.newContext();
