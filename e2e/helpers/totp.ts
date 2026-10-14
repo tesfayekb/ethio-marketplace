@@ -24,6 +24,14 @@ function base32Decode(input: string): Buffer {
   return Buffer.from(out);
 }
 
+/**
+ * INC-620 — the RFC 6238 step an instant belongs to: two instants in one step
+ * give the same code, and a factor accepts each code once.
+ */
+export function totpStep(atMs: number = Date.now(), stepSeconds = 30): number {
+  return Math.floor(atMs / 1000 / stepSeconds);
+}
+
 /** Current 6-digit code for a base32 secret (SHA-1, 30s step, per RFC 6238). */
 export function totp(secret: string, atMs: number = Date.now(), stepSeconds = 30): string {
   const counter = Math.floor(atMs / 1000 / stepSeconds);

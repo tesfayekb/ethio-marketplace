@@ -18,16 +18,13 @@ import type { AdminListingDetail } from "./use-admin-listing";
  */
 
 /**
- * The reasons this edit offers: the door's list without "A photo" (removing a
- * photo waits for photo display, D140). Turn L4b adds "Wrong category".
+ * The reasons this edit offers: the door's list without "Inappropriate photo"
+ * (code `photo`; a photo is removed with its own Remove, D154 B4). Turn L4b added
+ * "Wrong category"; D172 (the operator, 2026-10-14) takes it out again — an edit
+ * never changes the category, and an ad in the wrong category is sent back to
+ * review with that reason.
  */
-export const EDIT_REASONS = [
-  "wrong_category",
-  "misleading",
-  "contact_in_text",
-  "rules",
-  "other",
-] as const;
+export const EDIT_REASONS = ["misleading", "contact_in_text", "rules", "other"] as const;
 
 export interface EditValues {
   /** Turn L4b — the leaf; null only for a listing that has none (never past a draft). */

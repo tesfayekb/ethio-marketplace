@@ -111,4 +111,26 @@ describe("ListingPhotos (D154 B4)", () => {
     expect(onRemoved).not.toHaveBeenCalled();
     expect(screen.getByTestId("listing-photo-remove-dialog")).toBeInTheDocument();
   });
+
+  it("LP-6 the console's card heading; with Remove, what Remove does, and each Remove an icon and its word (D171)", () => {
+    mount(true);
+    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
+      "admin.listings.detail.photos",
+    );
+    expect(screen.getByTestId("listing-photos-hint")).toHaveTextContent(
+      "admin.listings.photos.hint",
+    );
+    for (const remove of screen.getAllByTestId("listing-photos-remove")) {
+      expect(remove.querySelector("svg")).not.toBeNull();
+      expect(remove).toHaveTextContent("admin.listings.action.remove");
+    }
+  });
+
+  it("LP-7 view-only: the heading without the removal line (Screening's preview and Show photos)", () => {
+    mount(false);
+    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
+      "admin.listings.detail.photos",
+    );
+    expect(screen.queryByTestId("listing-photos-hint")).toBeNull();
+  });
 });

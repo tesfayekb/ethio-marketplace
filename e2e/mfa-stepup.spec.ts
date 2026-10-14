@@ -4,13 +4,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 
 import { totp, wrongCode } from "./helpers/totp";
-import {
-  clearStepUpFreshness,
-  gotoReady,
-  isMobile,
-  switchUser,
-  waitForHydration,
-} from "./helpers/ui";
+import { gotoReady, isMobile, switchUser, waitForHydration } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
 
 /**
@@ -78,10 +72,12 @@ async function enrollThroughSettings(page: Page): Promise<string> {
 }
 
 /*
- * FRESHNESS CENSUS (mfa-service.isStepUpFresh): a nightly session can still
- * carry the aal2 claim after a re-sign-in, so this spec neutralizes the local
- * stamp the supported way — `clearStepUpFreshness` (e2e/helpers/ui.ts, moved
- * there in bundle 14 turn 1) — leaving the modal guaranteed.
+ * FRESHNESS (mfa-service.isStepUpFresh, INC-167): read from the session token
+ * alone. MF-2 and MF-7b sign in again (`switchUser`) after enrolling: a fresh
+ * sign-in is aal1, so the modal is guaranteed; MF-7 shortens the client window
+ * instead. INC-620 (bundle 14 turn 2): the `clearStepUpFreshness` calls that
+ * stood after those sign-ins wrote a local stamp nothing has read since
+ * INC-167, and are removed.
  */
 
 /** DB truth for the profile the edit form writes. */
@@ -136,7 +132,6 @@ test.describe("U1f step-up authentication", () => {
 
       // A fresh sign-in is aal1 again — the gate must fire.
       await switchUser(page, staff.email, staff.password);
-      await clearStepUpFreshness(page);
       await gotoReady(page, `/admin/users/${target.id}`);
       await page.getByTestId("deactivate-reason").fill("MF-2 proof");
       await page.getByTestId("deactivate-user").click();
@@ -329,7 +324,6 @@ test.describe("FIX-SCAN-1 step-up abort", () => {
       await enrollThroughSettings(page);
       // A fresh sign-in is aal1 again — the gate must fire on the next action.
       await switchUser(page, staff.email, staff.password);
-      await clearStepUpFreshness(page);
 
       await gotoReady(page, `/admin/users/${target.id}`);
       await page.getByTestId("edit-display-name").fill("MF-7b never written");

@@ -765,7 +765,7 @@ export const en = {
   "admin.listings.reason.misleading": "Misleading details",
   "admin.listings.reason.duplicate": "Duplicate ad",
   "admin.listings.reason.contact_in_text": "Contact details in the text",
-  "admin.listings.reason.photo": "A photo",
+  "admin.listings.reason.photo": "Inappropriate photo",
   "admin.listings.reason.rules": "The site's rules",
   "admin.listings.reason.other": "Other",
   "admin.listings.reason.wrong_category": "Wrong category",
@@ -836,7 +836,7 @@ export const en = {
   "admin.listings.action.edit": "Edit",
   "admin.listings.edit.title": "Edit this listing",
   "admin.listings.edit.hint":
-    "Change the title, the description, the category, the specifications or the price. The seller is told what you changed, with your reason and note.",
+    "Change the title, the description, the specifications or the price above. The seller is told what you changed, with your reason and note.",
   "admin.listings.edit.save": "Save changes",
   "admin.listings.edit.nothing": "Nothing has changed.",
   "admin.listings.edit.error.removed": "A removed listing is not edited. Restore it first.",

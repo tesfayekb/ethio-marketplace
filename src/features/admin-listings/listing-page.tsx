@@ -501,6 +501,13 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
 
           {editing ? (
             <div className="min-w-0 space-y-4" data-testid="listing-edit-panel">
+              {/* D172 — the panel names itself; its boxes follow, the photos first. */}
+              <h2
+                data-testid="listing-edit-heading"
+                className="min-w-0 break-words text-lg font-semibold text-foreground"
+              >
+                {t("admin.listings.edit.title")}
+              </h2>
               {/* D169 — the photos, their marks and Remove are part of Edit. */}
               <ListingPhotos
                 listingId={listingId}

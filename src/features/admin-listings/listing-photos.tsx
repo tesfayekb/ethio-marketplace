@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
@@ -111,10 +112,24 @@ export function ListingPhotos({
     onRemoved("admin.listings.photos.done");
   };
 
+  // D171 — the console's card heading (FormSection's), and under it, where Remove is
+  // offered, what Remove does; two photos a row on a phone, so each Remove is a full word.
   return (
-    <PageCard testid={testid} className="min-w-0 space-y-3">
-      <h2 className="text-sm font-semibold text-foreground">{t("admin.listings.detail.photos")}</h2>
-      <ul className="grid min-w-0 grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+    <PageCard testid={testid} className="min-w-0 space-y-4">
+      <div className="min-w-0 space-y-1">
+        <h3 className="min-w-0 break-words text-base font-semibold text-foreground">
+          {t("admin.listings.detail.photos")}
+        </h3>
+        {mayRemove ? (
+          <p
+            data-testid={`${testid}-hint`}
+            className="min-w-0 break-words text-sm text-muted-foreground"
+          >
+            {t("admin.listings.photos.hint")}
+          </p>
+        ) : null}
+      </div>
+      <ul className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
         {rows.map((row, index) => {
           const link = photoUrl(row, ["thumb", "card", "cover"], links);
           return (
@@ -152,7 +167,7 @@ export function ListingPhotos({
                   type="button"
                   size="touch"
                   variant="destructiveOutline"
-                  className="w-full"
+                  className="w-full min-w-0 px-2"
                   data-testid={`${testid}-remove`}
                   aria-label={fill(t("admin.listings.photos.removeOne"), { index: index + 1 })}
                   onClick={() => {
@@ -160,7 +175,9 @@ export function ListingPhotos({
                     setRemoving({ row, index });
                   }}
                 >
-                  {t("admin.listings.action.remove")}
+                  {/* D171 — an icon and the word, as the seller's photo tools (D168). */}
+                  <Trash2 aria-hidden="true" />
+                  <span className="truncate">{t("admin.listings.action.remove")}</span>
                 </Button>
               ) : null}
             </li>

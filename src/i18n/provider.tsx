@@ -11,6 +11,7 @@ import {
 
 import { fetchPreferredLanguage, savePreferredLanguage } from "@/features/auth/auth-service";
 import { supabase } from "@/integrations/supabase/client";
+import { isE2E } from "@/lib/env-flags";
 
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
@@ -546,7 +547,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   // U4g-21 (INC-113) — the gate snapshot an E2E failure dump reads. Mirrored
   // state only: nothing in the app reads it, and it is written, never watched.
+  // INC-621 — a test instrument, so gated on `isE2E` (DEC-018): a production
+  // build never writes it.
   useEffect(() => {
+    if (!isE2E) return;
     (window as unknown as Record<string, unknown>)["__ethioPublicLanguages"] = {
       gateReady,
       degraded: gateDegraded,

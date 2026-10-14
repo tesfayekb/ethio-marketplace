@@ -22,7 +22,7 @@ import {
   passwordGrant,
   type PersistedSession,
 } from "./session";
-import { totp } from "./totp";
+import { totp, totpStep } from "./totp";
 
 /** Escape a catalog value for literal use inside a RegExp. */
 function escapeRe(value: string) {
@@ -947,19 +947,49 @@ export async function stepUpIfPrompted(
 }
 
 /**
- * FRESHNESS (mfa-service.isStepUpFresh): the shared guard treats a session as
- * stepped up only when a verified TOTP factor exists, the session claims aal2,
- * AND the local stamp `sb-<ref>-stepped-up-at` is inside the window. Setting the
- * stamp to 0 — what unenroll does (markSteppedUp(0)) — makes the next guarded
- * action open the modal. Moved here from e2e/mfa-stepup.spec.ts (bundle 14
- * turn 1) so a console test can prove its step-up by keyboard.
+ * INC-620 (bundle 14 turn 2) — MAKE THE NEXT GUARDED ACTION ASK. Step-up
+ * freshness is read from the session token (INC-167; mfa-service.isStepUpFresh):
+ * a verified factor, the aal2 claim, and the token's newest totp verification
+ * inside the window. `useJobSuperAdmin` injects a session verified moments ago,
+ * so its guarded actions run without the modal. This helper shortens the CLIENT
+ * window of the current document through the DEV/E2E instrument
+ * `window.__ethioStepUp` (MF-7's precedent; compiled out of production builds,
+ * INC-621): the next guarded action finds no fresh step-up and opens the modal.
+ * The server's window is not touched, so the code the modal collects is
+ * accepted. A navigation drops the instrument: call it after the last
+ * navigation before the action. It replaces `clearStepUpFreshness`, which wrote
+ * a local stamp nothing has read since INC-167.
  */
-export async function clearStepUpFreshness(page: Page) {
+export async function staleStepUpOnClient(page: Page): Promise<void> {
   await page.evaluate(() => {
-    for (const key of Object.keys(window.localStorage)) {
-      if (key.endsWith("-stepped-up-at")) window.localStorage.setItem(key, "0");
-    }
+    (window as unknown as { __ethioStepUp?: { windowMs: number } }).__ethioStepUp = {
+      windowMs: 1,
+    };
   });
+}
+
+/**
+ * INC-620 — A TOTP CODE IS SPENT ONCE. The factor refuses a code it already
+ * accepted inside its 30-second step (`freshAal2Session` retries for that
+ * reason). A test that answers the modal with the identity `useJobSuperAdmin`
+ * has just verified in node reads `totpStep()` as that call returns, and waits
+ * here for the next step before it types: the code it types is then one the
+ * factor has not used. A clock boundary, polled — never a fixed sleep; the
+ * test's timeout grows by the wait (at most one step).
+ */
+export async function afterTotpStep(spentStep: number): Promise<void> {
+  const stepMs = 30_000;
+  const left = (spentStep + 1) * stepMs - Date.now();
+  if (left <= 0) return;
+  const info = test.info();
+  if (info.timeout > 0) info.setTimeout(info.timeout + left + 5_000);
+  await expect
+    .poll(() => totpStep(), {
+      message: `the TOTP step after ${spentStep} did not begin`,
+      timeout: left + 5_000,
+      intervals: [1_000],
+    })
+    .toBeGreaterThan(spentStep);
 }
 
 /**

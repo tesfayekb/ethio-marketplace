@@ -14,11 +14,14 @@ import {
   seedSpecSet,
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
+import { totpStep } from "./helpers/totp";
 import {
-  clearStepUpFreshness,
+  afterTotpStep,
   expectNoHorizontalOverflow,
   gotoReady,
+  isMobile,
   signInViaSession,
+  staleStepUpOnClient,
   stepUpIfPrompted,
   useJobSuperAdmin,
 } from "./helpers/ui";
@@ -226,6 +229,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       alias: profile.seller_alias as string,
       parentId: parent.id as string,
       leafId: leaf.id as string,
+      leafSlug: leaf.slug as string,
       cityId: chain.city.id as string,
     };
   }
@@ -1531,64 +1535,55 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   /**
-   * Turn L4b (D140) — Edit moves a listing to another category: the tree behind
-   * "Change category" (filtered by the leaf's name), Wrong category as the
-   * reason; the seller is told "Category"; the history says so. The listing's
-   * answers stay (the scratch leaves ask nothing).
+   * D172 (the operator, 2026-10-14) — a posted ad's category is never changed:
+   * Edit shows it in the Specifications box and offers no way to change it, and
+   * Wrong category is no longer an edit's reason (it stays Send back's). It
+   * replaces turn L4b's test of the move (D140). D171 — the panel names itself
+   * and its boxes follow in the seller's order, each named as the seller's step:
+   * Title and description, Specifications, Price, then the reason and Save.
    */
-  test("AL-22 Edit moves a listing to another category with Wrong category; the seller is told", async ({
+  test("AL-22 Edit shows the category and offers no way to change it; its boxes in the seller's order", async ({
     page,
   }) => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
-    const other = await seedCategoryBranch();
-    branches.push([other.parent.slug as string, other.leaf.slug as string]);
 
     await useJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     await page.getByTestId("listing-edit").click();
+    await expect(page.getByTestId("listing-edit-heading")).toHaveText(
+      en["admin.listings.edit.title"],
+    );
     const form = page.getByTestId("listing-edit-form");
     await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
 
-    await form.getByTestId("listing-edit-category-change").click();
-    await form.getByTestId("post-category-search").fill(other.leaf.slug as string);
-    const hit = form.locator(`[data-testid="post-category-hit"][data-category="${other.leaf.id}"]`);
-    await expect(hit).toBeVisible({ timeout: 20000 });
-    await hit.click();
-    await expect(form.getByTestId("listing-edit-category-path")).toContainText(
-      other.leaf.slug as string,
-    );
-    await expect(form.getByTestId("post-category-search")).toHaveCount(0);
-    await expectNoHorizontalOverflow(page);
+    const specsBox = form.getByTestId("listing-edit-specs-box");
+    await expect(specsBox.getByTestId("listing-edit-category-path")).toContainText(seller.leafSlug);
+    await expect(page.getByTestId("listing-edit-category-change")).toHaveCount(0);
+    await expect(page.getByTestId("post-category-search")).toHaveCount(0);
+    await expect(form.getByTestId("listing-edit-reason-wrong_category")).toHaveCount(0);
+    await expect(form.getByTestId("listing-edit-reason-misleading")).toBeVisible();
 
-    await form.getByTestId("listing-edit-reason-wrong_category").click();
-    await form.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.col.category"]),
-      { timeout: 20000 },
+    // The boxes, top to bottom, each headed with its step's name (FormSection's own heading).
+    const boxes: Array<[string, string]> = [
+      ["listing-edit-text", en["post.step.details"]],
+      ["listing-edit-specs-box", en["post.step.specifications"]],
+      ["listing-edit-price-box", en["post.step.price"]],
+      ["listing-edit-save-box", en["admin.listings.edit.save"]],
+    ];
+    const tops: number[] = [];
+    for (const [id, title] of boxes) {
+      const box = form.getByTestId(id);
+      await expect(box.locator(":scope > div > h3")).toHaveText(title);
+      const geometry = await box.boundingBox();
+      expect(geometry, `${id} is not drawn`).not.toBeNull();
+      tops.push(geometry!.y);
+    }
+    expect(tops, `the boxes are out of order: ${JSON.stringify(tops)}`).toEqual(
+      [...tops].sort((a, b) => a - b),
     );
-    await expect(
-      page.getByTestId("listing-history-entry-0").getByTestId("listing-history-what"),
-    ).toHaveText(
-      en["admin.listings.history.edited"].replace("{fields}", en["admin.listings.col.category"]),
-    );
-    const { data: stored, error } = await adminClient()
-      .from("listings")
-      .select("status,category_id")
-      .eq("id", live.id)
-      .single();
-    if (error) throw new Error(`[e2e:al] listing read failed: ${error.message}`);
-    expect(stored).toEqual({ status: "active", category_id: other.leaf.id });
-    expect(await noticeRows(live.id)).toEqual([
-      {
-        seller_id: seller.id,
-        kind: "admin_edit",
-        fields: ["category"],
-        reason: "wrong_category",
-        note: null,
-      },
-    ]);
+    await expectNoHorizontalOverflow(page);
   });
 
   /**
@@ -1910,6 +1905,8 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const note = "A phone number is written across the photo.";
 
     const { secret } = await useJobSuperAdmin(page);
+    // INC-620 — the step whose code the injected session's verification spent.
+    const spentStep = totpStep();
     await gotoReady(page, `/admin/listings/${live.id}`);
     // D169 — the page shows the ad as buyers see it; the photos and Remove are in Edit.
     await expect(page.getByTestId("listing-as-seen")).toContainText(live.title, {
@@ -1922,6 +1919,25 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(items).toHaveCount(2, { timeout: 20000 });
     await expect(items.nth(0)).toHaveAttribute("data-photo-id", first!.id);
     await expect(items.nth(1)).toHaveAttribute("data-photo-id", second!.id);
+    // D171 — Edit in the console's boxes: no sideways scroll, the two photos on one row,
+    // what Remove does said under the heading, and Save and Cancel in a bar that stays
+    // at the bottom on a phone and sits in the page from 768 px.
+    await expectNoHorizontalOverflow(page);
+    const [firstBox, secondBox] = [
+      await items.nth(0).boundingBox(),
+      await items.nth(1).boundingBox(),
+    ];
+    expect(
+      firstBox !== null && secondBox !== null && Math.abs(firstBox.y - secondBox.y) < 2,
+      `the two photos are not on one row: ${JSON.stringify({ firstBox, secondBox })}`,
+    ).toBe(true);
+    await expect(card.getByTestId("listing-photos-hint")).toHaveText(
+      en["admin.listings.photos.hint"],
+    );
+    const bar = page.getByTestId("listing-edit-save-box-actions");
+    await expect(bar.getByTestId("listing-edit-save")).toBeVisible();
+    await expect(bar.getByTestId("listing-edit-cancel")).toBeVisible();
+    await expect(bar).toHaveCSS("position", isMobile(page) ? "sticky" : "static");
 
     await items.nth(1).getByTestId("listing-photos-remove").click();
     const dialog = page.getByTestId("listing-photo-remove-dialog");
@@ -1934,9 +1950,13 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await dialog.getByTestId("listing-photo-remove-reason-photo").click();
     await dialog.getByTestId("listing-photo-remove-note").fill(note);
     // INC-618's class — the second factor is asked, and its code is typed key by key.
-    await clearStepUpFreshness(page);
+    // INC-620 — the injected session stepped up moments ago, so the client is told its
+    // step-up is stale (the server's window is untouched), and the code typed is one
+    // the factor has not spent.
+    await staleStepUpOnClient(page);
     await dialog.getByTestId("listing-photo-remove-confirm").click();
     await expect(page.getByTestId("step-up-modal")).toBeVisible({ timeout: 20000 });
+    await afterTotpStep(spentStep);
     await stepUpIfPrompted(page, secret, { typed: true });
 
     await expect(page.getByTestId("listing-notice")).toHaveText(en["admin.listings.photos.done"], {

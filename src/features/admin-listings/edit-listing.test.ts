@@ -106,13 +106,8 @@ describe("an admin's edit (turn L4a)", () => {
   });
 
   it("LE-4 the reasons are the door's edit list without the photo; the note rules are the move's", () => {
-    expect([...EDIT_REASONS]).toEqual([
-      "wrong_category",
-      "misleading",
-      "contact_in_text",
-      "rules",
-      "other",
-    ]);
+    // D172 — an edit never changes the category, so Wrong category is not its reason.
+    expect([...EDIT_REASONS]).toEqual(["misleading", "contact_in_text", "rules", "other"]);
     for (const reason of EDIT_REASONS) {
       expect([...MOVE_REASONS.send_back]).toContain(reason);
     }
