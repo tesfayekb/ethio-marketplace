@@ -256,6 +256,8 @@ export interface DraftPhotoRow {
   displayOrder: number;
   paths: Record<string, unknown> | null;
   storagePath: string | null;
+  /** D158 — stored while photo screening was off: shown to no buyer until staff approve the ad. */
+  unscreened?: boolean;
 }
 
 function numOrNull(value: unknown): number | null {
@@ -303,7 +305,7 @@ export async function readDraft(
 
   const { data: photos, error: photoError } = await supabase
     .from("listing_photos")
-    .select("id,display_order,paths,storage_path")
+    .select("id,display_order,paths,storage_path,unscreened")
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
   if (photoError) throw new Error(photoError.message);
@@ -361,6 +363,7 @@ export async function readDraft(
       displayOrder: row.display_order,
       paths: (row.paths ?? null) as Record<string, unknown> | null,
       storagePath: row.storage_path,
+      unscreened: row.unscreened === true,
     })),
   };
 }

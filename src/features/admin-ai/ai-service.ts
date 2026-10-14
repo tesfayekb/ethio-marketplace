@@ -239,12 +239,7 @@ export function priceCeilingText(unit: AiUnit): string {
 /* -------------------------------- refusals -------------------------------- */
 
 /** Every refusal the door raises, by name (E7). */
-export const AI_REFUSAL_IDS = [
-  "screeningStaysOn",
-  "overBudget",
-  "unknownFeature",
-  "badValue",
-] as const;
+export const AI_REFUSAL_IDS = ["overBudget", "unknownFeature", "badValue"] as const;
 
 export interface AiRefusal {
   key: MessageKey;

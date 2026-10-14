@@ -66,7 +66,14 @@ const arrowClass =
  * `srcSet`); thumbnails are the thumb size (about 5 KB); the full-screen viewer
  * draws the cover only when it is opened.
  */
-export function PhotoGallery({ photos }: { photos: readonly GalleryPhoto[] }) {
+export function PhotoGallery({
+  photos,
+  markUnscreened = false,
+}: {
+  photos: readonly GalleryPhoto[];
+  /** D158 — staff's preview marks a photo held while photo screening was off. */
+  markUnscreened?: boolean;
+}) {
   const { t } = useI18n();
   const total = photos.length;
   const [index, setIndex] = useState(0);
@@ -113,6 +120,14 @@ export function PhotoGallery({ photos }: { photos: readonly GalleryPhoto[] }) {
               draggable={false}
             />
           </button>
+          {markUnscreened && photo.unscreened === true ? (
+            <span
+              data-testid="gallery-unscreened"
+              className="pointer-events-none absolute start-2 top-2 rounded-md bg-foreground/80 px-2 py-0.5 text-xs font-medium text-background"
+            >
+              {t("post.gallery.unscreened")}
+            </span>
+          ) : null}
           {/* The photo's place, read with the button (outside it: the button's own words are its label). */}
           <span id={placeId} className="sr-only">
             {fill(t("post.preview.photoCount"), { index: at + 1, total })}

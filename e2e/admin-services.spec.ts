@@ -14,12 +14,13 @@ import { adminClient } from "./helpers/users";
  *
  * SV-1 a seller can neither read nor change a switch, call the meter or read its tables.
  * SV-2 the super admin reads the six features and changes a switch; the door refuses
- *      photo screening off, an unknown feature and a bad budget, and writes its audit row.
+ *      an unknown feature and a bad budget, and writes its audit row.
  * SV-3 the meter on the app's own connection (the service role, as the routes call it):
  *      calls and units on today's row, the 80 % and 100 % audit rows, off at the budget,
  *      the gate's answer, bad units and an unknown feature refused.
  * SV-4 (turn 5) the page Admin › Services › AI lists the six features with their state,
- *      spend and price; Edit opens the editor, where photo screening's switch stays on.
+ *      spend and price; Edit opens the editor, where photo screening's switch says what
+ *      switching it off does (turn 6).
  *      It only READS: no real switch row is written (G27); the door's writes are SV-2's.
  *
  * G27: no real switch row is changed. Every change is made on a scratch feature named
@@ -192,9 +193,8 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
             ...args,
           })
         ).error;
-      expect(await refused({ p_feature: "photo_screen", p_enabled: false })).toBe(
-        "screeningStaysOn",
-      );
+      // Bundle 13 turn 6 — photo screening may be switched off (new photos are held for
+      // staff), so its refusal is gone; the real row is never switched by a test (G27).
       expect(await refused({ p_feature: "e2e-sv-no-such-feature" })).toBe("unknownFeature");
       expect(await refused({ p_monthly_budget_cents: -1 })).toBe("badValue:budget");
       expect(await refused({ p_unit_cost_microusd: -1 })).toBe("badValue:unitCost");
@@ -292,7 +292,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
    * Bundle 13 turn 5 (D158) — the page. Below 1024 px the table is drawn as cards
    * (`cardUntil="lg"`), so every row is read inside the twin on screen.
    */
-  test("SV-4 the page Admin › Services › AI lists the six features, and photo screening's switch stays on", async ({
+  test("SV-4 the page Admin › Services › AI lists the six features, and photo screening's switch says what off does", async ({
     page,
   }) => {
     await signInAsSuperAdmin(page);
@@ -329,9 +329,9 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
       en["admin.ai.feature.photo_screen"],
     );
     await expect(editor.getByTestId("ai-editor-on")).toBeChecked();
-    await expect(editor.getByTestId("ai-editor-on")).toBeDisabled();
+    await expect(editor.getByTestId("ai-editor-on")).toBeEnabled();
     await expect(editor.getByTestId("ai-editor-screening-note")).toHaveText(
-      en["admin.ai.field.screeningStaysOn"],
+      en["admin.ai.field.screeningOffNote"],
     );
     await editor.getByTestId("ai-editor-cancel").click();
     await expect(editor).toHaveCount(0);

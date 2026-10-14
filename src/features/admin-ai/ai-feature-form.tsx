@@ -22,8 +22,9 @@ import {
  * Presentation only: the editor owns the door and the second factor; this form
  * checks the two numbers against the door's own ceilings first (F3 — the door
  * still decides) and hands a whole record back (INC-188: a save never drops a
- * field the surface holds). Photo screening's switch stays on until photos can
- * be held for staff (D158; the door refuses `screeningStaysOn`).
+ * field the surface holds). Photo screening's switch says what switching it off
+ * does (D158, bundle 13 turn 6): new photos are held for staff, and a live ad
+ * takes no new photo until it is on again.
  * 360-first: full-width controls, 44 px targets, logical spacing.
  */
 export function AiFeatureForm({
@@ -63,7 +64,7 @@ export function AiFeatureForm({
     }
     onSave({
       feature: row.feature,
-      enabled: screening ? true : enabled,
+      enabled,
       monthlyBudgetCents: cents.cents,
       unitCostMicrousd: micro,
     });
@@ -81,15 +82,14 @@ export function AiFeatureForm({
           type="checkbox"
           className="size-5"
           data-testid="ai-editor-on"
-          checked={screening ? true : enabled}
-          disabled={screening}
+          checked={enabled}
           onChange={(event) => setEnabled(event.target.checked)}
         />
         <span>{t("admin.ai.field.on")}</span>
       </label>
       {screening ? (
         <p className="text-sm text-muted-foreground" data-testid="ai-editor-screening-note">
-          {t("admin.ai.field.screeningStaysOn")}
+          {t("admin.ai.field.screeningOffNote")}
         </p>
       ) : null}
       <FormField

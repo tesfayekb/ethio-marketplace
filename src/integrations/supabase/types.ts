@@ -1154,6 +1154,7 @@ export type Database = {
           listing_id: string
           paths: Json
           storage_path: string
+          unscreened: boolean
           width: number | null
         }
         Insert: {
@@ -1166,6 +1167,7 @@ export type Database = {
           listing_id: string
           paths?: Json
           storage_path: string
+          unscreened?: boolean
           width?: number | null
         }
         Update: {
@@ -1178,6 +1180,7 @@ export type Database = {
           listing_id?: string
           paths?: Json
           storage_path?: string
+          unscreened?: boolean
           width?: number | null
         }
         Relationships: [
@@ -3820,6 +3823,7 @@ export type Database = {
           p_listing_id: string
           p_paths: Json
           p_photo_id: string
+          p_unscreened?: boolean
           p_width: number
         }
         Returns: Json

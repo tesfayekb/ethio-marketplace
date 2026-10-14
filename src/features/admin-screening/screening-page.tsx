@@ -32,6 +32,7 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
+import { fill } from "@/features/posting/refusal-text";
 import { storedUnitNoun } from "@/features/posting/price-line";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -123,6 +124,7 @@ export function AdminScreeningPage() {
 
   const query = useScreeningQueue(page, search, pageSize, { country });
   const photos = useScreeningPhotos(previewRow?.id ?? null);
+  const heldCount = (photos.data ?? []).filter((row) => row.unscreened === true).length;
   const facts = useScreeningFacts(previewRow?.id ?? null);
   const schema = useScreeningSchema(previewRow?.categoryId ?? null);
 
@@ -562,6 +564,16 @@ export function AdminScreeningPage() {
                 footer={
                   mayReview ? (
                     <>
+                      {/* D158 (bundle 13 turn 6) — photos held while photo screening was
+                          off: approving the ad approves them (the operator's answer). */}
+                      {heldCount > 0 ? (
+                        <p
+                          className="basis-full text-sm text-muted-foreground"
+                          data-testid="admin-screening-preview-unscreened"
+                        >
+                          {fill(t("admin.screening.unscreenedNote"), { count: heldCount })}
+                        </p>
+                      ) : null}
                       <Button
                         type="button"
                         className="min-h-11"
@@ -608,6 +620,7 @@ export function AdminScreeningPage() {
                   definitions: schema.data?.definitions ?? [],
                   attributeOptions: schema.data?.attributeOptions ?? {},
                   photos: photos.data ?? [],
+                  markUnscreened: true,
                   illustrationUrl: nearestCategoryPicture(tree, previewRow.categoryId),
                   photosSoon: previewRow.photosSoon,
                   coverage: previewRow.locationId === null ? [] : [previewRow.locationId],
