@@ -303,11 +303,6 @@ sign-in redirect (`beforeLoad`, D20), so the live guard evacuates them only once
 a session this tab held has gone; a fresh signed-out visit goes to
 `/auth?return=…` and back. `/admin` and `/settings` are evacuated as before.
 
-Later word (bundle 16 turn 2b, INC-627): the gated set is `/admin`, `/settings`,
-`/account` and `/my-listings`. `/account` and `/my-listings` have their own
-sign-in redirect (`beforeLoad`, D20), so the live guard evacuates them only once
-a session this tab held has gone; a fresh signed-out visit goes to
-`/auth?return=…` and back. `/admin` and `/settings` are evacuated as before.
 ## Session policy (U0k)
 
 Sign-out is ONE CLICK: every affordance (rail/drawer foot, account menu) calls
