@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 412,
+  "scanned": 414,
   "dynamicCallSites": 275,
   "keys": {
     "account.deactivatedBanner": [
@@ -3520,7 +3520,9 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/admin/users/$userId",
-      "/dev/style"
+      "/dev/style",
+      "/post",
+      "/post/$listingId"
     ],
     "common.dismiss": [
       "(every page)"
@@ -4176,6 +4178,30 @@
     ],
     "post.field.required": [
       "/admin/listings/$listingId",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.gallery.enlarge": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.gallery.next": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.gallery.previous": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.gallery.show": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
       "/post",
       "/post/$listingId"
     ],

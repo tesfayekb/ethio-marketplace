@@ -46,3 +46,37 @@ export function linksOf(payload: Record<string, unknown>): PhotoLinks {
   }
   return out;
 }
+
+/**
+ * D161 — a gallery photo: the card size drawn in the page, the cover size for
+ * a sharp page on a dense screen and for the full-screen viewer, and the thumb
+ * size for the thumbnails. Every link passes `photoUrl`, so a photo with no
+ * https link at any size is left out — never a broken image.
+ */
+export interface GalleryPhoto {
+  id: string;
+  /** The card size (480 px), drawn in the page; the cover or the thumb when it is missing. */
+  main: string;
+  /** The cover size (up to 1600 px); null when absent. */
+  large: string | null;
+  /** The thumb size (160 px); the main link when it is missing. */
+  thumb: string;
+}
+
+export function galleryPhotos(
+  rows: readonly { id: string }[],
+  links: PhotoLinks | undefined,
+): GalleryPhoto[] {
+  return rows.flatMap((row) => {
+    const main = photoUrl(row, CARD_FIRST, links);
+    if (main === null) return [];
+    return [
+      {
+        id: row.id,
+        main,
+        large: photoUrl(row, ["cover"], links),
+        thumb: photoUrl(row, ["thumb"], links) ?? main,
+      },
+    ];
+  });
+}

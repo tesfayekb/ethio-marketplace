@@ -226,6 +226,8 @@ test.describe("FEED ROUTE", () => {
       "priceUnit",
       "priceUnitText",
       "photosSoon",
+      // INC-606 / INC-611 — the card names its cover photo (an id, or null).
+      "coverPhotoId",
       "tier",
       "publishedAt",
       "categoryId",

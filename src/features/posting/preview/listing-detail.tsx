@@ -1,7 +1,8 @@
 import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { dealLines } from "../deal-lines";
-import { CARD_FIRST, photoUrl } from "../photo-links";
+import { galleryPhotos } from "../photo-links";
 import { usePhotoLinks } from "../use-photo-links";
+import { PhotoGallery } from "./photo-gallery";
 import { lazy, Suspense, type ReactNode } from "react";
 import { SellerLine } from "../seller-line";
 
@@ -23,7 +24,6 @@ import { useCountryTree, type TreeNode } from "@/components/shell/location-data"
 
 import { formatCommission } from "../price-basis";
 import { priceLine as sharedPriceLine } from "../price-line";
-import { fill } from "../refusal-text";
 import {
   attributeDisplayValue,
   choiceHeldKnown,
@@ -129,11 +129,10 @@ export function ListingDetail(view: ListingDetailView) {
   const tree = useCountryTree(view.country);
   const nodes: TreeNode[] = tree.loadedCountry === view.country ? tree.nodes : [];
 
-  // INC-588 / D151 — every stored photo, through links that expire.
+  // INC-588 / D151 — every stored photo, through links that expire; D161 — each
+  // with its card size for the page, its cover for the viewer and its thumb.
   const links = usePhotoLinks(view.photos);
-  const images = view.photos
-    .map((row) => photoUrl(row, CARD_FIRST, links))
-    .filter((url): url is string => url !== null);
+  const images = galleryPhotos(view.photos, links);
 
   const places = view.coverage
     .map((id) => nodes.find((node) => node.id === id) ?? null)
@@ -200,29 +199,7 @@ export function ListingDetail(view: ListingDetailView) {
     <article className="space-y-4" data-testid="listing-detail">
       {/* ------------------------------ the gallery ------------------------- */}
       {images.length > 0 ? (
-        <div className="space-y-2" data-testid="listing-detail-gallery">
-          {images.map((url, index) => (
-            <figure
-              key={url}
-              className="mx-auto flex aspect-[4/3] w-full max-w-80 items-center justify-center overflow-hidden rounded-md bg-muted"
-            >
-              <img
-                src={url}
-                alt=""
-                width={320}
-                height={240}
-                loading="lazy"
-                className="h-full w-full object-contain"
-              />
-              <figcaption className="sr-only">
-                {fill(t("post.preview.photoCount"), {
-                  index: index + 1,
-                  total: images.length,
-                })}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
+        <PhotoGallery photos={images} />
       ) : (
         <ListingPicture
           photoUrl={null}
