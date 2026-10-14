@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { GEO_NONE, geoGuess, type GeoAnswer } from "@/server/geo/guess";
+import { errorText } from "@/lib/error-text";
 
 /**
  * LOCATIONS ERA L4b-2 — THE GEO-GUESS ROUTE.
@@ -29,11 +30,7 @@ export const Route = createFileRoute("/api/geo")({
         try {
           return answer(geoGuess(request));
         } catch (error) {
-          console.error(
-            "[ssr-error]",
-            "/api/geo",
-            error instanceof Error ? error.message : String(error),
-          );
+          console.error("[ssr-error]", "/api/geo", errorText(error));
           return answer(GEO_NONE);
         }
       },

@@ -17,6 +17,8 @@
  * "unavailable", never a request the seller waits on forever (F4).
  */
 
+import { errorText } from "@/lib/error-text";
+
 export interface GeoPlace {
   label: string;
   lat: number;
@@ -101,11 +103,7 @@ export async function nominatim(
     }
     return (await response.json()) as unknown;
   } catch (error) {
-    console.error(
-      "[ssr-error]",
-      `/api/geo/${endpoint}`,
-      error instanceof Error ? error.message : String(error),
-    );
+    console.error("[ssr-error]", `/api/geo/${endpoint}`, errorText(error));
     return null;
   } finally {
     clearTimeout(timer);

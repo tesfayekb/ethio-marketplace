@@ -1,6 +1,7 @@
 import { cleanUntrusted, untrustedText, withUntrustedRule } from "@/lib/untrusted-text";
 
 import type { ImageFormat } from "./strip";
+import { errorText } from "@/lib/error-text";
 
 /**
  * U6-B1 — THE UPLOAD-TIME POLICY PASS (spec §12 D15).
@@ -287,7 +288,7 @@ export async function screenPhotoPolicy(
       raw = await response.text();
     }
   } catch (error) {
-    log(`photo policy: provider unreachable — ${error instanceof Error ? error.message : ""}`);
+    log(`photo policy: provider unreachable — ${errorText(error)}`);
     return { ok: false, code: "providerUnavailable", evidence: "screening is unavailable" };
   }
 
@@ -321,7 +322,7 @@ export async function screenPhotoPolicy(
     }
     return { ok: false, code, evidence };
   } catch (error) {
-    log(`photo policy: unusable answer — ${error instanceof Error ? error.message : ""}`);
+    log(`photo policy: unusable answer — ${errorText(error)}`);
     return { ok: false, code: "providerUnavailable", evidence: "screening is unavailable" };
   }
 }

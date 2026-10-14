@@ -12,6 +12,7 @@ import {
   upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
+import { errorText } from "@/lib/error-text";
 
 /**
  * U6-B1 — THE PHOTO'S OWN ROUTE.
@@ -68,7 +69,7 @@ async function handleDelete(request: Request, photoId: string): Promise<Response
     } catch (error) {
       // The object is gone or unreachable; the row must still go, so the failure
       // is named rather than swallowed (F4) and the removal continues.
-      logRouteError(PATH, `object delete ${ref.key}: ${String(error)}`);
+      logRouteError(PATH, `object delete ${ref.key}: ${errorText(error)}`);
     }
   }
 

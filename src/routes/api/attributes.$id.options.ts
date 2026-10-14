@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { userClientFromRequest } from "@/server/supabase/user-client";
+import { errorText } from "@/lib/error-text";
 
 /**
  * U6-A2-C — THE LAZY OPTION LIST (DEC-053).
@@ -64,8 +65,8 @@ function remember(id: string, entry: CacheEntry): void {
 }
 
 function logRouteError(id: string, error: unknown): void {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error("[ssr-error]", `/api/attributes/${id}/options`, message);
+  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
+  console.error("[ssr-error]", `/api/attributes/${id}/options`, errorText(error));
 }
 
 function fail(id: string, error: string, status: number): Response {
@@ -155,7 +156,7 @@ export const Route = createFileRoute("/api/attributes/$id/options")({
           return await handleGet(request, id);
         } catch (error) {
           logRouteError(id, error);
-          return fail(id, error instanceof Error ? error.message : "internal error", 500);
+          return fail(id, errorText(error), 500);
         }
       },
     },

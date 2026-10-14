@@ -446,6 +446,23 @@ a retryable auth failure is the `upstream` reason (503), never "not signed in".
 `logRouteError` names an error page ("upstream returned an HTML error page")
 instead of writing it into the log.
 
+INC-625 (bundle 15 turn 1) — one rule for what a caught error says in a log
+line, in `src/lib/error-text.ts`. `errorText(error)` gives an Error's message
+(its name when the message is empty); an object's message, else its code, else
+its status; a string or a number as it is; and "no message (<type>)" for
+nothing — never the word "undefined". An HTML error page, from its first
+`<!doctype` or `<html` tag to the end, is named "upstream returned an HTML error
+page (<status>)", and what came before it is kept. `errorWithStack(error)` adds
+the first stack line of an Error. Server code — the API routes, `src/server/`,
+`src/server.ts` and the root route — takes a caught error's text through one of
+the two, and so do the log helpers: `logRouteError` here, the public routes'
+own `logRouteError`, the two `fail5xx` and the import gate's `refuse`. Its
+census is `src/lib/error-text.test.ts`: ERRT-6 refuses `instanceof Error ?
+x.message`, `String(error)`, `(error as Error).message` and `(error as {
+message }).message` in server code; ERRT-7 refuses a raw `.message` printed on
+the `[ssr-error]` channel and lists the helpers. A plain message keeps its
+words, so the server-error census's allowlist is unchanged.
+
 ### The routes
 
 | Route                              | Door                    | Dial (env)                    | Default   |

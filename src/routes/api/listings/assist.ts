@@ -17,6 +17,7 @@ import { assistDealLines, assistFactLines, composeAssistPrompt } from "@/lib/ass
 import { withUntrustedRule } from "@/lib/untrusted-text";
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
 import { signPhotoRows } from "@/server/media/links";
+import { errorText } from "@/lib/error-text";
 
 /**
  * U6-A2-C / U6-C1-R2 — THE WRITING ASSISTANT (DEC-072, in full).
@@ -193,7 +194,7 @@ async function inlinePhoto(url: string): Promise<{ mimeType: string; data: strin
     for (const byte of bytes) binary += String.fromCharCode(byte);
     return { mimeType, data: btoa(binary) };
   } catch (error) {
-    logRouteError(PATH, `photo unreadable: ${error instanceof Error ? error.message : ""}`);
+    logRouteError(PATH, `photo unreadable: ${errorText(error)}`);
     return null;
   }
 }
@@ -243,7 +244,7 @@ async function callProvider(
     const description = clamp(answer.description, DESCRIPTION_MAX);
     return title === "" || description === "" ? null : { title, description };
   } catch (error) {
-    logRouteError(PATH, `unusable provider answer: ${error instanceof Error ? error.message : ""}`);
+    logRouteError(PATH, `unusable provider answer: ${errorText(error)}`);
     return null;
   }
 }

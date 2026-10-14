@@ -25,6 +25,7 @@ import {
   refreshCatalogFindAfterCommit,
   refreshNameFoldsAfterCommit,
 } from "@/server/catalog-find.server";
+import { errorText } from "@/lib/error-text";
 
 const PATH = "/api/admin/attributes/import";
 
@@ -100,7 +101,7 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
           error: { message: string; details?: string | null; hint?: string | null },
           what: string,
         ): Response => {
-          console.error(`[ssr-error] ${PATH} ${what} ${error.message}`);
+          console.error(`[ssr-error] ${PATH} ${what} ${errorText(error)}`);
           if (error.message.includes("permission denied")) {
             return json({ error: "permission denied" }, 403);
           }

@@ -5,6 +5,7 @@ import {
 } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { errorText, errorWithStack, HTML_PAGE } from "@/lib/error-text";
 
 /**
  * U6-A2-C — THE ONE USER-SCOPED SERVER CLIENT (B2/B3).
@@ -104,21 +105,14 @@ export function routeJson(body: unknown, status: number): Response {
   });
 }
 
-/** INC-328 / INC-574 — an upstream HTML error page, from its first tag to the end. */
-const HTML_PAGE = /<(?:!doctype|html)\b[\s\S]*$/i;
-
 /**
  * I4 — one `[ssr-error]` line for every throw and every deliberate 5xx.
- * INC-328 / INC-574 — an upstream HTML error page is named, never dumped into
- * the log: what came before it (a prefix such as "remove: ") is kept.
+ * INC-328 / INC-574 / INC-625 — an upstream HTML error page is named, never
+ * dumped into the log (what came before it is kept), and an error with no
+ * message says so: the one rule, src/lib/error-text.ts.
  */
 export function logRouteError(path: string, error: unknown): void {
-  const raw =
-    error instanceof Error
-      ? `${error.message} | ${(error.stack ?? "").split("\n")[1]?.trim() ?? "no stack"}`
-      : String(error);
-  const message = raw.replace(HTML_PAGE, "upstream returned an HTML error page");
-  console.error("[ssr-error]", path, message);
+  console.error("[ssr-error]", path, errorWithStack(error));
 }
 
 /** INC-574 — gateway statuses: a gateway answered in the door's place. */
@@ -168,11 +162,11 @@ export function refuseUserClient(path: string, answer: UserClientAnswer): Respon
     return routeJson({ error: "server error" }, 500);
   }
   if (answer.reason === "upstream") {
-    console.error("[ssr-error]", path, answer.message);
+    console.error("[ssr-error]", path, errorText(answer.message));
     return routeJson({ error: "upstream unavailable" }, 503);
   }
   if (answer.reason === "notSignedIn" && answer.message !== "") {
-    console.error(`[ssr-error] ${path} not signed in ${answer.message}`);
+    console.error(`[ssr-error] ${path} not signed in ${errorText(answer.message)}`);
   }
   return routeJson(
     { error: answer.reason === "missingBearer" ? "missing bearer token" : "not signed in" },

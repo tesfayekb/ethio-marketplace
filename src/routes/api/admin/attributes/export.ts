@@ -19,6 +19,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { openExportGate } from "@/server/imports/gate";
+import { errorText } from "@/lib/error-text";
 
 const PATH = "/api/admin/attributes/export";
 
@@ -173,7 +174,7 @@ export const Route = createFileRoute("/api/admin/attributes/export")({
             : await supabase.rpc("admin_export_attributes", { p_scope_slug: scope });
         if (error) {
           // The RPC is the authority: `categories:view` is refused inside it.
-          console.error(`[ssr-error] ${PATH} export_failed ${error.message}`);
+          console.error(`[ssr-error] ${PATH} export_failed ${errorText(error)}`);
           if (error.message.includes("permission denied")) {
             return json({ error: "permission denied" }, 403);
           }

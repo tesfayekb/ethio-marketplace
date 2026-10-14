@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { errorText } from "@/lib/error-text";
 
 /**
  * Bundle 10 E2b — THE PUBLIC FEED'S READ DOOR.
@@ -26,12 +27,9 @@ const NOT_FOUND = ["feed_page: unknownCategory", "feed_page: unknownPlace"] as c
 const BAD = ["feed_page: badCursor", "feed_page: badSize"] as const;
 
 function logRouteError(error: unknown): void {
-  const raw = error instanceof Error ? error.message : String(error);
-  // INC-328 — an upstream HTML error page is named, never dumped into the log.
-  const status = /\b([45]\d\d)\b/.exec(raw)?.[1] ?? "unknown";
-  const message = raw.trimStart().startsWith("<")
-    ? `upstream returned an HTML error page (${status})`
-    : raw;
+  // INC-328, INC-625 — an upstream HTML error page is named, never dumped into the
+  // log; an error with no message says so (src/lib/error-text.ts).
+  const message = errorText(error);
   console.error("[ssr-error]", PATH, message);
 }
 
@@ -166,7 +164,7 @@ export const Route = createFileRoute("/api/feed")({
           return await handleGet(request);
         } catch (error) {
           logRouteError(error);
-          return fail(error instanceof Error ? error.message : "internal error", 500);
+          return fail(errorText(error), 500);
         }
       },
     },

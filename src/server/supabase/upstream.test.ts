@@ -124,7 +124,7 @@ describe("INC-574 — an upstream failure is not a verdict", () => {
     logRouteError("/api/x", `remove: ${PAGE}`);
     logRouteError("/api/x", "listing not found");
     expect(lines).toEqual([
-      ["[ssr-error]", "/api/x", "remove: upstream returned an HTML error page"],
+      ["[ssr-error]", "/api/x", "remove: upstream returned an HTML error page (502)"],
       ["[ssr-error]", "/api/x", "listing not found"],
     ]);
   });

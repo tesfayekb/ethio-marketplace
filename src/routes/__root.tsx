@@ -22,6 +22,7 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 // TYPE ONLY — the judge itself is a server module (import protection keeps
 // `src/server/**` out of the client graph); the handler imports it dynamically.
 import type { GeoAnswer } from "../server/geo/guess";
+import { errorText } from "@/lib/error-text";
 
 /**
  * U4h — HEAD-COMPOSITION CENSUS (stated, per the task).
@@ -106,7 +107,7 @@ const getSsrLangContext = createServerFn({ method: "GET" }).handler(
       const { geoGuess } = await import("../server/geo/guess");
       geo = geoGuess(getRequest());
     } catch (error) {
-      console.error("[ssr-error] /__root geo guess threw", (error as Error).message);
+      console.error("[ssr-error] /__root geo guess threw", errorText(error));
     }
 
     // Same resolution order as the generated client (dev serves VITE_*; the
@@ -128,7 +129,7 @@ const getSsrLangContext = createServerFn({ method: "GET" }).handler(
           console.error("[ssr-error] /__root gate fetch failed", response.status);
         }
       } catch (error) {
-        console.error("[ssr-error] /__root gate fetch threw", (error as Error).message);
+        console.error("[ssr-error] /__root gate fetch threw", errorText(error));
       }
     }
 

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { errorText, errorWithStack } from "@/lib/error-text";
 
 /**
  * LOCATIONS ERA L4b — THE PUBLIC OPEN-MARKETS LIST.
@@ -52,10 +53,8 @@ interface CacheEntry {
 let cached: CacheEntry | null = null;
 
 function logRouteError(error: unknown): void {
-  const message =
-    error instanceof Error
-      ? `${error.message} | ${(error.stack ?? "").split("\n")[1]?.trim() ?? "no stack"}`
-      : String(error);
+  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
+  const message = errorWithStack(error);
   console.error("[ssr-error]", "/api/locations", message);
 }
 
@@ -154,7 +153,7 @@ export const Route = createFileRoute("/api/locations")({
           return await handleGet(request);
         } catch (error) {
           logRouteError(error);
-          return fail(error instanceof Error ? error.message : "internal error", 500);
+          return fail(errorText(error), 500);
         }
       },
     },

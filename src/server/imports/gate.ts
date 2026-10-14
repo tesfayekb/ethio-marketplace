@@ -42,6 +42,7 @@ import {
   type FamilySpec,
   type FileSpec,
 } from "./registry";
+import { errorText } from "@/lib/error-text";
 
 export interface Refusal {
   file: string;
@@ -88,7 +89,8 @@ export function json(body: unknown, status: number): Response {
 }
 
 function refuse(path: string, message: string, status: number, body: unknown): GateRefused {
-  console.error(`[ssr-error] ${path} ${message}`);
+  // INC-625 — an upstream's text is named by one rule (src/lib/error-text.ts).
+  console.error(`[ssr-error] ${path} ${errorText(message)}`);
   return { ok: false, response: json(body, status) };
 }
 
@@ -869,7 +871,8 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
     return refuse(path, caller.message, 503, { error: "upstream unavailable" });
   }
   if (caller.supabase === null || caller.userId === null) {
-    console.error(`[ssr-error] ${path} not signed in ${caller.message}`.trim());
+    const reason = caller.message === "" ? "" : ` ${errorText(caller.message)}`;
+    console.error(`[ssr-error] ${path} not signed in${reason}`);
     return { ok: false, response: json({ error: "not signed in" }, 401) };
   }
   const supabase = caller.supabase;
@@ -887,7 +890,7 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
       p_counts: (counts ?? {}) as never,
     });
     // F4 — an audit that could not be written is never silent.
-    if (error) console.error(`[ssr-error] ${path} audit_failed ${error.message}`);
+    if (error) console.error(`[ssr-error] ${path} audit_failed ${errorText(error)}`);
   };
 
   // `scope` must LOOK right; existence is the RPC's verdict (404).
@@ -984,7 +987,8 @@ export async function openExportGate(
     return refuse(path, caller.message, 503, { error: "upstream unavailable" });
   }
   if (caller.supabase === null || caller.userId === null) {
-    console.error(`[ssr-error] ${path} not signed in ${caller.message}`.trim());
+    const reason = caller.message === "" ? "" : ` ${errorText(caller.message)}`;
+    console.error(`[ssr-error] ${path} not signed in${reason}`);
     return { ok: false, response: json({ error: "not signed in" }, 401) };
   }
   const supabase = caller.supabase;

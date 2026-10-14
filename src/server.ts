@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { errorText } from "@/lib/error-text";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -28,7 +29,8 @@ function logSsrError(request: Request, error: unknown) {
   } catch {
     // Keep the raw URL; a malformed one is itself evidence.
   }
-  const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
+  const message = error instanceof Error ? `${error.name}: ${errorText(error)}` : errorText(error);
   const stack =
     error instanceof Error ? (error.stack ?? "").split("\n").slice(1, 4).join("\n") : "";
   console.error("[ssr-error]", where, message, stack);

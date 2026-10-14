@@ -22,6 +22,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { openExportGate } from "@/server/imports/gate";
 import { familyOf, fileOf, type ColumnRule } from "@/server/imports/registry";
+import { errorText } from "@/lib/error-text";
 
 const PATH = "/api/admin/locations/export";
 
@@ -96,7 +97,7 @@ export const Route = createFileRoute("/api/admin/locations/export")({
             : await supabase.rpc("admin_export_locations", { p_scope: scope });
         if (error) {
           // The RPC is the authority: `locations:view` is refused inside it.
-          console.error(`[ssr-error] ${PATH} export_failed ${error.message}`);
+          console.error(`[ssr-error] ${PATH} export_failed ${errorText(error)}`);
           if (error.message.includes("permission denied")) {
             return json({ error: "permission denied" }, 403);
           }

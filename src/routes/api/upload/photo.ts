@@ -24,6 +24,7 @@ import {
   upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
+import { errorText } from "@/lib/error-text";
 
 /**
  * U6-B1 — THE STRIP ROUTE.
@@ -149,10 +150,7 @@ async function handlePost(request: Request): Promise<Response> {
   try {
     form = await request.formData();
   } catch (error) {
-    logRouteError(
-      PATH,
-      `unreadable multipart body: ${error instanceof Error ? error.message : ""}`,
-    );
+    logRouteError(PATH, `unreadable multipart body: ${errorText(error)}`);
     return refusal("body", "badShape");
   }
 
@@ -329,7 +327,7 @@ async function handlePost(request: Request): Promise<Response> {
       try {
         await deleteObject(supabaseAdmin, ref.partition, ref.key);
       } catch (error) {
-        logRouteError(PATH, `rollback of ${ref.key} failed: ${String(error)}`);
+        logRouteError(PATH, `rollback of ${ref.key} failed: ${errorText(error)}`);
       }
     }
   };

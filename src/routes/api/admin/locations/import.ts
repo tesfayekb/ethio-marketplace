@@ -27,6 +27,7 @@ import {
   withRowValues,
   type Refusal,
 } from "@/server/imports/gate";
+import { errorText } from "@/lib/error-text";
 
 const PATH = "/api/admin/locations/import";
 
@@ -102,7 +103,7 @@ export const Route = createFileRoute("/api/admin/locations/import")({
           error: { message: string; details?: string | null; hint?: string | null },
           what: string,
         ): Response => {
-          console.error(`[ssr-error] ${PATH} ${what} ${error.message}`);
+          console.error(`[ssr-error] ${PATH} ${what} ${errorText(error)}`);
           if (error.message.includes("permission denied")) {
             return json({ error: "permission denied" }, 403);
           }

@@ -29,6 +29,8 @@
  * budget behave the same on ethio-staging as on ethio-prod.
  */
 
+import { errorText } from "@/lib/error-text";
+
 export const AI_FEATURES = [
   "photo_screen",
   "writing_helper",
@@ -71,7 +73,7 @@ export async function aiGate(feature: AiFeature, log: Log): Promise<AiGate> {
     log(`ai gate ${feature}: unreadable answer`);
     return { on: false, reason: "unavailable" };
   } catch (error) {
-    log(`ai gate ${feature}: ${error instanceof Error ? error.message : String(error)}`);
+    log(`ai gate ${feature}: ${errorText(error)}`);
     return { on: false, reason: "unavailable" };
   }
 }
@@ -87,6 +89,6 @@ export async function recordAiSpend(feature: AiFeature, units: number, log: Log)
     });
     if (error) log(`ai meter ${feature}: ${error.message}`);
   } catch (error) {
-    log(`ai meter ${feature}: ${error instanceof Error ? error.message : String(error)}`);
+    log(`ai meter ${feature}: ${errorText(error)}`);
   }
 }

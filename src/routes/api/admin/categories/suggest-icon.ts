@@ -13,6 +13,7 @@
  * provider (or fake mode) gives is metered.
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { errorText } from "@/lib/error-text";
 
 const PATH = "/api/admin/categories/suggest-icon";
 const FAKE_ICON = "Store";
@@ -71,7 +72,7 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
           await recordAiSpend("category_icons", 1, log);
           return json({ ...checkIcon(raw), fake: false }, 200);
         } catch (error) {
-          const message = error instanceof Error ? error.message : "unknown error";
+          const message = errorText(error); // INC-625
           // PART B (F4): true cause + stable code before the generic body.
           console.error(`[ssr-error] ${PATH} icon_suggest_failed stage=model-call ${message}`);
           if (error instanceof GeminiError) {
