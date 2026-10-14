@@ -55,6 +55,7 @@ import {
   savePhotosSoon,
 } from "./posting-service";
 import { prefillCursor } from "./post-prefill";
+import { replaceAddressQuietly } from "./quiet-address";
 import { useDraft, type DraftValues } from "./use-draft";
 import { keepListedAnswers, type QuestionListRead } from "./catalog-held-answers";
 
@@ -361,13 +362,17 @@ export function PostingWizard({
    * address becomes /post/<id>, replaced in place — no navigation, no remount,
    * the wizard keeps its step — and a reload opens the draft again (D39). A
    * Back from a later page lands on /post/<id> too.
+   *
+   * INC-610 — through the browser's own method (`replaceAddressQuietly`): the
+   * router's replaceState treats a call as a navigation, and the wizard was
+   * mounted again on the resume route.
    */
   useEffect(() => {
     if (listingId !== null || draft.listingId === null) return;
     if (typeof window === "undefined") return;
     const own = `/post/${draft.listingId}`;
     if (window.location.pathname === own) return;
-    window.history.replaceState(window.history.state, "", own);
+    replaceAddressQuietly(own);
   }, [listingId, draft.listingId]);
   const [triedWithoutLeaf, setTriedWithoutLeaf] = useState(false);
   /**

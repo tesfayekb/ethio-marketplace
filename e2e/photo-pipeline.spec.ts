@@ -29,7 +29,8 @@ import {
   seedPostableCategory,
   stopPageBeforePurge,
 } from "./helpers/posting";
-import { seedActiveListing, signInAsSuperAdmin } from "./helpers/categories";
+import { signInAsSuperAdmin } from "./helpers/categories";
+import { destroyLocation, rand, RUN, seedScratchChain } from "./helpers/locations";
 import { gotoReady, isMobile, signInViaSession } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -59,6 +60,7 @@ const FIXTURE = join(
 test.describe("PHOTO PIPELINE", () => {
   const categories: string[] = [];
   const sellers: string[] = [];
+  const regions: string[] = [];
   const objects: { userId: string; listingId: string }[] = [];
 
   test.afterEach(async ({ page }) => {
@@ -73,6 +75,8 @@ test.describe("PHOTO PIPELINE", () => {
       await destroyListingsOf(sellerId);
     }
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
+    // After the listings: a scratch place is removed once nothing points at it.
+    for (const slug of regions.splice(0)) await destroyLocation(slug);
   });
 
   async function seller(page: import("@playwright/test").Page) {
@@ -958,12 +962,12 @@ test.describe("PHOTO PIPELINE", () => {
       `/post/${listingId}`,
     );
     await expect(page.getByTestId("post-step-1"), "PP-20: the reload began again").toHaveCount(0);
-    // D39 — the draft resumes at its first unfinished step; Back reaches the photos.
-    for (let tries = 0; tries < 3; tries += 1) {
-      if (await page.getByTestId("post-step-2").isVisible()) break;
-      await page.getByTestId("post-back").click();
-    }
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    // D39 — the draft (past its category only) resumes at its first unfinished
+    // step, the specifications; the photos come next in the walk (INC-611: Back
+    // from there is the category, never the photos).
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-photo-stored")).toHaveCount(1);
     expect(
       (await draftsOf(user.id)).map((row) => row.id),
@@ -986,7 +990,31 @@ test.describe("PHOTO PIPELINE", () => {
     const { user, token } = await seller(page);
     const leaf = await seedPostableCategory();
     categories.push(leaf.slug);
-    const listingId = await seedActiveListing(leaf.id, user.id);
+    // INC-611 — an ACTIVE listing as the feed holds one: a publish time (the
+    // feed indexes an active listing only with one, feed_index_refresh) and a
+    // scratch city in Ethiopia (as the feed-screen specs seed theirs).
+    const chain = await seedScratchChain("ET");
+    regions.push(chain.region.slug);
+    const { data: seeded, error: seedError } = await adminClient()
+      .from("listings")
+      .insert({
+        category_id: leaf.id,
+        seller_id: user.id,
+        location_id: chain.city.id,
+        home_country_code: "ET",
+        title: `e2e-feed-pp21-${RUN}-${rand()}`,
+        description: "e2e scratch listing for PP-21",
+        status: "active",
+        published_at: new Date(Date.now() - 60_000).toISOString(),
+      })
+      .select("id")
+      .single();
+    if (seedError || !seeded) {
+      throw new Error(
+        `[e2e:pp] seeding the active listing failed: ${seedError?.message ?? "no row"}`,
+      );
+    }
+    const listingId = String(seeded.id);
     objects.push({ userId: user.id, listingId });
     const shown = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
     expect(shown.status, JSON.stringify(shown.payload)).toBe(200);
@@ -1037,5 +1065,114 @@ test.describe("PHOTO PIPELINE", () => {
       /\/object\/sign\/listing-photos\//,
       { timeout: 20_000 },
     );
+  });
+
+  /**
+   * PP-22 — D161 (the operator, 2026-10-13: "the main photo in regular size and
+   * on the side small of the rest just like in amazon"): the buyer's preview
+   * shows the photos as a gallery. The cover is drawn large at its card size,
+   * with a counter; every photo has a thumbnail at its thumb size, beside the
+   * photo on a computer and under it on a phone; a thumbnail, the arrows and a
+   * swipe move the photo shown; a tap opens a full-screen viewer at the cover
+   * size, whose Escape closes the viewer and leaves the preview open.
+   */
+  test("PP-22 the buyer's preview is a gallery: thumbnails, arrows, a swipe and a full-screen viewer", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    for (const name of ["gps.jpg", "meta.png", "meta.webp"] as const) {
+      const uploaded = await uploadPhoto(page, { listingId, token, cover: { name } });
+      expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
+    }
+    const rows = await photoRowsOf(listingId);
+    expect(rows, "PP-22: three photos were uploaded").toHaveLength(3);
+    /** A signed link carries the stored key of the size it serves. */
+    const inLink = (key: string) => new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    // Recorded as past contact (service client, this scratch row only), so the
+    // draft opens on review, where the preview is.
+    const { error } = await adminClient()
+      .from("listings")
+      .update({ draft_step: 7 })
+      .eq("id", listingId)
+      .eq("seller_id", user.id);
+    if (error) throw new Error(`[e2e:pp] seeding draft_step failed: ${error.message}`);
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-preview-open").click();
+    const sheet = page.getByTestId("post-preview-sheet");
+    const gallery = sheet.getByTestId("listing-detail-gallery");
+    const main = gallery.getByTestId("gallery-main");
+    const count = gallery.getByTestId("gallery-count");
+    const thumbs = gallery.getByTestId("gallery-thumb");
+
+    // The cover first, at its card size; every photo a thumbnail at its thumb size.
+    await expect(count, "PP-22: no counter on the photo").toHaveText("1 / 3", { timeout: 20_000 });
+    await expect(main.locator("img")).toHaveAttribute("src", inLink(keyOf(rows[0]!, "card")));
+    await expect(main.locator("img")).toHaveAttribute("srcset", inLink(keyOf(rows[0]!, "cover")));
+    await expect(thumbs).toHaveCount(3);
+    for (const [index, row] of rows.entries()) {
+      await expect(thumbs.nth(index).locator("img")).toHaveAttribute(
+        "src",
+        inLink(keyOf(row, "thumb")),
+      );
+    }
+    await expect(thumbs.nth(0)).toHaveAttribute("aria-current", "true");
+
+    // Beside the photo on a computer, under it on a phone.
+    const mainBox = await main.boundingBox();
+    const thumbsBox = await gallery.getByTestId("gallery-thumbs").boundingBox();
+    expect(mainBox, "PP-22: the photo is not drawn").not.toBeNull();
+    expect(thumbsBox, "PP-22: the thumbnails are not drawn").not.toBeNull();
+    if (isMobile(page)) {
+      expect(
+        thumbsBox!.y,
+        "PP-22: on a phone the thumbnails are not under the photo",
+      ).toBeGreaterThanOrEqual(mainBox!.y + mainBox!.height - 1);
+    } else {
+      expect(
+        thumbsBox!.x + thumbsBox!.width,
+        "PP-22: on a computer the thumbnails are not beside the photo",
+      ).toBeLessThanOrEqual(mainBox!.x + 1);
+    }
+
+    // A thumbnail shows its photo; the arrows step and stop at the ends.
+    await thumbs.nth(2).click();
+    await expect(count).toHaveText("3 / 3");
+    await expect(main.locator("img")).toHaveAttribute("src", inLink(keyOf(rows[2]!, "card")));
+    await expect(thumbs.nth(2)).toHaveAttribute("aria-current", "true");
+    await expect(gallery.getByTestId("gallery-next")).toBeDisabled();
+    await gallery.getByTestId("gallery-previous").click();
+    await expect(count).toHaveText("2 / 3");
+
+    // A swipe to the left shows the next photo and opens nothing.
+    const box = (await main.boundingBox())!;
+    // A quarter down the photo, clear of the arrows at its middle.
+    await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.25);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.25, { steps: 6 });
+    await page.mouse.up();
+    await expect(count, "PP-22: a swipe did not move to the next photo").toHaveText("3 / 3");
+    await expect(page.getByTestId("gallery-viewer")).toHaveCount(0);
+
+    // A tap opens the viewer at the cover size; its arrows step; Escape closes it only.
+    await main.click();
+    const viewer = page.getByTestId("gallery-viewer");
+    await expect(viewer).toBeVisible();
+    await expect(viewer.getByTestId("gallery-viewer-count")).toHaveText("3 / 3");
+    await expect(viewer.getByTestId("gallery-viewer-image")).toHaveAttribute(
+      "src",
+      inLink(keyOf(rows[2]!, "cover")),
+    );
+    await viewer.getByTestId("gallery-viewer-previous").click();
+    await expect(viewer.getByTestId("gallery-viewer-count")).toHaveText("2 / 3");
+    await page.keyboard.press("Escape");
+    await expect(viewer).toHaveCount(0);
+    await expect(sheet, "PP-22: Escape in the viewer closed the preview too").toBeVisible();
+    await expect(count, "PP-22: the gallery does not show the viewer's photo").toHaveText("2 / 3");
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
   });
 });

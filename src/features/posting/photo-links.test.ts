@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CARD_FIRST, CARD_THEN_THUMB, linksOf, photoUrl } from "./photo-links";
+import { CARD_FIRST, CARD_THEN_THUMB, galleryPhotos, linksOf, photoUrl } from "./photo-links";
 
 /** INC-588 / D151 — which link a reader draws, and what the route's answer may carry. */
 describe("a stored photo's link (INC-588)", () => {
@@ -44,5 +44,18 @@ describe("a stored photo's link (INC-588)", () => {
     ).toEqual({ p1: { card: links.p1.card } });
     expect(linksOf({})).toEqual({});
     expect(linksOf({ links: ["x"] })).toEqual({});
+  });
+
+  it("PU-4 a gallery photo carries its card, cover and thumb links; a photo with no https link is left out (D161)", () => {
+    expect(galleryPhotos([{ id: "p1" }, { id: "p2" }, { id: "p3" }], links)).toEqual([
+      { id: "p1", main: links.p1.card, large: links.p1.cover, thumb: links.p1.thumb },
+      { id: "p2", main: links.p2.cover, large: links.p2.cover, thumb: links.p2.thumb },
+    ]);
+    expect(
+      galleryPhotos([{ id: "p1" }], {
+        p1: { card: links.p1.card, cover: "javascript:alert(1)" },
+      }),
+    ).toEqual([{ id: "p1", main: links.p1.card, large: null, thumb: links.p1.card }]);
+    expect(galleryPhotos([{ id: "p1" }], undefined)).toEqual([]);
   });
 });

@@ -29,3 +29,6 @@ export const Z_POPOVER = "z-40";
 
 /** A full-screen sheet (the buyer's-eye preview): above everything. */
 export const Z_SHEET = "z-50";
+
+/** D161 — the full-screen photo viewer, opened from a gallery inside a sheet: above the sheet. */
+export const Z_VIEWER = "z-[60]";

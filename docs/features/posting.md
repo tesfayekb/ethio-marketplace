@@ -686,8 +686,30 @@ channels, and the map area placeholder. It lives in
 U7 MOUNTS THE SAME COMPONENTS on the public listing page — the wizard's preview
 and the buyer's page cannot drift, because they are one component.
 
+**THE GALLERY (D161, bundle 13 turn 4).** The photos are one gallery
+(`preview/photo-gallery.tsx`, `listing-detail-gallery`), as the big sites show
+them: the photo shown large (`gallery-main`, the card size; the cover size where
+the screen is dense, through `srcSet`) with a counter "2 / 7"
+(`gallery-count`) and arrows (`gallery-previous`, `gallery-next`, disabled at
+the ends); a thumbnail of every photo at its thumb size (`gallery-thumbs`,
+`gallery-thumb`, the one shown `aria-current`) — in a column on the photo's left
+when the gallery is 32rem wide or more (a computer), in a row under it
+otherwise (a phone). A thumbnail shows its photo; a sideways swipe of 40 px or
+more moves one photo, and a move that is not a tap opens nothing. A tap opens the
+full-screen viewer (`gallery-viewer`, portalled above the sheet at `Z_VIEWER`):
+the cover size, its counter, arrows and thumbnails, the arrow keys, a double
+click doubling the size (a zoomed photo is not swiped away), the phone's own
+pinch zoom (`touch-action: pan-y pinch-zoom`), and Close or Escape — the viewer
+captures its keys on the document, so Escape closes the viewer and leaves the
+preview open. The button is named by what it does (`post.gallery.enlarge`) and
+described by the photo's place (`post.preview.photoCount`, outside the button).
+`galleryPhotos(rows, links)` (photo-links.ts) gives each photo its three links
+through `photoUrl`, so a photo with no https link is left out. One photo: no
+counter, no arrows, no thumbnails. Tests: GAL-1..GAL-4, PU-4, PP-22.
+
 **THE LAYER ORDER IS DECLARED ONCE** in `src/components/layout/layers.ts`:
-sticky action bar (`z-20`) < popover/listbox/menu (`z-40`) < sheet (`z-50`). Two
+sticky action bar (`z-20`) < popover/listbox/menu (`z-40`) < sheet (`z-50`) <
+the gallery's full-screen viewer (`z-[60]`, D161, opened from inside a sheet). Two
 components each choosing `z-10` let source order decide, and the bar won — a
 seller tapping a currency hit Next underneath it (LY-6).
 
@@ -1386,7 +1408,7 @@ Still to build, in bundle 13 (D154, D155): rotate and crop; the screen's warning
 
 ## Bundle 13, turn 2 — the walk fixes (INC-604, INC-605, D160)
 
-- **INC-604 — the draft's own address.** The draft is created at step 1, the moment a category is chosen; the wizard then replaces the address /post with /post/<id> in place (no navigation, no remount, the step kept), so a reload opens the same draft (D39) and no second draft is made. A Back from a later page lands on /post/<id> too. Before, a reload started a new wizard at step 1 and the draft, its photos with it, was reachable nowhere.
+- **INC-604 — the draft's own address.** The draft is created at step 1, the moment a category is chosen; the wizard then replaces the address /post with /post/<id> in place (no navigation, no remount, the step kept), so a reload opens the same draft (D39) and no second draft is made. A Back from a later page lands on /post/<id> too. Before, a reload started a new wizard at step 1 and the draft, its photos with it, was reachable nowhere. **INC-610 (bundle 13 turn 4):** the address is changed through the browser's own `History.prototype.replaceState` (`replaceAddressQuietly`, src/features/posting/quiet-address.ts). The router's history (@tanstack/history) replaces `window.history.replaceState` with a function that treats every call as a navigation, so turn 2's call mounted the resume route and the wizard again: the save state went back to idle, an invite's prefill was lost, and the posting tests failed together (CI run 38460460625, 183 of 194 failures). Test: QA-1 (unit; red with the router's method).
 - **INC-605 — Next and Back wait for photos on their way.** While any photo is being prepared or sent, Next, Back and "Back to review" are disabled (as Add photos already was) and the line "Wait until your photos are sent." (`post.photos.waitSending`) says why.
 - **D160 — the cover's ribbon.** The cover's tile is outlined in red and carries a red ribbon "Cover photo" (`post.photos.coverRibbon`, `bg-destructive`) on its picture; the label "Cover" (`post.photos.cover`) is retired.
 - Tests: PP-19 (Next and Back held while a photo is sent, the line, the ribbon), PP-20 (/post takes /post/<id>, a reload opens the same draft with its photo, one draft).

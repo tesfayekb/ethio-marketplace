@@ -2602,6 +2602,10 @@ export const en = {
   "post.preview.contactLabel": "Contact the seller",
   "post.preview.mapPlaceholder": "The map of this place opens with the listing.",
   "post.preview.photoCount": "Photo {index} of {total}",
+  "post.gallery.enlarge": "Open the photo full screen",
+  "post.gallery.previous": "Previous photo",
+  "post.gallery.next": "Next photo",
+  "post.gallery.show": "Show photo {index}",
   "admin.attributes.link.allowedOptions": "Allowed options",
   "admin.attributes.link.allowedOptionsHint":
     "Leave empty to offer every option. Separate values with |.",
