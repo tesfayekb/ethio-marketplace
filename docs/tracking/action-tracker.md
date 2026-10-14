@@ -97,3 +97,5 @@
 - ACT-009 — status 2026-10-13: the tidy-up round brought forward by the operator (D145, 2026-10-12 22:10 local: "B, also do the tidy-up round now is my choice"): it follows bundle 11 at once, before the shell brief and stage 1; its items are the roadmap's "The tidy-up round" line and the handover of 2026-10-13 §4 item 1. Status: NEXT.
 
 - ACT-009 — status 2026-10-13: the tidy-up round ran as bundle 12 (seventeen executor turns, block S64) and closed with these items carried on the roadmap: INC-579, INC-398, the flaky tests (INC-449, INC-440, INC-430's PW-55, INC-533, INC-562), INC-488's class, a full read of the Amharic catalogue (INC-489), the four-lens review of the posting era, the E2E account pool before 2026-11-01. Status: OPEN (carried).
+
+- ACT-009 — status 2026-10-14: of the tidy-up round's carried items, INC-579 and INC-494 were fixed in bundle 13 turn 13 (block S65; judged over the ten CI runs after it); the others stay carried on the roadmap (INC-398, the flaky tests, a full read of the Amharic catalogue, the four-lens review of the posting era, the E2E account pool before 2026-11-01). Status: OPEN (carried).
