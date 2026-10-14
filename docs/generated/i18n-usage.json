@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 420,
+  "scanned": 421,
   "dynamicCallSites": 282,
   "keys": {
     "account.deactivatedBanner": [
@@ -120,7 +120,7 @@
     "admin.ai.field.priceHint": [
       "/admin/ai"
     ],
-    "admin.ai.field.screeningStaysOn": [
+    "admin.ai.field.screeningOffNote": [
       "/admin/ai"
     ],
     "admin.ai.filter.search": [
@@ -2791,6 +2791,9 @@
     "admin.screening.showNumber": [
       "/admin/screening"
     ],
+    "admin.screening.unscreenedNote": [
+      "/admin/screening"
+    ],
     "admin.section.ai.title": [
       "/admin/ai"
     ],
@@ -4388,6 +4391,12 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.gallery.unscreened": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.loading": [
       "/admin/listings/$listingId",
       "/post",
@@ -4411,6 +4420,10 @@
       "/post/$listingId"
     ],
     "post.photos.done": [
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.heldNote": [
       "/post",
       "/post/$listingId"
     ],

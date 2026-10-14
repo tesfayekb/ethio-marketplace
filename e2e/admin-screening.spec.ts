@@ -1,4 +1,5 @@
 import { type Page } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
@@ -21,7 +22,9 @@ import { adminClient, leaseUser } from "./helpers/users";
  * bundle 11 A3 — the market filter settles (SC-11, INC-537/538), every Reject is red (SC-12, SC-14),
  * "Show number" asks for no second factor (SC-17, SC-13, SC-15 — D129), the seller box in rows (SC-13, D130);
  * turn C5 — SC-4 and SC-8 split so that no test leases more than two pooled accounts (SC-16, SC-17; INC-555,
- * DEC-174). Seeded as feed-route seeds; every row is found by its unique title in the page's search (G28); DB truth
+ * DEC-174). Bundle 13 turn 6 (D158) — photos held while photo screening was off: staff approve them with the ad
+ * (SC-18); a move with no session leaves them held, and no buyer reads a held photo or gets it as a card's cover
+ * (SC-19). Seeded as feed-route seeds; every row is found by its unique title in the page's search (G28); DB truth
  * through the service client; cleanup in afterEach (J3).
  */
 
@@ -210,6 +213,8 @@ test.describe("ADMIN SCREENING", () => {
       title,
       categoryName: leaf.slug as string,
       cityName: chain.city.name_en as string,
+      categoryId: leaf.id as string,
+      cityId: chain.city.id as string,
     };
   }
 
@@ -771,5 +776,153 @@ test.describe("ADMIN SCREENING", () => {
     expect(await revealRows(ad.id)).toEqual([
       { actor_id: reviewer.id, action: "listing.contact_revealed", meta: { channel: "whatsapp" } },
     ]);
+  });
+
+  /**
+   * Bundle 13 turn 6 (D158) — two stripped photo rows on a scratch ad: the first held
+   * (`unscreened`, as the upload stores it while photo screening is off), the second
+   * screened. Rows only, no stored file (the preview's note reads the rows).
+   */
+  async function seedHeldPhotos(listingId: string) {
+    const { data, error } = await adminClient()
+      .from("listing_photos")
+      .insert([
+        {
+          listing_id: listingId,
+          storage_path: `e2e-sc/${rand()}-held.webp`,
+          display_order: 0,
+          exif_stripped: true,
+          unscreened: true,
+        },
+        {
+          listing_id: listingId,
+          storage_path: `e2e-sc/${rand()}-screened.webp`,
+          display_order: 1,
+          exif_stripped: true,
+        },
+      ])
+      .select("id, display_order");
+    if (error || !data || data.length !== 2) {
+      throw new Error(`[e2e:sc] seeding photos failed: ${error?.message ?? "no rows"}`);
+    }
+    const sorted = [...data].sort((a, b) => a.display_order - b.display_order);
+    return { held: sorted[0]!.id as string, screened: sorted[1]!.id as string };
+  }
+
+  async function heldTruth(photoId: string): Promise<boolean> {
+    const { data, error } = await adminClient()
+      .from("listing_photos")
+      .select("unscreened")
+      .eq("id", photoId)
+      .single();
+    if (error || !data) throw new Error(`[e2e:sc] reading the photo failed: ${error?.message}`);
+    return data.unscreened;
+  }
+
+  /** The audit rows the approval trigger wrote for one listing (audit_log is append-only). */
+  async function approvedRows(id: string) {
+    const { data, error } = await adminClient()
+      .from("audit_log")
+      .select("actor_id, action, meta")
+      .eq("entity_type", "listing")
+      .eq("entity_id", id)
+      .eq("action", "listing.photos_approved");
+    if (error || !data) throw new Error(`[e2e:sc] reading audit_log failed: ${error?.message}`);
+    return data as Array<{
+      actor_id: string | null;
+      action: string;
+      meta: Record<string, unknown>;
+    }>;
+  }
+
+  /** A buyer with no session: the publishable key alone, so the public read decides. */
+  function buyer() {
+    return createClient(
+      process.env["E2E_SUPABASE_URL"]!,
+      process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
+      { auth: { persistSession: false } },
+    );
+  }
+
+  async function buyerPhotoIds(listingId: string): Promise<string[]> {
+    const { data, error } = await buyer()
+      .from("listing_photos")
+      .select("id")
+      .eq("listing_id", listingId);
+    if (error) throw new Error(`[e2e:sc] the buyer's read failed: ${error.message}`);
+    return (data ?? []).map((row) => row.id as string).sort();
+  }
+
+  async function buyerCover(ad: { id: string; categoryId: string; cityId: string }) {
+    const { data, error } = await buyer().rpc("feed_page", {
+      p_category_id: ad.categoryId,
+      p_location_id: ad.cityId,
+    });
+    if (error) throw new Error(`[e2e:sc] feed_page failed: ${error.message}`);
+    const cards = (data as { cards: Array<{ id: string; coverPhotoId: string | null }> }).cards;
+    const card = cards.find((entry) => entry.id === ad.id);
+    if (card === undefined) throw new Error("[e2e:sc] the ad has no card in its own feed");
+    return card.coverPhotoId;
+  }
+
+  test("SC-18 the preview counts the photos not checked by AI, and Approve approves them with the ad (D158)", async ({
+    page,
+  }) => {
+    const ad = await seedWaiting();
+    const photos = await seedHeldPhotos(ad.id);
+    const { user, secret } = await useJobSuperAdmin(page);
+    await findRow(page, ad.title, ad.id);
+    await rowMenu(page, ad.id, "open");
+    await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("admin-screening-preview-unscreened")).toHaveText(
+      en["admin.screening.unscreenedNote"].replace("{count}", "1"),
+      { timeout: 20000 },
+    );
+    await page.getByTestId("admin-screening-preview-approve").click();
+    await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
+    await page.getByTestId("admin-screening-confirm-go").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
+      en["admin.screening.approved"],
+      { timeout: 20000 },
+    );
+    expect((await listingTruth(ad.id)).status).toBe("active");
+    expect(await heldTruth(photos.held), "SC-18: the approval left the photo held").toBe(false);
+    expect(await approvedRows(ad.id)).toEqual([
+      {
+        actor_id: user.id,
+        action: "listing.photos_approved",
+        meta: { count: 1, from: "screening", to: "active" },
+      },
+    ]);
+    expect(await buyerPhotoIds(ad.id)).toEqual([photos.held, photos.screened].sort());
+  });
+
+  test("SC-19 a move to live with no session leaves the photo held: no buyer reads it or gets it as the card's cover (D158)", async () => {
+    const ad = await seedWaiting();
+    const photos = await seedHeldPhotos(ad.id);
+    // The service, not a person (the screening gateway's seat): the photo stays held.
+    const moved = await adminClient().rpc("transition_listing", {
+      p_listing_id: ad.id,
+      p_new_status: "active",
+    });
+    expect(moved.error).toBeNull();
+    expect((await listingTruth(ad.id)).status).toBe("active");
+    expect(await heldTruth(photos.held), "SC-19: a move with no session approved the photo").toBe(
+      true,
+    );
+    expect(await approvedRows(ad.id)).toEqual([]);
+    expect(await buyerPhotoIds(ad.id)).toEqual([photos.screened]);
+    expect(await buyerCover(ad)).toBe(photos.screened);
+
+    // The control: the same row once approved is read and is the cover (display order 0),
+    // so the held flag alone kept it out.
+    const approved = await adminClient()
+      .from("listing_photos")
+      .update({ unscreened: false })
+      .eq("id", photos.held);
+    if (approved.error) throw new Error(`[e2e:sc] the control failed: ${approved.error.message}`);
+    expect(await buyerPhotoIds(ad.id)).toEqual([photos.held, photos.screened].sort());
+    expect(await buyerCover(ad)).toBe(photos.held);
   });
 });

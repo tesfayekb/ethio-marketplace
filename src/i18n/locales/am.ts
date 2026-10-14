@@ -651,7 +651,8 @@ export const am: Messages = {
   "admin.ai.action.edit": "አርትዕ",
   "admin.ai.edit.title": "የሰው ሰራሽ አስተውሎት አገልግሎትን ያርትዑ",
   "admin.ai.field.on": "አገልግሎቱ በርቷል",
-  "admin.ai.field.screeningStaysOn": "ፎቶዎች ለሠራተኞች ግምገማ እንዲቆዩ እስኪቻል ድረስ የፎቶ ምርመራ በርቶ ይቆያል።",
+  "admin.ai.field.screeningOffNote":
+    "የፎቶ ምርመራ ጠፍቶ ሳለ፣ በመለጠፍ ላይ ባለ ማስታወቂያ ላይ የሚጨመሩ አዲስ ፎቶዎች ይቀመጣሉ፤ ሠራተኞች ማስታወቂያውን እስኪያጸድቁ ድረስ ግን ማንም ገዢ አያያቸውም። በቀጥታ ያለ ማስታወቂያ አዲስ ፎቶ መቀበል አይችልም።",
   "admin.ai.field.budget": "ወርሃዊ በጀት (የአሜሪካ ዶላር)",
   "admin.ai.field.budgetHint": "በጀት እንዳይኖር ባዶ ይተዉት።",
   "admin.ai.field.priceCall": "የአንድ ጥሪ ዋጋ (የአሜሪካ ዶላር)",
@@ -661,7 +662,6 @@ export const am: Messages = {
   "admin.ai.error.stepUp": "ይህን ለውጥ ለማድረግ የአንድ ጊዜ ኮድ ያረጋግጡ።",
   "admin.ai.error.unknown": "መቀመጥ አልተቻለም።",
   "admin.ai.error.reason": "ምክንያት፦ {reason}",
-  "admin.ai.error.screeningStaysOn": "ፎቶዎች ለሠራተኞች ግምገማ እንዲቆዩ እስኪቻል ድረስ የፎቶ ምርመራን ማጥፋት አይቻልም።",
   "admin.ai.error.overBudget": "የዚህ ወር ወጪ ያንን በጀት ደርሷል። አገልግሎቱን ለማብራት በጀቱን ይጨምሩ ወይም ያስወግዱ።",
   "admin.ai.error.unknownFeature": "ይህ አገልግሎት አልተመዘገበም።",
   "admin.ai.error.badBudget": "በጀት ከ0 እስከ 1,000,000 የሆነ የዶላር መጠን ነው፤ ወይም ባዶ።",
@@ -811,6 +811,8 @@ export const am: Messages = {
   "admin.screening.approved": "የጸደቀ",
   "admin.screening.rejected": "ውድቅ ተደርጓል",
   "admin.screening.empty": "ለግምገማ የቀረበ ምንም ነገር የለም።",
+  "admin.screening.unscreenedNote":
+    "በሰው ሰራሽ አስተውሎት ያልተፈተሹ ፎቶዎች፦ {count}። ማስታወቂያውን ማጽደቅ እነሱንም ያጸድቃል።",
   "admin.screening.confirmApprove": "ይህ ማስታወቂያ ይጽደቅ? አሁን በገጹ ላይ ይጫናል።",
   "admin.screening.confirmReject": "ይህ ማስታወቂያ ውድቅ ይደረግ? ከገጹ ውጪ ሆኖ ይቆያል።",
   "admin.screening.showNumber": "ቁጥሩን አሳይ",
@@ -2136,6 +2138,8 @@ export const am: Messages = {
   "post.photo.refusal.stock_watermark": "ይህ የውሃ ምልክት ያለው የተከማየ ፎቶ ይመስላል። የራስዎን ፎቶ ይጠቀሙ።",
   "post.photo.refusal.not_a_photo": "ይህ የዕቃው ፎቶ አይደለም።",
   "post.photo.refusal.providerUnavailable": "የፎቶ ማረጋገጫ አሁን አይሠራም። እባክዎ እንደገና ይሞክሩ።",
+  "post.photo.refusal.screeningPaused":
+    "የፎቶ ምርመራ ለጊዜው ቆሟል፤ ስለዚህ ይህ ማስታወቂያ አሁን አዲስ ፎቶ መቀበል አይችልም። እባክዎ ቆይተው እንደገና ይሞክሩ።",
   "post.photo.refusal.unsupportedFormat": "JPEG፣ PNG እና WebP ፎቶዎች ብቻ ይቀበላሉ።",
   "post.photo.refusal.corruptImage": "ይህ ፋይል ተበላሽቷል መነበብም አልቻለም።",
   "post.photo.refusal.tooLarge": "ይህ ፎቶ በጣም ትልቅ ነው።",
@@ -2326,6 +2330,8 @@ export const am: Messages = {
   "post.photos.nextHeld": "ለመቀጠል ያልተጨመረውን ፎቶ ያስወግዱ።",
   "post.photos.waitSending": "ፎቶዎችዎ እስኪላኩ ይጠብቁ።",
   "post.photos.public": "በፎቶዎችዎ ላይ ያለው ሁሉ ለማንም ይታያል፤ በቢዝነስ ካርድ ላይ ያለ ስልክ ቁጥር፣ ኢሜይልና አድራሻም ጭምር።",
+  "post.photos.heldNote":
+    "የፎቶ ምርመራ ለጊዜው ቆሟል። ፎቶዎችዎ ተቀምጠዋል፤ ማንም ገዢ ከማየቱ በፊት ሠራተኞች ከማስታወቂያዎ ጋር ይፈትሿቸዋል።",
   // U6-C2b — ደረጃ 7፦ ማን እየሸጠ ነው።
   "post.who.why": "ገዢዎች የሚያምኑት ስምና የሚያገኙበት መንገድ ያስፈልጋቸዋል።",
   "post.who.saveFailed": "ዝርዝሮችዎ አልተቀመጡም። እንደገና ለመሞከር ቀጣይ ይንኩ።",
@@ -2540,6 +2546,7 @@ export const am: Messages = {
   "post.gallery.previous": "ቀዳሚው ፎቶ",
   "post.gallery.next": "የሚቀጥለው ፎቶ",
   "post.gallery.show": "{index}ኛውን ፎቶ አሳይ",
+  "post.gallery.unscreened": "በሰው ሰራሽ አስተውሎት አልተፈተሸም",
   "admin.attributes.link.allowedOptions": "የተፈቀዱ አማራጮች",
   "admin.attributes.link.allowedOptionsHint": "ሁሉንም አማራጭ ለማቅረብ ባዶ ይተዉ። እሴቶችን በ| ይለያዩ።",
   "admin.attributes.link.defaultValue": "ነባሪ እሴት",

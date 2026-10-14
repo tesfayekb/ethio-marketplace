@@ -771,6 +771,13 @@ export function StepPhotos({
         <p className="text-xs text-muted-foreground" data-testid="post-photos-public">
           {t("post.photos.public")}
         </p>
+        {/* D158 (bundle 13 turn 6) — photo screening is off: the photos were saved
+            and staff check them, with the ad, before any buyer sees them. */}
+        {photos.some((row) => row.unscreened === true) ? (
+          <p className="text-xs text-muted-foreground" data-testid="post-photos-held-note">
+            {t("post.photos.heldNote")}
+          </p>
+        ) : null}
       </div>
 
       <Field

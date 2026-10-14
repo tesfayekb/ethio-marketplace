@@ -33,8 +33,9 @@ const value = (testid: string) => (screen.getByTestId(testid) as HTMLInputElemen
 
 /**
  * Bundle 13 turn 5 (D158) — one feature's switch, budget and price: the form
- * opens on the stored values, sends the whole record, keeps photo screening on
- * and refuses what the door would refuse before anything is sent.
+ * opens on the stored values, sends the whole record, says what switching photo
+ * screening off does (bundle 13 turn 6), and refuses what the door would refuse
+ * before anything is sent.
  */
 describe("AiFeatureForm (D158)", () => {
   it("AIF-1 the stored values fill the form; Save sends the whole record; the switch turns it off", () => {
@@ -75,7 +76,7 @@ describe("AiFeatureForm (D158)", () => {
     });
   });
 
-  it("AIF-2 photo screening's switch is on and cannot be turned off; machine translation is priced per million characters", () => {
+  it("AIF-2 photo screening's switch can be turned off and says what that does; machine translation is priced per million characters", () => {
     const onSave = vi.fn();
     const { unmount } = render(
       <AiFeatureForm
@@ -89,14 +90,19 @@ describe("AiFeatureForm (D158)", () => {
     );
     const on = screen.getByTestId("ai-editor-on") as HTMLInputElement;
     expect(on.checked).toBe(true);
-    expect(on.disabled).toBe(true);
+    expect(on.disabled).toBe(false);
     expect(screen.getByTestId("ai-editor-screening-note").textContent).toBe(
-      "admin.ai.field.screeningStaysOn",
+      "admin.ai.field.screeningOffNote",
     );
     expect(value("ai-editor-budget")).toBe("");
+    fireEvent.click(screen.getByTestId("ai-editor-on"));
     fireEvent.click(screen.getByTestId("ai-editor-save"));
     expect(onSave).toHaveBeenLastCalledWith(
-      expect.objectContaining({ feature: "photo_screen", enabled: true, monthlyBudgetCents: null }),
+      expect.objectContaining({
+        feature: "photo_screen",
+        enabled: false,
+        monthlyBudgetCents: null,
+      }),
     );
     unmount();
 

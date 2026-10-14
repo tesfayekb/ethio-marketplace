@@ -162,3 +162,21 @@ describe("PhotoGallery (D161)", () => {
     }
   });
 });
+
+/**
+ * D158 (bundle 13 turn 6) — a photo held while photo screening was off is marked
+ * in staff's preview only; a buyer's or the seller's gallery shows no mark.
+ */
+describe("PhotoGallery — a held photo (D158)", () => {
+  it("GAL-5 staff's preview marks the held photo it shows, and only when asked", () => {
+    const held: GalleryPhoto = { ...photo("p2"), unscreened: true };
+    const { unmount } = render(<PhotoGallery photos={[photo("p1"), held]} markUnscreened />);
+    expect(screen.queryByTestId("gallery-unscreened")).toBeNull();
+    fireEvent.click(screen.getByTestId("gallery-next"));
+    expect(screen.getByTestId("gallery-unscreened").textContent).toBe("post.gallery.unscreened");
+    unmount();
+
+    render(<PhotoGallery photos={[held]} />);
+    expect(screen.queryByTestId("gallery-unscreened")).toBeNull();
+  });
+});

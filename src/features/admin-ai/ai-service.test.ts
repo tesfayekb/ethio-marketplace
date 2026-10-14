@@ -121,7 +121,11 @@ describe("the AI console's seam (D158)", () => {
   it("AIS-5 every refusal of the door is a sentence; anything else keeps its reason", () => {
     expect(aiErrorKey("permission denied")).toEqual({ key: "admin.ai.error.denied", raw: null });
     expect(aiErrorKey("step-up required: no verified factor").key).toBe("admin.ai.error.stepUp");
-    expect(aiErrorKey("screeningStaysOn").key).toBe("admin.ai.error.screeningStaysOn");
+    // Bundle 13 turn 6 — the door no longer refuses photo screening off.
+    expect(aiErrorKey("screeningStaysOn")).toEqual({
+      key: "admin.ai.error.unknown",
+      raw: "screeningStaysOn",
+    });
     expect(aiErrorKey("overBudget").key).toBe("admin.ai.error.overBudget");
     expect(aiErrorKey("unknownFeature").key).toBe("admin.ai.error.unknownFeature");
     expect(aiErrorKey("badValue:budget").key).toBe("admin.ai.error.badBudget");

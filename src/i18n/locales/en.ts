@@ -668,7 +668,8 @@ export const en = {
   "admin.ai.action.edit": "Edit",
   "admin.ai.edit.title": "Edit an AI feature",
   "admin.ai.field.on": "Feature on",
-  "admin.ai.field.screeningStaysOn": "Photo screening stays on until photos can be held for staff.",
+  "admin.ai.field.screeningOffNote":
+    "While photo screening is off, new photos on an ad being posted are saved, and no buyer sees them until staff approve the ad. A live ad cannot take new photos.",
   "admin.ai.field.budget": "Monthly budget (US dollars)",
   "admin.ai.field.budgetHint": "Leave empty for no budget.",
   "admin.ai.field.priceCall": "Price of one call (US dollars)",
@@ -678,8 +679,6 @@ export const en = {
   "admin.ai.error.stepUp": "Confirm a one-time code to make this change.",
   "admin.ai.error.unknown": "That could not be saved.",
   "admin.ai.error.reason": "Reason: {reason}",
-  "admin.ai.error.screeningStaysOn":
-    "Photo screening cannot be switched off until photos can be held for staff.",
   "admin.ai.error.overBudget":
     "This month's spend has reached that budget. Raise or clear the budget to switch the feature on.",
   "admin.ai.error.unknownFeature": "This feature is not on record.",
@@ -837,6 +836,8 @@ export const en = {
   "admin.screening.approved": "Approved",
   "admin.screening.rejected": "Rejected",
   "admin.screening.empty": "Nothing is waiting for review.",
+  "admin.screening.unscreenedNote":
+    "Photos not checked by AI: {count}. Approving the ad approves them too.",
   "admin.screening.confirmApprove": "Approve this ad? It goes on the site now.",
   "admin.screening.confirmReject": "Reject this ad? It stays off the site.",
   "admin.screening.showNumber": "Show number",
@@ -2235,6 +2236,8 @@ export const en = {
   "post.photo.refusal.not_a_photo": "This is not a photo of the item.",
   "post.photo.refusal.providerUnavailable":
     "Photo checking is unavailable right now. Please try again.",
+  "post.photo.refusal.screeningPaused":
+    "Photo checking is paused, so this ad cannot take new photos right now. Please try again later.",
   "post.photo.refusal.unsupportedFormat": "Only JPEG, PNG and WebP photos are accepted.",
   "post.photo.refusal.corruptImage": "This file is damaged and could not be read.",
   "post.photo.refusal.tooLarge": "This photo is too large.",
@@ -2439,6 +2442,8 @@ export const en = {
   "post.photos.waitSending": "Wait until your photos are sent.",
   "post.photos.public":
     "Everything in your photos is public: anyone can see it, including the phone number, e-mail and address on a business card.",
+  "post.photos.heldNote":
+    "Photo checking is paused. Your photos are saved, and staff check them with your ad before any buyer sees them.",
   // U6-C2b — step 7: who is selling.
   "post.who.why": "Buyers need a name to trust and a way to reach you.",
   "post.who.saveFailed": "Your details were not saved. Please tap Next to try again.",
@@ -2666,6 +2671,7 @@ export const en = {
   "post.gallery.previous": "Previous photo",
   "post.gallery.next": "Next photo",
   "post.gallery.show": "Show photo {index}",
+  "post.gallery.unscreened": "Not checked by AI",
   "admin.attributes.link.allowedOptions": "Allowed options",
   "admin.attributes.link.allowedOptionsHint":
     "Leave empty to offer every option. Separate values with |.",

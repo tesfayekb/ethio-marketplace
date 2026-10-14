@@ -60,3 +60,7 @@ The page's heading ("Screening queue") leads the header row, whose actions are i
 ## Turn C5 — two pooled accounts a test at most (INC-555, DEC-174)
 
 SC-4 and SC-8 each leased three pooled accounts (the scratch seller and two people). Each is split, every assertion kept: SC-4 a person with no role cannot decide, SC-16 a reviewer without a fresh second factor cannot decide; SC-8 a person who is not a reviewer reads nothing and reveals nothing, SC-17 a reviewer without a second factor reads the facts and reveals a shown number, logged once (D129). The check is in docs/features/e2e-harness.md.
+
+## Bundle 13 turn 6 — photos not checked by AI (D158)
+
+While photo screening is switched off, a draft's new photos are held (docs/features/ai-services.md, "Photos held for staff"). Preview as buyer reads each photo's `unscreened` and, when any is held, says above Approve and Reject "Photos not checked by AI: {count}. Approving the ad approves them too." (`admin.screening.unscreenedNote`); the gallery marks each held photo "Not checked by AI" (`post.gallery.unscreened`). Approve (`transition_listing` as the reviewer) clears them through the trigger `listing_photos_approved_with_ad` and writes one audit row `listing.photos_approved` with the count. Reject leaves them held. Tests: SC-18, SC-19.

@@ -133,7 +133,7 @@ export function useScreeningQueue(
 export async function listScreeningPhotos(listingId: string): Promise<DraftPhotoRow[]> {
   const { data, error } = await supabase
     .from("listing_photos")
-    .select("id,display_order,paths,storage_path")
+    .select("id,display_order,paths,storage_path,unscreened")
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
   if (error) throw new Error(error.message);
@@ -145,6 +145,8 @@ export async function listScreeningPhotos(listingId: string): Promise<DraftPhoto
         ? (row.paths as Record<string, unknown>)
         : null,
     storagePath: row.storage_path,
+    // D158 — held while photo screening was off; approving the ad approves it.
+    unscreened: row.unscreened === true,
   }));
 }
 

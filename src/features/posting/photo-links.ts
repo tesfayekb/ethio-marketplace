@@ -61,10 +61,12 @@ export interface GalleryPhoto {
   large: string | null;
   /** The thumb size (160 px); the main link when it is missing. */
   thumb: string;
+  /** D158 — held while photo screening was off (staff see it marked); present only when true. */
+  unscreened?: true;
 }
 
 export function galleryPhotos(
-  rows: readonly { id: string }[],
+  rows: readonly { id: string; unscreened?: boolean }[],
   links: PhotoLinks | undefined,
 ): GalleryPhoto[] {
   return rows.flatMap((row) => {
@@ -76,6 +78,7 @@ export function galleryPhotos(
         main,
         large: photoUrl(row, ["cover"], links),
         thumb: photoUrl(row, ["thumb"], links) ?? main,
+        ...(row.unscreened === true ? { unscreened: true as const } : {}),
       },
     ];
   });

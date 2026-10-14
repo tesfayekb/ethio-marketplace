@@ -58,4 +58,25 @@ describe("a stored photo's link (INC-588)", () => {
     ).toEqual([{ id: "p1", main: links.p1.card, large: null, thumb: links.p1.card }]);
     expect(galleryPhotos([{ id: "p1" }], undefined)).toEqual([]);
   });
+
+  it("PU-5 a held photo carries its mark; a screened one carries none (D158)", () => {
+    expect(
+      galleryPhotos(
+        [
+          { id: "p1", unscreened: true },
+          { id: "p2", unscreened: false },
+        ],
+        links,
+      ),
+    ).toEqual([
+      {
+        id: "p1",
+        main: links.p1.card,
+        large: links.p1.cover,
+        thumb: links.p1.thumb,
+        unscreened: true,
+      },
+      { id: "p2", main: links.p2.cover, large: links.p2.cover, thumb: links.p2.thumb },
+    ]);
+  });
 });

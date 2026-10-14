@@ -1412,3 +1412,9 @@ Still to build, in bundle 13 (D154, D155): rotate and crop; the screen's warning
 - **INC-605 — Next and Back wait for photos on their way.** While any photo is being prepared or sent, Next, Back and "Back to review" are disabled (as Add photos already was) and the line "Wait until your photos are sent." (`post.photos.waitSending`) says why.
 - **D160 — the cover's ribbon.** The cover's tile is outlined in red and carries a red ribbon "Cover photo" (`post.photos.coverRibbon`, `bg-destructive`) on its picture; the label "Cover" (`post.photos.cover`) is retired.
 - Tests: PP-19 (Next and Back held while a photo is sent, the line, the ribbon), PP-20 (/post takes /post/<id>, a reload opens the same draft with its photo, one draft).
+
+## Bundle 13, turn 6 — the photo step while photo screening is off (D158)
+
+- When photo screening is switched off by staff, a photo added to a draft (or to a rejected ad being sent again) is stored and held for staff; the step says so under its photos: "Photo checking is paused. Your photos are saved, and staff check them with your ad before any buyer sees them." (`post.photos.heldNote`, shown while any stored photo is held). The seller's own previews show the photo as usual.
+- A photo added to a live ad (or one held by staff, or expired) while screening is off is refused with "Photo checking is paused, so this ad cannot take new photos right now. Please try again later." (`post.photo.refusal.screeningPaused`).
+- The rule and its tests: docs/features/ai-services.md, "Photos held for staff".

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { doorRefusal } from "@/features/posting/door-error";
 
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
+import { photoScreenPlan } from "@/server/media/hold";
 import { screenPhotoPolicy } from "@/server/media/policy";
 import {
   deleteObject,
@@ -42,7 +43,11 @@ import {
  *                            what it produced before a byte can be stored
  *   6 the policy pass      — the cover, the card and the thumb, in ONE call (D15,
  *                            INC-601): every size that will be stored is screened;
- *                            behind its switch, and metered (D158)
+ *                            behind its switch, and metered (D158). With the switch
+ *                            off (bundle 13 turn 6), a draft's photo is HELD —
+ *                            stored `unscreened`, shown to no buyer until staff
+ *                            approve the ad — and a live ad's is refused
+ *                            (`photoScreenPlan`, src/server/media/hold.ts)
  *   7 the objects          — three puts through the partition-keyed adapter
  *   8 the door             — `register_listing_photo` (service-only), which is
  *                            the ONE place `exif_stripped = true` is ever written
@@ -194,25 +199,32 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   // 6 — the policy pass: every size that will be stored, in one call (D15, INC-601).
-  // D158 — behind its switch, and metered. Photo screening cannot be switched off
-  // until photos can be held for staff (its door refuses), so only a gate that
-  // could not be read lands here: `providerUnavailable` with a retry, and nothing
-  // is ever stored unscreened.
+  // D158 — behind its switch, and metered. With the switch off by staff (bundle 13
+  // turn 6) a draft's photo is HELD: stored `unscreened`, with no pass and nothing
+  // metered, and shown to no buyer until staff approve the ad; a live ad's is
+  // refused (`screeningPaused`), because nothing would put it in front of staff. A
+  // gate that could not be read is `providerUnavailable` with a retry (F4).
   const log = (message: string) => logRouteError(PATH, message);
-  const gate = await aiGate("photo_screen", log);
-  if (!gate.on) {
+  const plan = photoScreenPlan(await aiGate("photo_screen", log), String(listing.status));
+  if (plan === "unavailable") {
     return routeJson(
       { ok: false, refusals: [{ field: "cover", reason: "providerUnavailable", retry: true }] },
       200,
     );
   }
+  if (plan === "paused") {
+    return routeJson({ ok: false, refusals: [{ field: "cover", reason: "screeningPaused" }] }, 200);
+  }
+  const unscreened = plan === "hold";
   const cover = stripped.cover;
-  const verdict = await screenPhotoPolicy(
-    { cover: stripped.cover, card: stripped.card, thumb: stripped.thumb },
-    log,
-  );
+  const verdict = unscreened
+    ? ({ ok: true } as const)
+    : await screenPhotoPolicy(
+        { cover: stripped.cover, card: stripped.card, thumb: stripped.thumb },
+        log,
+      );
   // The provider answered (a pass or a refusal): one call is metered.
-  if (verdict.ok || verdict.code !== "providerUnavailable") {
+  if (!unscreened && (verdict.ok || verdict.code !== "providerUnavailable")) {
     await recordAiSpend("photo_screen", 1, log);
   }
   if (!verdict.ok) {
@@ -283,6 +295,8 @@ async function handlePost(request: Request): Promise<Response> {
       p_width: cover.width,
       p_height: cover.height,
       p_bytes: cover.bytes.length,
+      // D158 — held for staff: shown to no buyer until the ad is approved.
+      p_unscreened: unscreened,
     });
     if (error) {
       await rollback();
@@ -302,6 +316,7 @@ async function handlePost(request: Request): Promise<Response> {
         width: cover.width,
         height: cover.height,
         bytes: cover.bytes.length,
+        unscreened,
         ...(data && typeof data === "object" ? { door: data } : {}),
       },
       200,

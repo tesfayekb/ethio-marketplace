@@ -92,6 +92,8 @@ export interface ListingDetailView {
   illustrationUrl: string | null;
   /** Step 15 — the seller ticked "Photos coming soon". */
   photosSoon?: boolean;
+  /** D158 — staff's preview (Admin › Screening) marks a photo held while photo screening was off. */
+  markUnscreened?: boolean;
   coverage: string[];
   country: string | null;
   contactPref: Record<string, unknown>;
@@ -199,7 +201,7 @@ export function ListingDetail(view: ListingDetailView) {
     <article className="space-y-4" data-testid="listing-detail">
       {/* ------------------------------ the gallery ------------------------- */}
       {images.length > 0 ? (
-        <PhotoGallery photos={images} />
+        <PhotoGallery photos={images} markUnscreened={view.markUnscreened === true} />
       ) : (
         <ListingPicture
           photoUrl={null}
