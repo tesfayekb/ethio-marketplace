@@ -2,7 +2,7 @@
 
 The seller's page of his own ads (D138), with the states and the rules the operator decided on 2026-10-14: D172 (the category of a posted ad never changes; edits in boxes), D173 (Sold, Reserved, No longer available; "Price reduced"), D174 (what applies at once and what is reviewed; close and reopen; renew), D175 (a sold ad for 30 days; the renew days an admin setting; both dates shown), D176 (renewals live at once until the screening gateway exists), D177 (free text is reviewed, picked answers and amounts are not), D178 (every photo labelled by the AI; only a pass is shown). The supervisor's spec, approved with D175: Project doc `claude/my-listings-spec-v2.md`.
 
-Built in bundle 16, one turn at a time: (1) the doors; (2) the list page and the Account overview's six groups; (3) one ad's page and its actions, and a sold ad visible for 30 days in the feed with its ribbons on the card; (4) the photo review of D178; (5) the edit in boxes. (Turn 2 first planned the sold ad's 30 days too; they move to turn 3, with the actions that make an ad sold and the ribbons that say so — no screen marks an ad sold before turn 3.)
+Built in bundle 16, one turn at a time: (1) the doors; (2) the list page and the Account overview's six groups; (3) one ad's page and its actions, and a sold ad visible for 30 days in the feed with its ribbons on the card; (4) the photo review of D178; (5) the edit in boxes. (Turn 2 first planned the sold ad's 30 days too; they move to turn 3, with the actions that make an ad sold and the ribbons that say so — no screen marks an ad sold before turn 3.) Later word (turn 3, 2026-10-14): turn 3 is split — turn 3, one ad's page and its actions; turn 3b, a sold ad in the feed for 30 days, the Reserved, Sold and Price reduced ribbons on the card, Rented and Filled (call H) and Delete (call F).
 
 ## The rules
 
@@ -69,7 +69,7 @@ No test writes the global `listing_policy` row: the off switch (`renewOff`) and 
 | Sold            | sold                                                      | "Sold <date>"                                                                         |
 | Drafts          | draft                                                     | "Last saved <date>" and **Continue** (the posting form)                               |
 
-- **The page** — the group selector with each group's count, then the rows: the cover photo (with the seller's session: a photo of an ad that is not live is still the seller's own), the title (or "Untitled draft"), the price and the line above. A table from 1280 px, cards below it. A refused or malformed answer shows an error with Retry, never an empty list. One ad's page and its actions come in turn 3; until then only a draft's row does something (Continue).
+- **The page** — the group selector with each group's count, then the rows: the cover photo (with the seller's session: a photo of an ad that is not live is still the seller's own), the title (or "Untitled draft"), the price and the line above. A table from 1280 px, cards below it. A refused or malformed answer shows an error with Retry, never an empty list. One ad's page and its actions come in turn 3; until then only a draft's row does something (Continue). Later word (turn 3): every other row has **Open**, its page.
 - **The Account overview** reads the same door's counts and shows the groups that hold ads, with the same words, and **Open My listings**. The seven status-by-status words (`account.overview.status.*`) are gone, with the "Paused" no ad could have (INC-469 closed).
 
 Proven by MLP-1…MLP-4 (e2e/my-listings-page.spec.ts) and ML-U1…ML-U4 (src/features/my-listings/my-listings.test.ts).
@@ -78,3 +78,25 @@ Proven by MLP-1…MLP-4 (e2e/my-listings-page.spec.ts) and ML-U1…ML-U4 (src/fe
 
 - **INC-627** — a fresh signed-out visit to `/my-listings` (and to `/account`) landed on the marketplace: the shell's live guard won the race against the page's own sign-in redirect. The guard now evacuates these two only after a sign-out in this tab; a signed-out visitor goes to sign in and comes back. Proven by MLP-3 (`/my-listings` and `/account` signed out; a sign-out on `/my-listings` still leaves for the marketplace).
 - **MLP-2 at 360 px** looked for a draft's Continue inside the card's body; the table primitive puts a card's actions in the card's foot, beside the body (`my-listing-<id>-actions` holds both). The test looks in the card's box.
+
+## One ad's page (bundle 16 turn 3)
+
+- **`/my-listings/<id>`** — signed-in only, like `/my-listings` (a signed-out visitor goes to sign in and comes back to the same ad). Every row of the list that is not a draft has **Open**.
+- **The door, `my_listing(id)`** (STABLE definer; one migration): the caller's own ad — the same row object as `my_listings` (proof P5 holds the two byte for byte, so the list and the page cannot word an ad differently), its group, the live status a closed ad reopens to, its country, and the admin's renew setting (allowed, days). One answer, "not your listing", for another seller's ad and for one that does not exist. `listing_history` is redeclared with one more key: a Reserved change's new value.
+- **The page**, from the top: the way back to My listings; the title; **the status** — the group, the Reserved and "Price reduced" marks, the state in the list's own words (`stateLine`, shared), and the dates: first posted, renewed (D175 3), ends (a live ad), sold; **What you can do** — the actions below, or why there are none; **As buyers see it** — the same `ListingDetail` the posting preview and Admin › Listings draw; **History** — each change, newest first: when, who (You, Staff or System — never a staff member's name), what (created; a status change; renewed; marked reserved or the mark removed; the fields an edit changed), and staff's reason and note. A change only of reach (active and reduced) or of review queue (screening and held) is staff's and is not listed.
+- **The actions** (the doors of turn 1; each re-checks everything, so a button is a convenience, never the rule):
+
+| The ad                      | Its actions                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Live (active, reduced)      | Mark as reserved (or Remove the reserved mark), Mark as sold, No longer available                                   |
+| Closed                      | Reopen (to the live status it was closed from, with its days), Mark as sold                                         |
+| Expired                     | Renew for N days (the admin's days per renewal), when the admin allows it; else "Renewing is switched off for now." |
+| Draft                       | Continue (the posting form)                                                                                         |
+| In review                   | none — "It is waiting for review. You can change it once the review is done." (call G)                              |
+| Not approved, removed, sold | none — "Nothing to change here right now."                                                                          |
+
+Mark as sold asks first ("You cannot undo this."). After any action, whatever the answer, the ad, its history and the list are read again; a refusal is said in words ("This ad has changed…", "Too many changes…").
+
+- Rented and Filled (call H) come with turn 3b: until then every category's button says "Mark as sold".
+
+Proven by MLA-1…MLA-6 (e2e/my-listings-ad.spec.ts) and ML-U5…ML-U9 (src/features/my-listings/my-listing.test.ts).

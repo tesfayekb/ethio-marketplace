@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 438,
-  "dynamicCallSites": 293,
+  "scanned": 442,
+  "dynamicCallSites": 302,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2129,7 +2129,8 @@
       "/admin/listings/$listingId"
     ],
     "admin.listings.detail.history": [
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
     ],
     "admin.listings.detail.id": [
       "/admin/listings/$listingId"
@@ -2203,13 +2204,19 @@
       "/admin/listings/$listingId"
     ],
     "admin.listings.history.by.staff": [
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
+    ],
+    "admin.listings.history.by.system": [
+      "/my-listings/$listingId"
     ],
     "admin.listings.history.created": [
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
     ],
     "admin.listings.history.edited": [
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
     ],
     "admin.listings.history.empty": [
       "/admin/listings/$listingId"
@@ -2224,22 +2231,26 @@
       "/admin/listings/$listingId"
     ],
     "admin.listings.history.note": [
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
     ],
     "admin.listings.history.photosRemoved": [
       "/admin/listings/$listingId"
     ],
     "admin.listings.history.reason": [
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
     ],
     "admin.listings.history.renewed": [
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
     ],
     "admin.listings.history.show": [
       "/admin/listings/$listingId"
     ],
     "admin.listings.history.status": [
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
     ],
     "admin.listings.history.undo": [
       "/admin/listings/$listingId"
@@ -3832,6 +3843,7 @@
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -3854,6 +3866,7 @@
       "/admin/users",
       "/admin/users/$userId",
       "/dev/style",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -3877,6 +3890,7 @@
       "/admin/listings/$listingId",
       "/admin/screening",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId",
       "/settings"
@@ -3888,6 +3902,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -3955,6 +3970,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4062,6 +4078,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4260,62 +4277,126 @@
     "mfa.verifyActivate": [
       "/settings"
     ],
+    "myListings.action.sell": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.actions": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.ends": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.firstPosted": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.loadError": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.none": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.notFound": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.renewed": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.waiting": [
+      "/my-listings/$listingId"
+    ],
     "myListings.closedLine": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.confirm.sellBody": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.confirm.sellTitle": [
+      "/my-listings/$listingId"
     ],
     "myListings.continue": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.daysKept": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.daysLeft": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.empty": [
       "/my-listings"
     ],
     "myListings.endsToday": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.error.failed": [
+      "/my-listings/$listingId"
     ],
     "myListings.expiredOn": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.groupLabel": [
       "/my-listings"
     ],
+    "myListings.history.empty": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.history.you": [
+      "/my-listings/$listingId"
+    ],
     "myListings.inReview": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.loadError": [
       "/my-listings"
     ],
     "myListings.noEnd": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.notApproved": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.open": [
       "/my-listings"
     ],
     "myListings.priceReduced": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.removed": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.removedBecause": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.renewOff": [
+      "/my-listings/$listingId"
     ],
     "myListings.reserved": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.savedOn": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.soldOn": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.untitled": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "nav.allListings": [
       "/",
@@ -4325,7 +4406,8 @@
       "(every page)"
     ],
     "nav.myListings": [
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "nav.postListing": [
       "/",
@@ -4425,6 +4507,7 @@
     "post.catalog.yourCountry": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4580,30 +4663,35 @@
     "post.gallery.enlarge": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.next": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.previous": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.show": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.unscreened": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4869,6 +4957,7 @@
     "post.pin.title": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -4884,42 +4973,49 @@
     "post.preview.contactLabel": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.descriptionLabel": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.detailsLabel": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.mapPlaceholder": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.photoCount": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.sellerLabel": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.title": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5137,24 +5233,28 @@
       "/admin/categories",
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.review.noPrice": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.review.noTitle": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.review.notGiven": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5178,6 +5278,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5189,6 +5290,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5211,6 +5313,7 @@
     "post.review.sizeLine": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5246,6 +5349,7 @@
       "/admin/categories",
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5268,12 +5372,14 @@
     "post.seller.memberSince": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.seller.previously": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5390,6 +5496,7 @@
     "post.specs.yearEcSuffix": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5445,6 +5552,7 @@
     "post.where.detailsLabel": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5463,6 +5571,7 @@
     "post.where.directionsLabel": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5633,30 +5742,35 @@
     "post.who.channel.messages": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.phone": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.phone2": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.telegram": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.whatsapp": [
       "/admin/listings/$listingId",
       "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5812,6 +5926,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5823,6 +5938,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5834,6 +5950,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5844,6 +5961,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -6344,6 +6462,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -6354,6 +6473,7 @@
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ]

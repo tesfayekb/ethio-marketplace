@@ -86,7 +86,8 @@ function isCount(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0;
 }
 
-function parseRow(value: unknown): MyListingRow | null {
+/** One row of the door's answer, or null on any mismatch (F4); `my_listing` returns the same row (turn 3). */
+export function parseRow(value: unknown): MyListingRow | null {
   if (!isObject(value)) return null;
   const v = value;
   if (!isStr(v.id) || !isStr(v.status) || !isStrOrNull(v.title) || !isStrOrNull(v.categoryId))
