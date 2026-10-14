@@ -36,6 +36,32 @@ import {
 const PATH = "/api/listings/photos/$id";
 
 async function ownedPhoto(
+  supabase: NonNullable<Awaited<ReturnType<typeof userClientFromRequest>>["supabase"]>,
+  photoId: string,
+) {
+  // Read AS THE CALLER: `listing_photos_seller_read` means a photo that is not
+  // the caller's simply is not there (F3).
+  const { data, error } = await supabase
+    .from("listing_photos")
+    .select("id, listing_id, paths, storage_path")
+    .eq("id", photoId)
+    .maybeSingle();
+  if (error) throw new Error(`photo read: ${error.message}`);
+  return data;
+}
+
+async function handleDelete(request: Request, photoId: string): Promise<Response> {
+  const caller = await userClientFromRequest(request);
+  const refused = refuseUserClient(PATH, caller);
+  if (refused !== null) return refused;
+  const supabase = caller.supabase!;
+
+  const photo = await ownedPhoto(supabase, photoId);
+  if (!photo) {
+    return routeJson({ ok: false, refusals: [{ field: "id", reason: "notYourListing" }] }, 403);
+  }
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   for (const ref of objectRefsOf(photo.paths, photo.storage_path)) {
     try {
       await deleteObject(supabaseAdmin, ref.partition, ref.key);
@@ -62,7 +88,7 @@ async function ownedPhoto(
 }
 
 async function handlePost(request: Request, photoId: string): Promise<Response> {
-  for (const ref of objectRefsOf(photo.paths, photo.storage_path)) {
+  const caller = await userClientFromRequest(request);
   const refused = refuseUserClient(PATH, caller);
   if (refused !== null) return refused;
   const supabase = caller.supabase!;

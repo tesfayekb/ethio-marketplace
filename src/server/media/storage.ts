@@ -106,32 +106,6 @@ export function objectRefsOf(paths: unknown, storagePath: unknown): ObjectRef[] 
   return [...refs.values()];
 }
 
-/**
- * Every `{ partition, key }` a photo row's `paths` carries, with its legacy
- * `storage_path`, deduplicated: what deleting the photo must delete. Shared by
- * the photo's own route (Remove) and the upload route (D154 B2: a photo edited
- * in the editor replaces the old one, whose objects then go).
- */
-export function objectRefsOf(paths: unknown, storagePath: unknown): ObjectRef[] {
-  const refs = new Map<string, ObjectRef>();
-  if (paths !== null && typeof paths === "object" && !Array.isArray(paths)) {
-    for (const value of Object.values(paths as Record<string, unknown>)) {
-      if (value === null || typeof value !== "object") continue;
-      const row = value as Record<string, unknown>;
-      const key = typeof row["key"] === "string" ? row["key"] : "";
-      if (key === "") continue;
-      const partition = (
-        typeof row["partition"] === "string" ? row["partition"] : "default"
-      ) as Partition;
-      refs.set(key, { partition, key });
-    }
-  }
-  if (typeof storagePath === "string" && storagePath !== "" && !refs.has(storagePath)) {
-    refs.set(storagePath, { partition: "default", key: storagePath });
-  }
-  return [...refs.values()];
-}
-
 export function publicUrl(partition: Partition, key: string): string {
   const target = storageTargetFor(partition);
   return `${target.publicBase.replace(/\/$/, "")}/${key}`;

@@ -8,7 +8,6 @@ import {
   deleteObject,
   objectKey,
   objectRefsOf,
-  objectRefsOf,
   putObject,
   type ObjectRef,
   type Partition,
@@ -30,10 +29,7 @@ import {
  * U6-B1 — THE STRIP ROUTE.
  *
  *   POST /api/upload/photo   multipart: listingId, cover, mid, card, thumb
- *                            a page loaded before it sends three sizes),
- *                            and `replaces` (D154 B2, optional): a stored photo
- *                            of this listing that the upload, the same photo
- *                            turned or cropped on the device, takes the place of
+ *                            (`mid`, the middle size of D162, may be absent:
  *                            a page loaded before it sends three sizes),
  *                            and `replaces` (D154 B2, optional): a stored photo
  *                            of this listing that the upload, the same photo
@@ -43,11 +39,7 @@ import {
  *
  *   1 the caller           — the bearer, or 401
  *   2 the dials (DEC-071)  — `consume_rate_limit('upload', …)` an hour and
- *   4 the cap              — 10 photos per listing (dial) → `tooManyPhotos`;
- *                            an upload that `replaces` a photo adds none, so
- *                            it is not counted, and the photo it replaces must
- *                            be on this listing, read AS THE CALLER (else
- *                            `photoGone`)
+ *                            `('upload:day', …)` a day (D158), before any work
  *   3 ownership            — the listing is read AS THE CALLER, so RLS is the
  *                            authority; a listing that is not the caller's is a
  *                            403 by name, and a wrong status a 409 by name
@@ -62,12 +54,6 @@ import {
  *   6 the policy pass      — the cover, the middle size, the card and the thumb,
  *                            in ONE call (D15, INC-601, D162): every size that
  *                            will be stored is screened;
- *                            for a new photo; for `replaces`, its sibling
- *                            `replace_listing_photo` (service-only), which puts
- *                            the new photo at the old one's place and deletes
- *                            the old row in one transaction; the old photo's
- *                            objects are deleted after it (a failure there is
- *                            logged by name: the row is already gone)
  *                            behind its switch, and metered (D158). With the switch
  *                            off (bundle 13 turn 6), a draft's photo is HELD —
  *                            stored `unscreened`, shown to no buyer until staff
@@ -112,8 +98,6 @@ const OPEN_STATUSES = new Set(["draft", "active", "reduced", "rejected", "held",
  * largest cover scaled to 960 px (333 KB × (960/1448)² ≈ 146 KB).
  */
 const SIZE_DIALS: Record<Variant, { env: string; bytes: number }> = {
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   cover: { env: "MAX_COVER_BYTES", bytes: 1024 * 1024 },
   mid: { env: "MAX_MID_BYTES", bytes: 450 * 1024 },
   card: { env: "MAX_CARD_BYTES", bytes: 150 * 1024 },
@@ -159,10 +143,6 @@ async function handlePost(request: Request): Promise<Response> {
     "1 day",
   );
   if (!daily.allowed) return refusal("rate", "rateLimited", daily.resetsAt ?? undefined);
-  // D154 B2 — the stored photo this upload replaces, when it is an edit.
-  const replacesField = form.get("replaces");
-  const replaces = typeof replacesField === "string" ? replacesField.trim() : "";
-  if (replacesField !== null && !UUID.test(replaces)) return refusal("replaces", "badValue");
 
   // A7 — the Start primitive hands the handler a web `Request`, so the multipart
   // body is `request.formData()`; nothing else is needed for an upload.
@@ -187,35 +167,17 @@ async function handlePost(request: Request): Promise<Response> {
   // 3 — ownership, as the caller: `listings_seller_read` is the authority (F3).
   const { data: listing, error: listingError } = await supabase
     .from("listings")
-  // 4 — the cap; or, for an edit (D154 B2), the photo it replaces, read AS THE
-  // CALLER: a photo that is not on this listing, or not the caller's, is gone.
-  let replaced: { paths: unknown; storage_path: unknown } | null = null;
-  if (replaces !== "") {
-    const { data: old, error: oldError } = await supabase
-      .from("listing_photos")
-      .select("id, listing_id, paths, storage_path")
-      .eq("id", replaces)
-      .maybeSingle();
-    if (oldError) {
-      logRouteError(PATH, `replaced photo read: ${oldError.message}`);
-      return routeJson({ error: "server error" }, 500);
-    }
-    if (!old || old.listing_id !== listingId) {
-      return routeJson({ ok: false, refusals: [{ field: "replaces", reason: "photoGone" }] }, 409);
-    }
-    replaced = { paths: old.paths, storage_path: old.storage_path };
-  } else {
-    const { count, error: countError } = await supabase
-      .from("listing_photos")
-      .select("id", { count: "exact", head: true })
-      .eq("listing_id", listingId);
-    if (countError) {
-      logRouteError(PATH, `photo count: ${countError.message}`);
-      return routeJson({ error: "server error" }, 500);
-    }
-    if ((count ?? 0) >= envDial("MAX_PHOTOS_PER_LISTING", 10)) {
-      return refusal("photos", "tooManyPhotos");
-    }
+    .select("id, status, seller_id")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (listingError) {
+    logRouteError(PATH, `listing read: ${listingError.message}`);
+    return routeJson({ error: "server error" }, 500);
+  }
+  if (!listing || listing.seller_id !== userId) {
+    return routeJson(
+      { ok: false, refusals: [{ field: "listingId", reason: "notYourListing" }] },
+      403,
     );
   }
   if (!OPEN_STATUSES.has(String(listing.status))) {
@@ -342,7 +304,7 @@ async function handlePost(request: Request): Promise<Response> {
     );
   }
 
-    const stored = {
+  // 7 — the objects, then 8 — the door. Both need the service role: the bucket's
   // key law no longer matches the owner-prefix policy, and the registration door
   // is service-only because only this route can attest the strip.
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -358,36 +320,15 @@ async function handlePost(request: Request): Promise<Response> {
         logRouteError(PATH, `rollback of ${ref.key} failed: ${String(error)}`);
       }
     }
-    };
-    // D154 B2 — an edit takes the old photo's place in one transaction.
-    const door = replaced === null ? "register_listing_photo" : "replace_listing_photo";
-    const { data, error, status } =
-      replaced === null
-        ? await supabaseAdmin.rpc("register_listing_photo", stored)
-        : await supabaseAdmin.rpc("replace_listing_photo", {
-            ...stored,
-            p_old_photo_id: replaces,
-          });
+  };
 
   try {
     for (const variant of VARIANTS) {
       const image = stripped[variant];
-        return upstreamUnavailable(PATH, door, status);
+      if (image === undefined) continue;
       const key = objectKey(
-      logRouteError(PATH, `${door}: ${error.message}`);
+        PARTITION,
         userId,
-    }
-
-    // D154 B2 — the old photo's row is gone; its objects go now. A failure is
-    // named in the log (F4) and does not undo the edit: the new photo is stored.
-    if (replaced !== null) {
-      for (const ref of objectRefsOf(replaced.paths, replaced.storage_path)) {
-        try {
-          await deleteObject(supabaseAdmin, ref.partition, ref.key);
-        } catch (deleteError) {
-          logRouteError(PATH, `replaced object delete ${ref.key}: ${String(deleteError)}`);
-        }
-      }
         listingId,
         photoId,
         variant,
@@ -399,7 +340,6 @@ async function handlePost(request: Request): Promise<Response> {
     }
     // `original` is what the row's legacy `storage_path` column carries; the
     // cover IS the original here, because the strip never re-encodes.
-        ...(replaced === null ? {} : { replaced: replaces }),
     paths["original"] = paths["cover"]!;
 
     const stored = {

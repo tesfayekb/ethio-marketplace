@@ -2242,22 +2242,11 @@ export const en = {
   "post.photos.editor.saving": "Saving and checking the photo…",
   "post.photos.editor.failed": "This photo could not be opened here. Close and try again.",
   "post.photos.editor.kept": "Your photo was kept as it was.",
-  "post.photos.edit": "Edit photo",
-  "post.photos.editor.hint":
-    "Turn the photo, or move the box and its corners to crop it. When you save, it is checked again like a new photo.",
-  "post.photos.editor.rotateLeft": "Turn left",
-  "post.photos.editor.rotateRight": "Turn right",
-  "post.photos.editor.box":
-    "Crop box: the arrow keys move it; Shift with an arrow key changes its size.",
-  "post.photos.editor.saving": "Saving and checking the photo…",
-  "post.photos.editor.failed": "This photo could not be opened here. Close and try again.",
-  "post.photos.editor.kept": "Your photo was kept as it was.",
   "post.photo.refusal.nudity": "This photo shows nudity, which is not allowed.",
   "post.photo.refusal.violence": "This photo shows violence, which is not allowed.",
   "post.photo.refusal.weapon": "Weapons cannot be shown here.",
   "post.photo.refusal.drugs": "Drugs cannot be shown here.",
   "post.photo.refusal.hate_symbol": "This photo carries a hate symbol.",
-  "post.photo.refusal.photoGone": "This photo is no longer on the ad.",
   "post.photo.refusal.personal_document":
     "This looks like an identity document. Do not upload personal papers.",
   "post.photo.refusal.contact_in_image": "Remove the phone number or address written on the photo.",

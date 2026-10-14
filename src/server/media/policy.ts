@@ -27,17 +27,6 @@ import type { ImageFormat } from "./strip";
  * without it — every image at the default detail, as before D165 — and the log
  * says so; the photo is never let through unscreened.
  *
- * D165 (the operator, 2026-10-14: "Phone sizes, cheap check") — THE PHOTO IN
- * FULL, ITS SMALLER COPIES AT LOW DETAIL. The phone keeps making the sizes (no
- * image work on our server: DEC-082, INC-308), and the one call still shows the
- * provider every stored size; the first image, the photo, at the default detail
- * (1,120 tokens for Gemini 3), and every smaller copy at low detail (280 tokens,
- * `mediaResolution` MEDIA_RESOLUTION_LOW on its part), which is enough to see that
- * it is the same picture and nothing it must refuse. Should the model refuse the
- * per-image setting (it is marked experimental), the call is made once more
- * without it — every image at the default detail, as before D165 — and the log
- * says so; the photo is never let through unscreened.
- *
  * FAKE MODE (`E2E_FAKE_PHOTO_POLICY=1`) is DETERMINISTIC and costs nothing: an
  * image exactly 13 px wide is the fixture marker and comes back refused
  * `not_a_photo`; everything else passes. No network, no spend, no flake.
@@ -131,25 +120,6 @@ export function imagesOf(variants: PolicyVariants): PolicyImage[] {
 
 function mimeOf(format: ImageFormat): string {
   return format === "jpeg" ? "image/jpeg" : format === "png" ? "image/png" : "image/webp";
-/** D165 — the detail every smaller copy is shown at. */
-export const SMALL_COPY_DETAIL = { level: "MEDIA_RESOLUTION_LOW" } as const;
-
-/**
- * The request's image parts, largest first: the photo at the default detail and,
- * when `lowDetail`, every smaller copy at low detail (D165).
- */
-export function policyParts(variants: PolicyVariants, lowDetail: boolean) {
-  return imagesOf(variants).map((image, index) => ({
-    inlineData: { mimeType: mimeOf(image.format), data: base64(image.bytes) },
-    ...(lowDetail && index > 0 ? { mediaResolution: SMALL_COPY_DETAIL } : {}),
-  }));
-}
-
-/** A 400 that names the per-image detail: the model does not take it (D165). */
-function refusesDetail(status: number, raw: string): boolean {
-  return status === 400 && /media_?resolution/i.test(raw);
-}
-
 }
 
 function base64(bytes: Uint8Array): string {
@@ -173,15 +143,23 @@ export function policyParts(variants: PolicyVariants, lowDetail: boolean) {
     inlineData: { mimeType: mimeOf(image.format), data: base64(image.bytes) },
     ...(lowDetail && index > 0 ? { mediaResolution: SMALL_COPY_DETAIL } : {}),
   }));
-  const call = (lowDetail: boolean) =>
-    fetch(`${BASE}/${encodeURIComponent(visionModel())}:generateContent`, {
+}
+
+/** A 400 that names the per-image detail: the model does not take it (D165). */
 function refusesDetail(status: number, raw: string): boolean {
   return status === 400 && /media_?resolution/i.test(raw);
 }
+
 function isPolicyCode(value: string): value is (typeof POLICY_CODES)[number] {
-        // INC-601 — every stored size, largest first, in ONE call (D162: the middle
-        // size when sent); D165 — the smaller copies at low detail.
-        contents: [{ role: "user", parts: policyParts(variants, lowDetail) }],
+  return (POLICY_CODES as readonly string[]).includes(value);
+}
+
+export async function screenPhotoPolicy(
+  variants: PolicyVariants,
+  log: (message: string) => void,
+): Promise<PolicyVerdict> {
+  // FAKE MODE: `E2E_FAKE_PHOTO_POLICY=1`, or the harness's standing
+  // `E2E_FAKE_TRANSLATE=1` — the flag every e2e job already exports, which the
   // assist route reads the same way, so a test run never reaches the provider.
   if (serverEnv("E2E_FAKE_PHOTO_POLICY") === "1" || serverEnv("E2E_FAKE_TRANSLATE") === "1") {
     return variants.cover.width === FAKE_REFUSAL_WIDTH
@@ -197,25 +175,13 @@ function isPolicyCode(value: string): value is (typeof POLICY_CODES)[number] {
 
   const call = (lowDetail: boolean) =>
     fetch(`${BASE}/${encodeURIComponent(visionModel())}:generateContent`, {
-
-  let response: Response;
-  let raw: string;
-  try {
-    response = await call(true);
-    raw = await response.text();
-    if (refusesDetail(response.status, raw)) {
-      log(
-        "photo policy: the model refused the low detail for smaller copies; every image sent at the default detail",
-      );
-      response = await call(false);
-      raw = await response.text();
-    }
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: PHOTO_POLICY_INSTRUCTION }] },
         // INC-601 — every stored size, largest first, in ONE call (D162: the middle
-  if (!response.ok) {
+        // size when sent); D165 — the smaller copies at low detail.
+        contents: [{ role: "user", parts: policyParts(variants, lowDetail) }],
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {

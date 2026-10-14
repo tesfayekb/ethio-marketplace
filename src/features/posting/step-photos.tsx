@@ -8,7 +8,6 @@ import type { MessageKey } from "@/i18n";
 import { controlClass, Field } from "./field";
 import { encodeBitmap, encodeVariants } from "./photo-encode";
 import { PhotoEditor } from "./photo-editor";
-import { PhotoEditor } from "./photo-editor";
 import { CARD_THEN_THUMB, photoUrl } from "./photo-links";
 import {
   deletePhoto,
@@ -137,10 +136,6 @@ export function StepPhotos({
   /** INC-595 — a stored photo's Remove or Make cover in flight, by photo id. */
   const [rowBusy, setRowBusy] = useState<ReadonlySet<string>>(new Set());
   /** INC-595 — a stored photo's last refusal (its Remove or Make cover), by photo id. */
-  /** D154 B2 — the stored photo open in the editor, and its stored cover's link. */
-  const [editing, setEditing] = useState<{ photoId: string; url: string } | null>(null);
-  /** D154 B2 — an edited photo on its way: Next and Back wait for it, as for a new one. */
-  const [editSaving, setEditSaving] = useState(false);
   const [rowRefusal, setRowRefusal] = useState<Readonly<Record<string, MessageKey>>>({});
   /** D154 B2 — the stored photo open in the editor, and its stored cover's link. */
   const [editing, setEditing] = useState<{ photoId: string; url: string } | null>(null);
@@ -156,9 +151,9 @@ export function StepPhotos({
 
   // INC-585 — a refused or unsent photo is on the step until the seller
   // removes it (or sends it again); the wizard holds Next meanwhile.
-  const sending =
-    items.filter((item) => item.state === "preparing" || item.state === "uploading").length +
-    (editSaving ? 1 : 0);
+  const held = items.filter((item) => item.state === "refused" || item.state === "failed").length;
+  useEffect(() => {
+    onHeldChange?.(held);
   }, [held, onHeldChange]);
   useEffect(() => () => onHeldChange?.(0), [onHeldChange]);
   const sending =
@@ -404,68 +399,6 @@ export function StepPhotos({
         delete next[photoId];
         return next;
       });
-  /**
-   * D154 B2 — SAVE IN THE EDITOR: the turned and cropped picture goes the whole
-   * way as a new photo (the four sizes on the device, the strip, the AI screen)
-   * and takes the old photo's place (`replaces`). Resolves null when stored —
-   * the editor closes and the step re-reads the server — or the words of the
-   * refusal, which the editor shows while the old photo stays as it was.
-   */
-  const saveEdit = useCallback(
-    async (photoId: string, picture: ImageBitmap): Promise<MessageKey | null> => {
-      if (listingId === null) {
-        picture.close();
-        return "post.photos.couldNotSend";
-      }
-      setEditSaving(true);
-      setRowBusy((prev) => new Set(prev).add(photoId));
-      try {
-        let encoded;
-        try {
-          encoded = await encodeBitmap(picture);
-        } catch {
-          return "post.photos.deviceFailed";
-        }
-        const answer = await uploadPhoto(
-          listingId,
-          { cover: encoded.cover, mid: encoded.mid, card: encoded.card, thumb: encoded.thumb },
-          encoded.extension,
-          undefined,
-          photoId,
-        );
-        if (answer.ok) {
-          // The old photo's tile from this visit leaves with it.
-          setItems((prev) => {
-            for (const item of prev) {
-              if (item.photoId === photoId) URL.revokeObjectURL(item.previewUrl);
-            }
-            return prev.filter((item) => item.photoId !== photoId);
-          });
-          setRowRefusal((prev) => {
-            const next = { ...prev };
-            delete next[photoId];
-            return next;
-          });
-          setEditing(null);
-          onChanged();
-          return null;
-        }
-        if (answer.unreachable) return "post.photos.couldNotSend";
-        return photoRefusalKey(answer.refusals[0]?.reason ?? "");
-      } finally {
-        if (aliveRef.current) {
-          setEditSaving(false);
-          setRowBusy((prev) => {
-            const next = new Set(prev);
-            next.delete(photoId);
-            return next;
-          });
-        }
-      }
-    },
-    [listingId, onChanged],
-  );
-
       onChanged();
     },
     [onChanged],
@@ -532,6 +465,7 @@ export function StepPhotos({
     },
     [listingId, onChanged],
   );
+
   const stored = items.filter((item) => item.state === "stored").length;
   const total = Math.max(photos.length, stored);
   /** The cover is the first registered photo — the server's own order. */
@@ -674,13 +608,9 @@ export function StepPhotos({
             className={tileDangerClass}
             onClick={() => void remove(item)}
           >
-  /**
-   * D154 — Move earlier and Move later, on every photo at its place; D154 B2 —
-   * and Edit, which opens the editor on the photo's stored cover.
-   */
+            {t("post.photos.remove")}
           </button>
         </div>
-    const editUrl = photoUrl({ id: photoId }, ["cover"], storedLinks);
         {atPlace && moveRow(item.photoId as string, index)}
       </li>
     );
@@ -704,19 +634,6 @@ export function StepPhotos({
               alt=""
               width={160}
               height={120}
-        </button>
-        <button
-          type="button"
-          data-testid="post-photo-edit"
-          className={moveButtonClass}
-          aria-label={t("post.photos.edit")}
-          title={t("post.photos.edit")}
-          disabled={busyRow || editUrl === null || editSaving}
-          onClick={() => {
-            if (editUrl !== null) setEditing({ photoId, url: editUrl });
-          }}
-        >
-          <Crop className="h-4 w-4" aria-hidden="true" />
               loading="lazy"
               className="h-24 w-full rounded-sm object-cover"
             />
@@ -867,18 +784,6 @@ export function StepPhotos({
                 type="checkbox"
                 data-testid="post-photos-soon"
                 className="h-5 w-5 shrink-0 accent-primary"
-      <PhotoEditor
-        sourceUrl={editing?.url ?? null}
-        onCancel={() => setEditing(null)}
-        onSave={(picture) => {
-          if (editing === null) {
-            picture.close();
-            return Promise.resolve(null);
-          }
-          return saveEdit(editing.photoId, picture);
-        }}
-      />
-
                 checked={photosSoon}
                 disabled={soonBusy}
                 onChange={(event) => {
@@ -973,6 +878,7 @@ export function StepPhotos({
           return saveEdit(editing.photoId, picture);
         }}
       />
+
       <Field
         id="post-video"
         label={t("post.details.videoLabel")}

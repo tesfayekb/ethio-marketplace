@@ -65,8 +65,6 @@ export async function uploadPhoto(
     thumb?: { name: FixtureName; as?: string };
     /** D154 B2 — the stored photo this upload replaces (an edit); absent, a new photo. */
     replaces?: string;
-    /** D154 B2 — the stored photo this upload replaces (an edit); absent, a new photo. */
-    replaces?: string;
   },
 ): Promise<UploadAnswer> {
   const headers: Record<string, string> = {};
@@ -77,7 +75,6 @@ export async function uploadPhoto(
     multipart: {
       listingId: options.listingId,
       cover: part(options.cover.name, options.cover.as),
-      ...(options.replaces === undefined ? {} : { replaces: options.replaces }),
       card: part((options.card ?? small).name, (options.card ?? small).as),
       thumb: part((options.thumb ?? small).name, (options.thumb ?? small).as),
       ...(options.replaces === undefined ? {} : { replaces: options.replaces }),
