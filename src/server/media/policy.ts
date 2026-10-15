@@ -219,6 +219,14 @@ function isPolicyCode(value: string): value is (typeof POLICY_CODES)[number] {
   return (POLICY_CODES as readonly string[]).includes(value);
 }
 
+/**
+ * Fake mode (no provider, no spend): the e2e harness's flags. Bundle 16 turn S1 —
+ * the upload route's site day cap counts paid screens only, so it reads this too.
+ */
+export function photoPolicyFake(): boolean {
+  return serverEnv("E2E_FAKE_PHOTO_POLICY") === "1" || serverEnv("E2E_FAKE_TRANSLATE") === "1";
+}
+
 export async function screenPhotoPolicy(
   variants: PolicyVariants,
   log: (message: string) => void,
@@ -227,7 +235,7 @@ export async function screenPhotoPolicy(
   // FAKE MODE: `E2E_FAKE_PHOTO_POLICY=1`, or the harness's standing
   // `E2E_FAKE_TRANSLATE=1` — the flag every e2e job already exports, which the
   // assist route reads the same way, so a test run never reaches the provider.
-  if (serverEnv("E2E_FAKE_PHOTO_POLICY") === "1" || serverEnv("E2E_FAKE_TRANSLATE") === "1") {
+  if (photoPolicyFake()) {
     if (variants.cover.width === FAKE_REFUSAL_WIDTH) {
       return { ok: false, code: "not_a_photo", evidence: "fake mode: fixture marker width" };
     }

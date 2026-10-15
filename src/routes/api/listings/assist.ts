@@ -297,6 +297,23 @@ async function handlePost(request: Request): Promise<Response> {
   }
   if (!category) return refusal("categoryId", "categoryNotPostable");
 
+  // Bundle 16 turn S1 — the listing named for the per-listing budget is the caller's
+  // own, read AS THE CALLER (the owner reads his own rows): another seller's tries
+  // are never spent, and an id that is not the caller's is a refusal.
+  if (listingId !== "") {
+    const { data: own, error: ownError } = await supabase
+      .from("listings")
+      .select("id")
+      .eq("id", listingId)
+      .eq("seller_id", userId)
+      .maybeSingle();
+    if (ownError) {
+      logRouteError(PATH, `listing read: ${ownError.message}`);
+      return refusal("assist", "providerUnavailable");
+    }
+    if (!own) return refusal("listingId", "notYourListing");
+  }
+
   // THE PER-LISTING BUDGET, spent before any provider call is made (F5: gate first).
   let triesLeft: number | null = null;
   if (listingId !== "") {

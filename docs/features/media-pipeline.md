@@ -246,3 +246,11 @@ This section is the later word on the counts of sizes above.
 - **Keeping it.** Keep sends the picture through `POST /api/upload/photo` with `replaces` (turn 9's path): the four sizes on the device, the strip, the AI screen; it takes the cover's place and the old cover goes. Retry asks once more while the ad has a try left; Cancel keeps the photo as it was. A refusal is said in words (switched off, could not be removed now, the ad's tries used, the cover only) and the photo stays as it was.
 - **Cost and switch.** The AI feature `background_removal` (docs/features/ai-services.md, "Bundle 13 turn 12"): $0.02 a call, metered after the provider answers; switched off by staff, by its budget, or when no `PHOTOROOM_API_KEY` is set.
 - Tests: BGR-1..BGR-10, PBG-1..PBG-7; E2E PP-30 (the walk: the tool on the cover only, the preview's corner the house colour and its middle the item, Keep stores the 400-px cut-out as the cover), PP-31 (the route: 401 without a session, `badValue`, `notYourListing`, `notCover` with no try spent, two tries answered as PNG images with `x-tries-left` 1 and 0, then `backgroundSpent`; nothing stored).
+
+## Bundle 16 turn S1 — abuse and cost guards on photos (D184; the operator's review of 2026-10-15)
+
+- **The photo storage is the server's alone.** The client policies on the listing-photos bucket are gone: every photo is stored by the upload route, read through the links the server signs and removed by the removal route, all with the service role.
+- **The plan cap before the paid screen.** The upload route reads the seller's photo cap by plan (`plan_photo_cap(seller_plan(uid))`, as the door does) before it screens, so a photo the door would refuse costs nothing.
+- **Removals have their own limit** per seller across every ad: 30 an hour and 100 a day (`photo-remove`, `photo-remove:day`; `RATE_LIMIT_PHOTO_REMOVE_PER_HOUR`, `RATE_LIMIT_PHOTO_REMOVE_PER_DAY`), as uploads have theirs (60 an hour, 200 a day). An add-and-remove loop is bounded on both sides.
+- **The site's day cap and the money stop** on photo screening: docs/features/ai-services.md, "Bundle 16 turn S1".
+- **The writing helper** spends a listing's tries only for its owner: a `listingId` that is not the caller's is refused (`notYourListing`).

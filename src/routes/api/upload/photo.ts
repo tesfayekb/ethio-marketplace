@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { doorRefusal } from "@/features/posting/door-error";
 
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
-import { PHOTO_OPEN_STATUSES, photoScreenPlan } from "@/server/media/hold";
-import { screenPhotoPolicy, type PolicyVerdict } from "@/server/media/policy";
+import { PHOTO_OPEN_STATUSES, photoScreenPlan, withSiteCap } from "@/server/media/hold";
+import { photoPolicyFake, screenPhotoPolicy, type PolicyVerdict } from "@/server/media/policy";
 import {
   deleteObject,
   objectKey,
@@ -120,6 +120,24 @@ const CONTENT_TYPE = {
   webp: "image/webp",
 } as const;
 
+/**
+ * Bundle 16 turn S1 — the seller's photo cap by plan, as the door reads it
+ * (`plan_photo_cap(seller_plan(uid))`, both service-only), so the route refuses
+ * an extra photo before the paid screen rather than after it.
+ */
+async function planPhotoCap(userId: string): Promise<number> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const plan = await supabaseAdmin.rpc("seller_plan", { p_user_id: userId });
+  if (plan.error || typeof plan.data !== "string") {
+    throw new Error(`seller_plan: ${plan.error?.message ?? "no plan"}`);
+  }
+  const cap = await supabaseAdmin.rpc("plan_photo_cap", { p_plan: plan.data });
+  if (cap.error || typeof cap.data !== "number") {
+    throw new Error(`plan_photo_cap: ${cap.error?.message ?? "no cap"}`);
+  }
+  return cap.data;
+}
+
 async function handlePost(request: Request): Promise<Response> {
   const caller = await userClientFromRequest(request);
   const refused = refuseUserClient(PATH, caller);
@@ -210,7 +228,16 @@ async function handlePost(request: Request): Promise<Response> {
       logRouteError(PATH, `photo count: ${countError.message}`);
       return routeJson({ error: "server error" }, 500);
     }
-    if ((count ?? 0) >= envDial("MAX_PHOTOS_PER_LISTING", 10)) {
+    // Bundle 16 turn S1 — the seller's plan cap is read here too, before the paid
+    // screen, so a photo the door would refuse (`tooManyPhotos`) costs nothing.
+    let planCap: number;
+    try {
+      planCap = await planPhotoCap(userId);
+    } catch (error) {
+      logRouteError(PATH, `plan cap: ${errorText(error)}`);
+      return routeJson({ error: "server error" }, 500);
+    }
+    if ((count ?? 0) >= Math.min(envDial("MAX_PHOTOS_PER_LISTING", 10), planCap)) {
       return refusal("photos", "tooManyPhotos");
     }
   }
@@ -257,7 +284,21 @@ async function handlePost(request: Request): Promise<Response> {
   // refused (`screeningPaused`), because nothing would put it in front of staff. A
   // gate that could not be read is `providerUnavailable` with a retry (F4).
   const log = (message: string) => logRouteError(PATH, message);
-  const plan = photoScreenPlan(await aiGate("photo_screen", log), String(listing.status));
+  let gate = await aiGate("photo_screen", log);
+  // Bundle 16 turn S1 (D184) — the site's day cap on PAID screens (fake mode spends
+  // nothing and is not counted): once spent, screening reads as off by budget for
+  // the rest of the UTC day, and the photo is held or paused as when it is off.
+  if (gate.on && !photoPolicyFake()) {
+    const site = await consumeRate(
+      "upload:screen",
+      "site",
+      envDial("PHOTO_SCREENS_PER_DAY_SITE", 2000),
+      "1 day",
+    );
+    gate = withSiteCap(gate, site.allowed);
+    if (!site.allowed) log("photo screening: the site's day cap is spent; the photo is held");
+  }
+  const plan = photoScreenPlan(gate, String(listing.status));
   if (plan === "unavailable") {
     return routeJson(
       { ok: false, refusals: [{ field: "cover", reason: "providerUnavailable", retry: true }] },

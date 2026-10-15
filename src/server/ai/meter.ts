@@ -12,8 +12,9 @@
  *                                      row, at the feature's unit price; at 80 %
  *                                      and 100 % of a monthly budget it writes an
  *                                      audit row, and at 100 % it switches the
- *                                      feature off — every feature except photo
- *                                      screening, which only alerts (D158)
+ *                                      feature off — photo screening included
+ *                                      since D184 (bundle 16 turn S1): its new
+ *                                      photos are then held for staff
  *
  * THE GATE FAILS CLOSED (F4): a gate that cannot be read answers off with the
  * reason 'unavailable', never on — a meter that cannot be read must not become
