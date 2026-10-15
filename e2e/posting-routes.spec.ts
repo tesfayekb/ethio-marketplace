@@ -1353,9 +1353,12 @@ test.describe("POSTING ROUTES", () => {
         reason: "publishFirst",
       });
 
+      const chain = await seedScratchChain("ET");
+      places.push(chain.region.slug);
       const submitted = await admin.from("listings").insert({
         seller_id: user.id,
         category_id: cat.id,
+        location_id: chain.city.id,
         title: `e2e pr50 ${rand()}`,
         description: "e2e pr50 submitted ad",
         home_country_code: "ET",
