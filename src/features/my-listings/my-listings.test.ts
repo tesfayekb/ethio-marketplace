@@ -2,7 +2,16 @@ import { describe, expect, it } from "vitest";
 
 import { en } from "@/i18n/locales/en";
 
-import { GROUP_LABEL, LISTING_GROUPS, parseMyListings, totalOf } from "./my-listings";
+import {
+  filterArgs,
+  GROUP_LABEL,
+  LISTING_GROUPS,
+  LISTING_MARKS,
+  NO_FILTERS,
+  parseMyListings,
+  SEARCH_MAX,
+  totalOf,
+} from "./my-listings";
 import { SOLD_SHOWN_DAYS, visibilityOf } from "./state-line";
 
 /** Bundle 16 turn 2 — the door's answer, refused whole when malformed (F4). */
@@ -37,30 +46,68 @@ const row = {
   removedReason: null,
 };
 
+/** Turn R1 — the answer carries the admin's renew setting. */
+const renew = { renewAllowed: true, renewDays: 30 };
+
 describe("my_listings answer", () => {
   it("ML-U1 a well-formed answer is read field for field", () => {
-    const page = parseMyListings({ counts, rows: [row] });
-    expect(page).toEqual({ counts, rows: [row] });
+    const page = parseMyListings({ counts, rows: [row], ...renew });
+    expect(page).toEqual({ counts, rows: [row], ...renew });
+    expect(parseMyListings({ counts, rows: [], renewAllowed: false, renewDays: null })).toEqual({
+      counts,
+      rows: [],
+      renewAllowed: false,
+      renewDays: null,
+    });
     expect(totalOf(counts)).toBe(10);
   });
 
   it("ML-U2 a missing or broken count refuses the whole answer", () => {
     const { drafts: _drafts, ...short } = counts;
-    expect(parseMyListings({ counts: short, rows: [] })).toBeNull();
-    expect(parseMyListings({ counts: { ...counts, live: -1 }, rows: [] })).toBeNull();
-    expect(parseMyListings({ counts: { ...counts, live: 1.5 }, rows: [] })).toBeNull();
-    expect(parseMyListings({ counts, rows: null })).toBeNull();
+    // The control: the same answer with its counts whole is read.
+    expect(parseMyListings({ counts, rows: [], ...renew })).not.toBeNull();
+    expect(parseMyListings({ counts: short, rows: [], ...renew })).toBeNull();
+    expect(parseMyListings({ counts: { ...counts, live: -1 }, rows: [], ...renew })).toBeNull();
+    expect(parseMyListings({ counts: { ...counts, live: 1.5 }, rows: [], ...renew })).toBeNull();
+    expect(parseMyListings({ counts, rows: null, ...renew })).toBeNull();
     expect(parseMyListings(null)).toBeNull();
   });
 
   it("ML-U3 a row with a wrong field refuses the whole answer", () => {
-    expect(parseMyListings({ counts, rows: [{ ...row, reserved: "yes" }] })).toBeNull();
-    expect(parseMyListings({ counts, rows: [{ ...row, daysLeft: -2 }] })).toBeNull();
-    expect(parseMyListings({ counts, rows: [{ ...row, priceAmount: "1500" }] })).toBeNull();
+    const answer = (rows: unknown[]) => parseMyListings({ counts, rows, ...renew });
+    expect(answer([row])).not.toBeNull();
+    expect(answer([{ ...row, reserved: "yes" }])).toBeNull();
+    expect(answer([{ ...row, daysLeft: -2 }])).toBeNull();
+    expect(answer([{ ...row, priceAmount: "1500" }])).toBeNull();
     // Turn 3b (call H) — the sold word is one of three.
-    expect(parseMyListings({ counts, rows: [{ ...row, soldWord: "leased" }] })).toBeNull();
+    expect(answer([{ ...row, soldWord: "leased" }])).toBeNull();
     const { removedReason: _reason, ...without } = row;
-    expect(parseMyListings({ counts, rows: [without] })).toBeNull();
+    expect(answer([without])).toBeNull();
+  });
+
+  it("ML-U12 the renew setting is read with the answer, and a broken one refuses it (turn R1)", () => {
+    expect(parseMyListings({ counts, rows: [] })).toBeNull();
+    expect(parseMyListings({ counts, rows: [], renewDays: 30 })).toBeNull();
+    expect(parseMyListings({ counts, rows: [], renewAllowed: "yes", renewDays: 30 })).toBeNull();
+    expect(parseMyListings({ counts, rows: [], renewAllowed: true, renewDays: 0 })).toBeNull();
+    expect(parseMyListings({ counts, rows: [], renewAllowed: true, renewDays: 2.5 })).toBeNull();
+    expect(parseMyListings({ counts, rows: [], renewAllowed: true })).toBeNull();
+  });
+
+  it("ML-U13 the search and filters reach the door only when asked, the search trimmed and cut to its length (turn R1)", () => {
+    expect(filterArgs(NO_FILTERS)).toEqual({});
+    expect(filterArgs({ search: "   ", category: null, mark: null })).toEqual({});
+    expect(filterArgs({ search: "  red phone ", category: null, mark: null })).toEqual({
+      p_search: "red phone",
+    });
+    expect(
+      filterArgs({ search: "a".repeat(SEARCH_MAX + 20), category: null, mark: null }).p_search,
+    ).toHaveLength(SEARCH_MAX);
+    expect(SEARCH_MAX).toBe(100);
+    expect(
+      filterArgs({ search: "", category: "00000000-0000-4000-8000-0000000000c1", mark: "reduced" }),
+    ).toEqual({ p_category: "00000000-0000-4000-8000-0000000000c1", p_mark: "reduced" });
+    expect(LISTING_MARKS).toEqual(["reserved", "reduced"]);
   });
 
   it("ML-U4 six groups, in the page's order, each with its word", () => {

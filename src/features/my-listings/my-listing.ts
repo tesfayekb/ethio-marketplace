@@ -158,21 +158,56 @@ export type ListingAction =
  * F): every ad but a removed one can also be deleted, last — a draft, an ad in
  * review (it waits for its answer otherwise, call G), a refused or a sold one
  * included. Editing comes with the edit boxes.
+ *
+ * Bundle 16 turn R1 (D181) — ONE rule for the ad's page (`actionsFor`, from
+ * `my_listing`) and for each row of My listings (`rowActionsFor`, from
+ * `my_listings`), so the two never offer different things.
  */
-export function actionsFor(ad: MyListing): ListingAction[] {
-  switch (ad.listing.status) {
+export function offerFor(
+  status: string,
+  reserved: boolean,
+  canReopen: boolean,
+  renewAllowed: boolean,
+): ListingAction[] {
+  switch (status) {
     case "active":
     case "reduced":
-      return [ad.listing.reserved ? "unreserve" : "reserve", "sell", "close", "delete"];
+      return [reserved ? "unreserve" : "reserve", "sell", "close", "delete"];
     case "closed":
-      return ad.resumeStatus === null ? ["sell", "delete"] : ["reopen", "sell", "delete"];
+      return canReopen ? ["reopen", "sell", "delete"] : ["sell", "delete"];
     case "expired":
-      return ad.renewAllowed ? ["renew", "delete"] : ["delete"];
+      return renewAllowed ? ["renew", "delete"] : ["delete"];
     case "removed":
       return [];
     default:
       return ["delete"];
   }
+}
+
+export function actionsFor(ad: MyListing): ListingAction[] {
+  return offerFor(
+    ad.listing.status,
+    ad.listing.reserved,
+    ad.resumeStatus !== null,
+    ad.renewAllowed,
+  );
+}
+
+/**
+ * Turn R1 — what a row of My listings offers: what its ad's page offers. The list
+ * does not carry the status a closed ad reopens to (closing records it, so a closed
+ * ad holds one); Reopen is offered, and `runListAction` reads the ad again first.
+ */
+export function rowActionsFor(row: MyListingRow, renewAllowed: boolean): ListingAction[] {
+  return offerFor(row.status, row.reserved, true, renewAllowed);
+}
+
+/** Turn R1 — the ad's main next step, drawn filled on its page: Reopen, Renew, then Mark as sold. */
+export function primaryAction(actions: ListingAction[]): ListingAction | null {
+  for (const action of ["reopen", "renew", "sell"] as const) {
+    if (actions.includes(action)) return action;
+  }
+  return null;
 }
 
 /** The actions that cannot be undone ask first. */
@@ -250,6 +285,27 @@ export async function runAction(ad: MyListing, action: ListingAction): Promise<A
   return { ok: true };
 }
 
+/**
+ * Turn R1 — an action taken from the list. The ad is read again first: its status
+ * may have changed since the list was read, and a closed ad's reopening status
+ * comes with it. The action runs only when the ad still offers it; its door
+ * re-checks everything anyway (F3).
+ */
+export async function runListAction(
+  listingId: string,
+  action: ListingAction,
+): Promise<ActionOutcome> {
+  let ad: MyListing | "notYours";
+  try {
+    ad = await readMyListing(listingId);
+  } catch {
+    return { ok: false, key: "myListings.error.failed" };
+  }
+  if (ad === "notYours") return { ok: false, key: "myListings.error.notYours" };
+  if (!actionsFor(ad).includes(action)) return { ok: false, key: "myListings.error.changed" };
+  return runAction(ad, action);
+}
+
 /** What the page says once an action is done (a deleted ad's page leaves for My listings). */
 export const DONE_KEY: Record<Exclude<ListingAction, "delete">, MessageKey> = {
   reserve: "myListings.done.reserve",
@@ -259,6 +315,9 @@ export const DONE_KEY: Record<Exclude<ListingAction, "delete">, MessageKey> = {
   reopen: "myListings.done.reopen",
   renew: "myListings.done.renew",
 };
+
+/** Turn R1 — what the list says once an ad is deleted from it. */
+export const DELETED_KEY: MessageKey = "myListings.done.delete";
 
 /** Each action's button. */
 export const ACTION_KEY: Record<ListingAction, MessageKey> = {
@@ -314,6 +373,45 @@ export function confirmKeys(
   };
   return { title: title[word], body: body[word], yes: SELL_KEY[word] };
 }
+
+/**
+ * Turn R1 (D182 2) — the actions My listings takes on several ticked ads at once,
+ * from tablet width up: Mark as sold, No longer available, Renew, Delete. Each one
+ * is offered for the ticked ads that offer it, asks first with their count, and
+ * runs ad by ad through `runListAction`.
+ */
+export const BULK_ACTIONS = ["sell", "close", "renew", "delete"] as const;
+export type BulkAction = (typeof BULK_ACTIONS)[number];
+
+/** The ticked ads that offer an action, in the list's order. */
+export function bulkTargets(
+  rows: MyListingRow[],
+  action: BulkAction,
+  renewAllowed: boolean,
+): MyListingRow[] {
+  return rows.filter((row) => rowActionsFor(row, renewAllowed).includes(action));
+}
+
+/** The words of the ticked ads' sold marks, each once, in the order sold, rented, filled. */
+export function soldWordsOf(rows: MyListingRow[]): SoldWord[] {
+  const words = new Set(rows.map((row) => row.soldWord));
+  return (["sold", "rented", "filled"] as const).filter((word) => words.has(word));
+}
+
+/** A bulk action's button: Mark as sold (rented, filled) by the ads' one word, or all three. */
+export function bulkLabelKey(action: BulkAction, words: SoldWord[]): MessageKey {
+  if (action !== "sell") return ACTION_KEY[action];
+  const [only, ...rest] = words;
+  return only !== undefined && rest.length === 0 ? SELL_KEY[only] : "myListings.bulk.sellMixed";
+}
+
+/** What a bulk action's confirm says. */
+export const BULK_BODY_KEY: Record<BulkAction, MessageKey> = {
+  sell: "myListings.bulk.sellBody",
+  close: "myListings.bulk.closeBody",
+  renew: "myListings.bulk.renewBody",
+  delete: "myListings.bulk.deleteBody",
+};
 
 /** The seller's word for a status in the history (reach is staff's lever and is not shown). */
 export const STATUS_WORD: Record<string, MessageKey> = {

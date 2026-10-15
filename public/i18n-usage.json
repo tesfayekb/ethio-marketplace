@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 442,
-  "dynamicCallSites": 312,
+  "scanned": 443,
+  "dynamicCallSites": 326,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2084,14 +2084,16 @@
     ],
     "admin.listings.col.expires": [
       "/admin/listings",
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/my-listings"
     ],
     "admin.listings.col.place": [
       "/admin/listings",
       "/admin/listings/$listingId"
     ],
     "admin.listings.col.posted": [
-      "/admin/listings"
+      "/admin/listings",
+      "/my-listings"
     ],
     "admin.listings.col.price": [
       "/admin/listings",
@@ -2176,7 +2178,8 @@
       "/admin/listings"
     ],
     "admin.listings.filter.category": [
-      "/admin/listings"
+      "/admin/listings",
+      "/my-listings"
     ],
     "admin.listings.filter.from": [
       "/admin/listings"
@@ -2302,7 +2305,8 @@
       "/admin/screening"
     ],
     "admin.listings.searchLabel": [
-      "/admin/listings"
+      "/admin/listings",
+      "/my-listings"
     ],
     "admin.listings.searchPlaceholder": [
       "/admin/listings"
@@ -3843,6 +3847,7 @@
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
+      "/my-listings",
       "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
@@ -3866,6 +3871,7 @@
       "/admin/users",
       "/admin/users/$userId",
       "/dev/style",
+      "/my-listings",
       "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
@@ -4292,8 +4298,8 @@
     "mfa.verifyActivate": [
       "/settings"
     ],
-    "myListings.ad.actions": [
-      "/my-listings/$listingId"
+    "myListings.action.delete": [
+      "/my-listings"
     ],
     "myListings.ad.ends": [
       "/my-listings/$listingId"
@@ -4325,12 +4331,23 @@
     "myListings.ad.waiting": [
       "/my-listings/$listingId"
     ],
+    "myListings.bulk.done": [
+      "/my-listings"
+    ],
+    "myListings.bulk.refused": [
+      "/my-listings"
+    ],
+    "myListings.bulk.title": [
+      "/my-listings"
+    ],
     "myListings.closedLine": [
       "/my-listings",
       "/my-listings/$listingId"
     ],
+    "myListings.col.photo": [
+      "/my-listings"
+    ],
     "myListings.continue": [
-      "/my-listings",
       "/my-listings/$listingId"
     ],
     "myListings.daysKept": [
@@ -4341,6 +4358,9 @@
       "/my-listings",
       "/my-listings/$listingId"
     ],
+    "myListings.edit": [
+      "/my-listings"
+    ],
     "myListings.empty": [
       "/my-listings"
     ],
@@ -4349,11 +4369,15 @@
       "/my-listings/$listingId"
     ],
     "myListings.error.failed": [
+      "/my-listings",
       "/my-listings/$listingId"
     ],
     "myListings.expiredOn": [
       "/my-listings",
       "/my-listings/$listingId"
+    ],
+    "myListings.filter.mark": [
+      "/my-listings"
     ],
     "myListings.groupLabel": [
       "/my-listings"
@@ -4405,6 +4429,9 @@
       "/my-listings",
       "/my-listings/$listingId"
     ],
+    "myListings.searchPlaceholder": [
+      "/my-listings"
+    ],
     "myListings.untitled": [
       "/my-listings",
       "/my-listings/$listingId"
@@ -4423,7 +4450,8 @@
     "nav.postListing": [
       "/",
       "/account",
-      "/c/$slug"
+      "/c/$slug",
+      "/my-listings"
     ],
     "nav.profile": [
       "(every page)"
@@ -6041,7 +6069,8 @@
     ],
     "prim.table.all": [
       "/admin/listings",
-      "/admin/screening"
+      "/admin/screening",
+      "/my-listings"
     ],
     "prim.table.clearAll": [
       "/admin/audit",
@@ -6052,7 +6081,8 @@
       "/admin/screening",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.columns": [
       "/admin/ai",
@@ -6068,7 +6098,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "prim.table.done": [
       "/admin/ai",
@@ -6085,7 +6116,8 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.filters": [
       "/admin/audit",
@@ -6096,7 +6128,8 @@
       "/admin/screening",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.next": [
       "/admin/ai",
@@ -6202,7 +6235,8 @@
       "/admin/screening",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "prim.table.selectAll": [
       "/admin/ai",
@@ -6275,7 +6309,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users"
+      "/admin/users",
+      "/my-listings"
     ],
     "prim.table.showResults": [
       "/admin/audit",
@@ -6286,7 +6321,8 @@
       "/admin/screening",
       "/admin/translations/$lang",
       "/admin/users",
-      "/dev/style"
+      "/dev/style",
+      "/my-listings"
     ],
     "session.idleWarning": [
       "(every page)"

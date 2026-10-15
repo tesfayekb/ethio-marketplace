@@ -1,36 +1,81 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 
-import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { NegotiableBadge } from "@/components/marketplace/listing-card";
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterChoices } from "@/components/shell/filter-choices";
+import { RowActions } from "@/components/shell/row-actions";
+import { TableActionButton, TableActions } from "@/components/shell/table-actions";
+import { TableToolbar } from "@/components/shell/table-toolbar";
 import { useKeptPage } from "@/components/shell/use-kept-page";
+import { ActionMessage } from "@/components/ui/action-message";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { CutText } from "@/components/ui/cut-text";
-import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
+import { Input } from "@/components/ui/input";
+import {
+  nearestCategoryPicture,
+  rootsOf,
+  useCategoryTree,
+} from "@/features/categories/category-tree";
 import { SOLD_RIBBON } from "@/features/feed/feed-page";
 import { CARD_THEN_THUMB, photoUrl } from "@/features/posting/photo-links";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
+import { fill } from "@/features/posting/refusal-text";
 import { usePhotoLinks } from "@/features/posting/use-photo-links";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
-import { useI18n } from "@/i18n";
+import { useDebounced } from "@/hooks/use-debounced";
+import { useI18n, type MessageKey } from "@/i18n";
 import { authKey } from "@/lib/query-keys";
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
+import {
+  actionKey,
+  ASKS_FIRST,
+  BULK_ACTIONS,
+  BULK_BODY_KEY,
+  bulkLabelKey,
+  bulkTargets,
+  confirmKeys,
+  DELETED_KEY,
+  doneKey,
+  rowActionsFor,
+  runListAction,
+  soldWordsOf,
+  type BulkAction,
+  type ListingAction,
+} from "./my-listing";
 import {
   GROUP_LABEL,
   LISTING_GROUPS,
+  LISTING_MARKS,
   readMyListings,
+  SEARCH_MAX,
   type GroupCounts,
   type ListingGroup,
+  type ListingMark,
   type MyListingRow,
+  type MyListingsFilters,
 } from "./my-listings";
 import { stateLine } from "./state-line";
 
@@ -39,16 +84,38 @@ import { stateLine } from "./state-line";
  *
  * The signed-in seller's own ads, one group at a time, newest change first, from
  * `my_listings` (the door's only key is the caller, so no other seller's ad can
- * appear). Built from the console's table primitives: a table from 1280 px, cards
- * below it (mobile first, 360 / 768 / 1280). Each row: the cover photo (with the
- * seller's session — a photo of an ad that is not live is the seller's own), the
- * title, the price, the state in words and its date, and the Reserved and "Price
- * reduced" marks. A draft continues in the posting form; any other ad opens its
- * own page (turn 3, /my-listings/<id>: the ad, its dates, its history and its
- * actions).
+ * appear). Each row: the cover photo (with the seller's session — a photo of an ad
+ * that is not live is the seller's own), the title, the price, the state in words
+ * and its date, and the gold marks. A draft continues in the posting form; any
+ * other ad opens its own page (turn 3, /my-listings/<id>).
+ *
+ * Bundle 16 turn R1 (D181, D182; INC-630) — ON THE SITE'S AGREED TABLE BLOCKS
+ * (docs/features/display-primitives.md, T1–T9), as every admin table is:
+ * - the header (`TableActions`): the page's name and Post listing;
+ * - the status groups with their counts above the table (`my-listings-group`, as
+ *   the admin's All listings shows its views);
+ * - the toolbar (`TableToolbar`): the search by title, Filters (a top category with
+ *   everything under it; Reserved; Price reduced) with their chips, and Columns
+ *   (the title locked). The door filters, and the six counts follow the filters;
+ * - each row's actions (`RowActions`): Edit on a draft (the posting form; a
+ *   published ad's Edit comes with the edit boxes, D172), a red Delete on every ad
+ *   that can be deleted, and the three-dots with Open and what this ad offers —
+ *   the same rule as its own page (`rowActionsFor` / `actionsFor`). Mark as sold
+ *   and Delete ask first. Each action reads the ad again before it runs
+ *   (`runListAction`), and the list is read again whatever the answer (F4);
+ * - tick-boxes from tablet width up (D182 2) with Mark as sold, No longer
+ *   available, Renew and Delete for the ticked ads that offer each, asking first
+ *   with their count; a phone acts one ad at a time;
+ * - the footer: 20 a page by default, the size kept in this browser;
+ * - on a phone one card per ad: its photo on the left, the title, the marks, the
+ *   price and the state beside it, the three-dots in the corner, Edit and Delete in
+ *   the card's foot.
  *
  * A refused or malformed answer is an error with Retry, never an empty list (F4).
  */
+
+const TABLE_ID = "my-listings";
+const LOCKED = ["title"];
 
 const EMPTY_COUNTS: GroupCounts = {
   live: 0,
@@ -59,16 +126,47 @@ const EMPTY_COUNTS: GroupCounts = {
   drafts: 0,
 };
 
+const MARK_LABEL: Record<ListingMark, MessageKey> = {
+  reserved: "myListings.reserved",
+  reduced: "myListings.priceReduced",
+};
+
+type Asking = { action: ListingAction; rows: MyListingRow[]; bulk: boolean } | null;
+type Notice = { text: string; tone: "done" | "error" } | null;
+
 export function MyListingsPage() {
   const { t, language } = useI18n();
   const { tree } = useCategoryTree();
-  const [group, setGroup] = useState<ListingGroup>("live");
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const paging = useKeptPage("ethio.myListings.pageSize");
+  const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
+
+  const [group, setGroup] = useState<ListingGroup>("live");
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
+  const [mark, setMark] = useState<ListingMark | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [asking, setAsking] = useState<Asking>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<Notice>(null);
+  const debouncedSearch = useDebounced(search);
+  const filters: MyListingsFilters = { search: debouncedSearch, category, mark };
 
   const query = useQuery({
-    queryKey: authKey("my-listings", { group, page: paging.page, size: paging.pageSize }),
+    queryKey: authKey("my-listings", {
+      group,
+      page: paging.page,
+      size: paging.pageSize,
+      ...filters,
+    }),
     queryFn: async () => {
-      const page = await readMyListings(group, paging.pageSize, paging.page * paging.pageSize);
+      const page = await readMyListings(
+        group,
+        paging.pageSize,
+        paging.page * paging.pageSize,
+        filters,
+      );
       if (page === null) throw new Error("my_listings refused or malformed");
       return page;
     },
@@ -76,15 +174,42 @@ export function MyListingsPage() {
   });
   const rows = query.data?.rows ?? [];
   const counts = query.data?.counts ?? EMPTY_COUNTS;
+  const renewAllowed = query.data?.renewAllowed ?? false;
+  const renewDays = query.data?.renewDays ?? null;
 
   const links = usePhotoLinks(
     rows.flatMap((row) => (row.coverPhotoId === null ? [] : [{ id: row.coverPhotoId }])),
   );
   const unitLabels = usePriceUnitLabels(rows.some((row) => row.priceUnit !== null));
+  const locale = language === "am" ? "am-ET" : "en-GB";
   const day = (iso: string | null) =>
     iso === null
       ? ""
       : new Intl.DateTimeFormat(language, { dateStyle: "medium" }).format(new Date(iso));
+  const tableDay = (iso: string | null) =>
+    iso === null ? (
+      <span className="text-muted-foreground">—</span>
+    ) : (
+      <time
+        dateTime={iso}
+        title={new Intl.DateTimeFormat(locale, { dateStyle: "full" }).format(new Date(iso))}
+        className="tabular-nums text-muted-foreground"
+      >
+        {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(iso))}
+      </time>
+    );
+  const roots = rootsOf(tree);
+  const both = (en: string | null, am: string | null) =>
+    language === "am" && am !== null ? am : (en ?? "—");
+  const categoryName = (id: string) => {
+    const node = tree.byId.get(id);
+    return node ? both(node.nameEn, node.nameAm) : id;
+  };
+
+  const reset = () => {
+    paging.setPage(0);
+    setSelected([]);
+  };
 
   const picture = (row: MyListingRow) => (
     <div className="w-20 shrink-0" data-testid={`my-listing-${row.id}-picture`}>
@@ -166,10 +291,158 @@ export function MyListingsPage() {
     ) : null;
   };
 
-  const columns: DataTableColumn<MyListingRow>[] = [
+  /** The row's name opens it: a draft in the posting form, any other ad on its own page. */
+  const titleLink = (row: MyListingRow) => {
+    const name = <CutText text={row.title ?? t("myListings.untitled")} />;
+    const className =
+      "block min-w-0 break-words font-medium text-foreground underline-offset-4 hover:underline";
+    return row.status === "draft" ? (
+      <Link
+        to="/post/$listingId"
+        params={{ listingId: row.id }}
+        data-testid={`my-listing-${row.id}-continue`}
+        className={className}
+      >
+        {name}
+      </Link>
+    ) : (
+      <Link
+        to="/my-listings/$listingId"
+        params={{ listingId: row.id }}
+        data-testid={`my-listing-${row.id}-open`}
+        className={className}
+      >
+        {name}
+      </Link>
+    );
+  };
+
+  const actionLabel = (action: ListingAction, row: MyListingRow) =>
+    action === "renew"
+      ? fill(t(actionKey("renew", row.soldWord)), { days: String(renewDays ?? "") })
+      : t(actionKey(action, row.soldWord));
+
+  /**
+   * One action on one ad or on several, ad by ad (each re-read first, its door
+   * re-checking everything). A refusal of one ad does not stop the others; the rate
+   * dial's refusal stops the set. The list is read again whatever the answers.
+   */
+  const act = async (action: ListingAction, targets: MyListingRow[], bulk: boolean) => {
+    if (busy || targets.length === 0) return;
+    setBusy(true);
+    setNotice(null);
+    let done = 0;
+    let reason: string | null = null;
+    try {
+      for (const row of targets) {
+        const outcome = await runListAction(row.id, action);
+        if (outcome.ok) {
+          done += 1;
+          continue;
+        }
+        reason ??= t(outcome.key);
+        if (outcome.key === "myListings.error.rateLimited") break;
+      }
+    } catch {
+      reason ??= t("myListings.error.failed");
+    } finally {
+      await refreshAfterWrite(queryClient, { queryKey: authKey("my-listings") });
+      await refreshAfterWrite(queryClient, { queryKey: authKey("my-listing") });
+      setBusy(false);
+      setSelected([]);
+    }
+    const first = targets[0];
+    if (!bulk && first !== undefined) {
+      setNotice(
+        reason === null
+          ? {
+              text: action === "delete" ? t(DELETED_KEY) : t(doneKey(action, first.soldWord)),
+              tone: "done",
+            }
+          : { text: reason, tone: "error" },
+      );
+      return;
+    }
+    const doneText = fill(t("myListings.bulk.done"), { count: done });
+    const notChanged = targets.length - done;
+    setNotice(
+      notChanged === 0
+        ? { text: doneText, tone: "done" }
+        : {
+            text: `${done > 0 ? `${doneText} ` : ""}${fill(t("myListings.bulk.refused"), {
+              count: notChanged,
+              reason: reason ?? "",
+            })}`,
+            tone: "error",
+          },
+    );
+  };
+
+  /** Mark as sold and Delete ask first, and every action on ticked ads asks with their count. */
+  const take = (action: ListingAction, targets: MyListingRow[], bulk: boolean) => {
+    if (bulk || ASKS_FIRST.has(action)) setAsking({ action, rows: targets, bulk });
+    else void act(action, targets, false);
+  };
+
+  const rowActions = (row: MyListingRow) => {
+    const offer = rowActionsFor(row, renewAllowed);
+    const draft = row.status === "draft";
+    return (
+      <RowActions
+        testid={`my-listing-${row.id}`}
+        name={row.title ?? t("myListings.untitled")}
+        edit={
+          draft
+            ? {
+                label: t("myListings.edit"),
+                onSelect: () =>
+                  void navigate({ to: "/post/$listingId", params: { listingId: row.id } }),
+              }
+            : undefined
+        }
+        remove={
+          offer.includes("delete")
+            ? {
+                label: t("myListings.action.delete"),
+                disabled: busy,
+                onSelect: () => take("delete", [row], false),
+              }
+            : undefined
+        }
+        more={
+          draft
+            ? []
+            : [
+                {
+                  key: "open",
+                  label: t("myListings.open"),
+                  onSelect: () =>
+                    void navigate({
+                      to: "/my-listings/$listingId",
+                      params: { listingId: row.id },
+                    }),
+                },
+                ...offer
+                  .filter((action) => action !== "delete")
+                  .map((action) => ({
+                    key: action,
+                    label: actionLabel(action, row),
+                    disabled: busy,
+                    onSelect: () => take(action, [row], false),
+                  })),
+              ]
+        }
+      />
+    );
+  };
+
+  const ticked = rows.filter((row) => selected.includes(row.id));
+  const bulkOf = (action: BulkAction) => bulkTargets(ticked, action, renewAllowed);
+
+  const allColumns: DataTableColumn<MyListingRow>[] = [
     {
       key: "photo",
-      header: "",
+      header: t("myListings.col.photo"),
       priority: "primary",
       width: "w-24",
       card: "hide",
@@ -182,9 +455,7 @@ export function MyListingsPage() {
       card: "title",
       cell: (row) => (
         <span className="block min-w-0" data-testid={`my-listing-${row.id}-title`}>
-          <span className="block font-medium text-foreground">
-            <CutText text={row.title ?? t("myListings.untitled")} />
-          </span>
+          {titleLink(row)}
           {marks(row)}
         </span>
       ),
@@ -215,12 +486,95 @@ export function MyListingsPage() {
         </span>
       ),
     },
+    {
+      key: "posted",
+      header: t("admin.listings.col.posted"),
+      priority: "detail",
+      width: "w-[11%]",
+      cell: (row) => tableDay(row.publishedFirstAt),
+    },
+    {
+      key: "expires",
+      header: t("admin.listings.col.expires"),
+      priority: "detail",
+      width: "w-[11%]",
+      cell: (row) =>
+        row.status === "active" || row.status === "reduced"
+          ? tableDay(row.expiresAt)
+          : tableDay(null),
+    },
   ];
+  const columns = visibleColumns(allColumns, hidden, LOCKED);
+
+  const chips = [
+    ...(category === null
+      ? []
+      : [
+          {
+            key: "category",
+            label: categoryName(category),
+            onRemove: () => (setCategory(null), reset()),
+          },
+        ]),
+    ...(mark === null
+      ? []
+      : [{ key: "mark", label: t(MARK_LABEL[mark]), onRemove: () => (setMark(null), reset()) }]),
+  ];
+  const clearAll = () => {
+    setCategory(null);
+    setMark(null);
+    reset();
+  };
+
+  const askingRows = asking?.rows ?? [];
+  const askingFirst = askingRows[0];
+  const confirmTitle =
+    asking === null || askingFirst === undefined
+      ? ""
+      : asking.bulk
+        ? fill(t("myListings.bulk.title"), { count: askingRows.length })
+        : t(confirmKeys(asking.action === "sell" ? "sell" : "delete", askingFirst.soldWord).title);
+  const confirmBody =
+    asking === null || askingFirst === undefined
+      ? ""
+      : asking.bulk
+        ? fill(t(BULK_BODY_KEY[asking.action as BulkAction]), {
+            word: soldWordsOf(askingRows)
+              .map((word) => t(SOLD_RIBBON[word]))
+              .join(" / "),
+            days: String(renewDays ?? ""),
+          })
+        : t(confirmKeys(asking.action === "sell" ? "sell" : "delete", askingFirst.soldWord).body);
+  const confirmYes =
+    asking === null || askingFirst === undefined
+      ? ""
+      : asking.bulk
+        ? fill(t(bulkLabelKey(asking.action as BulkAction, soldWordsOf(askingRows))), {
+            days: String(renewDays ?? ""),
+          })
+        : t(confirmKeys(asking.action === "sell" ? "sell" : "delete", askingFirst.soldWord).yes);
 
   return (
     <PageShell as="main" width="wide" data-testid="my-listings-page">
-      <PageHeader title={t("nav.myListings")} />
-      <div className="mt-4 min-w-0 space-y-4">
+      <div className="min-w-0 space-y-4">
+        <TableActions testid="my-listings-header" title={t("nav.myListings")}>
+          <TableActionButton
+            variant="default"
+            data-testid="my-listings-post"
+            icon={<Plus />}
+            label={t("nav.postListing")}
+            onClick={() => void navigate({ to: "/post" })}
+          />
+        </TableActions>
+
+        {/* INC-570 — the outcome of a row's action comes into view wherever the row was. */}
+        <ActionMessage
+          testid="my-listings-notice"
+          tone={notice?.tone ?? "done"}
+          text={notice?.text ?? null}
+          className={notice?.tone === "error" ? undefined : "text-foreground"}
+        />
+
         <FilterChoices
           testid="my-listings-group"
           label={t("myListings.groupLabel")}
@@ -229,13 +583,14 @@ export function MyListingsPage() {
             const next = LISTING_GROUPS.find((entry) => entry === value);
             if (next === undefined) return;
             setGroup(next);
-            paging.setPage(0);
+            reset();
           }}
           options={LISTING_GROUPS.map((value) => ({
             value,
             label: `${t(GROUP_LABEL[value])} (${counts[value]})`,
           }))}
         />
+
         <DataTable<MyListingRow>
           columns={columns}
           rows={rows}
@@ -244,6 +599,7 @@ export function MyListingsPage() {
           cardUntil="xl"
           caption={t("nav.myListings")}
           cardLead={(row) => picture(row)}
+          cardLeadKind="picture"
           loading={query.isLoading}
           loadingState={
             <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
@@ -271,45 +627,177 @@ export function MyListingsPage() {
               {t("myListings.empty")}
             </p>
           }
-          rowActions={(row) =>
-            row.status === "draft" ? (
-              <Button asChild variant="outline" size="touch">
-                <Link
-                  to="/post/$listingId"
-                  params={{ listingId: row.id }}
-                  data-testid={`my-listing-${row.id}-continue`}
+          toolbar={
+            <TableToolbar
+              testid="my-listings-toolbar"
+              search={
+                <Input
+                  id="my-listings-search"
+                  data-testid="my-listings-search"
+                  type="search"
+                  maxLength={SEARCH_MAX}
+                  aria-label={t("admin.listings.searchLabel")}
+                  placeholder={t("myListings.searchPlaceholder")}
+                  value={search}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    reset();
+                  }}
+                />
+              }
+              filters={
+                <FiltersButton
+                  testid="my-listings-filters"
+                  count={chips.length}
+                  state={`${category ?? ""}|${mark ?? ""}`}
+                  resultCount={counts[group]}
+                  onClearAll={clearAll}
                 >
-                  {t("myListings.continue")}
-                </Link>
-              </Button>
-            ) : (
-              // Bundle 16 turn 3 — every other ad opens its own page.
-              <Button asChild variant="outline" size="touch">
-                <Link
-                  to="/my-listings/$listingId"
-                  params={{ listingId: row.id }}
-                  data-testid={`my-listing-${row.id}-open`}
-                >
-                  {t("myListings.open")}
-                </Link>
-              </Button>
-            )
+                  <FilterChoices
+                    testid="my-listings-filter-category"
+                    label={t("admin.listings.filter.category")}
+                    value={category ?? ""}
+                    onChange={(value) => {
+                      setCategory(value === "" ? null : value);
+                      reset();
+                    }}
+                    options={[
+                      { value: "", label: t("prim.table.all") },
+                      ...roots.map((node) => ({
+                        value: node.id,
+                        label: both(node.nameEn, node.nameAm),
+                      })),
+                    ]}
+                  />
+                  <FilterChoices
+                    testid="my-listings-filter-mark"
+                    label={t("myListings.filter.mark")}
+                    value={mark ?? ""}
+                    onChange={(value) => {
+                      setMark(LISTING_MARKS.find((entry) => entry === value) ?? null);
+                      reset();
+                    }}
+                    options={[
+                      { value: "", label: t("prim.table.all") },
+                      ...LISTING_MARKS.map((value) => ({ value, label: t(MARK_LABEL[value]) })),
+                    ]}
+                  />
+                </FiltersButton>
+              }
+              columns={
+                <ColumnsButton
+                  testid="my-listings-columns"
+                  columns={allColumns.map((column) => ({
+                    key: column.key,
+                    label: String(column.header),
+                    locked: LOCKED.includes(column.key),
+                  }))}
+                  hidden={hidden}
+                  onToggle={toggleColumn}
+                />
+              }
+              chips={<FilterChips testid="my-listings-chips" chips={chips} onClearAll={clearAll} />}
+            />
           }
+          selection={{
+            selectedKeys: selected,
+            onToggleRow: (row, on) =>
+              setSelected((current) =>
+                on ? [...new Set([...current, row.id])] : current.filter((id) => id !== row.id),
+              ),
+            onToggleAll: (on) => setSelected(on ? rows.map((row) => row.id) : []),
+          }}
+          selectionFrom="md"
+          selectionActions={
+            selected.length > 0 ? (
+              <>
+                {BULK_ACTIONS.map((action) => {
+                  const targets = bulkOf(action);
+                  if (targets.length === 0) return null;
+                  return (
+                    <Button
+                      key={action}
+                      type="button"
+                      size="sm"
+                      variant={action === "delete" ? "destructive" : "outline"}
+                      data-testid={`my-listings-bulk-${action}`}
+                      disabled={busy}
+                      onClick={() => take(action, targets, true)}
+                    >
+                      {fill(t(bulkLabelKey(action, soldWordsOf(targets))), {
+                        days: String(renewDays ?? ""),
+                      })}
+                    </Button>
+                  );
+                })}
+              </>
+            ) : undefined
+          }
+          rowActions={rowActions}
+          actionsWidth="w-44"
           pagination={
             <DataTablePagination
               testid="my-listings-pagination"
               offset={paging.page * paging.pageSize}
               pageSize={paging.pageSize}
               total={counts[group]}
-              onPrevious={() => paging.setPage((current) => Math.max(0, current - 1))}
-              onNext={() => paging.setPage((current) => current + 1)}
-              onPage={(index) => paging.setPage(index)}
+              onPrevious={() => {
+                paging.setPage((current) => Math.max(0, current - 1));
+                setSelected([]);
+              }}
+              onNext={() => {
+                paging.setPage((current) => current + 1);
+                setSelected([]);
+              }}
+              onPage={(index) => {
+                paging.setPage(index);
+                setSelected([]);
+              }}
               pageSizeOptions={paging.pageSizeOptions}
-              onPageSize={(size) => paging.setPageSize(size)}
+              onPageSize={(size) => {
+                paging.setPageSize(size);
+                setSelected([]);
+              }}
             />
           }
         />
       </div>
+
+      <AlertDialog
+        open={asking !== null}
+        onOpenChange={(open) => {
+          if (!open) setAsking(null);
+        }}
+      >
+        {asking !== null ? (
+          <AlertDialogContent data-testid="my-listings-confirm">
+            <AlertDialogHeader>
+              <AlertDialogTitle>{confirmTitle}</AlertDialogTitle>
+              <AlertDialogDescription>{confirmBody}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="min-h-11" data-testid="my-listings-confirm-cancel">
+                {t("common.cancel")}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className={
+                  asking.action === "delete"
+                    ? "min-h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    : "min-h-11"
+                }
+                data-testid="my-listings-confirm-yes"
+                onClick={() => {
+                  const { action, rows: targets, bulk } = asking;
+                  setAsking(null);
+                  void act(action, targets, bulk);
+                }}
+              >
+                {confirmYes}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        ) : null}
+      </AlertDialog>
     </PageShell>
   );
 }

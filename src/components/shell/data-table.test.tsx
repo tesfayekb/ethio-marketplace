@@ -466,4 +466,36 @@ describe("DataTable V2 card and frame (D132)", () => {
     expect(within(band).getByTestId("place-p1-expanded").className).toContain("pt-0");
     expect(screen.getByTestId("place-p2").className).toContain("border-b");
   });
+
+  it("HS-26 a picture lead is the row's own picture, 80 px and untinted; the icon lead keeps its tile (bundle 16 turn R1)", () => {
+    renderPlaces({
+      cardLead: (r) => <img data-testid={`pic-${r.id}`} alt="" />,
+      cardLeadKind: "picture",
+    });
+    const lead = screen.getByTestId("place-p1-lead");
+    expect(within(lead).getByTestId("pic-p1")).toBeTruthy();
+    expect(lead.className).toContain("w-20");
+    expect(lead.className).not.toContain("bg-sidebar-accent");
+    expect(lead.getAttribute("aria-hidden")).toBe("true");
+    // The default stays the 36 px tile, with no lead testid.
+    renderPlaces({ cardLead: (r) => <svg data-testid={`icon-${r.id}`} /> });
+    const tile = screen.getByTestId("icon-p1").parentElement;
+    expect(tile?.className).toContain("size-9");
+    expect(tile?.className).toContain("bg-sidebar-accent");
+  });
+
+  it("HS-27 tick-boxes from tablet width up: a card's tick-box hides below md with selectionFrom, and shows everywhere without it (D182 2)", () => {
+    const selection = { selectedKeys: [], onToggleRow: vi.fn(), onToggleAll: vi.fn() };
+    const { unmount } = renderPlaces({
+      selection,
+      selectionActions: <button type="button">Bulk</button>,
+      selectionFrom: "md",
+    });
+    expect(screen.getByTestId("place-p1-select").className).toContain("max-md:hidden");
+    // The table twin's tick-box is the table's (from cardUntil up): unchanged.
+    expect(screen.getByTestId("place-p1-select-cell").className).not.toContain("max-md:hidden");
+    unmount();
+    renderPlaces({ selection, selectionActions: <button type="button">Bulk</button> });
+    expect(screen.getByTestId("place-p1-select").className).not.toContain("max-md:hidden");
+  });
 });
