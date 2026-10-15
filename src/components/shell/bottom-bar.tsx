@@ -97,17 +97,19 @@ export function BottomBar() {
         />
       </Link>
       {signedIn ? (
+        // Bundle 16 turn R1 (D182 1) — the item opens the seller's panel, so it carries the panel's name
+        // (Seller Centre), as Account does; "My listings" is the panel's list.
         <button
           type="button"
           data-testid="bottom-bar-my-listings"
-          aria-label={label("nav.myListings")}
+          aria-label={label("panel.myListings")}
           aria-current={activePanel === "my-listings" ? "page" : undefined}
           onClick={() => switchPanel("my-listings")}
           className={cn(ITEM, tone(activePanel === "my-listings"))}
         >
           <ItemBody
             icon={ClipboardList}
-            label={label("nav.myListings")}
+            label={label("panel.myListings")}
             current={activePanel === "my-listings"}
           />
         </button>

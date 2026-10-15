@@ -3916,7 +3916,14 @@ export type Database = {
       my_listing: { Args: { p_listing_id: string }; Returns: Json }
       my_listing_private: { Args: { p_listing_id: string }; Returns: Json }
       my_listings: {
-        Args: { p_group: string; p_limit?: number; p_offset?: number }
+        Args: {
+          p_category?: string
+          p_group: string
+          p_limit?: number
+          p_mark?: string
+          p_offset?: number
+          p_search?: string
+        }
         Returns: Json
       }
       my_recent_categories: { Args: never; Returns: Json }

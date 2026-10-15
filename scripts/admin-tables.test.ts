@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { breaches, check, drawsTable, readAdminSources, SECTIONS } from "./admin-tables";
+import { breaches, check, drawsTable, readTableSources, SECTIONS } from "./admin-tables";
 
 /**
  * Bundle 11, Part C (turn C1) — the agreed tables' check, proven on planted
@@ -115,10 +115,43 @@ describe("the agreed tables' check — planted files", () => {
 });
 
 describe("the agreed tables' check — the real tree", () => {
-  it("TBL-4 every admin table passes every rule", () => {
-    const result = check(readAdminSources());
+  it("TBL-4 every table passes every rule", () => {
+    const result = check(readTableSources());
     // The scan finds the tables (a check that reads nothing proves nothing).
-    expect(result.tables.length).toBeGreaterThanOrEqual(14);
+    expect(result.tables.length).toBeGreaterThanOrEqual(15);
     expect(result.refusals).toEqual([]);
+  });
+
+  it("TBL-5 the check reads the user's tables too, not only the admin's (INC-630)", () => {
+    const sources = readTableSources();
+    const tables = check(sources).tables;
+    expect(tables).toContain("src/features/my-listings/my-listings-page.tsx");
+    expect(tables.some((file) => file.startsWith("src/features/admin"))).toBe(true);
+    // My listings as it stood before turn R1 — its own table, footer and chips, nothing else — is refused.
+    const before = `
+import { useKeptPage } from "@/components/shell/use-kept-page";
+export function MyListingsPage() {
+  const paging = useKeptPage("ethio.myListings.pageSize");
+  const columns = [{ key: "title", card: "title" }];
+  return (
+    <PageShell>
+      <PageHeader title="x" />
+      <FilterChoices testid="my-listings-group" />
+      <DataTable
+        rowActions={(row) => <Button asChild><Link to="/my-listings/$listingId" /></Button>}
+        pagination={<DataTablePagination />}
+      />
+    </PageShell>
+  );
+}
+`;
+    expect(
+      check([{ file: "src/features/my-listings/my-listings-page.tsx", text: before }]).refusals,
+    ).toEqual([
+      "src/features/my-listings/my-listings-page.tsx: T1 — the page's heading in the header (TableActions)",
+      "src/features/my-listings/my-listings-page.tsx: T2 — the toolbar (TableToolbar)",
+      "src/features/my-listings/my-listings-page.tsx: T3 — Columns (ColumnsButton with useHiddenColumns)",
+      "src/features/my-listings/my-listings-page.tsx: T5 — the row's actions as RowActions (or the toggle of the row's expandedRow)",
+    ]);
   });
 });

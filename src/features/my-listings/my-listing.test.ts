@@ -6,7 +6,15 @@ import {
   ACTION_KEY,
   actionKey,
   ASKS_FIRST,
+  BULK_ACTIONS,
+  BULK_BODY_KEY,
+  bulkLabelKey,
+  bulkTargets,
   confirmKeys,
+  DELETED_KEY,
+  primaryAction,
+  rowActionsFor,
+  soldWordsOf,
   doneKey,
   SELL_KEY,
   SOLD_DONE_KEY,
@@ -188,5 +196,77 @@ describe("my_listing answer", () => {
       parseMyListing({ ...answer, listing: { ...row, soldWord: "filled" } })?.listing.soldWord,
     ).toBe("filled");
     expect(parseMyListing({ ...answer, listing: { ...row, soldWord: "gone" } })).toBeNull();
+  });
+});
+
+describe("the list's actions (bundle 16 turn R1, D181, D182)", () => {
+  const STATUSES = [
+    "active",
+    "reduced",
+    "closed",
+    "expired",
+    "draft",
+    "screening",
+    "held",
+    "rejected",
+    "removed",
+    "sold",
+  ];
+
+  it("ML-U14 a row offers what its ad's page offers, for every status, with renewing on or off", () => {
+    for (const status of STATUSES) {
+      for (const reserved of [false, true]) {
+        for (const renewAllowed of [false, true]) {
+          const page = actionsFor(
+            ad({ status, reserved }, { resumeStatus: "active", renewAllowed }),
+          );
+          expect(rowActionsFor({ ...row, status, reserved }, renewAllowed), status).toEqual(page);
+        }
+      }
+    }
+    // A closed ad's reopening status is not in the list: Reopen is offered, and the ad is read again first.
+    expect(rowActionsFor({ ...row, status: "closed" }, false)).toEqual([
+      "reopen",
+      "sell",
+      "delete",
+    ]);
+  });
+
+  it("ML-U15 ticked ads: each action for the ads that offer it; Mark as sold by their one word, or all three", () => {
+    expect(BULK_ACTIONS).toEqual(["sell", "close", "renew", "delete"]);
+    const live = { ...row, id: "a", status: "active" };
+    const rented = { ...row, id: "b", status: "active", soldWord: "rented" as const };
+    const closed = { ...row, id: "c", status: "closed" };
+    const expired = { ...row, id: "d", status: "expired" };
+    const removed = { ...row, id: "e", status: "removed" };
+    const ticked = [live, rented, closed, expired, removed];
+    const ids = (rows: { id: string }[]) => rows.map((entry) => entry.id);
+    expect(ids(bulkTargets(ticked, "sell", true))).toEqual(["a", "b", "c"]);
+    expect(ids(bulkTargets(ticked, "close", true))).toEqual(["a", "b"]);
+    expect(ids(bulkTargets(ticked, "renew", true))).toEqual(["d"]);
+    expect(ids(bulkTargets(ticked, "renew", false))).toEqual([]);
+    expect(ids(bulkTargets(ticked, "delete", true))).toEqual(["a", "b", "c", "d"]);
+    expect(soldWordsOf([rented, live])).toEqual(["sold", "rented"]);
+    expect(bulkLabelKey("sell", ["rented"])).toBe("myListings.action.rent");
+    expect(bulkLabelKey("sell", ["sold", "rented"])).toBe("myListings.bulk.sellMixed");
+    expect(bulkLabelKey("close", ["sold"])).toBe("myListings.action.close");
+    expect(bulkLabelKey("delete", [])).toBe("myListings.action.delete");
+    const keys = [
+      ...Object.values(BULK_BODY_KEY),
+      DELETED_KEY,
+      "myListings.bulk.sellMixed" as const,
+      "myListings.bulk.title" as const,
+      "myListings.bulk.done" as const,
+      "myListings.bulk.refused" as const,
+    ];
+    for (const key of keys) expect(en[key], key).toBeTruthy();
+  });
+
+  it("ML-U16 the ad page's main next step is filled: Reopen, then Renew, then Mark as sold", () => {
+    expect(primaryAction(["reserve", "sell", "close", "delete"])).toBe("sell");
+    expect(primaryAction(["reopen", "sell", "delete"])).toBe("reopen");
+    expect(primaryAction(["renew", "delete"])).toBe("renew");
+    expect(primaryAction(["delete"])).toBeNull();
+    expect(primaryAction([])).toBeNull();
   });
 });

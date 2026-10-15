@@ -1,6 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
@@ -38,15 +36,8 @@ export const adminUserActivityKey = (userId: string) =>
 export const adminUserDetailKey = (userId: string) =>
   [...ADMIN_USERS_KEY, "detail", userId] as const;
 
-/** 300ms debounce for the search box (U1: one request per pause, not per key). */
-export function useDebounced<T>(value: T, delay = 300): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return debounced;
-}
+/** 300ms debounce for the search box — one hook for every table's search (bundle 16 turn R1). */
+export { useDebounced } from "@/hooks/use-debounced";
 
 export function useAdminUsers(input: ListUsersInput) {
   return useQuery({

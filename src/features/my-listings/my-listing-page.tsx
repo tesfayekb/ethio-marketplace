@@ -43,6 +43,7 @@ import {
   ASKS_FIRST,
   confirmKeys,
   doneKey,
+  primaryAction,
   readHistory,
   readMyListing,
   runAction,
@@ -72,6 +73,13 @@ import { REASON_WORD, SOLD_ON, stateLine, visibilityOf } from "./state-line";
  * Every action goes to its own door, which re-checks everything (F3). Whatever the
  * answer, the ad, its history and the list are read again, so the page never
  * shows a state the database does not hold (F4); a refusal is said in words.
+ *
+ * Bundle 16 turn R1 (D181) — the actions are one bar under the title, as on the
+ * admin's listing page: one row of buttons that wraps (each button full width on a
+ * phone), the ad's main next step filled — Reopen on a closed ad, Renew on an
+ * expired one, Mark as sold on a live one — the others outlined, Delete red and
+ * last; the status card, the ad as buyers see it and its history follow. The
+ * bar's container keeps its testid (`my-listing-actions`); it has no heading.
  *
  * Testids: the page `my-listing-page`; back `my-listing-back`; status
  * `my-listing-status`, its group `my-listing-group`, its state `my-listing-state`,
@@ -257,6 +265,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   }
 
   const actions = actionsFor(ad);
+  const primary = primaryAction(actions);
   const live = row.status === "active" || row.status === "reduced";
   // D180 — the marks, the picture's ribbon (the first mark) and what buyers see of the ad.
   const sold = row.status === "sold";
@@ -314,83 +323,21 @@ export function MyListingPage({ listingId }: { listingId: string }) {
         className="mt-2"
         title={<span className="break-words">{row.title ?? t("myListings.untitled")}</span>}
       />
-      <div className="mt-4 min-w-0 space-y-4">
-        <div className="grid min-w-0 gap-4 lg:grid-cols-2">
-          <PageCard testid="my-listing-status" className="min-w-0 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                data-testid="my-listing-group"
-                className="text-sm font-semibold text-foreground"
-              >
-                {t(GROUP_LABEL[ad.group])}
-              </span>
-              {sold ? (
-                <Mark testid="my-listing-sold-mark">{t(SOLD_RIBBON[row.soldWord])}</Mark>
-              ) : null}
-              {row.status === "closed" ? (
-                <Mark testid="my-listing-closed-mark">{t("feed.ribbon.closed")}</Mark>
-              ) : null}
-              {row.reserved ? (
-                <Mark testid="my-listing-reserved">{t("myListings.reserved")}</Mark>
-              ) : null}
-              {reduced ? (
-                <Mark testid="my-listing-price-reduced">{t("myListings.priceReduced")}</Mark>
-              ) : null}
-            </div>
-            <p data-testid="my-listing-state" className="text-sm text-muted-foreground">
-              {stateLine(row, t, day)}
-            </p>
-            <p
-              data-testid="my-listing-visibility"
-              data-visible={seen}
-              className="flex items-start gap-1.5 text-sm font-medium text-foreground"
-            >
-              {seen === "hidden" ? (
-                <EyeOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              ) : (
-                <Eye className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              )}
-              <span>
-                {seen === "seen"
-                  ? t("myListings.ad.seen")
-                  : seen === "soldSeen"
-                    ? fill(t("myListings.ad.soldSeen"), { word: t(SOLD_RIBBON[row.soldWord]) })
-                    : t("myListings.ad.hidden")}
-              </span>
-            </p>
-            <ul className="space-y-0.5 text-sm text-muted-foreground">
-              {row.publishedFirstAt !== null ? (
-                <li data-testid="my-listing-first-posted">
-                  {fill(t("myListings.ad.firstPosted"), { date: day(row.publishedFirstAt) })}
-                </li>
-              ) : null}
-              {row.renewedAt !== null ? (
-                <li data-testid="my-listing-renewed">
-                  {fill(t("myListings.ad.renewed"), { date: day(row.renewedAt) })}
-                </li>
-              ) : null}
-              {live && row.expiresAt !== null ? (
-                <li data-testid="my-listing-ends">
-                  {fill(t("myListings.ad.ends"), { date: day(row.expiresAt) })}
-                </li>
-              ) : null}
-              {row.soldAt !== null ? (
-                <li data-testid="my-listing-sold">
-                  {fill(t(SOLD_ON[row.soldWord]), { date: day(row.soldAt) })}
-                </li>
-              ) : null}
-            </ul>
-          </PageCard>
-
-          <PageCard testid="my-listing-actions" className="min-w-0 space-y-3">
-            <h2 className="text-sm font-semibold text-foreground">{t("myListings.ad.actions")}</h2>
-            {info !== null ? (
-              <p data-testid="my-listing-info" className="text-sm text-muted-foreground">
-                {info}
-              </p>
-            ) : null}
+      <div data-testid="my-listing-actions" className="mt-3 min-w-0 space-y-2">
+        {info !== null ? (
+          <p data-testid="my-listing-info" className="text-sm text-muted-foreground">
+            {info}
+          </p>
+        ) : null}
+        {actions.length === 0 && row.status !== "draft" ? (
+          <p data-testid="my-listing-no-action" className="text-sm text-muted-foreground">
+            {t("myListings.ad.none")}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            {/* A draft's next step is the posting form. */}
             {row.status === "draft" ? (
-              <Button asChild variant="outline" size="touch">
+              <Button asChild variant="default" size="touch">
                 <Link
                   to="/post/$listingId"
                   params={{ listingId: row.id }}
@@ -400,57 +347,113 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                 </Link>
               </Button>
             ) : null}
-            {actions.length === 0 ? (
-              <p data-testid="my-listing-no-action" className="text-sm text-muted-foreground">
-                {t("myListings.ad.none")}
-              </p>
-            ) : (
-              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                {actions.map((action) => (
-                  <Button
-                    key={action}
-                    type="button"
-                    size="touch"
-                    variant={
-                      action === "sell"
-                        ? "default"
-                        : action === "delete"
-                          ? "destructiveOutline"
-                          : "outline"
-                    }
-                    data-testid={`my-listing-action-${action}`}
-                    disabled={busy}
-                    onClick={() => {
-                      if (action === "sell" || action === "delete") setConfirming(action);
-                      else void act(action);
-                    }}
-                  >
-                    {action === "renew"
-                      ? fill(t(actionKey("renew", row.soldWord)), {
-                          days: String(ad.renewDays ?? ""),
-                        })
-                      : t(actionKey(action, row.soldWord))}
-                  </Button>
-                ))}
-              </div>
-            )}
-            {notice !== null ? (
-              <p
-                role="status"
-                aria-live="polite"
-                data-testid="my-listing-notice"
-                className="text-sm text-foreground"
+            {actions.map((action) => (
+              <Button
+                key={action}
+                type="button"
+                size="touch"
+                variant={
+                  action === primary
+                    ? "default"
+                    : action === "delete"
+                      ? "destructiveOutline"
+                      : "outline"
+                }
+                data-testid={`my-listing-action-${action}`}
+                disabled={busy}
+                onClick={() => {
+                  if (action === "sell" || action === "delete") setConfirming(action);
+                  else void act(action);
+                }}
               >
-                {notice}
-              </p>
+                {action === "renew"
+                  ? fill(t(actionKey("renew", row.soldWord)), {
+                      days: String(ad.renewDays ?? ""),
+                    })
+                  : t(actionKey(action, row.soldWord))}
+              </Button>
+            ))}
+          </div>
+        )}
+        {notice !== null ? (
+          <p
+            role="status"
+            aria-live="polite"
+            data-testid="my-listing-notice"
+            className="text-sm text-foreground"
+          >
+            {notice}
+          </p>
+        ) : null}
+        {problem !== null ? (
+          <p role="alert" data-testid="my-listing-problem" className="text-sm text-destructive">
+            {problem}
+          </p>
+        ) : null}
+      </div>
+      <div className="mt-4 min-w-0 space-y-4">
+        <PageCard testid="my-listing-status" className="min-w-0 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span data-testid="my-listing-group" className="text-sm font-semibold text-foreground">
+              {t(GROUP_LABEL[ad.group])}
+            </span>
+            {sold ? (
+              <Mark testid="my-listing-sold-mark">{t(SOLD_RIBBON[row.soldWord])}</Mark>
             ) : null}
-            {problem !== null ? (
-              <p role="alert" data-testid="my-listing-problem" className="text-sm text-destructive">
-                {problem}
-              </p>
+            {row.status === "closed" ? (
+              <Mark testid="my-listing-closed-mark">{t("feed.ribbon.closed")}</Mark>
             ) : null}
-          </PageCard>
-        </div>
+            {row.reserved ? (
+              <Mark testid="my-listing-reserved">{t("myListings.reserved")}</Mark>
+            ) : null}
+            {reduced ? (
+              <Mark testid="my-listing-price-reduced">{t("myListings.priceReduced")}</Mark>
+            ) : null}
+          </div>
+          <p data-testid="my-listing-state" className="text-sm text-muted-foreground">
+            {stateLine(row, t, day)}
+          </p>
+          <p
+            data-testid="my-listing-visibility"
+            data-visible={seen}
+            className="flex items-start gap-1.5 text-sm font-medium text-foreground"
+          >
+            {seen === "hidden" ? (
+              <EyeOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            ) : (
+              <Eye className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            )}
+            <span>
+              {seen === "seen"
+                ? t("myListings.ad.seen")
+                : seen === "soldSeen"
+                  ? fill(t("myListings.ad.soldSeen"), { word: t(SOLD_RIBBON[row.soldWord]) })
+                  : t("myListings.ad.hidden")}
+            </span>
+          </p>
+          <ul className="space-y-0.5 text-sm text-muted-foreground">
+            {row.publishedFirstAt !== null ? (
+              <li data-testid="my-listing-first-posted">
+                {fill(t("myListings.ad.firstPosted"), { date: day(row.publishedFirstAt) })}
+              </li>
+            ) : null}
+            {row.renewedAt !== null ? (
+              <li data-testid="my-listing-renewed">
+                {fill(t("myListings.ad.renewed"), { date: day(row.renewedAt) })}
+              </li>
+            ) : null}
+            {live && row.expiresAt !== null ? (
+              <li data-testid="my-listing-ends">
+                {fill(t("myListings.ad.ends"), { date: day(row.expiresAt) })}
+              </li>
+            ) : null}
+            {row.soldAt !== null ? (
+              <li data-testid="my-listing-sold">
+                {fill(t(SOLD_ON[row.soldWord]), { date: day(row.soldAt) })}
+              </li>
+            ) : null}
+          </ul>
+        </PageCard>
 
         <PageCard testid="my-listing-as-seen" className="min-w-0 space-y-3">
           <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
@@ -564,7 +567,11 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                 {t("common.cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
-                className="min-h-11"
+                className={
+                  confirming === "delete"
+                    ? "min-h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    : "min-h-11"
+                }
                 data-testid="my-listing-confirm-yes"
                 onClick={() => {
                   const action = confirming;

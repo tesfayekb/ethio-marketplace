@@ -153,6 +153,12 @@ export interface DataTableProps<T> {
    */
   cardLead?: (row: T) => ReactNode;
   /**
+   * Bundle 16 turn R1 (D181) — `"picture"` draws the lead as the row's own
+   * picture, 80 px wide and untinted (a seller's ad: its photo with its ribbon),
+   * instead of the 36 px icon tile. Decorative either way; the name says it.
+   */
+  cardLeadKind?: "icon" | "picture";
+  /**
    * U3a (INC-092) — INLINE ROW EXPANSION. Return the detail region for a row
    * and it renders DIRECTLY beneath that row: inside the 360 card, and as a
    * full-width `<tr>` injected immediately after the table row. Returning
@@ -170,6 +176,12 @@ export interface DataTableProps<T> {
   selection?: DataTableSelection<T>;
   /** BUNDLE 9 B6 — actions rendered at the end of the selection bar. */
   selectionActions?: ReactNode;
+  /**
+   * Bundle 16 turn R1 (D182 2) — `"md"`: the tick-boxes appear from tablet width
+   * up; a phone's cards act one row at a time (a seller's My listings). Unset,
+   * every card carries its tick-box, as before.
+   */
+  selectionFrom?: "md";
   /** Pagination controls slot, rendered under the table. */
   pagination?: ReactNode;
   /**
@@ -439,9 +451,11 @@ export function DataTable<T>({
   rowActions,
   actionsWidth = "w-24",
   cardLead,
+  cardLeadKind = "icon",
   expandedRow,
   selection,
   selectionActions,
+  selectionFrom,
   pagination,
   page,
   pageSize,
@@ -690,14 +704,22 @@ export function DataTable<T>({
                   <div className="flex min-w-0 items-start gap-2.5 px-3 pb-3 pt-3">
                     {selection ? (
                       <Checkbox
-                        className="mt-2.5 shrink-0"
+                        className={cn("mt-2.5 shrink-0", selectionFrom === "md" && "max-md:hidden")}
                         aria-label={t("prim.table.selectRow")}
                         data-testid={`${rid}-select`}
                         checked={selectedKeys.has(key)}
                         onCheckedChange={(checked) => selection.onToggleRow(row, checked === true)}
                       />
                     ) : null}
-                    {lead ? (
+                    {lead && cardLeadKind === "picture" ? (
+                      <span
+                        aria-hidden="true"
+                        data-testid={`${rid}-lead`}
+                        className="block w-20 shrink-0"
+                      >
+                        {lead}
+                      </span>
+                    ) : lead ? (
                       <span
                         aria-hidden="true"
                         className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-accent text-primary [&_svg]:size-[18px]"

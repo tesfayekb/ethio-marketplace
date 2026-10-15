@@ -2,9 +2,16 @@
  * Bundle 11, Part C (turn C1; D118, D128, D132, DEC-170) — EVERY ADMIN TABLE ON
  * THE AGREED BLOCKS, checked. Each rule below is written in
  * docs/features/display-primitives.md ("The agreed tables — the rules and
- * their check"); this check reads every admin file that draws a `DataTable`
- * (src/features/admin and every src/features/admin-… folder, tests left out) and
- * refuses a file that breaks one:
+ * their check"); this check reads every file that draws a `DataTable` and
+ * refuses a file that breaks one.
+ *
+ * Bundle 16 turn R1 (INC-630) — EVERY table, not only the admin's: the check read
+ * src/features/admin and the src/features/admin-… folders alone, so the first
+ * table a user sees (My listings) was built without the toolbar, Columns or the
+ * row's actions and nothing refused it. It now reads every file under
+ * src/features (tests left out), so each user-facing table — My listings today,
+ * favourites, saved searches, messages and the seller's page as they come — is
+ * held to the same rules:
  *
  * - T1 the page's heading sits in the header (`TableActions`). A table drawn
  *   inside another page (declared in SECTIONS) takes its host's heading: the
@@ -25,7 +32,7 @@
  *   offers Open in it (`key: "open"`; D142, turn C4).
  *
  * The baseline of existing screens reached zero in this turn, so there is
- * none: a new admin table is built on the blocks or the check refuses it.
+ * none: a new table is built on the blocks or the check refuses it.
  * Run by the unit tests (scripts/admin-tables.test.ts).
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -96,8 +103,8 @@ export function breaches(file: string, text: string): Rule[] {
 
 export type Source = { file: string; text: string };
 
-/** Every admin source file (tests left out). */
-export function readAdminSources(root = ROOT): Source[] {
+/** Every feature source file (tests left out): the admin's and the user's alike (INC-630). */
+export function readTableSources(root = ROOT): Source[] {
   const out: Source[] = [];
   const walk = (dir: string) => {
     for (const name of readdirSync(dir)) {
@@ -113,10 +120,7 @@ export function readAdminSources(root = ROOT): Source[] {
       });
     }
   };
-  const features = join(root, "src/features");
-  for (const name of readdirSync(features)) {
-    if (name === "admin" || name.startsWith("admin-")) walk(join(features, name));
-  }
+  walk(join(root, "src/features"));
   return out.sort((a, b) => a.file.localeCompare(b.file));
 }
 
