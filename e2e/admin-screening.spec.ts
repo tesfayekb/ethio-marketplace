@@ -1270,4 +1270,87 @@ test.describe("ADMIN SCREENING", () => {
     expect(allowed.error?.message).toBe("permission denied");
     expect(await heldTruth(failed), "SC-23: the seller's call showed the photo").toBe(true);
   });
+
+  test("SC-24 Photos to review: a failed photo on a live ad is listed with its reason, and Allow shows it to buyers (D178)", async ({
+    page,
+  }) => {
+    const register = async (
+      listingId: string,
+      name: string,
+      unscreened: boolean,
+      review?: Record<string, unknown>,
+    ): Promise<string> => {
+      const photoId = randomUUID();
+      const { error } = await adminClient().rpc("register_listing_photo", {
+        p_listing_id: listingId,
+        p_photo_id: photoId,
+        p_paths: { original: `e2e-sc/${rand()}-${name}.webp` },
+        p_width: 1,
+        p_height: 1,
+        p_bytes: 1,
+        p_unscreened: unscreened,
+        ...(review === undefined ? {} : { p_review: review }),
+      });
+      if (error) throw new Error(`[e2e:sc] registering ${name} failed: ${error.message}`);
+      return photoId;
+    };
+    const failReview = { label: "fail", code: "weapon", evidence: "e2e" };
+
+    const ad = await seedWaiting({ status: "active" });
+    const failed = await register(ad.id, "failed", true, failReview);
+    const plain = await register(ad.id, "plain", false);
+
+    // A draft of the test's own, with a failed photo: never listed.
+    const drafted = await seedWaiting();
+    const toDraft = await adminClient()
+      .from("listings")
+      .update({ status: "draft" })
+      .eq("id", drafted.id);
+    if (toDraft.error)
+      throw new Error(`[e2e:sc] making the draft failed: ${toDraft.error.message}`);
+    await register(drafted.id, "draft-failed", true, failReview);
+
+    const { user, secret } = await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/screening");
+    const section = page.getByTestId("admin-photo-reviews");
+    const row = section.locator(`[data-testid="admin-photo-review"][data-photo-id="${failed}"]`);
+    await expect(row).toBeVisible({ timeout: 20000 });
+    await expect(row).toHaveAttribute("data-label", "fail");
+    await expect(row.getByTestId("admin-photo-review-reason")).toHaveText(
+      en["admin.listings.photos.review.fail"] + " · " + en["post.photo.refusal.weapon"],
+    );
+    await expect(row.getByTestId("admin-photo-review-evidence")).toHaveText(
+      en["admin.listings.photos.review.evidence"].replace("{text}", "e2e"),
+    );
+    await expect(row.getByTestId("admin-photo-review-ad")).toHaveText(ad.title);
+    await expect(
+      section.locator(`[data-testid="admin-photo-review"][data-listing-id="${drafted.id}"]`),
+    ).toHaveCount(0);
+
+    await row.getByTestId("admin-photo-review-allow").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
+      en["admin.listings.photos.allowed"],
+      { timeout: 20000 },
+    );
+    await expect(row).toHaveCount(0);
+
+    expect(await heldTruth(failed), "SC-24: Allow left the photo hidden").toBe(false);
+    const { data: review, error } = await adminClient()
+      .from("listing_photo_reviews")
+      .select("decision, decided_by")
+      .eq("photo_id", failed)
+      .single();
+    if (error) throw new Error(`[e2e:sc] reading the review failed: ${error.message}`);
+    expect(review).toEqual({ decision: "allowed", decided_by: user.id });
+    const { data: audit, error: auditError } = await adminClient()
+      .from("audit_log")
+      .select("meta")
+      .eq("entity_type", "listing")
+      .eq("entity_id", ad.id)
+      .eq("action", "listing.photo_allowed");
+    if (auditError) throw new Error(`[e2e:sc] reading audit_log failed: ${auditError.message}`);
+    expect(audit).toEqual([{ meta: { photo: failed, label: "fail", code: "weapon" } }]);
+    expect(await buyerPhotoIds(ad.id)).toEqual([failed, plain].sort());
+  });
 });

@@ -1978,4 +1978,37 @@ test.describe("PHOTO PIPELINE", () => {
       ).toBe(true);
     }
   });
+
+  test("PP-33 the seller is told why a photo is hidden: the rule it may break, or an unsure check (D178)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+    const failed = await uploadPhoto(page, {
+      listingId,
+      token,
+      cover: { name: "marker-13px.jpg" },
+    });
+    expect(failed.payload["ok"], JSON.stringify(failed.payload)).toBe(true);
+    const unsure = await uploadPhoto(page, { listingId, token, cover: { made: [19, 19] } });
+    expect(unsure.payload["ok"], JSON.stringify(unsure.payload)).toBe(true);
+
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    const tiles = page.getByTestId("post-photo-stored");
+    await expect(tiles).toHaveCount(2);
+    const first = tiles.nth(0).getByTestId("post-photo-review");
+    await expect(first).toHaveAttribute("data-label", "fail");
+    await expect(first).toHaveText(
+      en["post.photos.review.title"] + " " + en["post.photo.refusal.not_a_photo"],
+    );
+    const second = tiles.nth(1).getByTestId("post-photo-review");
+    await expect(second).toHaveAttribute("data-label", "unsure");
+    await expect(second).toHaveText(
+      en["post.photos.review.title"] + " " + en["post.photos.review.unsure"],
+    );
+    await expect(page.getByTestId("post-photos-held-note")).toHaveCount(0);
+  });
 });
