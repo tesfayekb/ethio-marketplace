@@ -377,13 +377,12 @@ export function StepReview({
         <h2 className="text-base font-semibold text-foreground">{t("post.review.reviewTitle")}</h2>
         <p className="text-sm text-muted-foreground">{t("post.review.reviewBody")}</p>
         {/*
-         * MY LISTINGS HAS NO PAGE YET (E1 owns it, `homePath: null`). A button
-         * that goes nowhere is worse than none, so the way onward is the one
-         * page that exists: the feed. The wording stays the panel's own, so when
-         * E1 lands only the destination changes.
+         * INC-641 — "Go to My listings" goes to My listings. The button pointed
+         * at the feed from before My listings had a page (bundle 16 turn 1 gave
+         * it one, D138); the walk of 2026-10-15 found it still did.
          */}
         <Link
-          to="/"
+          to="/my-listings"
           data-testid="post-review-mylistings"
           className="inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
         >

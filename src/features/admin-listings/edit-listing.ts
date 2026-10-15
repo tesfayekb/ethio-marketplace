@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import type { PricingValues } from "@/features/posting/step-pricing";
+import { sameChannels } from "@/features/posting/step-who";
 
 import { moveErrorKey, moveProblem } from "./move-reasons";
 import type { AdminListingDetail } from "./use-admin-listing";
@@ -47,7 +48,19 @@ export type EditableListing = Pick<
   | "priceUnit"
   | "priceUnitText"
   | "countryCode"
-> & { videoUrl?: string | null };
+> & {
+  videoUrl?: string | null;
+  /**
+   * Bundle 16 turn E2b (D187) — the seller's places, contact and place text,
+   * as the ad holds them (the seller's form only; an admin's edit never sends
+   * them): the place ids in order (the first is the ad's own), the channels in
+   * `listing_contact_refusals` shape, the street line and the directions line.
+   */
+  coverage?: string[];
+  contactPref?: Record<string, unknown>;
+  streetAddress?: string | null;
+  directions?: string | null;
+};
 
 export interface EditValues {
   /** Turn L4b — the leaf; null only for a listing that has none (never past a draft). */
@@ -59,6 +72,19 @@ export interface EditValues {
   price: PricingValues;
   /** Turn R2 — the video link, beside the photos (the seller's box only). */
   videoUrl: string;
+  /** Turn E2b (D187) — the places in order, the channels, the two text lines (the seller's boxes only). */
+  coverage: string[];
+  contactPref: Record<string, unknown>;
+  streetAddress: string;
+  directions: string;
+}
+
+/** Turn E2b — what the seller worked in, so a box only looked at never sends its own tidying. */
+export interface EditedBoxes {
+  /** The seller tapped or typed inside the Place box. */
+  place?: boolean;
+  /** The seller tapped or typed inside the Contact box. */
+  contact?: boolean;
 }
 
 /**
@@ -74,6 +100,10 @@ export const FORM_FIELDS: readonly string[] = [
   "price_currency",
   "price_period",
   "price_bp",
+  // Turn E2b — the Place box's own fields (the contact's land under `contact_pref.<channel>`).
+  "coverage",
+  "street_address",
+  "directions",
 ];
 
 const PRICE_KEYS = [
@@ -106,7 +136,16 @@ export function valuesOf(listing: EditableListing, currency: string | null): Edi
       posterExpiresAt: "",
     },
     videoUrl: listing.videoUrl ?? "",
+    coverage: listing.coverage ?? [],
+    contactPref: listing.contactPref ?? {},
+    streetAddress: listing.streetAddress ?? "",
+    directions: listing.directions ?? "",
   };
+}
+
+/** True when two place lists name the same places in the same order. */
+export function samePlaces(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((id, index) => id === b[index]);
 }
 
 /**
@@ -155,11 +194,21 @@ export function sameAnswers(a: Record<string, unknown>, b: Record<string, unknow
  * seller's form fills a question's default and tidies hidden answers on its
  * own, and an admin who only opened the form must not send that tidying as an
  * edit.
+ *
+ * Bundle 16 turn E2b (D187) — the seller's places travel when the list differs
+ * AND the seller worked in the Place box (`edited.place`: the place step settles
+ * its rows on its own); the channels when they differ (`sameChannels`) AND the
+ * seller worked in the Contact box (`edited.contact`: the contact step carries
+ * the profile's channels into an ad that has none); the street line and the
+ * directions line whenever they differ (typed text, so the door reviews them).
+ * The door applies places and channels at once and sends a changed line to
+ * review (edit_my_listing, turn E2a).
  */
 export function editChanges(
   listing: EditableListing,
   values: EditValues,
   specsEdited = false,
+  edited: EditedBoxes = {},
 ): Record<string, unknown> | null {
   const out: Record<string, unknown> = {};
   const moved = values.categoryId !== null && values.categoryId !== listing.categoryId;
@@ -176,6 +225,20 @@ export function editChanges(
   // Turn R2 — the seller's video link travels when it changed (an empty box removes it).
   const video = values.videoUrl.trim();
   if (video !== (listing.videoUrl ?? "")) out["video_url"] = video === "" ? null : video;
+  // Turn E2b — the places and the channels, only when the seller worked in their box.
+  if (edited.place === true && !samePlaces(values.coverage, listing.coverage ?? [])) {
+    out["coverage"] = values.coverage;
+  }
+  if (edited.contact === true && !sameChannels(values.contactPref, listing.contactPref ?? {})) {
+    out["contact_pref"] = values.contactPref;
+  }
+  const street = values.streetAddress.trim();
+  if (street !== (listing.streetAddress ?? ""))
+    out["street_address"] = street === "" ? null : street;
+  const directions = values.directions.trim();
+  if (directions !== (listing.directions ?? "")) {
+    out["directions"] = directions === "" ? null : directions;
+  }
   return Object.keys(out).length === 0 ? null : out;
 }
 

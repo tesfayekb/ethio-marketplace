@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 447,
+  "scanned": 448,
   "dynamicCallSites": 342,
   "keys": {
     "account.deactivatedBanner": [
@@ -4414,7 +4414,15 @@
       "/my-listings",
       "/my-listings/$listingId"
     ],
+    "myListings.editBox.contactHint": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
+    ],
     "myListings.editBox.photosHint": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
+    ],
+    "myListings.editBox.placeHint": [
       "/admin/listings/$listingId",
       "/my-listings/$listingId"
     ],
@@ -5044,86 +5052,128 @@
       "/post/$listingId"
     ],
     "post.pin.at": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.backupMap": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.cancel": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.clearedCityChanged": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.fromLastPost": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.layerSatellite": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.layerStreet": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.noResults": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.none": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.outsidePlace": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.remove": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.removed": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.saveFailed": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.saveLocation": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.saved": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.saving": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.searchLabel": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.searchPlaceholder": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.searching": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.showAsLabel": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.tapHint": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5135,6 +5185,8 @@
       "/post/$listingId"
     ],
     "post.pin.why": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5366,22 +5418,35 @@
       "/post/$listingId"
     ],
     "post.refusal.aliasImitatesBrand": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.aliasTooSoon": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.cityRequired": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.contactInNote": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.countryTooSoon": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5724,11 +5789,19 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.step.contact": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
+    ],
     "post.step.details": [
       "/admin/listings/$listingId",
       "/my-listings/$listingId"
     ],
     "post.step.photos": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId"
+    ],
+    "post.step.place": [
       "/admin/listings/$listingId",
       "/my-listings/$listingId"
     ],
@@ -5753,26 +5826,38 @@
       "/post/$listingId"
     ],
     "post.where.addCity": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.addCountry": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.addRegion": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.addSubCity": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.allOf": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.detailsHelp": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5784,14 +5869,20 @@
       "/post/$listingId"
     ],
     "post.where.detailsSaved": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.detailsTooLong": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.directionsHelp": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -5803,166 +5894,261 @@
       "/post/$listingId"
     ],
     "post.where.directionsSaved": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.directionsTooLong": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemBoxTitleOptional": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemHelp": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemHere": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemMoved": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemNone": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.levelNone": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketChoose": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketFailed": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketLabel": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketLoading": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketUnresolved": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.noRegions": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.pinLater": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.planCaption": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.planLevels": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.planLine": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.planLineUnknown": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.prefilled": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.removePlace": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.shopFailed": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.shopTick": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.showHeading": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.showIntro": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.shownBoxTitle": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.treeFailed": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.where.treeLoading": [
+      "/admin/listings/$listingId",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.addPhone2": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasAvailable": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasBuyerLine": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasChangeFirst": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasChangeRule": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasChecking": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasCorrectionWindow": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasLabel": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasLatinOnly": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasNextChange": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasRules": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasSuggestions": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.businessLabel": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
@@ -6002,146 +6188,254 @@
       "/post/$listingId"
     ],
     "post.who.channelsLabel": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.contactFromLastPost": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryChange": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirm": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirmGo": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirmTitle": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirmYes": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryLabel": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryNone": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryRequired": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryWhereHint": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.edit": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.firstNameLabel": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.identityLoading": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.lastNameLabel": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.messagesCannotOff": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.messagesEveryBuyer": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.messagesOnBadge": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.nameBusinessHint": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.nameHint": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.optionalHeading": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.optionalLine": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountryChosen": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountryLabel": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountryNone": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountrySearch": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneLibFailed": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneLibRetry": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.readFailed": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.saveFailed": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.savedHint": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.showToSignedIn": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.typeBusiness": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.typeLabel": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.typePerson": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],
     "post.who.why": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
       "/post",
       "/post/$listingId"
     ],

@@ -219,6 +219,9 @@ export const en = {
   "myListings.editBox.hint":
     "The price and the answers you pick from a list change at once. New words — the title, the description, the video link or an answer you type — go to review first, and the ad is out of search until they are approved.",
   "myListings.editBox.photosHint": "Photos are saved as you add, change or remove them.",
+  "myListings.editBox.placeHint":
+    "Places and the pin apply at once. A change to the written directions or street is reviewed first.",
+  "myListings.editBox.contactHint": "Applies at once.",
   "myListings.editBox.done": "Your changes are saved.",
   "myListings.editBox.doneReview":
     "Your changes are saved and sent for review. The ad is out of search until they are approved; then it is live again with the days it had left.",
