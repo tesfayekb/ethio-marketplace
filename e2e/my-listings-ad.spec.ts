@@ -12,7 +12,7 @@ import {
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient } from "./helpers/users";
 
 /**
  * Bundle 16 (My listings), turn 3 — ONE AD'S PAGE (MLA-1..MLA-6).
@@ -628,6 +628,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       await fresh.close();
     }
   });
+
   test("MLA-7 Delete asks first; the deleted ad leaves My listings for good (call F)", async ({
     page,
   }) => {
