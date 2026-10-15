@@ -269,6 +269,24 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_email_domains: {
+        Row: {
+          added_at: string
+          domain: string
+          note: string | null
+        }
+        Insert: {
+          added_at?: string
+          domain: string
+          note?: string | null
+        }
+        Update: {
+          added_at?: string
+          domain?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
       catalog_find_index: {
         Row: {
           attribute_key: string | null
@@ -1940,6 +1958,24 @@ export type Database = {
           count?: number
           key?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      rate_limits_prune_runs: {
+        Row: {
+          deleted: number
+          id: number
+          ran_at: string
+        }
+        Insert: {
+          deleted: number
+          id?: number
+          ran_at?: string
+        }
+        Update: {
+          deleted?: number
+          id?: number
+          ran_at?: string
         }
         Relationships: []
       }
@@ -3812,6 +3848,7 @@ export type Database = {
         Args: { p_action: string; p_resource: string; p_user_id: string }
         Returns: boolean
       }
+      hook_before_user_created: { Args: { event: Json }; Returns: Json }
       impersonated_get_profile: {
         Args: { p_session: string }
         Returns: {
@@ -3970,6 +4007,7 @@ export type Database = {
       }
       publish_listing: { Args: { p_listing_id: string }; Returns: Json }
       rate_gate: { Args: { p_action: string }; Returns: Json }
+      rate_limits_prune: { Args: never; Returns: number }
       register_listing_photo: {
         Args: {
           p_bytes: number
