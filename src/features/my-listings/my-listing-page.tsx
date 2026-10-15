@@ -119,6 +119,13 @@ import { REASON_WORD, SOLD_ON, stateLine, visibilityOf } from "./state-line";
  * opens this page with the panel open (`?edit=1`). "Post a similar ad"
  * (`my-listing-copy`, before Delete) copies the ad into a new draft
  * (`copy_my_listing`) and opens it in the posting form.
+ *
+ * Bundle 16 turn E2b (D187) — the edit is complete and in the posting form's
+ * order: Specifications → Photos → Title and description (with the writing
+ * helper) → Price → Place → Contact → Save. The page hands the form the ad's
+ * places, channels, text lines and pin (`readDraft`), its id and its first three
+ * photo ids. Places, the pin and the channels apply at once; a changed directions
+ * or street line goes to review with the words (edit_my_listing, turn E2a).
  */
 
 const adKey = (listingId: string) => authKey("my-listing", listingId);
@@ -427,6 +434,22 @@ export function MyListingPage({
           priceUnitText: row.priceUnitText,
           countryCode: ad.countryCode,
           videoUrl: draft.draft.videoUrl,
+          // Turn E2b (D187) — the places, the channels and the two text lines, as the ad holds them.
+          coverage: draft.coverage,
+          contactPref: draft.draft.contactPref,
+          streetAddress: draft.draft.streetAddress,
+          directions: draft.draft.directions,
+        };
+  /** Turn E2b — the pin as the door holds it, for the Place box (the posting form reads the same four columns). */
+  const editablePin =
+    draft === null || draft.draft.pinLat === null || draft.draft.pinLng === null
+      ? null
+      : {
+          lat: draft.draft.pinLat,
+          lng: draft.draft.pinLng,
+          precision: draft.draft.pinPrecision ?? "exact",
+          street: draft.draft.streetAddress,
+          zoom: draft.draft.pinZoom,
         };
 
   return (
@@ -631,6 +654,10 @@ export function MyListingPage({
               <ListingEditForm
                 listing={editable}
                 variant="seller"
+                listingId={row.id}
+                // INC-588 / D151 — the writing helper names the first three stored photos by id.
+                photoIds={(draft?.photos ?? []).map((photo) => photo.id).slice(0, 3)}
+                pin={editablePin}
                 photos={(video) => (
                   <StepPhotos
                     listingId={row.id}

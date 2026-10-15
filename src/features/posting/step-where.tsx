@@ -28,6 +28,7 @@ import {
   savePin,
   pinDoorQueue,
   type LastPlaces,
+  type PlaceText,
   readPlaceFacts,
 } from "./posting-service";
 import { whereSeed, type PlaceFact, type WhereSeed } from "./where-seed";
@@ -689,6 +690,8 @@ export function StepWhere({
   maxRegions = null,
   maxCountries = null,
   invitePlaceId = null,
+  textMode = "door",
+  onTextChange,
 }: {
   /** The chosen place ids; the FIRST one is the item's own place (spec §4 C2). */
   coverage: string[];
@@ -715,6 +718,18 @@ export function StepWhere({
   maxCountries?: number | null;
   /** D119 — the place the invite card named (/post only); null when none. */
   invitePlaceId?: string | null;
+  /**
+   * Bundle 16 turn E2b (D187) — WHERE THE TWO TEXT LINES GO. "door" (posting):
+   * each line is saved on blur through the pin's own door, and says so. "form"
+   * (the seller's Edit): a typed line is handed to `onTextChange` and rides the
+   * form's Save, so the edit door reviews it (typed text, D177); nothing is
+   * written here and no "saved" line is shown. The length and phone checks
+   * stay. The pin itself still goes through its own door at once, restating
+   * the lines the door holds — a street typed inside the map sheet rides with
+   * the pin, as when posting (the spec's known limit).
+   */
+  textMode?: "door" | "form";
+  onTextChange?: (text: PlaceText) => void;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
@@ -1914,6 +1929,9 @@ export function StepWhere({
               setDirections(event.target.value);
               // Flagged as typed; the door stays the authority (F3).
               setDirState(looksLikeContact(event.target.value) ? "contact" : "idle");
+              // Turn E2b — in form mode the typed line is the form's at once.
+              if (textMode === "form")
+                onTextChange?.({ street: note, directions: event.target.value });
             }}
             onBlur={() => {
               if (listingId === null) return;
@@ -1924,6 +1942,12 @@ export function StepWhere({
               }
               if (looksLikeContact(clean)) {
                 setDirState("contact");
+                return;
+              }
+              if (textMode === "form") {
+                // Turn E2b — the tidied line rides the form's Save; nothing is written here.
+                onTextChange?.({ street: sanitizeDetails(note), directions: clean });
+                setDirState("idle");
                 return;
               }
               setDirState("busy");
@@ -2005,6 +2029,8 @@ export function StepWhere({
               setNote(event.target.value);
               // Part D — flagged as typed; the door stays the authority (F3).
               setNoteState(looksLikeContact(event.target.value) ? "contact" : "idle");
+              // Turn E2b — in form mode the typed line is the form's at once.
+              if (textMode === "form") onTextChange?.({ street: event.target.value, directions });
             }}
             onBlur={() => {
               if (listingId === null) return;
@@ -2015,6 +2041,12 @@ export function StepWhere({
               }
               if (looksLikeContact(clean)) {
                 setNoteState("contact");
+                return;
+              }
+              if (textMode === "form") {
+                // Turn E2b — the tidied line rides the form's Save; nothing is written here.
+                onTextChange?.({ street: clean, directions: sanitizeDetails(directions) });
+                setNoteState("idle");
                 return;
               }
               setNoteState("busy");

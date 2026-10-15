@@ -211,6 +211,9 @@ export const am: Messages = {
   "myListings.editBox.hint":
     "ዋጋው እና ከዝርዝር የሚመርጧቸው መልሶች ወዲያውኑ ይቀየራሉ። አዲስ ቃላት — አርዕስቱ፣ መግለጫው፣ የቪዲዮ ሊንኩ ወይም የሚጽፉት መልስ — መጀመሪያ ለግምገማ ይሄዳሉ፤ እስኪጸድቁ ድረስ ማስታወቂያው በፍለጋ አይታይም።",
   "myListings.editBox.photosHint": "ፎቶዎች ሲጨምሩ፣ ሲቀይሩ ወይም ሲያስወግዱ ወዲያውኑ ይቀመጣሉ።",
+  "myListings.editBox.placeHint":
+    "ቦታዎችና የካርታ ምልክቱ ወዲያውኑ ይተገበራሉ። የተጻፈ አቅጣጫ ወይም የቦታ ዝርዝር ለውጥ መጀመሪያ ይገመገማል።",
+  "myListings.editBox.contactHint": "ወዲያውኑ ይተገበራል።",
   "myListings.editBox.done": "ለውጦችዎ ተቀምጠዋል።",
   "myListings.editBox.doneReview":
     "ለውጦችዎ ተቀምጠው ለግምገማ ተልከዋል። እስኪጸድቁ ድረስ ማስታወቂያው በፍለጋ አይታይም፤ ከዚያም በቀሩት ቀናቱ እንደገና በቀጥታ ይሆናል።",

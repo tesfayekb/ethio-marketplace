@@ -1,4 +1,5 @@
 import { installInputModality } from "@/lib/input-modality";
+import { reloadOnStaleChunk } from "@/lib/stale-chunk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -326,7 +327,13 @@ function RootComponent() {
     // INC-085f — the E2E hydration contract: set only after React has
     // successfully hydrated; a client crash before this leaves it unset.
     document.documentElement.dataset["appReady"] = "1";
-    return installInputModality();
+    const uninstallModality = installInputModality();
+    // INC-640 — a tab opened before a Publish reloads once when a chunk it asks for is gone.
+    const uninstallStaleChunk = reloadOnStaleChunk(window);
+    return () => {
+      uninstallModality();
+      uninstallStaleChunk();
+    };
   }, []);
 
   return (

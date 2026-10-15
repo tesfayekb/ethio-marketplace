@@ -93,7 +93,7 @@ const HOUR = 3_600_000;
 const at = (offsetMs: number) => new Date(Date.now() + offsetMs).toISOString();
 
 const TRUTH =
-  "status,title,expires_at,reserved_at,resume_status,sold_at,renewed_at,published_first_at";
+  "status,title,expires_at,reserved_at,resume_status,sold_at,renewed_at,published_first_at,directions";
 
 async function listingTruth(listingId: string) {
   const { data, error } = await adminClient()
@@ -133,6 +133,45 @@ const startsWith = (text: string) => new RegExp(`^${text.replace(/[.*+?^${}()|[\
 async function openAd(page: Page, id: string) {
   await gotoReady(page, `/my-listings/${id}`);
   await expect(page.getByTestId("my-listing-page")).toBeVisible({ timeout: 15000 });
+}
+
+/**
+ * B1 (walk defect) — what the walk saw: the number box sits inside the viewport
+ * and is at least 160 px wide, the picker no wider than 120 px.
+ */
+async function expectPhoneRowUsable(page: Page, testId: string) {
+  const viewport = page.viewportSize();
+  const box = await page.getByTestId(testId).boundingBox();
+  const picker = await page.getByTestId(`${testId}-country`).boundingBox();
+  const shown = `number=${JSON.stringify(box)} picker=${JSON.stringify(picker)} viewport=${viewport?.width}`;
+  expect(box, `${testId}: the number box is not rendered (${shown})`).not.toBeNull();
+  expect(picker, `${testId}: the picker is not rendered (${shown})`).not.toBeNull();
+  if (box === null || picker === null || viewport === null) return;
+  expect(box.x, `${testId}: the number box starts off screen (${shown})`).toBeGreaterThanOrEqual(0);
+  expect(
+    box.x + box.width,
+    `${testId}: the number box ends off screen (${shown})`,
+  ).toBeLessThanOrEqual(viewport.width);
+  expect(box.width, `${testId}: the number box is under 160 px (${shown})`).toBeGreaterThanOrEqual(
+    160,
+  );
+  expect(picker.width, `${testId}: the picker is over 120 px (${shown})`).toBeLessThanOrEqual(120);
+}
+
+/** B1 — the number is entered as a person does: click the box, type on the keyboard. */
+async function typePhone(page: Page, testId: string, text: string) {
+  await page.getByTestId(testId).click();
+  await page.keyboard.press("ControlOrMeta+A");
+  await page.keyboard.press("Backspace");
+  await page.keyboard.type(text);
+}
+
+/** B2 — the country is picked from the searchable list, by its calling code. */
+async function pickPhoneCountry(page: Page, testId: string, iso: string, code: string) {
+  await page.getByTestId(`${testId}-country`).click();
+  await page.getByTestId(`${testId}-country-search`).fill(code);
+  await page.locator(`[data-testid="${testId}-country-option"][data-iso="${iso}"]`).click();
+  await expect(page.getByTestId(`${testId}-country`)).toHaveAttribute("data-iso", iso);
 }
 
 test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
@@ -934,6 +973,25 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       en["myListings.editBox.title"],
       { timeout: 15000 },
     );
+    // D187 — the boxes in the posting form's order.
+    const boxes = await page
+      .getByTestId("listing-edit-form")
+      .locator(":scope > [data-testid]")
+      .evaluateAll((nodes) =>
+        nodes
+          .map((node) => node.getAttribute("data-testid") ?? "")
+          .filter((id) => id.endsWith("-box") || id === "listing-edit-text"),
+      );
+    expect(boxes).toEqual([
+      "listing-edit-specs-box",
+      "listing-edit-photos-box",
+      "listing-edit-text",
+      "listing-edit-price-box",
+      "listing-edit-place-box",
+      "listing-edit-contact-box",
+      "listing-edit-save-box",
+    ]);
+    await expect(page.getByTestId("listing-edit-text").getByTestId("post-assist")).toBeVisible();
     await expect(
       page.getByTestId("listing-edit-photos-box").getByTestId("post-video"),
     ).toBeVisible();
@@ -957,7 +1015,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
 
     await page.getByTestId("my-listing-edit").click();
     await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
-    await clearAndType("listing-edit-title", `E2E new words ${token()}`);
+    await clearAndType("post-title", `E2E new words ${token()}`);
     await page.getByTestId("listing-edit-save").click();
     await expect(page.getByTestId("my-listing-notice")).toHaveText(
       en["myListings.editBox.doneReview"],
@@ -973,12 +1031,13 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await openAd(page, Y);
     await page.getByTestId("my-listing-edit").click();
     await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
-    await clearAndType("listing-edit-title", "");
+    await clearAndType("post-title", "");
     await page.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("listing-edit-title-field")).toContainText(
-      en["post.refusal.required"],
-      { timeout: 15000 },
-    );
+    await expect(
+      page
+        .getByTestId("listing-edit-text")
+        .locator('[data-testid="post-field"][data-field="post-title"] [role="alert"]'),
+    ).toHaveText(en["post.refusal.required"], { timeout: 15000 });
     await expect(page.getByTestId("my-listing-edit-panel")).toBeVisible();
     expect((await listingTruth(Y))["title"]).toBe(yTitle);
   });
@@ -1025,5 +1084,96 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       seller_id: seller.id,
       title: (await listingTruth(S))["title"],
     });
+  });
+
+  test("MLA-15 Edit, complete: a second city and a channel apply at once; typed directions go to review; the boxes in the posting form's order (D187)", async ({
+    page,
+  }) => {
+    const A = await scratchSeller();
+    const second = await seedScratchChain("ET");
+    // Reaped in afterEach after the listings, so no place row still points at it.
+    regions.push(second.region.slug as string);
+    {
+      const X = await seed(A, "active");
+      const C1 = await adminClient()
+        .from("locations")
+        .select("name_en")
+        .eq("id", A.cityId)
+        .single();
+      if (C1.error || !C1.data) throw new Error(`[e2e:mla] city read failed: ${C1.error?.message}`);
+      const c1Name = C1.data.name_en as string;
+      const c2Name = second.city.name_en as string;
+
+      await signInViaSession(page, A.email, A.password);
+      await openAd(page, X);
+      await page.getByTestId("my-listing-edit").click();
+      await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
+
+      const place = page.getByTestId("listing-edit-place-box");
+      await expect(place.getByTestId("post-where-city")).toHaveValue(A.cityId, { timeout: 15000 });
+      // C2 sits in a region of its own: its row comes with a region box first.
+      await place.getByTestId("post-where-add-region").click();
+      await place.getByTestId("post-where-row-region").selectOption(second.region.id as string);
+      await place.getByTestId("post-where-row-city").selectOption(second.city.id as string);
+      await expect(place.getByTestId("post-where-row-city")).toHaveValue(second.city.id as string);
+
+      const contact = page.getByTestId("listing-edit-contact-box");
+      await expect(contact).toBeVisible();
+      await expectPhoneRowUsable(page, "post-who-value-phone");
+      await pickPhoneCountry(page, "post-who-value-phone", "ET", "+251");
+      await typePhone(page, "post-who-value-phone", "911234567");
+      await page.getByTestId("post-who-value-phone").blur();
+      await contact.getByTestId("post-who-show-phone").check();
+
+      await page.getByTestId("listing-edit-save").click();
+      await expect(page.getByTestId("my-listing-notice")).toHaveText(
+        en["myListings.editBox.done"],
+        { timeout: 15000 },
+      );
+      await expect(page.getByTestId("my-listing-edit-panel")).toHaveCount(0);
+      const seen = page.getByTestId("my-listing-as-seen");
+      await expect(seen.getByTestId("listing-detail-places")).toContainText(c1Name);
+      await expect(seen.getByTestId("listing-detail-places")).toContainText(c2Name);
+      await expect(
+        seen.getByTestId("listing-detail-contact").locator('[data-channel="phone"]'),
+      ).toHaveCount(1);
+
+      const supabase = adminClient();
+      const located = await supabase
+        .from("listing_locations")
+        .select("location_id")
+        .eq("listing_id", X)
+        .order("position");
+      if (located.error)
+        throw new Error(`[e2e:mla] coverage read failed: ${located.error.message}`);
+      expect(located.data.map((row) => row.location_id)).toEqual([A.cityId, second.city.id]);
+      const row = await supabase
+        .from("listings")
+        .select("location_id,status,contact_pref")
+        .eq("id", X)
+        .single();
+      if (row.error || !row.data)
+        throw new Error(`[e2e:mla] listing read failed: ${row.error?.message}`);
+      expect(row.data.location_id).toBe(A.cityId);
+      expect(row.data.status).toBe("active");
+      expect(
+        ((row.data.contact_pref as Row)["phone"] as { show?: boolean } | undefined)?.show,
+      ).toBe(true);
+
+      await page.getByTestId("my-listing-edit").click();
+      await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
+      await page.getByTestId("listing-edit-place-box").getByTestId("post-where-directions").click();
+      await page.keyboard.type("Behind the church");
+      await page.keyboard.press("Tab");
+      await expect(page.getByTestId("post-where-directions-saved")).toHaveCount(0);
+      await page.getByTestId("listing-edit-save").click();
+      await expect(page.getByTestId("my-listing-notice")).toHaveText(
+        en["myListings.editBox.doneReview"],
+        { timeout: 15000 },
+      );
+      const truth = await listingTruth(X);
+      expect(truth["status"]).toBe("screening");
+      expect(truth["directions"]).toBe("Behind the church");
+    }
   });
 });
