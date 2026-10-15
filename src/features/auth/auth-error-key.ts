@@ -43,6 +43,9 @@ export function toErrorKey(error: AuthErrorLike): MessageKey {
     return onlyLeaked(error) ? "auth.errorLeakedPassword" : "auth.errorWeakPassword";
   }
 
+  // Bundle 16 turn S2 (D185) — the sign-up hook refuses a throwaway mail domain
+  // (`hook_before_user_created`); read before the generic e-mail check.
+  if (/disposableEmail/.test(message)) return "auth.errorDisposableEmail";
   if (code === "validation_failed" || /invalid email|email address/i.test(message)) {
     return "auth.errorInvalidEmail";
   }

@@ -202,6 +202,34 @@ async function handlePost(request: Request): Promise<Response> {
     );
   }
 
+  // Bundle 16 turn S2 (D185, the operator 2026-10-15) — photos added to drafts by a
+  // seller who submits no ad: past 50 in a 7-day window (DRAFT_UPLOADS_PER_WEEK_WITHOUT_AD)
+  // with no ad submitted in the last 7 days, a draft takes no more photos until the
+  // seller submits an ad (`publish_listing` sets `published_first_at`). A live, closed
+  // or refused ad's photos are not counted here.
+  if (String(listing.status) === "draft") {
+    const week = await consumeRate(
+      "upload:draft-week",
+      userId,
+      envDial("DRAFT_UPLOADS_PER_WEEK_WITHOUT_AD", 50),
+      "7 days",
+    );
+    if (!week.allowed) {
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: submitted, error: submittedError } = await supabase
+        .from("listings")
+        .select("id")
+        .eq("seller_id", userId)
+        .gte("published_first_at", since)
+        .limit(1);
+      if (submittedError) {
+        logRouteError(PATH, `submitted ads: ${submittedError.message}`);
+        return routeJson({ error: "server error" }, 500);
+      }
+      if ((submitted ?? []).length === 0) return refusal("photos", "publishFirst");
+    }
+  }
+
   // 4 — the cap; or, for an edit (D154 B2), the photo it replaces, read AS THE
   // CALLER: a photo that is not on this listing, or not the caller's, is gone.
   let replaced: { paths: unknown; storage_path: unknown } | null = null;

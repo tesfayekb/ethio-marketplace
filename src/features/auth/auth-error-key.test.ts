@@ -43,3 +43,18 @@ describe("toErrorKey — other branches unchanged by the move", () => {
     expect(toErrorKey({ message: "slow down", status: 429 })).toBe("auth.errorRateLimited");
   });
 });
+
+describe("toErrorKey — a throwaway mail domain (bundle 16 turn S2, D185)", () => {
+  it("(vii) the sign-up hook's refusal answers its own key, ahead of the generic e-mail check", () => {
+    const hook = {
+      message: "disposableEmail: sign-ups from throwaway mail services are not accepted",
+      status: 403,
+    };
+    expect(toErrorKey(hook)).toBe("auth.errorDisposableEmail");
+    expect(toErrorKey({ ...hook, code: "validation_failed" })).toBe("auth.errorDisposableEmail");
+    // A plain invalid address keeps its key.
+    expect(toErrorKey({ message: "Unable to validate email address: invalid format" })).toBe(
+      "auth.errorInvalidEmail",
+    );
+  });
+});

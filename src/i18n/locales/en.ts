@@ -73,6 +73,8 @@ export const en = {
   "auth.errorLeakedPassword":
     "This password appeared in a known data leak. Choose a different one.",
   "auth.errorInvalidEmail": "Enter a valid email address.",
+  "auth.errorDisposableEmail":
+    "This email service gives out throwaway addresses. Please sign up with an email address you keep.",
   "auth.errorRateLimited": "Too many attempts. Wait a moment and try again.",
   "auth.errorMissingFields": "Enter your email and password.",
   "auth.errorGeneric": "Something went wrong. Please try again.",
@@ -2429,6 +2431,8 @@ export const en = {
   "post.photo.refusal.screeningPaused":
     "Photo checking is paused, so this ad cannot take new photos right now. Please try again later.",
   "post.photo.refusal.photoGone": "This photo is no longer on the ad.",
+  "post.photo.refusal.publishFirst":
+    "You have added many photos without publishing an ad. Publish one of your ads to add more photos.",
   "post.photo.refusal.unsupportedFormat": "Only JPEG, PNG and WebP photos are accepted.",
   "post.photo.refusal.corruptImage": "This file is damaged and could not be read.",
   "post.photo.refusal.tooLarge": "This photo is too large.",

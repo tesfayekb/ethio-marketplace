@@ -283,3 +283,11 @@ JWT `session_id` rule (INC-223) is untouched; eviction clears that session's clo
 **Proof.** `e2e/auth-signin-errors.spec.ts` B-5: a scratch user's real grant is retired
 server-side (`admin.signOut(access_token, "global")`), planted with `expires_at` twelve
 hours in the past, and ONE sign-in through the real door must land signed in (DEC-041).
+
+## Bundle 16 turn S2 — throwaway mail domains refused at sign-up (D185)
+
+- **The list:** `public.blocked_email_domains` (no client role reads or writes it), seeded with the 9,892 domains of the public disposable-email-domains block list (CC0; read 2026-10-15). Staff add one with a row (a `note` says why); a listed domain covers its subdomains.
+- **The hook:** `public.hook_before_user_created(event jsonb)`, Supabase Auth's "Before User Created" hook, runs before any account is made — the sign-up form, a direct call to the auth API, Google included. An e-mail whose domain or a parent of it is listed is refused with HTTP 403 and the message `disposableEmail: …`; every other account, and one without an e-mail, passes. Only `supabase_auth_admin` may execute it.
+- **Switched on by the operator, once per project** (ethio-prod and ethio-staging): Supabase dashboard › Authentication › Hooks › "Before User Created" › Postgres › schema `public`, function `hook_before_user_created` › Enable. Until it is on, the function exists and nothing is refused.
+- **The words:** the sign-up form reads the refusal as `auth.errorDisposableEmail` ("This email service gives out throwaway addresses. Please sign up with an email address you keep."), before the generic invalid-address check (`toErrorKey`).
+- The test addresses (`@ethio-e2e.invalid`) are not listed (the migration's proof checks it).

@@ -125,6 +125,8 @@ const PHOTO_REASONS: Record<string, MessageKey> = {
   screeningPaused: "post.photo.refusal.screeningPaused",
   // D154 B2 — the photo an edit replaces was removed meanwhile.
   photoGone: "post.photo.refusal.photoGone",
+  // Bundle 16 turn S2 (D185) — many photos on drafts and no ad submitted in 7 days.
+  publishFirst: "post.photo.refusal.publishFirst",
 };
 
 /**

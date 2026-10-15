@@ -254,3 +254,7 @@ This section is the later word on the counts of sizes above.
 - **Removals have their own limit** per seller across every ad: 30 an hour and 100 a day (`photo-remove`, `photo-remove:day`; `RATE_LIMIT_PHOTO_REMOVE_PER_HOUR`, `RATE_LIMIT_PHOTO_REMOVE_PER_DAY`), as uploads have theirs (60 an hour, 200 a day). An add-and-remove loop is bounded on both sides.
 - **The site's day cap and the money stop** on photo screening: docs/features/ai-services.md, "Bundle 16 turn S1".
 - **The writing helper** spends a listing's tries only for its owner: a `listingId` that is not the caller's is refused (`notYourListing`).
+
+## Bundle 16 turn S2 — photos on drafts without an ad submitted (D185)
+
+- A seller's photos added to drafts count on a 7-day window (`upload:draft-week`, `DRAFT_UPLOADS_PER_WEEK_WITHOUT_AD`, 50). Past 50, with no ad of the seller's submitted in the last 7 days (`published_first_at`, which `publish_listing` sets), a draft takes no more photos (`publishFirst`: "You have added many photos without publishing an ad. Publish one of your ads to add more photos."). Submitting an ad lifts it at once. Photos on a live, closed or refused ad are not counted.

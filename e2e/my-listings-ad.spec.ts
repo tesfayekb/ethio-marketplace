@@ -989,6 +989,14 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     const seller = await scratchSeller();
     const X = await seed(seller, "active");
     const S = await seed(seller, "sold");
+    // INC-634 — a seller who copies an ad has posted before: the draft route has
+    // set the residency fact (DEC-068) that the pool reset clears.
+    const resident = await adminClient()
+      .from("user_directory")
+      .update({ observed_country_code: "ET", observed_at: new Date().toISOString() })
+      .eq("user_id", seller.id);
+    if (resident.error)
+      throw new Error(`[e2e:mla] residency seed failed: ${resident.error.message}`);
 
     await signInViaSession(page, seller.email, seller.password);
     await gotoReady(page, "/my-listings");
