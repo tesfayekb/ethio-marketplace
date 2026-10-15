@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 
@@ -15,13 +15,14 @@ vi.mock("@/i18n", () => ({
   }),
 }));
 
-const rows = vi.hoisted(() => [
+const BASE_ROWS = [
   { id: "p1", displayOrder: 0, paths: null, storagePath: "s/p1", unscreened: false },
   { id: "p2", displayOrder: 1, paths: null, storagePath: "s/p2", unscreened: true },
-]);
+];
+const state = vi.hoisted(() => ({ rows: [] as Record<string, unknown>[] }));
 vi.mock("@/features/admin-screening/use-screening", () => ({
   ADMIN_SCREENING_KEY: ["admin", "screening"],
-  useScreeningPhotos: () => ({ data: rows }),
+  useScreeningPhotos: () => ({ data: state.rows }),
 }));
 vi.mock("@/features/posting/use-photo-links", () => ({
   usePhotoLinks: () => ({
@@ -29,18 +30,33 @@ vi.mock("@/features/posting/use-photo-links", () => ({
     p2: { thumb: "https://x.example/p2-thumb.webp", card: "https://x.example/p2-card.webp" },
   }),
 }));
-const door = vi.hoisted(() => ({ edit: vi.fn() }));
+const door = vi.hoisted(() => ({ edit: vi.fn(), allow: vi.fn() }));
 vi.mock("./use-admin-listing", () => ({
   editAdminListing: (...args: unknown[]) => door.edit(...args),
 }));
+vi.mock("@/features/admin-screening/use-photo-reviews", async (original) => ({
+  ...(await original<typeof import("@/features/admin-screening/use-photo-reviews")>()),
+  allowListingPhoto: (...args: unknown[]) => door.allow(...args),
+}));
 
-function mount(mayRemove: boolean, onRemoved = vi.fn()) {
+state.rows = BASE_ROWS;
+afterEach(() => {
+  state.rows = BASE_ROWS;
+});
+
+function mount(mayRemove: boolean, onRemoved = vi.fn(), mayAllow = false) {
   const guard = vi.fn(async <T,>(work: () => T | Promise<T>) => work()) as unknown as GuardFn & {
     mock: { calls: unknown[][] };
   };
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <ListingPhotos listingId="L1" mayRemove={mayRemove} guard={guard} onRemoved={onRemoved} />
+      <ListingPhotos
+        listingId="L1"
+        mayRemove={mayRemove}
+        mayAllow={mayAllow}
+        guard={guard}
+        onRemoved={onRemoved}
+      />
     </QueryClientProvider>,
   );
   return { guard, onRemoved };
@@ -132,5 +148,82 @@ describe("ListingPhotos (D154 B4)", () => {
       "admin.listings.detail.photos",
     );
     expect(screen.queryByTestId("listing-photos-hint")).toBeNull();
+  });
+});
+
+/** Bundle 16 turn 4b (D178) — photos kept hidden for a person: their reasons, and Allow. */
+describe("ListingPhotos (D178)", () => {
+  const REVIEWED = [
+    { id: "p1", displayOrder: 0, paths: null, storagePath: "s/p1", unscreened: false },
+    {
+      id: "p2",
+      displayOrder: 1,
+      paths: null,
+      storagePath: "s/p2",
+      unscreened: true,
+      review: { label: "fail", code: "weapon", evidence: "a knife in the first image" },
+    },
+    {
+      id: "p3",
+      displayOrder: 2,
+      paths: null,
+      storagePath: "s/p3",
+      unscreened: true,
+      warnings: ["not_relevant"],
+      review: { label: "not_right", code: null, evidence: null },
+    },
+    {
+      id: "p4",
+      displayOrder: 3,
+      paths: null,
+      storagePath: "s/p4",
+      unscreened: true,
+      review: { label: "held", code: null, evidence: null },
+    },
+  ];
+
+  it("LP-8 each hidden photo says why: a fail its rule and the check's phrase, a held one its pause; a not-right one by its warning; no Allow without the right", () => {
+    state.rows = REVIEWED;
+    mount(false);
+    const items = screen.getAllByTestId("listing-photos-item");
+    expect(within(items[1]!).getByText("post.gallery.inReview")).toBeInTheDocument();
+    expect(within(items[1]!).getByTestId("listing-photos-review")).toHaveTextContent(
+      "admin.listings.photos.review.fail · post.photo.refusal.weapon",
+    );
+    expect(within(items[1]!).getByTestId("listing-photos-evidence")).toHaveTextContent(
+      "admin.listings.photos.review.evidence",
+    );
+    expect(within(items[2]!).getByText("post.gallery.inReview")).toBeInTheDocument();
+    expect(within(items[2]!).queryByTestId("listing-photos-review")).toBeNull();
+    expect(within(items[2]!).getByTestId("listing-photos-warning")).toHaveTextContent(
+      "admin.listings.photos.notRelevant",
+    );
+    expect(within(items[3]!).getByText("post.gallery.unscreened")).toBeInTheDocument();
+    expect(within(items[3]!).getByTestId("listing-photos-review")).toHaveAttribute(
+      "data-label",
+      "held",
+    );
+    expect(within(items[0]!).queryByTestId("listing-photos-review")).toBeNull();
+    expect(screen.queryByTestId("listing-photos-allow")).toBeNull();
+  });
+
+  it("LP-9 Allow is offered on each hidden photo under review, goes through the second factor, and a refusal is said under its photo", async () => {
+    state.rows = REVIEWED;
+    door.allow.mockResolvedValueOnce(undefined);
+    const { guard, onRemoved } = mount(false, vi.fn(), true);
+    const allows = screen.getAllByTestId("listing-photos-allow");
+    expect(allows).toHaveLength(3);
+    expect(allows[0]).toHaveAttribute("aria-label", "admin.listings.photos.allowOne");
+    fireEvent.click(allows[0]!);
+    await waitFor(() => expect(onRemoved).toHaveBeenCalledWith("admin.listings.photos.allowed"));
+    expect(guard.mock.calls).toHaveLength(1);
+    expect(door.allow).toHaveBeenCalledWith("p2");
+
+    door.allow.mockRejectedValueOnce({ message: "reviewGone" });
+    fireEvent.click(screen.getAllByTestId("listing-photos-allow")[1]!);
+    expect(await screen.findByTestId("listing-photos-allow-problem")).toHaveTextContent(
+      "admin.listings.photos.allowGone",
+    );
+    expect(door.allow).toHaveBeenLastCalledWith("p3");
   });
 });

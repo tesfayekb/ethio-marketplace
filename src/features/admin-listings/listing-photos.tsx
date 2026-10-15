@@ -1,17 +1,22 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import {
+  allowListingPhoto,
+  photoAllowErrorKey,
+  REVIEW_LABEL_KEY,
+} from "@/features/admin-screening/use-photo-reviews";
 import { ADMIN_SCREENING_KEY, useScreeningPhotos } from "@/features/admin-screening/use-screening";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { photoUrl } from "@/features/posting/photo-links";
-import type { DraftPhotoRow } from "@/features/posting/posting-service";
-import { fill } from "@/features/posting/refusal-text";
+import { heldWithAd, type DraftPhotoRow } from "@/features/posting/posting-service";
+import { fill, photoRefusalKey } from "@/features/posting/refusal-text";
 import { usePhotoLinks } from "@/features/posting/use-photo-links";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -44,17 +49,28 @@ import { ADMIN_LISTINGS_KEY } from "./use-admin-listings";
  * the note `listing-photo-remove-note`, the problem line
  * `listing-photo-remove-problem`, Cancel `listing-photo-remove-cancel`, Remove
  * photo `listing-photo-remove-confirm`.
+ *
+ * Bundle 16 turn 4b (D178) — a photo kept hidden for a person carries its reason
+ * (`<testid>-review`, data-label; the check's own phrase in `<testid>-evidence`)
+ * and, for a person who may decide (`mayAllow`: listings:review, never the admin's
+ * own ad — the door decides again), Allow (`<testid>-allow`): the second factor,
+ * then `admin_allow_listing_photo`, which shows the photo to buyers. A refusal is
+ * said under the photo (`<testid>-allow-problem`).
  */
 export function ListingPhotos({
   listingId,
   mayRemove,
+  mayAllow = false,
   guard,
   onRemoved,
   testid = "listing-photos",
 }: {
   listingId: string;
   mayRemove: boolean;
+  /** Bundle 16 turn 4b (D178) — staff who may show a photo kept hidden for review. */
+  mayAllow?: boolean;
   guard: GuardFn;
+  /** The page's line after a change (a removal, or an allowed photo). */
   onRemoved: (key: MessageKey) => void;
   testid?: string;
 }) {
@@ -66,8 +82,36 @@ export function ListingPhotos({
   const [removing, setRemoving] = useState<{ row: DraftPhotoRow; index: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
+  const [allowing, setAllowing] = useState<string | null>(null);
+  const [allowProblem, setAllowProblem] = useState<{ id: string; key: MessageKey } | null>(null);
 
   if (rows.length === 0) return null;
+
+  // Bundle 16 turn 4b (D178) — show one photo kept hidden for review.
+  const allow = async (row: DraftPhotoRow) => {
+    setAllowing(row.id);
+    setAllowProblem(null);
+    try {
+      await guard(() => allowListingPhoto(row.id));
+    } catch (error) {
+      setAllowing(null);
+      const abort = stepUpAbortKey(error);
+      // A cancelled second factor changes nothing and says nothing.
+      if (abort === null) return;
+      const message =
+        error !== null && typeof error === "object" && "message" in error
+          ? String((error as { message: unknown }).message)
+          : "";
+      setAllowProblem({ id: row.id, key: abort ?? photoAllowErrorKey(message) });
+      return;
+    }
+    setAllowing(null);
+    await Promise.all([
+      refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY }),
+      refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY }),
+    ]);
+    onRemoved("admin.listings.photos.allowed");
+  };
 
   const run = async (reason: string, note: string) => {
     if (removing === null) return;
@@ -152,10 +196,33 @@ export function ListingPhotos({
                 ) : null}
                 {row.unscreened === true ? (
                   <span className="pointer-events-none absolute start-1 top-1 rounded-md bg-foreground/80 px-1.5 py-0.5 text-[11px] font-medium text-background">
-                    {t("post.gallery.unscreened")}
+                    {/* Bundle 16 turn 4b (D178) — held with the ad, or waiting for a person. */}
+                    {heldWithAd(row) ? t("post.gallery.unscreened") : t("post.gallery.inReview")}
                   </span>
                 ) : null}
               </div>
+              {/* Bundle 16 turn 4b (D178) — why it is hidden (a photo that may not fit
+                  the ad says so in the warning line below). */}
+              {row.review != null && row.review.label !== "not_right" ? (
+                <p
+                  className="min-w-0 break-words text-xs text-foreground"
+                  data-testid={`${testid}-review`}
+                  data-label={row.review.label}
+                >
+                  {t(REVIEW_LABEL_KEY[row.review.label])}
+                  {row.review.label === "fail" && row.review.code !== null
+                    ? ` · ${t(photoRefusalKey(row.review.code))}`
+                    : null}
+                </p>
+              ) : null}
+              {row.review?.evidence != null ? (
+                <p
+                  className="min-w-0 break-words text-xs text-muted-foreground"
+                  data-testid={`${testid}-evidence`}
+                >
+                  {fill(t("admin.listings.photos.review.evidence"), { text: row.review.evidence })}
+                </p>
+              ) : null}
               {/* D154 B3 — the screen warned that this photo may not fit the ad. */}
               {row.warnings?.includes("not_relevant") === true ? (
                 <p className="text-xs text-foreground" data-testid={`${testid}-warning`}>
@@ -179,6 +246,30 @@ export function ListingPhotos({
                   <Trash2 aria-hidden="true" />
                   <span className="truncate">{t("admin.listings.action.remove")}</span>
                 </Button>
+              ) : null}
+              {mayAllow && row.unscreened === true && row.review != null ? (
+                <Button
+                  type="button"
+                  size="touch"
+                  variant="outline"
+                  className="w-full min-w-0 px-2"
+                  disabled={allowing !== null}
+                  data-testid={`${testid}-allow`}
+                  aria-label={fill(t("admin.listings.photos.allowOne"), { index: index + 1 })}
+                  onClick={() => void allow(row)}
+                >
+                  <Check aria-hidden="true" />
+                  <span className="truncate">{t("admin.listings.photos.allow")}</span>
+                </Button>
+              ) : null}
+              {allowProblem !== null && allowProblem.id === row.id ? (
+                <p
+                  role="alert"
+                  className="text-xs text-destructive"
+                  data-testid={`${testid}-allow-problem`}
+                >
+                  {t(allowProblem.key)}
+                </p>
               ) : null}
             </li>
           );

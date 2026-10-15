@@ -1,5 +1,5 @@
 import { ListingPicture } from "@/components/marketplace/listing-picture";
-import { AlertTriangle, ChevronLeft, ChevronRight, Crop, Eraser } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, Crop, Eraser, EyeOff } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useI18n } from "@/i18n";
@@ -12,6 +12,7 @@ import { PhotoEditor } from "./photo-editor";
 import { CARD_THEN_THUMB, photoUrl } from "./photo-links";
 import {
   deletePhoto,
+  heldWithAd,
   movePhoto,
   setCoverPhoto,
   uploadPhoto,
@@ -554,6 +555,39 @@ export function StepPhotos({
     );
   }
 
+  /**
+   * Bundle 16 turn 4b (D178) — the photo is hidden from buyers until a person
+   * reviews it: the seller is told, with the reason — the photo rule a failed
+   * photo may break, an unsure check, or checking paused when it was added. A
+   * photo that may not fit the ad says why in the warning line below.
+   */
+  function reviewMark(photoId: string | null): ReactNode {
+    if (photoId === null) return null;
+    const review = photos.find((entry) => entry.id === photoId)?.review ?? null;
+    if (review === null) return null;
+    const reason: MessageKey | null =
+      review.label === "fail"
+        ? photoRefusalKey(review.code ?? "")
+        : review.label === "unsure"
+          ? "post.photos.review.unsure"
+          : review.label === "held"
+            ? "post.photos.review.held"
+            : null;
+    return (
+      <p
+        className="flex items-start gap-1 text-xs text-foreground"
+        data-testid="post-photo-review"
+        data-label={review.label}
+      >
+        <EyeOff className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <span>
+          {t("post.photos.review.title")}
+          {reason !== null ? ` ${t(reason)}` : null}
+        </span>
+      </p>
+    );
+  }
+
   function coverRibbon(): ReactNode {
     return (
       <span
@@ -605,6 +639,7 @@ export function StepPhotos({
             {t("post.photos.refusedFinal")}
           </p>
         )}
+        {reviewMark(item.photoId)}
         {relevanceWarning(item.photoId)}
         {item.photoId !== null && rowRefusal[item.photoId] !== undefined && (
           <p className="text-xs text-destructive" role="alert" data-testid="post-photo-row-refusal">
@@ -675,6 +710,7 @@ export function StepPhotos({
           )}
           {row.id === coverId && coverRibbon()}
         </div>
+        {reviewMark(row.id)}
         {relevanceWarning(row.id)}
         {rowRefusal[row.id] !== undefined && (
           <p className="text-xs text-destructive" role="alert" data-testid="post-photo-state">
@@ -919,8 +955,9 @@ export function StepPhotos({
           {t("post.photos.public")}
         </p>
         {/* D158 (bundle 13 turn 6) — photo screening is off: the photos were saved
-            and staff check them, with the ad, before any buyer sees them. */}
-        {photos.some((row) => row.unscreened === true) ? (
+            and staff check them, with the ad, before any buyer sees them. Bundle 16
+            turn 4b — only photos held that way; a photo the check judged has its own mark. */}
+        {photos.some(heldWithAd) ? (
           <p className="text-xs text-muted-foreground" data-testid="post-photos-held-note">
             {t("post.photos.heldNote")}
           </p>

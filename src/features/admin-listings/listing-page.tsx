@@ -179,6 +179,8 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const moves = mayEnforce && !own ? movesFor(listing.status) : [];
   // The door's own rule: never the admin's own listing, never a removed one (drafts never reach this page).
   const mayEdit = mayEnforce && !own && listing.status !== "removed";
+  // Bundle 16 turn 4b (D178) — a reviewer shows a photo kept hidden for review (never on their own ad).
+  const mayAllowPhotos = permissions.includes("listings:review") && !own;
   const sellerName = seller.businessName ?? seller.alias ?? "—";
   const price = (side: Record<string, unknown> = {}) =>
     priceLine(
@@ -512,6 +514,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
               <ListingPhotos
                 listingId={listingId}
                 mayRemove={mayEdit}
+                mayAllow={mayAllowPhotos}
                 guard={guard}
                 onRemoved={(key) => setNotice(t(key))}
               />

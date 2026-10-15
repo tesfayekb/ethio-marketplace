@@ -66,10 +66,19 @@ export interface GalleryPhoto {
   thumb: string;
   /** D158 — held while photo screening was off (staff see it marked); present only when true. */
   unscreened?: true;
+  /**
+   * Bundle 16 turn 4b (D178) — hidden because the check judged it (failed, unsure, may
+   * not fit): it waits for a person, not for the ad's approval. Present only when true.
+   */
+  inReview?: true;
 }
 
 export function galleryPhotos(
-  rows: readonly { id: string; unscreened?: boolean }[],
+  rows: readonly {
+    id: string;
+    unscreened?: boolean;
+    review?: { label: string } | null;
+  }[],
   links: PhotoLinks | undefined,
 ): GalleryPhoto[] {
   return rows.flatMap((row) => {
@@ -83,6 +92,9 @@ export function galleryPhotos(
         large: photoUrl(row, ["cover"], links),
         thumb: photoUrl(row, ["thumb"], links) ?? main,
         ...(row.unscreened === true ? { unscreened: true as const } : {}),
+        ...(row.unscreened === true && row.review != null && row.review.label !== "held"
+          ? { inReview: true as const }
+          : {}),
       },
     ];
   });

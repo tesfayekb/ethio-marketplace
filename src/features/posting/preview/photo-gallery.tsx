@@ -140,7 +140,8 @@ export function PhotoGallery({
               data-testid="gallery-unscreened"
               className="pointer-events-none absolute start-2 top-2 rounded-md bg-foreground/80 px-2 py-0.5 text-xs font-medium text-background"
             >
-              {t("post.gallery.unscreened")}
+              {/* Bundle 16 turn 4b (D178) — a photo the check judged waits for a person. */}
+              {photo.inReview === true ? t("post.gallery.inReview") : t("post.gallery.unscreened")}
             </span>
           ) : null}
           {/* The photo's place, read with the button (outside it: the button's own words are its label). */}

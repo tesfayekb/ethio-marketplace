@@ -267,3 +267,7 @@ This section is the later word on the counts of sizes above.
 - **The decisions.** Approving the ad in Screening shows only its `held` photos (and a photo held before this turn, which has no review row); a photo the screen judged stays hidden. Staff allow one photo with `admin_allow_listing_photo` (listings:review with the second factor, never on their own ad; audited `listing.photo_allowed`), remove it with the existing Remove (Admin › Listings, reason Photo), or decline the whole ad. The Admin section and the seller's marks come in turn 4b.
 - **The upload's answer** carries `review` (`{label, code?}`; the phrase is for staff only) beside `unscreened`.
 - **Fake mode** adds two widths: a cover exactly 11 px wide is refused `nudity`; one exactly 19 px wide is allowed with the warning `unsure`. The 13-px marker (`not_a_photo`) is now stored hidden with a `fail` review.
+
+## Bundle 16 turn 4b — the photo review on screen (D178)
+
+Staff's "Photos to review" in Admin › Screening (docs/features/admin-screening.md) and the seller's mark on each hidden photo (docs/features/posting.md). The photo row's read (`PHOTO_ROW_SELECT`, src/features/posting/posting-service.ts) embeds its open review (`photoReviewOf`); `heldWithAd` tells a photo approved with the ad from one that waits for its own decision.
