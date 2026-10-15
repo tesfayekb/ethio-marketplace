@@ -798,7 +798,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect(Array.isArray(entries)).toBe(true);
     for (const entry of entries) {
       expect(Object.keys(entry).sort()).toEqual(
-        ["at", "by", "fields", "from", "kind", "note", "reason", "to"].sort(),
+        ["at", "by", "fields", "from", "kind", "note", "reason", "reserved", "to"].sort(),
       );
     }
     expect(entries).toHaveLength(5);
