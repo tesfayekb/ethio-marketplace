@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
@@ -37,9 +37,11 @@ import { authKey } from "@/lib/query-keys";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import {
-  ACTION_KEY,
+  actionKey,
   actionsFor,
-  DONE_KEY,
+  ASKS_FIRST,
+  confirmKeys,
+  doneKey,
   readHistory,
   readMyListing,
   runAction,
@@ -50,7 +52,7 @@ import {
   type MyListing,
 } from "./my-listing";
 import { GROUP_LABEL } from "./my-listings";
-import { REASON_WORD, stateLine } from "./state-line";
+import { REASON_WORD, SOLD_ON, stateLine } from "./state-line";
 
 /**
  * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS (/my-listings/<id>; D138; D173–D176;
@@ -60,7 +62,8 @@ import { REASON_WORD, stateLine } from "./state-line";
  * ad's group, its Reserved and "Price reduced" marks, its state in the same words
  * as the list (`stateLine`), and its dates: first posted, renewed (D175 3), ends,
  * sold; the actions card — the one-tap actions this ad offers (`actionsFor`), Mark
- * as sold behind a confirm because it cannot be undone; the ad as buyers see it
+ * as sold (rented, filled — turn 3b, call H) and Delete (turn 3b, call F) behind a
+ * confirm because they cannot be undone; the ad as buyers see it
  * (the same `ListingDetail` the posting preview and the admin page draw); and its
  * history (`listing_history`: you, staff or the system, never a staff member's
  * name, with staff's reason and note).
@@ -76,7 +79,9 @@ import { REASON_WORD, stateLine } from "./state-line";
  * `my-listing-sold`; actions `my-listing-actions`, each button
  * `my-listing-action-<reserve|unreserve|sell|close|reopen|renew>`, Continue on a
  * draft `my-listing-continue`, the done line `my-listing-notice`, the refusal
- * `my-listing-problem`, the words for no action `my-listing-no-action`; the
+ * `my-listing-problem`, the words for no action `my-listing-no-action` (a removed
+ * ad), the line on why an action is not there `my-listing-info` (in review; renew
+ * switched off); the
  * confirm `my-listing-confirm` with `my-listing-confirm-cancel` and
  * `my-listing-confirm-yes`; the ad `my-listing-as-seen`; history
  * `my-listing-history`, each line `my-listing-history-line`; the refusal to read
@@ -118,7 +123,8 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(false);
+  const [confirming, setConfirming] = useState<"sell" | "delete" | null>(null);
+  const navigate = useNavigate();
 
   const query = useQuery({
     queryKey: adKey(listingId),
@@ -198,8 +204,13 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     setProblem(null);
     try {
       const outcome = await runAction(ad, action);
-      if (outcome.ok) setNotice(t(DONE_KEY[action]));
-      else setProblem(t(outcome.key));
+      if (!outcome.ok) setProblem(t(outcome.key));
+      else if (action === "delete") {
+        // Turn 3b (call F) — a deleted ad has no page: back to My listings, read again.
+        await reload();
+        void navigate({ to: "/my-listings" });
+        return;
+      } else setNotice(t(doneKey(action, ad.listing.soldWord)));
     } catch {
       setProblem(t("myListings.error.failed"));
     } finally {
@@ -247,11 +258,13 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const actions = actionsFor(ad);
   const live = row.status === "active" || row.status === "reduced";
 
-  const noAction = (): string => {
-    if (ad.group === "review") return t("myListings.ad.waiting");
-    if (row.status === "expired" && !ad.renewAllowed) return t("myListings.renewOff");
-    return t("myListings.ad.none");
-  };
+  // Why an action is not there: an ad in review waits for its answer (call G); renewing may be switched off.
+  const info =
+    ad.group === "review"
+      ? t("myListings.ad.waiting")
+      : row.status === "expired" && !ad.renewAllowed
+        ? t("myListings.renewOff")
+        : null;
 
   const historyWhat = (entry: HistoryLine): string => {
     const word = (status: string | null) => {
@@ -328,7 +341,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               ) : null}
               {row.soldAt !== null ? (
                 <li data-testid="my-listing-sold">
-                  {fill(t("myListings.soldOn"), { date: day(row.soldAt) })}
+                  {fill(t(SOLD_ON[row.soldWord]), { date: day(row.soldAt) })}
                 </li>
               ) : null}
             </ul>
@@ -336,6 +349,11 @@ export function MyListingPage({ listingId }: { listingId: string }) {
 
           <PageCard testid="my-listing-actions" className="min-w-0 space-y-3">
             <h2 className="text-sm font-semibold text-foreground">{t("myListings.ad.actions")}</h2>
+            {info !== null ? (
+              <p data-testid="my-listing-info" className="text-sm text-muted-foreground">
+                {info}
+              </p>
+            ) : null}
             {row.status === "draft" ? (
               <Button asChild variant="outline" size="touch">
                 <Link
@@ -346,9 +364,10 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                   {t("myListings.continue")}
                 </Link>
               </Button>
-            ) : actions.length === 0 ? (
+            ) : null}
+            {actions.length === 0 ? (
               <p data-testid="my-listing-no-action" className="text-sm text-muted-foreground">
-                {noAction()}
+                {t("myListings.ad.none")}
               </p>
             ) : (
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -357,17 +376,25 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                     key={action}
                     type="button"
                     size="touch"
-                    variant={action === "sell" ? "default" : "outline"}
+                    variant={
+                      action === "sell"
+                        ? "default"
+                        : action === "delete"
+                          ? "destructiveOutline"
+                          : "outline"
+                    }
                     data-testid={`my-listing-action-${action}`}
                     disabled={busy}
                     onClick={() => {
-                      if (action === "sell") setConfirming(true);
+                      if (action === "sell" || action === "delete") setConfirming(action);
                       else void act(action);
                     }}
                   >
                     {action === "renew"
-                      ? fill(t(ACTION_KEY.renew), { days: String(ad.renewDays ?? "") })
-                      : t(ACTION_KEY[action])}
+                      ? fill(t(actionKey("renew", row.soldWord)), {
+                          days: String(ad.renewDays ?? ""),
+                        })
+                      : t(actionKey(action, row.soldWord))}
                   </Button>
                 ))}
               </div>
@@ -483,32 +510,37 @@ export function MyListingPage({ listingId }: { listingId: string }) {
       </div>
 
       <AlertDialog
-        open={confirming}
+        open={confirming !== null}
         onOpenChange={(open) => {
-          if (!open) setConfirming(false);
+          if (!open) setConfirming(null);
         }}
       >
-        <AlertDialogContent data-testid="my-listing-confirm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("myListings.confirm.sellTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("myListings.confirm.sellBody")}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="min-h-11" data-testid="my-listing-confirm-cancel">
-              {t("common.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="min-h-11"
-              data-testid="my-listing-confirm-yes"
-              onClick={() => {
-                setConfirming(false);
-                void act("sell");
-              }}
-            >
-              {t("myListings.action.sell")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        {confirming !== null ? (
+          <AlertDialogContent data-testid="my-listing-confirm">
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t(confirmKeys(confirming, row.soldWord).title)}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t(confirmKeys(confirming, row.soldWord).body)}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="min-h-11" data-testid="my-listing-confirm-cancel">
+                {t("common.cancel")}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="min-h-11"
+                data-testid="my-listing-confirm-yes"
+                onClick={() => {
+                  const action = confirming;
+                  setConfirming(null);
+                  if (ASKS_FIRST.has(action)) void act(action);
+                }}
+              >
+                {t(confirmKeys(confirming, row.soldWord).yes)}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        ) : null}
       </AlertDialog>
     </PageShell>
   );

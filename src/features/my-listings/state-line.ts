@@ -2,7 +2,7 @@ import { fill } from "@/features/posting/refusal-text";
 import type { MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 
-import type { MyListingRow } from "./my-listings";
+import type { MyListingRow, SoldWord } from "./my-listings";
 
 /**
  * Bundle 16 turn 3 — AN AD'S STATE IN WORDS, one line per status, shared by the
@@ -28,6 +28,13 @@ export const REASON_WORD: Record<string, MessageKey> = {
   removed_in_error: "admin.listings.reason.removed_in_error",
   appeal_accepted: "admin.listings.reason.appeal_accepted",
   undo: "admin.listings.reason.undo",
+};
+
+/** The line of a sold ad, by its word. */
+export const SOLD_ON: Record<SoldWord, MessageKey> = {
+  sold: "myListings.soldOn",
+  rented: "myListings.rentedOn",
+  filled: "myListings.filledOn",
 };
 
 export function stateLine(
@@ -60,7 +67,8 @@ export function stateLine(
     case "expired":
       return fill(t("myListings.expiredOn"), { date: day(row.expiresAt) });
     case "sold":
-      return fill(t("myListings.soldOn"), { date: day(row.soldAt) });
+      // Turn 3b (call H) — Rented or Filled when the ad's category says so.
+      return fill(t(SOLD_ON[row.soldWord]), { date: day(row.soldAt) });
     case "draft":
       return fill(t("myListings.savedOn"), { date: day(row.updatedAt ?? row.createdAt) });
     default:

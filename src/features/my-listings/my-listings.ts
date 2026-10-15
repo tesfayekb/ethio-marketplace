@@ -57,11 +57,17 @@ export interface MyListingRow {
   /** A closed ad's whole days kept for its reopening, rounded up; null with no end date. */
   daysKept: number | null;
   soldAt: string | null;
+  /** Turn 3b (call H) — the word a sold ad takes, from its category: sold, rented or filled. */
+  soldWord: SoldWord;
   createdAt: string;
   updatedAt: string | null;
   /** A removed ad's latest staff reason (an `admin.listings.reason.*` word); else null. */
   removedReason: string | null;
 }
+
+/** Turn 3b (call H) — the words a sold ad may take. */
+export const SOLD_WORDS = ["sold", "rented", "filled"] as const;
+export type SoldWord = (typeof SOLD_WORDS)[number];
 
 export interface MyListingsPage {
   counts: GroupCounts;
@@ -105,6 +111,8 @@ export function parseRow(value: unknown): MyListingRow | null {
   if (!(v.daysLeft === null || isCount(v.daysLeft))) return null;
   if (!(v.daysKept === null || isCount(v.daysKept))) return null;
   if (!isStrOrNull(v.soldAt) || !isStr(v.createdAt) || !isStrOrNull(v.updatedAt)) return null;
+  const soldWord = SOLD_WORDS.find((word) => word === v.soldWord);
+  if (soldWord === undefined) return null;
   if (!isStrOrNull(v.removedReason)) return null;
   return {
     id: v.id,
@@ -130,6 +138,7 @@ export function parseRow(value: unknown): MyListingRow | null {
     daysLeft: v.daysLeft,
     daysKept: v.daysKept,
     soldAt: v.soldAt,
+    soldWord,
     createdAt: v.createdAt,
     updatedAt: v.updatedAt,
     removedReason: v.removedReason,

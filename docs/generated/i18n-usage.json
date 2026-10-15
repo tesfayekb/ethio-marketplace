@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 442,
-  "dynamicCallSites": 302,
+  "dynamicCallSites": 307,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -4277,9 +4277,6 @@
     "mfa.verifyActivate": [
       "/settings"
     ],
-    "myListings.action.sell": [
-      "/my-listings/$listingId"
-    ],
     "myListings.ad.actions": [
       "/my-listings/$listingId"
     ],
@@ -4306,12 +4303,6 @@
     ],
     "myListings.closedLine": [
       "/my-listings",
-      "/my-listings/$listingId"
-    ],
-    "myListings.confirm.sellBody": [
-      "/my-listings/$listingId"
-    ],
-    "myListings.confirm.sellTitle": [
       "/my-listings/$listingId"
     ],
     "myListings.continue": [
@@ -4387,10 +4378,6 @@
       "/my-listings/$listingId"
     ],
     "myListings.savedOn": [
-      "/my-listings",
-      "/my-listings/$listingId"
-    ],
-    "myListings.soldOn": [
       "/my-listings",
       "/my-listings/$listingId"
     ],
