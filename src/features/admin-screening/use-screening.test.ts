@@ -25,7 +25,13 @@ vi.mock("@/integrations/supabase/client", () => {
   };
 });
 
-import { listScreening, parseScreeningFacts, revealProblemKey } from "./use-screening";
+import {
+  editedScreeningRow,
+  listScreening,
+  parseScreeningFacts,
+  revealProblemKey,
+  type ScreeningRow,
+} from "./use-screening";
 
 /** Bundle 11 A2 (D120) — the preview's facts as the door returns them. */
 describe("parseScreeningFacts", () => {
@@ -145,5 +151,64 @@ describe("revealProblemKey", () => {
   it("SF-3 names the hour's limit and a method the seller does not show", () => {
     expect(revealProblemKey("rateLimited")).toBe("admin.screening.revealLimited");
     expect(revealProblemKey("notShown")).toBe("admin.screening.revealNotShown");
+  });
+});
+
+/** Bundle 16 turn E3 follow-up (INC-649) — the previewed row as the edit left it. */
+describe("editedScreeningRow", () => {
+  const row: ScreeningRow = {
+    id: "l-1",
+    title: "Old",
+    description: "Old words",
+    categoryId: "c-1",
+    locationId: "p-1",
+    countryCode: "ET",
+    priceMode: "fixed",
+    priceAmount: 1500,
+    priceCurrency: "ETB",
+    pricePeriod: "once",
+    priceBp: null,
+    priceNegotiable: false,
+    priceUnit: null,
+    priceUnitText: null,
+    attributes: { colour: "red" },
+    photosSoon: false,
+    updatedAt: "2026-10-15T00:00:00Z",
+    category: { name_en: "Fridges", name_am: null },
+    place: { name_en: "Bole", name_am: null },
+  };
+
+  it("SF-5 takes the title, the words, the answers and the price keys the form sends; leaves the rest", () => {
+    expect(editedScreeningRow(row, { title: "New" })).toEqual({ ...row, title: "New" });
+    expect(
+      editedScreeningRow(row, {
+        description: "New words",
+        attributes: { colour: "blue" },
+        price_mode: "contact",
+        price_amount: null,
+        price_currency: null,
+        price_period: null,
+        price_bp: null,
+        price_negotiable: false,
+      }),
+    ).toEqual({
+      ...row,
+      description: "New words",
+      attributes: { colour: "blue" },
+      priceMode: "contact",
+      priceAmount: null,
+      priceCurrency: null,
+      pricePeriod: null,
+    });
+    expect(
+      editedScreeningRow(row, { price_mode: "commission", price_bp: 250, price_negotiable: true }),
+    ).toEqual({
+      ...row,
+      priceMode: "commission",
+      priceBp: 250,
+      priceNegotiable: true,
+    });
+    // A shape the door would have refused never lands: a list is not an answer set.
+    expect(editedScreeningRow(row, { attributes: ["x"], title: 5 })).toEqual(row);
   });
 });
