@@ -1180,4 +1180,91 @@ test.describe("ADMIN SCREENING", () => {
       en["admin.screening.photoWarning"],
     );
   });
+
+  test("SC-23 approving an ad shows its held photos only; a failed photo waits for its own decision (D178)", async ({
+    page,
+  }) => {
+    const ad = await seedWaiting();
+    const register = async (
+      name: string,
+      unscreened: boolean,
+      review?: Record<string, unknown>,
+    ): Promise<string> => {
+      const photoId = randomUUID();
+      const { error } = await adminClient().rpc("register_listing_photo", {
+        p_listing_id: ad.id,
+        p_photo_id: photoId,
+        p_paths: { original: `e2e-sc/${rand()}-${name}.webp` },
+        p_width: 1,
+        p_height: 1,
+        p_bytes: 1,
+        p_unscreened: unscreened,
+        ...(review === undefined ? {} : { p_review: review }),
+      });
+      if (error) throw new Error(`[e2e:sc] registering ${name} failed: ${error.message}`);
+      return photoId;
+    };
+    const held = await register("held", true);
+    const failed = await register("failed", true, {
+      label: "fail",
+      code: "weapon",
+      evidence: "e2e",
+    });
+    const plain = await register("plain", false);
+
+    const { user, secret } = await useJobSuperAdmin(page);
+    await findRow(page, ad.title, ad.id);
+    await rowMenu(page, ad.id, "open");
+    await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("admin-screening-preview-approve").click();
+    await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
+    await page.getByTestId("admin-screening-confirm-go").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
+      en["admin.screening.approved"],
+      { timeout: 20000 },
+    );
+
+    expect((await listingTruth(ad.id)).status).toBe("active");
+    expect(await heldTruth(held), "SC-23: the approval left the held photo hidden").toBe(false);
+    expect(await heldTruth(failed), "SC-23: the approval showed the failed photo").toBe(true);
+    const audit = await approvedRows(ad.id);
+    expect(audit).toHaveLength(1);
+    expect(audit[0]!.meta).toEqual({ count: 1, from: "screening", to: "active" });
+    expect(await buyerPhotoIds(ad.id)).toEqual([held, plain].sort());
+
+    const { data: reviews, error } = await adminClient()
+      .from("listing_photo_reviews")
+      .select("photo_id, label, decision, decided_by")
+      .eq("listing_id", ad.id);
+    if (error) throw new Error(`[e2e:sc] reading the reviews failed: ${error.message}`);
+    const byPhoto = new Map((reviews ?? []).map((row) => [row.photo_id, row]));
+    expect(byPhoto.get(held)).toEqual({
+      photo_id: held,
+      label: "held",
+      decision: "approved_with_ad",
+      decided_by: user.id,
+    });
+    expect(byPhoto.get(failed)).toEqual({
+      photo_id: failed,
+      label: "fail",
+      decision: null,
+      decided_by: null,
+    });
+
+    // The ad's own seller may not allow a photo: the staff door refuses him.
+    const sellerClient = createClient(
+      process.env["E2E_SUPABASE_URL"]!,
+      process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
+      { auth: { persistSession: false } },
+    );
+    const signedIn = await sellerClient.auth.signInWithPassword({
+      email: ad.seller.email,
+      password: ad.seller.password,
+    });
+    if (signedIn.error) throw new Error(`[e2e:sc] signing in the seller failed: ${signedIn.error.message}`);
+    const allowed = await sellerClient.rpc("admin_allow_listing_photo", { p_photo_id: failed });
+    expect(allowed.error?.message).toBe("permission denied");
+    expect(await heldTruth(failed), "SC-23: the seller's call showed the photo").toBe(true);
+  });
 });
