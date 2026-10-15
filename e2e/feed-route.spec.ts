@@ -341,21 +341,20 @@ test.describe("FEED ROUTE", () => {
     expect(later["priceWas"]).toBeNull();
     expect(later["reserved"]).toBe(true);
 
-    try {
-      const caps = await adminClient()
+    const setCapabilities = async (capabilities: string[]) => {
+      const { error } = await adminClient()
         .from("categories")
-        .update({ capabilities: ["rented"] })
+        .update({ capabilities })
         .eq("id", seed.leaf.id);
-      if (caps.error) throw new Error(`[e2e:fr] capabilities failed: ${caps.error.message}`);
+      if (error) throw new Error(`[e2e:fr] capabilities failed: ${error.message}`);
+    };
+    try {
+      await setCapabilities(["rented"]);
       const b = (await addListing(seed, { place: city, tier: "regular", minutesAgo: 20 })).id;
       await update(b, { status: "sold" });
       expect((await cardOf(b))["soldWord"]).toBe("rented");
     } finally {
-      const back = await adminClient()
-        .from("categories")
-        .update({ capabilities: [] })
-        .eq("id", seed.leaf.id);
-      if (back.error) throw new Error(`[e2e:fr] capabilities reset failed: ${back.error.message}`);
+      await setCapabilities([]);
     }
   });
 
