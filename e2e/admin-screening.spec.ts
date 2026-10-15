@@ -1353,4 +1353,65 @@ test.describe("ADMIN SCREENING", () => {
     expect(audit).toEqual([{ meta: { photo: failed, label: "fail", code: "weapon" } }]);
     expect(await buyerPhotoIds(ad.id)).toEqual([failed, plain].sort());
   });
+
+  test("SC-25 Edit inside the preview: the reviewer corrects a waiting ad's title and approves it (D188)", async ({
+    page,
+  }) => {
+    const titleOf = async (id: string) => {
+      const { data, error } = await adminClient()
+        .from("listings")
+        .select("title, status")
+        .eq("id", id)
+        .single();
+      if (error || !data) throw new Error(`[e2e:sc] reading the listing failed: ${error?.message}`);
+      return data as { title: string; status: string };
+    };
+    const ad = await seedWaiting();
+    const corrected = `Corrected e2e-screen-${RUN}-${rand()}`;
+    const { secret } = await useJobSuperAdmin(page);
+    await findRow(page, ad.title, ad.id);
+    await rowMenu(page, ad.id, "open");
+    const sheet = page.getByTestId("post-preview-sheet");
+    await expect(sheet).toBeVisible({ timeout: 20000 });
+
+    const edit = page
+      .getByTestId("post-preview-footer")
+      .getByTestId("admin-screening-preview-edit");
+    await expect(edit).toBeVisible();
+    await edit.click();
+    await expect(sheet.getByTestId("admin-screening-edit-panel")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("admin-screening-preview-approve")).toHaveCount(0);
+    await expect(page.getByTestId("admin-screening-preview-reject")).toHaveCount(0);
+    await expect(sheet.getByTestId("listing-detail-title")).toHaveCount(0);
+
+    const form = sheet.getByTestId("listing-edit-form");
+    await form.getByTestId("listing-edit-title").fill(corrected);
+    await form.getByTestId("listing-edit-save").click();
+    await expect(form.getByTestId("listing-edit-problem")).toHaveText(
+      en["admin.listings.move.pickReason"],
+    );
+    await form.getByTestId("listing-edit-reason-misleading").click();
+    await form.getByTestId("listing-edit-note").fill("e2e SC-25 title corrected");
+    await form.getByTestId("listing-edit-save").click();
+    await stepUpIfPrompted(page, secret);
+
+    await expect(sheet.getByTestId("admin-screening-edit-done")).toHaveText(
+      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.col.title"]),
+      { timeout: 20000 },
+    );
+    await expect(sheet.getByTestId("admin-screening-edit-panel")).toHaveCount(0);
+    await expect(sheet.getByTestId("listing-detail-title")).toHaveText(corrected);
+    expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "screening" });
+
+    await page.getByTestId("admin-screening-preview-approve").click();
+    await expect(sheet).toHaveCount(0);
+    await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
+    await page.getByTestId("admin-screening-confirm-go").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
+      en["admin.screening.approved"],
+      { timeout: 20000 },
+    );
+    expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "active" });
+  });
 });
