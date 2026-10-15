@@ -97,7 +97,7 @@ async function seedLink(categoryId: string, attributeId: string, order: number) 
   return data.id as string;
 }
 
-async function holdAnswer(fx: Fixture, answers: Record<string, string>) {
+async function holdAnswer(fx: Fixture, answers: Record<string, unknown>) {
   const seller = await leaseUser();
   const id = await seedActiveListing(fx.categoryId, seller.id);
   fx.listings.push(id);
@@ -516,6 +516,70 @@ test.describe("Bundle 7 attribute safety", () => {
       await stepUpIfPrompted(page, secret);
       await expect(page.getByTestId("attribute-import-applied")).toBeVisible({ timeout: 20000 });
       expect((await readLinks(leaf.id)).length).toBe(2);
+    } finally {
+      await reap(fx);
+    }
+  });
+
+  test("AT-82 a single-pick question made multi-pick: every ad's answer becomes a one-answer list in the same change; other questions and other changes are untouched (INC-632)", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
+    const supabase = adminClient();
+    const readAttributes = async (id: string) => {
+      const { data, error } = await supabase
+        .from("listings")
+        .select("attributes")
+        .eq("id", id)
+        .single();
+      if (error || !data) throw new Error(`[e2e:at-safety] reading ${id}: ${error?.message}`);
+      return data.attributes;
+    };
+    const auditRows = async (entityId: string) => {
+      const { data, error } = await supabase
+        .from("audit_log")
+        .select("meta")
+        .eq("action", "attribute.type_to_multi")
+        .eq("entity_id", entityId);
+      if (error || !data) throw new Error(`[e2e:at-safety] audit: ${error?.message}`);
+      return data;
+    };
+    const setAttribute = async (id: string, change: Record<string, string>) => {
+      const { error } = await supabase.from("attributes").update(change).eq("id", id);
+      expect(error, "AT-82 the attribute update has no error").toBeNull();
+    };
+    try {
+      const leaf = await seedLeaf();
+      fx.slug = leaf.slug;
+      fx.categoryId = leaf.id;
+      const k = attrKey("multi");
+      const k2 = attrKey("single");
+      fx.keys.push(k, k2);
+      const kId = await seedSelect(k);
+      const k2Id = await seedSelect(k2);
+      await seedLink(leaf.id, kId, 0);
+      await seedLink(leaf.id, k2Id, 1);
+      const other = { value: "other", text: "own words" };
+      await holdAnswer(fx, { [k]: "a1", [k2]: "a1" });
+      await holdAnswer(fx, { [k]: other });
+      const [l1, l2] = fx.listings;
+
+      await setAttribute(kId, { attr_type: "multi_select" });
+      expect(await readAttributes(l1)).toEqual({ [k]: ["a1"], [k2]: "a1" });
+      expect(await readAttributes(l2)).toEqual({ [k]: [other] });
+      const rows = await auditRows(kId);
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.meta).toMatchObject({ attr_key: k, listings: 2 });
+
+      await setAttribute(kId, { name_en: `${k} renamed` });
+      expect(await auditRows(kId)).toHaveLength(1);
+      expect(await readAttributes(l1)).toEqual({ [k]: ["a1"], [k2]: "a1" });
+      expect(await readAttributes(l2)).toEqual({ [k]: [other] });
+
+      await setAttribute(k2Id, { attr_type: "single_select" });
+      expect(await auditRows(k2Id)).toHaveLength(0);
+      expect(((await readAttributes(l1)) as Record<string, unknown>)[k2]).toBe("a1");
     } finally {
       await reap(fx);
     }
