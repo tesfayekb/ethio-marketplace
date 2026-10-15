@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { clearSessionClocks } from "@/features/session/session-policy";
 import { supabase } from "@/integrations/supabase/client";
 
 import * as authService from "./auth-service";
@@ -60,6 +61,10 @@ export function useAuth() {
         // below is for a sign-out that raised no event.
         markDeactivatedSignOut();
         await authService.signOut();
+        // INC-656 — the policy clocks go with the session, as the manual
+        // sign-out clears them (app-shell hardReset); left behind, the next
+        // sign-in on this browser would read a previous session's marker.
+        clearSessionClocks();
         if (!stale()) setState({ user: null, loading: false });
         return;
       }
