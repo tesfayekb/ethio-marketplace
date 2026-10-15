@@ -570,4 +570,40 @@ test.describe("FEED SCREENS", () => {
     await expect(page.locator("main h1")).toHaveText(en["nav.allListings"]);
     await expect(page.getByTestId("feed-step-label")).toHaveCount(0);
   });
+
+  test("FS-15 the card's ribbon and the old price (D173, D175 1, D180)", async ({ page }) => {
+    const user = await seller();
+    const { leaf } = await branch();
+    const c = await chain();
+    const n = await addListing(leaf.id, user.id, c.city.id, "regular", 5);
+    const r = await addListing(leaf.id, user.id, c.city.id, "regular", 10);
+    const p = await addListing(leaf.id, user.id, c.city.id, "regular", 15);
+    const s = await addListing(leaf.id, user.id, c.city.id, "regular", 20);
+    const update = async (id: string, patch: Record<string, unknown>) => {
+      const { error } = await adminClient().from("listings").update(patch).eq("id", id);
+      if (error) throw new Error(`[e2e:fs] updating a listing failed: ${error.message}`);
+    };
+    await update(r, { reserved_at: new Date().toISOString() });
+    await update(p, { price_mode: "fixed", price_amount: 900, price_currency: "ETB" });
+    await update(p, {
+      price_was: 1000,
+      price_drop_at: new Date(Date.now() - 86_400_000).toISOString(),
+    });
+    await update(s, { status: "sold" });
+
+    await gotoReady(page, `/c/${leaf.slug}`);
+    await expect.poll(async () => (await cardIds(page)).length).toBe(4);
+    const ids = await cardIds(page);
+    expect(ids[ids.length - 1]).toBe(s);
+
+    const card = (id: string) => page.locator(`[data-testid="listing-card"][data-listing="${id}"]`);
+    await expect(card(r).getByTestId("listing-ribbon-text")).toHaveText(en["feed.reserved"]);
+    await expect(card(p).getByTestId("listing-ribbon-text")).toHaveText(en["feed.priceReduced"]);
+    const was = card(p).getByTestId("listing-card-price-was");
+    await expect(was.locator("s")).not.toHaveText("");
+    await expect(was.locator(".sr-only")).toHaveText(/^Was /);
+    await expect(card(s).getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
+    await expect(card(s).getByTestId("listing-card-price-was")).toHaveCount(0);
+    await expect(card(n).getByTestId("listing-ribbon")).toHaveCount(0);
+  });
 });

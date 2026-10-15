@@ -805,4 +805,50 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     expect(truth["status"]).toBe("rejected");
     expect(truth["deleted_at"]).toBeNull();
   });
+
+  test("MLA-11 the ad's page says what buyers see; its marks and its picture's ribbon (D180)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const X = await seed(seller, "active");
+    await signInViaSession(page, seller.email, seller.password);
+    await openAd(page, X);
+    const line = page.getByTestId("my-listing-visibility");
+    const seen = page.getByTestId("my-listing-as-seen");
+    await expect(line).toHaveAttribute("data-visible", "seen", { timeout: 15000 });
+    await expect(line).toHaveText(en["myListings.ad.seen"]);
+    await expect(seen.getByTestId("listing-ribbon")).toHaveCount(0);
+
+    await page.getByTestId("my-listing-action-reserve").click();
+    await expect(page.getByTestId("my-listing-reserved")).toBeVisible({ timeout: 15000 });
+    await expect(seen.getByTestId("listing-ribbon-text")).toHaveText(en["feed.reserved"]);
+
+    await page.getByTestId("my-listing-action-close").click();
+    await expect(line).toHaveAttribute("data-visible", "hidden", { timeout: 15000 });
+    await expect(line).toHaveText(en["myListings.ad.hidden"]);
+    await expect(page.getByTestId("my-listing-closed-mark")).toHaveText(en["feed.ribbon.closed"]);
+    await expect(seen.getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.closed"]);
+    await gotoReady(page, "/my-listings");
+    await page.getByTestId("my-listings-group-closed").click();
+    await expect(twin(page, X).getByTestId(`my-listing-${X}-closed-mark`)).toBeVisible({
+      timeout: 15000,
+    });
+
+    await openAd(page, X);
+    await page.getByTestId("my-listing-action-reopen").click();
+    await expect(line).toHaveAttribute("data-visible", "seen", { timeout: 15000 });
+    await page.getByTestId("my-listing-action-sell").click();
+    await page.getByTestId("my-listing-confirm-yes").click();
+    await expect(line).toHaveAttribute("data-visible", "soldSeen", { timeout: 15000 });
+    await expect(line).toHaveText(
+      en["myListings.ad.soldSeen"].replace("{word}", en["feed.ribbon.sold"]),
+    );
+    await expect(page.getByTestId("my-listing-sold-mark")).toHaveText(en["feed.ribbon.sold"]);
+    await expect(seen.getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
+    await gotoReady(page, "/my-listings");
+    await page.getByTestId("my-listings-group-sold").click();
+    await expect(twin(page, X).getByTestId(`my-listing-${X}-sold-mark`)).toBeVisible({
+      timeout: 15000,
+    });
+  });
 });
