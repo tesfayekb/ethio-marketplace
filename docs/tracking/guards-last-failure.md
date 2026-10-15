@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38775325452
-- Commit: `eee5d6cdc11ee8a3a5febf5daa8532784d2b511f`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38804796519
+- Commit: `b685b03d0004f39099a1f47b55428a991c79c4cd`
 - Attempt: 1
-- Written (UTC): 2026-10-15T17:50:40.575Z
+- Written (UTC): 2026-10-15T21:34:53.438Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -26,9 +26,6 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
-[36;1mfi[0m
-[36;1mif [ "$reporter" -ne 0 ]; then[0m
-[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit "$reporter"[0m
 [36;1mfi[0m
 [36;1mexit 0[0m
@@ -39,10 +36,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38775325452
-  E2E_HEAD_COMMIT_MESSAGE: Fixed ML-14, MLA-15 test cases
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38804796519
+  E2E_HEAD_COMMIT_MESSAGE: Turn S3 bundle-16 done
 
-X-Lovable-Edit-ID: edt-c68157b1-ccb3-4575-84fa-6a6b0d71268a
+X-Lovable-Edit-ID: edt-4894f178-3d58-4c2f-8894-8b4ef4b09fb8
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -56,24 +53,27 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (8/8 source(s) with usable results, 4 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (8/8 source(s) with usable results, 17 context file(s) found).
+Flake ledger: appended 10 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 10 already there for this run (INC-495).
+Flake ledger: appended 10 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
-##[group]Run echo "smoke=success email=success shards=failure"
-[36;1mecho "smoke=success email=success shards=failure"[0m
-[36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
+##[group]Run echo "smoke=failure email=success shards=failure"
+[36;1mecho "smoke=failure email=success shards=failure"[0m
+[36;1mif [ "failure" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
 [36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit 1[0m
 [36;1mfi[0m
 [36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=success email=success shards=failure
+smoke=failure email=success shards=failure
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/38d9b3ae-cb1b-439d-9609-dbcb928a6026' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/19a71745-fdb6-40c8-bf4d-937c7e57437f' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
