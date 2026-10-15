@@ -85,3 +85,12 @@ Preview as buyer lists the ad's photos, each with Remove, for a person who holds
 - **The marks** on every photo panel for staff (Admin › Listings' Edit, Screening's preview, Show photos): a hidden photo's corner says "Not checked by AI" when it is approved with the ad (held while checking was off) and "Waiting for review" when the check judged it; under it, the reason and the check's phrase; Allow for listings:review, never on one's own ad.
 - **The preview's note** counts only the photos approved with the ad (held while checking was off); a photo the check judged waits for its own Allow or Remove.
 - Tests: PRV-1…PRV-4, LP-8, LP-9, GAL-7; E2E SC-24.
+
+## Bundle 16 turn E3 — Edit inside the preview (D188)
+
+The operator (2026-10-15): "a page in the approval queue needs to be able to be edited by admin … have the edit as admin be available easily inside the preview as buyer, then we can click edit and edit, and after the edit we can approve or reject."
+
+- **Edit** (`admin-screening-preview-edit`, for listings:enforce) sits in the preview's footer beside "Open the ad's page". It puts the reviewer's edit boxes in the listing's place inside the sheet (`admin-screening-edit-panel`, heading `admin-screening-edit-heading`): the ad's photos with their marks and Remove (D169's rule that Remove lives in Edit holds — Edit is now inside the preview too), then the same boxes as the ad's own page (`ListingEditForm`: title and description, specifications, price, the reason and the note, Save and Cancel) through `admin_edit_listing` with a fresh second factor. The door's rules are unchanged: never one's own ad, never a removed one, the seller's content rules.
+- **Save** re-reads the queue; the preview follows its ad's fresh read (`updated_at`) and shows the ad as it now stands, with the saved line ("Saved. The seller is told what changed: …", `admin-screening-edit-done`) and Approve, Reject, Edit at hand again. A refusal lands under its field and the boxes stay open (F4); a cancelled second factor leaves them as they were; Cancel returns to the ad as buyers see it. Approve and Reject are not offered while the boxes are open.
+- The row's market (`countryCode`, the place's `locations.country_code`) rides the queue read, so a price with no money opens on the ad's own market in the boxes, as on the ad's page.
+- Tests: SF-4 (use-screening.test.ts); E2E SC-25 (edit a waiting ad's title from the preview, then approve it).

@@ -2,13 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 
 /** Bundle 11 A3 — every call the queue read makes on the query builder, in order. */
 const calls = vi.hoisted(() => [] as Array<[string, unknown[]]>);
+/** Turn E3 — the rows the mocked read answers with (empty unless a test fills it). */
+const answer = vi.hoisted(() => ({ rows: [] as Record<string, unknown>[] }));
 
 vi.mock("@/integrations/supabase/client", () => {
   const builder: Record<string, (...args: unknown[]) => unknown> = {};
   for (const name of ["select", "eq", "not", "ilike", "order", "range"]) {
     builder[name] = (...args: unknown[]) => {
       calls.push([name, args]);
-      return name === "range" ? Promise.resolve({ data: [], error: null, count: 0 }) : builder;
+      return name === "range"
+        ? Promise.resolve({ data: answer.rows, error: null, count: answer.rows.length })
+        : builder;
     };
   }
   return {
@@ -76,6 +80,63 @@ describe("listScreening", () => {
     await listScreening(0, "", 25, { country: null });
     expect(calls.filter(([name]) => name === "not")).toEqual([]);
     expect(calls.filter(([name, args]) => name === "eq" && args[0] !== "status")).toEqual([]);
+  });
+});
+
+/** Bundle 16 turn E3 (D188) — the preview's edit boxes need the ad's market: the place's country. */
+describe("listScreening — the row's market", () => {
+  it("SF-4 reads the place's country_code into countryCode; an ad with no place has none", async () => {
+    calls.length = 0;
+    answer.rows = [
+      {
+        id: "l-1",
+        title: "Fridge",
+        description: "Works",
+        category_id: "c-1",
+        location_id: "p-1",
+        price_mode: "fixed",
+        price_amount: "1500",
+        price_currency: "ETB",
+        price_period: "once",
+        price_bp: null,
+        price_negotiable: false,
+        price_unit: null,
+        price_unit_text: null,
+        attributes: {},
+        photos_soon: false,
+        updated_at: "2026-10-15T00:00:00Z",
+        category: { name_en: "Fridges", name_am: null },
+        place: { name_en: "Bole", name_am: null, country_code: "ET" },
+      },
+      {
+        id: "l-2",
+        title: "Draft",
+        description: "",
+        category_id: "c-1",
+        location_id: null,
+        price_mode: "contact",
+        price_amount: null,
+        price_currency: null,
+        price_period: null,
+        price_bp: null,
+        price_negotiable: false,
+        price_unit: null,
+        price_unit_text: null,
+        attributes: null,
+        photos_soon: false,
+        updated_at: "2026-10-15T00:00:00Z",
+        category: { name_en: "Fridges", name_am: null },
+        place: null,
+      },
+    ];
+    try {
+      const { rows } = await listScreening(0, "", 25, { country: null });
+      expect(rows.map((row) => row.countryCode)).toEqual(["ET", null]);
+      const select = calls.find(([name]) => name === "select");
+      expect(String(select?.[1][0])).toContain("place:locations(name_en,name_am,country_code)");
+    } finally {
+      answer.rows = [];
+    }
   });
 });
 
