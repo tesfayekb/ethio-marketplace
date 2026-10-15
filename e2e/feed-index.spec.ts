@@ -433,6 +433,7 @@ test.describe("FEED INDEX", () => {
       "rows_for_inactive",
       "listings_with_wrong_rows",
       "queued",
+      "sold_left_feed",
     ])
       expect(result).toHaveProperty(key);
     const { data: runs, error: runsError } = await adminClient()
@@ -460,5 +461,40 @@ test.describe("FEED INDEX", () => {
     expect(checked.error).not.toBeNull();
     const ranked = await anon.rpc("feed_tier_rank", { p_tier: "regular" });
     expect(ranked.error).not.toBeNull();
+  });
+
+  test("FE-15 a sold ad keeps its rows for 30 days at rank -1; a relist or a deletion takes them away; the check counts it", async () => {
+    const s = await seedIndexedListing();
+    const { categories, places } = expectedSets(s);
+    const expectSold = async () => {
+      const rows = await rowsOf(s.listingId);
+      expect(pairsOf(rows)).toEqual(pairs(categories, places));
+      for (const row of rows) expect(row.tier_rank).toBe(-1);
+    };
+
+    await setListing(s.listingId, { status: "sold" });
+    await expectSold();
+    const result = await check(s.listingId);
+    expect(result["sold_shown"]).toBe(1);
+    expect(result["active_without_rows"]).toBe(0);
+    expect(result["listings_with_wrong_rows"]).toBe(0);
+    expect(result["rows_for_inactive"]).toBe(0);
+
+    await setListing(s.listingId, {
+      sold_at: new Date(Date.now() - 31 * 86_400_000).toISOString(),
+    });
+    expect(await rowsOf(s.listingId)).toEqual([]);
+    await setListing(s.listingId, { sold_at: new Date().toISOString() });
+    await expectSold();
+
+    await setListing(s.listingId, { status: "screening" });
+    expect(await rowsOf(s.listingId)).toEqual([]);
+    await setListing(s.listingId, { status: "active" });
+    for (const row of await rowsOf(s.listingId)) expect(row.tier_rank).toBe(0);
+    expect((await rowsOf(s.listingId)).length).toBe(categories.length * places.length);
+    await setListing(s.listingId, { status: "sold" });
+    await expectSold();
+    await setListing(s.listingId, { status: "removed" });
+    expect(await rowsOf(s.listingId)).toEqual([]);
   });
 });
