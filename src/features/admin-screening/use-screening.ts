@@ -300,3 +300,43 @@ export async function revealContact(
   }
   throw new Error("reveal returned no answer");
 }
+
+/**
+ * Bundle 16 turn E3 follow-up (INC-649) — THE PREVIEWED ROW AS THE EDIT LEFT IT.
+ * `admin_edit_listing` answers which fields it took, not the row; the queue's
+ * fresh read replaces this a moment later. Until then the preview shows the
+ * change the reviewer just saved, never the old words: the title, the
+ * description, the answers and the price keys the edit form sends, mapped from
+ * the door's names. Keys the form does not send are left as they are.
+ */
+export function editedScreeningRow(
+  row: ScreeningRow,
+  changes: Record<string, unknown>,
+): ScreeningRow {
+  const text = (key: string, current: string) =>
+    typeof changes[key] === "string" ? (changes[key] as string) : current;
+  const number = (key: string, current: number | null) =>
+    key in changes ? (typeof changes[key] === "number" ? (changes[key] as number) : null) : current;
+  const nullableText = (key: string, current: string | null) =>
+    key in changes ? (typeof changes[key] === "string" ? (changes[key] as string) : null) : current;
+  return {
+    ...row,
+    title: text("title", row.title),
+    description: text("description", row.description),
+    attributes:
+      changes["attributes"] !== null &&
+      typeof changes["attributes"] === "object" &&
+      !Array.isArray(changes["attributes"])
+        ? (changes["attributes"] as Record<string, unknown>)
+        : row.attributes,
+    priceMode: text("price_mode", row.priceMode),
+    priceAmount: number("price_amount", row.priceAmount),
+    priceCurrency: nullableText("price_currency", row.priceCurrency),
+    pricePeriod: nullableText("price_period", row.pricePeriod),
+    priceBp: number("price_bp", row.priceBp),
+    priceNegotiable:
+      typeof changes["price_negotiable"] === "boolean"
+        ? (changes["price_negotiable"] as boolean)
+        : row.priceNegotiable,
+  };
+}

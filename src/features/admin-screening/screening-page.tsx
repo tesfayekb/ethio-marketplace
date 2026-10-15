@@ -58,6 +58,7 @@ import {
   SCREENING_PAGE_SIZE,
   SCREENING_PAGE_SIZES,
   decideListing,
+  editedScreeningRow,
   revealContact,
   revealProblemKey,
   useScreeningFacts,
@@ -442,6 +443,11 @@ export function AdminScreeningPage() {
           setPreviewEditing(false);
           setEditNotice(
             t("admin.listings.edit.done").replace("{fields}", fieldNames(answer.fields)),
+          );
+          // INC-649 — the preview shows what was saved AT ONCE, from the changes the door took
+          // (the queue's fresh read follows and replaces it; the door is the authority — F3).
+          setPreviewRow((current) =>
+            current === null ? current : editedScreeningRow(current, changes),
           );
           await refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
         };
