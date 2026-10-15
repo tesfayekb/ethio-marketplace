@@ -97,6 +97,16 @@ Proven by MLP-1…MLP-4 (e2e/my-listings-page.spec.ts) and ML-U1…ML-U4 (src/fe
 
 Mark as sold asks first ("You cannot undo this."). After any action, whatever the answer, the ad, its history and the list are read again; a refusal is said in words ("This ad has changed…", "Too many changes…").
 
-- Rented and Filled (call H) come with turn 3b: until then every category's button says "Mark as sold".
+- Rented and Filled (call H) come with turn 3b: until then every category's button says "Mark as sold". Later word (turn 3b): they came — below.
 
 Proven by MLA-1…MLA-6 (e2e/my-listings-ad.spec.ts) and ML-U5…ML-U9 (src/features/my-listings/my-listing.test.ts).
+
+## Turn 3b — Delete and the sold words (bundle 16)
+
+Turn 3 was split again (2026-10-14): turn 3b is the seller's side; turn 3c brings a sold ad into the feed for 30 days and the ribbons on the card.
+
+- **Delete (call F).** Every ad but a removed one has **Delete**, last, behind a confirm ("You cannot undo this."). The door is `transition_listing` to `removed` as the owner: a seller who also holds a staff role deletes his own ad as its owner (no staff second factor); the ad is stamped `deleted_at`, leaves My listings (`my_listings` counts and lists it nowhere, `my_listing` answers "not your listing") and is never restored, not even by staff ("a listing its owner deleted is not restored"). Its record and history stay, as the retention rules say. An ad refused for a severe reason is still removed by staff only. After a delete the page returns to My listings.
+- **Rented and Filled (call H).** Two category capability words, `rented` and `filled`, beside `bookable`, `map_pin` and `own_place`; the categories import accepts them. A sold ad of a leaf holding `rented` is "Rented" (Mark as rented, its confirm, "Rented <date>"), of one holding `filled` "Filled"; any other is "Sold". The doors return the word with each row (`soldWord`). The words are set on the leaves through the curator's categories file.
+- **The actions card** shows why an action is not there in its own line (`my-listing-info`: an ad in review waits for its answer; renewing switched off); "Nothing to change here right now." is left for a removed ad.
+
+Proven by MLA-7…MLA-10 (e2e/my-listings-ad.spec.ts), CT-46 (e2e/admin-categories-lifecycle.spec.ts) and ML-U10.

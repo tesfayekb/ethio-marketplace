@@ -140,9 +140,18 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
   const listingIds: string[] = [];
   const regions: string[] = [];
   const branches: string[][] = [];
+  const roles: string[] = [];
 
   test.afterEach(async () => {
     const supabase = adminClient();
+    for (const roleId of roles.splice(0)) {
+      const a = await supabase.from("role_permissions").delete().eq("role_id", roleId);
+      if (a.error) throw new Error(`[e2e:mla] role_permissions reap failed: ${a.error.message}`);
+      const b = await supabase.from("user_roles").delete().eq("role_id", roleId);
+      if (b.error) throw new Error(`[e2e:mla] user_roles reap failed: ${b.error.message}`);
+      const c = await supabase.from("roles").delete().eq("id", roleId);
+      if (c.error) throw new Error(`[e2e:mla] roles reap failed: ${c.error.message}`);
+    }
     const owned = listingIds.splice(0);
     if (owned.length > 0) {
       const notices = await supabase.from("seller_notices").delete().in("listing_id", owned);
@@ -217,6 +226,76 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       .insert({ listing_id: id, location_id: seller.cityId, position: 1 });
     if (located.error) throw new Error(`[e2e:mla] coverage failed: ${located.error.message}`);
     return id;
+  }
+
+  /** Gives an account the test already holds exactly the named permissions through a scratch role (DEC-174). */
+  async function grantRole(
+    wanted: Array<[resource: string, action: string]>,
+    person: { id: string; email: string; password: string },
+  ) {
+    const supabase = adminClient();
+    const roleName = `e2e_mylistings_role_${token()}`;
+    const { data: role, error: roleError } = await supabase
+      .from("roles")
+      .insert({ name: roleName, display_name: roleName, priority: 1 })
+      .select("id")
+      .single();
+    if (roleError || !role) throw new Error(`[e2e:mla] scratch role failed: ${roleError?.message}`);
+    roles.push(role.id as string);
+    const { data: perms } = await supabase
+      .from("permissions")
+      .select("id, action, resources!inner(name)")
+      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
+    const picked = (perms ?? []).filter((p) =>
+      wanted.some(
+        ([resource, action]) =>
+          (p as unknown as { resources: { name: string } }).resources.name === resource &&
+          p.action === action,
+      ),
+    );
+    expect(
+      picked,
+      `[e2e:mla] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
+    ).toHaveLength(wanted.length);
+    const granted = await supabase
+      .from("role_permissions")
+      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
+    if (granted.error) throw new Error(`[e2e:mla] grant failed: ${granted.error.message}`);
+    const assigned = await supabase
+      .from("user_roles")
+      .insert({ user_id: person.id, role_id: role.id, scope_type: "global" });
+    if (assigned.error) throw new Error(`[e2e:mla] assignment failed: ${assigned.error.message}`);
+    return person;
+  }
+
+  /** Sets the scratch leaf's own capability words (never a real category's). */
+  async function setCapabilities(leafId: string, capabilities: string[]) {
+    const { error } = await adminClient()
+      .from("categories")
+      .update({ capabilities })
+      .eq("id", leafId);
+    if (error) throw new Error(`[e2e:mla] capabilities failed: ${error.message}`);
+  }
+
+  /** The deletion columns, read by the service client. */
+  async function deletionTruth(listingId: string) {
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("status,deleted_at")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:mla] deletion read failed: ${error.message}`);
+    if (!data) throw new Error(`[e2e:mla] listing ${listingId} not found`);
+    return data as unknown as Row;
+  }
+
+  async function confirmDelete(page: Page) {
+    await page.getByTestId("my-listing-action-delete").click();
+    await expect(page.getByTestId("my-listing-confirm")).toContainText(
+      en["myListings.confirm.deleteTitle"],
+      { timeout: 15000 },
+    );
+    await page.getByTestId("my-listing-confirm-yes").click();
   }
 
   const actionButtons = (page: Page) =>
@@ -337,7 +416,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await expect(page.getByTestId("my-listing-renewed")).toHaveCount(0);
     await expect(page.getByTestId("my-listing-sold")).toHaveCount(0);
 
-    await expect(actionButtons(page)).toHaveCount(3);
+    await expect(actionButtons(page)).toHaveCount(4);
     await expect(page.getByTestId("my-listing-action-reserve")).toHaveText(
       en["myListings.action.reserve"],
     );
@@ -346,6 +425,9 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     );
     await expect(page.getByTestId("my-listing-action-close")).toHaveText(
       en["myListings.action.close"],
+    );
+    await expect(page.getByTestId("my-listing-action-delete")).toHaveText(
+      en["myListings.action.delete"],
     );
 
     await page.getByTestId("my-listing-action-reserve").click();
@@ -399,11 +481,12 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await expect(page.getByTestId("my-listing-state")).toHaveText(
       `${en["myListings.closedLine"]} · ${en["myListings.daysKept"].replace("{count}", "10")}`,
     );
-    await expect(actionButtons(page)).toHaveCount(2);
+    await expect(actionButtons(page)).toHaveCount(3);
     await expect(page.getByTestId("my-listing-action-reopen")).toHaveText(
       en["myListings.action.reopen"],
     );
     await expect(page.getByTestId("my-listing-action-sell")).toBeVisible();
+    await expect(page.getByTestId("my-listing-action-delete")).toBeVisible();
     await expect(firstHistory(page)).toContainText(
       en["admin.listings.history.status"]
         .replace("{from}", en["myListings.group.live"])
@@ -455,8 +538,11 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await expect(page.getByTestId("my-listing-sold")).toHaveText(
       startsWith(en["myListings.soldOn"].replace("{date}", "")),
     );
-    await expect(page.getByTestId("my-listing-no-action")).toHaveText(en["myListings.ad.none"]);
-    await expect(actionButtons(page)).toHaveCount(0);
+    await expect(page.getByTestId("my-listing-no-action")).toHaveCount(0);
+    await expect(actionButtons(page)).toHaveCount(1);
+    await expect(page.getByTestId("my-listing-action-delete")).toHaveText(
+      en["myListings.action.delete"],
+    );
     await expect(firstHistory(page)).toContainText(
       en["admin.listings.history.status"]
         .replace("{from}", en["myListings.group.live"])
@@ -515,14 +601,17 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await openAd(page, D);
     const cont = page.getByTestId("my-listing-continue");
     await expect(cont).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("my-listing-action-delete")).toBeVisible();
     await cont.click();
     await expect(page).toHaveURL(new RegExp(`/post/${D}(?:[?#].*)?$`), { timeout: 15000 });
 
     await openAd(page, S);
-    await expect(page.getByTestId("my-listing-no-action")).toHaveText(en["myListings.ad.waiting"], {
+    await expect(page.getByTestId("my-listing-info")).toHaveText(en["myListings.ad.waiting"], {
       timeout: 15000,
     });
-    await expect(actionButtons(page)).toHaveCount(0);
+    await expect(actionButtons(page)).toHaveCount(1);
+    await expect(page.getByTestId("my-listing-action-delete")).toBeVisible();
+    await expect(page.getByTestId("my-listing-no-action")).toHaveCount(0);
 
     await openAd(page, Y);
     await expect(page.getByTestId("my-listing-not-found")).toHaveText(
@@ -541,5 +630,179 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     } finally {
       await fresh.close();
     }
+  });
+
+  test("MLA-7 Delete asks first; the deleted ad leaves My listings for good (call F)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const s = await asPerson(seller);
+    const X = await seed(seller, "active");
+    const D = await seed(seller, "draft");
+    await signInViaSession(page, seller.email, seller.password);
+    await openAd(page, X);
+
+    await page.getByTestId("my-listing-action-delete").click();
+    const confirm = page.getByTestId("my-listing-confirm");
+    await expect(confirm).toContainText(en["myListings.confirm.deleteTitle"], { timeout: 15000 });
+    await page.getByTestId("my-listing-confirm-cancel").click();
+    await expect(confirm).toHaveCount(0, { timeout: 15000 });
+    expect((await listingTruth(X))["status"]).toBe("active");
+
+    await confirmDelete(page);
+    await expect(page).toHaveURL(/\/my-listings(?:[?#].*)?$/, { timeout: 15000 });
+
+    for (const group of ["live", "review", "attention", "closed", "sold", "drafts"]) {
+      const list = await s.rpc("my_listings", { p_group: group, p_limit: 50, p_offset: 0 });
+      expect(list.error, `[e2e:mla] my_listings ${group}`).toBeNull();
+      const answer = list.data as { counts: Record<string, number>; rows: Row[] };
+      expect(
+        answer.rows.some((row) => row["id"] === X),
+        `[e2e:mla] X in ${group}`,
+      ).toBe(false);
+      if (group === "live") expect(answer.counts["live"]).toBe(0);
+    }
+    const gone = await s.rpc("my_listing", { p_listing_id: X });
+    expect(gone.error).toBe("not your listing");
+    await openAd(page, X);
+    await expect(page.getByTestId("my-listing-not-found")).toHaveText(
+      en["myListings.ad.notFound"],
+      { timeout: 15000 },
+    );
+
+    const truth = await deletionTruth(X);
+    expect(truth["status"]).toBe("removed");
+    expect(truth["deleted_at"]).not.toBeNull();
+    const { data: revisions, error } = await adminClient()
+      .from("listing_revisions")
+      .select("kind,after,actor")
+      .eq("listing_id", X);
+    if (error) throw new Error(`[e2e:mla] revisions read failed: ${error.message}`);
+    const deletion = (revisions ?? []).filter(
+      (line) =>
+        line.kind === "state" &&
+        (line.after as Row | null)?.["status"] === "removed" &&
+        line.actor === seller.id,
+    );
+    expect(deletion, JSON.stringify(revisions)).toHaveLength(1);
+
+    await openAd(page, D);
+    await expect(page.getByTestId("my-listing-continue")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("my-listing-action-delete")).toBeVisible();
+    await confirmDelete(page);
+    await expect(page).toHaveURL(/\/my-listings(?:[?#].*)?$/, { timeout: 15000 });
+    const drafts = await s.rpc("my_listings", { p_group: "drafts", p_limit: 50, p_offset: 0 });
+    expect(drafts.error, "[e2e:mla] my_listings drafts").toBeNull();
+    const draftAnswer = drafts.data as { counts: Record<string, number>; rows: Row[] };
+    expect(draftAnswer.rows.some((row) => row["id"] === D)).toBe(false);
+    expect(draftAnswer.counts["drafts"]).toBe(0);
+  });
+
+  test("MLA-8 A seller who also holds listings:enforce deletes his own ad as its owner; a deleted ad is never restored", async () => {
+    const seller = await scratchSeller();
+    await grantRole([["listings", "enforce"]], seller);
+    const s = await asPerson(seller);
+    const X = await seed(seller, "active");
+
+    const deleted = await s.rpc("transition_listing", { p_listing_id: X, p_new_status: "removed" });
+    expect(deleted.error, "[e2e:mla] owner delete with listings:enforce").toBeNull();
+    expect((await deletionTruth(X))["deleted_at"]).not.toBeNull();
+
+    const restore = await adminClient().rpc("transition_listing", {
+      p_listing_id: X,
+      p_new_status: "screening",
+    });
+    expect(restore.error?.message ?? null).toBe("a listing its owner deleted is not restored");
+    expect((await deletionTruth(X))["status"]).toBe("removed");
+  });
+
+  test("MLA-9 Rented and Filled: a sold ad takes its category's word (call H)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const s = await asPerson(seller);
+    const X = await seed(seller, "active");
+    try {
+      const before = await s.rpc("my_listing", { p_listing_id: X });
+      expect(before.error, "[e2e:mla] my_listing X").toBeNull();
+      expect(((before.data as Row)["listing"] as Row)["soldWord"]).toBe("sold");
+
+      await setCapabilities(seller.leafId, ["rented"]);
+      await signInViaSession(page, seller.email, seller.password);
+      await openAd(page, X);
+      await expect(page.getByTestId("my-listing-action-sell")).toHaveText(
+        en["myListings.action.rent"],
+        { timeout: 15000 },
+      );
+      await page.getByTestId("my-listing-action-sell").click();
+      await expect(page.getByTestId("my-listing-confirm")).toContainText(
+        en["myListings.confirm.rentTitle"],
+        { timeout: 15000 },
+      );
+      await page.getByTestId("my-listing-confirm-yes").click();
+      await expect(page.getByTestId("my-listing-notice")).toHaveText(en["myListings.done.rent"], {
+        timeout: 15000,
+      });
+      await expect(page.getByTestId("my-listing-sold")).toHaveText(
+        startsWith(en["myListings.rentedOn"].replace("{date}", "")),
+      );
+      const after = await s.rpc("my_listing", { p_listing_id: X });
+      expect(after.error, "[e2e:mla] my_listing X after").toBeNull();
+      expect(((after.data as Row)["listing"] as Row)["soldWord"]).toBe("rented");
+      const sold = await s.rpc("my_listings", { p_group: "sold", p_limit: 50, p_offset: 0 });
+      expect(sold.error, "[e2e:mla] my_listings sold").toBeNull();
+      const soldRow = (sold.data as { rows: Row[] }).rows.find((row) => row["id"] === X);
+      expect(soldRow?.["soldWord"]).toBe("rented");
+      await gotoReady(page, "/my-listings");
+      await page.getByTestId("my-listings-group-sold").click();
+      await expect(twin(page, X).getByTestId(`my-listing-${X}-state`)).toHaveText(
+        startsWith(en["myListings.rentedOn"].replace("{date}", "")),
+        { timeout: 15000 },
+      );
+
+      await setCapabilities(seller.leafId, ["filled"]);
+      const Y = await seed(seller, "active");
+      await openAd(page, Y);
+      await expect(page.getByTestId("my-listing-action-sell")).toHaveText(
+        en["myListings.action.fill"],
+        { timeout: 15000 },
+      );
+      await page.getByTestId("my-listing-action-sell").click();
+      await expect(page.getByTestId("my-listing-confirm")).toContainText(
+        en["myListings.confirm.fillTitle"],
+        { timeout: 15000 },
+      );
+      await page.getByTestId("my-listing-confirm-yes").click();
+      await expect(page.getByTestId("my-listing-notice")).toHaveText(en["myListings.done.fill"], {
+        timeout: 15000,
+      });
+      await expect(page.getByTestId("my-listing-sold")).toHaveText(
+        startsWith(en["myListings.filledOn"].replace("{date}", "")),
+      );
+    } finally {
+      await setCapabilities(seller.leafId, []);
+    }
+  });
+
+  test("MLA-10 A refused ad's Delete is answered in words when it was refused for a severe reason", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const R = await seed(seller, "rejected");
+    const marked = await adminClient()
+      .from("listings")
+      .update({ screening: { severe: true } })
+      .eq("id", R);
+    if (marked.error) throw new Error(`[e2e:mla] screening mark failed: ${marked.error.message}`);
+    await signInViaSession(page, seller.email, seller.password);
+    await openAd(page, R);
+    await expect(page.getByTestId("my-listing-action-delete")).toBeVisible({ timeout: 15000 });
+    await confirmDelete(page);
+    await expect(page.getByTestId("my-listing-problem")).toHaveText(en["myListings.error.severe"], {
+      timeout: 15000,
+    });
+    const truth = await deletionTruth(R);
+    expect(truth["status"]).toBe("rejected");
+    expect(truth["deleted_at"]).toBeNull();
   });
 });

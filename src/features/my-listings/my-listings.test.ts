@@ -30,6 +30,7 @@ const row = {
   daysLeft: 17,
   daysKept: null,
   soldAt: null,
+  soldWord: "sold",
   createdAt: "2026-09-30T08:00:00+00:00",
   updatedAt: "2026-10-14T08:00:00+00:00",
   removedReason: null,
@@ -55,6 +56,8 @@ describe("my_listings answer", () => {
     expect(parseMyListings({ counts, rows: [{ ...row, reserved: "yes" }] })).toBeNull();
     expect(parseMyListings({ counts, rows: [{ ...row, daysLeft: -2 }] })).toBeNull();
     expect(parseMyListings({ counts, rows: [{ ...row, priceAmount: "1500" }] })).toBeNull();
+    // Turn 3b (call H) — the sold word is one of three.
+    expect(parseMyListings({ counts, rows: [{ ...row, soldWord: "leased" }] })).toBeNull();
     const { removedReason: _reason, ...without } = row;
     expect(parseMyListings({ counts, rows: [without] })).toBeNull();
   });

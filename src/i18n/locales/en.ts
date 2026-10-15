@@ -193,6 +193,23 @@ export const en = {
   "myListings.history.reserved": "Marked as reserved",
   "myListings.history.unreserved": "Reserved mark removed",
   "myListings.status.draft": "Draft",
+  "myListings.rentedOn": "Rented {date}",
+  "myListings.filledOn": "Filled {date}",
+  "myListings.action.rent": "Mark as rented",
+  "myListings.action.fill": "Mark as filled",
+  "myListings.action.delete": "Delete",
+  "myListings.done.rent": "Marked as rented.",
+  "myListings.done.fill": "Marked as filled.",
+  "myListings.confirm.rentTitle": "Mark this ad as rented?",
+  "myListings.confirm.rentBody":
+    "People will see it as rented and can no longer contact you about it. You cannot undo this.",
+  "myListings.confirm.fillTitle": "Mark this ad as filled?",
+  "myListings.confirm.fillBody":
+    "Job seekers will see it as filled and can no longer contact you about it. You cannot undo this.",
+  "myListings.confirm.deleteTitle": "Delete this ad?",
+  "myListings.confirm.deleteBody":
+    "It is removed from your listings and from the site for good. You cannot undo this.",
+  "myListings.error.severe": "This ad was refused for a serious reason; only staff can remove it.",
   "auth.errorWrongCurrentPassword": "That current password is not correct.",
   "auth.errorLastMethod": "You can't remove your only sign-in method. Add another one first.",
   "auth.errorPasswordTooShort": "Use at least 8 characters.",

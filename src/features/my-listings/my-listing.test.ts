@@ -4,6 +4,12 @@ import { en } from "@/i18n/locales/en";
 
 import {
   ACTION_KEY,
+  actionKey,
+  ASKS_FIRST,
+  confirmKeys,
+  doneKey,
+  SELL_KEY,
+  SOLD_DONE_KEY,
   actionErrorKey,
   actionsFor,
   DONE_KEY,
@@ -13,7 +19,7 @@ import {
   STATUS_WORD,
   type MyListing,
 } from "./my-listing";
-import { REASON_WORD, REMOVAL_REASON } from "./state-line";
+import { REASON_WORD, REMOVAL_REASON, SOLD_ON } from "./state-line";
 
 /** Bundle 16 turn 3 — one ad's answer, its history and its actions. */
 const row = {
@@ -40,6 +46,7 @@ const row = {
   daysLeft: 17,
   daysKept: null,
   soldAt: null,
+  soldWord: "sold" as const,
   createdAt: "2026-09-30T08:00:00+00:00",
   updatedAt: "2026-10-14T08:00:00+00:00",
   removedReason: null,
@@ -70,22 +77,26 @@ describe("my_listing answer", () => {
     expect(parseMyListing(null)).toBeNull();
   });
 
-  it("ML-U6 each status offers its actions, in the page's order", () => {
-    expect(actionsFor(ad({}))).toEqual(["reserve", "sell", "close"]);
+  it("ML-U6 each status offers its actions, in the page's order; every ad but a removed one can be deleted, last", () => {
+    expect(actionsFor(ad({}))).toEqual(["reserve", "sell", "close", "delete"]);
     expect(actionsFor(ad({ status: "reduced", reserved: true }))).toEqual([
       "unreserve",
       "sell",
       "close",
+      "delete",
     ]);
     expect(actionsFor(ad({ status: "closed" }, { resumeStatus: "active" }))).toEqual([
       "reopen",
       "sell",
+      "delete",
     ]);
-    expect(actionsFor(ad({ status: "expired" }))).toEqual(["renew"]);
-    expect(actionsFor(ad({ status: "expired" }, { renewAllowed: false }))).toEqual([]);
-    for (const status of ["draft", "screening", "held", "rejected", "removed", "sold"]) {
-      expect(actionsFor(ad({ status }))).toEqual([]);
+    expect(actionsFor(ad({ status: "expired" }))).toEqual(["renew", "delete"]);
+    expect(actionsFor(ad({ status: "expired" }, { renewAllowed: false }))).toEqual(["delete"]);
+    for (const status of ["draft", "screening", "held", "rejected", "sold"]) {
+      expect(actionsFor(ad({ status }))).toEqual(["delete"]);
     }
+    expect(actionsFor(ad({ status: "removed" }))).toEqual([]);
+    expect([...ASKS_FIRST].sort()).toEqual(["delete", "sell"]);
   });
 
   it("ML-U7 a door's refusal is said in words, and every word exists", () => {
@@ -97,9 +108,20 @@ describe("my_listing answer", () => {
     expect(actionErrorKey("only a live listing is reserved")).toBe("myListings.error.changed");
     expect(actionErrorKey("renewNeedsExpired")).toBe("myListings.error.changed");
     expect(actionErrorKey("something else")).toBe("myListings.error.failed");
+    expect(
+      actionErrorKey("a listing rejected for a severe reason is removed by enforcement only"),
+    ).toBe("myListings.error.severe");
     const keys = [
       ...Object.values(ACTION_KEY),
       ...Object.values(DONE_KEY),
+      ...Object.values(SELL_KEY),
+      ...Object.values(SOLD_DONE_KEY),
+      ...Object.values(SOLD_ON),
+      ...(["sold", "rented", "filled"] as const).flatMap((word) =>
+        Object.values(confirmKeys("sell", word)),
+      ),
+      ...Object.values(confirmKeys("delete", "sold")),
+      "myListings.error.severe" as const,
       ...Object.values(STATUS_WORD),
       ...Object.values(REASON_WORD),
     ];
@@ -143,5 +165,28 @@ describe("my_listing answer", () => {
     const closed = { ...base, by: "you" as const, from: "active", to: "closed" };
     const approved = { ...base, from: "held", to: "active" };
     expect(sellerLines([reach, queue, closed, approved])).toEqual([closed, approved]);
+  });
+
+  it("ML-U10 a sold ad's word follows its category: Mark as sold, rented or filled, its confirm and its done line", () => {
+    expect(actionKey("sell", "sold")).toBe("myListings.action.sell");
+    expect(actionKey("sell", "rented")).toBe("myListings.action.rent");
+    expect(actionKey("sell", "filled")).toBe("myListings.action.fill");
+    expect(actionKey("close", "rented")).toBe("myListings.action.close");
+    expect(doneKey("sell", "filled")).toBe("myListings.done.fill");
+    expect(doneKey("reserve", "filled")).toBe("myListings.done.reserve");
+    expect(confirmKeys("sell", "rented")).toEqual({
+      title: "myListings.confirm.rentTitle",
+      body: "myListings.confirm.rentBody",
+      yes: "myListings.action.rent",
+    });
+    expect(confirmKeys("delete", "filled")).toEqual({
+      title: "myListings.confirm.deleteTitle",
+      body: "myListings.confirm.deleteBody",
+      yes: "myListings.action.delete",
+    });
+    expect(
+      parseMyListing({ ...answer, listing: { ...row, soldWord: "filled" } })?.listing.soldWord,
+    ).toBe("filled");
+    expect(parseMyListing({ ...answer, listing: { ...row, soldWord: "gone" } })).toBeNull();
   });
 });

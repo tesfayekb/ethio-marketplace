@@ -1340,6 +1340,7 @@ export type Database = {
           contact_pref: Json
           cover_photo_id: string | null
           created_at: string
+          deleted_at: string | null
           description: string
           directions: string | null
           draft_step: number
@@ -1393,6 +1394,7 @@ export type Database = {
           contact_pref?: Json
           cover_photo_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           description: string
           directions?: string | null
           draft_step?: number
@@ -1446,6 +1448,7 @@ export type Database = {
           contact_pref?: Json
           cover_photo_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string
           directions?: string | null
           draft_step?: number

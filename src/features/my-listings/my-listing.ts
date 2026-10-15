@@ -2,7 +2,13 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
 
-import { LISTING_GROUPS, parseRow, type ListingGroup, type MyListingRow } from "./my-listings";
+import {
+  LISTING_GROUPS,
+  parseRow,
+  type ListingGroup,
+  type MyListingRow,
+  type SoldWord,
+} from "./my-listings";
 
 /**
  * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS, its history and its actions (D138;
@@ -136,34 +142,48 @@ export async function readHistory(listingId: string): Promise<HistoryLine[]> {
 }
 
 /** The seller's one-tap actions (D173, D174). */
-export type ListingAction = "reserve" | "unreserve" | "sell" | "close" | "reopen" | "renew";
+export type ListingAction =
+  | "reserve"
+  | "unreserve"
+  | "sell"
+  | "close"
+  | "reopen"
+  | "renew"
+  | "delete";
 
 /**
  * The actions an ad offers, in the order the page shows them: a live ad —
  * Reserved on or off, Mark as sold, No longer available; a closed ad — Reopen,
- * Mark as sold; an expired ad — Renew, when the admin allows it. Every other ad
- * offers none here (an ad in review waits for its answer, call G; editing comes
- * with the edit boxes).
+ * Mark as sold; an expired ad — Renew, when the admin allows it. Turn 3b (call
+ * F): every ad but a removed one can also be deleted, last — a draft, an ad in
+ * review (it waits for its answer otherwise, call G), a refused or a sold one
+ * included. Editing comes with the edit boxes.
  */
 export function actionsFor(ad: MyListing): ListingAction[] {
   switch (ad.listing.status) {
     case "active":
     case "reduced":
-      return [ad.listing.reserved ? "unreserve" : "reserve", "sell", "close"];
+      return [ad.listing.reserved ? "unreserve" : "reserve", "sell", "close", "delete"];
     case "closed":
-      return ad.resumeStatus === null ? ["sell"] : ["reopen", "sell"];
+      return ad.resumeStatus === null ? ["sell", "delete"] : ["reopen", "sell", "delete"];
     case "expired":
-      return ad.renewAllowed ? ["renew"] : [];
-    default:
+      return ad.renewAllowed ? ["renew", "delete"] : ["delete"];
+    case "removed":
       return [];
+    default:
+      return ["delete"];
   }
 }
+
+/** The actions that cannot be undone ask first. */
+export const ASKS_FIRST: ReadonlySet<ListingAction> = new Set<ListingAction>(["sell", "delete"]);
 
 /** The door's refusal, in the seller's words. */
 export function actionErrorKey(message: string): MessageKey {
   if (message.includes("rateLimited")) return "myListings.error.rateLimited";
   if (message.includes("account is deactivated")) return "myListings.error.deactivated";
   if (message.includes("renewOff")) return "myListings.renewOff";
+  if (message.includes("removed by enforcement only")) return "myListings.error.severe";
   if (message.includes("not your listing") || message.includes("listing not found"))
     return "myListings.error.notYours";
   if (
@@ -216,6 +236,13 @@ export async function runAction(ad: MyListing, action: ListingAction): Promise<A
     case "renew":
       result = await supabase.rpc("renew_listing", { p_listing_id: id });
       break;
+    case "delete":
+      // Turn 3b (call F) — deleted by its owner: it leaves My listings; the record stays.
+      result = await supabase.rpc("transition_listing", {
+        p_listing_id: id,
+        p_new_status: "removed",
+      });
+      break;
   }
   if (result.error) return { ok: false, key: actionErrorKey(result.error.message) };
   const refusal = refusalOf(result.data);
@@ -223,8 +250,8 @@ export async function runAction(ad: MyListing, action: ListingAction): Promise<A
   return { ok: true };
 }
 
-/** What the page says once an action is done. */
-export const DONE_KEY: Record<ListingAction, MessageKey> = {
+/** What the page says once an action is done (a deleted ad's page leaves for My listings). */
+export const DONE_KEY: Record<Exclude<ListingAction, "delete">, MessageKey> = {
   reserve: "myListings.done.reserve",
   unreserve: "myListings.done.unreserve",
   sell: "myListings.done.sell",
@@ -241,7 +268,52 @@ export const ACTION_KEY: Record<ListingAction, MessageKey> = {
   close: "myListings.action.close",
   reopen: "myListings.action.reopen",
   renew: "myListings.action.renew",
+  delete: "myListings.action.delete",
 };
+
+/** Turn 3b (call H) — Mark as sold, rented or filled, by the ad's word. */
+export const SELL_KEY: Record<SoldWord, MessageKey> = {
+  sold: "myListings.action.sell",
+  rented: "myListings.action.rent",
+  filled: "myListings.action.fill",
+};
+export const SOLD_DONE_KEY: Record<SoldWord, MessageKey> = {
+  sold: "myListings.done.sell",
+  rented: "myListings.done.rent",
+  filled: "myListings.done.fill",
+};
+
+/** The button's word and the done line, the sold word applied. */
+export function actionKey(action: ListingAction, word: SoldWord): MessageKey {
+  return action === "sell" ? SELL_KEY[word] : ACTION_KEY[action];
+}
+export function doneKey(action: Exclude<ListingAction, "delete">, word: SoldWord): MessageKey {
+  return action === "sell" ? SOLD_DONE_KEY[word] : DONE_KEY[action];
+}
+
+/** The confirm of an action that cannot be undone: its question and what it means. */
+export function confirmKeys(
+  action: "sell" | "delete",
+  word: SoldWord,
+): { title: MessageKey; body: MessageKey; yes: MessageKey } {
+  if (action === "delete")
+    return {
+      title: "myListings.confirm.deleteTitle",
+      body: "myListings.confirm.deleteBody",
+      yes: "myListings.action.delete",
+    };
+  const title: Record<SoldWord, MessageKey> = {
+    sold: "myListings.confirm.sellTitle",
+    rented: "myListings.confirm.rentTitle",
+    filled: "myListings.confirm.fillTitle",
+  };
+  const body: Record<SoldWord, MessageKey> = {
+    sold: "myListings.confirm.sellBody",
+    rented: "myListings.confirm.rentBody",
+    filled: "myListings.confirm.fillBody",
+  };
+  return { title: title[word], body: body[word], yes: SELL_KEY[word] };
+}
 
 /** The seller's word for a status in the history (reach is staff's lever and is not shown). */
 export const STATUS_WORD: Record<string, MessageKey> = {
