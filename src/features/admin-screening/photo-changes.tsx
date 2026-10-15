@@ -200,6 +200,7 @@ export function PhotoChanges({
                 <ListingPhotos
                   listingId={row.listing.id}
                   mayRemove={false}
+                  mayAllow
                   guard={guard}
                   onRemoved={(key) => onNotice(key, "ok")}
                   testid="admin-photo-change-ad-photos"

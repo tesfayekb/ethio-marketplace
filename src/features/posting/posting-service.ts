@@ -320,11 +320,63 @@ export interface DraftPhotoRow {
   unscreened?: boolean;
   /** D154 B3 — the screen's warnings (`not_relevant`), read by the seller and staff only. */
   warnings?: string[];
+  /**
+   * Bundle 16 turn 4a/4b (D178) — why the photo is hidden from buyers, while a
+   * person has not decided (`listing_photo_reviews`, read by the seller and staff
+   * only); null once decided or when the photo was never held back.
+   */
+  review?: PhotoReviewMark | null;
 }
 
-/** D154 B3 — the photo row's selected columns, with its warnings embedded. */
+/** D178 — the labels of a photo kept hidden for a person. */
+export const PHOTO_REVIEW_LABELS = ["unsure", "not_right", "fail", "held"] as const;
+
+export type PhotoReviewLabel = (typeof PHOTO_REVIEW_LABELS)[number];
+
+export interface PhotoReviewMark {
+  label: PhotoReviewLabel;
+  /** A fail's code (the screen's refusal code); null for every other label. */
+  code: string | null;
+  /** The screen's short phrase (English, the model's words): staff read it as text only. */
+  evidence: string | null;
+}
+
+/**
+ * D154 B3 — the photo row's selected columns, with its warnings embedded.
+ * Bundle 16 turn 4b — and its review (D178).
+ */
 export const PHOTO_ROW_SELECT =
-  "id,display_order,paths,storage_path,unscreened,warning:listing_photo_warnings(codes)";
+  "id,display_order,paths,storage_path,unscreened,warning:listing_photo_warnings(codes),review:listing_photo_reviews(label,code,evidence,decided_at)";
+
+/**
+ * Bundle 16 turn 4b (D178) — an embedded `listing_photo_reviews` row, read as an
+ * object or a one-item list: an open review with a known label, or null (none,
+ * decided, or unreadable).
+ */
+export function photoReviewOf(embedded: unknown): PhotoReviewMark | null {
+  const row = Array.isArray(embedded) ? embedded[0] : embedded;
+  if (row === null || typeof row !== "object") return null;
+  const raw = row as Record<string, unknown>;
+  const label = raw["label"];
+  if (typeof label !== "string" || !(PHOTO_REVIEW_LABELS as readonly string[]).includes(label)) {
+    return null;
+  }
+  if (raw["decided_at"] !== null && raw["decided_at"] !== undefined) return null;
+  return {
+    label: label as PhotoReviewLabel,
+    code: typeof raw["code"] === "string" ? raw["code"] : null,
+    evidence: typeof raw["evidence"] === "string" ? raw["evidence"] : null,
+  };
+}
+
+/**
+ * Bundle 16 turn 4b (D158, D178) — a photo held while photo checking was off: it
+ * is approved with the ad. A hidden photo with no review row was held before
+ * turn 4a; a photo the check judged waits for its own decision.
+ */
+export function heldWithAd(row: Pick<DraftPhotoRow, "unscreened" | "review">): boolean {
+  return row.unscreened === true && (row.review == null || row.review.label === "held");
+}
 
 /**
  * D154 B3 — the codes of an embedded `listing_photo_warnings` row: one row per
@@ -444,6 +496,7 @@ export async function readDraft(
       storagePath: row.storage_path,
       unscreened: row.unscreened === true,
       warnings: photoWarningsOf(row.warning),
+      review: photoReviewOf(row.review),
     })),
   };
 }

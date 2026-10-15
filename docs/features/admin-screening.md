@@ -78,3 +78,10 @@ Preview as buyer lists the ad's photos, each with Remove, for a person who holds
 ## Bundle 14 turn 1 — the preview is view-only (D169)
 
 - "Preview as buyer" shows the ad's photos with their marks and no Remove, and links to the ad's own page in Admin › Listings ("Open the ad's page", `admin-screening-open-listing`, for listings:view), where Edit removes a photo. Photo changes on live ads: "Show photos" shows the photos with their marks, view-only; the ad's title links to its page. SC-20 follows the link and removes a photo there; SC-21 and PCH-5 read the view-only photos.
+
+## Bundle 16 turn 4b — Photos to review (D178)
+
+- **The section** "Photos to review" (`admin-photo-reviews`, src/features/admin-screening/photo-reviews.tsx), above "Photo changes on live ads", for listings:review: every photo kept hidden for a person (`listing_photo_reviews`, open) on an ad a buyer may come to see — never a draft, a removed ad or a refused one — oldest first, 100 at a time: the photo, why it is hidden (failed the AI check with the rule it may break; the check was unsure; may not fit the ad; held while checking was off), the check's own phrase as text, when, and the ad (its page in Admin › Listings, where Edit removes a photo and the ad can be declined — D169). **Allow** (`admin-photo-review-allow`) asks the second factor and calls `admin_allow_listing_photo`: the photo is shown to buyers and the row leaves the list. "Show photos" opens all the ad's photos with their marks and Allow.
+- **The marks** on every photo panel for staff (Admin › Listings' Edit, Screening's preview, Show photos): a hidden photo's corner says "Not checked by AI" when it is approved with the ad (held while checking was off) and "Waiting for review" when the check judged it; under it, the reason and the check's phrase; Allow for listings:review, never on one's own ad.
+- **The preview's note** counts only the photos approved with the ad (held while checking was off); a photo the check judged waits for its own Allow or Remove.
+- Tests: PRV-1…PRV-4, LP-8, LP-9, GAL-7; E2E SC-24.

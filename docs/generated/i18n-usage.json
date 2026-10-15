@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 445,
-  "dynamicCallSites": 335,
+  "scanned": 447,
+  "dynamicCallSites": 342,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2279,6 +2279,14 @@
     "admin.listings.move.refused": [
       "/admin/listings"
     ],
+    "admin.listings.photos.allow": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
+    ],
+    "admin.listings.photos.allowOne": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
+    ],
     "admin.listings.photos.confirm": [
       "/admin/listings/$listingId",
       "/admin/screening"
@@ -2296,6 +2304,10 @@
       "/admin/screening"
     ],
     "admin.listings.photos.removeOne": [
+      "/admin/listings/$listingId",
+      "/admin/screening"
+    ],
+    "admin.listings.photos.review.evidence": [
       "/admin/listings/$listingId",
       "/admin/screening"
     ],
@@ -2980,6 +2992,15 @@
       "/admin/screening"
     ],
     "admin.screening.reject": [
+      "/admin/screening"
+    ],
+    "admin.screening.reviews.empty": [
+      "/admin/screening"
+    ],
+    "admin.screening.reviews.hint": [
+      "/admin/screening"
+    ],
+    "admin.screening.reviews.title": [
       "/admin/screening"
     ],
     "admin.screening.search": [
@@ -4766,6 +4787,13 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.gallery.inReview": [
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/my-listings/$listingId",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.gallery.next": [
       "/admin/listings/$listingId",
       "/admin/screening",
@@ -4977,6 +5005,11 @@
       "/post/$listingId"
     ],
     "post.photos.retry": [
+      "/my-listings/$listingId",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.photos.review.title": [
       "/my-listings/$listingId",
       "/post",
       "/post/$listingId"

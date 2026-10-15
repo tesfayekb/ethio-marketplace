@@ -181,6 +181,12 @@ describe("PhotoGallery — a held photo (D158)", () => {
     render(<PhotoGallery photos={[held]} />);
     expect(screen.queryByTestId("gallery-unscreened")).toBeNull();
   });
+
+  it("GAL-7 a photo the check judged is marked as waiting for review (bundle 16 turn 4b, D178)", () => {
+    const judged: GalleryPhoto = { ...photo("p3"), unscreened: true, inReview: true };
+    render(<PhotoGallery photos={[judged]} markUnscreened />);
+    expect(screen.getByTestId("gallery-unscreened").textContent).toBe("post.gallery.inReview");
+  });
 });
 
 /**

@@ -34,6 +34,7 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
+import { heldWithAd } from "@/features/posting/posting-service";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
 import { fill } from "@/features/posting/refusal-text";
 import { storedUnitNoun } from "@/features/posting/price-line";
@@ -42,6 +43,7 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
 import { PhotoChanges } from "./photo-changes";
+import { PhotoReviews } from "./photo-reviews";
 import { useWarnedListings } from "./use-photo-changes";
 import {
   ADMIN_SCREENING_KEY,
@@ -133,7 +135,9 @@ export function AdminScreeningPage() {
 
   const query = useScreeningQueue(page, search, pageSize, { country });
   const photos = useScreeningPhotos(previewRow?.id ?? null);
-  const heldCount = (photos.data ?? []).filter((row) => row.unscreened === true).length;
+  // Bundle 16 turn 4b (D178) — only photos held while checking was off are approved with
+  // the ad; a photo the check judged carries its own mark and Allow.
+  const heldCount = (photos.data ?? []).filter(heldWithAd).length;
   const facts = useScreeningFacts(previewRow?.id ?? null);
   const schema = useScreeningSchema(previewRow?.categoryId ?? null);
 
@@ -544,6 +548,13 @@ export function AdminScreeningPage() {
               }
             />
 
+            {/* Bundle 16 turn 4b (D178) — the photos kept hidden for a person. */}
+            <PhotoReviews
+              mayReview={mayReview}
+              guard={guard}
+              onNotice={(key, tone) => setNotice({ key, tone })}
+            />
+
             {/* D154 B5 (bundle 13 turn 10) — the photo changes sellers made on live ads. */}
             <PhotoChanges
               mayReview={mayReview}
@@ -603,6 +614,7 @@ export function AdminScreeningPage() {
                           <ListingPhotos
                             listingId={previewRow.id}
                             mayRemove={false}
+                            mayAllow={mayReview}
                             guard={guard}
                             testid="admin-screening-photos"
                             onRemoved={(key) => setNotice({ key, tone: "ok" })}

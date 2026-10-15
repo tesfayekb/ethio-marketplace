@@ -3,6 +3,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { loadAttributeOptions, type AttrOption } from "@/features/posting/attribute-options";
 import {
   PHOTO_ROW_SELECT,
+  photoReviewOf,
   photoWarningsOf,
   readPostingSchema,
   type AttrDef,
@@ -151,6 +152,8 @@ export async function listScreeningPhotos(listingId: string): Promise<DraftPhoto
     unscreened: row.unscreened === true,
     // D154 B3 — the screen's warnings: staff see the photo marked.
     warnings: photoWarningsOf(row.warning),
+    // Bundle 16 turn 4b (D178) — why it is hidden, while no person has decided.
+    review: photoReviewOf(row.review),
   }));
 }
 

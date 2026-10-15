@@ -1449,3 +1449,7 @@ Still to build, in bundle 13 (D154, D155): rotate and crop; the screen's warning
 ## Bundle 16 turn S2 — the rate-limit table is pruned daily
 
 `rate_limits_prune()` (service role only), scheduled daily at 03:43 UTC as `rate-limits-prune`, deletes every window that began more than 31 days ago, except the per-listing budgets that run for years (`assist:listing`, `background:listing`); each run writes one row to `rate_limits_prune_runs` (kept 14 days), so a run with nothing to delete is told from no run.
+
+## Bundle 16 turn 4b — the seller is told why a photo is hidden (D178)
+
+On the photo step, a photo hidden from buyers until a person reviews it says so on its tile (`post-photo-review`, data-label): "Hidden from buyers until a person reviews it." with its reason — for a failed photo, the rule it may break (the refusal's own words, e.g. "Weapons cannot be shown here."); "Our check could not decide about it."; "Photo checking was paused when you added it." A photo that may not fit the ad says why in its warning line, which now reads "This photo may not show what you are selling. A person will review it; you can also remove it." The step's note on paused checking shows only for photos held that way. E2E PP-33.
