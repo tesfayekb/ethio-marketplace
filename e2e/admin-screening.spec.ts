@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -1262,7 +1264,8 @@ test.describe("ADMIN SCREENING", () => {
       email: ad.seller.email,
       password: ad.seller.password,
     });
-    if (signedIn.error) throw new Error(`[e2e:sc] signing in the seller failed: ${signedIn.error.message}`);
+    if (signedIn.error)
+      throw new Error(`[e2e:sc] signing in the seller failed: ${signedIn.error.message}`);
     const allowed = await sellerClient.rpc("admin_allow_listing_photo", { p_photo_id: failed });
     expect(allowed.error?.message).toBe("permission denied");
     expect(await heldTruth(failed), "SC-23: the seller's call showed the photo").toBe(true);
