@@ -2,7 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { doorRefusal } from "@/features/posting/door-error";
 
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
-import { PHOTO_OPEN_STATUSES, photoScreenPlan, withSiteCap } from "@/server/media/hold";
+import {
+  PHOTO_OPEN_STATUSES,
+  photoOutcome,
+  photoScreenPlan,
+  withSiteCap,
+  type PhotoReview,
+} from "@/server/media/hold";
 import { photoPolicyFake, screenPhotoPolicy, type PolicyVerdict } from "@/server/media/policy";
 import {
   deleteObject,
@@ -61,7 +67,13 @@ import { errorText } from "@/lib/error-text";
  *                            off (bundle 13 turn 6), a draft's photo is HELD —
  *                            stored `unscreened`, shown to no buyer until staff
  *                            approve the ad — and a live ad's is refused
- *                            (`photoScreenPlan`, src/server/media/hold.ts)
+ *                            (`photoScreenPlan`, src/server/media/hold.ts).
+ *                            Bundle 16 turn 4a (D178, D183): with the switch off
+ *                            a photo on any ad is held for staff; the verdict
+ *                            decides the rest (`photoOutcome`): a clean pass is
+ *                            shown, an unsure, not-right or failed photo is
+ *                            stored hidden with its review for a person, and
+ *                            nudity and a mismatched copy are refused unstored
  *   7 the objects          — a put per size through the partition-keyed adapter
  *   8 the door             — `register_listing_photo` (service-only), which is
  *                            the ONE place `exif_stripped = true` is ever written
@@ -306,11 +318,11 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   // 6 — the policy pass: every size that will be stored, in one call (D15, INC-601).
-  // D158 — behind its switch, and metered. With the switch off by staff (bundle 13
-  // turn 6) a draft's photo is HELD: stored `unscreened`, with no pass and nothing
-  // metered, and shown to no buyer until staff approve the ad; a live ad's is
-  // refused (`screeningPaused`), because nothing would put it in front of staff. A
-  // gate that could not be read is `providerUnavailable` with a retry (F4).
+  // D158 — behind its switch, and metered. With the switch off (by staff or by
+  // budget) a photo is HELD: stored `unscreened` with a `held` review, with no pass
+  // and nothing metered, and shown to no buyer until staff approve the ad or the
+  // photo (bundle 16 turn 4a: on a live ad too, since staff now see every held
+  // photo). A gate that could not be read is `providerUnavailable` with a retry (F4).
   const log = (message: string) => logRouteError(PATH, message);
   let gate = await aiGate("photo_screen", log);
   // Bundle 16 turn S1 (D184) — the site's day cap on PAID screens (fake mode spends
@@ -326,21 +338,18 @@ async function handlePost(request: Request): Promise<Response> {
     gate = withSiteCap(gate, site.allowed);
     if (!site.allowed) log("photo screening: the site's day cap is spent; the photo is held");
   }
-  const plan = photoScreenPlan(gate, String(listing.status));
+  const plan = photoScreenPlan(gate);
   if (plan === "unavailable") {
     return routeJson(
       { ok: false, refusals: [{ field: "cover", reason: "providerUnavailable", retry: true }] },
       200,
     );
   }
-  if (plan === "paused") {
-    return routeJson({ ok: false, refusals: [{ field: "cover", reason: "screeningPaused" }] }, 200);
-  }
-  const unscreened = plan === "hold";
+  const held = plan === "hold";
   const cover = stripped.cover!;
   // D154 B3 — the ad's category (its English name, public) and title, for relevance.
   let categoryName: string | null = null;
-  if (!unscreened && typeof listing.category_id === "string") {
+  if (!held && typeof listing.category_id === "string") {
     const { data: category } = await supabase
       .from("categories")
       .select("name_en")
@@ -348,7 +357,7 @@ async function handlePost(request: Request): Promise<Response> {
       .maybeSingle();
     categoryName = typeof category?.name_en === "string" ? category.name_en : null;
   }
-  const verdict: PolicyVerdict = unscreened
+  const verdict: PolicyVerdict = held
     ? { ok: true }
     : await screenPhotoPolicy(
         {
@@ -363,10 +372,16 @@ async function handlePost(request: Request): Promise<Response> {
   // D154 B3 — the screen's warnings: stored with the photo, never a refusal.
   const warnings = verdict.ok ? (verdict.warnings ?? []) : [];
   // The provider answered (a pass or a refusal): one call is metered.
-  if (!unscreened && (verdict.ok || verdict.code !== "providerUnavailable")) {
+  if (!held && (verdict.ok || verdict.code !== "providerUnavailable")) {
     await recordAiSpend("photo_screen", 1, log);
   }
-  if (!verdict.ok) {
+  // Bundle 16 turn 4a (D178, D183) — what the verdict does: shown, kept hidden for a
+  // person with its review, or refused unstored (nudity, a mismatched copy, the
+  // provider's own failure). A held photo's review is `held`, written by the door.
+  const outcome = held ? null : photoOutcome(verdict);
+  const review: PhotoReview | null = outcome?.kind === "review" ? outcome.review : null;
+  const unscreened = held || review !== null;
+  if (!verdict.ok && outcome?.kind === "refuse") {
     return routeJson(
       {
         ok: false,
@@ -439,6 +454,8 @@ async function handlePost(request: Request): Promise<Response> {
       p_unscreened: unscreened,
       // D154 B3 — seen by the seller and staff only (listing_photo_warnings).
       p_warnings: warnings,
+      // Bundle 16 turn 4a (D178) — why the photo is hidden, for a person to decide.
+      ...(review === null ? {} : { p_review: review }),
     };
     // D154 B2 — an edit takes the old photo's place in one transaction.
     const door = replaced === null ? "register_listing_photo" : "replace_listing_photo";
@@ -481,6 +498,17 @@ async function handlePost(request: Request): Promise<Response> {
         bytes: cover.bytes.length,
         unscreened,
         warnings,
+        // Bundle 16 turn 4a — the seller is told why the photo waits (the code, never the phrase).
+        ...(held
+          ? { review: { label: "held" } }
+          : review === null
+            ? {}
+            : {
+                review: {
+                  label: review.label,
+                  ...(review.code === undefined ? {} : { code: review.code }),
+                },
+              }),
         ...(replaced === null ? {} : { replaced: replaces }),
         ...(data && typeof data === "object" ? { door: data } : {}),
       },
