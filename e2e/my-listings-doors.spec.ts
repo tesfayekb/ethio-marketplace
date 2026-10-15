@@ -1186,16 +1186,28 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     };
 
     const count = await revisionCount(X.id);
-    const moved = await edit({ coverage: [C2, C1] });
+    const moved = await edit({ coverage: [C2] });
     expect(moved.error).toBeNull();
     expect(moved.data).toMatchObject({ review: false, status: "active" });
     expect(await row("location_id,status")).toEqual({ location_id: C2, status: "active" });
-    expect(await placesOf()).toEqual([C2, C1]);
+    expect(await placesOf()).toEqual([C2]);
     expect(await revisionCount(X.id)).toBe(count + 1);
     const edits = await revisionRows(X.id, "edit");
     const newest = edits[edits.length - 1];
-    expect((newest?.["after"] as Row | null)?.["coverage"]).toEqual([C2, C1]);
+    expect((newest?.["after"] as Row | null)?.["coverage"]).toEqual([C2]);
     expect((newest?.["before"] as Row | null)?.["coverage"]).toEqual([C1]);
+
+    const overPlan = await edit({ coverage: [C2, C1] });
+    expect(overPlan.error).toBeNull();
+    const over = overPlan.data as Row;
+    expect(over["ok"]).toBe(false);
+    expect(over["refusals"]).toContainEqual(
+      expect.objectContaining({
+        field: "coverage",
+        reason: expect.stringMatching(/^coverageExceedsPlan/),
+      }),
+    );
+    expect(await placesOf()).toEqual([C2]);
 
     const regionOnly = await edit({ coverage: [R] });
     expect(regionOnly.error).toBeNull();
@@ -1204,7 +1216,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect(refusal["refusals"]).toContainEqual(
       expect.objectContaining({ field: "coverage", reason: "cityRequired" }),
     );
-    expect(await placesOf()).toEqual([C2, C1]);
+    expect(await placesOf()).toEqual([C2]);
 
     const contact = { messages: true, phone: { value: "+251911223344", show: true } };
     const contacted = await edit({ contact_pref: contact });

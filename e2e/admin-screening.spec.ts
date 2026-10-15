@@ -1366,7 +1366,7 @@ test.describe("ADMIN SCREENING", () => {
       if (error || !data) throw new Error(`[e2e:sc] reading the listing failed: ${error?.message}`);
       return data as { title: string; status: string };
     };
-    const ad = await seedWaiting();
+    const ad = await seedWaiting({ priced: true });
     const corrected = `Corrected e2e-screen-${RUN}-${rand()}`;
     const { secret } = await useJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
