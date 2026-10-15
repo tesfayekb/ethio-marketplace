@@ -611,7 +611,7 @@ test.describe("D189 deactivated staff", () => {
     const scratch = await createUser({ confirmed: true });
     await grantRole(scratch.id, "admin");
     const admin = adminClient();
-    const pair = { p_user_id: scratch.id, p_resource: "users", p_action: "view" };
+    const pair = { p_user_id: scratch.id, p_resource: "profiles", p_action: "view" };
 
     const before = await admin.rpc("has_permission", pair);
     expect(before.error, "AU-14: has_permission could not be read").toBeNull();

@@ -53,9 +53,14 @@ export function useAuth() {
         .maybeSingle();
       if (stale()) return;
       if (data?.account_status === "deactivated") {
+        // INC-650 — the sign-out goes FIRST: the shell navigates to /auth the
+        // moment the user is cleared, and /auth sends anyone who still has a
+        // session back home (routes/auth.tsx, INC-005). SIGNED_OUT clears the
+        // user through this same hook once the session is gone; the fallback
+        // below is for a sign-out that raised no event.
         markDeactivatedSignOut();
-        setState({ user: null, loading: false });
         await authService.signOut();
+        if (!stale()) setState({ user: null, loading: false });
         return;
       }
       setState({
