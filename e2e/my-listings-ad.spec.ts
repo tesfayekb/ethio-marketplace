@@ -851,4 +851,48 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       timeout: 15000,
     });
   });
+
+  test("MLA-12 the ad's actions are one bar under the title, its main next step filled (D181)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const X = await seed(seller, "active");
+    await signInViaSession(page, seller.email, seller.password);
+    await openAd(page, X);
+    const bar = page.getByTestId("my-listing-actions");
+    await expect(bar).toBeVisible({ timeout: 15000 });
+    await expect(bar.getByRole("heading")).toHaveCount(0);
+    const heading = await page.getByRole("heading", { level: 1 }).boundingBox();
+    const barBox = await bar.boundingBox();
+    const status = await page.getByTestId("my-listing-status").boundingBox();
+    if (!heading || !barBox || !status) throw new Error("[e2e:mla] a box is missing");
+    expect(barBox.y).toBeGreaterThan(heading.y);
+    expect(barBox.y).toBeLessThan(status.y);
+
+    const background = (testid: string) =>
+      page.getByTestId(testid).evaluate((node) => getComputedStyle(node).backgroundColor);
+    const sellBackground = await background("my-listing-action-sell");
+    expect(sellBackground).not.toBe(await background("my-listing-action-close"));
+
+    const width = page.viewportSize()?.width ?? 0;
+    const buttons = await actionButtons(page).evaluateAll((nodes) =>
+      nodes.map((node) => {
+        const rect = node.getBoundingClientRect();
+        return { top: Math.round(rect.top), width: rect.width };
+      }),
+    );
+    expect(buttons.length).toBeGreaterThan(0);
+    if (width < 768) {
+      for (const button of buttons) {
+        expect(Math.abs(button.width - barBox.width)).toBeLessThanOrEqual(1);
+      }
+    }
+    if (width >= 1280) {
+      for (const button of buttons) expect(button.top).toBe(buttons[0]!.top);
+    }
+
+    await page.getByTestId("my-listing-action-close").click();
+    await expect(page.getByTestId("my-listing-action-reopen")).toBeVisible({ timeout: 15000 });
+    expect(await background("my-listing-action-reopen")).not.toBe(sellBackground);
+  });
 });

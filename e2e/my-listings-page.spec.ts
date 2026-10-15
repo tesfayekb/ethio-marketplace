@@ -683,10 +683,9 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       `my-listing-${X}-more-close`,
     ]);
     await page.getByTestId(`my-listing-${X}-more-reserve`).click();
-    await expect(page.getByTestId("my-listings-notice")).toHaveText(
-      en["myListings.done.reserve"],
-      { timeout: 15000 },
-    );
+    await expect(page.getByTestId("my-listings-notice")).toHaveText(en["myListings.done.reserve"], {
+      timeout: 15000,
+    });
     await expect(twin(page, X).getByTestId(`my-listing-${X}-reserved`)).toBeVisible({
       timeout: 15000,
     });
@@ -778,9 +777,12 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     await tick(X);
     await tick(Y);
     const bar = page.getByTestId("data-table-selection");
-    await expect(bar.getByTestId("my-listings-bulk-sell")).toHaveText(en["myListings.action.sell"], {
-      timeout: 15000,
-    });
+    await expect(bar.getByTestId("my-listings-bulk-sell")).toHaveText(
+      en["myListings.action.sell"],
+      {
+        timeout: 15000,
+      },
+    );
     await expect(bar.getByTestId("my-listings-bulk-close")).toBeVisible();
     await expect(bar.getByTestId("my-listings-bulk-delete")).toBeVisible();
     await expect(bar.getByTestId("my-listings-bulk-renew")).toHaveCount(0);
