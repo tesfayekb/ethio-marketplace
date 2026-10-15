@@ -26,6 +26,29 @@ import type { AdminListingDetail } from "./use-admin-listing";
  */
 export const EDIT_REASONS = ["misleading", "contact_in_text", "rules", "other"] as const;
 
+/**
+ * Bundle 16 turn R2 (D172) — the fields an edit reads from the ad: the admin's
+ * detail and the seller's own ad alike (the seller's form is this form, with its
+ * photos box and without a reason). `videoUrl` is the seller's own box; an
+ * admin's edit never sends it.
+ */
+export type EditableListing = Pick<
+  AdminListingDetail["listing"],
+  | "categoryId"
+  | "attributes"
+  | "title"
+  | "description"
+  | "priceMode"
+  | "priceAmount"
+  | "priceCurrency"
+  | "pricePeriod"
+  | "priceBp"
+  | "priceNegotiable"
+  | "priceUnit"
+  | "priceUnitText"
+  | "countryCode"
+> & { videoUrl?: string | null };
+
 export interface EditValues {
   /** Turn L4b — the leaf; null only for a listing that has none (never past a draft). */
   categoryId: string | null;
@@ -34,6 +57,8 @@ export interface EditValues {
   title: string;
   description: string;
   price: PricingValues;
+  /** Turn R2 — the video link, beside the photos (the seller's box only). */
+  videoUrl: string;
 }
 
 /**
@@ -65,10 +90,7 @@ const PRICE_KEYS = [
  * price that has none (a free or contact price), so a switch to a fixed price
  * opens on the listing's own market money, never on the admin's.
  */
-export function valuesOf(
-  listing: AdminListingDetail["listing"],
-  currency: string | null,
-): EditValues {
+export function valuesOf(listing: EditableListing, currency: string | null): EditValues {
   return {
     categoryId: listing.categoryId,
     attributes: listing.attributes,
@@ -83,6 +105,7 @@ export function valuesOf(
       priceNegotiable: listing.priceNegotiable,
       posterExpiresAt: "",
     },
+    videoUrl: listing.videoUrl ?? "",
   };
 }
 
@@ -134,7 +157,7 @@ export function sameAnswers(a: Record<string, unknown>, b: Record<string, unknow
  * edit.
  */
 export function editChanges(
-  listing: AdminListingDetail["listing"],
+  listing: EditableListing,
   values: EditValues,
   specsEdited = false,
 ): Record<string, unknown> | null {
@@ -150,6 +173,9 @@ export function editChanges(
   const before = priceSent(valuesOf(listing, null).price);
   const after = priceSent(values.price);
   if (PRICE_KEYS.some((key) => before[key] !== after[key])) Object.assign(out, after);
+  // Turn R2 — the seller's video link travels when it changed (an empty box removes it).
+  const video = values.videoUrl.trim();
+  if (video !== (listing.videoUrl ?? "")) out["video_url"] = video === "" ? null : video;
   return Object.keys(out).length === 0 ? null : out;
 }
 

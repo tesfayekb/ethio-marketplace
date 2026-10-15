@@ -174,3 +174,27 @@ describe("an admin's edit (turn L4a)", () => {
     });
   });
 });
+
+describe("the seller's edit (bundle 16 turn R2)", () => {
+  it("LE-7 the video link travels when it changed; emptied, it is removed; the admin's edit never sends it", () => {
+    // The admin's detail carries no video link: the box opens empty and sends nothing.
+    const admin = valuesOf(listing(), null);
+    expect(admin.videoUrl).toBe("");
+    expect(editChanges(listing(), admin)).toBeNull();
+    // The seller's ad with a link.
+    const own = { ...listing(), videoUrl: "https://youtu.be/abc" };
+    const values = valuesOf(own, null);
+    expect(values.videoUrl).toBe("https://youtu.be/abc");
+    expect(editChanges(own, values)).toBeNull();
+    expect(editChanges(own, { ...values, videoUrl: "  https://youtu.be/abc " })).toBeNull();
+    expect(editChanges(own, { ...values, videoUrl: "https://youtu.be/xyz" })).toEqual({
+      video_url: "https://youtu.be/xyz",
+    });
+    expect(editChanges(own, { ...values, videoUrl: "  " })).toEqual({ video_url: null });
+    // A first link on an ad that had none.
+    const none = { ...listing(), videoUrl: null };
+    expect(
+      editChanges(none, { ...valuesOf(none, null), videoUrl: "https://youtu.be/new" }),
+    ).toEqual({ video_url: "https://youtu.be/new" });
+  });
+});

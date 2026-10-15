@@ -40,6 +40,7 @@ import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
+import { ListingSettings } from "./listing-settings";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
 import {
@@ -78,6 +79,10 @@ import {
  *
  * Turn L3 (D139) — Open, first in every row's three-dots, and the title open
  * the listing's page (/admin/listings/<id>). Edit comes with turn L4.
+ *
+ * Bundle 16 turn R2 (D174 3, D175 2) — Settings in the header (`listings-settings`,
+ * listings:enforce): whether sellers may renew an expired ad and the days a
+ * renewal gives (`ListingSettings`); its saved line is the page's notice.
  */
 
 type Move = { kind: MoveKind; ids: string[] } | null;
@@ -513,7 +518,15 @@ export function AdminListingsPage() {
       {(guard) => (
         <div data-testid="admin-section-listings" className="min-w-0 space-y-4">
           <div className="min-w-0 space-y-1">
-            <TableActions testid="listings-header" title={t(section.titleKey)} />
+            <TableActions testid="listings-header" title={t(section.titleKey)}>
+              {/* Bundle 16 turn R2 (D174 3, D175 2) — the renew settings, for listings:enforce. */}
+              {mayEnforce ? (
+                <ListingSettings
+                  guard={guard}
+                  onSaved={(text) => setNotice({ text, tone: "ok" })}
+                />
+              ) : null}
+            </TableActions>
             <p className="text-sm text-muted-foreground">{t(section.bodyKey)}</p>
           </div>
 

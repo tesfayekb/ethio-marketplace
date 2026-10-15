@@ -57,8 +57,11 @@ import {
   bulkLabelKey,
   bulkTargets,
   confirmKeys,
+  copyable,
+  copyMyListing,
   DELETED_KEY,
   doneKey,
+  EDITABLE_STATUSES,
   rowActionsFor,
   runListAction,
   soldWordsOf,
@@ -97,12 +100,14 @@ import { stateLine } from "./state-line";
  * - the toolbar (`TableToolbar`): the search by title, Filters (a top category with
  *   everything under it; Reserved; Price reduced) with their chips, and Columns
  *   (the title locked). The door filters, and the six counts follow the filters;
- * - each row's actions (`RowActions`): Edit on a draft (the posting form; a
- *   published ad's Edit comes with the edit boxes, D172), a red Delete on every ad
- *   that can be deleted, and the three-dots with Open and what this ad offers —
- *   the same rule as its own page (`rowActionsFor` / `actionsFor`). Mark as sold
- *   and Delete ask first. Each action reads the ad again before it runs
- *   (`runListAction`), and the list is read again whatever the answer (F4);
+ * - each row's actions (`RowActions`): Edit — on a draft the posting form, on a
+ *   live, closed or refused ad its own page with the edit boxes open (turn R2,
+ *   D172: `/my-listings/<id>?edit=1`) — a red Delete on every ad that can be
+ *   deleted, and the three-dots with Open, what this ad offers — the same rule as
+ *   its own page (`rowActionsFor` / `actionsFor`) — and, last, Post a similar ad
+ *   (D182 4; `-more-copy`: a new draft with the ad's details, opened in the posting
+ *   form). Mark as sold and Delete ask first. Each action reads the ad again before
+ *   it runs (`runListAction`), and the list is read again whatever the answer (F4);
  * - tick-boxes from tablet width up (D182 2) with Mark as sold, No longer
  *   available, Renew and Delete for the ticked ads that offer each, asking first
  *   with their count; a phone acts one ad at a time;
@@ -378,6 +383,25 @@ export function MyListingsPage() {
     );
   };
 
+  /** D182 4 — Post a similar ad: a new draft with this ad's details, opened in the posting form. */
+  const copyRow = async (row: MyListingRow) => {
+    if (busy) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const outcome = await copyMyListing(row.id);
+      if (outcome.ok) {
+        await refreshAfterWrite(queryClient, { queryKey: authKey("my-listings") });
+        void navigate({ to: "/post/$listingId", params: { listingId: outcome.listingId } });
+        return;
+      }
+      setNotice({ text: t(outcome.key), tone: "error" });
+    } catch {
+      setNotice({ text: t("myListings.error.failed"), tone: "error" });
+    }
+    setBusy(false);
+  };
+
   /** Mark as sold and Delete ask first, and every action on ticked ads asks with their count. */
   const take = (action: ListingAction, targets: MyListingRow[], bulk: boolean) => {
     if (bulk || ASKS_FIRST.has(action)) setAsking({ action, rows: targets, bulk });
@@ -398,7 +422,18 @@ export function MyListingsPage() {
                 onSelect: () =>
                   void navigate({ to: "/post/$listingId", params: { listingId: row.id } }),
               }
-            : undefined
+            : EDITABLE_STATUSES.has(row.status)
+              ? {
+                  // Turn R2 (D172) — the ad's own page with its edit boxes open.
+                  label: t("myListings.edit"),
+                  onSelect: () =>
+                    void navigate({
+                      to: "/my-listings/$listingId",
+                      params: { listingId: row.id },
+                      search: { edit: 1 },
+                    }),
+                }
+              : undefined
         }
         remove={
           offer.includes("delete")
@@ -430,6 +465,16 @@ export function MyListingsPage() {
                     disabled: busy,
                     onSelect: () => take(action, [row], false),
                   })),
+                ...(copyable(row.status)
+                  ? [
+                      {
+                        key: "copy",
+                        label: t("myListings.action.copy"),
+                        disabled: busy,
+                        onSelect: () => void copyRow(row),
+                      },
+                    ]
+                  : []),
               ]
         }
       />

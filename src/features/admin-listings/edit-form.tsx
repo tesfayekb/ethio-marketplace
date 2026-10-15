@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { FormField, FormSection } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
@@ -24,11 +24,11 @@ import {
   editProblem,
   FORM_FIELDS,
   valuesOf,
+  type EditableListing,
   type EditValues,
 } from "./edit-listing";
 import { GROUP_LABEL, groupOf } from "./history";
 import { ReasonNote } from "./reason-note";
-import type { AdminListingDetail } from "./use-admin-listing";
 
 /**
  * Bundle 11, the Listings console, turns L4a and L4b (D136, D140, DEC-173) — AN
@@ -68,6 +68,13 @@ import type { AdminListingDetail } from "./use-admin-listing";
  * `listing-edit-note`, other refusals `listing-edit-other-refusals`, the problem
  * line `listing-edit-problem`; its bar `listing-edit-save-box-actions` with Save
  * `listing-edit-save` and Cancel `listing-edit-cancel`).
+ *
+ * Bundle 16 turn R2 (D172, D177) — THE SELLER'S EDIT is this form (`variant
+ * "seller"`): the same boxes, a Photos box first (`listing-edit-photos-box`, the
+ * page's own photo tools with the video link beside them — `photos`), and no
+ * reason: Save sends the changed fields to `edit_my_listing`, which decides what
+ * applies at once (amounts and picked answers) and what goes to review (words).
+ * The save box says so (`myListings.editBox.hint`).
  */
 
 type Load =
@@ -76,7 +83,15 @@ type Load =
   | { state: "failed" };
 
 export interface ListingEditFormProps {
-  listing: AdminListingDetail["listing"];
+  listing: EditableListing;
+  /** Turn R2 — "seller": no reason, the seller's words on the save box. */
+  variant?: "admin" | "seller";
+  /** Turn R2 — the seller's Photos box: the page's photo tools, given the video link the form holds. */
+  photos?: (video: {
+    value: string;
+    refusal: Refusal | null;
+    onChange: (value: string) => void;
+  }) => ReactNode;
   busy: boolean;
   /** The door's refusals of the last save. */
   refusals: Refusal[];
@@ -91,6 +106,8 @@ const sameKeys = (a: string[], b: string[]) =>
 
 export function ListingEditForm({
   listing: current,
+  variant = "admin",
+  photos,
   busy,
   refusals,
   error,
@@ -227,11 +244,27 @@ export function ListingEditForm({
   const titleRefusal = refusalFor(refusals, "title");
   const descriptionRefusal = refusalFor(refusals, "description");
   const categoryRefusal = refusalFor(refusals, "category_id");
-  const drawnHere = new Set([...FORM_FIELDS, ...specFields, ...priceFields]);
+  const videoRefusal = refusalFor(refusals, "video_url");
+  const seller = variant === "seller";
+  const drawnHere = new Set([
+    ...FORM_FIELDS,
+    ...specFields,
+    ...priceFields,
+    ...(photos === undefined ? [] : ["video_url"]),
+  ]);
   const others = refusals.filter((entry) => !drawnHere.has(entry.field));
 
   const save = () => {
     const changes = editChanges(listing, values, specsEdited);
+    if (seller) {
+      // Turn R2 — the seller gives no reason: only "nothing changed" holds Save back.
+      if (changes === null) {
+        setProblem("myListings.editBox.nothing");
+        return;
+      }
+      onSave(changes, "", "");
+      return;
+    }
     const missing = editProblem(changes, reason, note);
     if (missing !== null || changes === null) {
       setProblem(missing ?? "admin.listings.edit.nothing");
@@ -260,6 +293,23 @@ export function ListingEditForm({
   // a bar that stays at the bottom on a phone. The category is shown, never changed.
   return (
     <div data-testid="listing-edit-form" className="min-w-0 space-y-4">
+      {photos !== undefined ? (
+        <FormSection
+          testid="listing-edit-photos-box"
+          title={t("post.step.photos")}
+          description={t("myListings.editBox.photosHint")}
+        >
+          {photos({
+            value: values.videoUrl,
+            refusal: videoRefusal,
+            onChange: (videoUrl) => {
+              setProblem(null);
+              setValues((current) => ({ ...current, videoUrl }));
+            },
+          })}
+        </FormSection>
+      ) : null}
+
       <FormSection testid="listing-edit-text" title={t("post.step.details")}>
         <FormField
           label={t("post.details.titleLabel")}
@@ -390,8 +440,8 @@ export function ListingEditForm({
 
       <FormSection
         testid="listing-edit-save-box"
-        title={t("admin.listings.edit.save")}
-        description={t("admin.listings.edit.hint")}
+        title={t(seller ? "myListings.editBox.save" : "admin.listings.edit.save")}
+        description={t(seller ? "myListings.editBox.hint" : "admin.listings.edit.hint")}
         actions={
           <>
             <Button
@@ -402,7 +452,7 @@ export function ListingEditForm({
               disabled={busy}
               onClick={save}
             >
-              {t("admin.listings.edit.save")}
+              {t(seller ? "myListings.editBox.save" : "admin.listings.edit.save")}
             </Button>
             <Button
               type="button"
@@ -418,20 +468,22 @@ export function ListingEditForm({
           </>
         }
       >
-        <ReasonNote
-          testid="listing-edit"
-          reasons={EDIT_REASONS}
-          reason={reason}
-          note={note}
-          onReason={(value) => {
-            setReason(value);
-            setProblem(null);
-          }}
-          onNote={(value) => {
-            setNote(value);
-            setProblem(null);
-          }}
-        />
+        {seller ? null : (
+          <ReasonNote
+            testid="listing-edit"
+            reasons={EDIT_REASONS}
+            reason={reason}
+            note={note}
+            onReason={(value) => {
+              setReason(value);
+              setProblem(null);
+            }}
+            onNote={(value) => {
+              setNote(value);
+              setProblem(null);
+            }}
+          />
+        )}
 
         {others.length > 0 ? (
           <ul
