@@ -1091,7 +1091,9 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
   }) => {
     const A = await scratchSeller();
     const second = await seedScratchChain("ET");
-    try {
+    // Reaped in afterEach after the listings, so no place row still points at it.
+    regions.push(second.region.slug as string);
+    {
       const X = await seed(A, "active");
       const C1 = await adminClient()
         .from("locations")
@@ -1172,8 +1174,6 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       const truth = await listingTruth(X);
       expect(truth["status"]).toBe("screening");
       expect(truth["directions"]).toBe("Behind the church");
-    } finally {
-      await destroyLocation(second.region.slug as string);
     }
   });
 });
