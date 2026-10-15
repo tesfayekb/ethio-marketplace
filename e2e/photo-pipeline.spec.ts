@@ -250,14 +250,14 @@ test.describe("PHOTO PIPELINE", () => {
     const { user, token } = await seller(page);
     const listingId = await draft(page, token, user.id);
 
-    // The fixture marker: 13 px wide, which the deterministic fake refuses.
+    // A cover made 11 px wide, which the deterministic fake refuses as nudity (D183).
     const answer = await uploadPhoto(page, {
       listingId,
       token,
-      cover: { name: "marker-13px.jpg" },
+      cover: { made: [11, 11] },
     });
     expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
-    expect(reasons(answer.payload)).toEqual([{ field: "cover", reason: "not_a_photo" }]);
+    expect(reasons(answer.payload)).toEqual([{ field: "cover", reason: "nudity" }]);
     expect(await photoRowsOf(listingId), "PP-5: nothing may be registered").toHaveLength(0);
     expect(await objectsUnder(user.id, listingId), "PP-5: nothing may be stored").toEqual([]);
   });
@@ -1500,14 +1500,14 @@ test.describe("PHOTO PIPELINE", () => {
     expect(reasons(notAnId.payload)).toEqual([{ field: "replaces", reason: "badValue" }]);
     await unchanged("not an id");
 
-    // The AI screen refuses the edited picture (fake mode's 13-px marker).
+    // The AI screen refuses the edited picture (fake mode's 11-px width: nudity, D183).
     const refused = await uploadPhoto(page, {
       listingId,
       token,
-      cover: { name: "marker-13px.jpg" },
+      cover: { made: [11, 11] },
       replaces: photo!.id,
     });
-    expect(reasons(refused.payload)).toEqual([{ field: "cover", reason: "not_a_photo" }]);
+    expect(reasons(refused.payload)).toEqual([{ field: "cover", reason: "nudity" }]);
     await unchanged("refused by the screen");
   });
 
@@ -1668,10 +1668,28 @@ test.describe("PHOTO PIPELINE", () => {
     expect(warned.status, JSON.stringify(warned.payload)).toBe(200);
     expect(warned.payload["ok"], JSON.stringify(warned.payload)).toBe(true);
     expect(warned.payload["warnings"]).toEqual(["not_relevant"]);
+    expect(warned.payload["unscreened"]).toBe(true);
+    expect(warned.payload["review"]).toEqual({ label: "not_right" });
     const plain = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
     expect(plain.payload["ok"], JSON.stringify(plain.payload)).toBe(true);
     expect(plain.payload["warnings"]).toEqual([]);
+    expect(plain.payload["unscreened"]).toBe(false);
+    expect("review" in plain.payload, "PP-29: a plain upload carried a review").toBe(false);
     const [first, second] = await photoRowsOf(listingId);
+
+    const { data: reviews, error: reviewError } = await adminClient()
+      .from("listing_photo_reviews")
+      .select("photo_id, label, code")
+      .eq("listing_id", listingId);
+    if (reviewError) throw new Error(`[e2e:pp] reading the reviews failed: ${reviewError.message}`);
+    expect(reviews).toEqual([{ photo_id: first!.id, label: "not_right", code: null }]);
+    const { data: hidden, error: hiddenError } = await adminClient()
+      .from("listing_photos")
+      .select("unscreened")
+      .eq("id", first!.id)
+      .single();
+    if (hiddenError) throw new Error(`[e2e:pp] reading the photo failed: ${hiddenError.message}`);
+    expect(hidden?.unscreened, "PP-29: the warned photo is shown").toBe(true);
 
     const { data: warnings, error } = await adminClient()
       .from("listing_photo_warnings")
@@ -1693,7 +1711,11 @@ test.describe("PHOTO PIPELINE", () => {
       process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
       { auth: { persistSession: false } },
     );
-    for (const table of ["listing_photo_warnings", "listing_photo_changes"] as const) {
+    for (const table of [
+      "listing_photo_warnings",
+      "listing_photo_changes",
+      "listing_photo_reviews",
+    ] as const) {
       const read = await visitor.from(table).select("*").limit(1);
       expect(read.error, `PP-29: a visitor read ${table}`).not.toBeNull();
     }
@@ -1865,5 +1887,95 @@ test.describe("PHOTO PIPELINE", () => {
       (await photoRowsOf(listingId)).map((row) => row.id),
       "PP-31: the route stored or moved a photo",
     ).toEqual([first!.id, second!.id]);
+  });
+
+  test("PP-32 a failed or unsure photo is kept hidden with its review; nudity is refused and stored nowhere (D178, D183)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const listingId = await draft(page, token, user.id);
+
+    const failed = await uploadPhoto(page, {
+      listingId,
+      token,
+      cover: { name: "marker-13px.jpg" },
+    });
+    expect(failed.status, JSON.stringify(failed.payload)).toBe(200);
+    expect(failed.payload["ok"], JSON.stringify(failed.payload)).toBe(true);
+    expect(failed.payload["unscreened"]).toBe(true);
+    expect(failed.payload["review"]).toEqual({ label: "fail", code: "not_a_photo" });
+
+    const unsure = await uploadPhoto(page, { listingId, token, cover: { made: [19, 19] } });
+    expect(unsure.payload["ok"], JSON.stringify(unsure.payload)).toBe(true);
+    expect(unsure.payload["unscreened"]).toBe(true);
+    expect(unsure.payload["review"]).toEqual({ label: "unsure" });
+
+    // Fake mode's 11-px width: nudity, refused and never stored (D183).
+    const nude = await uploadPhoto(page, { listingId, token, cover: { made: [11, 11] } });
+    expect(reasons(nude.payload)).toEqual([{ field: "cover", reason: "nudity" }]);
+
+    const rows = await photoRowsOf(listingId);
+    expect(rows, "PP-32: the stored photos").toHaveLength(2);
+    const { data: hidden, error: hiddenError } = await adminClient()
+      .from("listing_photos")
+      .select("id, unscreened")
+      .eq("listing_id", listingId);
+    if (hiddenError) throw new Error(`[e2e:pp] reading the photos failed: ${hiddenError.message}`);
+    expect(
+      (hidden ?? []).map((row) => row.unscreened),
+      "PP-32: a judged photo is shown",
+    ).toEqual([true, true]);
+
+    const { data: reviews, error } = await adminClient()
+      .from("listing_photo_reviews")
+      .select("label, code, evidence, decided_at")
+      .eq("listing_id", listingId)
+      .order("created_at");
+    if (error) throw new Error(`[e2e:pp] reading the reviews failed: ${error.message}`);
+    expect(
+      (reviews ?? []).map((row) => [row.label, row.code, row.evidence, row.decided_at]),
+    ).toEqual([
+      ["fail", "not_a_photo", "fake mode: fixture marker width", null],
+      ["unsure", null, "fake mode: fixture marker width", null],
+    ]);
+
+    const clientAs = (bearer: string) =>
+      createClient(process.env["E2E_SUPABASE_URL"]!, process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!, {
+        auth: { persistSession: false },
+        global: { headers: { Authorization: `Bearer ${bearer}` } },
+      });
+    const own = await clientAs(token!)
+      .from("listing_photo_reviews")
+      .select("photo_id")
+      .eq("listing_id", listingId);
+    expect(own.error, JSON.stringify(own.error)).toBeNull();
+    expect(own.data, "PP-32: the seller reads his own reviews").toHaveLength(2);
+
+    const other = await leaseUser();
+    sellers.push(other.id);
+    const signedIn = await createClient(
+      process.env["E2E_SUPABASE_URL"]!,
+      process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
+      { auth: { persistSession: false } },
+    ).auth.signInWithPassword({ email: other.email, password: other.password });
+    if (signedIn.error || !signedIn.data.session) {
+      throw new Error(`[e2e:pp] signing in seller B failed: ${signedIn.error?.message}`);
+    }
+    const theirs = await clientAs(signedIn.data.session.access_token)
+      .from("listing_photo_reviews")
+      .select("photo_id")
+      .eq("listing_id", listingId);
+    expect(theirs.error, JSON.stringify(theirs.error)).toBeNull();
+    expect(theirs.data, "PP-32: another seller read the reviews").toHaveLength(0);
+
+    const ids = rows.map((row) => row.id);
+    const keys = await objectsUnder(user.id, listingId);
+    expect(keys.length, "PP-32: the stored photos have objects").toBeGreaterThan(0);
+    for (const key of keys) {
+      expect(
+        ids.some((id) => key.includes(id)),
+        `PP-32: ${key} names no stored photo`,
+      ).toBe(true);
+    }
   });
 });

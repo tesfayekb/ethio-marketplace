@@ -40,6 +40,8 @@ export const POOL_EXEMPT_TABLES = {
   location_import_revisions: "created_by is attribution on import history",
   listing_photo_changes:
     "reviewed_by is attribution on a review; the account's own changes cascade with its listings (bundle 13 turn 10)",
+  listing_photo_reviews:
+    "decided_by is attribution on a photo's review; the account's own reviews cascade with its photos and listings (bundle 16 turn 4a)",
   listing_policy: "updated_by is attribution on the global renew setting row (bundle 16)",
   screening_verdicts: "reviewer is attribution; the account's own verdicts cascade with listings",
   ui_translation_revisions: "changed_by is attribution on revision history",

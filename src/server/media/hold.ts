@@ -1,5 +1,7 @@
 import type { AiGate } from "@/server/ai/meter";
 
+import type { PolicyVerdict } from "./policy";
+
 /**
  * D158 item 3 (bundle 13 turn 6) — WHAT AN UPLOAD DOES WITH PHOTO SCREENING'S SWITCH.
  *
@@ -24,8 +26,14 @@ import type { AiGate } from "@/server/ai/meter";
  * Either is "off by budget", and an upload then does what it does when staff
  * switch screening off: `hold` on a draft or a refused ad, `paused` on a live one,
  * with no further spend.
+ *
+ * Bundle 16 turn 4a (D178, D177) — `paused` is retired: with screening off, by staff
+ * or by budget, a photo on ANY ad is held — stored hidden, with a `held` review
+ * that staff now see and decide in Admin (listing_photo_reviews), so a live ad's
+ * photo is put in front of staff too. On a draft or a refused ad it is still
+ * approved with the ad.
  */
-export type PhotoScreenPlan = "screen" | "hold" | "paused" | "unavailable";
+export type PhotoScreenPlan = "screen" | "hold" | "unavailable";
 
 /**
  * The statuses whose ad may still gain, lose or change a photo: the upload route
@@ -43,13 +51,10 @@ export const PHOTO_OPEN_STATUSES: ReadonlySet<string> = new Set([
   "expired",
 ]);
 
-/** The statuses whose next step is the screening queue (publish_listing: draft and rejected). */
-export const HOLD_STATUSES: ReadonlySet<string> = new Set(["draft", "rejected"]);
-
-export function photoScreenPlan(gate: AiGate, status: string): PhotoScreenPlan {
+export function photoScreenPlan(gate: AiGate): PhotoScreenPlan {
   if (gate.on) return "screen";
   if (gate.reason === "unavailable") return "unavailable";
-  return HOLD_STATUSES.has(status) ? "hold" : "paused";
+  return "hold";
 }
 
 /**
@@ -58,4 +63,72 @@ export function photoScreenPlan(gate: AiGate, status: string): PhotoScreenPlan {
  */
 export function withSiteCap(gate: AiGate, siteAllowed: boolean): AiGate {
   return gate.on && !siteAllowed ? { on: false, reason: "budget" } : gate;
+}
+
+/**
+ * Bundle 16 turn 4a (D178, D183) — the fail codes a person may still allow: a photo
+ * failed with one of these is STORED HIDDEN for staff. Nudity is refused at upload
+ * and never stored (D183); a smaller copy showing another picture is refused too
+ * (the stored sizes would disagree). The database holds the same list
+ * (listing_photo_review_label, listing_photo_reviews_code_check).
+ */
+export const STORED_FAIL_CODES: ReadonlySet<string> = new Set([
+  "violence",
+  "weapon",
+  "drugs",
+  "hate_symbol",
+  "personal_document",
+  "contact_in_image",
+  "stock_watermark",
+  "not_a_photo",
+]);
+
+/**
+ * Why a stored photo is hidden for a person (`listing_photo_reviews.label`, less
+ * `held`); a type, not an interface, so it travels as the door's JSON argument.
+ */
+export type PhotoReview = {
+  label: "unsure" | "not_right" | "fail";
+  code?: string;
+  evidence?: string;
+};
+
+/**
+ * What the upload does with the screen's verdict (D178): `show` a clean pass;
+ * `review` a photo the screen is unsure about, one that may not show what the ad
+ * sells, or one it failed with a code a person may allow — stored hidden, with
+ * its review; `refuse` nudity, a mismatched copy and the provider's own failure.
+ */
+export type PhotoOutcome =
+  | { kind: "show" }
+  | { kind: "review"; review: PhotoReview }
+  | { kind: "refuse" };
+
+export function photoOutcome(verdict: PolicyVerdict): PhotoOutcome {
+  if (verdict.ok) {
+    const warnings = verdict.warnings ?? [];
+    if (warnings.includes("unsure")) {
+      return {
+        kind: "review",
+        review: {
+          label: "unsure",
+          ...(verdict.evidence === undefined ? {} : { evidence: verdict.evidence }),
+        },
+      };
+    }
+    if (warnings.includes("not_relevant"))
+      return { kind: "review", review: { label: "not_right" } };
+    return { kind: "show" };
+  }
+  if (STORED_FAIL_CODES.has(verdict.code)) {
+    return {
+      kind: "review",
+      review: {
+        label: "fail",
+        code: verdict.code,
+        ...(verdict.evidence === "" ? {} : { evidence: verdict.evidence }),
+      },
+    };
+  }
+  return { kind: "refuse" };
 }

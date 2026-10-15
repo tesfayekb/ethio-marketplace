@@ -69,6 +69,8 @@ listing_photo_warnings | SELECT to authenticated only, bundle 13 turn 10 (D154 B
 listing_photo_changes | SELECT to authenticated only, bundle 13 turn 10 (D154 B5): the photo changes sellers make on live ads; row security lets listings:review read them; no write grant; anon has none
 remove_listing_photo | restated grant (not a new surface), bundle 13 turn 10 (D154 B5): the seller's Remove; owner-only on auth.uid(), the photo must be on the caller's listing; on a live ad it lists the removal for staff
 admin_review_photo_change | admin door, bundle 13 turn 10 (D154 B5): listings:review checked inside; marks one photo change reviewed and writes an audit row
+listing_photo_reviews | SELECT to authenticated only, bundle 16 turn 4a (D178): why a stored photo is hidden for a person; row security lets the seller read his own photos' rows and listings:review read every row; no write grant; anon has none
+admin_allow_listing_photo | admin door, bundle 16 turn 4a (D178): listings:review with the second factor checked inside; never the caller's own ad; shows one photo whose review is open and writes an audit row
 admin_ai_spend_days | admin door, bundle 13 turn 14: services:view checked inside; reads each AI feature's calls and cost per UTC day for the last 1 to 92 days, scratch e2e- features left out; read only
 listing_policy | Bundle 16 turn 1 (D174 3, D175 2): signed-in users read renew_allowed and renew_days only (column grant; RLS read policy); no browser role writes
 set_listing_reserved | Bundle 16 turn 1 (D173 1): owner-only door on auth.uid(); a live ad only; rate-gated revise; one revision

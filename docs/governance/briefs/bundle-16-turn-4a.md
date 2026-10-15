@@ -1,14 +1,14 @@
-# Bundle 16 — turn 4a: the photo review, server side: brief, version 1 (saved unchanged, 2026-10-15)
+# Bundle 16 — turn 4a: the photo review, server side: brief, version 2 (saved unchanged, 2026-10-15; replaces version 1)
 
 ```text
 BUNDLE 16 — TURN 4a (2026-10-15). ONE TURN: ONE MIGRATION, THE UPLOAD ROUTE, ONE TEST FILE'S CHANGES AND TWO NEW TESTS WRITTEN BY YOU, DOCS. No package change.
-Base: dev cc64a2db (turn S2). The census below proves every file and the database by content. This file is public: it is written as build instructions.
+Base: dev bb8de49d (turn S2, the platform's regenerated types, and version 1 of this brief as you saved it). This version replaces version 1 whole: version 1's carrier is not used. The census below proves every file and the database by content. This file is public: it is written as build instructions.
 Tier A: the migration (the photo doors, the approval trigger, the new staff door, the review table) and the upload route. Tier B: the tests. Tier C: the docs, the roadmap and the changelog.
 
 ANSWERS TO THE LAST TURN
-- Turn S2 is verified on dev cc64a2db: the 12 carrier paths equal the supervisor's copy byte for byte; the brief (ef40298f…) is saved; the four fixes (ML-12, ML-13, MLA-14, PW-41) and SU-2 and PR-50 are as described; the migration file was saved by script (sha256 b45e2071…, equal). Stopping before the database tool was right: the operator applied the file on ethio-staging and ethio-prod from GitHub (the M6 precedent). Census (d) below reads S2 on ethio-prod first.
+- Version 1 of this brief: your stop at census (b) was right. After the operator applied turn S2's file on ethio-prod by hand, the platform regenerated src/integrations/supabase/types.ts in its commit 5638eafd (blocked_email_domains, rate_limits_prune_runs, hook_before_user_created, rate_limits_prune) — after version 1's carrier was built on cc64a2db. This version's carrier is built on bb8de49d and keeps those four entries; every hash below is new. Save this version over version 1 (step 0) and start again from the census.
+- Turn S2 is verified on dev cc64a2db: the 12 carrier paths equal the supervisor's copy byte for byte; the brief (ef40298f…) is saved; the four fixes (ML-12, ML-13, MLA-14, PW-41) and SU-2 and PR-50 are as described; the migration file was saved by script (sha256 b45e2071…, equal). The operator applied it on ethio-staging and ethio-prod and switched the sign-up hook on in both; census (d) reads S2 on ethio-prod first.
 - The platform's own change in commit 464d7f31 (@lovable.dev/vite-tanstack-config 2.25.3 → 2.26.5) is recorded as INC-637; package.json and bun.lock are not touched in this turn either.
-- CI: the run on 1dadfbbf was cancelled by the newer push; the run on cc64a2db judges turn S2. SU-2 stays red until the operator switches the sign-up hook on in ethio-staging.
 
 WHY THIS TURN — D178 and D183 (the operator, 2026-10-14 and 2026-10-15)
 - "EACH PHOTO TO HAVE AI REVIEW PASS FAIL ETC, AND MAY BE SOMETHING ELSE LIKE AMBIGUOUS, NOT APPROPRIATE FOR THE CATEGORY ETC LABEL, IF PASS GOES TO LIVE, OTHERS FOR SECONDARY REVIEW … NOW ON EDIT IF A PHOTO CHANGED, THEN NEEDS SAME REVIEW AND PASS PROCESS."
@@ -76,13 +76,13 @@ SC-23 "SC-23 approving an ad shows its held photos only; a failed photo waits fo
 
 After writing them: `node_modules/.bin/prettier --write e2e/photo-pipeline.spec.ts e2e/admin-screening.spec.ts`. No other test is edited.
 
-WHAT THE SUPERVISOR RAN BEFORE WRITING THIS (its own copy, dev cc64a2db with this turn's carrier files)
+WHAT THE SUPERVISOR RAN BEFORE WRITING THIS (its own copy, dev bb8de49d with this turn's carrier files)
 - Clean: typecheck (it covers e2e/), format, lint (0 errors, 33 warnings), 891 unit tests (154 files), the hardcoded-strings guard (0 findings), the build and the bundle budget.
 - The migration on a local PostgreSQL 16 over stand-in tables holding the live definitions: applied cleanly, its proofs passed, with LF and with CRLF line endings. Behaviour: a fail stored hidden with its code and trimmed phrase; held, plain and not_right rows as written; nudity, a shown photo under review, a code on unsure and a non-object review refused, nothing stored; a move to live with no session approved nothing; a person's approval showed only the held photo and marked its review; allow refused without the permission and on one's own ad, then shown, decided and audited, and a second allow refused 'reviewGone'; a replaced or removed photo took its review with it; row security let the seller read his own rows, staff every row, another user none; the backfill gave today's held photo its row. Two tampered copies (the label rule granted to signed-in users; the trigger approving every label) were refused by P3 and P4.
 - `scripts/check-migrations.sh` with this migration as a scratch file: every guard OK, "Migration guard OK".
 - Not run by the supervisor: the browser tests (its sandbox cannot reach ethio-staging). CI on the final commit runs them.
 
-STEP 0 — save this file byte for byte as docs/governance/briefs/bundle-16-turn-4a.md. (roadmap.md line 3 comes from the carrier.)
+STEP 0 — save this file byte for byte as docs/governance/briefs/bundle-16-turn-4a.md, over version 1. (roadmap.md line 3 comes from the carrier.)
 
 HOW TO WORK
 - Order of the turn:
@@ -102,14 +102,14 @@ HOW TO WORK
 - Scope — these files only: the 11 paths of the hash table, the brief, e2e/photo-pipeline.spec.ts, e2e/admin-screening.spec.ts and the one new migration file (the database tool names it). The database: ethio-prod through your tools — SELECT only, except the migration itself. Name any other file in the report's first lines, with its reason. Delete no file. Do not use a patch tool.
 
 THE CENSUS (paste each result)
-- (a) `git status --porcelain` → only `?? docs/governance/briefs/bundle-16-turn-4a.md`, or nothing if the platform has already committed the brief.
+- (a) `git status --porcelain` → only ` M docs/governance/briefs/bundle-16-turn-4a.md` (this version over version 1), or nothing if the platform has already committed it.
 - (b) `sha256sum` of these 11 files → each equal to:
   f43501ae1d2b48a3ee8147e3d9b3dcbe787bf4f2fb682a662194fed87ca60236  docs/_changelog.md
   a19ea0aceebf199f1dd3e59efcd39a78d5a60433060531208fa65d4e99be913e  docs/features/media-pipeline.md
   68b41349ea2a334f61b23ce76c09a82150d55a9feb31d8bd82fdf096bf0fb541  e2e/helpers/pool-reset-map.ts
   0ece532ccb6b19bc2253dda64fc2d9764f3db632a5784462e0f51e5c47e0f85e  roadmap.md
   8bebe6f4fde88630c2767909cf7779bc2f5d5d12ff3e18515fb951ec5ff75851  scripts/public-surface-allowlist.txt
-  b2843fe7d09f35d358722ab1a15cfb9c0c9c25bed921c781325306aa493bda2d  src/integrations/supabase/types.ts
+  6f3fc547de192caf3d52a05535aad1c254ca3c1d3f997032247d778384df163f  src/integrations/supabase/types.ts
   3683f4635680ac1de0754da9856da28c58be48ca58ffcdb7f72f68aa57977d04  src/routes/api/upload/photo.ts
   21b3046e1d7e970667fba4a21774d1a6aedc3ffd7739a220327b7b1297d7c1d8  src/server/media/hold.test.ts
   b13c28018846d4c4113c892d9cdab384934315905e9d551aa1fa332c0a39f54d  src/server/media/hold.ts
@@ -124,7 +124,7 @@ THE CENSUS (paste each result)
   - `select md5(replace(prosrc, chr(13), '')) from pg_proc where oid = 'public.listing_photos_approved_with_ad()'::regprocedure;` → 57a8e5a40056c16d217c67f9f6511a7b;
   - `select to_regclass('public.listing_photo_reviews') is null, to_regprocedure('public.admin_allow_listing_photo(uuid)') is null, to_regprocedure('public.listing_photo_review_label(boolean, jsonb)') is null;` → t | t | t.
 
-THE CARRIER — B16T4A-TURN-CARRIER-2026-10-15.md (25,130 bytes; sha256 3e105e06e03aa68ecd85c76627094da108427a5b792a11eec383a188d1910e84; 39 sections)
+THE CARRIER — B16T4A-TURN-CARRIER-2026-10-15.md (25,130 bytes; sha256 4e0bbadfefbe3bb5822484adb2bc53d06482029d71f5ca64b6e103f6f1e0ce60; 39 sections)
 - Its first line starts "B16T4A TURN CARRIER". Each section starts with a line `===== <path> ===== <mode>`. No blank line separates the sections.
 - Modes:
   - REPLACE: the section is the whole file;
@@ -141,7 +141,7 @@ THE HASHES — `sha256sum` each of the 11 paths below; each must equal the table
   888c303aafb620d91065a1d55c13e4875cd1706c4113e10babbb1d33bf7ea433  e2e/helpers/pool-reset-map.ts
   9a7e6aa23bf87703ff5bfe31607eecdb2d8a1c5ad4d194f85b23c31a9ece19ab  roadmap.md
   e1a9f85390f4e6c7dbef5ffad7ba29d748d7037c3c2968c83ce9477411e64c56  scripts/public-surface-allowlist.txt
-  4bd5190ea0e7069cfa39cc6e1adfc1c3fd7eb6a925bc9a8fd6f6ec487c94e6dd  src/integrations/supabase/types.ts
+  f23981c832575dc426031b9e54494decec9ae03e85a5d3cfbd19cf159abe545e  src/integrations/supabase/types.ts
   bd086efd327bad52695dc977a0fedd79a6cec557e6a9423b689850db0adb4761  src/routes/api/upload/photo.ts
   df6665f8b53e1e2c8564c0423139785f77de8aef5aa00a5b1685f053afd30c12  src/server/media/hold.test.ts
   d9197d20eed3d460f816812740e4ce27126e52b69caa85b9ce83a20d0bebd420  src/server/media/hold.ts

@@ -1205,6 +1205,57 @@ export type Database = {
           },
         ]
       }
+      listing_photo_reviews: {
+        Row: {
+          code: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision: string | null
+          evidence: string | null
+          label: string
+          listing_id: string
+          photo_id: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: string | null
+          evidence?: string | null
+          label: string
+          listing_id: string
+          photo_id: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: string | null
+          evidence?: string | null
+          label?: string
+          listing_id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_photo_reviews_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_photo_reviews_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: true
+            referencedRelation: "listing_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_photo_warnings: {
         Row: {
           codes: string[]
@@ -2523,6 +2574,7 @@ export type Database = {
       }
       admin_ai_features: { Args: never; Returns: Json }
       admin_ai_spend_days: { Args: { p_days?: number }; Returns: Json }
+      admin_allow_listing_photo: { Args: { p_photo_id: string }; Returns: Json }
       admin_approve_all_entity_translations: {
         Args: { p_lang: string }
         Returns: Json
@@ -3906,6 +3958,10 @@ export type Database = {
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
+      listing_photo_review_label: {
+        Args: { p_review: Json; p_unscreened: boolean }
+        Returns: string
+      }
       listing_reveal_count: { Args: { p_listing_id: string }; Returns: number }
       loc_export_row: { Args: { p_id: string }; Returns: Json }
       loc_id_of_key: { Args: { p_key: string }; Returns: string }
@@ -4015,6 +4071,7 @@ export type Database = {
           p_listing_id: string
           p_paths: Json
           p_photo_id: string
+          p_review?: Json
           p_unscreened?: boolean
           p_warnings?: string[]
           p_width: number
@@ -4036,6 +4093,7 @@ export type Database = {
           p_old_photo_id: string
           p_paths: Json
           p_photo_id: string
+          p_review?: Json
           p_unscreened?: boolean
           p_warnings?: string[]
           p_width: number
