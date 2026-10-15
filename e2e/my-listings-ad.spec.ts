@@ -893,6 +893,8 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
 
     await page.getByTestId("my-listing-action-close").click();
     await expect(page.getByTestId("my-listing-action-reopen")).toBeVisible({ timeout: 15000 });
-    expect(await background("my-listing-action-reopen")).not.toBe(sellBackground);
+    expect(await background("my-listing-action-reopen")).not.toBe(
+      await background("my-listing-action-sell"),
+    );
   });
 });
