@@ -2572,12 +2572,9 @@ export type Database = {
         Args: { p_child_id: string; p_parent_id: string }
         Returns: string
       }
-      admin_allow_listing_photo: {
-        Args: { p_photo_id: string }
-        Returns: Json
-      }
       admin_ai_features: { Args: never; Returns: Json }
       admin_ai_spend_days: { Args: { p_days?: number }; Returns: Json }
+      admin_allow_listing_photo: { Args: { p_photo_id: string }; Returns: Json }
       admin_approve_all_entity_translations: {
         Args: { p_lang: string }
         Returns: Json
