@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38705855855
-- Commit: `565b19bcc86a392e4715a272302f5909d604c451`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38707307020
+- Commit: `590ff1b89ca37f321269d70d623b6c3fe841e859`
 - Attempt: 1
-- Written (UTC): 2026-10-15T09:18:46.798Z
+- Written (UTC): 2026-10-15T10:04:12.534Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -36,10 +36,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38705855855
-  E2E_HEAD_COMMIT_MESSAGE: Applied carrier to R3 bundle
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38707307020
+  E2E_HEAD_COMMIT_MESSAGE: Saved bundle-16-turn-e1.md
 
-X-Lovable-Edit-ID: edt-50a4ed68-c8d5-492c-a5de-f904107a47e2
+X-Lovable-Edit-ID: edt-716aa7e8-770f-4f2e-94f8-c715a7c5d9d0
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -54,9 +54,9 @@ ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
 Wrote docs/tracking/e2e-last-failure.md (9/9 source(s) with usable results, 4 context file(s) found).
-Flake ledger: appended 2 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
-Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 2 already there for this run (INC-495).
-Flake ledger: appended 2 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Flake ledger: appended 6 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 6 already there for this run (INC-495).
+Flake ledger: appended 6 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "smoke=success email=success shards=failure"
 [36;1mecho "smoke=success email=success shards=failure"[0m
@@ -73,7 +73,7 @@ smoke=success email=success shards=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/9edeb5a8-75c3-477c-bf36-74bd09db53de' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/a1edd5fe-a8bc-4b5b-ac42-c374cb6fc757' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
