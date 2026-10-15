@@ -1889,8 +1889,7 @@ test.describe("PHOTO PIPELINE", () => {
     ).toEqual([first!.id, second!.id]);
   });
 
-  test.describe("PP-32", () => {
-    test("PP-32 a failed or unsure photo is kept hidden with its review; nudity is refused and stored nowhere (D178, D183)", async ({
+  test("PP-32 a failed or unsure photo is kept hidden with its review; nudity is refused and stored nowhere (D178, D183)", async ({
       page,
     }) => {
       const { user, token } = await seller(page);
@@ -1981,5 +1980,4 @@ test.describe("PHOTO PIPELINE", () => {
         ).toBe(true);
       }
     });
-  });
 });
