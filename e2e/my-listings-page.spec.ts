@@ -670,8 +670,14 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
 
     const xBox = box(page, X);
     await expect(xBox.getByTestId(`my-listing-${X}-delete`)).toBeVisible();
-    await expect(xBox.getByTestId(`my-listing-${X}-edit`)).toHaveCount(0);
-    await xBox.getByTestId(`my-listing-${X}-more`).click();
+    const xEdit = xBox.getByTestId(`my-listing-${X}-edit`);
+    await expect(xEdit).toBeVisible();
+    await xEdit.click();
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}\\?edit=1$`), { timeout: 15000 });
+    await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
+    await gotoReady(page, "/my-listings");
+    await expect(twin(page, X)).toBeVisible({ timeout: 15000 });
+    await box(page, X).getByTestId(`my-listing-${X}-more`).click();
     const menuItems = await page
       .getByTestId(`my-listing-${X}-menu`)
       .locator(`[data-testid^="my-listing-${X}-more-"]`)
@@ -681,6 +687,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       `my-listing-${X}-more-reserve`,
       `my-listing-${X}-more-sell`,
       `my-listing-${X}-more-close`,
+      `my-listing-${X}-more-copy`,
     ]);
     await page.getByTestId(`my-listing-${X}-more-reserve`).click();
     await expect(page.getByTestId("my-listings-notice")).toHaveText(en["myListings.done.reserve"], {

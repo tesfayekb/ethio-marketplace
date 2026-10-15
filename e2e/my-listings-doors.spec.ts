@@ -6,8 +6,10 @@ import {
   destroyCategoryBranch,
   destroyListingsOf,
   leaseSeller,
+  destroySpecSet,
   RUN,
   seedCategoryBranch,
+  seedSpecSet,
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
 import { useJobSuperAdmin } from "./helpers/ui";
@@ -890,5 +892,245 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const after = await policyTruth();
     expect(after["updated_at"]).toBe(before["updated_at"]);
     expect(after["updated_by"]).toBe(before["updated_by"]);
+  });
+
+  test("ML-11 edit_my_listing: amounts and picked answers apply at once; words and a refused ad's edit go to review (D177)", async () => {
+    const seller = await scratchSeller();
+    const spec = await seedSpecSet(seller.leafId);
+    const specKeys = [
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    ];
+    try {
+      const service = adminClient();
+      const text = spec.text.attrKey;
+      const select = spec.select.attrKey;
+      const first = { [text]: "first words", [select]: spec.optionValues[0] };
+      const X = await seed(seller);
+      const Y = await seed(seller);
+      const Z = await seed(seller);
+      const W = await seed(seller);
+      const C = await seed(seller, "closed");
+      const R = await seed(seller, "rejected");
+      for (const ad of [X, Y, Z, W, C, R]) {
+        const set = await service.from("listings").update({ attributes: first }).eq("id", ad.id);
+        if (set.error) throw new Error(`[e2e:ml] attributes seed failed: ${set.error.message}`);
+      }
+      const me = await asPerson(seller);
+      const edit = (id: string, changes: Row) =>
+        me.rpc("edit_my_listing", { p_listing_id: id, p_changes: changes });
+      const priced = (amount: number) => ({
+        price_mode: "fixed",
+        price_amount: amount,
+        price_currency: "ETB",
+        price_period: "once",
+      });
+      const attributesOf = async (id: string) => {
+        const { data, error } = await service
+          .from("listings")
+          .select("attributes")
+          .eq("id", id)
+          .single();
+        if (error || !data) throw new Error(`[e2e:ml] attributes read failed: ${error?.message}`);
+        return data.attributes as Row;
+      };
+
+      const xEdits = (await revisionRows(X.id, "edit")).length;
+      const picked = await edit(X.id, {
+        attributes: { [text]: "first words", [select]: spec.optionValues[1] },
+      });
+      expect(picked.error).toBeNull();
+      expect(picked.data).toEqual({ ok: true, status: "active", review: false });
+      expect((await listingTruth(X.id))["status"]).toBe("active");
+      expect((await attributesOf(X.id))[select]).toBe(spec.optionValues[1]);
+      expect(await revisionRows(X.id, "edit")).toHaveLength(xEdits + 1);
+
+      const xPrice = await edit(X.id, priced(80));
+      expect(xPrice.error).toBeNull();
+      expect(xPrice.data).toMatchObject({ ok: true, status: "active", review: false });
+      expect(await listingTruth(X.id)).toMatchObject({ status: "active", price_amount: 80 });
+
+      const yText = await edit(Y.id, {
+        attributes: { [text]: "other words", [select]: spec.optionValues[0] },
+      });
+      expect(yText.error).toBeNull();
+      expect(yText.data).toEqual({ ok: true, status: "screening", review: true });
+      expect((await listingTruth(Y.id))["clock_kept"]).toBe(true);
+
+      const zTitle = await edit(Z.id, { title: `E2E new words ${token()}` });
+      expect(zTitle.error).toBeNull();
+      expect(zTitle.data).toMatchObject({ ok: true, status: "screening", review: true });
+
+      const wVideo = await edit(W.id, { video_url: "https://youtu.be/dQw4w9WgXcQ" });
+      expect(wVideo.error).toBeNull();
+      expect(wVideo.data).toMatchObject({ ok: true, status: "screening", review: true });
+
+      const cPrice = await edit(C.id, priced(70));
+      expect(cPrice.error).toBeNull();
+      expect(cPrice.data).toEqual({ ok: true, status: "closed", review: false });
+
+      const rPrice = await edit(R.id, priced(70));
+      expect(rPrice.error).toBeNull();
+      expect(rPrice.data).toEqual({ ok: true, status: "screening", review: true });
+    } finally {
+      await destroySpecSet(specKeys);
+    }
+  });
+
+  test("ML-12 edit_my_listing refuses what a box may not change, an ad it may not edit and another seller's, and writes nothing", async () => {
+    const a = await scratchSeller();
+    const b = await scratchSeller();
+    const X = await seed(a);
+    const D = await seed(a, "draft");
+    const S = await seed(a, "screening");
+    const E = await seed(a, "expired", { expiresAt: -10, publishedAt: -40 });
+    const O = await seed(a, "sold");
+    const G = await seed(a);
+    const gone = await adminClient()
+      .from("listings")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", G.id);
+    if (gone.error) throw new Error(`[e2e:ml] delete seed failed: ${gone.error.message}`);
+    const Q = await seed(b);
+    const me = await asPerson(a);
+
+    const cases: Array<[Row & { id: string }, Row, string]> = [
+      [X, {}, "nothing to change"],
+      [X, { category_id: a.parentId }, "not editable: category_id"],
+      [X, { contact_pref: {} }, "not editable: contact_pref"],
+      [D, { title: `E2E new words ${token()}` }, "a draft is written in the posting form"],
+      [
+        S,
+        { title: `E2E new words ${token()}` },
+        "an ad in review is edited once its review is done",
+      ],
+      [
+        E,
+        { title: `E2E new words ${token()}` },
+        "an expired listing is renewed before it is edited",
+      ],
+      [O, { title: `E2E new words ${token()}` }, "this listing is not edited"],
+      [G, { title: `E2E new words ${token()}` }, "listing not found"],
+      [Q, { title: `E2E new words ${token()}` }, "not your listing"],
+      [X, { title: X.title }, "nothing changed"],
+    ];
+    for (const [ad, changes, message] of cases) {
+      const before = await snapshot(ad.id);
+      const count = await revisionCount(ad.id);
+      const refused = await me.rpc("edit_my_listing", { p_listing_id: ad.id, p_changes: changes });
+      expect(refused.error, `ML-12 ${message}`).toBe(message);
+      expect(await snapshot(ad.id)).toEqual(before);
+      expect(await revisionCount(ad.id)).toBe(count);
+    }
+
+    const before = await snapshot(X.id);
+    const count = await revisionCount(X.id);
+    const judged = await me.rpc("edit_my_listing", {
+      p_listing_id: X.id,
+      p_changes: {
+        price_mode: "fixed",
+        price_amount: -5,
+        price_currency: "ETB",
+        price_period: "once",
+      },
+    });
+    expect(judged.error).toBeNull();
+    const data = judged.data as Row;
+    expect(data["ok"]).toBe(false);
+    expect(
+      ((data["refusals"] as Row[] | undefined) ?? []).some((refusal) =>
+        String(refusal["field"]).startsWith("price"),
+      ),
+    ).toBe(true);
+    expect(await snapshot(X.id)).toEqual(before);
+    expect(await revisionCount(X.id)).toBe(count);
+  });
+
+  test("ML-13 copy_my_listing: a new draft with the ad's details and places, without photos or dates; drafts, removed, refused and others' ads are not copied (D182 4)", async () => {
+    const a = await scratchSeller();
+    const b = await scratchSeller();
+    const service = adminClient();
+    const X = await seed(a, "sold");
+    const video = await service
+      .from("listings")
+      .update({ video_url: "https://youtu.be/dQw4w9WgXcQ" })
+      .eq("id", X.id);
+    if (video.error) throw new Error(`[e2e:ml] video seed failed: ${video.error.message}`);
+    const D = await seed(a, "draft");
+    const M = await seed(a, "removed");
+    const R = await seed(a, "rejected");
+    const Q = await seed(b);
+    const me = await asPerson(a);
+
+    const copied = await me.rpc("copy_my_listing", { p_listing_id: X.id });
+    expect(copied.error).toBeNull();
+    const answer = copied.data as Row;
+    expect(answer["ok"]).toBe(true);
+    const N = answer["listing_id"] as string;
+    expect(typeof N).toBe("string");
+    listingIds.push(N);
+
+    const COPY =
+      "status,draft_step,seller_id,category_id,title,description,attributes,price_amount," +
+      "price_currency,video_url,contact_pref,home_country_code,published_at,expires_at,sold_at";
+    const read = async (id: string) => {
+      const { data, error } = await service.from("listings").select(COPY).eq("id", id).single();
+      if (error || !data) throw new Error(`[e2e:ml] copy read failed: ${error?.message}`);
+      return data as unknown as Row;
+    };
+    const x = await read(X.id);
+    const n = await read(N);
+    expect(n).toMatchObject({
+      status: "draft",
+      draft_step: 1,
+      seller_id: a.id,
+      category_id: x["category_id"],
+      title: x["title"],
+      description: x["description"],
+      attributes: x["attributes"],
+      price_amount: x["price_amount"],
+      price_currency: x["price_currency"],
+      video_url: x["video_url"],
+      contact_pref: x["contact_pref"],
+      published_at: null,
+      expires_at: null,
+      sold_at: null,
+    });
+    const { data: dir, error: dirError } = await service
+      .from("user_directory")
+      .select("observed_country_code")
+      .eq("user_id", a.id)
+      .single();
+    if (dirError || !dir) throw new Error(`[e2e:ml] directory read failed: ${dirError?.message}`);
+    expect(n["home_country_code"]).toBe(dir.observed_country_code);
+
+    const places = async (id: string) => {
+      const { data, error } = await service
+        .from("listing_locations")
+        .select("location_id,position")
+        .eq("listing_id", id)
+        .order("position", { ascending: true });
+      if (error) throw new Error(`[e2e:ml] places read failed: ${error.message}`);
+      return data ?? [];
+    };
+    expect(await places(N)).toEqual(await places(X.id));
+    const { count: photos, error: photoError } = await service
+      .from("listing_photos")
+      .select("id", { count: "exact", head: true })
+      .eq("listing_id", N);
+    if (photoError) throw new Error(`[e2e:ml] photos read failed: ${photoError.message}`);
+    expect(photos ?? 0).toBe(0);
+    const created = await revisionRows(N, "create");
+    expect(created).toHaveLength(1);
+    expect((created[0]?.["after"] as Row | null)?.["copied_from"]).toBe(X.id);
+
+    const copy = (id: string) => me.rpc("copy_my_listing", { p_listing_id: id });
+    expect((await copy(D.id)).error).toBe("a draft is not copied");
+    expect((await copy(M.id)).error).toBe("a removed or refused listing is not copied");
+    expect((await copy(R.id)).error).toBe("a removed or refused listing is not copied");
+    expect((await copy(Q.id)).error).toBe("not your listing");
   });
 });

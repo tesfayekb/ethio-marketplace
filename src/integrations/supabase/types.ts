@@ -3612,6 +3612,7 @@ export type Database = {
         }
         Returns: Json
       }
+      copy_my_listing: { Args: { p_listing_id: string }; Returns: Json }
       country_export_row: { Args: { p_code: string }; Returns: Json }
       deal_group: {
         Args: { p_has_unit: boolean; p_key: string }
@@ -3638,6 +3639,10 @@ export type Database = {
           p_title: string
           p_video_url: string
         }
+        Returns: Json
+      }
+      edit_my_listing: {
+        Args: { p_changes: Json; p_listing_id: string }
         Returns: Json
       }
       effective_category_links: {

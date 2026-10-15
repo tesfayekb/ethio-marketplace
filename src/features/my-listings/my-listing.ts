@@ -1,5 +1,7 @@
+import type { Refusal } from "@/features/posting/types";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { ownValue } from "@/lib/own-key";
 
 import {
@@ -216,6 +218,11 @@ export const ASKS_FIRST: ReadonlySet<ListingAction> = new Set<ListingAction>(["s
 /** The door's refusal, in the seller's words. */
 export function actionErrorKey(message: string): MessageKey {
   if (message.includes("rateLimited")) return "myListings.error.rateLimited";
+  // Bundle 16 turn R2 — the edit's and the copy's own refusals.
+  if (message.includes("nothing changed") || message.includes("nothing to change"))
+    return "myListings.editBox.nothing";
+  if (message.includes("an ad in review is edited")) return "myListings.ad.waiting";
+  if (message.includes("residencyUnknown")) return "post.refusal.residencyUnknown";
   if (message.includes("account is deactivated")) return "myListings.error.deactivated";
   if (message.includes("renewOff")) return "myListings.renewOff";
   if (message.includes("removed by enforcement only")) return "myListings.error.severe";
@@ -439,4 +446,76 @@ export function sellerLines(lines: HistoryLine[]): HistoryLine[] {
     const from = ownValue(STATUS_WORD, line.from);
     return from === undefined || from !== ownValue(STATUS_WORD, line.to);
   });
+}
+
+/**
+ * Bundle 16 turn R2 (D172, D177) — THE SELLER'S EDIT IN BOXES. The statuses an ad
+ * is edited in: live (with full or reduced reach), closed and refused. An ad in
+ * review waits for its answer (call G), an expired ad is renewed first, a draft
+ * continues in the posting form, a sold or removed ad is not edited. The door
+ * (`edit_my_listing`) holds the same rule.
+ */
+export const EDITABLE_STATUSES: ReadonlySet<string> = new Set([
+  "active",
+  "reduced",
+  "closed",
+  "rejected",
+]);
+
+/**
+ * D182 4 — the ads "Post a similar ad" copies: every ad but a draft (it continues in
+ * the posting form), a removed one (staff's) and a refused one (it is edited). The
+ * door (`copy_my_listing`) holds the same rule.
+ */
+export function copyable(status: string): boolean {
+  return status !== "draft" && status !== "removed" && status !== "rejected";
+}
+
+export type EditOutcome =
+  | { ok: true; status: string; review: boolean }
+  | { ok: false; refusals: Refusal[] }
+  | { ok: false; key: MessageKey };
+
+function refusalsOf(value: unknown): Refusal[] {
+  if (!isObject(value) || !Array.isArray(value.refusals)) return [];
+  return value.refusals.flatMap((entry): Refusal[] =>
+    isObject(entry) && typeof entry.field === "string" && typeof entry.reason === "string"
+      ? [{ field: entry.field, reason: entry.reason }]
+      : [],
+  );
+}
+
+/**
+ * The changed fields of one ad, through its door. The door decides what applies at
+ * once (amounts and picked answers) and what goes to review (words, D177); its
+ * content refusals come back as the posting form's, under their fields.
+ */
+export async function editMyListing(
+  listingId: string,
+  changes: Record<string, unknown>,
+): Promise<EditOutcome> {
+  const { data, error } = await supabase.rpc("edit_my_listing", {
+    p_listing_id: listingId,
+    p_changes: changes as Json,
+  });
+  if (error) return { ok: false, key: actionErrorKey(error.message) };
+  if (isObject(data) && data.ok === true && typeof data.status === "string") {
+    return { ok: true, status: data.status, review: data.review === true };
+  }
+  const refusals = refusalsOf(data);
+  return refusals.length > 0
+    ? { ok: false, refusals }
+    : { ok: false, key: "myListings.error.failed" };
+}
+
+/** D182 4 — Post a similar ad: the new draft's id, or the refusal in words. */
+export async function copyMyListing(
+  listingId: string,
+): Promise<{ ok: true; listingId: string } | { ok: false; key: MessageKey }> {
+  const { data, error } = await supabase.rpc("copy_my_listing", { p_listing_id: listingId });
+  if (error) return { ok: false, key: actionErrorKey(error.message) };
+  if (isObject(data) && data.ok === true && typeof data.listing_id === "string") {
+    return { ok: true, listingId: data.listing_id };
+  }
+  return { ok: false, key: "myListings.error.failed" };
 }

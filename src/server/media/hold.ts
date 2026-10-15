@@ -29,6 +29,8 @@ export const PHOTO_OPEN_STATUSES: ReadonlySet<string> = new Set([
   "draft",
   "active",
   "reduced",
+  // Bundle 16 turn R2 (INC-631) — a closed ad ("No longer available", turn 1) is edited like a live one.
+  "closed",
   "rejected",
   "held",
   "expired",

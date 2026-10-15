@@ -2049,4 +2049,64 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(await revisionRows(live.id, "edit")).toEqual([]);
     expect(await noticeRows(live.id)).toEqual([]);
   });
+
+  test("AL-30 Settings in All listings: the renew settings as stored, Cancel changes nothing, a day count outside 1 to 365 is refused before any call; no Settings without listings:enforce (D174 3, D175 2)", async ({
+    page,
+  }) => {
+    const policy = async () => {
+      const { data, error } = await adminClient()
+        .from("listing_policy")
+        .select("renew_allowed,renew_days,updated_at")
+        .single();
+      if (error || !data) throw new Error(`[e2e:al] policy read failed: ${error?.message}`);
+      return data as { renew_allowed: boolean; renew_days: number; updated_at: string };
+    };
+    const P = await policy();
+
+    const enforcer = await scratchHolder([
+      ["admin_panel", "access"],
+      ["listings", "view"],
+      ["listings", "enforce"],
+    ]);
+    await signInViaSession(page, enforcer.email, enforcer.password);
+    await gotoReady(page, "/admin/listings");
+    const open = page.getByTestId("listings-header").getByTestId("listings-settings");
+    await expect(open).toBeVisible({ timeout: 20000 });
+    await open.click();
+    const dialog = page.getByTestId("listings-settings-dialog");
+    const renew = dialog.getByTestId("listings-settings-renew");
+    const days = dialog.getByTestId("listings-settings-days");
+    const expectStored = async () => {
+      if (P.renew_allowed) await expect(renew).toBeChecked({ timeout: 20000 });
+      else await expect(renew).not.toBeChecked({ timeout: 20000 });
+      await expect(days).toHaveValue(String(P.renew_days));
+    };
+    await expectStored();
+
+    await days.click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("0");
+    await dialog.getByTestId("listings-settings-save").click();
+    await expect(dialog.getByTestId("listings-settings-problem")).toHaveText(
+      en["admin.listings.settings.daysHelp"],
+      { timeout: 20000 },
+    );
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByTestId("listings-settings-cancel").click();
+    await expect(dialog).toHaveCount(0, { timeout: 20000 });
+    await open.click();
+    await expectStored();
+    expect(await policy()).toEqual(P);
+
+    const viewer = await scratchHolder([
+      ["admin_panel", "access"],
+      ["listings", "view"],
+    ]);
+    await signInViaSession(page, viewer.email, viewer.password);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-header")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("listings-settings")).toHaveCount(0);
+  });
 });

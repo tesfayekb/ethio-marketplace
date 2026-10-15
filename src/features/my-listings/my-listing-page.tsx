@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Copy, Eye, EyeOff, Pencil } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -17,6 +17,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { ListingEditForm } from "@/features/admin-listings/edit-form";
+import type { EditableListing } from "@/features/admin-listings/edit-listing";
 import { GROUP_LABEL as FIELD_WORD, groupsOf } from "@/features/admin-listings/history";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { loadAttributeOptions, type AttrOption } from "@/features/posting/attribute-options";
@@ -26,11 +28,14 @@ import {
   readSellerIdentity,
   readSellerLine,
   type AttrDef,
+  type PlanCaps,
 } from "@/features/posting/posting-service";
 import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { fill } from "@/features/posting/refusal-text";
+import { StepPhotos } from "@/features/posting/step-photos";
+import type { Refusal } from "@/features/posting/types";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
@@ -42,7 +47,11 @@ import {
   actionsFor,
   ASKS_FIRST,
   confirmKeys,
+  copyable,
+  copyMyListing,
   doneKey,
+  EDITABLE_STATUSES,
+  editMyListing,
   primaryAction,
   readHistory,
   readMyListing,
@@ -95,10 +104,26 @@ import { REASON_WORD, SOLD_ON, stateLine, visibilityOf } from "./state-line";
  * `my-listing-confirm-yes`; the ad `my-listing-as-seen`; history
  * `my-listing-history`, each line `my-listing-history-line`; the refusal to read
  * `my-listing-not-found`, a failed read `my-listing-error`.
+ *
+ * Bundle 16 turn R2 (D172, D177, D182 4) — EDIT IN BOXES AND POST A SIMILAR AD.
+ * Edit (`my-listing-edit`, outlined, first in the bar) is on a live, closed or
+ * refused ad (`EDITABLE_STATUSES`); it opens the edit panel in the place of the ad
+ * as buyers see it — the heading `my-listing-edit-heading` and the admin's edit
+ * form in its seller form (`ListingEditForm variant="seller"`): the photos and the
+ * video link first (the posting form's own photo tools — a photo is added, moved
+ * or removed at once, as in the posting form), then the title and description,
+ * the specifications and the price, and Save. Save sends the changed fields to
+ * `edit_my_listing`: amounts and picked answers apply at once
+ * (`myListings.editBox.done`); words go to review (`myListings.editBox.doneReview`);
+ * a refusal lands under its field and nothing closes (F4). The list's row Edit
+ * opens this page with the panel open (`?edit=1`). "Post a similar ad"
+ * (`my-listing-copy`, before Delete) copies the ad into a new draft
+ * (`copy_my_listing`) and opens it in the posting form.
  */
 
 const adKey = (listingId: string) => authKey("my-listing", listingId);
 const historyKey = (listingId: string) => authKey("my-listing-history", listingId);
+const contentKey = (listingId: string) => authKey("my-listing-content", listingId);
 
 function BackLink() {
   const { t } = useI18n();
@@ -125,7 +150,14 @@ function Mark({ testid, children }: { testid: string; children: ReactNode }) {
   );
 }
 
-export function MyListingPage({ listingId }: { listingId: string }) {
+export function MyListingPage({
+  listingId,
+  startEditing = false,
+}: {
+  listingId: string;
+  /** Turn R2 — opened from a row's Edit: the edit panel opens with the page. */
+  startEditing?: boolean;
+}) {
   const { t, language } = useI18n();
   const queryClient = useQueryClient();
   const { tree } = useCategoryTree();
@@ -133,6 +165,9 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<"sell" | "delete" | null>(null);
+  const [editing, setEditing] = useState(startEditing);
+  const [editRefusals, setEditRefusals] = useState<Refusal[]>([]);
+  const [editError, setEditError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const query = useQuery({
@@ -146,7 +181,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   // The ad as buyers see it: its content (the owner's own read, as the posting form reads it), its category's
   // questions and answers, the seller's public line, and the unit words when its price has a unit.
   const content = useQuery({
-    queryKey: authKey("my-listing-content", listingId),
+    queryKey: contentKey(listingId),
     queryFn: () => readDraft(listingId),
     enabled: ad !== null,
   });
@@ -157,6 +192,8 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     queryFn: async (): Promise<{
       definitions: AttrDef[];
       attributeOptions: Record<string, AttrOption[]>;
+      /** Turn R2 — the seller's plan caps: the photos box obeys `maxPhotos`, as the posting form does. */
+      plan: PlanCaps | null;
     }> => {
       const found = await readPostingSchema(categoryId as string);
       const definitions = found?.attributes ?? [];
@@ -171,7 +208,11 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               ] as const,
           ),
       );
-      return { definitions, attributeOptions: Object.fromEntries(entries) };
+      return {
+        definitions,
+        attributeOptions: Object.fromEntries(entries),
+        plan: found?.plan ?? null,
+      };
     },
   });
   const identity = useQuery({
@@ -203,6 +244,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const reload = async () => {
     await refreshAfterWrite(queryClient, { queryKey: adKey(listingId) });
     await refreshAfterWrite(queryClient, { queryKey: historyKey(listingId) });
+    await refreshAfterWrite(queryClient, { queryKey: contentKey(listingId) });
     await refreshAfterWrite(queryClient, { queryKey: authKey("my-listings") });
   };
 
@@ -226,6 +268,51 @@ export function MyListingPage({ listingId }: { listingId: string }) {
       await reload();
       setBusy(false);
     }
+  };
+
+  /** Turn R2 — the boxes' Save: the changed fields through `edit_my_listing` (D177). */
+  const runEdit = async (changes: Record<string, unknown>) => {
+    if (busy) return;
+    setBusy(true);
+    setNotice(null);
+    setProblem(null);
+    setEditError(null);
+    setEditRefusals([]);
+    try {
+      const outcome = await editMyListing(listingId, changes);
+      if (outcome.ok) {
+        setEditing(false);
+        setNotice(t(outcome.review ? "myListings.editBox.doneReview" : "myListings.editBox.done"));
+      } else if ("refusals" in outcome) {
+        // F4 — a refusal is an answer: it lands under its field and nothing closes.
+        setEditRefusals(outcome.refusals);
+      } else setEditError(t(outcome.key));
+    } catch {
+      setEditError(t("myListings.error.failed"));
+    } finally {
+      await reload();
+      setBusy(false);
+    }
+  };
+
+  /** D182 4 — Post a similar ad: a new draft with this ad's details, opened in the posting form. */
+  const runCopy = async () => {
+    if (busy) return;
+    setBusy(true);
+    setNotice(null);
+    setProblem(null);
+    try {
+      const outcome = await copyMyListing(listingId);
+      if (outcome.ok) {
+        await refreshAfterWrite(queryClient, { queryKey: authKey("my-listings") });
+        void navigate({ to: "/post/$listingId", params: { listingId: outcome.listingId } });
+        return;
+      }
+      setProblem(t(outcome.key));
+    } catch {
+      setProblem(t("myListings.error.failed"));
+    }
+    setBusy(false);
   };
 
   if (query.isLoading) {
@@ -266,6 +353,12 @@ export function MyListingPage({ listingId }: { listingId: string }) {
 
   const actions = actionsFor(ad);
   const primary = primaryAction(actions);
+  // Turn R2 — Edit on a live, closed or refused ad; Post a similar ad on any but a draft, a removed or a refused one.
+  const mayEdit = EDITABLE_STATUSES.has(row.status);
+  const mayCopy = copyable(row.status);
+  const isEditing = editing && mayEdit;
+  const steps = actions.filter((action) => action !== "delete");
+  const mayDelete = actions.includes("delete");
   const live = row.status === "active" || row.status === "reduced";
   // D180 — the marks, the picture's ribbon (the first mark) and what buyers see of the ad.
   const sold = row.status === "sold";
@@ -315,6 +408,26 @@ export function MyListingPage({ listingId }: { listingId: string }) {
 
   const draft = content.data ?? null;
   const lines = history.data === undefined ? undefined : sellerLines(history.data);
+  /** Turn R2 — the ad as the boxes open on it: its own content, its stored unit, its market. */
+  const editable: EditableListing | null =
+    draft === null
+      ? null
+      : {
+          categoryId: draft.draft.categoryId,
+          attributes: draft.draft.attributes,
+          title: draft.draft.title ?? "",
+          description: draft.draft.description ?? "",
+          priceMode: draft.draft.priceMode ?? "fixed",
+          priceAmount: draft.draft.priceAmount,
+          priceCurrency: draft.draft.priceCurrency,
+          pricePeriod: draft.draft.pricePeriod,
+          priceBp: draft.draft.priceBp,
+          priceNegotiable: draft.draft.priceNegotiable,
+          priceUnit: row.priceUnit,
+          priceUnitText: row.priceUnitText,
+          countryCode: ad.countryCode,
+          videoUrl: draft.draft.videoUrl,
+        };
 
   return (
     <PageShell as="main" width="wide" data-testid="my-listing-page">
@@ -329,12 +442,36 @@ export function MyListingPage({ listingId }: { listingId: string }) {
             {info}
           </p>
         ) : null}
-        {actions.length === 0 && row.status !== "draft" ? (
+        {isEditing ? null : actions.length === 0 &&
+          !mayEdit &&
+          !mayCopy &&
+          row.status !== "draft" ? (
           <p data-testid="my-listing-no-action" className="text-sm text-muted-foreground">
             {t("myListings.ad.none")}
           </p>
         ) : (
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            {/* Turn R2 — Edit first: the boxes open in the place of the ad as buyers see it. */}
+            {mayEdit ? (
+              <Button
+                type="button"
+                size="touch"
+                variant="outline"
+                data-testid="my-listing-edit"
+                // INC-558 — the form opens on a fresh read, never while the page is re-reading.
+                disabled={busy || content.isFetching}
+                onClick={() => {
+                  setNotice(null);
+                  setProblem(null);
+                  setEditRefusals([]);
+                  setEditError(null);
+                  setEditing(true);
+                }}
+              >
+                <Pencil aria-hidden="true" />
+                {t("myListings.edit")}
+              </Button>
+            ) : null}
             {/* A draft's next step is the posting form. */}
             {row.status === "draft" ? (
               <Button asChild variant="default" size="touch">
@@ -347,22 +484,16 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                 </Link>
               </Button>
             ) : null}
-            {actions.map((action) => (
+            {steps.map((action) => (
               <Button
                 key={action}
                 type="button"
                 size="touch"
-                variant={
-                  action === primary
-                    ? "default"
-                    : action === "delete"
-                      ? "destructiveOutline"
-                      : "outline"
-                }
+                variant={action === primary ? "default" : "outline"}
                 data-testid={`my-listing-action-${action}`}
                 disabled={busy}
                 onClick={() => {
-                  if (action === "sell" || action === "delete") setConfirming(action);
+                  if (action === "sell") setConfirming(action);
                   else void act(action);
                 }}
               >
@@ -373,6 +504,32 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                   : t(actionKey(action, row.soldWord))}
               </Button>
             ))}
+            {/* D182 4 — a new draft with this ad's details; Delete stays last. */}
+            {mayCopy ? (
+              <Button
+                type="button"
+                size="touch"
+                variant="outline"
+                data-testid="my-listing-copy"
+                disabled={busy}
+                onClick={() => void runCopy()}
+              >
+                <Copy aria-hidden="true" />
+                {t("myListings.action.copy")}
+              </Button>
+            ) : null}
+            {mayDelete ? (
+              <Button
+                type="button"
+                size="touch"
+                variant="destructiveOutline"
+                data-testid="my-listing-action-delete"
+                disabled={busy}
+                onClick={() => setConfirming("delete")}
+              >
+                {t(actionKey("delete", row.soldWord))}
+              </Button>
+            ) : null}
           </div>
         )}
         {notice !== null ? (
@@ -455,55 +612,102 @@ export function MyListingPage({ listingId }: { listingId: string }) {
           </ul>
         </PageCard>
 
-        <PageCard testid="my-listing-as-seen" className="min-w-0 space-y-3">
-          <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
-          {draft === null ? (
-            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-              {/* readDraft answers null for an ad that is not the caller's: a refusal, never a wait. */}
-              {content.isError || content.isSuccess
-                ? t("myListings.ad.loadError")
-                : t("common.loading")}
-            </p>
-          ) : (
-            <ListingDetail
-              title={draft.draft.title ?? ""}
-              description={draft.draft.description ?? ""}
-              priceMode={draft.draft.priceMode ?? "contact"}
-              priceAmount={draft.draft.priceAmount}
-              priceCurrency={draft.draft.priceCurrency}
-              pricePeriod={draft.draft.pricePeriod}
-              priceBp={draft.draft.priceBp}
-              priceNegotiable={draft.draft.priceNegotiable}
-              basisLabel={storedUnitNoun(row.priceUnit, row.priceUnitText, unitLabels, language)}
-              attributes={draft.draft.attributes}
-              definitions={schema.data?.definitions ?? []}
-              attributeOptions={schema.data?.attributeOptions ?? {}}
-              photos={draft.photos}
-              illustrationUrl={
-                categoryId === null ? null : nearestCategoryPicture(tree, categoryId)
-              }
-              photosSoon={draft.draft.photosSoon}
-              ribbon={ribbonKey === undefined ? null : t(ribbonKey)}
-              coverage={draft.coverage}
-              country={ad.countryCode}
-              contactPref={draft.draft.contactPref}
-              sellerAlias={identity.data?.alias ?? null}
-              sellerBusinessName={
-                identity.data?.sellerType === "business"
-                  ? (identity.data.businessName ?? null)
-                  : null
-              }
-              sellerPreviousAlias={line.data?.previousAlias ?? null}
-              sellerMemberSince={line.data?.memberSince ?? null}
-              pinLat={draft.draft.pinLat}
-              pinLng={draft.draft.pinLng}
-              pinPrecision={draft.draft.pinPrecision}
-              pinZoom={draft.draft.pinZoom}
-              directions={draft.draft.directions}
-              streetAddress={draft.draft.streetAddress}
-            />
-          )}
-        </PageCard>
+        {isEditing ? (
+          <div data-testid="my-listing-edit-panel" className="min-w-0 space-y-4">
+            {/* D172 — the panel names itself; its boxes follow, the photos first. */}
+            <h2
+              data-testid="my-listing-edit-heading"
+              className="min-w-0 break-words text-lg font-semibold text-foreground"
+            >
+              {t("myListings.editBox.title")}
+            </h2>
+            {editable === null ? (
+              <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+                {content.isError || content.isSuccess
+                  ? t("myListings.ad.loadError")
+                  : t("common.loading")}
+              </p>
+            ) : (
+              <ListingEditForm
+                listing={editable}
+                variant="seller"
+                photos={(video) => (
+                  <StepPhotos
+                    listingId={row.id}
+                    photos={draft?.photos ?? []}
+                    onChanged={() => void content.refetch()}
+                    illustrationUrl={
+                      categoryId === null ? null : nearestCategoryPicture(tree, categoryId)
+                    }
+                    videoUrl={video.value}
+                    videoRefusal={video.refusal}
+                    onChangeVideo={video.onChange}
+                    maxPhotos={schema.data?.plan?.maxPhotos ?? null}
+                  />
+                )}
+                busy={busy}
+                refusals={editRefusals}
+                error={editError}
+                onCancel={() => {
+                  setEditing(false);
+                  setEditRefusals([]);
+                  setEditError(null);
+                }}
+                onSave={(changes) => void runEdit(changes)}
+              />
+            )}
+          </div>
+        ) : (
+          <PageCard testid="my-listing-as-seen" className="min-w-0 space-y-3">
+            <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
+            {draft === null ? (
+              <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+                {/* readDraft answers null for an ad that is not the caller's: a refusal, never a wait. */}
+                {content.isError || content.isSuccess
+                  ? t("myListings.ad.loadError")
+                  : t("common.loading")}
+              </p>
+            ) : (
+              <ListingDetail
+                title={draft.draft.title ?? ""}
+                description={draft.draft.description ?? ""}
+                priceMode={draft.draft.priceMode ?? "contact"}
+                priceAmount={draft.draft.priceAmount}
+                priceCurrency={draft.draft.priceCurrency}
+                pricePeriod={draft.draft.pricePeriod}
+                priceBp={draft.draft.priceBp}
+                priceNegotiable={draft.draft.priceNegotiable}
+                basisLabel={storedUnitNoun(row.priceUnit, row.priceUnitText, unitLabels, language)}
+                attributes={draft.draft.attributes}
+                definitions={schema.data?.definitions ?? []}
+                attributeOptions={schema.data?.attributeOptions ?? {}}
+                photos={draft.photos}
+                illustrationUrl={
+                  categoryId === null ? null : nearestCategoryPicture(tree, categoryId)
+                }
+                photosSoon={draft.draft.photosSoon}
+                ribbon={ribbonKey === undefined ? null : t(ribbonKey)}
+                coverage={draft.coverage}
+                country={ad.countryCode}
+                contactPref={draft.draft.contactPref}
+                sellerAlias={identity.data?.alias ?? null}
+                sellerBusinessName={
+                  identity.data?.sellerType === "business"
+                    ? (identity.data.businessName ?? null)
+                    : null
+                }
+                sellerPreviousAlias={line.data?.previousAlias ?? null}
+                sellerMemberSince={line.data?.memberSince ?? null}
+                pinLat={draft.draft.pinLat}
+                pinLng={draft.draft.pinLng}
+                pinPrecision={draft.draft.pinPrecision}
+                pinZoom={draft.draft.pinZoom}
+                directions={draft.draft.directions}
+                streetAddress={draft.draft.streetAddress}
+              />
+            )}
+          </PageCard>
+        )}
 
         <PageCard testid="my-listing-history" className="min-w-0 space-y-3">
           <h2 className="text-sm font-semibold text-foreground">
