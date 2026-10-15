@@ -1764,6 +1764,64 @@ test.describe("CAT-IE categories import/export", () => {
   });
 
   /**
+   * CT-46 — bundle 16 turn 3b (call H). rented and filled are allowed capability
+   * tokens; an unknown token is still refused by name.
+   */
+  test("CT-46 rented and filled are accepted by the import and an unknown token is still refused", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    bandOnly(page, "any");
+    await signInAsSuperAdmin(page);
+    const parentSlug = scratchSlug();
+    const rentedSlug = scratchSlug();
+    const filledSlug = scratchSlug();
+    const badSlug = scratchSlug();
+    try {
+      await seedCategory(parentSlug, null);
+      await gotoReady(page, "/admin/categories");
+      const token = await bearerOf(page);
+      const preview = await importPost(page, token, {
+        mode: "preview",
+        categories: file([
+          line({
+            category_slug: rentedSlug,
+            parent_slug: parentSlug,
+            name_en: rentedSlug,
+            capabilities: "rented",
+          }),
+          line({
+            category_slug: filledSlug,
+            parent_slug: parentSlug,
+            name_en: filledSlug,
+            capabilities: "filled|map_pin",
+          }),
+          line({
+            category_slug: badSlug,
+            parent_slug: parentSlug,
+            name_en: badSlug,
+            capabilities: "rentedx",
+          }),
+        ]),
+      });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const refusals = preview.payload["refusals"] as { reason: string; detail?: unknown }[];
+      const bad = refusals.filter((entry) => entry.reason === "badCapability");
+      expect(bad, JSON.stringify(refusals)).toHaveLength(1);
+      expect(bad[0]?.detail, "CT-46: the unknown token was not named").toBe("rentedx");
+      // PREVIEW WRITES NOTHING (F5).
+      expect(await readCategory(rentedSlug)).toBeNull();
+      expect(await readCategory(filledSlug)).toBeNull();
+      expect(await readCategory(badSlug)).toBeNull();
+    } finally {
+      await destroyCategory(rentedSlug);
+      await destroyCategory(filledSlug);
+      await destroyCategory(badSlug);
+      await destroyCategory(parentSlug);
+    }
+  });
+
+  /**
    * A scratch role carrying exactly the named permissions (J3): no ratified
    * role is ever touched, and the role is dropped in the caller's `finally`.
    */

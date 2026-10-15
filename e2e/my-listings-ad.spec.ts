@@ -270,7 +270,10 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
 
   /** Sets the scratch leaf's own capability words (never a real category's). */
   async function setCapabilities(leafId: string, capabilities: string[]) {
-    const { error } = await adminClient().from("categories").update({ capabilities }).eq("id", leafId);
+    const { error } = await adminClient()
+      .from("categories")
+      .update({ capabilities })
+      .eq("id", leafId);
     if (error) throw new Error(`[e2e:mla] capabilities failed: ${error.message}`);
   }
 
@@ -653,7 +656,10 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       const list = await s.rpc("my_listings", { p_group: group, p_limit: 50, p_offset: 0 });
       expect(list.error, `[e2e:mla] my_listings ${group}`).toBeNull();
       const answer = list.data as { counts: Record<string, number>; rows: Row[] };
-      expect(answer.rows.some((row) => row["id"] === X), `[e2e:mla] X in ${group}`).toBe(false);
+      expect(
+        answer.rows.some((row) => row["id"] === X),
+        `[e2e:mla] X in ${group}`,
+      ).toBe(false);
       if (group === "live") expect(answer.counts["live"]).toBe(0);
     }
     const gone = await s.rpc("my_listing", { p_listing_id: X });
@@ -710,7 +716,9 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     expect((await deletionTruth(X))["status"]).toBe("removed");
   });
 
-  test("MLA-9 Rented and Filled: a sold ad takes its category's word (call H)", async ({ page }) => {
+  test("MLA-9 Rented and Filled: a sold ad takes its category's word (call H)", async ({
+    page,
+  }) => {
     const seller = await scratchSeller();
     const s = await asPerson(seller);
     const X = await seed(seller, "active");
