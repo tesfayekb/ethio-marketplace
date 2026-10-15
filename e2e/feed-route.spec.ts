@@ -274,82 +274,11 @@ test.describe("FEED ROUTE", () => {
     const read = await anon.from("feed_index").select("listing_id").limit(1);
     expect(read.error).not.toBeNull();
   });
-});
-
-test.describe("FEED ROUTE — a sold ad and the card's marks (bundle 16 turn 3c)", () => {
-  const sellers: string[] = [];
-  const regions: string[] = [];
-  const branches: string[][] = [];
-
-  test.afterEach(async () => {
-    for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
-    for (const slug of regions.splice(0)) await destroyLocation(slug);
-    for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
-  });
-
-  async function seedPage() {
-    const seller = await leaseSeller();
-    sellers.push(seller.id);
-    const { parent, leaf } = await seedCategoryBranch();
-    branches.push([parent.slug, leaf.slug]);
-    const chain = await seedScratchChain("ET");
-    regions.push(chain.region.slug);
-    const slug = scratchSlug("fr-city");
-    const { data: c2, error } = await adminClient()
-      .from("locations")
-      .insert({
-        parent_id: chain.region.id,
-        level: "city",
-        country_code: "ET",
-        slug,
-        name_en: slug,
-        is_active: true,
-        source: "admin",
-        center_lat: 9.04,
-        center_lng: 38.75,
-      })
-      .select("id")
-      .single();
-    if (error || !c2) throw new Error(`[e2e:fr] seeding C2 failed: ${error?.message ?? "no row"}`);
-    return { seller, parent, leaf, chain, c2: { id: c2.id as string } };
-  }
-
-  type Seed = Awaited<ReturnType<typeof seedPage>>;
-
-  async function addListing(
-    seed: Seed,
-    { place, tier, minutesAgo }: { place: string; tier: Tier; minutesAgo: number },
-  ): Promise<string> {
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
-        category_id: seed.leaf.id,
-        seller_id: seed.seller.id,
-        location_id: place,
-        home_country_code: "ET",
-        title: `e2e-feed-${RUN}-${rand()}`,
-        description: "e2e scratch listing for the feed route",
-        status: "active",
-        tier,
-        published_at: new Date(Date.now() - minutesAgo * 60_000).toISOString(),
-      })
-      .select("id")
-      .single();
-    if (error || !data) {
-      throw new Error(`[e2e:fr] seeding the listing failed: ${error?.message ?? "no row"}`);
-    }
-    return data.id as string;
-  }
-
-  async function getFeed(request: APIRequestContext, seed: Seed) {
-    const q = new URLSearchParams({ category: seed.leaf.id, place: seed.chain.city.id });
-    const response = await request.get(`/api/feed?${q.toString()}`);
-    expect(response.status()).toBe(200);
-    return (await response.json()) as FeedBody;
-  }
 
   async function stepOne(request: APIRequestContext, seed: Seed): Promise<Card[]> {
-    return (await getFeed(request, seed)).cards.filter((c) => c.step === 1);
+    const r = await getFeed(request, { category: seed.leaf.id, place: seed.chain.city.id });
+    expect(r.status).toBe(200);
+    return r.body.cards.filter((c) => c.step === 1);
   }
 
   async function update(id: string, patch: Record<string, unknown>) {
@@ -365,9 +294,9 @@ test.describe("FEED ROUTE — a sold ad and the card's marks (bundle 16 turn 3c)
   }) => {
     const seed = await seedPage();
     const city = seed.chain.city.id;
-    const a = await addListing(seed, { place: city, tier: "regular", minutesAgo: 10 });
-    const b = await addListing(seed, { place: city, tier: "regular", minutesAgo: 20 });
-    const s = await addListing(seed, { place: city, tier: "premium", minutesAgo: 5 });
+    const a = (await addListing(seed, { place: city, tier: "regular", minutesAgo: 10 })).id;
+    const b = (await addListing(seed, { place: city, tier: "regular", minutesAgo: 20 })).id;
+    const s = (await addListing(seed, { place: city, tier: "premium", minutesAgo: 5 })).id;
     await update(s, { status: "sold" });
 
     let cards = await stepOne(request, seed);
@@ -379,7 +308,9 @@ test.describe("FEED ROUTE — a sold ad and the card's marks (bundle 16 turn 3c)
     expect(cards.find((c) => c.id === a)!["soldWord"]).toBeNull();
 
     await update(s, { sold_at: ago(31 * DAY) });
-    const all = (await getFeed(request, seed)).cards.map((c) => c.id);
+    const all = (
+      await getFeed(request, { category: seed.leaf.id, place: seed.chain.city.id })
+    ).body.cards.map((c) => c.id);
     expect(all).not.toContain(s);
     const rows = await adminClient().from("feed_index").select("listing_id").eq("listing_id", s);
     expect(rows.error).toBeNull();
@@ -395,7 +326,7 @@ test.describe("FEED ROUTE — a sold ad and the card's marks (bundle 16 turn 3c)
   }) => {
     const seed = await seedPage();
     const city = seed.chain.city.id;
-    const a = await addListing(seed, { place: city, tier: "regular", minutesAgo: 10 });
+    const a = (await addListing(seed, { place: city, tier: "regular", minutesAgo: 10 })).id;
     const cardOf = async (id: string) => (await stepOne(request, seed)).find((c) => c.id === id)!;
 
     await update(a, { reserved_at: new Date().toISOString() });
@@ -416,7 +347,7 @@ test.describe("FEED ROUTE — a sold ad and the card's marks (bundle 16 turn 3c)
         .update({ capabilities: ["rented"] })
         .eq("id", seed.leaf.id);
       if (caps.error) throw new Error(`[e2e:fr] capabilities failed: ${caps.error.message}`);
-      const b = await addListing(seed, { place: city, tier: "regular", minutesAgo: 20 });
+      const b = (await addListing(seed, { place: city, tier: "regular", minutesAgo: 20 })).id;
       await update(b, { status: "sold" });
       expect((await cardOf(b))["soldWord"]).toBe("rented");
     } finally {
@@ -430,7 +361,9 @@ test.describe("FEED ROUTE — a sold ad and the card's marks (bundle 16 turn 3c)
 
   test("FR-11 a buyer reads a sold ad's row, photo and places for its 30 days only (D175 1)", async () => {
     const seed = await seedPage();
-    const s = await addListing(seed, { place: seed.chain.city.id, tier: "regular", minutesAgo: 10 });
+    const s = (
+      await addListing(seed, { place: seed.chain.city.id, tier: "regular", minutesAgo: 10 })
+    ).id;
     const place = await adminClient()
       .from("listing_locations")
       .insert({ listing_id: s, location_id: seed.c2.id });
