@@ -315,7 +315,10 @@ card's footer, depth Soft, page tone Cool grey (tokens: docs/features/design-fou
   Filters and Columns tiles share one line; from md one row inside the card.
 - **The panels** (`ToolbarPanel`): Filters and Columns open a popover from md
   and a modal bottom sheet on a phone (a grabber, the panel's name with a 44 px
-  close, the content, its footer). A focus change never closes the sheet
+  close, the content, its footer). The popover is never taller than the room
+  the window leaves it (Radix's available height, 16 px from the window's edge;
+  bundle 16 turn R3, INC-633): its content scrolls inside it and its footer stays
+  in view, as the sheet's does (85dvh). A focus change never closes the sheet
   (INC-543: the native list opened inside the old popover took the focus and
   the popover closed under it). Content testid `<testid>-panel` in both forms;
   Escape closes both. Filters' footer: Clear all and "Show N results" (when the

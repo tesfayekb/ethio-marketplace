@@ -23,6 +23,13 @@ import { useI18n } from "@/i18n";
  * and `footer` receives `changed`: true only while the choices differ from
  * that string (a choice set back is no change). The primary button is
  * enabled only then; the close (×), Escape and a tap outside always close.
+ *
+ * Bundle 16 turn R3 (INC-633) — from md the popover is never taller than the
+ * room the window leaves it: its height is bounded by Radix's available height
+ * (16 px kept from the window's edge) and its content scrolls inside it, the
+ * footer staying in view, as the phone's sheet already does (max-h 85dvh). A
+ * long panel — every top category in My listings' Filters — ran past the
+ * window's bottom, where nothing could reach it (MLP-6, desktop-1280).
  */
 export function ToolbarPanel({
   testid,
@@ -97,12 +104,13 @@ export function ToolbarPanel({
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
         align={align}
+        collisionPadding={16}
         data-testid={`${testid}-panel`}
-        className="w-80 max-w-[calc(100vw-2rem)] p-0"
+        className="flex max-h-(--radix-popover-content-available-height) w-80 max-w-[calc(100vw-2rem)] flex-col p-0"
       >
-        <div className="p-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
         {foot !== null ? (
-          <div className="flex min-w-0 items-center gap-3 border-t border-border/70 px-4 py-3">
+          <div className="flex min-w-0 shrink-0 items-center gap-3 border-t border-border/70 px-4 py-3">
             {foot}
           </div>
         ) : null}
