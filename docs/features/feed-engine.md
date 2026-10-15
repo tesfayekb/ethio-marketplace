@@ -91,3 +91,7 @@ Measured on a local build at 360, 400, 640, 768, 1024, 1280 and 1440 px, across 
 ## Bundle 13, turn 3 — each card's cover photo (INC-606)
 
 `feed_page` adds `coverPhotoId` to every card: `(SELECT p.id FROM listing_photos p WHERE p.listing_id = f.listing_id AND p.exif_stripped ORDER BY p.display_order LIMIT 1)`, one indexed lookup per card. The card draws the photo through the links route (docs/features/media-pipeline.md); a card without one draws the category's picture.
+
+## Bundle 16, turn 3c — a sold ad for 30 days (D175 1)
+
+The index holds every SHOWN listing with a publish time: a live one, and a sold one for 30 days after `sold_at`, with rank -1 so a page reads it after every live listing of its place (newest first among the sold). The widening counts live listings only (`tier_rank >= 0`). The listing triggers rewrite a sold ad's rows on a sale, a relist and a deletion, and the reindex queue takes sold ads too. `feed_page` joins live ads and sold ones within their 30 days, so an ad leaves the feed the moment its 30 days end; the daily `feed_index_check_sweep` then removes its rows and reports how many ads it took out (`sold_left_feed`). `feed_index_check` follows the same rule and counts `sold_shown`. Each card gains `soldWord` (sold, rented or filled; null for a live ad), `reserved` and `priceWas` (the old price while "Price reduced" stands, 14 days) — the same texts as `my_listings`' row.

@@ -16,6 +16,7 @@ import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Button } from "@/components/ui/button";
 import { CutText } from "@/components/ui/cut-text";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
+import { SOLD_RIBBON } from "@/features/feed/feed-page";
 import { CARD_THEN_THUMB, photoUrl } from "@/features/posting/photo-links";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { usePhotoLinks } from "@/features/posting/use-photo-links";
@@ -119,27 +120,51 @@ export function MyListingsPage() {
           language,
         );
 
-  const marks = (row: MyListingRow) =>
-    row.reserved || row.priceWas !== null ? (
+  /**
+   * D180 (the operator's walk, 2026-10-14) — the marks are ribbons in the site's second colour, the most important
+   * first: Sold (Rented, Filled), No longer available, Reserved, Price reduced (not on a sold ad).
+   */
+  const marks = (row: MyListingRow) => {
+    const sold = row.status === "sold";
+    const closed = row.status === "closed";
+    const reduced = row.priceWas !== null && !sold;
+    return sold || closed || row.reserved || reduced ? (
       <span className="mt-1 flex flex-wrap gap-1">
+        {sold ? (
+          <span
+            data-testid={`my-listing-${row.id}-sold-mark`}
+            className="inline-flex items-center rounded-full bg-gold px-2 py-0.5 text-xs font-semibold text-gold-foreground"
+          >
+            {t(SOLD_RIBBON[row.soldWord])}
+          </span>
+        ) : null}
+        {closed ? (
+          <span
+            data-testid={`my-listing-${row.id}-closed-mark`}
+            className="inline-flex items-center rounded-full bg-gold px-2 py-0.5 text-xs font-semibold text-gold-foreground"
+          >
+            {t("feed.ribbon.closed")}
+          </span>
+        ) : null}
         {row.reserved ? (
           <span
             data-testid={`my-listing-${row.id}-reserved`}
-            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-foreground"
+            className="inline-flex items-center rounded-full bg-gold px-2 py-0.5 text-xs font-semibold text-gold-foreground"
           >
             {t("myListings.reserved")}
           </span>
         ) : null}
-        {row.priceWas !== null ? (
+        {reduced ? (
           <span
             data-testid={`my-listing-${row.id}-price-reduced`}
-            className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-foreground"
+            className="inline-flex items-center rounded-full bg-gold px-2 py-0.5 text-xs font-semibold text-gold-foreground"
           >
             {t("myListings.priceReduced")}
           </span>
         ) : null}
       </span>
     ) : null;
+  };
 
   const columns: DataTableColumn<MyListingRow>[] = [
     {

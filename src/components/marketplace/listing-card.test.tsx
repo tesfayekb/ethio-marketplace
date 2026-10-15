@@ -39,6 +39,9 @@ const BASE: FeedListing = {
   priceUnitText: null,
   photosSoon: false,
   coverPhotoId: null,
+  soldWord: null,
+  reserved: false,
+  priceWas: null,
   publishedAt: "2026-10-10T08:00:00Z",
   categoryId: "c1",
   locationId: null,
@@ -113,5 +116,48 @@ describe("ListingCard and InviteCard — one card shape", () => {
 
     render(<ListingCard listing={BASE} />);
     expect(screen.getByTestId("listing-card-picture").querySelector("img")).toBeNull();
+  });
+
+  it("LC-4 a live ad's ribbon: Reserved before Price reduced; the old price struck through before the price (D173, D180)", () => {
+    const { unmount } = render(
+      <ListingCard listing={{ ...BASE, reserved: true, priceWas: 1800000, photosSoon: true }} />,
+    );
+    const picture = screen.getByTestId("listing-card-picture");
+    expect(picture.contains(screen.getByTestId("listing-ribbon"))).toBe(true);
+    expect(screen.getByTestId("listing-ribbon-text")).toHaveTextContent("feed.reserved");
+    // One band only: the photos-soon band gives way to the ribbon.
+    expect(screen.queryByTestId("listing-photos-soon-ribbon")).toBeNull();
+    const was = screen.getByTestId("listing-card-price-was");
+    expect(was.querySelector("s")).toHaveAttribute("aria-hidden", "true");
+    expect(was.querySelector("s")!.textContent).not.toBe("");
+    expect(was.querySelector(".sr-only")).toHaveTextContent("feed.priceWas");
+    const price = screen.getByTestId("listing-card-price");
+    expect(was.parentElement).toBe(price.parentElement);
+    expect(was.compareDocumentPosition(price) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    unmount();
+
+    const second = render(<ListingCard listing={{ ...BASE, priceWas: 1800000 }} />);
+    expect(screen.getByTestId("listing-ribbon-text")).toHaveTextContent("feed.priceReduced");
+    second.unmount();
+
+    render(<ListingCard listing={BASE} />);
+    expect(screen.queryByTestId("listing-ribbon")).toBeNull();
+    expect(screen.queryByTestId("listing-card-price-was")).toBeNull();
+  });
+
+  it("LC-5 a sold ad's ribbon is its word only, with no old price (D175 1, D180)", () => {
+    for (const [word, key] of [
+      ["sold", "feed.ribbon.sold"],
+      ["rented", "feed.ribbon.rented"],
+      ["filled", "feed.ribbon.filled"],
+    ] as const) {
+      const { unmount } = render(
+        <ListingCard listing={{ ...BASE, soldWord: word, reserved: true, priceWas: 1800000 }} />,
+      );
+      expect(screen.getAllByTestId("listing-ribbon")).toHaveLength(1);
+      expect(screen.getByTestId("listing-ribbon-text")).toHaveTextContent(key);
+      expect(screen.queryByTestId("listing-card-price-was")).toBeNull();
+      unmount();
+    }
   });
 });

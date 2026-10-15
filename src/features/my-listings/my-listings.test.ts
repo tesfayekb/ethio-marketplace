@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { en } from "@/i18n/locales/en";
 
 import { GROUP_LABEL, LISTING_GROUPS, parseMyListings, totalOf } from "./my-listings";
+import { SOLD_SHOWN_DAYS, visibilityOf } from "./state-line";
 
 /** Bundle 16 turn 2 — the door's answer, refused whole when malformed (F4). */
 const counts = { live: 2, review: 1, attention: 0, closed: 3, sold: 0, drafts: 4 };
@@ -65,5 +66,30 @@ describe("my_listings answer", () => {
   it("ML-U4 six groups, in the page's order, each with its word", () => {
     expect(LISTING_GROUPS).toEqual(["live", "review", "attention", "closed", "sold", "drafts"]);
     for (const group of LISTING_GROUPS) expect(en[GROUP_LABEL[group]]).toBeTruthy();
+  });
+});
+
+describe("what buyers see of the ad (bundle 16 turn 3c, D180)", () => {
+  it("ML-U11 live is seen, sold is seen marked for 30 days after it sold, every other status is not", () => {
+    const now = Date.parse("2026-10-15T12:00:00Z");
+    const day = 86_400_000;
+    const ago = (days: number) => new Date(now - days * day).toISOString();
+    expect(SOLD_SHOWN_DAYS).toBe(30);
+    expect(visibilityOf({ status: "active", soldAt: null }, now)).toBe("seen");
+    expect(visibilityOf({ status: "reduced", soldAt: null }, now)).toBe("seen");
+    expect(visibilityOf({ status: "sold", soldAt: ago(29.9) }, now)).toBe("soldSeen");
+    expect(visibilityOf({ status: "sold", soldAt: ago(30) }, now)).toBe("hidden");
+    expect(visibilityOf({ status: "sold", soldAt: null }, now)).toBe("hidden");
+    for (const status of [
+      "closed",
+      "expired",
+      "screening",
+      "held",
+      "rejected",
+      "removed",
+      "draft",
+    ]) {
+      expect(visibilityOf({ status, soldAt: null }, now)).toBe("hidden");
+    }
   });
 });

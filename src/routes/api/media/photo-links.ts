@@ -22,7 +22,8 @@ import {
  *
  * The photo rows are read as the CALLER, so `listing_photos`' own policies
  * decide which come back (the seller's own, staff who may view listings, an
- * active listing's stripped photos for anyone); only those rows are signed, by
+ * active listing's stripped photos for anyone, and a sold one's for 30 days after
+ * it sold — bundle 16 turn 3c); only those rows are signed, by
  * the service client, for one hour (src/server/media/links.ts). A photo the
  * caller may not read is simply absent from `links` — the same answer as a
  * photo that does not exist, so the route tells nobody what exists. A failed
@@ -30,7 +31,8 @@ import {
  *
  * INC-606 — A BUYER WITHOUT A SESSION. A request with no bearer is read as the
  * ANONYMOUS role (the publishable key, no session), so `listing_photos_public_read`
- * alone decides: only an active listing's stripped photos come back. Each
+ * alone decides: only an active listing's stripped photos come back (and a sold
+ * one's for its 30 days). Each
  * address may ask `RATE_LIMIT_PHOTO_LINKS_PER_HOUR` (600) times an hour. A
  * listing card asks for `["card", "thumb"]` only; a request that names no
  * variant gets every readable one.

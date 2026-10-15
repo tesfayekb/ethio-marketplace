@@ -1,3 +1,5 @@
+import type { MessageKey } from "@/i18n";
+
 import type { ListingTier } from "./ranking";
 
 /**
@@ -7,6 +9,38 @@ import type { ListingTier } from "./ranking";
 
 /** The ladder's "everywhere" step (the nil-uuid key, D101). */
 export const EVERYWHERE = "00000000-0000-0000-0000-000000000000";
+
+/**
+ * Bundle 16 turn 3c (D175 1) — the word a sold ad shows for its 30 days in the feed: Sold, or Rented / Filled when
+ * its category says so (the same words as My listings).
+ */
+export const FEED_SOLD_WORDS = ["sold", "rented", "filled"] as const;
+export type FeedSoldWord = (typeof FEED_SOLD_WORDS)[number];
+
+/**
+ * D180 — an ad's ribbon words, the most important first: Sold (Rented, Filled), No longer available (the seller's
+ * own views only — buyers never see a closed ad), Reserved, Price reduced. The feed card, the seller's rows and the
+ * ad's page all read this one list, so a mark is worded and ordered the same everywhere.
+ */
+export const SOLD_RIBBON: Record<FeedSoldWord, MessageKey> = {
+  sold: "feed.ribbon.sold",
+  rented: "feed.ribbon.rented",
+  filled: "feed.ribbon.filled",
+};
+
+export function ribbonOf(ad: {
+  soldWord: FeedSoldWord | null;
+  closed: boolean;
+  reserved: boolean;
+  priceReduced: boolean;
+}): MessageKey[] {
+  const keys: MessageKey[] = [];
+  if (ad.soldWord !== null) return [SOLD_RIBBON[ad.soldWord]];
+  if (ad.closed) keys.push("feed.ribbon.closed");
+  if (ad.reserved) keys.push("feed.reserved");
+  if (ad.priceReduced) keys.push("feed.priceReduced");
+  return keys;
+}
 
 /** One card — exactly the fields /api/feed returns. */
 export interface FeedListing {
@@ -24,6 +58,12 @@ export interface FeedListing {
   photosSoon: boolean;
   /** INC-606 — the listing's cover photo (its first stripped photo), or null. */
   coverPhotoId: string | null;
+  /** Bundle 16 turn 3c (D175 1) — a sold ad's word for its 30 days in the feed; null for a live ad. */
+  soldWord: FeedSoldWord | null;
+  /** D173 1 — the seller marked the ad Reserved. */
+  reserved: boolean;
+  /** D173 2 — the old price while the "Price reduced" mark stands (14 days); null otherwise. */
+  priceWas: number | null;
   publishedAt: string;
   categoryId: string;
   locationId: string | null;
@@ -69,6 +109,18 @@ function parseCard(value: unknown, ladderLength: number): FeedListing | null {
   // INC-606 — a door from before the cover was added answers without it: no photo.
   const coverPhotoId = v.coverPhotoId === undefined ? null : v.coverPhotoId;
   if (!isStrOrNull(coverPhotoId)) return null;
+  // Bundle 16 turn 3c — an answer from before the marks (a page cached a few minutes) has none: a live ad, no mark.
+  const soldWord = v.soldWord === undefined ? null : v.soldWord;
+  if (
+    soldWord !== null &&
+    !(isStr(soldWord) && (FEED_SOLD_WORDS as readonly string[]).includes(soldWord))
+  ) {
+    return null;
+  }
+  const reserved = v.reserved === undefined ? false : v.reserved;
+  if (typeof reserved !== "boolean") return null;
+  const priceWas = v.priceWas === undefined ? null : v.priceWas;
+  if (!isNumOrNull(priceWas)) return null;
   if (!isStr(v.publishedAt) || !isStr(v.categoryId)) return null;
   if (!isStrOrNull(v.locationId) || !isStrOrNull(v.locationNameEn)) return null;
   if (!isStrOrNull(v.locationNameAm)) return null;
@@ -88,6 +140,9 @@ function parseCard(value: unknown, ladderLength: number): FeedListing | null {
     priceUnitText: v.priceUnitText,
     photosSoon: v.photosSoon,
     coverPhotoId,
+    soldWord: soldWord as FeedSoldWord | null,
+    reserved,
+    priceWas,
     publishedAt: v.publishedAt,
     categoryId: v.categoryId,
     locationId: v.locationId,

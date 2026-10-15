@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEv
 import { createPortal } from "react-dom";
 
 import { Z_VIEWER } from "@/components/layout/layers";
+import { ListingRibbon } from "@/components/marketplace/listing-picture";
 import { useI18n } from "@/i18n";
 
 import type { GalleryPhoto } from "../photo-links";
@@ -74,10 +75,13 @@ const arrowClass =
 export function PhotoGallery({
   photos,
   markUnscreened = false,
+  ribbon = null,
 }: {
   photos: readonly GalleryPhoto[];
   /** D158 — staff's preview marks a photo held while photo screening was off. */
   markUnscreened?: boolean;
+  /** D180 — the ad's status word, drawn as the gold ribbon on the large photo; null when it has none. */
+  ribbon?: string | null;
 }) {
   const { t } = useI18n();
   const total = photos.length;
@@ -125,6 +129,12 @@ export function PhotoGallery({
               draggable={false}
             />
           </button>
+          {ribbon !== null ? (
+            <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[4/3] overflow-hidden rounded-md">
+              <ListingRibbon text={ribbon} />
+              <span className="sr-only">{ribbon}</span>
+            </div>
+          ) : null}
           {markUnscreened && photo.unscreened === true ? (
             <span
               data-testid="gallery-unscreened"

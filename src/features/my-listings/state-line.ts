@@ -37,6 +37,28 @@ export const SOLD_ON: Record<SoldWord, MessageKey> = {
   filled: "myListings.filledOn",
 };
 
+/**
+ * Bundle 16 turn 3c (D180) — WHAT BUYERS SEE OF THE AD, said on the seller's ad page. The rule is the database's
+ * (the public reads and the feed, migration of bundle 16 turn 3c): a live ad is seen; a sold one is seen marked
+ * with its word for 30 days after it sold, its contact closed; every other ad is not seen. Reach is staff's lever
+ * and is not shown (spec: a reduced ad reads as live).
+ */
+export const SOLD_SHOWN_DAYS = 30;
+
+export type Visibility = "seen" | "soldSeen" | "hidden";
+
+export function visibilityOf(
+  row: Pick<MyListingRow, "status" | "soldAt">,
+  now: number = Date.now(),
+): Visibility {
+  if (row.status === "active" || row.status === "reduced") return "seen";
+  if (row.status === "sold" && row.soldAt !== null) {
+    const soldAt = Date.parse(row.soldAt);
+    if (Number.isFinite(soldAt) && now - soldAt < SOLD_SHOWN_DAYS * 86_400_000) return "soldSeen";
+  }
+  return "hidden";
+}
+
 export function stateLine(
   row: MyListingRow,
   t: (key: MessageKey) => string,

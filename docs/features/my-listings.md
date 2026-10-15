@@ -110,3 +110,12 @@ Turn 3 was split again (2026-10-14): turn 3b is the seller's side; turn 3c bring
 - **The actions card** shows why an action is not there in its own line (`my-listing-info`: an ad in review waits for its answer; renewing switched off); "Nothing to change here right now." is left for a removed ad.
 
 Proven by MLA-7…MLA-10 (e2e/my-listings-ad.spec.ts), CT-46 (e2e/admin-categories-lifecycle.spec.ts) and ML-U10.
+
+## Turn 3c — a sold ad in the feed for 30 days, and the ribbons (bundle 16)
+
+- **A sold ad stays in the feed for 30 days (D175 1).** From the moment it is sold (or rented, or filled) it stays in the feed and in every public read — its row, its photos (so its cover keeps its link) and its places — for 30 days after `sold_at`, then leaves them; its contact stays closed (`reveal_listing_contact` answers only a live ad). In a place's feed a sold ad comes after every live ad (its rank is -1), the newest sale first among them, and it never counts toward the feed's widening. The rule is written once per reader (the feed index's refresh and check, `feed_page`, the three public reads); `feed_page` leaves an ad out the moment its 30 days end, and the daily feed check removes its rows (`sold_left_feed`).
+- **The ribbons (D173, D180).** An ad's status shows as a ribbon in the site's second colour (the gold), the most important first: Sold (Rented, Filled), No longer available (the seller's own views only — buyers never see a closed ad), Reserved, Price reduced (never on a sold ad). On the feed card and on the ad's page it is one ribbon across the picture's corner (it replaces the photos-soon band); in the rows of My listings and in the ad page's status the marks are gold tags. While "Price reduced" stands (14 days), the card prints the old price struck through before the price (a screen reader hears "Was <price>").
+- **What buyers see (D180).** The ad's page says it in one line: "Buyers can see this ad." (live), "Buyers see it marked Sold for 30 days, and can't contact you." (sold, with its own word), or "Buyers can't see this ad right now." (every other state). A reduced ad reads as live: reach is staff's lever and is not shown.
+- **The card's answer** (`feed_page`) gains `soldWord`, `reserved` and `priceWas`; a page cached from before them reads as a live ad with no mark.
+
+Proven by FR-9…FR-11 (e2e/feed-route.spec.ts), FE-15 (e2e/feed-index.spec.ts), FS-15 (e2e/feed-screens.spec.ts), MLA-11 (e2e/my-listings-ad.spec.ts), FP-12, FP-13, LC-4, LC-5 and ML-U11.
