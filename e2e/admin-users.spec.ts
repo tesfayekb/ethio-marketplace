@@ -1,4 +1,5 @@
 import { type Page } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
@@ -13,6 +14,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, createUser, leaseUser, releaseStaleScratchAlias } from "./helpers/users";
+import { injectSession, passwordGrant } from "./helpers/session";
 
 /**
  * Phase U1 — Users section.
@@ -43,6 +45,16 @@ async function grantRole(userId: string, roleName: string) {
     .from("user_roles")
     .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
   if (error) throw new Error(`[e2e:u1] granting ${roleName} failed: ${error.message}`);
+}
+
+/** D189 — a client that speaks with one account's own bearer, no browser session. */
+function bearerClient(token: string) {
+  const url = process.env["E2E_SUPABASE_URL"] ?? "";
+  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"] ?? "";
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
 }
 
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
@@ -252,10 +264,15 @@ test.describe("U1 admin users", () => {
     // rendered, and the target's audit rows.
     await expectActivity(page, "user.status_change", scratch.id);
 
-    // U1d — the deactivated user sees the banner on their own settings page.
-    await switchUser(page, scratch.email, scratch.password);
-    await gotoReady(page, "/settings");
-    await expect(page.getByTestId("account-deactivated-banner")).toBeVisible({ timeout: 15000 });
+    // D189 — the deactivated account is signed out as soon as the app loads and
+    // told why on the sign-in page.
+    const session = await passwordGrant(scratch.email, scratch.password);
+    await injectSession(page, session);
+    await page.goto("/");
+    await waitForHydration(page);
+    await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
+    await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
+    await expect(page.getByTestId("account-menu")).toHaveCount(0);
 
     await switchUser(page, staff.email, staff.password);
     await page.goto(`/admin/users/${scratch.id}`);
@@ -346,14 +363,12 @@ test.describe("U1 admin users", () => {
       { timeout: 15000 },
     );
 
-    // Sign in AS the deactivated user and call the write seam directly.
-    // INC-074: /auth is guarded while authenticated — switchUser signs out first.
-    await switchUser(page, scratch.email, scratch.password);
-    await gotoReady(page, "/");
-    // U6-A2-C — the door's contract changed with A2-M (step validation, no
-    // client-supplied seller or residency). The SEAM is unchanged: a deactivated
-    // account is refused BEFORE residency and before any field is judged.
-    const message = await rpcFromBrowser(page, "submit_listing", {
+    // D189 — the browser session is signed out at once now, so the seam is
+    // called with the deactivated account's own bearer. A deactivated account is
+    // refused BEFORE residency and before any field is judged.
+    const session = await passwordGrant(scratch.email, scratch.password);
+    const asScratch = bearerClient(session.access_token);
+    const { error } = await asScratch.rpc("submit_listing", {
       p_listing_id: null,
       p_step: 1,
       p_category_id: "00000000-0000-0000-0000-000000000000",
@@ -369,7 +384,7 @@ test.describe("U1 admin users", () => {
       p_coverage: null,
       p_contact_pref: null,
     });
-    expect(message ?? "").toContain("account is deactivated");
+    expect(error?.message ?? "").toContain("account is deactivated");
   });
 
   test("AU-6 negative: a base user cannot call the status RPC", async ({ page }) => {
@@ -584,5 +599,48 @@ test.describe("U1 admin users", () => {
     await page.reload();
     await waitForHydration(page);
     await expect(page.getByTestId("users-pagination-size")).toHaveValue("10", { timeout: 20000 });
+  });
+});
+
+test.describe("D189 deactivated staff", () => {
+  test("AU-14 a deactivated staff account holds no permission: the staff door refuses it and has_permission answers false (D189)", async ({
+    page,
+  }) => {
+    const staff = await leaseUser();
+    await grantRole(staff.id, "admin");
+    const scratch = await createUser({ confirmed: true });
+    await grantRole(scratch.id, "admin");
+    const admin = adminClient();
+    const pair = { p_user_id: scratch.id, p_resource: "users", p_action: "view" };
+
+    const before = await admin.rpc("has_permission", pair);
+    expect(before.error, "AU-14: has_permission could not be read").toBeNull();
+    expect(before.data, "AU-14: the admin role did not grant users:view").toBe(true);
+
+    await switchUser(page, staff.email, staff.password);
+    const secret = await enrollAndStepUp(page);
+    await page.goto(`/admin/users/${scratch.id}`);
+    await waitForHydration(page);
+    await page.getByTestId("deactivate-reason").fill("U1 D189");
+    await page.getByTestId("deactivate-user").click();
+    await stepUpIfPrompted(page, secret);
+    await expectAal2(page);
+    await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
+      en["admin.users.status.deactivated"],
+      { timeout: 15000 },
+    );
+
+    const after = await admin.rpc("has_permission", pair);
+    expect(after.error, "AU-14: has_permission could not be read").toBeNull();
+    expect(after.data, "AU-14: a deactivated account still holds users:view").toBe(false);
+
+    const session = await passwordGrant(scratch.email, scratch.password);
+    const asScratch = bearerClient(session.access_token);
+    const { error } = await asScratch.rpc("admin_set_account_status", {
+      p_user_id: staff.id,
+      p_status: "deactivated",
+      p_reason: "e2e",
+    });
+    expect(error?.message ?? "").toMatch(/permission denied|account is deactivated/);
   });
 });

@@ -37,7 +37,9 @@ const PENDING_EMAIL_KEY = "ethio.auth.pendingEmail";
  */
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>): { view?: AuthView; return?: string } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { view?: AuthView; return?: string; reason?: "deactivated" } => ({
     view:
       search.view === "check-email"
         ? "check-email"
@@ -48,6 +50,8 @@ export const Route = createFileRoute("/auth")({
             : undefined,
     // Kept in the URL so it survives a reload of the sign-in screen itself.
     ...(typeof search["return"] === "string" ? { return: search["return"] } : {}),
+    // Bundle 16 turn S3 (D189) — why the person is here: their account was deactivated and signed out.
+    ...(search["reason"] === "deactivated" ? { reason: "deactivated" as const } : {}),
   }),
 
   head: () => ({
@@ -82,7 +86,7 @@ const secondaryButtonClass =
 function AuthScreen() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { view, return: returnParam } = Route.useSearch();
+  const { view, return: returnParam, reason } = Route.useSearch();
   /** Where a successful sign-in of ANY door lands (D20); `/` when unset or unsafe. */
   const afterSignIn = safeReturnPath(returnParam);
   const { signIn, signUp, resendConfirmation } = useAuth();
@@ -501,6 +505,13 @@ function AuthScreen() {
         <h1 className="text-xl font-semibold text-foreground">
           {isSignIn ? t("auth.signIn") : t("auth.createAccount")}
         </h1>
+
+        {/* Bundle 16 turn S3 (D189) — the account was deactivated and its session ended. */}
+        {reason === "deactivated" ? (
+          <p role="alert" data-testid="auth-deactivated" className="mt-4 text-sm text-destructive">
+            {t("auth.deactivated")}
+          </p>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <div className="flex flex-col gap-1">

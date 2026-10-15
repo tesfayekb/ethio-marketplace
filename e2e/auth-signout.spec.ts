@@ -9,6 +9,7 @@ import {
   isMobile,
   openRailScope,
   signIn,
+  signInViaSession,
   signOutViaUi,
   signedInMarker,
 } from "./helpers/ui";
@@ -393,5 +394,42 @@ test.describe("U0k session policy", () => {
     );
     expect(after.sessionRef).toBe(before.sessionRef);
     await expect(page.getByTestId("session-notice")).toHaveCount(0);
+  });
+});
+
+test.describe("D189 deactivated session", () => {
+  test("SO-8 a deactivated account is signed out at its next auth event and told why on the sign-in page (D189)", async ({
+    page,
+  }) => {
+    const user = await leaseUser();
+    const admin = adminClient();
+    try {
+      await signInViaSession(page, user.email, user.password);
+      await expect(page.getByTestId("account-menu")).toBeVisible({ timeout: 15000 });
+
+      const closed = await admin
+        .from("profiles")
+        .update({ account_status: "deactivated" })
+        .eq("user_id", user.id);
+      expect(closed.error, "SO-8: the account could not be deactivated").toBeNull();
+
+      await page.reload();
+      await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
+      await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
+      await expect(page.getByTestId("account-menu")).toHaveCount(0);
+      const stored = await page.evaluate(() =>
+        Object.keys(localStorage).filter((k) => k.startsWith("sb-")),
+      );
+      expect(stored, "SO-8: the session survived the sign-out").toEqual([]);
+
+      await page.goto("/auth");
+      await expect(page.getByTestId("auth-deactivated")).toHaveCount(0);
+    } finally {
+      const reopened = await admin
+        .from("profiles")
+        .update({ account_status: "active" })
+        .eq("user_id", user.id);
+      expect(reopened.error, "SO-8: the account could not be reactivated").toBeNull();
+    }
   });
 });
