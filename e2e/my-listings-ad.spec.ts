@@ -1111,11 +1111,10 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
 
       const place = page.getByTestId("listing-edit-place-box");
       await expect(place.getByTestId("post-where-city")).toHaveValue(A.cityId, { timeout: 15000 });
-      // C2 sits in a region of its own: its row comes with a region box first.
-      await place.getByTestId("post-where-add-region").click();
-      await place.getByTestId("post-where-row-region").selectOption(second.region.id as string);
-      await place.getByTestId("post-where-row-city").selectOption(second.city.id as string);
-      await expect(place.getByTestId("post-where-row-city")).toHaveValue(second.city.id as string);
+      // The free plan allows one city: the seller changes the ad's place (INC-642).
+      await place.getByTestId("post-where-region").selectOption(second.region.id as string);
+      await place.getByTestId("post-where-city").selectOption(second.city.id as string);
+      await expect(place.getByTestId("post-where-city")).toHaveValue(second.city.id as string);
 
       const contact = page.getByTestId("listing-edit-contact-box");
       await expect(contact).toBeVisible();
@@ -1132,8 +1131,8 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       );
       await expect(page.getByTestId("my-listing-edit-panel")).toHaveCount(0);
       const seen = page.getByTestId("my-listing-as-seen");
-      await expect(seen.getByTestId("listing-detail-places")).toContainText(c1Name);
       await expect(seen.getByTestId("listing-detail-places")).toContainText(c2Name);
+      await expect(seen.getByTestId("listing-detail-places")).not.toContainText(c1Name);
       await expect(
         seen.getByTestId("listing-detail-contact").locator('[data-channel="phone"]'),
       ).toHaveCount(1);
@@ -1146,7 +1145,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         .order("position");
       if (located.error)
         throw new Error(`[e2e:mla] coverage read failed: ${located.error.message}`);
-      expect(located.data.map((row) => row.location_id)).toEqual([A.cityId, second.city.id]);
+      expect(located.data.map((row) => row.location_id)).toEqual([second.city.id]);
       const row = await supabase
         .from("listings")
         .select("location_id,status,contact_pref")
@@ -1154,7 +1153,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         .single();
       if (row.error || !row.data)
         throw new Error(`[e2e:mla] listing read failed: ${row.error?.message}`);
-      expect(row.data.location_id).toBe(A.cityId);
+      expect(row.data.location_id).toBe(second.city.id);
       expect(row.data.status).toBe("active");
       expect(
         ((row.data.contact_pref as Row)["phone"] as { show?: boolean } | undefined)?.show,
