@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-16-turn-4b.md (bundle 16 — turn 4b, the photo review on screen: Photos to review with Allow in Admin › Screening, the marks on staff's photo panels, the seller's mark with its reason; no migration). Spec: docs/features/my-listings.md.
+The brief in force: docs/governance/briefs/bundle-16-turn-e2a.md (bundle 16 — turn E2a, the seller's edit door takes places, contact and the place text; one migration). Spec: docs/governance/seller-edit-spec.md. Spec: docs/features/my-listings.md.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -299,6 +299,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [x] Turn E1 (INC-632) — a question changed from single-pick to multi-pick rewrites every ad's answer as a one-answer list in the same statement (`attributes_type_lists`), so Payment Plan and the other lists the curator's census finds can become tick-all-that-apply. AT-82
   - [x] Turn S1 (D184; the operator's review of 2026-10-15) — the photo storage the server's alone; photo screening switches off at its budget and past a site day cap (photos held for staff); the plan cap read before the paid screen; removals limited per seller (30 an hour, 100 a day); the writing helper's listing must be the caller's. PH-4, PH-5, PR-47…PR-49
   - [x] Turn S2 (D185) — throwaway mail domains refused at sign-up (`hook_before_user_created`, switched on in the dashboard); photos on drafts stop past 50 in 7 days with no ad submitted; the rate table pruned daily. SU-2, PR-50, PRK-1
+  - [x] Turn E2a (D187) — the seller's edit door takes the places (`coverage`, applied at once, the first the ad's own), the contact (`contact_pref`, at once) and the place text (`street_address`, `directions` — to review); `set_listing_pin` takes a closed ad. ML-12 extended, ML-14; PR-50 fixed (INC-638)
+  - [ ] Turn E2b (D187) — the Edit page complete, in the posting form's order: Specifications → Photos → Title & description (with the AI helper) → Price → Place → Contact → Save
   - [ ] Turn S3 — a deactivated account refused at every door and signed out
   - [x] Turn 4a (D178, D183) — every photo judged at upload: a clean pass shown; unsure, not right for the ad, failed (but not nudity) and held photos stored hidden with a review (`listing_photo_reviews`); approving the ad shows only held photos; staff allow one photo (`admin_allow_listing_photo`). PP-5, PP-26, PP-29 changed; PP-32, SC-23
   - [x] Turn 4b (D178) — the photo review on screen: Admin › Screening's "Photos to review" with Allow (Remove and declining the ad stay on the ad's page, D169), the marks and Allow on every staff photo panel, the seller's mark with its reason. PRV-1…PRV-4, LP-8, LP-9, GAL-7; SC-24, PP-33

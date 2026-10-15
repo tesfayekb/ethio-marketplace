@@ -1000,7 +1000,9 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const cases: Array<[Row & { id: string }, Row, string]> = [
       [X, {}, "nothing to change"],
       [X, { category_id: a.parentId }, "not editable: category_id"],
-      [X, { contact_pref: {} }, "not editable: contact_pref"],
+      [X, { poster_expires_at: new Date().toISOString() }, "not editable: poster_expires_at"],
+      [X, { coverage: "x" }, "coverage must be a list"],
+      [X, { contact_pref: [] }, "contact_pref must be an object"],
       [D, { title: `E2E new words ${token()}` }, "a draft is written in the posting form"],
       [
         S,
@@ -1150,5 +1152,77 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect((await copy(M.id)).error).toBe("a removed or refused listing is not copied");
     expect((await copy(R.id)).error).toBe("a removed or refused listing is not copied");
     expect((await copy(Q.id)).error).toBe("not your listing");
+  });
+
+  test("ML-14 edit_my_listing: places and contact apply at once, the first place the ad's own; the written directions go to review (D187)", async () => {
+    const A = await scratchSeller();
+    const C1 = A.cityId;
+    const chain = await seedScratchChain("ET");
+    regions.push(chain.region.slug as string);
+    const C2 = chain.city.id as string;
+    const R = chain.region.id as string;
+    const X = await seed(A);
+    const service = adminClient();
+    const me = await asPerson(A);
+    const edit = (changes: Row) =>
+      me.rpc("edit_my_listing", { p_listing_id: X.id, p_changes: changes });
+    const placesOf = async () => {
+      const { data, error } = await service
+        .from("listing_locations")
+        .select("location_id")
+        .eq("listing_id", X.id)
+        .order("position", { ascending: true });
+      if (error) throw new Error(`[e2e:ml] places read failed: ${error.message}`);
+      return (data ?? []).map((row) => row.location_id as string);
+    };
+    const row = async (columns: string) => {
+      const { data, error } = await service
+        .from("listings")
+        .select(columns)
+        .eq("id", X.id)
+        .single();
+      if (error || !data) throw new Error(`[e2e:ml] listing read failed: ${error?.message}`);
+      return data as unknown as Row;
+    };
+
+    const count = await revisionCount(X.id);
+    const moved = await edit({ coverage: [C2, C1] });
+    expect(moved.error).toBeNull();
+    expect(moved.data).toMatchObject({ review: false, status: "active" });
+    expect(await row("location_id,status")).toEqual({ location_id: C2, status: "active" });
+    expect(await placesOf()).toEqual([C2, C1]);
+    expect(await revisionCount(X.id)).toBe(count + 1);
+    const edits = await revisionRows(X.id, "edit");
+    const newest = edits[edits.length - 1];
+    expect((newest?.["after"] as Row | null)?.["coverage"]).toEqual([C2, C1]);
+    expect((newest?.["before"] as Row | null)?.["coverage"]).toEqual([C1]);
+
+    const regionOnly = await edit({ coverage: [R] });
+    expect(regionOnly.error).toBeNull();
+    const refusal = regionOnly.data as Row;
+    expect(refusal["ok"]).toBe(false);
+    expect(refusal["refusals"]).toContainEqual(
+      expect.objectContaining({ field: "coverage", reason: "cityRequired" }),
+    );
+    expect(await placesOf()).toEqual([C2, C1]);
+
+    const contact = { messages: true, phone: { value: "+251911223344", show: true } };
+    const contacted = await edit({ contact_pref: contact });
+    expect(contacted.error).toBeNull();
+    expect(contacted.data).toMatchObject({ review: false });
+    expect(await row("contact_pref,status")).toEqual({ contact_pref: contact, status: "active" });
+
+    const directed = await edit({ directions: "  Behind the  <church> " });
+    expect(directed.error).toBeNull();
+    expect(directed.data).toMatchObject({ review: true, status: "screening" });
+    expect(await row("directions,clock_kept")).toEqual({
+      directions: "Behind the church",
+      clock_kept: true,
+    });
+
+    const back = await service.from("listings").update({ status: "active" }).eq("id", X.id);
+    if (back.error) throw new Error(`[e2e:ml] status reset failed: ${back.error.message}`);
+    const street = await edit({ street_address: "call 0911223344" });
+    expect(street.error).toBe("contactInNote");
   });
 });

@@ -147,3 +147,13 @@ The operator's walk of turn R1 (2026-10-15): "I don't see where a user can do ed
 - **The renew settings** (D174 3, D175 2): Admin › Listings › All listings has **Settings** in its header (`listings-settings`, listings:enforce): whether sellers may renew an expired ad and the days a renewal gives (1–365; 30 at launch), saved with a fresh second factor through `admin_set_listing_policy`; the saved line is the page's notice.
 
 Proven by ML-11…ML-13 (e2e/my-listings-doors.spec.ts), MLA-13 and MLA-14 (e2e/my-listings-ad.spec.ts), MLP-6's Edit and Post a similar ad, AL-30 (e2e/admin-listings.spec.ts), ML-U17…ML-U20, LE-7, RS-1…RS-3.
+
+## Turn E2a — the seller's edit door takes places, contact and the place text (bundle 16; D187)
+
+D187 (the operator, 2026-10-15): the seller's Edit is complete — the places the ad covers and the way buyers reach the seller are edited in the same boxes as the rest. This turn is the door; turn E2b puts the boxes on the page in the posting form's order.
+
+- **`edit_my_listing`** (redeclared whole) takes four more keys: `coverage` (a list of place ids — judged at step 6 as when posting: each a city or a sub-city, within the plan's caps; the first becomes the ad's own place; `listing_locations` is rewritten in the sent order and the feed index follows), `contact_pref` (judged at step 7, the contact shape), `street_address` and `directions` (sanitised as the pin door sanitises them, 200 characters, a phone number or address refused `contactInNote`).
+- **What applies at once:** a place or a contact change (picked from lists, D177): the ad keeps its status. **What goes to review:** a changed street or directions line, like the title (the ad keeps its time, as before). The category and the end date stay as posted (D172).
+- **The revision** carries `coverage` (the place ids in order) when the places changed.
+- **`set_listing_pin`** takes a closed ad (INC-631's rule: a closed ad is edited like a live one).
+- Proven by ML-12's new cases and ML-14 (e2e/my-listings-doors.spec.ts). Spec: docs/governance/seller-edit-spec.md.
