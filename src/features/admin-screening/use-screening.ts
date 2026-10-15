@@ -44,6 +44,8 @@ export interface ScreeningRow {
   description: string;
   categoryId: string;
   locationId: string | null;
+  /** Bundle 16 turn E3 (D188) — the market of the ad's place (`locations.country_code`), for the edit boxes' price money. */
+  countryCode: string | null;
   priceMode: string;
   priceAmount: number | null;
   priceCurrency: string | null;
@@ -75,7 +77,7 @@ export async function listScreening(
   let query = supabase
     .from("listings")
     .select(
-      "id,title,description,category_id,location_id,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,price_unit,price_unit_text,attributes,photos_soon,updated_at,category:categories(name_en,name_am),place:locations(name_en,name_am)",
+      "id,title,description,category_id,location_id,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,price_unit,price_unit_text,attributes,photos_soon,updated_at,category:categories(name_en,name_am),place:locations(name_en,name_am,country_code)",
       { count: "exact" },
     )
     .eq("status", "screening");
@@ -99,6 +101,11 @@ export async function listScreening(
     description: row.description,
     categoryId: row.category_id,
     locationId: row.location_id,
+    countryCode:
+      row.place !== null &&
+      typeof (row.place as { country_code?: unknown }).country_code === "string"
+        ? ((row.place as { country_code: string }).country_code ?? null)
+        : null,
     priceMode: row.price_mode,
     priceAmount: row.price_amount === null ? null : Number(row.price_amount),
     priceCurrency: row.price_currency,

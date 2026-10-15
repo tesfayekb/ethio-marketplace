@@ -23,11 +23,18 @@ export function PreviewSheet({
   view,
   onClose,
   footer,
+  body,
 }: {
   view: ListingDetailView;
   onClose: () => void;
   /** Bundle 11 A2 — actions under the listing (the reviewer's Approve and Reject). */
   footer?: ReactNode;
+  /**
+   * Bundle 16 turn E3 (D188) — what the sheet shows in the listing's place: the
+   * reviewer's edit boxes while an ad is edited inside the preview. Absent, the
+   * listing as buyers see it.
+   */
+  body?: ReactNode;
 }) {
   const { t } = useI18n();
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -82,7 +89,7 @@ export function PreviewSheet({
             {t("post.preview.close")}
           </button>
         </div>
-        <ListingDetail {...view} />
+        {body ?? <ListingDetail {...view} />}
         {footer ? (
           <div data-testid="post-preview-footer" className="flex flex-wrap items-center gap-2">
             {footer}
