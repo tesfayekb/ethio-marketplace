@@ -23,6 +23,8 @@ export const en = {
   "error.pageFailedBody":
     "Something went wrong on our end. You can try refreshing or head back home.",
   "auth.signIn": "Sign in",
+  "auth.deactivated":
+    "Your account is deactivated and you have been signed out. Contact support if you think this is a mistake.",
   "auth.createAccount": "Create account",
   "auth.email": "Email",
   "auth.password": "Password",

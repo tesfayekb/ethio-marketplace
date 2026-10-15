@@ -31,6 +31,7 @@ import { PHONE_STRIP } from "@/config/panels";
 import { cn } from "@/lib/utils";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
+import { takeDeactivatedSignOut } from "@/features/auth/deactivated";
 import { useAuth } from "@/features/auth/use-auth";
 import { useCategoryTree } from "@/features/categories/category-tree";
 import type { AuthUser } from "@/features/auth/types";
@@ -688,6 +689,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     setPermissionsState({ permissions: [], loading: false });
     setPanelChoice("marketplace");
     setNavOpen(false);
+    // Bundle 16 turn S3 (D189) — a deactivated account's sign-out lands on the sign-in page with the reason.
+    if (takeDeactivatedSignOut()) {
+      void navigate({ to: "/auth", search: { reason: "deactivated" }, replace: true });
+      return;
+    }
     if (gatedRoute && (!ownSignIn || hadUser.current)) void navigate({ to: "/", replace: true });
   }, [authLoading, user, gatedRoute, ownSignIn, navigate, queryClient]);
 

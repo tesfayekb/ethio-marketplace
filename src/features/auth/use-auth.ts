@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 import * as authService from "./auth-service";
+import { markDeactivatedSignOut } from "./deactivated";
 import type { AuthUser } from "./types";
 
 type AuthState = {
@@ -41,13 +42,22 @@ export function useAuth() {
       if (!stale()) {
         setState({ user: { id: userId, email: email ?? null, displayName: null }, loading: false });
       }
-      // The signup trigger owns profile rows; we only read the display name.
+      // The signup trigger owns profile rows; we only read the display name — and,
+      // bundle 16 turn S3 (D189), the account's status: a deactivated account is
+      // signed out at every auth event (the first load, a sign-in, a token
+      // refresh), so a session deactivated while open ends on its own.
       const { data } = await supabase
         .from("profiles")
-        .select("display_name")
+        .select("display_name, account_status")
         .eq("user_id", userId)
         .maybeSingle();
       if (stale()) return;
+      if (data?.account_status === "deactivated") {
+        markDeactivatedSignOut();
+        setState({ user: null, loading: false });
+        await authService.signOut();
+        return;
+      }
       setState({
         user: {
           id: userId,

@@ -24,6 +24,7 @@ export const am: Messages = {
   "error.pageFailed": "ይህ ገጽ አልተጫነም",
   "error.pageFailedBody": "በእኛ በኩል የሆነ ስህተት ተከስቷል። እንደገና ማደስ ወይም ወደ መነሻ መመለስ ይችላሉ።",
   "auth.signIn": "ይግቡ",
+  "auth.deactivated": "መለያዎ ተቋርጧል እና ከመለያዎ ወጥተዋል። ይህ ስህተት ነው ብለው ካሰቡ ድጋፍን ያግኙ።",
   "auth.createAccount": "አካውንት ይክፈቱ",
   "auth.email": "ኢሜይል",
   "auth.password": "የይለፍ ቃል",

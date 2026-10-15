@@ -28,9 +28,11 @@ const PAGE =
 const USER_ID = "11111111-1111-4111-8111-111111111111";
 
 type Answer = () => Response | Promise<Response>;
-const network: { auth: Answer; rpc: Answer } = {
+/** Bundle 16 turn S3 — the caller's own profile row, read by every route after the bearer (D189). */
+const network: { auth: Answer; rpc: Answer; profile: Answer } = {
   auth: () => json({ id: USER_ID, aud: "authenticated" }, 200),
   rpc: () => json({ ok: true }, 200),
+  profile: () => json({ account_status: "active" }, 200),
 };
 
 function json(body: unknown, status: number): Response {
@@ -51,10 +53,12 @@ beforeEach(() => {
   vi.stubEnv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_stub");
   network.auth = () => json({ id: USER_ID, aud: "authenticated" }, 200);
   network.rpc = () => json({ ok: true }, 200);
+  network.profile = () => json({ account_status: "active" }, 200);
   vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     if (url.includes("/auth/v1/user")) return network.auth();
     if (url.includes("/rest/v1/rpc/")) return network.rpc();
+    if (url.includes("/rest/v1/profiles")) return network.profile();
     throw new Error(`unexpected call ${url}`);
   });
 });
@@ -226,5 +230,37 @@ describe("INC-578 — a door's own words never travel raw", () => {
       ok: false,
       refusals: [{ field: "door", reason: "doorError" }],
     });
+  });
+
+  /**
+   * Bundle 16 turn S3 (D189) — a deactivated account is refused at every route:
+   * the caller check reads the bearer's own profile row; "deactivated" is 403,
+   * a status it could not read is an upstream failure (503), never an open door.
+   */
+  it("UP-7 a deactivated bearer is refused at the caller check (403); an unreadable status is upstream (503)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    network.profile = () => json({ account_status: "deactivated" }, 200);
+    const deactivated = await userClientFromRequest(signedRequest("/api/listings/draft", {}));
+    expect(deactivated.reason).toBe("deactivated");
+    expect(deactivated.userId).toBeNull();
+    const refused = refuseUserClient("/api/listings/draft", deactivated);
+    expect(refused?.status).toBe(403);
+    expect(await refused?.json()).toEqual({ error: "account is deactivated" });
+
+    const handlers = (DraftRoute.options as unknown as PostHandlers).server.handlers;
+    const viaRoute = await handlers.POST({
+      request: signedRequest("/api/listings/draft", { step: 1 }),
+    });
+    expect(viaRoute.status).toBe(403);
+
+    network.profile = () => page(502);
+    const unreadable = await userClientFromRequest(signedRequest("/api/listings/draft", {}));
+    expect(unreadable.reason).toBe("upstream");
+    expect(refuseUserClient("/api/listings/draft", unreadable)?.status).toBe(503);
+
+    network.profile = () => json({ account_status: "active" }, 200);
+    const active = await userClientFromRequest(signedRequest("/api/listings/draft", {}));
+    expect(active.reason).toBeNull();
+    expect(active.userId).toBe(USER_ID);
   });
 });

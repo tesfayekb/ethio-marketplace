@@ -35,7 +35,13 @@ import { errorText, errorWithStack, HTML_PAGE } from "@/lib/error-text";
  * gateway status, an error page), so the bearer was never judged. It is not
  * "not signed in": the route answers 503 and the client tries again.
  */
-export type UserClientRefusal = "missingBearer" | "serverEnv" | "notSignedIn" | "upstream";
+export type UserClientRefusal =
+  | "missingBearer"
+  | "serverEnv"
+  | "notSignedIn"
+  | "upstream"
+  /** Bundle 16 turn S3 (D189) — the bearer is a deactivated account: refused at every route. */
+  | "deactivated";
 
 export interface UserClientAnswer {
   /** The caller-context client, or null when a step before it refused. */
@@ -90,6 +96,29 @@ export async function userClientFromRequest(request: Request): Promise<UserClien
       reason: "notSignedIn",
       message: error?.message ?? "no user for this bearer",
     };
+  }
+
+  /**
+   * Bundle 16 turn S3 (D189) — A DEACTIVATED ACCOUNT IS REFUSED AT EVERY ROUTE.
+   * The caller's own profile row is read as the caller (its owner policy): a
+   * deactivated status is a refusal before any route work; a read that fails is
+   * `upstream` (the route never opens on a status it could not read — F4).
+   */
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("account_status")
+    .eq("user_id", data.user.id)
+    .maybeSingle();
+  if (profileError) {
+    return {
+      supabase,
+      userId: null,
+      reason: "upstream",
+      message: `account status unavailable (${profileError.message})`,
+    };
+  }
+  if (profile?.account_status === "deactivated") {
+    return { supabase, userId: null, reason: "deactivated", message: "" };
   }
 
   return { supabase, userId: data.user.id, reason: null, message: "" };
@@ -165,6 +194,8 @@ export function refuseUserClient(path: string, answer: UserClientAnswer): Respon
     console.error("[ssr-error]", path, errorText(answer.message));
     return routeJson({ error: "upstream unavailable" }, 503);
   }
+  // Turn S3 — a deactivated account: refused, not "not signed in"; nothing is logged (no incident, no secret).
+  if (answer.reason === "deactivated") return routeJson({ error: "account is deactivated" }, 403);
   if (answer.reason === "notSignedIn" && answer.message !== "") {
     console.error(`[ssr-error] ${path} not signed in ${errorText(answer.message)}`);
   }

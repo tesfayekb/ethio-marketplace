@@ -32,6 +32,30 @@ Seam enforcement — the write seams refuse a deactivated caller with
 No other user-write RPC exists today; `confirm_home_country` and the profile
 self-update path are identity, not content, and are intentionally untouched.
 
+**Bundle 16 turn S3 (D189, 2026-10-15) — refused at every door and signed out.**
+The seam moved to the two gates every door passes through, so no new door can
+forget it:
+
+- `rate_gate(action)` — every seller door (drafts, identity, revisions, the
+  posting reads) calls it first; a deactivated caller is refused with
+  `account is deactivated` before anything is counted. A door with its own check
+  keeps it.
+- `has_permission(user, resource, action)` — a deactivated account holds no
+  permission: every staff door and every policy that asks it answer false (a
+  super admin cannot be deactivated — `profiles_status_guard`).
+- The API routes' caller check (`userClientFromRequest`) reads the bearer's own
+  `account_status` after the bearer is verified: a deactivated account is 403
+  `account is deactivated` on every route; a status it could not read is 503,
+  never an open door (F4).
+- The session: `useAuth` reads `account_status` with the display name at every
+  auth event (the first load, a sign-in, a token refresh) and signs a
+  deactivated account out; the shell sends it to `/auth?reason=deactivated`,
+  where the sign-in page says so (`auth-deactivated`, `auth.deactivated`). A
+  session deactivated while open ends at its next token refresh or reload;
+  reads of the person's own rows answer until then (the doors refuse at once).
+- Tests: UP-7, DA-1…DA-3; E2E AU-3 and AU-5 (changed: the deactivated account
+  no longer reaches its settings page — it is signed out), AU-14, PR-51, SO-8.
+
 Staff RPCs (all `SECURITY DEFINER`, `REVOKE ALL … FROM PUBLIC, anon` +
 `GRANT EXECUTE … TO authenticated`, each with its own `has_permission` gate):
 
