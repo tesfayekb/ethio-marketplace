@@ -2,10 +2,12 @@ import { CutText } from "@/components/ui/cut-text";
 import { MapPin } from "lucide-react";
 
 import type { FeedListing } from "@/features/feed/use-feed";
+import { ribbonOf } from "@/features/feed/feed-page";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
+import { fill } from "@/features/posting/refusal-text";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 
@@ -50,6 +52,32 @@ export function ListingCard({
     t("price.contact"),
     language,
   );
+  /**
+   * Bundle 16 turn 3c (D173, D175 1, D180) — the ribbon: Sold (Rented, Filled), else Reserved, else Price reduced;
+   * while "Price reduced" stands (14 days, D173 2) on a live ad, the old price is struck through before the price.
+   */
+  const ribbonKey = ribbonOf({
+    soldWord: listing.soldWord,
+    closed: false,
+    reserved: listing.reserved,
+    priceReduced: listing.priceWas !== null,
+  })[0];
+  const wasPrice =
+    listing.soldWord !== null || listing.priceWas === null
+      ? null
+      : priceLine(
+          {
+            mode: listing.priceMode,
+            amount: listing.priceWas,
+            currency: listing.priceCurrency,
+            period: listing.pricePeriod,
+            bp: listing.priceBp,
+            unit: storedUnitNoun(listing.priceUnit, listing.priceUnitText, unitLabels, language),
+          },
+          t,
+          t("price.contact"),
+          language,
+        );
   // U4d: one resolver for every entity name — DB[lang] ▸ name_am ▸ name_en.
   const locationName =
     listing.locationId === null
@@ -112,6 +140,7 @@ export function ListingCard({
           photoUrl={photoUrl}
           categoryUrl={nearestCategoryPicture(tree, listing.categoryId)}
           photosSoon={listing.photosSoon}
+          ribbon={ribbonKey === undefined ? null : t(ribbonKey)}
           boxTestId="listing-card-picture"
           rounded=""
           fill
@@ -126,6 +155,15 @@ export function ListingCard({
         </h3>
 
         <p className="flex min-h-[3.625rem] flex-wrap content-start items-center gap-x-1 gap-y-0.5 text-xs font-semibold leading-4 text-foreground @min-[11rem]:min-h-[2.75rem] @min-[11rem]:gap-x-2 @min-[11rem]:text-sm @min-[11rem]:leading-5">
+          {wasPrice !== null ? (
+            <span
+              data-testid="listing-card-price-was"
+              className="font-normal text-muted-foreground"
+            >
+              <s aria-hidden="true">{wasPrice}</s>
+              <span className="sr-only">{fill(t("feed.priceWas"), { price: wasPrice })}</span>
+            </span>
+          ) : null}
           <span data-testid="listing-card-price" data-period={listing.pricePeriod}>
             {cardPrice}
           </span>

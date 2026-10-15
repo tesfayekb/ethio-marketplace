@@ -9,7 +9,7 @@ check_seller_alias | seller-only check of a wanted name; keyed by auth.uid(), wr
 suggest_seller_aliases | seller-only; returns three free names, rate-gated alias_check (M2)
 my_seller_line | owner-only read keyed by auth.uid() (M2)
 change_home_country | seller-only confirmed-country change; keyed by auth.uid(), 30-day stamp, audited, rate-gated identity (M4)
-listings | M5 column grants: price_unit, price_unit_text and photos_soon are the public card's unit and ribbon fields; attested_at gets none (bundle 4 steps 10, 15, 19)
+listings | M5 column grants: price_unit, price_unit_text and photos_soon are the public card's unit and ribbon fields; attested_at gets none (bundle 4 steps 10, 15, 19); bundle 16 turn 3c: sold_at, which the public reads of a sold ad's row, photos and places need for its 30 days (D175 1)
 price_unit_labels | unit words only ({token: {en, am}} for basis options); the catalogue stays closed (M5, INC-397)
 set_listing_photos_soon | owner-only door on auth.uid(); rate-gated draft; writes one revision (M5)
 save_seller_place | restated grant (not a new surface); caller-only own-listing place, position-ordered fallback, draft rate gate (M10)
@@ -45,7 +45,7 @@ admin_merge_attributes | restated grant (not a new surface) (M11)
 admin_preview_attribute_import | restated grant (not a new surface) (M11)
 admin_delete_category | restated grant (not a new surface) (M11)
 admin_list_category_pointers | restated grant (not a new surface) (M11)
-feed_page | the public feed's read door (bundle 10 E2b): card fields of active listings only, no seller; reads feed_index as its owner
+feed_page | the public feed's read door (bundle 10 E2b): card fields of live listings and of sold ones for 30 days (bundle 16 turn 3c, D175 1), no seller; reads feed_index as its owner
 user_set_viewing_location | D106: the browsing place on the caller's own account; keyed by auth.uid(), rate-gated viewing_place, refuses a place outside an open market's visible tree
 my_viewing_location | D106: owner-only read keyed by auth.uid(); the place, its market, when it was picked, whether it is still visible
 admin_screening_facts | bundle 11 A1 (D120): listings:review only; an ad waiting for review — its country, which contact methods are shown (true/false, never a value) and the seller's public name

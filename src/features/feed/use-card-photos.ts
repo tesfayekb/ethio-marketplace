@@ -9,9 +9,10 @@ import {
 
 /**
  * INC-606 — THE LISTING CARDS' PHOTOS. Each card of the feed names its cover
- * photo (`coverPhotoId`, an active listing's first stripped photo); this asks
+ * photo (`coverPhotoId`, a shown listing's first stripped photo — a live one, or a
+ * sold one for its 30 days, bundle 16 turn 3c); this asks
  * /api/media/photo-links for the card and thumb sizes only, without a session
- * (the route reads the rows as the anonymous role, so only an active listing's
+ * (the route reads the rows as the anonymous role, so only a shown listing's
  * stripped photos are signed), in groups of 20 in the feed's order — a new page
  * of cards adds a group and never re-asks the earlier ones. Links last an hour
  * and are kept 45 minutes. No link (not loaded, refused, failed) is null: the

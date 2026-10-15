@@ -13,7 +13,8 @@ import { readLinks, type Partition } from "./storage";
  * rows first, so `listing_photos`' policies decide whose rows come back — the
  * seller's own (`listing_photos_seller_read`), staff who may view listings
  * (`listing_photos_admin_read`), and anyone for an active listing's stripped
- * photos (`listing_photos_public_read`) — and only then does the service
+ * photos, and a sold one's for 30 days after it sold (`listing_photos_public_read`,
+ * bundle 16 turn 3c) — and only then does the service
  * client sign the keys of the rows that came back. Nobody is shown a photo
  * they could not already read; only stripped rows are signed, as the
  * bucket's own public rule requires.

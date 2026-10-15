@@ -32,7 +32,45 @@ const TAPE_INSET_Y = `${(TAPE_REACH * Math.sin(TAPE_RAD)).toFixed(2)}cqw`;
  * it, so nothing runs past the picture.
  * It takes the design system's primary button colours (bg-primary with
  * text-primary-foreground), a clean band with no stripes.
+ *
+ * D180 (the operator's walk of bundle 16, 2026-10-14) — an ad's status is a RIBBON in the site's second colour
+ * (the gold): Sold, Rented or Filled, No longer available, Reserved or Price reduced — one word, the most important
+ * first (src/features/feed/feed-page.ts, `ribbonOf`). It takes the photos-soon band's corner and replaces it, so a
+ * picture never carries two.
  */
+export function ListingRibbon({ text }: { text: string }) {
+  return (
+    <div
+      data-testid="listing-ribbon"
+      aria-hidden="true"
+      className="@container pointer-events-none absolute inset-0 overflow-hidden"
+    >
+      <div
+        className="absolute bg-gold font-bold uppercase text-gold-foreground shadow-sm"
+        style={{
+          width: "84cqw",
+          left: `calc(100% - ${TAPE_INSET_X})`,
+          top: `calc(100% - ${TAPE_INSET_Y})`,
+          // D122 — the ribbon and the watermark share one angle.
+          transform: `translate(-50%, -50%) rotate(${WATERMARK_ANGLE}deg)`,
+        }}
+      >
+        <span
+          data-testid="listing-ribbon-text"
+          className="block text-center leading-none whitespace-nowrap"
+          style={{
+            fontSize: "clamp(9px, 6cqw, 22px)",
+            letterSpacing: "0.06em",
+            padding: "1.6cqw 0",
+          }}
+        >
+          {text}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function ListingPicture({
   photoUrl,
   categoryUrl,
@@ -43,6 +81,7 @@ export function ListingPicture({
   dimCategory = false,
   rounded = "rounded-md",
   fill = false,
+  ribbon = null,
 }: {
   photoUrl: string | null;
   categoryUrl: string | null;
@@ -60,10 +99,12 @@ export function ListingPicture({
   rounded?: string;
   /** A card fills its column; elsewhere the box is capped at 320 px. */
   fill?: boolean;
+  /** D180 — the ad's status word, drawn as the gold ribbon; null when it has none. */
+  ribbon?: string | null;
 }) {
   const { t } = useI18n();
   const source = photoUrl ?? categoryUrl;
-  const showRibbon = photosSoon && !(hasPhoto ?? photoUrl !== null);
+  const showRibbon = ribbon === null && photosSoon && !(hasPhoto ?? photoUrl !== null);
   /** The drawn picture's own ratio; 4:3 until the image says otherwise. */
   const [ratio, setRatio] = useState(4 / 3);
   return (
@@ -131,8 +172,10 @@ export function ListingPicture({
             </div>
           </div>
         )}
+        {ribbon !== null && <ListingRibbon text={ribbon} />}
       </div>
       {showRibbon && <span className="sr-only">{t("listing.photosSoon")}</span>}
+      {ribbon !== null && <span className="sr-only">{ribbon}</span>}
     </div>
   );
 }

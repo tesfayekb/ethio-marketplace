@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -27,6 +27,7 @@ import {
   readSellerLine,
   type AttrDef,
 } from "@/features/posting/posting-service";
+import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { fill } from "@/features/posting/refusal-text";
@@ -52,7 +53,7 @@ import {
   type MyListing,
 } from "./my-listing";
 import { GROUP_LABEL } from "./my-listings";
-import { REASON_WORD, SOLD_ON, stateLine } from "./state-line";
+import { REASON_WORD, SOLD_ON, stateLine, visibilityOf } from "./state-line";
 
 /**
  * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS (/my-listings/<id>; D138; D173–D176;
@@ -109,7 +110,7 @@ function Mark({ testid, children }: { testid: string; children: ReactNode }) {
   return (
     <span
       data-testid={testid}
-      className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-foreground"
+      className="inline-flex items-center rounded-full bg-gold px-2 py-0.5 text-xs font-semibold text-gold-foreground"
     >
       {children}
     </span>
@@ -257,6 +258,16 @@ export function MyListingPage({ listingId }: { listingId: string }) {
 
   const actions = actionsFor(ad);
   const live = row.status === "active" || row.status === "reduced";
+  // D180 — the marks, the picture's ribbon (the first mark) and what buyers see of the ad.
+  const sold = row.status === "sold";
+  const reduced = row.priceWas !== null && !sold;
+  const ribbonKey = ribbonOf({
+    soldWord: sold ? row.soldWord : null,
+    closed: row.status === "closed",
+    reserved: row.reserved,
+    priceReduced: reduced,
+  })[0];
+  const seen = visibilityOf(row);
 
   // Why an action is not there: an ad in review waits for its answer (call G); renewing may be switched off.
   const info =
@@ -313,15 +324,39 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               >
                 {t(GROUP_LABEL[ad.group])}
               </span>
+              {sold ? (
+                <Mark testid="my-listing-sold-mark">{t(SOLD_RIBBON[row.soldWord])}</Mark>
+              ) : null}
+              {row.status === "closed" ? (
+                <Mark testid="my-listing-closed-mark">{t("feed.ribbon.closed")}</Mark>
+              ) : null}
               {row.reserved ? (
                 <Mark testid="my-listing-reserved">{t("myListings.reserved")}</Mark>
               ) : null}
-              {row.priceWas !== null ? (
+              {reduced ? (
                 <Mark testid="my-listing-price-reduced">{t("myListings.priceReduced")}</Mark>
               ) : null}
             </div>
             <p data-testid="my-listing-state" className="text-sm text-muted-foreground">
               {stateLine(row, t, day)}
+            </p>
+            <p
+              data-testid="my-listing-visibility"
+              data-visible={seen}
+              className="flex items-start gap-1.5 text-sm font-medium text-foreground"
+            >
+              {seen === "hidden" ? (
+                <EyeOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              ) : (
+                <Eye className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              )}
+              <span>
+                {seen === "seen"
+                  ? t("myListings.ad.seen")
+                  : seen === "soldSeen"
+                    ? fill(t("myListings.ad.soldSeen"), { word: t(SOLD_RIBBON[row.soldWord]) })
+                    : t("myListings.ad.hidden")}
+              </span>
             </p>
             <ul className="space-y-0.5 text-sm text-muted-foreground">
               {row.publishedFirstAt !== null ? (
@@ -445,6 +480,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                 categoryId === null ? null : nearestCategoryPicture(tree, categoryId)
               }
               photosSoon={draft.draft.photosSoon}
+              ribbon={ribbonKey === undefined ? null : t(ribbonKey)}
               coverage={draft.coverage}
               country={ad.countryCode}
               contactPref={draft.draft.contactPref}

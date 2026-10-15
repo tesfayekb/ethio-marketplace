@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 442,
-  "dynamicCallSites": 307,
+  "dynamicCallSites": 312,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3974,6 +3974,21 @@
       "/post",
       "/post/$listingId"
     ],
+    "feed.priceWas": [
+      "/",
+      "/admin/impersonation/$sessionId",
+      "/admin/listings/$listingId",
+      "/admin/screening",
+      "/c/$slug",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/post",
+      "/post/$listingId"
+    ],
+    "feed.ribbon.closed": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
     "footer.rights": [
       "(every page)"
     ],
@@ -4286,6 +4301,9 @@
     "myListings.ad.firstPosted": [
       "/my-listings/$listingId"
     ],
+    "myListings.ad.hidden": [
+      "/my-listings/$listingId"
+    ],
     "myListings.ad.loadError": [
       "/my-listings/$listingId"
     ],
@@ -4296,6 +4314,12 @@
       "/my-listings/$listingId"
     ],
     "myListings.ad.renewed": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.seen": [
+      "/my-listings/$listingId"
+    ],
+    "myListings.ad.soldSeen": [
       "/my-listings/$listingId"
     ],
     "myListings.ad.waiting": [

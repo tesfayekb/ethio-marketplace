@@ -6,6 +6,7 @@ import {
   inviteShown,
   placeCount,
   parseFeedPage,
+  ribbonOf,
   type FeedListing,
 } from "./feed-page";
 
@@ -24,6 +25,9 @@ function card(id: string, step: number, extra: Record<string, unknown> = {}) {
     priceUnitText: null,
     photosSoon: false,
     coverPhotoId: null,
+    soldWord: null,
+    reserved: false,
+    priceWas: null,
     publishedAt: "2026-10-09T00:00:00+00:00",
     categoryId: "c1",
     locationId: "p1",
@@ -57,6 +61,43 @@ describe("parseFeedPage", () => {
     const { coverPhotoId: _absent, ...bare } = card("c", 1);
     expect(parseFeedPage(page([bare]))?.cards[0]?.coverPhotoId).toBeNull();
     expect(parseFeedPage(page([card("d", 1, { coverPhotoId: 7 })]))).toBeNull();
+  });
+
+  it("FP-12 keeps a card's marks, reads a card without them as a live ad with none, and refuses a wrong one (bundle 16 turn 3c)", () => {
+    const parsed = parseFeedPage(
+      page([
+        card("a", 1, { soldWord: "rented" }),
+        card("b", 1, { reserved: true, priceWas: 1200 }),
+      ]),
+    );
+    expect(parsed?.cards.map((one) => [one.soldWord, one.reserved, one.priceWas])).toEqual([
+      ["rented", false, null],
+      [null, true, 1200],
+    ]);
+    // A page cached from before the marks answers without them: a live ad with no mark, not a failure.
+    const { soldWord: _s, reserved: _r, priceWas: _p, ...bare } = card("c", 1);
+    expect(parseFeedPage(page([bare]))?.cards[0]).toMatchObject({
+      soldWord: null,
+      reserved: false,
+      priceWas: null,
+    });
+    expect(parseFeedPage(page([card("d", 1, { soldWord: "gone" })]))).toBeNull();
+    expect(parseFeedPage(page([card("e", 1, { reserved: "yes" })]))).toBeNull();
+    expect(parseFeedPage(page([card("f", 1, { priceWas: "900" })]))).toBeNull();
+  });
+
+  it("FP-13 the ribbon's words, the most important first: Sold alone, then closed, Reserved, Price reduced (D180)", () => {
+    const none = { soldWord: null, closed: false, reserved: false, priceReduced: false } as const;
+    expect(ribbonOf(none)).toEqual([]);
+    expect(ribbonOf({ ...none, soldWord: "filled", reserved: true, priceReduced: true })).toEqual([
+      "feed.ribbon.filled",
+    ]);
+    expect(ribbonOf({ ...none, closed: true, reserved: true, priceReduced: true })).toEqual([
+      "feed.ribbon.closed",
+      "feed.reserved",
+      "feed.priceReduced",
+    ]);
+    expect(ribbonOf({ ...none, priceReduced: true })).toEqual(["feed.priceReduced"]);
   });
 
   it("FP-2 refuses a page without cards, or with an empty ladder", () => {

@@ -94,6 +94,8 @@ export interface ListingDetailView {
   photosSoon?: boolean;
   /** D158 — staff's preview (Admin › Screening) marks a photo held while photo screening was off. */
   markUnscreened?: boolean;
+  /** D180 — the ad's status word as the gold ribbon on its picture (the seller's ad page); absent elsewhere. */
+  ribbon?: string | null;
   coverage: string[];
   country: string | null;
   contactPref: Record<string, unknown>;
@@ -201,12 +203,17 @@ export function ListingDetail(view: ListingDetailView) {
     <article className="space-y-4" data-testid="listing-detail">
       {/* ------------------------------ the gallery ------------------------- */}
       {images.length > 0 ? (
-        <PhotoGallery photos={images} markUnscreened={view.markUnscreened === true} />
+        <PhotoGallery
+          photos={images}
+          markUnscreened={view.markUnscreened === true}
+          ribbon={view.ribbon ?? null}
+        />
       ) : (
         <ListingPicture
           photoUrl={null}
           categoryUrl={view.illustrationUrl}
           photosSoon={view.photosSoon === true}
+          ribbon={view.ribbon ?? null}
           boxTestId={
             view.illustrationUrl !== null ? "listing-detail-illustration" : "listing-detail-nophoto"
           }
