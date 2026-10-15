@@ -1444,31 +1444,45 @@ test.describe("POSTING WIZARD", () => {
     const bearer = await bearerOf(page);
     const ceiling = 60;
 
-    // INC-617 — the geocode dial counts in clock-hour windows: the 62 calls are
-    // made in one.
-    await inOneWindow(3600, 60_000, "PW-41");
-    let refusedAt = 0;
-    let refusal: { field: string; reason: string } | null = null;
-    for (let attempt = 1; attempt <= ceiling + 2; attempt += 1) {
-      // A DISTINCT QUERY EVERY TIME, so the cache can never stand in for the dial.
-      const response = await page.request.get(
-        `/api/geo/search?q=${encodeURIComponent(`bole-${user.id.slice(0, 8)}-${attempt}`)}`,
-        { headers: { Authorization: `Bearer ${bearer}` } },
-      );
-      expect(response.status(), `PW-41: call ${attempt} was not answered`).toBe(200);
-      const payload = (await response.json()) as Record<string, unknown>;
-      if (payload["ok"] !== true) {
-        refusedAt = attempt;
-        refusal = reasonsOf(payload)[0] ?? null;
-        break;
-      }
+    // INC-617 / INC-636 — the geocode dial counts in clock-hour windows. The
+    // counter is set to the ceiling less one through the service client (G29),
+    // and only the last two calls go through the route.
+    await inOneWindow(3600, 20_000, "PW-41");
+    const service = adminClient();
+    try {
+      const windowStart = new Date(Math.floor(Date.now() / 3_600_000) * 3_600_000).toISOString();
+      const filled = await service
+        .from("rate_limits")
+        .upsert(
+          { key: user.id, action: "geocode", window_start: windowStart, count: ceiling - 1 },
+          { onConflict: "key,action,window_start" },
+        );
+      if (filled.error)
+        throw new Error(`[e2e:pw41] counter upsert failed: ${filled.error.message}`);
+      const call = async (attempt: number) => {
+        // A DISTINCT QUERY EVERY TIME, so the cache can never stand in for the dial.
+        const response = await page.request.get(
+          `/api/geo/search?q=${encodeURIComponent(`bole-${user.id.slice(0, 8)}-${attempt}`)}`,
+          { headers: { Authorization: `Bearer ${bearer}` } },
+        );
+        expect(response.status(), `PW-41: call ${attempt} was not answered`).toBe(200);
+        return (await response.json()) as Record<string, unknown>;
+      };
+      const last = await call(ceiling);
+      expect(last["ok"], `PW-41: call ${ceiling} (the last allowed) was refused`).toBe(true);
+      const past = await call(ceiling + 1);
+      expect(past["ok"], `PW-41: call ${ceiling + 1} was not refused`).not.toBe(true);
+      const refusal = reasonsOf(past)[0] ?? null;
+      expect(refusal?.field, "PW-41: the refusal named another field").toBe("geocode");
+      expect(refusal?.reason, "PW-41: the refusal used another word").toBe("rateLimited");
+    } finally {
+      const cleared = await service
+        .from("rate_limits")
+        .delete()
+        .eq("key", user.id)
+        .eq("action", "geocode");
+      expect(cleared.error, "PW-41 counter cleanup").toBeNull();
     }
-
-    expect(refusedAt, `PW-41: the dial never closed within ${ceiling + 2} calls`).toBeGreaterThan(
-      ceiling - 1,
-    );
-    expect(refusal?.field, "PW-41: the refusal named another field").toBe("geocode");
-    expect(refusal?.reason, "PW-41: the refusal used another word").toBe("rateLimited");
   });
   /**
    * DEC-085 — KNOWN PRODUCTS ASK ONLY WHAT VARIES. brand → series → model; the

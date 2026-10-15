@@ -71,6 +71,7 @@ export const am: Messages = {
   "auth.errorWeakPassword": "ረዘም ያለና ጠንካራ የይለፍ ቃል ይምረጡ።",
   "auth.errorLeakedPassword": "ይህ የይለፍ ቃል ሾልከው ከወጡ የይለፍ ቃሎች መካከል ነው። ሌላ ይምረጡ።",
   "auth.errorInvalidEmail": "ትክክለኛ ኢሜይል አድራሻ ያስገቡ።",
+  "auth.errorDisposableEmail": "ይህ የኢሜይል አገልግሎት ጊዜያዊ አድራሻዎችን ይሰጣል። እባክዎ በቋሚ ኢሜይል አድራሻዎ ይመዝገቡ።",
   "auth.errorRateLimited": "ብዙ ሙከራዎች ተደርገዋል። ትንሽ ቆይተው እንደገና ይሞክሩ።",
   "auth.errorMissingFields": "ኢሜይልዎንና የይለፍ ቃልዎን ያስገቡ።",
   "auth.errorGeneric": "የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።",
@@ -2318,6 +2319,8 @@ export const am: Messages = {
   "post.photo.refusal.screeningPaused":
     "የፎቶ ምርመራ ለጊዜው ቆሟል፤ ስለዚህ ይህ ማስታወቂያ አሁን አዲስ ፎቶ መቀበል አይችልም። እባክዎ ቆይተው እንደገና ይሞክሩ።",
   "post.photo.refusal.photoGone": "ይህ ፎቶ ከአሁን በኋላ በማስታወቂያው ላይ የለም።",
+  "post.photo.refusal.publishFirst":
+    "ማስታወቂያ ሳያወጡ ብዙ ፎቶዎችን አክለዋል። ተጨማሪ ፎቶ ለማከል ከማስታወቂያዎችዎ አንዱን ያውጡ።",
   "post.photo.refusal.unsupportedFormat": "JPEG፣ PNG እና WebP ፎቶዎች ብቻ ይቀበላሉ።",
   "post.photo.refusal.corruptImage": "ይህ ፋይል ተበላሽቷል መነበብም አልቻለም።",
   "post.photo.refusal.tooLarge": "ይህ ፎቶ በጣም ትልቅ ነው።",

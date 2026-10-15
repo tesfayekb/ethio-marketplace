@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { testEmail } from "./global-setup";
 import { fillUntilStable, waitForHydration } from "./helpers/ui";
+import { adminClient } from "./helpers/users";
 
 const RUN_ID = process.env["GITHUB_RUN_ID"] ?? "local";
 
@@ -182,4 +183,55 @@ test("SU-1 sign-up asks for the password twice, and a mismatch sends nothing", a
   await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
   await expect(page.getByRole("alert")).toHaveText(en["auth.errorPasswordMismatch"]);
   expect(signups, "SU-1 a mismatch sent a sign-up request").toEqual([]);
+});
+
+/**
+ * D185 — a sign-up at a throwaway mail service is refused by the server's
+ * Before User Created hook, shown in words, and no account is made.
+ */
+test("SU-2 a throwaway mail address is refused at sign-up, in words, and no account is made (D185)", async ({
+  page,
+}) => {
+  const email = `e2e-su2-${RUN_ID}-${Date.now().toString(36)}@mailinator.com`;
+  const password = "Pw-192-aX9!qmzT";
+  await page.goto("/auth");
+  await waitForHydration(page);
+  await page.getByTestId("auth-toggle-view").click();
+  await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
+  await fillUntilStable(page.locator("#auth-password"), password, "password");
+  await fillUntilStable(page.locator("#auth-password-confirm"), password, "password confirmation");
+  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
+
+  const heading = page.getByRole("heading", { name: en["auth.checkEmail"] });
+  const outcome = await expect
+    .poll(
+      async () => {
+        if (await heading.count()) {
+          return "SU-2: the Before User Created hook is not switched on in ethio-staging";
+        }
+        if (await page.getByText(en["auth.errorDisposableEmail"]).count()) return "refused";
+        return "pending";
+      },
+      { timeout: 15000, message: "SU-2: the sign-up showed neither the refusal nor check-email" },
+    )
+    .not.toBe("pending")
+    .then(async () =>
+      (await heading.count())
+        ? "SU-2: the Before User Created hook is not switched on in ethio-staging"
+        : "refused",
+    );
+  expect(outcome, outcome).toBe("refused");
+  await expect(page.getByText(en["auth.errorDisposableEmail"])).toBeVisible();
+
+  const found: string[] = [];
+  for (let pageNo = 1; pageNo <= 20; pageNo += 1) {
+    const { data, error } = await adminClient().auth.admin.listUsers({
+      page: pageNo,
+      perPage: 1000,
+    });
+    if (error) throw new Error(`[e2e:su2] listing users failed: ${error.message}`);
+    found.push(...data.users.filter((u) => u.email?.toLowerCase() === email).map((u) => u.id));
+    if (data.users.length < 1000) break;
+  }
+  expect(found, "SU-2: an account was made for a throwaway address").toEqual([]);
 });

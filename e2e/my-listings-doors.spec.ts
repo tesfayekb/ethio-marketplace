@@ -1017,14 +1017,23 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       [Q, { title: `E2E new words ${token()}` }, "not your listing"],
       [X, { title: X.title }, "nothing changed"],
     ];
+    // INC-634 — every ad's snapshot and revision count read once before the
+    // ten calls and once after them.
+    const ads = [X, D, S, E, O, G, Q];
+    const truth = async () =>
+      Promise.all(
+        ads.map(async (ad) => ({
+          id: ad.id,
+          snapshot: await snapshot(ad.id),
+          revisions: await revisionCount(ad.id),
+        })),
+      );
+    const beforeAll = await truth();
     for (const [ad, changes, message] of cases) {
-      const before = await snapshot(ad.id);
-      const count = await revisionCount(ad.id);
       const refused = await me.rpc("edit_my_listing", { p_listing_id: ad.id, p_changes: changes });
       expect(refused.error, `ML-12 ${message}`).toBe(message);
-      expect(await snapshot(ad.id)).toEqual(before);
-      expect(await revisionCount(ad.id)).toBe(count);
     }
+    expect(await truth()).toEqual(beforeAll);
 
     const before = await snapshot(X.id);
     const count = await revisionCount(X.id);
@@ -1064,6 +1073,14 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const R = await seed(a, "rejected");
     const Q = await seed(b);
     const me = await asPerson(a);
+    // INC-634 — a seller who copies an ad has posted before: the draft route has
+    // set the residency fact (DEC-068) that the pool reset clears.
+    const resident = await adminClient()
+      .from("user_directory")
+      .update({ observed_country_code: "ET", observed_at: new Date().toISOString() })
+      .eq("user_id", a.id);
+    if (resident.error)
+      throw new Error(`[e2e:ml] residency seed failed: ${resident.error.message}`);
 
     const copied = await me.rpc("copy_my_listing", { p_listing_id: X.id });
     expect(copied.error).toBeNull();
@@ -1105,7 +1122,8 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       .eq("user_id", a.id)
       .single();
     if (dirError || !dir) throw new Error(`[e2e:ml] directory read failed: ${dirError?.message}`);
-    expect(n["home_country_code"]).toBe(dir.observed_country_code);
+    expect(dir.observed_country_code).toBe("ET");
+    expect(n["home_country_code"]).toBe("ET");
 
     const places = async (id: string) => {
       const { data, error } = await service

@@ -5,6 +5,7 @@ import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { inOneWindow } from "./helpers/rate-window";
+import { purgeListingObjects, reasons, uploadPhoto } from "./helpers/photos";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   leaseSeller,
@@ -1315,6 +1316,68 @@ test.describe("POSTING ROUTES", () => {
         .eq("key", user.id)
         .in("action", ["photo-remove", "photo-remove:day"]);
       expect(removed.error, "PR-49 cleanup").toBeNull();
+    }
+  });
+
+  test("PR-50 photos on drafts stop past 50 in 7 days with no ad submitted, and come back once one is (D185)", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const admin = adminClient();
+    await destroyListingsOf(user.id);
+    const cat = await category();
+    const draft = await postRoute(
+      page,
+      DRAFT,
+      { step: 1, categoryId: cat.id },
+      { token, country: "ET" },
+    );
+    const listingId = String(draft.payload["listing_id"] ?? "");
+    expect(listingId, "PR-50: the draft door made no listing").not.toBe("");
+    await inOneWindow(604800, 20_000, "PR-50");
+    try {
+      const windowStart = new Date(
+        Math.floor(Date.now() / 604_800_000) * 604_800_000,
+      ).toISOString();
+      const filled = await admin
+        .from("rate_limits")
+        .upsert(
+          { key: user.id, action: "upload:draft-week", window_start: windowStart, count: 50 },
+          { onConflict: "key,action,window_start" },
+        );
+      expect(filled.error, "PR-50: the week's counter could not be set").toBeNull();
+
+      const stopped = await uploadPhoto(page, { listingId, token, cover: { name: "gps.jpg" } });
+      expect(reasons(stopped.payload), JSON.stringify(stopped.payload)).toContainEqual({
+        field: "photos",
+        reason: "publishFirst",
+      });
+
+      const submitted = await admin.from("listings").insert({
+        seller_id: user.id,
+        category_id: cat.id,
+        title: `e2e pr50 ${rand()}`,
+        description: "e2e pr50 submitted ad",
+        home_country_code: "ET",
+        status: "screening",
+        published_first_at: new Date().toISOString(),
+      });
+      expect(submitted.error, "PR-50: the submitted ad could not be seeded").toBeNull();
+
+      const stored = await uploadPhoto(page, { listingId, token, cover: { name: "gps.jpg" } });
+      expect(
+        reasons(stored.payload).map((entry) => entry.reason),
+        JSON.stringify(stored.payload),
+      ).not.toContain("publishFirst");
+    } finally {
+      const cleared = await admin
+        .from("rate_limits")
+        .delete()
+        .eq("key", user.id)
+        .eq("action", "upload:draft-week");
+      expect(cleared.error, "PR-50 counter cleanup").toBeNull();
+      await purgeListingObjects(user.id, listingId);
+      await destroyListingsOf(user.id);
     }
   });
 });
