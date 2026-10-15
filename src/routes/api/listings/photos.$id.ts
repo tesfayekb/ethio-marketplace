@@ -3,6 +3,8 @@ import { doorRefusal } from "@/features/posting/door-error";
 
 import { deleteObject, objectRefsOf } from "@/server/media/storage";
 import {
+  consumeRate,
+  envDial,
   logRouteError,
   readJsonBody,
   refusal,
@@ -56,6 +58,25 @@ async function handleDelete(request: Request, photoId: string): Promise<Response
   const refused = refuseUserClient(PATH, caller);
   if (refused !== null) return refused;
   const supabase = caller.supabase!;
+  const userId = caller.userId!;
+
+  // Bundle 16 turn S1 (the operator, 2026-10-15) — removals have their own limit per
+  // seller across every ad, an hour and a day, as uploads do: an add-and-remove loop
+  // is bounded on both sides.
+  const rate = await consumeRate(
+    "photo-remove",
+    userId,
+    envDial("RATE_LIMIT_PHOTO_REMOVE_PER_HOUR", 30),
+    "1 hour",
+  );
+  if (!rate.allowed) return refusal("photos", "rateLimited", rate.resetsAt ?? undefined);
+  const daily = await consumeRate(
+    "photo-remove:day",
+    userId,
+    envDial("RATE_LIMIT_PHOTO_REMOVE_PER_DAY", 100),
+    "1 day",
+  );
+  if (!daily.allowed) return refusal("photos", "rateLimited", daily.resetsAt ?? undefined);
 
   const photo = await ownedPhoto(supabase, photoId);
   if (!photo) {

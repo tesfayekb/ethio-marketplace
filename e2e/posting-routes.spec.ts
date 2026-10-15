@@ -1,3 +1,5 @@
+import { createClient } from "@supabase/supabase-js";
+
 import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
@@ -1208,5 +1210,111 @@ test.describe("POSTING ROUTES", () => {
     );
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
     expect(await stamp(), "PR-25: publish left no stamp").not.toBeNull();
+  });
+
+  test("PR-47 the photo storage takes nothing from a seller's own client; only the server stores photos", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const url = process.env["E2E_SUPABASE_URL"] ?? "";
+    const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"] ?? "";
+    const asSeller = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+    const name = `pr47-${rand()}.webp`;
+    const folder = `e2e/${user.id}`;
+    const admin = adminClient();
+    try {
+      const uploaded = await asSeller.storage
+        .from("listing-photos")
+        .upload(`${folder}/${name}`, new Uint8Array([82, 73, 70, 70, 0, 0, 0, 0]), {
+          contentType: "image/webp",
+        });
+      expect(uploaded.error, "PR-47: a seller's own client stored a photo").not.toBeNull();
+      const listed = await admin.storage.from("listing-photos").list(folder);
+      expect(listed.error, "PR-47: listing the folder failed").toBeNull();
+      expect((listed.data ?? []).map((entry) => entry.name)).not.toContain(name);
+    } finally {
+      const listed = await admin.storage.from("listing-photos").list(folder);
+      if ((listed.data ?? []).some((entry) => entry.name === name)) {
+        await admin.storage.from("listing-photos").remove([`${folder}/${name}`]);
+      }
+    }
+  });
+
+  test("PR-48 the writing helper spends only its caller's own listing's tries", async ({
+    page,
+  }) => {
+    const cat = await category();
+    const owner = await seller(page);
+    const draft = await postRoute(
+      page,
+      DRAFT,
+      { step: 1, categoryId: cat.id },
+      { token: owner.token, country: "ET" },
+    );
+    const listingId = String(draft.payload["listing_id"] ?? "");
+    expect(listingId, "PR-48: the draft door made no listing").not.toBe("");
+    const other = await seller(page);
+    const body = { categoryId: cat.id, locale: "en", attrs: {}, listingId };
+
+    const foreign = await postRoute(page, ASSIST, body, { token: other.token, country: "ET" });
+    expect(reasonsOf(foreign.payload), JSON.stringify(foreign.payload)).toContainEqual({
+      field: "listingId",
+      reason: "notYourListing",
+    });
+
+    const own = await postRoute(page, ASSIST, body, { token: owner.token, country: "ET" });
+    expect(
+      reasonsOf(own.payload).map((entry) => entry.reason),
+      JSON.stringify(own.payload),
+    ).not.toContain("notYourListing");
+  });
+
+  test("PR-49 photo removals have their own limit per seller, before anything else is read", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const admin = adminClient();
+    const target = `/api/listings/photos/${crypto.randomUUID()}`;
+    const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+    await inOneWindow(3600, 30_000, "PR-49");
+    try {
+      const first = await page.request.delete(target, { headers });
+      const firstBody = (await first.json().catch(() => ({}))) as Record<string, unknown>;
+      expect(first.status(), JSON.stringify(firstBody)).toBe(403);
+      expect(reasonsOf(firstBody).map((entry) => entry.reason)).toContain("notYourListing");
+
+      let remaining = -1;
+      for (let call = 0; call < 30 && remaining !== 0; call += 1) {
+        const counted = await admin.rpc("consume_rate_limit", {
+          p_action: "photo-remove",
+          p_key: user.id,
+          p_limit: 30,
+          p_window: "1 hour",
+        });
+        expect(counted.error, "PR-49: the server could not count").toBeNull();
+        remaining = Number((counted.data as Record<string, unknown> | null)?.["remaining"] ?? -1);
+      }
+      expect(remaining, "PR-49: the hour's removals were not spent").toBe(0);
+
+      const limited = await page.request.delete(target, { headers });
+      const limitedBody = (await limited.json().catch(() => ({}))) as Record<string, unknown>;
+      const refusals = (
+        Array.isArray(limitedBody["refusals"]) ? limitedBody["refusals"] : []
+      ) as Record<string, unknown>[];
+      const refusal = refusals.find((entry) => entry["reason"] === "rateLimited");
+      expect(refusal, JSON.stringify(limitedBody)).toBeDefined();
+      expect(refusal?.["field"]).toBe("photos");
+      expect(String(refusal?.["detail"] ?? ""), "PR-49: no reset time").not.toBe("");
+    } finally {
+      const removed = await admin
+        .from("rate_limits")
+        .delete()
+        .eq("key", user.id)
+        .in("action", ["photo-remove", "photo-remove:day"]);
+      expect(removed.error, "PR-49 cleanup").toBeNull();
+    }
   });
 });

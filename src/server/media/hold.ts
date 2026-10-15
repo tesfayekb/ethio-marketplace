@@ -15,8 +15,15 @@ import type { AiGate } from "@/server/ai/meter";
  *     held by staff, expired)          → `paused`: refused, because nothing would
  *                                         put the photo in front of staff;
  *   - a switch that could not be read  → `unavailable`: refused with a retry, as
- *                                         before (F4: it fails closed). A budget
- *                                         never switches photo screening off.
+ *                                         before (F4: it fails closed).
+ *
+ * Bundle 16 turn S1 (D184, the operator 2026-10-15) — photo screening's money
+ * stop: at its monthly budget it switches itself off like every other AI feature
+ * (`ai_record_spend`), and past the site's day cap on paid screens
+ * (`withSiteCap`, the upload route) it reads as off for the rest of the UTC day.
+ * Either is "off by budget", and an upload then does what it does when staff
+ * switch screening off: `hold` on a draft or a refused ad, `paused` on a live one,
+ * with no further spend.
  */
 export type PhotoScreenPlan = "screen" | "hold" | "paused" | "unavailable";
 
@@ -41,6 +48,14 @@ export const HOLD_STATUSES: ReadonlySet<string> = new Set(["draft", "rejected"])
 
 export function photoScreenPlan(gate: AiGate, status: string): PhotoScreenPlan {
   if (gate.on) return "screen";
-  if (gate.reason !== "staff") return "unavailable";
+  if (gate.reason === "unavailable") return "unavailable";
   return HOLD_STATUSES.has(status) ? "hold" : "paused";
+}
+
+/**
+ * Bundle 16 turn S1 (D184) — the site's day cap on paid screens: a gate that is on
+ * reads as off by budget once the day's count is spent; any other gate is kept.
+ */
+export function withSiteCap(gate: AiGate, siteAllowed: boolean): AiGate {
+  return gate.on && !siteAllowed ? { on: false, reason: "budget" } : gate;
 }
