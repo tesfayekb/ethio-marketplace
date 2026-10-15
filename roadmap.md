@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-16-turn-s3.md (bundle 16 — turn S3, a deactivated account refused at every door and signed out; one migration). Spec: docs/governance/seller-edit-spec.md. Spec: docs/features/my-listings.md.
+The brief in force: docs/governance/briefs/bundle-16-turn-e3b.md (bundle 16 — turn E3b, the Screening preview shows a reviewer's saved edit at once; no migration). Turn S3-fix (INC-650, INC-651) carries no brief. Spec: docs/governance/seller-edit-spec.md. Spec: docs/features/my-listings.md.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
