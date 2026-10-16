@@ -1498,17 +1498,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   /**
-   * Turn L4a — the seller's refusal lands under its field and nothing is
-   * written; Cancel closes the form; Save with nothing changed says so and
-   * calls no door.
+   * D194 — a refusal under its field and nothing written; Back returns to the
+   * Review; a step with nothing changed writes no revision.
    */
-  test("AL-21 Edit: a refusal under its field and nothing written; Cancel; nothing changed says so", async ({
+  test("AL-21 Edit: a refusal under its field and nothing written; Back returns to the Review; a step with nothing changed writes no revision", async ({
     page,
   }) => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    const { secret } = await useJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     // INC-554 (turn L4b) — the breadcrumb names the listing last.
@@ -1518,33 +1517,56 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(group).toHaveText(en["admin.nav.group.listings"]);
     await expect(group).not.toHaveAttribute("aria-current");
     await expect(group).not.toHaveClass(/underline/);
+
     await page.getByTestId("listing-edit").click();
-    const form = page.getByTestId("listing-edit-form");
-    await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}/edit$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
 
-    // Nothing changed: said here, before any door.
-    await form.getByTestId("listing-edit-save").click();
-    await expect(form.getByTestId("listing-edit-problem")).toHaveText(
-      en["admin.listings.edit.nothing"],
-    );
+    // Choose a reason.
+    await page.getByTestId("post-edit-reason-contact_in_text").click();
 
-    await form.getByTestId("listing-edit-title").fill("Call me on 0911 223 344");
-    await form.getByTestId("listing-edit-reason-contact_in_text").click();
-    await form.getByTestId("listing-edit-save").click();
-    await expect(form.getByTestId("listing-edit-title-field")).toContainText(
-      en["post.refusal.contactInText"],
-      { timeout: 20000 },
+    const revisionCountBefore = (await revisionRows(live.id, "edit")).length;
+
+    // Edit Title (data-step 5) → a title with a phone number → refusal.
+    await page
+      .locator('[data-testid="post-review-edit"][data-step="5"]')
+      .click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("Call me on 0911 223 344");
+    await page.getByTestId("post-next").click();
+    await stepUpIfPrompted(page, secret);
+    // The refusal under the title field; the step is still open.
+    const refusal = page.locator(
+      '[data-testid="post-field"][data-field="post-title"] [data-testid="post-field-refusal"]',
     );
-    await expect(form).toBeVisible();
+    await expect(refusal).toContainText(en["post.refusal.contactInText"], { timeout: 20000 });
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     expect(await listingTruth(live.id)).toMatchObject({ status: "active", title: live.title });
-    expect(await noticeRows(live.id)).toEqual([]);
+    expect((await revisionRows(live.id, "edit")).length).toBe(revisionCountBefore);
 
-    await form.getByTestId("listing-edit-cancel").click();
-    await expect(page.getByTestId("listing-edit")).toBeVisible();
-    await expect(page.getByTestId("listing-details")).toBeVisible();
-    await expect(page.getByTestId("listing-title")).toHaveText(live.title);
+    // Back → the Review.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+
+    // Edit Title again → nothing changed → back, no revision, no notice.
+    await page
+      .locator('[data-testid="post-review-edit"][data-step="5"]')
+      .click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    // Do not change anything; go back.
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("post-edit-notice")).toHaveCount(0);
+    expect((await revisionRows(live.id, "edit")).length).toBe(revisionCountBefore);
 
     // INC-554 (turn L4b) — the breadcrumb's section leads back to All listings.
+    await page.getByTestId("post-edit-done").click();
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}$`), { timeout: 20000 });
     await page.getByTestId("breadcrumb-admin-section").click();
     await expect(page).toHaveURL(/\/admin\/listings$/, { timeout: 20000 });
   });
