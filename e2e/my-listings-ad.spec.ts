@@ -1077,13 +1077,17 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     });
   });
 
-  test("MLA-15 Edit, complete: a second city and a channel apply at once; typed directions go to review; the boxes in the posting form's order (D187)", async ({
+  test("MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659)", async ({
     page,
   }) => {
     const A = await scratchSeller();
     const second = await seedScratchChain("ET");
+    // INC-659 — a second scratch city at a distinct point, for the map-centre assertion.
+    const farPoint = { lat: 7.05, lng: 37.59 };
+    const guess = await seedGuessFixture("ET", farPoint);
     // Reaped in afterEach after the listings, so no place row still points at it.
     regions.push(second.region.slug as string);
+    regions.push(guess.region.slug as string);
     {
       const X = await seed(A, "active");
       const C1 = await adminClient()
@@ -1098,36 +1102,44 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       await signInViaSession(page, A.email, A.password);
       await openAd(page, X);
       await page.getByTestId("my-listing-edit").click();
-      await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
+      await expect(page).toHaveURL(new RegExp(`/my-listings/${X}/edit$`), { timeout: 15000 });
+      await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
 
-      const place = page.getByTestId("listing-edit-place-box");
-      await expect(place.getByTestId("post-where-city")).toHaveValue(A.cityId, { timeout: 15000 });
+      // Edit Place (data-step 6) → the Place step → change the city.
+      await page
+        .locator('[data-testid="post-review-edit"][data-step="6"]')
+        .click();
+      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("post-where-city")).toHaveValue(A.cityId, { timeout: 15000 });
       // The free plan allows one city: the seller changes the ad's place (INC-642).
-      await place.getByTestId("post-where-region").selectOption(second.region.id as string);
-      await place.getByTestId("post-where-city").selectOption(second.city.id as string);
-      await expect(place.getByTestId("post-where-city")).toHaveValue(second.city.id as string);
+      await page.getByTestId("post-where-region").selectOption(second.region.id as string);
+      await page.getByTestId("post-where-city").selectOption(second.city.id as string);
+      await expect(page.getByTestId("post-where-city")).toHaveValue(second.city.id as string);
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("post-edit-notice")).toHaveText(
+        en["myListings.editBox.done"],
+        { timeout: 15000 },
+      );
 
-      const contact = page.getByTestId("listing-edit-contact-box");
-      await expect(contact).toBeVisible();
+      // Edit Contact (data-step 7) → the Contact step → toggle a channel.
+      await page
+        .locator('[data-testid="post-review-edit"][data-step="7"]')
+        .click();
+      await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 15000 });
       await expectPhoneRowUsable(page, "post-who-value-phone");
       await pickPhoneCountry(page, "post-who-value-phone", "ET", "+251");
       await typePhone(page, "post-who-value-phone", "911234567");
       await page.getByTestId("post-who-value-phone").blur();
-      await contact.getByTestId("post-who-show-phone").check();
-
-      await page.getByTestId("listing-edit-save").click();
-      await expect(page.getByTestId("my-listing-notice")).toHaveText(
+      await page.getByTestId("post-who-show-phone").check();
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("post-edit-notice")).toHaveText(
         en["myListings.editBox.done"],
         { timeout: 15000 },
       );
-      await expect(page.getByTestId("my-listing-edit-panel")).toHaveCount(0);
-      const seen = page.getByTestId("my-listing-as-seen");
-      await expect(seen.getByTestId("listing-detail-places")).toContainText(c2Name);
-      await expect(seen.getByTestId("listing-detail-places")).not.toContainText(c1Name);
-      await expect(
-        seen.getByTestId("listing-detail-contact").locator('[data-channel="phone"]'),
-      ).toHaveCount(1);
 
+      // DB truth: the places and the contact applied at once.
       const supabase = adminClient();
       const located = await supabase
         .from("listing_locations")
@@ -1150,20 +1162,41 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         ((row.data.contact_pref as Row)["phone"] as { show?: boolean } | undefined)?.show,
       ).toBe(true);
 
-      await page.getByTestId("my-listing-edit").click();
-      await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
-      await page.getByTestId("listing-edit-place-box").getByTestId("post-where-directions").click();
+      // Edit Place again → directions typed → Save → review notice.
+      await page
+        .locator('[data-testid="post-review-edit"][data-step="6"]')
+        .click();
+      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 15000 });
+      await page.getByTestId("post-where-directions").click();
       await page.keyboard.type("Behind the church");
       await page.keyboard.press("Tab");
-      await expect(page.getByTestId("post-where-directions-saved")).toHaveCount(0);
-      await page.getByTestId("listing-edit-save").click();
-      await expect(page.getByTestId("my-listing-notice")).toHaveText(
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("post-edit-notice")).toHaveText(
         en["myListings.editBox.doneReview"],
         { timeout: 15000 },
       );
       const truth = await listingTruth(X);
       expect(truth["status"]).toBe("screening");
       expect(truth["directions"]).toBe("Behind the church");
+
+      // INC-659 — the pin map opens on the new city's point, not the old pin's.
+      await page
+        .locator('[data-testid="post-review-edit"][data-step="6"]')
+        .click();
+      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 15000 });
+      // Change place to the guess fixture's city (far away).
+      await page.getByTestId("post-where-region").selectOption(guess.region.id as string);
+      await page.getByTestId("post-where-city").selectOption(guess.city.id as string);
+      await expect(page.getByTestId("post-where-city")).toHaveValue(guess.city.id as string);
+      // Open the map.
+      await page.getByTestId("post-where-pin-open").click();
+      const map = page.getByTestId("post-pin-map");
+      await expect(map).toHaveAttribute("data-ready", "1", { timeout: 15000 });
+      const centreLat = Number(await map.getAttribute("data-center-lat"));
+      const centreLng = Number(await map.getAttribute("data-center-lng"));
+      expect(Math.abs(centreLat - farPoint.lat)).toBeLessThan(0.01);
+      expect(Math.abs(centreLng - farPoint.lng)).toBeLessThan(0.01);
     }
   });
 });
