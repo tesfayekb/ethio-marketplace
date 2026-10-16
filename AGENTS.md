@@ -34,4 +34,4 @@ Full rules live in Lovable Project Knowledge and are summarized here: modify onl
 
 - Cut names use CutText; crowded-row captions use useLabelRoom observing only their row, and action-focus modality installs once at hydration — preserving grapheme floors without resize loops or duplicate listeners.
 
-- Flake-fix repeat proofs use manual Flake check, separate from CI/promotion: local browsers are unavailable (DEC-184).
+- Flake-fix proofs use manual Flake check, separate from CI/promotion: no local browsers (DEC-184).
