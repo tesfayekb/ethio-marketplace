@@ -942,6 +942,8 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
   }) => {
     const seller = await scratchSeller();
     const X = await seed(seller, "active");
+    const Y = await seed(seller, "active");
+    const yTitle = (await listingTruth(Y))["title"];
     const priceOf = async (id: string) => {
       const { data, error } = await adminClient()
         .from("listings")
@@ -1007,7 +1009,12 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     );
     expect((await listingTruth(X))["status"]).toBe("screening");
 
-    // Title too short → refusal under the title field, step still open.
+    // Title too short → refusal under the title field, step still open — on a second
+    // active ad Y: X is in review now, and the edit door refuses it before any field.
+    await openAd(page, Y);
+    await page.getByTestId("my-listing-edit").click();
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${Y}/edit$`), { timeout: 15000 });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 15000 });
     await page.getByTestId("post-title").click();
@@ -1019,6 +1026,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     );
     await expect(refusal).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("post-step-5")).toBeVisible();
+    expect((await listingTruth(Y))["title"]).toBe(yTitle);
 
     // INC-660: correcting the title clears the refusal before Save.
     await page.getByTestId("post-title").click();
@@ -1083,6 +1091,12 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     regions.push(guess.region.slug as string);
     {
       const X = await seed(A, "active");
+      // INC-659 — an old pin at the scratch chain's own point, for the map to leave.
+      const pinned = await adminClient()
+        .from("listings")
+        .update({ pin_lat: 9.03, pin_lng: 38.74, pin_precision: "exact", pin_zoom: 15 })
+        .eq("id", X);
+      if (pinned.error) throw new Error(`[e2e:mla] pin seed failed: ${pinned.error.message}`);
       const C1 = await adminClient()
         .from("locations")
         .select("name_en")
@@ -1112,6 +1126,29 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         timeout: 15000,
       });
 
+      // INC-659 — while the ad is still active: the pin map opens on the new city's point,
+      // not the old pin's. The far city then stays the ad's place for the rest of the test.
+      await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
+      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 15000 });
+      // Change place to the guess fixture's city (far away).
+      await page.getByTestId("post-where-region").selectOption(guess.region.id as string);
+      await page.getByTestId("post-where-city").selectOption(guess.city.id as string);
+      await expect(page.getByTestId("post-where-city")).toHaveValue(guess.city.id as string);
+      // Open the map.
+      await page.getByTestId("post-where-pin-open").click();
+      const map = page.getByTestId("post-pin-map");
+      await expect(map).toHaveAttribute("data-ready", "1", { timeout: 15000 });
+      const centreLat = Number(await map.getAttribute("data-center-lat"));
+      const centreLng = Number(await map.getAttribute("data-center-lng"));
+      expect(Math.abs(centreLat - farPoint.lat)).toBeLessThan(0.01);
+      expect(Math.abs(centreLng - farPoint.lng)).toBeLessThan(0.01);
+      await page.keyboard.press("Escape");
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("post-edit-notice")).toHaveText(en["myListings.editBox.done"], {
+        timeout: 15000,
+      });
+
       // Edit Contact (data-step 7) → the Contact step → toggle a channel.
       await page.locator('[data-testid="post-review-edit"][data-step="7"]').click();
       await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 15000 });
@@ -1135,7 +1172,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         .order("position");
       if (located.error)
         throw new Error(`[e2e:mla] coverage read failed: ${located.error.message}`);
-      expect(located.data.map((row) => row.location_id)).toEqual([second.city.id]);
+      expect(located.data.map((row) => row.location_id)).toEqual([guess.city.id]);
       const row = await supabase
         .from("listings")
         .select("location_id,status,contact_pref")
@@ -1143,7 +1180,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         .single();
       if (row.error || !row.data)
         throw new Error(`[e2e:mla] listing read failed: ${row.error?.message}`);
-      expect(row.data.location_id).toBe(second.city.id);
+      expect(row.data.location_id).toBe(guess.city.id);
       expect(row.data.status).toBe("active");
       expect(
         ((row.data.contact_pref as Row)["phone"] as { show?: boolean } | undefined)?.show,
@@ -1164,22 +1201,6 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       const truth = await listingTruth(X);
       expect(truth["status"]).toBe("screening");
       expect(truth["directions"]).toBe("Behind the church");
-
-      // INC-659 — the pin map opens on the new city's point, not the old pin's.
-      await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
-      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 15000 });
-      // Change place to the guess fixture's city (far away).
-      await page.getByTestId("post-where-region").selectOption(guess.region.id as string);
-      await page.getByTestId("post-where-city").selectOption(guess.city.id as string);
-      await expect(page.getByTestId("post-where-city")).toHaveValue(guess.city.id as string);
-      // Open the map.
-      await page.getByTestId("post-where-pin-open").click();
-      const map = page.getByTestId("post-pin-map");
-      await expect(map).toHaveAttribute("data-ready", "1", { timeout: 15000 });
-      const centreLat = Number(await map.getAttribute("data-center-lat"));
-      const centreLng = Number(await map.getAttribute("data-center-lng"));
-      expect(Math.abs(centreLat - farPoint.lat)).toBeLessThan(0.01);
-      expect(Math.abs(centreLng - farPoint.lng)).toBeLessThan(0.01);
     }
   });
 });
