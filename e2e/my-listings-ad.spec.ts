@@ -1327,10 +1327,24 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     const session = await passwordGrant(seller.email, seller.password);
     const answer = await page.request.post("/api/listings/assist", {
       headers: { Authorization: `Bearer ${session.access_token}` },
-      data: { listingId: X, categoryId: seller.leafId, attrs: {}, locale: "en" },
+      data: {
+        listingId: X,
+        categoryId: seller.leafId,
+        categoryPath: "e2e",
+        attrs: {},
+        negotiable: false,
+        period: null,
+        locale: "en",
+        photoIds: [],
+        title: "e2e counter",
+        description: "e2e counter body",
+        previous: [],
+      },
     });
     expect(answer.status(), "MLA-18: the spend was refused").toBe(200);
-    expect((await answer.json())["triesLeft"], "MLA-18: the spend did not count").toBe(4);
+    const payload = await answer.json();
+    expect(payload["ok"], "MLA-18: the spend did not answer").toBe(true);
+    expect(payload["triesLeft"], "MLA-18: the spend did not count").toBe(4);
 
     // The Edit opens on the count the door holds, before any assist click.
     await signInViaSession(page, seller.email, seller.password);
@@ -1338,6 +1352,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-details")).toBeVisible({ timeout: 15000 });
     const tries = page.getByTestId("post-assist-tries");
     await expect(tries, "MLA-18: the peek did not arrive").toBeVisible({ timeout: 15000 });
     await expect(tries, "MLA-18: the Edit did not read the spent try").toHaveAttribute(
@@ -1347,7 +1362,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
 
     // One click: the drawn count is the click's own answer, never a re-read.
     await page.getByTestId("post-assist").click();
-    await expect(page.getByTestId("post-assist-done")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-assist-suggestion")).toHaveCount(1, { timeout: 30000 });
     await expect(tries, "MLA-18: the click's answer was not drawn").toHaveAttribute(
       "data-left",
       "3",

@@ -109,7 +109,7 @@ test.describe("breadcrumbs — the seller's and the account's pages (D198)", () 
     return { id, title };
   }
 
-  test("BC-1 the ad's page and its Edit: Home › Seller Centre › My listings › <title> › Edit, every segment but the current a link", async ({
+  test("BR-1 the ad's page and its Edit: Home › Seller Centre › My listings › <title> › Edit, every segment but the current a link", async ({
     page,
   }) => {
     const seller = await scratchSeller();
@@ -157,7 +157,7 @@ test.describe("breadcrumbs — the seller's and the account's pages (D198)", () 
     await expect(page).toHaveURL(/\/my-listings$/, { timeout: 15000 });
   });
 
-  test("BC-2 the panel's home, Post listing and Settings: Home › Seller Centre › My listings; Home › Seller Centre › Post listing; Home › Account › Settings", async ({
+  test("BR-2 the panel's home, Post listing and Settings: Home › Seller Centre › My listings; Home › Seller Centre › Post listing; Home › Account › Settings", async ({
     page,
   }) => {
     const seller = await scratchSeller();
@@ -201,7 +201,7 @@ test.describe("breadcrumbs — the seller's and the account's pages (D198)", () 
     await expect(page).toHaveURL(/\/account$/, { timeout: 15000 });
   });
 
-  test("BC-3 the admin's listing Edit: … › All listings › <title> › Edit", async ({ page }) => {
+  test("BR-3 the admin's listing Edit: … › All listings › <title> › Edit", async ({ page }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
     await useJobSuperAdmin(page);
