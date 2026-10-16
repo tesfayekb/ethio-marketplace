@@ -1418,33 +1418,48 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     await expect(page.getByTestId("listing-fact-price")).toContainText(perBag);
 
+    // D194 — the console's Edit opens the wizard at /admin/listings/<id>/edit.
     await page.getByTestId("listing-edit").click();
-    const form = page.getByTestId("listing-edit-form");
-    await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("listing-details")).toHaveCount(0);
-    await expectNoHorizontalOverflow(page);
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}/edit$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
 
-    const title = `Corrected listing ${token()}`;
+    // The reason and note in the reason box.
     const note = "The title named the wrong model.";
-    await form.getByTestId("listing-edit-title").fill(title);
-    await form.getByTestId("post-price-amount").fill("120");
-    // A reason first.
-    await form.getByTestId("listing-edit-save").click();
-    await expect(form.getByTestId("listing-edit-problem")).toHaveText(
-      en["admin.listings.move.pickReason"],
-    );
-    await form.getByTestId("listing-edit-reason-misleading").click();
-    await form.getByTestId("listing-edit-note").fill(note);
-    await form.getByTestId("listing-edit-save").click();
+    await page.getByTestId("post-edit-reason-misleading").click();
+    await page.getByTestId("post-edit-note").fill(note);
 
-    await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.edit.done"].replace(
-        "{fields}",
-        `${en["admin.listings.col.price"]}, ${en["admin.listings.col.title"]}`,
-      ),
-      { timeout: 20000 },
-    );
-    await expect(page.getByTestId("listing-edit")).toBeVisible();
+    // Edit Price (data-step 4).
+    await page
+      .locator('[data-testid="post-review-edit"][data-step="4"]')
+      .click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-price-amount").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("120");
+    await page.getByTestId("post-next").click();
+    // The step-up modal on the first save.
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+
+    // Edit Title (data-step 5).
+    const title = `Corrected listing ${token()}`;
+    await page
+      .locator('[data-testid="post-review-edit"][data-step="5"]')
+      .click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type(title);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+
+    // Done → back to the listing page.
+    await page.getByTestId("post-edit-done").click();
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}$`), { timeout: 20000 });
     await expect(page.getByTestId("listing-title")).toHaveText(title, { timeout: 20000 });
     await expect(page.getByTestId("listing-fact-price").locator("dd")).toHaveText("120 ETB");
     const newest = page.getByTestId("listing-history-entry-0");
