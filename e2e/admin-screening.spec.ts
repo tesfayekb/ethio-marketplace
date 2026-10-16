@@ -1428,4 +1428,74 @@ test.describe("ADMIN SCREENING", () => {
     );
     expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "active" });
   });
+
+  test("SC-26 Edit from the preview, the title corrected, Reject from the Edit's Review: the confirm asks, the queue says Rejected, the ad is rejected (D188)", async ({
+    page,
+  }) => {
+    const titleOf = async (id: string) => {
+      const { data, error } = await adminClient()
+        .from("listings")
+        .select("title, status")
+        .eq("id", id)
+        .single();
+      if (error || !data) throw new Error(`[e2e:sc] reading the listing failed: ${error?.message}`);
+      return data as { title: string; status: string };
+    };
+    const ad = await seedWaiting({ priced: true });
+    const corrected = `Corrected e2e-screen-${RUN}-${rand()}`;
+    const { secret } = await useJobSuperAdmin(page);
+    await findRow(page, ad.title, ad.id);
+    await rowMenu(page, ad.id, "open");
+    await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
+    await page
+      .getByTestId("post-preview-footer")
+      .getByTestId("admin-screening-preview-edit")
+      .click();
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${ad.id}/edit\\?from=screening$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
+
+    // The reason, then the title corrected on the Title step.
+    await page.getByTestId("post-edit-reason-misleading").click();
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type(corrected);
+    await page.getByTestId("post-next").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+    expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "screening" });
+
+    // Approve asks; Cancel keeps the Review and the ad in screening.
+    const confirm = page.getByTestId("post-edit-confirm");
+    await page.getByTestId("post-edit-approve").click();
+    await expect(confirm).toBeVisible({ timeout: 20000 });
+    await expect(confirm).toContainText(en["admin.screening.confirmApprove"]);
+    await confirm.getByRole("button", { name: en["common.cancel"] }).click();
+    await expect(confirm).toHaveCount(0);
+    await expect(page.getByTestId("post-review")).toBeVisible();
+    expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "screening" });
+
+    // Reject asks; Go decides; the queue says Rejected and the ad has left it.
+    await page.getByTestId("post-edit-reject").click();
+    await expect(confirm).toBeVisible({ timeout: 20000 });
+    await expect(confirm).toContainText(en["admin.screening.confirmReject"]);
+    await page.getByTestId("post-edit-confirm-go").click();
+    await stepUpIfPrompted(page, secret);
+    await expect
+      .poll(() => new URL(page.url()).pathname, { timeout: 20000 })
+      .toBe("/admin/screening");
+    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
+      en["admin.screening.rejected"],
+      { timeout: 20000 },
+    );
+    await expect
+      .poll(() => new URL(page.url()).search, { timeout: 20000 })
+      .not.toContain("decided");
+    await expect(page.locator(`[data-testid^="admin-screening-row-${ad.id}"]`)).toHaveCount(0);
+    expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "rejected" });
+  });
 });
