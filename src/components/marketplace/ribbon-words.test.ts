@@ -5,7 +5,9 @@ import { en } from "@/i18n/locales/en";
 
 /**
  * RB-1 every ribbon's words fit the card: the longest words the card's band
- * shows whole at 360 px (D196).
+ * shows whole at 360 px (D196). INC-670 (bundle 18 turn 1): every ribbon is
+ * drawn at ONE size, so the photos-soon band's words keep the status words'
+ * cap — 14 characters, no longer 18 (its own smaller letters are gone).
  */
 describe("ribbon word lengths", () => {
   const ribbonKeys = [
@@ -31,12 +33,12 @@ describe("ribbon word lengths", () => {
       }
     });
 
-    it(`RB-1b ${locale.name}: listing.photosSoon is at most 18 characters`, () => {
+    it(`RB-1b ${locale.name}: listing.photosSoon is at most 14 characters (INC-670: one ribbon size)`, () => {
       const value = locale.strings["listing.photosSoon"];
       expect(
         value.length,
-        `${locale.name}["listing.photosSoon"] = "${value}" exceeds 18 chars`,
-      ).toBeLessThanOrEqual(18);
+        `${locale.name}["listing.photosSoon"] = "${value}" exceeds 14 chars`,
+      ).toBeLessThanOrEqual(14);
     });
   }
 });

@@ -366,7 +366,7 @@ export const am: Messages = {
   "feed.invite.placeCategory": "በ{place} ውስጥ እና በ{category} ምድብ ስር ማስታወቂያ በመለጠፍ የመጀመሪያው ይሁኑ።",
   "feed.invite.placeMore": "በ{place} ውስጥ ማስታወቂያ ይለጥፉ።",
   "feed.invite.placeCategoryMore": "በ{place} ውስጥ እና በ{category} ምድብ ስር ማስታወቂያ ይለጥፉ።",
-  "listing.photosSoon": "ፎቶዎች በቅርቡ ይመጣሉ",
+  "listing.photosSoon": "ፎቶዎች በቅርቡ",
   "price.free": "ነጻ",
   "price.negotiable": "የሚደራደር",
   "price.contact": "ለዋጋ ያግኙ",

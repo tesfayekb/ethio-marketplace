@@ -18,6 +18,7 @@ import { useAdminRole } from "@/features/admin/roles/use-admin-roles";
 import { useAdminUser } from "@/features/admin/users/use-admin-users";
 import { pathOf, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
+import type { MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
 /**
@@ -43,6 +44,10 @@ const AdminListingCrumb = lazy(() =>
 );
 const AdminLanguageCrumb = lazy(() =>
   import("./admin-detail-crumbs").then((module) => ({ default: module.AdminLanguageCrumb })),
+);
+/** Bundle 18 turn 1 (D198) — the ad's crumb on the seller's pages, loaded only there. */
+const MyListingCrumb = lazy(() =>
+  import("./seller-crumbs").then((module) => ({ default: module.MyListingCrumb })),
 );
 
 /** What a lazy crumb shows while its module loads: the page's place, not a blank. */
@@ -141,7 +146,13 @@ export function Breadcrumbs() {
     /** U2 — the same cache seam for the Roles > <display name> 4th segment. */
     const roleDetailId = /^\/admin\/roles\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
     /** Bundle 11, turn L4b (INC-554) — the listing's page and a language's strings page. */
-    const listingDetailId = /^\/admin\/listings\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
+    /**
+     * Bundle 18 turn 1 (D198) — and the listing's Edit (/admin/listings/<id>/edit):
+     * the listing crumb becomes a link back to its page and "Edit" is current.
+     */
+    const listingMatch = /^\/admin\/listings\/([^/]+)(\/edit)?\/?$/.exec(pathname);
+    const listingDetailId = listingMatch?.[1] ?? null;
+    const listingEditing = listingMatch?.[2] !== undefined;
     const languageDetailCode = /^\/admin\/translations\/([^/]+)\/?$/.exec(pathname)?.[1] ?? null;
     /**
      * INC-554 — ANY PAGE BELOW A SECTION'S OWN links back to the section: the
@@ -229,13 +240,110 @@ export function Breadcrumbs() {
                   <AdminRoleCrumb roleId={roleDetailId} />
                 ) : listingDetailId ? (
                   <Suspense fallback={<PendingCrumb />}>
-                    <AdminListingCrumb listingId={listingDetailId} />
+                    <AdminListingCrumb listingId={listingDetailId} link={listingEditing} />
                   </Suspense>
                 ) : languageDetailCode ? (
                   <Suspense fallback={<PendingCrumb />}>
                     <AdminLanguageCrumb code={languageDetailCode} />
                   </Suspense>
                 ) : null}
+              </BreadcrumbItem>
+            </>
+          ) : null}
+          {listingDetailId && listingEditing ? (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage data-testid="breadcrumb-edit" className={CURRENT}>
+                  {t("myListings.edit")}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </>
+          ) : null}
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
+
+  /**
+   * Bundle 18 turn 1 (D198; the operator's bundle-17 walk) — THE SELLER'S AND
+   * THE ACCOUNT'S OWN PAGES (/my-listings and the ad's page and Edit under it,
+   * /post, /settings) are route-owned like the admin's, so their trail is
+   * route-derived like the admin's: Home › <panel> › <page> [› <ad> [› Edit]],
+   * every segment but the current one a real control. Before, these pages
+   * showed Home › <panel> with nothing to click. The panel crumb links to the
+   * panel's home (panels.ts `homePath`) whenever the address is deeper than
+   * it; on the home itself it is a plain name — the page crumb beside it is
+   * the current segment (INC-557's rule). The page crumb is a link only under
+   * an ad (/my-listings/<id>…): "Post listing" stays current on /post/<id>,
+   * which is the same screen resuming a draft.
+   */
+  const ownPage: { key: MessageKey; path: "/my-listings" | "/post" | "/settings" } | null =
+    pathname === "/my-listings" || pathname.startsWith("/my-listings/")
+      ? { key: "nav.myListings", path: "/my-listings" }
+      : pathname === "/post" || pathname.startsWith("/post/")
+        ? { key: "nav.postListing", path: "/post" }
+        : pathname === "/settings" || pathname.startsWith("/settings/")
+          ? { key: "settings.navLabel", path: "/settings" }
+          : null;
+  if (ownPage) {
+    const home = PANELS[activePanel].homePath;
+    const adMatch = /^\/my-listings\/([^/]+)(\/edit)?\/?$/.exec(pathname);
+    const adId = adMatch?.[1] ?? null;
+    const adEditing = adMatch?.[2] !== undefined;
+    return (
+      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/" data-testid="breadcrumb-home">
+                {t("nav.home")}
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            {home !== null && pathname.replace(/\/$/, "") !== home ? (
+              <BreadcrumbLink asChild>
+                <Link to={home} data-testid="breadcrumb-panel">
+                  {panelLabel}
+                </Link>
+              </BreadcrumbLink>
+            ) : (
+              <span data-testid="breadcrumb-panel">{panelLabel}</span>
+            )}
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            {adId ? (
+              <BreadcrumbLink asChild>
+                <Link to={ownPage.path} data-testid="breadcrumb-page">
+                  {t(ownPage.key)}
+                </Link>
+              </BreadcrumbLink>
+            ) : (
+              <BreadcrumbPage data-testid="breadcrumb-page" className={CURRENT}>
+                {t(ownPage.key)}
+              </BreadcrumbPage>
+            )}
+          </BreadcrumbItem>
+          {adId ? (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <Suspense fallback={<PendingCrumb />}>
+                  <MyListingCrumb listingId={adId} link={adEditing} />
+                </Suspense>
+              </BreadcrumbItem>
+            </>
+          ) : null}
+          {adId && adEditing ? (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage data-testid="breadcrumb-edit" className={CURRENT}>
+                  {t("myListings.edit")}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </>
           ) : null}

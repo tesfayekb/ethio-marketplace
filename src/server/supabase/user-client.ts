@@ -260,6 +260,38 @@ export async function consumeRate(
 }
 
 /**
+ * INC-669 — THE SAME COUNT, READ WITHOUT SPENDING. `peek_rate_limit` answers
+ * what is left of the CURRENT window for an action and key — the window
+ * `consume_rate_limit` counts in, proven equal by the function's own migration —
+ * and inserts nothing, so a screen can say the true remaining before any try.
+ * Closed to the browser roles like its sibling; call it only after the caller
+ * and the key's ownership are verified.
+ */
+export async function peekRate(
+  action: string,
+  key: string,
+  limit: number,
+  window: string,
+): Promise<Pick<RateVerdict, "remaining" | "resetsAt">> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.rpc("peek_rate_limit", {
+    p_action: action,
+    p_key: key,
+    p_limit: limit,
+    p_window: window,
+  });
+  if (error) throw new Error(`rate peek ${action}: ${error.message}`);
+  const verdict = (data ?? {}) as { resets_at?: unknown; remaining?: unknown };
+  return {
+    resetsAt: typeof verdict.resets_at === "string" ? verdict.resets_at : null,
+    remaining:
+      typeof verdict.remaining === "number" && Number.isFinite(verdict.remaining)
+        ? verdict.remaining
+        : null,
+  };
+}
+
+/**
  * INC-396 — the doors count for themselves (`rate_gate`) and name the reset as
  * `resets_at`; the client has always read a route refusal's `detail`. This keeps
  * what the client receives unchanged.

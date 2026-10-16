@@ -7,6 +7,7 @@ import {
   consumeRate,
   envDial,
   logRouteError,
+  peekRate,
   readJsonBody,
   refusal,
   refuseUserClient,
@@ -62,6 +63,18 @@ import { errorText } from "@/lib/error-text";
  * switched-off helper spends none of the seller's tries — and every answer it
  * gives (fake mode's too) is metered. Over the hourly dial sits a daily one
  * (`assist:day`, RATE_LIMIT_ASSIST_PER_DAY, 60).
+ *
+ * THE PEEK (bundle 18 turn 1, INC-669):
+ *
+ *   GET /api/listings/assist?listingId=<id>   →  { ok, triesLeft }
+ *
+ * answers the budget's true remaining for the caller's own listing WITHOUT
+ * spending a try, so a screen opened on an ad that already spent some (the Edit;
+ * a draft reopened) says the right number before any call. The same gates as a
+ * try short of the spend and the switch: a session; the listing is the caller's
+ * own, read as the caller; then `peek_rate_limit` under the same action, key,
+ * limit and window the spend counts in. No dial of its own: one row read by
+ * its key, like the options route.
  */
 
 const PATH = "/api/listings/assist";
@@ -249,6 +262,46 @@ async function callProvider(
   }
 }
 
+/**
+ * Bundle 16 turn S1 — the listing is the caller's own, read AS THE CALLER (the
+ * owner reads his own rows): another seller's budget is never spent or read, and
+ * an id that is not the caller's is a refusal. Written once for the try and the
+ * peek (bundle 18 turn 1, INC-669). Null when the listing is the caller's.
+ */
+async function ownListingRefusal(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  listingId: string,
+): Promise<Response | null> {
+  const { data: own, error: ownError } = await supabase
+    .from("listings")
+    .select("id")
+    .eq("id", listingId)
+    .eq("seller_id", userId)
+    .maybeSingle();
+  if (ownError) {
+    logRouteError(PATH, `listing read: ${ownError.message}`);
+    return refusal("assist", "providerUnavailable");
+  }
+  if (!own) return refusal("listingId", "notYourListing");
+  return null;
+}
+
+/** INC-669 — the peek: the budget's remaining for the caller's own listing, nothing spent. */
+async function handleGet(request: Request): Promise<Response> {
+  const caller = await userClientFromRequest(request);
+  const refused = refuseUserClient(PATH, caller);
+  if (refused !== null) return refused;
+  const supabase = caller.supabase!;
+  const userId = caller.userId!;
+  const listingId = (new URL(request.url).searchParams.get("listingId") ?? "").trim();
+  if (listingId === "") return refusal("listingId", "required");
+  const notOwn = await ownListingRefusal(supabase, userId, listingId);
+  if (notOwn !== null) return notOwn;
+  const budget = await peekRate("assist:listing", listingId, ASSIST_TRIES, ASSIST_WINDOW);
+  return routeJson({ ok: true, triesLeft: budget.remaining }, 200);
+}
+
 async function handlePost(request: Request): Promise<Response> {
   const caller = await userClientFromRequest(request);
   const refused = refuseUserClient(PATH, caller);
@@ -301,17 +354,8 @@ async function handlePost(request: Request): Promise<Response> {
   // own, read AS THE CALLER (the owner reads his own rows): another seller's tries
   // are never spent, and an id that is not the caller's is a refusal.
   if (listingId !== "") {
-    const { data: own, error: ownError } = await supabase
-      .from("listings")
-      .select("id")
-      .eq("id", listingId)
-      .eq("seller_id", userId)
-      .maybeSingle();
-    if (ownError) {
-      logRouteError(PATH, `listing read: ${ownError.message}`);
-      return refusal("assist", "providerUnavailable");
-    }
-    if (!own) return refusal("listingId", "notYourListing");
+    const notOwn = await ownListingRefusal(supabase, userId, listingId);
+    if (notOwn !== null) return notOwn;
   }
 
   // THE PER-LISTING BUDGET, spent before any provider call is made (F5: gate first).
@@ -370,6 +414,14 @@ async function handlePost(request: Request): Promise<Response> {
 export const Route = createFileRoute("/api/listings/assist")({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        try {
+          return await handleGet(request);
+        } catch (error) {
+          logRouteError(PATH, error);
+          return routeJson({ error: "server error" }, 500);
+        }
+      },
       POST: async ({ request }) => {
         try {
           return await handlePost(request);

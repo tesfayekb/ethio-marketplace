@@ -152,6 +152,7 @@ export const AREAS: Area[] = [
     src: ["src/components/shell/**", "src/routes/__root.tsx"],
     specs: [
       "e2e/shell.spec.ts",
+      "e2e/breadcrumbs.spec.ts",
       "e2e/phone-frame.spec.ts",
       "e2e/shell-table-law.spec.ts",
       "e2e/layout.spec.ts",
@@ -195,6 +196,7 @@ export const AREAS: Area[] = [
       "e2e/feed-route.spec.ts",
       "e2e/feed-screens.spec.ts",
       "e2e/shell.spec.ts",
+      "e2e/breadcrumbs.spec.ts",
       "e2e/post-wizard-pricing.spec.ts",
       "e2e/viewing-place.spec.ts",
     ],

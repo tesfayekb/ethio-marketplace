@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 453,
-  "dynamicCallSites": 332,
+  "scanned": 454,
+  "dynamicCallSites": 334,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -4458,6 +4458,7 @@
       "/my-listings/$listingId"
     ],
     "myListings.edit": [
+      "(every page)",
       "/my-listings",
       "/my-listings/$listingId"
     ],

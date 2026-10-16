@@ -37,16 +37,44 @@ const TAPE_INSET_Y = `${(TAPE_REACH * Math.sin(TAPE_RAD)).toFixed(2)}cqw`;
  * (the gold): Sold, Rented or Filled, No longer available, Reserved or Price reduced — one word, the most important
  * first (src/features/feed/feed-page.ts, `ribbonOf`). It takes the photos-soon band's corner and replaces it, so a
  * picture never carries two.
+ *
+ * INC-670 (bundle 18 turn 1; the operator's bundle-17 walk: "the thickness of all ribbons should look the same
+ * including text color, size, style") — ONE RIBBON. Every band across an ad's picture — the status word and the
+ * photos-soon band — is drawn by this one component, from one class set and one style: one band height (the
+ * letters at `clamp(9px, 6cqw, 22px)` with 1.6cqw above and below), one weight, one tracking, one colour, one
+ * shadow. Before, the photos-soon band had its own, smaller set (3.6cqw letters, 1.4cqw padding, 0.04em) and read
+ * thinner beside a status ribbon. The band's visible run between the picture's edges is about 59cqw, so one size
+ * fits every ribbon only while its words stay within 14 characters (RB-1, the status words' cap, now the band's
+ * too): "PHOTOS COMING SOON" became "PHOTOS SOON".
  */
-export function ListingRibbon({ text }: { text: string }) {
+/** The band itself — one class set for every ribbon; a test proves no ribbon is drawn with another. */
+export const RIBBON_BAND_CLASS =
+  "absolute bg-gold font-bold uppercase text-gold-foreground shadow-sm";
+export const RIBBON_TEXT_CLASS = "block text-center leading-none whitespace-nowrap";
+export const RIBBON_TEXT_STYLE = {
+  fontSize: "clamp(9px, 6cqw, 22px)",
+  letterSpacing: "0.06em",
+  padding: "1.6cqw 0",
+} as const;
+
+export function ListingRibbon({
+  text,
+  testId = "listing-ribbon",
+  textTestId = "listing-ribbon-text",
+}: {
+  text: string;
+  /** The wrapper's id: `listing-ribbon` (the status word) or `listing-photos-soon-ribbon` (the band). */
+  testId?: string;
+  textTestId?: string;
+}) {
   return (
     <div
-      data-testid="listing-ribbon"
+      data-testid={testId}
       aria-hidden="true"
       className="@container pointer-events-none absolute inset-0 overflow-hidden"
     >
       <div
-        className="absolute bg-gold font-bold uppercase text-gold-foreground shadow-sm"
+        className={RIBBON_BAND_CLASS}
         style={{
           width: "84cqw",
           left: `calc(100% - ${TAPE_INSET_X})`,
@@ -55,15 +83,7 @@ export function ListingRibbon({ text }: { text: string }) {
           transform: `translate(-50%, -50%) rotate(${WATERMARK_ANGLE}deg)`,
         }}
       >
-        <span
-          data-testid="listing-ribbon-text"
-          className="block text-center leading-none whitespace-nowrap"
-          style={{
-            fontSize: "clamp(9px, 6cqw, 22px)",
-            letterSpacing: "0.06em",
-            padding: "1.6cqw 0",
-          }}
-        >
+        <span data-testid={textTestId} className={RIBBON_TEXT_CLASS} style={RIBBON_TEXT_STYLE}>
           {text}
         </span>
       </div>
@@ -147,30 +167,11 @@ export function ListingPicture({
           </div>
         )}
         {showRibbon && (
-          <div
-            data-testid="listing-photos-soon-ribbon"
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 overflow-hidden"
-          >
-            <div
-              className="absolute bg-gold font-bold uppercase text-gold-foreground shadow-sm"
-              style={{
-                width: "84cqw",
-                left: `calc(100% - ${TAPE_INSET_X})`,
-                top: `calc(100% - ${TAPE_INSET_Y})`,
-                // D122 — the ribbon and the watermark share one angle.
-                transform: `translate(-50%, -50%) rotate(${WATERMARK_ANGLE}deg)`,
-              }}
-            >
-              <span
-                data-testid="listing-photos-soon-text"
-                className="block text-center leading-none whitespace-nowrap"
-                style={{ fontSize: "3.6cqw", letterSpacing: "0.04em", padding: "1.4cqw 0" }}
-              >
-                {t("listing.photosSoon")}
-              </span>
-            </div>
-          </div>
+          <ListingRibbon
+            text={t("listing.photosSoon")}
+            testId="listing-photos-soon-ribbon"
+            textTestId="listing-photos-soon-text"
+          />
         )}
         {ribbon !== null && <ListingRibbon text={ribbon} />}
       </div>
