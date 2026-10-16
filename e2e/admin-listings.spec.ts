@@ -1431,9 +1431,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.getByTestId("post-edit-note").fill(note);
 
     // Edit Price (data-step 4).
-    await page
-      .locator('[data-testid="post-review-edit"][data-step="4"]')
-      .click();
+    await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-price-amount").click();
     await page.keyboard.press("Control+A");
@@ -1446,9 +1444,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
 
     // Edit Title (data-step 5).
     const title = `Corrected listing ${token()}`;
-    await page
-      .locator('[data-testid="post-review-edit"][data-step="5"]')
-      .click();
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
     await page.keyboard.press("Control+A");
@@ -1530,9 +1526,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const revisionCountBefore = (await revisionRows(live.id, "edit")).length;
 
     // Edit Title (data-step 5) → a title with a phone number → refusal.
-    await page
-      .locator('[data-testid="post-review-edit"][data-step="5"]')
-      .click();
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
     await page.keyboard.press("Control+A");
@@ -1554,9 +1548,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
 
     // Edit Title again → nothing changed → back, no revision, no notice.
-    await page
-      .locator('[data-testid="post-review-edit"][data-step="5"]')
-      .click();
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     // Do not change anything; go back.
     await page.getByTestId("post-next").click();
@@ -1651,9 +1643,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-edit-reason-misleading").click();
     const title = `Corrected listing ${token()}`;
-    await page
-      .locator('[data-testid="post-review-edit"][data-step="5"]')
-      .click();
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
     await page.keyboard.press("Control+A");
@@ -1664,9 +1654,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
 
     // The required answer emptied: refused under its own control, nothing written.
-    await page
-      .locator('[data-testid="post-review-edit"][data-step="3"]')
-      .click();
+    await page.locator('[data-testid="post-review-edit"][data-step="3"]').click();
     await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20000 });
     await expect(control(spec.text.attrKey)).toHaveValue("first answer", { timeout: 20000 });
     await control(spec.text.attrKey).fill("");

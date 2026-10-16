@@ -986,9 +986,7 @@ test.describe("ADMIN SCREENING", () => {
     await page.getByTestId("admin-screening-open-listing").click();
     await expect(page).toHaveURL(new RegExp(`/admin/listings/${ad.id}$`), { timeout: 20000 });
     // D194 — the photos card is on the page without clicking Edit.
-    const edited = page
-      .getByTestId("listing-photos")
-      .getByTestId("listing-photos-item");
+    const edited = page.getByTestId("listing-photos").getByTestId("listing-photos-item");
     await expect(edited).toHaveCount(2, { timeout: 20000 });
     await expect(edited.nth(0)).toHaveAttribute("data-photo-id", photos.held);
     await edited.nth(0).getByTestId("listing-photos-remove").click();
@@ -1379,10 +1377,9 @@ test.describe("ADMIN SCREENING", () => {
     await expect(edit).toBeVisible();
     await edit.click();
     // → the wizard at /admin/listings/<id>/edit?from=screening.
-    await expect(page).toHaveURL(
-      new RegExp(`/admin/listings/${ad.id}/edit\\?from=screening$`),
-      { timeout: 20000 },
-    );
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${ad.id}/edit\\?from=screening$`), {
+      timeout: 20000,
+    });
     await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
 
     // Every Edit link disabled until a reason is chosen.
@@ -1397,9 +1394,7 @@ test.describe("ADMIN SCREENING", () => {
     await page.getByTestId("post-edit-reason-misleading").click();
     await page.getByTestId("post-edit-note").fill("e2e SC-25 title corrected");
 
-    await page
-      .locator('[data-testid="post-review-edit"][data-step="5"]')
-      .click();
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
     await page.keyboard.press("Control+A");
