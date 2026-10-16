@@ -494,7 +494,7 @@ test.describe("D189 deactivated session", () => {
 
     // Sample every 50 ms until the menu is visible (at most 15 s). The link is
     // counted, not tested for visibility: on mobile-360 it is in the DOM, hidden by CSS.
-    const signInLink = page.getByRole("link", { name: en["auth.signIn"] });
+    const signInLink = page.getByRole("link", { name: en["auth.signIn"], includeHidden: true });
     const menu = page.getByTestId("account-menu");
     let linkSamples = 0;
     await expect

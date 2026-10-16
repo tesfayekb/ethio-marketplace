@@ -270,8 +270,9 @@ test.describe("POSTING WIZARD", () => {
     // Two scratch options plus the "choose" placeholder.
     await expect(picker.locator("option")).toHaveCount(3);
 
-    // THE DOOR IS THE AUTHORITY: Next sends with the required detail empty, and the
-    // refusal lands beneath that detail's own control.
+    // D193 — the required detail empty closes Next; the tap marks it beneath its
+    // own control from the step's own mirror, in the door's words, and nothing is sent.
+    await expect(page.getByTestId("post-next")).toHaveAttribute("data-closed", "1");
     await page.getByTestId("post-next").click();
     await expect(
       page.locator(`[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`),
@@ -297,6 +298,58 @@ test.describe("POSTING WIZARD", () => {
       (await attributesOf(listingId))[spec.select.attrKey],
       "PW-5: the chosen option was not recorded",
     ).toBe(spec.optionValues[0]);
+  });
+
+  test("PW-191 D193: Next is closed while a required detail is empty; a tap marks it and scrolls; the answer opens it", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    const spec = await seedSpecSet(category.id);
+    specs.push(
+      spec.text.attrKey,
+      spec.number.attrKey,
+      spec.bool.attrKey,
+      spec.select.attrKey,
+      spec.multi.attrKey,
+    );
+    await reachStep3(page, user.id, category);
+
+    const next = page.getByTestId("post-next");
+    const blocked = page.getByTestId("post-next-blocked");
+    const refusal = page.locator(
+      `[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`,
+    );
+    await expect(next, "PW-191: Next was not drawn closed").toHaveAttribute("data-closed", "1");
+    await expect(blocked).toBeVisible();
+    await expect(blocked).toHaveText(en["post.nextBlocked.required"]);
+    await expect(blocked).toHaveAttribute("data-missing", new RegExp(spec.text.attrKey));
+
+    // The tap marks the missing answer and sends nothing.
+    await next.click();
+    await expect(refusal, "PW-191: the tap did not mark the missing detail").toBeVisible();
+    await expect(page.getByTestId("post-refusal-summary")).toBeVisible();
+    await expect(page.getByTestId("post-step-3")).toBeVisible();
+    expect(
+      (await draftsOf(user.id))[0]?.draft_step,
+      "PW-191: a closed Next advanced the draft",
+    ).toBe(1);
+
+    // The answer opens Next and clears the mark.
+    await page
+      .locator(`[data-testid="post-attr-control"][data-attr="${spec.text.attrKey}"]`)
+      .fill("e2e required");
+    await expect(next, "PW-191: the answer did not open Next").not.toHaveAttribute(
+      "data-closed",
+      /.*/,
+    );
+    await expect(blocked).toHaveCount(0);
+    await expect(refusal).toHaveCount(0);
+    await next.click();
+    await expect(
+      page.getByTestId("post-step-2"),
+      "PW-191: the door did not take the step",
+    ).toBeVisible({ timeout: 20_000 });
   });
 
   /**
@@ -376,8 +429,9 @@ test.describe("POSTING WIZARD", () => {
     await nextThroughPhotos(page);
     await onToTitle(page);
 
-    // Nothing is written until the seller asks; Next now sends and the door
-    // refuses the empty title, which the summary names (U6-C1-R1).
+    // Nothing is written until the seller asks; the empty title closes Next (D193),
+    // drawn closed and never disabled: a tap marks it from the step's own mirror,
+    // in the door's words, and nothing is sent.
     await expect(page.getByTestId("post-next")).toBeEnabled();
     await page.getByTestId("post-assist").click();
     await expect(page.getByTestId("post-assist-done")).toBeVisible();
@@ -1151,7 +1205,9 @@ test.describe("POSTING WIZARD", () => {
       "PW-16: autosave advanced the recorded step",
     ).toBe(1);
 
-    // Next asks for the verdict, and now the untouched required detail is refused.
+    // D193 — the untouched required detail closes Next; the tap marks it from the
+    // step's own mirror, in the door's words, and nothing is sent.
+    await expect(page.getByTestId("post-next")).toHaveAttribute("data-closed", "1");
     await page.getByTestId("post-next").click();
     await expect(
       page.locator(`[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`),

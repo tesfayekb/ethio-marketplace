@@ -1194,6 +1194,51 @@ test.describe("POSTING WIZARD", () => {
     ).toBeUndefined();
   });
 
+  test("PW-192 D193 on the price and the title steps: a fixed price with no figure closes Next, the figure opens it; a blank title closes it, a tap marks the title, typing opens it", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await reachStep5(page, user.id, category);
+    const next = page.getByTestId("post-next");
+    const blocked = page.getByTestId("post-next-blocked");
+
+    // The price step: the mode starts on fixed, with no figure.
+    await expect(next, "PW-192: no figure did not close Next").toHaveAttribute("data-closed", "1");
+    await expect(blocked).toHaveAttribute("data-missing", /price_amount/);
+    await page.getByTestId("post-price-amount").fill("150");
+    await expect(next, "PW-192: the figure did not open Next").not.toHaveAttribute(
+      "data-closed",
+      /.*/,
+    );
+    await next.click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20_000 });
+
+    // The title step: a blank title closes Next; the tap marks it and sends nothing.
+    const title = page.getByTestId("post-title");
+    await title.fill("");
+    await expect(next, "PW-192: a blank title did not close Next").toHaveAttribute(
+      "data-closed",
+      "1",
+    );
+    await expect(blocked).toHaveAttribute("data-missing", /title/);
+    await next.click();
+    const titleRefusal = page
+      .locator('[data-testid="post-field"][data-field="post-title"]')
+      .getByTestId("post-field-refusal");
+    await expect(titleRefusal, "PW-192: the tap did not mark the title").toBeVisible();
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+    await title.fill("e2e closed next");
+    await title.press("Tab");
+    await expect(next, "PW-192: the title did not open Next").not.toHaveAttribute(
+      "data-closed",
+      /.*/,
+    );
+    await expect(titleRefusal).toHaveCount(0);
+    await next.click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+  });
+
   test("PW-139 a category with no unit still asks Volume on the specifications page (bundle 4 step 9)", async ({
     page,
   }) => {

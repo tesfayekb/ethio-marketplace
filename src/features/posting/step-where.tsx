@@ -692,6 +692,7 @@ export function StepWhere({
   invitePlaceId = null,
   textMode = "door",
   onTextChange,
+  onMissing,
 }: {
   /** The chosen place ids; the FIRST one is the item's own place (spec §4 C2). */
   coverage: string[];
@@ -730,6 +731,12 @@ export function StepWhere({
    */
   textMode?: "door" | "form";
   onTextChange?: (text: PlaceText) => void;
+  /**
+   * D193 — THE MIRROR. `["coverage"]` while the item's own place is not a city
+   * (the door's `required` and `cityRequired` on coverage, validate_listing_draft
+   * step 6), `[]` once it is. The wizard closes Next on it; the door decides.
+   */
+  onMissing?: (fields: string[]) => void;
 }) {
   const { t, entities } = useI18n();
   const markets = useOpenMarkets();
@@ -1271,6 +1278,17 @@ export function StepWhere({
   }, []);
 
   const hasCity = placeOf(itemRow) !== null;
+  /**
+   * D193 — the mirror waits for the prefill: a draft that already holds places
+   * shows the placeholder row until the market and its tree have answered, and
+   * in that window the step says "nothing missing" rather than closing Next on
+   * a place the door already holds (the door judges a stale answer anyway, F3).
+   * A fresh post (no coverage yet) is closed from the first paint.
+   */
+  const seeding = coverage.length > 0 && rows[0]!.country === null;
+  useEffect(() => {
+    onMissing?.(seeding || hasCity ? [] : ["coverage"]);
+  }, [seeding, hasCity, onMissing]);
 
   // ---- R5: room at each level, counted over the rows (a pending box counts) ----
   const countryKeyOf = (row: Row) =>

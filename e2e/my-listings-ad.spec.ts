@@ -1254,4 +1254,66 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     );
     expect(soonRows.map((row) => (row.after as Row)["photos_soon"])).toEqual([true, false]);
   });
+
+  test("MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it", async ({
+    page,
+  }) => {
+    const A = await scratchSeller();
+    const second = await seedScratchChain("ET");
+    // Reaped in afterEach after the listings, so no place row still points at it.
+    regions.push(second.region.slug as string);
+    const X = await seed(A, "active");
+    const placesOf = async () => {
+      const located = await adminClient()
+        .from("listing_locations")
+        .select("location_id")
+        .eq("listing_id", X)
+        .order("position");
+      if (located.error)
+        throw new Error(`[e2e:mla] coverage read failed: ${located.error.message}`);
+      return located.data.map((row) => row.location_id);
+    };
+
+    await signInViaSession(page, A.email, A.password);
+    await openAd(page, X);
+    await page.getByTestId("my-listing-edit").click();
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}/edit$`), { timeout: 15000 });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+    await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 15000 });
+    const city = page.getByTestId("post-where-city");
+    await expect(city).toHaveValue(A.cityId, { timeout: 15000 });
+
+    // Another region, no city chosen: Save changes is drawn closed.
+    await page.getByTestId("post-where-region").selectOption(second.region.id as string);
+    if ((await city.inputValue()) !== "") await city.selectOption("");
+    const next = page.getByTestId("post-next");
+    await expect(next).toHaveText(en["myListings.editBox.save"]);
+    await expect(next, "MLA-17: no city did not close Save").toHaveAttribute("data-closed", "1");
+    const blocked = page.getByTestId("post-next-blocked");
+    await expect(blocked).toBeVisible();
+    await expect(blocked).toHaveAttribute("data-missing", "coverage");
+
+    // The tap says Choose a city and sends nothing.
+    await next.click();
+    await expect(
+      page.locator('[data-testid="post-where-refusal"][data-choose-city="1"]'),
+      "MLA-17: the tap did not say Choose a city",
+    ).toBeVisible();
+    await expect(page.getByTestId("post-step-6")).toBeVisible();
+    expect(await placesOf(), "MLA-17: a closed Save changed the places").toEqual([A.cityId]);
+
+    // A city of that region opens Save; Save writes it.
+    await city.selectOption(second.city.id as string);
+    await expect(next, "MLA-17: the city did not open Save").not.toHaveAttribute(
+      "data-closed",
+      /.*/,
+    );
+    await next.click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-edit-notice")).toHaveText(en["myListings.editBox.done"], {
+      timeout: 15000,
+    });
+    expect(await placesOf(), "MLA-17: Save did not write the city").toEqual([second.city.id]);
+  });
 });

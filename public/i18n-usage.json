@@ -4990,6 +4990,12 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.nextBlocked.required": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.optional": [
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
