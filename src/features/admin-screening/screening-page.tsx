@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ImageIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -32,19 +32,11 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { sectionById } from "@/features/admin/sections";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
-import { ListingEditForm } from "@/features/admin-listings/edit-form";
-import { editErrorKey } from "@/features/admin-listings/edit-listing";
-import { GROUP_LABEL, type FieldGroup } from "@/features/admin-listings/history";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
-import {
-  editAdminListing,
-  type AdminEditAnswer,
-} from "@/features/admin-listings/use-admin-listing";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { heldWithAd } from "@/features/posting/posting-service";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
 import { fill } from "@/features/posting/refusal-text";
-import type { Refusal } from "@/features/posting/types";
 import { storedUnitNoun } from "@/features/posting/price-line";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -58,7 +50,7 @@ import {
   SCREENING_PAGE_SIZE,
   SCREENING_PAGE_SIZES,
   decideListing,
-  editedScreeningRow,
+  readScreeningRow,
   revealContact,
   revealProblemKey,
   useScreeningFacts,
@@ -91,6 +83,13 @@ import {
  * Reject is; "Show number" asks for no second factor (D129 — the door keeps
  * listings:review, its dial and its log) and a refusal is said under that
  * method's own row; the seller box is organised (D130, in ListingDetail).
+ *
+ * Bundle 17 turn 2 (D194) — the preview's Edit opens the ad in the posting
+ * wizard's edit mode (`/admin/listings/<id>/edit?from=screening`), the same
+ * Review page as the seller's; Done brings the reviewer back here with the
+ * preview re-opened on the ad as the edit left it (`?open=<id>`, read fresh),
+ * Approve and Reject at hand again (D188). The edit boxes of turn E3 and the
+ * at-once row patch of E3b are gone with the form they served.
  */
 
 type Next = "active" | "rejected";
@@ -101,8 +100,9 @@ type RevealChannel = "phone" | "phone2" | "whatsapp";
 const TABLE_ID = "admin-screening";
 const LOCKED = ["title"];
 
-export function AdminScreeningPage() {
+export function AdminScreeningPage({ openId = null }: { openId?: string | null }) {
   const { t, language, entities } = useI18n();
+  const navigate = useNavigate();
   const { permissions } = useAdminShell();
   const mayReview = permissions.includes("listings:review");
   /** Bundle 13 turn 8 (D154 B4) — staff who may edit a listing see its photos with their marks. */
@@ -126,21 +126,6 @@ export function AdminScreeningPage() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [previewRow, setPreviewRow] = useState<ScreeningRow | null>(null);
-  /**
-   * Bundle 16 turn E3 (D188; the operator, 2026-10-15): "a page in the approval
-   * queue needs to be able to be edited by admin … inside the preview as buyer,
-   * then we can click edit and edit, and after the edit we can approve or
-   * reject." EDIT INSIDE THE PREVIEW: the ad's photos with Remove and the admin's
-   * edit boxes (`ListingEditForm`, the same form as the ad's own page, through
-   * `admin_edit_listing` with the second factor) take the listing's place in the
-   * sheet; Save re-reads the queue and the preview shows the ad as it now stands,
-   * with Approve and Reject at hand again. A refusal lands under its field and
-   * the boxes stay open (F4); Cancel returns to the ad as buyers see it.
-   */
-  const [previewEditing, setPreviewEditing] = useState(false);
-  const [editRefusals, setEditRefusals] = useState<Refusal[]>([]);
-  const [editError, setEditError] = useState<string | null>(null);
-  const [editNotice, setEditNotice] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<Partial<Record<RevealChannel, string>>>({});
   const [revealProblems, setRevealProblems] = useState<Partial<Record<RevealChannel, MessageKey>>>(
     {},
@@ -238,16 +223,35 @@ export function AdminScreeningPage() {
   const openPreview = (row: ScreeningRow) => {
     setRevealed({});
     setRevealProblems({});
-    setPreviewEditing(false);
-    setEditRefusals([]);
-    setEditError(null);
-    setEditNotice(null);
     setPreviewRow(row);
   };
-  const closePreview = () => {
-    setPreviewRow(null);
-    setPreviewEditing(false);
-  };
+  const closePreview = () => setPreviewRow(null);
+  /**
+   * Turn 2 (D194) — back from the ad's Edit: the preview re-opens on the ad read
+   * fresh, and the address drops `open` so a reload shows the queue. An ad no
+   * longer in screening opens nothing. A read that fails leaves the queue as it
+   * is — the row is still in the table.
+   */
+  const reopened = useRef<string | null>(null);
+  useEffect(() => {
+    if (openId === null || reopened.current === openId) return;
+    reopened.current = openId;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const row = await readScreeningRow(openId);
+        if (cancelled) return;
+        if (row !== null) openPreview(row);
+      } catch {
+        // The queue stands; the reviewer opens the row from its menu.
+      }
+      void navigate({ to: "/admin/screening", search: {}, replace: true });
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- openPreview and navigate are stable for one address.
+  }, [openId]);
   /** Turn E3 — the preview follows the queue's fresh read of its ad (after an edit, the ad as it now stands). */
   const freshRows = query.data?.rows;
   useEffect(() => {
@@ -258,14 +262,6 @@ export function AdminScreeningPage() {
       return found === undefined || found.updatedAt === current.updatedAt ? current : found;
     });
   }, [freshRows]);
-  /** The fields a door names (title, price, …), as the person reads them (as the ad's page says them). */
-  const fieldNames = (fields: string[]) =>
-    fields
-      .map((field) =>
-        field in GROUP_LABEL ? t(GROUP_LABEL[field as FieldGroup]) : t(GROUP_LABEL.other),
-      )
-      .join(", ");
-
   // D129 — no second factor: the door is called directly; a refusal is said
   // under the method's own row, never as a page-wide message.
   const reveal = async (row: ScreeningRow, channel: RevealChannel) => {
@@ -407,49 +403,6 @@ export function AdminScreeningPage() {
             setBusy(false);
             await refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
           }
-        };
-
-        // Turn E3 — the reviewer's edit of the previewed ad: the ad's page's own flow.
-        const runPreviewEdit = async (
-          changes: Record<string, unknown>,
-          reason: string,
-          note: string,
-        ) => {
-          if (previewRow === null) return;
-          setBusy(true);
-          setEditError(null);
-          setEditRefusals([]);
-          let answer: AdminEditAnswer;
-          try {
-            answer = await guard(() => editAdminListing(previewRow.id, changes, reason, note));
-          } catch (error) {
-            setBusy(false);
-            const abort = stepUpAbortKey(error);
-            // A cancelled second factor leaves the boxes open, as they were.
-            if (abort === null) return;
-            const message =
-              error !== null && typeof error === "object" && "message" in error
-                ? String((error as { message: unknown }).message)
-                : "";
-            setEditError(t(abort ?? editErrorKey(message)));
-            return;
-          }
-          setBusy(false);
-          // F4 — a refusal is an answer: it lands under its field and nothing closes.
-          if (!answer.ok) {
-            setEditRefusals(answer.refusals);
-            return;
-          }
-          setPreviewEditing(false);
-          setEditNotice(
-            t("admin.listings.edit.done").replace("{fields}", fieldNames(answer.fields)),
-          );
-          // INC-649 — the preview shows what was saved AT ONCE, from the changes the door took
-          // (the queue's fresh read follows and replaces it; the door is the authority — F3).
-          setPreviewRow((current) =>
-            current === null ? current : editedScreeningRow(current, changes),
-          );
-          await refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
         };
 
         const previewFacts = facts.data ?? null;
@@ -695,57 +648,14 @@ export function AdminScreeningPage() {
             {previewRow !== null ? (
               <PreviewSheet
                 onClose={closePreview}
-                body={
-                  previewEditing ? (
-                    <div className="min-w-0 space-y-4" data-testid="admin-screening-edit-panel">
-                      <h2
-                        data-testid="admin-screening-edit-heading"
-                        className="min-w-0 break-words text-lg font-semibold text-foreground"
-                      >
-                        {t("admin.listings.edit.title")}
-                      </h2>
-                      {/* D169 — the photos, their marks and Remove are part of Edit. */}
-                      <ListingPhotos
-                        listingId={previewRow.id}
-                        mayRemove={mayEnforce}
-                        mayAllow={mayReview}
-                        guard={guard}
-                        onRemoved={(key) => setNotice({ key, tone: "ok" })}
-                      />
-                      <ListingEditForm
-                        key={previewRow.updatedAt}
-                        listing={previewRow}
-                        busy={busy}
-                        refusals={editRefusals}
-                        error={editError}
-                        onCancel={() => {
-                          setPreviewEditing(false);
-                          setEditRefusals([]);
-                          setEditError(null);
-                        }}
-                        onSave={(changes, reason, note) =>
-                          void runPreviewEdit(changes, reason, note)
-                        }
-                      />
-                    </div>
-                  ) : undefined
-                }
                 footer={
-                  (mayReview || mayEnforce) && !previewEditing ? (
+                  mayReview || mayEnforce ? (
                     <>
-                      {editNotice !== null ? (
-                        <p
-                          role="status"
-                          aria-live="polite"
-                          data-testid="admin-screening-edit-done"
-                          className="basis-full text-sm text-foreground"
-                        >
-                          {editNotice}
-                        </p>
-                      ) : null}
                       {/* Bundle 13 turn 8 (D154 B4) — the ad's photos with their marks. D169
                           (the operator, 2026-10-14) kept the preview view-only; D188 (2026-10-15)
-                          puts Edit inside it: the boxes take the listing's place (`body`). */}
+                          put Edit inside it; D194 (bundle 17 turn 2) opens the ad in the wizard's
+                          edit mode instead, and a photo's removal is on the ad's own page
+                          (`admin-screening-open-listing`), as D169 placed it. */}
                       {mayEnforce ? (
                         <div className="basis-full">
                           <ListingPhotos
@@ -765,12 +675,13 @@ export function AdminScreeningPage() {
                           className="min-h-11"
                           data-testid="admin-screening-preview-edit"
                           disabled={busy || query.isFetching}
-                          onClick={() => {
-                            setEditNotice(null);
-                            setEditRefusals([]);
-                            setEditError(null);
-                            setPreviewEditing(true);
-                          }}
+                          onClick={() =>
+                            void navigate({
+                              to: "/admin/listings/$listingId/edit",
+                              params: { listingId: previewRow.id },
+                              search: { from: "screening" },
+                            })
+                          }
                         >
                           {t("admin.listings.action.edit")}
                         </Button>

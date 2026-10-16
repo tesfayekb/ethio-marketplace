@@ -94,3 +94,12 @@ The operator (2026-10-15): "a page in the approval queue needs to be able to be 
 - **Save** shows the saved change at once (`editedScreeningRow`: the title, the words, the answers and the price keys the form sent — INC-649), then re-reads the queue; the preview follows its ad's fresh read (`updated_at`) and shows the ad as it now stands, with the saved line ("Saved. The seller is told what changed: …", `admin-screening-edit-done`) and Approve, Reject, Edit at hand again. A refusal lands under its field and the boxes stay open (F4); a cancelled second factor leaves them as they were; Cancel returns to the ad as buyers see it. Approve and Reject are not offered while the boxes are open.
 - The row's market (`countryCode`, the place's `locations.country_code`) rides the queue read, so a price with no money opens on the ad's own market in the boxes, as on the ad's page.
 - Tests: SF-4 (use-screening.test.ts); E2E SC-25 (edit a waiting ad's title from the preview, then approve it).
+
+## Bundle 17 turn 2 — Edit opens the wizard; the preview re-opens on return (D194)
+
+The operator (2026-10-16): the staff's Edit is the "same review page as the first and gateway". Supersedes turn E3's boxes.
+
+- **Edit** (`admin-screening-preview-edit`, listings:enforce) in the preview's footer now opens `/admin/listings/<id>/edit?from=screening` — the posting wizard in edit mode with `actor: "admin"` (docs/features/admin-listings.md, this turn). The edit panel inside the sheet (`admin-screening-edit-panel`, `ListingEditForm`), its saved line (`admin-screening-edit-done`) and the at-once row patch (`editedScreeningRow`, INC-649) are gone with it.
+- **Done** on the wizard's Review returns to `/admin/screening?open=<id>`: the page reads that ad fresh (`readScreeningRow` — in screening only) and opens its preview on the ad as the edit left it, with Approve and Reject at hand again (D188); the address then drops `open`. An ad no longer in screening opens nothing.
+- The preview's photos stay view-only with their marks (D169); a photo's removal is on the ad's own page ("Open the ad's page").
+- Tests: SF-5 (use-screening.test.ts, rewritten for `readScreeningRow`); E2E SC-25 rewritten per the turn's brief.

@@ -56,7 +56,11 @@ import {
 } from "./posting-service";
 import { prefillCursor } from "./post-prefill";
 import { replaceAddressQuietly } from "./quiet-address";
-import { useDraft, type DraftValues } from "./use-draft";
+import { useDraft, type DraftValues, type UseDraft } from "./use-draft";
+import { useEditDraft, type UseEditDraft } from "./use-edit-draft";
+import type { EditActor } from "./edit-step-changes";
+import type { GuardFn } from "@/features/auth/mfa/use-step-up";
+import { FadingNotice } from "@/components/ui/fading-notice";
 import { keepListedAnswers, type QuestionListRead } from "./catalog-held-answers";
 
 /** D59 — the fields a category change resets, and Undo restores. */
@@ -122,9 +126,69 @@ export function PostingWizard({
   /** D119 — the invite card's category and place (/post only). */
   prefill?: { categoryId: string | null; placeId: string | null } | null;
 }) {
+  const draft = useDraft(listingId);
+  return (
+    <WizardShell
+      draft={draft}
+      prefill={prefill}
+      edit={null}
+      onDone={null}
+      routeListingId={listingId}
+    />
+  );
+}
+
+/**
+ * Bundle 17 turn 2 (D194) — THE EDIT IS THE WIZARD. The same shell, opened on
+ * its Review step over a live ad: the Category line has no Edit link, every
+ * other section's Edit opens that step, and the step's Next sends its changed
+ * fields through the edit door and comes back to the Review (`useEditDraft`).
+ * Staff (`actor: "admin"`) edit words, answers and the price through their own
+ * door under the step-up gate, with a reason asked once on the Review.
+ */
+export function EditWizard({
+  listingId,
+  actor,
+  guard,
+  onDone,
+}: {
+  listingId: string;
+  actor: EditActor;
+  /** Staff only — the step-up gate's guard, wrapped around every save. */
+  guard?: GuardFn;
+  /** Done on the Review: back to the ad (the seller) or to where staff came from. */
+  onDone: () => void;
+}) {
+  const draft = useEditDraft(listingId, { actor, guard });
+  return (
+    <WizardShell
+      draft={draft}
+      prefill={null}
+      edit={draft}
+      onDone={onDone}
+      routeListingId={listingId}
+    />
+  );
+}
+
+function WizardShell({
+  draft,
+  prefill,
+  edit,
+  onDone,
+  routeListingId,
+}: {
+  draft: UseDraft;
+  prefill: { categoryId: string | null; placeId: string | null } | null;
+  /** The edit hook when this shell edits a live ad; null when posting. */
+  edit: UseEditDraft | null;
+  onDone: (() => void) | null;
+  /** The id the route opened with (a resume, or the edit's ad); null on a fresh /post. */
+  routeListingId: string | null;
+}) {
   const { t, entities, language } = useI18n();
   const { user, loading: authLoading } = useAuth();
-  const draft = useDraft(listingId);
+  const listingId = routeListingId;
   const { tree, isLoading: treeLoading, error: treeError } = useCategoryTree();
 
   // Which detail keys step 3 renders: refusals naming one of them are shown
@@ -290,7 +354,7 @@ export function PostingWizard({
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
   const [basisOptions, setBasisOptions] = useState<AttrOption[] | null>(null);
   /** Set when the seller left the review page to edit one step (U6-C1-R2). */
-  const [returnToReview, setReturnToReview] = useState(false);
+  const [returnToReview, setReturnToReview] = useState(edit !== null);
   /** Bundle 3 step 19 — the contact step's claim, run before Next leaves it. */
   const [whoSaveRef] = useState<{ current: (() => Promise<boolean>) | null }>(() => ({
     current: null,
@@ -717,7 +781,8 @@ export function PostingWizard({
       const saved = await draft.saveAt(draft.step);
       if (!saved) return;
       if (returnToReview) {
-        setReturnToReview(false);
+        // D194 — in edit mode every step comes back to the Review.
+        if (edit === null) setReturnToReview(false);
         draft.goTo(TOTAL_STEPS);
         return;
       }
@@ -771,11 +836,12 @@ export function PostingWizard({
                      * draft.goTo); a step not reached yet stays plain text.
                      */
                     const reachable =
-                      current ||
-                      isStepFinished(entry.step, {
-                        draftStep: draft.draftStep,
-                        photosCount: draft.photos.length,
-                      });
+                      !(edit !== null && edit.locked.includes(entry.step)) &&
+                      (current ||
+                        isStepFinished(entry.step, {
+                          draftStep: draft.draftStep,
+                          photosCount: draft.photos.length,
+                        }));
                     const badge = (
                       <span
                         className={`grid size-6 shrink-0 place-items-center rounded-full border text-xs ${
@@ -853,7 +919,13 @@ export function PostingWizard({
             <div className="mx-auto min-w-0 max-w-3xl">
               <Section className="space-y-4 p-3 md:p-6">
                 <header className="space-y-2">
-                  <h1 className="text-lg font-semibold text-foreground">{t("post.title")}</h1>
+                  <h1 className="text-lg font-semibold text-foreground">
+                    {edit === null
+                      ? t("post.title")
+                      : edit.actor === "admin"
+                        ? t("admin.listings.edit.title")
+                        : t("post.edit.title")}
+                  </h1>
                   <p className="text-sm text-muted-foreground" data-testid="post-step-header">
                     {fill(t("post.stepOf"), {
                       step: positionOf(draft.step),
@@ -901,15 +973,39 @@ export function PostingWizard({
                     photosCount={draft.photos.length}
                     onGoTo={draft.goTo}
                   />
-                  <p
-                    className="text-xs text-muted-foreground"
-                    data-testid="post-save-state"
-                    data-state={draft.saveState}
-                  >
-                    {draft.saveState === "saving" && t("post.save.saving")}
-                    {draft.saveState === "saved" && t("post.save.saved")}
-                    {draft.saveState === "unsaved" && t("post.save.unsaved")}
-                  </p>
+                  {edit === null ? (
+                    <p
+                      className="text-xs text-muted-foreground"
+                      data-testid="post-save-state"
+                      data-state={draft.saveState}
+                    >
+                      {draft.saveState === "saving" && t("post.save.saving")}
+                      {draft.saveState === "saved" && t("post.save.saved")}
+                      {draft.saveState === "unsaved" && t("post.save.unsaved")}
+                    </p>
+                  ) : (
+                    /* D192 — the Edit's confirmations are a notice that fades after a few seconds. */
+                    <FadingNotice
+                      testid="post-edit-notice"
+                      nonce={edit.outcome?.nonce ?? 0}
+                      text={
+                        edit.outcome === null
+                          ? null
+                          : edit.outcome.kind === "review"
+                            ? t("myListings.editBox.doneReview")
+                            : t("myListings.editBox.done")
+                      }
+                    />
+                  )}
+                  {edit !== null && edit.problem !== null && (
+                    <p
+                      role="alert"
+                      className="text-sm text-destructive"
+                      data-testid="post-edit-problem"
+                    >
+                      {t(edit.problem)}
+                    </p>
+                  )}
                   {/* INC-227 — a rate refusal is a WAIT, never a wall: the caption counts
               it down and `Next` keeps working. */}
                   {draft.pauseSeconds > 0 && (
@@ -1073,7 +1169,8 @@ export function PostingWizard({
                               setCategoryCursor(tree.parentOf.get(categoryCursor) ?? null);
                               return;
                             }
-                            draft.goTo(prevOf(draft.step));
+                            // D194 — in edit mode Back is the way back to the Review.
+                            draft.goTo(edit === null ? prevOf(draft.step) : TOTAL_STEPS);
                           }}
                         >
                           {t("post.action.back")}
@@ -1093,7 +1190,7 @@ export function PostingWizard({
                             className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
                             disabled={photosSendingNow}
                             onClick={() => {
-                              setReturnToReview(false);
+                              if (edit === null) setReturnToReview(false);
                               draft.goTo(TOTAL_STEPS);
                             }}
                           >
@@ -1123,7 +1220,7 @@ export function PostingWizard({
                               goNext();
                             }}
                           >
-                            {t("post.action.next")}
+                            {edit === null ? t("post.action.next") : t("myListings.editBox.save")}
                           </button>
                         ) : null}
                       </div>
@@ -1208,14 +1305,20 @@ export function PostingWizard({
                             onChanged={draft.reloadPhotos}
                             illustrationUrl={illustrationUrl}
                             photosSoon={draft.photosSoon}
-                            onPhotosSoon={async (on) => {
-                              if (draft.listingId === null) return false;
-                              // The tick follows the finger; a refusal puts it back (F4).
-                              draft.setPhotosSoon(on);
-                              const ok = await savePhotosSoon(draft.listingId, on);
-                              if (!ok) draft.setPhotosSoon(!on);
-                              return ok;
-                            }}
+                            // INC-666 — `set_listing_photos_soon` does not take a closed ad yet
+                            // (its sibling doors do, INC-631): no tick on a closed ad until it does.
+                            onPhotosSoon={
+                              edit !== null && edit.status === "closed"
+                                ? undefined
+                                : async (on) => {
+                                    if (draft.listingId === null) return false;
+                                    // The tick follows the finger; a refusal puts it back (F4).
+                                    draft.setPhotosSoon(on);
+                                    const ok = await savePhotosSoon(draft.listingId, on);
+                                    if (!ok) draft.setPhotosSoon(!on);
+                                    return ok;
+                                  }
+                            }
                             videoUrl={draft.values.videoUrl}
                             videoRefusal={
                               refusalFor(draft.refusals, "video_url") ??
@@ -1334,6 +1437,8 @@ export function PostingWizard({
                             maxRegions={planCaps?.maxRegions ?? null}
                             maxCountries={planCaps?.maxCountries ?? null}
                             invitePlaceId={prefill?.placeId ?? null}
+                            textMode={edit === null ? "door" : "form"}
+                            onTextChange={edit === null ? undefined : edit.setPlaceText}
                           />
                         )}
                         {draft.step === 7 && (
@@ -1377,6 +1482,17 @@ export function PostingWizard({
                               setReturnToReview(true);
                               draft.goTo(step);
                             }}
+                            lockedSteps={edit === null ? [] : edit.locked}
+                            edit={
+                              edit === null || onDone === null
+                                ? null
+                                : {
+                                    actor: edit.actor,
+                                    reason: edit.reason,
+                                    onReason: edit.setReason,
+                                    onDone,
+                                  }
+                            }
                           />
                         )}
                         {draft.step > IMPLEMENTED_THROUGH && (

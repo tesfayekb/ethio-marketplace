@@ -17,8 +17,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ListingEditForm } from "@/features/admin-listings/edit-form";
-import type { EditableListing } from "@/features/admin-listings/edit-listing";
 import { GROUP_LABEL as FIELD_WORD, groupsOf } from "@/features/admin-listings/history";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { loadAttributeOptions, type AttrOption } from "@/features/posting/attribute-options";
@@ -34,8 +32,6 @@ import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { fill } from "@/features/posting/refusal-text";
-import { StepPhotos } from "@/features/posting/step-photos";
-import type { Refusal } from "@/features/posting/types";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
@@ -126,6 +122,13 @@ import { REASON_WORD, SOLD_ON, stateLine, visibilityOf } from "./state-line";
  * places, channels, text lines and pin (`readDraft`), its id and its first three
  * photo ids. Places, the pin and the channels apply at once; a changed directions
  * or street line goes to review with the words (edit_my_listing, turn E2a).
+ *
+ * Bundle 17 turn 2 (D194) — THE EDIT IS THE WIZARD. Edit opens the posting form
+ * in its edit mode at the ad's own edit address (`/my-listings/<id>/edit`): the
+ * Review first, every section with its Edit link but the Category, each step
+ * saving on Next through `edit_my_listing`, Done coming back here. The panel of
+ * turns R2 and E2b (`my-listing-edit-panel`, the stacked boxes) is gone, and the
+ * page shows the ad as buyers see it in every state; `?edit=1` is no more.
  */
 
 const adKey = (listingId: string) => authKey("my-listing", listingId);
@@ -157,14 +160,7 @@ function Mark({ testid, children }: { testid: string; children: ReactNode }) {
   );
 }
 
-export function MyListingPage({
-  listingId,
-  startEditing = false,
-}: {
-  listingId: string;
-  /** Turn R2 — opened from a row's Edit: the edit panel opens with the page. */
-  startEditing?: boolean;
-}) {
+export function MyListingPage({ listingId }: { listingId: string }) {
   const { t, language } = useI18n();
   const queryClient = useQueryClient();
   const { tree } = useCategoryTree();
@@ -172,9 +168,6 @@ export function MyListingPage({
   const [notice, setNotice] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<"sell" | "delete" | null>(null);
-  const [editing, setEditing] = useState(startEditing);
-  const [editRefusals, setEditRefusals] = useState<Refusal[]>([]);
-  const [editError, setEditError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const query = useQuery({
@@ -277,31 +270,6 @@ export function MyListingPage({
     }
   };
 
-  /** Turn R2 — the boxes' Save: the changed fields through `edit_my_listing` (D177). */
-  const runEdit = async (changes: Record<string, unknown>) => {
-    if (busy) return;
-    setBusy(true);
-    setNotice(null);
-    setProblem(null);
-    setEditError(null);
-    setEditRefusals([]);
-    try {
-      const outcome = await editMyListing(listingId, changes);
-      if (outcome.ok) {
-        setEditing(false);
-        setNotice(t(outcome.review ? "myListings.editBox.doneReview" : "myListings.editBox.done"));
-      } else if ("refusals" in outcome) {
-        // F4 — a refusal is an answer: it lands under its field and nothing closes.
-        setEditRefusals(outcome.refusals);
-      } else setEditError(t(outcome.key));
-    } catch {
-      setEditError(t("myListings.error.failed"));
-    } finally {
-      await reload();
-      setBusy(false);
-    }
-  };
-
   /** D182 4 — Post a similar ad: a new draft with this ad's details, opened in the posting form. */
   const runCopy = async () => {
     if (busy) return;
@@ -363,7 +331,6 @@ export function MyListingPage({
   // Turn R2 — Edit on a live, closed or refused ad; Post a similar ad on any but a draft, a removed or a refused one.
   const mayEdit = EDITABLE_STATUSES.has(row.status);
   const mayCopy = copyable(row.status);
-  const isEditing = editing && mayEdit;
   const steps = actions.filter((action) => action !== "delete");
   const mayDelete = actions.includes("delete");
   const live = row.status === "active" || row.status === "reduced";
@@ -415,43 +382,6 @@ export function MyListingPage({
 
   const draft = content.data ?? null;
   const lines = history.data === undefined ? undefined : sellerLines(history.data);
-  /** Turn R2 — the ad as the boxes open on it: its own content, its stored unit, its market. */
-  const editable: EditableListing | null =
-    draft === null
-      ? null
-      : {
-          categoryId: draft.draft.categoryId,
-          attributes: draft.draft.attributes,
-          title: draft.draft.title ?? "",
-          description: draft.draft.description ?? "",
-          priceMode: draft.draft.priceMode ?? "fixed",
-          priceAmount: draft.draft.priceAmount,
-          priceCurrency: draft.draft.priceCurrency,
-          pricePeriod: draft.draft.pricePeriod,
-          priceBp: draft.draft.priceBp,
-          priceNegotiable: draft.draft.priceNegotiable,
-          priceUnit: row.priceUnit,
-          priceUnitText: row.priceUnitText,
-          countryCode: ad.countryCode,
-          videoUrl: draft.draft.videoUrl,
-          // Turn E2b (D187) — the places, the channels and the two text lines, as the ad holds them.
-          coverage: draft.coverage,
-          contactPref: draft.draft.contactPref,
-          streetAddress: draft.draft.streetAddress,
-          directions: draft.draft.directions,
-        };
-  /** Turn E2b — the pin as the door holds it, for the Place box (the posting form reads the same four columns). */
-  const editablePin =
-    draft === null || draft.draft.pinLat === null || draft.draft.pinLng === null
-      ? null
-      : {
-          lat: draft.draft.pinLat,
-          lng: draft.draft.pinLng,
-          precision: draft.draft.pinPrecision ?? "exact",
-          street: draft.draft.streetAddress,
-          zoom: draft.draft.pinZoom,
-        };
-
   return (
     <PageShell as="main" width="wide" data-testid="my-listing-page">
       <BackLink />
@@ -465,31 +395,23 @@ export function MyListingPage({
             {info}
           </p>
         ) : null}
-        {isEditing ? null : actions.length === 0 &&
-          !mayEdit &&
-          !mayCopy &&
-          row.status !== "draft" ? (
+        {actions.length === 0 && !mayEdit && !mayCopy && row.status !== "draft" ? (
           <p data-testid="my-listing-no-action" className="text-sm text-muted-foreground">
             {t("myListings.ad.none")}
           </p>
         ) : (
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            {/* Turn R2 — Edit first: the boxes open in the place of the ad as buyers see it. */}
+            {/* D194 — Edit first: the posting form in its edit mode, on its Review. */}
             {mayEdit ? (
               <Button
                 type="button"
                 size="touch"
                 variant="outline"
                 data-testid="my-listing-edit"
-                // INC-558 — the form opens on a fresh read, never while the page is re-reading.
-                disabled={busy || content.isFetching}
-                onClick={() => {
-                  setNotice(null);
-                  setProblem(null);
-                  setEditRefusals([]);
-                  setEditError(null);
-                  setEditing(true);
-                }}
+                disabled={busy}
+                onClick={() =>
+                  void navigate({ to: "/my-listings/$listingId/edit", params: { listingId } })
+                }
               >
                 <Pencil aria-hidden="true" />
                 {t("myListings.edit")}
@@ -635,106 +557,55 @@ export function MyListingPage({
           </ul>
         </PageCard>
 
-        {isEditing ? (
-          <div data-testid="my-listing-edit-panel" className="min-w-0 space-y-4">
-            {/* D172 — the panel names itself; its boxes follow, the photos first. */}
-            <h2
-              data-testid="my-listing-edit-heading"
-              className="min-w-0 break-words text-lg font-semibold text-foreground"
-            >
-              {t("myListings.editBox.title")}
-            </h2>
-            {editable === null ? (
-              <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-                {content.isError || content.isSuccess
-                  ? t("myListings.ad.loadError")
-                  : t("common.loading")}
-              </p>
-            ) : (
-              <ListingEditForm
-                listing={editable}
-                variant="seller"
-                listingId={row.id}
-                // INC-588 / D151 — the writing helper names the first three stored photos by id.
-                photoIds={(draft?.photos ?? []).map((photo) => photo.id).slice(0, 3)}
-                pin={editablePin}
-                photos={(video) => (
-                  <StepPhotos
-                    listingId={row.id}
-                    photos={draft?.photos ?? []}
-                    onChanged={() => void content.refetch()}
-                    illustrationUrl={
-                      categoryId === null ? null : nearestCategoryPicture(tree, categoryId)
-                    }
-                    videoUrl={video.value}
-                    videoRefusal={video.refusal}
-                    onChangeVideo={video.onChange}
-                    maxPhotos={schema.data?.plan?.maxPhotos ?? null}
-                  />
-                )}
-                busy={busy}
-                refusals={editRefusals}
-                error={editError}
-                onCancel={() => {
-                  setEditing(false);
-                  setEditRefusals([]);
-                  setEditError(null);
-                }}
-                onSave={(changes) => void runEdit(changes)}
-              />
-            )}
-          </div>
-        ) : (
-          <PageCard testid="my-listing-as-seen" className="min-w-0 space-y-3">
-            <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
-            {draft === null ? (
-              <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-                {/* readDraft answers null for an ad that is not the caller's: a refusal, never a wait. */}
-                {content.isError || content.isSuccess
-                  ? t("myListings.ad.loadError")
-                  : t("common.loading")}
-              </p>
-            ) : (
-              <ListingDetail
-                title={draft.draft.title ?? ""}
-                description={draft.draft.description ?? ""}
-                priceMode={draft.draft.priceMode ?? "contact"}
-                priceAmount={draft.draft.priceAmount}
-                priceCurrency={draft.draft.priceCurrency}
-                pricePeriod={draft.draft.pricePeriod}
-                priceBp={draft.draft.priceBp}
-                priceNegotiable={draft.draft.priceNegotiable}
-                basisLabel={storedUnitNoun(row.priceUnit, row.priceUnitText, unitLabels, language)}
-                attributes={draft.draft.attributes}
-                definitions={schema.data?.definitions ?? []}
-                attributeOptions={schema.data?.attributeOptions ?? {}}
-                photos={draft.photos}
-                illustrationUrl={
-                  categoryId === null ? null : nearestCategoryPicture(tree, categoryId)
-                }
-                photosSoon={draft.draft.photosSoon}
-                ribbon={ribbonKey === undefined ? null : t(ribbonKey)}
-                coverage={draft.coverage}
-                country={ad.countryCode}
-                contactPref={draft.draft.contactPref}
-                sellerAlias={identity.data?.alias ?? null}
-                sellerBusinessName={
-                  identity.data?.sellerType === "business"
-                    ? (identity.data.businessName ?? null)
-                    : null
-                }
-                sellerPreviousAlias={line.data?.previousAlias ?? null}
-                sellerMemberSince={line.data?.memberSince ?? null}
-                pinLat={draft.draft.pinLat}
-                pinLng={draft.draft.pinLng}
-                pinPrecision={draft.draft.pinPrecision}
-                pinZoom={draft.draft.pinZoom}
-                directions={draft.draft.directions}
-                streetAddress={draft.draft.streetAddress}
-              />
-            )}
-          </PageCard>
-        )}
+        <PageCard testid="my-listing-as-seen" className="min-w-0 space-y-3">
+          <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
+          {draft === null ? (
+            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+              {/* readDraft answers null for an ad that is not the caller's: a refusal, never a wait. */}
+              {content.isError || content.isSuccess
+                ? t("myListings.ad.loadError")
+                : t("common.loading")}
+            </p>
+          ) : (
+            <ListingDetail
+              title={draft.draft.title ?? ""}
+              description={draft.draft.description ?? ""}
+              priceMode={draft.draft.priceMode ?? "contact"}
+              priceAmount={draft.draft.priceAmount}
+              priceCurrency={draft.draft.priceCurrency}
+              pricePeriod={draft.draft.pricePeriod}
+              priceBp={draft.draft.priceBp}
+              priceNegotiable={draft.draft.priceNegotiable}
+              basisLabel={storedUnitNoun(row.priceUnit, row.priceUnitText, unitLabels, language)}
+              attributes={draft.draft.attributes}
+              definitions={schema.data?.definitions ?? []}
+              attributeOptions={schema.data?.attributeOptions ?? {}}
+              photos={draft.photos}
+              illustrationUrl={
+                categoryId === null ? null : nearestCategoryPicture(tree, categoryId)
+              }
+              photosSoon={draft.draft.photosSoon}
+              ribbon={ribbonKey === undefined ? null : t(ribbonKey)}
+              coverage={draft.coverage}
+              country={ad.countryCode}
+              contactPref={draft.draft.contactPref}
+              sellerAlias={identity.data?.alias ?? null}
+              sellerBusinessName={
+                identity.data?.sellerType === "business"
+                  ? (identity.data.businessName ?? null)
+                  : null
+              }
+              sellerPreviousAlias={line.data?.previousAlias ?? null}
+              sellerMemberSince={line.data?.memberSince ?? null}
+              pinLat={draft.draft.pinLat}
+              pinLng={draft.draft.pinLng}
+              pinPrecision={draft.draft.pinPrecision}
+              pinZoom={draft.draft.pinZoom}
+              directions={draft.draft.directions}
+              streetAddress={draft.draft.streetAddress}
+            />
+          )}
+        </PageCard>
 
         <PageCard testid="my-listing-history" className="min-w-0 space-y-3">
           <h2 className="text-sm font-semibold text-foreground">
