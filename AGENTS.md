@@ -33,3 +33,5 @@ Full rules live in Lovable Project Knowledge and are summarized here: modify onl
 - A map indexed by a key from outside (a URL, storage, a cookie, a database row) is read through `ownValue` (src/lib/own-key.ts), never `map[key]`. Why: a crafted key reached an inherited method and the page threw (INC-485).
 
 - Cut names use CutText; crowded-row captions use useLabelRoom observing only their row, and action-focus modality installs once at hydration — preserving grapheme floors without resize loops or duplicate listeners.
+
+- Flake-fix repeat proofs run through the manually dispatched Flake check workflow, separate from CI and promotion, because local browser execution is unavailable (DEC-184).
