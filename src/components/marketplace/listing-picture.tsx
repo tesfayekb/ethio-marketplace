@@ -41,20 +41,20 @@ const TAPE_INSET_Y = `${(TAPE_REACH * Math.sin(TAPE_RAD)).toFixed(2)}cqw`;
  * INC-670 (bundle 18 turn 1; the operator's bundle-17 walk: "the thickness of all ribbons should look the same
  * including text color, size, style") — ONE RIBBON. Every band across an ad's picture — the status word and the
  * photos-soon band — is drawn by this one component, from one class set and one style: one band height (the
- * letters at `clamp(9px, 6cqw, 22px)` with 1.6cqw above and below), one weight, one tracking, one colour, one
+ * letters at `clamp(9px, 5cqw, 20px)` with 1.4cqw above and below), one weight, one tracking, one colour, one
  * shadow. Before, the photos-soon band had its own, smaller set (3.6cqw letters, 1.4cqw padding, 0.04em) and read
- * thinner beside a status ribbon. The band's visible run between the picture's edges is about 59cqw, so one size
- * fits every ribbon only while its words stay within 14 characters (RB-1, the status words' cap, now the band's
- * too): "PHOTOS COMING SOON" became "PHOTOS SOON".
+ * thinner beside a status ribbon; its words became "PHOTOS SOON". The band's ends are clipped by the picture's corners,
+ * so at this size a word may be at most 10.6em wide (8.6em at the first size, 6cqw, which cut "Price reduced" — INC-675):
+ * a ribbon word is at most 14 characters AND at most 10.0em in the site's bold (RB-1; the supervisor measures a new word).
  */
 /** The band itself — one class set for every ribbon; a test proves no ribbon is drawn with another. */
 export const RIBBON_BAND_CLASS =
   "absolute bg-gold font-bold uppercase text-gold-foreground shadow-sm";
 export const RIBBON_TEXT_CLASS = "block text-center leading-none whitespace-nowrap";
 export const RIBBON_TEXT_STYLE = {
-  fontSize: "clamp(9px, 6cqw, 22px)",
+  fontSize: "clamp(9px, 5cqw, 20px)",
   letterSpacing: "0.06em",
-  padding: "1.6cqw 0",
+  padding: "1.4cqw 0",
 } as const;
 
 export function ListingRibbon({
