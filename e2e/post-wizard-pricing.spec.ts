@@ -819,7 +819,11 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-price-mode-fixed").click();
     await toSpecs("back");
     await judge("c");
-    // (d) the Price Next answered by a transport failure once.
+    // (d) the Price Next answered by a transport failure once. The transport
+    // failure is simulated on a real send, because a closed Next sends nothing (D193).
+    await specControl(page, basis.basisKey).selectOption("hourly");
+    await page.getByTestId("post-price-amount").fill("150");
+    await expect(page.getByTestId("post-next")).not.toHaveAttribute("data-closed", /.*/);
     let aborted = false;
     await page.route("**/api/listings/draft", async (route) => {
       if (!aborted) {
@@ -831,11 +835,14 @@ test.describe("POSTING WIZARD", () => {
     });
     await page.getByTestId("post-next").click();
     await expect.poll(() => aborted, { timeout: 20_000 }).toBe(true);
+    await expect(page.getByTestId("post-next-unreachable")).toBeVisible();
+    await expect(page.getByTestId("post-step-4")).toBeVisible();
     await toSpecs("back");
     await judge("d");
     await page.unroute("**/api/listings/draft");
 
     // Under Amharic the same summary names the basis in Amharic.
+    await specControl(page, basis.basisKey).selectOption("");
     await page.getByTestId("post-next").click();
     await expect(summary).toContainText(nameEn, { timeout: 20_000 });
     await switchLanguage(page, "am");
