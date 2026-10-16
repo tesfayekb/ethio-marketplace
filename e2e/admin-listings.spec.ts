@@ -1553,7 +1553,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // Do not change anything; go back.
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("post-edit-notice")).toHaveCount(0);
+    await expect(page.getByTestId("post-edit-notice")).toHaveAttribute("data-shown", "false");
     expect((await revisionRows(live.id, "edit")).length).toBe(revisionCountBefore);
 
     // INC-554 (turn L4b) — the breadcrumb's section leads back to All listings.

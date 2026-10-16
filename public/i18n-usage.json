@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 453,
-  "dynamicCallSites": 331,
+  "dynamicCallSites": 332,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2954,7 +2954,11 @@
       "/admin/roles"
     ],
     "admin.screening.approve": [
-      "/admin/screening"
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "admin.screening.changes.empty": [
       "/admin/screening"
@@ -2984,9 +2988,11 @@
       "/admin/screening"
     ],
     "admin.screening.confirmApprove": [
+      "/admin/listings/$listingId/edit",
       "/admin/screening"
     ],
     "admin.screening.confirmReject": [
+      "/admin/listings/$listingId/edit",
       "/admin/screening"
     ],
     "admin.screening.empty": [
@@ -3003,7 +3009,11 @@
       "/admin/screening"
     ],
     "admin.screening.reject": [
-      "/admin/screening"
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "admin.screening.reviews.empty": [
       "/admin/screening"

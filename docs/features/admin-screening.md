@@ -103,3 +103,8 @@ The operator (2026-10-16): the staff's Edit is the "same review page as the firs
 - **Done** on the wizard's Review returns to `/admin/screening?open=<id>`: the page reads that ad fresh (`readScreeningRow` — in screening only) and opens its preview on the ad as the edit left it, with Approve and Reject at hand again (D188); the address then drops `open`. An ad no longer in screening opens nothing.
 - The preview's photos stay view-only with their marks (D169); a photo's removal is on the ad's own page ("Open the ad's page").
 - Tests: SF-5 (use-screening.test.ts, rewritten for `readScreeningRow`); E2E SC-25 rewritten per the turn's brief.
+
+## Bundle 17 turn 3 — Approve and Reject on the Edit's Review (D188)
+
+- From Screening (`?from=screening`), for listings:review, the wizard's Review carries **Approve** (`post-edit-approve`) and **Reject** (`post-edit-reject`, destructive) beside Done (`post-edit-actions`). Each asks first with the queue's own words (`post-edit-confirm`, `post-edit-confirm-go`; Cancel keeps the Review), decides through `transition_listing` under the step-up gate (`decideListing`, one ad), and returns to `/admin/screening?decided=active|rejected`, where the page says "Approved" / "Rejected" (`admin-screening-notice`'s line, as a decision from the queue says it) and drops the parameter. A cancelled second factor leaves the Review as it was; a refusal is said under the actions (`post-edit-decide-problem`).
+- Tests: E2E SC-25 extended (approve from the Review after the edit), per the turn's brief.

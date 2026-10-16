@@ -11,15 +11,23 @@ import { AdminScreeningPage } from "@/features/admin-screening/screening-page";
  *
  * Bundle 17 turn 2 (D194) — `?open=<id>` re-opens the ad's preview when the
  * reviewer comes back from its Edit (`/admin/listings/<id>/edit?from=screening`);
- * anything else in the address is dropped.
+ * bundle 17 turn 3 (D188) — `?decided=active|rejected` shows the outcome line
+ * when the decision was made on the Edit's Review. Anything else in the address
+ * is dropped.
  */
 export const Route = createFileRoute("/admin/screening")({
-  validateSearch: (search: Record<string, unknown>): { open?: string } =>
-    typeof search.open === "string" && search.open !== "" ? { open: search.open } : {},
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { open?: string; decided?: "active" | "rejected" } => ({
+    ...(typeof search.open === "string" && search.open !== "" ? { open: search.open } : {}),
+    ...(search.decided === "active" || search.decided === "rejected"
+      ? { decided: search.decided }
+      : {}),
+  }),
   component: AdminScreeningRoute,
 });
 
 function AdminScreeningRoute() {
-  const { open } = Route.useSearch();
-  return <AdminScreeningPage openId={open ?? null} />;
+  const { open, decided } = Route.useSearch();
+  return <AdminScreeningPage openId={open ?? null} decided={decided ?? null} />;
 }

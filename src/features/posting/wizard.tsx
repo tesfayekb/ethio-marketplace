@@ -151,6 +151,7 @@ export function EditWizard({
   actor,
   guard,
   onDone,
+  onDecide = null,
 }: {
   listingId: string;
   actor: EditActor;
@@ -158,6 +159,8 @@ export function EditWizard({
   guard?: GuardFn;
   /** Done on the Review: back to the ad (the seller) or to where staff came from. */
   onDone: () => void;
+  /** Bundle 17 turn 3 (D188) — from Screening: Approve and Reject on the Review. */
+  onDecide?: ((next: "active" | "rejected") => void) | null;
 }) {
   const draft = useEditDraft(listingId, { actor, guard });
   return (
@@ -166,6 +169,7 @@ export function EditWizard({
       prefill={null}
       edit={draft}
       onDone={onDone}
+      onDecide={onDecide}
       routeListingId={listingId}
     />
   );
@@ -176,6 +180,7 @@ function WizardShell({
   prefill,
   edit,
   onDone,
+  onDecide = null,
   routeListingId,
 }: {
   draft: UseDraft;
@@ -183,6 +188,7 @@ function WizardShell({
   /** The edit hook when this shell edits a live ad; null when posting. */
   edit: UseEditDraft | null;
   onDone: (() => void) | null;
+  onDecide?: ((next: "active" | "rejected") => void) | null;
   /** The id the route opened with (a resume, or the edit's ad); null on a fresh /post. */
   routeListingId: string | null;
 }) {
@@ -1491,6 +1497,7 @@ function WizardShell({
                                     reason: edit.reason,
                                     onReason: edit.setReason,
                                     onDone,
+                                    onDecide,
                                   }
                             }
                           />

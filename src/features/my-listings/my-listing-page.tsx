@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { FadingNotice } from "@/components/ui/fading-notice";
 import { GROUP_LABEL as FIELD_WORD, groupsOf } from "@/features/admin-listings/history";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { loadAttributeOptions, type AttrOption } from "@/features/posting/attribute-options";
@@ -92,7 +93,8 @@ import { REASON_WORD, SOLD_ON, stateLine, visibilityOf } from "./state-line";
  * dates `my-listing-first-posted`, `my-listing-renewed`, `my-listing-ends`,
  * `my-listing-sold`; actions `my-listing-actions`, each button
  * `my-listing-action-<reserve|unreserve|sell|close|reopen|renew>`, Continue on a
- * draft `my-listing-continue`, the done line `my-listing-notice`, the refusal
+ * draft `my-listing-continue`, the done line `my-listing-notice` (D192: shown for a
+ * few seconds, then faded — bundle 17 turn 3), the refusal
  * `my-listing-problem`, the words for no action `my-listing-no-action` (a removed
  * ad), the line on why an action is not there `my-listing-info` (in review; renew
  * switched off); the
@@ -165,7 +167,13 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const queryClient = useQueryClient();
   const { tree } = useCategoryTree();
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNoticeText] = useState<string | null>(null);
+  /** D192 — each new line re-shows the notice, the same words included. */
+  const [noticeNonce, setNoticeNonce] = useState(0);
+  const setNotice = (text: string | null) => {
+    setNoticeText(text);
+    if (text !== null) setNoticeNonce((n) => n + 1);
+  };
   const [problem, setProblem] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<"sell" | "delete" | null>(null);
   const navigate = useNavigate();
@@ -477,16 +485,8 @@ export function MyListingPage({ listingId }: { listingId: string }) {
             ) : null}
           </div>
         )}
-        {notice !== null ? (
-          <p
-            role="status"
-            aria-live="polite"
-            data-testid="my-listing-notice"
-            className="text-sm text-foreground"
-          >
-            {notice}
-          </p>
-        ) : null}
+        {/* D192 (bundle 17 turn 3) — the done line shows for a few seconds and fades. */}
+        <FadingNotice testid="my-listing-notice" nonce={noticeNonce} text={notice} />
         {problem !== null ? (
           <p role="alert" data-testid="my-listing-problem" className="text-sm text-destructive">
             {problem}
