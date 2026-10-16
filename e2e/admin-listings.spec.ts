@@ -1409,7 +1409,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .replace("{currency}", "ETB")
       .replace("{basis}", "bag");
 
-    await useJobSuperAdmin(page);
+    const { secret } = await useJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
