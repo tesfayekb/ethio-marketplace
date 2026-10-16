@@ -56,6 +56,8 @@ forget it:
 - Tests: UP-7, DA-1…DA-3; E2E AU-3 and AU-5 (changed: the deactivated account
   no longer reaches its settings page — it is signed out), AU-14, PR-51, SO-8.
 
+**Bundle 17 turn 1 (INC-661, 2026-10-16) — no signed-in screen before the status read.** On a signed-out → signed-in transition (`useAuth`), the user is set only once the profile read has answered, so a deactivated account signing in never sees the account menu — the sign-in page shows the reason at once. A user already on screen stays while a later read runs (a token refresh never blanks the menu); a read that fails still sets the user (fail-open — every door refuses a deactivated account regardless, F3).
+
 Staff RPCs (all `SECURITY DEFINER`, `REVOKE ALL … FROM PUBLIC, anon` +
 `GRANT EXECUTE … TO authenticated`, each with its own `has_permission` gate):
 

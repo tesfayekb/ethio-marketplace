@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: none — bundle 16 CLOSED 2026-10-16 (spec-ledger block S68); the next brief is bundle 17's, after the Edit-as-wizard spec (D194) is approved. Spec: docs/governance/seller-edit-spec.md (D187; superseded by D194 for the Edit's shape).
+The brief in force: docs/governance/briefs/bundle-17-turn-1.md (bundle 17 — turn 1, the small items before the Edit: no signed-in screen before the status read, the ribbons' words and colour, DEC-183; no migration). Spec: the Edit-as-wizard spec v1 (D194, approved 2026-10-16), docs/governance/edit-wizard-spec.md with turn 2.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

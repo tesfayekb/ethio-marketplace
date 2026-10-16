@@ -372,7 +372,7 @@ export const en = {
   "feed.ribbon.sold": "Sold",
   "feed.ribbon.rented": "Rented",
   "feed.ribbon.filled": "Filled",
-  "feed.ribbon.closed": "No longer available",
+  "feed.ribbon.closed": "Not available",
   "feed.reserved": "Reserved",
   "feed.priceReduced": "Price reduced",
   "feed.priceWas": "Was {price}",

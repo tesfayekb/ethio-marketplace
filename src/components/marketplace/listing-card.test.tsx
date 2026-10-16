@@ -5,6 +5,7 @@ import type { FeedListing } from "@/features/feed/feed-page";
 
 import { InviteCard } from "./invite-card";
 import { ListingCard } from "./listing-card";
+import { ListingPicture } from "./listing-picture";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({
@@ -159,5 +160,14 @@ describe("ListingCard and InviteCard — one card shape", () => {
       expect(screen.queryByTestId("listing-card-price-was")).toBeNull();
       unmount();
     }
+  });
+});
+
+describe("ListingPicture — ribbon colour", () => {
+  it("D197 the photos-soon band is drawn in the gold like the status ribbons", () => {
+    render(<ListingPicture photoUrl={null} categoryUrl={null} photosSoon={true} />);
+    const ribbon = screen.getByTestId("listing-photos-soon-ribbon");
+    const band = ribbon.firstElementChild as HTMLElement;
+    expect(band.className).toContain("bg-gold");
   });
 });

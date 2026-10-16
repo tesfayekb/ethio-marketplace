@@ -358,7 +358,7 @@ export const am: Messages = {
   "feed.ribbon.sold": "የተሸጠ",
   "feed.ribbon.rented": "የተከራየ",
   "feed.ribbon.filled": "የተሞላ",
-  "feed.ribbon.closed": "ከእንግዲህ አይገኝም",
+  "feed.ribbon.closed": "አይገኝም",
   "feed.reserved": "ተይዟል",
   "feed.priceReduced": "ዋጋው ቀንሷል",
   "feed.priceWas": "የቀድሞ ዋጋ፦ {price}",
