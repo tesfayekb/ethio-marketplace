@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-18-turn-1.md (bundle 18 — turn 1: D198 the seller's and the account's pages' breadcrumbs, INC-669 the AI counter reads the door before any try, INC-670 one ribbon; one migration — `peek_rate_limit`; one string changed in both languages). Next: D199 (discount / sale) after the peer research and the operator's rulings; D200's state; the product detail page's study (the operator, 2026-10-16); then the flaky-test turn.
+The brief in force: docs/governance/briefs/bundle-18-turn-2.md (bundle 18 — turn 2: PR-52 and three corrections of turn 1; no migration, no new string). Next: D199 (discount / sale) after the peer research and the operator's rulings; D200's state; the product detail page's study (the operator, 2026-10-16); then the flaky-test turn.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

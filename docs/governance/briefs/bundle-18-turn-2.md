@@ -1,0 +1,29 @@
+BUNDLE 18 — TURN 2 (2026-10-16). ONE TURN, SHORT: PR-52 (the peek's deny cases — owed from turn 1) and three corrections of turn 1. No migration. No new string. No package change. No file deleted. Base: dev 4dc5b03e (turn 1; CI run 965 green, promoted). Tier A: PR-52 (an authenticated route's deny cases). Tier C: the rest.
+
+STEP 0 — save this whole fenced text byte for byte as docs/governance/briefs/bundle-18-turn-2.md, and set roadmap.md line 3 to begin "The brief in force: docs/governance/briefs/bundle-18-turn-2.md (bundle 18 — turn 2: PR-52 and three corrections of turn 1; no migration, no new string)." keeping the rest of that line as it is after the first closing parenthesis.
+
+ORDER OF THE TURN
+1. the CI read — read https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ci-status.md and paste its first six lines (run 965 on 4dc5b03e: SUCCESS). You cannot git-fetch that branch. Paste `git rev-parse HEAD`: this is <START>;
+2. step 0;
+3. the census: `git status --porcelain` → only the brief; `sha256sum e2e/posting-routes.spec.ts e2e/post-wizard-category.spec.ts` → paste both; `grep -c "BC-" docs/features/panels.md docs/features/admin-listings.md docs/_changelog.md roadmap.md` → 1, 1, 2, 2 (lines; the changelog's :812 and the roadmap's :219 are bundle-11 C8 lines and are NOT touched);
+4. the corrections (A–C), then the test (D);
+5. the checks; 6. the local browser run; 7. the report; 8. END THE TURN. Do not stop between steps.
+
+A. THE TEST IDS IN THE DOCS. Turn 1's brief named the breadcrumb tests BC-1…BC-3; you wrote them as BR-1…BR-3 — rightly, BC-1…BC-4 are the unit tests of scripts/bundle-closure.test.ts. The docs follow the file: in docs/features/panels.md (the bundle-18 section, three occurrences), docs/features/admin-listings.md (one), docs/_changelog.md (the 2026-10-16 bundle-18 line only: "BC-1…BC-3" → "BR-1…BR-3") and roadmap.md (the bundle-18 turn-1 line only: the same), change BC-1 → BR-1, BC-2 → BR-2, BC-3 → BR-3. The bundle-11 C8 lines (changelog :812, roadmap :219) keep their "BC-1..BC-4". After: `grep -c "BC-" docs/features/panels.md docs/features/admin-listings.md` → 0, 0; the changelog and roadmap → 1, 1 (the C8 lines).
+B. e2e/post-wizard-category.spec.ts, PW-141, line 599: the comment "every screen size (D198)." → "every screen size (INC-670)." — D198 is the breadcrumbs; the one ribbon size is INC-670.
+C. e2e/post-wizard-category.spec.ts, PW-141, line 617: `).toBeLessThan(1);` → `).toBeLessThan(0.75);` — the tolerance the brief gave; the class rule (G38): a brief's tolerance is kept, never widened. If 0.75 fails locally on a real picture, report the measured fontPx and expected values and keep 1 — say so in the report.
+D. e2e/posting-routes.spec.ts — add PR-52 "the assist peek answers the budget without spending, and refuses what is not the caller's (INC-669)", after PR-51 (:1396–…), using the file's own helpers (`seller(page)` :81, `category()` :92, `postRoute`, `reasonsOf`, DRAFT and ASSIST):
+   - seller A (`seller(page)`), a scratch category, a step-1 draft through DRAFT as PR-5 does (:456–462) → the listing id L;
+   - GET `${ASSIST}?listingId=${L}` with `page.request.get` and A's bearer (`Authorization: Bearer <token>`): status 200, payload.ok true, payload.triesLeft 5 — a fresh draft has spent nothing;
+   - one spend: POST ASSIST as PR-5 does with `listingId: L` (fake mode answers) → payload.triesLeft 4;
+   - GET again → triesLeft 4 (the peek read the spend and spent nothing: a second GET at once → still 4);
+   - seller B: `leaseSeller()` pushed to the file's `sellers` list (released in afterEach as the others), a bearer from `passwordGrant(user.email, user.password)` → `session.access_token`, exactly as PR-51 does (:1399–1401) — no second browser; GET with B's bearer and A's L → status 200, payload.ok false, `reasonsOf(payload)` contains { field: "listingId", reason: "notYourListing" };
+   - GET with A's bearer and no listingId → payload.ok false, reason "required" on field "listingId";
+   - GET with no Authorization header → status 401.
+   RULE: every row scratch (G27: the leased sellers and the scratch category, released in the file's afterEach as its other tests do); no page-position reads (G28); nothing loosened (G38).
+
+THE CHECKS (run each whole, paste the last line): `bun run format:check` clean; `bun run lint` 0 errors / 33 warnings; `bun run test:unit` — 933 passed (161 files); `bun run i18n:map-guard` "usage maps match the tree"; `bash scripts/check-hardcoded-strings.sh` "findings: 0"; `bun run scripts/e2e-select.ts --self-test` OK.
+THE LOCAL BROWSER RUN (G37): if the local browser starts (INC-506: it may not), run e2e/posting-routes.spec.ts and e2e/post-wizard-category.spec.ts each whole, alone, 0 retries, both projects, 2 workers, fake mode; paste each file's last lines; a file not fully green is not committed. If the browser does not start, say so in one line: CI judges.
+SCOPE — these files only: the brief, roadmap.md (line 3 and the BC→BR line), docs/features/panels.md, docs/features/admin-listings.md, docs/_changelog.md, e2e/post-wizard-category.spec.ts, e2e/posting-routes.spec.ts. Name any other file in the report's first lines with its reason. Delete no file. No patch tool. No database change.
+THE REPORT: done or not done by step; the six ci-status lines and <START>; the census; `git diff <START> -- e2e/ docs/ roadmap.md` whole; `git diff --name-only <START>` (expect the seven files above); the checks; the local run's last lines or the one line; anything not foreseen. Then END THE TURN.
+REVERT: `git revert <commit>` (forward only).
