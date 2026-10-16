@@ -1384,58 +1384,126 @@ test.describe("POSTING ROUTES", () => {
       await destroyListingsOf(user.id);
     }
   });
-});
+  test.describe("D189 deactivated seller", () => {
+    const sellers: string[] = [];
 
-test.describe("D189 deactivated seller", () => {
-  const sellers: string[] = [];
+    test.afterEach(async () => {
+      for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
+    });
 
-  test.afterEach(async () => {
-    for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
-  });
+    test("PR-51 a deactivated account is refused at every route: 403 before any route work (D189)", async ({
+      page,
+    }) => {
+      const user = await leaseSeller();
+      sellers.push(user.id);
+      const session = await passwordGrant(user.email, user.password);
+      const headers = { Authorization: `Bearer ${session.access_token}` };
+      const admin = adminClient();
+      try {
+        const active = await page.request.post("/api/listings/draft", {
+          headers,
+          data: { listingId: null, step: 1 },
+        });
+        expect(active.status(), "PR-51: the active seller's draft call").toBe(200);
 
-  test("PR-51 a deactivated account is refused at every route: 403 before any route work (D189)", async ({
-    page,
-  }) => {
-    const user = await leaseSeller();
-    sellers.push(user.id);
-    const session = await passwordGrant(user.email, user.password);
-    const headers = { Authorization: `Bearer ${session.access_token}` };
-    const admin = adminClient();
-    try {
-      const active = await page.request.post("/api/listings/draft", {
-        headers,
-        data: { listingId: null, step: 1 },
+        const closed = await admin
+          .from("profiles")
+          .update({ account_status: "deactivated" })
+          .eq("user_id", user.id);
+        expect(closed.error, "PR-51: the account could not be deactivated").toBeNull();
+
+        const draft = await page.request.post("/api/listings/draft", {
+          headers,
+          data: { listingId: null, step: 1 },
+        });
+        expect(draft.status(), "PR-51: the draft route").toBe(403);
+        expect(await draft.json()).toEqual({ error: "account is deactivated" });
+
+        const identity = await page.request.post("/api/listings/identity", { headers, data: {} });
+        expect(identity.status(), "PR-51: the identity route").toBe(403);
+        expect(await identity.json()).toEqual({ error: "account is deactivated" });
+
+        const attributeId = await anyAttributeId();
+        const options = await page.request.get(`/api/attributes/${attributeId}/options`, {
+          headers,
+        });
+        expect(options.status(), "PR-51: the options route").toBe(401);
+      } finally {
+        const reopened = await admin
+          .from("profiles")
+          .update({ account_status: "active" })
+          .eq("user_id", user.id);
+        expect(reopened.error, "PR-51: the account could not be reactivated").toBeNull();
+      }
+    });
+
+    test("PR-52 the assist peek answers the budget without spending, and refuses what is not the caller's (INC-669)", async ({
+      page,
+    }) => {
+      const { token } = await seller(page);
+      const cat = await category();
+      const draft = await postRoute(
+        page,
+        DRAFT,
+        { step: 1, categoryId: cat.id },
+        { token, country: "ET" },
+      );
+      expect(draft.status, JSON.stringify(draft.payload)).toBe(200);
+      expect(draft.payload["ok"], JSON.stringify(draft.payload)).toBe(true);
+      const listingId = String(draft.payload["listing_id"] ?? "");
+      expect(listingId, "PR-52: the draft door made no listing").not.toBe("");
+      const headers = { Authorization: `Bearer ${token}` };
+      const path = `${ASSIST}?listingId=${listingId}`;
+
+      const fresh = await page.request.get(path, { headers });
+      expect(fresh.status()).toBe(200);
+      const freshPayload = await fresh.json();
+      expect(freshPayload["ok"], JSON.stringify(freshPayload)).toBe(true);
+      expect(freshPayload["triesLeft"], JSON.stringify(freshPayload)).toBe(5);
+
+      const spent = await postRoute(
+        page,
+        ASSIST,
+        { categoryId: cat.id, locale: "en", attrs: { colour: "blue", size: "42" }, listingId },
+        { token, country: "ET" },
+      );
+      expect(spent.status, JSON.stringify(spent.payload)).toBe(200);
+      expect(spent.payload["ok"], JSON.stringify(spent.payload)).toBe(true);
+      expect(spent.payload["triesLeft"], JSON.stringify(spent.payload)).toBe(4);
+
+      for (let read = 0; read < 2; read += 1) {
+        const peek = await page.request.get(path, { headers });
+        expect(peek.status()).toBe(200);
+        const payload = await peek.json();
+        expect(payload["ok"], JSON.stringify(payload)).toBe(true);
+        expect(payload["triesLeft"], JSON.stringify(payload)).toBe(4);
+      }
+
+      const user = await leaseSeller();
+      sellers.push(user.id);
+      const session = await passwordGrant(user.email, user.password);
+      const other = await page.request.get(path, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
-      expect(active.status(), "PR-51: the active seller's draft call").toBe(200);
-
-      const closed = await admin
-        .from("profiles")
-        .update({ account_status: "deactivated" })
-        .eq("user_id", user.id);
-      expect(closed.error, "PR-51: the account could not be deactivated").toBeNull();
-
-      const draft = await page.request.post("/api/listings/draft", {
-        headers,
-        data: { listingId: null, step: 1 },
+      expect(other.status()).toBe(200);
+      const otherPayload = await other.json();
+      expect(otherPayload["ok"], JSON.stringify(otherPayload)).toBe(false);
+      expect(reasonsOf(otherPayload), JSON.stringify(otherPayload)).toContainEqual({
+        field: "listingId",
+        reason: "notYourListing",
       });
-      expect(draft.status(), "PR-51: the draft route").toBe(403);
-      expect(await draft.json()).toEqual({ error: "account is deactivated" });
 
-      const identity = await page.request.post("/api/listings/identity", { headers, data: {} });
-      expect(identity.status(), "PR-51: the identity route").toBe(403);
-      expect(await identity.json()).toEqual({ error: "account is deactivated" });
-
-      const attributeId = await anyAttributeId();
-      const options = await page.request.get(`/api/attributes/${attributeId}/options`, {
-        headers,
+      const missing = await page.request.get(ASSIST, { headers });
+      expect(missing.status()).toBe(200);
+      const missingPayload = await missing.json();
+      expect(missingPayload["ok"], JSON.stringify(missingPayload)).toBe(false);
+      expect(reasonsOf(missingPayload), JSON.stringify(missingPayload)).toContainEqual({
+        field: "listingId",
+        reason: "required",
       });
-      expect(options.status(), "PR-51: the options route").toBe(401);
-    } finally {
-      const reopened = await admin
-        .from("profiles")
-        .update({ account_status: "active" })
-        .eq("user_id", user.id);
-      expect(reopened.error, "PR-51: the account could not be reactivated").toBeNull();
-    }
+
+      const anonymous = await page.request.get(path);
+      expect(anonymous.status()).toBe(401);
+    });
   });
 });
