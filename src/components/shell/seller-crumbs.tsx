@@ -50,4 +50,3 @@ export function MyListingCrumb({ listingId, link }: { listingId: string; link: b
     </BreadcrumbPage>
   );
 }
-
