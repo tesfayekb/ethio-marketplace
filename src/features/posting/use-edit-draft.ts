@@ -55,6 +55,12 @@ export interface UseEditDraft extends UseDraft {
   setReason: (reason: { reason: string; note: string }) => void;
   /** The ad's status as the door last reported it. */
   status: string | null;
+  /**
+   * Bundle 17 turn 4 (C15) — BACK DISCARDS: a step left by Back drops what was
+   * typed on it, so the Review always shows the ad as the door holds it and a step
+   * opened again starts from the saved answers; the step's refusals go with it.
+   */
+  discard: (step: number) => void;
 }
 
 /** The door fields each step draws, for INC-660's clearing. */
@@ -321,6 +327,49 @@ export function useEditDraft(
     setRefusals((current) => current.filter((refusal) => !same(refusal.field)));
   }, []);
 
+  /** C15 — the step's fields back to the baseline (the ad as saved); its refusals cleared. */
+  const discard = useCallback((forStep: number) => {
+    const base = baselineRef.current;
+    if (base === null) return;
+    const next: DraftValues = { ...valuesRef.current };
+    switch (forStep) {
+      case 2:
+        next.videoUrl = base.videoUrl;
+        break;
+      case 3:
+        next.attributes = base.attributes;
+        break;
+      case 4:
+        next.priceMode = base.priceMode;
+        next.priceAmount = base.priceAmount;
+        next.priceCurrency = base.priceCurrency;
+        next.pricePeriod = base.pricePeriod;
+        next.priceBp = base.priceBp;
+        next.priceNegotiable = base.priceNegotiable;
+        break;
+      case 5:
+        next.title = base.title;
+        next.description = base.description;
+        break;
+      case 6:
+        next.coverage = base.coverage;
+        placeTextRef.current = { streetAddress: base.streetAddress, directions: base.directions };
+        setPlaceTextState(placeTextRef.current);
+        break;
+      case 7:
+        next.contactPref = base.contactPref;
+        break;
+      default:
+        return;
+    }
+    valuesRef.current = next;
+    setValues(next);
+    const same = fieldsOfStep(forStep);
+    setRefusals((current) => current.filter((refusal) => !same(refusal.field)));
+    setProblem(null);
+    setSaveState("idle");
+  }, []);
+
   const setReason = useCallback((next: { reason: string; note: string }) => {
     reasonRef.current = next;
     setReasonState(next);
@@ -456,6 +505,7 @@ export function useEditDraft(
       setReason,
       status,
       baseline,
+      discard,
     }),
     [
       actor,
@@ -484,6 +534,7 @@ export function useEditDraft(
       setReason,
       status,
       baseline,
+      discard,
     ],
   );
 }

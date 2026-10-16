@@ -252,6 +252,8 @@ export function AdminScreeningPage({
       } catch {
         // The queue stands; the reviewer opens the row from its menu.
       }
+      // Turn 4 — the ad was edited on another page: the queue's rows are read again too.
+      void refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
       void navigate({ to: "/admin/screening", search: {}, replace: true });
     })();
     return () => {
@@ -268,6 +270,9 @@ export function AdminScreeningPage({
       key: decided === "active" ? "admin.screening.approved" : "admin.screening.rejected",
       tone: "ok",
     });
+    // Bundle 17 turn 4 (SC-26 on run 959) — the decision was made on another page: the queue
+    // is read again here, as the page's own decisions re-read it, so the ad's row is gone.
+    void refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
     void navigate({ to: "/admin/screening", search: {}, replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable for one address.
   }, [decided]);
