@@ -392,7 +392,47 @@ export async function signIn(
 
   // INC-121 (c): the door must be OPEN before we type — a form still resolving
   // the signed-out branch is a wait, never a sleep (DEC-027).
-  await expect(emailInput, "sign-in form did not render on /auth").toBeEditable({ timeout: 15000 });
+  try {
+    await expect(emailInput, "sign-in form did not render on /auth").toBeEditable({
+      timeout: 15000,
+    });
+  } catch (error) {
+    // [auth-dump] (the house's way, INC-623's [country-dump]): what the page held
+    // when the form did not render. Key names only, never values.
+    let dump: string;
+    try {
+      const facts = await page.evaluate(() => {
+        const local: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const key = window.localStorage.key(i);
+          if (key !== null && key.startsWith("sb-")) local.push(key);
+        }
+        const session: string[] = [];
+        for (let i = 0; i < window.sessionStorage.length; i++) {
+          const key = window.sessionStorage.key(i);
+          if (key !== null) session.push(key);
+        }
+        const deactivated = document.querySelector('[data-testid="auth-deactivated"]');
+        return {
+          accountMenu: document.querySelectorAll('[data-testid="account-menu"]').length,
+          authEmail: document.querySelectorAll("#auth-email").length,
+          title: document.title,
+          h1: document.querySelector("h1")?.textContent ?? null,
+          localSb: local,
+          sessionKeys: session,
+          deactivated: deactivated ? deactivated.textContent : null,
+        };
+      });
+      dump = JSON.stringify({ url: page.url(), ...facts });
+    } catch (dumpError) {
+      dump = `url=${page.url()} dump failed: ${String(dumpError)}`;
+    }
+    if (error instanceof Error) {
+      error.message = `${error.message}\n[auth-dump] ${dump}`;
+      throw error;
+    }
+    throw new Error(`${String(error)}\n[auth-dump] ${dump}`);
+  }
 
   await fillUntilStable(emailInput, email, "email");
   await fillUntilStable(passwordInput, password, "password");

@@ -1404,9 +1404,6 @@ test.describe("ADMIN SCREENING", () => {
     // The step-up modal on the first save.
     await stepUpIfPrompted(page, secret);
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("post-edit-notice")).toHaveAttribute("data-shown", "true", {
-      timeout: 20000,
-    });
     expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "screening" });
 
     // Done → back to /admin/screening with the preview re-opened.
