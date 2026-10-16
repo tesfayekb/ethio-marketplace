@@ -1386,7 +1386,9 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await page.getByTestId("post-where-region").selectOption(chain.region.id);
     await page.getByTestId("post-where-city").selectOption(chain.city.id);
     await expect(page.getByTestId("post-where-subcity-box")).toBeVisible();
-    await expect(page.getByTestId("post-where-subcity").locator(`option[value="${chain.subCity.id}"]`)).toBeVisible();
+    await expect(
+      page.getByTestId("post-where-subcity").locator(`option[value="${chain.subCity.id}"]`),
+    ).toBeVisible();
     await page.getByTestId("post-where-subcity").selectOption(chain.subCity.id);
     await page.getByTestId("post-where-add-subcity").click();
     // W1 — one city box holds both sub-city boxes.

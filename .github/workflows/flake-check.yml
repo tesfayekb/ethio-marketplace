@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       specs:
-        description: 'Space-separated spec paths, e.g. e2e/post-wizard-place.spec.ts e2e/post-wizard-bundle2.spec.ts'
+        description: "Space-separated spec paths, e.g. e2e/post-wizard-place.spec.ts e2e/post-wizard-bundle2.spec.ts"
         type: string
         required: true
       grep:
-        description: 'Playwright grep regex, e.g. PW-12 |PW-117 |PW-178 '
+        description: "Playwright grep regex, e.g. PW-12 |PW-117 |PW-178 "
         type: string
         required: true
       repeat:
