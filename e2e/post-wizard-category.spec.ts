@@ -596,7 +596,7 @@ test.describe("POSTING WIZARD", () => {
 
     // The ribbon on the picture; sized by container units (A7 smoke proof):
     // the letters are clamp(9px, 6cqw, 22px) of the drawn picture's width at
-    // every screen size (D198).
+    // every screen size (INC-670).
     const box = page.getByTestId("post-photos-illustration-box");
     const ribbon = box.getByTestId("listing-photos-soon-ribbon");
     await expect(ribbon, "PW-141: no ribbon on the picture").toBeVisible();
@@ -614,7 +614,7 @@ test.describe("POSTING WIZARD", () => {
     expect(
       Math.abs(fontPx - expected),
       `PW-141: letters ${fontPx}px on a ${imgBox?.width}px picture are not clamp(9px, 6cqw, 22px)`,
-    ).toBeLessThan(1);
+    ).toBeLessThan(0.75);
     // INC-435 — the ribbon (its clip box) lies inside the picture's own box.
     const ribbonBox = await ribbon.boundingBox();
     expect(imgBox, "PW-141: no picture box").not.toBeNull();
