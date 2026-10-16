@@ -985,9 +985,8 @@ test.describe("ADMIN SCREENING", () => {
     // Its link opens the ad's own page; there, Edit holds the photos with Remove.
     await page.getByTestId("admin-screening-open-listing").click();
     await expect(page).toHaveURL(new RegExp(`/admin/listings/${ad.id}$`), { timeout: 20000 });
-    await page.getByTestId("listing-edit").click();
+    // D194 — the photos card is on the page without clicking Edit.
     const edited = page
-      .getByTestId("listing-edit-panel")
       .getByTestId("listing-photos")
       .getByTestId("listing-photos-item");
     await expect(edited).toHaveCount(2, { timeout: 20000 });
