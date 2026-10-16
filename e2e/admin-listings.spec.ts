@@ -1458,28 +1458,38 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}$`), { timeout: 20000 });
     await expect(page.getByTestId("listing-title")).toHaveText(title, { timeout: 20000 });
     await expect(page.getByTestId("listing-fact-price").locator("dd")).toHaveText("120 ETB");
-    const newest = page.getByTestId("listing-history-entry-0");
-    await expect(newest.getByTestId("listing-history-what")).toHaveText(
-      en["admin.listings.history.edited"].replace(
-        "{fields}",
-        `${en["admin.listings.col.title"]}, ${en["admin.listings.col.price"]}`,
-      ),
-    );
-    await expect(newest.getByTestId("listing-history-reason")).toHaveText(
-      en["admin.listings.history.reason"].replace(
-        "{reason}",
-        en["admin.listings.reason.misleading"],
-      ),
-    );
-    await expect(newest.getByTestId("listing-history-note")).toHaveText(
-      en["admin.listings.history.note"].replace("{note}", note),
-    );
+    // Each step saves on its own: two revisions, the title's newest, the price's before it.
+    for (const [index, field] of [
+      [0, "admin.listings.col.title"],
+      [1, "admin.listings.col.price"],
+    ] as const) {
+      const entry = page.getByTestId(`listing-history-entry-${index}`);
+      await expect(entry.getByTestId("listing-history-what")).toHaveText(
+        en["admin.listings.history.edited"].replace("{fields}", en[field]),
+      );
+      await expect(entry.getByTestId("listing-history-reason")).toHaveText(
+        en["admin.listings.history.reason"].replace(
+          "{reason}",
+          en["admin.listings.reason.misleading"],
+        ),
+      );
+      await expect(entry.getByTestId("listing-history-note")).toHaveText(
+        en["admin.listings.history.note"].replace("{note}", note),
+      );
+    }
 
     expect(await noticeRows(live.id)).toEqual([
       {
         seller_id: seller.id,
         kind: "admin_edit",
-        fields: ["price", "title"],
+        fields: ["price"],
+        reason: "misleading",
+        note,
+      },
+      {
+        seller_id: seller.id,
+        kind: "admin_edit",
+        fields: ["title"],
         reason: "misleading",
         note,
       },
@@ -1547,10 +1557,14 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.getByTestId("post-back").click();
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
 
-    // Edit Title again → nothing changed → back, no revision, no notice.
+    // Edit Title again → the refused title is still in the box (Back keeps what was
+    // typed until C15) → the title put back → nothing changed → no revision, no notice.
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
-    // Do not change anything; go back.
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type(live.title);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
     await expect(page.getByTestId("post-edit-notice")).toHaveAttribute("data-shown", "false");

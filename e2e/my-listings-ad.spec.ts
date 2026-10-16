@@ -1028,9 +1028,10 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await expect(page.getByTestId("post-step-5")).toBeVisible();
     expect((await listingTruth(Y))["title"]).toBe(yTitle);
 
-    // INC-660: correcting the title clears the refusal before Save.
+    // INC-660: correcting the title clears the refusal before Save — judged on blur.
     await page.getByTestId("post-title").click();
     await page.keyboard.type(`E2E corrected ${token()}`);
+    await page.keyboard.press("Tab");
     await expect(refusal).toHaveCount(0);
   });
 
