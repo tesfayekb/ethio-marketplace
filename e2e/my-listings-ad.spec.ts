@@ -1353,5 +1353,4 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       "3",
     );
   });
-
 });

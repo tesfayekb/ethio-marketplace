@@ -41,13 +41,11 @@ test.describe("breadcrumbs — the seller's and the account's pages (D198)", () 
     const owned = listingIds.splice(0);
     if (owned.length > 0) {
       const notices = await supabase.from("seller_notices").delete().in("listing_id", owned);
-      if (notices.error)
-        throw new Error(`[e2e:bc] notice reap failed: ${notices.error.message}`);
+      if (notices.error) throw new Error(`[e2e:bc] notice reap failed: ${notices.error.message}`);
     }
     for (const id of owned) {
       const removed = await supabase.from("listings").delete().eq("id", id);
-      if (removed.error)
-        throw new Error(`[e2e:bc] listing reap failed: ${removed.error.message}`);
+      if (removed.error) throw new Error(`[e2e:bc] listing reap failed: ${removed.error.message}`);
     }
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
     for (const slug of regions.splice(0)) await destroyLocation(slug);
