@@ -100,7 +100,14 @@ type RevealChannel = "phone" | "phone2" | "whatsapp";
 const TABLE_ID = "admin-screening";
 const LOCKED = ["title"];
 
-export function AdminScreeningPage({ openId = null }: { openId?: string | null }) {
+export function AdminScreeningPage({
+  openId = null,
+  decided = null,
+}: {
+  openId?: string | null;
+  /** Bundle 17 turn 3 (D188) — a decision made on the Edit's Review: its outcome line. */
+  decided?: "active" | "rejected" | null;
+}) {
   const { t, language, entities } = useI18n();
   const navigate = useNavigate();
   const { permissions } = useAdminShell();
@@ -252,6 +259,18 @@ export function AdminScreeningPage({ openId = null }: { openId?: string | null }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- openPreview and navigate are stable for one address.
   }, [openId]);
+  /** Turn 3 — the outcome of a decision made on the Edit's Review, said here, once. */
+  const toldDecided = useRef<string | null>(null);
+  useEffect(() => {
+    if (decided === null || toldDecided.current === decided) return;
+    toldDecided.current = decided;
+    setNotice({
+      key: decided === "active" ? "admin.screening.approved" : "admin.screening.rejected",
+      tone: "ok",
+    });
+    void navigate({ to: "/admin/screening", search: {}, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is stable for one address.
+  }, [decided]);
   /** Turn E3 — the preview follows the queue's fresh read of its ad (after an edit, the ad as it now stands). */
   const freshRows = query.data?.rows;
   useEffect(() => {

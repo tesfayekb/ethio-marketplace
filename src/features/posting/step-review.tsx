@@ -173,6 +173,8 @@ export function StepReview({
     reason: { reason: string; note: string };
     onReason: (reason: { reason: string; note: string }) => void;
     onDone: () => void;
+    /** Bundle 17 turn 3 (D188) — from Screening: Approve and Reject beside Done. */
+    onDecide?: ((next: "active" | "rejected") => void) | null;
   } | null;
 }) {
   const { t, entities, language } = useI18n();
@@ -703,14 +705,38 @@ export function StepReview({
       })}
 
       {edit !== null && (
-        <button
-          type="button"
-          data-testid="post-edit-done"
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-          onClick={edit.onDone}
-        >
-          {t("post.edit.done")}
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row" data-testid="post-edit-actions">
+          <button
+            type="button"
+            data-testid="post-edit-done"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+            onClick={edit.onDone}
+          >
+            {t("post.edit.done")}
+          </button>
+          {/* Bundle 17 turn 3 (D188: "after the edit we can approve or reject") — from
+              Screening the decision is at hand here, as in the preview; each asks first. */}
+          {edit.onDecide !== undefined && edit.onDecide !== null && (
+            <>
+              <button
+                type="button"
+                data-testid="post-edit-approve"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-input bg-background px-4 text-sm font-medium text-foreground"
+                onClick={() => edit.onDecide?.("active")}
+              >
+                {t("admin.screening.approve")}
+              </button>
+              <button
+                type="button"
+                data-testid="post-edit-reject"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground"
+                onClick={() => edit.onDecide?.("rejected")}
+              >
+                {t("admin.screening.reject")}
+              </button>
+            </>
+          )}
+        </div>
       )}
       {edit === null && (
         <>

@@ -182,3 +182,7 @@ The operator (2026-10-16): "edit should have exact features and step and look as
 - **Refusals** land under their fields as the wizard draws them, the page scrolling to the first; **a refusal clears the moment its field changes** (INC-660). **INC-665:** a specification's refusal from `edit_my_listing` names its `attr_key` (the validator's shape); the seller's reader (`my-listing.ts refusalsOf`) read `field` only and said "failed" instead — it now resolves `attr_key` and keeps the detail, as the posting routes and the staff's door do.
 - **INC-659** (the pin map after a place change) is covered by the Place step's own rule (a changed city clears the pin and the map opens on the ticked place) and proven by the E2E of this turn.
 - Tests: ES-1…ES-6 (edit-step-changes.test.ts), EW-1…EW-5 (use-edit-draft.test.ts), FN-1, FN-2 (fading-notice.test.tsx), ML-U18 extended; E2E MLA-13…MLA-15 and MLP-6 rewritten for the wizard-edit, per the turn's brief.
+
+## Bundle 17 turn 3 — the done line fades (D192)
+
+- The ad page's done line (`my-listing-notice`: reserved, closed, reopened, sold, renewed, …) shows for a few seconds and fades (`FadingNotice`, `data-shown`), as the Edit's notice does; the refusal line (`my-listing-problem`) stays until the next action. The same words said again show again.
