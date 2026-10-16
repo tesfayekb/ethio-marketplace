@@ -2,7 +2,7 @@ import { type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
-import { destroyLocation, seedScratchChain } from "./helpers/locations";
+import { destroyLocation, seedGuessFixture, seedScratchChain } from "./helpers/locations";
 import {
   destroyCategoryBranch,
   destroyListingsOf,
