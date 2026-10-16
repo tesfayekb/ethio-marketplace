@@ -201,7 +201,7 @@ describe("ListingPicture — ribbon colour", () => {
       textStyle: statusText.getAttribute("style"),
     });
     expect(soonShape.band).toBe(RIBBON_BAND_CLASS);
-    expect(soonShape.textStyle).toContain("clamp(9px, 6cqw, 22px)");
+    expect(soonShape.textStyle).toContain("clamp(9px, 5cqw, 20px)");
     // One band only (D180): the status word took the band's corner.
     expect(screen.queryByTestId("listing-photos-soon-ribbon")).toBeNull();
   });

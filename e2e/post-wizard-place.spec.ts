@@ -534,9 +534,12 @@ test.describe("POSTING WIZARD", () => {
       (await contactPrefOf(listingId))["messages"],
       "PW-12: messages was not stored true",
     ).toBe(true);
-    expect((await identityOf(user.id)).alias, "PW-12: saving the step did not claim the name").toBe(
-      wanted,
-    );
+    await expect
+      .poll(async () => (await identityOf(user.id)).alias, {
+        message: "PW-12: saving the step did not claim the name",
+        timeout: 20_000,
+      })
+      .toBe(wanted);
   });
 
   test("PW-112 who: a new post opens with the last post's channels, stored on the draft unchanged", async ({

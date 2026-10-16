@@ -250,30 +250,41 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       release = resolve;
     });
     let held = 0;
+    let reserved = false;
+    let heldListingId = "";
+    const isPlaceTextRead = (request: import("@playwright/test").Request) => {
+      const url = new URL(request.url());
+      return (
+        request.method() === "GET" &&
+        url.pathname === "/rest/v1/listings" &&
+        url.searchParams.size === 2 &&
+        url.searchParams.get("select") === "street_address,directions" &&
+        url.searchParams.get("id") === `eq.${heldListingId}`
+      );
+    };
     let saved = false;
     let deliveredAfterSave = false;
     let staleDirections: unknown = "unread";
     await page.route("**/rest/v1/listings?*", async (route) => {
-      const url = route.request().url();
-      if (
-        route.request().method() !== "GET" ||
-        !url.includes("select=street_address") ||
-        held > 0
-      ) {
+      if (!isPlaceTextRead(route.request()) || reserved) {
         await route.continue();
         return;
       }
-      held += 1;
+      reserved = true;
       // The answer as the database holds it now, before the seller types.
       const response = await route.fetch();
       const body: unknown = await response.json();
       const first: unknown = Array.isArray(body) ? body[0] : body;
       staleDirections = (first as { directions?: unknown } | undefined)?.directions ?? null;
+      // INC-673 — count a captured answer, not a fetch still in flight.
+      held += 1;
       await released;
       deliveredAfterSave = saved;
       await route.fulfill({ response });
     });
-    const listingId = await openDraft(page, user.id, leaf.id, 5);
+    const listingId = await openDraft(page, user.id, leaf.id, 5, [], async (id) => {
+      heldListingId = id;
+    });
     await expect
       .poll(() => held, { message: "PW-178: the place text read was never held" })
       .toBe(1);
@@ -286,9 +297,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       .poll(async () => (await placeTextOf(listingId)).directions, { timeout: 10_000 })
       .toBe(value);
     saved = true;
-    const answered = page.waitForResponse((response) =>
-      response.url().includes("select=street_address"),
-    );
+    const answered = page.waitForResponse((response) => isPlaceTextRead(response.request()));
     release();
     await answered;
     expect(staleDirections, "PW-178: the held answer was not the older text").toBeNull();
@@ -1383,10 +1392,19 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const leaf = await category();
     const listingId = await openDraft(page, user.id, leaf.id, 5);
 
-    await page.getByTestId("post-where-region").selectOption(chain.region.id);
-    await page.getByTestId("post-where-city").selectOption(chain.city.id);
+    const regionPicker = page.getByTestId("post-where-region");
+    await expect(
+      regionPicker.locator(`option[value="${chain.region.id}"]`),
+      "PW-117: the scratch region never reached the picker",
+    ).toHaveCount(1, { timeout: 20_000 });
+    await regionPicker.selectOption(chain.region.id);
+    const cityPicker = page.getByTestId("post-where-city");
+    await expect(cityPicker.locator(`option[value="${chain.city.id}"]`)).toHaveCount(1);
+    await cityPicker.selectOption(chain.city.id);
     await expect(page.getByTestId("post-where-subcity-box")).toBeVisible();
-    await page.getByTestId("post-where-subcity").selectOption(chain.subCity.id);
+    const subCityPicker = page.getByTestId("post-where-subcity");
+    await expect(subCityPicker.locator(`option[value="${chain.subCity.id}"]`)).toHaveCount(1);
+    await subCityPicker.selectOption(chain.subCity.id);
     await page.getByTestId("post-where-add-subcity").click();
     // W1 — one city box holds both sub-city boxes.
     const region = page.locator(
@@ -1401,6 +1419,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       secondPicker.locator(`option[value="${chain.subCity.id}"]`),
       "PW-117: the second picker offered the first sub-city again",
     ).toHaveCount(0);
+    await expect(secondPicker.locator(`option[value="${second.id}"]`)).toHaveCount(1);
     await secondPicker.selectOption(second.id);
     await expect(
       page.getByTestId("post-where-add-subcity"),

@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-18-turn-2.md (bundle 18 — turn 2: PR-52 and three corrections of turn 1; no migration, no new string). Next: D199 (discount / sale) after the peer research and the operator's rulings; D200's state; the product detail page's study (the operator, 2026-10-16); then the flaky-test turn.
+The brief in force: docs/governance/briefs/bundle-18-turn-3.md (bundle 18 — turn 3: INC-675 the ribbon size, DEC-184 the flake-check workflow, PW-12 / PW-117 / PW-178; no migration, no new string). Next: D199 (discount / sale) after the peer research and the operator's rulings; D200's state; the product detail page's study (the operator, 2026-10-16); then the flaky-test turn.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

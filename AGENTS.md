@@ -16,7 +16,7 @@
 Full rules live in Lovable Project Knowledge and are summarized here: modify only files the task names; no unspecified work; honesty before action; search-before-create (no duplication); mobile-first at 360px, RTL-safe logical CSS only; no user-visible literal strings (translation keys, EN+AM); every table ships with RLS + policies + GRANTs in the same APPEND-ONLY migration; personal-data tables carry home_country_code; UTC timestamps; no floats for money; no secrets in code or commits; server/RLS is the only authorization authority; never catch-and-continue silently; public pages server-rendered with absolute canonical/og URLs; update /docs/features/<name>.md + \_changelog.md in the same change as structural edits. See /docs/conventions.md.
 
 - A new table, sequence or function of schema public is born closed to the browser roles: its migration names every GRANT it needs (a browser grant only with its line in scripts/public-surface-allowlist.txt), and every new function restates REVOKE … FROM PUBLIC in its own file (bundle 8).
-- The database tool applies the text it is handed, in the same call: write and check a migration in a scratch path, then hand the tool the FINAL text once — never a stub, a comment or a draft to replace later; a scratch draft does not outlive the turn (three comment-only files were applied in error: 2026-10-04 twice, 2026-10-07).
+- The database tool applies its input immediately: write and check a scratch migration, then submit FINAL text once, never a stub, comment or draft; remove scratch drafts before turn end (three comment-only migrations applied in error, 2026-10-04/07).
 - An action label that the label check flags (scripts/list-action-labels.test.ts) is shortened by a text the brief gives; the allowlist takes a key only with its reason.
 - Text attributes are validated by preset allowlist (`attr_preset_ok`), never by free regex; option records use the strict shape `value, label_en, label_am, parent, active, bounds, aliases` — unknown keys are refusals, defaults are omitted (DEC-050).
 - A console save must never drop a field it does not show: editors round-trip every stored field of a record (INC-188).
@@ -33,3 +33,5 @@ Full rules live in Lovable Project Knowledge and are summarized here: modify onl
 - A map indexed by a key from outside (a URL, storage, a cookie, a database row) is read through `ownValue` (src/lib/own-key.ts), never `map[key]`. Why: a crafted key reached an inherited method and the page threw (INC-485).
 
 - Cut names use CutText; crowded-row captions use useLabelRoom observing only their row, and action-focus modality installs once at hydration — preserving grapheme floors without resize loops or duplicate listeners.
+
+- Flake-fix proofs use manual Flake check, separate from CI/promotion: no local browsers (DEC-184).

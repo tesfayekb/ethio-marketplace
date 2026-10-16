@@ -595,7 +595,7 @@ test.describe("POSTING WIZARD", () => {
       .toBe(true);
 
     // The ribbon on the picture; sized by container units (A7 smoke proof):
-    // the letters are clamp(9px, 6cqw, 22px) of the drawn picture's width at
+    // the letters are clamp(9px, 5cqw, 20px) of the drawn picture's width at
     // every screen size (INC-670).
     const box = page.getByTestId("post-photos-illustration-box");
     const ribbon = box.getByTestId("listing-photos-soon-ribbon");
@@ -610,10 +610,10 @@ test.describe("POSTING WIZARD", () => {
         .getByTestId("listing-photos-soon-text")
         .evaluate((node) => getComputedStyle(node).fontSize),
     );
-    const expected = Math.min(Math.max(0.06 * (imgBox?.width ?? 1), 9), 22);
+    const expected = Math.min(Math.max(0.05 * (imgBox?.width ?? 1), 9), 20);
     expect(
       Math.abs(fontPx - expected),
-      `PW-141: letters ${fontPx}px on a ${imgBox?.width}px picture are not clamp(9px, 6cqw, 22px)`,
+      `PW-141: letters ${fontPx}px on a ${imgBox?.width}px picture are not clamp(9px, 5cqw, 20px)`,
     ).toBeLessThan(0.75);
     // INC-435 — the ribbon (its clip box) lies inside the picture's own box.
     const ribbonBox = await ribbon.boundingBox();
