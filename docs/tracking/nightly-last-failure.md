@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38782705639
-- Commit: `eee5d6cdc11ee8a3a5febf5daa8532784d2b511f`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38944549481
+- Commit: `64767df277ccd9764819bd7e9a0f8363ec9224dd`
 - Attempt: 1
-- Written (UTC): 2026-10-15T23:18:46.254Z
-- Passed: 1635 · Skipped: 80 · Failed: 7
-- Gating failures: 6 · Quarantined (@global-state, INC-117, non-gating): 1
+- Written (UTC): 2026-10-16T23:27:52.870Z
+- Passed: 1660 · Skipped: 80 · Failed: 2
+- Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 1
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): nightly, full
 - Sources without results: none
@@ -19,11 +19,11 @@ None: no results file lists one and no log's summary names one (2 of 2 results f
 
 Logs read: nightly, full · unavailable: none
 
-935 line(s), 37 message(s): 2 off the allowlist, 35 allowlisted.
+427 line(s), 37 message(s): 2 off the allowlist, 35 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
-| `HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h<n>+rou<n>+srvx.mjs:<n>:<n>` | 836 | full |
+| `HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h<n>+rou<n>+srvx.mjs:<n>:<n>` | 328 | full |
 | `digest mismatch` (quiet) | 12 | full |
 | `too many previews` (quiet) | 10 | full |
 | `categories badHeader` (quiet) | 4 | full |
@@ -58,20 +58,20 @@ Logs read: nightly, full · unavailable: none
 | `strings unknownColumn` (quiet) | 2 | full |
 | `strings wrongFile` (quiet) | 2 | full |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 1 | full |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-<n>mvm: e<n>e_par_brgc<n>l → e<n>e_chi_o<n>qn<n>` (quiet) | 1 | full |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-qbo<n>g: e<n>e_par_<n>yl<n> → e<n>e_chi_fvw<n>q<n>` (quiet) | 1 | full |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-ixcx<n>n: e<n>e_par_<n>m<n>i<n> → e<n>e_chi_<n>pi<n>ii` (quiet) | 1 | full |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-y<n>kws<n>: e<n>e_par_<n>xg<n>zb → e<n>e_chi_k<n>qua<n>` (quiet) | 1 | full |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · category-images: no GEMINI_API_KEY — fake mode ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-<n>mvm: e<n>e_par_brgc<n>l → e<n>e_chi_o<n>qn<n> ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-qbo<n>g: e<n>e_par_<n>yl<n> → e<n>e_chi_fvw<n>q<n> ×1
+Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · category-images: no GEMINI_API_KEY — fake mode ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-ixcx<n>n: e<n>e_par_<n>m<n>i<n> → e<n>e_chi_<n>pi<n>ii ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-y<n>kws<n>: e<n>e_par_<n>xg<n>zb → e<n>e_chi_k<n>qua<n> ×1
 
 Off the allowlist:
 
 ### HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h<n>+rou<n>+srvx.mjs:<n>:<n>
 
-- Count: 836 · Sources: full
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): AU-7 crumb: Home > Admin > Users > <name>, Users navigates back ×21 · AU-3 detail: reason required, deactivate, audit row, reactivate ×19 · AU-6 negative: a base user cannot call the status RPC ×17 · MF-7b cancelling the prompt releases the caller and writes nothing @private-iden ×16 · RP-1 gating: moderator refused, admin sees the list, signed-out deep link redire ×16 · RP-2 create: a super admin creates a custom role through step-up ×16
+- Count: 328 · Sources: full
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): AU-11 own row: no edit form on your own record ×8 · AU-2 search and status filter ×7 · AU-7 crumb: Home > Admin > Users > <name>, Users navigates back ×7 · RP-1 gating: moderator refused, admin sees the list, signed-out deep link redire ×7 · RP-2 create: a super admin creates a custom role through step-up ×7 · SC-16 a reviewer without a fresh second factor cannot decide ×7
 
 ```text
-[WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
+[WebServer] [ssr-error] /_serverFn/258c9c7bac445f06c5cae8ffb133bc2397d933b01bc93414f1bfb742fbc80ef2 HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
 ```
 
 ### listing not found
@@ -95,79 +95,79 @@ Results read: nightly, full · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-10-15T18:06:30.185Z | 3.6 min |
-| full | 2026-10-15T18:10:04.315Z | 308.6 min |
+| nightly | 2026-10-16T18:05:35.809Z | 3.5 min |
+| full | 2026-10-16T18:09:09.357Z | 318.7 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `photo-pipeline.spec.ts` | 66 | 20.7 min | full |
-| `admin-screening.spec.ts` | 50 | 17.8 min | full |
-| `post-wizard-pricing.spec.ts` | 50 | 13.3 min | full |
-| `post-wizard-specs.spec.ts` | 80 | 13.3 min | full |
-| `post-wizard-bundle2.spec.ts` | 68 | 11.7 min | full |
-| `admin-listings.spec.ts` | 60 | 11.7 min | full |
-| `post-wizard-place.spec.ts` | 38 | 11.4 min | full |
-| `my-listings-doors.spec.ts` | 28 | 10.5 min | full |
-| `post-wizard-category.spec.ts` | 48 | 10.1 min | full |
-| `my-listings-ad.spec.ts` | 30 | 9.7 min | full |
-| `post-wizard-resets.spec.ts` | 34 | 9.2 min | full |
-| `admin-translations-console.spec.ts` | 46 | 8.2 min | full |
-| `admin-translations-governance.spec.ts` | 20 | 8.0 min | full |
-| `import-security.spec.ts` | 36 | 7.9 min | full |
-| `shell.spec.ts` | 168 | 7.6 min | full |
-| `admin-categories-lifecycle.spec.ts` | 52 | 7.6 min | full |
-| `admin-attributes-library.spec.ts` | 42 | 7.5 min | full |
-| `admin-locations.spec.ts` | 38 | 7.2 min | full |
-| `posting-routes.spec.ts` | 60 | 6.6 min | full |
-| `post-wizard-where.spec.ts` | 32 | 6.6 min | full |
-| `admin-categories-console.spec.ts` | 34 | 6.0 min | full |
-| `feed-screens.spec.ts` | 30 | 5.9 min | full |
-| `my-listings-page.spec.ts` | 14 | 5.9 min | full |
-| `admin-roles.spec.ts` | 26 | 5.6 min | full |
-| `admin-attributes-links.spec.ts` | 32 | 5.6 min | full |
-| `admin-users.spec.ts` | 26 | 5.5 min | full |
+| `photo-pipeline.spec.ts` | 66 | 22.5 min | full |
+| `post-wizard-specs.spec.ts` | 82 | 21.6 min | full |
+| `post-wizard-bundle2.spec.ts` | 68 | 17.3 min | full |
+| `admin-screening.spec.ts` | 52 | 16.8 min | full |
+| `admin-listings.spec.ts` | 60 | 13.2 min | full |
+| `post-wizard-place.spec.ts` | 38 | 10.6 min | full |
+| `post-wizard-where.spec.ts` | 32 | 10.5 min | full |
+| `posting-routes.spec.ts` | 62 | 10.5 min | full |
+| `post-wizard-category.spec.ts` | 48 | 10.5 min | full |
+| `post-wizard-pricing.spec.ts` | 52 | 10.0 min | full |
+| `post-wizard-resets.spec.ts` | 34 | 8.6 min | full |
+| `admin-categories-lifecycle.spec.ts` | 52 | 8.0 min | full |
+| `shell.spec.ts` | 168 | 8.0 min | full |
+| `admin-translations-governance.spec.ts` | 20 | 7.9 min | full |
+| `admin-attributes-library.spec.ts` | 42 | 7.8 min | full |
+| `admin-locations.spec.ts` | 38 | 7.1 min | full |
+| `admin-translations-console.spec.ts` | 46 | 7.1 min | full |
+| `my-listings-ad.spec.ts` | 34 | 6.7 min | full |
+| `admin-users.spec.ts` | 28 | 6.6 min | full |
+| `admin-categories-console.spec.ts` | 34 | 6.3 min | full |
+| `admin-attributes-links.spec.ts` | 32 | 5.8 min | full |
+| `posting-routes-catalog.spec.ts` | 18 | 5.8 min | full |
+| `admin-roles.spec.ts` | 26 | 5.8 min | full |
+| `my-listings-doors.spec.ts` | 28 | 5.6 min | full |
 | `viewing-place.spec.ts` | 22 | 5.3 min | full |
-| `admin-attributes-editor.spec.ts` | 34 | 4.8 min | full |
-| `admin-attributes-safety.spec.ts` | 18 | 4.1 min | full |
-| `feed-index.spec.ts` | 30 | 4.0 min | full |
-| `admin-attributes-import.spec.ts` | 40 | 3.8 min | full |
+| `feed-screens.spec.ts` | 30 | 5.1 min | full |
+| `admin-attributes-editor.spec.ts` | 34 | 5.1 min | full |
+| `import-security.spec.ts` | 36 | 5.0 min | full |
+| `admin-attributes-safety.spec.ts` | 18 | 4.2 min | full |
+| `admin-attributes-import.spec.ts` | 40 | 4.2 min | full |
+| `auth-signout.spec.ts` | 28 | 3.8 min | full |
+| `my-listings-page.spec.ts` | 14 | 3.6 min | full |
 | `auth-resend-exhaustion.spec.ts` | 1 | 3.4 min | nightly |
-| `feed-route.spec.ts` | 22 | 3.4 min | full |
-| `auth-signout.spec.ts` | 22 | 3.1 min | full |
-| `posting-routes-catalog.spec.ts` | 18 | 3.1 min | full |
-| `admin-shell.spec.ts` | 10 | 3.0 min | full |
-| `admin-countries.spec.ts` | 18 | 2.6 min | full |
+| `feed-index.spec.ts` | 30 | 3.2 min | full |
+| `posting-routes-dials.spec.ts` | 18 | 2.8 min | full |
+| `admin-countries.spec.ts` | 18 | 2.8 min | full |
+| `feed-route.spec.ts` | 22 | 2.5 min | full |
 | `admin-audit.spec.ts` | 14 | 2.5 min | full |
 | `admin-categories-home.spec.ts` | 10 | 2.5 min | full |
-| `admin-translations-data.spec.ts` | 8 | 2.4 min | full |
-| `post-wizard-details.spec.ts` | 8 | 2.2 min | full |
-| `mfa-stepup.spec.ts` | 18 | 2.1 min | full |
-| `posting-routes-dials.spec.ts` | 18 | 1.7 min | full |
-| `post-wizard-removed.spec.ts` | 4 | 1.6 min | full |
-| `post-wizard-finder.spec.ts` | 8 | 1.5 min | full |
+| `admin-translations-data.spec.ts` | 8 | 2.3 min | full |
+| `admin-shell.spec.ts` | 10 | 2.2 min | full |
+| `post-wizard-details.spec.ts` | 8 | 1.9 min | full |
+| `mfa-stepup.spec.ts` | 18 | 1.9 min | full |
+| `post-wizard-finder.spec.ts` | 8 | 1.6 min | full |
 | `admin-coverage.spec.ts` | 16 | 1.3 min | full |
+| `posting-routes-identity.spec.ts` | 4 | 1.3 min | full |
+| `post-wizard-removed.spec.ts` | 4 | 1.3 min | full |
 | `admin-categories-images.spec.ts` | 4 | 1.2 min | full |
+| `post-wizard-units.spec.ts` | 4 | 1.1 min | full |
 | `locations-tree.spec.ts` | 8 | 1.1 min | full |
-| `admin-services.spec.ts` | 10 | 0.9 min | full |
-| `category-image-routes.spec.ts` | 10 | 0.8 min | full |
-| `posting-routes-identity.spec.ts` | 4 | 0.8 min | full |
-| `i18n-bundle.spec.ts` | 6 | 0.7 min | full |
+| `admin-services.spec.ts` | 10 | 0.8 min | full |
 | `phone-frame.spec.ts` | 18 | 0.7 min | full |
-| `i18n-coverage.spec.ts` | 8 | 0.7 min | full |
-| `post-wizard-recent.spec.ts` | 2 | 0.7 min | full |
-| `post-wizard-units.spec.ts` | 4 | 0.6 min | full |
-| `a11y.spec.ts` | 4 | 0.4 min | full |
-| `layout.spec.ts` | 10 | 0.4 min | full |
+| `category-image-routes.spec.ts` | 10 | 0.7 min | full |
+| `i18n-bundle.spec.ts` | 6 | 0.6 min | full |
+| `a11y.spec.ts` | 4 | 0.5 min | full |
+| `post-wizard-recent.spec.ts` | 2 | 0.5 min | full |
 | `settings.spec.ts` | 4 | 0.4 min | full |
-| `rbac.spec.ts` | 6 | 0.3 min | full |
+| `i18n-coverage.spec.ts` | 8 | 0.4 min | full |
+| `rbac.spec.ts` | 6 | 0.4 min | full |
 | `primitives-law.spec.ts` | 24 | 0.3 min | full |
+| `house-style.spec.ts` | 12 | 0.3 min | full |
 | `category-nav.spec.ts` | 10 | 0.3 min | full |
 | `auth-reset.spec.ts` | 6 | 0.3 min | full |
-| `house-style.spec.ts` | 12 | 0.3 min | full |
+| `layout.spec.ts` | 10 | 0.2 min | full |
 | `smoke-auth-i18n.spec.ts` | 2 | 0.2 min | full |
-| `auth-signin-errors.spec.ts` | 5 | 0.1 min | full |
-| `auth-callback.spec.ts` | 4 | 0.1 min | full |
+| `auth-signin-errors.spec.ts` | 5 | 0.2 min | full |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | full |
+| `auth-callback.spec.ts` | 4 | 0.1 min | full |
 | `auth-google.spec.ts` | 2 | 0.0 min | full |
 | `geo.spec.ts` | 10 | 0.0 min | full |
 
@@ -175,21 +175,21 @@ Results read: nightly, full · unavailable: none
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 248.7 s |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 204.5 s |
-| `post-wizard-resets.spec.ts` › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317) | desktop-1280 | 61.4 s |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | desktop-1280 | 60.9 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | desktop-1280 | 60.4 s |
-| `admin-shell.spec.ts` › A-7 moderator fixture: two sections (All listings, audit), other deep links refused, admin tab still visible | desktop-1280 | 60.2 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 59.8 s |
-| `admin-screening.spec.ts` › SC-24 Photos to review: a failed photo on a live ad is listed with its reason, and Allow shows it to buyers (D178) | desktop-1280 | 57.3 s |
-| `my-listings-doors.spec.ts` › ML-12 edit_my_listing refuses what a box may not change, an ad it may not edit and another seller's, and writes nothing | desktop-1280 | 55.3 s |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | mobile-360 | 54.8 s |
-| `post-wizard-place.spec.ts` › PW-33 a region alone never lists itself; its city does (W6 R2) | desktop-1280 | 53.0 s |
-| `my-listings-page.spec.ts` › MLP-1 my_listings: the seller's own ads in six groups, newest change first, with their counts; nobody else's | desktop-1280 | 48.6 s |
-| `my-listings-page.spec.ts` › MLP-2 The My listings page: the groups with their counts, each row's line, Continue on a draft (D138) | desktop-1280 | 48.2 s |
-| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 47.4 s |
-| `admin-screening.spec.ts` › SC-21 Photo changes on live ads: a seller's additions, edit and removal are listed with their warnings and marked reviewed (D154 B5) | desktop-1280 | 45.6 s |
+| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 249.1 s |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 204.6 s |
+| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | mobile-360 | 102.4 s |
+| `photo-pipeline.spec.ts` › PP-21 a published ad's cover photo reaches the feed card, signed for a visitor without a session | mobile-360 | 56.8 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 56.4 s |
+| `photo-pipeline.spec.ts` › PP-27 Edit turns a photo and crops the cover, each saved in its place (D154 B2) | mobile-360 | 55.6 s |
+| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | mobile-360 | 50.1 s |
+| `admin-screening.spec.ts` › SC-21 Photo changes on live ads: a seller's additions, edit and removal are listed with their warnings and marked reviewed (D154 B5) | mobile-360 | 47.7 s |
+| `admin-screening.spec.ts` › SC-12 two ticked ads are approved together, after one confirmation that counts them | mobile-360 | 47.4 s |
+| `photo-pipeline.spec.ts` › PP-32 a failed or unsure photo is kept hidden with its review; nudity is refused and stored nowhere (D178, D183) | mobile-360 | 46.5 s |
+| `posting-routes-catalog.spec.ts` › PR-39 recent categories are caller-only published leaves in count/date/id order | mobile-360 | 42.3 s |
+| `post-wizard-where.spec.ts` › PW-180 D119: a new post from an invite opens the place step on the invite's place, ahead of the seller's last post | mobile-360 | 42.0 s |
+| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | desktop-1280 | 41.8 s |
+| `photo-pipeline.spec.ts` › PP-23 the gallery draws the middle size, and on a computer a wide photo's top meets the first thumbnail (D162, INC-613) | mobile-360 | 41.3 s |
+| `admin-screening.spec.ts` › SC-24 Photos to review: a failed photo on a live ad is listed with its reason, and Allow shows it to buyers (D178) | mobile-360 | 41.2 s |
 
 ## Post-test errors: nightly
 
@@ -198,7 +198,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 38782705639-nightly
+[e2e:teardown] deleted 4 user(s) owned by process 38944549481-nightly
 ```
 
 ## Post-test errors: full
@@ -206,262 +206,102 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 full: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 68 (pool 2, fresh 66)
+[e2e:teardown] accounts signed in this run: 70 (pool 2, fresh 68)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 96 user(s) owned by process 38782705639-nightly
+[e2e:teardown] deleted 98 user(s) owned by process 38944549481-nightly
 ```
 
-## admin-screening.spec.ts › ADMIN SCREENING › SC-25 Edit inside the preview: the reviewer corrects a waiting ad's title and approves it (D188)
+## admin-translations-data.spec.ts › U4b translations console › TR-34 the Data roster names each row's identity and changes nothing else
 
 - Source: `full`
 - Project: `mobile-360`
 
 ```text
-Error: expect(locator).toHaveText(expected) failed
+Error: expect(received).toEqual(expected) // deep equality
 
-Locator:  getByTestId('post-preview-sheet').getByTestId('listing-detail-title')
-Expected: "Corrected e2e-screen-nightly-9c9zwk"
-Received: "e2e-screen-nightly-95g0al"
-Timeout:  10000ms
+- Expected  - 3
++ Received  + 0
 
-Call log:
-  - Expect "toHaveText" with timeout 10000ms
-  - waiting for getByTestId('post-preview-sheet').getByTestId('listing-detail-title')
-    14 × locator resolved to <h2 data-testid="listing-detail-title" class="text-lg font-semibold text-foreground">e2e-screen-nightly-95g0al</h2>
-       - unexpected value "e2e-screen-nightly-95g0al"
-
+@@ -125,11 +125,10 @@
+  make-cars,Make,,single_select,\"{\"\"value\"\": \"\"acura\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Acura\"\"}|{\"\"value\"\": \"\"alfa_romeo\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Alfa Romeo\"\"}|{\"\"value\"\": \"\"aston_martin\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Aston Martin\"\"}|{\"\"value\"\": \"\"audi\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Audi\"\"}|{\"\"value\"\": \"\"baic\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"BAIC\"\"}|{\"\"value\"\": \"\"bajaj\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Bajaj\"\"}|{\"\"value\"\": \"\"bentley\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Bentley\"\"}|{\"\"value\"\": \"\"bmw\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"BMW\"\"}|{\"\"value\"\": \"\"brilliance\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Brilliance\"\"}|{\"\"value\"\": \"\"bugatti\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Bugatti\"\"}|{\"\"value\"\": \"\"buick\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Buick\"\"}|{\"\"value\"\": \"\"byd\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"BYD\"\"}|{\"\"value\"\": \"\"cadillac\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Cadillac\"\"}|{\"\"value\"\": \"\"changan\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Changan\"\"}|{\"\"value\"\": \"\"chery\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Chery\"\"}|{\"\"value\"\": \"\"chevrolet\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Chevrolet\"\"}|{\"\"value\"\": \"\"chrysler\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Chrysler\"\"}|{\"\"value\"\": \"\"citroen\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Citroën\"\"}|{\"\"value\"\": \"\"dacia\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Dacia\"\"}|{\"\"value\"\": \"\"daewoo\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Daewoo\"\"}|{\"\"value\"\": \"\"daihatsu\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Daihatsu\"\"}|{\"\"value\"\": \"\"datsun\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Datsun\"\"}|{\"\"value\"\": \"\"dodge\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Dodge\"\"}|{\"\"value\"\": \"\"dongfeng\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Dongfeng\"\"}|{\"\"value\"\": \"\"faw\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"FAW\"\"}|{\"\"value\"\": \"\"ferrari\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Ferrari\"\"}|{\"\"value\"\": \"\"fiat\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Fiat\"\"}|{\"\"value\"\": \"\"force_motors\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Force Motors\"\"}|{\"\"value\"\": \"\"ford\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Ford\"\"}|{\"\"value\"\": \"\"foton\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Foton\"\"}|{\"\"value\"\": \"\"gac\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"GAC\"\"}|{\"\"value\"\": \"\"geely\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Geely\"\"}|{\"\"value\"\": \"\"genesis\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Genesis\"\"}|{\"\"value\"\": \"\"gmc\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"GMC\"\"}|{\"\"value\"\": \"\"great_wall\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Great Wall\"\"}|{\"\"value\"\": \"\"haval\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Haval\"\"}|{\"\"value\"\": \"\"higer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Higer\"\"}|{\"\"value\"\": \"\"hillman\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hillman\"\"}|{\"\"value\"\": \"\"hino\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hino\"\"}|{\"\"value\"\": \"\"holden\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Holden\"\"}|{\"\"value\"\": \"\"honda\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Honda\"\"}|{\"\"value\"\": \"\"hongqi\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hongqi\"\"}|{\"\"value\"\": \"\"hummer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hummer\"\"}|{\"\"value\"\": \"\"hyundai\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hyundai\"\"}|{\"\"value\"\": \"\"innoson\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Innoson\"\"}|{\"\"value\"\": \"\"infiniti\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Infiniti\"\"}|{\"\"value\"\": \"\"isuzu\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Isuzu\"\"}|{\"\"value\"\": \"\"iveco\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Iveco\"\"}|{\"\"value\"\": \"\"jac\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"JAC\"\"}|{\"\"value\"\": \"\"jaguar\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Jaguar\"\"}|{\"\"value\"\": \"\"jeep\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Jeep\"\"}|{\"\"value\"\": \"\"jmc\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"JMC\"\"}|{\"\"value\"\": \"\"kia\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Kia\"\"}|{\"\"value\"\": \"\"king_long\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"King Long\"\"}|{\"\"value\"\": \"\"koenigsegg\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Koenigsegg\"\"}|{\"\"value\"\": \"\"lada\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lada\"\"}|{\"\"value\"\": \"\"lamborghini\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lamborghini\"\"}|{\"\"value\"\": \"\"lancia\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lancia\"\"}|{\"\"value\"\": \"\"land_rover\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Land Rover\"\"}|{\"\"value\"\": \"\"lexus\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lexus\"\"}|{\"\"value\"\": \"\"lifan\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lifan\"\"}|{\"\"value\"\": \"\"lincoln\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lincoln\"\"}|{\"\"value\"\": \"\"lotus\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lotus\"\"}|{\"\"value\"\": \"\"mahindra\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mahindra\"\"}|{\"\"value\"\": \"\"man\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"MAN\"\"}|{\"\"value\"\": \"\"maruti_suzuki\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Maruti Suzuki\"\"}|{\"\"value\"\": \"\"maserati\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Maserati\"\"}|{\"\"value\"\": \"\"mazda\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mazda\"\"}|{\"\"value\"\": \"\"mclaren\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"McLaren\"\"}|{\"\"value\"\": \"\"mercedes_benz\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mercedes-Benz\"\"}|{\"\"value\"\": \"\"mercury\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mercury\"\"}|{\"\"value\"\": \"\"mg\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"MG\"\"}|{\"\"value\"\": \"\"mini\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mini\"\"}|{\"\"value\"\": \"\"mitsubishi\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mitsubishi\"\"}|{\"\"value\"\": \"\"morris\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Morris\"\"}|{\"\"value\"\": \"\"nissan\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Nissan\"\"}|{\"\"value\"\": \"\"oldsmobile\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Oldsmobile\"\"}|{\"\"value\"\": \"\"opel\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Opel\"\"}|{\"\"value\"\": \"\"peugeot\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Peugeot\"\"}|{\"\"value\"\": \"\"plymouth\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Plymouth\"\"}|{\"\"value\"\": \"\"pontiac\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Pontiac\"\"}|{\"\"value\"\": \"\"porsche\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Porsche\"\"}|{\"\"value\"\": \"\"proton\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Proton\"\"}|{\"\"value\"\": \"\"ram\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Ram\"\"}|{\"\"value\"\": \"\"renault\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Renault\"\"}|{\"\"value\"\": \"\"rolls_royce\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Rolls-Royce\"\"}|{\"\"value\"\": \"\"rover\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Rover\"\"}|{\"\"value\"\": \"\"saab\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Saab\"\"}|{\"\"value\"\": \"\"samsung\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Samsung\"\"}|{\"\"value\"\": \"\"scion\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Scion\"\"}|{\"\"value\"\": \"\"seat\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Seat\"\"}|{\"\"value\"\": \"\"sinotruk\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Sinotruk\"\"}|{\"\"value\"\": \"\"skoda\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Skoda\"\"}|{\"\"value\"\": \"\"smart\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Smart\"\"}|{\"\"value\"\": \"\"ssangyong\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"SsangYong\"\"}|{\"\"value\"\": \"\"subaru\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Subaru\"\"}|{\"\"value\"\": \"\"suzuki\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Suzuki\"\"}|{\"\"value\"\": \"\"tata\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Tata\"\"}|{\"\"value\"\": \"\"tesla\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Tesla\"\"}|{\"\"value\"\": \"\"toyota\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Toyota\"\"}|{\"\"value\"\": \"\"uaz\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"UAZ\"\"}|{\"\"value\"\": \"\"vauxhall\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Vauxhall\"\"}|{\"\"value\"\": \"\"volkswagen\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Volkswagen\"\"}|{\"\"value\"\": \"\"volvo\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Volvo\"\"}|{\"\"value\"\": \"\"wuling\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Wuling\"\"}|{\"\"value\"\": \"\"yutong\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Yutong\"\"}|{\"\"value\"\": \"\"zhongtong\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Zhongtong\"\"}|{\"\"value\"\": \"\"zotye\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Zotye\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,Select your vehicle manufacturer,,,1,
+  make-vehicles,Make,,single_select,\"{\"\"value\"\": \"\"toyota\"\", \"\"label_en\"\": \"\"Toyota\"\"}|{\"\"value\"\": \"\"honda\"\", \"\"label_en\"\": \"\"Honda\"\"}|{\"\"value\"\": \"\"ford\"\", \"\"label_en\"\": \"\"Ford\"\"}|{\"\"value\"\": \"\"chevrolet\"\", \"\"label_en\"\": \"\"Chevrolet\"\"}|{\"\"value\"\": \"\"bmw\"\", \"\"label_en\"\": \"\"BMW\"\"}|{\"\"value\"\": \"\"mercedes\"\", \"\"label_en\"\": \"\"Mercedes-Benz\"\"}|{\"\"value\"\": \"\"audi\"\", \"\"label_en\"\": \"\"Audi\"\"}|{\"\"value\"\": \"\"volkswagen\"\", \"\"label_en\"\": \"\"Volkswagen\"\"}|{\"\"value\"\": \"\"nissan\"\", \"\"label_en\"\": \"\"Nissan\"\"}|{\"\"value\"\": \"\"hyundai\"\", \"\"label_en\"\": \"\"Hyundai\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+  makeup_type,Product Type,,single_select,\"{\"\"value\"\": \"\"foundation\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Foundation\"\"}|{\"\"value\"\": \"\"concealer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Concealer\"\"}|{\"\"value\"\": \"\"powder\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Powder\"\"}|{\"\"value\"\": \"\"blush\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Blush\"\"}|{\"\"value\"\": \"\"bronzer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Bronzer\"\"}|{\"\"value\"\": \"\"highlighter\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Highlighter\"\"}|{\"\"value\"\": \"\"lips\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lipstick/Lip Gloss\"\"}|{\"\"value\"\": \"\"mascara\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mascara\"\"}|{\"\"value\"\": \"\"eyeliner\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Eyeliner\"\"}|{\"\"value\"\": \"\"eyeshadow\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Eyeshadow\"\"}|{\"\"value\"\": \"\"brows\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Brow Products\"\"}|{\"\"value\"\": \"\"tools\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Makeup Tools\"\"}|{\"\"value\"\": \"\"set\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Set/Palette\"\"}\",,,,,,,,,,,,1,
+  material,Material,,text,,,,,,,,,,,,,1,
+  mens_clothing_type,Clothing Type,,single_select,\"{\"\"value\"\": \"\"shirt\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Shirt\"\"}|{\"\"value\"\": \"\"t-shirt\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"T-Shirt\"\"}|{\"\"value\"\": \"\"pants\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Pants\"\"}|{\"\"value\"\": \"\"jeans\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Jeans\"\"}|{\"\"value\"\": \"\"jacket\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Jacket\"\"}|{\"\"value\"\": \"\"suit\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Suit\"\"}|{\"\"value\"\": \"\"sweater\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Sweater\"\"}|{\"\"value\"\": \"\"shorts\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Shorts\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+- mens_size,Size,,single_select,\"{\"\"value\"\": \"\"xs\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XS\"\"}|{\"\"value\"\": \"\"s\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"S\"\"}|{\"\"value\"\": \"\"m\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"M\"\"}|{\"\"value\"\": \"\"l\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"L\"\"}|{\"\"value\"\": \"\"xl\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XL\"\"}|{\"\"value\"\": \"\"xxl\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XXL\"\"}|{\"\"value\"\": \"\"xxxl\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XXXL\"\"}\",,,,,,,,,,,,1,
+  mileage_km,Mileage (km),,number,,,,,,,,,,,,,1,
+  mileage_unit,Mileage Unit,,single_select,\"{\"\"value\"\": \"\"km\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Kilometers (km)\"\"}|{\"\"value\"\": \"\"miles\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Miles (mi)\"\"}\",,,,,,,,,Auto-selected based on your location,,,1,
+  mileage_value,Mileage,,number,,,,,,,,,,Total distance traveled,,,1,
+  model-cars,Model,,single_select,\"{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,Model will populate based on selected make,,,1,
+  model-vehicles,Model,,text,,,,,,,,,,,,,1,
+@@ -175,11 +174,10 @@
+  service_type-repair-maintenance,Service Type,,single_select,\"{\"\"value\"\": \"\"screen-repair\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Screen Repair\"\"}|{\"\"value\"\": \"\"battery\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Battery Replacement\"\"}|{\"\"value\"\": \"\"water-damage\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Water Damage\"\"}|{\"\"value\"\": \"\"software\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Software Issues\"\"}|{\"\"value\"\": \"\"charging-port\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Charging Port\"\"}|{\"\"value\"\": \"\"speaker-mic\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Speaker/Mic Repair\"\"}|{\"\"value\"\": \"\"unlocking\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Unlocking\"\"}|{\"\"value\"\": \"\"data-recovery\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Data Recovery\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+  service_type-services,Service Type,,single_select,\"{\"\"value\"\": \"\"one_time\"\", \"\"label_en\"\": \"\"One-time\"\"}|{\"\"value\"\": \"\"recurring\"\", \"\"label_en\"\": \"\"Recurring\"\"}|{\"\"value\"\": \"\"project\"\", \"\"label_en\"\": \"\"Project-based\"\"}\",,,,,,,,,,,,1,
+  shoe_gender,Gender,,single_select,\"{\"\"value\"\": \"\"men\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Men\"\"}|{\"\"value\"\": \"\"women\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Women\"\"}|{\"\"value\"\": \"\"unisex\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Unisex\"\"}|{\"\"value\"\": \"\"kids\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Kids\"\"}\",,,,,,,,,,,,1,
+  shoe_size,Shoe Size,,single_select,\"{\"\"value\"\": \"\"35\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"35\"\"}|{\"\"value\"\": \"\"36\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"36\"\"}|{\"\"value\"\": \"\"37\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"37\"\"}|{\"\"value\"\": \"\"38\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"38\"\"}|{\"\"value\"\": \"\"39\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"39\"\"}|{\"\"value\"\": \"\"40\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"40\"\"}|{\"\"value\"\": \"\"41\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"41\"\"}|{\"\"value\"\": \"\"42\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"42\"\"}|{\"\"value\"\": \"\"43\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"43\"\"}|{\"\"value\"\": \"\"44\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"44\"\"}|{\"\"value\"\": \"\"45\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"45\"\"}|{\"\"value\"\": \"\"46\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"46\"\"}|{\"\"value\"\": \"\"47\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"47+\"\"}\",,,,,,,,,,,,1,
+  shoe_type,Shoe Type,,single_select,\"{\"\"value\"\": \"\"sneakers\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Sneakers\"\"}|{\"\"value\"\": \"\"boots\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Boots\"\"}|{\"\"value\"\": \"\"sandals\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Sandals\"\"}|{\"\"value\"\": \"\"heels\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Heels\"\"}|{\"\"value\"\": \"\"loafers\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Loafers\"\"}|{\"\"value\"\": \"\"athletic\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Athletic\"\"}|{\"\"value\"\": \"\"formal\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Formal\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+- size,Size,,single_select,\"{\"\"value\"\": \"\"xs\"\", \"\"label_en\"\": \"\"XS\"\"}|{\"\"value\"\": \"\"s\"\", \"\"label_en\"\": \"\"S\"\"}|{\"\"value\"\": \"\"m\"\", \"\"label_en\"\": \"\"M\"\"}|{\"\"value\"\": \"\"l\"\", \"\"label_en\"\": \"\"L\"\"}|{\"\"value\"\": \"\"xl\"\", \"\"label_en\"\": \"\"XL\"\"}|{\"\"value\"\": \"\"xxl\"\", \"\"label_en\"\": \"\"XXL\"\"}\",,,,,,,,,,,,1,
+  size_sqm,Size (sqm),,number,,,,,,,,,,,,,1,
+  skin_type,Skin Type,,single_select,\"{\"\"value\"\": \"\"all\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"All Skin Types\"\"}|{\"\"value\"\": \"\"oily\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Oily\"\"}|{\"\"value\"\": \"\"dry\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Dry\"\"}|{\"\"value\"\": \"\"combination\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Combination\"\"}|{\"\"value\"\": \"\"sensitive\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Sensitive\"\"}|{\"\"value\"\": \"\"normal\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Normal\"\"}\",,,,,,,,,,,,1,
+  skincare_type,Product Type,,single_select,\"{\"\"value\"\": \"\"cleanser\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Cleanser\"\"}|{\"\"value\"\": \"\"moisturizer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Moisturizer\"\"}|{\"\"value\"\": \"\"serum\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Serum\"\"}|{\"\"value\"\": \"\"toner\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Toner\"\"}|{\"\"value\"\": \"\"sunscreen\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Sunscreen\"\"}|{\"\"value\"\": \"\"mask\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Face Mask\"\"}|{\"\"value\"\": \"\"eye-cream\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Eye Cream\"\"}|{\"\"value\"\": \"\"exfoliator\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Exfoliator\"\"}|{\"\"value\"\": \"\"acne\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Acne Treatment\"\"}|{\"\"value\"\": \"\"anti-aging\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Anti-Aging\"\"}|{\"\"value\"\": \"\"set\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Set/Kit\"\"}\",,,,,,,,,,,,1,
+  sport,Sport,,single_select,\"{\"\"value\"\": \"\"running\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Running\"\"}|{\"\"value\"\": \"\"cycling\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Cycling\"\"}|{\"\"value\"\": \"\"swimming\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Swimming\"\"}|{\"\"value\"\": \"\"basketball\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Basketball\"\"}|{\"\"value\"\": \"\"soccer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Soccer\"\"}|{\"\"value\"\": \"\"tennis\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Tennis\"\"}|{\"\"value\"\": \"\"golf\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Golf\"\"}|{\"\"value\"\": \"\"fitness\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Fitness\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+  sport_type,Sport,,single_select,\"{\"\"value\"\": \"\"football\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Football\"\"}|{\"\"value\"\": \"\"basketball\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Basketball\"\"}|{\"\"value\"\": \"\"tennis\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Tennis\"\"}|{\"\"value\"\": \"\"golf\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Golf\"\"}|{\"\"value\"\": \"\"swimming\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Swimming\"\"}|{\"\"value\"\": \"\"cycling\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Cycling\"\"}|{\"\"value\"\": \"\"running\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Running\"\"}|{\"\"value\"\": \"\"yoga\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Yoga\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+@@ -199,11 +197,10 @@
+  utilities_available,Utilities Available,,boolean,,,,,,,,,,Are water and electricity available?,,,1,
+  warranty,Warranty,,boolean,,,,,,,,,,,,,2,
+  water_type,Water Type,,single_select,\"{\"\"value\"\": \"\"freshwater\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Freshwater\"\"}|{\"\"value\"\": \"\"saltwater\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Saltwater\"\"}|{\"\"value\"\": \"\"brackish\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Brackish\"\"}\",,,,,,,,,,,,1,
+  weight_capacity,Weight Capacity,,single_select,\"{\"\"value\"\": \"\"100kg\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Up to 100 kg\"\"}|{\"\"value\"\": \"\"150kg\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Up to 150 kg\"\"}|{\"\"value\"\": \"\"200kg\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Up to 200 kg\"\"}|{\"\"value\"\": \"\"200plus\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"200+ kg\"\"}\",,,,,,,,,Maximum user weight supported,,,1,
+  womens_clothing_type,Clothing Type,,single_select,\"{\"\"value\"\": \"\"dress\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Dress\"\"}|{\"\"value\"\": \"\"top\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Top\"\"}|{\"\"value\"\": \"\"blouse\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Blouse\"\"}|{\"\"value\"\": \"\"pants\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Pants\"\"}|{\"\"value\"\": \"\"skirt\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Skirt\"\"}|{\"\"value\"\": \"\"jacket\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Jacket\"\"}|{\"\"value\"\": \"\"sweater\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Sweater\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+- womens_size,Size,,single_select,\"{\"\"value\"\": \"\"xs\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XS\"\"}|{\"\"value\"\": \"\"s\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"S\"\"}|{\"\"value\"\": \"\"m\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"M\"\"}|{\"\"value\"\": \"\"l\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"L\"\"}|{\"\"value\"\": \"\"xl\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XL\"\"}|{\"\"value\"\": \"\"xxl\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XXL\"\"}|{\"\"value\"\": \"\"plus-size\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Plus Size\"\"}\",,,,,,,,,,,,1,
+  year,Year,,number,,,,,,,,,,,,,1,
+  year_built,Year Built,,number,,,,,,,,,,Year the house was constructed,,,1,
+  zoning,Zoning / Land Use,,single_select,\"{\"\"value\"\": \"\"residential\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Residential\"\"}|{\"\"value\"\": \"\"commercial\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Commercial\"\"}|{\"\"value\"\": \"\"agricultural\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Agricultural\"\"}|{\"\"value\"\": \"\"industrial\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Industrial\"\"}|{\"\"value\"\": \"\"mixed-use\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mixed Use\"\"}|{\"\"value\"\": \"\"recreational\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Recreational\"\"}\",,,,,,,,,What is the land zoned for?,,,1,
+  ",
 --- further error 1 ---
-Error: expect(locator).toHaveText(expected) failed
+Error: expect(received).toEqual(expected) // deep equality
 
-Locator:  getByTestId('post-preview-sheet').getByTestId('listing-detail-title')
-Expected: "Corrected e2e-screen-nightly-9c9zwk"
-Received: "e2e-screen-nightly-95g0al"
-Timeout:  10000ms
+- Expected  - 3
++ Received  + 0
 
-Call log:
-  - Expect "toHaveText" with timeout 10000ms
-  - waiting for getByTestId('post-preview-sheet').getByTestId('listing-detail-title')
-    14 × locator resolved to <h2 data-testid="listing-detail-title" class="text-lg font-semibold text-foreground">e2e-screen-nightly-95g0al</h2>
-       - unexpected value "e2e-screen-nightly-95g0al"
-
-
-  1401 |     );
-  1402 |     await expect(sheet.getByTestId("admin-screening-edit-panel")).toHaveCount(0);
-> 1403 |     await expect(sheet.getByTestId("listing-detail-title")).toHaveText(corrected);
-       |                                                             ^
-  1404 |     expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "screening" });
-  1405 |
+@@ -125,11 +125,10 @@
+  make-cars,Make,,single_select,\"{\"\"value\"\": \"\"acura\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Acura\"\"}|{\"\"value\"\": \"\"alfa_romeo\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Alfa Romeo\"\"}|{\"\"value\"\": \"\"aston_martin\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Aston Martin\"\"}|{\"\"value\"\": \"\"audi\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Audi\"\"}|{\"\"value\"\": \"\"baic\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"BAIC\"\"}|{\"\"value\"\": \"\"bajaj\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Bajaj\"\"}|{\"\"value\"\": \"\"bentley\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Bentley\"\"}|{\"\"value\"\": \"\"bmw\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"BMW\"\"}|{\"\"value\"\": \"\"brilliance\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Brilliance\"\"}|{\"\"value\"\": \"\"bugatti\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Bugatti\"\"}|{\"\"value\"\": \"\"buick\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Buick\"\"}|{\"\"value\"\": \"\"byd\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"BYD\"\"}|{\"\"value\"\": \"\"cadillac\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Cadillac\"\"}|{\"\"value\"\": \"\"changan\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Changan\"\"}|{\"\"value\"\": \"\"chery\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Chery\"\"}|{\"\"value\"\": \"\"chevrolet\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Chevrolet\"\"}|{\"\"value\"\": \"\"chrysler\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Chrysler\"\"}|{\"\"value\"\": \"\"citroen\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Citroën\"\"}|{\"\"value\"\": \"\"dacia\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Dacia\"\"}|{\"\"value\"\": \"\"daewoo\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Daewoo\"\"}|{\"\"value\"\": \"\"daihatsu\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Daihatsu\"\"}|{\"\"value\"\": \"\"datsun\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Datsun\"\"}|{\"\"value\"\": \"\"dodge\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Dodge\"\"}|{\"\"value\"\": \"\"dongfeng\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Dongfeng\"\"}|{\"\"value\"\": \"\"faw\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"FAW\"\"}|{\"\"value\"\": \"\"ferrari\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Ferrari\"\"}|{\"\"value\"\": \"\"fiat\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Fiat\"\"}|{\"\"value\"\": \"\"force_motors\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Force Motors\"\"}|{\"\"value\"\": \"\"ford\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Ford\"\"}|{\"\"value\"\": \"\"foton\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Foton\"\"}|{\"\"value\"\": \"\"gac\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"GAC\"\"}|{\"\"value\"\": \"\"geely\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Geely\"\"}|{\"\"value\"\": \"\"genesis\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Genesis\"\"}|{\"\"value\"\": \"\"gmc\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"GMC\"\"}|{\"\"value\"\": \"\"great_wall\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Great Wall\"\"}|{\"\"value\"\": \"\"haval\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Haval\"\"}|{\"\"value\"\": \"\"higer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Higer\"\"}|{\"\"value\"\": \"\"hillman\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hillman\"\"}|{\"\"value\"\": \"\"hino\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hino\"\"}|{\"\"value\"\": \"\"holden\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Holden\"\"}|{\"\"value\"\": \"\"honda\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Honda\"\"}|{\"\"value\"\": \"\"hongqi\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hongqi\"\"}|{\"\"value\"\": \"\"hummer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hummer\"\"}|{\"\"value\"\": \"\"hyundai\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Hyundai\"\"}|{\"\"value\"\": \"\"innoson\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Innoson\"\"}|{\"\"value\"\": \"\"infiniti\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Infiniti\"\"}|{\"\"value\"\": \"\"isuzu\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Isuzu\"\"}|{\"\"value\"\": \"\"iveco\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Iveco\"\"}|{\"\"value\"\": \"\"jac\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"JAC\"\"}|{\"\"value\"\": \"\"jaguar\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Jaguar\"\"}|{\"\"value\"\": \"\"jeep\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Jeep\"\"}|{\"\"value\"\": \"\"jmc\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"JMC\"\"}|{\"\"value\"\": \"\"kia\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Kia\"\"}|{\"\"value\"\": \"\"king_long\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"King Long\"\"}|{\"\"value\"\": \"\"koenigsegg\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Koenigsegg\"\"}|{\"\"value\"\": \"\"lada\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lada\"\"}|{\"\"value\"\": \"\"lamborghini\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lamborghini\"\"}|{\"\"value\"\": \"\"lancia\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lancia\"\"}|{\"\"value\"\": \"\"land_rover\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Land Rover\"\"}|{\"\"value\"\": \"\"lexus\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lexus\"\"}|{\"\"value\"\": \"\"lifan\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lifan\"\"}|{\"\"value\"\": \"\"lincoln\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lincoln\"\"}|{\"\"value\"\": \"\"lotus\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lotus\"\"}|{\"\"value\"\": \"\"mahindra\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mahindra\"\"}|{\"\"value\"\": \"\"man\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"MAN\"\"}|{\"\"value\"\": \"\"maruti_suzuki\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Maruti Suzuki\"\"}|{\"\"value\"\": \"\"maserati\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Maserati\"\"}|{\"\"value\"\": \"\"mazda\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mazda\"\"}|{\"\"value\"\": \"\"mclaren\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"McLaren\"\"}|{\"\"value\"\": \"\"mercedes_benz\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mercedes-Benz\"\"}|{\"\"value\"\": \"\"mercury\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mercury\"\"}|{\"\"value\"\": \"\"mg\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"MG\"\"}|{\"\"value\"\": \"\"mini\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mini\"\"}|{\"\"value\"\": \"\"mitsubishi\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mitsubishi\"\"}|{\"\"value\"\": \"\"morris\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Morris\"\"}|{\"\"value\"\": \"\"nissan\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Nissan\"\"}|{\"\"value\"\": \"\"oldsmobile\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Oldsmobile\"\"}|{\"\"value\"\": \"\"opel\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Opel\"\"}|{\"\"value\"\": \"\"peugeot\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Peugeot\"\"}|{\"\"value\"\": \"\"plymouth\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Plymouth\"\"}|{\"\"value\"\": \"\"pontiac\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Pontiac\"\"}|{\"\"value\"\": \"\"porsche\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Porsche\"\"}|{\"\"value\"\": \"\"proton\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Proton\"\"}|{\"\"value\"\": \"\"ram\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Ram\"\"}|{\"\"value\"\": \"\"renault\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Renault\"\"}|{\"\"value\"\": \"\"rolls_royce\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Rolls-Royce\"\"}|{\"\"value\"\": \"\"rover\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Rover\"\"}|{\"\"value\"\": \"\"saab\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Saab\"\"}|{\"\"value\"\": \"\"samsung\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Samsung\"\"}|{\"\"value\"\": \"\"scion\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Scion\"\"}|{\"\"value\"\": \"\"seat\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Seat\"\"}|{\"\"value\"\": \"\"sinotruk\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Sinotruk\"\"}|{\"\"value\"\": \"\"skoda\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Skoda\"\"}|{\"\"value\"\": \"\"smart\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Smart\"\"}|{\"\"value\"\": \"\"ssangyong\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"SsangYong\"\"}|{\"\"value\"\": \"\"subaru\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Subaru\"\"}|{\"\"value\"\": \"\"suzuki\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Suzuki\"\"}|{\"\"value\"\": \"\"tata\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Tata\"\"}|{\"\"value\"\": \"\"tesla\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Tesla\"\"}|{\"\"value\"\": \"\"toyota\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Toyota\"\"}|{\"\"value\"\": \"\"uaz\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"UAZ\"\"}|{\"\"value\"\": \"\"vauxhall\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Vauxhall\"\"}|{\"\"value\"\": \"\"volkswagen\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Volkswagen\"\"}|{\"\"value\"\": \"\"volvo\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Volvo\"\"}|{\"\"value\"\": \"\"wuling\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Wuling\"\"}|{\"\"value\"\": \"\"yutong\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Yutong\"\"}|{\"\"value\"\": \"\"zhongtong\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Zhongtong\"\"}|{\"\"value\"\": \"\"zotye\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Zotye\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,Select your vehicle manufacturer,,,1,
+  make-vehicles,Make,,single_select,\"{\"\"value\"\": \"\"toyota\"\", \"\"label_en\"\": \"\"Toyota\"\"}|{\"\"value\"\": \"\"honda\"\", \"\"label_en\"\": \"\"Honda\"\"}|{\"\"value\"\": \"\"ford\"\", \"\"label_en\"\": \"\"Ford\"\"}|{\"\"value\"\": \"\"chevrolet\"\", \"\"label_en\"\": \"\"Chevrolet\"\"}|{\"\"value\"\": \"\"bmw\"\", \"\"label_en\"\": \"\"BMW\"\"}|{\"\"value\"\": \"\"mercedes\"\", \"\"label_en\"\": \"\"Mercedes-Benz\"\"}|{\"\"value\"\": \"\"audi\"\", \"\"label_en\"\": \"\"Audi\"\"}|{\"\"value\"\": \"\"volkswagen\"\", \"\"label_en\"\": \"\"Volkswagen\"\"}|{\"\"value\"\": \"\"nissan\"\", \"\"label_en\"\": \"\"Nissan\"\"}|{\"\"value\"\": \"\"hyundai\"\", \"\"label_en\"\": \"\"Hyundai\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+  makeup_type,Product Type,,single_select,\"{\"\"value\"\": \"\"foundation\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Foundation\"\"}|{\"\"value\"\": \"\"concealer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Concealer\"\"}|{\"\"value\"\": \"\"powder\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Powder\"\"}|{\"\"value\"\": \"\"blush\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Blush\"\"}|{\"\"value\"\": \"\"bronzer\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Bronzer\"\"}|{\"\"value\"\": \"\"highlighter\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Highlighter\"\"}|{\"\"value\"\": \"\"lips\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Lipstick/Lip Gloss\"\"}|{\"\"value\"\": \"\"mascara\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Mascara\"\"}|{\"\"value\"\": \"\"eyeliner\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Eyeliner\"\"}|{\"\"value\"\": \"\"eyeshadow\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Eyeshadow\"\"}|{\"\"value\"\": \"\"brows\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Brow Products\"\"}|{\"\"value\"\": \"\"tools\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Makeup Tools\"\"}|{\"\"value\"\": \"\"set\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Set/Palette\"\"}\",,,,,,,,,,,,1,
+  material,Material,,text,,,,,,,,,,,,,1,
+  mens_clothing_type,Clothing Type,,single_select,\"{\"\"value\"\": \"\"shirt\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Shirt\"\"}|{\"\"value\"\": \"\"t-shirt\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"T-Shirt\"\"}|{\"\"value\"\": \"\"pants\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Pants\"\"}|{\"\"value\"\": \"\"jeans\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Jeans\"\"}|{\"\"value\"\": \"\"jacket\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Jacket\"\"}|{\"\"value\"\": \"\"suit\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Suit\"\"}|{\"\"value\"\": \"\"sweater\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Sweater\"\"}|{\"\"value\"\": \"\"shorts\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Shorts\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+- mens_size,Size,,single_select,\"{\"\"value\"\": \"\"xs\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XS\"\"}|{\"\"value\"\": \"\"s\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"S\"\"}|{\"\"value\"\": \"\"m\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"M\"\"}|{\"\"value\"\": \"\"l\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"L\"\"}|{\"\"value\"\": \"\"xl\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XL\"\"}|{\"\"value\"\": \"\"xxl\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XXL\"\"}|{\"\"value\"\": \"\"xxxl\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"XXXL\"\"}\",,,,,,,,,,,,1,
+  mileage_km,Mileage (km),,number,,,,,,,,,,,,,1,
+  mileage_unit,Mileage Unit,,single_select,\"{\"\"value\"\": \"\"km\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Kilometers (km)\"\"}|{\"\"value\"\": \"\"miles\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Miles (mi)\"\"}\",,,,,,,,,Auto-selected based on your location,,,1,
+  mileage_value,Mileage,,number,,,,,,,,,,Total distance traveled,,,1,
+  model-cars,Model,,single_select,\"{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,Model will populate based on selected make,,,1,
+  model-vehicles,Model,,text,,,,,,,,,,,,,1,
+@@ -175,11 +174,10 @@
+  service_type-repair-maintenance,Service Type,,single_select,\"{\"\"value\"\": \"\"screen-repair\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Screen Repair\"\"}|{\"\"value\"\": \"\"battery\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Battery Replacement\"\"}|{\"\"value\"\": \"\"water-damage\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Water Damage\"\"}|{\"\"value\"\": \"\"software\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Software Issues\"\"}|{\"\"value\"\": \"\"charging-port\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Charging Port\"\"}|{\"\"value\"\": \"\"speaker-mic\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Speaker/Mic Repair\"\"}|{\"\"value\"\": \"\"unlocking\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Unlocking\"\"}|{\"\"value\"\": \"\"data-recovery\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Data Recovery\"\"}|{\"\"value\"\": \"\"other\"\", \"\"label_am\"\": null, \"\"label_en\"\": \"\"Other\"\"}\",,,,,,,,,,,,1,
+  service_type-services,Service Type,,single_select,\"{\"\"value\"\": \"\"one_time\"\", \"\"label_en\"\": \"\"One-time\"\"}|{\"\"value\"\": \"\"recurring\"\", \"\"label_en\"\": \"\"Recurring\"\"}|{\"\"value\"\": \"\"project\"\", \"\"label_en\"\": \"\"Project-based\"\"}\",,,,,,,,,,,,1,
 ```
 
 Context:
 
 ```text
-          - heading "Description" [level=3] [ref=e314]
-          - paragraph [ref=e315]: e2e scratch listing for the screening queue
-        - generic [ref=e316]:
-          - generic [ref=e317]:
-            - heading "Seller" [level=3] [ref=e318]
-            - paragraph [ref=e319]: eseller_kgzizzup
-          - generic [ref=e320]:
-            - heading "Contact the seller" [level=4] [ref=e321]
-            - list [ref=e322]:
-              - listitem [ref=e323]:
-                - generic [ref=e324]: Messages on ethio.com
-        - paragraph [ref=e327]: The map of this place opens with the listing.
-      - generic [ref=e328]:
-        - status [ref=e329]: "Saved. The seller is told what changed: Title."
-        - button "Edit" [ref=e330] [cursor=pointer]
-        - link "Open the ad's page" [ref=e331] [cursor=pointer]:
-          - /url: /admin/listings/10dfcdda-fe28-47d9-9c7b-7c8facf1b164
-        - button "Approve" [ref=e332] [cursor=pointer]
-        - button "Reject" [ref=e333] [cursor=pointer]
-```
-```
-
-## admin-screening.spec.ts › ADMIN SCREENING › SC-25 Edit inside the preview: the reviewer corrects a waiting ad's title and approves it (D188)
-
-- Source: `full`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toHaveText(expected) failed
-
-Locator:  getByTestId('post-preview-sheet').getByTestId('listing-detail-title')
-Expected: "Corrected e2e-screen-nightly-jf3aqs"
-Received: "e2e-screen-nightly-m6q6er"
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveText" with timeout 10000ms
-  - waiting for getByTestId('post-preview-sheet').getByTestId('listing-detail-title')
-    14 × locator resolved to <h2 data-testid="listing-detail-title" class="text-lg font-semibold text-foreground">e2e-screen-nightly-m6q6er</h2>
-       - unexpected value "e2e-screen-nightly-m6q6er"
-
---- further error 1 ---
-Error: expect(locator).toHaveText(expected) failed
-
-Locator:  getByTestId('post-preview-sheet').getByTestId('listing-detail-title')
-Expected: "Corrected e2e-screen-nightly-jf3aqs"
-Received: "e2e-screen-nightly-m6q6er"
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveText" with timeout 10000ms
-  - waiting for getByTestId('post-preview-sheet').getByTestId('listing-detail-title')
-    14 × locator resolved to <h2 data-testid="listing-detail-title" class="text-lg font-semibold text-foreground">e2e-screen-nightly-m6q6er</h2>
-       - unexpected value "e2e-screen-nightly-m6q6er"
-
-
-  1401 |     );
-  1402 |     await expect(sheet.getByTestId("admin-screening-edit-panel")).toHaveCount(0);
-> 1403 |     await expect(sheet.getByTestId("listing-detail-title")).toHaveText(corrected);
-       |                                                             ^
-  1404 |     expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "screening" });
-  1405 |
-```
-
-Context:
-
-```text
-          - heading "Description" [level=3] [ref=e338]
-          - paragraph [ref=e339]: e2e scratch listing for the screening queue
-        - generic [ref=e340]:
-          - generic [ref=e341]:
-            - heading "Seller" [level=3] [ref=e342]
-            - paragraph [ref=e343]: eseller_uqgaipnd
-          - generic [ref=e344]:
-            - heading "Contact the seller" [level=4] [ref=e345]
-            - list [ref=e346]:
-              - listitem [ref=e347]:
-                - generic [ref=e348]: Messages on ethio.com
-        - paragraph [ref=e351]: The map of this place opens with the listing.
-      - generic [ref=e352]:
-        - status [ref=e353]: "Saved. The seller is told what changed: Title."
-        - button "Edit" [ref=e354] [cursor=pointer]
-        - link "Open the ad's page" [ref=e355] [cursor=pointer]:
-          - /url: /admin/listings/c267f621-82ff-4d61-9cdc-25c5a3e871ec
-        - button "Approve" [ref=e356] [cursor=pointer]
-        - button "Reject" [ref=e357] [cursor=pointer]
-```
-```
-
-## admin-shell.spec.ts › Admin shell (U0) › A-7 moderator fixture: two sections (All listings, audit), other deep links refused, admin tab still visible
-
-- Source: `full`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/admin$/
-Received string:  "http://127.0.0.1:4173/admin/screening"
-
-Call log:
-  - Expect "toHaveURL" with timeout 10000ms
-    3 × unexpected value "http://127.0.0.1:4173/admin/screening"
-
-
-  242 |       await page.goto(path);
-  243 |       await waitForHydration(page);
-> 244 |       await expect(page).toHaveURL(/\/admin$/);
-      |                          ^
-  245 |       await expect(page.getByTestId("admin-access-notice")).toBeVisible({ timeout: 15000 });
-  246 |     }
-  247 |   });
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-shell.spec.ts:244:26
-```
-
-Context:
-
-```text
-          - listitem [ref=e164]:
-            - generic [ref=e165]: About
-          - listitem [ref=e166]:
-            - generic [ref=e167]: How it works
-      - navigation "Help" [ref=e168]:
-        - heading "Help" [level=2] [ref=e169]
-        - list [ref=e170]:
-          - listitem [ref=e171]:
-            - generic [ref=e172]: Safety
-          - listitem [ref=e173]:
-            - generic [ref=e174]: Contact
-      - navigation "Legal" [ref=e175]:
-        - heading "Legal" [level=2] [ref=e176]
-        - list [ref=e177]:
-          - listitem [ref=e178]:
-            - generic [ref=e179]: Terms
-          - listitem [ref=e180]:
-            - generic [ref=e181]: Privacy
-    - paragraph [ref=e183]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-translations-console.spec.ts › U4b translations console › TR-7b sync after a step-up prompt still reports its counts
-
-- Source: `full`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('translations-sync-done')
-Expected: visible
-Timeout: 30000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('translations-sync-done')
-
-[e2e:l4c] sync route (admin_sync_ui_keys) → 200 {"orphaned": 0, "am_seeded": 0, "languages": 14, "keys_added": 0, "en_upserted": 2507, "orphans_restored": 0, "keys_added_per_lang": {"am": 2507, "om": 2507, "ti": 2507, "zxa": 2507, "zxx": 2507, "zxy": 2507, "zxx-d": 2507, "zxx-m": 2507, "zxy-d": 2507, "zxy-m": 2507, "zxx-de": 2507, "zxx-mo": 2507, "zxy-de": 2507, "zxy-mo": 2507}}
-user 1b6bc06d-e358-4c5a-b821-5483f0457de2
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('translations-sync-done')
-Expected: visible
-Timeout: 30000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('translations-sync-done')
-
-[e2e:l4c] sync route (admin_sync_ui_keys) → 200 {"orphaned": 0, "am_seeded": 0, "languages": 14, "keys_added": 0, "en_upserted": 2507, "orphans_restored": 0, "keys_added_per_lang": {"am": 2507, "om": 2507, "ti": 2507, "zxa": 2507, "zxx": 2507, "zxy": 2507, "zxx-d": 2507, "zxx-m": 2507, "zxy-d": 2507, "zxy-m": 2507, "zxx-de": 2507, "zxx-mo": 2507, "zxy-de": 2507, "zxy-mo": 2507}}
-user 1b6bc06d-e358-4c5a-b821-5483f0457de2
-
-  101 |     await assertion();
-  102 |   } catch (error) {
-> 103 |     throw new Error(
-      |           ^
-  104 |       `${error instanceof Error ? error.message : String(error)}\n[e2e:l4c] ${await evidence()}`,
-  105 |     );
-```
-
-Context:
-
-```text
-          - listitem [ref=e918]:
-            - generic [ref=e919]: About
-          - listitem [ref=e920]:
-            - generic [ref=e921]: How it works
-      - navigation "Help" [ref=e922]:
-        - heading "Help" [level=2] [ref=e923]
-        - list [ref=e924]:
-          - listitem [ref=e925]:
-            - generic [ref=e926]: Safety
-          - listitem [ref=e927]:
-            - generic [ref=e928]: Contact
-      - navigation "Legal" [ref=e929]:
-        - heading "Legal" [level=2] [ref=e930]
-        - list [ref=e931]:
-          - listitem [ref=e932]:
-            - generic [ref=e933]: Terms
-          - listitem [ref=e934]:
-            - generic [ref=e935]: Privacy
-    - paragraph [ref=e937]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e320]:
+            - generic [ref=e321]: About
+          - listitem [ref=e322]:
+            - generic [ref=e323]: How it works
+      - navigation "Help" [ref=e324]:
+        - heading "Help" [level=2] [ref=e325]
+        - list [ref=e326]:
+          - listitem [ref=e327]:
+            - generic [ref=e328]: Safety
+          - listitem [ref=e329]:
+            - generic [ref=e330]: Contact
+      - navigation "Legal" [ref=e331]:
+        - heading "Legal" [level=2] [ref=e332]
+        - list [ref=e333]:
+          - listitem [ref=e334]:
+            - generic [ref=e335]: Terms
+          - listitem [ref=e336]:
+            - generic [ref=e337]: Privacy
+    - paragraph [ref=e339]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -532,112 +372,31 @@ Context:
 ```
 ```
 
-## post-wizard-place.spec.ts › POSTING WIZARD › PW-33 a region alone never lists itself; its city does (W6 R2)
-
-- Source: `full`
-- Project: `desktop-1280`
-
-```text
-Error: [e2e:pool] reaping e2e-pool-snightlyb-000@ethio-e2e.invalid (factors) failed: {}
---- further error 1 ---
-Error: [e2e:pool] reaping e2e-pool-snightlyb-000@ethio-e2e.invalid (factors) failed: {}
-
-   at helpers/users.ts:243
-
-  241 |   const supabase = adminClient();
-  242 |   const fail = (step: string, message: string) => {
-> 243 |     throw new Error(`[e2e:pool] reaping ${email} (${step}) failed: ${message}`);
-      |           ^
-  244 |   };
-  245 |
-  246 |   // INC-377 counter census: rate_limits keyed by user id (upload, geocode,
-    at fail (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/users.ts:243:11)
-    at reapPoolAccount (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/users.ts:355:22)
-    at leaseUser (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/users.ts:390:3)
-    at leaseSeller (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/posting.ts:96:16)
-    at seller (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-place.spec.ts:163:18)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-place.spec.ts:1016:18
-```
-
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-33-a-region-alone-never-lists-itself-its-city-does-W6-R2-desktop-1280` — Playwright's name `post-wizard-place-POSTING--775f8-itself-its-city-does-W6-R2--desktop-1280`; this run carried 5 context file(s); of the same spec: none
-
-## post-wizard-resets.spec.ts › POSTING WIZARD › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317)
-
-- Source: `full`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toHaveAttribute(expected) failed
-
-Locator:  getByTestId('post-save-state')
-Expected: "saved"
-Received: "saving"
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for getByTestId('post-save-state')
-    14 × locator resolved to <p data-state="saving" data-testid="post-save-state" class="text-xs text-muted-foreground">Saving…</p>
-       - unexpected value "saving"
-
---- further error 1 ---
-Error: expect(locator).toHaveAttribute(expected) failed
-
-Locator:  getByTestId('post-save-state')
-Expected: "saved"
-Received: "saving"
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for getByTestId('post-save-state')
-    14 × locator resolved to <p data-state="saving" data-testid="post-save-state" class="text-xs text-muted-foreground">Saving…</p>
-       - unexpected value "saving"
-
-
-  143 |     await hit.click();
-  144 |     if (expectSaved) {
-> 145 |       await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved");
-      |                                                         ^
-  146 |       // AUTO-ADVANCE: the leaf IS the answer; D39 — specifications open next.
-  147 |       await expect(page.getByTestId("post-step-3")).toBeVisible();
-```
-
-Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-72-after-a-category-reset-a-currency-prefill-that-lands-late-never-claims-a-step-the-seller-has-not-re-completed-INC-317-desktop-1280` — Playwright's name `post-wizard-resets-POSTING-6e167-s-not-re-completed-INC-317--desktop-1280`; this run carried 5 context file(s); of the same spec: none
-
 ## Server errors: full
 
 ```text
-[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×8
 [WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×2
-[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
-[WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
-[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
-[WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
-[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
+[WebServer] [ssr-error] /api/media/photo-links HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
+[WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×2
+[WebServer] [ssr-error] /api/listings/alias HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
+[WebServer] [ssr-error] /api/listings/draft HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
+[WebServer] [ssr-error] /api/i18n/am HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
+[WebServer] [ssr-error] /api/listings/alias HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
+[WebServer] [ssr-error] /api/geo/reverse HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×2
+[WebServer] [ssr-error] /api/i18n/am HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×2
+[WebServer] [ssr-error] /api/listings/draft HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×6
+[WebServer] [ssr-error] /api/listings/draft listing not found
 [WebServer] [ssr-error] /api/i18n/en HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
-[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×5
-[WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×3
-[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×2
-[WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
-[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×2
 [WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
 [WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
 [WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
 [WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
 [WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
-[WebServer] [ssr-error] /_serverFn/258c9c7bac445f06c5cae8ffb133bc2397d933b01bc93414f1bfb742fbc80ef2 HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
-[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×5
+[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×3
+[WebServer] [ssr-error] /api/categories/tree HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
+[WebServer] [ssr-error] /api/feed HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20 ×2
 ```
 
 ## Client errors: full
 
-```text
-[client-error] console.error: [client-error] gate fetch threw
-[client-error] console.error: [feed] first page failed TypeError: Failed to fetch at readPage (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:34181:25) at http://127.0.0.1:4173/assets/index-CbFvrlPg.js:34213:3 at commitHookEffectListMount (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:5121:20) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6026:21) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6025:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6025:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6025:5) ×2
-[client-error] console.error: TypeError: Failed to fetch at http://127.0.0.1:4173/assets/index-CbFvrlPg.js:15424:27 at getResponse (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:15467:20) at serverFnFetcher (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:15424:9) at async client (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:17472:17) at async callNextMiddleware (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:17403:20) at async userNext (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:17389:21) ×3
-[client-error] console.error: [feed] first page failed TypeError: Failed to fetch at readPage (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:34181:25) at http://127.0.0.1:4173/assets/index-CbFvrlPg.js:34213:3 at commitHookEffectListMount (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:5121:20) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6026:21) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6025:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6025:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6017:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-CbFvrlPg.js:6025:5)
-[client-error] console.error: `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users. If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component. For more information, see https://radix-ui.com/primitives/docs/components/dialog
-[client-error] console.error: [posting] schema read failed: TypeError: Failed to fetch
-console.error: [client-error] gate fetch threw
-```
+No `[client-error]` lines in the `full` log (or no log was uploaded).
