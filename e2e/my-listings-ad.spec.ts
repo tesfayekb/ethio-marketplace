@@ -1316,4 +1316,42 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     });
     expect(await placesOf(), "MLA-17: Save did not write the city").toEqual([second.city.id]);
   });
+
+  test("MLA-18 the Edit reads its assist tries before any click; the click's own answer is drawn", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const X = await seed(seller, "active");
+
+    // Spend ONE try without a page: the same route, the seller's own bearer.
+    const session = await passwordGrant(seller.email, seller.password);
+    const answer = await page.request.post("/api/listings/assist", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+      data: { listingId: X, categoryId: seller.leafId, attrs: {}, locale: "en" },
+    });
+    expect(answer.status(), "MLA-18: the spend was refused").toBe(200);
+    expect((await answer.json())["triesLeft"], "MLA-18: the spend did not count").toBe(4);
+
+    // The Edit opens on the count the door holds, before any assist click.
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${X}/edit`);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 15000 });
+    const tries = page.getByTestId("post-assist-tries");
+    await expect(tries, "MLA-18: the peek did not arrive").toBeVisible({ timeout: 15000 });
+    await expect(tries, "MLA-18: the Edit did not read the spent try").toHaveAttribute(
+      "data-left",
+      "4",
+    );
+
+    // One click: the drawn count is the click's own answer, never a re-read.
+    await page.getByTestId("post-assist").click();
+    await expect(page.getByTestId("post-assist-done")).toBeVisible({ timeout: 15000 });
+    await expect(tries, "MLA-18: the click's answer was not drawn").toHaveAttribute(
+      "data-left",
+      "3",
+    );
+  });
+
 });
