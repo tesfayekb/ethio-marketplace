@@ -4,7 +4,9 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 
 import {
+  authFields,
   expectActivePanel,
+  fillUntilStable,
   gotoReady,
   isMobile,
   openRailScope,
@@ -448,12 +450,10 @@ test.describe("D189 deactivated session", () => {
 
       // Sign in through the FORM (not session injection).
       await page.goto("/auth");
-      const emailInput = page.getByTestId("auth-email");
-      const passwordInput = page.getByTestId("auth-password");
-      const submit = page.getByTestId("auth-submit");
+      const { email: emailInput, password: passwordInput, submit } = authFields(page);
       await expect(emailInput, "sign-in form did not render").toBeEditable({ timeout: 15000 });
-      await emailInput.fill(user.email);
-      await passwordInput.fill(user.password);
+      await fillUntilStable(emailInput, user.email, "email");
+      await fillUntilStable(passwordInput, user.password, "password");
       await submit.click();
 
       // The page must land on /auth with the deactivated reason, never the signed-in screen.
@@ -461,8 +461,15 @@ test.describe("D189 deactivated session", () => {
       await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
       await expect(page.getByTestId("account-menu")).toHaveCount(0);
 
-      // The signed-in screen must NEVER have appeared: poll for 1,500 ms.
-      await expect.poll(() => page.getByTestId("account-menu").count(), { timeout: 1500 }).toBe(0);
+      // The signed-in screen must NEVER have appeared: wait 1,500 ms — a menu that appears fails.
+      await expect(page.getByTestId("account-menu"))
+        .toBeVisible({ timeout: 1500 })
+        .then(
+          () => {
+            throw new Error("SO-9: the signed-in screen appeared");
+          },
+          () => undefined,
+        );
 
       // The session must be gone.
       const stored = await page.evaluate(() =>
