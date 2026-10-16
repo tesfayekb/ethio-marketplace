@@ -1,87 +1,13 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38898025836
-- Commit: `a4bd00b28d46259f1879bd595002d4515fd21dc8`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38900769924
+- Commit: `d6aa52ba05f1870844eb0385463f70d00a7e881d`
 - Attempt: 1
-- Written (UTC): 2026-10-16T12:52:54.071Z
+- Written (UTC): 2026-10-16T13:44:02.190Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
-
-## Build, typecheck, lint — failure
-
-### Evidence lines
-
-```text
-##[error]Unexplained deletions in d7f8833bb40dd9e379bdc282ee4e45e294a4855c..HEAD (INC-076).
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
- * [new branch]        lovable-backup-dev-1788419378 -> origin/lovable-backup-dev-1788419378
- * [new branch]        lovable-sync            -> origin/lovable-sync
- * [new branch]        lovable-sync-1788322342 -> origin/lovable-sync-1788322342
- * [new branch]        lovable-sync-1788764600 -> origin/lovable-sync-1788764600
- * [new branch]        lovable-sync-1789741128 -> origin/lovable-sync-1789741128
- * [new branch]        lovable-sync-1790153551 -> origin/lovable-sync-1790153551
- * [new branch]        lovable-sync-1790668701 -> origin/lovable-sync-1790668701
- * [new branch]        lovable-sync-1790806349 -> origin/lovable-sync-1790806349
- * [new branch]        lovable-sync-1790807903 -> origin/lovable-sync-1790807903
- * [new branch]        lovable-sync-1790881191 -> origin/lovable-sync-1790881191
- * [new branch]        lovable-sync-1790889145 -> origin/lovable-sync-1790889145
- * [new branch]        main                    -> origin/main
-[command]/usr/bin/git branch --list --remote origin/dev
-  origin/dev
-[command]/usr/bin/git rev-parse refs/remotes/origin/dev
-a4bd00b28d46259f1879bd595002d4515fd21dc8
-##[endgroup]
-##[group]Determining the checkout info
-##[endgroup]
-[command]/usr/bin/git sparse-checkout disable
-[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-##[group]Checking out the ref
-[command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
-Switched to a new branch 'dev'
-branch 'dev' set up to track 'origin/dev'.
-##[endgroup]
-[command]/usr/bin/git log -1 --format=%H
-a4bd00b28d46259f1879bd595002d4515fd21dc8
-##[group]Run SELF_TEST=1 bash scripts/check-deletions.sh
-[36;1mSELF_TEST=1 bash scripts/check-deletions.sh[0m
-[36;1mbash scripts/check-deletions.sh[0m
-shell: /usr/bin/bash -e {0}
-env:
-  GITHUB_EVENT_BEFORE: d7f8833bb40dd9e379bdc282ee4e45e294a4855c
-##[endgroup]
-Self-test OK: undeclared deletion flagged, marker-declared allowed, additions allowed; manifest door (INC-192): an ADDED path line declares, a pre-existing line does not.
-##[error]Unexplained deletions in d7f8833bb40dd9e379bdc282ee4e45e294a4855c..HEAD (INC-076).
-The following files were deleted with no [intentional-delete] marker in any commit
-message and no path line added to docs/tracking/intentional-deletions.txt by this range:
-src/features/admin-listings/edit-form.tsx
-If the removal is intended, say so in the commit message or add the path to
-docs/tracking/intentional-deletions.txt in the same push; otherwise you are pushing from a stale
-checkout and are about to erase someone's work.
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/7cc7a7dd-6360-4dbc-8050-af0619e27bdd' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -110,10 +36,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38898025836
-  E2E_HEAD_COMMIT_MESSAGE: Applied carrier and rewrote tests
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/38900769924
+  E2E_HEAD_COMMIT_MESSAGE: Applied Turn 3 test fixes
 
-X-Lovable-Edit-ID: edt-2e4cd3c7-2308-4e91-814b-85ec8dc156c9
+X-Lovable-Edit-ID: edt-3c2b5d78-fb46-44be-9ebf-0c2f79321f72
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -127,10 +53,10 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (9/9 source(s) with usable results, 91 context file(s) found).
-Flake ledger: appended 2 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
-Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 2 already there for this run (INC-495).
-Flake ledger: appended 2 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Wrote docs/tracking/e2e-last-failure.md (9/9 source(s) with usable results, 90 context file(s) found).
+Flake ledger: appended 8 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 8 already there for this run (INC-495).
+Flake ledger: appended 8 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "smoke=success email=success shards=failure"
 [36;1mecho "smoke=success email=success shards=failure"[0m
@@ -147,7 +73,7 @@ smoke=success email=success shards=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/2ab71575-bce8-4338-8e54-58f25aa43ba6' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/2703287f-7762-4eb5-a44a-8cea18a6f53a' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
