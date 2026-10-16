@@ -1572,14 +1572,10 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   /**
-   * D172 (the operator, 2026-10-14) — a posted ad's category is never changed:
-   * Edit shows it in the Specifications box and offers no way to change it, and
-   * Wrong category is no longer an edit's reason (it stays Send back's). It
-   * replaces turn L4b's test of the move (D140). D171 — the panel names itself
-   * and its boxes follow in the seller's order, each named as the seller's step:
-   * Title and description, Specifications, Price, then the reason and Save.
+   * D194 — the Review shows the Category with no Edit link; the sections in the
+   * wizard's order; staff's Photos, Place and Contact have no link.
    */
-  test("AL-22 Edit shows the category and offers no way to change it; its boxes in the seller's order", async ({
+  test("AL-22 the Review shows the Category with no Edit link; the sections in the wizard's order; staff's Photos, Place and Contact have no link", async ({
     page,
   }) => {
     const seller = await scratchSeller();
@@ -1589,37 +1585,35 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     await page.getByTestId("listing-edit").click();
-    await expect(page.getByTestId("listing-edit-heading")).toHaveText(
-      en["admin.listings.edit.title"],
-    );
-    const form = page.getByTestId("listing-edit-form");
-    await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}/edit$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
 
-    const specsBox = form.getByTestId("listing-edit-specs-box");
-    await expect(specsBox.getByTestId("listing-edit-category-path")).toContainText(seller.leafSlug);
-    await expect(page.getByTestId("listing-edit-category-change")).toHaveCount(0);
-    await expect(page.getByTestId("post-category-search")).toHaveCount(0);
-    await expect(form.getByTestId("listing-edit-reason-wrong_category")).toHaveCount(0);
-    await expect(form.getByTestId("listing-edit-reason-misleading")).toBeVisible();
-
-    // The boxes, top to bottom, each headed with its step's name (FormSection's own heading).
-    const boxes: Array<[string, string]> = [
-      ["listing-edit-text", en["post.step.details"]],
-      ["listing-edit-specs-box", en["post.step.specifications"]],
-      ["listing-edit-price-box", en["post.step.price"]],
-      ["listing-edit-save-box", en["admin.listings.edit.save"]],
-    ];
-    const tops: number[] = [];
-    for (const [id, title] of boxes) {
-      const box = form.getByTestId(id);
-      await expect(box.locator(":scope > div > h3")).toHaveText(title);
-      const geometry = await box.boundingBox();
-      expect(geometry, `${id} is not drawn`).not.toBeNull();
-      tops.push(geometry!.y);
+    // Sections data-step 1…7 in order.
+    const sections = page.getByTestId("post-review-section");
+    const sectionSteps: string[] = [];
+    const sectionCount = await sections.count();
+    for (let i = 0; i < sectionCount; i++) {
+      const step = await sections.nth(i).getAttribute("data-step");
+      sectionSteps.push(step ?? "");
     }
-    expect(tops, `the boxes are out of order: ${JSON.stringify(tops)}`).toEqual(
-      [...tops].sort((a, b) => a - b),
-    );
+    expect(sectionSteps).toEqual(["1", "2", "3", "4", "5", "6", "7"]);
+
+    // Edit links present only for data-step 3, 4 and 5.
+    const editLinks = page.getByTestId("post-review-edit");
+    const editSteps: string[] = [];
+    const editCount = await editLinks.count();
+    for (let i = 0; i < editCount; i++) {
+      const step = await editLinks.nth(i).getAttribute("data-step");
+      editSteps.push(step ?? "");
+    }
+    expect(editSteps).toEqual(["3", "4", "5"]);
+
+    // The category's value is shown.
+    const catSection = page.locator('[data-testid="post-review-section"][data-step="1"]');
+    await expect(catSection.getByTestId("post-review-value")).not.toHaveText("");
+
     await expectNoHorizontalOverflow(page);
   });
 
