@@ -97,3 +97,11 @@ One step after the suites, `if: always()`: `bun scripts/security-lints.ts`. It n
 - Before its tests the nightly waits, up to 60 minutes, until no CI, Guard Proof or Feed bench run is queued or running (`bun scripts/staging-gate.ts wait 60`); after that it runs anyway, with a warning. An unreadable gate is a warning, never a stop.
 - After the serial full run, `bun scripts/staging-gate.ts overlaps` writes a notice on the run page for every other staging run that overlapped this nightly, so a nightly red is read with that in hand (INC-487).
 - The job's token gains `actions: read` for these two steps; CI itself never waits.
+
+## Flake check (DEC-184, bundle 18 turn 3)
+
+A manually dispatched repeat-run workflow (`.github/workflows/flake-check.yml`) moves the G38 flake proof to CI because the executor's local browser does not start (INC-506).
+Inputs: `specs` (required, space-separated paths, e.g. `e2e/post-wizard-place.spec.ts e2e/post-wizard-bundle2.spec.ts`), `grep` (required, e.g. `PW-12 |PW-117 |PW-178 `), `repeat` (default `12`) and `workers` (default `8`).
+A flake fix is proven by a dispatched repeat — 12 × each test, 8 workers, both projects, 0 retries — at 100 %; a fix whose repeat fails is reworked before the bundle closes; this workflow never gates CI or promote.
+The operator dispatches it from Actions → Flake check → Run workflow.
+The verdict is read on the run's page and in its `flake-check-report` artifact (the HTML report and `flake.log`); there is no schedule, evidence publish or promote.
