@@ -115,6 +115,7 @@ export function StepPricing({
   basisControl = null,
   basisKey = null,
   trailing = null,
+  onMissing,
 }: {
   /** The category block of the posting read; `null` while it is still loading. */
   facts: CategoryFacts | null;
@@ -134,6 +135,14 @@ export function StepPricing({
   basisKey?: string | null;
   /** DEC-109 — "How many do you have?" and "Terms", drawn after the price. */
   trailing?: ReactNode;
+  /**
+   * D193 — THE MIRROR: the door's `required` on this page (validate_listing_draft
+   * step 4) — `price_amount` for a fixed price with no figure where a price is
+   * allowed, `price_bp` for a commission with no rate; `[]` otherwise. The mode
+   * read is the one this step has already written (a forced type is written as
+   * a change above). The wizard closes Next on it; the door decides.
+   */
+  onMissing?: (fields: string[]) => void;
 }) {
   const { t, language } = useI18n();
   const currencies = useCurrencies();
@@ -162,6 +171,15 @@ export function StepPricing({
   const priceEnabled = facts?.priceEnabled ?? true;
   const commission = values.priceMode === "commission";
   const amountShown = values.priceMode === "fixed";
+  const missingField =
+    amountShown && priceEnabled && values.priceAmount === null
+      ? "price_amount"
+      : commission && values.priceBp === null
+        ? "price_bp"
+        : null;
+  useEffect(() => {
+    onMissing?.(missingField === null ? [] : [missingField]);
+  }, [missingField, onMissing]);
   /** DEC-081 — the toggle belongs to a price with a figure: fixed or commission. */
   const toggleShown = amountShown || commission;
   // A forced type is the only type; otherwise every type but commission (free stays).

@@ -2718,6 +2718,7 @@ export const am: Messages = {
   "post.where.itemHere": "ዕቃው ወይም አገልግሎቱ እዚህ ነው",
   "post.where.itemMoved": "ዕቃው ወይም አገልግሎቱ አሁን በ{name} ምልክት ተደርጓል።",
   "post.category.nextBlocked": "ለመቀጠል ምድብ ይምረጡ።",
+  "post.nextBlocked.required": "ለመቀጠል የሚያስፈልገውን ይሙሉ።",
   "post.category.chooseOne": "ከዝርዝሩ ውስጥ ምድብ ይምረጡ።",
   "post.category.currentChoice": "አሁን የተመረጠው፦",
   "post.category.keepIt": "ይህንኑ ያቆዩ",

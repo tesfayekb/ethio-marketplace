@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-17-turn-4.md (bundle 17 — turn 4: INC-667/INC-668 — the header and the live guard during the status read; Back discards (C15), a closed ad's photos-soon tick (INC-666, one migration), D195 as built; the tests of turn 3b's corrections judged). Spec: docs/governance/edit-wizard-spec.md (D194, approved 2026-10-16). Next: turn 5 (D193 with its test census), then the bundle close.
+The brief in force: docs/governance/briefs/bundle-17-turn-5.md (bundle 17 — turn 5: D193 — Next and Save closed while a required answer is missing, the steps' mirror of the door (INC-658); SO-10 counts the hidden link; no migration, one string). Spec: docs/governance/edit-wizard-spec.md (D194, approved 2026-10-16). Next: the bundle close (CI green on the final commit → Publish → one walk → the records turn).
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -115,7 +115,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [x] The catalogue's Merge, delete and unlink look at the answers ads hold (INC-467; the executor's census of bundle 6 turn 10 is in the same running record) — M11; AT-73, AT-74, AT-75
 - [x] A built title leaves out a label that holds the {country} token
 - [x] An autosave refused by the door is not dropped without a word (seen at INC-465)
-- [x] A test that Unit of Sale is asked before Quantity (promised 2026-10-01) — PW-175 (e2e/post-wizard-units.spec.ts)
+- [x] A test that Unit of Sale is asked before Quantity (promised 2026-10-01) — PW-189 (e2e/post-wizard-units.spec.ts)
 - [x] Three checks in the code first, a fix line for any that fails: a saved extra place in another country after Back; the chosen currency visible while searching; the built title on "Other" categories (INC-343) — PW-173, PW-169, PW-170
 - [x] A question or an answer removed from the catalogue never blocks a later save of the same visit (INC-479)
 - [x] Hardening from the first read of the code scanners: the CI token, own-key lookups, the map credit, the pre-paint scripts, the report's table cells, the scan's rule set (DEC-153, DEC-154) — turn 10; INC-483 to INC-486; IB-3
@@ -315,7 +315,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [x] Turn 3 (docs/governance/briefs/bundle-17-turn-3.md) — from Screening the Edit's Review carries Approve and Reject (D188; `post-edit-approve`/`-reject`, the confirm, `?decided=` back on the queue); the ad page's done line a fading notice (D192)
   - [x] Turn 3b (docs/governance/briefs/… — a ruling, no brief) — the deletion manifest line (S237), four test corrections (AL-20 two revisions, AL-21 the title typed back, SC-25's notice assertion, MLA-13's blur), the [auth-dump] in `signIn` for INC-667
   - [x] Turn 4 (docs/governance/briefs/bundle-17-turn-4.md; one migration) — INC-667 the header shows nothing while the session's status is read (the bottom bar's rule); INC-668 the live guard reads `hadSession` (MLP-3); C15 Back discards a step's unsaved changes in the Edit; INC-666 `set_listing_photos_soon` takes a closed ad (the tick drawn again); D195 recorded as built (the state line on the ad's page and the list; the draft countdown waits for D14); AL-20's notice read ordered
-  - [ ] Turn 5 — D193: Next and Save closed until the step's required answers are present (a mirror of the door), a refused field red-bordered, the scroll to the first refusal — wizard and Edit (INC-658), with its test census first (about 20 tests in the posting specs provoke a `required` refusal through Next — re-described as "Next is closed and says why")
+  - [x] Turn 5 (docs/governance/briefs/bundle-17-turn-5.md; no migration; one string) — D193: Next and the Edit's Save drawn closed while a required answer is missing (steps 3–6 mirror the door; a tap marks and scrolls; C18 closed, not disabled); INC-658 closes; SO-10's locator counts the hidden link (S241); the seven tests of the class read the same marks (PW-5, PW-16, PW-63, PW-80, PW-103, PW-138, MLA-13); new PW-191, PW-192, MLA-17
   - [ ] INC-657 — the ad live without a city: traced from the operator's title or place line when he names it; the door's rule (a city or sub-city, at least one) re-proven if a path is found
   - [x] INC-667 — the form sign-in after a user switch failed since turn 1 (28 reds in run 960): the [auth-dump] named the page — "/" signed in, the previous session kept; the header's "Sign in" during the hold made `switchUser` skip the sign-out; fixed in turn 4 with INC-668 (MLP-3)
 - [ ] The flaky-test turn (after bundle 17): INC-643 (PW-12), INC-644 (PW-74, INC-576's recurrence), INC-645 (PR-33), INC-646 (AT-59), INC-652 (PW-61), INC-653 (PR-39), INC-654 (AL-24), INC-662 (PW-117) — each body read, each fix proven with the repeat run (G38); INC-655 (Post listing's first open after a Publish) measured first, then the class of every lazy page's first open

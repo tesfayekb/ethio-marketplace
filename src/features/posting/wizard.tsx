@@ -19,6 +19,7 @@ import { useI18n } from "@/i18n";
 
 import { RefusalSummary, focusFirstRefusal } from "./field";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
+import { mergeRefusals } from "./validate";
 import { prefillFromMatches } from "./catalog-finder";
 import { useQueuedNext } from "./queued-next";
 import { StepCategory } from "./step-category";
@@ -89,6 +90,7 @@ import {
   positionOf,
   prevOf,
   type CategoryFacts,
+  type Refusal,
 } from "./types";
 
 /** D39 — the rails walk the seller's order; each entry keeps its door number. */
@@ -213,19 +215,82 @@ function WizardShell({
         : { ...prev, ...names },
     );
   }, []);
+  /**
+   * D193 — THE MIRROR, GATHERED. Each step on screen reports the required answers
+   * it still lacks (its own reading of the door's `required` rule); the wizard
+   * holds them per source for the step they were reported on, and Next is CLOSED
+   * while any remain: a tap marks them in red and moves to the first, nothing is
+   * sent. The door still decides (F3) — a mirror that falls short lets a save
+   * through to be refused there, exactly as before; a mirror that says "missing"
+   * for an answer the door would take is a defect of the mirror, never a rule.
+   * The contact step (7) keeps its own gate (`whoQueue`); step 1 keeps `needsLeaf`.
+   */
+  const stepRef = useRef(draft.step);
+  stepRef.current = draft.step;
+  const [mirror, setMirror] = useState<{ step: number; by: Record<string, string[]> }>({
+    step: 0,
+    by: {},
+  });
+  const reportMissing = useCallback((source: string, fields: string[]) => {
+    const step = stepRef.current;
+    setMirror((prev) => {
+      const same =
+        prev.step === step &&
+        (prev.by[source] ?? []).length === fields.length &&
+        (prev.by[source] ?? []).every((key, index) => key === fields[index]);
+      if (same) return prev;
+      return {
+        step,
+        by: prev.step === step ? { ...prev.by, [source]: fields } : { [source]: fields },
+      };
+    });
+  }, []);
+  const missing = useMemo(
+    () => (mirror.step === draft.step ? Object.values(mirror.by).flat() : []),
+    [mirror, draft.step],
+  );
+  const onMissingDetails = useCallback(
+    (fields: string[]) => reportMissing("details", fields),
+    [reportMissing],
+  );
+  const onMissingWhere = useCallback(
+    (fields: string[]) => reportMissing("where", fields),
+    [reportMissing],
+  );
+  const onMissingPricing = useCallback(
+    (fields: string[]) => reportMissing("pricing", fields),
+    [reportMissing],
+  );
+  /** A tap on the closed Next: the missing answers are marked until they are given. */
+  const [tried, setTried] = useState(false);
+  useEffect(() => {
+    setTried(false);
+  }, [draft.step]);
+  const triedRefusals = useMemo<Refusal[]>(
+    () => (tried ? missing.map((field) => ({ field, reason: "required" })) : []),
+    [tried, missing],
+  );
+  /** What the steps and the summary show: the door's word first, then the marks. */
+  const shownRefusals = useMemo(
+    () =>
+      triedRefusals.length === 0 ? draft.refusals : mergeRefusals(draft.refusals, triedRefusals),
+    [draft.refusals, triedRefusals],
+  );
+
   const onPriceFields = useCallback(
-    (keys: string[], names: Readonly<Record<string, string>>) => {
+    (keys: string[], names: Readonly<Record<string, string>>, lacking: string[]) => {
       setPriceFields((prev) =>
         prev.length === keys.length && prev.every((key, index) => key === keys[index])
           ? prev
           : keys,
       );
       mergeNames(names);
+      reportMissing("price", lacking);
     },
-    [mergeNames],
+    [mergeNames, reportMissing],
   );
   const onSpecFields = useCallback(
-    (keys: string[], names: Readonly<Record<string, string>>) => {
+    (keys: string[], names: Readonly<Record<string, string>>, lacking: string[]) => {
       // I3 — an equality-guarded write: a re-render must not feed a fresh array
       // back into the state it derives from.
       setSpecFields((prev) =>
@@ -234,8 +299,9 @@ function WizardShell({
           : keys,
       );
       mergeNames(names);
+      reportMissing("spec", lacking);
     },
-    [mergeNames],
+    [mergeNames, reportMissing],
   );
 
   /**
@@ -1214,13 +1280,31 @@ function WizardShell({
                           <button
                             type="button"
                             data-testid="post-next"
-                            className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60`}
+                            className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 data-[closed=1]:opacity-60`}
                             /* U6-C1-R3a-2 — STEP 1 HAS ONE ANSWER and it is a leaf:
                              with none chosen there is nothing to send, so Next is
-                             closed and says why underneath. Every later step keeps
-                             sending (the door is the judge, F3). */
+                             closed and says why underneath. D193 — every later
+                             step is closed the same way while a required answer
+                             is missing (`missing`, the steps' mirror of the door),
+                             but stays a button — drawn closed (`data-closed`),
+                             never disabled: a tap marks what is missing and
+                             moves to the first, so the seller is never left with
+                             a dead control, and the line underneath says why
+                             before any tap. With the mirror satisfied the step is
+                             sent and the door judges (F3). */
                             disabled={needsLeaf || photosBlockNext || photosSendingNow}
+                            data-closed={missing.length > 0 ? "1" : undefined}
                             onClick={() => {
+                              if (missing.length > 0) {
+                                setTried(true);
+                                focusFirstRefusal(
+                                  missing.map((field) => ({ field, reason: "required" })),
+                                  draft.step,
+                                  specFields,
+                                  priceFields,
+                                );
+                                return;
+                              }
                               // Rulings 3 — the contact step refuses at its own controls.
                               if (draft.step === 7 && whoQueue.gate === "pending") {
                                 whoQueue.queue();
@@ -1249,6 +1333,16 @@ function WizardShell({
                           data-testid="post-next-blocked"
                         >
                           {t("post.category.nextBlocked")}
+                        </p>
+                      )}
+                      {/* D193 — the closed Next says why, before any tap; the tap names which. */}
+                      {!needsLeaf && missing.length > 0 && draft.step < TOTAL_STEPS && (
+                        <p
+                          className="text-xs text-muted-foreground"
+                          data-testid="post-next-blocked"
+                          data-missing={missing.join(" ")}
+                        >
+                          {t("post.nextBlocked.required")}
                         </p>
                       )}
                       {/* INC-605 — the photos on their way are sent before Next or Back. */}
@@ -1343,7 +1437,7 @@ function WizardShell({
                           <StepSpecifications
                             categoryId={draft.values.categoryId}
                             values={draft.values.attributes}
-                            refusals={draft.refusals}
+                            refusals={shownRefusals}
                             onChange={(attributes, immediate) =>
                               draft.change({ attributes }, immediate)
                             }
@@ -1368,8 +1462,9 @@ function WizardShell({
                               basisKey={basisKey}
                               basisValue={basisValue}
                               basisLabel={basisLabel}
-                              refusals={draft.refusals}
+                              refusals={shownRefusals}
                               onChange={(patch, immediate) => draft.change(patch, immediate)}
+                              onMissing={onMissingPricing}
                             />
                           ) : (
                             // DEC-109 — ONE copy of the form draws the price page's rows:
@@ -1378,7 +1473,7 @@ function WizardShell({
                             <StepSpecifications
                               categoryId={draft.values.categoryId}
                               values={draft.values.attributes}
-                              refusals={draft.refusals}
+                              refusals={shownRefusals}
                               onChange={(attributes, immediate) =>
                                 draft.change({ attributes }, immediate)
                               }
@@ -1402,8 +1497,9 @@ function WizardShell({
                                     basisKey={basisKey}
                                     basisValue={basisValue}
                                     basisLabel={basisLabel}
-                                    refusals={draft.refusals}
+                                    refusals={shownRefusals}
                                     onChange={(patch, immediate) => draft.change(patch, immediate)}
+                                    onMissing={onMissingPricing}
                                   />
                                 ),
                               }}
@@ -1422,14 +1518,15 @@ function WizardShell({
                             period={draft.values.pricePeriod}
                             title={draft.values.title}
                             description={draft.values.description}
-                            refusals={draft.refusals}
+                            refusals={shownRefusals}
                             onChange={(patch, immediate) => draft.change(patch, immediate)}
+                            onMissing={onMissingDetails}
                           />
                         )}
                         {draft.step === 6 && (
                           <StepWhere
                             coverage={draft.values.coverage}
-                            refusals={draft.refusals}
+                            refusals={shownRefusals}
                             onChange={(coverage, immediate) =>
                               draft.change({ coverage }, immediate)
                             }
@@ -1448,6 +1545,7 @@ function WizardShell({
                             invitePlaceId={prefill?.placeId ?? null}
                             textMode={edit === null ? "door" : "form"}
                             onTextChange={edit === null ? undefined : edit.setPlaceText}
+                            onMissing={onMissingWhere}
                           />
                         )}
                         {draft.step === 7 && (
@@ -1588,7 +1686,7 @@ function WizardShell({
                     {/* U6-C1-R1 — ONE SUMMARY above the actions, naming by label what is
             still missing; each entry focuses its own control. */}
                     <RefusalSummary
-                      refusals={draft.refusals}
+                      refusals={shownRefusals}
                       step={draft.step}
                       specFields={specFields}
                       priceFields={priceFields}

@@ -2857,6 +2857,7 @@ export const en = {
   "post.where.itemHere": "Item or service is here",
   "post.where.itemMoved": "The item or service is now marked in {name}.",
   "post.category.nextBlocked": "Choose a category to continue.",
+  "post.nextBlocked.required": "Fill in what is needed to continue.",
   "post.category.chooseOne": "Choose a category from the list.",
   "post.category.currentChoice": "Current choice:",
   "post.category.keepIt": "Keep it",

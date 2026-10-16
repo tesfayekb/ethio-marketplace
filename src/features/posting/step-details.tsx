@@ -78,6 +78,7 @@ export function StepDetails({
   description,
   onChange,
   refusals,
+  onMissing,
 }: {
   listingId: string | null;
   categoryId: string | null;
@@ -100,9 +101,15 @@ export function StepDetails({
     immediate: boolean,
   ) => void;
   refusals: Refusal[];
+  /** D193 — THE MIRROR: `["title"]` while the title is blank (the door's `required`, step 5). */
+  onMissing?: (fields: string[]) => void;
 }) {
   const { t, language } = useI18n();
   const scope = useCatalogScope();
+  const titleBlank = title.trim() === "";
+  useEffect(() => {
+    onMissing?.(titleBlank ? ["title"] : []);
+  }, [titleBlank, onMissing]);
   const [assisting, setAssisting] = useState(false);
   const [history, setHistory] = useState<Suggestion[]>([]);
   const [assistRefusal, setAssistRefusal] = useState<string | null>(null);

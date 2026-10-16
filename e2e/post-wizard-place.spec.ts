@@ -1105,6 +1105,10 @@ test.describe("POSTING WIZARD", () => {
       page.getByTestId("post-where-heading").getByTestId("post-required-mark"),
     ).toHaveCount(1);
 
+    // D193 — Next is closed while no city is chosen; the "Choose a city" and the
+    // scroll come from the step's mirror on the tap now; the words and the scroll
+    // are the same.
+    await expect(page.getByTestId("post-next")).toHaveAttribute("data-closed", "1");
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-refusal-summary")).toBeVisible({ timeout: 20_000 });
     await expect(

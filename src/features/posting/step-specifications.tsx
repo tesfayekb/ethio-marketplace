@@ -153,8 +153,17 @@ export function StepSpecifications({
    * The detail keys this form actually renders, reported upward so the wizard
    * knows which refusals already have a control of their own on screen — and
    * shows every OTHER refusal rather than swallowing it (F4).
+   *
+   * D193 — the third argument is the MIRROR: the drawn keys whose answer is
+   * required (the link's flag, or DEC-086's model rule) and still empty, in
+   * drawing order. The wizard closes Next while the list is not empty. The door
+   * decides (F3): this repeats its `required` rule early, never replaces it.
    */
-  onFields?: (attrKeys: string[], names: Readonly<Record<string, string>>) => void;
+  onFields?: (
+    attrKeys: string[],
+    names: Readonly<Record<string, string>>,
+    missing: string[],
+  ) => void;
   /**
    * DEC-109 — WHICH ROWS THIS COPY DRAWS. The deal rows (the door's `deal`
    * lists) are asked on the price page: the specifications page passes
@@ -276,26 +285,6 @@ export function StepSpecifications({
       ),
       catalogScope,
     );
-
-  useEffect(() => {
-    if (!onFields) return;
-    // D24 — only the details the answers actually ask for are reported, so a
-    // hidden required field can never hold `Next` shut.
-    const shown =
-      schema === null
-        ? []
-        : schema.attributes.filter((def) => conditionMet(def, values) && drawn(def.attrKey));
-    // INC-455 — each key travels with its name, so the red summary names the
-    // question exactly as its own label does, in the screen's language.
-    const names: Record<string, string> = {};
-    for (const def of shown) names[def.attrKey] = nameOf(def);
-    onFields(
-      shown.map((def) => def.attrKey),
-      names,
-    );
-    // `drawn` reads only `only`/`exclude`; `nameOf` reads `entities`/`catalogScope`; all listed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schema, onFields, values, onlyKey, excludeKey, entities, catalogScope]);
 
   /** One control's list, fetched once, on the tap that opens it (DEC-053). */
   const openOptions = useCallback((def: AttrDef) => {
@@ -579,6 +568,33 @@ export function StepSpecifications({
     },
     [folds, allowedListOf, values],
   );
+
+  // (Placed after `requiredByModel`, which the mirror reads.)
+  useEffect(() => {
+    if (!onFields) return;
+    // D24 — only the details the answers actually ask for are reported, so a
+    // hidden required field can never hold `Next` shut.
+    const shown =
+      schema === null
+        ? []
+        : schema.attributes.filter((def) => conditionMet(def, values) && drawn(def.attrKey));
+    // INC-455 — each key travels with its name, so the red summary names the
+    // question exactly as its own label does, in the screen's language.
+    const names: Record<string, string> = {};
+    for (const def of shown) names[def.attrKey] = nameOf(def);
+    // D193 — the same rule the controls draw the soft border from (required
+    // and empty), reported as a list so Next can close on it.
+    const missing = shown
+      .filter((def) => (def.isRequired || requiredByModel(def)) && isEmpty(values[def.attrKey]))
+      .map((def) => def.attrKey);
+    onFields(
+      shown.map((def) => def.attrKey),
+      names,
+      missing,
+    );
+    // `drawn` reads only `only`/`exclude`; `nameOf` reads `entities`/`catalogScope`; all listed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schema, onFields, values, onlyKey, excludeKey, entities, catalogScope, requiredByModel]);
 
   /**
    * THE FACTS OF EVERY CHOSEN OPTION (D18), gathered once: the values to prefill
