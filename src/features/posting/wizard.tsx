@@ -1280,7 +1280,10 @@ function WizardShell({
                           <button
                             type="button"
                             data-testid="post-next"
-                            className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 data-[closed=1]:opacity-60`}
+                            /* INC-671 — a closed Next keeps full-contrast text: the secondary
+                             tokens (grey, dark text), never a dimmed primary, which failed
+                             the colour-contrast audit (A11Y-2, run 963). */
+                            className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 data-[closed=1]:border data-[closed=1]:border-input data-[closed=1]:bg-secondary data-[closed=1]:text-secondary-foreground data-[closed=1]:hover:bg-secondary/80`}
                             /* U6-C1-R3a-2 — STEP 1 HAS ONE ANSWER and it is a leaf:
                              with none chosen there is nothing to send, so Next is
                              closed and says why underneath. D193 — every later
