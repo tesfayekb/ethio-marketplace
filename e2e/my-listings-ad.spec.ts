@@ -937,12 +937,11 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     );
   });
 
-  test("MLA-13 Edit on the ad's page: a price at once, new words to review, a refusal under its field (D172, D177)", async ({
+  test("MLA-13 Edit opens the wizard's Review with no Edit on the Category; a price saved at once from the Price step; new words to review from the Title step; a refusal under its field (D194, D177)", async ({
     page,
   }) => {
     const seller = await scratchSeller();
     const X = await seed(seller, "active");
-    const Y = await seed(seller, "active");
     const priceOf = async (id: string) => {
       const { data, error } = await adminClient()
         .from("listings")
@@ -951,12 +950,6 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         .single();
       if (error || !data) throw new Error(`[e2e:mla] price read failed: ${error?.message}`);
       return Number(data.price_amount);
-    };
-    const clearAndType = async (testid: string, text: string) => {
-      await page.getByTestId(testid).click();
-      await page.keyboard.press("Control+A");
-      await page.keyboard.press("Backspace");
-      if (text !== "") await page.keyboard.type(text);
     };
 
     await signInViaSession(page, seller.email, seller.password);
@@ -969,77 +962,75 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")));
     expect(order).toEqual(["my-listing-edit", "my-listing-action-sell"]);
     await edit.click();
-    await expect(page.getByTestId("my-listing-edit-heading")).toHaveText(
-      en["myListings.editBox.title"],
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}/edit$`), { timeout: 15000 });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+
+    // No Edit link on data-step 1 (Category).
+    const editLinks = page.getByTestId("post-review-edit");
+    const sections = page.getByTestId("post-review-section");
+    const sectionCount = await sections.count();
+    expect(sectionCount).toBeGreaterThan(1);
+    const editCount = await editLinks.count();
+    expect(editCount).toBe(sectionCount - 1);
+    const step1 = page.locator('[data-testid="post-review-section"][data-step="1"]');
+    await expect(step1).toBeVisible();
+    await expect(step1.getByTestId("post-review-edit")).toHaveCount(0);
+
+    // Edit Price (data-step 4) → a new amount → Save changes → back on Review.
+    await page
+      .locator('[data-testid="post-review-edit"][data-step="4"]')
+      .click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 15000 });
+    await page.getByTestId("post-price-amount").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("90");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-edit-notice")).toHaveText(
+      en["myListings.editBox.done"],
       { timeout: 15000 },
     );
-    // D187 — the boxes in the posting form's order.
-    const boxes = await page
-      .getByTestId("listing-edit-form")
-      .locator(":scope > [data-testid]")
-      .evaluateAll((nodes) =>
-        nodes
-          .map((node) => node.getAttribute("data-testid") ?? "")
-          .filter((id) => id.endsWith("-box") || id === "listing-edit-text"),
-      );
-    expect(boxes).toEqual([
-      "listing-edit-specs-box",
-      "listing-edit-photos-box",
-      "listing-edit-text",
-      "listing-edit-price-box",
-      "listing-edit-place-box",
-      "listing-edit-contact-box",
-      "listing-edit-save-box",
-    ]);
-    await expect(page.getByTestId("listing-edit-text").getByTestId("post-assist")).toBeVisible();
-    await expect(
-      page.getByTestId("listing-edit-photos-box").getByTestId("post-video"),
-    ).toBeVisible();
-    await expect(page.getByTestId("my-listing-as-seen")).toHaveCount(0);
-    await expect(page.getByTestId("my-listing-action-sell")).toHaveCount(0);
-
-    await page.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("listing-edit-problem")).toHaveText(
-      en["myListings.editBox.nothing"],
-      { timeout: 15000 },
-    );
-
-    await clearAndType("post-price-amount", "90");
-    await page.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("my-listing-notice")).toHaveText(en["myListings.editBox.done"], {
-      timeout: 15000,
-    });
-    await expect(page.getByTestId("my-listing-edit-panel")).toHaveCount(0);
     expect((await listingTruth(X))["status"]).toBe("active");
     expect(await priceOf(X)).toBe(90);
 
-    await page.getByTestId("my-listing-edit").click();
-    await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
-    await clearAndType("post-title", `E2E new words ${token()}`);
-    await page.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("my-listing-notice")).toHaveText(
+    // Edit Title (data-step 5) → a new title → Save changes → review notice.
+    await page
+      .locator('[data-testid="post-review-edit"][data-step="5"]')
+      .click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 15000 });
+    const newTitle = `E2E new words ${token()}`;
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type(newTitle);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-edit-notice")).toHaveText(
       en["myListings.editBox.doneReview"],
       { timeout: 15000 },
     );
     expect((await listingTruth(X))["status"]).toBe("screening");
-    await expect(page.getByTestId("my-listing-info")).toHaveText(en["myListings.ad.waiting"], {
-      timeout: 15000,
-    });
-    await expect(page.getByTestId("my-listing-edit")).toHaveCount(0);
 
-    const yTitle = (await listingTruth(Y))["title"];
-    await openAd(page, Y);
-    await page.getByTestId("my-listing-edit").click();
-    await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
-    await clearAndType("post-title", "");
-    await page.getByTestId("listing-edit-save").click();
-    await expect(
-      page
-        .getByTestId("listing-edit-text")
-        .locator('[data-testid="post-field"][data-field="post-title"] [role="alert"]'),
-    ).toHaveText(en["post.refusal.required"], { timeout: 15000 });
-    await expect(page.getByTestId("my-listing-edit-panel")).toBeVisible();
-    expect((await listingTruth(Y))["title"]).toBe(yTitle);
+    // Title too short → refusal under the title field, step still open.
+    await page
+      .locator('[data-testid="post-review-edit"][data-step="5"]')
+      .click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 15000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.getByTestId("post-next").click();
+    const refusal = page.locator(
+      '[data-testid="post-field"][data-field="post-title"] [data-testid="post-field-refusal"]',
+    );
+    await expect(refusal).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+
+    // INC-660: correcting the title clears the refusal before Save.
+    await page.getByTestId("post-title").click();
+    await page.keyboard.type(`E2E corrected ${token()}`);
+    await expect(refusal).toHaveCount(0);
   });
 
   test("MLA-14 Edit from the list's row opens the boxes; Post similar opens a new draft (D172, D182 4)", async ({
