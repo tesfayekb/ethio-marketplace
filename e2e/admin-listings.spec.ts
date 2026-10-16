@@ -1902,16 +1902,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   /**
-   * AL-28 — bundle 13 turn 8 (D154 B4, the operator's spec of 2026-10-13: "Staff
-   * can also remove a photo"): the listing's photos in order, each with Remove for
-   * a person who may edit it; a reason (and a note) is asked; the photo goes
-   * through `admin_edit_listing`'s `remove_photos`, the other stays, History's
-   * newest line is an edit of Photos with the reason and the note, and the seller
-   * is told. Two stripped photo rows, no stored file; both rows name every column
-   * (INC-614). Bundle 14 turn 1 (D169): the photos and Remove are in Edit, not on
-   * the page; the step-up is answered by keyboard (INC-618's class).
+   * AL-28 — D194: the photos card is on the page without clicking Edit; Remove as
+   * built (a reason and a note, the step-up by keyboard). The two photos on one
+   * row, no sideways scroll. History says so and the seller is told.
    */
-  test("AL-28 Edit lists the listing's photos; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D154 B4, D169)", async ({
+  test("AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4)", async ({
     page,
   }) => {
     const seller = await scratchSeller();
@@ -1947,20 +1942,17 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // INC-620 — the step whose code the injected session's verification spent.
     const spentStep = totpStep();
     await gotoReady(page, `/admin/listings/${live.id}`);
-    // D169 — the page shows the ad as buyers see it; the photos and Remove are in Edit.
+    // D194 — the photos card is on the page without clicking Edit.
     await expect(page.getByTestId("listing-as-seen")).toContainText(live.title, {
       timeout: 20000,
     });
-    await expect(page.getByTestId("listing-photos")).toHaveCount(0);
-    await page.getByTestId("listing-edit").click();
-    const card = page.getByTestId("listing-edit-panel").getByTestId("listing-photos");
+    const card = page.getByTestId("listing-photos");
+    await expect(card).toBeVisible({ timeout: 20000 });
     const items = card.getByTestId("listing-photos-item");
     await expect(items).toHaveCount(2, { timeout: 20000 });
     await expect(items.nth(0)).toHaveAttribute("data-photo-id", first!.id);
     await expect(items.nth(1)).toHaveAttribute("data-photo-id", second!.id);
-    // D171 — Edit in the console's boxes: no sideways scroll, the two photos on one row,
-    // what Remove does said under the heading, and Save and Cancel in a bar that stays
-    // at the bottom on a phone and sits in the page from 768 px.
+    // D171 — no sideways scroll, the two photos on one row.
     await expectNoHorizontalOverflow(page);
     const [firstBox, secondBox] = [
       await items.nth(0).boundingBox(),
@@ -1973,10 +1965,6 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(card.getByTestId("listing-photos-hint")).toHaveText(
       en["admin.listings.photos.hint"],
     );
-    const bar = page.getByTestId("listing-edit-save-box-actions");
-    await expect(bar.getByTestId("listing-edit-save")).toBeVisible();
-    await expect(bar.getByTestId("listing-edit-cancel")).toBeVisible();
-    await expect(bar).toHaveCSS("position", isMobile(page) ? "sticky" : "static");
 
     await items.nth(1).getByTestId("listing-photos-remove").click();
     const dialog = page.getByTestId("listing-photo-remove-dialog");
@@ -2010,8 +1998,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .select("id")
       .eq("listing_id", live.id);
     expect((left ?? []).map((row) => row.id)).toEqual([first!.id]);
-    // History is on the page, out of Edit.
-    await page.getByTestId("listing-edit-cancel").click();
+    // History is on the page.
     const newest = page.getByTestId("listing-history-entry-0");
     await expect(newest.getByTestId("listing-history-what")).toContainText(
       en["admin.listings.detail.photos"],
