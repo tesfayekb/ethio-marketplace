@@ -40,8 +40,15 @@ export function useAuth() {
         if (!stale()) setState({ user: null, loading: false });
         return;
       }
+      // INC-661 — THE SIGNED-IN SCREEN WAITS FOR THE STATUS READ on a signed-out →
+      // signed-in transition: the user is set only once the profile below has
+      // answered, so a deactivated account never sees the account menu, not even
+      // for a moment ("it appears for a fraction of a second its logging in then
+      // logged out"). A user already on screen stays while the read runs — a token
+      // refresh never blanks the menu — and a read that fails still sets the user
+      // (fail-open, the doors refuse a deactivated account regardless, F3).
       if (!stale()) {
-        setState({ user: { id: userId, email: email ?? null, displayName: null }, loading: false });
+        setState((current) => (current.user === null ? { user: null, loading: true } : current));
       }
       // The signup trigger owns profile rows; we only read the display name — and,
       // bundle 16 turn S3 (D189), the account's status: a deactivated account is

@@ -30,8 +30,8 @@ const TAPE_INSET_Y = `${(TAPE_REACH * Math.sin(TAPE_RAD)).toFixed(2)}cqw`;
  * (its natural ratio, contained in the 4:3 frame), the band lives inside that
  * box rotated by the brand angle (−30°, D122; −45° until then) and is clipped by
  * it, so nothing runs past the picture.
- * It takes the design system's primary button colours (bg-primary with
- * text-primary-foreground), a clean band with no stripes.
+ * D197 (the operator, 2026-10-16) — it is drawn in the site's second colour (the
+ * gold), like the status ribbons below; a clean band with no stripes.
  *
  * D180 (the operator's walk of bundle 16, 2026-10-14) — an ad's status is a RIBBON in the site's second colour
  * (the gold): Sold, Rented or Filled, No longer available, Reserved or Price reduced — one word, the most important
@@ -153,7 +153,7 @@ export function ListingPicture({
             className="pointer-events-none absolute inset-0 overflow-hidden"
           >
             <div
-              className="absolute bg-primary font-bold uppercase text-primary-foreground"
+              className="absolute bg-gold font-bold uppercase text-gold-foreground shadow-sm"
               style={{
                 width: "84cqw",
                 left: `calc(100% - ${TAPE_INSET_X})`,

@@ -432,4 +432,49 @@ test.describe("D189 deactivated session", () => {
       expect(reopened.error, "SO-8: the account could not be reactivated").toBeNull();
     }
   });
+
+  test("SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661)", async ({
+    page,
+  }) => {
+    const user = await leaseUser();
+    const admin = adminClient();
+    try {
+      // Deactivate BEFORE signing in.
+      const closed = await admin
+        .from("profiles")
+        .update({ account_status: "deactivated" })
+        .eq("user_id", user.id);
+      expect(closed.error, "SO-9: the account could not be deactivated").toBeNull();
+
+      // Sign in through the FORM (not session injection).
+      await page.goto("/auth");
+      const emailInput = page.getByTestId("auth-email");
+      const passwordInput = page.getByTestId("auth-password");
+      const submit = page.getByTestId("auth-submit");
+      await expect(emailInput, "sign-in form did not render").toBeEditable({ timeout: 15000 });
+      await emailInput.fill(user.email);
+      await passwordInput.fill(user.password);
+      await submit.click();
+
+      // The page must land on /auth with the deactivated reason, never the signed-in screen.
+      await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
+      await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
+      await expect(page.getByTestId("account-menu")).toHaveCount(0);
+
+      // The signed-in screen must NEVER have appeared: poll for 1,500 ms.
+      await expect.poll(() => page.getByTestId("account-menu").count(), { timeout: 1500 }).toBe(0);
+
+      // The session must be gone.
+      const stored = await page.evaluate(() =>
+        Object.keys(localStorage).filter((k) => k.startsWith("sb-")),
+      );
+      expect(stored, "SO-9: the session survived the sign-out").toEqual([]);
+    } finally {
+      const reopened = await admin
+        .from("profiles")
+        .update({ account_status: "active" })
+        .eq("user_id", user.id);
+      expect(reopened.error, "SO-9: the account could not be reactivated").toBeNull();
+    }
+  });
 });
