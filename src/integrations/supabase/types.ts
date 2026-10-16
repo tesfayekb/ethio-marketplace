@@ -4038,6 +4038,15 @@ export type Database = {
       name_protected_folds: { Args: never; Returns: string[] }
       name_second_fold: { Args: { p_value: string }; Returns: string }
       next_language_sort: { Args: never; Returns: number }
+      peek_rate_limit: {
+        Args: {
+          p_action: string
+          p_key: string
+          p_limit: number
+          p_window: string
+        }
+        Returns: Json
+      }
       plan_caps: { Args: { p_plan: string }; Returns: Json }
       plan_photo_cap: { Args: { p_plan: string }; Returns: number }
       price_basis_conflict: {
