@@ -5,7 +5,7 @@ import type { FeedListing } from "@/features/feed/feed-page";
 
 import { InviteCard } from "./invite-card";
 import { ListingCard } from "./listing-card";
-import { ListingPicture } from "./listing-picture";
+import { ListingPicture, RIBBON_BAND_CLASS } from "./listing-picture";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({
@@ -169,5 +169,40 @@ describe("ListingPicture — ribbon colour", () => {
     const ribbon = screen.getByTestId("listing-photos-soon-ribbon");
     const band = ribbon.firstElementChild as HTMLElement;
     expect(band.className).toContain("bg-gold");
+  });
+
+  /**
+   * INC-670 — ONE RIBBON: the photos-soon band and a status ribbon are the same
+   * element, class for class and style for style (height, weight, tracking,
+   * colour, shadow), so none reads thinner than another.
+   */
+  it("LC-6 the photos-soon band and a status ribbon share one class set and one text style (INC-670)", () => {
+    const soon = render(<ListingPicture photoUrl={null} categoryUrl={null} photosSoon={true} />);
+    const soonBand = screen.getByTestId("listing-photos-soon-ribbon")
+      .firstElementChild as HTMLElement;
+    const soonText = screen.getByTestId("listing-photos-soon-text");
+    const soonShape = {
+      wrapper: screen.getByTestId("listing-photos-soon-ribbon").className,
+      band: soonBand.className,
+      bandStyle: soonBand.getAttribute("style"),
+      text: soonText.className,
+      textStyle: soonText.getAttribute("style"),
+    };
+    soon.unmount();
+
+    render(<ListingPicture photoUrl={null} categoryUrl={null} photosSoon={true} ribbon="Sold" />);
+    const statusBand = screen.getByTestId("listing-ribbon").firstElementChild as HTMLElement;
+    const statusText = screen.getByTestId("listing-ribbon-text");
+    expect(soonShape).toEqual({
+      wrapper: screen.getByTestId("listing-ribbon").className,
+      band: statusBand.className,
+      bandStyle: statusBand.getAttribute("style"),
+      text: statusText.className,
+      textStyle: statusText.getAttribute("style"),
+    });
+    expect(soonShape.band).toBe(RIBBON_BAND_CLASS);
+    expect(soonShape.textStyle).toContain("clamp(9px, 6cqw, 22px)");
+    // One band only (D180): the status word took the band's corner.
+    expect(screen.queryByTestId("listing-photos-soon-ribbon")).toBeNull();
   });
 });

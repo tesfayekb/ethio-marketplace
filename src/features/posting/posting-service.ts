@@ -1027,6 +1027,28 @@ export function requestAssist(body: {
 }
 
 /**
+ * Bundle 18 turn 1 (INC-669) — `GET /api/listings/assist?listingId=<id>`: the
+ * writing budget's true remaining for the seller's own ad, nothing spent. Null
+ * when the route could not say (offline, a refusal, no session): the screen then
+ * keeps its own count, as before.
+ */
+export async function peekAssist(listingId: string): Promise<number | null> {
+  const token = await bearer();
+  if (token === null) return null;
+  try {
+    const response = await fetch(
+      `/api/listings/assist?listingId=${encodeURIComponent(listingId)}`,
+      { method: "GET", headers: { Authorization: `Bearer ${token}` } },
+    );
+    const answer = await readAnswer(response);
+    const left = answer.ok ? answer.payload["triesLeft"] : null;
+    return typeof left === "number" && Number.isInteger(left) && left >= 0 ? left : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * U6-C2b — STEP 7's IDENTITY, read as the owner (`profiles_owner_read`).
  *
  * A seller who has posted before must not be asked again: the stored alias,

@@ -7,7 +7,7 @@ import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { buildTitle } from "./build-title";
 import { useCatalogScope } from "./catalog-scope";
 import { Field, controlClass } from "./field";
-import { requestAssist, type AttrDef } from "./posting-service";
+import { peekAssist, requestAssist, type AttrDef } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { ASSIST_TRIES, type Refusal } from "./types";
 import { looksLikeContact } from "./contact-like";
@@ -45,7 +45,11 @@ function writeSession(key: string, value: string | null) {
  * EVERY TRY IS KEPT. Up to five suggestions build a short history, each one
  * offered for use, each one told to take a different angle from the ones before.
  * The budget belongs to the DOOR (five per listing) and the remaining count is
- * said in words — never a button that silently stops working.
+ * said in words — never a button that silently stops working. Bundle 18 turn 1
+ * (INC-669): the count is the door's FROM THE START — a fresh screen (the Edit;
+ * a draft reopened) asks the route what is left before any try (a peek that
+ * spends nothing) and prints the counter only once it knows, so an ad that
+ * spent tries on its first posting never reads "5 of 5".
  *
  * A provider that cannot answer says so in words (F4); it never writes a
  * placeholder.
@@ -114,6 +118,29 @@ export function StepDetails({
   const [history, setHistory] = useState<Suggestion[]>([]);
   const [assistRefusal, setAssistRefusal] = useState<string | null>(null);
   const [triesLeft, setTriesLeft] = useState<number | null>(null);
+  /**
+   * INC-669 — THE DOOR'S COUNT BEFORE ANY TRY: with a listing, the route is asked
+   * what is left (nothing spent) and the counter waits for the answer; a peek
+   * that cannot say leaves the screen's own count, as before. Without a listing
+   * there is no budget to read.
+   */
+  const [peeked, setPeeked] = useState(listingId === null);
+  useEffect(() => {
+    if (listingId === null) {
+      setPeeked(true);
+      return;
+    }
+    let cancelled = false;
+    setPeeked(false);
+    void peekAssist(listingId).then((left) => {
+      if (cancelled) return;
+      if (left !== null) setTriesLeft(left);
+      setPeeked(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [listingId]);
 
   /** Step 12 — option labels for the ranked choice rows the title is built from. */
   const [titleOptions, setTitleOptions] = useState<Record<string, AttrOption[]>>({});
@@ -409,15 +436,17 @@ export function StepDetails({
             {t("post.assist.done")}
           </p>
         )}
-        <p
-          className="text-xs text-muted-foreground"
-          data-testid="post-assist-tries"
-          data-left={left}
-        >
-          {spent
-            ? fill(t("post.assist.exhausted"), { max: ASSIST_TRIES })
-            : fill(t("post.assist.triesLeft"), { left, max: ASSIST_TRIES })}
-        </p>
+        {peeked && (
+          <p
+            className="text-xs text-muted-foreground"
+            data-testid="post-assist-tries"
+            data-left={left}
+          >
+            {spent
+              ? fill(t("post.assist.exhausted"), { max: ASSIST_TRIES })
+              : fill(t("post.assist.triesLeft"), { left, max: ASSIST_TRIES })}
+          </p>
+        )}
         {assistRefusal !== null && (
           <p className="text-sm text-destructive" data-testid="post-assist-refusal">
             {t(draftRefusalKey(assistRefusal))}

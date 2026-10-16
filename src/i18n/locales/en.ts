@@ -380,7 +380,7 @@ export const en = {
   "feed.invite.placeCategory": "Be the first to advertise {category} in {place}.",
   "feed.invite.placeMore": "Advertise in {place}.",
   "feed.invite.placeCategoryMore": "Advertise {category} in {place}.",
-  "listing.photosSoon": "PHOTOS COMING SOON",
+  "listing.photosSoon": "PHOTOS SOON",
   "price.free": "Free",
   "price.negotiable": "Negotiable",
   "price.contact": "Contact for price",
