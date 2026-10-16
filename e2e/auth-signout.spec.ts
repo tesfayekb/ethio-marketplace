@@ -484,4 +484,29 @@ test.describe("D189 deactivated session", () => {
       expect(reopened.error, "SO-9: the account could not be reactivated").toBeNull();
     }
   });
+
+  test("SO-10 a signed-in tab's reload never shows the Sign in link before the account menu (INC-667)", async ({
+    page,
+  }) => {
+    const user = await leaseUser();
+    await signIn(page, user.email, user.password);
+    await page.reload();
+
+    // Sample every 50 ms until the menu is visible (at most 15 s). The link is
+    // counted, not tested for visibility: on mobile-360 it is in the DOM, hidden by CSS.
+    const signInLink = page.getByRole("link", { name: en["auth.signIn"] });
+    const menu = page.getByTestId("account-menu");
+    let linkSamples = 0;
+    await expect
+      .poll(
+        async () => {
+          if ((await signInLink.count()) > 0) linkSamples += 1;
+          return menu.isVisible();
+        },
+        { message: "SO-10: the account menu never appeared", timeout: 15000, intervals: [50] },
+      )
+      .toBe(true);
+    expect(linkSamples, "SO-10: the Sign in link showed during the read").toBe(0);
+    await expect(menu).toBeVisible();
+  });
 });

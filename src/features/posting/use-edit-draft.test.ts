@@ -160,6 +160,31 @@ describe("useEditDraft (the seller)", () => {
     expect(editMyListing).toHaveBeenLastCalledWith("l-1", { directions: "Behind the bank" });
   });
 
+  it("EW-6 Back discards: a step's typed answers go back to the saved ad and its refusals clear (C15)", async () => {
+    const { result } = renderHook(() => useEditDraft("l-1", { actor: "seller" }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    editMyListing.mockResolvedValueOnce({
+      ok: false,
+      refusals: [{ field: "title", reason: "contactInText" }],
+    });
+    act(() => result.current.change({ title: "Call me on 0911 223 344", priceAmount: 1 }, false));
+    await act(async () => expect(await result.current.saveAt(5)).toBe(false));
+    expect(result.current.refusals).toHaveLength(1);
+    act(() => result.current.setPlaceText({ street: "Typed", directions: "Typed too" }));
+    act(() => result.current.discard(5));
+    expect(result.current.values.title).toBe("Samsung fridge");
+    expect(result.current.refusals).toEqual([]);
+    expect(result.current.saveState).toBe("idle");
+    // Only the discarded step goes back: the price typed on step 4 and the place lines stay.
+    expect(result.current.values.priceAmount).toBe(1);
+    expect(result.current.placeText).toEqual({ streetAddress: "Typed", directions: "Typed too" });
+    act(() => result.current.discard(6));
+    expect(result.current.placeText).toEqual({ streetAddress: "Bole road", directions: null });
+    // The same step sent again finds nothing to send.
+    await act(async () => expect(await result.current.saveAt(5)).toBe(true));
+    expect(editMyListing).toHaveBeenCalledTimes(1);
+  });
+
   it("EW-4 an ad that is not the caller's is a refusal to load, never an empty form", async () => {
     readDraft.mockResolvedValueOnce(null);
     const { result } = renderHook(() => useEditDraft("l-2", { actor: "seller" }));

@@ -1,4 +1,4 @@
-# Bundle 17 — turn 4: the header during the status read, Back discards, a closed ad's tick, the days left as built (INC-667, INC-668, C15, INC-666, D195): brief, version 1 (saved unchanged, 2026-10-16)
+# Bundle 17 — turn 4: the header during the status read, Back discards, a closed ad's tick, the days left as built (INC-667, INC-668, C15, INC-666, D195): brief, version 2 (replaces version 1; saved unchanged, 2026-10-16)
 
 ```text
 BUNDLE 17 — TURN 4 (2026-10-16). ONE TURN: CODE BY CARRIER, ONE MIGRATION, ONE TEST CHANGED AND TWO WRITTEN BY YOU, ONE TEST HELPER ORDERED. No new string. No package change. No file deleted. The first item is the fix of run 960's red board (INC-667: 28 of its 35 red attempts).
@@ -6,6 +6,7 @@ Base: dev d0644eef (turn 3b). The census below proves every file by content. Thi
 Tier A: the auth shell (INC-667, INC-668); the migration (a seller door's status list). Tier B: the Edit's Back; the tests.
 
 ANSWERS TO THE LAST TURN
+- VERSION 2 (after your census stop of 14:5xZ): the stop was right and the fingerprint was the supervisor's error. Your live definition equals the migration file's text word for word; the brief's expected md5 had been computed from the file's lines without the newline that follows `AS $$` — the stored body begins with that newline, so `md5(replace(prosrc, chr(13), ''))` on the live row is `0cf863bb521274f71ac1aecf7f1299fd`, as you read. Census (d) and the read-back now carry the right values (the read-back's was wrong the same way). Everything you pasted stands: start again at step 0 (save this version over version 1 — same path), then step 3, the census, with the corrected value; <START> is unchanged. The carrier is unchanged, byte for byte.
 - Turn 3b is verified on dev d0644eef ("Applied Turn 3b fixes"): the three manifest lines verbatim, AL-20 with its two revisions and two notices, AL-21 the title typed back, SC-25's notice assertion gone, MLA-13's Tab before the clearing check, the [auth-dump] in `signIn` (names only, the same error rethrown) — all as asked. Your "not foreseen": right on both counts — `noticeRows` gets its sort order in this turn (test 2 below), and the dump's fallback is accepted.
 - Run 960 (d0644eef) was RED, read whole by the supervisor: the build job green (the manifest line took), AL-20, AL-21, SC-25 and MLA-13 green; 28 red attempts of 14 tests at `signIn` with the dump — it named the page (the WHY block: INC-667, the fix is this turn's first item; no test helper changes); MLP-3 red at its second sign-out — INC-668, the same class, fixed in this turn; SC-26 red on shard 1 (the queue's row still on the page after the Reject: the queue was not re-read on return) — fixed in this turn (the screening page re-reads the queue when it returns with `decided` or `open`); PW-17 passed on retry on "[e2e:seller] confirming profiles failed: undefined" (a fixture's transport error, watched); CT-18 passed on retry (INC-497, watched). Nothing of 3b's work is open.
 
@@ -65,7 +66,7 @@ HOW TO WORK
 - THE BROWSER RUN — not this turn: the local browser does not start (INC-506). CI on the final commit runs every spec, SO-10 and MLA-16 included; the supervisor reads the 14 tests of INC-667's class (AT-1, AS-1, CO-1, CV-1, LT-1, RP-1, AU-1, A-5, TR-7b, CT-7b, the five IG-3 cases, MF-2, MF-4, MF-7b), MLP-3 and SO-9 on that run.
 
 THE CENSUS (paste each result)
-- (a) `git status --porcelain` → only `?? docs/governance/briefs/bundle-17-turn-4.md`, or nothing if the platform has already committed the brief.
+- (a) `git status --porcelain` → only docs/governance/briefs/bundle-17-turn-4.md — `??` if version 1 was never committed, ` M` if the platform committed it and version 2 now sits over it — or nothing if the platform has already committed this version.
 - (b) `sha256sum` of these 12 files → each equal to:
   835e972f8ee77a70c369bcc640a304c423f238b91bbbb420345dc6969722305c  docs/_changelog.md
   504d6af6babb9cb3f4eb05dc62e1f82f9a88dc1bd49172a88e7247cd5b95b020  docs/features/admin-shell.md
@@ -82,7 +83,7 @@ THE CENSUS (paste each result)
 - (c) `sha256sum e2e/admin-listings.spec.ts e2e/auth-signout.spec.ts e2e/my-listings-ad.spec.ts` → ff6e0d3b7044e777779b2493d8471e3f352115d1029caefdbe14022112ad803c, 6c397f89e00fa130277a8e9d208e82a02d043868b67499113f9fbf4a6c2efb0b and dddc93af50e3425f72d18f6b8d603a61253ebfe41fa468ef2047210e97dc3429; `ls supabase/migrations | tail -1` → 20261015204631_c99005e8-3799-499f-b6b8-ec439d4b9c35.sql (bundle 16's last; no migration since).
 - (d) ethio-prod, your query tool (SELECT only):
   - `select version from public.migration_marks order by version desc limit 3;` → paste the three (the newest is bundle 16's S3 mark, 20261016090000);
-  - `select md5(replace(prosrc, chr(13), '')) from pg_proc where oid = 'public.set_listing_photos_soon(uuid, boolean)'::regprocedure;` → 82ce6dcd01b8e4e8800e11b59d01fb03 (the live body equals the file's, 20261004144146 :290–322, apart from nothing);
+  - `select md5(replace(prosrc, chr(13), '')) from pg_proc where oid = 'public.set_listing_photos_soon(uuid, boolean)'::regprocedure;` → 0cf863bb521274f71ac1aecf7f1299fd (the live body equals the file's, 20261004144146 :290–322, apart from nothing);
   - `select prosecdef, provolatile, proconfig from pg_proc where oid = 'public.set_listing_photos_soon(uuid, boolean)'::regprocedure;` → t | v | {search_path=public};
   - `select pg_get_functiondef('public.set_listing_photos_soon(uuid, boolean)'::regprocedure);` → paste it whole in the report (G39: the live definition beside the file).
 
@@ -137,7 +138,7 @@ THE MIGRATION RULES (G39 — every one applies)
 
 THE READ-BACK (ethio-prod, your query tool, SELECT only; paste each result)
 - `select version from public.migration_marks where version = '<MARK>';` → one row;
-- `select md5(replace(prosrc, chr(13), '')) from pg_proc where oid = 'public.set_listing_photos_soon(uuid, boolean)'::regprocedure;` → dd5dba986255e5ec34844ac100ad399e;
+- `select md5(replace(prosrc, chr(13), '')) from pg_proc where oid = 'public.set_listing_photos_soon(uuid, boolean)'::regprocedure;` → f33736b4003123d83aeb52c5f765bb88;
 - `select has_function_privilege('authenticated', 'public.set_listing_photos_soon(uuid, boolean)', 'EXECUTE'), has_function_privilege('anon', 'public.set_listing_photos_soon(uuid, boolean)', 'EXECUTE');` → t | f.
 - If a read-back differs from the expected md5, STOP and report the md5 you read and the text you handed over: the supervisor rules (DEC-182).
 

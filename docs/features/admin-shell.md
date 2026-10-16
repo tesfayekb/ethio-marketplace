@@ -303,6 +303,12 @@ sign-in redirect (`beforeLoad`, D20), so the live guard evacuates them only once
 a session this tab held has gone; a fresh signed-out visit goes to
 `/auth?return=…` and back. `/admin` and `/settings` are evacuated as before.
 
+Later word (bundle 17 turn 4, INC-668): "a session this tab held" is
+`useAuth().hadSession` — true from the first auth event that carries a user,
+before the INC-661 status read answers — not the user the shell has rendered,
+which that read delays; a sign-out arriving while the read is pending is still
+a sign-out, not a fresh signed-out visit.
+
 ## Session policy (U0k)
 
 Sign-out is ONE CLICK: every affordance (rail/drawer foot, account menu) calls

@@ -1175,8 +1175,14 @@ function WizardShell({
                               setCategoryCursor(tree.parentOf.get(categoryCursor) ?? null);
                               return;
                             }
-                            // D194 — in edit mode Back is the way back to the Review.
-                            draft.goTo(edit === null ? prevOf(draft.step) : TOTAL_STEPS);
+                            // D194 — in edit mode Back is the way back to the Review; C15 — what
+                            // was typed on the step is dropped, so the Review shows the ad as saved.
+                            if (edit !== null) {
+                              edit.discard(draft.step);
+                              draft.goTo(TOTAL_STEPS);
+                              return;
+                            }
+                            draft.goTo(prevOf(draft.step));
                           }}
                         >
                           {t("post.action.back")}
@@ -1197,6 +1203,7 @@ function WizardShell({
                             disabled={photosSendingNow}
                             onClick={() => {
                               if (edit === null) setReturnToReview(false);
+                              else edit.discard(draft.step);
                               draft.goTo(TOTAL_STEPS);
                             }}
                           >
@@ -1311,20 +1318,16 @@ function WizardShell({
                             onChanged={draft.reloadPhotos}
                             illustrationUrl={illustrationUrl}
                             photosSoon={draft.photosSoon}
-                            // INC-666 — `set_listing_photos_soon` does not take a closed ad yet
-                            // (its sibling doors do, INC-631): no tick on a closed ad until it does.
-                            onPhotosSoon={
-                              edit !== null && edit.status === "closed"
-                                ? undefined
-                                : async (on) => {
-                                    if (draft.listingId === null) return false;
-                                    // The tick follows the finger; a refusal puts it back (F4).
-                                    draft.setPhotosSoon(on);
-                                    const ok = await savePhotosSoon(draft.listingId, on);
-                                    if (!ok) draft.setPhotosSoon(!on);
-                                    return ok;
-                                  }
-                            }
+                            // INC-666 (bundle 17 turn 4) — the door takes a closed ad now, as its
+                            // sibling doors do (INC-631): the tick is drawn on every editable ad.
+                            onPhotosSoon={async (on) => {
+                              if (draft.listingId === null) return false;
+                              // The tick follows the finger; a refusal puts it back (F4).
+                              draft.setPhotosSoon(on);
+                              const ok = await savePhotosSoon(draft.listingId, on);
+                              if (!ok) draft.setPhotosSoon(!on);
+                              return ok;
+                            }}
                             videoUrl={draft.values.videoUrl}
                             videoRefusal={
                               refusalFor(draft.refusals, "video_url") ??

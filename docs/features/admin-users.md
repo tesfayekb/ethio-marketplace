@@ -58,6 +58,8 @@ forget it:
 
 **Bundle 17 turn 1 (INC-661, 2026-10-16) — no signed-in screen before the status read.** On a signed-out → signed-in transition (`useAuth`), the user is set only once the profile read has answered, so a deactivated account signing in never sees the account menu — the sign-in page shows the reason at once. A user already on screen stays while a later read runs (a token refresh never blanks the menu); a read that fails still sets the user (fail-open — every door refuses a deactivated account regardless, F3).
 
+Later word (bundle 17 turn 4, INC-667 / INC-668): the hold opened a window in which a session the tab holds reads as "no user". Two readers were caught by it. The header rendered its signed-out "Sign in" link in that window (the bottom bar already rendered nothing while `authLoading`); it now renders nothing either, so a signed-in user never sees "Sign in" on a load and the E2E user switch (`switchUser`, which signs out only when it sees the account menu) no longer skips the sign-out and lands its next sign-in on `/auth` with a session. The shell's live guard counted "a session this tab held" from the user it had rendered; it now reads `useAuth().hadSession`, true from the first auth event that carries a user, before the read answers, so a sign-out that lands during the read still evacuates `/account` and `/my-listings` (MLP-3's second sign-out stood on `/account`). Tests: the fourteen tests that failed at `signIn` in run 960 (28 attempts across the two projects: AT-1, AS-1, CO-1, CV-1, LT-1, RP-1, AU-1, A-5, TR-7b, CT-7b, the five IG-3 cases, MF-2, MF-4, MF-7b), MLP-3, SO-9.
+
 Staff RPCs (all `SECURITY DEFINER`, `REVOKE ALL … FROM PUBLIC, anon` +
 `GRANT EXECUTE … TO authenticated`, each with its own `has_permission` gate):
 

@@ -155,7 +155,8 @@ async function noticeRows(listingId: string) {
   const { data, error } = await adminClient()
     .from("seller_notices")
     .select("seller_id,kind,fields,reason,note")
-    .eq("listing_id", listingId);
+    .eq("listing_id", listingId)
+    .order("created_at", { ascending: true });
   if (error) throw new Error(`[e2e:al] notices read failed: ${error.message}`);
   return (data ?? []) as Row[];
 }
@@ -1557,14 +1558,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.getByTestId("post-back").click();
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
 
-    // Edit Title again → the refused title is still in the box (Back keeps what was
-    // typed until C15) → the title put back → nothing changed → no revision, no notice.
+    // Edit Title again → Back discarded the refused text (C15): the box holds the
+    // ad's title → nothing typed → Save → nothing changed → no revision, no notice.
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
-    await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
-    await page.keyboard.press("Backspace");
-    await page.keyboard.type(live.title);
+    await expect(page.getByTestId("post-title")).toHaveValue(live.title);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
     await expect(page.getByTestId("post-edit-notice")).toHaveAttribute("data-shown", "false");

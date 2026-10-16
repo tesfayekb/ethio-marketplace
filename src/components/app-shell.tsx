@@ -114,7 +114,7 @@ function PermissionsLoader({
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, hadSession, signOut } = useAuth();
   const [panelChoice, setPanelChoice] = useState<PanelId>("marketplace");
   const [locationPath, setPathState] = useState<LocationNode[]>([]);
   const [locationCountry, setCountryState] = useState<string | null>(null);
@@ -676,12 +676,14 @@ export function AppShell({ children }: { children: ReactNode }) {
    * drop the visitor on the marketplace instead. It now evacuates those two only
    * once a session this tab held has gone; /admin and /settings, which have no
    * sign-in redirect of their own, are evacuated as before.
+   *
+   * INC-668 — "a session this tab held" is `hadSession` from useAuth, true from
+   * the session event itself. It used to be "a user this shell has rendered",
+   * which the INC-661 status read now delays: a sign-out arriving while that
+   * read was pending found no user on record and left the tab standing on
+   * /account (MLP-3, the second sign-out).
    */
   const ownSignIn = pathname.startsWith("/account") || pathname.startsWith("/my-listings");
-  const hadUser = useRef(false);
-  useEffect(() => {
-    if (user !== null) hadUser.current = true;
-  }, [user]);
   useEffect(() => {
     if (authLoading || user !== null) return;
     void queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });
@@ -694,8 +696,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       void navigate({ to: "/auth", search: { reason: "deactivated" }, replace: true });
       return;
     }
-    if (gatedRoute && (!ownSignIn || hadUser.current)) void navigate({ to: "/", replace: true });
-  }, [authLoading, user, gatedRoute, ownSignIn, navigate, queryClient]);
+    if (gatedRoute && (!ownSignIn || hadSession)) void navigate({ to: "/", replace: true });
+  }, [authLoading, user, hadSession, gatedRoute, ownSignIn, navigate, queryClient]);
 
   /**
    * U0j-2 — TEST HOOK, dev-only. The E2E live-guard proof must fire a REAL

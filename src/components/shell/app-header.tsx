@@ -106,7 +106,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
  */
 export function AppHeader() {
   const { t } = useI18n();
-  const { auth, user, requestSignOut, navOpen, setNavOpen, signingOut } = useShell();
+  const { auth, authLoading, user, requestSignOut, navOpen, setNavOpen, signingOut } = useShell();
   const { collapsed, toggle } = useRailCollapsed();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -239,6 +239,15 @@ export function AppHeader() {
           </button>
           <LanguageSwitcher />
           <ThemeToggle />
+          {/*
+            INC-667 — WHILE THE SESSION IS READ, NOTHING: never the signed-out
+            "Sign in" flashing for a session the tab holds (the bottom bar's rule,
+            bottom-bar.tsx). The INC-661 status read keeps `user` empty until the
+            account's status is known, and in that window this slot used to show
+            the sign-in link — a signed-in user saw it on every load, and the E2E
+            user switch read it as "signed out", skipped the sign-out and sent the
+            next sign-in to /auth with a session, which sends it home.
+          */}
           {auth.isAuthenticated && !signingOut ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -285,7 +294,7 @@ export function AppHeader() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
+          ) : authLoading ? null : (
             <Link
               to="/auth"
               className="hidden min-h-11 shrink-0 items-center rounded-md bg-primary px-2 md:inline-flex text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:px-4"

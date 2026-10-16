@@ -186,3 +186,10 @@ The operator (2026-10-16): "edit should have exact features and step and look as
 ## Bundle 17 turn 3 — the done line fades (D192)
 
 - The ad page's done line (`my-listing-notice`: reserved, closed, reopened, sold, renewed, …) shows for a few seconds and fades (`FadingNotice`, `data-shown`), as the Edit's notice does; the refusal line (`my-listing-problem`) stays until the next action. The same words said again show again.
+
+## Bundle 17 turn 4 — Back discards; a closed ad's tick; the days left (C15, INC-666, D195)
+
+- **Back discards (C15).** On a step of the Edit, Back (and "Back to review") drops what was typed on that step — the step's fields go back to the ad as the door holds them and the step's refusals clear (`useEditDraft.discard`) — so the Review always shows the ad as saved, and a step opened again starts from the saved answers. Only Save changes writes. (Bundle 17 turn 3b's AL-21 typed the refused title back by hand; from this turn the Back does it.)
+- **A closed ad's "Photos coming soon" (INC-666).** `set_listing_photos_soon` takes a closed ad, as `set_listing_pin` (E2a) and the photo routes (INC-631) do; the wizard draws the tick on every editable ad again (turn 2 hid it on a closed ad). One migration, redeclared whole.
+- **The days left (D195).** The ad's page draws the state line the list draws (`my-listing-state`: "Days left: N" / "Ends today" / "No end date") under the status, beside "Ends <date>" — built in bundle 16 turn 3; nothing new. A draft's "removed in N days" waits for D14's purge (DEC-130's retention turn).
+- Tests: EW-6 (use-edit-draft.test.ts); E2E per the turn's brief (AL-21's Back; a closed ad's tick).

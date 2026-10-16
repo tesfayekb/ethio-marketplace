@@ -19,6 +19,15 @@ type AuthState = {
  */
 export function useAuth() {
   const [state, setState] = useState<AuthState>({ user: null, loading: true });
+  /**
+   * INC-668 — THE TAB HAS HELD A SESSION. True from the first auth event that
+   * carries a user, BEFORE the INC-661 status read below answers, and never
+   * reset for the life of the document. `user` says who is signed in once the
+   * status is known; this says that a session existed at all, so a sign-out
+   * that lands while the read is still pending is still a sign-out (the shell's
+   * live guard reads it, app-shell.tsx), not a fresh signed-out visit.
+   */
+  const [hadSession, setHadSession] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,6 +57,7 @@ export function useAuth() {
       // refresh never blanks the menu — and a read that fails still sets the user
       // (fail-open, the doors refuse a deactivated account regardless, F3).
       if (!stale()) {
+        setHadSession(true);
         setState((current) => (current.user === null ? { user: null, loading: true } : current));
       }
       // The signup trigger owns profile rows; we only read the display name — and,
@@ -104,6 +114,7 @@ export function useAuth() {
   return {
     user: state.user,
     loading: state.loading,
+    hadSession,
     signUp: authService.signUp,
     signIn: authService.signInWithPassword,
     resendConfirmation: authService.resendConfirmation,
