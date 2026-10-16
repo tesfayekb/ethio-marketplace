@@ -673,8 +673,8 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     const xEdit = xBox.getByTestId(`my-listing-${X}-edit`);
     await expect(xEdit).toBeVisible();
     await xEdit.click();
-    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}\\?edit=1$`), { timeout: 15000 });
-    await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}/edit$`), { timeout: 15000 });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
     await gotoReady(page, "/my-listings");
     await expect(twin(page, X)).toBeVisible({ timeout: 15000 });
     await box(page, X).getByTestId(`my-listing-${X}-more`).click();
