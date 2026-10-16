@@ -1618,10 +1618,8 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   /**
-   * Turn L4b (D140) — Edit changes a specification with the seller's own form:
-   * a required answer emptied is refused under its own control and nothing is
-   * written; a new answer is saved, the seller is told "Specifications". An
-   * edit of the title alone sends no specifications.
+   * D194 — Edit on data-step 3 (Specifications): the refusal under its control,
+   * then the answer saved through the wizard's Save changes.
    */
   test("AL-23 Edit changes a specification: a refusal under its control, then the answer saved", async ({
     page,
@@ -1641,40 +1639,50 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const control = (key: string) =>
       page.locator(`[data-testid="post-attr-control"][data-attr="${key}"]`);
 
-    await useJobSuperAdmin(page);
+    const { secret } = await useJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
 
-    // The title alone: the specifications do not travel.
+    // The title alone: edit Title step first, specs do not travel.
     await page.getByTestId("listing-edit").click();
-    const form = page.getByTestId("listing-edit-form");
-    await expect(control(spec.text.attrKey)).toHaveValue("first answer", { timeout: 20000 });
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}/edit$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-edit-reason-misleading").click();
     const title = `Corrected listing ${token()}`;
-    await form.getByTestId("listing-edit-title").fill(title);
-    await form.getByTestId("listing-edit-reason-misleading").click();
-    await form.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.col.title"]),
-      { timeout: 20000 },
-    );
+    await page
+      .locator('[data-testid="post-review-edit"][data-step="5"]')
+      .click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type(title);
+    await page.getByTestId("post-next").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
 
     // The required answer emptied: refused under its own control, nothing written.
-    await page.getByTestId("listing-edit").click();
+    await page
+      .locator('[data-testid="post-review-edit"][data-step="3"]')
+      .click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20000 });
     await expect(control(spec.text.attrKey)).toHaveValue("first answer", { timeout: 20000 });
     await control(spec.text.attrKey).fill("");
-    await form.getByTestId("listing-edit-reason-misleading").click();
-    await form.getByTestId("listing-edit-save").click();
+    await page.getByTestId("post-next").click();
     await expect(
-      form.locator(`[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`),
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`),
     ).toBeVisible({ timeout: 20000 });
     expect((await noticeRows(live.id)).map((row) => String(row["fields"]))).toEqual(["title"]);
 
     await control(spec.text.attrKey).fill("second answer");
-    await form.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.history.field.specs"]),
-      { timeout: 20000 },
-    );
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+
+    // Done and verify DB truth.
+    await page.getByTestId("post-edit-done").click();
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}$`), { timeout: 20000 });
     const { data: stored, error } = await adminClient()
       .from("listings")
       .select("title,attributes")
