@@ -1033,7 +1033,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await expect(refusal).toHaveCount(0);
   });
 
-  test("MLA-14 Edit from the list's row opens the boxes; Post similar opens a new draft (D172, D182 4)", async ({
+  test("MLA-14 Edit from the list's row opens the wizard's Review; Post similar opens a new draft (D194, D182 4)", async ({
     page,
   }) => {
     const seller = await scratchSeller();
@@ -1052,8 +1052,8 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await gotoReady(page, "/my-listings");
     await expect(twin(page, X)).toBeVisible({ timeout: 15000 });
     await box(page, X).getByTestId(`my-listing-${X}-edit`).click();
-    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}\\?edit=1$`), { timeout: 15000 });
-    await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}/edit$`), { timeout: 15000 });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
 
     await openAd(page, S);
     await expect(page.getByTestId("my-listing-edit")).toHaveCount(0);
