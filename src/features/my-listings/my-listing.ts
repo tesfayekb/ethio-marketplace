@@ -476,13 +476,32 @@ export type EditOutcome =
   | { ok: false; refusals: Refusal[] }
   | { ok: false; key: MessageKey };
 
+/**
+ * Bundle 17 turn 2 (INC-665) — a specification's refusal names its `attr_key`
+ * (the attribute authority's own word — the validator's shape, as the posting
+ * routes and the staff's door read it), never `field`; it resolves to the key its
+ * control is drawn under, and its `detail` travels with it. Until this turn an
+ * `attr_key` refusal was dropped here and the edit said "failed" instead.
+ */
 function refusalsOf(value: unknown): Refusal[] {
   if (!isObject(value) || !Array.isArray(value.refusals)) return [];
-  return value.refusals.flatMap((entry): Refusal[] =>
-    isObject(entry) && typeof entry.field === "string" && typeof entry.reason === "string"
-      ? [{ field: entry.field, reason: entry.reason }]
-      : [],
-  );
+  return value.refusals.flatMap((entry): Refusal[] => {
+    if (!isObject(entry) || typeof entry.reason !== "string") return [];
+    const field =
+      typeof entry.field === "string"
+        ? entry.field
+        : typeof entry.attr_key === "string"
+          ? entry.attr_key
+          : null;
+    if (field === null) return [];
+    return [
+      {
+        field,
+        reason: entry.reason,
+        ...(typeof entry.detail === "string" ? { detail: entry.detail } : {}),
+      },
+    ];
+  });
 }
 
 /**

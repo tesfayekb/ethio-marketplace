@@ -10,13 +10,11 @@ import { supabase } from "@/integrations/supabase/client";
  * (`my_listing`) remains the authority behind the page — another seller's ad is
  * "not yours" whatever the address says.
  *
- * Bundle 16 turn R2 — `?edit=1` (a row's Edit in My listings) opens the page with
- * its edit panel open; anything else in the address is dropped.
+ * Bundle 16 turn R2's `?edit=1` (the edit panel) is gone with bundle 17 turn 2
+ * (D194): the Edit is its own address, `/my-listings/<id>/edit`.
  */
 export const Route = createFileRoute("/my-listings_/$listingId")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): { edit?: 1 } =>
-    search.edit === 1 || search.edit === "1" || search.edit === true ? { edit: 1 } : {},
   beforeLoad: async ({ params }) => {
     const { data } = await supabase.auth.getSession();
     if ((data.session?.user ?? null) === null)
@@ -44,6 +42,5 @@ export const Route = createFileRoute("/my-listings_/$listingId")({
 
 function MyListingRoute() {
   const { listingId } = Route.useParams();
-  const { edit } = Route.useSearch();
-  return <MyListingPage listingId={listingId} startEditing={edit === 1} />;
+  return <MyListingPage listingId={listingId} />;
 }

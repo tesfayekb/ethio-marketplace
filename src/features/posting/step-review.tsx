@@ -22,6 +22,9 @@ import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { entityName } from "@/i18n/entity";
 import { drawCatalog } from "@/i18n";
 import { useCatalogScope } from "./catalog-scope";
+import { EDIT_REASONS } from "@/features/admin-listings/edit-listing";
+import { ReasonNote } from "@/features/admin-listings/reason-note";
+import type { EditActor } from "./edit-step-changes";
 
 import { formatCommission } from "./price-basis";
 import { NegotiableBadge } from "@/components/marketplace/listing-card";
@@ -123,6 +126,8 @@ export function StepReview({
   basisLabel = null,
   basisKey = null,
   deal = null,
+  lockedSteps = [],
+  edit = null,
 }: {
   listingId: string | null;
   /** The chosen category's full path, in the seller's language. */
@@ -157,6 +162,18 @@ export function StepReview({
   basisKey?: string | null;
   /** Bundle 4 step 10 — the door's deal lists; their answers read under Price. */
   deal?: DealLists | null;
+  /** D194 — the sections with no Edit link (the Category always; staff's photos, place and contact). */
+  lockedSteps?: readonly number[];
+  /**
+   * D194 — the Review as the Edit's gateway over a live ad: no publish, no active
+   * window; Done instead; staff give their reason here, once (DEC-173).
+   */
+  edit?: {
+    actor: EditActor;
+    reason: { reason: string; note: string };
+    onReason: (reason: { reason: string; note: string }) => void;
+    onDone: () => void;
+  } | null;
 }) {
   const { t, entities, language } = useI18n();
   const scope = useCatalogScope();
@@ -174,7 +191,10 @@ export function StepReview({
   const [dateOn, setDateOn] = useState(values.posterExpiresAt !== "");
   const [inReview, setInReview] = useState(false);
 
+  /** D194 — staff editing another seller's ad: their own identity is nobody's seller block. */
+  const staffEdit = edit !== null && edit.actor === "admin";
   useEffect(() => {
+    if (staffEdit) return;
     let cancelled = false;
     void readSellerIdentity().then((found) => {
       if (!cancelled) setIdentity(found);
@@ -191,7 +211,7 @@ export function StepReview({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [staffEdit]);
 
   const categoryId = values.categoryId;
   useEffect(() => {
@@ -401,9 +421,37 @@ export function StepReview({
     );
   }
 
+  /** Staff's sections stay shut until the reason is chosen (DEC-173; spec v1 C2). */
+  const reasonMissing = edit !== null && edit.actor === "admin" && edit.reason.reason === "";
+
   return (
     <div className="space-y-4" data-testid="post-review">
-      <p className="text-sm text-muted-foreground">{t("post.review.why")}</p>
+      <p className="text-sm text-muted-foreground">
+        {edit === null ? t("post.review.why") : t("post.edit.why")}
+      </p>
+
+      {edit !== null && edit.actor === "admin" && (
+        /* D194 / DEC-173 — staff give the reason once, here, above the sections; it travels
+           with every step's save, and no section opens until a reason is chosen. */
+        <div
+          className="space-y-2 rounded-md border border-border p-3"
+          data-testid="post-edit-reason-box"
+        >
+          <ReasonNote
+            testid="post-edit"
+            reasons={EDIT_REASONS}
+            reason={edit.reason.reason}
+            note={edit.reason.note}
+            onReason={(value) => edit.onReason({ reason: value, note: edit.reason.note })}
+            onNote={(value) => edit.onReason({ reason: edit.reason.reason, note: value })}
+          />
+          {reasonMissing && (
+            <p className="text-xs text-muted-foreground" data-testid="post-edit-reason-needed">
+              {t("admin.listings.move.pickReason")}
+            </p>
+          )}
+        </div>
+      )}
 
       {/*
        * U6-C1-R2 — A REAL REVIEW PAGE: one section per step, the SAVED value in
@@ -412,7 +460,9 @@ export function StepReview({
        * walking the wizard again.
        */}
       <div className="space-y-2" data-testid="post-review-summary">
-        <p className="text-sm font-medium text-foreground">{t("post.review.summaryLabel")}</p>
+        <p className="text-sm font-medium text-foreground">
+          {edit === null ? t("post.review.summaryLabel") : t("post.edit.summaryLabel")}
+        </p>
         <dl className="divide-y divide-border rounded-md border border-border">
           {sections.map((section) => (
             <div
@@ -453,15 +503,18 @@ export function StepReview({
                   </dd>
                 )}
               </div>
-              <button
-                type="button"
-                data-testid="post-review-edit"
-                data-step={section.step}
-                className="min-h-11 shrink-0 text-xs font-medium text-primary underline"
-                onClick={() => onGoTo(section.step)}
-              >
-                {t("post.review.edit")}
-              </button>
+              {lockedSteps.includes(section.step) ? null : (
+                <button
+                  type="button"
+                  data-testid="post-review-edit"
+                  data-step={section.step}
+                  className="min-h-11 shrink-0 text-xs font-medium text-primary underline disabled:opacity-60"
+                  disabled={reasonMissing}
+                  onClick={() => onGoTo(section.step)}
+                >
+                  {t("post.review.edit")}
+                </button>
+              )}
             </div>
           ))}
         </dl>
@@ -550,68 +603,72 @@ export function StepReview({
        * is open unless the seller sets a date or the category holds a limit
        * (DEC-117); the door keeps the earlier of the two.
        */}
-      <div
-        className="space-y-2 rounded-md border border-border p-3"
-        data-testid="post-active-window"
-      >
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">{t("post.review.activeFromLabel")}</p>
-          <p className="text-sm text-muted-foreground" data-testid="post-active-from">
-            {t("post.review.activeFromFact")}
-          </p>
-        </div>
-        {/* Bundle 4 step 16 / DEC-117 — an ad has no end unless the seller sets
+      {edit === null && (
+        <div
+          className="space-y-2 rounded-md border border-border p-3"
+          data-testid="post-active-window"
+        >
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-foreground">
+              {t("post.review.activeFromLabel")}
+            </p>
+            <p className="text-sm text-muted-foreground" data-testid="post-active-from">
+              {t("post.review.activeFromFact")}
+            </p>
+          </div>
+          {/* Bundle 4 step 16 / DEC-117 — an ad has no end unless the seller sets
             a date or its category holds a limit; the door takes the earlier. */}
-        <p className="text-sm text-muted-foreground" data-testid="post-active-until-line">
-          {expiryDays === null
-            ? t("post.review.staysUp")
-            : fill(t("post.review.staysUpDays"), { days: expiryDays })}
-        </p>
-        <div className="flex min-h-11 items-center justify-between gap-3">
-          <label htmlFor="post-take-down-switch" className="text-sm font-medium text-foreground">
-            {t("post.review.takeDownSwitch")}
-          </label>
-          <Switch
-            id="post-take-down-switch"
-            data-testid="post-take-down-switch"
-            checked={dateOn}
-            onCheckedChange={(on) => {
-              setDateOn(on);
-              if (!on) onChangeExpiry("");
-            }}
-          />
-        </div>
-        {dateOn && (
-          <Field
-            id="post-active-until"
-            label={t("post.review.takeDownOn")}
-            required={false}
-            refusal={
-              refusalFor(doorRefusals, "poster_expires_at") ??
-              refusalFor(refusals, "poster_expires_at")
-            }
-            hint={
-              expiryDays === null ? undefined : (
-                <p className="text-xs text-muted-foreground">
-                  {fill(t("post.review.lifetimeCapHint"), { days: expiryDays })}
-                </p>
-              )
-            }
-          >
-            {/* INC-549 — the app's own calendar: a day before tomorrow or after the
-                category's limit is greyed and cannot be chosen, on every device. */}
-            <DateField
-              id="post-active-until"
-              testid="post-active-until"
-              value={values.posterExpiresAt}
-              min={dayFromToday(1)}
-              max={expiryDays === null ? undefined : dayFromToday(expiryDays)}
-              onChange={onChangeExpiry}
-              clearable={false}
+          <p className="text-sm text-muted-foreground" data-testid="post-active-until-line">
+            {expiryDays === null
+              ? t("post.review.staysUp")
+              : fill(t("post.review.staysUpDays"), { days: expiryDays })}
+          </p>
+          <div className="flex min-h-11 items-center justify-between gap-3">
+            <label htmlFor="post-take-down-switch" className="text-sm font-medium text-foreground">
+              {t("post.review.takeDownSwitch")}
+            </label>
+            <Switch
+              id="post-take-down-switch"
+              data-testid="post-take-down-switch"
+              checked={dateOn}
+              onCheckedChange={(on) => {
+                setDateOn(on);
+                if (!on) onChangeExpiry("");
+              }}
             />
-          </Field>
-        )}
-      </div>
+          </div>
+          {dateOn && (
+            <Field
+              id="post-active-until"
+              label={t("post.review.takeDownOn")}
+              required={false}
+              refusal={
+                refusalFor(doorRefusals, "poster_expires_at") ??
+                refusalFor(refusals, "poster_expires_at")
+              }
+              hint={
+                expiryDays === null ? undefined : (
+                  <p className="text-xs text-muted-foreground">
+                    {fill(t("post.review.lifetimeCapHint"), { days: expiryDays })}
+                  </p>
+                )
+              }
+            >
+              {/* INC-549 — the app's own calendar: a day before tomorrow or after the
+                category's limit is greyed and cannot be chosen, on every device. */}
+              <DateField
+                id="post-active-until"
+                testid="post-active-until"
+                value={values.posterExpiresAt}
+                min={dayFromToday(1)}
+                max={expiryDays === null ? undefined : dayFromToday(expiryDays)}
+                onChange={onChangeExpiry}
+                clearable={false}
+              />
+            </Field>
+          )}
+        </div>
+      )}
 
       {failed && (
         <p className="text-sm text-destructive" data-testid="post-review-failed">
@@ -645,36 +702,50 @@ export function StepReview({
         );
       })}
 
-      {/* Bundle 4 step 19 — the seller's statement; no tick, no link (no rules page yet).
+      {edit !== null && (
+        <button
+          type="button"
+          data-testid="post-edit-done"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+          onClick={edit.onDone}
+        >
+          {t("post.edit.done")}
+        </button>
+      )}
+      {edit === null && (
+        <>
+          {/* Bundle 4 step 19 — the seller's statement; no tick, no link (no rules page yet).
           publish_listing stamps attested_at on every successful publish. */}
-      <p className="text-xs text-muted-foreground" data-testid="post-publish-statement">
-        {t("post.review.statement")}
-      </p>
-      <button
-        type="button"
-        data-testid="post-publish"
-        disabled={publishing || listingId === null}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
-        onClick={() => {
-          if (listingId === null) return;
-          setPublishing(true);
-          setFailed(false);
-          setRefusals([]);
-          void publishListing(listingId).then((answer) => {
-            setPublishing(false);
-            if (answer.ok) {
-              setInReview(true);
-              return;
-            }
-            // A refusal is the door's judgement and is shown; unreachability is
-            // the network's and says so — never a silent nothing (F4).
-            if (answer.unreachable) setFailed(true);
-            else setRefusals(answer.refusals);
-          });
-        }}
-      >
-        {publishing ? t("post.review.publishing") : t("post.review.publish")}
-      </button>
+          <p className="text-xs text-muted-foreground" data-testid="post-publish-statement">
+            {t("post.review.statement")}
+          </p>
+          <button
+            type="button"
+            data-testid="post-publish"
+            disabled={publishing || listingId === null}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
+            onClick={() => {
+              if (listingId === null) return;
+              setPublishing(true);
+              setFailed(false);
+              setRefusals([]);
+              void publishListing(listingId).then((answer) => {
+                setPublishing(false);
+                if (answer.ok) {
+                  setInReview(true);
+                  return;
+                }
+                // A refusal is the door's judgement and is shown; unreachability is
+                // the network's and says so — never a silent nothing (F4).
+                if (answer.unreachable) setFailed(true);
+                else setRefusals(answer.refusals);
+              });
+            }}
+          >
+            {publishing ? t("post.review.publishing") : t("post.review.publish")}
+          </button>
+        </>
+      )}
     </div>
   );
 }

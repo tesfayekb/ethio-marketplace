@@ -2,7 +2,7 @@ import { type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
-import { destroyLocation, seedScratchChain } from "./helpers/locations";
+import { destroyLocation, seedGuessFixture, seedScratchChain } from "./helpers/locations";
 import {
   destroyCategoryBranch,
   destroyListingsOf,
@@ -937,12 +937,11 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     );
   });
 
-  test("MLA-13 Edit on the ad's page: a price at once, new words to review, a refusal under its field (D172, D177)", async ({
+  test("MLA-13 Edit opens the wizard's Review with no Edit on the Category; a price saved at once from the Price step; new words to review from the Title step; a refusal under its field (D194, D177)", async ({
     page,
   }) => {
     const seller = await scratchSeller();
     const X = await seed(seller, "active");
-    const Y = await seed(seller, "active");
     const priceOf = async (id: string) => {
       const { data, error } = await adminClient()
         .from("listings")
@@ -951,12 +950,6 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         .single();
       if (error || !data) throw new Error(`[e2e:mla] price read failed: ${error?.message}`);
       return Number(data.price_amount);
-    };
-    const clearAndType = async (testid: string, text: string) => {
-      await page.getByTestId(testid).click();
-      await page.keyboard.press("Control+A");
-      await page.keyboard.press("Backspace");
-      if (text !== "") await page.keyboard.type(text);
     };
 
     await signInViaSession(page, seller.email, seller.password);
@@ -969,80 +962,71 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")));
     expect(order).toEqual(["my-listing-edit", "my-listing-action-sell"]);
     await edit.click();
-    await expect(page.getByTestId("my-listing-edit-heading")).toHaveText(
-      en["myListings.editBox.title"],
-      { timeout: 15000 },
-    );
-    // D187 — the boxes in the posting form's order.
-    const boxes = await page
-      .getByTestId("listing-edit-form")
-      .locator(":scope > [data-testid]")
-      .evaluateAll((nodes) =>
-        nodes
-          .map((node) => node.getAttribute("data-testid") ?? "")
-          .filter((id) => id.endsWith("-box") || id === "listing-edit-text"),
-      );
-    expect(boxes).toEqual([
-      "listing-edit-specs-box",
-      "listing-edit-photos-box",
-      "listing-edit-text",
-      "listing-edit-price-box",
-      "listing-edit-place-box",
-      "listing-edit-contact-box",
-      "listing-edit-save-box",
-    ]);
-    await expect(page.getByTestId("listing-edit-text").getByTestId("post-assist")).toBeVisible();
-    await expect(
-      page.getByTestId("listing-edit-photos-box").getByTestId("post-video"),
-    ).toBeVisible();
-    await expect(page.getByTestId("my-listing-as-seen")).toHaveCount(0);
-    await expect(page.getByTestId("my-listing-action-sell")).toHaveCount(0);
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}/edit$`), { timeout: 15000 });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
 
-    await page.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("listing-edit-problem")).toHaveText(
-      en["myListings.editBox.nothing"],
-      { timeout: 15000 },
-    );
+    // No Edit link on data-step 1 (Category).
+    const editLinks = page.getByTestId("post-review-edit");
+    const sections = page.getByTestId("post-review-section");
+    const sectionCount = await sections.count();
+    expect(sectionCount).toBeGreaterThan(1);
+    const editCount = await editLinks.count();
+    expect(editCount).toBe(sectionCount - 1);
+    const step1 = page.locator('[data-testid="post-review-section"][data-step="1"]');
+    await expect(step1).toBeVisible();
+    await expect(step1.getByTestId("post-review-edit")).toHaveCount(0);
 
-    await clearAndType("post-price-amount", "90");
-    await page.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("my-listing-notice")).toHaveText(en["myListings.editBox.done"], {
+    // Edit Price (data-step 4) → a new amount → Save changes → back on Review.
+    await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 15000 });
+    await page.getByTestId("post-price-amount").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("90");
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-edit-notice")).toHaveText(en["myListings.editBox.done"], {
       timeout: 15000,
     });
-    await expect(page.getByTestId("my-listing-edit-panel")).toHaveCount(0);
     expect((await listingTruth(X))["status"]).toBe("active");
     expect(await priceOf(X)).toBe(90);
 
-    await page.getByTestId("my-listing-edit").click();
-    await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
-    await clearAndType("post-title", `E2E new words ${token()}`);
-    await page.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("my-listing-notice")).toHaveText(
+    // Edit Title (data-step 5) → a new title → Save changes → review notice.
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 15000 });
+    const newTitle = `E2E new words ${token()}`;
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type(newTitle);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-edit-notice")).toHaveText(
       en["myListings.editBox.doneReview"],
       { timeout: 15000 },
     );
     expect((await listingTruth(X))["status"]).toBe("screening");
-    await expect(page.getByTestId("my-listing-info")).toHaveText(en["myListings.ad.waiting"], {
-      timeout: 15000,
-    });
-    await expect(page.getByTestId("my-listing-edit")).toHaveCount(0);
 
-    const yTitle = (await listingTruth(Y))["title"];
-    await openAd(page, Y);
-    await page.getByTestId("my-listing-edit").click();
-    await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
-    await clearAndType("post-title", "");
-    await page.getByTestId("listing-edit-save").click();
-    await expect(
-      page
-        .getByTestId("listing-edit-text")
-        .locator('[data-testid="post-field"][data-field="post-title"] [role="alert"]'),
-    ).toHaveText(en["post.refusal.required"], { timeout: 15000 });
-    await expect(page.getByTestId("my-listing-edit-panel")).toBeVisible();
-    expect((await listingTruth(Y))["title"]).toBe(yTitle);
+    // Title too short → refusal under the title field, step still open.
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 15000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.getByTestId("post-next").click();
+    const refusal = page.locator(
+      '[data-testid="post-field"][data-field="post-title"] [data-testid="post-field-refusal"]',
+    );
+    await expect(refusal).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
+
+    // INC-660: correcting the title clears the refusal before Save.
+    await page.getByTestId("post-title").click();
+    await page.keyboard.type(`E2E corrected ${token()}`);
+    await expect(refusal).toHaveCount(0);
   });
 
-  test("MLA-14 Edit from the list's row opens the boxes; Post similar opens a new draft (D172, D182 4)", async ({
+  test("MLA-14 Edit from the list's row opens the wizard's Review; Post similar opens a new draft (D194, D182 4)", async ({
     page,
   }) => {
     const seller = await scratchSeller();
@@ -1061,8 +1045,8 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await gotoReady(page, "/my-listings");
     await expect(twin(page, X)).toBeVisible({ timeout: 15000 });
     await box(page, X).getByTestId(`my-listing-${X}-edit`).click();
-    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}\\?edit=1$`), { timeout: 15000 });
-    await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}/edit$`), { timeout: 15000 });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
 
     await openAd(page, S);
     await expect(page.getByTestId("my-listing-edit")).toHaveCount(0);
@@ -1086,13 +1070,17 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     });
   });
 
-  test("MLA-15 Edit, complete: a second city and a channel apply at once; typed directions go to review; the boxes in the posting form's order (D187)", async ({
+  test("MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659)", async ({
     page,
   }) => {
     const A = await scratchSeller();
     const second = await seedScratchChain("ET");
+    // INC-659 — a second scratch city at a distinct point, for the map-centre assertion.
+    const farPoint = { lat: 7.05, lng: 37.59 };
+    const guess = await seedGuessFixture("ET", farPoint);
     // Reaped in afterEach after the listings, so no place row still points at it.
     regions.push(second.region.slug as string);
+    regions.push(guess.region.slug as string);
     {
       const X = await seed(A, "active");
       const C1 = await adminClient()
@@ -1107,36 +1095,38 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       await signInViaSession(page, A.email, A.password);
       await openAd(page, X);
       await page.getByTestId("my-listing-edit").click();
-      await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
+      await expect(page).toHaveURL(new RegExp(`/my-listings/${X}/edit$`), { timeout: 15000 });
+      await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
 
-      const place = page.getByTestId("listing-edit-place-box");
-      await expect(place.getByTestId("post-where-city")).toHaveValue(A.cityId, { timeout: 15000 });
+      // Edit Place (data-step 6) → the Place step → change the city.
+      await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
+      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("post-where-city")).toHaveValue(A.cityId, { timeout: 15000 });
       // The free plan allows one city: the seller changes the ad's place (INC-642).
-      await place.getByTestId("post-where-region").selectOption(second.region.id as string);
-      await place.getByTestId("post-where-city").selectOption(second.city.id as string);
-      await expect(place.getByTestId("post-where-city")).toHaveValue(second.city.id as string);
+      await page.getByTestId("post-where-region").selectOption(second.region.id as string);
+      await page.getByTestId("post-where-city").selectOption(second.city.id as string);
+      await expect(page.getByTestId("post-where-city")).toHaveValue(second.city.id as string);
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("post-edit-notice")).toHaveText(en["myListings.editBox.done"], {
+        timeout: 15000,
+      });
 
-      const contact = page.getByTestId("listing-edit-contact-box");
-      await expect(contact).toBeVisible();
+      // Edit Contact (data-step 7) → the Contact step → toggle a channel.
+      await page.locator('[data-testid="post-review-edit"][data-step="7"]').click();
+      await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 15000 });
       await expectPhoneRowUsable(page, "post-who-value-phone");
       await pickPhoneCountry(page, "post-who-value-phone", "ET", "+251");
       await typePhone(page, "post-who-value-phone", "911234567");
       await page.getByTestId("post-who-value-phone").blur();
-      await contact.getByTestId("post-who-show-phone").check();
+      await page.getByTestId("post-who-show-phone").check();
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("post-edit-notice")).toHaveText(en["myListings.editBox.done"], {
+        timeout: 15000,
+      });
 
-      await page.getByTestId("listing-edit-save").click();
-      await expect(page.getByTestId("my-listing-notice")).toHaveText(
-        en["myListings.editBox.done"],
-        { timeout: 15000 },
-      );
-      await expect(page.getByTestId("my-listing-edit-panel")).toHaveCount(0);
-      const seen = page.getByTestId("my-listing-as-seen");
-      await expect(seen.getByTestId("listing-detail-places")).toContainText(c2Name);
-      await expect(seen.getByTestId("listing-detail-places")).not.toContainText(c1Name);
-      await expect(
-        seen.getByTestId("listing-detail-contact").locator('[data-channel="phone"]'),
-      ).toHaveCount(1);
-
+      // DB truth: the places and the contact applied at once.
       const supabase = adminClient();
       const located = await supabase
         .from("listing_locations")
@@ -1159,20 +1149,37 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         ((row.data.contact_pref as Row)["phone"] as { show?: boolean } | undefined)?.show,
       ).toBe(true);
 
-      await page.getByTestId("my-listing-edit").click();
-      await expect(page.getByTestId("my-listing-edit-heading")).toBeVisible({ timeout: 15000 });
-      await page.getByTestId("listing-edit-place-box").getByTestId("post-where-directions").click();
+      // Edit Place again → directions typed → Save → review notice.
+      await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
+      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 15000 });
+      await page.getByTestId("post-where-directions").click();
       await page.keyboard.type("Behind the church");
       await page.keyboard.press("Tab");
-      await expect(page.getByTestId("post-where-directions-saved")).toHaveCount(0);
-      await page.getByTestId("listing-edit-save").click();
-      await expect(page.getByTestId("my-listing-notice")).toHaveText(
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("post-edit-notice")).toHaveText(
         en["myListings.editBox.doneReview"],
         { timeout: 15000 },
       );
       const truth = await listingTruth(X);
       expect(truth["status"]).toBe("screening");
       expect(truth["directions"]).toBe("Behind the church");
+
+      // INC-659 — the pin map opens on the new city's point, not the old pin's.
+      await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
+      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 15000 });
+      // Change place to the guess fixture's city (far away).
+      await page.getByTestId("post-where-region").selectOption(guess.region.id as string);
+      await page.getByTestId("post-where-city").selectOption(guess.city.id as string);
+      await expect(page.getByTestId("post-where-city")).toHaveValue(guess.city.id as string);
+      // Open the map.
+      await page.getByTestId("post-where-pin-open").click();
+      const map = page.getByTestId("post-pin-map");
+      await expect(map).toHaveAttribute("data-ready", "1", { timeout: 15000 });
+      const centreLat = Number(await map.getAttribute("data-center-lat"));
+      const centreLng = Number(await map.getAttribute("data-center-lng"));
+      expect(Math.abs(centreLat - farPoint.lat)).toBeLessThan(0.01);
+      expect(Math.abs(centreLng - farPoint.lng)).toBeLessThan(0.01);
     }
   });
 });

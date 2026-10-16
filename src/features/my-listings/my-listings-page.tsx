@@ -101,8 +101,9 @@ import { stateLine } from "./state-line";
  *   everything under it; Reserved; Price reduced) with their chips, and Columns
  *   (the title locked). The door filters, and the six counts follow the filters;
  * - each row's actions (`RowActions`): Edit — on a draft the posting form, on a
- *   live, closed or refused ad its own page with the edit boxes open (turn R2,
- *   D172: `/my-listings/<id>?edit=1`) — a red Delete on every ad that can be
+ *   live, closed or refused ad the posting form in its edit mode (bundle 17
+ *   turn 2, D194: `/my-listings/<id>/edit`, opened on its Review) — a red Delete
+ *   on every ad that can be
  *   deleted, and the three-dots with Open, what this ad offers — the same rule as
  *   its own page (`rowActionsFor` / `actionsFor`) — and, last, Post a similar ad
  *   (D182 4; `-more-copy`: a new draft with the ad's details, opened in the posting
@@ -424,13 +425,12 @@ export function MyListingsPage() {
               }
             : EDITABLE_STATUSES.has(row.status)
               ? {
-                  // Turn R2 (D172) — the ad's own page with its edit boxes open.
+                  // D194 — the posting form in its edit mode, on its Review (turn R2's `?edit=1` panel is gone).
                   label: t("myListings.edit"),
                   onSelect: () =>
                     void navigate({
-                      to: "/my-listings/$listingId",
+                      to: "/my-listings/$listingId/edit",
                       params: { listingId: row.id },
-                      search: { edit: 1 },
                     }),
                 }
               : undefined

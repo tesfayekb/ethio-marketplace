@@ -67,35 +67,34 @@ function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, (char) => `\\${char}`);
 }
 
-export async function listScreening(
-  page: number,
-  search: string,
-  pageSize: number = SCREENING_PAGE_SIZE,
-  filters: ScreeningFilters = { country: null },
-): Promise<{ rows: ScreeningRow[]; total: number }> {
-  const from = page * pageSize;
-  let query = supabase
-    .from("listings")
-    .select(
-      "id,title,description,category_id,location_id,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,price_unit,price_unit_text,attributes,photos_soon,updated_at,category:categories(name_en,name_am),place:locations(name_en,name_am,country_code)",
-      { count: "exact" },
-    )
-    .eq("status", "screening");
-  const term = search.trim();
-  if (term !== "") query = query.ilike("title", `%${escapeLike(term)}%`);
-  // INC-537 — through the embedded place; `place=not.is.null` keeps only the
-  // ads whose place is in the market (the place's columns are granted).
-  if (filters.country !== null) {
-    query = query.eq("place.country_code", filters.country).not("place", "is", null);
-  }
-  const { data, error, count } = await query
-    .order("updated_at", { ascending: true })
-    .order("id", { ascending: true })
-    .range(from, from + pageSize - 1);
-  // F4 — a failed read is an error, never an empty queue.
-  if (error) throw new Error(error.message);
-  if (!data || count === null) throw new Error("screening read returned no data");
-  const rows = data.map((row) => ({
+/** The queue's columns: the ad's public row with its category and its place embedded. */
+const SCREENING_SELECT =
+  "id,title,description,category_id,location_id,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,price_unit,price_unit_text,attributes,photos_soon,updated_at,category:categories(name_en,name_am),place:locations(name_en,name_am,country_code)";
+
+type ScreeningSelected = {
+  id: string;
+  title: string;
+  description: string;
+  category_id: string;
+  location_id: string | null;
+  price_mode: string;
+  price_amount: number | string | null;
+  price_currency: string | null;
+  price_period: string | null;
+  price_bp: number | null;
+  price_negotiable: boolean;
+  price_unit: string | null;
+  price_unit_text: string | null;
+  attributes: unknown;
+  photos_soon: boolean;
+  updated_at: string;
+  category: unknown;
+  place: unknown;
+};
+
+/** One selected row as the page reads it (shared by the queue and the one-row read). */
+function screeningRowOf(row: ScreeningSelected): ScreeningRow {
+  return {
     id: row.id,
     title: row.title,
     description: row.description,
@@ -122,7 +121,52 @@ export async function listScreening(
     updatedAt: row.updated_at,
     category: (row.category as Named) ?? null,
     place: (row.place as Named) ?? null,
-  }));
+  };
+}
+
+/**
+ * Bundle 17 turn 2 (D194) — one ad of the queue by its id, for the preview that
+ * re-opens when the reviewer comes back from the ad's Edit (`?open=<id>`): read
+ * fresh, so the preview shows the ad as the edit left it. Null when the ad is
+ * no longer in screening (decided, or moved on meanwhile).
+ */
+export async function readScreeningRow(listingId: string): Promise<ScreeningRow | null> {
+  const { data, error } = await supabase
+    .from("listings")
+    .select(SCREENING_SELECT)
+    .eq("status", "screening")
+    .eq("id", listingId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data === null ? null : screeningRowOf(data as unknown as ScreeningSelected);
+}
+
+export async function listScreening(
+  page: number,
+  search: string,
+  pageSize: number = SCREENING_PAGE_SIZE,
+  filters: ScreeningFilters = { country: null },
+): Promise<{ rows: ScreeningRow[]; total: number }> {
+  const from = page * pageSize;
+  let query = supabase
+    .from("listings")
+    .select(SCREENING_SELECT, { count: "exact" })
+    .eq("status", "screening");
+  const term = search.trim();
+  if (term !== "") query = query.ilike("title", `%${escapeLike(term)}%`);
+  // INC-537 — through the embedded place; `place=not.is.null` keeps only the
+  // ads whose place is in the market (the place's columns are granted).
+  if (filters.country !== null) {
+    query = query.eq("place.country_code", filters.country).not("place", "is", null);
+  }
+  const { data, error, count } = await query
+    .order("updated_at", { ascending: true })
+    .order("id", { ascending: true })
+    .range(from, from + pageSize - 1);
+  // F4 — a failed read is an error, never an empty queue.
+  if (error) throw new Error(error.message);
+  if (!data || count === null) throw new Error("screening read returned no data");
+  const rows = data.map((row) => screeningRowOf(row as unknown as ScreeningSelected));
   return { rows, total: count };
 }
 
@@ -299,44 +343,4 @@ export async function revealContact(
     return { ok: false, reason: payload["reason"] };
   }
   throw new Error("reveal returned no answer");
-}
-
-/**
- * Bundle 16 turn E3 follow-up (INC-649) — THE PREVIEWED ROW AS THE EDIT LEFT IT.
- * `admin_edit_listing` answers which fields it took, not the row; the queue's
- * fresh read replaces this a moment later. Until then the preview shows the
- * change the reviewer just saved, never the old words: the title, the
- * description, the answers and the price keys the edit form sends, mapped from
- * the door's names. Keys the form does not send are left as they are.
- */
-export function editedScreeningRow(
-  row: ScreeningRow,
-  changes: Record<string, unknown>,
-): ScreeningRow {
-  const text = (key: string, current: string) =>
-    typeof changes[key] === "string" ? (changes[key] as string) : current;
-  const number = (key: string, current: number | null) =>
-    key in changes ? (typeof changes[key] === "number" ? (changes[key] as number) : null) : current;
-  const nullableText = (key: string, current: string | null) =>
-    key in changes ? (typeof changes[key] === "string" ? (changes[key] as string) : null) : current;
-  return {
-    ...row,
-    title: text("title", row.title),
-    description: text("description", row.description),
-    attributes:
-      changes["attributes"] !== null &&
-      typeof changes["attributes"] === "object" &&
-      !Array.isArray(changes["attributes"])
-        ? (changes["attributes"] as Record<string, unknown>)
-        : row.attributes,
-    priceMode: text("price_mode", row.priceMode),
-    priceAmount: number("price_amount", row.priceAmount),
-    priceCurrency: nullableText("price_currency", row.priceCurrency),
-    pricePeriod: nullableText("price_period", row.pricePeriod),
-    priceBp: number("price_bp", row.priceBp),
-    priceNegotiable:
-      typeof changes["price_negotiable"] === "boolean"
-        ? (changes["price_negotiable"] as boolean)
-        : row.priceNegotiable,
-  };
 }

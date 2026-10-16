@@ -489,15 +489,32 @@ export async function readDraft(
       directions: typeof data.directions === "string" ? data.directions : null,
       photosSoon: data.photos_soon === true,
     },
-    photos: (photos ?? []).map((row) => ({
-      id: row.id,
-      displayOrder: row.display_order,
-      paths: (row.paths ?? null) as Record<string, unknown> | null,
-      storagePath: row.storage_path,
-      unscreened: row.unscreened === true,
-      warnings: photoWarningsOf(row.warning),
-      review: photoReviewOf(row.review),
-    })),
+    photos: (photos ?? []).map(photoRowOf),
+  };
+}
+
+/**
+ * Bundle 17 turn 2 — one `listing_photos` row as the grid reads it (the columns
+ * of `PHOTO_ROW_SELECT`), shared by the owner's read above and the staff's
+ * edit read (use-edit-draft.ts), so the two cannot disagree about a photo.
+ */
+export function photoRowOf(row: {
+  id: string;
+  display_order: number;
+  paths: unknown;
+  storage_path: string | null;
+  unscreened: boolean | null;
+  warning: unknown;
+  review: unknown;
+}): DraftPhotoRow {
+  return {
+    id: row.id,
+    displayOrder: row.display_order,
+    paths: (row.paths ?? null) as Record<string, unknown> | null,
+    storagePath: row.storage_path,
+    unscreened: row.unscreened === true,
+    warnings: photoWarningsOf(row.warning),
+    review: photoReviewOf(row.review),
   };
 }
 

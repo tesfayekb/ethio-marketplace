@@ -985,11 +985,8 @@ test.describe("ADMIN SCREENING", () => {
     // Its link opens the ad's own page; there, Edit holds the photos with Remove.
     await page.getByTestId("admin-screening-open-listing").click();
     await expect(page).toHaveURL(new RegExp(`/admin/listings/${ad.id}$`), { timeout: 20000 });
-    await page.getByTestId("listing-edit").click();
-    const edited = page
-      .getByTestId("listing-edit-panel")
-      .getByTestId("listing-photos")
-      .getByTestId("listing-photos-item");
+    // D194 — the photos card is on the page without clicking Edit.
+    const edited = page.getByTestId("listing-photos").getByTestId("listing-photos-item");
     await expect(edited).toHaveCount(2, { timeout: 20000 });
     await expect(edited.nth(0)).toHaveAttribute("data-photo-id", photos.held);
     await edited.nth(0).getByTestId("listing-photos-remove").click();
@@ -1354,7 +1351,7 @@ test.describe("ADMIN SCREENING", () => {
     expect(await buyerPhotoIds(ad.id)).toEqual([failed, plain].sort());
   });
 
-  test("SC-25 Edit inside the preview: the reviewer corrects a waiting ad's title and approves it (D188)", async ({
+  test("SC-25 Edit from the preview opens the wizard; the reviewer corrects a waiting ad's title with a reason and approves it from the re-opened preview (D194, D188)", async ({
     page,
   }) => {
     const titleOf = async (id: string) => {
@@ -1379,32 +1376,49 @@ test.describe("ADMIN SCREENING", () => {
       .getByTestId("admin-screening-preview-edit");
     await expect(edit).toBeVisible();
     await edit.click();
-    await expect(sheet.getByTestId("admin-screening-edit-panel")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("admin-screening-preview-approve")).toHaveCount(0);
-    await expect(page.getByTestId("admin-screening-preview-reject")).toHaveCount(0);
-    await expect(sheet.getByTestId("listing-detail-title")).toHaveCount(0);
+    // → the wizard at /admin/listings/<id>/edit?from=screening.
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${ad.id}/edit\\?from=screening$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
 
-    const form = sheet.getByTestId("listing-edit-form");
-    await form.getByTestId("listing-edit-title").fill(corrected);
-    await form.getByTestId("listing-edit-save").click();
-    await expect(form.getByTestId("listing-edit-problem")).toHaveText(
-      en["admin.listings.move.pickReason"],
-    );
-    await form.getByTestId("listing-edit-reason-misleading").click();
-    await form.getByTestId("listing-edit-note").fill("e2e SC-25 title corrected");
-    await form.getByTestId("listing-edit-save").click();
+    // Every Edit link disabled until a reason is chosen.
+    const editLinks = page.getByTestId("post-review-edit");
+    const editCount = await editLinks.count();
+    expect(editCount).toBeGreaterThan(0);
+    for (let i = 0; i < editCount; i++) {
+      await expect(editLinks.nth(i)).toBeDisabled();
+    }
+
+    // Choose a reason, fill a note, then Edit the title.
+    await page.getByTestId("post-edit-reason-misleading").click();
+    await page.getByTestId("post-edit-note").fill("e2e SC-25 title corrected");
+
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type(corrected);
+    await page.getByTestId("post-next").click();
+    // The step-up modal on the first save.
     await stepUpIfPrompted(page, secret);
-
-    await expect(sheet.getByTestId("admin-screening-edit-done")).toHaveText(
-      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.col.title"]),
-      { timeout: 20000 },
-    );
-    await expect(sheet.getByTestId("admin-screening-edit-panel")).toHaveCount(0);
-    await expect(sheet.getByTestId("listing-detail-title")).toHaveText(corrected);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("post-edit-notice")).toHaveAttribute("data-shown", "true", {
+      timeout: 20000,
+    });
     expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "screening" });
 
+    // Done → back to /admin/screening with the preview re-opened.
+    await page.getByTestId("post-edit-done").click();
+    await expect(page).toHaveURL(/\/admin\/screening/, { timeout: 20000 });
+    const reopened = page.getByTestId("post-preview-sheet");
+    await expect(reopened).toBeVisible({ timeout: 20000 });
+    await expect(reopened).toContainText(corrected);
+
+    // Approve from the re-opened preview.
     await page.getByTestId("admin-screening-preview-approve").click();
-    await expect(sheet).toHaveCount(0);
+    await expect(reopened).toHaveCount(0);
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
     await page.getByTestId("admin-screening-confirm-go").click();
     await stepUpIfPrompted(page, secret);

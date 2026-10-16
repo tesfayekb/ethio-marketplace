@@ -64,6 +64,8 @@ import { Route as ApiLocationsCountryRouteImport } from './routes/api/locations.
 import { Route as ApiMapTilesRouteImport } from './routes/api/map/tiles'
 import { Route as ApiMediaPhotoLinksRouteImport } from './routes/api/media/photo-links'
 import { Route as ApiUploadPhotoRouteImport } from './routes/api/upload/photo'
+import { Route as MyListingsListingIdEditRouteImport } from './routes/my-listings_.$listingId_.edit'
+import { Route as AdminListingsListingIdEditRouteImport } from './routes/admin.listings_.$listingId_.edit'
 import { Route as ApiAdminAttributesExportRouteImport } from './routes/api/admin/attributes/export'
 import { Route as ApiAdminAttributesImportRouteImport } from './routes/api/admin/attributes/import'
 import { Route as ApiAdminCategoriesExportRouteImport } from './routes/api/admin/categories/export'
@@ -352,6 +354,17 @@ const ApiUploadPhotoRoute = ApiUploadPhotoRouteImport.update({
   path: '/api/upload/photo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MyListingsListingIdEditRoute = MyListingsListingIdEditRouteImport.update({
+  id: '/my-listings_/$listingId_/edit',
+  path: '/my-listings/$listingId/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminListingsListingIdEditRoute =
+  AdminListingsListingIdEditRouteImport.update({
+    id: '/listings_/$listingId_/edit',
+    path: '/listings/$listingId/edit',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const ApiAdminAttributesExportRoute =
   ApiAdminAttributesExportRouteImport.update({
     id: '/api/admin/attributes/export',
@@ -471,6 +484,8 @@ export interface FileRoutesByFullPath {
   '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
+  '/my-listings/$listingId/edit': typeof MyListingsListingIdEditRoute
+  '/admin/listings/$listingId/edit': typeof AdminListingsListingIdEditRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
   '/api/admin/categories/export': typeof ApiAdminCategoriesExportRoute
@@ -538,6 +553,8 @@ export interface FileRoutesByTo {
   '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
+  '/my-listings/$listingId/edit': typeof MyListingsListingIdEditRoute
+  '/admin/listings/$listingId/edit': typeof AdminListingsListingIdEditRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
   '/api/admin/categories/export': typeof ApiAdminCategoriesExportRoute
@@ -607,6 +624,8 @@ export interface FileRoutesById {
   '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
+  '/my-listings_/$listingId_/edit': typeof MyListingsListingIdEditRoute
+  '/admin/listings_/$listingId_/edit': typeof AdminListingsListingIdEditRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
   '/api/admin/attributes/import': typeof ApiAdminAttributesImportRoute
   '/api/admin/categories/export': typeof ApiAdminCategoriesExportRoute
@@ -677,6 +696,8 @@ export interface FileRouteTypes {
     | '/api/map/tiles'
     | '/api/media/photo-links'
     | '/api/upload/photo'
+    | '/my-listings/$listingId/edit'
+    | '/admin/listings/$listingId/edit'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
     | '/api/admin/categories/export'
@@ -744,6 +765,8 @@ export interface FileRouteTypes {
     | '/api/map/tiles'
     | '/api/media/photo-links'
     | '/api/upload/photo'
+    | '/my-listings/$listingId/edit'
+    | '/admin/listings/$listingId/edit'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
     | '/api/admin/categories/export'
@@ -812,6 +835,8 @@ export interface FileRouteTypes {
     | '/api/map/tiles'
     | '/api/media/photo-links'
     | '/api/upload/photo'
+    | '/my-listings_/$listingId_/edit'
+    | '/admin/listings_/$listingId_/edit'
     | '/api/admin/attributes/export'
     | '/api/admin/attributes/import'
     | '/api/admin/categories/export'
@@ -857,6 +882,7 @@ export interface RootRouteChildren {
   ApiMapTilesRoute: typeof ApiMapTilesRoute
   ApiMediaPhotoLinksRoute: typeof ApiMediaPhotoLinksRoute
   ApiUploadPhotoRoute: typeof ApiUploadPhotoRoute
+  MyListingsListingIdEditRoute: typeof MyListingsListingIdEditRoute
   ApiAdminAttributesExportRoute: typeof ApiAdminAttributesExportRoute
   ApiAdminAttributesImportRoute: typeof ApiAdminAttributesImportRoute
   ApiAdminCategoriesExportRoute: typeof ApiAdminCategoriesExportRoute
@@ -1257,6 +1283,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUploadPhotoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/my-listings_/$listingId_/edit': {
+      id: '/my-listings_/$listingId_/edit'
+      path: '/my-listings/$listingId/edit'
+      fullPath: '/my-listings/$listingId/edit'
+      preLoaderRoute: typeof MyListingsListingIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/listings_/$listingId_/edit': {
+      id: '/admin/listings_/$listingId_/edit'
+      path: '/listings/$listingId/edit'
+      fullPath: '/admin/listings/$listingId/edit'
+      preLoaderRoute: typeof AdminListingsListingIdEditRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/admin/attributes/export': {
       id: '/api/admin/attributes/export'
       path: '/api/admin/attributes/export'
@@ -1358,6 +1398,7 @@ interface AdminRouteChildren {
   AdminRolesRoleIdRoute: typeof AdminRolesRoleIdRoute
   AdminTranslationsLangRoute: typeof AdminTranslationsLangRoute
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
+  AdminListingsListingIdEditRoute: typeof AdminListingsListingIdEditRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1381,6 +1422,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminRolesRoleIdRoute: AdminRolesRoleIdRoute,
   AdminTranslationsLangRoute: AdminTranslationsLangRoute,
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,
+  AdminListingsListingIdEditRoute: AdminListingsListingIdEditRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -1444,6 +1486,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMapTilesRoute: ApiMapTilesRoute,
   ApiMediaPhotoLinksRoute: ApiMediaPhotoLinksRoute,
   ApiUploadPhotoRoute: ApiUploadPhotoRoute,
+  MyListingsListingIdEditRoute: MyListingsListingIdEditRoute,
   ApiAdminAttributesExportRoute: ApiAdminAttributesExportRoute,
   ApiAdminAttributesImportRoute: ApiAdminAttributesImportRoute,
   ApiAdminCategoriesExportRoute: ApiAdminCategoriesExportRoute,

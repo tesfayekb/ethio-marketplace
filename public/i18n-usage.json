@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 449,
-  "dynamicCallSites": 345,
+  "scanned": 453,
+  "dynamicCallSites": 331,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2081,9 +2081,7 @@
     ],
     "admin.listings.col.category": [
       "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
+      "/admin/listings/$listingId"
     ],
     "admin.listings.col.expires": [
       "/admin/listings",
@@ -2162,18 +2160,11 @@
     "admin.listings.detail.severe": [
       "/admin/listings/$listingId"
     ],
-    "admin.listings.edit.done": [
-      "/admin/listings/$listingId",
-      "/admin/screening"
-    ],
-    "admin.listings.edit.priceFailed": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
-    ],
     "admin.listings.edit.title": [
-      "/admin/listings/$listingId",
-      "/admin/screening"
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "admin.listings.empty": [
       "/admin/listings"
@@ -2266,20 +2257,35 @@
     "admin.listings.move.note": [
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "admin.listings.move.noteHint": [
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "admin.listings.move.pickReason": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "admin.listings.move.reason": [
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "admin.listings.move.refused": [
       "/admin/listings"
@@ -3899,11 +3905,13 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -3917,6 +3925,7 @@
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -3928,6 +3937,7 @@
       "/dev/style",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -3949,9 +3959,11 @@
       "/admin/categories",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId",
       "/settings"
@@ -3960,10 +3972,12 @@
       "/",
       "/admin/ai",
       "/admin/listings",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -3975,10 +3989,11 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -4029,10 +4044,12 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -4040,10 +4057,12 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -4152,10 +4171,12 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -4189,6 +4210,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4206,6 +4228,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4259,6 +4282,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4275,6 +4299,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4291,6 +4316,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4307,6 +4333,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4324,6 +4351,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4340,6 +4368,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4422,23 +4451,23 @@
       "/my-listings",
       "/my-listings/$listingId"
     ],
-    "myListings.editBox.contactHint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
+    "myListings.editBox.done": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
-    "myListings.editBox.photosHint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
+    "myListings.editBox.doneReview": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
-    "myListings.editBox.placeHint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
-    ],
-    "myListings.editBox.title": [
-      "/my-listings/$listingId"
+    "myListings.editBox.save": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "myListings.empty": [
       "/my-listings"
@@ -4545,1044 +4574,1231 @@
       "(every page)"
     ],
     "post.action.back": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.action.backToReview": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.action.next": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.action.retry": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.action": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.again": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.done": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.exhausted": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.hint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.historyLabel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.suggestionNumber": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.triesLeft": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.use": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.assist.working": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.catalog.moveAsk": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.catalog.moveKeeps": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.catalog.moveYes": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.catalog.yourCountry": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.allRoots": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.change": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.changedDismiss": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.changedPhotos": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.changedReset": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.chooseOne": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.currentChoice": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.empty": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.filterHint": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.filterLabel": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.folder": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.keepIt": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.matchLine": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.nameMatchesOnly": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.nextBlocked": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.noHits": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.recentLabel": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.searchPlaceholder": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.searching": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.trailLabel": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.treeError": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.category.why": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.count": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.descriptionLabel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.descriptionPlaceholder": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.titleBuilt": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.titleLabel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.titlePlaceholder": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.videoHint": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.videoLabel": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.videoPlaceholder": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.details.why": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.edit.done": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.edit.summaryLabel": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.edit.title": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.edit.why": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.error.load": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.error.notYours": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.field.required": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.enlarge": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.inReview": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.next": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.previous": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.show": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.gallery.unscreened": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.loading": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.optional": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.add": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.background": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.background.hint": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.background.keep": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.background.triesLeft": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.background.working": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.backgroundCoverOnly": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.backgroundShort": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.count": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.coverRibbon": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.done": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.earlierShort": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.edit": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.editShort": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.editor.box": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.editor.failed": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.editor.hint": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.editor.kept": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.editor.rotateLeft": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.editor.rotateRight": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.editor.saving": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.heldNote": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.helper": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.laterShort": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.makeCover": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.moveDown": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.moveUp": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.nextHeld": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.none": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.notRelevant": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.preparing": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.public": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.refusedFinal": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.remove": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.retry": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.review.title": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.soonFailed": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.soonTick": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.standIn": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.uploading": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.waitSending": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.photos.why": [
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.at": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.backupMap": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.cancel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.clearedCityChanged": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.fromLastPost": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.layerSatellite": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.layerStreet": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.noResults": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.none": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.outsidePlace": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.remove": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.removed": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.saveFailed": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.saveLocation": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.saved": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.saving": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.searchLabel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.searchPlaceholder": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.searching": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.showAsLabel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.tapHint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.title": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.pin.why": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.close": [
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.contactLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.descriptionLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.detailsLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.mapPlaceholder": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.photoCount": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.sellerLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.preview.title": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountEnter": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountPer": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.amountShown": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.basisFixed": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.commissionHelp": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.commissionLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencyFailed": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencyLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencyNone": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.currencySearch": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.group.price": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.modeLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.moreCurrencies": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.negotiableToggle": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.notAllowed": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.periodFixed": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.periodLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleMillion": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleNone": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.scaleThousand": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.price.why": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.progress.label": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.progress.stepNumber": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.progress.stripLabel": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.aliasImitatesBrand": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.aliasTooSoon": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.cityRequired": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.contactInNote": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.countryTooSoon": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.refusalSummary": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.refusalSummary.elsewhere": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.activeFromFact": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.activeFromLabel": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.channels": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.edit": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.fixStep": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.lifetimeCapHint": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.myListings": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.no": [
       "/admin/categories",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.noPrice": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.noTitle": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.notGiven": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.placesCount": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.postAnother": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.previewAsBuyer": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -5591,10 +5807,12 @@
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -5603,957 +5821,981 @@
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.publish": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.publishing": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.reviewBody": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.reviewTitle": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.sizeLine": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.statement": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.staysUp": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.staysUpDays": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.summaryLabel": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.takeDownOn": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.takeDownSwitch": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.why": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.review.yes": [
       "/admin/categories",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.save.paused": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.save.saved": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.save.saving": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.save.unsaved": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.seller.memberSince": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.seller.previously": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.boundsHint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.choose": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.factHint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.fromModel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.helpMore": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.helpMoreMark": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.lengthHint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.modelDiffers": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.multiHint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.needCategory": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.noBound": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.none": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.noneForParent": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.optionsLoading": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.otherPlaceholder": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.parentFirst": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.presetHint": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.resetForModel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.resetUndo": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.setByModel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.useModelValue": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.why": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.specs.yearEcSuffix": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.step.category": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
-    "post.step.contact": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
-    ],
-    "post.step.details": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
-    ],
-    "post.step.photos": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
-    ],
-    "post.step.place": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
-    ],
-    "post.step.price": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
-    ],
-    "post.step.specifications": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId"
-    ],
     "post.stepLater": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.stepOf": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.title": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.addCity": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.addCountry": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.addRegion": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.addSubCity": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.allOf": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.detailsHelp": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.detailsLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.detailsSaved": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.detailsTooLong": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.directionsHelp": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.directionsLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.directionsSaved": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.directionsTooLong": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemBoxTitleOptional": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemHelp": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemHere": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemMoved": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.itemNone": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.levelNone": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketChoose": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketFailed": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketLabel": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketLoading": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.marketUnresolved": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.noRegions": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.pinLater": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.planCaption": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.planLevels": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.planLine": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.planLineUnknown": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.prefilled": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.removePlace": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.shopFailed": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.shopTick": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.showHeading": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.showIntro": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.shownBoxTitle": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.treeFailed": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.where.treeLoading": [
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.addPhone2": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasAvailable": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasBuyerLine": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasChangeFirst": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasChangeRule": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasChecking": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasCorrectionWindow": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasLatinOnly": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasNextChange": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasRules": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasSuggestions": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.businessLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.messages": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.phone": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.phone2": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.telegram": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.whatsapp": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channelsLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.contactFromLastPost": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryChange": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirm": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirmGo": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirmTitle": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirmYes": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryNone": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryRequired": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryWhereHint": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.edit": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.firstNameLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.identityLoading": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.lastNameLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.messagesCannotOff": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.messagesEveryBuyer": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.messagesOnBadge": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.nameBusinessHint": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.nameHint": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.optionalHeading": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.optionalLine": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountryChosen": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountryLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountryNone": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountrySearch": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneLibFailed": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneLibRetry": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.readFailed": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.saveFailed": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.savedHint": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.showToSignedIn": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.typeBusiness": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.typeLabel": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.typePerson": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.why": [
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -6562,10 +6804,12 @@
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -6574,10 +6818,12 @@
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -6586,10 +6832,12 @@
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -6597,46 +6845,44 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "prim.date.clear": [
       "/admin/audit",
       "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "prim.date.next": [
       "/admin/audit",
       "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "prim.date.pick": [
       "/admin/audit",
       "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "prim.date.previous": [
       "/admin/audit",
       "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/screening",
-      "/my-listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -6946,6 +7192,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -7114,10 +7361,12 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
@@ -7125,10 +7374,12 @@
       "/",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/c/$slug",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ]

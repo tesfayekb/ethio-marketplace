@@ -67,12 +67,23 @@ describe("the seller's edit and copy (turn R2)", () => {
     });
 
     rpc.mockResolvedValueOnce({
-      data: { ok: false, refusals: [{ field: "title", reason: "tooShort" }, { bad: 1 }] },
+      data: {
+        ok: false,
+        refusals: [
+          { field: "title", reason: "tooShort" },
+          // INC-665 — a specification's refusal names its attr_key and may carry a detail.
+          { attr_key: "colour", reason: "outOfBounds", detail: "max 3" },
+          { bad: 1 },
+        ],
+      },
       error: null,
     });
     expect(await editMyListing("l-1", { title: "x" })).toEqual({
       ok: false,
-      refusals: [{ field: "title", reason: "tooShort" }],
+      refusals: [
+        { field: "title", reason: "tooShort" },
+        { field: "colour", reason: "outOfBounds", detail: "max 3" },
+      ],
     });
 
     const errors: [string, string][] = [

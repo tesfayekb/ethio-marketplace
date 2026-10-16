@@ -1409,7 +1409,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .replace("{currency}", "ETB")
       .replace("{basis}", "bag");
 
-    await useJobSuperAdmin(page);
+    const { secret } = await useJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -1418,33 +1418,44 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     await expect(page.getByTestId("listing-fact-price")).toContainText(perBag);
 
+    // D194 — the console's Edit opens the wizard at /admin/listings/<id>/edit.
     await page.getByTestId("listing-edit").click();
-    const form = page.getByTestId("listing-edit-form");
-    await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("listing-details")).toHaveCount(0);
-    await expectNoHorizontalOverflow(page);
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}/edit$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
 
-    const title = `Corrected listing ${token()}`;
+    // The reason and note in the reason box.
     const note = "The title named the wrong model.";
-    await form.getByTestId("listing-edit-title").fill(title);
-    await form.getByTestId("post-price-amount").fill("120");
-    // A reason first.
-    await form.getByTestId("listing-edit-save").click();
-    await expect(form.getByTestId("listing-edit-problem")).toHaveText(
-      en["admin.listings.move.pickReason"],
-    );
-    await form.getByTestId("listing-edit-reason-misleading").click();
-    await form.getByTestId("listing-edit-note").fill(note);
-    await form.getByTestId("listing-edit-save").click();
+    await page.getByTestId("post-edit-reason-misleading").click();
+    await page.getByTestId("post-edit-note").fill(note);
 
-    await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.edit.done"].replace(
-        "{fields}",
-        `${en["admin.listings.col.price"]}, ${en["admin.listings.col.title"]}`,
-      ),
-      { timeout: 20000 },
-    );
-    await expect(page.getByTestId("listing-edit")).toBeVisible();
+    // Edit Price (data-step 4).
+    await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
+    await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-price-amount").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("120");
+    await page.getByTestId("post-next").click();
+    // The step-up modal on the first save.
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+
+    // Edit Title (data-step 5).
+    const title = `Corrected listing ${token()}`;
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type(title);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+
+    // Done → back to the listing page.
+    await page.getByTestId("post-edit-done").click();
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}$`), { timeout: 20000 });
     await expect(page.getByTestId("listing-title")).toHaveText(title, { timeout: 20000 });
     await expect(page.getByTestId("listing-fact-price").locator("dd")).toHaveText("120 ETB");
     const newest = page.getByTestId("listing-history-entry-0");
@@ -1483,17 +1494,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   /**
-   * Turn L4a — the seller's refusal lands under its field and nothing is
-   * written; Cancel closes the form; Save with nothing changed says so and
-   * calls no door.
+   * D194 — a refusal under its field and nothing written; Back returns to the
+   * Review; a step with nothing changed writes no revision.
    */
-  test("AL-21 Edit: a refusal under its field and nothing written; Cancel; nothing changed says so", async ({
+  test("AL-21 Edit: a refusal under its field and nothing written; Back returns to the Review; a step with nothing changed writes no revision", async ({
     page,
   }) => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    const { secret } = await useJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     // INC-554 (turn L4b) — the breadcrumb names the listing last.
@@ -1503,46 +1513,61 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(group).toHaveText(en["admin.nav.group.listings"]);
     await expect(group).not.toHaveAttribute("aria-current");
     await expect(group).not.toHaveClass(/underline/);
+
     await page.getByTestId("listing-edit").click();
-    const form = page.getByTestId("listing-edit-form");
-    await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}/edit$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
 
-    // Nothing changed: said here, before any door.
-    await form.getByTestId("listing-edit-save").click();
-    await expect(form.getByTestId("listing-edit-problem")).toHaveText(
-      en["admin.listings.edit.nothing"],
-    );
+    // Choose a reason.
+    await page.getByTestId("post-edit-reason-contact_in_text").click();
 
-    await form.getByTestId("listing-edit-title").fill("Call me on 0911 223 344");
-    await form.getByTestId("listing-edit-reason-contact_in_text").click();
-    await form.getByTestId("listing-edit-save").click();
-    await expect(form.getByTestId("listing-edit-title-field")).toContainText(
-      en["post.refusal.contactInText"],
-      { timeout: 20000 },
+    const revisionCountBefore = (await revisionRows(live.id, "edit")).length;
+
+    // Edit Title (data-step 5) → a title with a phone number → refusal.
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type("Call me on 0911 223 344");
+    await page.getByTestId("post-next").click();
+    await stepUpIfPrompted(page, secret);
+    // The refusal under the title field; the step is still open.
+    const refusal = page.locator(
+      '[data-testid="post-field"][data-field="post-title"] [data-testid="post-field-refusal"]',
     );
-    await expect(form).toBeVisible();
+    await expect(refusal).toContainText(en["post.refusal.contactInText"], { timeout: 20000 });
+    await expect(page.getByTestId("post-step-5")).toBeVisible();
     expect(await listingTruth(live.id)).toMatchObject({ status: "active", title: live.title });
-    expect(await noticeRows(live.id)).toEqual([]);
+    expect((await revisionRows(live.id, "edit")).length).toBe(revisionCountBefore);
 
-    await form.getByTestId("listing-edit-cancel").click();
-    await expect(page.getByTestId("listing-edit")).toBeVisible();
-    await expect(page.getByTestId("listing-details")).toBeVisible();
-    await expect(page.getByTestId("listing-title")).toHaveText(live.title);
+    // Back → the Review.
+    await page.getByTestId("post-back").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+
+    // Edit Title again → nothing changed → back, no revision, no notice.
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    // Do not change anything; go back.
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("post-edit-notice")).toHaveCount(0);
+    expect((await revisionRows(live.id, "edit")).length).toBe(revisionCountBefore);
 
     // INC-554 (turn L4b) — the breadcrumb's section leads back to All listings.
+    await page.getByTestId("post-edit-done").click();
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}$`), { timeout: 20000 });
     await page.getByTestId("breadcrumb-admin-section").click();
     await expect(page).toHaveURL(/\/admin\/listings$/, { timeout: 20000 });
   });
 
   /**
-   * D172 (the operator, 2026-10-14) — a posted ad's category is never changed:
-   * Edit shows it in the Specifications box and offers no way to change it, and
-   * Wrong category is no longer an edit's reason (it stays Send back's). It
-   * replaces turn L4b's test of the move (D140). D171 — the panel names itself
-   * and its boxes follow in the seller's order, each named as the seller's step:
-   * Title and description, Specifications, Price, then the reason and Save.
+   * D194 — the Review shows the Category with no Edit link; the sections in the
+   * wizard's order; staff's Photos, Place and Contact have no link.
    */
-  test("AL-22 Edit shows the category and offers no way to change it; its boxes in the seller's order", async ({
+  test("AL-22 the Review shows the Category with no Edit link; the sections in the wizard's order; staff's Photos, Place and Contact have no link", async ({
     page,
   }) => {
     const seller = await scratchSeller();
@@ -1552,45 +1577,41 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     await page.getByTestId("listing-edit").click();
-    await expect(page.getByTestId("listing-edit-heading")).toHaveText(
-      en["admin.listings.edit.title"],
-    );
-    const form = page.getByTestId("listing-edit-form");
-    await expect(form.getByTestId("post-price-amount")).toBeVisible({ timeout: 20000 });
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}/edit$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
 
-    const specsBox = form.getByTestId("listing-edit-specs-box");
-    await expect(specsBox.getByTestId("listing-edit-category-path")).toContainText(seller.leafSlug);
-    await expect(page.getByTestId("listing-edit-category-change")).toHaveCount(0);
-    await expect(page.getByTestId("post-category-search")).toHaveCount(0);
-    await expect(form.getByTestId("listing-edit-reason-wrong_category")).toHaveCount(0);
-    await expect(form.getByTestId("listing-edit-reason-misleading")).toBeVisible();
-
-    // The boxes, top to bottom, each headed with its step's name (FormSection's own heading).
-    const boxes: Array<[string, string]> = [
-      ["listing-edit-text", en["post.step.details"]],
-      ["listing-edit-specs-box", en["post.step.specifications"]],
-      ["listing-edit-price-box", en["post.step.price"]],
-      ["listing-edit-save-box", en["admin.listings.edit.save"]],
-    ];
-    const tops: number[] = [];
-    for (const [id, title] of boxes) {
-      const box = form.getByTestId(id);
-      await expect(box.locator(":scope > div > h3")).toHaveText(title);
-      const geometry = await box.boundingBox();
-      expect(geometry, `${id} is not drawn`).not.toBeNull();
-      tops.push(geometry!.y);
+    // Sections data-step 1…7 in order.
+    const sections = page.getByTestId("post-review-section");
+    const sectionSteps: string[] = [];
+    const sectionCount = await sections.count();
+    for (let i = 0; i < sectionCount; i++) {
+      const step = await sections.nth(i).getAttribute("data-step");
+      sectionSteps.push(step ?? "");
     }
-    expect(tops, `the boxes are out of order: ${JSON.stringify(tops)}`).toEqual(
-      [...tops].sort((a, b) => a - b),
-    );
+    expect(sectionSteps).toEqual(["1", "2", "3", "4", "5", "6", "7"]);
+
+    // Edit links present only for data-step 3, 4 and 5.
+    const editLinks = page.getByTestId("post-review-edit");
+    const editSteps: string[] = [];
+    const editCount = await editLinks.count();
+    for (let i = 0; i < editCount; i++) {
+      const step = await editLinks.nth(i).getAttribute("data-step");
+      editSteps.push(step ?? "");
+    }
+    expect(editSteps).toEqual(["3", "4", "5"]);
+
+    // The category's value is shown.
+    const catSection = page.locator('[data-testid="post-review-section"][data-step="1"]');
+    await expect(catSection.getByTestId("post-review-value")).not.toHaveText("");
+
     await expectNoHorizontalOverflow(page);
   });
 
   /**
-   * Turn L4b (D140) — Edit changes a specification with the seller's own form:
-   * a required answer emptied is refused under its own control and nothing is
-   * written; a new answer is saved, the seller is told "Specifications". An
-   * edit of the title alone sends no specifications.
+   * D194 — Edit on data-step 3 (Specifications): the refusal under its control,
+   * then the answer saved through the wizard's Save changes.
    */
   test("AL-23 Edit changes a specification: a refusal under its control, then the answer saved", async ({
     page,
@@ -1610,40 +1631,46 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const control = (key: string) =>
       page.locator(`[data-testid="post-attr-control"][data-attr="${key}"]`);
 
-    await useJobSuperAdmin(page);
+    const { secret } = await useJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
 
-    // The title alone: the specifications do not travel.
+    // The title alone: edit Title step first, specs do not travel.
     await page.getByTestId("listing-edit").click();
-    const form = page.getByTestId("listing-edit-form");
-    await expect(control(spec.text.attrKey)).toHaveValue("first answer", { timeout: 20000 });
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}/edit$`), {
+      timeout: 20000,
+    });
+    await expect(page.getByTestId("post-edit-reason-box")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-edit-reason-misleading").click();
     const title = `Corrected listing ${token()}`;
-    await form.getByTestId("listing-edit-title").fill(title);
-    await form.getByTestId("listing-edit-reason-misleading").click();
-    await form.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.col.title"]),
-      { timeout: 20000 },
-    );
+    await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
+    await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-title").click();
+    await page.keyboard.press("Control+A");
+    await page.keyboard.press("Backspace");
+    await page.keyboard.type(title);
+    await page.getByTestId("post-next").click();
+    await stepUpIfPrompted(page, secret);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
 
     // The required answer emptied: refused under its own control, nothing written.
-    await page.getByTestId("listing-edit").click();
+    await page.locator('[data-testid="post-review-edit"][data-step="3"]').click();
+    await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20000 });
     await expect(control(spec.text.attrKey)).toHaveValue("first answer", { timeout: 20000 });
     await control(spec.text.attrKey).fill("");
-    await form.getByTestId("listing-edit-reason-misleading").click();
-    await form.getByTestId("listing-edit-save").click();
+    await page.getByTestId("post-next").click();
     await expect(
-      form.locator(`[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`),
+      page.locator(`[data-testid="post-attr-refusal"][data-attr="${spec.text.attrKey}"]`),
     ).toBeVisible({ timeout: 20000 });
     expect((await noticeRows(live.id)).map((row) => String(row["fields"]))).toEqual(["title"]);
 
     await control(spec.text.attrKey).fill("second answer");
-    await form.getByTestId("listing-edit-save").click();
-    await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.edit.done"].replace("{fields}", en["admin.listings.history.field.specs"]),
-      { timeout: 20000 },
-    );
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+
+    // Done and verify DB truth.
+    await page.getByTestId("post-edit-done").click();
+    await expect(page).toHaveURL(new RegExp(`/admin/listings/${live.id}$`), { timeout: 20000 });
     const { data: stored, error } = await adminClient()
       .from("listings")
       .select("title,attributes")
@@ -1863,16 +1890,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   /**
-   * AL-28 — bundle 13 turn 8 (D154 B4, the operator's spec of 2026-10-13: "Staff
-   * can also remove a photo"): the listing's photos in order, each with Remove for
-   * a person who may edit it; a reason (and a note) is asked; the photo goes
-   * through `admin_edit_listing`'s `remove_photos`, the other stays, History's
-   * newest line is an edit of Photos with the reason and the note, and the seller
-   * is told. Two stripped photo rows, no stored file; both rows name every column
-   * (INC-614). Bundle 14 turn 1 (D169): the photos and Remove are in Edit, not on
-   * the page; the step-up is answered by keyboard (INC-618's class).
+   * AL-28 — D194: the photos card is on the page without clicking Edit; Remove as
+   * built (a reason and a note, the step-up by keyboard). The two photos on one
+   * row, no sideways scroll. History says so and the seller is told.
    */
-  test("AL-28 Edit lists the listing's photos; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D154 B4, D169)", async ({
+  test("AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4)", async ({
     page,
   }) => {
     const seller = await scratchSeller();
@@ -1908,20 +1930,17 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // INC-620 — the step whose code the injected session's verification spent.
     const spentStep = totpStep();
     await gotoReady(page, `/admin/listings/${live.id}`);
-    // D169 — the page shows the ad as buyers see it; the photos and Remove are in Edit.
+    // D194 — the photos card is on the page without clicking Edit.
     await expect(page.getByTestId("listing-as-seen")).toContainText(live.title, {
       timeout: 20000,
     });
-    await expect(page.getByTestId("listing-photos")).toHaveCount(0);
-    await page.getByTestId("listing-edit").click();
-    const card = page.getByTestId("listing-edit-panel").getByTestId("listing-photos");
+    const card = page.getByTestId("listing-photos");
+    await expect(card).toBeVisible({ timeout: 20000 });
     const items = card.getByTestId("listing-photos-item");
     await expect(items).toHaveCount(2, { timeout: 20000 });
     await expect(items.nth(0)).toHaveAttribute("data-photo-id", first!.id);
     await expect(items.nth(1)).toHaveAttribute("data-photo-id", second!.id);
-    // D171 — Edit in the console's boxes: no sideways scroll, the two photos on one row,
-    // what Remove does said under the heading, and Save and Cancel in a bar that stays
-    // at the bottom on a phone and sits in the page from 768 px.
+    // D171 — no sideways scroll, the two photos on one row.
     await expectNoHorizontalOverflow(page);
     const [firstBox, secondBox] = [
       await items.nth(0).boundingBox(),
@@ -1934,10 +1953,6 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(card.getByTestId("listing-photos-hint")).toHaveText(
       en["admin.listings.photos.hint"],
     );
-    const bar = page.getByTestId("listing-edit-save-box-actions");
-    await expect(bar.getByTestId("listing-edit-save")).toBeVisible();
-    await expect(bar.getByTestId("listing-edit-cancel")).toBeVisible();
-    await expect(bar).toHaveCSS("position", isMobile(page) ? "sticky" : "static");
 
     await items.nth(1).getByTestId("listing-photos-remove").click();
     const dialog = page.getByTestId("listing-photo-remove-dialog");
@@ -1971,8 +1986,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .select("id")
       .eq("listing_id", live.id);
     expect((left ?? []).map((row) => row.id)).toEqual([first!.id]);
-    // History is on the page, out of Edit.
-    await page.getByTestId("listing-edit-cancel").click();
+    // History is on the page.
     const newest = page.getByTestId("listing-history-entry-0");
     await expect(newest.getByTestId("listing-history-what")).toContainText(
       en["admin.listings.detail.photos"],
