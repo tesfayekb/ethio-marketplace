@@ -1204,4 +1204,54 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       expect(truth["directions"]).toBe("Behind the church");
     }
   });
+
+  test("MLA-16 a closed ad's Edit offers Photos coming soon; the tick saves and clears through the door (INC-666)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const X = await seed(seller, "closed");
+    const soonOf = async () => {
+      const { data } = await adminClient()
+        .from("listings")
+        .select("photos_soon")
+        .eq("id", X)
+        .single();
+      return data?.photos_soon;
+    };
+
+    await signInViaSession(page, seller.email, seller.password);
+    await openAd(page, X);
+    await page.getByTestId("my-listing-edit").click();
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${X}/edit$`), { timeout: 15000 });
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+
+    // Edit Photos (data-step 2) → the tick is offered on a closed ad with no photo.
+    await page.locator('[data-testid="post-review-edit"][data-step="2"]').click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 15000 });
+    const tick = page.getByTestId("post-photos-soon");
+    await expect(tick, "MLA-16: no tick on a closed photo-less ad").toBeVisible({
+      timeout: 15000,
+    });
+
+    await tick.check();
+    await expect
+      .poll(soonOf, { message: "MLA-16: the tick was not saved", timeout: 20000 })
+      .toBe(true);
+    await tick.uncheck();
+    await expect
+      .poll(soonOf, { message: "MLA-16: the tick was not cleared", timeout: 20000 })
+      .toBe(false);
+
+    const { data: revisions, error } = await adminClient()
+      .from("listing_revisions")
+      .select("kind,after")
+      .eq("listing_id", X)
+      .eq("kind", "edit")
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(`[e2e:mla] revisions read failed: ${error.message}`);
+    const soonRows = (revisions ?? []).filter(
+      (row) => row.after !== null && typeof row.after === "object" && "photos_soon" in row.after,
+    );
+    expect(soonRows.map((row) => (row.after as Row)["photos_soon"])).toEqual([true, false]);
+  });
 });
