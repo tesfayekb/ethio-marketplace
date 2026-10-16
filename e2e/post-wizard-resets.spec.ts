@@ -142,7 +142,10 @@ test.describe("POSTING WIZARD", () => {
     await expect(hit).toBeVisible();
     await hit.click();
     if (expectSaved) {
-      await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved");
+      // INC-652 — the leaf's save is one door round trip; on 2026-10-15 it stayed "saving" past 10 s under six shards. 20 s, as the file's other door waits (step 3, the chip).
+      await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved", {
+        timeout: 20_000,
+      });
       // AUTO-ADVANCE: the leaf IS the answer; D39 — specifications open next.
       await expect(page.getByTestId("post-step-3")).toBeVisible();
       await expect(page.getByTestId("post-category-chip-path")).toContainText(slug);
@@ -497,9 +500,18 @@ test.describe("POSTING WIZARD", () => {
     return { listingId, first, spec, typedValue: "e2e d59 typed detail" };
   }
 
+  /**
+   * INC-652 — the two PW-61 walks (seven steps forward, five Back, a second
+   * category, two polls) took about 45–58 s on the CI runs of 2026-10-15/16
+   * against a 60 s budget (ESTIMATE from the summed durations; the green run's
+   * slowest-15 floor was 45.9 s). Twice the measurement, so a slow run finishes
+   * and a stuck wait still fails inside the test.
+   */
+  const PW61_MEASURED_WALK_MS = 56_000;
   test("PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59)", async ({
     page,
   }) => {
+    test.setTimeout(PW61_MEASURED_WALK_MS * 2);
     const { listingId, first, spec, typedValue } = await answeredThenMoved(page);
 
     await nextThroughPhotos(page);
@@ -556,6 +568,7 @@ test.describe("POSTING WIZARD", () => {
   });
 
   test("PW-61 after ten seconds the Undo is gone and the reset stands (D59)", async ({ page }) => {
+    test.setTimeout(PW61_MEASURED_WALK_MS * 2);
     const { listingId } = await answeredThenMoved(page);
     await expect(
       page.getByTestId("post-category-reset-undo"),
