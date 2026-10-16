@@ -496,17 +496,17 @@ test.describe("D189 deactivated session", () => {
     // counted, not tested for visibility: on mobile-360 it is in the DOM, hidden by CSS.
     const signInLink = page.getByRole("link", { name: en["auth.signIn"] });
     const menu = page.getByTestId("account-menu");
-    const deadline = Date.now() + 15000;
-    let menuShown = false;
-    while (Date.now() < deadline) {
-      expect(await signInLink.count(), "SO-10: the Sign in link showed during the read").toBe(0);
-      if (await menu.isVisible()) {
-        menuShown = true;
-        break;
-      }
-      await page.waitForTimeout(50);
-    }
-    expect(menuShown, "SO-10: the account menu never appeared").toBe(true);
+    let linkSamples = 0;
+    await expect
+      .poll(
+        async () => {
+          if ((await signInLink.count()) > 0) linkSamples += 1;
+          return menu.isVisible();
+        },
+        { message: "SO-10: the account menu never appeared", timeout: 15000, intervals: [50] },
+      )
+      .toBe(true);
+    expect(linkSamples, "SO-10: the Sign in link showed during the read").toBe(0);
     await expect(menu).toBeVisible();
   });
 });
