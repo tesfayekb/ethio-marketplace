@@ -48,6 +48,8 @@ Turn 9 — the key-facts strip under the price on the page and in every preview 
 
 Turn 10 — a sold ad draws no contact block; the seller card keeps the name. `/l/<id>/photo.jpg` answers a 302 to the cover's signed card-size link: address dial `listing-photo:address`, 600 an hour, overridden by `RATE_LIMIT_LISTING_PHOTO_PER_HOUR`; an unknown id or an ad without photos answers 404. The signed link lasts an hour and the redirect is cached privately for 30 minutes. The head's `og:image` / `twitter:image` point at it, or at the category's picture for an ad without photos. The page carries JSON-LD `Product` with an `Offer` only for a fixed one-time price (InStock, or SoldOut). The link manager's Key fact tick uses M2's `admin_set_fact_attributes` door. INC-683 removes keepalive and AP-17 reads counted DB sums; INC-684 filters the restored roster row; INC-680 measures the fixture's stable photo boxes without awaiting nonexistent objects; INC-679 invalidates departed draft claims and attaches failure-only Back diagnostics.
 
+Turn 11 — the contact block's three states for a buyer: signed out, one sentence that leads to `/auth?return=/l/<slug>#contact` and back; signed in, Show contact; revealed, the phone as `tel:`, Telegram as `t.me/<handle>`, WhatsApp as `wa.me/<digits>` with the prefilled text — all from the door's answer, never in the HTML. M5: `reveal_listing_contact(p_public_id)` replaces the uuid door; the day row; the sellers cap `contact_reveal_sellers` 10 a day with `reveal_flags` for staff; the new account's five; the 30 a day; `contact_reveals.created_at`; the mark 20261018160000. The owner's ad page gains "N contacts". The staff list of who revealed stays out (D131).
+
 ## Tests
 
 - AT-84: Key fact tick order, renumbering, four-fact cap and unchanged card ranks.
@@ -85,3 +87,9 @@ Turn 10 — a sold ad draws no contact block; the seller card keeps the name. `/
 - ML-U22: `src/features/my-listings/my-listing.test.ts` — three non-negative integer counts, malformed answers refused.
 - VW-1…VW-3: `src/server/ad-view.test.ts` — the id, the dial, the viewer, the 503.
 - AP-17: `e2e/ad-page.spec.ts` — the count, the hour, the owner, the seller's page, the refusals.
+
+- AP-20…AP-22: `e2e/ad-page-doors.spec.ts` — the reveal by public id (owner, buyer, sold and unknown ads, the row's instant), the sellers cap with its flags, the new account's five.
+- AP-23: `e2e/ad-page.spec.ts` — Show contact reveals the links; the sign-in return lands on the card. AP-9 updated: a signed-out visitor sees no channel rows.
+- LD-9: `src/features/posting/preview/listing-detail.test.tsx` — the buyer's contact states.
+- `src/features/ad-page/contact.test.ts` — the link builders and the reveal answer's parser.
+- ML-4 (`e2e/my-listings-doors.spec.ts`): the reveal calls moved to the public id.

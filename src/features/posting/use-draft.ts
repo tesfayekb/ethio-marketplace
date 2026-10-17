@@ -312,11 +312,6 @@ export function useDraft(initialListingId: string | null): UseDraft {
     setSaveState("saving");
 
     let answer = await saveDraft(bodyFor(forStep));
-    // A departed claim may finish storing, but never changes the new screen.
-    if (claimTokenRef.current !== generation) {
-      inFlightRef.current = false;
-      return false;
-    }
 
     // Bundle 7 D5 rule 2 (INC-479) — THE DOOR'S OWN WORD HEALS A STALE FORM. A
     // refusal naming an answer the catalogue no longer has (unknownAttribute /
@@ -334,7 +329,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     }
 
     inFlightRef.current = false;
-    if (!aliveRef.current || claimTokenRef.current !== generation) return false;
+    if (!aliveRef.current) return answer.ok;
 
     if (answer.ok) {
       setNextBlockedByTransport(false);
@@ -397,7 +392,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // INC-228 — "Not saved yet" belongs to TRANSPORT alone: the answers are
       // still here, nothing was judged, and another pass runs shortly.
       setSaveState("unsaved");
-      if (strict) setNextBlockedByTransport(true);
+      if (strict && current()) setNextBlockedByTransport(true);
       if (retryRef.current) clearTimeout(retryRef.current);
       retryRef.current = setTimeout(() => {
         void flushRef.current?.();

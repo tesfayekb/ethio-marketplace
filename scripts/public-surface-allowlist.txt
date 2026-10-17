@@ -88,3 +88,5 @@ listing_counts | Bundle 19 turn 4 (D201 §9, M1): the owner's own counters (view
 admin_list_category_attribute_links | admin link list, re-created with fact_rank (same surface); gates on has_permission categories.view inside (B19 M2)
 admin_list_effective_category_links | admin effective-link list, re-created with fact_rank (same surface); gates on has_permission categories.view inside (B19 M2)
 admin_set_fact_attributes | the link manager's key-fact ranks (D201 §4); gates on has_permission categories.update and the step-up inside; at most four (B19 M2)
+reveal_listing_contact | the buyer's contact reveal by public id (D201 §6): signed in, active ads only, the day row, the sellers cap, the new-account five, the 30-a-day gate (B19 M5)
+reveal_flags | staff read (listings.view by policy) of the sellers-cap flags; no client write (B19 M5)

@@ -191,6 +191,64 @@ describe("useDraft — a Next is judged at its own step (INC-455)", () => {
     });
     await expect(specs).resolves.toBe(true);
   });
+
+  it("INC-691 an autosave answered after a step change still records the server's facts", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    await act(async () => {
+      result.current.change({ categoryId: "c-1", title: "x" }, true);
+      await settle();
+    });
+    expect(pending).toHaveLength(1);
+    await act(async () => {
+      result.current.goTo(3);
+      await settle();
+    });
+    await act(async () => {
+      pending[0]!(took());
+      await settle();
+    });
+    expect(result.current.listingId).toBe("l-1");
+    expect(result.current.draftStep).toBe(5);
+    expect(result.current.saveState).toBe("saved");
+  });
+
+  it("INC-691 a transport failure of a claim the seller has left says nothing on the new screen", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    let price!: Promise<boolean>;
+    await act(async () => {
+      price = result.current.saveAt(5);
+      await settle();
+    });
+    await act(async () => {
+      result.current.goTo(3);
+      await settle();
+    });
+    await act(async () => {
+      pending.at(-1)!(unreachable());
+      await settle();
+    });
+    await expect(price).resolves.toBe(false);
+    expect(result.current.nextBlockedByTransport).toBe(false);
+  });
+
+  it("INC-691 positive control: a transport failure of the current claim still flags", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result } = renderHook(() => useDraft(null));
+    let price!: Promise<boolean>;
+    await act(async () => {
+      price = result.current.saveAt(5);
+      await settle();
+      pending.at(-1)!(unreachable());
+      await settle();
+    });
+    await expect(price).resolves.toBe(false);
+    expect(result.current.nextBlockedByTransport).toBe(true);
+  });
 });
 
 /**

@@ -1,4 +1,14 @@
+import { Link } from "@tanstack/react-router";
+
 import { ListingPicture } from "@/components/marketplace/listing-picture";
+import { Button } from "@/components/ui/button";
+import {
+  telHref,
+  telegramHref,
+  whatsappHref,
+  type ContactChannel,
+  type ContactState,
+} from "@/features/ad-page/contact";
 import { dealLines } from "../deal-lines";
 import { galleryPhotos } from "../photo-links";
 import { usePhotoLinks } from "../use-photo-links";
@@ -79,7 +89,7 @@ export interface ListingDetailView {
   /** D201 §5 — who is looking: the buyer's page, the owner's previews (the seller's ad page, the wizard's Review), staff's previews (Admin › Listings, Screening). The component draws the same ad for all three and differs only where this brief says. */
   actor: ListingActor;
   /** D201 §0 rule 10 — the owner's counts, passed only by the seller's ad page: undefined = not asked (the wizard), null = asked and not answered, a number = the count. Only what is counted is passed — views now; shares when the share sheet lands; contacts when the contact block lands; Saves at M3 — never a count nothing writes. */
-  counts?: { views: number } | null;
+  counts?: { views: number; contacts?: number } | null;
   /** D201 rule 11 — the sold word (sold / rented / filled, translated by the caller) drawn as a red badge after the price; present on a sold ad only. */
   soldBadge?: string | null;
   title: string;
@@ -137,6 +147,18 @@ export interface ListingDetailView {
    * own preview passes nothing.
    */
   channelAction?: (channel: "phone" | "phone2" | "telegram" | "whatsapp") => ReactNode;
+  /**
+   * Bundle 19 turn 11 (D201 §6) — the buyer's contact block, passed by the
+   * public ad page only: who is looking, the reveal state, and the tap. The
+   * owner's and staff's previews pass nothing and keep today's rows.
+   */
+  contact?: {
+    viewer: "unknown" | "signedOut" | "signedIn";
+    signInTo: { to: "/auth"; search: { return: string } };
+    state: ContactState;
+    onReveal: () => void;
+    whatsappText: string;
+  };
 }
 
 export function ListingDetail(view: ListingDetailView) {
@@ -255,9 +277,19 @@ export function ListingDetail(view: ListingDetailView) {
           {view.counts === null ? (
             t("adPage.counts.unavailable")
           ) : (
-            <span data-testid="listing-detail-count" data-count="views">
-              {fill(t("feed.views"), { count: view.counts.views })}
-            </span>
+            <>
+              <span data-testid="listing-detail-count" data-count="views">
+                {fill(t("feed.views"), { count: view.counts.views })}
+              </span>
+              {view.counts.contacts !== undefined && (
+                <>
+                  {" · "}
+                  <span data-testid="listing-detail-count" data-count="contacts">
+                    {fill(t("adPage.counts.contacts"), { count: view.counts.contacts })}
+                  </span>
+                </>
+              )}
+            </>
           )}
         </p>
       )}
@@ -377,6 +409,7 @@ export function ListingDetail(view: ListingDetailView) {
       {/* Bundle 11 A3 (D130) — one box, in order: who sells, then how to reach
           them, one method per row with its control at the row's end. */}
       <section
+        id="contact"
         className="space-y-3 rounded-md border border-border p-3"
         data-testid="listing-detail-seller"
       >
@@ -395,48 +428,54 @@ export function ListingDetail(view: ListingDetailView) {
             <h4 className="text-xs font-medium text-muted-foreground">
               {t("post.preview.contactLabel")}
             </h4>
-            <ul className="divide-y divide-border text-sm">
-              {channels.map((channel) => {
-                const entry = ownValue(view.contactPref, channel);
-                const value =
-                  entry !== null && typeof entry === "object"
-                    ? ownValue(entry as Record<string, unknown>, "value")
-                    : undefined;
-                const label =
-                  channel === "phone"
-                    ? t("post.who.channel.phone")
-                    : channel === "phone2"
-                      ? t("post.who.channel.phone2")
-                      : channel === "telegram"
-                        ? t("post.who.channel.telegram")
-                        : t("post.who.channel.whatsapp");
-                return (
-                  <li
-                    key={channel}
-                    data-testid="listing-detail-channel"
-                    data-channel={channel}
-                    className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
-                  >
-                    <span
-                      className="me-auto text-foreground"
-                      data-testid="listing-detail-channel-label"
+            {view.actor === "buyer" && view.contact !== undefined ? (
+              <BuyerContact contact={view.contact} channels={channels} />
+            ) : (
+              <ul className="divide-y divide-border text-sm">
+                {channels.map((channel) => {
+                  const entry = ownValue(view.contactPref, channel);
+                  const value =
+                    entry !== null && typeof entry === "object"
+                      ? ownValue(entry as Record<string, unknown>, "value")
+                      : undefined;
+                  const label =
+                    channel === "phone"
+                      ? t("post.who.channel.phone")
+                      : channel === "phone2"
+                        ? t("post.who.channel.phone2")
+                        : channel === "telegram"
+                          ? t("post.who.channel.telegram")
+                          : t("post.who.channel.whatsapp");
+                  return (
+                    <li
+                      key={channel}
+                      data-testid="listing-detail-channel"
+                      data-channel={channel}
+                      className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
                     >
-                      {label}
-                    </span>
-                    {view.actor === "owner" && typeof value === "string" && value.trim() !== "" && (
                       <span
-                        data-testid="listing-detail-channel-value"
-                        data-channel={channel}
-                        className="text-foreground"
+                        className="me-auto text-foreground"
+                        data-testid="listing-detail-channel-label"
                       >
-                        {value}
+                        {label}
                       </span>
-                    )}
-                    {view.channelAction?.(channel) ?? null}
-                  </li>
-                );
-              })}
-            </ul>
+                      {view.actor === "owner" &&
+                        typeof value === "string" &&
+                        value.trim() !== "" && (
+                          <span
+                            data-testid="listing-detail-channel-value"
+                            data-channel={channel}
+                            className="text-foreground"
+                          >
+                            {value}
+                          </span>
+                        )}
+                      {view.channelAction?.(channel) ?? null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         )}
       </section>
@@ -479,6 +518,114 @@ export function ListingDetail(view: ListingDetailView) {
         )}
       </div>
     </article>
+  );
+}
+
+/** Bundle 19 turn 11 (D201 §6) — the buyer's contact block: a sign-in sentence, Show contact, or the revealed links. */
+function BuyerContact({
+  contact,
+  channels,
+}: {
+  contact: NonNullable<ListingDetailView["contact"]>;
+  channels: readonly ContactChannel[];
+}) {
+  const { t } = useI18n();
+
+  // Blink-free first paint: until the sign-in state is known, the heading alone.
+  if (contact.viewer === "unknown") return null;
+
+  if (contact.viewer === "signedOut") {
+    return (
+      <Link
+        to="/auth"
+        search={contact.signInTo.search}
+        data-testid="listing-contact-sign-in"
+        className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+      >
+        {t("adPage.contact.signIn")}
+      </Link>
+    );
+  }
+
+  const state = contact.state;
+  const revealed = state.kind === "revealed" ? state.channels : null;
+  const channelLabel = (channel: ContactChannel) =>
+    channel === "phone"
+      ? t("post.who.channel.phone")
+      : channel === "phone2"
+        ? t("post.who.channel.phone2")
+        : channel === "telegram"
+          ? t("post.who.channel.telegram")
+          : t("post.who.channel.whatsapp");
+
+  return (
+    <div className="space-y-2">
+      <ul className="divide-y divide-border text-sm">
+        {channels.map((channel) => {
+          const value = revealed?.[channel];
+          const shown = typeof value === "string" && value !== "" ? value : null;
+          const href =
+            shown === null
+              ? null
+              : channel === "telegram"
+                ? telegramHref(shown)
+                : channel === "whatsapp"
+                  ? whatsappHref(shown, contact.whatsappText)
+                  : telHref(shown);
+          return (
+            <li
+              key={channel}
+              data-testid="listing-detail-channel"
+              data-channel={channel}
+              className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
+            >
+              <span className="me-auto text-foreground" data-testid="listing-detail-channel-label">
+                {channelLabel(channel)}
+              </span>
+              {shown !== null ? (
+                href !== null ? (
+                  <a
+                    data-testid={`listing-contact-${channel}`}
+                    href={href}
+                    {...(channel === "telegram" || channel === "whatsapp"
+                      ? { target: "_blank", rel: "noopener" }
+                      : {})}
+                    className="text-primary underline underline-offset-4"
+                  >
+                    {shown}
+                  </a>
+                ) : (
+                  <span data-testid={`listing-contact-${channel}`} className="text-foreground">
+                    {shown}
+                  </span>
+                )
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+      {state.kind === "refused" && (
+        <p role="status" data-testid="listing-contact-refusal" className="text-sm text-destructive">
+          {state.reason === "sellersCapReached"
+            ? t("adPage.contact.sellersCap")
+            : state.reason === "rateLimited"
+              ? t("adPage.contact.rateLimited")
+              : t("adPage.contact.failed")}
+        </p>
+      )}
+      {state.kind !== "revealed" && (
+        <Button
+          type="button"
+          variant="default"
+          size="touch"
+          data-testid="listing-contact-show"
+          disabled={state.kind === "loading"}
+          onClick={contact.onReveal}
+        >
+          {t("adPage.contact.show")}
+        </Button>
+      )}
+    </div>
   );
 }
 

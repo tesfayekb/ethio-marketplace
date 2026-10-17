@@ -1,10 +1,16 @@
 import { expect, test } from "./fixtures";
 import { seedAttribute, destroyAttribute } from "./helpers/admin-attributes";
-import { adminClient } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import { fill } from "../src/features/posting/refusal-text";
 import { token } from "./helpers/ad-page";
 import { adPageFixtures } from "./helpers/ad-page";
-import { signInViaSession, gotoReady, switchLanguage } from "./helpers/ui";
+import {
+  authFields,
+  gotoReady,
+  signInViaSession,
+  switchLanguage,
+  waitForHydration,
+} from "./helpers/ui";
 import { listingPath, shortListingPath } from "../src/features/ad-page/address";
 import en from "../src/i18n/locales/en";
 import am from "../src/i18n/locales/am";
@@ -61,11 +67,18 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.locator('section[data-testid="listing-detail-seller"]')).toContainText(
       seller.alias,
     );
-    const channels = page.getByTestId("listing-detail-channel");
-    await expect(channels).toHaveCount(1);
-    await expect(channels.filter({ hasText: en["post.who.channel.phone"] })).toBeVisible();
+    // Turn 11 (D201 §6) — a signed-out visitor gets no channel rows, one
+    // sign-in link that returns to the contact block, and the number nowhere.
+    await expect(page.getByTestId("listing-detail-channel")).toHaveCount(0);
+    const signIn = page.getByTestId("listing-contact-sign-in");
+    await expect(signIn).toBeVisible();
+    const href = await signIn.getAttribute("href");
+    expect(href).not.toBeNull();
+    expect(href!.startsWith("/auth?return=")).toBe(true);
+    expect(decodeURIComponent(href!.slice("/auth?return=".length))).toBe(`${canonical}#contact`);
     await expect(page.locator("body")).not.toContainText("251911000001");
     expect(html).not.toContain("251911000001");
+    expect(html).not.toContain('data-testid="listing-detail-channel"');
     await expect(
       page.locator(`[data-testid="breadcrumb-category-parent"][href="/c/${seller.leafSlug}"]`),
     ).toBeVisible();
@@ -370,6 +383,63 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     ).toBe(404);
     for (const id of ["2345678923", "nope"]) {
       expect((await page.request.get(`/l/${id}/photo.jpg`)).status()).toBe(404);
+    }
+  });
+
+  test("AP-23 a signed-in buyer taps Show contact; a signed-out visitor returns to the block after sign-in (D201 §6)", async ({
+    page,
+    browser,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active", {
+      contactPref: {
+        messages: true,
+        phone: { show: true, value: "+251911000001" },
+        telegram: { show: true, value: "@scratch_seller" },
+      },
+    });
+    const { canonical } = await address(ad);
+    const buyer = await leaseUser();
+
+    // Signed in: the channel names only until the tap, then the links.
+    const servedHtml = await (await page.request.get(canonical)).text();
+    expect(servedHtml).not.toContain("251911000001");
+    await signInViaSession(page, buyer.email, buyer.password);
+    await gotoReady(page, canonical);
+    await expect(page.getByTestId("listing-detail-channel")).toHaveCount(2);
+    await expect(page.locator("body")).not.toContainText("251911000001");
+    await expect(page.locator("body")).not.toContainText("scratch_seller");
+    await page.getByTestId("listing-contact-show").click();
+    await expect(page.getByTestId("listing-contact-phone")).toHaveAttribute(
+      "href",
+      "tel:+251911000001",
+    );
+    await expect(page.getByTestId("listing-contact-phone")).toHaveText("+251911000001");
+    await expect(page.getByTestId("listing-contact-telegram")).toHaveAttribute(
+      "href",
+      "https://t.me/scratch_seller",
+    );
+
+    // Signed out: the link's return brings the visitor back to the contact block.
+    const context = await browser.newContext();
+    try {
+      const visitor = await context.newPage();
+      await gotoReady(visitor, canonical);
+      await visitor.getByTestId("listing-contact-sign-in").click();
+      await waitForHydration(visitor);
+      const { email, password, submit } = authFields(visitor);
+      await email.fill(buyer.email);
+      await password.fill(buyer.password);
+      await submit.click();
+      await expect
+        .poll(() => {
+          const url = new URL(visitor.url());
+          return `${url.pathname}${url.hash}`;
+        })
+        .toBe(`${canonical}#contact`);
+      await expect(visitor.getByTestId("listing-detail-seller")).toBeInViewport();
+    } finally {
+      await context.close();
     }
   });
 });

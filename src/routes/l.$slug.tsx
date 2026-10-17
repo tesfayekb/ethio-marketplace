@@ -1,6 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
+import { revealContact, type ContactState } from "@/features/ad-page/contact";
 import { countView } from "@/features/ad-page/count-view";
+import { useAuth } from "@/features/auth/use-auth";
+import { fill } from "@/features/posting/refusal-text";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
@@ -92,8 +95,23 @@ function GonePage() {
 }
 
 function AdPage() {
-  const { doc } = Route.useLoaderData();
+  const { doc, canonical } = Route.useLoaderData();
   const countedId = useRef<string | null>(null);
+  const { user, loading: authLoading } = useAuth();
+  // Bundle 19 turn 11 (D201 §6) — the reveal is a tap, never automatic; the
+  // values exist only in this client state after the door's answer.
+  const [contactState, setContactState] = useState<ContactState>({ kind: "idle" });
+  const onReveal = () => {
+    if (contactState.kind === "loading") return;
+    setContactState({ kind: "loading" });
+    void revealContact(doc.public_id).then((answer) => {
+      setContactState(
+        answer.ok
+          ? { kind: "revealed", channels: answer.channels }
+          : { kind: "refused", reason: answer.reason },
+      );
+    });
+  };
   useEffect(() => {
     if (countedId.current === doc.public_id) return;
     countedId.current = doc.public_id;
@@ -114,6 +132,13 @@ function AdPage() {
           {...adPageView(doc, language)}
           ribbon={ribbonKey ? t(ribbonKey) : null}
           soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}
+          contact={{
+            viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
+            signInTo: { to: "/auth", search: { return: `${canonical}#contact` } },
+            state: contactState,
+            onReveal,
+            whatsappText: fill(t("adPage.contact.whatsappText"), { url: canonical }),
+          }}
         />
       </PageCard>
     </PageShell>

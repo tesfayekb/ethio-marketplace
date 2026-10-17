@@ -2,7 +2,8 @@ import { expect, test } from "./fixtures";
 import { RUN } from "./helpers/posting";
 import { adPageFixtures, token } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { gotoReady, signInViaSession } from "./helpers/ui";
 
 /**
  * Bundle 19, turn 4 (M1) — THE AD PAGE'S DOORS (AP-3..AP-8).
@@ -395,5 +396,166 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect(list.error).toBeNull();
     const row = ((list.data as Row)["rows"] as Row[]).find((entry) => entry["id"] === ad.id);
     expect(row?.["publicId"]).toBe(publicId);
+  });
+
+  test("AP-20 the reveal by public id: the owner gets his channels with no row; a buyer gets them with one row a day; a sold or unknown ad is not available; the row carries its instant (D201 §6)", async () => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active", {
+      contactPref: {
+        phone: { show: true, value: "+251911000001" },
+        telegram: { show: true, value: "@scratch_seller" },
+        phone2: { show: false, value: "+251911000002" },
+      },
+    });
+    const publicId = await publicIdOf(ad.id);
+    const revealRows = async () =>
+      (
+        await adminClient()
+          .from("contact_reveals")
+          .select("listing_id,viewer_id,day,created_at")
+          .eq("listing_id", ad.id)
+      ).data ?? [];
+
+    // The owner always reaches his own ad's channels and leaves no row, no count.
+    const owner = await asPerson(seller);
+    const own = await owner.rpc("reveal_listing_contact", { p_public_id: publicId });
+    expect(own.error).toBeNull();
+    const ownChannels = (own.data as Row)["channels"] as Row;
+    expect((ownChannels["phone"] as Row)["value"]).toBe("+251911000001");
+    expect((ownChannels["telegram"] as Row)["value"]).toBe("@scratch_seller");
+    expect(ownChannels["phone2"]).toBeUndefined();
+    expect(ownChannels["messages"]).toBeUndefined();
+    expect(await revealRows()).toHaveLength(0);
+
+    // The buyer: one row the first time, none the second time the same day; the row carries its instant.
+    const buyer = await asPerson(await leaseUser());
+    const before = Date.now() - 60_000;
+    const first = await buyer.rpc("reveal_listing_contact", { p_public_id: publicId });
+    expect(first.error).toBeNull();
+    expect((first.data as Row)["ok"]).toBe(true);
+    const rows = await revealRows();
+    expect(rows).toHaveLength(1);
+    const instant = new Date(String(rows[0]!["created_at"])).getTime();
+    expect(instant).toBeGreaterThan(before);
+    expect(instant).toBeLessThan(Date.now() + 60_000);
+    const again = await buyer.rpc("reveal_listing_contact", { p_public_id: publicId });
+    expect(again.error).toBeNull();
+    expect((again.data as Row)["ok"]).toBe(true);
+    expect(await revealRows()).toHaveLength(1);
+
+    // A sold ad and an unknown or malformed id are "listingNotAvailable", as before.
+    const sold = await seed(seller, "sold", { soldAt: -1 });
+    expect(
+      (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(sold.id) })).error,
+    ).toBe("listingNotAvailable");
+    for (const bad of ["2345678923", "nope"]) {
+      expect((await buyer.rpc("reveal_listing_contact", { p_public_id: bad })).error).toBe(
+        "listingNotAvailable",
+      );
+    }
+    // Signed out: the grant refuses first.
+    const anonymous = await asAnonymous();
+    const refused = await anonymous.rpc("reveal_listing_contact", { p_public_id: publicId });
+    expect(refused.error).toMatch(/permission denied|not authenticated/);
+  });
+
+  test("AP-21 the sellers cap: ten distinct sellers a day, flagged for staff (D201 §6a)", async () => {
+    // EL-4's two-lease limit: one leased seller; B and C are fresh accounts whose
+    // ads share A's branch and place (the cap counts distinct sellers only).
+    const sellerA = await scratchSeller();
+    const sellerB = await createUser({ confirmed: true });
+    const sellerC = await createUser({ confirmed: true });
+    const adA = await seed(sellerA);
+    const adB = await seed({ id: sellerB.id, leafId: sellerA.leafId, cityId: sellerA.cityId });
+    const adC = await seed({ id: sellerC.id, leafId: sellerA.leafId, cityId: sellerA.cityId });
+    const buyerPerson = await leaseUser();
+    const buyer = await asPerson(buyerPerson);
+    // A lowered dial so the test reaches the cap with three sellers; removed in finally.
+    const override = await adminClient().from("rate_overrides").insert({
+      user_id: buyerPerson.id,
+      action: "contact_reveal_sellers",
+      max_count: 2,
+    });
+    expect(override.error).toBeNull();
+    try {
+      expect(
+        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adA.id) }))
+          .error,
+      ).toBeNull();
+      expect(
+        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adB.id) }))
+          .error,
+      ).toBeNull();
+      const capped = await buyer.rpc("reveal_listing_contact", {
+        p_public_id: await publicIdOf(adC.id),
+      });
+      expect(capped.error).toBeNull();
+      expect(capped.data).toMatchObject({ ok: false, reason: "sellersCapReached" });
+      expect(typeof (capped.data as Row)["resets_at"]).toBe("string");
+      const flags = async () =>
+        (
+          await adminClient()
+            .from("reveal_flags")
+            .select("viewer_id,sellers,hits")
+            .eq("viewer_id", buyerPerson.id)
+        ).data ?? [];
+      expect(await flags()).toEqual([{ viewer_id: buyerPerson.id, sellers: 2, hits: 1 }]);
+      const again = await buyer.rpc("reveal_listing_contact", {
+        p_public_id: await publicIdOf(adC.id),
+      });
+      expect((again.data as Row)["reason"]).toBe("sellersCapReached");
+      expect((await flags())[0]!["hits"]).toBe(2);
+      // A seller already reached never counts against the cap.
+      const backToA = await buyer.rpc("reveal_listing_contact", {
+        p_public_id: await publicIdOf(adA.id),
+      });
+      expect(backToA.error).toBeNull();
+      expect((backToA.data as Row)["ok"]).toBe(true);
+    } finally {
+      const removed = await adminClient()
+        .from("rate_overrides")
+        .delete()
+        .eq("user_id", buyerPerson.id)
+        .eq("action", "contact_reveal_sellers");
+      expect(removed.error).toBeNull();
+      const flagsGone = await adminClient()
+        .from("reveal_flags")
+        .delete()
+        .eq("viewer_id", buyerPerson.id);
+      expect(flagsGone.error).toBeNull();
+      const revealsGone = await adminClient()
+        .from("contact_reveals")
+        .delete()
+        .eq("viewer_id", buyerPerson.id);
+      expect(revealsGone.error).toBeNull();
+    }
+  });
+
+  test("AP-22 a new account is held to five reveals its first day (D201 §6b)", async ({ page }) => {
+    const seller = await scratchSeller();
+    const buyer = await scratchSeller();
+    const asBuyer = await asPerson(buyer);
+    const ads = [];
+    for (let i = 0; i < 6; i += 1) ads.push(await seed(seller));
+    for (let i = 0; i < 5; i += 1) {
+      const reached = await asBuyer.rpc("reveal_listing_contact", {
+        p_public_id: await publicIdOf(ads[i]!.id),
+      });
+      expect(reached.error).toBeNull();
+      expect((reached.data as Row)["ok"]).toBe(true);
+    }
+    const sixth = await asBuyer.rpc("reveal_listing_contact", {
+      p_public_id: await publicIdOf(ads[5]!.id),
+    });
+    expect(sixth.error).toBeNull();
+    expect(sixth.data).toMatchObject({ ok: false, reason: "rateLimited" });
+    const resetsAt = new Date(String((sixth.data as Row)["resets_at"])).getTime();
+    const midnight = new Date();
+    midnight.setUTCHours(24, 0, 0, 0);
+    expect(resetsAt).toBe(midnight.getTime());
+    // The seller's page shows the count the buyer's reveals made.
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${ads[0]!.id}`);
+    await expect(page.getByTestId("listing-detail-counts")).toContainText("1 contacts");
   });
 });
