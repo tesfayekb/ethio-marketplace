@@ -2,7 +2,8 @@ import { expect, test } from "./fixtures";
 import { RUN } from "./helpers/posting";
 import { adPageFixtures, token } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { gotoReady, signInViaSession } from "./helpers/ui";
 
 /**
  * Bundle 19, turn 4 (M1) — THE AD PAGE'S DOORS (AP-3..AP-8).
@@ -533,7 +534,6 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     midnight.setUTCHours(24, 0, 0, 0);
     expect(resetsAt).toBe(midnight.getTime());
     // The seller's page shows the count the buyer's reveals made.
-    const { signInViaSession, gotoReady } = await import("./helpers/ui");
     await signInViaSession(page, seller.email, seller.password);
     await gotoReady(page, `/my-listings/${ads[0]!.id}`);
     await expect(page.getByTestId("listing-detail-counts")).toContainText("1 contacts");
