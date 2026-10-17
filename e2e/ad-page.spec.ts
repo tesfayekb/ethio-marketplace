@@ -41,7 +41,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
           .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
       )
       .toBe(true);
-    await expect(page.getByTestId("listing-detail-seller")).toContainText(seller.alias);
+    await expect(page.locator('section[data-testid="listing-detail-seller"]')).toContainText(
+      seller.alias,
+    );
     const channels = page.getByTestId("listing-detail-channel");
     await expect(channels).toHaveCount(2);
     await expect(channels.filter({ hasText: en["post.who.channel.messages"] })).toBeVisible();
@@ -112,9 +114,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await page.goto((await address(live)).canonical);
     await expect(page.getByTestId("ad-page")).toBeVisible();
     await switchLanguage(page, "am");
-    await expect(page.getByTestId("listing-detail-seller").getByRole("heading")).toHaveText(
-      am["post.preview.sellerLabel"],
-    );
+    await expect(
+      page.locator('section[data-testid="listing-detail-seller"]').getByRole("heading"),
+    ).toHaveText(am["post.preview.sellerLabel"]);
     await expect(page.getByTestId("listing-detail-contact").getByRole("heading")).toHaveText(
       am["post.preview.contactLabel"],
     );

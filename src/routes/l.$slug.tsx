@@ -8,7 +8,7 @@ import { adPageView } from "@/features/ad-page/public-listing";
 import { ribbonOf } from "@/features/feed/feed-page";
 import { useI18n } from "@/i18n";
 
-export const readAdPageFn = createServerFn({ method: "GET" })
+const readAdPageFn = createServerFn({ method: "GET" })
   .inputValidator((input: { slug: string }) => {
     if (
       !input ||

@@ -69,7 +69,9 @@ export function Breadcrumbs() {
     select: (state) => {
       const match = state.matches.find((entry) => entry.routeId === "/l/$slug");
       const data = match?.loaderData as { kind?: string; doc?: PublicListingDoc } | undefined;
-      return match?.status === "success" && data?.kind === "ad" ? data.doc : undefined;
+      return match?.status === "success" && data?.kind === "ad" && data.doc
+        ? { title: data.doc.title, categoryId: data.doc.category?.id ?? null }
+        : undefined;
     },
   });
   const { activePanel, selectedCategorySlug } = useShell();
@@ -116,7 +118,7 @@ export function Breadcrumbs() {
                 </>
               }
             >
-              <AdCrumbs title={publicAd.title} categoryId={publicAd.category?.id ?? null} />
+              <AdCrumbs title={publicAd.title} categoryId={publicAd.categoryId} />
             </Suspense>
           ) : null}
         </BreadcrumbList>
