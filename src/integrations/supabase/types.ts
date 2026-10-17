@@ -1095,6 +1095,47 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_counters: {
+        Row: {
+          day: string
+          listing_id: string
+          shares_copy: number
+          shares_facebook: number
+          shares_qr: number
+          shares_telegram: number
+          shares_whatsapp: number
+          views: number
+        }
+        Insert: {
+          day: string
+          listing_id: string
+          shares_copy?: number
+          shares_facebook?: number
+          shares_qr?: number
+          shares_telegram?: number
+          shares_whatsapp?: number
+          views?: number
+        }
+        Update: {
+          day?: string
+          listing_id?: string
+          shares_copy?: number
+          shares_facebook?: number
+          shares_qr?: number
+          shares_telegram?: number
+          shares_whatsapp?: number
+          views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_counters_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listing_expiry_sweep_runs: {
         Row: {
           expired: number
@@ -1438,6 +1479,7 @@ export type Database = {
           price_unit: string | null
           price_unit_text: string | null
           price_was: number | null
+          public_id: string
           published_at: string | null
           published_first_at: string | null
           renewed_at: string | null
@@ -1492,6 +1534,7 @@ export type Database = {
           price_unit?: string | null
           price_unit_text?: string | null
           price_was?: number | null
+          public_id?: string
           published_at?: string | null
           published_first_at?: string | null
           renewed_at?: string | null
@@ -1546,6 +1589,7 @@ export type Database = {
           price_unit?: string | null
           price_unit_text?: string | null
           price_was?: number | null
+          public_id?: string
           published_at?: string | null
           published_first_at?: string | null
           renewed_at?: string | null
@@ -3701,6 +3745,19 @@ export type Database = {
         Returns: Json
       }
       copy_my_listing: { Args: { p_listing_id: string }; Returns: Json }
+      count_listing_share: {
+        Args: {
+          p_channel: string
+          p_public_id: string
+          p_rate_key: string
+          p_viewer?: string
+        }
+        Returns: boolean
+      }
+      count_listing_view: {
+        Args: { p_public_id: string; p_rate_key: string; p_viewer?: string }
+        Returns: boolean
+      }
       country_export_row: { Args: { p_code: string }; Returns: Json }
       deal_group: {
         Args: { p_has_unit: boolean; p_key: string }
@@ -3957,6 +4014,7 @@ export type Database = {
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
+      listing_counts: { Args: { p_listing_id: string }; Returns: Json }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
       listing_photo_review_label: {
         Args: { p_review: Json; p_unscreened: boolean }
@@ -4037,6 +4095,7 @@ export type Database = {
       name_folds_rebuild: { Args: never; Returns: number }
       name_protected_folds: { Args: never; Returns: string[] }
       name_second_fold: { Args: { p_value: string }; Returns: string }
+      new_public_id: { Args: never; Returns: string }
       next_language_sort: { Args: never; Returns: number }
       peek_rate_limit: {
         Args: {
@@ -4069,6 +4128,14 @@ export type Database = {
       promote_to_super_admin: {
         Args: { p_target_user: string }
         Returns: undefined
+      }
+      public_listing: { Args: { p_public_id: string }; Returns: Json }
+      public_listing_json: {
+        Args: {
+          l: Database["public"]["Tables"]["listings"]["Row"]
+          p_viewer: string
+        }
+        Returns: Json
       }
       publish_listing: { Args: { p_listing_id: string }; Returns: Json }
       rate_gate: { Args: { p_action: string }; Returns: Json }
