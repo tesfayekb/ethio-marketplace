@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-7.md (bundle 19 — turn 7: three actors on ListingDetail; the owner's channel values and his "N views"; views counted from the page by /api/listings/view; the Messages row gone; one string; no migration). Next: turn 8 — M2: fact_rank and the key-facts strip; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-8.md (bundle 19 — turn 8: run 977's fixes — INC-681 the page's photos for a signed-out visitor, FR-6's publicId, INC-682 PW-162's transient notice, INC-680 AL-28's one-frame read; the safety box (five strings); the SOLD badge; no migration). Next: turn 9 — M2: fact_rank and the key-facts strip; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
