@@ -3,6 +3,9 @@ import { shapeDeal, shapePostingSchema } from "@/features/posting/posting-servic
 import type { ListingDetailView } from "@/features/posting/preview/listing-detail";
 import { ribbonOf, type FeedSoldWord } from "@/features/feed/feed-page";
 
+type PublicValue = string | number | boolean | null | PublicValue[] | { [key: string]: PublicValue };
+type PublicRecord = Record<string, PublicValue>;
+
 /** The public_listing document: public facts only, never a contact value or seller id. */
 export interface PublicListingDoc {
   public_id: string;
@@ -43,12 +46,12 @@ export interface PublicListingDoc {
     deal: { basis: string[]; size: string[]; quantity: string[]; terms: string[] };
     path: Array<{ id: string; slug: string; name_en: string; name_am: string | null }>;
   } | null;
-  attributes: Record<string, unknown>;
-  definitions: Array<Record<string, unknown> & { options: Record<string, unknown>[] }>;
+  attributes: PublicRecord;
+  definitions: Array<PublicRecord & { options: PublicRecord[] }>;
   photos: Array<{
     id: string;
     display_order: number;
-    paths: Record<string, unknown> | null;
+    paths: PublicRecord | null;
     width: number | null;
     height: number | null;
   }>;

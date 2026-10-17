@@ -88,9 +88,9 @@ describe("ad page view mapping", () => {
     const doc = document();
     expect(adPageView(doc, "en").ribbon).toBeNull();
     doc.price.was = 120;
-    expect(adPageView(doc, "en").ribbon).toBe("feed.ribbon.priceReduced");
+    expect(adPageView(doc, "en").ribbon).toBe("feed.priceReduced");
     doc.reserved = true;
-    expect(adPageView(doc, "en").ribbon).toBe("feed.ribbon.reserved");
+    expect(adPageView(doc, "en").ribbon).toBe("feed.reserved");
     doc.sold_word = "sold";
     expect(adPageView(doc, "en").ribbon).toBe("feed.ribbon.sold");
   });
