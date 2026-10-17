@@ -1542,6 +1542,8 @@ export const am: Messages = {
     "የተወረሰ መስመር — ለ“{category_slug}” ቀጥተኛ መስመር ይጨምሩ ወይም በ“{detail}” ላይ ያስተካክሉ",
   "admin.attributes.import.reason.badCardRank":
     "የካርድ ቦታ 1፣ 2 ወይም 3 መሆን አለበት — ይህ መስመር “{card_rank}” ይላል",
+  "admin.attributes.import.reason.badFactRank":
+    "የዋና መረጃ ቦታ 1፣ 2፣ 3 ወይም 4 መሆን አለበት — ይህ መስመር “{detail}” ይላል",
   "admin.attributes.import.reason.badDisplayOrder":
     "ቅደም ተከተል ከ0 ወይም በላይ ሙሉ ቁጥር መሆን አለበት — ይህ መስመር “{detail}” ይላል",
   "admin.attributes.import.reason.formula": "ሕዋሶች በ = + - @ መጀመር አይችሉም",
@@ -1561,6 +1563,8 @@ export const am: Messages = {
   "admin.attributes.import.reason.rankInherited":
     "በ“{category}” የካርድ ቦታ {rank} ከ“{origin_category}” በተወረሰው “{origin_key}” ተይዟል",
   "admin.attributes.import.reason.rankClash": "በ“{category}” የካርድ ቦታ {rank} በ“{origin_key}”ም ተይዟል",
+  "admin.attributes.import.reason.factRankClash":
+    "በ“{category}” የዋና መረጃ ቦታ {rank} በ“{origin_key}”ም ተይዟል",
   "admin.attributes.import.reason.optionInUse":
     "እሴቱ “{value}” አሁንም በ{detail} ተጠቅሷል፤ መጀመሪያ እነዚያን ሕዋሶች እንደገና ይጻፉ ወይም ያላቅቁ",
   "admin.attributes.import.reason.required": "የ“{detail}” ሕዋስ ያስፈልጋል",

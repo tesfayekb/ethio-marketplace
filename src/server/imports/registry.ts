@@ -303,6 +303,8 @@ export const FAMILIES: Record<string, FamilySpec> = {
            * planner's verdict.
            */
           { name: "display_order", klass: "editable", type: "int", formula: "allow" },
+          // D201 §4 (B19 M2) — the key-facts rank 1–4 the curator sets per leaf, LAST and optional: a file without the column changes no rank, a present blank cell clears it, 1–4 sets it; `attr_import_plan` judges it (badFactRank, factRankClash) and the commit writes it only when the file carried the cell.
+          { name: "fact_rank", klass: "editable", type: "int", formula: "allow" },
           { name: "action", klass: "action", values: ACTION_ATTRIBUTE_LINKS },
         ],
       },

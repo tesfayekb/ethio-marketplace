@@ -5,10 +5,10 @@ to the categories that ask for it.
 
 ## The model
 
-| Table                             | Holds                                                                                           |
-| --------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `public.attributes`               | the definition: `attr_key`, `name_en`, `attr_type`, `options`, help text                        |
-| `public.category_attribute_links` | one row per (category, attribute): `is_required`, `is_filterable`, `display_order`, `card_rank` |
+| Table                             | Holds                                                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `public.attributes`               | the definition: `attr_key`, `name_en`, `attr_type`, `options`, help text                                     |
+| `public.category_attribute_links` | one row per (category, attribute): `is_required`, `is_filterable`, `display_order`, `card_rank`, `fact_rank` |
 
 `public.category_attributes` (the C3a denormalized import) stays in place as the
 C3c fallback and is not read by this console.
@@ -187,10 +187,10 @@ the bearer token off the request, builds a caller-context publishable client
 invalid token as 401, and logs `[ssr-error] /api/admin/attributes/export …`
 before every failure answer (I4, F4).
 
-| File              | Columns, in order                                                                                                                            |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `definitions.csv` | `attribute_key`, `label_en`, `label_am`, `type`, `options`, `is_per_variant`, `direct_link_count`                                            |
-| `links.csv`       | `category_path`, `category_slug`, `attribute_key`, `is_required`, `is_filterable`, `card_rank`, `origin`, `allowed_options`, `default_value` |
+| File              | Columns, in order                                                                                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `definitions.csv` | `attribute_key`, `label_en`, `label_am`, `type`, `options`, `is_per_variant`, `direct_link_count`                                                                                          |
+| `links.csv`       | `category_path`, `category_slug`, `attribute_key`, `is_required`, `is_filterable`, `card_rank`, `origin`, `allowed_options`, `default_value`, `visible_when`, `display_order`, `fact_rank` |
 
 Both files carry a UTF-8 BOM (Excel needs it to read Ge'ez), CRLF rows and
 RFC-4180 escaping, and any cell opening with `=`, `+`, `-` or `@` is prefixed
@@ -1058,3 +1058,15 @@ The posting form opens its "say what it is" box only for an option whose value i
 ## Bundle 16 turn E1 — a single-pick question made multi-pick keeps every ad's answer (INC-632)
 
 A multi-pick answer is a list (`validate_listing_attributes`, the select branch), and the posting form ticks only the answers a list holds. A question changed from single-pick to multi-pick — by the catalogue import, the attribute editor or a migration — would leave every ad that answered it with one plain answer: refused at its next save, nothing ticked in the form. The trigger `attributes_type_lists` (AFTER UPDATE OF `attr_type` on `attributes`, only from `single_select` to `multi_select`) rewrites those answers in the same statement as the type change: on every ad not deleted, a pick `"a"` becomes `["a"]`, an "Other" with its words becomes a one-item list holding it, an empty answer becomes `[]`; a list already held, and an ad without the question, are left as they are. One audit row, `attribute.type_to_multi`, names the question and how many ads changed. Other type changes are unchanged: the editor names the holders an option removal affects and does not block the save (bundle 7). A change from multi-pick to single-pick is refused by the supervisor's audit of every catalogue batch while any ad holds the question. Test: AT-82.
+
+## D201 §4 — the key-facts rank (`fact_rank`, bundle 19 turn 9)
+
+M2 adds `category_attribute_links.fact_rank`: smallint, nullable, 1–4, unique per category with a deferrable constraint like the card rank. There is no inherited-rank rule: the reader sorts by rank, then form order, and takes four.
+
+The trailing links cell has three states: absent column means unchanged; blank clears; 1–4 sets. Anything else is `badFactRank`. An end-state collision is `factRankClash`.
+
+Nine doors are redeclared whole: `effective_category_links`, `attr_export_payload`, `attr_import_plan`, `admin_commit_attribute_import`, `admin_undo_attribute_import`, `get_posting_schema`, `public_listing_json`, `admin_list_category_attribute_links`, and `admin_list_effective_category_links`. The new `admin_set_fact_attributes` accepts at most four, requires categories.update and step-up, and audits `attribute.set_facts`; its link-manager tick lands in turn 10.
+
+The single reader rule `keyFacts` takes up to four answered ranked facts in rank/form order, else the first four filterable choice or number facts in form order that are not card facts; every actor gets the same strip under the price.
+
+Tests: KF-1…KF-5 (ranking and fallback), LD-7 (shared strip and complete Details), AV-8 (definition mapping), the links-header gate case (old/new/order), AT-83 (route preview/commit/undo/refusals/export), AP-18 (ranked/fallback/card exclusion).

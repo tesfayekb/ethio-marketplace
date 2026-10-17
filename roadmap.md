@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-8.md (bundle 19 — turn 8: run 977's fixes — INC-681 the page's photos for a signed-out visitor, FR-6's publicId, INC-682 PW-162's transient notice, INC-680 AL-28's one-frame read; the safety box (five strings); the SOLD badge; no migration). Next: turn 9 — M2: fact_rank and the key-facts strip; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-9.md (bundle 19 — turn 9: M2 fact_rank by the migration tool (DEC-188), mark 20261018150000 — the links file and export carry the cell; the key-facts strip under the price for every actor; two strings). Next: turn 10 — the link manager's Key fact tick, staff's SOLD badge, the contact block and sign-in return; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -334,8 +334,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 6 (docs/governance/briefs/bundle-19-turn-6.md) — M1b: feed_page, my_listings and my_listing carry public_id; the feed card as a link; the seller's link to his ad's page; INC-678's fix of turn 5's mapping (the options key; the null pin)
   - [ ] Turn 7 (docs/governance/briefs/bundle-19-turn-7.md) — three actors on the one component (`actor`), the owner's own channels and "N views", the view count from the page (`/api/listings/view`), the Messages row gone until messaging exists
   - [ ] Turn 8 (docs/governance/briefs/bundle-19-turn-8.md; no migration; five strings) — run 977's fixes (INC-681, FR-6, INC-682, INC-680), the safety box (D201 §7), the SOLD badge after the price
-  - [ ] Turn 9 (docs/governance/briefs/bundle-19-turn-9.md) — M2: fact_rank and the key-facts strip
-  - [ ] Turn 10 (docs/governance/briefs/bundle-19-turn-10.md) — the contact block and sign-in return
+  - [ ] Turn 9 (docs/governance/briefs/bundle-19-turn-9.md; one migration by the migration tool, mark 20261018150000; two strings) — M2: `fact_rank` on every link (nine doors redeclared whole, one new door), the links file's trailing cell and the export, the key-facts strip (`keyFacts`: ranked facts, else the first four filterable choice or number facts in form order that are not card facts) on the page and in every preview
+  - [ ] Turn 10 (docs/governance/briefs/bundle-19-turn-10.md) — the link manager's Key fact tick (D201 §4), staff's SOLD badge, the contact block and sign-in return
   - [ ] Turn 11 (docs/governance/briefs/bundle-19-turn-11.md) — M5: reveal rules
   - [ ] Turn 12 (docs/governance/briefs/bundle-19-turn-12.md) — M3: Save and Account › Saved
   - [ ] Turn 13 (docs/governance/briefs/bundle-19-turn-13.md) — M4: Report and the admin count

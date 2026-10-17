@@ -38,6 +38,7 @@ const REASON_KEYS = new Set([
   "outOfScope",
   "inheritedRow",
   "badCardRank",
+  "badFactRank",
   // M-ORDER / R3b-3b — the links file's own order cell.
   "badDisplayOrder",
   "formula",
@@ -58,6 +59,7 @@ const REASON_KEYS = new Set([
   "rankInherited",
   // Bundle 5 B8 (M8b B2) — two direct links hold one card position.
   "rankClash",
+  "factRankClash",
   // The gate's own shape verdicts.
   "required",
   "tooLong",

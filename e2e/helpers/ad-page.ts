@@ -91,6 +91,7 @@ export function adPageFixtures() {
       expiresAt?: number;
       soldAt?: number;
       contactPref?: Row;
+      attributes?: Row;
       pin?: boolean;
     } = {},
   ) {
@@ -105,7 +106,7 @@ export function adPageFixtures() {
         home_country_code: "ET",
         title: `E2E ad page ${RUN.replace(/[0-9]/g, "x")} ${token()}`,
         description: "e2e scratch listing for the ad page's doors",
-        attributes: {},
+        attributes: options.attributes ?? {},
         price_mode: "fixed",
         price_amount: 100,
         price_currency: "ETB",

@@ -4,6 +4,7 @@ import { galleryPhotos } from "../photo-links";
 import { usePhotoLinks } from "../use-photo-links";
 import { PhotoGallery } from "./photo-gallery";
 import { SafetyBox } from "./safety-box";
+import { keyFacts } from "../key-facts";
 import { lazy, Suspense, type ReactNode } from "react";
 import { SellerLine } from "../seller-line";
 import { fill } from "../refusal-text";
@@ -210,6 +211,39 @@ export function ListingDetail(view: ListingDetailView) {
     );
   });
 
+  const factLabel = (definition: AttrDef) =>
+    drawCatalog(
+      entityName(
+        "attribute",
+        {
+          id: definition.attributeId,
+          nameEn: definition.nameEn,
+          nameAm: definition.nameAm,
+        },
+        entities,
+      ),
+      scope,
+    );
+  const factValue = (definition: AttrDef) => {
+    const range = ownValue(ranges, definition.attrKey);
+    return range !== undefined
+      ? rangeDisplayValue(definition, range, language, scope)
+      : attributeDisplayValue(
+          definition,
+          view.attributes[definition.attrKey],
+          view.attributeOptions[definition.attrKey] ?? [],
+          language,
+          t("post.review.yes"),
+          t("post.review.no"),
+          t("post.specs.yearEcSuffix"),
+          scope,
+        );
+  };
+  const highlighted = keyFacts(facts).filter(
+    (definition) =>
+      definition.attrType !== "boolean" || view.attributes[definition.attrKey] !== false,
+  );
+
   return (
     <article className="space-y-4" data-testid="listing-detail" data-actor={view.actor}>
       {view.actor === "owner" && view.counts !== undefined && (
@@ -264,6 +298,23 @@ export function ListingDetail(view: ListingDetailView) {
           </span>
         )}
       </div>
+      {highlighted.length > 0 && (
+        <ul data-testid="listing-key-facts" className="flex flex-wrap gap-2">
+          {highlighted.map((definition) => (
+            <li
+              key={definition.attrKey}
+              data-testid="listing-key-fact"
+              data-key={definition.attrKey}
+              className="rounded-md border border-border px-2 py-1 text-xs"
+            >
+              <span className="text-muted-foreground">{factLabel(definition)}</span>
+              {definition.attrType !== "boolean" && (
+                <span className="ms-1 font-semibold text-foreground">{factValue(definition)}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
       {dealText.size !== null && (
         <p className="text-sm text-muted-foreground" data-testid="listing-detail-deal-size">
           {dealText.size}
@@ -293,37 +344,13 @@ export function ListingDetail(view: ListingDetailView) {
           <dl className="divide-y divide-border rounded-md border border-border text-sm">
             {facts.map((definition) => (
               <div key={definition.attrKey} className="flex justify-between gap-3 p-2">
-                <dt className="text-muted-foreground">
-                  {drawCatalog(
-                    entityName(
-                      "attribute",
-                      {
-                        id: definition.attributeId,
-                        nameEn: definition.nameEn,
-                        nameAm: definition.nameAm,
-                      },
-                      entities,
-                    ),
-                    scope,
-                  )}
-                </dt>
+                <dt className="text-muted-foreground">{factLabel(definition)}</dt>
                 <dd
                   className="text-end text-foreground"
                   data-testid="listing-detail-spec"
                   data-key={definition.attrKey}
                 >
-                  {ranges[definition.attrKey] !== undefined
-                    ? rangeDisplayValue(definition, ranges[definition.attrKey]!, language, scope)
-                    : attributeDisplayValue(
-                        definition,
-                        view.attributes[definition.attrKey],
-                        view.attributeOptions[definition.attrKey] ?? [],
-                        language,
-                        t("post.review.yes"),
-                        t("post.review.no"),
-                        t("post.specs.yearEcSuffix"),
-                        scope,
-                      )}
+                  {factValue(definition)}
                 </dd>
               </div>
             ))}

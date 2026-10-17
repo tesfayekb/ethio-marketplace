@@ -358,6 +358,7 @@ export interface AttributeLink {
   displayOrder: number;
   /** 1..3 when the attribute shows on the listing card, null otherwise. */
   cardRank: number | null;
+  factRank: number | null;
   /** DEC-045 — the parent definition's key, or null for a flat attribute. */
   dependsOnKey: string | null;
   allowedOptions: string[] | null;
@@ -391,22 +392,28 @@ export async function listCategoryLinks(
       compareNames(a.name_en, b.name_en) ||
       a.link_id.localeCompare(b.link_id),
   );
-  return data.map((row) => ({
-    linkId: row.link_id,
-    attributeId: row.attribute_id,
-    attrKey: row.attr_key,
-    nameEn: row.name_en,
-    attrType: row.attr_type,
-    options: toOptionList(row.options),
-    isRequired: row.is_required,
-    isFilterable: row.is_filterable,
-    displayOrder: Number(row.display_order ?? 0),
-    cardRank: row.card_rank === null ? null : Number(row.card_rank),
-    dependsOnKey: row.depends_on_key ?? null,
-    allowedOptions: row.allowed_options ?? null,
-    defaultValue: row.default_value ?? null,
-    visibleWhen: shapeCondition(row.visible_when),
-  }));
+  // The additive M2 cell may be absent until its final migration applies.
+  return data.map((storedRow) => {
+    const row: typeof storedRow & { fact_rank?: number | null } = storedRow;
+    return {
+      linkId: row.link_id,
+      attributeId: row.attribute_id,
+      attrKey: row.attr_key,
+      nameEn: row.name_en,
+      attrType: row.attr_type,
+      options: toOptionList(row.options),
+      isRequired: row.is_required,
+      isFilterable: row.is_filterable,
+      displayOrder: Number(row.display_order ?? 0),
+      cardRank: row.card_rank === null ? null : Number(row.card_rank),
+      factRank:
+        row.fact_rank === null || row.fact_rank === undefined ? null : Number(row.fact_rank),
+      dependsOnKey: row.depends_on_key ?? null,
+      allowedOptions: row.allowed_options ?? null,
+      defaultValue: row.default_value ?? null,
+      visibleWhen: shapeCondition(row.visible_when),
+    };
+  });
 }
 
 export async function linkAttribute(input: {
@@ -642,26 +649,32 @@ export async function listEffectiveCategoryLinks(
       compareNames(a.name_en, b.name_en) ||
       a.link_id.localeCompare(b.link_id),
   );
-  return data.map((row) => ({
-    linkId: row.link_id,
-    attributeId: row.attribute_id,
-    attrKey: row.attr_key,
-    nameEn: row.name_en,
-    attrType: row.attr_type,
-    options: toOptionList(row.options),
-    isRequired: row.is_required,
-    isFilterable: row.is_filterable,
-    displayOrder: Number(row.display_order ?? 0),
-    cardRank: row.card_rank === null ? null : Number(row.card_rank),
-    dependsOnKey: row.depends_on_key ?? null,
-    allowedOptions: row.allowed_options ?? null,
-    defaultValue: row.default_value ?? null,
-    visibleWhen: shapeCondition(row.visible_when),
-    inherited: row.inherited === true,
-    originId: row.origin_id,
-    originSlug: row.origin_slug,
-    originNameEn: row.origin_name_en,
-  }));
+  // The additive M2 cell may be absent until its final migration applies.
+  return data.map((storedRow) => {
+    const row: typeof storedRow & { fact_rank?: number | null } = storedRow;
+    return {
+      linkId: row.link_id,
+      attributeId: row.attribute_id,
+      attrKey: row.attr_key,
+      nameEn: row.name_en,
+      attrType: row.attr_type,
+      options: toOptionList(row.options),
+      isRequired: row.is_required,
+      isFilterable: row.is_filterable,
+      displayOrder: Number(row.display_order ?? 0),
+      cardRank: row.card_rank === null ? null : Number(row.card_rank),
+      factRank:
+        row.fact_rank === null || row.fact_rank === undefined ? null : Number(row.fact_rank),
+      dependsOnKey: row.depends_on_key ?? null,
+      allowedOptions: row.allowed_options ?? null,
+      defaultValue: row.default_value ?? null,
+      visibleWhen: shapeCondition(row.visible_when),
+      inherited: row.inherited === true,
+      originId: row.origin_id,
+      originSlug: row.origin_slug,
+      originNameEn: row.origin_name_en,
+    };
+  });
 }
 
 /* ----------------------- DEC-050 L3a — v2 cell shapes ---------------------- */

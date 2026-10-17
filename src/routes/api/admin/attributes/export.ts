@@ -79,6 +79,8 @@ const LINK_COLUMNS = [
    */
   "visible_when",
   "display_order",
+  // B19 M2 — the key-facts rank, which `attr_export_payload` emits as text ('' for none); last, behind `optionalFrom`, so a file exported before it still imports.
+  "fact_rank",
 ] as const;
 
 /**

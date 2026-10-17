@@ -795,6 +795,8 @@ export interface AttrDef {
   helpTextEn: string | null;
   helpTextAm: string | null;
   isRequired: boolean;
+  /** B19 M2 — the link's filter flag, which the key-facts fallback needs (`is_filterable`). */
+  isFilterable: boolean;
   unit: string | null;
   /** Bundle 5 C6 — the Amharic unit; empty or absent prints the English one. */
   unitAm?: string | null;
@@ -828,6 +830,8 @@ export interface AttrDef {
    * rank 1 is the leaf's identity. `null` = not a card.
    */
   cardRank: number | null;
+  /** D201 §4 (B19 M2) — the link's key-facts rank 1–4, as `get_posting_schema` and `public_listing_json` serve it (`fact_rank`); null when none. */
+  factRank: number | null;
 }
 
 /**
@@ -878,6 +882,7 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
     helpTextEn: str(row, "help_text_en"),
     helpTextAm: str(row, "help_text_am"),
     isRequired: row["is_required"] === true,
+    isFilterable: row["is_filterable"] === true,
     unit: str(row, "unit"),
     unitAm: str(row, "unit_am"),
     minBound: str(row, "min_bound"),
@@ -896,6 +901,7 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
     defaultValue: row["default_value"] ?? null,
     visibleWhen: shapeCondition(row["visible_when"]),
     cardRank: int(row, "card_rank"),
+    factRank: int(row, "fact_rank"),
   };
 }
 

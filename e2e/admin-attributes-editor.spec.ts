@@ -1,3 +1,4 @@
+import { parseCsvGrid } from "../src/server/imports/gate";
 import { expect, test } from "./fixtures";
 import { gotoReady, stepUpIfPrompted, switchUser } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
@@ -31,6 +32,15 @@ import {
  */
 
 test.describe("C3 attributes console", () => {
+  const factCategories: string[] = [];
+  const factAttributes: string[] = [];
+  test.afterEach(async () => {
+    try {
+      for (const key of factAttributes.splice(0)) await destroyAttribute(key);
+    } finally {
+      for (const slug of factCategories.splice(0)) await destroyCategory(slug);
+    }
+  });
   /* --------------------------- IE-2: the import --------------------------- */
 
   /**
@@ -1829,5 +1839,137 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(keyB);
       await destroyAttribute(keyC);
     }
+  });
+  test("AT-83 the key-facts rank imports through the route: absent stands, blank clears, clash and 5 refuse, export last, undo restores", async ({
+    page,
+  }) => {
+    bandOnly(page, "any");
+    const supabase = adminClient();
+    const slug = `e2e-cat-fact83-${rand()}`;
+    const keys = [`e2e_attr_${rand()}`, `e2e_attr_${rand()}`, `e2e_attr_${rand()}`];
+    factCategories.push(slug);
+    factAttributes.push(...keys);
+    const attributes = await supabase
+      .from("attributes")
+      .insert(keys.map((key) => ({ attr_key: key, name_en: key, attr_type: "number" })))
+      .select("id,attr_key");
+    if (attributes.error || !attributes.data)
+      throw new Error(`AT-83 attributes: ${attributes.error?.message}`);
+    const cat = await supabase
+      .from("categories")
+      .insert({ slug, name_en: slug, is_active: true, allow_listings: true })
+      .select("id")
+      .single();
+    if (cat.error || !cat.data) throw new Error(`AT-83 category: ${cat.error?.message}`);
+    const categoryId = cat.data.id;
+    const pointer = await supabase
+      .from("category_tree_pointers")
+      .insert({ parent_id: null, child_id: categoryId, display_order: 2000983 });
+    if (pointer.error) throw new Error(`AT-83 pointer: ${pointer.error.message}`);
+    const links = await supabase.from("category_attribute_links").insert(
+      attributes.data.map((attr, index) => ({
+        category_id: categoryId,
+        attribute_id: attr.id,
+        display_order: index + 1,
+        is_required: false,
+        is_filterable: false,
+      })),
+    );
+    if (links.error) throw new Error(`AT-83 links: ${links.error.message}`);
+    const ranksOf = async () => {
+      const rows = await supabase
+        .from("category_attribute_links")
+        .select("attribute_id,fact_rank")
+        .eq("category_id", categoryId)
+        .order("id");
+      if (rows.error || !rows.data) throw new Error(`AT-83 truth: ${rows.error?.message}`);
+      return keys.map((key) => {
+        const attr = attributes.data?.find((entry) => entry.attr_key === key);
+        const link = rows.data.find((entry) => entry.attribute_id === attr?.id);
+        if (!link) throw new Error(`AT-83 missing link: ${key}`);
+        return link.fact_rank === null ? null : Number(link.fact_rank);
+      });
+    };
+    await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/attributes");
+    const token = await bearerOf(page);
+    const header =
+      "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin,allowed_options,default_value,visible_when,display_order,fact_rank";
+    const row = (index: number, rank: string) =>
+      [
+        slug,
+        slug,
+        keys[index],
+        "false",
+        "false",
+        "",
+        slug,
+        "",
+        "",
+        "",
+        String(index + 1),
+        rank,
+      ].join(",");
+    const file = (rows: string[]) => [header, ...rows].join("\r\n") + "\r\n";
+    const change = async (text: string, expected: number) => {
+      const preview = await importPost(page, token, { mode: "preview", links: text });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      const counts = preview.payload["counts"] as Record<string, number>;
+      expect(
+        { changes: counts.changes, refusals: counts.refusals },
+        JSON.stringify(preview.payload),
+      ).toEqual({ changes: expected, refusals: 0 });
+      const commit = await importPost(page, token, {
+        mode: "commit",
+        links: text,
+        digest: preview.payload["digest"],
+      });
+      expect(commit.status, JSON.stringify(commit.payload)).toBe(200);
+      const batch = commit.payload["batch_id"];
+      expect(typeof batch).toBe("string");
+      return batch;
+    };
+    await change(file([row(0, "1"), row(1, "2")]), 2);
+    expect(await ranksOf()).toEqual([1, 2, null]);
+    const old =
+      header.slice(0, header.lastIndexOf(",")) +
+      "\r\n" +
+      row(0, "").split(",").slice(0, 11).join(",") +
+      "\r\n";
+    const unchanged = await importPost(page, token, { mode: "preview", links: old });
+    expect(unchanged.status, JSON.stringify(unchanged.payload)).toBe(200);
+    expect((unchanged.payload["counts"] as Record<string, number>).changes).toBe(0);
+    expect(await ranksOf()).toEqual([1, 2, null]);
+    const cleared = await change(file([row(0, "")]), 1);
+    expect(await ranksOf()).toEqual([null, 2, null]);
+    const undo = await importPost(page, token, { mode: "undo", batchId: cleared });
+    expect(undo.status, JSON.stringify(undo.payload)).toBe(200);
+    expect(await ranksOf()).toEqual([1, 2, null]);
+    for (const [text, reason] of [
+      [file([row(1, "2"), row(2, "2")]), "factRankClash"],
+      [file([row(0, "5")]), "badFactRank"],
+    ]) {
+      const preview = await importPost(page, token, { mode: "preview", links: text });
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(
+        ((preview.payload["refusals"] as Record<string, unknown>[]) ?? []).map(
+          (entry) => entry["reason"],
+        ),
+      ).toContain(reason);
+      expect(await ranksOf()).toEqual([1, 2, null]);
+    }
+    const exported = await page.request.get("/api/admin/attributes/export?file=links", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    expect(exported.status()).toBe(200);
+    const grid = parseCsvGrid(await exported.text());
+    expect(grid[0]?.at(-1)).toBe("fact_rank");
+    expect(
+      keys.map((key) => {
+        const found = grid.slice(1).find((cells) => cells[1] === slug && cells[2] === key);
+        if (!found) throw new Error(`AT-83 export missing: ${key}`);
+        return found.at(-1);
+      }),
+    ).toEqual(["1", "2", ""]);
   });
 });
