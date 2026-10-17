@@ -738,4 +738,33 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, `/my-listings/${sold.id}`);
     await expect(page.getByTestId("listing-share-open")).toHaveCount(0);
   });
+
+  test("AP-35 the seller card links to the seller's page; the page lists his live ads and pages them; an unknown key says not found", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller);
+    // EL-4 — two more live ads for the same scratch seller.
+    await seed(seller);
+    await seed(seller);
+    const { canonical } = await address(ad);
+    const key = seller.alias.toLowerCase();
+
+    // A signed-out visitor: the seller card links to the seller's page.
+    await page.goto(canonical);
+    await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+    const link = page.getByTestId("listing-seller-all-ads");
+    await expect(link).toHaveAttribute("href", `/seller/${key}`);
+    await link.click();
+    await expect(page.getByTestId("seller-page-title")).toContainText(seller.alias);
+    await expect(page.getByTestId("seller-page-card")).toHaveCount(3);
+
+    // An unknown key says not found; the door refuses it too.
+    await page.goto(`/seller/nobody_${token()}`);
+    await expect(page.getByTestId("seller-page-not-found")).toBeVisible();
+    const missing = await page.request.get(`/api/seller?key=nobody_${token()}`);
+    expect(missing.status()).toBe(404);
+    const noKey = await page.request.get("/api/seller");
+    expect(noKey.status()).toBe(400);
+  });
 });

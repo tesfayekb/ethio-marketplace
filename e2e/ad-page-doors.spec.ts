@@ -1124,4 +1124,103 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       }
     }
   });
+
+  test("AP-34 seller_feed_page: the seller's live ads by his alias in the feed's order, paged; a draft and an ad sold more than 30 days ago never; an unknown, malformed or deactivated seller is unknownSeller; no id travels", async () => {
+    const seller = await scratchSeller();
+    const older = await seed(seller, "active", { publishedAt: -3 });
+    const newer = await seed(seller, "active", { publishedAt: -1 });
+    await seed(seller, "draft");
+    // An ad sold 40 days ago is out of the public (D201 §6a).
+    await seed(seller, "sold", { soldAt: -40 });
+    // D1 census: the listings' own statement-level triggers
+    // (feed_index_on_listing_insert/_update) call feed_index_refresh for
+    // active and sold rows, so a seeded ad is already in the index — no
+    // manual refresh like e2e/feed-index.spec.ts :119–:125.
+    const olderId = await publicIdOf(older.id);
+    const newerId = await publicIdOf(newer.id);
+    const anonymous = await asAnonymous();
+    const key = seller.alias.toLowerCase();
+
+    const whole = await anonymous.rpc("seller_feed_page", {
+      p_seller_key: key,
+      p_after: null,
+      p_size: 20,
+    });
+    expect(whole.error).toBeNull();
+    const page = whole.data as Row;
+    const cards = page["cards"] as Row[];
+    expect(cards.map((card) => card["publicId"])).toEqual([newerId, olderId]);
+    const sellerBlock = page["seller"] as Row;
+    expect(Object.keys(sellerBlock).sort()).toEqual(["alias", "businessName", "memberSince"]);
+    expect(sellerBlock["alias"]).toBe(seller.alias);
+
+    // The same with the alias in upper case.
+    const upper = await anonymous.rpc("seller_feed_page", {
+      p_seller_key: seller.alias.toUpperCase(),
+      p_after: null,
+      p_size: 20,
+    });
+    expect(upper.error).toBeNull();
+    expect(((upper.data as Row)["cards"] as Row[]).map((card) => card["publicId"])).toEqual([
+      newerId,
+      olderId,
+    ]);
+
+    // One at a time, paged by the door's cursor.
+    const first = await anonymous.rpc("seller_feed_page", {
+      p_seller_key: key,
+      p_after: null,
+      p_size: 1,
+    });
+    expect(first.error).toBeNull();
+    const firstPage = first.data as Row;
+    expect((firstPage["cards"] as Row[]).map((card) => card["publicId"])).toEqual([newerId]);
+    expect(firstPage["next"]).not.toBeNull();
+    const second = await anonymous.rpc("seller_feed_page", {
+      p_seller_key: key,
+      p_after: firstPage["next"],
+      p_size: 1,
+    });
+    expect(second.error).toBeNull();
+    expect(((second.data as Row)["cards"] as Row[]).map((card: Row) => card["publicId"])).toEqual([
+      olderId,
+    ]);
+
+    // Unknown and malformed keys.
+    const nobody = await anonymous.rpc("seller_feed_page", {
+      p_seller_key: `nobody_${token()}`,
+      p_after: null,
+      p_size: 20,
+    });
+    expect(nobody.error).toContain("seller_feed_page: unknownSeller");
+    const malformed = await anonymous.rpc("seller_feed_page", {
+      p_seller_key: "not a key!",
+      p_after: null,
+      p_size: 20,
+    });
+    expect(malformed.error).toContain("seller_feed_page: unknownSeller");
+
+    // A deactivated seller is unknown; the pool reset restores account_status
+    // to "active" (e2e/helpers/users.ts reapPoolAccount), and this finally
+    // restores it even on failure.
+    try {
+      const deactivated = await adminClient()
+        .from("profiles")
+        .update({ account_status: "deactivated" })
+        .eq("user_id", seller.id);
+      expect(deactivated.error).toBeNull();
+      const gone = await anonymous.rpc("seller_feed_page", {
+        p_seller_key: key,
+        p_after: null,
+        p_size: 20,
+      });
+      expect(gone.error).toContain("seller_feed_page: unknownSeller");
+    } finally {
+      const restored = await adminClient()
+        .from("profiles")
+        .update({ account_status: "active" })
+        .eq("user_id", seller.id);
+      expect(restored.error).toBeNull();
+    }
+  });
 });

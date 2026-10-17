@@ -98,3 +98,4 @@ listing_reports | a reporter reads his own reports and staff (listings:review) r
 report_listing | a buyer's report of an ad by public id (D201 §11): signed in, a publicly readable ad, never the caller's own, a reason of the list, one open report per reporter and ad, rate-gated report 10 a day (B19 M4)
 admin_listing_reports | the listing's reports for listings:review (B19 M4)
 admin_open_report_counts | open-report counts per listing for the console's rows, listings:review, at most 100 ids (B19 M4)
+seller_feed_page | the seller's live ads by his public key (the alias lower-cased, never an id) for the seller's ads page (D201 §12): anonymous and signed in, feed_page's card shape and order (B19 M8)

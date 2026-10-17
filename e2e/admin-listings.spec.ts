@@ -523,6 +523,23 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       before: { title: target.title },
       after: { title },
     });
+    // INC-702 (bundle 19 turn 16) — the revision carries the seller's home country.
+    const revisionCountry = await adminClient()
+      .from("listing_revisions")
+      .select("home_country_code")
+      .eq("listing_id", target.id)
+      .eq("kind", "edit")
+      .single();
+    if (revisionCountry.error)
+      throw new Error(`[e2e:al-4] revision country read failed: ${revisionCountry.error.message}`);
+    const sellerDirectory = await adminClient()
+      .from("user_directory")
+      .select("home_country_code")
+      .eq("user_id", seller.id)
+      .single();
+    if (sellerDirectory.error)
+      throw new Error(`[e2e:al-4] directory read failed: ${sellerDirectory.error.message}`);
+    expect(revisionCountry.data.home_country_code).toBe(sellerDirectory.data.home_country_code);
     const audits = await auditRows(target.id);
     expect(audits).toHaveLength(1);
     expect(audits[0]).toMatchObject({
@@ -539,6 +556,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         note: "The title named the wrong item.",
       },
     ]);
+    // INC-702 (bundle 19 turn 16) — the notice carries the seller's home country.
+    const noticeCountry = await adminClient()
+      .from("seller_notices")
+      .select("home_country_code")
+      .eq("listing_id", target.id)
+      .single();
+    if (noticeCountry.error)
+      throw new Error(`[e2e:al-4] notice country read failed: ${noticeCountry.error.message}`);
+    expect(noticeCountry.data.home_country_code).toBe(sellerDirectory.data.home_country_code);
     // The same values again change nothing and write nothing.
     const again = await rpcResult(page, "admin_edit_listing", {
       p_listing_id: target.id,

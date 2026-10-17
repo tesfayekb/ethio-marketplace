@@ -174,6 +174,8 @@ export interface ListingDetailView {
   // Bundle 19 turn 14 (D201 §10) — the share control, passed by the public ad page only
   share?: ReactNode;
   publicCounts?: { views: number; shares: number };
+  // Bundle 19 turn 16 (D201 §12) — the public seller key, passed by the public ad page only
+  sellerAdsKey?: string | null;
 }
 
 export function ListingDetail(view: ListingDetailView) {
@@ -553,6 +555,19 @@ export function ListingDetail(view: ListingDetailView) {
             memberSince={view.sellerMemberSince ?? null}
             testId="listing-detail-seller"
           />
+          {/* Bundle 19 turn 16 (D201 §12) — All ads by this seller; a seller
+              with no alias (a business named by its business name alone) gets
+              no link. The owner's and staff's previews pass no key. */}
+          {typeof view.sellerAdsKey === "string" && view.sellerAdsKey !== "" && (
+            <Link
+              data-testid="listing-seller-all-ads"
+              to="/seller/$key"
+              params={{ key: view.sellerAdsKey }}
+              className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+            >
+              {t("adPage.seller.allAds")}
+            </Link>
+          )}
         </div>
         {!(typeof view.soldBadge === "string" && view.soldBadge.length > 0) && (
           <div className="border-t border-border pt-3" data-testid="listing-detail-contact">

@@ -35,6 +35,7 @@ import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as ApiFeedRouteImport } from './routes/api/feed'
 import { Route as ApiGeoRouteImport } from './routes/api/geo'
 import { Route as ApiLocationsRouteImport } from './routes/api/locations'
+import { Route as ApiSellerRouteImport } from './routes/api/seller'
 import { Route as ApiTranslateRouteImport } from './routes/api/translate'
 import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
 import { Route as AuthResetRouteImport } from './routes/auth_.reset'
@@ -45,6 +46,7 @@ import { Route as DevTallRouteImport } from './routes/dev.tall'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as MyListingsListingIdRouteImport } from './routes/my-listings_.$listingId'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
+import { Route as SellerKeyRouteImport } from './routes/seller.$key'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 import { Route as AdminListingsListingIdRouteImport } from './routes/admin.listings_.$listingId'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
@@ -214,6 +216,11 @@ const ApiLocationsRoute = ApiLocationsRouteImport.update({
   path: '/api/locations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSellerRoute = ApiSellerRouteImport.update({
+  id: '/api/seller',
+  path: '/api/seller',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTranslateRoute = ApiTranslateRouteImport.update({
   id: '/api/translate',
   path: '/api/translate',
@@ -262,6 +269,11 @@ const MyListingsListingIdRoute = MyListingsListingIdRouteImport.update({
 const PostListingIdRoute = PostListingIdRouteImport.update({
   id: '/post_/$listingId',
   path: '/post/$listingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SellerKeyRoute = SellerKeyRouteImport.update({
+  id: '/seller/$key',
+  path: '/seller/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminImpersonationSessionIdRoute =
@@ -490,6 +502,7 @@ export interface FileRoutesByFullPath {
   '/api/feed': typeof ApiFeedRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
+  '/api/seller': typeof ApiSellerRoute
   '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -500,6 +513,7 @@ export interface FileRoutesByFullPath {
   '/l/$slug': typeof LSlugRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
+  '/seller/$key': typeof SellerKeyRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
@@ -565,6 +579,7 @@ export interface FileRoutesByTo {
   '/api/feed': typeof ApiFeedRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
+  '/api/seller': typeof ApiSellerRoute
   '/api/translate': typeof ApiTranslateRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/reset': typeof AuthResetRoute
@@ -575,6 +590,7 @@ export interface FileRoutesByTo {
   '/l/$slug': typeof LSlugRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
+  '/seller/$key': typeof SellerKeyRoute
   '/admin': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
@@ -642,6 +658,7 @@ export interface FileRoutesById {
   '/api/feed': typeof ApiFeedRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/locations': typeof ApiLocationsRouteWithChildren
+  '/api/seller': typeof ApiSellerRoute
   '/api/translate': typeof ApiTranslateRoute
   '/auth_/callback': typeof AuthCallbackRoute
   '/auth_/reset': typeof AuthResetRoute
@@ -652,6 +669,7 @@ export interface FileRoutesById {
   '/l/$slug': typeof LSlugRoute
   '/my-listings_/$listingId': typeof MyListingsListingIdRoute
   '/post_/$listingId': typeof PostListingIdRoute
+  '/seller/$key': typeof SellerKeyRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/listings_/$listingId': typeof AdminListingsListingIdRoute
@@ -720,6 +738,7 @@ export interface FileRouteTypes {
     | '/api/feed'
     | '/api/geo'
     | '/api/locations'
+    | '/api/seller'
     | '/api/translate'
     | '/auth/callback'
     | '/auth/reset'
@@ -730,6 +749,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/my-listings/$listingId'
     | '/post/$listingId'
+    | '/seller/$key'
     | '/admin/'
     | '/admin/impersonation/$sessionId'
     | '/admin/listings/$listingId'
@@ -795,6 +815,7 @@ export interface FileRouteTypes {
     | '/api/feed'
     | '/api/geo'
     | '/api/locations'
+    | '/api/seller'
     | '/api/translate'
     | '/auth/callback'
     | '/auth/reset'
@@ -805,6 +826,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/my-listings/$listingId'
     | '/post/$listingId'
+    | '/seller/$key'
     | '/admin'
     | '/admin/impersonation/$sessionId'
     | '/admin/listings/$listingId'
@@ -871,6 +893,7 @@ export interface FileRouteTypes {
     | '/api/feed'
     | '/api/geo'
     | '/api/locations'
+    | '/api/seller'
     | '/api/translate'
     | '/auth_/callback'
     | '/auth_/reset'
@@ -881,6 +904,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/my-listings_/$listingId'
     | '/post_/$listingId'
+    | '/seller/$key'
     | '/admin/'
     | '/admin/impersonation_/$sessionId'
     | '/admin/listings_/$listingId'
@@ -934,6 +958,7 @@ export interface RootRouteChildren {
   ApiFeedRoute: typeof ApiFeedRoute
   ApiGeoRoute: typeof ApiGeoRouteWithChildren
   ApiLocationsRoute: typeof ApiLocationsRouteWithChildren
+  ApiSellerRoute: typeof ApiSellerRoute
   ApiTranslateRoute: typeof ApiTranslateRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthResetRoute: typeof AuthResetRoute
@@ -944,6 +969,7 @@ export interface RootRouteChildren {
   LSlugRoute: typeof LSlugRoute
   MyListingsListingIdRoute: typeof MyListingsListingIdRoute
   PostListingIdRoute: typeof PostListingIdRoute
+  SellerKeyRoute: typeof SellerKeyRoute
   ApiCatalogFindRoute: typeof ApiCatalogFindRoute
   ApiCategoriesTreeRoute: typeof ApiCategoriesTreeRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
@@ -1158,6 +1184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLocationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/seller': {
+      id: '/api/seller'
+      path: '/api/seller'
+      fullPath: '/api/seller'
+      preLoaderRoute: typeof ApiSellerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/translate': {
       id: '/api/translate'
       path: '/api/translate'
@@ -1226,6 +1259,13 @@ declare module '@tanstack/react-router' {
       path: '/post/$listingId'
       fullPath: '/post/$listingId'
       preLoaderRoute: typeof PostListingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seller/$key': {
+      id: '/seller/$key'
+      path: '/seller/$key'
+      fullPath: '/seller/$key'
+      preLoaderRoute: typeof SellerKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/impersonation_/$sessionId': {
@@ -1586,6 +1626,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFeedRoute: ApiFeedRoute,
   ApiGeoRoute: ApiGeoRouteWithChildren,
   ApiLocationsRoute: ApiLocationsRouteWithChildren,
+  ApiSellerRoute: ApiSellerRoute,
   ApiTranslateRoute: ApiTranslateRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthResetRoute: AuthResetRoute,
@@ -1596,6 +1637,7 @@ const rootRouteChildren: RootRouteChildren = {
   LSlugRoute: LSlugRoute,
   MyListingsListingIdRoute: MyListingsListingIdRoute,
   PostListingIdRoute: PostListingIdRoute,
+  SellerKeyRoute: SellerKeyRoute,
   ApiCatalogFindRoute: ApiCatalogFindRoute,
   ApiCategoriesTreeRoute: ApiCategoriesTreeRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,
