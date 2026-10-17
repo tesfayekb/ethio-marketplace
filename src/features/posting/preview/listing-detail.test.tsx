@@ -211,6 +211,7 @@ it("LD-9 the buyer's contact block: sign in, show, the revealed links, a refusal
     signInTo: { to: "/auth" as const, search: { return: "/l/scratch#contact" } },
     state: { kind: "idle" as const },
     onReveal: () => {},
+    onSignInTap: vi.fn(),
     whatsappText: "I'm interested in your ethio.com ad: /l/scratch",
   };
   const { rerender } = render(<ListingDetail {...BASE} actor="buyer" contact={contact} />);
@@ -450,9 +451,10 @@ it("LD-15 seller line precedes contact, which precedes All ads", () => {
       sellerAdsKey="scratch"
       contact={{
         viewer: "signedOut",
-        signInTo: { to: "/auth", search: { return: "/l/scratch?reveal=1#contact" } },
+        signInTo: { to: "/auth", search: { return: "/l/scratch#contact" } },
         state: { kind: "idle" },
         onReveal: vi.fn(),
+        onSignInTap: vi.fn(),
         whatsappText: "",
       }}
     />,
@@ -472,7 +474,7 @@ it("LD-16 no pin draws no map or placeholder", () => {
   expect(screen.queryByText(en["post.preview.mapPlaceholder"])).toBeNull();
   expect(screen.getByTestId("listing-detail-location")).toBeInTheDocument();
 });
-it("LD-17 section bar belongs to live buyers, with present sections only", () => {
+it("LD-17 section bar belongs to buyers, with present sections only", () => {
   const { rerender } = render(<ListingDetail {...BASE} actor="buyer" />);
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
@@ -486,5 +488,7 @@ it("LD-17 section bar belongs to live buyers, with present sections only", () =>
     expect(screen.queryByTestId("listing-section-nav")).toBeNull();
   }
   rerender(<ListingDetail {...BASE} actor="buyer" soldBadge="Sold" />);
-  expect(screen.queryByTestId("listing-section-nav")).toBeNull();
+  expect(
+    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
+  ).toEqual(["location", "seller"]);
 });

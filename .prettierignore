@@ -75,8 +75,8 @@ scripts/fixtures/e2e-timing/
 # Bundle 3: curator data files are saved byte for byte (same class as docs/spec/).
 docs/data/
 
-# Approved D201 drawings are binary evidence, saved unchanged (turn 18).
-docs/design/d201/d201-360.png
-docs/design/d201/d201-768.png
-docs/design/d201/d201-1280.png
-docs/design/d201/d201-sold-360.png
+# WebP copies of the approved D201 drawings (the platform converted the attachments), saved as received (turn 19)
+docs/design/d201/d201-360.webp
+docs/design/d201/d201-768.webp
+docs/design/d201/d201-1280.webp
+docs/design/d201/d201-sold-360.webp

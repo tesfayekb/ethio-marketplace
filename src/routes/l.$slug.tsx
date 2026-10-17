@@ -1,3 +1,4 @@
+import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/reveal-intent";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { SimilarAds } from "@/features/ad-page/similar-ads";
 import { ReportAd } from "@/features/ad-page/report-ad";
@@ -99,13 +100,11 @@ function GonePage() {
 
 function AdPage() {
   const { doc, canonical } = Route.useLoaderData();
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => setHydrated(true), []);
   const countedId = useRef<string | null>(null);
   const { user, loading: authLoading } = useAuth();
-  // Bundle 19 turn 11 (D201 §6) — the reveal is a tap, never automatic; the
-  // values exist only in this client state after the door's answer.
-  // Contact seller before sign-in is the reveal tap, fulfilled once on return.
+  // the reveal is a tap: a signed-in tap on Show contact, or a signed-out tap on
+  // Contact seller in this tab within the last 15 minutes, carried through the
+  // sign-in by a tab-only intent (D201 §14 — never an address)
   const [contactState, setContactState] = useState<ContactState>({ kind: "idle" });
   const [saved, setSaved] = useState<boolean | null>(null);
   const [saveCount, setSaveCount] = useState(doc.counts.saves);
@@ -159,19 +158,11 @@ function AdPage() {
       });
   }, [doc.public_id]);
   useEffect(() => {
-    if (
-      authLoading ||
-      user === null ||
-      doc.is_sold ||
-      new URLSearchParams(window.location.search).get("reveal") !== "1" ||
-      returnedReveal.current === doc.public_id
-    )
+    if (authLoading || user === null || doc.is_sold || returnedReveal.current === doc.public_id)
       return;
     returnedReveal.current = doc.public_id;
-    onReveal();
-    // Keep this mounted page and its revealed state; no route loader rerun.
-    window.history.replaceState(window.history.state, "", `${canonical}#contact`);
-  }, [authLoading, user, doc.is_sold, doc.public_id, canonical, onReveal]);
+    if (takeRevealIntent(doc.public_id)) onReveal();
+  }, [authLoading, user, doc.is_sold, doc.public_id, onReveal]);
   useEffect(() => {
     if (countedId.current === doc.public_id) return;
     countedId.current = doc.public_id;
@@ -238,14 +229,9 @@ function AdPage() {
           )
         }
         contact={{
-          viewer: !hydrated
-            ? "signedOut"
-            : authLoading
-              ? "unknown"
-              : user === null
-                ? "signedOut"
-                : "signedIn",
-          signInTo: { to: "/auth", search: { return: `${canonical}?reveal=1#contact` } },
+          viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
+          signInTo: { to: "/auth", search: { return: `${canonical}#contact` } },
+          onSignInTap: () => rememberRevealIntent(doc.public_id),
           state: contactState,
           onReveal,
           whatsappText: fill(t("adPage.contact.whatsappText"), { url: canonical }),

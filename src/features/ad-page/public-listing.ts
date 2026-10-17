@@ -100,6 +100,7 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
   return {
     actor: "buyer",
     title: doc.title,
+    postedAt: doc.published_at,
     description: doc.description,
     priceMode: doc.price.mode,
     priceAmount: doc.price.amount,

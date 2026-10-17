@@ -1,3 +1,4 @@
+import { postedWhen } from "@/features/ad-page/posted";
 import { Heart, Expand } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -98,6 +99,7 @@ export interface ListingDetailView {
   soldBadge?: string | null;
   title: string;
   description: string;
+  postedAt?: string | null;
   priceMode: string;
   priceAmount: number | null;
   priceCurrency: string | null;
@@ -170,6 +172,7 @@ export interface ListingDetailView {
     signInTo: { to: "/auth"; search: { return: string } };
     state: ContactState;
     onReveal: () => void;
+    onSignInTap: () => void;
     whatsappText: string;
   };
   // Bundle 19 turn 13b (D201 §11) — the buyer's Report link, passed by the public ad page only
@@ -288,9 +291,59 @@ export function ListingDetail(view: ListingDetailView) {
   );
 
   const sold = typeof view.soldBadge === "string" && view.soldBadge.length > 0;
-  const showSections = view.actor === "buyer" && !sold;
+  const showSections = view.actor === "buyer";
   const showContactBar = view.actor === "buyer" && !sold && view.contact !== undefined;
   const hasPin = typeof view.pinLat === "number" && typeof view.pinLng === "number";
+  const placesMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(places.join(", "))}`;
+  const [mapMaps, setMapMaps] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    setMapMaps(null);
+    const lat = view.pinLat;
+    const lng = view.pinLng;
+    if (typeof lat !== "number" || typeof lng !== "number") return;
+    if (view.pinPrecision !== "approx") {
+      setMapMaps(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
+      return;
+    }
+    // Keep the still-map module off the marketplace's first-paint graph.
+    void import("../map/map-preview")
+      .then(({ snap }) => {
+        if (active)
+          setMapMaps(`https://www.google.com/maps/search/?api=1&query=${snap(lat)},${snap(lng)}`);
+      })
+      .catch((error: unknown) => console.error("[listing-maps]", error));
+    return () => {
+      active = false;
+    };
+  }, [view.pinLat, view.pinLng, view.pinPrecision]);
+  const Title = view.actor === "buyer" ? "h1" : "h2";
+  const [posted, setPosted] = useState<string | null>(null);
+  useEffect(() => {
+    setPosted(view.actor === "buyer" && view.postedAt ? postedWhen(view.postedAt, language) : null);
+  }, [view.actor, view.postedAt, language]);
+  const descriptionRef = useRef<HTMLParagraphElement | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  useEffect(() => {
+    setExpanded(false);
+  }, [view.description, view.actor]);
+  useEffect(() => {
+    const text = descriptionRef.current;
+    if (!text || view.actor !== "buyer") {
+      setOverflows(false);
+      return;
+    }
+    const measure = () => {
+      if (expanded) return;
+      const overflow = text.scrollHeight > text.clientHeight + 1;
+      setOverflows((current) => (current === overflow ? current : overflow));
+    };
+    measure();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    observer?.observe(text);
+    return () => observer?.disconnect();
+  }, [view.actor, view.description, expanded]);
   const [mapOpen, setMapOpen] = useState(false);
   const [currentSection, setCurrentSection] = useState("details");
   const articleRef = useRef<HTMLElement | null>(null);
@@ -313,20 +366,27 @@ export function ListingDetail(view: ListingDetailView) {
   ];
   const sectionIds = sections.map((section) => section.id).join(",");
   useEffect(() => {
-    if (!showSections) return;
-    const nav = navRef.current;
     const article = articleRef.current;
-    if (!nav || !article) return;
+    if (!article) return;
     const subband = document.querySelector<HTMLElement>('[data-testid="shell-subband"]');
     const align = () => {
       if (!subband) return;
       const top =
         Number.parseFloat(getComputedStyle(subband).top) + subband.getBoundingClientRect().height;
-      nav.style.setProperty("--listing-nav-top", `${top}px`);
+      article.style.setProperty("--listing-nav-top", `${top}px`);
     };
     align();
     const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(align);
     if (subband) resize?.observe(subband);
+    window.addEventListener("resize", align);
+    return () => {
+      resize?.disconnect();
+      window.removeEventListener("resize", align);
+    };
+  }, []);
+  useEffect(() => {
+    const article = articleRef.current;
+    if (!article || !showSections) return;
     const visible = new Map<string, number>();
     const observer =
       typeof IntersectionObserver === "undefined"
@@ -350,7 +410,6 @@ export function ListingDetail(view: ListingDetailView) {
     }
     return () => {
       observer?.disconnect();
-      resize?.disconnect();
     };
   }, [showSections, sectionIds]);
   const scrollSection = (id: string) => {
@@ -509,19 +568,19 @@ export function ListingDetail(view: ListingDetailView) {
 
         <aside
           data-testid="listing-detail-aside"
-          className="contents @2xl:sticky @2xl:top-[8.5rem] @2xl:col-start-2 @2xl:row-start-2 @2xl:block @2xl:min-w-0 @2xl:self-start @2xl:space-y-4 @4xl:row-start-1 @4xl:row-span-2"
+          className="contents @2xl:sticky @2xl:top-[calc(var(--listing-nav-top,8.5rem)+1rem)] @2xl:col-start-2 @2xl:row-start-2 @2xl:block @2xl:min-w-0 @2xl:self-start @2xl:space-y-4 @4xl:row-start-1 @4xl:row-span-2"
         >
           <section
             data-testid="listing-detail-headline"
             className="order-2 min-w-0 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
           >
             {/* ---------------------------- title and price ----------------------- */}
-            <h2
+            <Title
               className="font-display text-xl font-semibold leading-tight text-foreground @4xl:text-2xl"
               data-testid="listing-detail-title"
             >
               {view.title === "" ? t("post.review.noTitle") : view.title}
-            </h2>
+            </Title>
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-2xl font-bold text-primary" data-testid="listing-detail-price">
                 {priceLine}
@@ -582,11 +641,25 @@ export function ListingDetail(view: ListingDetailView) {
                 {line}
               </p>
             ))}
-            {places.length > 0 && (
-              <p className="text-sm text-muted-foreground" data-testid="listing-detail-places">
-                {places.join(", ")}
-              </p>
-            )}
+            <div className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
+              {places.length > 0 && (
+                <a
+                  data-testid="listing-places-maps"
+                  href={placesMaps}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
+                >
+                  <span data-testid="listing-detail-places">{places.join(", ")}</span>
+                </a>
+              )}
+              {posted !== null && (
+                <p data-testid="listing-detail-posted">
+                  {places.length > 0 && <span aria-hidden="true">{" · "}</span>}
+                  {fill(t("adPage.posted"), { when: posted })}
+                </p>
+              )}
+            </div>
 
             {view.actor === "buyer" &&
               view.publicCounts !== undefined &&
@@ -629,63 +702,66 @@ export function ListingDetail(view: ListingDetailView) {
                 testId="listing-detail-seller"
               />
             </div>
-            {!(typeof view.soldBadge === "string" && view.soldBadge.length > 0) && (
-              <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
-                {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
-                  <h4 className="text-xs font-medium text-muted-foreground">
-                    {t("post.preview.contactLabel")}
-                  </h4>
-                )}
-                {view.actor === "buyer" && view.contact !== undefined ? (
-                  <BuyerContact contact={view.contact} channels={channels} />
-                ) : (
-                  <ul className="divide-y divide-border text-sm">
-                    {channels.map((channel) => {
-                      const entry = ownValue(view.contactPref, channel);
-                      const value =
-                        entry !== null && typeof entry === "object"
-                          ? ownValue(entry as Record<string, unknown>, "value")
-                          : undefined;
-                      const label =
-                        channel === "phone"
-                          ? t("post.who.channel.phone")
-                          : channel === "phone2"
-                            ? t("post.who.channel.phone2")
-                            : channel === "telegram"
-                              ? t("post.who.channel.telegram")
-                              : t("post.who.channel.whatsapp");
-                      return (
-                        <li
-                          key={channel}
-                          data-testid="listing-detail-channel"
-                          data-channel={channel}
-                          className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
-                        >
-                          <span
-                            className="me-auto text-foreground"
-                            data-testid="listing-detail-channel-label"
+            {!sold &&
+              (view.actor === "buyer"
+                ? view.contact?.viewer !== "unknown"
+                : channels.length > 0) && (
+                <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
+                  {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
+                    <h4 className="text-xs font-medium text-muted-foreground">
+                      {t("post.preview.contactLabel")}
+                    </h4>
+                  )}
+                  {view.actor === "buyer" && view.contact !== undefined ? (
+                    <BuyerContact contact={view.contact} channels={channels} />
+                  ) : (
+                    <ul className="divide-y divide-border text-sm">
+                      {channels.map((channel) => {
+                        const entry = ownValue(view.contactPref, channel);
+                        const value =
+                          entry !== null && typeof entry === "object"
+                            ? ownValue(entry as Record<string, unknown>, "value")
+                            : undefined;
+                        const label =
+                          channel === "phone"
+                            ? t("post.who.channel.phone")
+                            : channel === "phone2"
+                              ? t("post.who.channel.phone2")
+                              : channel === "telegram"
+                                ? t("post.who.channel.telegram")
+                                : t("post.who.channel.whatsapp");
+                        return (
+                          <li
+                            key={channel}
+                            data-testid="listing-detail-channel"
+                            data-channel={channel}
+                            className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
                           >
-                            {label}
-                          </span>
-                          {view.actor === "owner" &&
-                            typeof value === "string" &&
-                            value.trim() !== "" && (
-                              <span
-                                data-testid="listing-detail-channel-value"
-                                data-channel={channel}
-                                className="text-foreground"
-                              >
-                                {value}
-                              </span>
-                            )}
-                          {view.channelAction?.(channel) ?? null}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            )}
+                            <span
+                              className="me-auto text-foreground"
+                              data-testid="listing-detail-channel-label"
+                            >
+                              {label}
+                            </span>
+                            {view.actor === "owner" &&
+                              typeof value === "string" &&
+                              value.trim() !== "" && (
+                                <span
+                                  data-testid="listing-detail-channel-value"
+                                  data-channel={channel}
+                                  className="text-foreground"
+                                >
+                                  {value}
+                                </span>
+                              )}
+                            {view.channelAction?.(channel) ?? null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              )}
             {/* Bundle 19 turn 16 (D201 §12) — All ads by this seller; a seller
               with no alias (a business named by its business name alone) gets
               no link. The owner's and staff's previews pass no key. */}
@@ -737,36 +813,40 @@ export function ListingDetail(view: ListingDetailView) {
               ))}
             </nav>
           )}
-          <div className="contents @4xl:order-4 @4xl:grid @4xl:grid-cols-2 @4xl:gap-4">
-            {!sold && <SafetyBox />}
+          {(!sold || facts.length > 0) && (
+            <div
+              className={`contents @4xl:order-4 @4xl:grid @4xl:gap-4 ${!sold && facts.length > 0 ? "@4xl:grid-cols-2" : "@4xl:grid-cols-1"}`}
+            >
+              {!sold && <SafetyBox />}
 
-            {/* ------------------------------ the facts --------------------------- */}
-            {facts.length > 0 && (
-              <section
-                id="ad-details"
-                className="order-5 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-                data-testid="listing-detail-specs"
-              >
-                <h3 className="font-display text-base font-semibold text-foreground">
-                  {t("post.preview.detailsLabel")}
-                </h3>
-                <dl className="space-y-2 text-sm">
-                  {facts.map((definition) => (
-                    <div key={definition.attrKey} className="grid grid-cols-2 gap-3">
-                      <dt className="text-muted-foreground">{factLabel(definition)}</dt>
-                      <dd
-                        className="text-start text-foreground"
-                        data-testid="listing-detail-spec"
-                        data-key={definition.attrKey}
-                      >
-                        {factValue(definition)}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-            )}
-          </div>
+              {/* ------------------------------ the facts --------------------------- */}
+              {facts.length > 0 && (
+                <section
+                  id="ad-details"
+                  className="order-5 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+                  data-testid="listing-detail-specs"
+                >
+                  <h3 className="font-display text-base font-semibold text-foreground">
+                    {t("post.preview.detailsLabel")}
+                  </h3>
+                  <dl className="space-y-2 text-sm">
+                    {facts.map((definition) => (
+                      <div key={definition.attrKey} className="grid grid-cols-2 gap-3">
+                        <dt className="text-muted-foreground">{factLabel(definition)}</dt>
+                        <dd
+                          className="text-start text-foreground"
+                          data-testid="listing-detail-spec"
+                          data-key={definition.attrKey}
+                        >
+                          {factValue(definition)}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              )}
+            </div>
+          )}
           {/* --------------------------- the description ------------------------ */}
           {view.description !== "" && (
             <section
@@ -777,11 +857,23 @@ export function ListingDetail(view: ListingDetailView) {
                 {t("post.preview.descriptionLabel")}
               </h3>
               <p
-                className="whitespace-pre-line text-sm leading-relaxed text-foreground"
+                ref={descriptionRef}
+                className={`whitespace-pre-line text-sm leading-relaxed text-foreground ${view.actor === "buyer" && !expanded ? "line-clamp-8" : ""}`}
                 data-testid="listing-detail-description"
               >
                 {view.description}
               </p>
+              {view.actor === "buyer" && overflows && (
+                <Button
+                  variant="ghost"
+                  className="min-h-11 text-primary"
+                  data-testid="listing-description-toggle"
+                  aria-expanded={expanded}
+                  onClick={() => setExpanded((current) => !current)}
+                >
+                  {t(expanded ? "adPage.description.less" : "adPage.description.more")}
+                </Button>
+              )}
             </section>
           )}
 
@@ -793,6 +885,9 @@ export function ListingDetail(view: ListingDetailView) {
             <h3 className="font-display text-base font-semibold">{t("adPage.section.location")}</h3>
             {places.length > 0 && (
               <p className="text-sm text-muted-foreground">{places.join(", ")}</p>
+            )}
+            {places.length === 0 && !view.directions && !view.streetAddress && !hasPin && (
+              <p className="text-sm text-muted-foreground">{t("post.review.notGiven")}</p>
             )}
             {/* Step 10 (P4) — directions above the location details, as text (F2). */}
             {(view.directions || view.streetAddress) && (
@@ -869,6 +964,17 @@ export function ListingDetail(view: ListingDetailView) {
                     </DialogContent>
                   )}
                 </Dialog>
+                {mapMaps !== null && (
+                  <a
+                    data-testid="listing-map-google"
+                    href={mapMaps}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+                  >
+                    {t("adPage.map.google")}
+                  </a>
+                )}
               </div>
             )}
           </section>
@@ -906,6 +1012,7 @@ export function ListingDetail(view: ListingDetailView) {
                 to={view.contact.signInTo.to}
                 search={view.contact.signInTo.search}
                 data-testid="listing-contact-bar-action"
+                onClick={view.contact.onSignInTap}
               >
                 {t("adPage.contact.link")}
               </Link>
@@ -939,6 +1046,7 @@ function BuyerContact({
           to={contact.signInTo.to}
           search={contact.signInTo.search}
           data-testid="listing-contact-sign-in"
+          onClick={contact.onSignInTap}
         >
           {t("adPage.contact.link")}
         </Link>

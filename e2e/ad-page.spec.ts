@@ -79,12 +79,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     if (href === null) throw new Error("AP-9 contact link missing");
     await expect(signIn).toHaveText(en["adPage.contact.link"]);
     expect(href.startsWith("/auth?return=")).toBe(true);
-    expect(new URL(href, page.url()).searchParams.get("return")).toBe(
-      `${canonical}?reveal=1#contact`,
-    );
+    expect(new URL(href, page.url()).searchParams.get("return")).toBe(`${canonical}#contact`);
     await expect(page.locator("body")).not.toContainText("251911000001");
     expect(html).not.toContain("251911000001");
     expect(html).not.toContain('data-testid="listing-detail-channel"');
+    expect(html).not.toContain('data-testid="listing-contact-sign-in"');
     await expect(
       page.locator(`[data-testid="breadcrumb-category-parent"][href="/c/${seller.leafSlug}"]`),
     ).toBeVisible();
@@ -805,6 +804,27 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, (await address(ad)).canonical);
     await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
     const check = async () => {
+      await expect
+        .poll(() =>
+          page
+            .getByTestId("gallery-main")
+            .locator("img")
+            .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
+        )
+        .toBe(true);
+      let previous = "";
+      await expect
+        .poll(async () => {
+          const boxes = await Promise.all([
+            page.getByTestId("listing-detail-gallery").boundingBox(),
+            page.getByTestId("listing-detail-headline").boundingBox(),
+          ]);
+          const current = JSON.stringify(boxes);
+          const settled = boxes.every(Boolean) && current === previous;
+          previous = current;
+          return settled;
+        })
+        .toBe(true);
       const article = await page.getByTestId("listing-detail").boundingBox();
       const gallery = await page.getByTestId("listing-detail-gallery").boundingBox();
       const headline = await page.getByTestId("listing-detail-headline").boundingBox();
@@ -883,7 +903,14 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       .toBeLessThanOrEqual(8);
     const sold = await seed(seller, "sold", { soldAt: -1 });
     await gotoReady(page, (await address(sold)).canonical);
-    await expect(page.getByTestId("listing-section-nav")).toHaveCount(0);
+    await expect(page.getByTestId("listing-section-nav")).toBeVisible();
+    await expect(page.getByTestId("listing-section-nav-item")).toHaveCount(3);
+    expect(
+      await page
+        .getByTestId("listing-section-nav-item")
+        .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
+    ).toEqual(["description", "location", "seller"]);
+    await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
 
   test("AP-38 the phone's contact bar", async ({ page }, testInfo) => {
@@ -902,9 +929,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(action).toHaveAttribute("href", /auth\?return=/);
     const href = await action.getAttribute("href");
     if (href === null) throw new Error("AP-38 contact return missing");
-    expect(new URL(href, page.url()).searchParams.get("return")).toBe(
-      `${canonical}?reveal=1#contact`,
-    );
+    expect(new URL(href, page.url()).searchParams.get("return")).toBe(`${canonical}#contact`);
     const box = await bar.boundingBox();
     const bottom = await page.getByTestId("bottom-bar").boundingBox();
     if (!box || !bottom) throw new Error("AP-38 bar boxes missing");
@@ -972,5 +997,210 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(large).toHaveAttribute("data-zoom", "15");
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
+  });
+  test("AP-40 an address never reveals: only the visitor's own tap does (D201 §14)", async ({
+    page,
+    browser,
+  }) => {
+    const seller = await scratchSeller();
+    const x = await seed(seller, "active", {
+      contactPref: { phone: { show: true, value: "+251911000001" } },
+    });
+    const y = await seed(seller, "active", {
+      contactPref: { phone: { show: true, value: "+251911000002" } },
+    });
+    const buyer = await leaseUser();
+    const xAddress = await address(x);
+    const yAddress = await address(y);
+    await signInViaSession(page, buyer.email, buyer.password);
+    for (const path of [
+      `${xAddress.canonical}?${["reveal", "1"].join("=")}#contact`,
+      `${xAddress.canonical}#contact`,
+    ]) {
+      await gotoReady(page, path);
+      await expect(page.getByTestId("listing-contact-show")).toBeVisible();
+      await expect(page.getByTestId("listing-contact-phone")).toHaveCount(0);
+      const rows = await adminClient()
+        .from("contact_reveals")
+        .select("listing_id")
+        .eq("viewer_id", buyer.id)
+        .eq("listing_id", x.id);
+      expect(rows.error).toBeNull();
+      expect(rows.data).toHaveLength(0);
+    }
+    const context = await browser.newContext();
+    try {
+      const visitor = await context.newPage();
+      await gotoReady(visitor, xAddress.canonical);
+      await visitor.getByTestId("listing-contact-sign-in").click();
+      await waitForHydration(visitor);
+      // A person changes the sign-in destination to ad Y; the intent still belongs only to X.
+      await gotoReady(
+        visitor,
+        `/auth?return=${encodeURIComponent(`${yAddress.canonical}#contact`)}`,
+      );
+      const fields = authFields(visitor);
+      await fields.email.fill(buyer.email);
+      await fields.password.fill(buyer.password);
+      await fields.submit.click();
+      await expect(visitor).toHaveURL(new RegExp(`${yAddress.canonical}#contact$`));
+      await expect(visitor.getByTestId("listing-contact-show")).toBeVisible();
+      await expect(visitor.getByTestId("listing-contact-phone")).toHaveCount(0);
+      const rows = await adminClient()
+        .from("contact_reveals")
+        .select("listing_id")
+        .eq("viewer_id", buyer.id)
+        .eq("listing_id", y.id);
+      expect(rows.error).toBeNull();
+      expect(rows.data).toHaveLength(0);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("AP-41 the page's remaining lines", async ({ page }) => {
+    const seller = await scratchSeller();
+    const today = await seed(seller, "active", { publishedAt: 0, pin: true });
+    const long = Array.from({ length: 40 }, (_, i) => `Scratch description line ${i + 1}`).join(
+      "\n",
+    );
+    const update = await adminClient()
+      .from("listings")
+      .update({
+        description: long,
+        pin_precision: "exact",
+        pin_show_lat: 8.9876543,
+        pin_show_lng: 38.7612345,
+      })
+      .eq("id", today.id);
+    expect(update.error).toBeNull();
+    await gotoReady(page, (await address(today)).canonical);
+    await expect(page.getByTestId("listing-detail-posted")).toContainText(
+      fill(en["adPage.posted"], { when: "today" }),
+    );
+    await switchLanguage(page, "am");
+    await expect(page.getByTestId("listing-detail-posted")).toContainText(
+      fill(am["adPage.posted"], {
+        when: new Intl.RelativeTimeFormat("am", { numeric: "auto" }).format(0, "day"),
+      }),
+    );
+    await switchLanguage(page, "en");
+    const text = page.getByTestId("listing-detail-description");
+    const toggle = page.getByTestId("listing-description-toggle");
+    await expect(toggle).toHaveText(en["adPage.description.more"]);
+    const folded = await text.boundingBox();
+    if (!folded) throw new Error("AP-41 folded description missing");
+    await toggle.click();
+    await expect(toggle).toHaveText(en["adPage.description.less"]);
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await expect
+      .poll(async () => (await text.boundingBox())?.height ?? 0)
+      .toBeGreaterThan(folded.height);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByTestId("listing-places-maps")).toHaveAttribute(
+      "href",
+      /^https:\/\/www.google.com\/maps\/search\/\?api=1&query=/,
+    );
+    await expect(page.getByTestId("listing-places-maps")).toHaveAttribute("target", "_blank");
+    await expect(page.getByTestId("listing-map-google")).toHaveAttribute(
+      "href",
+      "https://www.google.com/maps/search/?api=1&query=8.9876543,38.7612345",
+    );
+    await expect(page.getByTestId("listing-map-google")).toHaveAttribute("target", "_blank");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(today.title);
+    const approx = await seed(seller, "active", { pin: true });
+    const coords = await adminClient()
+      .from("listings")
+      .select("pin_lat,pin_lng,pin_show_lat,pin_show_lng")
+      .eq("id", approx.id)
+      .single();
+    expect(coords.error).toBeNull();
+    if (
+      !coords.data ||
+      coords.data.pin_lat === null ||
+      coords.data.pin_lng === null ||
+      coords.data.pin_show_lat === null ||
+      coords.data.pin_show_lng === null
+    )
+      throw new Error("AP-41 missing approximate coordinates");
+    await gotoReady(page, (await address(approx)).canonical);
+    const href = await page.getByTestId("listing-map-google").getAttribute("href");
+    expect(href).toBe(
+      `https://www.google.com/maps/search/?api=1&query=${Math.round(coords.data.pin_show_lat / 0.01) * 0.01},${Math.round(coords.data.pin_show_lng / 0.01) * 0.01}`,
+    );
+    expect(href).not.toContain(String(coords.data.pin_lat));
+    expect(href).not.toContain(String(coords.data.pin_lng));
+    const old = await seed(seller, "active", { publishedAt: -3 });
+    const short = await adminClient()
+      .from("listings")
+      .update({ description: "Scratch line one\nScratch line two" })
+      .eq("id", old.id);
+    expect(short.error).toBeNull();
+    await gotoReady(page, (await address(old)).canonical);
+    await expect(page.getByTestId("listing-detail-posted")).toContainText(
+      fill(en["adPage.posted"], { when: "3 days ago" }),
+    );
+    await expect(toggle).toHaveCount(0);
+    await expect(page.getByTestId("listing-map-google")).toHaveCount(0);
+    await expect(page.getByTestId("listing-places-maps")).toBeVisible();
+  });
+
+  test("AP-42 no half-empty row", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280");
+    const seller = await scratchSeller();
+    const key = `e2e-fullrow-${token()}`;
+    factKeys.push(key);
+    const attributeId = await seedAttribute(key, "text");
+    const linked = await adminClient()
+      .from("category_attribute_links")
+      .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
+    expect(linked.error).toBeNull();
+    const live = await seed(seller, "active", { attributes: { [key]: "scratch value" } });
+    const sold = await seed(seller, "sold", { soldAt: -1, attributes: { [key]: "scratch value" } });
+    for (const ad of [live, sold]) {
+      await seedPhotos(ad.id);
+      await gotoReady(page, (await address(ad)).canonical);
+      await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
+      await expect
+        .poll(() =>
+          page
+            .getByTestId("gallery-main")
+            .locator("img")
+            .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
+        )
+        .toBe(true);
+      let previous = "";
+      await expect
+        .poll(async () => {
+          const current = JSON.stringify(
+            await Promise.all([
+              page.getByTestId("listing-detail-main").boundingBox(),
+              page.getByTestId("listing-detail-specs").boundingBox(),
+            ]),
+          );
+          const stable = previous === current;
+          previous = current;
+          return stable;
+        })
+        .toBe(true);
+      const article = await page.getByTestId("listing-detail").boundingBox();
+      if (!article) throw new Error("AP-42 article missing");
+      if (article.width < 896) continue;
+      const main = await page.getByTestId("listing-detail-main").boundingBox();
+      const details = await page.getByTestId("listing-detail-specs").boundingBox();
+      if (!main || !details) throw new Error("AP-42 main boxes missing");
+      if (ad.id === sold.id) {
+        await expect(page.getByTestId("listing-safety")).toHaveCount(0);
+        expect(Math.abs(details.width - main.width)).toBeLessThanOrEqual(2);
+      } else {
+        const safety = await page.getByTestId("listing-safety").boundingBox();
+        if (!safety) throw new Error("AP-42 safety missing");
+        expect(Math.abs(safety.y - details.y)).toBeLessThanOrEqual(8);
+        expect(Math.abs(safety.width - (main.width - 16) / 2)).toBeLessThanOrEqual(2);
+        expect(Math.abs(details.width - (main.width - 16) / 2)).toBeLessThanOrEqual(2);
+      }
+    }
   });
 });
