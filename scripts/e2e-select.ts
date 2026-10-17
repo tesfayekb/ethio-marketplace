@@ -178,8 +178,8 @@ export const AREAS: Area[] = [
   },
   {
     name: "account",
-    src: ["src/routes/account.tsx", "src/features/account/**"],
-    specs: ["e2e/settings.spec.ts"],
+    src: ["src/routes/account.tsx", "src/routes/account_.saved.tsx", "src/features/account/**"],
+    specs: ["e2e/settings.spec.ts", "e2e/account-saved.spec.ts"],
   },
   {
     name: "feed",

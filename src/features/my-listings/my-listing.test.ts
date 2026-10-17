@@ -282,8 +282,8 @@ describe("the list's actions (bundle 16 turn R1, D181, D182)", () => {
   });
 });
 
-it("ML-U22 listing_counts parses three non-negative integers; a missing or negative one is refused", () => {
-  const counts = { views: 3, shares: 0, contacts: 1 };
+it("ML-U22 listing_counts parses four non-negative integers; a missing or negative one is refused", () => {
+  const counts = { views: 3, shares: 0, contacts: 1, saves: 2 };
   expect(parseListingCounts({ ...counts, shares_by_channel: { telegram: 2 } })).toEqual(counts);
   for (const value of [
     { ...counts, views: -1 },
@@ -292,6 +292,8 @@ it("ML-U22 listing_counts parses three non-negative integers; a missing or negat
     { ...counts, contacts: 0.5 },
     { ...counts, shares: Infinity },
     { ...counts, contacts: undefined },
+    { ...counts, saves: undefined },
+    { ...counts, saves: -1 },
   ])
     expect(parseListingCounts(value)).toBeNull();
 });
