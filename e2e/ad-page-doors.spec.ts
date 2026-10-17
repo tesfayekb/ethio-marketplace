@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 import { RUN } from "./helpers/posting";
 import { adPageFixtures, token } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser } from "./helpers/users";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 
 /**
@@ -460,12 +460,14 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
   });
 
   test("AP-21 the sellers cap: ten distinct sellers a day, flagged for staff (D201 §6a)", async () => {
+    // EL-4's two-lease limit: one leased seller; B and C are fresh accounts whose
+    // ads share A's branch and place (the cap counts distinct sellers only).
     const sellerA = await scratchSeller();
-    const sellerB = await scratchSeller();
-    const sellerC = await scratchSeller();
+    const sellerB = await createUser({ confirmed: true });
+    const sellerC = await createUser({ confirmed: true });
     const adA = await seed(sellerA);
-    const adB = await seed(sellerB);
-    const adC = await seed(sellerC);
+    const adB = await seed({ id: sellerB.id, leafId: sellerA.leafId, cityId: sellerA.cityId });
+    const adC = await seed({ id: sellerC.id, leafId: sellerA.leafId, cityId: sellerA.cityId });
     const buyerPerson = await leaseUser();
     const buyer = await asPerson(buyerPerson);
     // A lowered dial so the test reaches the cap with three sellers; removed in finally.
