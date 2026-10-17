@@ -5,8 +5,8 @@
  * src/routes must therefore be shorter than five characters, or contain a
  * hyphen, or be a word in scripts/site-words.txt (which the seller-name rules
  * refuse as a name). Pathless layouts (`_x`), `__root`, `index` and README are
- * not segments. A dynamic first segment (`$x`) is refused: it would claim every
- * name before the seller page exists.
+ * not segments. A dynamic first segment (`$x`) is refused — except exactly
+ * `$name`, the seller's page itself (bundle 19 turn 17, DEC-108).
  *
  *   bun run scripts/check-root-routes.ts             # checks the tree
  *   bun run scripts/check-root-routes.ts --self-test # checks the fixtures
@@ -27,7 +27,7 @@ export function firstSegment(entry: string): string | null {
 
 /** Why a segment is refused, or null when it is allowed. */
 export function segmentRefusal(segment: string, siteWords: ReadonlySet<string>): string | null {
-  if (segment.startsWith("$")) return "dynamic first segment";
+  if (segment.startsWith("$")) return segment === "$name" ? null : "dynamic first segment";
   if (segment.length < 5) return null;
   if (segment.includes("-")) return null;
   if (siteWords.has(segment)) return null;
@@ -68,8 +68,9 @@ function selfTest(): number {
     "post_.$listingId.tsx",
     "api",
     "help-centre.tsx",
+    "$name.tsx",
   ];
-  const fail = ["abebephones.tsx", "selam.tsx", "$name.tsx", "telebirr_.x.tsx"];
+  const fail = ["abebephones.tsx", "selam.tsx", "$slug.tsx", "$x.tsx", "telebirr_.x.tsx"];
   const passProblems = check(pass, words);
   const failProblems = fail.filter((entry) => check([entry], words).length === 0);
   if (passProblems.length > 0 || failProblems.length > 0) {
