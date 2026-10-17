@@ -412,9 +412,10 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       "href",
       "tel:+251911000001",
     );
+    await expect(page.getByTestId("listing-contact-phone")).toHaveText("+251911000001");
     await expect(page.getByTestId("listing-contact-telegram")).toHaveAttribute(
       "href",
-      "https://t.me/e2ehandle",
+      "https://t.me/scratch_seller",
     );
 
     // Signed out: the link's return brings the visitor back to the contact block.

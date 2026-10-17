@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 import { RUN } from "./helpers/posting";
 import { adPageFixtures, token } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
-import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 
 /**
