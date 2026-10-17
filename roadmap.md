@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-10.md (bundle 19 — turn 10: the reds of runs 978 and 979 (INC-683, INC-684, INC-680, INC-679); the link manager's Key fact tick; no contact block on a sold ad; /l/<id>/photo.jpg, og:image and JSON-LD; five strings; no migration). Next: turn 11 — M5: the reveal rules and the contact block with sign-in return; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-11.md (bundle 19 — turn 11: the contact block — sign in to see, Show contact, the links; M5 by the migration tool (DEC-188), mark 20261018160000 — reveal_listing_contact by public id with the sellers cap, the new-account five and reveal_flags; seven strings). Next: turn 12 — M3: Save and Account › Saved; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -336,8 +336,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 8 (docs/governance/briefs/bundle-19-turn-8.md; no migration; five strings) — run 977's fixes (INC-681, FR-6, INC-682, INC-680), the safety box (D201 §7), the SOLD badge after the price
   - [x] Turn 9 (docs/governance/briefs/bundle-19-turn-9.md; the migration in eight parts, turn 9c — docs/governance/briefs/bundle-19-turn-9c.md, marks 20261018150000 … 20261018150700; two strings) — M2: `fact_rank` on every link (nine doors redeclared whole, one new door), the links file's trailing cell and the export, the key-facts strip (`keyFacts`: ranked facts, else the first four filterable choice or number facts in form order that are not card facts) on the page and in every preview
   - [ ] Turn 10 (docs/governance/briefs/bundle-19-turn-10.md; no migration; five strings) — the reds of runs 978 and 979 (INC-683, INC-684, INC-680, INC-679); the link manager's Key fact tick (D201 §4), no contact block on a sold ad (rule 11), the share image route /l/<id>/photo.jpg with og:image and JSON-LD Product (brought forward from the sharing turn)
-  - [ ] Turn 10b — the seven-day flake ledger's findings of run 979: MLP-1 / MLP-3 (INC-686), CT-6 (INC-687), PR-21 (INC-688), PP-1 (INC-689) — each read at its body and fixed at root (G38)
-  - [ ] Turn 11 (docs/governance/briefs/bundle-19-turn-11.md) — M5: the reveal rules; the contact block and sign-in return
+  - [ ] Turn 10b — not a turn (2026-10-17): INC-686…INC-689 were 60-second timeouts and a 504 on run 979, a strained staging; they are re-judged on the next two runs with staging current, and get a root-cause turn if they recur
+  - [ ] Turn 11 (docs/governance/briefs/bundle-19-turn-11.md; one migration by the migration tool, mark 20261018160000; seven strings) — the contact block: signed out, one sentence that leads to sign-in and back (`?return=/l/<slug>#contact`); signed in, Show contact → the seller's phone, Telegram and WhatsApp as links from the door's answer only; M5: `reveal_listing_contact(p_public_id)` with the day row, the ten-distinct-sellers cap (`contact_reveal_sellers`, `reveal_flags` for staff), the new account's five, the 30 a day; the owner's "N contacts"
   - [ ] Turn 12 (docs/governance/briefs/bundle-19-turn-12.md) — M3: Save and Account › Saved
   - [ ] Turn 13 (docs/governance/briefs/bundle-19-turn-13.md) — M4: Report and the admin count
   - [ ] Turn 14 (docs/governance/briefs/bundle-19-turn-14.md) — Share, counters
