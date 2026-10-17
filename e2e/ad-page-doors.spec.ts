@@ -396,4 +396,146 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     const row = ((list.data as Row)["rows"] as Row[]).find((entry) => entry["id"] === ad.id);
     expect(row?.["publicId"]).toBe(publicId);
   });
+
+  test("AP-20 the reveal: the owner without a row, the buyer once a day, never a sold or unknown ad (D201 §6)", async () => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active", {
+      contactPref: {
+        messages: true,
+        phone: { show: true, value: "+251911000001" },
+        phone2: { show: false, value: "+251911000002" },
+        telegram: { show: true, value: "e2ehandle" },
+      },
+    });
+    const publicId = await publicIdOf(ad.id);
+    const revealRows = async () =>
+      (
+        await adminClient()
+          .from("contact_reveals")
+          .select("listing_id,viewer_id,day,created_at")
+          .eq("listing_id", ad.id)
+      ).data ?? [];
+
+    // The owner always reaches his own ad's channels and leaves no row, no count.
+    const owner = await asPerson(seller);
+    const own = await owner.rpc("reveal_listing_contact", { p_public_id: publicId });
+    expect(own.error).toBeNull();
+    const ownChannels = (own.data as Row)["channels"] as Row;
+    expect((ownChannels["phone"] as Row)["value"]).toBe("+251911000001");
+    expect(ownChannels["phone2"]).toBeUndefined();
+    expect(ownChannels["messages"]).toBeUndefined();
+    expect(await revealRows()).toHaveLength(0);
+
+    // The buyer: one row the first time, none the second time the same day; the row carries its instant.
+    const buyer = await asPerson(await leaseUser());
+    const first = await buyer.rpc("reveal_listing_contact", { p_public_id: publicId });
+    expect(first.error).toBeNull();
+    expect((first.data as Row)["ok"]).toBe(true);
+    expect((((first.data as Row)["channels"] as Row)["telegram"] as Row)["value"]).toBe("e2ehandle");
+    const rows = await revealRows();
+    expect(rows).toHaveLength(1);
+    expect(typeof rows[0]!["created_at"]).toBe("string");
+    const again = await buyer.rpc("reveal_listing_contact", { p_public_id: publicId });
+    expect(again.error).toBeNull();
+    expect((again.data as Row)["ok"]).toBe(true);
+    expect(await revealRows()).toHaveLength(1);
+
+    // A sold ad and an unknown id are "listingNotAvailable", as before.
+    const sold = await seed(seller, "sold", { soldAt: -1 });
+    expect(
+      (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(sold.id) })).error,
+    ).toBe("listingNotAvailable");
+    expect((await buyer.rpc("reveal_listing_contact", { p_public_id: "2345678923" })).error).toBe(
+      "listingNotAvailable",
+    );
+  });
+
+  test("AP-21 the sellers cap: ten distinct sellers a day, flagged for staff (D201 §6a)", async () => {
+    const sellerA = await scratchSeller();
+    const sellerB = await scratchSeller();
+    const sellerC = await scratchSeller();
+    const adA = await seed(sellerA);
+    const adB = await seed(sellerB);
+    const adC = await seed(sellerC);
+    const buyerPerson = await leaseUser();
+    const buyer = await asPerson(buyerPerson);
+    // A lowered dial so the test reaches the cap with three sellers; removed in finally.
+    const override = await adminClient().from("rate_overrides").insert({
+      user_id: buyerPerson.id,
+      action: "contact_reveal_sellers",
+      max_count: 2,
+    });
+    expect(override.error).toBeNull();
+    try {
+      expect(
+        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adA.id) })).error,
+      ).toBeNull();
+      expect(
+        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adB.id) })).error,
+      ).toBeNull();
+      const capped = await buyer.rpc("reveal_listing_contact", {
+        p_public_id: await publicIdOf(adC.id),
+      });
+      expect(capped.error).toBeNull();
+      expect(capped.data).toMatchObject({ ok: false, reason: "sellersCapReached" });
+      expect(typeof (capped.data as Row)["resets_at"]).toBe("string");
+      const flags = async () =>
+        (
+          await adminClient()
+            .from("reveal_flags")
+            .select("viewer_id,sellers,hits")
+            .eq("viewer_id", buyerPerson.id)
+        ).data ?? [];
+      expect(await flags()).toEqual([
+        { viewer_id: buyerPerson.id, sellers: 2, hits: 1 },
+      ]);
+      const again = await buyer.rpc("reveal_listing_contact", {
+        p_public_id: await publicIdOf(adC.id),
+      });
+      expect((again.data as Row)["reason"]).toBe("sellersCapReached");
+      expect((await flags())[0]!["hits"]).toBe(2);
+      // A seller already reached never counts against the cap.
+      const backToA = await buyer.rpc("reveal_listing_contact", {
+        p_public_id: await publicIdOf(adA.id),
+      });
+      expect(backToA.error).toBeNull();
+      expect((backToA.data as Row)["ok"]).toBe(true);
+    } finally {
+      const removed = await adminClient()
+        .from("rate_overrides")
+        .delete()
+        .eq("user_id", buyerPerson.id)
+        .eq("action", "contact_reveal_sellers");
+      expect(removed.error).toBeNull();
+    }
+  });
+
+  test("AP-22 a new account is held to five reveals its first day (D201 §6b)", async ({ page }) => {
+    const seller = await scratchSeller();
+    const buyer = await createUser({ confirmed: true });
+    const asBuyer = await asPerson(buyer);
+    const ads = [];
+    for (let i = 0; i < 6; i += 1) ads.push(await seed(seller));
+    for (let i = 0; i < 5; i += 1) {
+      const reached = await asBuyer.rpc("reveal_listing_contact", {
+        p_public_id: await publicIdOf(ads[i]!.id),
+      });
+      expect(reached.error).toBeNull();
+      expect((reached.data as Row)["ok"]).toBe(true);
+    }
+    const sixth = await asBuyer.rpc("reveal_listing_contact", {
+      p_public_id: await publicIdOf(ads[5]!.id),
+    });
+    expect(sixth.error).toBeNull();
+    expect(sixth.data).toMatchObject({ ok: false, reason: "rateLimited" });
+    const resetsAt = new Date(String((sixth.data as Row)["resets_at"])).getTime();
+    const midnight = new Date();
+    midnight.setUTCHours(24, 0, 0, 0);
+    expect(resetsAt).toBe(midnight.getTime());
+    // The seller's page shows the count the buyer's reveals made.
+    const { signInViaSession, gotoReady } = await import("./helpers/ui");
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${ads[0]!.id}`);
+    await expect(page.getByTestId("listing-detail-counts")).toContainText("1 contacts");
+  });
 });
