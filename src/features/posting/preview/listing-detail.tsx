@@ -210,8 +210,14 @@ export function ListingDetail(view: ListingDetailView) {
   return (
     <article className="space-y-4" data-testid="listing-detail" data-actor={view.actor}>
       {view.actor === "owner" && view.counts !== undefined && (
-        <p data-testid="listing-detail-counts" data-state={view.counts === null ? "unavailable" : "ready"} className="text-sm text-muted-foreground">
-          {view.counts === null ? t("adPage.counts.unavailable") : (
+        <p
+          data-testid="listing-detail-counts"
+          data-state={view.counts === null ? "unavailable" : "ready"}
+          className="text-sm text-muted-foreground"
+        >
+          {view.counts === null ? (
+            t("adPage.counts.unavailable")
+          ) : (
             <span data-testid="listing-detail-count" data-count="views">
               {fill(t("feed.views"), { count: view.counts.views })}
             </span>
@@ -351,9 +357,10 @@ export function ListingDetail(view: ListingDetailView) {
           <ul className="divide-y divide-border text-sm">
             {channels.map((channel) => {
               const entry = ownValue(view.contactPref, channel);
-              const value = entry !== null && typeof entry === "object"
-                ? ownValue(entry as Record<string, unknown>, "value")
-                : undefined;
+              const value =
+                entry !== null && typeof entry === "object"
+                  ? ownValue(entry as Record<string, unknown>, "value")
+                  : undefined;
               const label =
                 channel === "phone"
                   ? t("post.who.channel.phone")
@@ -376,7 +383,13 @@ export function ListingDetail(view: ListingDetailView) {
                     {label}
                   </span>
                   {view.actor === "owner" && typeof value === "string" && value.trim() !== "" && (
-                    <span data-testid="listing-detail-channel-value" data-channel={channel} className="text-foreground">{value}</span>
+                    <span
+                      data-testid="listing-detail-channel-value"
+                      data-channel={channel}
+                      className="text-foreground"
+                    >
+                      {value}
+                    </span>
                   )}
                   {view.channelAction?.(channel) ?? null}
                 </li>

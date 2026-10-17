@@ -591,7 +591,15 @@ export function MyListingPage({ listingId }: { listingId: string }) {
           ) : (
             <ListingDetail
               actor="owner"
-              counts={row.publishedFirstAt === null ? undefined : counts.isError ? null : counts.data === undefined ? undefined : { views: counts.data.views }}
+              counts={
+                row.publishedFirstAt === null
+                  ? undefined
+                  : counts.isError
+                    ? null
+                    : counts.data === undefined
+                      ? undefined
+                      : { views: counts.data.views }
+              }
               title={draft.draft.title ?? ""}
               description={draft.draft.description ?? ""}
               priceMode={draft.draft.priceMode ?? "contact"}
