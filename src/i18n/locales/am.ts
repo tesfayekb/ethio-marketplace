@@ -295,6 +295,7 @@ export const am: Messages = {
   "adPage.share.more": "ሌሎች መተግበሪያዎች",
   "adPage.share.text": "{title} — {price} በ ethio.com፦ {url}",
   "adPage.share.textNoPrice": "{title} በ ethio.com፦ {url}",
+  "adPage.similar.title": "ተመሳሳይ ማስታወቂያዎች",
   "adPage.gone.title": "ይህ ማስታወቂያ ከእንግዲህ አይገኝም",
   "adPage.gone.body": "ተሽጦ፣ በሻጩ ተወግዶ ወይም ጊዜው አልፎ ሊሆን ይችላል።",
   "adPage.gone.home": "ወደ መነሻ ተመለስ",

@@ -689,4 +689,53 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     expect(truth.error).toBeNull();
     expect(truth.data).toEqual([]);
   });
+
+  test("AP-32 similar ads: up to six of the same leaf and place, the ad itself never among them; none on a sold ad", async ({
+    page,
+  }) => {
+    const sellerA = await scratchSeller();
+    const sellerB = await scratchSeller();
+    const X = await seed(sellerA);
+    for (let n = 0; n < 3; n++) await seed(sellerA);
+    // B's ad in A's leaf and place: the scratch leaf holds only this test's ads.
+    await seed({ id: sellerB.id, leafId: sellerA.leafId, cityId: sellerA.cityId });
+    const { canonical, publicId } = await address(X);
+    await page.goto(canonical);
+    await expect(page.getByTestId("listing-detail-title")).toHaveText(X.title);
+    const section = page.getByTestId("listing-similar");
+    await expect(section).toBeVisible({ timeout: 15000 });
+    const hrefs = await section
+      .locator("ul > li a")
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href") ?? ""));
+    expect(hrefs).toHaveLength(4);
+    expect(hrefs.every((href) => !href.includes(publicId))).toBe(true);
+    const marked = await adminClient()
+      .from("listings")
+      .update({ status: "sold", sold_at: new Date().toISOString() })
+      .eq("id", X.id);
+    expect(marked.error).toBeNull();
+    await page.reload();
+    await expect(page.getByTestId("listing-detail-title")).toHaveText(X.title);
+    await expect(page.getByTestId("listing-similar")).toHaveCount(0);
+  });
+
+  test("AP-33 the seller's own ad page shares a live ad only", async ({ page }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller);
+    const draft = await seed(seller, "draft");
+    const sold = await seed(seller, "sold", { soldAt: -1 });
+    const { canonical } = await address(live);
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${live.id}`);
+    await page.getByTestId("listing-share-open").click();
+    const url = new URL(canonical, page.url()).href;
+    await expect(page.getByTestId("listing-share-telegram")).toHaveAttribute(
+      "href",
+      new RegExp(`^https://t\\.me/share/url\\?url=${encodeURIComponent(url)}`),
+    );
+    await gotoReady(page, `/my-listings/${draft.id}`);
+    await expect(page.getByTestId("listing-share-open")).toHaveCount(0);
+    await gotoReady(page, `/my-listings/${sold.id}`);
+    await expect(page.getByTestId("listing-share-open")).toHaveCount(0);
+  });
 });
