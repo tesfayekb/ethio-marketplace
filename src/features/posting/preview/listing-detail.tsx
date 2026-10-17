@@ -89,7 +89,7 @@ export interface ListingDetailView {
   /** D201 §5 — who is looking: the buyer's page, the owner's previews (the seller's ad page, the wizard's Review), staff's previews (Admin › Listings, Screening). The component draws the same ad for all three and differs only where this brief says. */
   actor: ListingActor;
   /** D201 §0 rule 10 — the owner's counts, passed only by the seller's ad page: undefined = not asked (the wizard), null = asked and not answered, a number = the count. Only what is counted is passed — views now; shares when the share sheet lands; contacts when the contact block lands; Saves at M3 — never a count nothing writes. */
-  counts?: { views: number } | null;
+  counts?: { views: number; contacts?: number } | null;
   /** D201 rule 11 — the sold word (sold / rented / filled, translated by the caller) drawn as a red badge after the price; present on a sold ad only. */
   soldBadge?: string | null;
   title: string;
@@ -277,9 +277,19 @@ export function ListingDetail(view: ListingDetailView) {
           {view.counts === null ? (
             t("adPage.counts.unavailable")
           ) : (
-            <span data-testid="listing-detail-count" data-count="views">
-              {fill(t("feed.views"), { count: view.counts.views })}
-            </span>
+            <>
+              <span data-testid="listing-detail-count" data-count="views">
+                {fill(t("feed.views"), { count: view.counts.views })}
+              </span>
+              {view.counts.contacts !== undefined && (
+                <>
+                  {" · "}
+                  <span data-testid="listing-detail-count" data-count="contacts">
+                    {fill(t("adPage.counts.contacts"), { count: view.counts.contacts })}
+                  </span>
+                </>
+              )}
+            </>
           )}
         </p>
       )}

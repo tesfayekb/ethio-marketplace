@@ -600,7 +600,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                     ? null
                     : counts.data === undefined
                       ? undefined
-                      : { views: counts.data.views }
+                      : { views: counts.data.views, contacts: counts.data.contacts }
               }
               title={draft.draft.title ?? ""}
               description={draft.draft.description ?? ""}
