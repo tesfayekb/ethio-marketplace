@@ -3,7 +3,13 @@ import { shapeDeal, shapePostingSchema } from "@/features/posting/posting-servic
 import type { ListingDetailView } from "@/features/posting/preview/listing-detail";
 import { ribbonOf, type FeedSoldWord } from "@/features/feed/feed-page";
 
-type PublicValue = string | number | boolean | null | PublicValue[] | { [key: string]: PublicValue };
+type PublicValue =
+  | string
+  | number
+  | boolean
+  | null
+  | PublicValue[]
+  | { [key: string]: PublicValue };
 type PublicRecord = Record<string, PublicValue>;
 
 /** The public_listing document: public facts only, never a contact value or seller id. */

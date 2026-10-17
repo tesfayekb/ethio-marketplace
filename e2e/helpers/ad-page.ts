@@ -1,13 +1,23 @@
 import { adminClient } from "./users";
 import { destroyLocation, seedScratchChain } from "./locations";
-import { destroyCategoryBranch, destroyListingsOf, leaseSeller, RUN, seedCategoryBranch } from "./posting";
+import {
+  destroyCategoryBranch,
+  destroyListingsOf,
+  leaseSeller,
+  RUN,
+  seedCategoryBranch,
+} from "./posting";
+import jpeg from "jpeg-js";
 import { fixture, BUCKET } from "./photos";
 
 type Row = Record<string, unknown>;
 
 /** Letters only: never mistaken for a contact number. */
 export function token(): string {
-  return Math.random().toString(36).slice(2, 10).replace(/[0-9]/g, (digit) => "abcdefghij"[Number(digit)] ?? "x");
+  return Math.random()
+    .toString(36)
+    .slice(2, 10)
+    .replace(/[0-9]/g, (digit) => "abcdefghij"[Number(digit)] ?? "x");
 }
 const DAY = 86_400_000;
 const days = (n: number) => new Date(Date.now() + n * DAY).toISOString();
@@ -37,7 +47,8 @@ export function adPageFixtures() {
     }
     if (storageKeys.length) {
       const removed = await supabase.storage.from(BUCKET).remove(storageKeys.splice(0));
-      if (removed.error) throw new Error(`[e2e:ap] photo object reap failed: ${removed.error.message}`);
+      if (removed.error)
+        throw new Error(`[e2e:ap] photo object reap failed: ${removed.error.message}`);
     }
   }
 
@@ -142,19 +153,27 @@ export function adPageFixtures() {
     return data.public_id as string;
   }
 
-
   /** Two actual stored images, readable through the unchanged public photo-links route. */
   async function seedPhotos(listingId: string) {
     const supabase = adminClient();
     for (const displayOrder of [0, 1]) {
       const key = `e2e-${RUN}/ad-page-${token()}-${displayOrder}.jpg`;
-      const uploaded = await supabase.storage.from(BUCKET).upload(key, fixture("gps.jpg"), { contentType: "image/jpeg" });
-      if (uploaded.error) throw new Error(`[e2e:ap] photo upload failed: ${uploaded.error.message}`);
+      const uploaded = await supabase.storage
+        .from(BUCKET)
+        .upload(key, jpeg.encode(jpeg.decode(fixture("gps.jpg")), 80).data, {
+          contentType: "image/jpeg",
+        });
+      if (uploaded.error)
+        throw new Error(`[e2e:ap] photo upload failed: ${uploaded.error.message}`);
       storageKeys.push(key);
-      const path = { partition: BUCKET, key };
+      const path = { partition: "default", key };
       const inserted = await supabase.from("listing_photos").insert({
-        listing_id: listingId, storage_path: key, display_order: displayOrder,
-        exif_stripped: true, unscreened: false, paths: { card: path, thumb: path, cover: path },
+        listing_id: listingId,
+        storage_path: key,
+        display_order: displayOrder,
+        exif_stripped: true,
+        unscreened: false,
+        paths: { card: path, thumb: path, cover: path },
       });
       if (inserted.error) throw new Error(`[e2e:ap] photo seed failed: ${inserted.error.message}`);
     }

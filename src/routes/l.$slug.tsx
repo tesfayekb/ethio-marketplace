@@ -42,9 +42,7 @@ export const Route = createFileRoute("/l/$slug")({
     const { doc, canonical } = loaderData;
     const title = `${doc.title} — ethio.com`;
     const description = doc.description.slice(0, 160);
-    const root = matches[0]?.loaderData as
-      | { origin?: string }
-      | undefined;
+    const root = matches[0]?.loaderData as { origin?: string } | undefined;
     const url = root?.origin ? `${root.origin}${canonical}` : null;
     return {
       meta: [
