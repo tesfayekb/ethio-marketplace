@@ -10,7 +10,12 @@ import { useI18n } from "@/i18n";
 
 export const readAdPageFn = createServerFn({ method: "GET" })
   .inputValidator((input: { slug: string }) => {
-    if (!input || typeof input.slug !== "string" || input.slug.length === 0 || input.slug.length >= 200) {
+    if (
+      !input ||
+      typeof input.slug !== "string" ||
+      input.slug.length === 0 ||
+      input.slug.length >= 200
+    ) {
       throw new Error("invalid ad address");
     }
     return { slug: input.slug };
@@ -64,7 +69,11 @@ function GonePage() {
     <PageShell as="main" width="wide" data-testid="ad-page-gone">
       <h1 className="text-xl font-semibold text-foreground">{t("adPage.gone.title")}</h1>
       <p className="text-sm text-muted-foreground">{t("adPage.gone.body")}</p>
-      <Link to="/" data-testid="ad-page-gone-home" className="text-primary underline underline-offset-4">
+      <Link
+        to="/"
+        data-testid="ad-page-gone-home"
+        className="text-primary underline underline-offset-4"
+      >
         {t("adPage.gone.home")}
       </Link>
     </PageShell>

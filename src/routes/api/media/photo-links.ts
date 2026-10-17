@@ -50,7 +50,6 @@ function addressOf(request: Request): string {
   return named === "" ? "unknown" : named;
 }
 
-
 async function readerOf(
   request: Request,
 ): Promise<{ supabase: SupabaseClient<Database> } | { refused: Response }> {

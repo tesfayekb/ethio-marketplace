@@ -20,6 +20,7 @@ import { pathOf, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
+import type { PublicListingDoc } from "@/features/ad-page/public-listing";
 
 /**
  * The content top-line breadcrumb — band 4: Home › <panel> › <category path>.
@@ -50,6 +51,8 @@ const MyListingCrumb = lazy(() =>
   import("./seller-crumbs").then((module) => ({ default: module.MyListingCrumb })),
 );
 
+const AdCrumbs = lazy(() => import("./ad-crumbs").then((module) => ({ default: module.AdCrumbs })));
+
 /** What a lazy crumb shows while its module loads: the page's place, not a blank. */
 function PendingCrumb() {
   return <BreadcrumbPage className={CURRENT}>—</BreadcrumbPage>;
@@ -61,6 +64,13 @@ export function Breadcrumbs() {
   const pathname = useShownPathname();
   const searchView = useRouterState({
     select: (s) => (s.location.search as { view?: string }).view,
+  });
+  const publicAd = useRouterState({
+    select: (state) => {
+      const match = state.matches.find((entry) => entry.routeId === "/l/$slug");
+      const data = match?.loaderData as { kind?: string; doc?: PublicListingDoc } | undefined;
+      return match?.status === "success" && data?.kind === "ad" ? data.doc : undefined;
+    },
   });
   const { activePanel, selectedCategorySlug } = useShell();
   const { tree } = useCategoryTree();
@@ -82,6 +92,38 @@ export function Breadcrumbs() {
    * U0l PART 2 — /auth IS A PAGE: Home › Sign in (or › Create an account in
    * the sign-up view, read from the same search param the route owns).
    */
+  if (pathname.startsWith("/l/")) {
+    return (
+      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/" data-testid="breadcrumb-home">
+                {t("nav.home")}
+              </Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          {publicAd ? (
+            <Suspense
+              fallback={
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage data-testid="breadcrumb-ad" className={CURRENT}>
+                      {publicAd.title}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              }
+            >
+              <AdCrumbs title={publicAd.title} categoryId={publicAd.category?.id ?? null} />
+            </Suspense>
+          ) : null}
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
+
   if (pathname.startsWith("/auth")) {
     return (
       <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
