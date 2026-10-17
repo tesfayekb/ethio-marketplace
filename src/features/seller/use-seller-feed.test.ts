@@ -121,7 +121,7 @@ describe("useSellerFeed", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.cards.map((one) => one.id)).toEqual(["l-new"]);
     // The first key's late answer must not overwrite the second key's page.
-    (resolveFirst as (response: Response) => void)({
+    (resolveFirst as unknown as (response: Response) => void)({
       status: 200,
       json: () => Promise.resolve(pageBody([card("l-old")], null)),
     } as unknown as Response);
