@@ -25,6 +25,8 @@ const FORBIDDEN = [
   "d3",
   // Bundle 3 step 11 — the phone reader loads by dynamic import on the contact step only.
   "libphonenumber-js",
+  // Bundle 19 turn 1 (DEC-187) — the QR encoder is server-only; it never enters the first-paint path.
+  "qrcode-generator",
 ];
 const EXTENSIONS = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx"];
 
