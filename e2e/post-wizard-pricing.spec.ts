@@ -771,7 +771,39 @@ test.describe("POSTING WIZARD", () => {
       if (via === "list") await page.getByTestId("post-step-list-go-3").click();
       else {
         await page.getByTestId("post-back").click();
-        await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+        try {
+          await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+        } catch (error) {
+          const ui = await page.evaluate(() => {
+            const next = document.querySelector('[data-testid="post-next"]');
+            const visible = (node: Element) => node.getClientRects().length > 0;
+            return {
+              url: location.href,
+              steps: [...document.querySelectorAll('section[data-testid^="post-step-"]')]
+                .filter(visible)
+                .map((node) => node.getAttribute("data-testid")),
+              loading: [...document.querySelectorAll('[data-testid="post-loading"]')].some(visible),
+              saveCaption: document.querySelector('[data-testid="post-save-state"]')?.textContent,
+              next: {
+                present: next !== null,
+                closed: next?.getAttribute("data-closed"),
+                disabled: next?.hasAttribute("disabled"),
+              },
+              unreachable: document.querySelector('[data-testid="post-next-unreachable"]') !== null,
+            };
+          });
+          const row = await adminClient()
+            .from("listings")
+            .select("id,draft_step,status")
+            .eq("seller_id", user.id)
+            .eq("category_id", category.id)
+            .order("id");
+          await testInfo.attach("pw162-back-diagnostic", {
+            body: JSON.stringify({ ui, draft: row.data, error: row.error?.message }, null, 2),
+            contentType: "application/json",
+          });
+          throw error;
+        }
         await page.getByTestId("post-back").click();
       }
       await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });

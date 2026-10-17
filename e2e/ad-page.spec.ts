@@ -123,6 +123,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
     await expect(page.getByTestId("listing-detail-sold-badge")).toHaveText(en["feed.ribbon.sold"]);
     await expect(page.getByTestId("listing-safety")).toHaveCount(0);
+    await expect(page.getByTestId("listing-detail-contact")).toHaveCount(0);
+    await expect(page.locator('section[data-testid="listing-detail-seller"]')).toBeVisible();
+    await expect(page.locator('section[data-testid="listing-detail-seller"]')).toContainText(
+      seller.alias,
+    );
   });
 
   test("AP-13 Amharic", async ({ page }) => {
@@ -202,7 +207,6 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
       const counted = await response;
       expect(counted.status()).toBe(200);
-      return counted.json();
     }
     async function views() {
       const { data, error } = await adminClient()
@@ -212,14 +216,16 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       if (error) throw new Error(`[e2e:ap17] counter read failed: ${error.message}`);
       return (data ?? []).reduce((sum, row) => sum + row.views, 0);
     }
-    expect(await visit()).toEqual({ counted: true });
-    expect(await visit(true)).toEqual({ counted: false });
+    await visit();
+    expect(await views()).toBe(1);
+    await visit(true);
+    expect(await views()).toBe(1);
     addressKey = `${runKey}-b`;
-    expect(await visit(true)).toEqual({ counted: true });
+    await visit(true);
     expect(await views()).toBe(2);
     await signInViaSession(page, seller.email, seller.password);
     addressKey = `${runKey}-c`;
-    expect(await visit()).toEqual({ counted: false });
+    await visit();
     expect(await views()).toBe(2);
     await gotoReady(page, `/my-listings/${ad.id}`);
     const count = page.getByTestId("listing-detail-counts");
@@ -316,5 +322,54 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await page.reload();
     await expect(chips).toHaveCount(1);
     await expect(chips).toHaveAttribute("data-key", numberKey);
+  });
+
+  test("AP-19 the share image and the structured data", async ({ page }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller);
+    await seedPhotos(live.id);
+    const { canonical, publicId } = await address(live);
+    const photo = await page.request.get(`/l/${publicId}/photo.jpg`, { maxRedirects: 0 });
+    expect(photo.status()).toBe(302);
+    const location = photo.headers()["location"];
+    expect(location).toMatch(/^https:\/\//);
+    const image = await page.request.get(location);
+    expect(image.status()).toBe(200);
+    expect(image.headers()["content-type"]).toMatch(/^image\//);
+    const response = await page.request.get(canonical);
+    expect(response.status()).toBe(200);
+    const origin = new URL(response.url()).origin;
+    const html = await response.text();
+    expect(html).toMatch(
+      new RegExp(
+        `<meta(?=[^>]*property="og:image")(?=[^>]*content="${origin}/l/${publicId}/photo.jpg")[^>]*>`,
+      ),
+    );
+    const product = (source: string) => {
+      const scripts = [
+        ...source.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g),
+      ]
+        .map((match) => JSON.parse(match[1] ?? "null"))
+        .filter((value) => value?.["@type"] === "Product");
+      expect(scripts).toHaveLength(1);
+      return scripts[0];
+    };
+    expect(product(html)).toMatchObject({
+      "@type": "Product",
+      name: live.title,
+      offers: { price: "100", priceCurrency: "ETB", availability: "https://schema.org/InStock" },
+    });
+    const sold = await seed(seller, "sold", { soldAt: -1 });
+    const soldHtml = await (await page.request.get((await address(sold)).canonical)).text();
+    expect(product(soldHtml).offers.availability).toBe("https://schema.org/SoldOut");
+    const noPhotos = await seed(seller);
+    const noPhotoHtml = await (await page.request.get((await address(noPhotos)).canonical)).text();
+    expect(noPhotoHtml).not.toMatch(/<meta[^>]*property="og:image"/);
+    expect(
+      (await page.request.get(`/l/${(await address(noPhotos)).publicId}/photo.jpg`)).status(),
+    ).toBe(404);
+    for (const id of ["2345678923", "nope"]) {
+      expect((await page.request.get(`/l/${id}/photo.jpg`)).status()).toBe(404);
+    }
   });
 });

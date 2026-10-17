@@ -1630,4 +1630,95 @@ test.describe("C3 attributes console", () => {
       await destroyAttribute(key);
     }
   });
+
+  test.describe("AT-84 key fact ranks", () => {
+    let slug = "";
+    const keys: string[] = [];
+    test.afterEach(async () => {
+      if (slug) {
+        await destroyCategory(slug);
+        slug = "";
+      }
+      for (const key of keys.splice(0)) await destroyAttribute(key);
+    });
+    test("AT-84 the Key fact tick ranks in tick order, unticks renumber, a fifth is greyed", async ({
+      page,
+    }) => {
+      bandOnly(page, "any");
+      const { secret } = await signInAsSuperAdmin(page);
+      const ids: string[] = [];
+      for (const letter of ["a", "b", "c", "d", "e"]) {
+        const key = `e2e_attr_${letter}_${rand()}`;
+        keys.push(key);
+        ids.push(await seedAttribute(key));
+      }
+      slug = await createViaUi(page, secret);
+      const category = await readCategory(slug);
+      if (!category) throw new Error("AT-84 scratch category missing");
+      const linked = await adminClient()
+        .from("category_attribute_links")
+        .insert(
+          ids.map((id, index) => ({
+            category_id: category.id,
+            attribute_id: id,
+            display_order: index + 1,
+            is_required: false,
+          })),
+        );
+      if (linked.error) throw new Error(`AT-84 links: ${linked.error.message}`);
+      // This test's bounded five rows only: the shared readLinks default stays unchanged (G37).
+      const ranked = async () => {
+        const result = await adminClient()
+          .from("category_attribute_links")
+          .select("attribute_id,fact_rank")
+          .eq("category_id", category.id)
+          .in("attribute_id", ids)
+          .order("id");
+        if (result.error) throw new Error(`AT-84 ranks: ${result.error.message}`);
+        return (result.data ?? [])
+          .filter((row) => row.fact_rank !== null)
+          .sort((a, b) => (a.fact_rank ?? 0) - (b.fact_rank ?? 0))
+          .map((row) => ({ id: row.attribute_id, rank: row.fact_rank }));
+      };
+      await gotoReady(page, "/admin/categories");
+      await findRow(page, slug);
+      await openEditor(page, slug);
+      await action(page, slug, "attributes").click();
+      await expect(page.getByTestId("category-attributes-dialog")).toBeVisible();
+      for (const key of keys)
+        await expect(page.getByTestId(`category-attribute-fact-${key}`)).toBeEnabled();
+      const tick = async (index: number, expected: number[]) => {
+        const key = keys[index];
+        if (key === undefined) throw new Error("AT-84 scratch key missing");
+        await expect(page.getByTestId(`category-attribute-fact-${key}`)).toBeEnabled();
+        await page.getByTestId(`category-attribute-fact-${key}`).click();
+        const wanted = expected.map((position, rank) => ({ id: ids[position], rank: rank + 1 }));
+        await awaitGuardedOutcome(page, secret, {
+          poll: async () => JSON.stringify(await ranked()) === JSON.stringify(wanted),
+          describe: "the key fact ranks stored in tick order",
+        });
+        await expect.poll(ranked).toEqual(wanted);
+      };
+      await tick(0, [0]);
+      await tick(1, [0, 1]);
+      const labels = await Promise.all(
+        keys.slice(0, 2).map(async (key) => (await readAttribute(key))?.name_en),
+      );
+      await expect(page.getByTestId("category-attributes-fact-caption")).toContainText(
+        labels.join(" · "),
+      );
+      await tick(0, [1]);
+      await tick(2, [1, 2]);
+      await tick(3, [1, 2, 3]);
+      await tick(4, [1, 2, 3, 4]);
+      await expect(page.getByTestId(`category-attribute-fact-${keys[0]}`)).toBeDisabled();
+      expect((await readLinks(category.id)).map((row) => row.card_rank)).toEqual([
+        null,
+        null,
+        null,
+        null,
+        null,
+      ]);
+    });
+  });
 });

@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-9c.md (bundle 19 — turn 9c: M2 fact_rank in eight tool-sized parts, every door whole, marks 20261018150000 … 20261018150700; no code change). Next: turn 10 — the link manager's Key fact tick, staff's SOLD badge, the contact block and sign-in return; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-10.md (bundle 19 — turn 10: the reds of runs 978 and 979 (INC-683, INC-684, INC-680, INC-679); the link manager's Key fact tick; no contact block on a sold ad; /l/<id>/photo.jpg, og:image and JSON-LD; five strings; no migration). Next: turn 11 — M5: the reveal rules and the contact block with sign-in return; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -335,11 +335,12 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 7 (docs/governance/briefs/bundle-19-turn-7.md) — three actors on the one component (`actor`), the owner's own channels and "N views", the view count from the page (`/api/listings/view`), the Messages row gone until messaging exists
   - [ ] Turn 8 (docs/governance/briefs/bundle-19-turn-8.md; no migration; five strings) — run 977's fixes (INC-681, FR-6, INC-682, INC-680), the safety box (D201 §7), the SOLD badge after the price
   - [x] Turn 9 (docs/governance/briefs/bundle-19-turn-9.md; the migration in eight parts, turn 9c — docs/governance/briefs/bundle-19-turn-9c.md, marks 20261018150000 … 20261018150700; two strings) — M2: `fact_rank` on every link (nine doors redeclared whole, one new door), the links file's trailing cell and the export, the key-facts strip (`keyFacts`: ranked facts, else the first four filterable choice or number facts in form order that are not card facts) on the page and in every preview
-  - [ ] Turn 10 (docs/governance/briefs/bundle-19-turn-10.md) — the link manager's Key fact tick (D201 §4), staff's SOLD badge, the contact block and sign-in return
-  - [ ] Turn 11 (docs/governance/briefs/bundle-19-turn-11.md) — M5: reveal rules
+  - [ ] Turn 10 (docs/governance/briefs/bundle-19-turn-10.md; no migration; five strings) — the reds of runs 978 and 979 (INC-683, INC-684, INC-680, INC-679); the link manager's Key fact tick (D201 §4), no contact block on a sold ad (rule 11), the share image route /l/<id>/photo.jpg with og:image and JSON-LD Product (brought forward from the sharing turn)
+  - [ ] Turn 10b — the seven-day flake ledger's findings of run 979: MLP-1 / MLP-3 (INC-686), CT-6 (INC-687), PR-21 (INC-688), PP-1 (INC-689) — each read at its body and fixed at root (G38)
+  - [ ] Turn 11 (docs/governance/briefs/bundle-19-turn-11.md) — M5: the reveal rules; the contact block and sign-in return
   - [ ] Turn 12 (docs/governance/briefs/bundle-19-turn-12.md) — M3: Save and Account › Saved
   - [ ] Turn 13 (docs/governance/briefs/bundle-19-turn-13.md) — M4: Report and the admin count
-  - [ ] Turn 14 (docs/governance/briefs/bundle-19-turn-14.md) — Share, counters, og/JSON-LD and photo redirect
+  - [ ] Turn 14 (docs/governance/briefs/bundle-19-turn-14.md) — Share, counters
   - [ ] Turn 15 (docs/governance/briefs/bundle-19-turn-15.md) — similar ads, seller link, ~~safety box~~, ~~sold page~~ and sharing
 - [ ] The flaky tests (bundle 18 turns 3 and 4 — the fixes; the proofs owed): PW-12 (INC-643), PW-117 (INC-662), PW-178 (INC-673) and PW-61 (INC-652) fixed at their causes; AT-59 (INC-646) and CT-3 (INC-674) were INC-579's (closed); PR-33 (INC-645), PR-39 (INC-653), AL-24 (INC-654), SC-13 (INC-664) class (b) — staging under load, no change, the seven-day ledger judges; PW-74 (INC-644) watched. Owed: the clean Flake check repeats of group 1 and group 2 after DEC-185's staging setting (read from ci-evidence); INC-655 (Post listing's first open) measured first when the operator gives the data point
 - [ ] Open with the operator: the ID-card / passport photo (keep hidden for staff, as built, or refuse at upload like nudity); INC-655's data point; INC-657's ad; D200's state ("in review" until an AI text screen exists)

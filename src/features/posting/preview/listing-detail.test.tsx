@@ -193,3 +193,11 @@ it("LD-7 the strip under the price, for every actor, from the ranks; the Details
   expect(screen.queryByTestId("listing-key-facts")).toBeNull();
   expect(screen.getAllByTestId("listing-detail-spec")).toHaveLength(3);
 });
+
+it("LD-8 a sold ad keeps the seller card and loses the contact block", () => {
+  const { rerender } = render(<ListingDetail {...BASE} soldBadge="Sold" />);
+  expect(screen.queryByTestId("listing-detail-contact")).toBeNull();
+  expect(screen.getByTestId("listing-detail-seller")).toBeInTheDocument();
+  rerender(<ListingDetail {...BASE} />);
+  expect(screen.getByTestId("listing-detail-contact")).toBeInTheDocument();
+});

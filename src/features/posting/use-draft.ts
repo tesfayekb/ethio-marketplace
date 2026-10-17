@@ -287,6 +287,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     // sender, so no writer of the queue can send below it.
     if (queued < 1 && valuesRef.current.categoryId === null) return false;
     const forStep = Math.max(1, queued);
+    const generation = claimTokenRef.current;
     const claimed = strictRef.current;
     const strict = claimed !== null && forStep >= claimed;
     const token = strict ? claimTokenRef.current : 0;
@@ -311,6 +312,11 @@ export function useDraft(initialListingId: string | null): UseDraft {
     setSaveState("saving");
 
     let answer = await saveDraft(bodyFor(forStep));
+    // A departed claim may finish storing, but never changes the new screen.
+    if (claimTokenRef.current !== generation) {
+      inFlightRef.current = false;
+      return false;
+    }
 
     // Bundle 7 D5 rule 2 (INC-479) — THE DOOR'S OWN WORD HEALS A STALE FORM. A
     // refusal naming an answer the catalogue no longer has (unknownAttribute /
@@ -328,7 +334,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     }
 
     inFlightRef.current = false;
-    if (!aliveRef.current) return answer.ok;
+    if (!aliveRef.current || claimTokenRef.current !== generation) return false;
 
     if (answer.ok) {
       setNextBlockedByTransport(false);
@@ -551,7 +557,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // INC-367 — only a refusal charged to THIS claim's token counts; an
       // earlier claim answered late (still in the air) cannot block this one.
       const took = await flush();
-      return took && refusedClaimRef.current !== mine;
+      return took && claimTokenRef.current === mine && refusedClaimRef.current !== mine;
     },
     [flush],
   );
@@ -582,11 +588,9 @@ export function useDraft(initialListingId: string | null): UseDraft {
     // claim stops being strict (a new token, so its late answer shows nothing on
     // this screen), and anything still queued is lowered to this screen's backup
     // step, so it is saved, never judged above the step on screen.
-    if (strictRef.current !== null) {
-      strictRef.current = null;
-      claimSeqRef.current += 1;
-      claimTokenRef.current = claimSeqRef.current;
-    }
+    strictRef.current = null;
+    claimSeqRef.current += 1;
+    claimTokenRef.current = claimSeqRef.current;
     if (pendingStepRef.current !== null) {
       const backupStep = Math.max(0, next === 1 ? 0 : Math.min(draftStepRef.current, prevOf(next)));
       pendingStepRef.current = Math.min(pendingStepRef.current, backupStep);

@@ -887,6 +887,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await expect(seen.getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
     await expect(seen.getByTestId("listing-detail-sold-badge")).toHaveText(en["feed.ribbon.sold"]);
     await expect(seen.getByTestId("listing-safety")).toHaveCount(0);
+    await expect(seen.getByTestId("listing-detail-contact")).toHaveCount(0);
     await gotoReady(page, "/my-listings");
     await page.getByTestId("my-listings-group-sold").click();
     await expect(twin(page, X).getByTestId(`my-listing-${X}-sold-mark`)).toBeVisible({

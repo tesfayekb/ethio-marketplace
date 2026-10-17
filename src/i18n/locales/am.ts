@@ -1848,6 +1848,11 @@ export const am: Messages = {
   "admin.attributes.card.none": "እስካሁን በዝርዝር ካርዱ ላይ የሚታይ ባህሪ የለም።",
   "admin.attributes.card.rank": "በካርድ ላይ ({rank})",
   "admin.attributes.card.rankNone": "በካርድ ላይ አሳይ",
+  "admin.attributes.fact.caption": "ዋና መረጃዎች፦ {list}",
+  "admin.attributes.fact.none":
+    "ለዚህ ምድብ እስካሁን ዋና መረጃ አልተመረጠም — የማስታወቂያው ገጽ የመጀመሪያዎቹን አራት የማጣሪያ መረጃዎች ያሳያል።",
+  "admin.attributes.fact.rank": "ዋና መረጃ ({rank})",
+  "admin.attributes.fact.rankNone": "እንደ ዋና መረጃ አሳይ",
   "admin.attributes.error.keyRequired": "ቁልፍ ያስፈልጋል።",
   "admin.attributes.error.nameRequired": "ስም ያስፈልጋል።",
   "admin.attributes.error.keyTaken": "ሌላ ባህሪ ይህን ቁልፍ ተጠቅሞበታል።",
@@ -1858,6 +1863,7 @@ export const am: Messages = {
   "admin.attributes.error.alreadyLinked": "ይህ ምድብ ያንን ባህሪ አስቀድሞ አገናኝቷል።",
   "admin.attributes.error.linkNotFound": "ያ አገናኝ ከእንግዲህ የለም።",
   "admin.attributes.error.cardLimit": "የዝርዝር ካርድ ቢበዛ ሦስት ባህሪያትን ያሳያል።",
+  "admin.attributes.error.factLimit": "የማስታወቂያ ገጽ ቢበዛ አራት ዋና መረጃዎችን ያሳያል።",
   /* DEC-050 L2a/L2b — በሩ በተወረሰ ካርድ የተያዘውን ቦታ አይቀበልም። */
   "admin.attributes.error.rankInherited": "ይህ የካርድ ቦታ ከወላጅ ምድብ በተወረሰ ባህሪ ተይዟል። ሌላ ቦታ ይምረጡ።",
   "admin.attributes.error.orderMismatch": "የባህሪው ቅደም ተከተል ጊዜው አልፎበታል፤ እንደገና ከፍተው ይሞክሩ።",

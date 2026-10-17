@@ -46,7 +46,15 @@ Turn 9 — the key-facts strip under the price on the page and in every preview 
 - `attr_export_payload` and `attr_import_plan` carry the trailing cell (absent unchanged, blank clear, 1–4 set).
 - M2 declares mark `20261018150000`; application and read-backs are reported separately.
 
+Turn 10 — a sold ad draws no contact block; the seller card keeps the name. `/l/<id>/photo.jpg` answers a 302 to the cover's signed card-size link: address dial `listing-photo:address`, 600 an hour, overridden by `RATE_LIMIT_LISTING_PHOTO_PER_HOUR`; an unknown id or an ad without photos answers 404. The signed link lasts an hour and the redirect is cached privately for 30 minutes. The head's `og:image` / `twitter:image` point at it, or at the category's picture for an ad without photos. The page carries JSON-LD `Product` with an `Offer` only for a fixed one-time price (InStock, or SoldOut). The link manager's Key fact tick uses M2's `admin_set_fact_attributes` door. INC-683 removes keepalive and AP-17 reads counted DB sums; INC-684 filters the restored roster row; INC-680 measures the fixture's stable photo boxes without awaiting nonexistent objects; INC-679 invalidates departed draft claims and attaches failure-only Back diagnostics.
+
 ## Tests
+
+- AT-84: Key fact tick order, renumbering, four-fact cap and unchanged card ranks.
+- AP-19: signed cover redirect, image GET, share metadata, JSON-LD and unknown-id refusals.
+- JL-1…JL-5: fixed/sold Offers, non-Offer modes, script escaping and absent image.
+- LD-8: sold contact removal with the seller retained and live contact unchanged.
+- AP-12 / MLA-11: buyer and owner sold pages carry no contact block.
 
 - KF-1…KF-5: ranking, four-fact limit, form-order fallback, card exclusion, single rank and empty answer.
 - LD-7: the strip for buyer/owner/staff, shared values, and all Details rows retained.
