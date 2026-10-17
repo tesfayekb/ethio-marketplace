@@ -49,7 +49,7 @@ function document(): PublicListingDoc {
       location_id: null,
       coverage: [],
       list: [],
-      pin: { lat: null, lng: null, precision: null, zoom: null },
+      pin: { lat: 8.99, lng: 38.76, precision: "approx", zoom: 14 },
       directions: null,
       street_address: null,
     },
@@ -126,14 +126,14 @@ describe("ad page view mapping", () => {
       { attrType: "multi_select", nameEn: "Features", nameAm: "ባህሪያት" },
     ]);
     expect(
-      view.attributeOptions["fuel-id"]?.map(({ value, labelEn, labelAm }) => ({
+      view.attributeOptions["fuel"]?.map(({ value, labelEn, labelAm }) => ({
         value,
         labelEn,
         labelAm,
       })),
     ).toEqual([{ value: "petrol", labelEn: "Petrol", labelAm: "ቤንዚን" }]);
     expect(
-      view.attributeOptions["features-id"]?.map(({ value, labelEn, labelAm }) => ({
+      view.attributeOptions["features"]?.map(({ value, labelEn, labelAm }) => ({
         value,
         labelEn,
         labelAm,
@@ -143,5 +143,31 @@ describe("ad page view mapping", () => {
       { value: "camera", labelEn: "Camera", labelAm: "ካሜራ" },
     ]);
     expect(view.attributes).toEqual({ fuel: "petrol", features: ["aircon", "camera"] });
+  });
+  it("AV-5 a null shown pin maps to no pin and leaves the rest unchanged", () => {
+    const doc = document();
+    const before = adPageView(doc, "en");
+    doc.places.pin = null;
+    expect(adPageView(doc, "en")).toEqual({
+      ...before,
+      pinLat: null,
+      pinLng: null,
+      pinPrecision: null,
+      pinZoom: null,
+    });
+  });
+  it("AV-6 a number definition without answered options keeps an empty list under its key", () => {
+    const doc = document();
+    doc.attributes = { mileage: 12000 };
+    doc.definitions = [
+      {
+        attribute_id: "mileage-id",
+        attr_key: "mileage",
+        attr_type: "number",
+        name_en: "Mileage",
+        name_am: null,
+      },
+    ];
+    expect(adPageView(doc, "en").attributeOptions).toEqual({ mileage: [] });
   });
 });

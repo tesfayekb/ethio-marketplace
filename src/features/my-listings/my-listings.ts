@@ -36,6 +36,7 @@ export type GroupCounts = Record<ListingGroup, number>;
 /** One of the seller's ads — exactly the fields the door returns. */
 export interface MyListingRow {
   id: string;
+  publicId: string | null;
   status: string;
   title: string | null;
   categoryId: string | null;
@@ -125,6 +126,8 @@ export function parseRow(value: unknown): MyListingRow | null {
   const v = value;
   if (!isStr(v.id) || !isStr(v.status) || !isStrOrNull(v.title) || !isStrOrNull(v.categoryId))
     return null;
+  const publicId = v.publicId === undefined ? null : v.publicId;
+  if (!isStrOrNull(publicId)) return null;
   if (!isStrOrNull(v.coverPhotoId) || typeof v.photosSoon !== "boolean") return null;
   if (!isStrOrNull(v.priceMode) || !isNumOrNull(v.priceAmount) || !isStrOrNull(v.priceCurrency))
     return null;
@@ -143,6 +146,7 @@ export function parseRow(value: unknown): MyListingRow | null {
   if (!isStrOrNull(v.removedReason)) return null;
   return {
     id: v.id,
+    publicId,
     status: v.status,
     title: v.title,
     categoryId: v.categoryId,

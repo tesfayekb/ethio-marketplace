@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+import { canonicalSegment } from "@/features/ad-page/address";
 import { CutText } from "@/components/ui/cut-text";
 import { MapPin } from "lucide-react";
 
@@ -123,12 +125,8 @@ export function ListingCard({
       </span>
     ) : null;
 
-  return (
-    <article
-      data-testid="listing-card"
-      data-listing={listing.id}
-      className="@container flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card"
-    >
+  const content = (
+    <>
       {/*
         Photo area. INC-606 — the seller's cover photo when the feed gave one
         and its link came back (an active listing's stripped photo, signed for
@@ -185,6 +183,27 @@ export function ListingCard({
           ) : null}
         </p>
       </div>
+    </>
+  );
+
+  return (
+    <article
+      data-testid="listing-card"
+      data-listing={listing.id}
+      className="@container flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card"
+    >
+      {typeof listing.publicId === "string" ? (
+        <Link
+          to="/l/$slug"
+          params={{ slug: canonicalSegment(listing.title, listing.publicId) }}
+          data-testid="listing-card-link"
+          className="flex h-full flex-col"
+        >
+          {content}
+        </Link>
+      ) : (
+        content
+      )}
     </article>
   );
 }

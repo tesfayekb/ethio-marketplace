@@ -837,6 +837,8 @@ test.describe("POSTING WIZARD", () => {
     await expect.poll(() => aborted, { timeout: 20_000 }).toBe(true);
     await expect(page.getByTestId("post-next-unreachable")).toBeVisible();
     await expect(page.getByTestId("post-step-4")).toBeVisible();
+    // INC-679: the hook's successful retry clears the transport block before Back.
+    await expect(page.getByTestId("post-next-unreachable")).toBeHidden();
     await toSpecs("back");
     await judge("d");
     await page.unroute("**/api/listings/draft");

@@ -39,7 +39,7 @@ Spec: docs/governance/feed-engine-spec.md (approved 2026-10-08, D101). Brief: do
 - **Paging** — `feed-more` (44 px) is watched by an IntersectionObserver (rootMargin 0px); the next page loads only when it comes into view. A failed next page keeps the cards and offers Retry.
 - **Not found** — the slug resolves through the whole tree (`categoryLookup`, INC-504); an unknown slug shows `feed-category-unknown` and asks the feed nothing; a failed tree read shows `feed-category-failed`. A top category shows its whole branch (INC-503).
 - **The breadcrumbs** — the whole category path (`pathOf`), earlier segments linking to their pages (`breadcrumb-category-parent`).
-- **The card** — no views count (DEC-165): nothing tracks views.
+- **The card** — no views count (DEC-165): nothing tracks views. Bundle 19 turn 6: its content links to `/l/<words>-<id>` when the row carries `publicId`; older rows with no public id render without a link.
 
 ## The speed judge (E3c)
 

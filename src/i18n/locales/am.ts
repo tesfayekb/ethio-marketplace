@@ -158,6 +158,7 @@ export const am: Messages = {
   "myListings.reserved": "ተይዟል",
   "myListings.priceReduced": "ዋጋው ቀንሷል",
   "myListings.open": "ክፈት",
+  "myListings.ad.openPublic": "እንደ ገዢዎች ይመልከቱ",
   "myListings.ad.firstPosted": "መጀመሪያ የተለጠፈው፦ {date}",
   "myListings.ad.renewed": "የታደሰው፦ {date}",
   "myListings.ad.ends": "የሚያበቃው፦ {date}",

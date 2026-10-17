@@ -12,6 +12,7 @@ export type AdPageAnswer =
 
 /** The server-only public read; refusals never disclose whether a private ad exists. */
 export async function readAdPage(request: Request, slug: string): Promise<AdPageAnswer> {
+  if (slug.length > 200) return { kind: "gone" };
   const parsed = parseAddressSegment(slug);
   if (parsed === null) return { kind: "gone" };
   try {

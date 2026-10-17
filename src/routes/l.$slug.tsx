@@ -10,12 +10,7 @@ import { useI18n } from "@/i18n";
 
 const readAdPageFn = createServerFn({ method: "GET" })
   .inputValidator((input: { slug: string }) => {
-    if (
-      !input ||
-      typeof input.slug !== "string" ||
-      input.slug.length === 0 ||
-      input.slug.length >= 200
-    ) {
+    if (!input || typeof input.slug !== "string" || input.slug.length === 0) {
       throw new Error("invalid ad address");
     }
     return { slug: input.slug };

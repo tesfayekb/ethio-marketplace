@@ -53,7 +53,7 @@ export interface PublicListingDoc {
     path: Array<{ id: string; slug: string; name_en: string; name_am: string | null }>;
   } | null;
   attributes: PublicRecord;
-  definitions: Array<PublicRecord & { options: PublicRecord[] }>;
+  definitions: Array<PublicRecord & { options?: PublicRecord[] }>;
   photos: Array<{
     id: string;
     display_order: number;
@@ -75,7 +75,7 @@ export interface PublicListingDoc {
       position: number;
       map_visible: boolean;
     }>;
-    pin: { lat: number | null; lng: number | null; precision: string | null; zoom: number | null };
+    pin: { lat: number; lng: number; precision: string | null; zoom: number | null } | null;
     directions: string | null;
     street_address: string | null;
   };
@@ -112,8 +112,8 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
     definitions: shapePostingSchema({ attributes: doc.definitions })?.attributes ?? [],
     attributeOptions: Object.fromEntries(
       doc.definitions.map((definition) => [
-        String(definition["attribute_id"]),
-        definition.options.map(shapeAttrOption),
+        String(definition["attr_key"]),
+        (definition.options ?? []).map(shapeAttrOption),
       ]),
     ),
     photos: doc.photos.map((photo) => ({
@@ -138,10 +138,10 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
     sellerBusinessName: doc.seller.business_name,
     sellerPreviousAlias: doc.seller.previous_alias,
     sellerMemberSince: doc.seller.member_since,
-    pinLat: doc.places.pin.lat,
-    pinLng: doc.places.pin.lng,
-    pinPrecision: doc.places.pin.precision,
-    pinZoom: doc.places.pin.zoom,
+    pinLat: doc.places.pin?.lat ?? null,
+    pinLng: doc.places.pin?.lng ?? null,
+    pinPrecision: doc.places.pin?.precision ?? null,
+    pinZoom: doc.places.pin?.zoom ?? null,
     directions: doc.places.directions,
     streetAddress: doc.places.street_address,
   };

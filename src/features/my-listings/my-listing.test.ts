@@ -32,6 +32,7 @@ import { REASON_WORD, REMOVAL_REASON, SOLD_ON } from "./state-line";
 /** Bundle 16 turn 3 — one ad's answer, its history and its actions. */
 const row = {
   id: "00000000-0000-4000-8000-000000000001",
+  publicId: null as string | null,
   status: "active",
   title: "Corolla 2015",
   categoryId: "00000000-0000-4000-8000-0000000000c1",
@@ -83,6 +84,15 @@ describe("my_listing answer", () => {
     expect(parseMyListing({ ...answer, renewAllowed: "yes" })).toBeNull();
     expect(parseMyListing({ ...answer, listing: { ...row, reserved: "no" } })).toBeNull();
     expect(parseMyListing(null)).toBeNull();
+  });
+
+  it("ML-U21 a row without publicId parses with null, a row with one keeps it", () => {
+    const { publicId: _absent, ...bare } = row;
+    expect(parseMyListing({ ...answer, listing: bare })?.listing.publicId).toBeNull();
+    expect(
+      parseMyListing({ ...answer, listing: { ...row, publicId: "abcdefghjk" } })?.listing.publicId,
+    ).toBe("abcdefghjk");
+    expect(parseMyListing({ ...answer, listing: { ...row, publicId: 7 } })).toBeNull();
   });
 
   it("ML-U6 each status offers its actions, in the page's order; every ad but a removed one can be deleted, last", () => {

@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
-import { switchLanguage } from "./helpers/ui";
+import { signInViaSession, gotoReady, switchLanguage } from "./helpers/ui";
 import { listingPath, shortListingPath } from "../src/features/ad-page/address";
 import en from "../src/i18n/locales/en";
 import am from "../src/i18n/locales/am";
@@ -127,5 +127,34 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("ad-page-gone").getByRole("heading")).toHaveText(
       am["adPage.gone.title"],
     );
+  });
+  test("AP-14 the feed card links to the ad's page", async ({ page }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller);
+    const { canonical } = await address(ad);
+    await page.goto(`/c/${seller.leafSlug}`);
+    const card = page.locator(`[data-testid="listing-card"][data-listing="${ad.id}"]`);
+    await expect(card).toBeVisible();
+    const link = card.getByTestId("listing-card-link");
+    await expect(link).toHaveAttribute("href", canonical);
+    await link.click();
+    await expect(page.getByTestId("ad-page")).toBeVisible();
+    await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+  });
+
+  test("AP-15 the seller's ad page links to the buyer's view", async ({ page }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller);
+    const draft = await seed(seller, "draft");
+    const { canonical } = await address(ad);
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${ad.id}`);
+    await expect(page.getByTestId("my-listing-page")).toBeVisible();
+    const link = page.getByTestId("my-listing-open-public");
+    await expect(link).toHaveAttribute("href", canonical);
+    await expect(link).toHaveAttribute("target", "_blank");
+    await gotoReady(page, `/my-listings/${draft.id}`);
+    await expect(page.getByTestId("my-listing-continue")).toBeVisible();
+    await expect(page.getByTestId("my-listing-open-public")).toHaveCount(0);
   });
 });

@@ -4435,6 +4435,9 @@
     "myListings.ad.notFound": [
       "/my-listings/$listingId"
     ],
+    "myListings.ad.openPublic": [
+      "/my-listings/$listingId"
+    ],
     "myListings.ad.renewed": [
       "/my-listings/$listingId"
     ],
