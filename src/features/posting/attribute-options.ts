@@ -116,7 +116,7 @@ function stringList(raw: unknown): string[] {
     : [];
 }
 
-function shape(row: Record<string, unknown>): AttrOption {
+export function shapeAttrOption(row: Record<string, unknown>): AttrOption {
   const value = typeof row["value"] === "string" ? row["value"] : "";
   const facts = row["facts"];
   const boundsRaw = row["bounds"];

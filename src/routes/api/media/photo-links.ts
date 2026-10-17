@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import { photoIdsOf, PHOTO_LINK_SECONDS, signPhotoRows, variantsOf } from "@/server/media/links";
 import {
+  anonymousClient,
   consumeRate,
   envDial,
   logRouteError,
@@ -49,15 +50,6 @@ function addressOf(request: Request): string {
   return named === "" ? "unknown" : named;
 }
 
-/** INC-606 — the anonymous role's client: the publishable key and no session. */
-function anonymousClient(): SupabaseClient<Database> | null {
-  const url = process.env["SUPABASE_URL"] ?? "";
-  const publishable = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
-  if (url === "" || publishable === "") return null;
-  return createClient<Database>(url, publishable, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 async function readerOf(
   request: Request,

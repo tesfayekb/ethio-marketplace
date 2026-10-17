@@ -58,6 +58,16 @@ function serverEnv(name: string): string {
   return process.env[name] ?? "";
 }
 
+/** INC-606 — the anonymous role's client: the publishable key and no session. */
+export function anonymousClient(): SupabaseClient<Database> | null {
+  const url = process.env["SUPABASE_URL"] ?? "";
+  const publishable = process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
+  if (url === "" || publishable === "") return null;
+  return createClient<Database>(url, publishable, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 export async function userClientFromRequest(request: Request): Promise<UserClientAnswer> {
   const authorization = request.headers.get("Authorization") ?? "";
   if (!authorization.toLowerCase().startsWith("bearer ")) {
