@@ -588,7 +588,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const seller = await scratchSeller();
     const ad = await seed(seller);
     const { canonical, publicId } = await address(ad);
-    const addressKey = `ap30-${token()}`;
+    const addressKey = `e2e-ap30-${token()}`;
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.route("**/api/listings/{view,share}", (route) =>
       route.continue({
@@ -678,7 +678,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     }
     const response = await page.request.post("/api/listings/share", {
       data: { publicId: await publicIdOf(removed.id), channel: "copy" },
-      headers: { "x-e2e-catalog-find-key": `ap31-${token()}` },
+      headers: { "x-e2e-catalog-find-key": `e2e-ap31-${token()}` },
     });
     expect(response.status()).toBe(200);
     expect(await response.json()).toEqual({ counted: false });
