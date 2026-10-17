@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-6.md (bundle 19 — turn 6: INC-678's fix of the page's mapping; M1b by the migration tool (DEC-188), mark 20261018140000 — feed_page, my_listings and my_listing carry publicId; the feed card as a link; the seller's link to the buyer's view; one string). Next: turn 7 — three actors, buyer previews and owner counters; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-7.md (bundle 19 — turn 7: three actors on ListingDetail; the owner's channel values and his "N views"; views counted from the page by /api/listings/view; the Messages row gone; one string; no migration). Next: turn 8 — M2: fact_rank and the key-facts strip; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -167,7 +167,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [ ] D124 (operator, 2026-10-10; research first) — the category pictures' style: peers' best practice for attractive, consistent illustrations (e.g. a car drawn with one gold and one white tyre), discussed with the operator before the prompt changes and before the rest are regenerated
 - [x] D123 (operator, 2026-10-10) — three cards a row on a phone, four from 640 px, five from 1024 px — built in turn 5
 - [x] INC-532 (2026-10-10) — signing out keeps the place this browser had chosen — fixed in turn 4
-- [x] D125 (operator, 2026-10-10; INC-534) — the listings pages' headings: "Listings in {place}" over the chosen place's own listings, one "Listings near {place}" over the rest of its country, "All listings" beyond it; the invite card without "too" — built in turn 7
+- [x] D125 (operator, 2026-10-10; INC-534) — three actors on the one component (`actor`), the owner's own channels and "N views", the view count from the page (`/api/listings/view`), the Messages row gone until messaging exists
 - [x] D127 (operator, 2026-10-10; supersedes D125's "near") — every heading says "in": "Listings in {place}" over the chosen place's own listings, each wider place of the ladder its own "Listings in {that place}" (the region or state, then the country), "All listings" beyond, and "All listings" with no place chosen — built in its own turn (docs/governance/briefs/bundle-10-d127.md; FS-3, FS-4, FS-13, FS-14 new; FP-5, FP-10)
 - [x] INC-535 (2026-10-10; Tier A) — the profile written through its doors only; the client-writable lint counts column grants — built in turn 8 (`20261010055801_866d39cd`, mark `20261010180000`; PR-43)
 - [ ] The next posting-area turn: INC-526, INC-449's class (PW-57, PW-137, PW-144), INC-533 (PW-64 refused by a rate dial) and INC-430's PW-55 together — when the posting area is next touched; INC-562 (PW-11, run 38203524897: step 5 never came after the price step's Next on mobile) joins them — turn C2 gave the class its evidence (`nextToStep` names the draft save's answer when a step does not come) — INC-526 done in turn C9 (one queue for the draft's pin-door calls; DQ-1..DQ-3, PW-186); the rest waits for the first failure DEC-175's capture explains
