@@ -702,63 +702,66 @@ export function ListingDetail(view: ListingDetailView) {
                 testId="listing-detail-seller"
               />
             </div>
-            {!(typeof view.soldBadge === "string" && view.soldBadge.length > 0) && (
-              <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
-                {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
-                  <h4 className="text-xs font-medium text-muted-foreground">
-                    {t("post.preview.contactLabel")}
-                  </h4>
-                )}
-                {view.actor === "buyer" && view.contact !== undefined ? (
-                  <BuyerContact contact={view.contact} channels={channels} />
-                ) : (
-                  <ul className="divide-y divide-border text-sm">
-                    {channels.map((channel) => {
-                      const entry = ownValue(view.contactPref, channel);
-                      const value =
-                        entry !== null && typeof entry === "object"
-                          ? ownValue(entry as Record<string, unknown>, "value")
-                          : undefined;
-                      const label =
-                        channel === "phone"
-                          ? t("post.who.channel.phone")
-                          : channel === "phone2"
-                            ? t("post.who.channel.phone2")
-                            : channel === "telegram"
-                              ? t("post.who.channel.telegram")
-                              : t("post.who.channel.whatsapp");
-                      return (
-                        <li
-                          key={channel}
-                          data-testid="listing-detail-channel"
-                          data-channel={channel}
-                          className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
-                        >
-                          <span
-                            className="me-auto text-foreground"
-                            data-testid="listing-detail-channel-label"
+            {!sold &&
+              (view.actor === "buyer"
+                ? view.contact?.viewer !== "unknown"
+                : channels.length > 0) && (
+                <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
+                  {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
+                    <h4 className="text-xs font-medium text-muted-foreground">
+                      {t("post.preview.contactLabel")}
+                    </h4>
+                  )}
+                  {view.actor === "buyer" && view.contact !== undefined ? (
+                    <BuyerContact contact={view.contact} channels={channels} />
+                  ) : (
+                    <ul className="divide-y divide-border text-sm">
+                      {channels.map((channel) => {
+                        const entry = ownValue(view.contactPref, channel);
+                        const value =
+                          entry !== null && typeof entry === "object"
+                            ? ownValue(entry as Record<string, unknown>, "value")
+                            : undefined;
+                        const label =
+                          channel === "phone"
+                            ? t("post.who.channel.phone")
+                            : channel === "phone2"
+                              ? t("post.who.channel.phone2")
+                              : channel === "telegram"
+                                ? t("post.who.channel.telegram")
+                                : t("post.who.channel.whatsapp");
+                        return (
+                          <li
+                            key={channel}
+                            data-testid="listing-detail-channel"
+                            data-channel={channel}
+                            className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
                           >
-                            {label}
-                          </span>
-                          {view.actor === "owner" &&
-                            typeof value === "string" &&
-                            value.trim() !== "" && (
-                              <span
-                                data-testid="listing-detail-channel-value"
-                                data-channel={channel}
-                                className="text-foreground"
-                              >
-                                {value}
-                              </span>
-                            )}
-                          {view.channelAction?.(channel) ?? null}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            )}
+                            <span
+                              className="me-auto text-foreground"
+                              data-testid="listing-detail-channel-label"
+                            >
+                              {label}
+                            </span>
+                            {view.actor === "owner" &&
+                              typeof value === "string" &&
+                              value.trim() !== "" && (
+                                <span
+                                  data-testid="listing-detail-channel-value"
+                                  data-channel={channel}
+                                  className="text-foreground"
+                                >
+                                  {value}
+                                </span>
+                              )}
+                            {view.channelAction?.(channel) ?? null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              )}
             {/* Bundle 19 turn 16 (D201 §12) — All ads by this seller; a seller
               with no alias (a business named by its business name alone) gets
               no link. The owner's and staff's previews pass no key. */}
@@ -810,38 +813,40 @@ export function ListingDetail(view: ListingDetailView) {
               ))}
             </nav>
           )}
-          <div
-            className={`contents @4xl:order-4 @4xl:grid @4xl:gap-4 ${!sold && facts.length > 0 ? "@4xl:grid-cols-2" : "@4xl:grid-cols-1"}`}
-          >
-            {!sold && <SafetyBox />}
+          {(!sold || facts.length > 0) && (
+            <div
+              className={`contents @4xl:order-4 @4xl:grid @4xl:gap-4 ${!sold && facts.length > 0 ? "@4xl:grid-cols-2" : "@4xl:grid-cols-1"}`}
+            >
+              {!sold && <SafetyBox />}
 
-            {/* ------------------------------ the facts --------------------------- */}
-            {facts.length > 0 && (
-              <section
-                id="ad-details"
-                className="order-5 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-                data-testid="listing-detail-specs"
-              >
-                <h3 className="font-display text-base font-semibold text-foreground">
-                  {t("post.preview.detailsLabel")}
-                </h3>
-                <dl className="space-y-2 text-sm">
-                  {facts.map((definition) => (
-                    <div key={definition.attrKey} className="grid grid-cols-2 gap-3">
-                      <dt className="text-muted-foreground">{factLabel(definition)}</dt>
-                      <dd
-                        className="text-start text-foreground"
-                        data-testid="listing-detail-spec"
-                        data-key={definition.attrKey}
-                      >
-                        {factValue(definition)}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-            )}
-          </div>
+              {/* ------------------------------ the facts --------------------------- */}
+              {facts.length > 0 && (
+                <section
+                  id="ad-details"
+                  className="order-5 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+                  data-testid="listing-detail-specs"
+                >
+                  <h3 className="font-display text-base font-semibold text-foreground">
+                    {t("post.preview.detailsLabel")}
+                  </h3>
+                  <dl className="space-y-2 text-sm">
+                    {facts.map((definition) => (
+                      <div key={definition.attrKey} className="grid grid-cols-2 gap-3">
+                        <dt className="text-muted-foreground">{factLabel(definition)}</dt>
+                        <dd
+                          className="text-start text-foreground"
+                          data-testid="listing-detail-spec"
+                          data-key={definition.attrKey}
+                        >
+                          {factValue(definition)}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              )}
+            </div>
+          )}
           {/* --------------------------- the description ------------------------ */}
           {view.description !== "" && (
             <section
@@ -880,6 +885,9 @@ export function ListingDetail(view: ListingDetailView) {
             <h3 className="font-display text-base font-semibold">{t("adPage.section.location")}</h3>
             {places.length > 0 && (
               <p className="text-sm text-muted-foreground">{places.join(", ")}</p>
+            )}
+            {places.length === 0 && !view.directions && !view.streetAddress && !hasPin && (
+              <p className="text-sm text-muted-foreground">{t("post.review.notGiven")}</p>
             )}
             {/* Step 10 (P4) — directions above the location details, as text (F2). */}
             {(view.directions || view.streetAddress) && (
