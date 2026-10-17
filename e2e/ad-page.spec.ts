@@ -819,6 +819,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         expect(headline.y).toBeGreaterThanOrEqual(gallery.y + gallery.height);
         expect(sellerBox.y).toBeGreaterThanOrEqual(location.y + location.height);
       } else if (article.width < 896) {
+        expect(Math.abs(gallery.width - article.width)).toBeLessThanOrEqual(1);
+        expect(main.y).toBeGreaterThanOrEqual(gallery.y + gallery.height);
         expect(headline.y).toBeGreaterThanOrEqual(gallery.y + gallery.height);
         expect(headline.x).toBeGreaterThan(main.x + main.width);
       } else {
@@ -961,7 +963,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(large).toHaveAttribute("data-zoom", "13");
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const zoomIn = large.locator(".leaflet-control-zoom-in");
-      if ((await zoomIn.getAttribute("aria-disabled")) !== "true") await zoomIn.click();
+      if ((await zoomIn.getAttribute("aria-disabled")) !== "true") {
+        const before = Number(await large.getAttribute("data-zoom"));
+        await zoomIn.click();
+        await expect(large).toHaveAttribute("data-zoom", String(Math.min(before + 1, 15)));
+      }
     }
     await expect(large).toHaveAttribute("data-zoom", "15");
     await page.keyboard.press("Escape");
