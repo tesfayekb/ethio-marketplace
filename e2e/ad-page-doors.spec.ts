@@ -938,7 +938,8 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
         .eq("key", buyerPerson.id)
         .eq("action", "report");
       expect(meters.error).toBeNull();
-      expect(meters.data).toEqual([{ count: 2 }]);
+      // rate_gate meters the third (rate-limited) attempt; duplicate and validation refusals never reach it.
+      expect(meters.data).toEqual([{ count: 3 }]);
     } finally {
       const removed = await adminClient()
         .from("rate_overrides")
