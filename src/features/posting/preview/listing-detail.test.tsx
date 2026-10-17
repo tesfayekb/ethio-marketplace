@@ -177,7 +177,7 @@ it("LD-7 the strip under the price, for every actor, from the ranks; the Details
   for (const actor of ["buyer", "owner", "staff"] as const) {
     rerender(<ListingDetail {...view} actor={actor} />);
     const chips = screen.getAllByTestId("listing-key-fact");
-    expect(chips.map((chip) => chip.dataset.key)).toEqual(["distance", "color"]);
+    expect(chips.map((chip) => chip.dataset.factKey)).toEqual(["distance", "color"]);
     expect(chips[0]).toHaveTextContent("42 km");
     expect(chips[1]).toHaveTextContent("Blue");
     expect(screen.getAllByTestId("listing-detail-spec")).toHaveLength(3);
@@ -188,7 +188,7 @@ it("LD-7 the strip under the price, for every actor, from the ranks; the Details
     isFilterable: definition.attrKey === "color",
   }));
   rerender(<ListingDetail {...view} definitions={fallback} />);
-  expect(screen.getAllByTestId("listing-key-fact").map((chip) => chip.dataset.key)).toEqual([
+  expect(screen.getAllByTestId("listing-key-fact").map((chip) => chip.dataset.factKey)).toEqual([
     "color",
   ]);
   rerender(
