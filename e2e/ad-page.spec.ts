@@ -790,13 +790,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const seller = await scratchSeller();
     const key = `e2e-layout-${token()}`;
     factKeys.push(key);
-    await seedAttribute({
-      categoryId: seller.leafId,
-      key,
-      type: "text",
-      nameEn: "Scratch fact",
-      nameAm: "ሙከራ",
-    });
+    const attributeId = await seedAttribute(key, "text");
+    const linked = await adminClient()
+      .from("category_attribute_links")
+      .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
+    expect(linked.error).toBeNull();
     const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" }, pin: true });
     await seedPhotos(ad.id);
     const exact = await adminClient()
@@ -808,7 +806,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
     const check = async () => {
       const article = await page.getByTestId("listing-detail").boundingBox();
-      const gallery = await page.getByTestId("gallery-main").locator("..").boundingBox();
+      const gallery = await page
+        .getByTestId("listing-detail")
+        .locator(":scope > div > div")
+        .first()
+        .boundingBox();
       const headline = await page.getByTestId("listing-detail-headline").boundingBox();
       const main = await page.getByTestId("listing-detail-specs").boundingBox();
       const sellerBox = await page
@@ -851,13 +853,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const seller = await scratchSeller();
     const key = `e2e-sections-${token()}`;
     factKeys.push(key);
-    await seedAttribute({
-      categoryId: seller.leafId,
-      key,
-      type: "text",
-      nameEn: "Scratch fact",
-      nameAm: "ሙከራ",
-    });
+    const attributeId = await seedAttribute(key, "text");
+    const linked = await adminClient()
+      .from("category_attribute_links")
+      .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
+    expect(linked.error).toBeNull();
     const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" } });
     await seedPhotos(ad.id);
     await gotoReady(page, (await address(ad)).canonical);

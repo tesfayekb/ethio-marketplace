@@ -354,14 +354,12 @@ export function ListingDetail(view: ListingDetailView) {
     };
   }, [showSections, sectionIds]);
   const scrollSection = (id: string) => {
-    articleRef.current
-      ?.querySelector(`#${id}`)
-      ?.scrollIntoView({
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "instant"
-          : "smooth",
-        block: "start",
-      });
+    articleRef.current?.querySelector(`#${id}`)?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+      block: "start",
+    });
   };
 
   return (
@@ -736,7 +734,7 @@ export function ListingDetail(view: ListingDetailView) {
               ))}
             </nav>
           )}
-          <div className="contents @4xl:grid @4xl:grid-cols-2 @4xl:gap-4">
+          <div className="contents @4xl:order-4 @4xl:grid @4xl:grid-cols-2 @4xl:gap-4">
             {!sold && <SafetyBox />}
 
             {/* ------------------------------ the facts --------------------------- */}
@@ -746,7 +744,7 @@ export function ListingDetail(view: ListingDetailView) {
                 className="order-5 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
                 data-testid="listing-detail-specs"
               >
-                <h3 className="text-sm font-medium text-foreground">
+                <h3 className="font-display text-base font-semibold text-foreground">
                   {t("post.preview.detailsLabel")}
                 </h3>
                 <dl className="space-y-2 text-sm">
@@ -772,7 +770,7 @@ export function ListingDetail(view: ListingDetailView) {
               id="ad-description"
               className="order-6 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
             >
-              <h3 className="text-sm font-medium text-foreground">
+              <h3 className="font-display text-base font-semibold text-foreground">
                 {t("post.preview.descriptionLabel")}
               </h3>
               <p

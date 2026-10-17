@@ -461,9 +461,9 @@ it("LD-15 seller line precedes contact, which precedes All ads", () => {
   if (!seller) throw new Error("seller card missing");
   const contact = within(seller).getByTestId("listing-detail-contact");
   const link = within(seller).getByTestId("listing-seller-all-ads");
-  expect(
-    seller.firstElementChild?.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING,
-  ).toBeTruthy();
+  const identity = seller.firstElementChild;
+  if (!identity) throw new Error("seller identity missing");
+  expect(identity.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(contact.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 it("LD-16 no pin draws no map or placeholder", () => {
