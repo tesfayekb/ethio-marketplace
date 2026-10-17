@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-9.md (bundle 19 — turn 9: M2 fact_rank by the migration tool (DEC-188), mark 20261018150000 — the links file and export carry the cell; the key-facts strip under the price for every actor; two strings). Next: turn 10 — the link manager's Key fact tick, staff's SOLD badge, the contact block and sign-in return; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-9b.md (bundle 19 — turn 9b: M2 fact_rank parts a and b by the migration tool, marks 20261018150000 and 20261018150100; parts c and d — attr_import_plan, admin_commit_attribute_import, admin_undo_attribute_import — follow whole in turn 9c; no code change). Next: turn 10 — the link manager's Key fact tick, staff's SOLD badge, the contact block and sign-in return; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
