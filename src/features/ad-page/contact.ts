@@ -9,6 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type ContactChannel = "phone" | "phone2" | "telegram" | "whatsapp";
 
+/** The contact block's state on the buyer's page: idle → loading → revealed or refused. */
+export type ContactState =
+  | { kind: "idle" }
+  | { kind: "loading" }
+  | { kind: "revealed"; channels: Partial<Record<ContactChannel, string>> }
+  | { kind: "refused"; reason: "sellersCapReached" | "rateLimited" | "listingNotAvailable" | "failed" };
+
 export type RevealAnswer =
   | { ok: true; channels: Partial<Record<ContactChannel, string>> }
   | { ok: false; reason: "sellersCapReached" | "rateLimited" | "listingNotAvailable" | "failed" };
