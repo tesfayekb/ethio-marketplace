@@ -806,11 +806,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
     const check = async () => {
       const article = await page.getByTestId("listing-detail").boundingBox();
-      const gallery = await page
-        .getByTestId("listing-detail")
-        .locator(":scope > div > div")
-        .first()
-        .boundingBox();
+      const gallery = await page.getByTestId("listing-detail-gallery").boundingBox();
       const headline = await page.getByTestId("listing-detail-headline").boundingBox();
       const main = await page.getByTestId("listing-detail-specs").boundingBox();
       const sellerBox = await page

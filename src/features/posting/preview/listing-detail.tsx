@@ -412,7 +412,10 @@ export function ListingDetail(view: ListingDetailView) {
       )}
       <div className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @2xl:gap-6 @4xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         {/* ------------------------------ the gallery ------------------------- */}
-        <div className="relative order-1 min-w-0 @2xl:col-span-2 @4xl:col-span-1">
+        <div
+          data-testid="listing-detail-gallery"
+          className="relative order-1 min-w-0 @2xl:col-span-2 @4xl:col-span-1"
+        >
           {images.length > 0 ? (
             <PhotoGallery
               photos={images}
