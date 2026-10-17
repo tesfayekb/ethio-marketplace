@@ -1780,24 +1780,6 @@ export type Database = {
         }
         Relationships: []
       }
-      migration_text_parts: {
-        Row: {
-          body: string
-          fn: string
-          seq: number
-        }
-        Insert: {
-          body: string
-          fn: string
-          seq: number
-        }
-        Update: {
-          body?: string
-          fn?: string
-          seq?: number
-        }
-        Relationships: []
-      }
       name_folds: {
         Row: {
           fold: string
