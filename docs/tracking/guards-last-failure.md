@@ -1,74 +1,73 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39041595684
-- Commit: `b9c0f45744921a0cb3f6a640a4d77de1763d3ad9`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39046179477
+- Commit: `5a3109008c779a13fd7f9ac839c4977592227e32`
 - Attempt: 1
-- Written (UTC): 2026-10-17T15:29:59.114Z
+- Written (UTC): 2026-10-17T16:07:46.157Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
 
-## Build, typecheck, lint — failure
+## E2E preflight (migration parity, staging) — failure
 
 ### Evidence lines
 
 ```text
-##[error]Unexplained deletions in fe92cf36f6e174734e96822b9ba6c49802008516..HEAD (INC-076).
 ##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
- * [new branch]        lovable-backup-dev-1788419378 -> origin/lovable-backup-dev-1788419378
- * [new branch]        lovable-sync            -> origin/lovable-sync
- * [new branch]        lovable-sync-1788322342 -> origin/lovable-sync-1788322342
- * [new branch]        lovable-sync-1788764600 -> origin/lovable-sync-1788764600
- * [new branch]        lovable-sync-1789741128 -> origin/lovable-sync-1789741128
- * [new branch]        lovable-sync-1790153551 -> origin/lovable-sync-1790153551
- * [new branch]        lovable-sync-1790668701 -> origin/lovable-sync-1790668701
- * [new branch]        lovable-sync-1790806349 -> origin/lovable-sync-1790806349
- * [new branch]        lovable-sync-1790807903 -> origin/lovable-sync-1790807903
- * [new branch]        lovable-sync-1790881191 -> origin/lovable-sync-1790881191
- * [new branch]        lovable-sync-1790889145 -> origin/lovable-sync-1790889145
- * [new branch]        main                    -> origin/main
-[command]/usr/bin/git branch --list --remote origin/dev
-  origin/dev
-[command]/usr/bin/git rev-parse refs/remotes/origin/dev
-b9c0f45744921a0cb3f6a640a4d77de1763d3ad9
-##[endgroup]
-##[group]Determining the checkout info
-##[endgroup]
-[command]/usr/bin/git sparse-checkout disable
-[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-##[group]Checking out the ref
-[command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
-Switched to a new branch 'dev'
-branch 'dev' set up to track 'origin/dev'.
-##[endgroup]
-[command]/usr/bin/git log -1 --format=%H
-b9c0f45744921a0cb3f6a640a4d77de1763d3ad9
-##[group]Run SELF_TEST=1 bash scripts/check-deletions.sh
-[36;1mSELF_TEST=1 bash scripts/check-deletions.sh[0m
-[36;1mbash scripts/check-deletions.sh[0m
-shell: /usr/bin/bash -e {0}
-env:
-  GITHUB_EVENT_BEFORE: fe92cf36f6e174734e96822b9ba6c49802008516
-##[endgroup]
-Self-test OK: undeclared deletion flagged, marker-declared allowed, additions allowed; manifest door (INC-192): an ADDED path line declares, a pre-existing line does not.
-##[error]Unexplained deletions in fe92cf36f6e174734e96822b9ba6c49802008516..HEAD (INC-076).
-The following files were deleted with no [intentional-delete] marker in any commit
-message and no path line added to docs/tracking/intentional-deletions.txt by this range:
-src/routes/seller.$key.tsx
-If the removal is intended, say so in the commit message or add the path to
-docs/tracking/intentional-deletions.txt in the same push; otherwise you are pushing from a stale
-checkout and are about to erase someone's work.
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 43 of 50)
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 44 of 50)
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 45 of 50)
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 46 of 50)
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 47 of 50)
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 48 of 50)
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 49 of 50)
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql
+STAGING BEHIND: apply 20261017153217_f9a99f75-96a4-4c76-b382-ac2238197369.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 50 of 50)
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/9423d166-fa46-4554-87ea-f353b058a77b' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/ebfa72ea-e70a-4e57-a291-47d2bc3a41a5' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -100,6 +99,9 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1m  exit "$reporter"[0m
+[36;1mfi[0m
+[36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
   E2E_RESULTS_DIR: shard-results
@@ -107,10 +109,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39041595684
-  E2E_HEAD_COMMIT_MESSAGE: Finalized Part B/C bundle
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39046179477
+  E2E_HEAD_COMMIT_MESSAGE: Completed Turn 18
 
-X-Lovable-Edit-ID: edt-b1da0d55-170b-49f1-9a9c-25e2bdc24f61
+X-Lovable-Edit-ID: edt-131795e6-6d95-4094-a449-bd4bacbccb26
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -127,27 +129,24 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (8/8 source(s) with usable results, 0 context file(s) found).
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
-Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 1 already there for this run (INC-495).
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Wrote docs/tracking/e2e-last-failure.md (0/8 source(s) with usable results, 0 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
-##[group]Run echo "smoke=success email=success shards=failure"
-[36;1mecho "smoke=success email=success shards=failure"[0m
-[36;1mif [ "success" != "success" ] || [ "failure" != "success" ] || [ "success" != "success" ]; then[0m
+##[group]Run echo "smoke=skipped email=skipped shards=skipped"
+[36;1mecho "smoke=skipped email=skipped shards=skipped"[0m
+[36;1mif [ "skipped" != "success" ] || [ "skipped" != "success" ] || [ "skipped" != "success" ]; then[0m
 [36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit 1[0m
 [36;1mfi[0m
 [36;1mecho "All E2E shards and the smoke tier passed."[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-smoke=success email=success shards=failure
+smoke=skipped email=skipped shards=skipped
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/70e6f2bd-e882-45b1-babf-4cc8e99408d6' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/2967ec00-4fdb-455d-9234-949155f8db1b' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
