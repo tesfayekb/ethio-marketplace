@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { parseCard, type FeedListing } from "@/features/feed/feed-page";
 
 /**
- * Bundle 19 turn 16 (D201 §12) — the seller page's read: /api/seller, one
+ * Bundle 19 turn 17 (DEC-108) — the seller page's read: /api/seller, one
  * page of the seller's live ads at a time, in the server's order (feed_page's
  * order). The key is the seller's alias lower-cased, never an id. A card is
  * parsed by the feed's own card parser (src/features/feed/feed-page.ts); the

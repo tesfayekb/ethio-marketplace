@@ -561,8 +561,8 @@ export function ListingDetail(view: ListingDetailView) {
           {typeof view.sellerAdsKey === "string" && view.sellerAdsKey !== "" && (
             <Link
               data-testid="listing-seller-all-ads"
-              to="/seller/$key"
-              params={{ key: view.sellerAdsKey }}
+              to="/$name"
+              params={{ name: view.sellerAdsKey }}
               className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
             >
               {t("adPage.seller.allAds")}
