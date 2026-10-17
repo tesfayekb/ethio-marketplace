@@ -156,22 +156,18 @@ function AdPage() {
   }, [doc.public_id]);
   const { t, language } = useI18n();
   const view = adPageView(doc, language);
-  const sharePrice =
-    doc.price.amount === null || doc.price.mode === "contact" || doc.price.mode === "free"
-      ? null
-      : priceLine(
-          {
-            mode: doc.price.mode,
-            amount: doc.price.amount,
-            currency: doc.price.currency,
-            period: doc.price.period,
-            bp: doc.price.bp,
-            unit: view.basisLabel ?? null,
-          },
-          t,
-          t("price.contact"),
-          language,
-        );
+  const sharePrice = sharePriceText(
+    {
+      mode: doc.price.mode,
+      amount: doc.price.amount,
+      currency: doc.price.currency,
+      period: doc.price.period,
+      bp: doc.price.bp,
+      unit: view.basisLabel ?? null,
+    },
+    t,
+    language,
+  );
   const soldKey = doc.sold_word === null ? undefined : ownValue(SOLD_RIBBON, doc.sold_word);
   const ribbonKey = ribbonOf({
     soldWord: doc.sold_word,
@@ -227,6 +223,19 @@ function AdPage() {
           }}
         />
       </PageCard>
+      {/* D201 §12 — similar ads: never on a sold ad, never for the owner. The
+          document carries no internal listing id, so the ad is excluded by its
+          public id. A second card under the ad's own: the side list is not the
+          ad. */}
+      {!doc.is_sold && !doc.viewer.owner && !ownAd && doc.category !== null ? (
+        <PageCard className="min-w-0">
+          <SimilarAds
+            categoryId={doc.category.id}
+            placeId={doc.places.location_id}
+            excludeId={doc.public_id}
+          />
+        </PageCard>
+      ) : null}
     </PageShell>
   );
 }
