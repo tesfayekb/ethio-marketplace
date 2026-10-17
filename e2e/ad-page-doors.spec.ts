@@ -178,9 +178,9 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
   /** File-local scratchHolder; reuse a held account for AP-28's two-lease ceiling. */
   async function scratchHolder(
     wanted: Array<[resource: string, action: string]>,
-    person?: { id: string; email: string; password: string },
+    person: { id: string; email: string; password: string },
   ) {
-    return grantRole(wanted, person ?? (await leaseUser()));
+    return grantRole(wanted, person);
   }
 
   /** A rate key of this file, reaped in afterEach: `e2e-<RUN><token>-<name>`. */
