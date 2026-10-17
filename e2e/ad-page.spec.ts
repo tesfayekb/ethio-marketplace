@@ -1,10 +1,16 @@
 import { expect, test } from "./fixtures";
 import { seedAttribute, destroyAttribute } from "./helpers/admin-attributes";
-import { adminClient } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 import { fill } from "../src/features/posting/refusal-text";
 import { token } from "./helpers/ad-page";
 import { adPageFixtures } from "./helpers/ad-page";
-import { signInViaSession, gotoReady, switchLanguage } from "./helpers/ui";
+import {
+  authFields,
+  gotoReady,
+  signInViaSession,
+  switchLanguage,
+  waitForHydration,
+} from "./helpers/ui";
 import { listingPath, shortListingPath } from "../src/features/ad-page/address";
 import en from "../src/i18n/locales/en";
 import am from "../src/i18n/locales/am";
