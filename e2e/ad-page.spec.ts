@@ -115,7 +115,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("ad-page")).toBeVisible();
     await switchLanguage(page, "am");
     await expect(
-      page.locator('section[data-testid="listing-detail-seller"]').getByRole("heading"),
+      page
+        .locator('section[data-testid="listing-detail-seller"]')
+        .getByRole("heading", { level: 3 }),
     ).toHaveText(am["post.preview.sellerLabel"]);
     await expect(page.getByTestId("listing-detail-contact").getByRole("heading")).toHaveText(
       am["post.preview.contactLabel"],
