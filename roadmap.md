@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-12a.md (bundle 19 — turn 12a: run 984's reds (INC-692, INC-693); M3 — Save's doors by the migration tool in two parts, marks 20261018170000 and 20261018170100; AP-24, AP-25). Next: turn 12b — the heart, the counts and Account › Saved; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-12b.md (bundle 19 — turn 12b: Save on the page — the heart and "Saved by N" for a signed-in buyer, the sign-in return for a signed-out one, the owner's saves, Account › Saved at /account/saved; twelve strings; no migration). Next: turn 13 — M4: Report and the admin count; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
