@@ -61,11 +61,18 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.locator('section[data-testid="listing-detail-seller"]')).toContainText(
       seller.alias,
     );
-    const channels = page.getByTestId("listing-detail-channel");
-    await expect(channels).toHaveCount(1);
-    await expect(channels.filter({ hasText: en["post.who.channel.phone"] })).toBeVisible();
+    // Turn 11 (D201 §6) — a signed-out visitor gets no channel rows, one
+    // sign-in link that returns to the contact block, and the number nowhere.
+    await expect(page.getByTestId("listing-detail-channel")).toHaveCount(0);
+    const signIn = page.getByTestId("listing-contact-sign-in");
+    await expect(signIn).toBeVisible();
+    const href = await signIn.getAttribute("href");
+    expect(href).not.toBeNull();
+    expect(href!.startsWith("/auth?return=")).toBe(true);
+    expect(decodeURIComponent(href!.slice("/auth?return=".length))).toBe(`${canonical}#contact`);
     await expect(page.locator("body")).not.toContainText("251911000001");
     expect(html).not.toContain("251911000001");
+    expect(html).not.toContain('data-testid="listing-detail-channel"');
     await expect(
       page.locator(`[data-testid="breadcrumb-category-parent"][href="/c/${seller.leafSlug}"]`),
     ).toBeVisible();
