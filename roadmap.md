@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-12b.md (bundle 19 — turn 12b: Save on the page — the heart and "Saved by N" for a signed-in buyer, the sign-in return for a signed-out one, the owner's saves, Account › Saved at /account/saved; twelve strings; no migration). Next: turn 13 — M4: Report and the admin count; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-13a.md (bundle 19 — turn 13a: M4 — Report's doors by the migration tool, mark 20261018180000; AP-27, AP-28; the Saved page on the feed's grid; no string). Next: turn 13b — the Report dialog and the admin count; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -340,7 +340,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 11 (docs/governance/briefs/bundle-19-turn-11.md; one migration by the migration tool, mark 20261018160000; seven strings) — the contact block: signed out, one sentence that leads to sign-in and back (`?return=/l/<slug>#contact`); signed in, Show contact → the seller's phone, Telegram and WhatsApp as links from the door's answer only; M5: `reveal_listing_contact(p_public_id)` with the day row, the ten-distinct-sellers cap (`contact_reveal_sellers`, `reveal_flags` for staff), the new account's five, the 30 a day; the owner's "N contacts"
   - [ ] Turn 12a (docs/governance/briefs/bundle-19-turn-12a.md; two migrations by the migration tool, marks 20261018170000 / 20261018170100; no string) — run 984's reds (INC-692 the export's trailing cell in AT-15/AT-18/AT-62; INC-693 the strip's own data attribute); M3: saved_listings, the dial save, save_listing / unsave_listing / listing_saved / my_saved_listings by public id, public_listing_json and listing_counts carry the saves (AP-24, AP-25)
   - [ ] Turn 12b (docs/governance/briefs/bundle-19-turn-12b.md; no migration; twelve strings) — Save on the page: the heart, "Saved by N", the owner's saves, Account › Saved
-  - [ ] Turn 13 (docs/governance/briefs/bundle-19-turn-13.md) — M4: Report and the admin count
+  - [ ] Turn 13a (docs/governance/briefs/bundle-19-turn-13a.md; one migration by the migration tool, mark 20261018180000; no string) — M4: listing_reports, the dial report, report_listing / admin_listing_reports / admin_open_report_counts (AP-27, AP-28); the Saved page on the feed's grid
+- [ ] Turn 13b — Report on the page (the dialog) and the open-report count in Admin › Listings
   - [ ] Turn 14 (docs/governance/briefs/bundle-19-turn-14.md) — Share, counters
   - [ ] Turn 15 (docs/governance/briefs/bundle-19-turn-15.md) — similar ads, seller link, ~~safety box~~, ~~sold page~~ and sharing
 - [ ] The flaky tests (bundle 18 turns 3 and 4 — the fixes; the proofs owed): PW-12 (INC-643), PW-117 (INC-662), PW-178 (INC-673) and PW-61 (INC-652) fixed at their causes; AT-59 (INC-646) and CT-3 (INC-674) were INC-579's (closed); PR-33 (INC-645), PR-39 (INC-653), AL-24 (INC-654), SC-13 (INC-664) class (b) — staging under load, no change, the seven-day ledger judges; PW-74 (INC-644) watched. Owed: the clean Flake check repeats of group 1 and group 2 after DEC-185's staging setting (read from ci-evidence); INC-655 (Post listing's first open) measured first when the operator gives the data point

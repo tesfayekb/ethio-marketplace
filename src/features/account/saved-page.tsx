@@ -81,7 +81,7 @@ export function SavedPage() {
           {t("account.saved.empty")}
         </p>
       )}
-      <ul className="mt-4 grid auto-rows-fr grid-cols-1 gap-2 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
+      <ul className="mt-4 grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
         {cards.map((card) => (
           <li
             key={card.id}

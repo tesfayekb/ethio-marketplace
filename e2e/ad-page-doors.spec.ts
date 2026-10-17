@@ -107,6 +107,81 @@ async function asAnonymous() {
 test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
   const { scratchSeller, seed, publicIdOf, cleanup, listingIds, rateTokens } = adPageFixtures();
   test.afterEach(cleanup);
+  const reportRoles: string[] = [];
+  const reportPeople: string[] = [];
+  test.afterEach(async () => {
+    const supabase = adminClient();
+    for (const id of reportPeople.splice(0)) {
+      for (const [table, column] of [
+        ["listing_reports", "reporter_id"],
+        ["rate_overrides", "user_id"],
+        ["rate_limits", "key"],
+      ] as const) {
+        const removed = await supabase.from(table).delete().eq(column, id);
+        if (removed.error)
+          throw new Error(`[e2e:ap] ${table} reap failed: ${removed.error.message}`);
+      }
+    }
+    for (const id of reportRoles.splice(0)) {
+      const assignments = await supabase.from("user_roles").delete().eq("role_id", id);
+      if (assignments.error)
+        throw new Error(`[e2e:ap] assignment reap failed: ${assignments.error.message}`);
+      const permissions = await supabase.from("role_permissions").delete().eq("role_id", id);
+      if (permissions.error)
+        throw new Error(`[e2e:ap] permission reap failed: ${permissions.error.message}`);
+      const role = await supabase.from("roles").delete().eq("id", id);
+      if (role.error) throw new Error(`[e2e:ap] role reap failed: ${role.error.message}`);
+    }
+  });
+
+  /** The my-listings door spec's file-local grant, on an account already held. */
+  async function grantRole(
+    wanted: Array<[resource: string, action: string]>,
+    person: { id: string; email: string; password: string },
+  ) {
+    const supabase = adminClient();
+    const roleName = `e2e_mylistings_role_${token()}`;
+    const { data: role, error: roleError } = await supabase
+      .from("roles")
+      .insert({ name: roleName, display_name: roleName, priority: 1 })
+      .select("id")
+      .single();
+    if (roleError || !role) throw new Error(`[e2e:ap] scratch role failed: ${roleError?.message}`);
+    reportRoles.push(role.id as string);
+    const { data: perms, error: permsError } = await supabase
+      .from("permissions")
+      .select("id, action, resources!inner(name)")
+      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
+    if (permsError) throw new Error(`[e2e:ap] permission read failed: ${permsError.message}`);
+    const picked = (perms ?? []).filter((p) =>
+      wanted.some(
+        ([resource, action]) =>
+          (p as unknown as { resources: { name: string } }).resources.name === resource &&
+          p.action === action,
+      ),
+    );
+    expect(
+      picked,
+      `[e2e:ap] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
+    ).toHaveLength(wanted.length);
+    const granted = await supabase
+      .from("role_permissions")
+      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
+    if (granted.error) throw new Error(`[e2e:ap] grant failed: ${granted.error.message}`);
+    const assigned = await supabase
+      .from("user_roles")
+      .insert({ user_id: person.id, role_id: role.id, scope_type: "global" });
+    if (assigned.error) throw new Error(`[e2e:ap] assignment failed: ${assigned.error.message}`);
+    return person;
+  }
+
+  /** File-local scratchHolder; reuse a held account for AP-28's two-lease ceiling. */
+  async function scratchHolder(
+    wanted: Array<[resource: string, action: string]>,
+    person: { id: string; email: string; password: string },
+  ) {
+    return grantRole(wanted, person);
+  }
 
   /** A rate key of this file, reaped in afterEach: `e2e-<RUN><token>-<name>`. */
   function rateKey(name: string): string {
@@ -766,6 +841,236 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
         .delete()
         .eq("user_id", buyerPerson.id);
       expect(savesGone.error).toBeNull();
+    }
+  });
+
+  test("AP-27 Report by public id: a buyer reports once with a reason and a note; the owner cannot report his own ad; a reason outside the list and a note over 500 characters are refused; a second open report by the same buyer is alreadyReported; a sold ad within its 30 days can be reported; a draft, an unknown or a malformed id cannot; the report dial counts written rows only", async () => {
+    const seller = await scratchSeller();
+    const adA = await seed(seller);
+    const adB = await seed(seller);
+    const adC = await seed(seller);
+    const draft = await seed(seller, "draft");
+    const idA = await publicIdOf(adA.id);
+    const idB = await publicIdOf(adB.id);
+    const idC = await publicIdOf(adC.id);
+    const buyerPerson = await leaseUser();
+    reportPeople.push(buyerPerson.id);
+    const buyer = await asPerson(buyerPerson);
+    const report = (id: string, reason = "scam", note: string | null = null) =>
+      buyer.rpc("report_listing", { p_public_id: id, p_reason: reason, p_note: note });
+    const truth = async () => {
+      const rows = await adminClient()
+        .from("listing_reports")
+        .select("*")
+        .eq("reporter_id", buyerPerson.id)
+        .order("id");
+      expect(rows.error).toBeNull();
+      return rows.data ?? [];
+    };
+    try {
+      const first = await report(idA, "scam", "  looks fake  ");
+      expect(first.error).toBeNull();
+      expect(first.data).toEqual({ ok: true });
+      const home = await adminClient()
+        .from("user_directory")
+        .select("home_country_code")
+        .eq("user_id", buyerPerson.id)
+        .single();
+      expect(home.error).toBeNull();
+      expect(home.data).not.toBeNull();
+      const rows = await truth();
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        listing_id: adA.id,
+        reason: "scam",
+        note: "looks fake",
+        status: "open",
+        home_country_code: home.data?.home_country_code,
+      });
+      const repeat = await report(idA);
+      expect(repeat.error).toBeNull();
+      expect(repeat.data).toEqual({ ok: false, reason: "alreadyReported" });
+      expect(await truth()).toHaveLength(1);
+      const owner = await asPerson(seller);
+      const own = await owner.rpc("report_listing", { p_public_id: idA, p_reason: "scam" });
+      expect(own.error).toBeNull();
+      expect(own.data).toEqual({ ok: false, reason: "ownListing" });
+      const badReason = await report(idC, "nonsense");
+      expect(badReason.error).toBeNull();
+      expect(badReason.data).toEqual({ ok: false, reason: "badReason" });
+      const longNote = await report(idC, "other", "x".repeat(501));
+      expect(longNote.error).toBeNull();
+      expect(longNote.data).toEqual({ ok: false, reason: "noteTooLong" });
+      const sold = await adminClient()
+        .from("listings")
+        .update({ status: "sold", sold_at: new Date().toISOString() })
+        .eq("id", adB.id);
+      expect(sold.error).toBeNull();
+      const soldReport = await report(idB, "alreadySold");
+      expect(soldReport.error).toBeNull();
+      expect(soldReport.data).toEqual({ ok: true });
+      for (const id of [await publicIdOf(draft.id), "2345678923", "nope"]) {
+        expect((await report(id)).error).toContain("listingNotAvailable");
+      }
+      const anonymous = await asAnonymous();
+      expect(
+        (await anonymous.rpc("report_listing", { p_public_id: idA, p_reason: "spam" })).error,
+      ).toContain("permission denied");
+      expect(await truth()).toHaveLength(2);
+      const override = await adminClient()
+        .from("rate_overrides")
+        .insert({ user_id: buyerPerson.id, action: "report", max_count: 2 });
+      expect(override.error).toBeNull();
+      const limited = await report(idC);
+      expect(limited.error).toBeNull();
+      expect(limited.data).toMatchObject({ ok: false, reason: "rateLimited" });
+      const reset = (limited.data as Row)["resets_at"];
+      expect(typeof reset).toBe("string");
+      expect(String(reset)).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      expect(Number.isNaN(Date.parse(String(reset)))).toBe(false);
+      const duplicate = await report(idA);
+      expect(duplicate.error).toBeNull();
+      expect(duplicate.data).toEqual({ ok: false, reason: "alreadyReported" });
+      expect(await truth()).toHaveLength(2);
+      const meters = await adminClient()
+        .from("rate_limits")
+        .select("count")
+        .eq("key", buyerPerson.id)
+        .eq("action", "report");
+      expect(meters.error).toBeNull();
+      // rate_gate meters the third (rate-limited) attempt; duplicate and validation refusals never reach it.
+      expect(meters.data).toEqual([{ count: 3 }]);
+    } finally {
+      const removed = await adminClient()
+        .from("rate_overrides")
+        .delete()
+        .eq("user_id", buyerPerson.id)
+        .eq("action", "report");
+      expect(removed.error).toBeNull();
+      const meters = await adminClient().from("rate_limits").delete().eq("key", buyerPerson.id);
+      expect(meters.error).toBeNull();
+      const reports = await adminClient()
+        .from("listing_reports")
+        .delete()
+        .eq("reporter_id", buyerPerson.id);
+      expect(reports.error).toBeNull();
+    }
+  });
+
+  test("AP-28 who reads the reports: the reporter his own rows, nobody else's; staff with listings:review through the two admin doors; a plain account is refused", async () => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller);
+    const publicId = await publicIdOf(ad.id);
+    const xPerson = await leaseUser();
+    reportPeople.push(xPerson.id);
+    const yPerson = await createUser({ confirmed: true });
+    reportPeople.push(yPerson.id);
+    const x = await asPerson(xPerson);
+    const y = await asPerson(yPerson);
+    try {
+      for (const [person, reason, note] of [
+        [x, "spam", "scratch spam"],
+        [y, "duplicate", "scratch duplicate"],
+      ] as const) {
+        const reported = await person.rpc("report_listing", {
+          p_public_id: publicId,
+          p_reason: reason,
+          p_note: note,
+        });
+        expect(reported.error).toBeNull();
+        expect(reported.data).toEqual({ ok: true });
+      }
+      for (const [person, id, reason] of [
+        [x, xPerson.id, "spam"],
+        [y, yPerson.id, "duplicate"],
+      ] as const) {
+        const rows = await person.rest("listing_reports?select=*&order=id");
+        expect(rows.error).toBeNull();
+        expect(rows.data).toHaveLength(1);
+        expect((rows.data as Row[])[0]).toMatchObject({
+          reporter_id: id,
+          listing_id: ad.id,
+          reason,
+          status: "open",
+        });
+      }
+      const anonymous = await asAnonymous();
+      const anonRows = await anonymous.rest("listing_reports?select=*&order=id");
+      expect(
+        anonRows.error !== null || (Array.isArray(anonRows.data) && anonRows.data.length === 0),
+      ).toBe(true);
+      const insert = await x.insert("listing_reports", {
+        reporter_id: xPerson.id,
+        listing_id: ad.id,
+        reason: "other",
+      });
+      expect(insert.error).toContain("permission denied");
+      expect((await x.rpc("admin_listing_reports", { p_listing_id: ad.id })).error).toContain(
+        "permission denied",
+      );
+      expect((await x.rpc("admin_open_report_counts", { p_listing_ids: [ad.id] })).error).toContain(
+        "permission denied",
+      );
+      // X's plain-account checks finish before this held account gains the staff role.
+      const holder = await scratchHolder(
+        [
+          ["listings", "view"],
+          ["listings", "review"],
+        ],
+        xPerson,
+      );
+      const staff = await asPerson(holder);
+      const reports = await staff.rpc("admin_listing_reports", { p_listing_id: ad.id });
+      expect(reports.error).toBeNull();
+      expect(reports.data).toHaveLength(2);
+      const rows = reports.data as Row[];
+      expect(rows.map((row) => row["reason"]).sort()).toEqual(["duplicate", "spam"]);
+      expect(rows.map((row) => row["note"]).sort()).toEqual(["scratch duplicate", "scratch spam"]);
+      for (const row of rows) {
+        expect(row["status"]).toBe("open");
+        expect(typeof row["createdAt"]).toBe("string");
+        expect(Number.isNaN(Date.parse(String(row["createdAt"])))).toBe(false);
+        expect(Object.keys(row).sort()).toEqual([
+          "closedAt",
+          "createdAt",
+          "id",
+          "note",
+          "outcome",
+          "reason",
+          "status",
+        ]);
+        expect(Object.prototype.hasOwnProperty.call(row, "reporter_id")).toBe(false);
+        expect(Object.prototype.hasOwnProperty.call(row, "reporterId")).toBe(false);
+      }
+      const counts = await staff.rpc("admin_open_report_counts", { p_listing_ids: [ad.id] });
+      expect(counts.error).toBeNull();
+      expect(counts.data).toEqual({ [ad.id]: 2 });
+      expect(
+        (
+          await staff.rpc("admin_open_report_counts", {
+            p_listing_ids: Array.from({ length: 101 }, () => ad.id),
+          })
+        ).error,
+      ).toContain("badSize");
+      const truth = await adminClient()
+        .from("listing_reports")
+        .select("reporter_id")
+        .eq("listing_id", ad.id)
+        .order("reporter_id");
+      expect(truth.error).toBeNull();
+      expect(truth.data?.map((row) => row.reporter_id).sort()).toEqual(
+        [xPerson.id, yPerson.id].sort(),
+      );
+    } finally {
+      for (const person of [xPerson, yPerson]) {
+        const reports = await adminClient()
+          .from("listing_reports")
+          .delete()
+          .eq("reporter_id", person.id);
+        expect(reports.error).toBeNull();
+        const meters = await adminClient().from("rate_limits").delete().eq("key", person.id);
+        expect(meters.error).toBeNull();
+      }
     }
   });
 });

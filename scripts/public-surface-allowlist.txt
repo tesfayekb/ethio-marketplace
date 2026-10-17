@@ -94,3 +94,7 @@ save_listing | the buyer's Save by public id (D201 §8): signed in, a publicly r
 unsave_listing | the caller's own saved row removed by public id, any ad (B19 M3)
 listing_saved | the heart's own state for the signed-in caller (B19 M3)
 my_saved_listings | the caller's saved ads as feed cards, newest first, paged; an ad no longer public as ids only (B19 M3)
+listing_reports | a reporter reads his own reports and staff (listings:review) read all, by policy; no client write (B19 M4)
+report_listing | a buyer's report of an ad by public id (D201 §11): signed in, a publicly readable ad, never the caller's own, a reason of the list, one open report per reporter and ad, rate-gated report 10 a day (B19 M4)
+admin_listing_reports | the listing's reports for listings:review (B19 M4)
+admin_open_report_counts | open-report counts per listing for the console's rows, listings:review, at most 100 ids (B19 M4)

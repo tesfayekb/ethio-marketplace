@@ -266,6 +266,9 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
   // Bundle 19 turn 12a (M3) — the saves a lease made never carry into the next.
   const saved = await supabase.from("saved_listings").delete().eq("user_id", id);
   if (saved.error) fail("saved listings", saved.error.message);
+  // Bundle 19 turn 13a (M4) — reports made by this account never carry into a new lease.
+  const reports = await supabase.from("listing_reports").delete().eq("reporter_id", id);
+  if (reports.error) fail("listing reports", reports.error.message);
   // Bundle 19 turn 11 (M5) — the sellers-cap flags a day of reveals raised.
   const flags = await supabase.from("reveal_flags").delete().eq("viewer_id", id);
   if (flags.error) fail("reveal flags", flags.error.message);
