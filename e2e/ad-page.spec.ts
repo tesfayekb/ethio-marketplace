@@ -34,6 +34,10 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("ad-page")).toBeVisible();
     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
     await expect(page.getByTestId("listing-detail-price")).toContainText("100");
+    await expect(page.getByTestId("listing-safety")).toBeVisible();
+    await expect(page.getByTestId("listing-safety").getByRole("heading")).toHaveText(en["listing.safety.header"]);
+    await expect(page.getByTestId("listing-safety-line")).toHaveCount(4);
+    await expect(page.getByTestId("listing-detail-sold-badge")).toHaveCount(0);
     await expect(page.getByTestId("gallery-thumb")).toHaveCount(2);
     await expect(page.getByTestId("gallery-thumbs").locator("img")).toHaveCount(2);
     await expect
@@ -107,6 +111,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await page.goto(soldPath);
     await expect(page.getByTestId("ad-page")).toBeVisible();
     await expect(page.getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
+    await expect(page.getByTestId("listing-detail-sold-badge")).toHaveText(en["feed.ribbon.sold"]);
+    await expect(page.getByTestId("listing-safety")).toHaveCount(0);
   });
 
   test("AP-13 Amharic", async ({ page }) => {
@@ -116,6 +122,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await page.goto((await address(live)).canonical);
     await expect(page.getByTestId("ad-page")).toBeVisible();
     await switchLanguage(page, "am");
+    await expect(page.getByTestId("listing-safety").getByRole("heading")).toHaveText(am["listing.safety.header"]);
     await expect(
       page
         .locator('section[data-testid="listing-detail-seller"]')

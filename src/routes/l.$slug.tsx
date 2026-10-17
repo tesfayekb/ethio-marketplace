@@ -7,7 +7,8 @@ import { PageShell } from "@/components/layout/page-shell";
 import { PageCard } from "@/components/shell/page-card";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { adPageView } from "@/features/ad-page/public-listing";
-import { ribbonOf } from "@/features/feed/feed-page";
+import { ownValue } from "@/lib/own-key";
+import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { useI18n } from "@/i18n";
 
 const readAdPageFn = createServerFn({ method: "GET" })
@@ -84,6 +85,7 @@ function AdPage() {
     void countView(doc.public_id);
   }, [doc.public_id]);
   const { t, language } = useI18n();
+  const soldKey = doc.sold_word === null ? undefined : ownValue(SOLD_RIBBON, doc.sold_word);
   const ribbonKey = ribbonOf({
     soldWord: doc.sold_word,
     closed: false,
@@ -93,7 +95,11 @@ function AdPage() {
   return (
     <PageShell as="main" width="wide" data-testid="ad-page">
       <PageCard className="min-w-0 space-y-3">
-        <ListingDetail {...adPageView(doc, language)} ribbon={ribbonKey ? t(ribbonKey) : null} />
+        <ListingDetail
+          {...adPageView(doc, language)}
+          ribbon={ribbonKey ? t(ribbonKey) : null}
+          soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}
+        />
       </PageCard>
     </PageShell>
   );

@@ -3,6 +3,7 @@ import { dealLines } from "../deal-lines";
 import { galleryPhotos } from "../photo-links";
 import { usePhotoLinks } from "../use-photo-links";
 import { PhotoGallery } from "./photo-gallery";
+import { SafetyBox } from "./safety-box";
 import { lazy, Suspense, type ReactNode } from "react";
 import { SellerLine } from "../seller-line";
 import { fill } from "../refusal-text";
@@ -78,6 +79,8 @@ export interface ListingDetailView {
   actor: ListingActor;
   /** D201 §0 rule 10 — the owner's counts, passed only by the seller's ad page: undefined = not asked (the wizard), null = asked and not answered, a number = the count. Only what is counted is passed — views now; shares when the share sheet lands; contacts when the contact block lands; Saves at M3 — never a count nothing writes. */
   counts?: { views: number } | null;
+  /** D201 rule 11 — the sold word (sold / rented / filled, translated by the caller) drawn as a red badge after the price; present on a sold ad only. */
+  soldBadge?: string | null;
   title: string;
   description: string;
   priceMode: string;
@@ -252,6 +255,11 @@ export function ListingDetail(view: ListingDetailView) {
           {priceLine}
         </p>
         {view.priceNegotiable === true && <NegotiableBadge />}
+        {typeof view.soldBadge === "string" && view.soldBadge.length > 0 && (
+          <span data-testid="listing-detail-sold-badge" className="inline-flex shrink-0 items-center rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold uppercase text-destructive-foreground">
+            {view.soldBadge}
+          </span>
+        )}
       </div>
       {dealText.size !== null && (
         <p className="text-sm text-muted-foreground" data-testid="listing-detail-deal-size">
@@ -272,6 +280,8 @@ export function ListingDetail(view: ListingDetailView) {
           {places.join(", ")}
         </p>
       )}
+
+      {!(typeof view.soldBadge === "string" && view.soldBadge.length > 0) && <SafetyBox />}
 
       {/* ------------------------------ the facts --------------------------- */}
       {facts.length > 0 && (

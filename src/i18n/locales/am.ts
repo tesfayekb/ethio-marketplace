@@ -237,6 +237,12 @@ export const am: Messages = {
   "myListings.bulk.refused": "ያልተቀየሩ፦ {count}። {reason}",
 
   // Bundle 19 turn 5 — the gone ad page.
+  "listing.safety.header": "ተገናኙ፣ ይመርምሩ፣ ከዚያ ይክፈሉ — ቅድመ ክፍያ፣ የክፍያ ሊንክ ወይም ኮድ የለም",
+  "listing.safety.1": "ዕቃውን ከማየትዎ በፊት ቅድመ ክፍያ፣ የማድረሻ ክፍያ ወይም “የማስያዣ” ክፍያ በፍጹም አይክፈሉ።",
+  "listing.safety.2": "ሻጩን በሕዝብ ቦታ፣ በቀን ብርሃን፣ ከሚያምኑት ሰው ጋር ሆነው ያግኙት።",
+  "listing.safety.3": "የሚገዙትን ዕቃ ይመርምሩ፤ ይሞክሩት፤ እያንዳንዱን ሰነድ ያረጋግጡ።",
+  "listing.safety.4": "ዕቃው በእጅዎ ሲገባ ብቻ ይክፈሉ — የክፍያ ሊንክ፣ ኮድ ወይም “ለማስያዝ” የሚደረግ ዝውውር የለም።",
+
   "adPage.counts.unavailable": "የእይታ ቆጠራውን መጫን አልተቻለም።",
   "adPage.gone.title": "ይህ ማስታወቂያ ከእንግዲህ አይገኝም",
   "adPage.gone.body": "ተሽጦ፣ በሻጩ ተወግዶ ወይም ጊዜው አልፎ ሊሆን ይችላል።",

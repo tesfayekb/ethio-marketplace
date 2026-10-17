@@ -352,6 +352,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const live = row.status === "active" || row.status === "reduced";
   // D180 — the marks, the picture's ribbon (the first mark) and what buyers see of the ad.
   const sold = row.status === "sold";
+  const soldKey = ownValue(SOLD_RIBBON, row.soldWord);
   const reduced = row.priceWas !== null && !sold;
   const ribbonKey = ribbonOf({
     soldWord: sold ? row.soldWord : null,
@@ -591,6 +592,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
           ) : (
             <ListingDetail
               actor="owner"
+              soldBadge={sold && soldKey !== undefined ? t(soldKey) : null}
               counts={
                 row.publishedFirstAt === null
                   ? undefined
