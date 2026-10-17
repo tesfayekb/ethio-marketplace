@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-2.md (bundle 19 — turn 2: the records of bundle 18 — block S70, INC-675…INC-677, system-state, the handover, the D201 spec and study, this roadmap; no migration, no new string). Next: turn 3 — M1 (public_id, public_listing, the counters, the listing_read dial), then the page's turns per the bundle-19 block below; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-3.md (bundle 19 — turn 3: the ad's address helper of D201 §2 — `/l/<words>-<id>` built and parsed, with its unit tests; no migration, no new string). Next: turn 4 — M1 (public_id, public_listing, the counters, the listing_read dial), then the page's turns per the bundle-19 block below; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -328,16 +328,17 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 - [ ] Bundle 19 — the product detail page (D201, spec v1 approved 2026-10-17; the study of 2026-10-16): the address and the QR, the public read, the page with three actors (every "as buyers see it" preview becomes it), the key-facts strip, the contact rules, Save, Report, Share and counters, similar ads, the safety box, the sold page
   - [ ] Turn 1 (docs/governance/briefs/bundle-19-turn-1.md; no migration; no new string) — the QR encoder qrcode-generator 2.0.4 (DEC-187) and the route /l/<id>/qr.svg; the ad-page test area; docs/features/ad-page.md seeded
   - [ ] Turn 2 (docs/governance/briefs/bundle-19-turn-2.md) — bundle 18 records and the ad-page documentation
-  - [ ] Turn 3 (docs/governance/briefs/bundle-19-turn-3.md) — M1: public_id, public_listing, listing counters and listing_read
-  - [ ] Turn 4 (docs/governance/briefs/bundle-19-turn-4.md) — the buyer page, address, breadcrumbs and linked feed cards
-  - [ ] Turn 5 (docs/governance/briefs/bundle-19-turn-5.md) — three actors, buyer previews and owner counters
-  - [ ] Turn 6 (docs/governance/briefs/bundle-19-turn-6.md) — M2: fact_rank and the key-facts strip
-  - [ ] Turn 7 (docs/governance/briefs/bundle-19-turn-7.md) — the contact block and sign-in return
-  - [ ] Turn 8 (docs/governance/briefs/bundle-19-turn-8.md) — M5: reveal rules
-  - [ ] Turn 9 (docs/governance/briefs/bundle-19-turn-9.md) — M3: Save and Account › Saved
-  - [ ] Turn 10 (docs/governance/briefs/bundle-19-turn-10.md) — M4: Report and the admin count
-  - [ ] Turn 11 (docs/governance/briefs/bundle-19-turn-11.md) — Share, counters, og/JSON-LD and photo redirect
-  - [ ] Turn 12 (docs/governance/briefs/bundle-19-turn-12.md) — similar ads, seller link, safety box, sold page and sharing
+  - [ ] Turn 3 (docs/governance/briefs/bundle-19-turn-3.md; no migration; no new string) — the address helper: `/l/<words>-<id>` built and parsed (src/features/ad-page/address.ts, LA-1…LA-6); placed before M1 so the executor works while M1's proofs are written
+  - [ ] Turn 4 (docs/governance/briefs/bundle-19-turn-4.md) — M1: public_id, public_listing, listing counters and listing_read
+  - [ ] Turn 5 (docs/governance/briefs/bundle-19-turn-5.md) — the buyer page, address, breadcrumbs and linked feed cards
+  - [ ] Turn 6 (docs/governance/briefs/bundle-19-turn-6.md) — three actors, buyer previews and owner counters
+  - [ ] Turn 7 (docs/governance/briefs/bundle-19-turn-7.md) — M2: fact_rank and the key-facts strip
+  - [ ] Turn 8 (docs/governance/briefs/bundle-19-turn-8.md) — the contact block and sign-in return
+  - [ ] Turn 9 (docs/governance/briefs/bundle-19-turn-9.md) — M5: reveal rules
+  - [ ] Turn 10 (docs/governance/briefs/bundle-19-turn-10.md) — M3: Save and Account › Saved
+  - [ ] Turn 11 (docs/governance/briefs/bundle-19-turn-11.md) — M4: Report and the admin count
+  - [ ] Turn 12 (docs/governance/briefs/bundle-19-turn-12.md) — Share, counters, og/JSON-LD and photo redirect
+  - [ ] Turn 13 (docs/governance/briefs/bundle-19-turn-13.md) — similar ads, seller link, safety box, sold page and sharing
 - [ ] The flaky tests (bundle 18 turns 3 and 4 — the fixes; the proofs owed): PW-12 (INC-643), PW-117 (INC-662), PW-178 (INC-673) and PW-61 (INC-652) fixed at their causes; AT-59 (INC-646) and CT-3 (INC-674) were INC-579's (closed); PR-33 (INC-645), PR-39 (INC-653), AL-24 (INC-654), SC-13 (INC-664) class (b) — staging under load, no change, the seven-day ledger judges; PW-74 (INC-644) watched. Owed: the clean Flake check repeats of group 1 and group 2 after DEC-185's staging setting (read from ci-evidence); INC-655 (Post listing's first open) measured first when the operator gives the data point
 - [ ] Open with the operator: the ID-card / passport photo (keep hidden for staff, as built, or refuse at upload like nudity); INC-655's data point; INC-657's ad; D200's state ("in review" until an AI text screen exists)
 - [ ] The seller's My listings page (built in bundle 16, above; today a placeholder, src/components/app-shell.tsx): the seller's ads with edit, pause or mark sold, delete and renew; a peer study and a spec first, written beside bundle 13; the photo controls work there from its first day; with it D172's seller side (the operator, 2026-10-14): the seller's edit in the same boxes (photos, title and description, specifications, price; never the category), and the ad's states the seller sets with one tap — price reduced (on sale), sold, no longer available and the like — each shown on the ad as a ribbon; which states and ribbons, from a study of the main marketplaces first. D173 (the operator, 2026-10-14, from that study — every recommended option): the seller sets Sold, Reserved and No longer available, each a ribbon (Sold leaves search; Reserved keeps the ad with its ribbon; No longer available closes it; Rented for rentals, Filled for jobs); "Price reduced" is automatic — the old price struck through only when it stood at least 7 days and the drop is at least 5%, for 14 days (the app's `reduced` is "Reduced reach", so the ribbon takes another internal name); a Sold ad leaves search and the feed at once and its page stays 30 days marked Sold, then is archived; after bundle 14, this page comes first, then D149. The study (seller states and ribbons, 2026-10-14) is imported at bundle 14's records turn. D174 (the operator, 2026-10-14, after a peer read of edits and renewals): a price change or Sold / Reserved / No longer available applies at once, while a change to photos, title, description or specifications goes back through the AI screen and the ad leaves search until it passes; no Pause — the seller closes with No longer available and reopens, and a reopened ad continues its remaining days; after expiry the seller renews for a new full run, under two admin settings — renew allowed (on) and days per renewal (the category's own days) — with no limit on renewals. With it, three supervisor calls for the spec's approval: a renewed ad takes a fresh posting date; a live ad is not renewed early to move to the top; a Reserved ad's clock runs
