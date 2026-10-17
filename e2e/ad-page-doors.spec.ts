@@ -558,4 +558,190 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     await gotoReady(page, `/my-listings/${ads[0]!.id}`);
     await expect(page.getByTestId("listing-detail-counts")).toContainText("1 contacts");
   });
+
+  test("AP-24 Save by public id: a buyer saves once and the count says so; the owner cannot save his own ad; unsave; a sold ad within its 30 days can be saved; anything not public cannot; my_saved_listings lists newest first and greys an ad that left the public (D201 §8)", async () => {
+    const seller = await scratchSeller();
+    const adA = await seed(seller);
+    const adB = await seed(seller);
+    const adC = await seed(seller);
+    const idA = await publicIdOf(adA.id);
+    const idB = await publicIdOf(adB.id);
+    const idC = await publicIdOf(adC.id);
+    const buyerPerson = await leaseUser();
+    const buyer = await asPerson(buyerPerson);
+
+    const once = await buyer.rpc("save_listing", { p_public_id: idA });
+    expect(once.error).toBeNull();
+    expect(once.data).toMatchObject({ ok: true, saved: true, count: 1 });
+    const again = await buyer.rpc("save_listing", { p_public_id: idA });
+    expect(again.error).toBeNull();
+    expect(again.data).toMatchObject({ ok: true, saved: true, count: 1 });
+    const rows = await adminClient()
+      .from("saved_listings")
+      .select("listing_id")
+      .eq("user_id", buyerPerson.id)
+      .eq("listing_id", adA.id);
+    expect(rows.error).toBeNull();
+    expect(rows.data).toHaveLength(1);
+
+    const savedA = await buyer.rpc("listing_saved", { p_public_id: idA });
+    expect(savedA.error).toBeNull();
+    expect(savedA.data).toBe(true);
+    const savedB = await buyer.rpc("listing_saved", { p_public_id: idB });
+    expect(savedB.error).toBeNull();
+    expect(savedB.data).toBe(false);
+
+    const owner = await asPerson(seller);
+    const own = await owner.rpc("save_listing", { p_public_id: idA });
+    expect(own.error).toBeNull();
+    expect(own.data).toMatchObject({ ok: false, reason: "ownListing" });
+
+    for (const id of [idB, idC]) {
+      const saved = await buyer.rpc("save_listing", { p_public_id: id });
+      expect(saved.error).toBeNull();
+      expect(saved.data).toMatchObject({ ok: true, saved: true });
+    }
+    const page1 = await buyer.rpc("my_saved_listings", { p_after: null, p_size: 2 });
+    expect(page1.error).toBeNull();
+    const cards1 = (page1.data as Row)["cards"] as Row[];
+    expect(cards1).toHaveLength(2);
+    expect(cards1.map((card) => card["publicId"])).toEqual([idC, idB]);
+    for (const card of cards1) {
+      expect(card["title"]).toBeTruthy();
+      expect(card["savedAt"]).toBeTruthy();
+      expect(card["available"]).toBe(true);
+    }
+    expect((page1.data as Row)["next"]).not.toBeNull();
+    const page2 = await buyer.rpc("my_saved_listings", {
+      p_after: (page1.data as Row)["next"],
+      p_size: 2,
+    });
+    expect(page2.error).toBeNull();
+    const cards2 = (page2.data as Row)["cards"] as Row[];
+    expect(cards2).toHaveLength(1);
+    expect(cards2[0]!["publicId"]).toBe(idA);
+    expect((page2.data as Row)["next"]).toBeNull();
+
+    const removed = await adminClient()
+      .from("listings")
+      .update({ status: "removed" })
+      .eq("id", adB.id);
+    expect(removed.error).toBeNull();
+    const grey = await buyer.rpc("my_saved_listings", { p_after: null, p_size: 50 });
+    expect(grey.error).toBeNull();
+    const greyCard = ((grey.data as Row)["cards"] as Row[]).find(
+      (card) => card["publicId"] === idB,
+    );
+    expect(greyCard).toMatchObject({ id: adB.id, publicId: idB, available: false });
+    expect(greyCard!["savedAt"]).toBeTruthy();
+    expect("title" in greyCard!).toBe(false);
+
+    const unsaved = await buyer.rpc("unsave_listing", { p_public_id: idB });
+    expect(unsaved.error).toBeNull();
+    expect(unsaved.data).toMatchObject({ ok: true, saved: false, count: 0 });
+    const afterUnsave = await buyer.rpc("my_saved_listings", { p_after: null, p_size: 50 });
+    expect(
+      ((afterUnsave.data as Row)["cards"] as Row[]).some((card) => card["publicId"] === idB),
+    ).toBe(false);
+
+    const sold = await adminClient()
+      .from("listings")
+      .update({ status: "sold", sold_at: new Date().toISOString() })
+      .eq("id", adA.id);
+    expect(sold.error).toBeNull();
+    const saveSold = await buyer.rpc("save_listing", { p_public_id: idA });
+    expect(saveSold.error).toBeNull();
+    expect(saveSold.data).toMatchObject({ ok: true, saved: true });
+
+    const draft = await seed(seller, "draft");
+    const notPublic = await buyer.rpc("save_listing", {
+      p_public_id: await publicIdOf(draft.id),
+    });
+    expect(notPublic.error).toContain("listingNotAvailable");
+    for (const bad of ["2345678923", "nope"]) {
+      const answer = await buyer.rpc("save_listing", { p_public_id: bad });
+      expect(answer.error).toContain("listingNotAvailable");
+    }
+    for (const size of [0, 51]) {
+      const answer = await buyer.rpc("my_saved_listings", { p_after: null, p_size: size });
+      expect(answer.error).toContain("badSize");
+    }
+
+    const anonymous = await asAnonymous();
+    const doc = await anonymous.rpc("public_listing", { p_public_id: idC });
+    expect(doc.error).toBeNull();
+    expect(((doc.data as Row)["counts"] as Row)["saves"]).toBe(1);
+    expect(((doc.data as Row)["viewer"] as Row)["saved"]).toBe(false);
+    const ownerCounts = await owner.rpc("listing_counts", { p_listing_id: adC.id });
+    expect(ownerCounts.error).toBeNull();
+    expect((ownerCounts.data as Row)["saves"]).toBe(1);
+  });
+
+  test("AP-25 no client reads or writes saved_listings; the save dial counts new rows only (D201 §8)", async () => {
+    const seller = await scratchSeller();
+    const adA = await seed(seller);
+    const adB = await seed(seller);
+    const idA = await publicIdOf(adA.id);
+    const idB = await publicIdOf(adB.id);
+    const buyerPerson = await leaseUser();
+    const buyer = await asPerson(buyerPerson);
+    const anonymous = await asAnonymous();
+
+    const seeded = await buyer.rpc("save_listing", { p_public_id: idA });
+    expect(seeded.error).toBeNull();
+    expect(seeded.data).toMatchObject({ ok: true, saved: true });
+
+    const anonSelect = await anonymous.rest("saved_listings?select=*");
+    expect(anonSelect.error !== null || (anonSelect.data as unknown[]).length === 0).toBe(true);
+    const buyerSelect = await buyer.rest("saved_listings?select=*");
+    expect(buyerSelect.error !== null || (buyerSelect.data as unknown[]).length === 0).toBe(true);
+    const truth = await adminClient()
+      .from("saved_listings")
+      .select("listing_id")
+      .eq("user_id", buyerPerson.id);
+    expect(truth.error).toBeNull();
+    expect(truth.data!.length).toBeGreaterThan(0);
+    const anonInsert = await anonymous.rest("saved_listings");
+    expect(anonInsert.error).not.toBeNull();
+
+    for (const fn of ["save_listing", "unsave_listing", "listing_saved", "my_saved_listings"]) {
+      const answer = await anonymous.rpc(fn, { p_public_id: idA });
+      expect(answer.error).toContain("permission denied");
+    }
+
+    const dialed = await adminClient().from("rate_overrides").insert({
+      user_id: buyerPerson.id,
+      action: "save",
+      max_count: 1,
+    });
+    expect(dialed.error).toBeNull();
+    try {
+      const secondAd = await buyer.rpc("save_listing", { p_public_id: idB });
+      expect(secondAd.error).toBeNull();
+      expect(secondAd.data).toMatchObject({ ok: true, saved: true });
+      const repeat = await buyer.rpc("save_listing", { p_public_id: idB });
+      expect(repeat.error).toBeNull();
+      expect(repeat.data).toMatchObject({ ok: true, saved: true });
+      const adC = await seed(seller);
+      const third = await buyer.rpc("save_listing", { p_public_id: await publicIdOf(adC.id) });
+      expect(third.error).toBeNull();
+      expect((third.data as Row)["ok"]).toBe(false);
+      expect((third.data as Row)["reason"]).toBe("rateLimited");
+      expect(Number.isNaN(Date.parse(String((third.data as Row)["resets_at"])))).toBe(false);
+    } finally {
+      const overrideGone = await adminClient()
+        .from("rate_overrides")
+        .delete()
+        .eq("user_id", buyerPerson.id)
+        .eq("action", "save");
+      expect(overrideGone.error).toBeNull();
+      const metersGone = await adminClient().from("rate_limits").delete().eq("key", buyerPerson.id);
+      expect(metersGone.error).toBeNull();
+      const savesGone = await adminClient()
+        .from("saved_listings")
+        .delete()
+        .eq("user_id", buyerPerson.id);
+      expect(savesGone.error).toBeNull();
+    }
+  });
 });
