@@ -108,7 +108,7 @@ export const PANELS: Record<PanelId, Panel> = {
     homePath: "/account",
     items: [
       { id: "ac-overview", labelKey: "nav.overview", icon: Gauge, path: "/account" },
-      { id: "ac-saved", labelKey: "nav.saved", icon: Heart },
+      { id: "ac-saved", labelKey: "nav.saved", icon: Heart, path: "/account/saved" },
       { id: "ac-activity", labelKey: "nav.activity", icon: ScrollText },
       { id: "ac-notifications", labelKey: "nav.notifications", icon: Bell },
       { id: "ac-addresses", labelKey: "nav.addresses", icon: MapPin },
