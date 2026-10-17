@@ -218,13 +218,7 @@ function AdPage() {
           ownAd
             ? undefined
             : {
-                viewer: !hydrated
-                  ? "signedOut"
-                  : authLoading
-                    ? "unknown"
-                    : user === null
-                      ? "signedOut"
-                      : "signedIn",
+                viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
                 saved,
                 count: saveCount,
                 busy: saveBusy,
@@ -237,15 +231,7 @@ function AdPage() {
           ownAd ? undefined : (
             <ReportAd
               publicId={doc.public_id}
-              viewer={
-                !hydrated
-                  ? "signedOut"
-                  : authLoading
-                    ? "unknown"
-                    : user === null
-                      ? "signedOut"
-                      : "signedIn"
-              }
+              viewer={authLoading ? "unknown" : user === null ? "signedOut" : "signedIn"}
               signInTo={{ to: "/auth", search: { return: `${canonical}#report` } }}
               onOwn={() => setOwnAd(true)}
             />

@@ -959,6 +959,18 @@ function BuyerContact({
 
   return (
     <div className="space-y-2">
+      {state.kind !== "revealed" && (
+        <Button
+          type="button"
+          variant="default"
+          size="touch"
+          data-testid="listing-contact-show"
+          disabled={state.kind === "loading"}
+          onClick={contact.onReveal}
+        >
+          {t("adPage.contact.show")}
+        </Button>
+      )}
       <ul className="divide-y divide-border text-sm">
         {channels.map((channel) => {
           const value = revealed?.[channel];
@@ -1011,18 +1023,6 @@ function BuyerContact({
               ? t("adPage.contact.rateLimited")
               : t("adPage.contact.failed")}
         </p>
-      )}
-      {state.kind !== "revealed" && (
-        <Button
-          type="button"
-          variant="default"
-          size="touch"
-          data-testid="listing-contact-show"
-          disabled={state.kind === "loading"}
-          onClick={contact.onReveal}
-        >
-          {t("adPage.contact.show")}
-        </Button>
       )}
     </div>
   );
