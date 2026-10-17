@@ -1,4 +1,14 @@
+import { Link } from "@tanstack/react-router";
+
 import { ListingPicture } from "@/components/marketplace/listing-picture";
+import { Button } from "@/components/ui/button";
+import {
+  telHref,
+  telegramHref,
+  whatsappHref,
+  type ContactChannel,
+  type ContactState,
+} from "@/features/ad-page/contact";
 import { dealLines } from "../deal-lines";
 import { galleryPhotos } from "../photo-links";
 import { usePhotoLinks } from "../use-photo-links";
@@ -137,6 +147,18 @@ export interface ListingDetailView {
    * own preview passes nothing.
    */
   channelAction?: (channel: "phone" | "phone2" | "telegram" | "whatsapp") => ReactNode;
+  /**
+   * Bundle 19 turn 11 (D201 §6) — the buyer's contact block, passed by the
+   * public ad page only: who is looking, the reveal state, and the tap. The
+   * owner's and staff's previews pass nothing and keep today's rows.
+   */
+  contact?: {
+    viewer: "unknown" | "signedOut" | "signedIn";
+    signInTo: { to: "/auth"; search: { return: string } };
+    state: ContactState;
+    onReveal: () => void;
+    whatsappText: string;
+  };
 }
 
 export function ListingDetail(view: ListingDetailView) {
@@ -377,6 +399,7 @@ export function ListingDetail(view: ListingDetailView) {
       {/* Bundle 11 A3 (D130) — one box, in order: who sells, then how to reach
           them, one method per row with its control at the row's end. */}
       <section
+        id="contact"
         className="space-y-3 rounded-md border border-border p-3"
         data-testid="listing-detail-seller"
       >
@@ -395,6 +418,9 @@ export function ListingDetail(view: ListingDetailView) {
             <h4 className="text-xs font-medium text-muted-foreground">
               {t("post.preview.contactLabel")}
             </h4>
+            {view.actor === "buyer" && view.contact !== undefined ? (
+              <BuyerContact contact={view.contact} channels={channels} contactPref={view.contactPref} />
+            ) : (
             <ul className="divide-y divide-border text-sm">
               {channels.map((channel) => {
                 const entry = ownValue(view.contactPref, channel);
@@ -437,6 +463,7 @@ export function ListingDetail(view: ListingDetailView) {
                 );
               })}
             </ul>
+            )}
           </div>
         )}
       </section>
