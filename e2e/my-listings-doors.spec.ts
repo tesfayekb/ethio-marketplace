@@ -542,7 +542,8 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const p = await seed(seller, "active", { contactPref: contact });
     const buyer = await asPerson(await leaseUser());
 
-    const reached = await buyer.rpc("reveal_listing_contact", { p_listing_id: p.id });
+    const pPublicId = (await listingTruth(p.id))["public_id"] as string;
+    const reached = await buyer.rpc("reveal_listing_contact", { p_public_id: pPublicId });
     expect(reached.error).toBeNull();
     expect((reached.data as Row)["ok"]).toBe(true);
 
@@ -555,7 +556,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect(soldRow["contact_pref"]).toEqual(contact);
     expect(ms(soldRow["expires_at"])).toBe(ms(p["expires_at"]));
 
-    expect((await buyer.rpc("reveal_listing_contact", { p_listing_id: p.id })).error).toBe(
+    expect((await buyer.rpc("reveal_listing_contact", { p_public_id: pPublicId })).error).toBe(
       "listingNotAvailable",
     );
 
