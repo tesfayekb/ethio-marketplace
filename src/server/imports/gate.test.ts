@@ -15,8 +15,11 @@ import {
   hasBucket,
   normalizeOptionsCell,
   optionShapeFault,
+  parseFamilyFile,
   splitOptionSegments,
 } from "./gate";
+
+import { familyOf, fileOf } from "./registry";
 
 const twoTone =
   '{"value":"black_tan","label_en":"Black | Tan","swatch":"#000000|#8B5A2B"}|{"value":"white","label_en":"White","swatch":"#FFFFFF"}';
@@ -142,4 +145,18 @@ describe("DEC-103 — the option ceiling is 1,500", () => {
   it("refuses a cell of 1,501 options as tooManyOptions", () => {
     expect(checkCell(rule, cell(1501))).toBe("tooManyOptions");
   });
+});
+
+it("links accepts the old trailing display_order or new fact_rank header, never reversed", () => {
+  const family = familyOf("attributes");
+  if (!family) throw new Error("attributes family missing");
+  const spec = fileOf(family, "links");
+  if (!spec) throw new Error("links spec missing");
+  const header =
+    "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin,allowed_options,default_value,visible_when,display_order";
+  expect(parseFamilyFile(spec, header + "\n").error).toBeNull();
+  expect(parseFamilyFile(spec, header + ",fact_rank\n").error).toBeNull();
+  expect(
+    parseFamilyFile(spec, header.replace("display_order", "fact_rank,display_order") + "\n").error,
+  ).toBe("badHeader");
 });

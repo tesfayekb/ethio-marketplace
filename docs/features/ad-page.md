@@ -40,7 +40,20 @@ Turn 7 — `ListingDetail` carries `actor` (buyer, owner, staff) and every mount
 
 Turn 8 — INC-681: the page's photo links are now read with the bearer when a session exists and without one otherwise (the route's anonymous path), so a signed-out buyer sees the photos; the safety box (`listing-safety`, five keys `listing.safety.*`) above Details on every live ad, for every actor, never on a sold ad; the red SOLD badge (`listing-detail-sold-badge`) after the price on the buyer's and the seller's pages, the word from `SOLD_RIBBON`; FR-6 lists `publicId`; PW-162 (d) no longer asserts the transient notice (INC-682); AL-28 measures its two photos in one frame after their images load (INC-680).
 
+Turn 9 — the key-facts strip under the price on the page and in every preview comes from `keyFacts`: ranked facts, else the first four filterable choice or number facts in form order that are not card facts. Labels and values use the Details list's own calls.
+
+- M2's `get_posting_schema` and `public_listing_json` serve `fact_rank` and `is_filterable`.
+- `attr_export_payload` and `attr_import_plan` carry the trailing cell (absent unchanged, blank clear, 1–4 set).
+- M2 declares mark `20261018150000`; application and read-backs are reported separately.
+
 ## Tests
+
+- KF-1…KF-5: ranking, four-fact limit, form-order fallback, card exclusion, single rank and empty answer.
+- LD-7: the strip for buyer/owner/staff, shared values, and all Details rows retained.
+- AV-8: `fact_rank` and `is_filterable` map, absent keys become null/false.
+- Links-header gate case: old and new trailing headers pass; reversed order refuses.
+- AT-83: rank file preview/commit/undo/refusals and export last column.
+- AP-18: ranked strip, form-order fallback, and card exclusion.
 
 - LD-6: the safety box on a live ad for every actor, absent on a sold ad; the sold badge carries the word.
 - UPL-1…UPL-3: a session-less photo request has no bearer and returns links; a session's bearer travels; a refusal throws with its status and supplies no links.

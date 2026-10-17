@@ -179,3 +179,16 @@ it("AV-7 the buyer's mapping says buyer and carries no value", () => {
   expect(view.actor).toBe("buyer");
   expect(Object.values(view.contactPref)).toEqual([{ show: true }, { show: true }]);
 });
+
+it("AV-8 a definition's fact_rank and is_filterable travel into the view", () => {
+  const doc = document();
+  doc.definitions = [
+    { attr_key: "distance", attr_type: "number", fact_rank: 2, is_filterable: true },
+  ];
+  expect(adPageView(doc, "en").definitions[0]).toMatchObject({ factRank: 2, isFilterable: true });
+  doc.definitions = [{ attr_key: "distance", attr_type: "number" }];
+  expect(adPageView(doc, "en").definitions[0]).toMatchObject({
+    factRank: null,
+    isFilterable: false,
+  });
+});

@@ -84,3 +84,7 @@ my_listing | Bundle 16 turn 3 (D138): owner-only read of one ad on auth.uid() (p
 has_permission | restated grant (not a new surface): the permission check every policy and staff door asks, granted to authenticated since 20260911223744; bundle 16 turn S3 redeclares it so a deactivated account holds no permission (D189)
 public_listing | Bundle 19 turn 4 (D201 §3, M1): the ad page's one public read by public_id — the public RLS predicate restated inside (live, or sold within 30 days), rate_gate('listing_read') for a signed-in caller (the route counts an anonymous caller by hashed address), builds only the public document (no contact value, no seller user id, no exact coordinate for an approximate pin — proof P5); null for anything not public
 listing_counts | Bundle 19 turn 4 (D201 §9, M1): the owner's own counters (views, shares by channel, contacts) on auth.uid(); "not your listing" for any other caller (listing_reveal_count's rule)
+
+admin_list_category_attribute_links | admin link list, re-created with fact_rank (same surface); gates on has_permission categories.view inside (B19 M2)
+admin_list_effective_category_links | admin effective-link list, re-created with fact_rank (same surface); gates on has_permission categories.view inside (B19 M2)
+admin_set_fact_attributes | the link manager's key-fact ranks (D201 §4); gates on has_permission categories.update and the step-up inside; at most four (B19 M2)

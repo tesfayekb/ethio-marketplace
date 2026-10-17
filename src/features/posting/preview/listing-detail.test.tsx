@@ -1,12 +1,17 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
+import { shapePostingSchema } from "../posting-service";
 import { ownValue } from "@/lib/own-key";
 import { ListingDetail, type ListingDetailView } from "./listing-detail";
 
 vi.mock("@/i18n", async (original) => ({
   ...(await original<typeof import("@/i18n")>()),
-  useI18n: () => ({ t: (key: string) => ownValue(en, key) ?? key, language: "en", entities: {} }),
+  useI18n: () => ({
+    t: (key: string) => ownValue(en, key) ?? key,
+    language: "en",
+    entities: { map: {}, lang: "en" },
+  }),
 }));
 vi.mock("@/components/shell/location-data", () => ({
   useCountryTree: () => ({ loadedCountry: null, nodes: [] }),
@@ -120,4 +125,71 @@ describe("ListingDetail actors", () => {
       expect(screen.queryByTestId("listing-safety")).toBeNull();
     }
   });
+});
+
+it("LD-7 the strip under the price, for every actor, from the ranks; the Details list keeps every row", () => {
+  const definitions =
+    shapePostingSchema({
+      attributes: [
+        { attr_key: "color", attr_type: "single_select", name_en: "Color", fact_rank: 2 },
+        {
+          attr_key: "distance",
+          attr_type: "number",
+          name_en: "Distance",
+          fact_rank: 1,
+          unit: "km",
+        },
+        { attr_key: "note", attr_type: "text", name_en: "Note" },
+      ],
+    })?.attributes ?? [];
+  const view = {
+    ...BASE,
+    definitions,
+    attributes: { color: "blue", distance: 42, note: "scratch" },
+    attributeOptions: {
+      color: [
+        {
+          value: "blue",
+          labelEn: "Blue",
+          labelAm: null,
+          parent: null,
+          active: true,
+          aliases: [],
+          facts: null,
+          allowed: null,
+          bounds: null,
+          swatch: null,
+        },
+      ],
+    },
+  };
+  const { rerender } = render(<ListingDetail {...view} />);
+  for (const actor of ["buyer", "owner", "staff"] as const) {
+    rerender(<ListingDetail {...view} actor={actor} />);
+    const chips = screen.getAllByTestId("listing-key-fact");
+    expect(chips.map((chip) => chip.dataset.key)).toEqual(["distance", "color"]);
+    expect(chips[0]).toHaveTextContent("42 km");
+    expect(chips[1]).toHaveTextContent("Blue");
+    expect(screen.getAllByTestId("listing-detail-spec")).toHaveLength(3);
+  }
+  const fallback = definitions.map((definition) => ({
+    ...definition,
+    factRank: null,
+    isFilterable: definition.attrKey === "color",
+  }));
+  rerender(<ListingDetail {...view} definitions={fallback} />);
+  expect(screen.getAllByTestId("listing-key-fact").map((chip) => chip.dataset.key)).toEqual([
+    "color",
+  ]);
+  rerender(
+    <ListingDetail
+      {...view}
+      definitions={fallback.map((definition) => ({
+        ...definition,
+        cardRank: definition.attrKey === "color" ? 1 : null,
+      }))}
+    />,
+  );
+  expect(screen.queryByTestId("listing-key-facts")).toBeNull();
+  expect(screen.getAllByTestId("listing-detail-spec")).toHaveLength(3);
 });

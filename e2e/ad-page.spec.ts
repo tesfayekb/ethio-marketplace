@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { seedAttribute, destroyAttribute } from "./helpers/admin-attributes";
 import { adminClient } from "./helpers/users";
 import { fill } from "../src/features/posting/refusal-text";
 import { token } from "./helpers/ad-page";
@@ -11,7 +12,14 @@ import am from "../src/i18n/locales/am";
 /** Scratch ads only; the maker's afterEach also reaps photos on a timed-out test. */
 test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
   const { scratchSeller, seed, publicIdOf, seedPhotos, cleanup } = adPageFixtures();
-  test.afterEach(cleanup);
+  const factKeys: string[] = [];
+  test.afterEach(async () => {
+    try {
+      for (const key of factKeys.splice(0)) await destroyAttribute(key);
+    } finally {
+      await cleanup();
+    }
+  });
 
   async function address(ad: { id: string; title: string }) {
     const publicId = await publicIdOf(ad.id);
@@ -227,5 +235,86 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     });
     expect(unknown.status()).toBe(200);
     expect(await unknown.json()).toEqual({ counted: false });
+  });
+  test("AP-18 the key-facts strip: ranked facts in rank order, the fallback when none, never a card fact", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const selectKey = `e2e-fact-select-${token()}`;
+    const numberKey = `e2e-fact-number-${token()}`;
+    const textKey = `e2e-fact-text-${token()}`;
+    factKeys.push(selectKey, numberKey, textKey);
+    const supabase = adminClient();
+    const selectId = await seedAttribute(selectKey, "single_select");
+    const numberId = await seedAttribute(numberKey, "number");
+    const textId = await seedAttribute(textKey, "text");
+    const options = await supabase
+      .from("attributes")
+      .update({
+        options: [
+          {
+            value: "blue",
+            label_en: "Blue",
+            label_am: null,
+            parent: null,
+            active: true,
+            bounds: null,
+            aliases: [],
+          },
+        ],
+      })
+      .eq("id", selectId);
+    if (options.error) throw new Error(`AP-18 options: ${options.error.message}`);
+    const links = await supabase.from("category_attribute_links").insert([
+      {
+        category_id: seller.leafId,
+        attribute_id: selectId,
+        display_order: 1,
+        is_filterable: true,
+        fact_rank: 2,
+      },
+      {
+        category_id: seller.leafId,
+        attribute_id: numberId,
+        display_order: 2,
+        is_filterable: true,
+        fact_rank: 1,
+      },
+      { category_id: seller.leafId, attribute_id: textId, display_order: 3, is_filterable: false },
+    ]);
+    if (links.error) throw new Error(`AP-18 links: ${links.error.message}`);
+    const ad = await seed(seller, "active", {
+      attributes: { [selectKey]: "blue", [numberKey]: 42, [textKey]: "scratch" },
+    });
+    await page.goto((await address(ad)).canonical);
+    await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+    const chips = page.getByTestId("listing-key-fact");
+    await expect(chips).toHaveCount(2);
+    expect(
+      await chips.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-key"))),
+    ).toEqual([numberKey, selectKey]);
+    await expect(chips.nth(0)).toContainText("42");
+    await expect(chips.nth(1)).toContainText("Blue");
+    const clear = await supabase
+      .from("category_attribute_links")
+      .update({ fact_rank: null })
+      .eq("category_id", seller.leafId)
+      .in("attribute_id", [selectId, numberId]);
+    if (clear.error) throw new Error(`AP-18 clear: ${clear.error.message}`);
+    await page.reload();
+    await expect(chips).toHaveCount(2);
+    // Part C is authoritative: fallback follows the seeded form order (select 1, number 2).
+    expect(
+      await chips.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-key"))),
+    ).toEqual([selectKey, numberKey]);
+    const card = await supabase
+      .from("category_attribute_links")
+      .update({ card_rank: 1 })
+      .eq("category_id", seller.leafId)
+      .eq("attribute_id", selectId);
+    if (card.error) throw new Error(`AP-18 card: ${card.error.message}`);
+    await page.reload();
+    await expect(chips).toHaveCount(1);
+    await expect(chips).toHaveAttribute("data-key", numberKey);
   });
 });

@@ -1627,6 +1627,8 @@ export const en = {
     "Inherited row — add a direct row for “{category_slug}”, or edit it at “{detail}”",
   "admin.attributes.import.reason.badCardRank":
     "Card position must be 1, 2 or 3 — this row reads “{card_rank}”",
+  "admin.attributes.import.reason.badFactRank":
+    "Key fact position must be 1, 2, 3 or 4 — this row reads “{detail}”",
   "admin.attributes.import.reason.badDisplayOrder":
     "Order must be a whole number of 0 or more — this row reads “{detail}”",
   "admin.attributes.import.reason.formula": "Cells may not start with = + - @",
@@ -1647,6 +1649,8 @@ export const en = {
     "Card position {rank} at “{category}” is already taken by “{origin_key}”, inherited from “{origin_category}”",
   "admin.attributes.import.reason.rankClash":
     "Card position {rank} at “{category}” is also held by “{origin_key}”",
+  "admin.attributes.import.reason.factRankClash":
+    "Key fact position {rank} at “{category}” is also held by “{origin_key}”",
   "admin.attributes.import.reason.optionInUse":
     "The value “{value}” is still named by {detail}; rewrite or unlink those cells first",
   "admin.attributes.import.reason.required": "The “{detail}” cell is required",
