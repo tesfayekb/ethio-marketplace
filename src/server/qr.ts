@@ -1,11 +1,13 @@
 import qrcode from "qrcode-generator";
 
-/** D201 §2 / DEC-187 — server-only QR encoding; this module reads no database. */
-export const PUBLIC_ID_RE = /^[23456789abcdefghjkmnpqrstuvwxyz]{10}$/;
+import { isPublicId } from "@/features/ad-page/address";
 
-export function isPublicId(value: string): boolean {
-  return PUBLIC_ID_RE.test(value);
-}
+/**
+ * D201 §2 / DEC-187 — server-only QR encoding; this module reads no database.
+ * The public id's shape lives in src/features/ad-page/address.ts (client-safe);
+ * it is re-exported here so the route and QR-1 keep one import.
+ */
+export { isPublicId };
 
 export function qrSvg(text: string): string {
   const qr = qrcode(0, "M");
