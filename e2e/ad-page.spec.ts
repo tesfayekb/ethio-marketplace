@@ -395,18 +395,20 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       contactPref: {
         messages: true,
         phone: { show: true, value: "+251911000001" },
-        telegram: { show: true, value: "e2ehandle" },
+        telegram: { show: true, value: "@scratch_seller" },
       },
     });
     const { canonical } = await address(ad);
     const buyer = await leaseUser();
 
     // Signed in: the channel names only until the tap, then the links.
+    const servedHtml = await (await page.request.get(canonical)).text();
+    expect(servedHtml).not.toContain("251911000001");
     await signInViaSession(page, buyer.email, buyer.password);
     await gotoReady(page, canonical);
     await expect(page.getByTestId("listing-detail-channel")).toHaveCount(2);
     await expect(page.locator("body")).not.toContainText("251911000001");
-    await expect(page.locator("body")).not.toContainText("e2ehandle");
+    await expect(page.locator("body")).not.toContainText("scratch_seller");
     await page.getByTestId("listing-contact-show").click();
     await expect(page.getByTestId("listing-contact-phone")).toHaveAttribute(
       "href",
