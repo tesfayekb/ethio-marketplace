@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 461,
+  "scanned": 464,
   "dynamicCallSites": 335,
   "keys": {
     "account.deactivatedBanner": [
@@ -65,6 +65,17 @@
     ],
     "account.overview.title": [
       "/account"
+    ],
+    "adPage.counts.unavailable": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.gone.body": [
       "/l/$slug"
@@ -4095,6 +4106,17 @@
       "/my-listings",
       "/my-listings/$listingId"
     ],
+    "feed.views": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "footer.rights": [
       "(every page)"
     ],
@@ -6558,12 +6580,9 @@
       "/post/$listingId"
     ],
     "post.who.channel.messages": [
-      "(every page)",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/l/$slug",
-      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
