@@ -28,6 +28,7 @@ vi.mock("@tanstack/react-router", () => ({
 
 const BASE: FeedListing = {
   id: "l1",
+  publicId: null,
   title: "Toyota Vitz 2015",
   tier: "regular",
   priceAmount: 1500000,

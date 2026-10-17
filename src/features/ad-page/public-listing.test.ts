@@ -149,14 +149,25 @@ describe("ad page view mapping", () => {
     const before = adPageView(doc, "en");
     doc.places.pin = null;
     expect(adPageView(doc, "en")).toEqual({
-      ...before, pinLat: null, pinLng: null, pinPrecision: null, pinZoom: null,
+      ...before,
+      pinLat: null,
+      pinLng: null,
+      pinPrecision: null,
+      pinZoom: null,
     });
   });
   it("AV-6 a number definition without answered options keeps an empty list under its key", () => {
     const doc = document();
     doc.attributes = { mileage: 12000 };
-    doc.definitions = [{ attribute_id: "mileage-id", attr_key: "mileage", attr_type: "number", name_en: "Mileage", name_am: null }];
+    doc.definitions = [
+      {
+        attribute_id: "mileage-id",
+        attr_key: "mileage",
+        attr_type: "number",
+        name_en: "Mileage",
+        name_am: null,
+      },
+    ];
     expect(adPageView(doc, "en").attributeOptions).toEqual({ mileage: [] });
   });
-
 });

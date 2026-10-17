@@ -89,7 +89,9 @@ describe("my_listing answer", () => {
   it("ML-U21 a row without publicId parses with null, a row with one keeps it", () => {
     const { publicId: _absent, ...bare } = row;
     expect(parseMyListing({ ...answer, listing: bare })?.listing.publicId).toBeNull();
-    expect(parseMyListing({ ...answer, listing: { ...row, publicId: "abcdefghjk" } })?.listing.publicId).toBe("abcdefghjk");
+    expect(
+      parseMyListing({ ...answer, listing: { ...row, publicId: "abcdefghjk" } })?.listing.publicId,
+    ).toBe("abcdefghjk");
     expect(parseMyListing({ ...answer, listing: { ...row, publicId: 7 } })).toBeNull();
   });
 

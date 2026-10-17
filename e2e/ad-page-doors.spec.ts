@@ -366,4 +366,34 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect(duplicate.error).not.toBeNull();
     expect(second.id).not.toBe(first.id);
   });
+  test("AP-16 the three reads carry the public id", async () => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller);
+    const publicId = await publicIdOf(ad.id);
+    const anonymous = await asAnonymous();
+    const feed = await anonymous.rpc("feed_page", {
+      p_category_id: seller.leafId,
+      p_location_id: seller.cityId,
+      p_after: null,
+      p_size: 20,
+    });
+    expect(feed.error).toBeNull();
+    const card = ((feed.data as Row)["cards"] as Row[]).find((entry) => entry["id"] === ad.id);
+    expect(card?.["publicId"]).toBe(publicId);
+    const owner = await asPerson(seller);
+    const single = await owner.rpc("my_listing", { p_listing_id: ad.id });
+    expect(single.error).toBeNull();
+    expect(((single.data as Row)["listing"] as Row)["publicId"]).toBe(publicId);
+    const list = await owner.rpc("my_listings", {
+      p_group: "live",
+      p_limit: 50,
+      p_offset: 0,
+      p_search: ad.title,
+      p_category: seller.leafId,
+      p_mark: null,
+    });
+    expect(list.error).toBeNull();
+    const row = ((list.data as Row)["rows"] as Row[]).find((entry) => entry["id"] === ad.id);
+    expect(row?.["publicId"]).toBe(publicId);
+  });
 });

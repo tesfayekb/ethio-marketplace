@@ -125,7 +125,8 @@ export function ListingCard({
       </span>
     ) : null;
 
-  const content = (<>
+  const content = (
+    <>
       {/*
         Photo area. INC-606 — the seller's cover photo when the feed gave one
         and its link came back (an active listing's stripped photo, signed for
@@ -182,7 +183,8 @@ export function ListingCard({
           ) : null}
         </p>
       </div>
-  </>);
+    </>
+  );
 
   return (
     <article
@@ -191,10 +193,17 @@ export function ListingCard({
       className="@container flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card"
     >
       {typeof listing.publicId === "string" ? (
-        <Link to="/l/$slug" params={{ slug: canonicalSegment(listing.title, listing.publicId) }} data-testid="listing-card-link" className="flex h-full flex-col">
+        <Link
+          to="/l/$slug"
+          params={{ slug: canonicalSegment(listing.title, listing.publicId) }}
+          data-testid="listing-card-link"
+          className="flex h-full flex-col"
+        >
           {content}
         </Link>
-      ) : content}
+      ) : (
+        content
+      )}
     </article>
   );
 }

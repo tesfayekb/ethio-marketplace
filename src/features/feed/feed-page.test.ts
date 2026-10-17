@@ -64,10 +64,12 @@ describe("parseFeedPage", () => {
     expect(parseFeedPage(page([card("d", 1, { coverPhotoId: 7 })]))).toBeNull();
   });
 
-  it("FE-15 a card without publicId parses with null, a card with one keeps it", () => {
+  it("FE-16 a card without publicId parses with null, a card with one keeps it", () => {
     const { publicId: _absent, ...bare } = card("a", 1);
     expect(parseFeedPage(page([bare]))?.cards[0]?.publicId).toBeNull();
-    expect(parseFeedPage(page([card("b", 1, { publicId: "abcdefghjk" })]))?.cards[0]?.publicId).toBe("abcdefghjk");
+    expect(
+      parseFeedPage(page([card("b", 1, { publicId: "abcdefghjk" })]))?.cards[0]?.publicId,
+    ).toBe("abcdefghjk");
     expect(parseFeedPage(page([card("c", 1, { publicId: 7 })]))).toBeNull();
   });
 

@@ -401,7 +401,13 @@ export function MyListingPage({ listingId }: { listingId: string }) {
       <div data-testid="my-listing-actions" className="mt-3 min-w-0 space-y-2">
         {typeof row.publicId === "string" && (row.status === "active" || row.status === "sold") ? (
           <Button asChild variant="outline" size="touch">
-            <Link to="/l/$slug" params={{ slug: canonicalSegment(row.title ?? "", row.publicId) }} target="_blank" rel="noopener" data-testid="my-listing-open-public">
+            <Link
+              to="/l/$slug"
+              params={{ slug: canonicalSegment(row.title ?? "", row.publicId) }}
+              target="_blank"
+              rel="noopener"
+              data-testid="my-listing-open-public"
+            >
               <Eye aria-hidden="true" />
               {t("myListings.ad.openPublic")}
             </Link>
