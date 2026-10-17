@@ -47,7 +47,6 @@ import { Route as DevTallRouteImport } from './routes/dev.tall'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as MyListingsListingIdRouteImport } from './routes/my-listings_.$listingId'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
-import { Route as SellerKeyRouteImport } from './routes/seller.$key'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 import { Route as AdminListingsListingIdRouteImport } from './routes/admin.listings_.$listingId'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
@@ -275,11 +274,6 @@ const MyListingsListingIdRoute = MyListingsListingIdRouteImport.update({
 const PostListingIdRoute = PostListingIdRouteImport.update({
   id: '/post_/$listingId',
   path: '/post/$listingId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SellerKeyRoute = SellerKeyRouteImport.update({
-  id: '/seller/$key',
-  path: '/seller/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminImpersonationSessionIdRoute =
@@ -520,7 +514,6 @@ export interface FileRoutesByFullPath {
   '/l/$slug': typeof LSlugRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
-  '/seller/$key': typeof SellerKeyRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
@@ -598,7 +591,6 @@ export interface FileRoutesByTo {
   '/l/$slug': typeof LSlugRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
-  '/seller/$key': typeof SellerKeyRoute
   '/admin': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
@@ -678,7 +670,6 @@ export interface FileRoutesById {
   '/l/$slug': typeof LSlugRoute
   '/my-listings_/$listingId': typeof MyListingsListingIdRoute
   '/post_/$listingId': typeof PostListingIdRoute
-  '/seller/$key': typeof SellerKeyRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/listings_/$listingId': typeof AdminListingsListingIdRoute
@@ -759,7 +750,6 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/my-listings/$listingId'
     | '/post/$listingId'
-    | '/seller/$key'
     | '/admin/'
     | '/admin/impersonation/$sessionId'
     | '/admin/listings/$listingId'
@@ -837,7 +827,6 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/my-listings/$listingId'
     | '/post/$listingId'
-    | '/seller/$key'
     | '/admin'
     | '/admin/impersonation/$sessionId'
     | '/admin/listings/$listingId'
@@ -916,7 +905,6 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/my-listings_/$listingId'
     | '/post_/$listingId'
-    | '/seller/$key'
     | '/admin/'
     | '/admin/impersonation_/$sessionId'
     | '/admin/listings_/$listingId'
@@ -982,7 +970,6 @@ export interface RootRouteChildren {
   LSlugRoute: typeof LSlugRoute
   MyListingsListingIdRoute: typeof MyListingsListingIdRoute
   PostListingIdRoute: typeof PostListingIdRoute
-  SellerKeyRoute: typeof SellerKeyRoute
   ApiCatalogFindRoute: typeof ApiCatalogFindRoute
   ApiCategoriesTreeRoute: typeof ApiCategoriesTreeRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
@@ -1279,13 +1266,6 @@ declare module '@tanstack/react-router' {
       path: '/post/$listingId'
       fullPath: '/post/$listingId'
       preLoaderRoute: typeof PostListingIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/seller/$key': {
-      id: '/seller/$key'
-      path: '/seller/$key'
-      fullPath: '/seller/$key'
-      preLoaderRoute: typeof SellerKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/impersonation_/$sessionId': {
@@ -1658,7 +1638,6 @@ const rootRouteChildren: RootRouteChildren = {
   LSlugRoute: LSlugRoute,
   MyListingsListingIdRoute: MyListingsListingIdRoute,
   PostListingIdRoute: PostListingIdRoute,
-  SellerKeyRoute: SellerKeyRoute,
   ApiCatalogFindRoute: ApiCatalogFindRoute,
   ApiCategoriesTreeRoute: ApiCategoriesTreeRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,

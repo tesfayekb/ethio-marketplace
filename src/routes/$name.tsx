@@ -49,10 +49,9 @@ function SellerGonePage() {
   const { t } = useI18n();
   return (
     <PageShell as="main" width="wide" data-testid="seller-page-gone">
-      <h1 className="text-xl font-semibold text-foreground">{t("sellerPage.notFound.title")}</h1>
-      <p className="text-sm text-muted-foreground">{t("sellerPage.notFound.body")}</p>
+      <h1 className="text-xl font-semibold text-foreground">{t("sellerPage.notFound")}</h1>
       <Link to="/" className="text-primary underline underline-offset-4">
-        {t("sellerPage.notFound.home")}
+        {t("adPage.gone.home")}
       </Link>
     </PageShell>
   );
