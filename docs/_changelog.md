@@ -920,3 +920,4 @@
 
 - 2026-10-17 — Bundle 19 turn 15 (no migration; one string adPage.similar.title; D201 §10, §12): similar ads on the buyer's page; Share on the seller's own ad page for a live ad.
 - 2026-10-17 — Bundle 19 turn 16 (one migration by the migration tool, mark 20261018210000; five strings adPage.seller.allAds / sellerPage.\*; D201 §12; INC-702): M8 — seller_feed_page and the seller page /seller/<key> with All ads by this seller on the seller card; home_country_code on listing_revisions and seller_notices by one BEFORE INSERT trigger. apply 7d6dcee1 → expect mark 20261018210000.
+- 2026-10-17 — Bundle 19 turn 17 (no migration; no string; DEC-107/DEC-108): the seller's page at ethio.com/<name> with a 301 to the lower-cased name and a 404 for an unknown name; /seller/<key> removed; the root-route guard allows `$name` alone.

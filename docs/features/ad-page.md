@@ -129,3 +129,6 @@ Turn 16: AP-34, AP-35, SL-1…SL-4, LD-14, AL-4 (e2e/admin-listings.spec.ts — 
 - SAVED-1 (brief AS-1), SAVED-2 (brief AS-2): Account › Saved order, sold ribbon, unavailable card, removal, navigation, sign-in return, overflow and empty list.
 - SAVE-1…SAVE-4 (brief SV-1…SV-4): Save answer validation, refusals, unavailable errors and listingSaved failures.
 - LD-10: heart states and owner saves.
+
+Turn 17 (bundle 19, DEC-107/DEC-108; no migration, no string): the seller's page moved from /seller/<key> to ethio.com/<name> (src/routes/\$name.tsx; src/routes/seller.\$key.tsx deleted). The loader 301s an upper-cased name to the lower-cased address and 404s an unknown or malformed one (src/server/seller-page.ts — a malformed name never reaches the database; unknownSeller means 404; any other door error throws, never a phantom 404, F4). The router ranks every static first segment before \$name (isFrameMoreSpecific compares statics first — node_modules/@tanstack/router-core/dist/esm/new-process-route-tree.js); scripts/check-root-routes.ts allows \$name as the only dynamic first segment.
+Tests: AP-35 (e2e/ad-page.spec.ts) — the link's new address, the 301, 404s for unknown/malformed/old /seller address, /auth still its own page; LD-14 (listing-detail.test.tsx) expects /<name>; the guard's self-test is its proof.
