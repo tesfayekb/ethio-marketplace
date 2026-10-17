@@ -58,7 +58,11 @@ Turn 13a — M4 — `listing_reports` (the reporter and the closer referenced th
 
 Turn 13b — INC-695…INC-698: AP-3/AP-6 carry `saves`; AP-22’s buyer is a new account; ML-4 reads the public id by the service client; the draft hook sends a Next once, by its own pass — an autosave answered after a newer claim arms no follow-up — and PW-162 names its cause in its error message. Report on the buyer’s page: the link after the seller card, the dialog with the nine reasons, the optional note up to 500 characters, the four answers, and the sign-in return to `#report`; none for the owner or staff. Admin › Listings shows “Reports: N” under the row’s status and the listing’s Reports card, for listings:review. M6 (INC-694): `home_country_code` on `saved_listings`, `reveal_flags` and `contact_reveals`, filled by the two doors from `user_directory`; `saved_listings.user_id` and `reveal_flags.viewer_id` reference `public.profiles(user_id)`; mark `20261018190000`.
 
+Turn 14 — INC-699: the links rows’ trailing fact_rank cell in AT-15/AT-18; INC-700: AP-25’s signed-out saved-list call; INC-701 and M7: my_saved_listings’ cursor names the last card of the page. Share: the icon beside the heart, a bottom sheet below 640px and centred Dialog above (the existing modal primitive), Telegram, WhatsApp, Facebook, Copy link, QR with Download, and More apps where the browser can share; translated priced/unpriced share text. `/api/listings/share` has the address dial 120 an hour and the door’s one share per address, ad and channel an hour; More apps is not counted. Buyers see “Seen N times · Shared N times”, hidden under 1; owners see Views · Shares · Saves · Contacts.
+
 ## Tests
+
+Turn 14: AP-30, AP-31, SH-1…SH-5, LD-12, LD-13; changed AT-15, AT-18, AP-25, AP-17. AP-24 is the unchanged cursor proof.
 
 - AP-29 — Report sign-in return, reason and note, thanks, duplicate, owner omission.
 - AL-31 — open report count and identity-free report list for listings:review; no reports for listings:view alone.

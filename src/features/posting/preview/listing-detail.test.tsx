@@ -375,3 +375,54 @@ describe("LD-11 report slot", () => {
     expect(screen.queryByTestId("listing-detail-report")).toBeNull();
   });
 });
+
+describe("turn 14 sharing and counts", () => {
+  it("LD-12 the corner holds Share and the unchanged heart", () => {
+    render(
+      <ListingDetail
+        {...BASE}
+        share={<span data-testid="share-slot" />}
+        save={{
+          viewer: "signedIn",
+          saved: true,
+          count: 1,
+          busy: false,
+          refusal: null,
+          signInTo: { to: "/auth", search: { return: "/l/scratch" } },
+          onToggle: vi.fn(),
+        }}
+      />,
+    );
+    const heart = screen.getByTestId("listing-save");
+    expect(heart).toHaveAttribute("data-state", "saved");
+    expect(heart).toHaveAttribute("aria-pressed", "true");
+    expect(heart.parentElement).toBe(screen.getByTestId("share-slot").parentElement);
+  });
+  it("LD-13 buyers see positive counts only; owners have Views Shares Saves Contacts", () => {
+    const { rerender } = render(
+      <ListingDetail {...BASE} actor="buyer" publicCounts={{ views: 0, shares: 0 }} />,
+    );
+    expect(screen.queryByTestId("listing-detail-public-counts")).toBeNull();
+    rerender(<ListingDetail {...BASE} actor="buyer" publicCounts={{ views: 1, shares: 2 }} />);
+    expect(screen.getByTestId("listing-detail-public-counts")).toHaveTextContent(
+      "Seen 1 times · Shared 2 times",
+    );
+    rerender(<ListingDetail {...BASE} actor="buyer" publicCounts={{ views: 0, shares: 1 }} />);
+    expect(screen.getByTestId("listing-detail-public-counts")).toHaveTextContent("Shared 1 times");
+    for (const actor of ["owner", "staff"] as const) {
+      rerender(
+        <ListingDetail
+          {...BASE}
+          actor={actor}
+          publicCounts={{ views: 1, shares: 2 }}
+          counts={{ views: 3, shares: 4, saves: 5, contacts: 6 }}
+        />,
+      );
+      expect(screen.queryByTestId("listing-detail-public-counts")).toBeNull();
+      if (actor === "owner")
+        expect(screen.getByTestId("listing-detail-counts")).toHaveTextContent(
+          "3 views · 4 shares · 5 saves · 6 contacts",
+        );
+    }
+  });
+});

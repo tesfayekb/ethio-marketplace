@@ -602,6 +602,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                       ? undefined
                       : {
                           views: counts.data.views,
+                          shares: counts.data.shares,
                           contacts: counts.data.contacts,
                           saves: counts.data.saves,
                         }

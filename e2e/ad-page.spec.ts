@@ -246,7 +246,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const count = page.getByTestId("listing-detail-counts");
     await expect(count).toHaveAttribute("data-state", "ready");
     await expect(count).toHaveText(
-      `${fill(en["feed.views"], { count: 2 })} · ${fill(en["adPage.counts.contacts"], { count: 0 })} · ${fill(en["adPage.counts.saves"], { count: 0 })}`,
+      `${fill(en["feed.views"], { count: 2 })} · ${fill(en["adPage.counts.shares"], { count: 0 })} · ${fill(en["adPage.counts.saves"], { count: 0 })} · ${fill(en["adPage.counts.contacts"], { count: 0 })}`,
     );
     await expect(page.getByTestId("listing-detail")).toHaveAttribute("data-actor", "owner");
     for (const data of [{ publicId: "nope" }, {}]) {
@@ -580,5 +580,113 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
     await expect(page.getByTestId("listing-report-open")).toHaveCount(0);
     await expect(page.getByTestId("listing-report-sign-in")).toHaveCount(0);
+  });
+  test("AP-30 Share: rows and links, Copy and QR counted by channel, native sharing where supported, buyer and owner counters", async ({
+    page,
+    context,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller);
+    const { canonical, publicId } = await address(ad);
+    const addressKey = `e2e-ap30-${token()}`;
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.route("**/api/listings/{view,share}", (route) =>
+      route.continue({
+        headers: { ...route.request().headers(), "x-e2e-catalog-find-key": addressKey },
+      }),
+    );
+    const viewed = page.waitForResponse(
+      (r) => new URL(r.url()).pathname === "/api/listings/view" && r.request().method() === "POST",
+    );
+    await page.goto(canonical);
+    await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+    expect((await viewed).status()).toBe(200);
+    const url = new URL(canonical, page.url()).href;
+    await page.getByTestId("listing-share-open").click();
+    await expect(page.getByTestId("listing-share-telegram")).toHaveAttribute(
+      "href",
+      new RegExp(`^https://t\\.me/share/url\\?url=${encodeURIComponent(url)}`),
+    );
+    const whatsapp = await page.getByTestId("listing-share-whatsapp").getAttribute("href");
+    expect(whatsapp?.startsWith("https://wa.me/?text=")).toBe(true);
+    expect(whatsapp).toContain(encodeURIComponent(url));
+    await expect(page.getByTestId("listing-share-facebook")).toHaveAttribute(
+      "href",
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+    );
+    const canShare = await page.evaluate(() => typeof navigator.share === "function");
+    await expect(page.getByTestId("listing-share-more")).toHaveCount(canShare ? 1 : 0);
+    async function tap(channel: "copy" | "qr") {
+      const response = page.waitForResponse(
+        (r) =>
+          new URL(r.url()).pathname === "/api/listings/share" && r.request().method() === "POST",
+      );
+      await page.getByTestId(`listing-share-${channel}`).click();
+      expect((await response).status()).toBe(200);
+    }
+    async function counters() {
+      const answer = await adminClient()
+        .from("listing_counters")
+        .select("views,shares_copy,shares_qr")
+        .eq("listing_id", ad.id)
+        .eq("day", new Date().toISOString().slice(0, 10))
+        .single();
+      if (answer.error || !answer.data)
+        throw new Error(`[e2e:ap30] counter read failed: ${answer.error?.message}`);
+      return answer.data;
+    }
+    await tap("copy");
+    await expect(page.getByTestId("listing-share-status")).toHaveAttribute("data-state", "copied");
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(url);
+    await tap("qr");
+    const image = page.getByTestId("listing-share-qr-image");
+    await expect(image).toHaveAttribute("src", `/l/${publicId}/qr.svg`);
+    await expect
+      .poll(() => image.evaluate((node: HTMLImageElement) => node.naturalWidth))
+      .toBeGreaterThan(0);
+    expect(await counters()).toMatchObject({ views: 1, shares_copy: 1, shares_qr: 1 });
+    await tap("copy");
+    expect(await counters()).toMatchObject({ shares_copy: 1, shares_qr: 1 });
+    const reViewed = page.waitForResponse(
+      (r) => new URL(r.url()).pathname === "/api/listings/view" && r.request().method() === "POST",
+    );
+    await page.reload();
+    await reViewed;
+    await expect(page.getByTestId("listing-detail-public-counts")).toHaveText(
+      `${fill(en["adPage.counts.seen"], { count: 1 })} · ${fill(en["adPage.counts.shared"], { count: 2 })}`,
+    );
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${ad.id}`);
+    await expect(
+      page.locator('[data-testid="listing-detail-count"][data-count="shares"]'),
+    ).toHaveText(fill(en["adPage.counts.shares"], { count: 2 }));
+  });
+
+  test("AP-31 Share route refuses bad channel and id; a nonpublic ad is not counted", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const live = await seed(seller);
+    const removed = await seed(seller, "removed");
+    const { publicId } = await address(live);
+    for (const data of [
+      { publicId, channel: "email" },
+      { publicId: "nope", channel: "copy" },
+    ]) {
+      const response = await page.request.post("/api/listings/share", { data });
+      expect(response.status()).toBe(400);
+    }
+    const response = await page.request.post("/api/listings/share", {
+      data: { publicId: await publicIdOf(removed.id), channel: "copy" },
+      headers: { "x-e2e-catalog-find-key": `e2e-ap31-${token()}` },
+    });
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toEqual({ counted: false });
+    const truth = await adminClient()
+      .from("listing_counters")
+      .select("listing_id")
+      .eq("listing_id", removed.id);
+    expect(truth.error).toBeNull();
+    expect(truth.data).toEqual([]);
   });
 });
