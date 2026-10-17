@@ -1182,7 +1182,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       p_size: 1,
     });
     expect(second.error).toBeNull();
-    expect((second.data as Row)["cards"].map((card: Row) => card["publicId"])).toEqual([olderId]);
+    expect(((second.data as Row)["cards"] as Row[]).map((card: Row) => card["publicId"])).toEqual([olderId]);
 
     // Unknown and malformed keys.
     const nobody = await anonymous.rpc("seller_feed_page", {
