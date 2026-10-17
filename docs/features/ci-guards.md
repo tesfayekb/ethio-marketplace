@@ -379,12 +379,7 @@ mode: "serial" })`, `--workers=1`) owns `e2e/auth-signup.spec.ts`; the nightly
 (`Rate limit for sending emails`), 30 OTP/verification requests per hour, plus
 the app's own 60s per-address resend cooldown (INC-017).
 
-**OPERATOR NOTE — if the limit bites repeatedly:** raise it in the Supabase
-Dashboard for **ethio-staging** → Authentication → Rate Limits, fields:
-`Rate limit for sending emails` (per hour), `Rate limit for token refreshes`,
-`Rate limit for token verifications`, and `Rate limit for sign ups and sign ins`
-(per 5 minutes, per IP). Raise only staging; ethio-prod keeps defaults. Tests
-never retry past the limit — a red that names the quota is the correct outcome.
+**OPERATOR NOTE — if the limit bites repeatedly:** raise it in the Supabase Dashboard for **ethio-staging** → Authentication → Rate Limits. The password grant (`/token?grant_type=password`, every E2E sign-in) is governed by `Rate limit for token refreshes` — shown in the dashboard as requests PER HOUR (default 1800, i.e. 150 per 5 minutes per IP) although its description says 5 minutes; `Rate limit for sign ups and sign ins` (per 5 minutes per IP, default 30) did not govern it in four Flake check runs on 2026-10-16/17 (INC-540, DEC-185). Staging holds `token refreshes` at 10000 per hour and `sign ups and sign ins` at 300 since DEC-185; ethio-prod keeps its defaults. `Rate limit for sending emails` (per hour) and `Rate limit for token verifications` govern the e-mail lane. Tests never retry past a limit — a red that names the quota is the correct outcome.
 
 ## Instrumentation law — timeouts must name themselves
 
