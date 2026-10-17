@@ -64,6 +64,7 @@ import { Route as ApiLocationsCountryRouteImport } from './routes/api/locations.
 import { Route as ApiMapTilesRouteImport } from './routes/api/map/tiles'
 import { Route as ApiMediaPhotoLinksRouteImport } from './routes/api/media/photo-links'
 import { Route as ApiUploadPhotoRouteImport } from './routes/api/upload/photo'
+import { Route as LIdQrDotsvgRouteImport } from './routes/l.$id.qr[.]svg'
 import { Route as MyListingsListingIdEditRouteImport } from './routes/my-listings_.$listingId_.edit'
 import { Route as AdminListingsListingIdEditRouteImport } from './routes/admin.listings_.$listingId_.edit'
 import { Route as ApiAdminAttributesExportRouteImport } from './routes/api/admin/attributes/export'
@@ -354,6 +355,11 @@ const ApiUploadPhotoRoute = ApiUploadPhotoRouteImport.update({
   path: '/api/upload/photo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LIdQrDotsvgRoute = LIdQrDotsvgRouteImport.update({
+  id: '/l/$id/qr.svg',
+  path: '/l/$id/qr.svg',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyListingsListingIdEditRoute = MyListingsListingIdEditRouteImport.update({
   id: '/my-listings_/$listingId_/edit',
   path: '/my-listings/$listingId/edit',
@@ -484,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
+  '/l/$id/qr.svg': typeof LIdQrDotsvgRoute
   '/my-listings/$listingId/edit': typeof MyListingsListingIdEditRoute
   '/admin/listings/$listingId/edit': typeof AdminListingsListingIdEditRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
@@ -553,6 +560,7 @@ export interface FileRoutesByTo {
   '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
+  '/l/$id/qr.svg': typeof LIdQrDotsvgRoute
   '/my-listings/$listingId/edit': typeof MyListingsListingIdEditRoute
   '/admin/listings/$listingId/edit': typeof AdminListingsListingIdEditRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
@@ -624,6 +632,7 @@ export interface FileRoutesById {
   '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
   '/api/upload/photo': typeof ApiUploadPhotoRoute
+  '/l/$id/qr.svg': typeof LIdQrDotsvgRoute
   '/my-listings_/$listingId_/edit': typeof MyListingsListingIdEditRoute
   '/admin/listings_/$listingId_/edit': typeof AdminListingsListingIdEditRoute
   '/api/admin/attributes/export': typeof ApiAdminAttributesExportRoute
@@ -696,6 +705,7 @@ export interface FileRouteTypes {
     | '/api/map/tiles'
     | '/api/media/photo-links'
     | '/api/upload/photo'
+    | '/l/$id/qr.svg'
     | '/my-listings/$listingId/edit'
     | '/admin/listings/$listingId/edit'
     | '/api/admin/attributes/export'
@@ -765,6 +775,7 @@ export interface FileRouteTypes {
     | '/api/map/tiles'
     | '/api/media/photo-links'
     | '/api/upload/photo'
+    | '/l/$id/qr.svg'
     | '/my-listings/$listingId/edit'
     | '/admin/listings/$listingId/edit'
     | '/api/admin/attributes/export'
@@ -835,6 +846,7 @@ export interface FileRouteTypes {
     | '/api/map/tiles'
     | '/api/media/photo-links'
     | '/api/upload/photo'
+    | '/l/$id/qr.svg'
     | '/my-listings_/$listingId_/edit'
     | '/admin/listings_/$listingId_/edit'
     | '/api/admin/attributes/export'
@@ -882,6 +894,7 @@ export interface RootRouteChildren {
   ApiMapTilesRoute: typeof ApiMapTilesRoute
   ApiMediaPhotoLinksRoute: typeof ApiMediaPhotoLinksRoute
   ApiUploadPhotoRoute: typeof ApiUploadPhotoRoute
+  LIdQrDotsvgRoute: typeof LIdQrDotsvgRoute
   MyListingsListingIdEditRoute: typeof MyListingsListingIdEditRoute
   ApiAdminAttributesExportRoute: typeof ApiAdminAttributesExportRoute
   ApiAdminAttributesImportRoute: typeof ApiAdminAttributesImportRoute
@@ -1283,6 +1296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUploadPhotoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/l/$id/qr.svg': {
+      id: '/l/$id/qr.svg'
+      path: '/l/$id/qr.svg'
+      fullPath: '/l/$id/qr.svg'
+      preLoaderRoute: typeof LIdQrDotsvgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-listings_/$listingId_/edit': {
       id: '/my-listings_/$listingId_/edit'
       path: '/my-listings/$listingId/edit'
@@ -1486,6 +1506,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiMapTilesRoute: ApiMapTilesRoute,
   ApiMediaPhotoLinksRoute: ApiMediaPhotoLinksRoute,
   ApiUploadPhotoRoute: ApiUploadPhotoRoute,
+  LIdQrDotsvgRoute: LIdQrDotsvgRoute,
   MyListingsListingIdEditRoute: MyListingsListingIdEditRoute,
   ApiAdminAttributesExportRoute: ApiAdminAttributesExportRoute,
   ApiAdminAttributesImportRoute: ApiAdminAttributesImportRoute,
