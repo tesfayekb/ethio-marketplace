@@ -704,9 +704,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-detail-title")).toHaveText(X.title);
     const section = page.getByTestId("listing-similar");
     await expect(section).toBeVisible({ timeout: 15000 });
-    const hrefs = await section.locator("ul > li a").evaluateAll((nodes) =>
-      nodes.map((node) => node.getAttribute("href") ?? ""),
-    );
+    const hrefs = await section
+      .locator("ul > li a")
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href") ?? ""));
     expect(hrefs).toHaveLength(4);
     expect(hrefs.every((href) => !href.includes(publicId))).toBe(true);
     const marked = await adminClient()

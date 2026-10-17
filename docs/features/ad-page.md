@@ -60,7 +60,6 @@ Turn 13b — INC-695…INC-698: AP-3/AP-6 carry `saves`; AP-22’s buyer is a ne
 
 Turn 14 — INC-699: the links rows’ trailing fact_rank cell in AT-15/AT-18; INC-700: AP-25’s signed-out saved-list call; INC-701 and M7: my_saved_listings’ cursor names the last card of the page. Share: the icon beside the heart, a bottom sheet below 640px and centred Dialog above (the existing modal primitive), Telegram, WhatsApp, Facebook, Copy link, QR with Download, and More apps where the browser can share; translated priced/unpriced share text. `/api/listings/share` has the address dial 120 an hour and the door’s one share per address, ad and channel an hour; More apps is not counted. Buyers see “Seen N times · Shared N times”, hidden under 1; owners see Views · Shares · Saves · Contacts.
 
-
 Turn 15 — similar ads (D201 §12): one `/api/feed` read after the first paint with the ad's leaf and place, the feed's widening ladder kept, the ad itself dropped, up to six cards in two columns at 360; none on a sold ad, none for the owner. Share on the seller's own ad page for a live ad (D201 §10): a published ad is in review, so its link opens only once it is live.
 
 ## Tests

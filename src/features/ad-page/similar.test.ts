@@ -38,7 +38,10 @@ const page = (cards: FeedListing[]) => ({
 });
 
 const ok = (body: unknown) =>
-  new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
+  new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -82,10 +85,7 @@ describe("SIM — similar ads read (D201 §12)", () => {
     expect(await similarListings("c-leaf", null, "l-self")).toEqual([]);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok({ not: "a feed page" })));
     expect(await similarListings("c-leaf", null, "l-self")).toEqual([]);
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockRejectedValue(new Error("network down")),
-    );
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
     expect(await similarListings("c-leaf", null, "l-self")).toEqual([]);
   });
 });
