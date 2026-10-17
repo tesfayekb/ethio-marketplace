@@ -87,3 +87,9 @@ Turn 11 — the contact block's three states for a buyer: signed out, one senten
 - ML-U22: `src/features/my-listings/my-listing.test.ts` — three non-negative integer counts, malformed answers refused.
 - VW-1…VW-3: `src/server/ad-view.test.ts` — the id, the dial, the viewer, the 503.
 - AP-17: `e2e/ad-page.spec.ts` — the count, the hour, the owner, the seller's page, the refusals.
+
+- AP-20…AP-22: `e2e/ad-page-doors.spec.ts` — the reveal by public id (owner, buyer, sold and unknown ads, the row's instant), the sellers cap with its flags, the new account's five.
+- AP-23: `e2e/ad-page.spec.ts` — Show contact reveals the links; the sign-in return lands on the card. AP-9 updated: a signed-out visitor sees no channel rows.
+- LD-9: `src/features/posting/preview/listing-detail.test.tsx` — the buyer's contact states.
+- `src/features/ad-page/contact.test.ts` — the link builders and the reveal answer's parser.
+- ML-4 (`e2e/my-listings-doors.spec.ts`): the reveal calls moved to the public id.
