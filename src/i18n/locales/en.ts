@@ -163,7 +163,7 @@ export const en = {
   "myListings.reserved": "Reserved",
   "myListings.priceReduced": "Price reduced",
   "myListings.open": "Open",
-  "myListings.ad.openPublic": "See it as buyers see it",
+  "myListings.ad.openPublic": "View as buyer",
   "myListings.ad.firstPosted": "First posted {date}",
   "myListings.ad.renewed": "Renewed {date}",
   "myListings.ad.ends": "Ends {date}",
