@@ -68,6 +68,14 @@ async function asPerson(person: { email: string; password: string }) {
         }),
       ),
     rest: async (path: string) => answerOf(await fetch(`${url}/rest/v1/${path}`, { headers })),
+    insert: async (path: string, body: Record<string, unknown>) =>
+      answerOf(
+        await fetch(`${url}/rest/v1/${path}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        }),
+      ),
   };
 }
 
@@ -85,6 +93,14 @@ async function asAnonymous() {
         }),
       ),
     rest: async (path: string) => answerOf(await fetch(`${url}/rest/v1/${path}`, { headers })),
+    insert: async (path: string, body: Record<string, unknown>) =>
+      answerOf(
+        await fetch(`${url}/rest/v1/${path}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        }),
+      ),
   };
 }
 
@@ -701,8 +717,16 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       .eq("user_id", buyerPerson.id);
     expect(truth.error).toBeNull();
     expect(truth.data!.length).toBeGreaterThan(0);
-    const anonInsert = await anonymous.rest("saved_listings");
+    const anonInsert = await anonymous.insert("saved_listings", {
+      user_id: buyerPerson.id,
+      listing_id: adA.id,
+    });
     expect(anonInsert.error).not.toBeNull();
+    const buyerInsert = await buyer.insert("saved_listings", {
+      user_id: buyerPerson.id,
+      listing_id: adB.id,
+    });
+    expect(buyerInsert.error).not.toBeNull();
 
     for (const fn of ["save_listing", "unsave_listing", "listing_saved", "my_saved_listings"]) {
       const answer = await anonymous.rpc(fn, { p_public_id: idA });
