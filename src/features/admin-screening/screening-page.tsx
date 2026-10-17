@@ -761,6 +761,7 @@ export function AdminScreeningPage({
                   ) : undefined
                 }
                 view={{
+                  actor: "staff",
                   title: previewRow.title,
                   description: previewRow.description,
                   priceMode: previewRow.priceMode,

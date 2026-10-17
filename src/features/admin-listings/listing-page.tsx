@@ -470,6 +470,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
             <PageCard testid="listing-as-seen" className="min-w-0 space-y-3">
               <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
               <ListingDetail
+                actor="staff"
                 title={listing.title}
                 description={listing.description}
                 priceMode={listing.priceMode}
