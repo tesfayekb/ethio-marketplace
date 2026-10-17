@@ -398,14 +398,13 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect(row?.["publicId"]).toBe(publicId);
   });
 
-  test("AP-20 the reveal: the owner without a row, the buyer once a day, never a sold or unknown ad (D201 §6)", async () => {
+  test("AP-20 the reveal by public id: the owner gets his channels with no row; a buyer gets them with one row a day; a sold or unknown ad is not available; the row carries its instant (D201 §6)", async () => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active", {
       contactPref: {
-        messages: true,
         phone: { show: true, value: "+251911000001" },
+        telegram: { show: true, value: "@scratch_seller" },
         phone2: { show: false, value: "+251911000002" },
-        telegram: { show: true, value: "e2ehandle" },
       },
     });
     const publicId = await publicIdOf(ad.id);
@@ -423,32 +422,41 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect(own.error).toBeNull();
     const ownChannels = (own.data as Row)["channels"] as Row;
     expect((ownChannels["phone"] as Row)["value"]).toBe("+251911000001");
+    expect((ownChannels["telegram"] as Row)["value"]).toBe("@scratch_seller");
     expect(ownChannels["phone2"]).toBeUndefined();
     expect(ownChannels["messages"]).toBeUndefined();
     expect(await revealRows()).toHaveLength(0);
 
     // The buyer: one row the first time, none the second time the same day; the row carries its instant.
     const buyer = await asPerson(await leaseUser());
+    const before = Date.now() - 60_000;
     const first = await buyer.rpc("reveal_listing_contact", { p_public_id: publicId });
     expect(first.error).toBeNull();
     expect((first.data as Row)["ok"]).toBe(true);
-    expect((((first.data as Row)["channels"] as Row)["telegram"] as Row)["value"]).toBe("e2ehandle");
     const rows = await revealRows();
     expect(rows).toHaveLength(1);
-    expect(typeof rows[0]!["created_at"]).toBe("string");
+    const instant = new Date(String(rows[0]!["created_at"])).getTime();
+    expect(instant).toBeGreaterThan(before);
+    expect(instant).toBeLessThan(Date.now() + 60_000);
     const again = await buyer.rpc("reveal_listing_contact", { p_public_id: publicId });
     expect(again.error).toBeNull();
     expect((again.data as Row)["ok"]).toBe(true);
     expect(await revealRows()).toHaveLength(1);
 
-    // A sold ad and an unknown id are "listingNotAvailable", as before.
+    // A sold ad and an unknown or malformed id are "listingNotAvailable", as before.
     const sold = await seed(seller, "sold", { soldAt: -1 });
     expect(
       (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(sold.id) })).error,
     ).toBe("listingNotAvailable");
-    expect((await buyer.rpc("reveal_listing_contact", { p_public_id: "2345678923" })).error).toBe(
-      "listingNotAvailable",
-    );
+    for (const bad of ["2345678923", "nope"]) {
+      expect((await buyer.rpc("reveal_listing_contact", { p_public_id: bad })).error).toBe(
+        "listingNotAvailable",
+      );
+    }
+    // Signed out: the grant refuses first.
+    const anonymous = await asAnonymous();
+    const refused = await anonymous.rpc("reveal_listing_contact", { p_public_id: publicId });
+    expect(refused.error).toMatch(/permission denied|not authenticated/);
   });
 
   test("AP-21 the sellers cap: ten distinct sellers a day, flagged for staff (D201 §6a)", async () => {
@@ -508,12 +516,22 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
         .eq("user_id", buyerPerson.id)
         .eq("action", "contact_reveal_sellers");
       expect(removed.error).toBeNull();
+      const flagsGone = await adminClient()
+        .from("reveal_flags")
+        .delete()
+        .eq("viewer_id", buyerPerson.id);
+      expect(flagsGone.error).toBeNull();
+      const revealsGone = await adminClient()
+        .from("contact_reveals")
+        .delete()
+        .eq("viewer_id", buyerPerson.id);
+      expect(revealsGone.error).toBeNull();
     }
   });
 
   test("AP-22 a new account is held to five reveals its first day (D201 §6b)", async ({ page }) => {
     const seller = await scratchSeller();
-    const buyer = await createUser({ confirmed: true });
+    const buyer = await scratchSeller();
     const asBuyer = await asPerson(buyer);
     const ads = [];
     for (let i = 0; i < 6; i += 1) ads.push(await seed(seller));
