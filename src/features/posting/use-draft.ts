@@ -329,7 +329,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     }
 
     inFlightRef.current = false;
-    if (!aliveRef.current || claimTokenRef.current !== generation) return false;
+    if (!aliveRef.current) return answer.ok;
 
     if (answer.ok) {
       setNextBlockedByTransport(false);
@@ -392,7 +392,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // INC-228 — "Not saved yet" belongs to TRANSPORT alone: the answers are
       // still here, nothing was judged, and another pass runs shortly.
       setSaveState("unsaved");
-      if (strict) setNextBlockedByTransport(true);
+      if (strict && current()) setNextBlockedByTransport(true);
       if (retryRef.current) clearTimeout(retryRef.current);
       retryRef.current = setTimeout(() => {
         void flushRef.current?.();
