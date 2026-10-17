@@ -54,7 +54,12 @@ Turn 12a — M3 in two parts: `saved_listings` (RLS on, a deny policy, no client
 
 Turn 12b — the heart at the gallery's top-end corner for a buyer (signed out → sign-in and back; signed in → Save / Remove from saved, the state from `listing_saved` after the first paint, never the served HTML); "Saved by N" beside it, hidden at 0; the owner draws no heart after `ownListing` hides it and his ad page counts "N saves"; Account › Saved at /account/saved (newest first, Show more, a sold ad with its ribbon, an ad that left the public as a grey "No longer available" card, Remove on every card).
 
+Turn 13a — M4 — `listing_reports` (the reporter and the closer referenced through `public.profiles(user_id)`, never auth.users; `home_country_code` carried and filled from `user_directory` — personal data, E3; reason one of spam, scam, prohibited, wrongCategory, duplicate, alreadySold, under18, copyright, other; a note up to 500 characters; one open report per reporter and ad; the reporter reads his own rows and staff with listings:review all, by policy; no client write; the columns closed_by / closed_at / outcome born now for the ops stage's queue), the dial `report` 10 a day (written rows only), `report_listing` by public id (ownListing, badReason, noteTooLong, alreadyReported, rateLimited; a sold ad within its 30 days can be reported), `admin_listing_reports` and `admin_open_report_counts` for listings:review (the reporter is never named to the seller; staff's rows carry no reporter id); the Saved page on the feed's grid.
+
 ## Tests
+
+- AP-27: Report by public id, trimmed note and reporter country, own-ad and validation refusals, open-report uniqueness, sold availability and the written-row dial.
+- AP-28: reporter-only reads, no client write, listings:review admin doors, identity-free staff rows and the 100-id count limit.
 
 - AT-84: Key fact tick order, renumbering, four-fact cap and unchanged card ranks.
 - AP-19: signed cover redirect, image GET, share metadata, JSON-LD and unknown-id refusals.
