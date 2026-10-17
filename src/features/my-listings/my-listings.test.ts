@@ -18,6 +18,7 @@ import { SOLD_SHOWN_DAYS, visibilityOf } from "./state-line";
 const counts = { live: 2, review: 1, attention: 0, closed: 3, sold: 0, drafts: 4 };
 const row = {
   id: "00000000-0000-4000-8000-000000000001",
+  publicId: null,
   status: "active",
   title: "Corolla 2015",
   categoryId: "00000000-0000-4000-8000-0000000000c1",
