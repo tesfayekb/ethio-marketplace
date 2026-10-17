@@ -8,7 +8,7 @@ import { revealContact, type ContactState } from "@/features/ad-page/contact";
 import { countView } from "@/features/ad-page/count-view";
 import { useAuth } from "@/features/auth/use-auth";
 import { fill } from "@/features/posting/refusal-text";
-import { createFileRoute, Link, notFound, redirect, useHydrated } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { PageShell } from "@/components/layout/page-shell";
@@ -99,7 +99,8 @@ function GonePage() {
 
 function AdPage() {
   const { doc, canonical } = Route.useLoaderData();
-  const hydrated = useHydrated();
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
   const countedId = useRef<string | null>(null);
   const { user, loading: authLoading } = useAuth();
   // Bundle 19 turn 11 (D201 §6) — the reveal is a tap, never automatic; the
