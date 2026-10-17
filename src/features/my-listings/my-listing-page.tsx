@@ -3,7 +3,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Copy, Eye, EyeOff, Pencil } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import { canonicalSegment } from "@/features/ad-page/address";
+import { canonicalSegment, listingPath } from "@/features/ad-page/address";
+import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageCard } from "@/components/shell/page-card";
@@ -642,6 +643,32 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               pinZoom={draft.draft.pinZoom}
               directions={draft.draft.directions}
               streetAddress={draft.draft.streetAddress}
+              share={
+                row.status === "active" && typeof row.publicId === "string" ? (
+                  <ShareAd
+                    publicId={row.publicId}
+                    canonicalPath={listingPath(row.title ?? "", row.publicId)}
+                    title={row.title ?? ""}
+                    priceText={sharePriceText(
+                      {
+                        mode: draft.draft.priceMode ?? "contact",
+                        amount: draft.draft.priceAmount,
+                        currency: draft.draft.priceCurrency,
+                        period: draft.draft.pricePeriod,
+                        bp: draft.draft.priceBp,
+                        unit: storedUnitNoun(
+                          row.priceUnit,
+                          row.priceUnitText,
+                          unitLabels,
+                          language,
+                        ),
+                      },
+                      t,
+                      language,
+                    )}
+                  />
+                ) : undefined
+              }
             />
           )}
         </PageCard>
