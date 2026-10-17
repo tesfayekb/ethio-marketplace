@@ -385,4 +385,58 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       expect((await page.request.get(`/l/${id}/photo.jpg`)).status()).toBe(404);
     }
   });
+
+  test("AP-23 a signed-in buyer taps Show contact; a signed-out visitor returns to the block after sign-in (D201 §6)", async ({
+    page,
+    browser,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active", {
+      contactPref: {
+        messages: true,
+        phone: { show: true, value: "+251911000001" },
+        telegram: { show: true, value: "e2ehandle" },
+      },
+    });
+    const { canonical } = await address(ad);
+    const buyer = await leaseUser();
+
+    // Signed in: the channel names only until the tap, then the links.
+    await signInViaSession(page, buyer.email, buyer.password);
+    await gotoReady(page, canonical);
+    await expect(page.getByTestId("listing-detail-channel")).toHaveCount(2);
+    await expect(page.locator("body")).not.toContainText("251911000001");
+    await expect(page.locator("body")).not.toContainText("e2ehandle");
+    await page.getByTestId("listing-contact-show").click();
+    await expect(page.getByTestId("listing-contact-phone")).toHaveAttribute(
+      "href",
+      "tel:+251911000001",
+    );
+    await expect(page.getByTestId("listing-contact-telegram")).toHaveAttribute(
+      "href",
+      "https://t.me/e2ehandle",
+    );
+
+    // Signed out: the link's return brings the visitor back to the contact block.
+    const context = await browser.newContext();
+    try {
+      const visitor = await context.newPage();
+      await gotoReady(visitor, canonical);
+      await visitor.getByTestId("listing-contact-sign-in").click();
+      await waitForHydration(visitor);
+      const { email, password, submit } = authFields(visitor);
+      await email.fill(buyer.email);
+      await password.fill(buyer.password);
+      await submit.click();
+      await expect
+        .poll(() => {
+          const url = new URL(visitor.url());
+          return `${url.pathname}${url.hash}`;
+        })
+        .toBe(`${canonical}#contact`);
+      await expect(visitor.getByTestId("listing-detail-seller")).toBeInViewport();
+    } finally {
+      await context.close();
+    }
+  });
 });
