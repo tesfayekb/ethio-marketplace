@@ -90,6 +90,9 @@ Turn 11 — the contact block's three states for a buyer: signed out, one senten
 
 - AP-20…AP-22: `e2e/ad-page-doors.spec.ts` — the reveal by public id (owner, buyer, sold and unknown ads, the row's instant), the sellers cap with its flags, the new account's five.
 - AP-23: `e2e/ad-page.spec.ts` — Show contact reveals the links; the sign-in return lands on the card. AP-9 updated: a signed-out visitor sees no channel rows.
+- AP-24, AP-25: `e2e/ad-page-doors.spec.ts` — Save by public id (idempotent, the owner refused, a sold ad within 30 days, a non-public ad refused, the list newest first, an ad that left the public as ids only, unsave, the document's saves and the owner's counts); no client reads or writes `saved_listings`, the `save` dial counts new rows only.
+- AT-15, AT-18: `e2e/admin-attributes-library.spec.ts` — the links export's header carries the trailing `fact_rank` cell (INC-692).
+- AT-62: `e2e/admin-attributes-links.spec.ts` — the child row ends with the order cell, then the empty fact cell (INC-692).
 - LD-9: `src/features/posting/preview/listing-detail.test.tsx` — the buyer's contact states.
 - `src/features/ad-page/contact.test.ts` — the link builders and the reveal answer's parser.
 - ML-4 (`e2e/my-listings-doors.spec.ts`): the reveal calls moved to the public id.
