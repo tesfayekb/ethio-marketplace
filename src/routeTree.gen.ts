@@ -61,6 +61,7 @@ import { Route as ApiListingsBackgroundRouteImport } from './routes/api/listings
 import { Route as ApiListingsDraftRouteImport } from './routes/api/listings/draft'
 import { Route as ApiListingsIdentityRouteImport } from './routes/api/listings/identity'
 import { Route as ApiListingsPublishRouteImport } from './routes/api/listings/publish'
+import { Route as ApiListingsViewRouteImport } from './routes/api/listings/view'
 import { Route as ApiLocationsCountryRouteImport } from './routes/api/locations.$country'
 import { Route as ApiMapTilesRouteImport } from './routes/api/map/tiles'
 import { Route as ApiMediaPhotoLinksRouteImport } from './routes/api/media/photo-links'
@@ -341,6 +342,11 @@ const ApiListingsPublishRoute = ApiListingsPublishRouteImport.update({
   path: '/api/listings/publish',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiListingsViewRoute = ApiListingsViewRouteImport.update({
+  id: '/api/listings/view',
+  path: '/api/listings/view',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiLocationsCountryRoute = ApiLocationsCountryRouteImport.update({
   id: '/$country',
   path: '/$country',
@@ -493,6 +499,7 @@ export interface FileRoutesByFullPath {
   '/api/listings/draft': typeof ApiListingsDraftRoute
   '/api/listings/identity': typeof ApiListingsIdentityRoute
   '/api/listings/publish': typeof ApiListingsPublishRoute
+  '/api/listings/view': typeof ApiListingsViewRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
@@ -564,6 +571,7 @@ export interface FileRoutesByTo {
   '/api/listings/draft': typeof ApiListingsDraftRoute
   '/api/listings/identity': typeof ApiListingsIdentityRoute
   '/api/listings/publish': typeof ApiListingsPublishRoute
+  '/api/listings/view': typeof ApiListingsViewRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
@@ -637,6 +645,7 @@ export interface FileRoutesById {
   '/api/listings/draft': typeof ApiListingsDraftRoute
   '/api/listings/identity': typeof ApiListingsIdentityRoute
   '/api/listings/publish': typeof ApiListingsPublishRoute
+  '/api/listings/view': typeof ApiListingsViewRoute
   '/api/locations/$country': typeof ApiLocationsCountryRoute
   '/api/map/tiles': typeof ApiMapTilesRoute
   '/api/media/photo-links': typeof ApiMediaPhotoLinksRoute
@@ -711,6 +720,7 @@ export interface FileRouteTypes {
     | '/api/listings/draft'
     | '/api/listings/identity'
     | '/api/listings/publish'
+    | '/api/listings/view'
     | '/api/locations/$country'
     | '/api/map/tiles'
     | '/api/media/photo-links'
@@ -782,6 +792,7 @@ export interface FileRouteTypes {
     | '/api/listings/draft'
     | '/api/listings/identity'
     | '/api/listings/publish'
+    | '/api/listings/view'
     | '/api/locations/$country'
     | '/api/map/tiles'
     | '/api/media/photo-links'
@@ -854,6 +865,7 @@ export interface FileRouteTypes {
     | '/api/listings/draft'
     | '/api/listings/identity'
     | '/api/listings/publish'
+    | '/api/listings/view'
     | '/api/locations/$country'
     | '/api/map/tiles'
     | '/api/media/photo-links'
@@ -904,6 +916,7 @@ export interface RootRouteChildren {
   ApiListingsDraftRoute: typeof ApiListingsDraftRoute
   ApiListingsIdentityRoute: typeof ApiListingsIdentityRoute
   ApiListingsPublishRoute: typeof ApiListingsPublishRoute
+  ApiListingsViewRoute: typeof ApiListingsViewRoute
   ApiMapTilesRoute: typeof ApiMapTilesRoute
   ApiMediaPhotoLinksRoute: typeof ApiMediaPhotoLinksRoute
   ApiUploadPhotoRoute: typeof ApiUploadPhotoRoute
@@ -1288,6 +1301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiListingsPublishRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/listings/view': {
+      id: '/api/listings/view'
+      path: '/api/listings/view'
+      fullPath: '/api/listings/view'
+      preLoaderRoute: typeof ApiListingsViewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/locations/$country': {
       id: '/api/locations/$country'
       path: '/$country'
@@ -1524,6 +1544,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiListingsDraftRoute: ApiListingsDraftRoute,
   ApiListingsIdentityRoute: ApiListingsIdentityRoute,
   ApiListingsPublishRoute: ApiListingsPublishRoute,
+  ApiListingsViewRoute: ApiListingsViewRoute,
   ApiMapTilesRoute: ApiMapTilesRoute,
   ApiMediaPhotoLinksRoute: ApiMediaPhotoLinksRoute,
   ApiUploadPhotoRoute: ApiUploadPhotoRoute,
