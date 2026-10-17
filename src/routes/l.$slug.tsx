@@ -1,5 +1,5 @@
-import { ShareAd } from "@/features/ad-page/share-ad";
-import { priceLine } from "@/features/posting/price-line";
+import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
+import { SimilarAds } from "@/features/ad-page/similar-ads";
 import { ReportAd } from "@/features/ad-page/report-ad";
 import { useEffect, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
