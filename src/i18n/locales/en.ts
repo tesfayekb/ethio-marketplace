@@ -308,6 +308,7 @@ export const en = {
   "adPage.share.more": "More apps",
   "adPage.share.text": "{title} — {price} on ethio.com: {url}",
   "adPage.share.textNoPrice": "{title} on ethio.com: {url}",
+  "adPage.similar.title": "Similar ads",
   "adPage.gone.title": "This ad is no longer available",
   "adPage.gone.body":
     "It may have been sold, taken down by the seller, or its time may have run out.",
