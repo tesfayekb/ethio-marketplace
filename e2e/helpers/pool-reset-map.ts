@@ -24,6 +24,8 @@ export const POOL_RESET_TABLES = {
   rate_limits: "rows keyed by the user id and by its listing ids deleted",
   rate_overrides: "user_id rows deleted (a test's lowered dial never outlives it)",
   contact_reveals: "viewer_id rows deleted; rows on the account's listings cascade",
+  saved_listings:
+    "user_id rows deleted (B19 M3 — a lease's saved ads never carry into a later lease)",
   reveal_flags:
     "viewer_id rows deleted (B19 M5 — a day's sellers-cap flags never carry into a later lease)",
   alias_history: "user_id rows deleted (a pooled account's past names never block a later test)",

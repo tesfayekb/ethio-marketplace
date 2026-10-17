@@ -90,3 +90,7 @@ admin_list_effective_category_links | admin effective-link list, re-created with
 admin_set_fact_attributes | the link manager's key-fact ranks (D201 §4); gates on has_permission categories.update and the step-up inside; at most four (B19 M2)
 reveal_listing_contact | the buyer's contact reveal by public id (D201 §6): signed in, active ads only, the day row, the sellers cap, the new-account five, the 30-a-day gate (B19 M5)
 reveal_flags | staff read (listings.view by policy) of the sellers-cap flags; no client write (B19 M5)
+save_listing | the buyer's Save by public id (D201 §8): signed in, a publicly readable ad, never the owner's own, idempotent, rate-gated save 200 a day (B19 M3)
+unsave_listing | the caller's own saved row removed by public id, any ad (B19 M3)
+listing_saved | the heart's own state for the signed-in caller (B19 M3)
+my_saved_listings | the caller's saved ads as feed cards, newest first, paged; an ad no longer public as ids only (B19 M3)

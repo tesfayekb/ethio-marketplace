@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-11.md (bundle 19 — turn 11: the contact block — sign in to see, Show contact, the links; M5 by the migration tool (DEC-188), mark 20261018160000 — reveal_listing_contact by public id with the sellers cap, the new-account five and reveal_flags; seven strings). Next: turn 12 — M3: Save and Account › Saved; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-12a.md (bundle 19 — turn 12a: run 984's reds (INC-692, INC-693); M3 — Save's doors by the migration tool in two parts, marks 20261018170000 and 20261018170100; AP-24, AP-25). Next: turn 12b — the heart, the counts and Account › Saved; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -338,7 +338,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 10 (docs/governance/briefs/bundle-19-turn-10.md; no migration; five strings) — the reds of runs 978 and 979 (INC-683, INC-684, INC-680, INC-679); the link manager's Key fact tick (D201 §4), no contact block on a sold ad (rule 11), the share image route /l/<id>/photo.jpg with og:image and JSON-LD Product (brought forward from the sharing turn)
   - [ ] Turn 10b — not a turn (2026-10-17): INC-686…INC-689 were 60-second timeouts and a 504 on run 979, a strained staging; they are re-judged on the next two runs with staging current, and get a root-cause turn if they recur
   - [ ] Turn 11 (docs/governance/briefs/bundle-19-turn-11.md; one migration by the migration tool, mark 20261018160000; seven strings) — the contact block: signed out, one sentence that leads to sign-in and back (`?return=/l/<slug>#contact`); signed in, Show contact → the seller's phone, Telegram and WhatsApp as links from the door's answer only; M5: `reveal_listing_contact(p_public_id)` with the day row, the ten-distinct-sellers cap (`contact_reveal_sellers`, `reveal_flags` for staff), the new account's five, the 30 a day; the owner's "N contacts"
-  - [ ] Turn 12 (docs/governance/briefs/bundle-19-turn-12.md) — M3: Save and Account › Saved
+  - [ ] Turn 12a (docs/governance/briefs/bundle-19-turn-12a.md; two migrations by the migration tool, marks 20261018170000 / 20261018170100; no string) — run 984's reds (INC-692 the export's trailing cell in AT-15/AT-18/AT-62; INC-693 the strip's own data attribute); M3: saved_listings, the dial save, save_listing / unsave_listing / listing_saved / my_saved_listings by public id, public_listing_json and listing_counts carry the saves (AP-24, AP-25)
+  - [ ] Turn 12b — Save on the page: the heart, "Saved by N", the owner's Saves, Account › Saved
   - [ ] Turn 13 (docs/governance/briefs/bundle-19-turn-13.md) — M4: Report and the admin count
   - [ ] Turn 14 (docs/governance/briefs/bundle-19-turn-14.md) — Share, counters
   - [ ] Turn 15 (docs/governance/briefs/bundle-19-turn-15.md) — similar ads, seller link, ~~safety box~~, ~~sold page~~ and sharing

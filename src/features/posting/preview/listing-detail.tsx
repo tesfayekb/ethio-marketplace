@@ -336,7 +336,7 @@ export function ListingDetail(view: ListingDetailView) {
             <li
               key={definition.attrKey}
               data-testid="listing-key-fact"
-              data-key={definition.attrKey}
+              data-fact-key={definition.attrKey}
               className="rounded-md border border-border px-2 py-1 text-xs"
             >
               <span className="text-muted-foreground">{factLabel(definition)}</span>

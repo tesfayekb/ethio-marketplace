@@ -50,6 +50,8 @@ Turn 10 — a sold ad draws no contact block; the seller card keeps the name. `/
 
 Turn 11 — the contact block's three states for a buyer: signed out, one sentence that leads to `/auth?return=/l/<slug>#contact` and back; signed in, Show contact; revealed, the phone as `tel:`, Telegram as `t.me/<handle>`, WhatsApp as `wa.me/<digits>` with the prefilled text — all from the door's answer, never in the HTML. M5: `reveal_listing_contact(p_public_id)` replaces the uuid door; the day row; the sellers cap `contact_reveal_sellers` 10 a day with `reveal_flags` for staff; the new account's five; the 30 a day; `contact_reveals.created_at`; the mark 20261018160000. The owner's ad page gains "N contacts". The staff list of who revealed stays out (D131).
 
+Turn 12a — M3 in two parts: `saved_listings` (RLS on, a deny policy, no client privilege; the doors write it as the definer), the dial `save` 200 a day (new rows only), `save_listing` / `unsave_listing` / `listing_saved` / `my_saved_listings` by public id (the owner cannot save his own ad — `ownListing`; a sold ad within its 30 days can be saved; an ad that left the public lists as ids only, with Remove), `public_listing_json` gains `counts.saves` and `viewer.saved`, `listing_counts` gains `saves`; the strip's chips carry `data-fact-key` (INC-693).
+
 ## Tests
 
 - AT-84: Key fact tick order, renumbering, four-fact cap and unchanged card ranks.
@@ -90,6 +92,9 @@ Turn 11 — the contact block's three states for a buyer: signed out, one senten
 
 - AP-20…AP-22: `e2e/ad-page-doors.spec.ts` — the reveal by public id (owner, buyer, sold and unknown ads, the row's instant), the sellers cap with its flags, the new account's five.
 - AP-23: `e2e/ad-page.spec.ts` — Show contact reveals the links; the sign-in return lands on the card. AP-9 updated: a signed-out visitor sees no channel rows.
+- AP-24, AP-25: `e2e/ad-page-doors.spec.ts` — Save by public id (idempotent, the owner refused, a sold ad within 30 days, a non-public ad refused, the list newest first, an ad that left the public as ids only, unsave, the document's saves and the owner's counts); no client reads or writes `saved_listings`, the `save` dial counts new rows only.
+- AT-15, AT-18: `e2e/admin-attributes-library.spec.ts` — the links export's header carries the trailing `fact_rank` cell (INC-692).
+- AT-62: `e2e/admin-attributes-links.spec.ts` — the child row ends with the order cell, then the empty fact cell (INC-692).
 - LD-9: `src/features/posting/preview/listing-detail.test.tsx` — the buyer's contact states.
 - `src/features/ad-page/contact.test.ts` — the link builders and the reveal answer's parser.
 - ML-4 (`e2e/my-listings-doors.spec.ts`): the reveal calls moved to the public id.

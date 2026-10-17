@@ -310,7 +310,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const chips = page.getByTestId("listing-key-fact");
     await expect(chips).toHaveCount(2);
     expect(
-      await chips.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-key"))),
+      await chips.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-fact-key"))),
     ).toEqual([numberKey, selectKey]);
     await expect(chips.nth(0)).toContainText("42");
     await expect(chips.nth(1)).toContainText("Blue");
@@ -324,7 +324,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(chips).toHaveCount(2);
     // Part C is authoritative: fallback follows the seeded form order (select 1, number 2).
     expect(
-      await chips.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-key"))),
+      await chips.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-fact-key"))),
     ).toEqual([selectKey, numberKey]);
     const card = await supabase
       .from("category_attribute_links")
@@ -334,7 +334,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     if (card.error) throw new Error(`AP-18 card: ${card.error.message}`);
     await page.reload();
     await expect(chips).toHaveCount(1);
-    await expect(chips).toHaveAttribute("data-key", numberKey);
+    await expect(chips).toHaveAttribute("data-fact-key", numberKey);
   });
 
   test("AP-19 the share image and the structured data", async ({ page }) => {

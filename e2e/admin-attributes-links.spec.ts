@@ -1096,7 +1096,7 @@ test.describe("C3 attributes console", () => {
       expect(childRow, `AT-62 the export did not echo the condition: ${childRow}`).toContain(
         `${parentKey}=pickup`,
       );
-      expect(childRow, `AT-62 the export did not echo the order: ${childRow}`).toMatch(/,7$/);
+      expect(childRow, `AT-62 the export did not echo the order (then the empty fact cell)`).toMatch(/,7,$/);
 
       // AND THE ROUND TRIP IS A NO-OP (IE-2b).
       const preview = await importPost(page, token, { mode: "preview", links });
