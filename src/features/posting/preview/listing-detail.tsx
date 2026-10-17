@@ -509,4 +509,119 @@ export function ListingDetail(view: ListingDetailView) {
   );
 }
 
+/** Bundle 19 turn 11 (D201 §6) — the buyer's contact block: a sign-in sentence, Show contact, or the revealed links. */
+function BuyerContact({
+  contact,
+  channels,
+  contactPref,
+}: {
+  contact: NonNullable<ListingDetailView["contact"]>;
+  channels: readonly ContactChannel[];
+  contactPref: Record<string, unknown>;
+}) {
+  const { t } = useI18n();
+
+  // Blink-free first paint: until the sign-in state is known, the heading alone.
+  if (contact.viewer === "unknown") return null;
+
+  if (contact.viewer === "signedOut") {
+    return (
+      <Link
+        to="/auth"
+        search={contact.signInTo.search}
+        data-testid="listing-contact-sign-in"
+        className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+      >
+        {t("adPage.contact.signIn")}
+      </Link>
+    );
+  }
+
+  const state = contact.state;
+  const revealed = state.kind === "revealed" ? state.channels : null;
+  const channelLabel = (channel: ContactChannel) =>
+    channel === "phone"
+      ? t("post.who.channel.phone")
+      : channel === "phone2"
+        ? t("post.who.channel.phone2")
+        : channel === "telegram"
+          ? t("post.who.channel.telegram")
+          : t("post.who.channel.whatsapp");
+
+  return (
+    <div className="space-y-2">
+      <ul className="divide-y divide-border text-sm">
+        {channels.map((channel) => {
+          const entry = ownValue(contactPref, channel);
+          const saved =
+            entry !== null && typeof entry === "object"
+              ? ownValue(entry as Record<string, unknown>, "value")
+              : undefined;
+          const value = revealed?.[channel];
+          const shown = typeof value === "string" && value !== "" ? value : null;
+          const href =
+            shown === null
+              ? null
+              : channel === "telegram"
+                ? telegramHref(shown)
+                : channel === "whatsapp"
+                  ? whatsappHref(shown, contact.whatsappText)
+                  : telHref(shown);
+          return (
+            <li
+              key={channel}
+              data-testid="listing-detail-channel"
+              data-channel={channel}
+              className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
+            >
+              <span className="me-auto text-foreground" data-testid="listing-detail-channel-label">
+                {channelLabel(channel)}
+              </span>
+              {shown !== null ? (
+                href !== null ? (
+                  <a
+                    data-testid={`listing-contact-${channel}`}
+                    href={href}
+                    {...(channel === "telegram" || channel === "whatsapp"
+                      ? { target: "_blank", rel: "noopener" }
+                      : {})}
+                    className="text-primary underline underline-offset-4"
+                  >
+                    {shown}
+                  </a>
+                ) : (
+                  <span data-testid={`listing-contact-${channel}`} className="text-foreground">
+                    {shown}
+                  </span>
+                )
+              ) : state.kind === "revealed" && typeof saved === "string" ? null : null}
+            </li>
+          );
+        })}
+      </ul>
+      {state.kind === "refused" && (
+        <p role="status" data-testid="listing-contact-refusal" className="text-sm text-destructive">
+          {state.reason === "sellersCapReached"
+            ? t("adPage.contact.sellersCap")
+            : state.reason === "rateLimited"
+              ? t("adPage.contact.rateLimited")
+              : t("adPage.contact.failed")}
+        </p>
+      )}
+      {state.kind !== "revealed" && (
+        <Button
+          type="button"
+          variant="default"
+          size="touch"
+          data-testid="listing-contact-show"
+          disabled={state.kind === "loading"}
+          onClick={contact.onReveal}
+        >
+          {t("adPage.contact.show")}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export default ListingDetail;
