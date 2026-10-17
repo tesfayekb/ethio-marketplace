@@ -312,11 +312,6 @@ export function useDraft(initialListingId: string | null): UseDraft {
     setSaveState("saving");
 
     let answer = await saveDraft(bodyFor(forStep));
-    // A departed claim may finish storing, but never changes the new screen.
-    if (claimTokenRef.current !== generation) {
-      inFlightRef.current = false;
-      return false;
-    }
 
     // Bundle 7 D5 rule 2 (INC-479) — THE DOOR'S OWN WORD HEALS A STALE FORM. A
     // refusal naming an answer the catalogue no longer has (unknownAttribute /
