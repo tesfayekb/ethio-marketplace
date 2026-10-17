@@ -154,6 +154,7 @@ describe("the server's caught-error census (INC-625, G29)", () => {
       "src/routes/api/i18n.$lang.ts: logRouteError",
       "src/routes/api/locations.$country.ts: logRouteError",
       "src/routes/api/locations.ts: logRouteError",
+      "src/routes/api/seller.ts: logRouteError",
       "src/routes/api/translate.ts: fail5xx",
       "src/routes/api/translate.ts: logRouteError",
       "src/server/category-images/gate.ts: fail5xx",
