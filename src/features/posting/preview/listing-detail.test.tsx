@@ -309,3 +309,54 @@ it("LD-8 a sold ad keeps the seller card and loses the contact block", () => {
   rerender(<ListingDetail {...BASE} />);
   expect(screen.getByTestId("listing-detail-contact")).toBeInTheDocument();
 });
+
+it("LD-10 the heart: sign-in return, saved state, count, disabled and refusal; owner and staff previews omit it", () => {
+  const save = {
+    viewer: "signedOut" as const,
+    saved: false,
+    count: 0,
+    busy: false,
+    refusal: null,
+    signInTo: { to: "/auth" as const, search: { return: "/l/scratch" } },
+    onToggle: vi.fn(),
+  };
+  const { rerender } = render(<ListingDetail {...BASE} actor="buyer" save={save} />);
+  expect(screen.getByRole("link", { name: en["adPage.save.signIn"] })).toHaveAttribute(
+    "href",
+    "/auth?return=/l/scratch",
+  );
+  rerender(<ListingDetail {...BASE} actor="buyer" save={{ ...save, viewer: "signedIn" }} />);
+  expect(screen.getByTestId("listing-save")).toHaveAttribute("aria-pressed", "false");
+  expect(screen.queryByTestId("listing-save-count")).toBeNull();
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      save={{ ...save, viewer: "signedIn", saved: true, count: 3 }}
+    />,
+  );
+  expect(screen.getByTestId("listing-save")).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByTestId("listing-save-count")).toHaveTextContent("Saved by 3");
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      save={{ ...save, viewer: "signedIn", busy: true, refusal: "rateLimited" }}
+    />,
+  );
+  expect(screen.getByTestId("listing-save")).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent(en["adPage.save.rateLimited"]);
+  rerender(
+    <ListingDetail {...BASE} actor="buyer" save={{ ...save, viewer: "unknown", saved: null }} />,
+  );
+  expect(screen.getByTestId("listing-save")).toHaveAttribute("data-state", "unknown");
+  expect(screen.getByTestId("listing-save")).toBeDisabled();
+  for (const actor of ["owner", "staff"] as const) {
+    rerender(<ListingDetail {...BASE} actor={actor} />);
+    expect(screen.queryByTestId("listing-save")).toBeNull();
+  }
+  rerender(<ListingDetail {...BASE} counts={{ views: 0, contacts: 0, saves: 2 }} />);
+  expect(
+    screen.getAllByTestId("listing-detail-count").find((node) => node.dataset.count === "saves"),
+  ).toHaveTextContent("2 saves");
+});

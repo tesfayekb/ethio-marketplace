@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 470,
-  "dynamicCallSites": 337,
+  "scanned": 473,
+  "dynamicCallSites": 339,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -65,6 +65,21 @@
     ],
     "account.overview.title": [
       "/account"
+    ],
+    "account.saved.empty": [
+      "/account/saved"
+    ],
+    "account.saved.failed": [
+      "/account/saved"
+    ],
+    "account.saved.more": [
+      "/account/saved"
+    ],
+    "account.saved.remove": [
+      "/account/saved"
+    ],
+    "account.saved.unavailable": [
+      "/account/saved"
     ],
     "adPage.contact.failed": [
       "(every page)",
@@ -141,6 +156,18 @@
       "/post",
       "/post/$listingId"
     ],
+    "adPage.counts.saves": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "adPage.counts.unavailable": [
       "(every page)",
       "/admin/listings/$listingId",
@@ -161,6 +188,30 @@
     ],
     "adPage.gone.title": [
       "/l/$slug"
+    ],
+    "adPage.save.count": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "adPage.save.signIn": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "admin.accessDenied": [
       "/admin"
@@ -4076,6 +4127,7 @@
     "common.loading": [
       "(every page)",
       "/account",
+      "/account/saved",
       "/admin/ai",
       "/admin/categories",
       "/admin/listings",
@@ -4164,6 +4216,7 @@
     "feed.noPhoto": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4180,6 +4233,7 @@
     "feed.priceWas": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4309,6 +4363,7 @@
     "listing.photosSoon": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4769,6 +4824,9 @@
     ],
     "nav.profile": [
       "(every page)"
+    ],
+    "nav.saved": [
+      "/account/saved"
     ],
     "nav.signInSecurity": [
       "/account"
@@ -6071,6 +6129,7 @@
     "post.review.priceLine": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -6088,6 +6147,7 @@
     "post.review.pricePer": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -7106,6 +7166,7 @@
     "price.commission": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -7123,6 +7184,7 @@
     "price.contact": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -7140,6 +7202,7 @@
     "price.free": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -7157,6 +7220,7 @@
     "price.negotiable": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -7676,6 +7740,7 @@
     "tier.featured": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -7692,6 +7757,7 @@
     "tier.premium": [
       "(every page)",
       "/",
+      "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",

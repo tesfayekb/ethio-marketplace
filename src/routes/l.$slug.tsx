@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
+import { listingSaved, saveListing, unsaveListing } from "@/features/ad-page/save";
 import { revealContact, type ContactState } from "@/features/ad-page/contact";
 import { countView } from "@/features/ad-page/count-view";
 import { useAuth } from "@/features/auth/use-auth";
@@ -101,6 +102,39 @@ function AdPage() {
   // Bundle 19 turn 11 (D201 §6) — the reveal is a tap, never automatic; the
   // values exist only in this client state after the door's answer.
   const [contactState, setContactState] = useState<ContactState>({ kind: "idle" });
+  const [saved, setSaved] = useState<boolean | null>(null);
+  const [saveCount, setSaveCount] = useState(doc.counts.saves);
+  const [saveBusy, setSaveBusy] = useState(false);
+  const [saveRefusal, setSaveRefusal] = useState<"rateLimited" | "failed" | null>(null);
+  const [ownAd, setOwnAd] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setSaved(user === null ? false : null);
+    setOwnAd(false);
+    setSaveCount(doc.counts.saves);
+    setSaveRefusal(null);
+    if (user !== null)
+      void listingSaved(doc.public_id).then((answer) => {
+        if (active) setSaved(answer);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user, doc.public_id, doc.counts.saves]);
+  const onToggle = () => {
+    if (saveBusy || saved === null || user === null) return;
+    setSaveBusy(true);
+    setSaveRefusal(null);
+    void (saved ? unsaveListing(doc.public_id) : saveListing(doc.public_id))
+      .then((answer) => {
+        if (answer.ok) {
+          setSaved(answer.saved);
+          setSaveCount(answer.count);
+        } else if (answer.reason === "ownListing") setOwnAd(true);
+        else setSaveRefusal(answer.reason === "rateLimited" ? "rateLimited" : "failed");
+      })
+      .finally(() => setSaveBusy(false));
+  };
   const onReveal = () => {
     if (contactState.kind === "loading") return;
     setContactState({ kind: "loading" });
@@ -132,6 +166,19 @@ function AdPage() {
           {...adPageView(doc, language)}
           ribbon={ribbonKey ? t(ribbonKey) : null}
           soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}
+          save={
+            ownAd
+              ? undefined
+              : {
+                  viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
+                  saved,
+                  count: saveCount,
+                  busy: saveBusy,
+                  refusal: saveRefusal,
+                  signInTo: { to: "/auth", search: { return: canonical } },
+                  onToggle,
+                }
+          }
           contact={{
             viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
             signInTo: { to: "/auth", search: { return: `${canonical}#contact` } },

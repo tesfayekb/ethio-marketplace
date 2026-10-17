@@ -31,7 +31,7 @@ be dead weight. Selecting a non-Marketplace panel renders the
   category narrows the feed.
 - **My Listings** — Dashboard, Post a listing, My listings, Messages, Featured,
   Settings (→ `/settings`).
-- **Account** — Overview, Saved, My activity, Notifications, Addresses, Profile,
+- **Account** — Overview, Saved (→ `/account/saved`), My activity, Notifications, Addresses, Profile,
   Sign-in and security (→ existing `/settings`, P1-f), Settings (→ `/settings`),
   Help.
 - **Admin** — sectioned: MENU (Dashboard), IDENTITY (Users, Verification),
