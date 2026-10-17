@@ -86,8 +86,8 @@ export interface PublicListingDoc {
     member_since: string | null;
   };
   contact_channels: Array<"phone" | "phone2" | "telegram" | "whatsapp">;
-  counts: { views: number; shares: number };
-  viewer: { owner: boolean };
+  counts: { views: number; shares: number; saves: number };
+  viewer: { owner: boolean; saved: boolean };
 }
 
 /** ONE mapping onto the same detail used by seller and staff previews. Ribbon is a key until the caller translates it. */

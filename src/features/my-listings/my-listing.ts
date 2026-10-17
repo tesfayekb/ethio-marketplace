@@ -148,15 +148,16 @@ export interface ListingCounts {
   views: number;
   shares: number;
   contacts: number;
+  saves: number;
 }
 
 export function parseListingCounts(value: unknown): ListingCounts | null {
   if (!isObject(value)) return null;
-  const { views, shares, contacts } = value;
+  const { views, shares, contacts, saves } = value;
   const valid = (count: unknown): count is number =>
     typeof count === "number" && Number.isFinite(count) && Number.isInteger(count) && count >= 0;
-  if (!valid(views) || !valid(shares) || !valid(contacts)) return null;
-  return { views, shares, contacts };
+  if (!valid(views) || !valid(shares) || !valid(contacts) || !valid(saves)) return null;
+  return { views, shares, contacts, saves };
 }
 
 export async function readListingCounts(listingId: string): Promise<ListingCounts> {

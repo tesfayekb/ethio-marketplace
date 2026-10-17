@@ -1,3 +1,4 @@
+import { Heart } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import { ListingPicture } from "@/components/marketplace/listing-picture";
@@ -89,7 +90,7 @@ export interface ListingDetailView {
   /** D201 §5 — who is looking: the buyer's page, the owner's previews (the seller's ad page, the wizard's Review), staff's previews (Admin › Listings, Screening). The component draws the same ad for all three and differs only where this brief says. */
   actor: ListingActor;
   /** D201 §0 rule 10 — the owner's counts, passed only by the seller's ad page: undefined = not asked (the wizard), null = asked and not answered, a number = the count. Only what is counted is passed — views now; shares when the share sheet lands; contacts when the contact block lands; Saves at M3 — never a count nothing writes. */
-  counts?: { views: number; contacts?: number } | null;
+  counts?: { views: number; contacts?: number; saves?: number } | null;
   /** D201 rule 11 — the sold word (sold / rented / filled, translated by the caller) drawn as a red badge after the price; present on a sold ad only. */
   soldBadge?: string | null;
   title: string;
@@ -152,6 +153,15 @@ export interface ListingDetailView {
    * public ad page only: who is looking, the reveal state, and the tap. The
    * owner's and staff's previews pass nothing and keep today's rows.
    */
+  save?: {
+    viewer: "unknown" | "signedOut" | "signedIn";
+    saved: boolean | null;
+    count: number;
+    busy: boolean;
+    refusal: "rateLimited" | "failed" | null;
+    signInTo: { to: "/auth"; search: { return: string } };
+    onToggle: () => void;
+  };
   contact?: {
     viewer: "unknown" | "signedOut" | "signedIn";
     signInTo: { to: "/auth"; search: { return: string } };
@@ -289,11 +299,20 @@ export function ListingDetail(view: ListingDetailView) {
                   </span>
                 </>
               )}
+              {view.counts.saves !== undefined && (
+                <>
+                  {" · "}
+                  <span data-testid="listing-detail-count" data-count="saves">
+                    {fill(t("adPage.counts.saves"), { count: view.counts.saves })}
+                  </span>
+                </>
+              )}
             </>
           )}
         </p>
       )}
       {/* ------------------------------ the gallery ------------------------- */}
+      <div className="relative">
       {images.length > 0 ? (
         <PhotoGallery
           photos={images}
@@ -311,6 +330,37 @@ export function ListingDetail(view: ListingDetailView) {
           }
         />
       )}
+
+      {view.save !== undefined && (
+        <Button
+          asChild={view.save.viewer === "signedOut"}
+          variant="ghost"
+          className="absolute end-2 top-2 z-10 h-11 min-w-11 max-w-[calc(100%-1rem)] gap-2 rounded-full bg-background/90 px-3 text-foreground shadow-sm"
+          {...(view.save.viewer === "signedOut" ? {} : {
+            type: "button" as const,
+            "data-testid": "listing-save",
+            "data-state": view.save.viewer === "unknown" ? "unknown" : view.save.saved ? "saved" : "unsaved",
+            "aria-pressed": view.save.saved === true,
+            "aria-label": t(view.save.saved ? "adPage.save.remove" : "adPage.save.add"),
+            disabled: view.save.viewer === "unknown" || view.save.busy || view.save.saved === null,
+            onClick: view.save.onToggle,
+          })}
+        >
+          {view.save.viewer === "signedOut" ? (
+            <Link to={view.save.signInTo.to} search={view.save.signInTo.search}
+              data-testid="listing-save" data-state="signedOut" aria-label={t("adPage.save.signIn")}>
+              <Heart aria-hidden="true" className="size-5 shrink-0" />
+              {view.save.count > 0 && <span className="whitespace-normal text-start" data-testid="listing-save-count">{fill(t("adPage.save.count"), { count: view.save.count })}</span>}
+            </Link>
+          ) : (
+            <>
+              <Heart aria-hidden="true" className={view.save.saved ? "size-5 shrink-0 text-destructive" : "size-5 shrink-0"} fill={view.save.saved ? "currentColor" : "none"} />
+              {view.save.count > 0 && <span className="whitespace-normal text-start" data-testid="listing-save-count">{fill(t("adPage.save.count"), { count: view.save.count })}</span>}
+            </>
+          )}
+        </Button>
+      )}
+      </div>
 
       {/* ---------------------------- title and price ----------------------- */}
       <h2 className="text-lg font-semibold text-foreground" data-testid="listing-detail-title">
@@ -330,6 +380,11 @@ export function ListingDetail(view: ListingDetailView) {
           </span>
         )}
       </div>
+      {view.save?.refusal && (
+        <p role="status" data-testid="listing-save-refusal" className="text-sm text-destructive">
+          {t(view.save.refusal === "rateLimited" ? "adPage.save.rateLimited" : "adPage.save.failed")}
+        </p>
+      )}
       {highlighted.length > 0 && (
         <ul data-testid="listing-key-facts" className="flex flex-wrap gap-2">
           {highlighted.map((definition) => (
