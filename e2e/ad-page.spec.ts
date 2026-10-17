@@ -768,7 +768,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     // An unknown or malformed name is a 404; the door refuses an unknown key too.
     const unknown = await page.request.get(`/nobody_${token()}`);
     expect(unknown.status()).toBe(404);
-    expect(await page.request.get("/nobody-zzqk!")).toHaveHTTPStatus?.(404);
+    expect((await page.request.get("/nobody-zzqk!")).status()).toBe(404);
     const old = await page.request.get(`/seller/${key}`);
     expect(old.status()).toBe(404);
     const missing = await page.request.get(`/api/seller?key=nobody_${token()}`);
