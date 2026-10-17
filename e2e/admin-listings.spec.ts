@@ -539,9 +539,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .single();
     if (sellerDirectory.error)
       throw new Error(`[e2e:al-4] directory read failed: ${sellerDirectory.error.message}`);
-    expect(revisionCountry.data.home_country_code).toBe(
-      sellerDirectory.data.home_country_code,
-    );
+    expect(revisionCountry.data.home_country_code).toBe(sellerDirectory.data.home_country_code);
     const audits = await auditRows(target.id);
     expect(audits).toHaveLength(1);
     expect(audits[0]).toMatchObject({

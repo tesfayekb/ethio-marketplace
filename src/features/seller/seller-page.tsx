@@ -53,7 +53,12 @@ export function SellerPage({ sellerKey }: { sellerKey: string }) {
         <p role="alert" data-testid="seller-page-error">
           {t("sellerPage.failed")}
         </p>
-        <Button type="button" className="mt-4 min-h-11" data-testid="seller-page-retry" onClick={retry}>
+        <Button
+          type="button"
+          className="mt-4 min-h-11"
+          data-testid="seller-page-retry"
+          onClick={retry}
+        >
           {t("common.retry")}
         </Button>
       </PageShell>
@@ -96,7 +101,9 @@ export function SellerPage({ sellerKey }: { sellerKey: string }) {
         </ul>
       )}
       <div ref={moreRef} aria-hidden className="h-px" />
-      {isLoadingMore ? <p className="mt-4 text-sm text-muted-foreground">{t("feed.loading")}</p> : null}
+      {isLoadingMore ? (
+        <p className="mt-4 text-sm text-muted-foreground">{t("feed.loading")}</p>
+      ) : null}
     </PageShell>
   );
 }
