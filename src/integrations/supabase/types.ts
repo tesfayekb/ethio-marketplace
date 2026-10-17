@@ -2243,6 +2243,32 @@ export type Database = {
           },
         ]
       }
+      saved_listings: {
+        Row: {
+          created_at: string
+          listing_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          listing_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          listing_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_listings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       screening_verdicts: {
         Row: {
           confidence: number | null
@@ -4061,6 +4087,7 @@ export type Database = {
         Returns: string
       }
       listing_reveal_count: { Args: { p_listing_id: string }; Returns: number }
+      listing_saved: { Args: { p_public_id: string }; Returns: boolean }
       loc_export_row: { Args: { p_id: string }; Returns: Json }
       loc_id_of_key: { Args: { p_key: string }; Returns: string }
       loc_import_plan: {
@@ -4123,6 +4150,10 @@ export type Database = {
         Returns: Json
       }
       my_recent_categories: { Args: never; Returns: Json }
+      my_saved_listings: {
+        Args: { p_after?: Json; p_size?: number }
+        Returns: Json
+      }
       my_seller_line: { Args: never; Returns: Json }
       my_seller_place: { Args: never; Returns: Json }
       my_viewing_location: { Args: never; Returns: Json }
@@ -4229,6 +4260,7 @@ export type Database = {
         Args: { p_role_name: string; p_target_user: string }
         Returns: undefined
       }
+      save_listing: { Args: { p_public_id: string }; Returns: Json }
       save_posting_identity: {
         Args: {
           p_alias?: string
@@ -4328,6 +4360,7 @@ export type Database = {
         Args: { p_flagged: boolean; p_orphaned: boolean; p_status: string }
         Returns: boolean
       }
+      unsave_listing: { Args: { p_public_id: string }; Returns: Json }
       user_has_translation_permission: {
         Args: { p_target: string }
         Returns: boolean
