@@ -589,7 +589,7 @@ function BuyerContact({
                     {shown}
                   </span>
                 )
-              ) : state.kind === "revealed" && typeof saved === "string" ? null : null}
+              ) : null}
             </li>
           );
         })}
