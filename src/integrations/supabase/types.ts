@@ -699,16 +699,19 @@ export type Database = {
       }
       contact_reveals: {
         Row: {
+          created_at: string
           day: string
           listing_id: string
           viewer_id: string
         }
         Insert: {
+          created_at?: string
           day: string
           listing_id: string
           viewer_id: string
         }
         Update: {
+          created_at?: string
           day?: string
           listing_id?: string
           viewer_id?: string
@@ -2124,6 +2127,33 @@ export type Database = {
           display_name?: string | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      reveal_flags: {
+        Row: {
+          day: string
+          first_at: string
+          hits: number
+          last_at: string
+          sellers: number
+          viewer_id: string
+        }
+        Insert: {
+          day: string
+          first_at?: string
+          hits?: number
+          last_at?: string
+          sellers: number
+          viewer_id: string
+        }
+        Update: {
+          day?: string
+          first_at?: string
+          hits?: number
+          last_at?: string
+          sellers?: number
+          viewer_id?: string
         }
         Relationships: []
       }
@@ -4194,7 +4224,7 @@ export type Database = {
         Args: { p_request_country: string; p_user_id: string }
         Returns: string
       }
-      reveal_listing_contact: { Args: { p_listing_id: string }; Returns: Json }
+      reveal_listing_contact: { Args: { p_public_id: string }; Returns: Json }
       revoke_role: {
         Args: { p_role_name: string; p_target_user: string }
         Returns: undefined
