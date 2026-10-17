@@ -1,0 +1,146 @@
+# D201 — The product detail page: spec v1 (for approval)
+
+Date 2026-10-16 · base dev d0001498 · supervisor draft, Pass 2 · Tier A (the public read of an ad, the contact reveal and its rules, the new doors and tables, RLS) with Tier B screens.
+Sources: the study (Project doc claude/product-detail-page-study-2026-10-16.md), the operator's rulings of 2026-10-16 on Q1–Q9 and on the drawings (canvas "Product detail page — D201 drawings", v12: phone 360, tablet 768, desktop 1280, the sold ad), the code at dev d0001498 (file:line cited where a claim depends on it). Nothing here is built; the bundle brief follows the approval.
+
+## 0. The rulings this spec implements (the operator, 2026-10-16)
+
+1. Key facts under the price: a curated strip per leaf, NOT the title's facts — a new link column `fact_rank` 1–4 the curator sets per category; while a leaf has none, the fallback is the first four filterable choice/number facts in form order that are not in the title. (Q1, then the strip ruling: "yes — proposal: a key-facts strip".)
+2. Contact: "Show contact" INSIDE the seller card, on every width; before sign-in only "Sign in to see the seller's phone and chat links"; the number and links appear only after the door answers. The reveal keeps 30/day (built) and gains 10 distinct sellers/day with an admin flag at the cap; a brand-new account (first 24 h) gets 5. (Q2 yes.)
+3. Safety box: four lines, Jiji ET's in our words, ABOVE Details. (Q3.)
+4. Save (heart): in v1, logged-in only; the count public ("Saved by 12") and on the seller's side; an Account › Saved page. (Q4.)
+5. Rating: the SELLER's, stage 8 (DEC-150); on the page one placeholder line only, nothing that promises. (Q5.)
+6. No tabs: an in-page bar that scrolls — Details · Description · Location · Seller. "Overview" removed. (Q6; the drawing ruling.)
+7. Address: `/l/<words>-<id>` with a short random public id; the server resolves by the id and redirects a wrong words part; a QR code of the ad's address in the share sheet, served by a route from a pinned zero-dependency encoder. (Q7, after the research.)
+8. Messages: the channel is hidden until messaging exists (stage 6). (Q8.)
+9. Save and Report land in the same bundle as the page. (Q9.)
+10. Views and shares are counted (daily buckets, per channel) and shown on the page as "Seen N times · Shared N times"; the seller sees Views · Shares · Saves · Contacts on his ad page. Share = Telegram · WhatsApp · Facebook · Copy link · QR, with a preview card; the most common share icon (not the export icon). "Share your ad now" at the end of posting (the visibility plan §1).
+11. Sold ad: the gold ribbon on the photo, a red SOLD badge after the price, no contact, no notice text, no foot bar; the sold page stays 30 days (the RLS as built). No "similar ads" block on a sold ad either ("all redundant").
+12. No "coming soon" of any kind on the page: no translate-later line, no "reviews (0)", no "messaging is coming". What is not built is not drawn. (2026-10-16: "It may not come so please do not add those.")
+13. Recurring prices (monthly etc.) show through the app's own price line (built: fixed / per period / per unit / commission / contact for price).
+14. Location: the map card only when the seller placed a pin; the Directions line only when written; the city line always; the place line and the map open Google Maps. "All ads by this seller" leads to the feed filtered by the seller now and to the seller's shop page at stage 8.
+15. One component, three actors (buyer / owner / staff): this page replaces every "as buyers see it" preview (the wizard's Review sheet, the seller's ad page, the admin's listing page, Screening's preview).
+
+## 1. Scope
+
+IN: the public ad page and its read; the address and the QR route; the key-facts strip (column, importer, link manager, read, fallback); the contact block and the reveal's velocity rules; the safety box; Save (table, doors, counts, the Account › Saved page); Report (table, reasons, dial, the admin count); Share (sheet, counters, the preview card metadata); views; the seller card with "All ads by this seller"; similar ads; breadcrumbs; the sold page; JSON-LD and canonical; the feed card becomes a link; the four previews re-mounted on the one component; the seller's counters on his ad page; the end-of-posting "Share your ad now".
+OUT (named, with their homes): seller ratings and reviews (DEC-150, stage 8); the seller's shop page (stage 8); messaging (stage 6); staff lists of who revealed (D131); translation of the description on a tap (DEC-149); the "was" price and Price-reduced rules (D199 — the page draws what D199 defines, from the same fields the card uses); data-saver photo sizes and the install prompt (stage 6); the D130 redesign of the detail layout beyond what the drawings show.
+
+## 2. The address and the public id
+
+- `listings.public_id text` NOT NULL UNIQUE, 10 characters from the alphabet `23456789abcdefghjkmnpqrstuvwxyz` (31 symbols, no 0/1/i/l/o; ≈ 2^49 values — not guessable, not enumerable), generated by a database default (`public.new_public_id()`, `gen_random_bytes`) so every existing row gets one in the migration and every new row at insert. The uuid stays the key everywhere else.
+- Canonical address: `/l/<words>-<public_id>`; `<words>` = the title folded to ascii (the app's existing fold for aliases, `name_folds` — the executor censuses which fold; lower case, `-` between words, ≤ 60 characters, trailing `-` trimmed); an Amharic title whose fold leaves nothing → `/l/<public_id>` alone. The route `/l/$slug` takes the LAST 10 characters after the last `-` (or the whole segment when it is exactly 10) as the id; a words part that differs from the canonical → a 301 to the canonical (the title can change; old links keep working). `/l/<public_id>` alone resolves too (the QR encodes this short form).
+- Share links and the QR encode the canonical address on the production origin.
+- `/l/<public_id>/qr.svg`: a server route that answers an SVG of the short address, `Cache-Control: public, max-age=31536000, immutable`, no database read (the id is validated by shape only; the QR of an unknown id is harmless), built with a PINNED zero-dependency encoder (candidate: `qrcode-generator` — the executor names the version in the brief's package turn; G42: its own turn, its own DEC line; no other new dependency).
+
+## 3. The read
+
+- One function `public.public_listing(p_public_id text) RETURNS jsonb`, STABLE, SECURITY DEFINER, `search_path = public`, EXECUTE to anon and authenticated (named in scripts/public-surface-allowlist.txt with its reason), rate-gated through `rate_gate('listing_read')` keyed on the caller when signed in and on the hashed address when anon (the `catalog_find` pattern): it returns ONLY what the public RLS already allows (`listings_public_read`: active, or sold within 30 days — migration 20261015023155 :453–455), re-stated inside the function as its own WHERE (defence in depth; a draft, removed, expired or older-sold id → `null` → the route's 404 page) — the ad's public columns; its screened, stripped photos with signed links for one hour (the feed's INC-606 pattern); the places (city, sub-city, the pin as the door holds it, the precision, the directions and location-details texts); the answered attributes WITH their labels and option labels in both languages (the server resolves them once — the page ships no catalogue); the key-facts strip (§4) resolved server-side; the seller's public line (alias, business name, previous alias within 365 days, member since); the counts (views, shares, saves, contacts for the owner only — see §9); the category path for the breadcrumbs; `is_sold`, `sold_at`; the viewer's own `saved` flag when signed in. It returns NO phone, no Telegram or WhatsApp value, no e-mail, no user id of the seller, no exact coordinates when the precision is approximate (the 500 m snapping stays in `MapPreview`, as today).
+- The route `/l/$slug` is server-rendered (the first paint carries the title, price, strip, photos' first link and the text; the map chunk and the share sheet load on interaction); it calls `public_listing` once; a `null` answer renders the "This ad is no longer available" page (status 404, `noindex`); a sold ad renders with `noindex` (the 30-day grace is for the buyer who holds the link, not for search engines).
+- The owner's ad page (`/my-listings/<id>`), the admin's listing page, Screening's preview and the wizard's Review keep their own reads (they hold more than the public view) and pass the same `ListingDetailView` (src/features/posting/preview/listing-detail.tsx :72–128) with their `actor`; the public route is the only NEW read.
+
+## 4. The key-facts strip (`fact_rank`)
+
+- `category_attribute_links.fact_rank smallint NULL CHECK (fact_rank BETWEEN 1 AND 4)`, at most one link per (category, rank) (a partial unique index); the importer gains the column (`src/server/imports/registry.ts` :255–256 is where `is_filterable` and `card_rank` live — `fact_rank` beside them, class editable, type int, the same rules as `card_rank`; the export carries it; the preview counts it as a cell change); the link manager (Admin › Categories › attributes dialog, the link editor's cells) gains the cell between Card rank and Filterable; the migration linter's column census and docs/features/attributes.md are updated in the same turn.
+- The read resolves the strip: the links with `fact_rank` 1–4 whose attribute the ad answered, in rank order, each as `{ label, value }` with option labels and units resolved, booleans as the label alone (shown only when true), ranges as "a–b"; when the leaf has no ranked link, the fallback: the first four answered facts that are `is_filterable` and of a choice or number type, in form order (`display_order`), excluding the facts the built title already carries (the card-rank facts — src/features/posting/build-title.ts's rule: the executor censuses the exact set); fewer than four is fine; zero → no strip.
+- The strip is drawn under the price as chips (label small, value bold) at every width; on the feed card nothing changes in this bundle (the card's three card-rank facts are D130's).
+- The curator's work: C38 (charter delivered 2026-10-16) reviews every leaf and sets `fact_rank`; its rows are imported only after this bundle's importer turn is published (G47; the importer must know the column first).
+
+## 5. The page — blocks and widths (the drawings v12)
+
+360 (primary), one column, in this order: breadcrumbs (the shell band: Home › category path › the title, truncated) → the gallery (4:3, swipe, dots, the status ribbon; the Save heart and the share icon in the corners; the illustration when no photo; the "PHOTOS SOON" band) → title → price line (+ "Price is negotiable"; the SOLD badge after the price on a sold ad) → the key-facts strip → the place line (city · sub-city — opens Google Maps) · "Posted <relative>" → "Seen N times · Shared N times" (small) → the in-page bar Details · Description · Location · Seller (sticky under the top bar once scrolled; each item scrolls to its section) → the safety box (four lines, under the header "Meet, inspect, then pay") → Details (every answered fact in form order, the strip's facts included — one table, no repetition logic) → Description (folded after ~8 lines, "Read more") → Location (the city line always; the Directions line when written; the Location details when written; the map card only when a pin exists — the exact pin or the 500 m circle; the card opens Google Maps at the pin or the circle's centre) → the seller card (name / business name, "previously", member since; the contact block INSIDE the card: before sign-in the one line "Sign in to see the seller's phone and chat links" with the Sign in button; after sign-in the "Show contact" button; after the reveal the rows — Phone (tap to call), Phone 2, WhatsApp (deep link with the pre-filled text "I'm interested in your ethio.com ad: <canonical link>"), Telegram (the username link, never `t.me/+<phone>`); Messages hidden; "All ads by this seller" link) → "Report this ad" (a small link) → Similar ads (up to 6 cards, two columns) → the foot bar, sticky at the bottom: [Show contact] (scrolls to the seller card and, when signed in, opens the reveal) · ♡ · share.
+768: the gallery full width; then two columns — left: strip, safety box, Details, Description, Location; right (sticky): price, strip, the seller card with contact, share, Save, Report. No foot bar, no in-page bar.
+1280: the gallery two thirds with thumbnails; the right third sticky from the top: title, price, strip, the seller card with contact, Save, share, Report; under the gallery: the in-page bar, safety box, Details, Description, Location, Similar ads.
+Sold ad (every width): the gold "SOLD" ribbon on the photo, the red SOLD badge after the price, NO seller contact block (the seller card keeps the name and member since), no foot bar, no notice text, no similar ads.
+Owner (`actor: "owner"`): a top bar "This is how buyers see your ad" with Edit; the counters Views · Shares · Saves · Contacts (the seller's ad page already has the status ribbon — D180 — and the moves); his own channels shown without a gate; no Report, no Save, no similar ads; the wizard's Review sheet is the same component with the draft's values and no counters.
+Staff (`actor: "staff"`): the reviewer's "Show number" per channel (D120, as built through `channelAction`), the unscreened mark (D158), no Save, no Report, no similar ads.
+
+## 6. Contact: the reveal and its rules
+
+- The door `reveal_listing_contact(p_listing_id)` as built (migration 20261003215007 :270–314: signed in; active only — a sold ad refuses "listingNotAvailable"; one row per viewer/ad/day in `contact_reveals`; the `contact_reveal` dial 30/86400) gains, in one redeclaration (whole, from `pg_get_functiondef`, every header attribute kept — G39): (a) the DISTINCT-SELLERS rule: before the row is written, `count(DISTINCT seller) over the viewer's reveals of the last 24 h` ≥ the dial `contact_reveal_sellers` (new `rate_dials` row, 10 / 86400) → refusal `sellersCapReached` AND one `admin_flags` row (or the existing moderation-signal table the executor censuses — if none exists, a new table `reveal_flags(viewer_id, day, sellers)` RLS staff-read) per viewer per day; (b) the NEW-ACCOUNT rule: a viewer whose account is younger than 24 h, with no listing and no earlier reveal, is held to 5 reveals that day (a `rate_overrides`-style ceiling computed in the door, not a second dial); (c) the owner's own ad: no reveal row, no count. The answer stays: the ticked channels with their values.
+- The page: a signed-out tap on "Sign in to see…" → the sign-in page with `?return=/l/<slug>` (`src/features/auth/auth-service.ts` :36 builds it) and, after sign-in, the page re-opens with the seller card in view; the reveal is a tap, never automatic on return (a bot cannot script a reveal through the sign-in return). The values render only from the door's answer (never in the served HTML, never in `public_listing`).
+- Rate-limit refusals in words: "You have looked up many sellers today — try again tomorrow" (`sellersCapReached`), the existing `rateLimited` words for the 30/day.
+- Staff lists (D131) stay out; the seller's "Contacts: N" uses `listing_reveal_count` (built, no caller yet — src has none).
+
+## 7. The safety box
+
+Four lines, EN and AM, under the header "Meet, inspect, then pay — no deposit, no payment link, no code" (the feature review's R3 line; the plan's and the study's "DEC-129's header" was a wrong citation — DEC-129 is the legal-documents decision; corrected here). English (the supervisor's words from Jiji ET's four, 2026-10-16): "Never pay a deposit, a delivery fee or a 'booking' before you have seen the item." · "Meet the seller in a public place, in daylight, with someone you trust." · "Inspect what you are buying; test it; check every document." · "Pay only when the item is in your hands — no payment links, no codes, no transfers to 'reserve' it." Amharic: written by the supervisor, built by script from the vetted file, checked by code points and sha256, delivered as a file (G43); the executor lists each key with its English in its report. Keys `listing.safety.header`, `listing.safety.1`–`.4`. One `SafetyBox` component (shared later by the posting form's own safety line if wanted).
+
+## 8. Save
+
+- `saved_listings(user_id uuid, listing_id uuid, created_at timestamptz, PRIMARY KEY (user_id, listing_id))`, RLS: a user reads, inserts and deletes his own rows; nothing else; no public read. Doors: `save_listing(p_listing_id)` / `unsave_listing(p_listing_id)` (authenticated; the ad must be publicly readable — active or sold within 30 days; a dial `save` 200/86400), `my_saved_listings()` (the user's rows joined to the public ad fields, newest first, paged). The public count `saved_count` is read inside `public_listing` (a count on the table, SECURITY DEFINER — the table itself stays unreadable); the owner's count on his page from the same number.
+- The page: the heart on the gallery and in the foot bar / right column; signed out → the sign-in return; the count beside the heart ("Saved by 12"; hidden at 0 for a buyer, shown as "Saves: 0" to the owner).
+- Account › Saved: a page under the account panel (`src/config/panels.ts` — a new entry with its home path `/account/saved`) listing the saved ads as feed cards (sold ones with their ribbon, unavailable ones as a grey card "No longer available" with Remove), newest first.
+
+## 9. Views and shares (counters)
+
+- `listing_counters(listing_id uuid, day date, views int, shares_telegram int, shares_whatsapp int, shares_facebook int, shares_copy int, shares_qr int, PRIMARY KEY (listing_id, day))`, RLS: no client read (the doors read it). Doors: `count_listing_view(p_public_id)` — anon and authenticated, rate-gated on the hashed address (one count per address per ad per hour — the `catalog_find` keying), the owner's own view not counted, UPSERT into today's bucket; `count_listing_share(p_public_id, p_channel)` — the same, the channel in the enum; `listing_counts(p_listing_id)` for the owner (sums). `public_listing` returns `views` and `shares` (sums) for the public line "Seen N times · Shared N times" (hidden under 1).
+- The page calls `count_listing_view` once after the first paint (a beacon from the client, never during SSR — a crawler does not count); each share tap calls `count_listing_share` with its channel before the link opens.
+- Retention: buckets older than 400 days are purged by the retention job (named in the Privacy text's retention table; a view count is not personal data — no viewer id is stored).
+
+## 10. Share
+
+- The sheet (a bottom sheet on a phone, a popover on a desktop) with Telegram · WhatsApp · Facebook · Copy link · QR; the Web Share API first on a phone when present (`navigator.share`), the five rows otherwise. The share text: "<title> — <price> on ethio.com <canonical link>". The QR row shows the SVG from `/l/<id>/qr.svg` with "Scan to open" and a Download button.
+- The preview card: the route's head carries `og:title` (the title), `og:description` (price · place), `og:image` → `/l/<public_id>/photo.jpg` (a route that answers a 302 to a fresh one-hour signed link of the first stripped photo, or the category illustration; `Cache-Control: private, max-age=0` on the redirect itself), `og:url` the canonical, Twitter card summary_large_image; JSON-LD `Product` + `Offer` (price, currency, availability InStock / SoldOut, the first photo's redirect address), `BreadcrumbList`.
+- "Share your ad now": the wizard's publish-done screen gains the share sheet with the ad's canonical link (the same component; the counters count these shares too).
+
+## 11. Report
+
+- `listing_reports(id, listing_id, reporter_id, reason text CHECK (reason IN (…the AH-12 list, §19 Q-A…)), note text ≤ 500, created_at, status text 'open' | 'closed', closed_by, closed_at, outcome text)`, RLS: a reporter inserts (through the door only) and reads his own rows; staff with `listings:review` read all. Door: `report_listing(p_listing_id, p_reason, p_note)` — signed in; the ad publicly readable; one open report per reporter per ad; the `report` dial 10/86400; the seller is never told who. Admin › Listings' row and page show "Reports: N" (open) with the reasons; the queue's own screen is the ops stage (the count and the list on the listing page are enough to act now).
+- The page: "Report this ad" → a small dialog (reason list, optional note, Send) → "Thank you — we will look at it"; signed out → the sign-in return.
+
+## 12. Seller card, similar ads, breadcrumbs
+
+- The seller card as §5; "All ads by this seller" → the feed at `/?seller=<public seller key>` — the executor censuses `feed_page`'s arguments: if it takes no seller filter, the bundle adds one as its own door turn (the seller's public key is the alias folded, never the user id); at stage 8 the link becomes the shop page.
+- Similar ads: one `feed_page` call with the ad's leaf category and its city, the ad excluded, 6 cards; none on a sold ad; none for the owner.
+- Breadcrumbs: Home › the category path (each a link to `/c/<slug>`) › the title (the current crumb, truncated at 40 characters with a tooltip) — the D198 pattern in `src/components/shell/breadcrumbs.tsx`.
+
+## 13. Performance and kilobytes (DEC rule: the user's money)
+
+- Server-rendered first paint ≤ 60 KB gzipped HTML+CSS for a typical ad (ESTIMATE; measured by the first-paint budget job once the route exists, which gains `/l/<a seeded ad>` as a measured page); photos: the first at the card's stripped size, the gallery's others lazy; the map chunk and the share sheet lazy on interaction (as today's `MapPreview`); no catalogue on the client; the JSON-LD under 2 KB.
+- `public_listing` one round trip; its query plan read on ethio-prod before the migration lands (the executor's query tool, SELECT only); a server-side timing line in the route's log for the bench.
+
+## 14. Security
+
+- Phone numbers and chat links exist only in `reveal_listing_contact`'s answer. `public_listing` is proven (a migration proof on scratch rows — G27) to return no contact value, no seller user id and no exact coordinates for an approximate pin.
+- The public id is the only key a visitor sees (uuid never in a public address); a 404 for a draft, removed, expired or long-sold id is indistinguishable from an unknown id.
+- RLS deny proofs (Tier A): `saved_listings`, `listing_counters`, `listing_reports` — a signed-in user reads nothing of another's rows; anon reads nothing; every GRANT to anon / authenticated named in `scripts/public-surface-allowlist.txt` with its reason.
+- Dials: `listing_read` (anon, by address hash: 600/3600 — ESTIMATE, to be set with the bench), `save` 200/86400, `report` 10/86400, `contact_reveal_sellers` 10/86400; every new dial in `rate_dials` with its proof.
+- The reveal is never triggered by a URL (no `?reveal=1`): a tap after sign-in only.
+- Reports carry no free text to the seller; the note is staff-only.
+
+## 15. Tests owed (plain-language; the executor writes them — one E2E per feature, G15)
+
+- The page: a published ad opens at its canonical address; the short address and a wrong-words address redirect to it; a draft / removed / expired / 31-day-sold id → the 404 page; the sold page shows the ribbon and the SOLD badge, no contact, no foot bar, no similar ads; the strip shows the leaf's ranked facts (a scratch leaf with `fact_rank` 1–3) and, on a leaf with none, the fallback four; Amharic shows the Amharic labels.
+- Contact: signed out → the one line and Sign in; the return brings the viewer back to the ad; signed in → Show contact → the rows with the values; the owner sees his channels with no gate; the sold ad refuses; the 30/day and the distinct-sellers cap refuse in words (rate_overrides rows for the test's own users — G38); a new account is held to 5 on day one.
+- Save: toggle, the count, Account › Saved lists it, a sold ad stays with its ribbon, an unavailable ad shows Remove; deny: another user's rows unreadable.
+- Counters: a view is counted once per address per hour, not for the owner, not during SSR; each share channel counts; the owner's four numbers.
+- Report: the dialog, one open report per reporter per ad, the dial, the admin count; deny: a reporter reads only his own.
+- Share: the five rows, the text, the QR route answers an SVG with the immutable cache header; `og:*` and JSON-LD present with the right values; `/l/<id>/photo.jpg` redirects to a signed link.
+- The four previews render the same component (a unit test on the shared `ListingDetail` with the three actors; one E2E each that the wizard's Review, the seller's page, the admin's page and Screening still show the ad).
+- Importer / link manager: `fact_rank` imports, exports, previews as a cell change, refuses 0 and 5, refuses two links with the same rank in one category.
+
+## 16. Migrations (G39: split by concern, ordered, each with its mark and proofs; every proof on scratch rows in one DO block that RAISEs)
+
+- M1 `public_id` (column, default function, backfill, unique index) + `public_listing` + `listing_counters` + its three doors + the `listing_read` dial.
+- M2 `fact_rank` (column, check, partial unique index) + the importer's column census line.
+- M3 `saved_listings` + its three doors + the `save` dial.
+- M4 `listing_reports` + `report_listing` + the `report` dial + the staff read.
+- M5 the `reveal_listing_contact` redeclaration (distinct-sellers rule, the new-account ceiling, the flag row) + the `contact_reveal_sellers` dial.
+Each lands in its own turn FIRST (applied on ethio-prod by the executor's tool on save; the operator's staging apply and read-back by the specific mark; "continue"), then the screens that need it (G35).
+
+## 17. Bundle plan (ESTIMATE, band ±2 turns; the measured count supersedes)
+
+Bundle 19, ~10–12 executor turns: T1 M1 + the route + the page (buyer actor) + breadcrumbs + the card link; T2 the three actors (the four previews re-mounted) + the owner's counters; T3 M2 + importer/export/link manager + the strip; T4 the contact block + sign-in return; T5 M5 + the reveal rules + their tests; T6 M3 + Save + Account › Saved; T7 M4 + Report + the admin count; T8 Share + counters' screens + `og:*` + JSON-LD + the photo redirect + the QR route (its package turn first — G42); T9 similar ads + seller link (+ the feed_page seller filter if needed, its own door turn); T10 the safety box (Amharic by file) + the sold page + "Share your ad now"; T11 the records turn; walk at the close (one, G31). CI minutes: ~25 min a run × 12 runs; no new paid service; Supabase: five small tables/doors, no new quota line.
+
+## 18. Forward scan (REQs and DECs this touches)
+
+D199 (discount / sale): the page shows the old price struck through and the Price-reduced ribbon from the fields the card uses — D199's spec names them; nothing here pre-decides them. D130 (detail/list redesign): the drawings v12 ARE the detail layout; D130's remaining part is the feed card. D131: `contact_reveals` as built; the flag rows of §6 are its first staff signal. DEC-150: the seller card's rating line is the landing spot; the reveal row is the proof of interaction. Stage 6 messaging: the hidden channel. DEC-116: the page is public by design; the repository's privacy at launch is unaffected. Privacy text: `contact_reveals` (viewer × seller × day), `saved_listings`, `listing_reports` and `listing_counters` enter the retention table (the purge rules: reveals 90 days, counters 400 days, reports until closed + 365 days — ESTIMATES for the legal section's ruling, not v1's code). DEC-118: one new dependency (the QR encoder), pinned, its own turn. DEC-128 (the 18+ rule): the report reason "appears under 18" is its signal. The safety header comes from the feature review's R3 line, not from a DEC.
+
+## 19. Open questions (G49; one line each)
+
+- Q-A: the report reasons — the AH-12 list (spam · scam · prohibited item · wrong category · duplicate · already sold · appears under 18 · copyright · other), or a shorter list for v1?
+- Q-B: the public "Seen N times" — shown to buyers from the first view, or only from 10 (a new ad with "Seen 1 time" reads weak)? My recommendation: from 10.
+- Q-C: the distinct-sellers cap's flag: an `admin_flags` row visible on Admin › Users (a new small table, staff-read) — or only the audit row for now? My recommendation: the small table, so the console can show it without a second migration.
+- Q-D: `Account › Saved` under the account panel, or a "Saved" entry in the top bar beside My listings? My recommendation: the account panel now; the top bar when stage 5's saved searches arrive.
+Everything else is decided by §0; "yes" to the spec approves §1–§18 as written, with these four answered or left to my recommendations.
