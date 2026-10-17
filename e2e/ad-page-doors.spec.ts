@@ -865,7 +865,11 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       max_count: 1,
     });
     expect(dialed.error).toBeNull();
-    const clearedSaveMeter = await adminClient().from("rate_limits").delete().eq("key", buyerPerson.id).eq("action", "save");
+    const clearedSaveMeter = await adminClient()
+      .from("rate_limits")
+      .delete()
+      .eq("key", buyerPerson.id)
+      .eq("action", "save");
     expect(clearedSaveMeter.error).toBeNull();
     try {
       const secondAd = await buyer.rpc("save_listing", { p_public_id: idB });

@@ -32,6 +32,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("./photo-gallery", () => ({ PhotoGallery: () => null }));
 vi.mock("../map/map-preview", () => ({ MapPreview: () => null }));
+vi.mock("../map/map-large", () => ({ MapLarge: () => null }));
 
 const BASE: ListingDetailView = {
   actor: "owner",
@@ -214,7 +215,7 @@ it("LD-9 the buyer's contact block: sign in, show, the revealed links, a refusal
   };
   const { rerender } = render(<ListingDetail {...BASE} actor="buyer" contact={contact} />);
   expect(screen.getByTestId("listing-contact-sign-in")).toHaveTextContent(
-    en["adPage.contact.signIn"],
+    en["adPage.contact.link"],
   );
   expect(screen.queryByTestId("listing-detail-channel")).toBeNull();
   expect(screen.queryByTestId("listing-contact-show")).toBeNull();
@@ -439,4 +440,51 @@ describe("turn 14 sharing and counts", () => {
       expect(screen.queryByTestId("listing-seller-all-ads")).toBeNull();
     }
   });
+});
+
+it("LD-15 seller line precedes contact, which precedes All ads", () => {
+  render(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      sellerAdsKey="scratch"
+      contact={{
+        viewer: "signedOut",
+        signInTo: { to: "/auth", search: { return: "/l/scratch?reveal=1#contact" } },
+        state: { kind: "idle" },
+        onReveal: vi.fn(),
+        whatsappText: "",
+      }}
+    />,
+  );
+  const seller = screen.getByTestId("listing-detail-seller").closest("section");
+  if (!seller) throw new Error("seller card missing");
+  const contact = within(seller).getByTestId("listing-detail-contact");
+  const link = within(seller).getByTestId("listing-seller-all-ads");
+  expect(
+    seller.firstElementChild?.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+  expect(contact.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+});
+it("LD-16 no pin draws no map or placeholder", () => {
+  render(<ListingDetail {...BASE} />);
+  expect(screen.queryByTestId("listing-detail-map")).toBeNull();
+  expect(screen.queryByText(en["post.preview.mapPlaceholder"])).toBeNull();
+  expect(screen.getByTestId("listing-detail-location")).toBeInTheDocument();
+});
+it("LD-17 section bar belongs to live buyers, with present sections only", () => {
+  const { rerender } = render(<ListingDetail {...BASE} actor="buyer" />);
+  expect(
+    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
+  ).toEqual(["location", "seller"]);
+  rerender(<ListingDetail {...BASE} actor="buyer" description="scratch description" />);
+  expect(
+    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
+  ).toEqual(["description", "location", "seller"]);
+  for (const actor of ["owner", "staff"] as const) {
+    rerender(<ListingDetail {...BASE} actor={actor} />);
+    expect(screen.queryByTestId("listing-section-nav")).toBeNull();
+  }
+  rerender(<ListingDetail {...BASE} actor="buyer" soldBadge="Sold" />);
+  expect(screen.queryByTestId("listing-section-nav")).toBeNull();
 });

@@ -78,15 +78,21 @@ describe("SIM-4 the similar-ads section", () => {
   });
 
   it("draws the heading and one card per listing when there are some", async () => {
-    similarListings.mockResolvedValue([card("l-1"), card("l-2"), card("l-3")]);
+    similarListings.mockResolvedValue(
+      Array.from({ length: 10 }, (_, index) => card(`l-${index + 1}`)),
+    );
     render(<SimilarAds {...props} />);
     const section = await screen.findByTestId("listing-similar");
     // INC-704: with cards, the section sits inside the card frame.
     expect(section.parentElement?.className).toContain("rounded-lg");
     expect(section.getAttribute("aria-labelledby")).toBe("listing-similar-title");
     expect(screen.getByRole("heading", { name: "adPage.similar.title" })).toBeTruthy();
-    await waitFor(() => expect(section.querySelectorAll("ul > li")).toHaveLength(3));
-    expect(section.querySelector("ul")?.className).toContain("grid-cols-2");
-    expect(section.querySelector("ul")?.className).toContain("sm:grid-cols-3");
+    await waitFor(() => expect(section.querySelectorAll("ul > li")).toHaveLength(10));
+    expect(section.querySelector("ul")?.className).toContain("grid-cols-3");
+    expect(section.querySelector("ul")?.className).toContain("sm:grid-cols-4");
+    expect(section.querySelector("ul")?.className).toContain("lg:grid-cols-5");
+    const items = section.querySelectorAll("ul > li");
+    for (const index of [6, 7]) expect(items[index]?.className).toBe("hidden sm:block");
+    for (const index of [8, 9]) expect(items[index]?.className).toBe("hidden lg:block");
   });
 });

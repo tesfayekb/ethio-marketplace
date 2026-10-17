@@ -76,8 +76,12 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(signIn).toBeVisible();
     const href = await signIn.getAttribute("href");
     expect(href).not.toBeNull();
-    expect(href!.startsWith("/auth?return=")).toBe(true);
-    expect(decodeURIComponent(href!.slice("/auth?return=".length))).toBe(`${canonical}#contact`);
+    if (href === null) throw new Error("AP-9 contact link missing");
+    await expect(signIn).toHaveText(en["adPage.contact.link"]);
+    expect(href.startsWith("/auth?return=")).toBe(true);
+    expect(new URL(href, page.url()).searchParams.get("return")).toBe(
+      `${canonical}?reveal=1#contact`,
+    );
     await expect(page.locator("body")).not.toContainText("251911000001");
     expect(html).not.toContain("251911000001");
     expect(html).not.toContain('data-testid="listing-detail-channel"');
@@ -160,9 +164,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         .locator('section[data-testid="listing-detail-seller"]')
         .getByRole("heading", { level: 3 }),
     ).toHaveText(am["post.preview.sellerLabel"]);
-    await expect(page.getByTestId("listing-detail-contact").getByRole("heading")).toHaveText(
-      am["post.preview.contactLabel"],
-    );
+    await expect(page.getByTestId("listing-detail-contact").getByRole("heading")).toHaveCount(0);
+    await expect(page.getByTestId("listing-contact-sign-in")).toHaveText(am["adPage.contact.link"]);
     await page.goto((await address(draft)).canonical);
     await expect(page.getByTestId("ad-page-gone")).toBeVisible();
     await expect(page.getByTestId("ad-page-gone").getByRole("heading")).toHaveText(
@@ -438,10 +441,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await expect
         .poll(() => {
           const url = new URL(visitor.url());
-          return `${url.pathname}${url.hash}`;
+          return `${url.pathname}${url.search}${url.hash}`;
         })
         .toBe(`${canonical}#contact`);
       await expect(visitor.getByTestId("listing-detail-seller")).toBeInViewport();
+      await expect(visitor.getByTestId("listing-contact-phone")).toHaveText("+251911000001");
     } finally {
       await context.close();
     }
