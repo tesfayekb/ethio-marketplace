@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 39000718986 passed
+last E2E run 39005860398 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39000718986
-- Commit: `732b933d1d262c1dfae50b66cd617e7996e94547`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39005860398
+- Commit: `ffe435e53436480af46e7f5d9e9f3adefd8a8a4e`
 - Attempt: 1
-- Written (UTC): 2026-10-17T05:03:24.542Z
+- Written (UTC): 2026-10-17T06:25:33.350Z
 - Post-test warnings: 3
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Errors outside any test (INC-589): none
@@ -31,10 +31,10 @@ Off the allowlist:
 ### HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h<n>+rou<n>+srvx.mjs:<n>:<n>
 
 - Count: 10 · Sources: flake
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-117 two sub-cities of one city both save and count as that one city ×9 · PW-12 who: the alias is checked against the door, messages cannot be switched of ×6 · PW-178 a late read of the place text never replaces a newer save ×5
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-61 after ten seconds the Undo is gone and the reset stands (D59) ×20
 
 ```text
-[WebServer] [ssr-error] /api/listings/alias HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
+[WebServer] [ssr-error] /api/listings/assist HTTPError: The operation was aborted. @/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_libs/h3+rou3+srvx.mjs:544:20
 ```
 
 ## Accessibility (DEC-084, gating)
@@ -49,29 +49,28 @@ Results read: flake · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| flake | 2026-10-17T04:58:15.844Z | 5.1 min |
+| flake | 2026-10-17T06:21:06.788Z | 4.3 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `post-wizard-bundle2.spec.ts` | 48 | 20.5 min | flake |
-| `post-wizard-place.spec.ts` | 24 | 14.7 min | flake |
+| `post-wizard-resets.spec.ts` | 48 | 31.0 min | flake |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 48.2 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 46.8 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 44.2 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 42.8 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 42.3 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 41.3 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 39.9 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 39.7 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 39.1 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 38.5 s |
-| `post-wizard-place.spec.ts` › PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored | mobile-360 | 37.6 s |
-| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | desktop-1280 | 36.8 s |
-| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | mobile-360 | 36.7 s |
-| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | mobile-360 | 36.1 s |
-| `post-wizard-bundle2.spec.ts` › PW-117 two sub-cities of one city both save and count as that one city | mobile-360 | 36.1 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 47.8 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 47.5 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 46.9 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 46.7 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 46.0 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 45.5 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 45.0 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 43.7 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | mobile-360 | 43.5 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 43.3 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 42.9 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 42.8 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | mobile-360 | 42.6 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 41.9 s |
+| `post-wizard-resets.spec.ts` › PW-61 after ten seconds the Undo is gone and the reset stands (D59) | desktop-1280 | 41.8 s |
