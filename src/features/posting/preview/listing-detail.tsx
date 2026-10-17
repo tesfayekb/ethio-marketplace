@@ -1,5 +1,4 @@
 import { postedWhen } from "@/features/ad-page/posted";
-import { snap } from "../map/map-preview";
 import { Heart, Expand } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -296,19 +295,28 @@ export function ListingDetail(view: ListingDetailView) {
   const showContactBar = view.actor === "buyer" && !sold && view.contact !== undefined;
   const hasPin = typeof view.pinLat === "number" && typeof view.pinLng === "number";
   const placesMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(places.join(", "))}`;
-  const mapLat =
-    typeof view.pinLat === "number"
-      ? view.pinPrecision === "approx"
-        ? snap(view.pinLat)
-        : view.pinLat
-      : null;
-  const mapLng =
-    typeof view.pinLng === "number"
-      ? view.pinPrecision === "approx"
-        ? snap(view.pinLng)
-        : view.pinLng
-      : null;
-  const mapMaps = `https://www.google.com/maps/search/?api=1&query=${mapLat},${mapLng}`;
+  const [mapMaps, setMapMaps] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    setMapMaps(null);
+    const lat = view.pinLat;
+    const lng = view.pinLng;
+    if (typeof lat !== "number" || typeof lng !== "number") return;
+    if (view.pinPrecision !== "approx") {
+      setMapMaps(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
+      return;
+    }
+    // Keep the still-map module off the marketplace's first-paint graph.
+    void import("../map/map-preview")
+      .then(({ snap }) => {
+        if (active)
+          setMapMaps(`https://www.google.com/maps/search/?api=1&query=${snap(lat)},${snap(lng)}`);
+      })
+      .catch((error: unknown) => console.error("[listing-maps]", error));
+    return () => {
+      active = false;
+    };
+  }, [view.pinLat, view.pinLng, view.pinPrecision]);
   const Title = view.actor === "buyer" ? "h1" : "h2";
   const [posted, setPosted] = useState<string | null>(null);
   useEffect(() => {
@@ -948,15 +956,17 @@ export function ListingDetail(view: ListingDetailView) {
                     </DialogContent>
                   )}
                 </Dialog>
-                <a
-                  data-testid="listing-map-google"
-                  href={mapMaps}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
-                >
-                  {t("adPage.map.google")}
-                </a>
+                {mapMaps !== null && (
+                  <a
+                    data-testid="listing-map-google"
+                    href={mapMaps}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+                  >
+                    {t("adPage.map.google")}
+                  </a>
+                )}
               </div>
             )}
           </section>
