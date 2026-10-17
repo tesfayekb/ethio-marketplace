@@ -796,7 +796,7 @@ test.describe("POSTING WIZARD", () => {
             .from("listings")
             .select("id,draft_step,status")
             .eq("seller_id", user.id)
-            .eq("category_id", category)
+            .eq("category_id", category.id)
             .order("id");
           await testInfo.attach("pw162-back-diagnostic", {
             body: JSON.stringify({ ui, draft: row.data, error: row.error?.message }, null, 2),

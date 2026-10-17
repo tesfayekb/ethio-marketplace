@@ -1370,7 +1370,9 @@ function WizardShell({
                 >
                   <div data-span="full" className="min-w-0 space-y-4">
                     {draft.loading ? (
-                      <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
+                      <p data-testid="post-loading" className="text-sm text-muted-foreground">
+                        {t("post.loading")}
+                      </p>
                     ) : (
                       <section
                         data-testid={`post-step-${draft.step}`}
