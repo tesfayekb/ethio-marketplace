@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-3.md (bundle 19 — turn 3: the ad's address helper of D201 §2 — `/l/<words>-<id>` built and parsed, with its unit tests; no migration, no new string). Next: turn 4 — M1 (public_id, public_listing, the counters, the listing_read dial), then the page's turns per the bundle-19 block below; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-4.md (bundle 19 — turn 4: M1 of D201 — public_id, public_listing, listing_counters and its doors, the listing_read dial; one migration by the file route, mark 20261018130000; no new string). Next: turn 5 — the buyer page `/l/$slug`, breadcrumbs and the feed card as a link, after the operator's staging and prod applies; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
