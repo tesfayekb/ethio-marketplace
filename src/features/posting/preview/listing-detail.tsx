@@ -1,3 +1,5 @@
+import { postedWhen } from "@/features/ad-page/posted";
+import { snap } from "../map/map-preview";
 import { Heart, Expand } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -98,6 +100,7 @@ export interface ListingDetailView {
   soldBadge?: string | null;
   title: string;
   description: string;
+  postedAt?: string | null;
   priceMode: string;
   priceAmount: number | null;
   priceCurrency: string | null;
@@ -170,6 +173,7 @@ export interface ListingDetailView {
     signInTo: { to: "/auth"; search: { return: string } };
     state: ContactState;
     onReveal: () => void;
+    onSignInTap: () => void;
     whatsappText: string;
   };
   // Bundle 19 turn 13b (D201 §11) — the buyer's Report link, passed by the public ad page only
@@ -288,9 +292,50 @@ export function ListingDetail(view: ListingDetailView) {
   );
 
   const sold = typeof view.soldBadge === "string" && view.soldBadge.length > 0;
-  const showSections = view.actor === "buyer" && !sold;
+  const showSections = view.actor === "buyer";
   const showContactBar = view.actor === "buyer" && !sold && view.contact !== undefined;
   const hasPin = typeof view.pinLat === "number" && typeof view.pinLng === "number";
+  const placesMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(places.join(", "))}`;
+  const mapLat =
+    typeof view.pinLat === "number"
+      ? view.pinPrecision === "approx"
+        ? snap(view.pinLat)
+        : view.pinLat
+      : null;
+  const mapLng =
+    typeof view.pinLng === "number"
+      ? view.pinPrecision === "approx"
+        ? snap(view.pinLng)
+        : view.pinLng
+      : null;
+  const mapMaps = `https://www.google.com/maps/search/?api=1&query=${mapLat},${mapLng}`;
+  const Title = view.actor === "buyer" ? "h1" : "h2";
+  const [posted, setPosted] = useState<string | null>(null);
+  useEffect(() => {
+    setPosted(view.actor === "buyer" && view.postedAt ? postedWhen(view.postedAt, language) : null);
+  }, [view.actor, view.postedAt, language]);
+  const descriptionRef = useRef<HTMLParagraphElement | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  useEffect(() => {
+    setExpanded(false);
+  }, [view.description, view.actor]);
+  useEffect(() => {
+    const text = descriptionRef.current;
+    if (!text || view.actor !== "buyer") {
+      setOverflows(false);
+      return;
+    }
+    const measure = () => {
+      if (expanded) return;
+      const overflow = text.scrollHeight > text.clientHeight + 1;
+      setOverflows((current) => (current === overflow ? current : overflow));
+    };
+    measure();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    observer?.observe(text);
+    return () => observer?.disconnect();
+  }, [view.actor, view.description, expanded]);
   const [mapOpen, setMapOpen] = useState(false);
   const [currentSection, setCurrentSection] = useState("details");
   const articleRef = useRef<HTMLElement | null>(null);
@@ -313,20 +358,27 @@ export function ListingDetail(view: ListingDetailView) {
   ];
   const sectionIds = sections.map((section) => section.id).join(",");
   useEffect(() => {
-    if (!showSections) return;
-    const nav = navRef.current;
     const article = articleRef.current;
-    if (!nav || !article) return;
+    if (!article) return;
     const subband = document.querySelector<HTMLElement>('[data-testid="shell-subband"]');
     const align = () => {
       if (!subband) return;
       const top =
         Number.parseFloat(getComputedStyle(subband).top) + subband.getBoundingClientRect().height;
-      nav.style.setProperty("--listing-nav-top", `${top}px`);
+      article.style.setProperty("--listing-nav-top", `${top}px`);
     };
     align();
     const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(align);
     if (subband) resize?.observe(subband);
+    window.addEventListener("resize", align);
+    return () => {
+      resize?.disconnect();
+      window.removeEventListener("resize", align);
+    };
+  }, []);
+  useEffect(() => {
+    const article = articleRef.current;
+    if (!article || !showSections) return;
     const visible = new Map<string, number>();
     const observer =
       typeof IntersectionObserver === "undefined"
@@ -350,7 +402,6 @@ export function ListingDetail(view: ListingDetailView) {
     }
     return () => {
       observer?.disconnect();
-      resize?.disconnect();
     };
   }, [showSections, sectionIds]);
   const scrollSection = (id: string) => {
@@ -509,19 +560,19 @@ export function ListingDetail(view: ListingDetailView) {
 
         <aside
           data-testid="listing-detail-aside"
-          className="contents @2xl:sticky @2xl:top-[8.5rem] @2xl:col-start-2 @2xl:row-start-2 @2xl:block @2xl:min-w-0 @2xl:self-start @2xl:space-y-4 @4xl:row-start-1 @4xl:row-span-2"
+          className="contents @2xl:sticky @2xl:top-[calc(var(--listing-nav-top,8.5rem)+1rem)] @2xl:col-start-2 @2xl:row-start-2 @2xl:block @2xl:min-w-0 @2xl:self-start @2xl:space-y-4 @4xl:row-start-1 @4xl:row-span-2"
         >
           <section
             data-testid="listing-detail-headline"
             className="order-2 min-w-0 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
           >
             {/* ---------------------------- title and price ----------------------- */}
-            <h2
+            <Title
               className="font-display text-xl font-semibold leading-tight text-foreground @4xl:text-2xl"
               data-testid="listing-detail-title"
             >
               {view.title === "" ? t("post.review.noTitle") : view.title}
-            </h2>
+            </Title>
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-2xl font-bold text-primary" data-testid="listing-detail-price">
                 {priceLine}
@@ -582,11 +633,25 @@ export function ListingDetail(view: ListingDetailView) {
                 {line}
               </p>
             ))}
-            {places.length > 0 && (
-              <p className="text-sm text-muted-foreground" data-testid="listing-detail-places">
-                {places.join(", ")}
-              </p>
-            )}
+            <div className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
+              {places.length > 0 && (
+                <a
+                  data-testid="listing-places-maps"
+                  href={placesMaps}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
+                >
+                  <span data-testid="listing-detail-places">{places.join(", ")}</span>
+                </a>
+              )}
+              {posted !== null && (
+                <p data-testid="listing-detail-posted">
+                  {places.length > 0 && <span aria-hidden="true">{" · "}</span>}
+                  {fill(t("adPage.posted"), { when: posted })}
+                </p>
+              )}
+            </div>
 
             {view.actor === "buyer" &&
               view.publicCounts !== undefined &&
@@ -737,7 +802,9 @@ export function ListingDetail(view: ListingDetailView) {
               ))}
             </nav>
           )}
-          <div className="contents @4xl:order-4 @4xl:grid @4xl:grid-cols-2 @4xl:gap-4">
+          <div
+            className={`contents @4xl:order-4 @4xl:grid @4xl:gap-4 ${!sold && facts.length > 0 ? "@4xl:grid-cols-2" : "@4xl:grid-cols-1"}`}
+          >
             {!sold && <SafetyBox />}
 
             {/* ------------------------------ the facts --------------------------- */}
@@ -777,11 +844,23 @@ export function ListingDetail(view: ListingDetailView) {
                 {t("post.preview.descriptionLabel")}
               </h3>
               <p
-                className="whitespace-pre-line text-sm leading-relaxed text-foreground"
+                ref={descriptionRef}
+                className={`whitespace-pre-line text-sm leading-relaxed text-foreground ${view.actor === "buyer" && !expanded ? "line-clamp-8" : ""}`}
                 data-testid="listing-detail-description"
               >
                 {view.description}
               </p>
+              {view.actor === "buyer" && overflows && (
+                <Button
+                  variant="ghost"
+                  className="min-h-11 text-primary"
+                  data-testid="listing-description-toggle"
+                  aria-expanded={expanded}
+                  onClick={() => setExpanded((current) => !current)}
+                >
+                  {t(expanded ? "adPage.description.less" : "adPage.description.more")}
+                </Button>
+              )}
             </section>
           )}
 
@@ -869,6 +948,15 @@ export function ListingDetail(view: ListingDetailView) {
                     </DialogContent>
                   )}
                 </Dialog>
+                <a
+                  data-testid="listing-map-google"
+                  href={mapMaps}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+                >
+                  {t("adPage.map.google")}
+                </a>
               </div>
             )}
           </section>
@@ -906,6 +994,7 @@ export function ListingDetail(view: ListingDetailView) {
                 to={view.contact.signInTo.to}
                 search={view.contact.signInTo.search}
                 data-testid="listing-contact-bar-action"
+                onClick={view.contact.onSignInTap}
               >
                 {t("adPage.contact.link")}
               </Link>
@@ -939,6 +1028,7 @@ function BuyerContact({
           to={contact.signInTo.to}
           search={contact.signInTo.search}
           data-testid="listing-contact-sign-in"
+          onClick={contact.onSignInTap}
         >
           {t("adPage.contact.link")}
         </Link>

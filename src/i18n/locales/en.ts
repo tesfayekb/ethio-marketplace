@@ -312,6 +312,10 @@ export const en = {
   "adPage.section.location": "Location",
   "adPage.sections.label": "Sections of this ad",
   "adPage.map.enlarge": "Enlarge map",
+  "adPage.posted": "Posted {when}",
+  "adPage.description.more": "Read more",
+  "adPage.description.less": "Show less",
+  "adPage.map.google": "Open in Google Maps",
   "adPage.seller.allAds": "All ads by this seller",
   "adPage.gone.title": "This ad is no longer available",
   "adPage.gone.body":

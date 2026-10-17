@@ -2222,7 +2222,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       const perms = await supabase
         .from("permissions")
         .select("id,action,resources!inner(name)")
-        .eq("resources.name", "listings");
+        .in("resources.name", ["admin_panel", "listings"]);
       if (perms.error) throw new Error(`[e2e:al31] permissions failed: ${perms.error.message}`);
       const picked = perms.data.filter((p) =>
         wanted.some(
@@ -2243,6 +2243,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       await signInViaSession(page, buyer.email, buyer.password);
     };
     await holder([
+      ["admin_panel", "access"],
       ["listings", "view"],
       ["listings", "review"],
     ]);
@@ -2273,7 +2274,10 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     for (const profile of names.data)
       if (profile.display_name.trim() !== "")
         await expect(card).not.toContainText(profile.display_name);
-    await holder([["listings", "view"]]);
+    await holder([
+      ["admin_panel", "access"],
+      ["listings", "view"],
+    ]);
     await gotoReady(page, "/admin/listings");
     await page.getByTestId("listings-search").fill(ad.id);
     await expect(listingRow(page, ad.id)).toBeVisible();
