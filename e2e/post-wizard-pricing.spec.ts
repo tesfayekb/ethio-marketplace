@@ -767,6 +767,34 @@ test.describe("POSTING WIZARD", () => {
     const summary = page.getByTestId("post-refusal-summary");
     const desktop = testInfo.project.name.startsWith("desktop");
     const observed: string[] = [];
+    const sends: Array<{ step: number | null; outcome: string }> = [];
+    const diagnose = async (label: string) => {
+      const ui = await page.evaluate(() => {
+        const next = document.querySelector('[data-testid="post-next"]');
+        const visible = (node: Element) => node.getClientRects().length > 0;
+        return {
+          url: location.href,
+          steps: [...document.querySelectorAll('section[data-testid^="post-step-"]')]
+            .filter(visible)
+            .map((node) => node.getAttribute("data-testid")),
+          loading: [...document.querySelectorAll('[data-testid="post-loading"]')].some(visible),
+          saveCaption: document.querySelector('[data-testid="post-save-state"]')?.textContent,
+          next: {
+            present: next !== null,
+            closed: next?.getAttribute("data-closed"),
+            disabled: next?.hasAttribute("disabled"),
+          },
+          unreachable: document.querySelector('[data-testid="post-next-unreachable"]') !== null,
+        };
+      });
+      const row = await adminClient()
+        .from("listings")
+        .select("id,draft_step,status")
+        .eq("seller_id", user.id)
+        .eq("category_id", category.id)
+        .order("id");
+      return JSON.stringify({ label, ui, draft: row.data, error: row.error?.message, sends });
+    };
     const toSpecs = async (via: "back" | "list") => {
       if (via === "list") await page.getByTestId("post-step-list-go-3").click();
       else {
@@ -774,35 +802,9 @@ test.describe("POSTING WIZARD", () => {
         try {
           await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
         } catch (error) {
-          const ui = await page.evaluate(() => {
-            const next = document.querySelector('[data-testid="post-next"]');
-            const visible = (node: Element) => node.getClientRects().length > 0;
-            return {
-              url: location.href,
-              steps: [...document.querySelectorAll('section[data-testid^="post-step-"]')]
-                .filter(visible)
-                .map((node) => node.getAttribute("data-testid")),
-              loading: [...document.querySelectorAll('[data-testid="post-loading"]')].some(visible),
-              saveCaption: document.querySelector('[data-testid="post-save-state"]')?.textContent,
-              next: {
-                present: next !== null,
-                closed: next?.getAttribute("data-closed"),
-                disabled: next?.hasAttribute("disabled"),
-              },
-              unreachable: document.querySelector('[data-testid="post-next-unreachable"]') !== null,
-            };
+          throw new Error(`PW-162 Back did not reach photos — ${await diagnose("back")}`, {
+            cause: error,
           });
-          const row = await adminClient()
-            .from("listings")
-            .select("id,draft_step,status")
-            .eq("seller_id", user.id)
-            .eq("category_id", category.id)
-            .order("id");
-          await testInfo.attach("pw162-back-diagnostic", {
-            body: JSON.stringify({ ui, draft: row.data, error: row.error?.message }, null, 2),
-            contentType: "application/json",
-          });
-          throw error;
         }
         await page.getByTestId("post-back").click();
       }
@@ -858,17 +860,28 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-next")).not.toHaveAttribute("data-closed", /.*/);
     let aborted = false;
     await page.route("**/api/listings/draft", async (route) => {
-      if (!aborted) {
+      const body = route.request().postDataJSON() as { step?: unknown } | null;
+      const step = typeof body?.step === "number" ? body.step : null;
+      if (!aborted && step === 4) {
         aborted = true;
+        sends.push({ step, outcome: "aborted" });
         await route.abort("failed");
         return;
       }
+      sends.push({ step, outcome: "sent" });
       await route.continue();
     });
     await page.getByTestId("post-next").click();
     await expect.poll(() => aborted, { timeout: 20_000 }).toBe(true);
     // INC-682: the failed send is proven by the aborted poll above; the app's own retry clears the notice at once (INC-679), so its visibility is a race, not a behaviour.
-    await expect(page.getByTestId("post-step-4")).toBeVisible();
+    try {
+      await expect(page.getByTestId("post-step-4")).toBeVisible();
+    } catch (error) {
+      throw new Error(
+        `PW-162 (d) the Price Next moved on after a failed send — ${await diagnose("d")}`,
+        { cause: error },
+      );
+    }
     // INC-679: the hook's successful retry clears the transport block before Back.
     await expect(page.getByTestId("post-next-unreachable")).toBeHidden();
     await toSpecs("back");

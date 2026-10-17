@@ -1,3 +1,4 @@
+import { ReportAd } from "@/features/ad-page/report-ad";
 import { useEffect, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
 import { listingSaved, saveListing, unsaveListing } from "@/features/ad-page/save";
@@ -178,6 +179,16 @@ function AdPage() {
                   signInTo: { to: "/auth", search: { return: canonical } },
                   onToggle,
                 }
+          }
+          report={
+            ownAd ? undefined : (
+              <ReportAd
+                publicId={doc.public_id}
+                viewer={authLoading ? "unknown" : user === null ? "signedOut" : "signedIn"}
+                signInTo={{ to: "/auth", search: { return: `${canonical}#report` } }}
+                onOwn={() => setOwnAd(true)}
+              />
+            )
           }
           contact={{
             viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",

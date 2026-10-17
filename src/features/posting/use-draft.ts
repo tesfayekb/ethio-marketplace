@@ -331,6 +331,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
     if (!aliveRef.current) return answer.ok;
 
     if (answer.ok) {
+      // INC-698 — a newer claim (a Next pressed while this pass was in the air) owns the queue: its own chained pass sends the latest answers once. This answer records the server's facts and arms nothing.
+      const superseded = strictRef.current !== null && !current();
       setNextBlockedByTransport(false);
       lastSentSerialRef.current = serial;
       if (current()) strictRef.current = null;
@@ -345,7 +347,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       }
       // Anything the seller changed while the request was in the air stays
       // pending, and the follow-up flag makes the queue run again for it.
-      if (versionRef.current !== sent) followUpRef.current = true;
+      if (versionRef.current !== sent && !superseded) followUpRef.current = true;
       const id = answer.payload["listing_id"];
       if (typeof id === "string") {
         listingRef.current = id;
@@ -373,6 +375,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // answer arrived while this request was in the air.
       if (versionRef.current === sent) {
         setSaveState("saved");
+      } else if (superseded) {
+        setSaveState("unsaved");
       } else {
         // The seller typed while this request was in the air: THE STEP IS QUEUED
         // AGAIN and another pass armed here. Leaving it to the debounce timer left

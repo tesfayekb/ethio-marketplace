@@ -542,7 +542,10 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const p = await seed(seller, "active", { contactPref: contact });
     const buyer = await asPerson(await leaseUser());
 
-    const pPublicId = (await listingTruth(p.id))["public_id"] as string;
+    const idRead = await adminClient().from("listings").select("public_id").eq("id", p.id).single();
+    if (idRead.error) throw new Error(`[e2e:ml] public id read failed: ${idRead.error.message}`);
+    const pPublicId = idRead.data.public_id as string;
+    expect(typeof pPublicId, "ML-4: the ad has no public id").toBe("string");
     const reached = await buyer.rpc("reveal_listing_contact", { p_public_id: pPublicId });
     expect(reached.error).toBeNull();
     expect((reached.data as Row)["ok"]).toBe(true);

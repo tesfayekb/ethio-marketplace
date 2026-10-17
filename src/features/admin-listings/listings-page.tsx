@@ -1,3 +1,5 @@
+import { fill } from "@/features/posting/refusal-text";
+import { useOpenReportCounts } from "./use-listing-reports";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Package } from "lucide-react";
@@ -152,6 +154,12 @@ export function AdminListingsPage() {
   });
   const rows = query.data?.rows ?? [];
   const total = query.data?.total ?? 0;
+  const mayReview = permissions.includes("listings:review");
+  const reportsQuery = useOpenReportCounts(
+    rows.map((row) => row.id),
+    mayReview,
+  );
+  const reports = reportsQuery.data;
   // D154 B3 (bundle 13 turn 10) — the page's ads that hold a photo the screen warned about.
   const warned = useWarnedListings(rows.map((row) => row.id)).data ?? new Set<string>();
   // INC-553 — the unit words load only when a row on this page holds a unit (the card's rule).
@@ -424,12 +432,27 @@ export function AdminListingsPage() {
       width: "w-[11%]",
       card: "badge",
       cell: (row) => (
-        <Badge
-          variant={STATUS_TONE[row.status] ?? "neutral"}
-          data-testid={`listing-row-${row.id}-status`}
-        >
-          {t(`admin.listings.status.${row.status}` as MessageKey)}
-        </Badge>
+        <span className="block min-w-0">
+          <Badge
+            variant={STATUS_TONE[row.status] ?? "neutral"}
+            data-testid={`listing-row-${row.id}-status`}
+          >
+            {t(`admin.listings.status.${row.status}` as MessageKey)}
+          </Badge>
+          {mayReview && (reports?.get(row.id) ?? 0) > 0 && (
+            <span
+              data-testid={`listing-row-${row.id}-reports`}
+              className="mt-1 block text-xs font-medium text-destructive"
+            >
+              {fill(t("admin.listings.reports.count"), { count: reports?.get(row.id) ?? 0 })}
+            </span>
+          )}
+          {mayReview && reportsQuery.error && (
+            <span role="alert" className="mt-1 block text-xs text-destructive">
+              {t("admin.listings.reports.failed")}
+            </span>
+          )}
+        </span>
       ),
     },
     {

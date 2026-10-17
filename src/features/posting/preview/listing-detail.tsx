@@ -169,6 +169,8 @@ export interface ListingDetailView {
     onReveal: () => void;
     whatsappText: string;
   };
+  // Bundle 19 turn 13b (D201 §11) — the buyer's Report link, passed by the public ad page only
+  report?: ReactNode;
 }
 
 export function ListingDetail(view: ListingDetailView) {
@@ -566,6 +568,12 @@ export function ListingDetail(view: ListingDetailView) {
           </div>
         )}
       </section>
+
+      {view.report !== undefined && (
+        <div id="report" data-testid="listing-detail-report">
+          {view.report}
+        </div>
+      )}
 
       {/* Step 10 (P4) — directions above the location details, as text (F2). */}
       {(view.directions || view.streetAddress) && (

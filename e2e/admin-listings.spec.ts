@@ -25,7 +25,7 @@ import {
   stepUpIfPrompted,
   useJobSuperAdmin,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, createUser } from "./helpers/users";
 
 /**
  * Bundle 11, the Listings console, turn L1 (D134, D136, D137) — THE CONSOLE'S DOORS (AL-1..AL-9).
@@ -2143,5 +2143,115 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-header")).toBeVisible({ timeout: 20000 });
     await expect(page.getByTestId("listings-settings")).toHaveCount(0);
+  });
+  test("AL-31 Reports: the open count on the row and the reasons on the listing's page for listings:review; nothing for listings:view alone", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active");
+    const buyer = await leaseUser();
+    const fresh = await createUser({ confirmed: true });
+    const idRead = await adminClient()
+      .from("listings")
+      .select("public_id")
+      .eq("id", ad.id)
+      .single();
+    if (idRead.error) throw new Error(`[e2e:al31] public id failed: ${idRead.error.message}`);
+    const first = await (
+      await asPerson(buyer)
+    ).rpc("report_listing", {
+      p_public_id: idRead.data.public_id,
+      p_reason: "spam",
+      p_note: "scratch report",
+    });
+    expect(first.error).toBeNull();
+    expect(first.data).toMatchObject({ ok: true });
+    const second = await (
+      await asPerson(fresh)
+    ).rpc("report_listing", {
+      p_public_id: idRead.data.public_id,
+      p_reason: "duplicate",
+      p_note: null,
+    });
+    expect(second.error).toBeNull();
+    expect(second.data).toMatchObject({ ok: true });
+    // EL-4 / G37 — reuse the held buyer, never change scratchHolder's lease default.
+    const holder = async (wanted: Array<[string, string]>) => {
+      const supabase = adminClient();
+      const old = await supabase.from("user_roles").delete().eq("user_id", buyer.id);
+      if (old.error)
+        throw new Error(`[e2e:al31] clearing scratch grants failed: ${old.error.message}`);
+      const name = `e2e_listings_role_${token()}`;
+      const role = await supabase
+        .from("roles")
+        .insert({ name, display_name: name, priority: 1 })
+        .select("id")
+        .single();
+      if (role.error) throw new Error(`[e2e:al31] role failed: ${role.error.message}`);
+      roles.push(role.data.id);
+      const perms = await supabase
+        .from("permissions")
+        .select("id,action,resources!inner(name)")
+        .eq("resources.name", "listings");
+      if (perms.error) throw new Error(`[e2e:al31] permissions failed: ${perms.error.message}`);
+      const picked = perms.data.filter((p) =>
+        wanted.some(
+          ([resource, action]) =>
+            (p.resources as unknown as { name: string }).name === resource && p.action === action,
+        ),
+      );
+      expect(picked).toHaveLength(wanted.length);
+      const grant = await supabase
+        .from("role_permissions")
+        .insert(picked.map((p) => ({ role_id: role.data.id, permission_id: p.id })));
+      if (grant.error) throw new Error(`[e2e:al31] grants failed: ${grant.error.message}`);
+      const assigned = await supabase
+        .from("user_roles")
+        .insert({ user_id: buyer.id, role_id: role.data.id, scope_type: "global" });
+      if (assigned.error)
+        throw new Error(`[e2e:al31] assignment failed: ${assigned.error.message}`);
+      await signInViaSession(page, buyer.email, buyer.password);
+    };
+    await holder([
+      ["listings", "view"],
+      ["listings", "review"],
+    ]);
+    await gotoReady(page, "/admin/listings");
+    await page.getByTestId("listings-search").fill(ad.id);
+    const row = listingRow(page, ad.id);
+    await expect(row).toBeVisible();
+    await expect(row.getByTestId(`listing-row-${ad.id}-reports`)).toHaveText("Reports: 2");
+    await gotoReady(page, `/admin/listings/${ad.id}`);
+    const card = page.getByTestId("listing-reports");
+    await expect(card.getByTestId("listing-report")).toHaveCount(2);
+    const spam = card
+      .getByTestId("listing-report")
+      .filter({ hasText: en["adPage.report.reason.spam"] });
+    const duplicate = card
+      .getByTestId("listing-report")
+      .filter({ hasText: en["adPage.report.reason.duplicate"] });
+    await expect(spam).toHaveAttribute("data-status", "open");
+    await expect(duplicate).toHaveAttribute("data-status", "open");
+    await expect(spam).toContainText("scratch report");
+    await expect(card).not.toContainText(buyer.email);
+    await expect(card).not.toContainText(fresh.email);
+    const names = await adminClient()
+      .from("profiles")
+      .select("display_name")
+      .in("user_id", [buyer.id, fresh.id]);
+    if (names.error) throw new Error(`[e2e:al31] names failed: ${names.error.message}`);
+    for (const profile of names.data)
+      if (profile.display_name.trim() !== "")
+        await expect(card).not.toContainText(profile.display_name);
+    await holder([["listings", "view"]]);
+    await gotoReady(page, "/admin/listings");
+    await page.getByTestId("listings-search").fill(ad.id);
+    await expect(listingRow(page, ad.id)).toBeVisible();
+    await expect(listingRow(page, ad.id).getByTestId(`listing-row-${ad.id}-reports`)).toHaveCount(
+      0,
+    );
+    await gotoReady(page, `/admin/listings/${ad.id}`);
+    await expect(page.getByTestId("admin-listing-detail")).toBeVisible();
+    await expect(page.getByTestId("listing-reports")).toHaveCount(0);
   });
 });

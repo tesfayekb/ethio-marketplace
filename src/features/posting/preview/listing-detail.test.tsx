@@ -360,3 +360,18 @@ it("LD-10 the heart: sign-in return, saved state, count, disabled and refusal; o
     screen.getAllByTestId("listing-detail-count").find((node) => node.dataset.count === "saves"),
   ).toHaveTextContent("2 saves");
 });
+
+describe("LD-11 report slot", () => {
+  it("the report slot is drawn after the seller card when passed; owner and staff previews draw none", () => {
+    const { rerender } = render(
+      <ListingDetail {...BASE} actor="buyer" report={<span>{en["adPage.report.open"]}</span>} />,
+    );
+    const slot = screen.getByTestId("listing-detail-report");
+    const seller = screen.getByTestId("listing-detail-seller").closest("section");
+    expect(seller?.nextElementSibling).toBe(slot);
+    rerender(<ListingDetail {...BASE} actor="owner" />);
+    expect(screen.queryByTestId("listing-detail-report")).toBeNull();
+    rerender(<ListingDetail {...BASE} actor="staff" />);
+    expect(screen.queryByTestId("listing-detail-report")).toBeNull();
+  });
+});
