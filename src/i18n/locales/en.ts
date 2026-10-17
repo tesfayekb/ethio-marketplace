@@ -309,10 +309,15 @@ export const en = {
   "adPage.share.text": "{title} — {price} on ethio.com: {url}",
   "adPage.share.textNoPrice": "{title} on ethio.com: {url}",
   "adPage.similar.title": "Similar ads",
+  "adPage.seller.allAds": "All ads by this seller",
   "adPage.gone.title": "This ad is no longer available",
   "adPage.gone.body":
     "It may have been sold, taken down by the seller, or its time may have run out.",
   "adPage.gone.home": "Back to Home",
+  "sellerPage.title": "Ads by {name}",
+  "sellerPage.empty": "This seller has no live ads right now.",
+  "sellerPage.notFound": "This seller was not found.",
+  "sellerPage.failed": "The ads could not be loaded — try again.",
 
   "auth.errorWrongCurrentPassword": "That current password is not correct.",
   "auth.errorLastMethod": "You can't remove your only sign-in method. Add another one first.",

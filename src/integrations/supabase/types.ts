@@ -1493,6 +1493,7 @@ export type Database = {
           after: Json | null
           before: Json | null
           created_at: string
+          home_country_code: string | null
           id: string
           kind: string
           listing_id: string
@@ -1503,6 +1504,7 @@ export type Database = {
           after?: Json | null
           before?: Json | null
           created_at?: string
+          home_country_code?: string | null
           id?: string
           kind: string
           listing_id: string
@@ -1513,12 +1515,20 @@ export type Database = {
           after?: Json | null
           before?: Json | null
           created_at?: string
+          home_country_code?: string | null
           id?: string
           kind?: string
           listing_id?: string
           seller_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "listing_revisions_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "listing_revisions_listing_id_fkey"
             columns: ["listing_id"]
@@ -2457,6 +2467,7 @@ export type Database = {
         Row: {
           created_at: string
           fields: string[]
+          home_country_code: string | null
           id: string
           kind: string
           listing_id: string
@@ -2468,6 +2479,7 @@ export type Database = {
         Insert: {
           created_at?: string
           fields?: string[]
+          home_country_code?: string | null
           id?: string
           kind: string
           listing_id: string
@@ -2479,6 +2491,7 @@ export type Database = {
         Update: {
           created_at?: string
           fields?: string[]
+          home_country_code?: string | null
           id?: string
           kind?: string
           listing_id?: string
@@ -2488,6 +2501,13 @@ export type Database = {
           seller_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "seller_notices_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "seller_notices_listing_id_fkey"
             columns: ["listing_id"]
@@ -4400,6 +4420,10 @@ export type Database = {
       }
       save_seller_place: { Args: { p_listing_id: string }; Returns: Json }
       security_lints: { Args: never; Returns: Json }
+      seller_feed_page: {
+        Args: { p_after?: Json; p_seller_key: string; p_size?: number }
+        Returns: Json
+      }
       seller_name_sweep: { Args: never; Returns: number }
       seller_plan: { Args: { p_user_id: string }; Returns: string }
       set_cover_photo: {

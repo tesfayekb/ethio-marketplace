@@ -62,11 +62,14 @@ Turn 14 — INC-699: the links rows’ trailing fact_rank cell in AT-15/AT-18; I
 
 Turn 15 — similar ads (D201 §12): one `/api/feed` read after the first paint with the ad's leaf and place, the feed's widening ladder kept, the ad itself dropped, up to six cards in two columns at 360; none on a sold ad, none for the owner. Share on the seller's own ad page for a live ad (D201 §10): a published ad is in review, so its link opens only once it is live.
 
+Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8 — `seller_feed_page(p_seller_key, p_after, p_size)` (the key is the alias lower-cased; unknown, malformed or deactivated → `unknownSeller`; `feed_page`'s card shape, order and public predicate through the feed index's all/everywhere row; a seller block of alias, business name and member since, no id), `/api/seller`, the page `/seller/<key>` (noindex until stage 8's shop page; the address the shop keeps), All ads by this seller on the seller card (no link without an alias); INC-702 — `home_country_code` on `listing_revisions` and `seller_notices`, backfilled, filled by the BEFORE INSERT trigger `fill_seller_home_country()`; the mark 20261018210000.
+
 ## Tests
 
 Turn 14: AP-30, AP-31, SH-1…SH-5, LD-12, LD-13; changed AT-15, AT-18, AP-25, AP-17. AP-24 is the unchanged cursor proof.
 
 Turn 15: AP-32, AP-33, SIM-1…SIM-4.
+Turn 16: AP-34, AP-35, SL-1…SL-4, LD-14, AL-4 (e2e/admin-listings.spec.ts — the revision's and the notice's home_country_code).
 
 - AP-29 — Report sign-in return, reason and note, thanks, duplicate, owner omission.
 - AL-31 — open report count and identity-free report list for listings:review; no reports for listings:view alone.

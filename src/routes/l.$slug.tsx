@@ -189,6 +189,7 @@ function AdPage() {
             />
           }
           publicCounts={{ views: doc.counts.views, shares: doc.counts.shares }}
+          sellerAdsKey={doc.seller.alias === null ? null : doc.seller.alias.toLowerCase()}
           ribbon={ribbonKey ? t(ribbonKey) : null}
           soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}
           save={
@@ -225,16 +226,14 @@ function AdPage() {
       </PageCard>
       {/* D201 §12 — similar ads: never on a sold ad, never for the owner. The
           document carries no internal listing id, so the ad is excluded by its
-          public id. A second card under the ad's own: the side list is not the
-          ad. */}
+          public id. INC-704: the component draws its own card frame, only when
+          it has cards. */}
       {!doc.is_sold && !doc.viewer.owner && !ownAd && doc.category !== null ? (
-        <PageCard className="min-w-0">
-          <SimilarAds
-            categoryId={doc.category.id}
-            placeId={doc.places.location_id}
-            excludeId={doc.public_id}
-          />
-        </PageCard>
+        <SimilarAds
+          categoryId={doc.category.id}
+          placeId={doc.places.location_id}
+          excludeId={doc.public_id}
+        />
       ) : null}
     </PageShell>
   );

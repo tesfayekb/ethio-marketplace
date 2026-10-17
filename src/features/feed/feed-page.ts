@@ -97,7 +97,12 @@ function isNumOrNull(value: unknown): value is number | null {
   return value === null || (typeof value === "number" && Number.isFinite(value));
 }
 
-function parseCard(value: unknown, ladderLength: number): FeedListing | null {
+/**
+ * One card, or null on any mismatch. Exported for the seller's ads page
+ * (bundle 19 turn 16), which reads the same card shape through
+ * /api/seller; the feed itself keeps using it through parseFeedPage.
+ */
+export function parseCard(value: unknown, ladderLength: number): FeedListing | null {
   if (!isObject(value)) return null;
   const v = value;
   if (!isStr(v.id) || !isStr(v.title)) return null;

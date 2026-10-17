@@ -68,13 +68,12 @@ describe("SIM-4 the similar-ads section", () => {
       }),
     );
     const { container, rerender } = render(<SimilarAds {...props} />);
-    expect(container.querySelector('[data-testid="listing-similar"]')).toBeNull();
+    // INC-704: while loading the container holds no element at all (no frame).
+    expect(container.firstElementChild).toBeNull();
     resolve([]);
     await waitFor(() => expect(similarListings).toHaveBeenCalledTimes(1));
     rerender(<SimilarAds {...props} />);
-    await waitFor(() =>
-      expect(container.querySelector('[data-testid="listing-similar"]')).toBeNull(),
-    );
+    await waitFor(() => expect(container.firstElementChild).toBeNull());
     expect(container.textContent).toBe("");
   });
 
@@ -82,6 +81,8 @@ describe("SIM-4 the similar-ads section", () => {
     similarListings.mockResolvedValue([card("l-1"), card("l-2"), card("l-3")]);
     render(<SimilarAds {...props} />);
     const section = await screen.findByTestId("listing-similar");
+    // INC-704: with cards, the section sits inside the card frame.
+    expect(section.parentElement?.className).toContain("rounded-lg");
     expect(section.getAttribute("aria-labelledby")).toBe("listing-similar-title");
     expect(screen.getByRole("heading", { name: "adPage.similar.title" })).toBeTruthy();
     await waitFor(() => expect(section.querySelectorAll("ul > li")).toHaveLength(3));
