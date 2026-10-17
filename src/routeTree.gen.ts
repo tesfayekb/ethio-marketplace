@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as MyListingsRouteImport } from './routes/my-listings'
 import { Route as PostRouteImport } from './routes/post'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AccountSavedRouteImport } from './routes/account_.saved'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
 import { Route as AdminAttributesRouteImport } from './routes/admin.attributes'
@@ -115,6 +116,11 @@ const PostRoute = PostRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountSavedRoute = AccountSavedRouteImport.update({
+  id: '/account_/saved',
+  path: '/account/saved',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -460,6 +466,7 @@ export interface FileRoutesByFullPath {
   '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
+  '/account/saved': typeof AccountSavedRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -533,6 +540,7 @@ export interface FileRoutesByTo {
   '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
+  '/account/saved': typeof AccountSavedRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -608,6 +616,7 @@ export interface FileRoutesById {
   '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
   '/settings': typeof SettingsRoute
+  '/account_/saved': typeof AccountSavedRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/attributes': typeof AdminAttributesRoute
   '/admin/audit': typeof AdminAuditRoute
@@ -684,6 +693,7 @@ export interface FileRouteTypes {
     | '/my-listings'
     | '/post'
     | '/settings'
+    | '/account/saved'
     | '/admin/ai'
     | '/admin/attributes'
     | '/admin/audit'
@@ -757,6 +767,7 @@ export interface FileRouteTypes {
     | '/my-listings'
     | '/post'
     | '/settings'
+    | '/account/saved'
     | '/admin/ai'
     | '/admin/attributes'
     | '/admin/audit'
@@ -831,6 +842,7 @@ export interface FileRouteTypes {
     | '/my-listings'
     | '/post'
     | '/settings'
+    | '/account_/saved'
     | '/admin/ai'
     | '/admin/attributes'
     | '/admin/audit'
@@ -906,6 +918,7 @@ export interface RootRouteChildren {
   MyListingsRoute: typeof MyListingsRoute
   PostRoute: typeof PostRoute
   SettingsRoute: typeof SettingsRoute
+  AccountSavedRoute: typeof AccountSavedRoute
   ApiFeedRoute: typeof ApiFeedRoute
   ApiGeoRoute: typeof ApiGeoRouteWithChildren
   ApiLocationsRoute: typeof ApiLocationsRouteWithChildren
@@ -997,6 +1010,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account_/saved': {
+      id: '/account_/saved'
+      path: '/account/saved'
+      fullPath: '/account/saved'
+      preLoaderRoute: typeof AccountSavedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -1542,6 +1562,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyListingsRoute: MyListingsRoute,
   PostRoute: PostRoute,
   SettingsRoute: SettingsRoute,
+  AccountSavedRoute: AccountSavedRoute,
   ApiFeedRoute: ApiFeedRoute,
   ApiGeoRoute: ApiGeoRouteWithChildren,
   ApiLocationsRoute: ApiLocationsRouteWithChildren,
