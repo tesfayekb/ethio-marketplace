@@ -298,13 +298,28 @@ export function ListingDetail(view: ListingDetailView) {
                 {fill(t("feed.views"), { count: view.counts.views })}
               </span>
               {view.counts.shares !== undefined && (
-                <>{" · "}<span data-testid="listing-detail-count" data-count="shares">{fill(t("adPage.counts.shares"), { count: view.counts.shares })}</span></>
+                <>
+                  {" · "}
+                  <span data-testid="listing-detail-count" data-count="shares">
+                    {fill(t("adPage.counts.shares"), { count: view.counts.shares })}
+                  </span>
+                </>
               )}
               {view.counts.saves !== undefined && (
-                <>{" · "}<span data-testid="listing-detail-count" data-count="saves">{fill(t("adPage.counts.saves"), { count: view.counts.saves })}</span></>
+                <>
+                  {" · "}
+                  <span data-testid="listing-detail-count" data-count="saves">
+                    {fill(t("adPage.counts.saves"), { count: view.counts.saves })}
+                  </span>
+                </>
               )}
               {view.counts.contacts !== undefined && (
-                <>{" · "}<span data-testid="listing-detail-count" data-count="contacts">{fill(t("adPage.counts.contacts"), { count: view.counts.contacts })}</span></>
+                <>
+                  {" · "}
+                  <span data-testid="listing-detail-count" data-count="contacts">
+                    {fill(t("adPage.counts.contacts"), { count: view.counts.contacts })}
+                  </span>
+                </>
               )}
             </>
           )}
@@ -334,61 +349,71 @@ export function ListingDetail(view: ListingDetailView) {
 
         {(view.share !== undefined || view.save !== undefined) && (
           <div className="absolute end-2 top-2 z-10 flex max-w-[calc(100%-1rem)] items-start gap-2">
-          {view.share}
-          {view.save !== undefined && (<Button
-            asChild={view.save.viewer === "signedOut"}
-            variant="ghost"
-            className="h-11 min-w-11 gap-2 rounded-full bg-background/90 px-3 text-foreground shadow-sm"
-            {...(view.save.viewer === "signedOut"
-              ? {}
-              : {
-                  type: "button" as const,
-                  "data-testid": "listing-save",
-                  "data-state":
-                    view.save.viewer === "unknown"
-                      ? "unknown"
-                      : view.save.saved
-                        ? "saved"
-                        : "unsaved",
-                  "aria-pressed": view.save.saved === true,
-                  "aria-label": t(view.save.saved ? "adPage.save.remove" : "adPage.save.add"),
-                  disabled:
-                    view.save.viewer === "unknown" || view.save.busy || view.save.saved === null,
-                  onClick: view.save.onToggle,
-                })}
-          >
-            {view.save.viewer === "signedOut" ? (
-              <Link
-                to={view.save.signInTo.to}
-                search={view.save.signInTo.search}
-                data-testid="listing-save"
-                data-state="signedOut"
-                aria-label={saveSignInLabel}
+            {view.share}
+            {view.save !== undefined && (
+              <Button
+                asChild={view.save.viewer === "signedOut"}
+                variant="ghost"
+                className="h-11 min-w-11 gap-2 rounded-full bg-background/90 px-3 text-foreground shadow-sm"
+                {...(view.save.viewer === "signedOut"
+                  ? {}
+                  : {
+                      type: "button" as const,
+                      "data-testid": "listing-save",
+                      "data-state":
+                        view.save.viewer === "unknown"
+                          ? "unknown"
+                          : view.save.saved
+                            ? "saved"
+                            : "unsaved",
+                      "aria-pressed": view.save.saved === true,
+                      "aria-label": t(view.save.saved ? "adPage.save.remove" : "adPage.save.add"),
+                      disabled:
+                        view.save.viewer === "unknown" ||
+                        view.save.busy ||
+                        view.save.saved === null,
+                      onClick: view.save.onToggle,
+                    })}
               >
-                <Heart aria-hidden="true" className="size-5 shrink-0" />
-                {view.save.count > 0 && (
-                  <span className="whitespace-normal text-start" data-testid="listing-save-count">
-                    {fill(t("adPage.save.count"), { count: view.save.count })}
-                  </span>
+                {view.save.viewer === "signedOut" ? (
+                  <Link
+                    to={view.save.signInTo.to}
+                    search={view.save.signInTo.search}
+                    data-testid="listing-save"
+                    data-state="signedOut"
+                    aria-label={saveSignInLabel}
+                  >
+                    <Heart aria-hidden="true" className="size-5 shrink-0" />
+                    {view.save.count > 0 && (
+                      <span
+                        className="whitespace-normal text-start"
+                        data-testid="listing-save-count"
+                      >
+                        {fill(t("adPage.save.count"), { count: view.save.count })}
+                      </span>
+                    )}
+                  </Link>
+                ) : (
+                  <>
+                    <Heart
+                      aria-hidden="true"
+                      className={
+                        view.save.saved ? "size-5 shrink-0 text-destructive" : "size-5 shrink-0"
+                      }
+                      fill={view.save.saved ? "currentColor" : "none"}
+                    />
+                    {view.save.count > 0 && (
+                      <span
+                        className="whitespace-normal text-start"
+                        data-testid="listing-save-count"
+                      >
+                        {fill(t("adPage.save.count"), { count: view.save.count })}
+                      </span>
+                    )}
+                  </>
                 )}
-              </Link>
-            ) : (
-              <>
-                <Heart
-                  aria-hidden="true"
-                  className={
-                    view.save.saved ? "size-5 shrink-0 text-destructive" : "size-5 shrink-0"
-                  }
-                  fill={view.save.saved ? "currentColor" : "none"}
-                />
-                {view.save.count > 0 && (
-                  <span className="whitespace-normal text-start" data-testid="listing-save-count">
-                    {fill(t("adPage.save.count"), { count: view.save.count })}
-                  </span>
-                )}
-              </>
+              </Button>
             )}
-          </Button>)}
           </div>
         )}
       </div>
@@ -455,13 +480,23 @@ export function ListingDetail(view: ListingDetailView) {
         </p>
       )}
 
-      {view.actor === "buyer" && view.publicCounts !== undefined && (view.publicCounts.views >= 1 || view.publicCounts.shares >= 1) && (
-        <p data-testid="listing-detail-public-counts" className="text-xs text-muted-foreground">
-          {view.publicCounts.views >= 1 && <span data-count="seen">{fill(t("adPage.counts.seen"), { count: view.publicCounts.views })}</span>}
-          {view.publicCounts.views >= 1 && view.publicCounts.shares >= 1 && " · "}
-          {view.publicCounts.shares >= 1 && <span data-count="shared">{fill(t("adPage.counts.shared"), { count: view.publicCounts.shares })}</span>}
-        </p>
-      )}
+      {view.actor === "buyer" &&
+        view.publicCounts !== undefined &&
+        (view.publicCounts.views >= 1 || view.publicCounts.shares >= 1) && (
+          <p data-testid="listing-detail-public-counts" className="text-xs text-muted-foreground">
+            {view.publicCounts.views >= 1 && (
+              <span data-count="seen">
+                {fill(t("adPage.counts.seen"), { count: view.publicCounts.views })}
+              </span>
+            )}
+            {view.publicCounts.views >= 1 && view.publicCounts.shares >= 1 && " · "}
+            {view.publicCounts.shares >= 1 && (
+              <span data-count="shared">
+                {fill(t("adPage.counts.shared"), { count: view.publicCounts.shares })}
+              </span>
+            )}
+          </p>
+        )}
 
       {!(typeof view.soldBadge === "string" && view.soldBadge.length > 0) && <SafetyBox />}
 

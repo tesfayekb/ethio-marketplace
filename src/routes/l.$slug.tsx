@@ -156,8 +156,22 @@ function AdPage() {
   }, [doc.public_id]);
   const { t, language } = useI18n();
   const view = adPageView(doc, language);
-  const sharePrice = doc.price.amount === null || doc.price.mode === "contact" || doc.price.mode === "free"
-    ? null : priceLine({ mode: doc.price.mode, amount: doc.price.amount, currency: doc.price.currency, period: doc.price.period, bp: doc.price.bp, unit: view.basisLabel ?? null }, t, t("price.contact"), language);
+  const sharePrice =
+    doc.price.amount === null || doc.price.mode === "contact" || doc.price.mode === "free"
+      ? null
+      : priceLine(
+          {
+            mode: doc.price.mode,
+            amount: doc.price.amount,
+            currency: doc.price.currency,
+            period: doc.price.period,
+            bp: doc.price.bp,
+            unit: view.basisLabel ?? null,
+          },
+          t,
+          t("price.contact"),
+          language,
+        );
   const soldKey = doc.sold_word === null ? undefined : ownValue(SOLD_RIBBON, doc.sold_word);
   const ribbonKey = ribbonOf({
     soldWord: doc.sold_word,
@@ -170,7 +184,14 @@ function AdPage() {
       <PageCard className="min-w-0 space-y-3">
         <ListingDetail
           {...view}
-          share={<ShareAd publicId={doc.public_id} canonicalPath={canonical} title={doc.title} priceText={sharePrice} />}
+          share={
+            <ShareAd
+              publicId={doc.public_id}
+              canonicalPath={canonical}
+              title={doc.title}
+              priceText={sharePrice}
+            />
+          }
           publicCounts={{ views: doc.counts.views, shares: doc.counts.shares }}
           ribbon={ribbonKey ? t(ribbonKey) : null}
           soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}

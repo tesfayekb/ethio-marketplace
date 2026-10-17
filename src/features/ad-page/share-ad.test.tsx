@@ -6,46 +6,94 @@ const countShare = vi.hoisted(() => vi.fn());
 vi.mock("./count-view", () => ({ countShare }));
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => ownValue(en, key) ?? key }) }));
 import { ShareAd } from "./share-ad";
-const props = { publicId: "2345678923", canonicalPath: "/l/scratch-2345678923", title: "Scratch", priceText: "100 ETB" };
+const props = {
+  publicId: "2345678923",
+  canonicalPath: "/l/scratch-2345678923",
+  title: "Scratch",
+  priceText: "100 ETB",
+};
 const writeText = vi.fn();
 beforeEach(() => {
-  vi.clearAllMocks(); writeText.mockResolvedValue(undefined);
+  vi.clearAllMocks();
+  writeText.mockResolvedValue(undefined);
   Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
   Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
 });
 describe("SH-5 Share sheet", () => {
-  it.each(["100 ETB", null])("rows and encoded text for price %s, all five channels counted once", async (priceText) => {
-    render(<ShareAd {...props} priceText={priceText} />);
-    fireEvent.click(screen.getByTestId("listing-share-open"));
-    const url = window.location.origin + props.canonicalPath;
-    const text = priceText === null ? `Scratch on ethio.com: ${url}` : `Scratch — 100 ETB on ethio.com: ${url}`;
-    expect(screen.getByTestId("listing-share-telegram").getAttribute("href")).toBe(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text.replace(/: .*$/, ""))}`);
-    expect(screen.getByTestId("listing-share-whatsapp")).toHaveAttribute("href", `https://wa.me/?text=${encodeURIComponent(text)}`);
-    expect(screen.getByTestId("listing-share-facebook")).toHaveAttribute("href", `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
-    expect(Array.from(screen.getByRole("dialog").querySelectorAll('[data-testid^="listing-share-"]')).map(n => n.getAttribute("data-testid"))).toEqual(["listing-share-telegram", "listing-share-whatsapp", "listing-share-facebook", "listing-share-copy", "listing-share-qr"]);
-    // Avoid navigation while retaining the channel tap.
-    for (const channel of ["telegram", "whatsapp", "facebook"] as const) {
-      const link = screen.getByTestId(`listing-share-${channel}`);
-      link.addEventListener("click", e => e.preventDefault()); fireEvent.click(link);
-    }
-    fireEvent.click(screen.getByTestId("listing-share-copy"));
-    await waitFor(() => expect(screen.getByTestId("listing-share-status")).toHaveAttribute("data-state", "copied"));
-    expect(writeText).toHaveBeenCalledExactlyOnceWith(url);
-    fireEvent.click(screen.getByTestId("listing-share-qr"));
-    expect(screen.getByTestId("listing-share-qr-image")).toHaveAttribute("src", `/l/${props.publicId}/qr.svg`);
-    expect(screen.getByTestId("listing-share-qr-download")).toHaveAttribute("download", `ethio-${props.publicId}-qr.svg`);
-    expect(countShare.mock.calls).toEqual(["telegram", "whatsapp", "facebook", "copy", "qr"].map(c => [props.publicId, c]));
-    expect(screen.queryByTestId("listing-share-more")).toBeNull();
-  });
+  it.each(["100 ETB", null])(
+    "rows and encoded text for price %s, all five channels counted once",
+    async (priceText) => {
+      render(<ShareAd {...props} priceText={priceText} />);
+      fireEvent.click(screen.getByTestId("listing-share-open"));
+      const url = window.location.origin + props.canonicalPath;
+      const text =
+        priceText === null
+          ? `Scratch on ethio.com: ${url}`
+          : `Scratch — 100 ETB on ethio.com: ${url}`;
+      expect(screen.getByTestId("listing-share-telegram").getAttribute("href")).toBe(
+        `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text.replace(/: .*$/, ""))}`,
+      );
+      expect(screen.getByTestId("listing-share-whatsapp")).toHaveAttribute(
+        "href",
+        `https://wa.me/?text=${encodeURIComponent(text)}`,
+      );
+      expect(screen.getByTestId("listing-share-facebook")).toHaveAttribute(
+        "href",
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      );
+      expect(
+        Array.from(
+          screen.getByRole("dialog").querySelectorAll('[data-testid^="listing-share-"]'),
+        ).map((n) => n.getAttribute("data-testid")),
+      ).toEqual([
+        "listing-share-telegram",
+        "listing-share-whatsapp",
+        "listing-share-facebook",
+        "listing-share-copy",
+        "listing-share-qr",
+      ]);
+      // Avoid navigation while retaining the channel tap.
+      for (const channel of ["telegram", "whatsapp", "facebook"] as const) {
+        const link = screen.getByTestId(`listing-share-${channel}`);
+        link.addEventListener("click", (e) => e.preventDefault());
+        fireEvent.click(link);
+      }
+      fireEvent.click(screen.getByTestId("listing-share-copy"));
+      await waitFor(() =>
+        expect(screen.getByTestId("listing-share-status")).toHaveAttribute("data-state", "copied"),
+      );
+      expect(writeText).toHaveBeenCalledExactlyOnceWith(url);
+      fireEvent.click(screen.getByTestId("listing-share-qr"));
+      expect(screen.getByTestId("listing-share-qr-image")).toHaveAttribute(
+        "src",
+        `/l/${props.publicId}/qr.svg`,
+      );
+      expect(screen.getByTestId("listing-share-qr-download")).toHaveAttribute(
+        "download",
+        `ethio-${props.publicId}-qr.svg`,
+      );
+      expect(countShare.mock.calls).toEqual(
+        ["telegram", "whatsapp", "facebook", "copy", "qr"].map((c) => [props.publicId, c]),
+      );
+      expect(screen.queryByTestId("listing-share-more")).toBeNull();
+    },
+  );
   it("copy failure is visible; native sharing exists only when supported and is not counted", async () => {
     const share = vi.fn().mockRejectedValue(new Error("dismissed"));
     Object.defineProperty(navigator, "share", { configurable: true, value: share });
     writeText.mockRejectedValue(new Error("denied"));
-    render(<ShareAd {...props} />); fireEvent.click(screen.getByTestId("listing-share-open"));
+    render(<ShareAd {...props} />);
+    fireEvent.click(screen.getByTestId("listing-share-open"));
     fireEvent.click(screen.getByTestId("listing-share-copy"));
-    await waitFor(() => expect(screen.getByTestId("listing-share-status")).toHaveAttribute("data-state", "failed"));
+    await waitFor(() =>
+      expect(screen.getByTestId("listing-share-status")).toHaveAttribute("data-state", "failed"),
+    );
     fireEvent.click(screen.getByTestId("listing-share-more"));
-    expect(share).toHaveBeenCalledExactlyOnceWith({ title: "Scratch", text: "Scratch — 100 ETB on ethio.com", url: window.location.origin + props.canonicalPath });
+    expect(share).toHaveBeenCalledExactlyOnceWith({
+      title: "Scratch",
+      text: "Scratch — 100 ETB on ethio.com",
+      url: window.location.origin + props.canonicalPath,
+    });
     expect(countShare).toHaveBeenCalledExactlyOnceWith(props.publicId, "copy");
   });
 });

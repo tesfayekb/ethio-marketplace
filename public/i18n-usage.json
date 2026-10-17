@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 476,
-  "dynamicCallSites": 343,
+  "scanned": 479,
+  "dynamicCallSites": 346,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -168,6 +168,42 @@
       "/post",
       "/post/$listingId"
     ],
+    "adPage.counts.seen": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "adPage.counts.shared": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "adPage.counts.shares": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "adPage.counts.unavailable": [
       "(every page)",
       "/admin/listings/$listingId",
@@ -224,6 +260,30 @@
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
+    ],
+    "adPage.share.copy": [
+      "/l/$slug"
+    ],
+    "adPage.share.download": [
+      "/l/$slug"
+    ],
+    "adPage.share.facebook": [
+      "/l/$slug"
+    ],
+    "adPage.share.more": [
+      "/l/$slug"
+    ],
+    "adPage.share.open": [
+      "/l/$slug"
+    ],
+    "adPage.share.qr": [
+      "/l/$slug"
+    ],
+    "adPage.share.qrHint": [
+      "/l/$slug"
+    ],
+    "adPage.share.title": [
+      "/l/$slug"
     ],
     "admin.accessDenied": [
       "/admin"

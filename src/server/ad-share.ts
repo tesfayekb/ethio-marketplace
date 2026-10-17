@@ -18,7 +18,10 @@ export async function countAdShare(request: Request): Promise<Response> {
   const body = await readJsonBody(request);
   const publicId = body["publicId"];
   const channel = body["channel"];
-  if (typeof channel !== "string" || !["telegram", "whatsapp", "facebook", "copy", "qr"].includes(channel)) {
+  if (
+    typeof channel !== "string" ||
+    !["telegram", "whatsapp", "facebook", "copy", "qr"].includes(channel)
+  ) {
     return routeJson({ error: "bad request" }, 400);
   }
   if (typeof publicId !== "string" || !isPublicId(publicId)) {
