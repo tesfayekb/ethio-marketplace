@@ -552,11 +552,6 @@ function BuyerContact({
     <div className="space-y-2">
       <ul className="divide-y divide-border text-sm">
         {channels.map((channel) => {
-          const entry = ownValue(contactPref, channel);
-          const saved =
-            entry !== null && typeof entry === "object"
-              ? ownValue(entry as Record<string, unknown>, "value")
-              : undefined;
           const value = revealed?.[channel];
           const shown = typeof value === "string" && value !== "" ? value : null;
           const href =
