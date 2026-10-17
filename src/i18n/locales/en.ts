@@ -248,6 +248,7 @@ export const en = {
   "myListings.bulk.refused": "Not changed: {count}. {reason}",
 
   // Bundle 19 turn 5 — the gone ad page.
+  "adPage.counts.unavailable": "The view count could not be loaded.",
   "adPage.gone.title": "This ad is no longer available",
   "adPage.gone.body":
     "It may have been sold, taken down by the seller, or its time may have run out.",

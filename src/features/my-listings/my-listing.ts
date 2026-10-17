@@ -144,6 +144,29 @@ export async function readHistory(listingId: string): Promise<HistoryLine[]> {
   return lines;
 }
 
+export interface ListingCounts {
+  views: number;
+  shares: number;
+  contacts: number;
+}
+
+export function parseListingCounts(value: unknown): ListingCounts | null {
+  if (!isObject(value)) return null;
+  const { views, shares, contacts } = value;
+  const valid = (count: unknown): count is number =>
+    typeof count === "number" && Number.isFinite(count) && Number.isInteger(count) && count >= 0;
+  if (!valid(views) || !valid(shares) || !valid(contacts)) return null;
+  return { views, shares, contacts };
+}
+
+export async function readListingCounts(listingId: string): Promise<ListingCounts> {
+  const { data, error } = await supabase.rpc("listing_counts", { p_listing_id: listingId });
+  if (error) throw new Error(error.message);
+  const counts = parseListingCounts(data);
+  if (counts === null) throw new Error("listing_counts: malformed answer");
+  return counts;
+}
+
 /** The seller's one-tap actions (D173, D174). */
 export type ListingAction =
   | "reserve"

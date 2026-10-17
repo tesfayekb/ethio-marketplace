@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+import { countView } from "@/features/ad-page/count-view";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
@@ -75,6 +77,12 @@ function GonePage() {
 
 function AdPage() {
   const { doc } = Route.useLoaderData();
+  const countedId = useRef<string | null>(null);
+  useEffect(() => {
+    if (countedId.current === doc.public_id) return;
+    countedId.current = doc.public_id;
+    void countView(doc.public_id);
+  }, [doc.public_id]);
   const { t, language } = useI18n();
   const ribbonKey = ribbonOf({
     soldWord: doc.sold_word,
