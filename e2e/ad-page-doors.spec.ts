@@ -477,10 +477,12 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect(override.error).toBeNull();
     try {
       expect(
-        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adA.id) })).error,
+        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adA.id) }))
+          .error,
       ).toBeNull();
       expect(
-        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adB.id) })).error,
+        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adB.id) }))
+          .error,
       ).toBeNull();
       const capped = await buyer.rpc("reveal_listing_contact", {
         p_public_id: await publicIdOf(adC.id),
@@ -495,9 +497,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
             .select("viewer_id,sellers,hits")
             .eq("viewer_id", buyerPerson.id)
         ).data ?? [];
-      expect(await flags()).toEqual([
-        { viewer_id: buyerPerson.id, sellers: 2, hits: 1 },
-      ]);
+      expect(await flags()).toEqual([{ viewer_id: buyerPerson.id, sellers: 2, hits: 1 }]);
       const again = await buyer.rpc("reveal_listing_contact", {
         p_public_id: await publicIdOf(adC.id),
       });

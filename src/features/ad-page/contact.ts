@@ -14,7 +14,10 @@ export type ContactState =
   | { kind: "idle" }
   | { kind: "loading" }
   | { kind: "revealed"; channels: Partial<Record<ContactChannel, string>> }
-  | { kind: "refused"; reason: "sellersCapReached" | "rateLimited" | "listingNotAvailable" | "failed" };
+  | {
+      kind: "refused";
+      reason: "sellersCapReached" | "rateLimited" | "listingNotAvailable" | "failed";
+    };
 
 export type RevealAnswer =
   | { ok: true; channels: Partial<Record<ContactChannel, string>> }
@@ -27,7 +30,10 @@ export async function revealContact(publicId: string): Promise<RevealAnswer> {
     p_public_id: publicId,
   } as never);
   if (error) {
-    return { ok: false, reason: error.message.includes("listingNotAvailable") ? "listingNotAvailable" : "failed" };
+    return {
+      ok: false,
+      reason: error.message.includes("listingNotAvailable") ? "listingNotAvailable" : "failed",
+    };
   }
   if (data === null || typeof data !== "object") return { ok: false, reason: "failed" };
   const answer = data as Record<string, unknown>;

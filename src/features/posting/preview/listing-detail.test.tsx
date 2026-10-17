@@ -22,7 +22,10 @@ vi.mock("../catalog-scope", () => ({
 vi.mock("../use-photo-links", () => ({ usePhotoLinks: () => ({}) }));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ to, search, children, ...rest }: Record<string, unknown>) => (
-    <a href={`${String(to)}?return=${String((search as { return?: string })?.return ?? "")}`} {...rest}>
+    <a
+      href={`${String(to)}?return=${String((search as { return?: string })?.return ?? "")}`}
+      {...rest}
+    >
       {children as never}
     </a>
   ),
@@ -246,10 +249,7 @@ it("LD-9 the buyer's contact block: sign in, show, the revealed links, a refusal
       }}
     />,
   );
-  expect(screen.getByTestId("listing-contact-phone")).toHaveAttribute(
-    "href",
-    "tel:+251911000001",
-  );
+  expect(screen.getByTestId("listing-contact-phone")).toHaveAttribute("href", "tel:+251911000001");
   expect(screen.getByTestId("listing-contact-telegram")).toHaveAttribute(
     "href",
     "https://t.me/scratch",

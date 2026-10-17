@@ -431,48 +431,50 @@ export function ListingDetail(view: ListingDetailView) {
             {view.actor === "buyer" && view.contact !== undefined ? (
               <BuyerContact contact={view.contact} channels={channels} />
             ) : (
-            <ul className="divide-y divide-border text-sm">
-              {channels.map((channel) => {
-                const entry = ownValue(view.contactPref, channel);
-                const value =
-                  entry !== null && typeof entry === "object"
-                    ? ownValue(entry as Record<string, unknown>, "value")
-                    : undefined;
-                const label =
-                  channel === "phone"
-                    ? t("post.who.channel.phone")
-                    : channel === "phone2"
-                      ? t("post.who.channel.phone2")
-                      : channel === "telegram"
-                        ? t("post.who.channel.telegram")
-                        : t("post.who.channel.whatsapp");
-                return (
-                  <li
-                    key={channel}
-                    data-testid="listing-detail-channel"
-                    data-channel={channel}
-                    className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
-                  >
-                    <span
-                      className="me-auto text-foreground"
-                      data-testid="listing-detail-channel-label"
+              <ul className="divide-y divide-border text-sm">
+                {channels.map((channel) => {
+                  const entry = ownValue(view.contactPref, channel);
+                  const value =
+                    entry !== null && typeof entry === "object"
+                      ? ownValue(entry as Record<string, unknown>, "value")
+                      : undefined;
+                  const label =
+                    channel === "phone"
+                      ? t("post.who.channel.phone")
+                      : channel === "phone2"
+                        ? t("post.who.channel.phone2")
+                        : channel === "telegram"
+                          ? t("post.who.channel.telegram")
+                          : t("post.who.channel.whatsapp");
+                  return (
+                    <li
+                      key={channel}
+                      data-testid="listing-detail-channel"
+                      data-channel={channel}
+                      className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
                     >
-                      {label}
-                    </span>
-                    {view.actor === "owner" && typeof value === "string" && value.trim() !== "" && (
                       <span
-                        data-testid="listing-detail-channel-value"
-                        data-channel={channel}
-                        className="text-foreground"
+                        className="me-auto text-foreground"
+                        data-testid="listing-detail-channel-label"
                       >
-                        {value}
+                        {label}
                       </span>
-                    )}
-                    {view.channelAction?.(channel) ?? null}
-                  </li>
-                );
-              })}
-            </ul>
+                      {view.actor === "owner" &&
+                        typeof value === "string" &&
+                        value.trim() !== "" && (
+                          <span
+                            data-testid="listing-detail-channel-value"
+                            data-channel={channel}
+                            className="text-foreground"
+                          >
+                            {value}
+                          </span>
+                        )}
+                      {view.channelAction?.(channel) ?? null}
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
         )}

@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
-import {
-  revealContact,
-  type ContactState,
-} from "@/features/ad-page/contact";
+import { revealContact, type ContactState } from "@/features/ad-page/contact";
 import { countView } from "@/features/ad-page/count-view";
 import { useAuth } from "@/features/auth/use-auth";
 import { fill } from "@/features/posting/refusal-text";
@@ -109,7 +106,9 @@ function AdPage() {
     setContactState({ kind: "loading" });
     void revealContact(doc.public_id).then((answer) => {
       setContactState(
-        answer.ok ? { kind: "revealed", channels: answer.channels } : { kind: "refused", reason: answer.reason },
+        answer.ok
+          ? { kind: "revealed", channels: answer.channels }
+          : { kind: "refused", reason: answer.reason },
       );
     });
   };
