@@ -2204,7 +2204,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // EL-4 / G37 — reuse the held buyer, never change scratchHolder's lease default.
     const holder = async (wanted: Array<[string, string]>) => {
       const supabase = adminClient();
-      const old = await supabase.from("user_roles").delete().eq("user_id", buyer.id);
+      const old = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", buyer.id)
+        .in("role_id", roles);
       if (old.error)
         throw new Error(`[e2e:al31] clearing scratch grants failed: ${old.error.message}`);
       const name = `e2e_listings_role_${token()}`;

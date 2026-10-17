@@ -4305,6 +4305,8 @@ export type Database = {
       name_fold_latin: { Args: { p: string }; Returns: string }
       name_folds_protected: { Args: { p: string }; Returns: boolean }
       name_folds_rebuild: { Args: never; Returns: number }
+      name_near_protected: { Args: { p: string }; Returns: boolean }
+      name_one_edit: { Args: { a: string; b: string }; Returns: boolean }
       name_protected_folds: { Args: never; Returns: string[] }
       name_second_fold: { Args: { p_value: string }; Returns: string }
       new_public_id: { Args: never; Returns: string }

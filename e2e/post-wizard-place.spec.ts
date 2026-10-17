@@ -639,10 +639,9 @@ test.describe("POSTING WIZARD", () => {
       sheet.getByTestId("listing-detail-seller"),
       "PW-13: the buyer preview shows no seller block",
     ).toBeVisible();
-    await expect(
-      sheet.getByTestId("listing-detail-map"),
-      "PW-13: the buyer preview shows no map area",
-    ).toBeVisible();
+    await expect(sheet.getByTestId("listing-detail-map")).toHaveCount(0);
+    await expect(sheet.getByTestId("listing-detail-location")).toBeVisible();
+    await expect(sheet.getByTestId("listing-section-nav")).toHaveCount(0);
     await page.getByTestId("post-preview-close").click();
     await expect(sheet, "PW-13: the preview sheet would not close").toHaveCount(0);
 

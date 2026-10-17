@@ -43,9 +43,14 @@ export function SimilarAds({
         <h2 id="listing-similar-title" className="mb-3 text-base font-semibold text-foreground">
           {t("adPage.similar.title")}
         </h2>
-        <ul className="grid auto-rows-fr grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
-          {cards.map((listing) => (
-            <li key={listing.id}>
+        <ul className="grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
+          {cards.map((listing, index) => (
+            <li
+              key={listing.id}
+              className={
+                index >= 8 ? "hidden lg:block" : index >= 6 ? "hidden sm:block" : undefined
+              }
+            >
               <ListingCard listing={listing} photoUrl={coverOf(listing.coverPhotoId)} />
             </li>
           ))}

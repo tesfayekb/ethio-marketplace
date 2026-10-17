@@ -36,7 +36,7 @@ import {
  */
 const SNAP = 0.01;
 
-function snap(value: number): number {
+export function snap(value: number): number {
   return Math.round(value / SNAP) * SNAP;
 }
 

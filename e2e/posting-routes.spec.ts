@@ -1506,4 +1506,57 @@ test.describe("POSTING ROUTES", () => {
       expect(anonymous.status()).toBe(401);
     });
   });
+
+  test("PR-53 a seller or business name one letter off a protected organisation's name is refused as reserved; a short or exact-only handle is not widened; an ordinary name passes (DEC-191)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    for (const alias of ["telebiirr", "telebxrr", "dashem_bank", "safarikom", "telebirr"]) {
+      const answer = await postRoute(
+        page,
+        "/api/listings/alias",
+        { alias },
+        { token, country: "ET" },
+      );
+      expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
+      expect(answer.payload["ok"], JSON.stringify(answer.payload)).toBe(false);
+      expect(reasonsOf(answer.payload).map((refusal) => refusal.reason)).toContain("aliasReserved");
+    }
+    const short = await postRoute(
+      page,
+      "/api/listings/alias",
+      { alias: "awashh" },
+      { token, country: "ET" },
+    );
+    expect(short.status).toBe(200);
+    expect(short.payload["ok"], JSON.stringify(short.payload)).toBe(true);
+    expect(reasonsOf(short.payload).map((refusal) => refusal.reason)).not.toContain(
+      "aliasReserved",
+    );
+    const ordinary = await postRoute(
+      page,
+      "/api/listings/alias",
+      { alias: `e2epost${rand()}` },
+      { token, country: "ET" },
+    );
+    expect(ordinary.payload["ok"], JSON.stringify(ordinary.payload)).toBe(true);
+    const reserved = await postRoute(
+      page,
+      IDENTITY,
+      { sellerType: "business", businessName: "Dashem Bank" },
+      { token, country: "ET" },
+    );
+    expect(reserved.payload["ok"], JSON.stringify(reserved.payload)).toBe(false);
+    expect(reasonsOf(reserved.payload)).toContainEqual({
+      field: "business_name",
+      reason: "businessReserved",
+    });
+    const business = await postRoute(
+      page,
+      IDENTITY,
+      { sellerType: "business", businessName: "Selam Phones " + rand().replace(/[0-9]/g, "q") },
+      { token, country: "ET" },
+    );
+    expect(business.payload["ok"], JSON.stringify(business.payload)).toBe(true);
+  });
 });

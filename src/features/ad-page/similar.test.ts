@@ -48,7 +48,7 @@ afterEach(() => {
 });
 
 describe("SIM — similar ads read (D201 §12)", () => {
-  it("SIM-1 the query string: the leaf, the place when present, size 7", async () => {
+  it("SIM-1 the query string: the leaf, the place when present, size 11", async () => {
     const fetchMock = vi.fn().mockResolvedValue(ok(page([])));
     vi.stubGlobal("fetch", fetchMock);
     await similarListings("c-leaf", "place-1", "l-self");
@@ -56,26 +56,48 @@ describe("SIM — similar ads read (D201 §12)", () => {
     expect(url).toContain("/api/feed?");
     expect(url).toContain("category=c-leaf");
     expect(url).toContain("place=place-1");
-    expect(url).toContain("size=7");
+    expect(url).toContain("size=11");
     fetchMock.mockClear();
     await similarListings("c-leaf", null, "l-self");
     const noPlace = String(fetchMock.mock.calls[0]?.[0]);
     expect(noPlace).toContain("category=c-leaf");
     expect(noPlace).not.toContain("place=");
-    expect(noPlace).toContain("size=7");
+    expect(noPlace).toContain("size=11");
   });
 
-  it("SIM-2 the ad itself is dropped and the first six of seven kept", async () => {
+  it("SIM-2 the ad itself is dropped and the first ten of eleven kept", async () => {
     const cards = [
       card("l-self", "p-self"),
-      ...[1, 2, 3, 4, 5, 6, 7].map((n) => card(`l-${n}`, `p-${n}`)),
+      ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((n) => card(`l-${n}`, `p-${n}`)),
     ];
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok(page(cards))));
     const byId = await similarListings("c-leaf", null, "l-self");
-    expect(byId.map((one) => one.id)).toEqual(["l-1", "l-2", "l-3", "l-4", "l-5", "l-6"]);
+    expect(byId.map((one) => one.id)).toEqual([
+      "l-1",
+      "l-2",
+      "l-3",
+      "l-4",
+      "l-5",
+      "l-6",
+      "l-7",
+      "l-8",
+      "l-9",
+      "l-10",
+    ]);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok(page(cards))));
     const byPublicId = await similarListings("c-leaf", null, "p-self");
-    expect(byPublicId.map((one) => one.id)).toEqual(["l-1", "l-2", "l-3", "l-4", "l-5", "l-6"]);
+    expect(byPublicId.map((one) => one.id)).toEqual([
+      "l-1",
+      "l-2",
+      "l-3",
+      "l-4",
+      "l-5",
+      "l-6",
+      "l-7",
+      "l-8",
+      "l-9",
+      "l-10",
+    ]);
   });
 
   it("SIM-3 a 404/500 answer, an unparsable body and a thrown fetch each give []", async () => {

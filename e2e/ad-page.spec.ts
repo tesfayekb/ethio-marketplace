@@ -76,8 +76,12 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(signIn).toBeVisible();
     const href = await signIn.getAttribute("href");
     expect(href).not.toBeNull();
-    expect(href!.startsWith("/auth?return=")).toBe(true);
-    expect(decodeURIComponent(href!.slice("/auth?return=".length))).toBe(`${canonical}#contact`);
+    if (href === null) throw new Error("AP-9 contact link missing");
+    await expect(signIn).toHaveText(en["adPage.contact.link"]);
+    expect(href.startsWith("/auth?return=")).toBe(true);
+    expect(new URL(href, page.url()).searchParams.get("return")).toBe(
+      `${canonical}?reveal=1#contact`,
+    );
     await expect(page.locator("body")).not.toContainText("251911000001");
     expect(html).not.toContain("251911000001");
     expect(html).not.toContain('data-testid="listing-detail-channel"');
@@ -160,9 +164,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         .locator('section[data-testid="listing-detail-seller"]')
         .getByRole("heading", { level: 3 }),
     ).toHaveText(am["post.preview.sellerLabel"]);
-    await expect(page.getByTestId("listing-detail-contact").getByRole("heading")).toHaveText(
-      am["post.preview.contactLabel"],
-    );
+    await expect(page.getByTestId("listing-detail-contact").getByRole("heading")).toHaveCount(0);
+    await expect(page.getByTestId("listing-contact-sign-in")).toHaveText(am["adPage.contact.link"]);
     await page.goto((await address(draft)).canonical);
     await expect(page.getByTestId("ad-page-gone")).toBeVisible();
     await expect(page.getByTestId("ad-page-gone").getByRole("heading")).toHaveText(
@@ -438,10 +441,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await expect
         .poll(() => {
           const url = new URL(visitor.url());
-          return `${url.pathname}${url.hash}`;
+          return `${url.pathname}${url.search}${url.hash}`;
         })
         .toBe(`${canonical}#contact`);
       await expect(visitor.getByTestId("listing-detail-seller")).toBeInViewport();
+      await expect(visitor.getByTestId("listing-contact-phone")).toHaveText("+251911000001");
     } finally {
       await context.close();
     }
@@ -779,5 +783,194 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     // Every site page still ranks before the root name (B3).
     const auth = await page.request.get("/auth");
     expect(auth.status()).toBe(200);
+  });
+  test("AP-36 the layout follows the article's width: one column, two columns, desktop (D201 §5)", async ({
+    page,
+  }, testInfo) => {
+    const seller = await scratchSeller();
+    const key = `e2e-layout-${token()}`;
+    factKeys.push(key);
+    const attributeId = await seedAttribute(key, "text");
+    const linked = await adminClient()
+      .from("category_attribute_links")
+      .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
+    expect(linked.error).toBeNull();
+    const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" }, pin: true });
+    await seedPhotos(ad.id);
+    const exact = await adminClient()
+      .from("listings")
+      .update({ pin_precision: "exact", pin_show_lat: 8.9876543, pin_show_lng: 38.7612345 })
+      .eq("id", ad.id);
+    expect(exact.error).toBeNull();
+    await gotoReady(page, (await address(ad)).canonical);
+    await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
+    const check = async () => {
+      const article = await page.getByTestId("listing-detail").boundingBox();
+      const gallery = await page.getByTestId("listing-detail-gallery").boundingBox();
+      const headline = await page.getByTestId("listing-detail-headline").boundingBox();
+      const main = await page.getByTestId("listing-detail-specs").boundingBox();
+      const sellerBox = await page
+        .locator('section[data-testid="listing-detail-seller"]')
+        .boundingBox();
+      const location = await page.getByTestId("listing-detail-location").boundingBox();
+      if (!article || !gallery || !headline || !main || !sellerBox || !location)
+        throw new Error("AP-36 missing layout boxes");
+      if (article.width < 672) {
+        expect(headline.y).toBeGreaterThanOrEqual(gallery.y + gallery.height);
+        expect(sellerBox.y).toBeGreaterThanOrEqual(location.y + location.height);
+      } else if (article.width < 896) {
+        expect(Math.abs(gallery.width - article.width)).toBeLessThanOrEqual(1);
+        expect(main.y).toBeGreaterThanOrEqual(gallery.y + gallery.height);
+        expect(headline.y).toBeGreaterThanOrEqual(gallery.y + gallery.height);
+        expect(headline.x).toBeGreaterThan(main.x + main.width);
+      } else {
+        expect(headline.x).toBeGreaterThan(gallery.x + gallery.width);
+        expect(Math.abs(headline.y - gallery.y)).toBeLessThanOrEqual(8);
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
+      return article.width;
+    };
+    await check();
+    if (testInfo.project.name === "desktop-1280") {
+      const original = page.viewportSize();
+      await page.setViewportSize({ width: 1100, height: 900 });
+      const width = await check();
+      expect(width).toBeGreaterThanOrEqual(672);
+      expect(width).toBeLessThan(896);
+      if (original) await page.setViewportSize(original);
+      await check();
+    }
+  });
+
+  test("AP-37 the in-page bar scrolls to each section and stays under the sub-band", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360");
+    const seller = await scratchSeller();
+    const key = `e2e-sections-${token()}`;
+    factKeys.push(key);
+    const attributeId = await seedAttribute(key, "text");
+    const linked = await adminClient()
+      .from("category_attribute_links")
+      .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
+    expect(linked.error).toBeNull();
+    const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" } });
+    await seedPhotos(ad.id);
+    await gotoReady(page, (await address(ad)).canonical);
+    const bar = page.getByTestId("listing-section-nav");
+    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    const locationItem = bar.locator('[data-target="location"]');
+    await locationItem.click();
+    await expect(locationItem).toHaveAttribute("aria-current", "true");
+    await expect
+      .poll(async () => {
+        const heading = await page
+          .getByTestId("listing-detail-location")
+          .getByRole("heading")
+          .boundingBox();
+        const nav = await bar.boundingBox();
+        return heading && nav ? heading.y - nav.y - nav.height : -1;
+      })
+      .toBeGreaterThanOrEqual(0);
+    await expect
+      .poll(async () => {
+        const nav = await bar.boundingBox();
+        const band = await page.getByTestId("shell-subband").boundingBox();
+        return nav && band ? Math.abs(nav.y - band.y - band.height) : 100;
+      })
+      .toBeLessThanOrEqual(8);
+    const sold = await seed(seller, "sold", { soldAt: -1 });
+    await gotoReady(page, (await address(sold)).canonical);
+    await expect(page.getByTestId("listing-section-nav")).toHaveCount(0);
+  });
+
+  test("AP-38 the phone's contact bar", async ({ page }, testInfo) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active", {
+      contactPref: { phone: { show: true, value: "+251911000001" } },
+    });
+    const { canonical } = await address(ad);
+    await gotoReady(page, canonical);
+    const bar = page.getByTestId("listing-contact-bar");
+    if (testInfo.project.name === "desktop-1280") {
+      await expect(bar).toBeHidden();
+      return;
+    }
+    const action = page.getByTestId("listing-contact-bar-action");
+    await expect(action).toHaveAttribute("href", /auth\?return=/);
+    const href = await action.getAttribute("href");
+    if (href === null) throw new Error("AP-38 contact return missing");
+    expect(new URL(href, page.url()).searchParams.get("return")).toBe(
+      `${canonical}?reveal=1#contact`,
+    );
+    const box = await bar.boundingBox();
+    const bottom = await page.getByTestId("bottom-bar").boundingBox();
+    if (!box || !bottom) throw new Error("AP-38 bar boxes missing");
+    expect(Math.abs(box.y + box.height - bottom.y)).toBeLessThanOrEqual(1);
+    const buyer = await leaseUser();
+    await signInViaSession(page, buyer.email, buyer.password);
+    await gotoReady(page, canonical);
+    await expect(action).toBeEnabled();
+    await action.click();
+    await expect(page.getByTestId("listing-contact-phone")).toHaveText("+251911000001");
+    const reveals = await adminClient()
+      .from("contact_reveals")
+      .select("listing_id")
+      .eq("viewer_id", buyer.id)
+      .eq("listing_id", ad.id);
+    expect(reveals.error).toBeNull();
+    expect(reveals.data).toHaveLength(1);
+    const sold = await seed(seller, "sold", { soldAt: -1 });
+    await gotoReady(page, (await address(sold)).canonical);
+    await expect(bar).toHaveCount(0);
+  });
+
+  test("AP-39 the map: only with a pin; Enlarge opens a movable map and closes", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const noPin = await seed(seller);
+    await gotoReady(page, (await address(noPin)).canonical);
+    await expect(page.getByTestId("listing-detail-map")).toHaveCount(0);
+    await expect(page.getByTestId("listing-map-enlarge")).toHaveCount(0);
+    const exact = await seed(seller, "active", { pin: true });
+    const saved = await adminClient()
+      .from("listings")
+      .update({
+        pin_precision: "exact",
+        pin_show_lat: 8.9876543,
+        pin_show_lng: 38.7612345,
+        pin_zoom: 14,
+      })
+      .eq("id", exact.id);
+    expect(saved.error).toBeNull();
+    await gotoReady(page, (await address(exact)).canonical);
+    await page.getByTestId("listing-map-enlarge").click();
+    const dialog = page.getByTestId("listing-map-dialog");
+    const large = page.getByTestId("listing-map-large");
+    await expect(dialog).toBeVisible();
+    await expect(large).toHaveAttribute("data-zoom", "14");
+    await large.locator(".leaflet-control-zoom-in").click();
+    await expect(large).toHaveAttribute("data-zoom", "15");
+    await page.getByTestId("listing-map-close").click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByTestId("listing-detail-map")).toBeVisible();
+    const approx = await seed(seller, "active", { pin: true });
+    await gotoReady(page, (await address(approx)).canonical);
+    await page.getByTestId("listing-map-enlarge").click();
+    await expect(large).toHaveAttribute("data-zoom", "13");
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const zoomIn = large.locator(".leaflet-control-zoom-in");
+      if ((await zoomIn.getAttribute("aria-disabled")) !== "true") {
+        const before = Number(await large.getAttribute("data-zoom"));
+        await zoomIn.click();
+        await expect(large).toHaveAttribute("data-zoom", String(Math.min(before + 1, 15)));
+      }
+    }
+    await expect(large).toHaveAttribute("data-zoom", "15");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
   });
 });

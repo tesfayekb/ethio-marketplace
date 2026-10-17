@@ -66,6 +66,8 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 ## Tests
 
+Turn 18: AP-36…AP-39, LD-15…LD-17; AP-9, AP-13, AP-23, PW-13, SIM-1, SIM-2 and the similar-ads unit test changed.
+
 Turn 14: AP-30, AP-31, SH-1…SH-5, LD-12, LD-13; changed AT-15, AT-18, AP-25, AP-17. AP-24 is the unchanged cursor proof.
 
 Turn 15: AP-32, AP-33, SIM-1…SIM-4.
@@ -132,3 +134,5 @@ Turn 16: AP-34, AP-35, SL-1…SL-4, LD-14, AL-4 (e2e/admin-listings.spec.ts — 
 
 Turn 17 (bundle 19, DEC-107/DEC-108; no migration, no string): the seller's page moved from /seller/<key> to ethio.com/<name> (src/routes/\$name.tsx; src/routes/seller.\$key.tsx deleted). The loader 301s an upper-cased name to the lower-cased address and 404s an unknown or malformed one (src/server/seller-page.ts — a malformed name never reaches the database; unknownSeller means 404; any other door error throws, never a phantom 404, F4). The router ranks every static first segment before \$name (isFrameMoreSpecific compares statics first — node_modules/@tanstack/router-core/dist/esm/new-process-route-tree.js); scripts/check-root-routes.ts allows \$name as the only dynamic first segment.
 Tests: AP-35 (e2e/ad-page.spec.ts) — the link's new address, the 301, 404s for unknown/malformed/old /seller address, /auth still its own page; LD-14 (listing-detail.test.tsx) expects /<name>; the guard's self-test is its proof.
+
+Turn 18 — the page follows D201 §5's drawings (docs/design/d201/) by the article's own width (container queries: one column below 42rem, two columns from 42rem, desktop from 56rem — because the rail and the previews make the screen's width the wrong measure); the blocks are cards; the in-page bar (buyer only; hidden in the two-column layout); the phone's contact bar on the app's bottom bar; "Contact seller" before "All ads by this seller", signing in and returning with `reveal=1` — the page reveals once and removes it; the Location card; the map only with a pin, Enlarge opening a movable map (an approximate pin to zoom 15 at most); similar ads in the home feed's grid, two full rows (6, 8, 10).
