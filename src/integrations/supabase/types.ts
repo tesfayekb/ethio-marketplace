@@ -455,6 +455,7 @@ export type Database = {
           created_at: string
           default_value: Json | null
           display_order: number
+          fact_rank: number | null
           id: string
           is_filterable: boolean
           is_required: boolean
@@ -470,6 +471,7 @@ export type Database = {
           created_at?: string
           default_value?: Json | null
           display_order?: number
+          fact_rank?: number | null
           id?: string
           is_filterable?: boolean
           is_required?: boolean
@@ -485,6 +487,7 @@ export type Database = {
           created_at?: string
           default_value?: Json | null
           display_order?: number
+          fact_rank?: number | null
           id?: string
           is_filterable?: boolean
           is_required?: boolean
@@ -2924,6 +2927,7 @@ export type Database = {
           default_value: Json
           depends_on_key: string
           display_order: number
+          fact_rank: number
           is_filterable: boolean
           is_required: boolean
           link_id: string
@@ -2972,6 +2976,7 @@ export type Database = {
           default_value: Json
           depends_on_key: string
           display_order: number
+          fact_rank: number
           inherited: boolean
           is_filterable: boolean
           is_required: boolean
@@ -3338,6 +3343,10 @@ export type Database = {
           p_lang: string
           p_type: string
         }
+        Returns: undefined
+      }
+      admin_set_fact_attributes: {
+        Args: { p_category_id: string; p_ordered_attribute_ids: string[] }
         Returns: undefined
       }
       admin_set_key_context: {
@@ -3796,6 +3805,7 @@ export type Database = {
           attribute_id: string
           card_rank: number
           display_order: number
+          fact_rank: number
           inherited: boolean
           is_filterable: boolean
           is_required: boolean
