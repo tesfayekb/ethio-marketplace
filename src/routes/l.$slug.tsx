@@ -13,8 +13,7 @@ const readAdPageFn = createServerFn({ method: "GET" })
     if (
       !input ||
       typeof input.slug !== "string" ||
-      input.slug.length === 0 ||
-      input.slug.length >= 200
+      input.slug.length === 0
     ) {
       throw new Error("invalid ad address");
     }

@@ -48,6 +48,7 @@ function isStrOrNull(value: unknown): value is string | null {
 /** The door's answer, or null on any mismatch (F4). */
 export function parseMyListing(value: unknown): MyListing | null {
   if (!isObject(value)) return null;
+  // M1b: the shared row parser retains publicId, defaulting older answers to null.
   const listing = parseRow(value.listing);
   if (listing === null) return null;
   const group = LISTING_GROUPS.find((entry) => entry === value.group);

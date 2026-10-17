@@ -13,6 +13,7 @@ import {
 function card(id: string, step: number, extra: Record<string, unknown> = {}) {
   return {
     id,
+    publicId: null,
     title: `t-${id}`,
     tier: "regular",
     priceAmount: 100,
@@ -61,6 +62,13 @@ describe("parseFeedPage", () => {
     const { coverPhotoId: _absent, ...bare } = card("c", 1);
     expect(parseFeedPage(page([bare]))?.cards[0]?.coverPhotoId).toBeNull();
     expect(parseFeedPage(page([card("d", 1, { coverPhotoId: 7 })]))).toBeNull();
+  });
+
+  it("FE-15 a card without publicId parses with null, a card with one keeps it", () => {
+    const { publicId: _absent, ...bare } = card("a", 1);
+    expect(parseFeedPage(page([bare]))?.cards[0]?.publicId).toBeNull();
+    expect(parseFeedPage(page([card("b", 1, { publicId: "abcdefghjk" })]))?.cards[0]?.publicId).toBe("abcdefghjk");
+    expect(parseFeedPage(page([card("c", 1, { publicId: 7 })]))).toBeNull();
   });
 
   it("FP-12 keeps a card's marks, reads a card without them as a live ad with none, and refuses a wrong one (bundle 16 turn 3c)", () => {

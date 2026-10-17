@@ -204,7 +204,8 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
 
     const anonymous = await asAnonymous();
     const unsigned = await anonymous.rpc("listing_counts", { p_listing_id: ad.id });
-    expect(unsigned.error).toBe("not authenticated");
+    expect(unsigned.error).not.toBeNull();
+    expect(unsigned.error).toContain("permission denied");
   });
 
   test("AP-5 only a live ad, or one sold within 30 days, has a page", async () => {

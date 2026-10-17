@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-5.md (bundle 19 — turn 5: the buyer's ad page `/l/$slug` server-rendered from public_listing, the gone page, the 301 to the canonical, the breadcrumb; three strings; AP-9…AP-13; no migration). Next: turn 6 — M1b (feed_page, my_listings and my_listing carry public_id), the feed card as a link, the seller's link to his ad's page; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-6.md (bundle 19 — turn 6: INC-678's fix of the page's mapping; M1b by the migration tool (DEC-188), mark 20261018140000 — feed_page, my_listings and my_listing carry publicId; the feed card as a link; the seller's link to the buyer's view; one string). Next: turn 7 — three actors, buyer previews and owner counters; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -331,7 +331,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 3 (docs/governance/briefs/bundle-19-turn-3.md; no migration; no new string) — the address helper: `/l/<words>-<id>` built and parsed (src/features/ad-page/address.ts, LA-1…LA-6); placed before M1 so the executor works while M1's proofs are written
   - [ ] Turn 4 (docs/governance/briefs/bundle-19-turn-4.md) — M1: public_id, public_listing, listing counters and listing_read
   - [ ] Turn 5 (docs/governance/briefs/bundle-19-turn-5.md; no migration; three strings) — the buyer's page `/l/$slug` server-rendered from public_listing, the gone page, the 301 to the canonical, the breadcrumb (AP-9…AP-13)
-  - [ ] Turn 6 (docs/governance/briefs/bundle-19-turn-6.md) — M1b: feed_page, my_listings and my_listing carry public_id; the feed card as a link; the seller's link to his ad's page
+  - [ ] Turn 6 (docs/governance/briefs/bundle-19-turn-6.md) — M1b: feed_page, my_listings and my_listing carry public_id; the feed card as a link; the seller's link to his ad's page; INC-678's fix of turn 5's mapping (the options key; the null pin)
   - [ ] Turn 7 (docs/governance/briefs/bundle-19-turn-7.md) — three actors, buyer previews and owner counters
   - [ ] Turn 8 (docs/governance/briefs/bundle-19-turn-8.md) — M2: fact_rank and the key-facts strip
   - [ ] Turn 9 (docs/governance/briefs/bundle-19-turn-9.md) — the contact block and sign-in return

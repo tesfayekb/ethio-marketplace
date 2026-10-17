@@ -3,6 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Copy, Eye, EyeOff, Pencil } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
+import { canonicalSegment } from "@/features/ad-page/address";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageCard } from "@/components/shell/page-card";
@@ -398,6 +399,14 @@ export function MyListingPage({ listingId }: { listingId: string }) {
         title={<span className="break-words">{row.title ?? t("myListings.untitled")}</span>}
       />
       <div data-testid="my-listing-actions" className="mt-3 min-w-0 space-y-2">
+        {typeof row.publicId === "string" && (row.status === "active" || row.status === "sold") ? (
+          <Button asChild variant="outline" size="touch">
+            <Link to="/l/$slug" params={{ slug: canonicalSegment(row.title ?? "", row.publicId) }} target="_blank" rel="noopener" data-testid="my-listing-open-public">
+              <Eye aria-hidden="true" />
+              {t("myListings.ad.openPublic")}
+            </Link>
+          </Button>
+        ) : null}
         {info !== null ? (
           <p data-testid="my-listing-info" className="text-sm text-muted-foreground">
             {info}

@@ -45,6 +45,7 @@ export function ribbonOf(ad: {
 /** One card — exactly the fields /api/feed returns. */
 export interface FeedListing {
   id: string;
+  publicId: string | null;
   title: string;
   tier: ListingTier;
   priceAmount: number | null;
@@ -107,6 +108,8 @@ function parseCard(value: unknown, ladderLength: number): FeedListing | null {
   if (!isStrOrNull(v.priceUnit) || !isStrOrNull(v.priceUnitText)) return null;
   if (typeof v.photosSoon !== "boolean") return null;
   // INC-606 — a door from before the cover was added answers without it: no photo.
+  const publicId = v.publicId === undefined ? null : v.publicId;
+  if (!isStrOrNull(publicId)) return null;
   const coverPhotoId = v.coverPhotoId === undefined ? null : v.coverPhotoId;
   if (!isStrOrNull(coverPhotoId)) return null;
   // Bundle 16 turn 3c — an answer from before the marks (a page cached a few minutes) has none: a live ad, no mark.
@@ -128,6 +131,7 @@ function parseCard(value: unknown, ladderLength: number): FeedListing | null {
   if (v.step < 1 || v.step > ladderLength) return null;
   return {
     id: v.id,
+    publicId,
     title: v.title,
     tier: v.tier as ListingTier,
     priceAmount: v.priceAmount,
