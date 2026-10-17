@@ -287,7 +287,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     // sender, so no writer of the queue can send below it.
     if (queued < 1 && valuesRef.current.categoryId === null) return false;
     const forStep = Math.max(1, queued);
-    const generation = claimTokenRef.current;
+    </antmlit_parameter>
     const claimed = strictRef.current;
     const strict = claimed !== null && forStep >= claimed;
     const token = strict ? claimTokenRef.current : 0;

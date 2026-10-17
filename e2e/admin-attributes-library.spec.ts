@@ -991,7 +991,7 @@ test.describe("C3 attributes console", () => {
         "attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant (read-only),direct_link_count (read-only),unit_am",
       );
       expect(links.slice(1).split("\r\n")[0]).toBe(
-        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value,visible_when,display_order",
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value,visible_when,display_order,fact_rank",
       );
 
       // FORMULA SAFETY: the "="-opening label is prefixed with a single quote
@@ -1224,7 +1224,7 @@ test.describe("C3 attributes console", () => {
       const links = texts.get(`${fixture.parentSlug}-links.csv`)!;
       const lines = links.slice(1).split("\r\n").filter(Boolean);
       expect(lines[0]).toBe(
-        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value,visible_when,display_order",
+        "category_path (read-only),category_slug,attribute_key,is_required,is_filterable,card_rank,origin (read-only),allowed_options,default_value,visible_when,display_order,fact_rank",
       );
       // ONLY the subtree: every data row's category_slug is parent or child.
       const slugs = new Set(lines.slice(1).map((line) => line.split(",")[1]));
