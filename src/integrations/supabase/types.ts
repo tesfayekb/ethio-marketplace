@@ -1406,6 +1406,77 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_reports: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          home_country_code: string | null
+          id: string
+          listing_id: string
+          note: string | null
+          outcome: string | null
+          reason: string
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          home_country_code?: string | null
+          id?: string
+          listing_id: string
+          note?: string | null
+          outcome?: string | null
+          reason: string
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          home_country_code?: string | null
+          id?: string
+          listing_id?: string
+          note?: string | null
+          outcome?: string | null
+          reason?: string
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_reports_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "listing_reports_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "listing_reports_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       listing_revisions: {
         Row: {
           actor: string | null
@@ -3246,6 +3317,7 @@ export type Database = {
         }[]
       }
       admin_listing_detail: { Args: { p_listing_id: string }; Returns: Json }
+      admin_listing_reports: { Args: { p_listing_id: string }; Returns: Json }
       admin_machine_entity_translation: {
         Args: {
           p_field: string
@@ -3280,6 +3352,10 @@ export type Database = {
       admin_move_location: {
         Args: { p_id: string; p_new_parent_id: string }
         Returns: undefined
+      }
+      admin_open_report_counts: {
+        Args: { p_listing_ids: string[] }
+        Returns: Json
       }
       admin_preview_attribute_import: {
         Args: { p_definitions: Json; p_links: Json; p_scope?: string }
@@ -4245,6 +4321,10 @@ export type Database = {
           p_warnings?: string[]
           p_width: number
         }
+        Returns: Json
+      }
+      report_listing: {
+        Args: { p_note?: string; p_public_id: string; p_reason: string }
         Returns: Json
       }
       require_step_up_if_needed: {
