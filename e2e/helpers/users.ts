@@ -263,6 +263,9 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
   if (overrides.error) fail("rate overrides", overrides.error.message);
   const reveals = await supabase.from("contact_reveals").delete().eq("viewer_id", id);
   if (reveals.error) fail("contact reveals", reveals.error.message);
+  // Bundle 19 turn 11 (M5) — the sellers-cap flags a day of reveals raised.
+  const flags = await supabase.from("reveal_flags").delete().eq("viewer_id", id);
+  if (flags.error) fail("reveal flags", flags.error.message);
   const aliases = await supabase.from("alias_history").delete().eq("user_id", id);
   if (aliases.error) fail("alias history", aliases.error.message);
   const places = await supabase.from("seller_places").delete().eq("user_id", id);
