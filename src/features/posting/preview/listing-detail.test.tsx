@@ -20,6 +20,13 @@ vi.mock("../catalog-scope", () => ({
   useCatalogScope: () => ({ country: "country", categoryPath: () => null, moveTo: null }),
 }));
 vi.mock("../use-photo-links", () => ({ usePhotoLinks: () => ({}) }));
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ to, search, children, ...rest }: Record<string, unknown>) => (
+    <a href={`${String(to)}?return=${String((search as { return?: string })?.return ?? "")}`} {...rest}>
+      {children as never}
+    </a>
+  ),
+}));
 vi.mock("./photo-gallery", () => ({ PhotoGallery: () => null }));
 vi.mock("../map/map-preview", () => ({ MapPreview: () => null }));
 
@@ -192,6 +199,107 @@ it("LD-7 the strip under the price, for every actor, from the ranks; the Details
   );
   expect(screen.queryByTestId("listing-key-facts")).toBeNull();
   expect(screen.getAllByTestId("listing-detail-spec")).toHaveLength(3);
+});
+
+it("LD-9 the buyer's contact block: sign in, show, the revealed links, a refusal (bundle 19 turn 11)", () => {
+  const contact = {
+    viewer: "signedOut" as const,
+    signInTo: { to: "/auth" as const, search: { return: "/l/scratch#contact" } },
+    state: { kind: "idle" as const },
+    onReveal: () => {},
+    whatsappText: "I'm interested in your ethio.com ad: /l/scratch",
+  };
+  const { rerender } = render(<ListingDetail {...BASE} actor="buyer" contact={contact} />);
+  expect(screen.getByTestId("listing-contact-sign-in")).toHaveTextContent(
+    en["adPage.contact.signIn"],
+  );
+  expect(screen.queryByTestId("listing-detail-channel")).toBeNull();
+  expect(screen.queryByTestId("listing-contact-show")).toBeNull();
+
+  // Unknown (first paint): the heading alone, no link, no rows.
+  rerender(<ListingDetail {...BASE} actor="buyer" contact={{ ...contact, viewer: "unknown" }} />);
+  expect(screen.queryByTestId("listing-contact-sign-in")).toBeNull();
+  expect(screen.queryByTestId("listing-detail-channel")).toBeNull();
+
+  // Signed in, idle: the shown channels' names and Show contact, never a value.
+  rerender(<ListingDetail {...BASE} actor="buyer" contact={{ ...contact, viewer: "signedIn" }} />);
+  expect(channel("phone")).toHaveTextContent(en["post.who.channel.phone"]);
+  expect(channel("telegram")).toHaveTextContent(en["post.who.channel.telegram"]);
+  expect(channel("phone2")).toBeUndefined();
+  expect(screen.queryByTestId("listing-detail-channel-value")).toBeNull();
+  const show = screen.getByTestId("listing-contact-show");
+  expect(show).toHaveTextContent(en["adPage.contact.show"]);
+  expect(show).toBeEnabled();
+
+  // Revealed: the values as links, the button gone; a channel the door hid stays a name.
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      contact={{
+        ...contact,
+        viewer: "signedIn",
+        state: {
+          kind: "revealed",
+          channels: { phone: "+251911000001", telegram: "@scratch" },
+        },
+      }}
+    />,
+  );
+  expect(screen.getByTestId("listing-contact-phone")).toHaveAttribute(
+    "href",
+    "tel:+251911000001",
+  );
+  expect(screen.getByTestId("listing-contact-telegram")).toHaveAttribute(
+    "href",
+    "https://t.me/scratch",
+  );
+  expect(screen.queryByTestId("listing-contact-show")).toBeNull();
+
+  // Refused: the rows stay, the button stays enabled, the sentence names the rule.
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      contact={{
+        ...contact,
+        viewer: "signedIn",
+        state: { kind: "refused", reason: "sellersCapReached" },
+      }}
+    />,
+  );
+  expect(screen.getByTestId("listing-contact-refusal")).toHaveTextContent(
+    en["adPage.contact.sellersCap"],
+  );
+  expect(screen.getByTestId("listing-contact-show")).toBeEnabled();
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      contact={{
+        ...contact,
+        viewer: "signedIn",
+        state: { kind: "refused", reason: "rateLimited" },
+      }}
+    />,
+  );
+  expect(screen.getByTestId("listing-contact-refusal")).toHaveTextContent(
+    en["adPage.contact.rateLimited"],
+  );
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      contact={{
+        ...contact,
+        viewer: "signedIn",
+        state: { kind: "refused", reason: "listingNotAvailable" },
+      }}
+    />,
+  );
+  expect(screen.getByTestId("listing-contact-refusal")).toHaveTextContent(
+    en["adPage.contact.failed"],
+  );
 });
 
 it("LD-8 a sold ad keeps the seller card and loses the contact block", () => {
