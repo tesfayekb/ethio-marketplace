@@ -1009,17 +1009,17 @@ test.describe("C3 attributes console", () => {
       const childRow = links.split("\r\n").find((line) => line.includes(`,${childSlug},${key},`));
       expect(childRow, "AT-15 the inherited link is missing from links.csv").toBeTruthy();
       /**
-       * The origin is no longer the last cell: the FOUR per-link cells trail it
-       * (`allowed_options`, `default_value`, `visible_when`, `display_order` —
-       * R-GATE echoed the last two). Only the order carries a value here.
+       * The origin is no longer the last cell: the FIVE per-link cells trail it
+       * (`allowed_options`, `default_value`, `visible_when`, `display_order`, `fact_rank` —
+       * fact_rank empty unless the link is ranked). Only the order carries a value here.
        */
       expect(childRow!, `AT-15 the inherited row's trailing cells: ${childRow}`).toMatch(
-        new RegExp(`,${parentSlug},,,,\\d+$`),
+        new RegExp(`,${parentSlug},,,,\\d+,$`),
       );
       // The parent's own row names ITSELF as the origin.
       const parentRow = links.split("\r\n").find((line) => line.includes(`,${parentSlug},${key},`));
       expect(parentRow!, `AT-15 the parent row's trailing cells: ${parentRow}`).toMatch(
-        new RegExp(`,${parentSlug},,,,\\d+$`),
+        new RegExp(`,${parentSlug},,,,\\d+,$`),
       );
     } finally {
       await supabase.from("category_attribute_links").delete().eq("attribute_id", attributeId);
@@ -1233,10 +1233,10 @@ test.describe("C3 attributes console", () => {
         line.includes(`,${fixture.childSlug},${fixture.keyA},`),
       );
       expect(childRow, "AT-18 the inherited row is missing").toBeTruthy();
-      // The origin is no longer the last cell: the FOUR per-link cells trail it
+      // The origin is no longer the last cell: the FIVE per-link cells trail it
       // (R-GATE added `visible_when` and `display_order`; only the order has a value).
       expect(childRow!, `AT-18 the inherited row's trailing cells: ${childRow}`).toMatch(
-        new RegExp(`,${fixture.parentSlug},,,,\\d+$`),
+        new RegExp(`,${fixture.parentSlug},,,,\\d+,$`),
       );
     } finally {
       await fixture.destroy();

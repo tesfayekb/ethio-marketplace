@@ -851,10 +851,13 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     });
     expect(buyerInsert.error).not.toBeNull();
 
-    for (const fn of ["save_listing", "unsave_listing", "listing_saved", "my_saved_listings"]) {
+    for (const fn of ["save_listing", "unsave_listing", "listing_saved"]) {
       const answer = await anonymous.rpc(fn, { p_public_id: idA });
       expect(answer.error).toContain("permission denied");
     }
+
+    const savedList = await anonymous.rpc("my_saved_listings", { p_after: null, p_size: 1 });
+    expect(savedList.error).toContain("permission denied");
 
     const dialed = await adminClient().from("rate_overrides").insert({
       user_id: buyerPerson.id,
