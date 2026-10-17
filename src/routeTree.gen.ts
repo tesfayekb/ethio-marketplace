@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as NameRouteImport } from './routes/$name'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -46,7 +47,6 @@ import { Route as DevTallRouteImport } from './routes/dev.tall'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as MyListingsListingIdRouteImport } from './routes/my-listings_.$listingId'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
-import { Route as SellerKeyRouteImport } from './routes/seller.$key'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 import { Route as AdminListingsListingIdRouteImport } from './routes/admin.listings_.$listingId'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
@@ -89,6 +89,11 @@ import { Route as ApiListingsPhotosIdRouteImport } from './routes/api/listings/p
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NameRoute = NameRouteImport.update({
+  id: '/$name',
+  path: '/$name',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -269,11 +274,6 @@ const MyListingsListingIdRoute = MyListingsListingIdRouteImport.update({
 const PostListingIdRoute = PostListingIdRouteImport.update({
   id: '/post_/$listingId',
   path: '/post/$listingId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SellerKeyRoute = SellerKeyRouteImport.update({
-  id: '/seller/$key',
-  path: '/seller/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminImpersonationSessionIdRoute =
@@ -478,6 +478,7 @@ const ApiListingsPhotosIdRoute = ApiListingsPhotosIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$name': typeof NameRoute
   '/account': typeof AccountRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
@@ -513,7 +514,6 @@ export interface FileRoutesByFullPath {
   '/l/$slug': typeof LSlugRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
-  '/seller/$key': typeof SellerKeyRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
@@ -556,6 +556,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$name': typeof NameRoute
   '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
   '/my-listings': typeof MyListingsRoute
@@ -590,7 +591,6 @@ export interface FileRoutesByTo {
   '/l/$slug': typeof LSlugRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
-  '/seller/$key': typeof SellerKeyRoute
   '/admin': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
@@ -634,6 +634,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$name': typeof NameRoute
   '/account': typeof AccountRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
@@ -669,7 +670,6 @@ export interface FileRoutesById {
   '/l/$slug': typeof LSlugRoute
   '/my-listings_/$listingId': typeof MyListingsListingIdRoute
   '/post_/$listingId': typeof PostListingIdRoute
-  '/seller/$key': typeof SellerKeyRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/listings_/$listingId': typeof AdminListingsListingIdRoute
@@ -714,6 +714,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$name'
     | '/account'
     | '/admin'
     | '/auth'
@@ -749,7 +750,6 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/my-listings/$listingId'
     | '/post/$listingId'
-    | '/seller/$key'
     | '/admin/'
     | '/admin/impersonation/$sessionId'
     | '/admin/listings/$listingId'
@@ -792,6 +792,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$name'
     | '/account'
     | '/auth'
     | '/my-listings'
@@ -826,7 +827,6 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/my-listings/$listingId'
     | '/post/$listingId'
-    | '/seller/$key'
     | '/admin'
     | '/admin/impersonation/$sessionId'
     | '/admin/listings/$listingId'
@@ -869,6 +869,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$name'
     | '/account'
     | '/admin'
     | '/auth'
@@ -904,7 +905,6 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/my-listings_/$listingId'
     | '/post_/$listingId'
-    | '/seller/$key'
     | '/admin/'
     | '/admin/impersonation_/$sessionId'
     | '/admin/listings_/$listingId'
@@ -948,6 +948,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  NameRoute: typeof NameRoute
   AccountRoute: typeof AccountRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
@@ -969,7 +970,6 @@ export interface RootRouteChildren {
   LSlugRoute: typeof LSlugRoute
   MyListingsListingIdRoute: typeof MyListingsListingIdRoute
   PostListingIdRoute: typeof PostListingIdRoute
-  SellerKeyRoute: typeof SellerKeyRoute
   ApiCatalogFindRoute: typeof ApiCatalogFindRoute
   ApiCategoriesTreeRoute: typeof ApiCategoriesTreeRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
@@ -1007,6 +1007,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$name': {
+      id: '/$name'
+      path: '/$name'
+      fullPath: '/$name'
+      preLoaderRoute: typeof NameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -1259,13 +1266,6 @@ declare module '@tanstack/react-router' {
       path: '/post/$listingId'
       fullPath: '/post/$listingId'
       preLoaderRoute: typeof PostListingIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/seller/$key': {
-      id: '/seller/$key'
-      path: '/seller/$key'
-      fullPath: '/seller/$key'
-      preLoaderRoute: typeof SellerKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/impersonation_/$sessionId': {
@@ -1616,6 +1616,7 @@ const ApiLocationsRouteWithChildren = ApiLocationsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  NameRoute: NameRoute,
   AccountRoute: AccountRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
@@ -1637,7 +1638,6 @@ const rootRouteChildren: RootRouteChildren = {
   LSlugRoute: LSlugRoute,
   MyListingsListingIdRoute: MyListingsListingIdRoute,
   PostListingIdRoute: PostListingIdRoute,
-  SellerKeyRoute: SellerKeyRoute,
   ApiCatalogFindRoute: ApiCatalogFindRoute,
   ApiCategoriesTreeRoute: ApiCategoriesTreeRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,

@@ -11,7 +11,7 @@ import { useI18n } from "@/i18n";
 import { useSellerFeed } from "./use-seller-feed";
 
 /**
- * Bundle 19 turn 16 (D201 §12) — the seller's ads page, /seller/<key>. The key
+ * Bundle 19 turn 17 — the seller's ads page, ethio.com/<name> (DEC-108). The key
  * is the seller's alias lower-cased, never an id. The grid and cards are the
  * feed's own (src/components/marketplace/feed.tsx): three a row on a phone,
  * four from 640 px, five from 1024 px; the next page loads when the end of the

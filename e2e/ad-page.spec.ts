@@ -754,17 +754,30 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await page.goto(canonical);
     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
     const link = page.getByTestId("listing-seller-all-ads");
-    await expect(link).toHaveAttribute("href", `/seller/${key}`);
+    await expect(link).toHaveAttribute("href", `/${key}`);
     await link.click();
     await expect(page.getByTestId("seller-page-title")).toContainText(seller.alias);
     await expect(page.getByTestId("seller-page-card")).toHaveCount(3);
 
-    // An unknown key says not found; the door refuses it too.
-    await page.goto(`/seller/nobody_${token()}`);
-    await expect(page.getByTestId("seller-page-not-found")).toBeVisible();
+    // The address is the name lower-cased: an upper-case letter redirects 301.
+    const upper = key.charAt(0).toUpperCase() + key.slice(1);
+    const moved = await page.request.get(`/${upper}`, { maxRedirects: 0 });
+    expect(moved.status()).toBe(301);
+    expect(moved.headers()["location"]).toBe(`/${key}`);
+
+    // An unknown or malformed name is a 404; the door refuses an unknown key too.
+    const unknown = await page.request.get(`/nobody_${token()}`);
+    expect(unknown.status()).toBe(404);
+    expect((await page.request.get("/nobody-zzqk!")).status()).toBe(404);
+    const old = await page.request.get(`/seller/${key}`);
+    expect(old.status()).toBe(404);
     const missing = await page.request.get(`/api/seller?key=nobody_${token()}`);
     expect(missing.status()).toBe(404);
     const noKey = await page.request.get("/api/seller");
     expect(noKey.status()).toBe(400);
+
+    // Every site page still ranks before the root name (B3).
+    const auth = await page.request.get("/auth");
+    expect(auth.status()).toBe(200);
   });
 });

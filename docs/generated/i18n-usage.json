@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 481,
+  "scanned": 486,
   "dynamicCallSites": 346,
   "keys": {
     "account.deactivatedBanner": [
@@ -220,6 +220,7 @@
       "/l/$slug"
     ],
     "adPage.gone.home": [
+      "/$name",
       "/l/$slug"
     ],
     "adPage.gone.title": [
@@ -250,6 +251,18 @@
       "/post/$listingId"
     ],
     "adPage.save.signIn": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "adPage.seller.allAds": [
       "(every page)",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4240,6 +4253,7 @@
     ],
     "common.retry": [
       "/",
+      "/$name",
       "/admin/ai",
       "/admin/listings",
       "/admin/listings/$listingId/edit",
@@ -4308,11 +4322,13 @@
     ],
     "feed.loading": [
       "/",
+      "/$name",
       "/c/$slug"
     ],
     "feed.noPhoto": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
@@ -4330,6 +4346,7 @@
     "feed.priceWas": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
@@ -4460,6 +4477,7 @@
     "listing.photosSoon": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
@@ -6195,6 +6213,7 @@
     ],
     "post.review.notGiven": [
       "(every page)",
+      "/$name",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
@@ -6226,6 +6245,7 @@
     "post.review.priceLine": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
@@ -6244,6 +6264,7 @@
     "post.review.pricePer": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
@@ -6376,6 +6397,7 @@
     ],
     "post.seller.memberSince": [
       "(every page)",
+      "/$name",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
@@ -6388,6 +6410,7 @@
     ],
     "post.seller.previously": [
       "(every page)",
+      "/$name",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
@@ -7263,6 +7286,7 @@
     "price.commission": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
@@ -7281,6 +7305,7 @@
     "price.contact": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
@@ -7299,6 +7324,7 @@
     "price.free": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
@@ -7317,6 +7343,7 @@
     "price.negotiable": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
@@ -7655,6 +7682,18 @@
       "/dev/style",
       "/my-listings"
     ],
+    "sellerPage.empty": [
+      "/$name"
+    ],
+    "sellerPage.failed": [
+      "/$name"
+    ],
+    "sellerPage.notFound": [
+      "/$name"
+    ],
+    "sellerPage.title": [
+      "/$name"
+    ],
     "session.idleWarning": [
       "(every page)"
     ],
@@ -7837,6 +7876,7 @@
     "tier.featured": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
@@ -7854,6 +7894,7 @@
     "tier.premium": [
       "(every page)",
       "/",
+      "/$name",
       "/account/saved",
       "/admin/impersonation/$sessionId",
       "/admin/listings/$listingId",
