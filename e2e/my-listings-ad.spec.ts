@@ -852,6 +852,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     const X = await seed(seller, "active");
     await signInViaSession(page, seller.email, seller.password);
     await openAd(page, X);
+    await expect(page.getByTestId("listing-safety")).toBeVisible();
     const line = page.getByTestId("my-listing-visibility");
     const seen = page.getByTestId("my-listing-as-seen");
     await expect(line).toHaveAttribute("data-visible", "seen", { timeout: 15000 });
@@ -884,6 +885,8 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     );
     await expect(page.getByTestId("my-listing-sold-mark")).toHaveText(en["feed.ribbon.sold"]);
     await expect(seen.getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
+    await expect(seen.getByTestId("listing-detail-sold-badge")).toHaveText(en["feed.ribbon.sold"]);
+    await expect(seen.getByTestId("listing-safety")).toHaveCount(0);
     await gotoReady(page, "/my-listings");
     await page.getByTestId("my-listings-group-sold").click();
     await expect(twin(page, X).getByTestId(`my-listing-${X}-sold-mark`)).toBeVisible({

@@ -108,4 +108,16 @@ describe("ListingDetail actors", () => {
     expect(screen.getAllByTestId("listing-detail-channel")).toHaveLength(2);
     expect(screen.queryByTestId("listing-detail-channel-value")).toBeNull();
   });
+  it("LD-6 the safety box is drawn on a live ad for every actor and not on a sold one; the sold badge carries the word", () => {
+    const { rerender } = render(<ListingDetail {...BASE} actor="buyer" soldBadge={undefined} />);
+    for (const actor of ["buyer", "owner", "staff"] as const) {
+      rerender(<ListingDetail {...BASE} actor={actor} soldBadge={undefined} />);
+      expect(screen.getByTestId("listing-safety")).toBeInTheDocument();
+      expect(screen.getAllByTestId("listing-safety-line")).toHaveLength(4);
+      expect(screen.queryByTestId("listing-detail-sold-badge")).toBeNull();
+      rerender(<ListingDetail {...BASE} actor={actor} soldBadge="Sold" />);
+      expect(screen.getByTestId("listing-detail-sold-badge")).toHaveTextContent("Sold");
+      expect(screen.queryByTestId("listing-safety")).toBeNull();
+    }
+  });
 });

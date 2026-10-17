@@ -238,6 +238,8 @@ test.describe("FEED ROUTE", () => {
       "soldWord",
       "reserved",
       "priceWas",
+      // M1b (bundle 19 turn 6) — the card's public id, the ad page's address.
+      "publicId",
     ].sort();
     expect(r.body.cards.length).toBeGreaterThan(0);
     for (const card of r.body.cards) expect(Object.keys(card).sort()).toEqual(keys);

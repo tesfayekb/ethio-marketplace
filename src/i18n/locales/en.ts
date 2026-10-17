@@ -248,6 +248,14 @@ export const en = {
   "myListings.bulk.refused": "Not changed: {count}. {reason}",
 
   // Bundle 19 turn 5 — the gone ad page.
+  "listing.safety.header": "Meet, inspect, then pay — no deposit, no payment link, no code",
+  "listing.safety.1":
+    "Never pay a deposit, a delivery fee or a 'booking' before you have seen the item.",
+  "listing.safety.2": "Meet the seller in a public place, in daylight, with someone you trust.",
+  "listing.safety.3": "Inspect what you are buying; test it; check every document.",
+  "listing.safety.4":
+    "Pay only when the item is in your hands — no payment links, no codes, no transfers to 'reserve' it.",
+
   "adPage.counts.unavailable": "The view count could not be loaded.",
   "adPage.gone.title": "This ad is no longer available",
   "adPage.gone.body":

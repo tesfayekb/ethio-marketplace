@@ -38,7 +38,14 @@ Turn 6 — INC-678 fixes option lists to use `attr_key` (each reader's key), inc
 
 Turn 7 — `ListingDetail` carries `actor` (buyer, owner, staff) and every mount names its own; the owner (the seller's ad page, the wizard's Review) sees his own channel values as text and, on his ad page, "N views" from `listing_counts` — only what is counted is drawn (views now; shares with the share sheet; contacts with the contact block; Saves at M3), the unavailable line when the read fails, nothing for an ad that was never live; the buyer and staff never see a value or a count; the Messages row is gone until messaging exists (ruling 8); a view is counted by `POST /api/listings/view` from the page after it renders — the route's own dial `listing-view:address` (600 an hour, `RATE_LIMIT_LISTING_VIEW_PER_HOUR`), then `count_listing_view` with the hashed address and the viewer's id when the bearer names one, so the owner's visits and a second visit from one address within the hour do not count, and a crawler without JavaScript does not count; the public page does not show its counts yet (turn 13).
 
+Turn 8 — INC-681: the page's photo links are now read with the bearer when a session exists and without one otherwise (the route's anonymous path), so a signed-out buyer sees the photos; the safety box (`listing-safety`, five keys `listing.safety.*`) above Details on every live ad, for every actor, never on a sold ad; the red SOLD badge (`listing-detail-sold-badge`) after the price on the buyer's and the seller's pages, the word from `SOLD_RIBBON`; FR-6 lists `publicId`; PW-162 (d) no longer asserts the transient notice (INC-682); AL-28 measures its two photos in one frame after their images load (INC-680).
+
 ## Tests
+
+- LD-6: the safety box on a live ad for every actor, absent on a sold ad; the sold badge carries the word.
+- UPL-1…UPL-3: a session-less photo request has no bearer and returns links; a session's bearer travels; a refusal throws with its status and supplies no links.
+- AP-9: safety heading and four lines, no sold badge; the existing gallery check proves the signed-out buyer's photos (INC-681).
+- AP-12: sold badge and no safety box; AP-13: the safety heading in Amharic; MLA-11: safety before sale, sold badge and no safety after sale.
 
 - AP-1, AP-2: `e2e/ad-page-routes.spec.ts` — immutable SVG and malformed-id 404.
 - AP-9…AP-13: `e2e/ad-page.spec.ts` — server-rendered live page, canonical redirects, gone ads, sold-page ribbon and noindex, Amharic.
