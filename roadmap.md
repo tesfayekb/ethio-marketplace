@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-16.md (bundle 19 — turn 16: INC-704 (similar ads' empty frame); M8 by the migration tool, mark 20261018210000 — seller_feed_page by the public seller key and INC-702's home_country_code on listing_revisions and seller_notices; the seller page /seller/<key>; All ads by this seller; five strings). Next: the bundle's close — CI green, Publish, one walk, the records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-17.md (bundle 19 — turn 17: the seller's page moves to ethio.com/<name> — DEC-108; /seller/<key> removed; the root-route guard allows `$name` alone; no migration, no string). Next: the bundle's close — CI green, Publish, one walk, the records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
