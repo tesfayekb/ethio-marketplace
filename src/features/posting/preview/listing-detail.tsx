@@ -390,53 +390,55 @@ export function ListingDetail(view: ListingDetailView) {
             testId="listing-detail-seller"
           />
         </div>
-        <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
-          <h4 className="text-xs font-medium text-muted-foreground">
-            {t("post.preview.contactLabel")}
-          </h4>
-          <ul className="divide-y divide-border text-sm">
-            {channels.map((channel) => {
-              const entry = ownValue(view.contactPref, channel);
-              const value =
-                entry !== null && typeof entry === "object"
-                  ? ownValue(entry as Record<string, unknown>, "value")
-                  : undefined;
-              const label =
-                channel === "phone"
-                  ? t("post.who.channel.phone")
-                  : channel === "phone2"
-                    ? t("post.who.channel.phone2")
-                    : channel === "telegram"
-                      ? t("post.who.channel.telegram")
-                      : t("post.who.channel.whatsapp");
-              return (
-                <li
-                  key={channel}
-                  data-testid="listing-detail-channel"
-                  data-channel={channel}
-                  className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
-                >
-                  <span
-                    className="me-auto text-foreground"
-                    data-testid="listing-detail-channel-label"
+        {!(typeof view.soldBadge === "string" && view.soldBadge.length > 0) && (
+          <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
+            <h4 className="text-xs font-medium text-muted-foreground">
+              {t("post.preview.contactLabel")}
+            </h4>
+            <ul className="divide-y divide-border text-sm">
+              {channels.map((channel) => {
+                const entry = ownValue(view.contactPref, channel);
+                const value =
+                  entry !== null && typeof entry === "object"
+                    ? ownValue(entry as Record<string, unknown>, "value")
+                    : undefined;
+                const label =
+                  channel === "phone"
+                    ? t("post.who.channel.phone")
+                    : channel === "phone2"
+                      ? t("post.who.channel.phone2")
+                      : channel === "telegram"
+                        ? t("post.who.channel.telegram")
+                        : t("post.who.channel.whatsapp");
+                return (
+                  <li
+                    key={channel}
+                    data-testid="listing-detail-channel"
+                    data-channel={channel}
+                    className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
                   >
-                    {label}
-                  </span>
-                  {view.actor === "owner" && typeof value === "string" && value.trim() !== "" && (
                     <span
-                      data-testid="listing-detail-channel-value"
-                      data-channel={channel}
-                      className="text-foreground"
+                      className="me-auto text-foreground"
+                      data-testid="listing-detail-channel-label"
                     >
-                      {value}
+                      {label}
                     </span>
-                  )}
-                  {view.channelAction?.(channel) ?? null}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+                    {view.actor === "owner" && typeof value === "string" && value.trim() !== "" && (
+                      <span
+                        data-testid="listing-detail-channel-value"
+                        data-channel={channel}
+                        className="text-foreground"
+                      >
+                        {value}
+                      </span>
+                    )}
+                    {view.channelAction?.(channel) ?? null}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </section>
 
       {/* Step 10 (P4) — directions above the location details, as text (F2). */}

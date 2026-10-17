@@ -810,7 +810,9 @@ function WizardShell({
     return (
       <PageShell as="main" width="narrow">
         <PageCard>
-          <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
+          <p data-testid="post-loading" className="text-sm text-muted-foreground">
+            {t("post.loading")}
+          </p>
         </PageCard>
       </PageShell>
     );

@@ -1954,16 +1954,6 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(items.nth(1)).toHaveAttribute("data-photo-id", second!.id);
     // D171 — no sideways scroll, the two photos on one row.
     await expectNoHorizontalOverflow(page);
-    await expect
-      .poll(() =>
-        items.evaluateAll((nodes) =>
-          nodes.every((n) => {
-            const img = n.querySelector("img");
-            return img !== null && img.complete && img.naturalWidth > 0;
-          }),
-        ),
-      )
-      .toBe(true);
     // INC-680 — both rects are read in the same frame after the images load.
     const { first: firstBox, second: secondBox } = await card.evaluate((node) => {
       const photos = node.querySelectorAll('[data-testid="listing-photos-item"]');

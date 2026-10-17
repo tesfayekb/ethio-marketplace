@@ -220,6 +220,7 @@ export const AREAS: Area[] = [
       "src/server/qr.ts",
       "src/server/ad-page.ts",
       "src/server/ad-view.ts",
+      "src/server/ad-photo.ts",
       "src/routes/api/listings/view.ts",
       "src/features/ad-page/**",
     ],

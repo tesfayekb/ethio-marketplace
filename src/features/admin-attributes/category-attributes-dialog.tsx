@@ -16,6 +16,7 @@ import { useAttributeLabel } from "./use-attribute-label";
 import {
   CARD_ATTRIBUTE_MAXIMUM,
   CARD_ATTRIBUTE_MINIMUM,
+  FACT_ATTRIBUTE_MAXIMUM,
   optionLabel,
   type AttributeLink,
 } from "./attributes-service";
@@ -28,6 +29,7 @@ import {
   useLinkAttribute,
   useSetAttributeLinkOrder,
   useSetCardAttributes,
+  useSetFactAttributes,
   useUnlinkAttribute,
   useUpdateAttributeLink,
 } from "./use-attributes";
@@ -69,6 +71,7 @@ export function CategoryAttributesDialog({
   const updateLink = useUpdateAttributeLink();
   const reorder = useSetAttributeLinkOrder();
   const setCards = useSetCardAttributes();
+  const setFacts = useSetFactAttributes();
   /**
    * INC-558's class (turn G3c) — the order and the cards are sent whole,
    * computed from the links read: they wait until that read settles, so a
@@ -99,6 +102,9 @@ export function CategoryAttributesDialog({
   const carded = rows
     .filter((row) => row.cardRank !== null)
     .sort((a, b) => (a.cardRank ?? 0) - (b.cardRank ?? 0));
+  const facted = rows
+    .filter((row) => row.factRank !== null)
+    .sort((a, b) => (a.factRank ?? 0) - (b.factRank ?? 0));
   const effectiveCardCount =
     carded.length + inherited.filter((row) => row.cardRank !== null).length;
 
@@ -203,6 +209,14 @@ export function CategoryAttributesDialog({
     run(() => setCards.mutateAsync({ categoryId, orderedAttributeIds: next }));
   };
 
+  const toggleFact = (attributeId: string, on: boolean) => {
+    const current = facted.map((row) => row.attributeId);
+    const next = on
+      ? [...current, attributeId].slice(0, FACT_ATTRIBUTE_MAXIMUM)
+      : current.filter((entry) => entry !== attributeId);
+    run(() => setFacts.mutateAsync({ categoryId, orderedAttributeIds: next }));
+  };
+
   return (
     <CategoryModal
       testid="category-attributes-dialog"
@@ -217,6 +231,14 @@ export function CategoryAttributesDialog({
           : t("admin.attributes.card.caption").replace(
               "{list}",
               carded.map((row) => attributeLabel(row.attributeId, row.nameEn)).join(" · "),
+            )}
+      </p>
+      <p data-testid="category-attributes-fact-caption" className="text-sm text-muted-foreground">
+        {facted.length === 0
+          ? t("admin.attributes.fact.none")
+          : t("admin.attributes.fact.caption").replace(
+              "{list}",
+              facted.map((row) => attributeLabel(row.attributeId, row.nameEn)).join(" · "),
             )}
       </p>
       {effectiveCardCount < CARD_ATTRIBUTE_MINIMUM ? (
@@ -318,6 +340,19 @@ export function CategoryAttributesDialog({
                   {row.cardRank === null
                     ? t("admin.attributes.card.rankNone")
                     : t("admin.attributes.card.rank").replace("{rank}", String(row.cardRank))}
+                </label>
+                <label className="flex min-h-11 items-center gap-2 text-sm">
+                  <Checkbox
+                    data-testid={`category-attribute-fact-${row.attrKey}`}
+                    checked={row.factRank !== null}
+                    disabled={
+                      settling || (row.factRank === null && facted.length >= FACT_ATTRIBUTE_MAXIMUM)
+                    }
+                    onCheckedChange={(next) => toggleFact(row.attributeId, next === true)}
+                  />
+                  {row.factRank === null
+                    ? t("admin.attributes.fact.rankNone")
+                    : t("admin.attributes.fact.rank").replace("{rank}", String(row.factRank))}
                 </label>
               </div>
               <AttributeLinkCells

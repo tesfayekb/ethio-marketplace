@@ -1955,6 +1955,11 @@ export const en = {
   "admin.attributes.card.none": "No attribute is shown on the listing card yet.",
   "admin.attributes.card.rank": "On card ({rank})",
   "admin.attributes.card.rankNone": "Show on card",
+  "admin.attributes.fact.caption": "Key facts: {list}",
+  "admin.attributes.fact.none":
+    "No key fact is set for this category yet — the ad page shows its first four filterable facts.",
+  "admin.attributes.fact.rank": "Key fact ({rank})",
+  "admin.attributes.fact.rankNone": "Show as key fact",
   "admin.attributes.error.keyRequired": "A key is required.",
   "admin.attributes.error.nameRequired": "A name is required.",
   "admin.attributes.error.keyTaken": "Another attribute already uses this key.",
@@ -1967,6 +1972,7 @@ export const en = {
   "admin.attributes.error.alreadyLinked": "This category already links that attribute.",
   "admin.attributes.error.linkNotFound": "That link no longer exists.",
   "admin.attributes.error.cardLimit": "A listing card shows at most three attributes.",
+  "admin.attributes.error.factLimit": "An ad page shows at most four key facts.",
   /* DEC-050 L2a/L2b — the door refuses a rank an inherited card already holds. */
   "admin.attributes.error.rankInherited":
     "That card position is already taken by an attribute inherited from a parent category. Choose another position.",

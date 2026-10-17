@@ -14,6 +14,7 @@ import {
   mergeAttributes,
   setAttributeLinkOrder,
   setCardAttributes,
+  setFactAttributes,
   readAttributeHolders,
   unlinkAttribute,
   updateAttributeLink,
@@ -181,6 +182,16 @@ export function useSetCardAttributes() {
     mutationKey: ADMIN_ATTRIBUTES_KEY,
     mutationFn: (input: { categoryId: string; orderedAttributeIds: string[] }) =>
       setCardAttributes(input),
+    onSettled: invalidate,
+  });
+}
+
+export function useSetFactAttributes() {
+  const invalidate = useInvalidateAttributes();
+  return useMutation({
+    mutationKey: ADMIN_ATTRIBUTES_KEY,
+    mutationFn: (input: { categoryId: string; orderedAttributeIds: string[] }) =>
+      setFactAttributes(input),
     onSettled: invalidate,
   });
 }

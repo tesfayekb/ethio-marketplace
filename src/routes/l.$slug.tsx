@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { adJsonLd } from "@/features/ad-page/json-ld";
 import { countView } from "@/features/ad-page/count-view";
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -42,6 +43,13 @@ export const Route = createFileRoute("/l/$slug")({
     const description = doc.description.slice(0, 160);
     const root = matches[0]?.loaderData as { origin?: string } | undefined;
     const url = root?.origin ? `${root.origin}${canonical}` : null;
+    const image = root?.origin
+      ? doc.photos.length > 0
+        ? `${root.origin}/l/${doc.public_id}/photo.jpg`
+        : doc.category?.illustration_url
+          ? new URL(doc.category.illustration_url, root.origin).href
+          : null
+      : null;
     return {
       meta: [
         { title },
@@ -51,9 +59,16 @@ export const Route = createFileRoute("/l/$slug")({
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
         ...(url ? [{ property: "og:url", content: url }] : []),
+        ...(image
+          ? [
+              { property: "og:image", content: image },
+              { name: "twitter:image", content: image },
+            ]
+          : []),
         ...(doc.is_sold ? [{ name: "robots", content: "noindex" }] : []),
       ],
       links: url ? [{ rel: "canonical", href: url }] : [],
+      scripts: url ? [{ type: "application/ld+json", children: adJsonLd(doc, url, image) }] : [],
     };
   },
   component: AdPage,

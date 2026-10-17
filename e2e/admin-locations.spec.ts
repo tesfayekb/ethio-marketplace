@@ -730,6 +730,7 @@ test.describe("L2a locations console", () => {
 
       // A second undo of the same batch is refused by name.
       await page.getByTestId("location-import-close").click();
+      await page.getByTestId("location-search").fill(regionSlug);
       await expect(locationRow(page, `${ANCHOR}/${regionSlug}`)).toBeVisible();
     } finally {
       await destroyLocation(regionSlug);

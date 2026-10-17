@@ -502,6 +502,17 @@ export async function unlinkAttribute(linkId: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function setFactAttributes(input: {
+  categoryId: string;
+  orderedAttributeIds: string[];
+}): Promise<void> {
+  const { error } = await supabase.rpc("admin_set_fact_attributes", {
+    p_category_id: input.categoryId,
+    p_ordered_attribute_ids: input.orderedAttributeIds,
+  });
+  if (error) throw error;
+}
+
 export async function setCardAttributes(input: {
   categoryId: string;
   orderedAttributeIds: string[];
@@ -520,6 +531,7 @@ export async function setCardAttributes(input: {
  */
 export const CARD_ATTRIBUTE_MINIMUM = 2;
 export const CARD_ATTRIBUTE_MAXIMUM = 3;
+export const FACT_ATTRIBUTE_MAXIMUM = 4;
 
 export function needsCardAttributes(row: {
   isActive: boolean;

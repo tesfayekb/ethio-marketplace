@@ -11,7 +11,6 @@ export async function countView(publicId: string): Promise<void> {
         ...(token === null ? {} : { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify({ publicId }),
-      keepalive: true,
     });
   } catch {
     // a counter never disturbs the page
