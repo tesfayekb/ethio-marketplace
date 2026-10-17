@@ -517,4 +517,68 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await context.close();
     }
   });
+  test("AP-29 Report on the buyer's page: signed out, the link signs in and comes back to #report; signed in, the dialog sends a reason and a note once and thanks; a second report says already reported; the owner's page has no Report", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller);
+    const buyer = await leaseUser();
+    const { canonical } = await address(ad);
+    await page.goto(canonical);
+    const signIn = page.getByTestId("listing-report-sign-in");
+    await expect(signIn).toBeVisible();
+    const href = await signIn.getAttribute("href");
+    if (href === null) throw new Error("AP-29 missing sign-in address");
+    expect(href.startsWith("/auth?return=")).toBe(true);
+    expect(decodeURIComponent(href.slice("/auth?return=".length))).toBe(`${canonical}#report`);
+    await signInViaSession(page, buyer.email, buyer.password);
+    await gotoReady(page, canonical);
+    await page.getByTestId("listing-report-open").click();
+    await expect(page.getByTestId("listing-report-send")).toBeDisabled();
+    await page.getByTestId("listing-report-reason-wrongCategory").click();
+    await page.getByTestId("listing-report-note").pressSequentially("scratch report");
+    await page.getByTestId("listing-report-send").click();
+    await expect(page.getByTestId("listing-report-status")).toHaveAttribute("data-state", "sent");
+    await expect(page.getByTestId("listing-report-status")).toHaveText(en["adPage.report.thanks"]);
+    const readReports = async () => {
+      const read = await adminClient()
+        .from("listing_reports")
+        .select("reporter_id,reason,note,status,home_country_code")
+        .eq("listing_id", ad.id);
+      if (read.error) throw new Error(`[e2e:ap29] reports read failed: ${read.error.message}`);
+      return read.data;
+    };
+    const reports = await readReports();
+    const directory = await adminClient()
+      .from("user_directory")
+      .select("home_country_code")
+      .eq("user_id", buyer.id)
+      .single();
+    if (directory.error)
+      throw new Error(`[e2e:ap29] directory read failed: ${directory.error.message}`);
+    expect(reports).toEqual([
+      {
+        reporter_id: buyer.id,
+        reason: "wrongCategory",
+        note: "scratch report",
+        status: "open",
+        home_country_code: directory.data.home_country_code,
+      },
+    ]);
+    await page.keyboard.press("Escape");
+    await page.getByTestId("listing-report-open").click();
+    await page.getByTestId("listing-report-reason-spam").click();
+    await page.getByTestId("listing-report-send").click();
+    await expect(page.getByTestId("listing-report-status")).toHaveAttribute(
+      "data-state",
+      "already",
+    );
+    expect(await readReports()).toHaveLength(1);
+    await page.keyboard.press("Escape");
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${ad.id}`);
+    await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+    await expect(page.getByTestId("listing-report-open")).toHaveCount(0);
+    await expect(page.getByTestId("listing-report-sign-in")).toHaveCount(0);
+  });
 });

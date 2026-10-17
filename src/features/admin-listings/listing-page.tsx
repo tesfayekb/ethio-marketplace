@@ -1,3 +1,5 @@
+import { REPORT_REASONS } from "@/features/ad-page/report";
+import { useListingReports } from "./use-listing-reports";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
@@ -114,6 +116,8 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const query = useAdminListing(listingId);
+  const mayReview = permissions.includes("listings:review");
+  const reports = useListingReports(listingId, mayReview);
   const { tree } = useCategoryTree();
 
   const [move, setMove] = useState<MoveKind | null>(null);
@@ -513,6 +517,52 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
               guard={guard}
               onRemoved={(key) => setNotice(t(key))}
             />
+            {mayReview && (
+              <PageCard testid="listing-reports" className="min-w-0 space-y-3">
+                <h2 className="text-sm font-semibold text-foreground">
+                  {t("admin.listings.reports.title")}
+                </h2>
+                {reports.isLoading ? null : reports.error ? (
+                  <p role="alert" className="text-sm text-destructive">
+                    {t("admin.listings.reports.failed")}
+                  </p>
+                ) : (reports.data?.length ?? 0) === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("admin.listings.reports.none")}
+                  </p>
+                ) : (
+                  <ul className="space-y-3">
+                    {reports.data?.map((row) => (
+                      <li
+                        key={row.id}
+                        data-testid="listing-report"
+                        data-status={row.status}
+                        className="min-w-0 text-sm"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span>
+                            {REPORT_REASONS.some((reason) => reason === row.reason)
+                              ? t(`adPage.report.reason.${row.reason}` as MessageKey)
+                              : row.reason}
+                          </span>
+                          <Badge variant="neutral">
+                            {t(
+                              row.status === "open"
+                                ? "admin.listings.reports.status.open"
+                                : "admin.listings.reports.status.closed",
+                            )}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {day(row.createdAt)}
+                          </span>
+                        </div>
+                        {row.note !== null && <p className="mt-1 break-words">{row.note}</p>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </PageCard>
+            )}
             <div className="grid min-w-0 gap-4 lg:grid-cols-2">
               <PageCard testid="listing-details" className="min-w-0 space-y-3">
                 <h2 className="text-sm font-semibold text-foreground">

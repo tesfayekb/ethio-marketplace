@@ -192,6 +192,73 @@ describe("useDraft — a Next is judged at its own step (INC-455)", () => {
     await expect(specs).resolves.toBe(true);
   });
 
+  it("INC-698 a Next pressed while an older autosave is in the air is sent once, by its own pass", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result, unmount } = renderHook(() => useDraft(null));
+    let outcome: boolean | undefined;
+    await act(async () => {
+      result.current.change({ categoryId: "c-1", title: "a" }, true);
+      await settle();
+    });
+    expect(sent).toHaveLength(1);
+    await act(async () => {
+      result.current.change({ title: "ab" }, false);
+      void result.current.saveAt(5).then((answer) => {
+        outcome = answer;
+      });
+      await settle();
+      const resolve = pending[0];
+      if (!resolve) throw new Error("missing autosave");
+      resolve(took());
+      await settle();
+    });
+    expect(sent).toEqual([1, 5]);
+    await act(async () => {
+      const resolve = pending[1];
+      if (!resolve) throw new Error("missing Next");
+      resolve(unreachable());
+      await settle();
+    });
+    expect(outcome).toBe(false);
+    expect(sent).toHaveLength(2);
+    expect(result.current.nextBlockedByTransport).toBe(true);
+    unmount();
+  });
+
+  it("INC-698 positive control: the Next's own successful pass resolves true once", async () => {
+    pending.length = 0;
+    sent.length = 0;
+    const { result, unmount } = renderHook(() => useDraft(null));
+    let outcome: boolean | undefined;
+    await act(async () => {
+      result.current.change({ categoryId: "c-1", title: "a" }, true);
+      await settle();
+    });
+    expect(sent).toHaveLength(1);
+    await act(async () => {
+      result.current.change({ title: "ab" }, false);
+      void result.current.saveAt(5).then((answer) => {
+        outcome = answer;
+      });
+      await settle();
+      const resolve = pending[0];
+      if (!resolve) throw new Error("missing autosave");
+      resolve(took());
+      await settle();
+    });
+    expect(sent).toEqual([1, 5]);
+    await act(async () => {
+      const resolve = pending[1];
+      if (!resolve) throw new Error("missing Next");
+      resolve(took());
+      await settle();
+    });
+    expect(outcome).toBe(true);
+    expect(sent).toHaveLength(2);
+    unmount();
+  });
+
   it("INC-691 an autosave answered after a step change still records the server's facts", async () => {
     pending.length = 0;
     sent.length = 0;

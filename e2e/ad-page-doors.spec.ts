@@ -245,7 +245,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       zoom: null,
     });
     expect((doc["places"] as Row)["street_address"]).toBe("E2E street");
-    expect(doc["counts"]).toEqual({ views: 0, shares: 0 });
+    expect(doc["counts"]).toEqual({ views: 0, shares: 0, saves: 0 });
     const path = (doc["category"] as Row)["path"] as Row[];
     expect(Array.isArray(path)).toBe(true);
     expect(path.length).toBeGreaterThan(0);
@@ -369,7 +369,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     const anonymous = await asAnonymous();
     const read = await anonymous.rpc("public_listing", { p_public_id: publicId });
     expect(read.error).toBeNull();
-    expect((read.data as Row)["counts"]).toEqual({ views: 2, shares: 2 });
+    expect((read.data as Row)["counts"]).toEqual({ views: 2, shares: 2, saves: 0 });
 
     const owner = await asPerson(seller);
     const counts = await owner.rpc("listing_counts", { p_listing_id: ad.id });
@@ -519,11 +519,28 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect(await revealRows()).toHaveLength(0);
 
     // The buyer: one row the first time, none the second time the same day; the row carries its instant.
-    const buyer = await asPerson(await leaseUser());
+    const buyerPerson = await leaseUser();
+    const buyer = await asPerson(buyerPerson);
     const before = Date.now() - 60_000;
     const first = await buyer.rpc("reveal_listing_contact", { p_public_id: publicId });
     expect(first.error).toBeNull();
     expect((first.data as Row)["ok"]).toBe(true);
+    const countryRead = await adminClient()
+      .from("contact_reveals")
+      .select("home_country_code")
+      .eq("viewer_id", buyerPerson.id)
+      .eq("listing_id", ad.id)
+      .single();
+    if (countryRead.error)
+      throw new Error(`[e2e:ap-20] country read failed: ${countryRead.error.message}`);
+    const directoryRead = await adminClient()
+      .from("user_directory")
+      .select("home_country_code")
+      .eq("user_id", buyerPerson.id)
+      .single();
+    if (directoryRead.error)
+      throw new Error(`[e2e:ap-20] directory read failed: ${directoryRead.error.message}`);
+    expect(countryRead.data.home_country_code).toBe(directoryRead.data.home_country_code);
     const rows = await revealRows();
     expect(rows).toHaveLength(1);
     const instant = new Date(String(rows[0]!["created_at"])).getTime();
@@ -591,6 +608,21 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
             .eq("viewer_id", buyerPerson.id)
         ).data ?? [];
       expect(await flags()).toEqual([{ viewer_id: buyerPerson.id, sellers: 2, hits: 1 }]);
+      const countryRead = await adminClient()
+        .from("reveal_flags")
+        .select("home_country_code")
+        .eq("viewer_id", buyerPerson.id)
+        .single();
+      if (countryRead.error)
+        throw new Error(`[e2e:ap-21] country read failed: ${countryRead.error.message}`);
+      const directoryRead = await adminClient()
+        .from("user_directory")
+        .select("home_country_code")
+        .eq("user_id", buyerPerson.id)
+        .single();
+      if (directoryRead.error)
+        throw new Error(`[e2e:ap-21] directory read failed: ${directoryRead.error.message}`);
+      expect(countryRead.data.home_country_code).toBe(directoryRead.data.home_country_code);
       const again = await buyer.rpc("reveal_listing_contact", {
         p_public_id: await publicIdOf(adC.id),
       });
@@ -624,7 +656,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
 
   test("AP-22 a new account is held to five reveals its first day (D201 §6b)", async ({ page }) => {
     const seller = await scratchSeller();
-    const buyer = await scratchSeller();
+    const buyer = await createUser({ confirmed: true });
     const asBuyer = await asPerson(buyer);
     const ads = [];
     for (let i = 0; i < 6; i += 1) ads.push(await seed(seller));
@@ -674,6 +706,22 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       .eq("listing_id", adA.id);
     expect(rows.error).toBeNull();
     expect(rows.data).toHaveLength(1);
+    const countryRead = await adminClient()
+      .from("saved_listings")
+      .select("home_country_code")
+      .eq("user_id", buyerPerson.id)
+      .eq("listing_id", adA.id)
+      .single();
+    if (countryRead.error)
+      throw new Error(`[e2e:ap-24] country read failed: ${countryRead.error.message}`);
+    const directoryRead = await adminClient()
+      .from("user_directory")
+      .select("home_country_code")
+      .eq("user_id", buyerPerson.id)
+      .single();
+    if (directoryRead.error)
+      throw new Error(`[e2e:ap-24] directory read failed: ${directoryRead.error.message}`);
+    expect(countryRead.data.home_country_code).toBe(directoryRead.data.home_country_code);
 
     const savedA = await buyer.rpc("listing_saved", { p_public_id: idA });
     expect(savedA.error).toBeNull();

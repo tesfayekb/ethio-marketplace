@@ -56,7 +56,15 @@ Turn 12b — the heart at the gallery's top-end corner for a buyer (signed out �
 
 Turn 13a — M4 — `listing_reports` (the reporter and the closer referenced through `public.profiles(user_id)`, never auth.users; `home_country_code` carried and filled from `user_directory` — personal data, E3; reason one of spam, scam, prohibited, wrongCategory, duplicate, alreadySold, under18, copyright, other; a note up to 500 characters; one open report per reporter and ad; the reporter reads his own rows and staff with listings:review all, by policy; no client write; the columns closed_by / closed_at / outcome born now for the ops stage's queue), the dial `report` 10 a day (written rows only), `report_listing` by public id (ownListing, badReason, noteTooLong, alreadyReported, rateLimited; a sold ad within its 30 days can be reported), `admin_listing_reports` and `admin_open_report_counts` for listings:review (the reporter is never named to the seller; staff's rows carry no reporter id); the Saved page on the feed's grid.
 
+Turn 13b — INC-695…INC-698: AP-3/AP-6 carry `saves`; AP-22’s buyer is a new account; ML-4 reads the public id by the service client; the draft hook sends a Next once, by its own pass — an autosave answered after a newer claim arms no follow-up — and PW-162 names its cause in its error message. Report on the buyer’s page: the link after the seller card, the dialog with the nine reasons, the optional note up to 500 characters, the four answers, and the sign-in return to `#report`; none for the owner or staff. Admin › Listings shows “Reports: N” under the row’s status and the listing’s Reports card, for listings:review. M6 (INC-694): `home_country_code` on `saved_listings`, `reveal_flags` and `contact_reveals`, filled by the two doors from `user_directory`; `saved_listings.user_id` and `reveal_flags.viewer_id` reference `public.profiles(user_id)`; mark `20261018190000`.
+
 ## Tests
+
+- AP-29 — Report sign-in return, reason and note, thanks, duplicate, owner omission.
+- AL-31 — open report count and identity-free report list for listings:review; no reports for listings:view alone.
+- RD-1…RD-5 — report arguments, parser and dialog states; note cap 500, nine reasons, ownListing.
+- LD-11 — public Report slot after seller card; owner and staff previews omit it.
+- Changed AP-3/AP-6 counts, AP-20/AP-21/AP-24 country reads, AP-22 new account, ML-4 public id, PW-162 diagnostic and exact Next abort; INC-698 red-first and positive-control unit proofs.
 
 - AP-27: Report by public id, trimmed note and reporter country, own-ad and validation refusals, open-report uniqueness, sold availability and the written-row dial.
 - AP-28: reporter-only reads, no client write, listings:review admin doors, identity-free staff rows and the 100-id count limit.

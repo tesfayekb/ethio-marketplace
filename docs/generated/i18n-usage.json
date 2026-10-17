@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 473,
-  "dynamicCallSites": 339,
+  "scanned": 476,
+  "dynamicCallSites": 343,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -187,6 +187,18 @@
       "/l/$slug"
     ],
     "adPage.gone.title": [
+      "/l/$slug"
+    ],
+    "adPage.report.note": [
+      "/l/$slug"
+    ],
+    "adPage.report.open": [
+      "/l/$slug"
+    ],
+    "adPage.report.question": [
+      "/l/$slug"
+    ],
+    "adPage.report.send": [
       "/l/$slug"
     ],
     "adPage.save.count": [
@@ -2485,6 +2497,19 @@
       "/admin/listings/$listingId",
       "/admin/screening"
     ],
+    "admin.listings.reports.count": [
+      "/admin/listings"
+    ],
+    "admin.listings.reports.failed": [
+      "/admin/listings",
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.reports.none": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.reports.title": [
+      "/admin/listings/$listingId"
+    ],
     "admin.listings.searchLabel": [
       "/admin/listings",
       "/my-listings"
@@ -4078,6 +4103,7 @@
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
+      "/l/$slug",
       "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",

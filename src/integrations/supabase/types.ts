@@ -701,22 +701,32 @@ export type Database = {
         Row: {
           created_at: string
           day: string
+          home_country_code: string | null
           listing_id: string
           viewer_id: string
         }
         Insert: {
           created_at?: string
           day: string
+          home_country_code?: string | null
           listing_id: string
           viewer_id: string
         }
         Update: {
           created_at?: string
           day?: string
+          home_country_code?: string | null
           listing_id?: string
           viewer_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "contact_reveals_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "contact_reveals_listing_id_fkey"
             columns: ["listing_id"]
@@ -2206,6 +2216,7 @@ export type Database = {
           day: string
           first_at: string
           hits: number
+          home_country_code: string | null
           last_at: string
           sellers: number
           viewer_id: string
@@ -2214,6 +2225,7 @@ export type Database = {
           day: string
           first_at?: string
           hits?: number
+          home_country_code?: string | null
           last_at?: string
           sellers: number
           viewer_id: string
@@ -2222,11 +2234,27 @@ export type Database = {
           day?: string
           first_at?: string
           hits?: number
+          home_country_code?: string | null
           last_at?: string
           sellers?: number
           viewer_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reveal_flags_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "reveal_flags_viewer_id_profiles_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -2317,26 +2345,43 @@ export type Database = {
       saved_listings: {
         Row: {
           created_at: string
+          home_country_code: string | null
           listing_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          home_country_code?: string | null
           listing_id: string
           user_id: string
         }
         Update: {
           created_at?: string
+          home_country_code?: string | null
           listing_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "saved_listings_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "saved_listings_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "listings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_listings_user_id_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
