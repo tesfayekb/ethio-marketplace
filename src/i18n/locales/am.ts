@@ -244,6 +244,13 @@ export const am: Messages = {
   "listing.safety.4": "ዕቃው በእጅዎ ሲገባ ብቻ ይክፈሉ — የክፍያ ሊንክ፣ ኮድ ወይም “ለማስያዝ” የሚደረግ ዝውውር የለም።",
 
   "adPage.counts.unavailable": "የእይታ ቆጠራውን መጫን አልተቻለም።",
+  "adPage.counts.contacts": "{count} ግንኙነቶች",
+  "adPage.contact.signIn": "የሻጩን ስልክ እና የውይይት ሊንኮች ለማየት ይግቡ",
+  "adPage.contact.show": "ግንኙነት አሳይ",
+  "adPage.contact.sellersCap": "ዛሬ ብዙ ሻጮችን ተመልክተዋል — ነገ እንደገና ይሞክሩ።",
+  "adPage.contact.rateLimited": "ዛሬ ብዙ ግንኙነቶችን ተመልክተዋል — ነገ እንደገና ይሞክሩ።",
+  "adPage.contact.failed": "ግንኙነቱን መጫን አልተቻለም — እንደገና ይሞክሩ።",
+  "adPage.contact.whatsappText": "በ ethio.com ማስታወቂያዎ ፍላጎት አለኝ፦ {url}",
   "adPage.gone.title": "ይህ ማስታወቂያ ከእንግዲህ አይገኝም",
   "adPage.gone.body": "ተሽጦ፣ በሻጩ ተወግዶ ወይም ጊዜው አልፎ ሊሆን ይችላል።",
   "adPage.gone.home": "ወደ መነሻ ተመለስ",

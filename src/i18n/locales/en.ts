@@ -257,6 +257,13 @@ export const en = {
     "Pay only when the item is in your hands — no payment links, no codes, no transfers to 'reserve' it.",
 
   "adPage.counts.unavailable": "The view count could not be loaded.",
+  "adPage.counts.contacts": "{count} contacts",
+  "adPage.contact.signIn": "Sign in to see the seller's phone and chat links",
+  "adPage.contact.show": "Show contact",
+  "adPage.contact.sellersCap": "You have looked up many sellers today — try again tomorrow.",
+  "adPage.contact.rateLimited": "You have looked up many contacts today — try again tomorrow.",
+  "adPage.contact.failed": "The contact could not be loaded — try again.",
+  "adPage.contact.whatsappText": "I'm interested in your ethio.com ad: {url}",
   "adPage.gone.title": "This ad is no longer available",
   "adPage.gone.body":
     "It may have been sold, taken down by the seller, or its time may have run out.",
