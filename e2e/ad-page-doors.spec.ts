@@ -72,8 +72,7 @@ async function asPerson(person: { email: string; password: string }) {
           body: JSON.stringify(args),
         }),
       ),
-    rest: async (path: string) =>
-      answerOf(await fetch(`${url}/rest/v1/${path}`, { headers })),
+    rest: async (path: string) => answerOf(await fetch(`${url}/rest/v1/${path}`, { headers })),
   };
 }
 
@@ -90,8 +89,7 @@ async function asAnonymous() {
           body: JSON.stringify(args),
         }),
       ),
-    rest: async (path: string) =>
-      answerOf(await fetch(`${url}/rest/v1/${path}`, { headers })),
+    rest: async (path: string) => answerOf(await fetch(`${url}/rest/v1/${path}`, { headers })),
   };
 }
 
@@ -279,10 +277,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect(doc["title"]).toBe(ad.title);
     expect(doc["status"]).toBe("active");
     expect(doc["is_sold"]).toBe(false);
-    expect((doc["photos"] as Row[]).map((p) => p["id"])).toEqual([
-      photoIds[1],
-      photoIds[2],
-    ]);
+    expect((doc["photos"] as Row[]).map((p) => p["id"])).toEqual([photoIds[1], photoIds[2]]);
     expect(doc["cover_photo_id"]).toBe(photoIds[1]);
     expect(doc["contact_channels"]).toEqual(["phone", "telegram"]);
     expect((doc["seller"] as Row)["alias"]).toBe(seller.alias);
