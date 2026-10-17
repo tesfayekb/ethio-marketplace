@@ -62,6 +62,7 @@ Turn 14 — INC-699: the links rows’ trailing fact_rank cell in AT-15/AT-18; I
 
 
 Turn 15 — similar ads (D201 §12): one `/api/feed` read after the first paint with the ad's leaf and place, the feed's widening ladder kept, the ad itself dropped, up to six cards in two columns at 360; none on a sold ad, none for the owner. Share on the seller's own ad page for a live ad (D201 §10): a published ad is in review, so its link opens only once it is live.
+
 ## Tests
 
 Turn 14: AP-30, AP-31, SH-1…SH-5, LD-12, LD-13; changed AT-15, AT-18, AP-25, AP-17. AP-24 is the unchanged cursor proof.
