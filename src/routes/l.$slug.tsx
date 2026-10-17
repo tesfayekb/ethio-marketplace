@@ -1,7 +1,7 @@
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { SimilarAds } from "@/features/ad-page/similar-ads";
 import { ReportAd } from "@/features/ad-page/report-ad";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
 import { listingSaved, saveListing, unsaveListing } from "@/features/ad-page/save";
 import { revealContact, type ContactState } from "@/features/ad-page/contact";
@@ -12,7 +12,6 @@ import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-route
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { PageShell } from "@/components/layout/page-shell";
-import { PageCard } from "@/components/shell/page-card";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { adPageView } from "@/features/ad-page/public-listing";
 import { ownValue } from "@/lib/own-key";
@@ -104,6 +103,7 @@ function AdPage() {
   const { user, loading: authLoading } = useAuth();
   // Bundle 19 turn 11 (D201 §6) — the reveal is a tap, never automatic; the
   // values exist only in this client state after the door's answer.
+  // Contact seller before sign-in is the reveal tap, fulfilled once on return.
   const [contactState, setContactState] = useState<ContactState>({ kind: "idle" });
   const [saved, setSaved] = useState<boolean | null>(null);
   const [saveCount, setSaveCount] = useState(doc.counts.saves);
@@ -138,17 +138,38 @@ function AdPage() {
       })
       .finally(() => setSaveBusy(false));
   };
-  const onReveal = () => {
-    if (contactState.kind === "loading") return;
+  const revealing = useRef(false);
+  const returnedReveal = useRef<string | null>(null);
+  const onReveal = useCallback(() => {
+    if (revealing.current) return;
+    revealing.current = true;
     setContactState({ kind: "loading" });
-    void revealContact(doc.public_id).then((answer) => {
-      setContactState(
-        answer.ok
-          ? { kind: "revealed", channels: answer.channels }
-          : { kind: "refused", reason: answer.reason },
-      );
-    });
-  };
+    void revealContact(doc.public_id)
+      .then((answer) => {
+        setContactState(
+          answer.ok
+            ? { kind: "revealed", channels: answer.channels }
+            : { kind: "refused", reason: answer.reason },
+        );
+      })
+      .finally(() => {
+        revealing.current = false;
+      });
+  }, [doc.public_id]);
+  useEffect(() => {
+    if (
+      authLoading ||
+      user === null ||
+      doc.is_sold ||
+      new URLSearchParams(window.location.search).get("reveal") !== "1" ||
+      returnedReveal.current === doc.public_id
+    )
+      return;
+    returnedReveal.current = doc.public_id;
+    onReveal();
+    // Keep this mounted page and its revealed state; no route loader rerun.
+    window.history.replaceState(window.history.state, "", `${canonical}#contact`);
+  }, [authLoading, user, doc.is_sold, doc.public_id, canonical, onReveal]);
   useEffect(() => {
     if (countedId.current === doc.public_id) return;
     countedId.current = doc.public_id;
@@ -177,53 +198,51 @@ function AdPage() {
   })[0];
   return (
     <PageShell as="main" width="wide" data-testid="ad-page">
-      <PageCard className="min-w-0 space-y-3">
-        <ListingDetail
-          {...view}
-          share={
-            <ShareAd
+      <ListingDetail
+        {...view}
+        share={
+          <ShareAd
+            publicId={doc.public_id}
+            canonicalPath={canonical}
+            title={doc.title}
+            priceText={sharePrice}
+          />
+        }
+        publicCounts={{ views: doc.counts.views, shares: doc.counts.shares }}
+        sellerAdsKey={doc.seller.alias === null ? null : doc.seller.alias.toLowerCase()}
+        ribbon={ribbonKey ? t(ribbonKey) : null}
+        soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}
+        save={
+          ownAd
+            ? undefined
+            : {
+                viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
+                saved,
+                count: saveCount,
+                busy: saveBusy,
+                refusal: saveRefusal,
+                signInTo: { to: "/auth", search: { return: canonical } },
+                onToggle,
+              }
+        }
+        report={
+          ownAd ? undefined : (
+            <ReportAd
               publicId={doc.public_id}
-              canonicalPath={canonical}
-              title={doc.title}
-              priceText={sharePrice}
+              viewer={authLoading ? "unknown" : user === null ? "signedOut" : "signedIn"}
+              signInTo={{ to: "/auth", search: { return: `${canonical}#report` } }}
+              onOwn={() => setOwnAd(true)}
             />
-          }
-          publicCounts={{ views: doc.counts.views, shares: doc.counts.shares }}
-          sellerAdsKey={doc.seller.alias === null ? null : doc.seller.alias.toLowerCase()}
-          ribbon={ribbonKey ? t(ribbonKey) : null}
-          soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}
-          save={
-            ownAd
-              ? undefined
-              : {
-                  viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
-                  saved,
-                  count: saveCount,
-                  busy: saveBusy,
-                  refusal: saveRefusal,
-                  signInTo: { to: "/auth", search: { return: canonical } },
-                  onToggle,
-                }
-          }
-          report={
-            ownAd ? undefined : (
-              <ReportAd
-                publicId={doc.public_id}
-                viewer={authLoading ? "unknown" : user === null ? "signedOut" : "signedIn"}
-                signInTo={{ to: "/auth", search: { return: `${canonical}#report` } }}
-                onOwn={() => setOwnAd(true)}
-              />
-            )
-          }
-          contact={{
-            viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
-            signInTo: { to: "/auth", search: { return: `${canonical}#contact` } },
-            state: contactState,
-            onReveal,
-            whatsappText: fill(t("adPage.contact.whatsappText"), { url: canonical }),
-          }}
-        />
-      </PageCard>
+          )
+        }
+        contact={{
+          viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
+          signInTo: { to: "/auth", search: { return: `${canonical}?reveal=1#contact` } },
+          state: contactState,
+          onReveal,
+          whatsappText: fill(t("adPage.contact.whatsappText"), { url: canonical }),
+        }}
+      />
       {/* D201 §12 — similar ads: never on a sold ad, never for the owner. The
           document carries no internal listing id, so the ad is excluded by its
           public id. INC-704: the component draws its own card frame, only when
