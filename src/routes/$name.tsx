@@ -1,0 +1,64 @@
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+
+import { PageShell } from "@/components/layout/page-shell";
+import { SellerPage } from "@/features/seller/seller-page";
+import { useI18n } from "@/i18n";
+
+const sellerExistsFn = createServerFn({ method: "GET" })
+  .inputValidator((input: { name: string }) => {
+    if (!input || typeof input.name !== "string") throw new Error("invalid seller name");
+    return { name: input.name };
+  })
+  .handler(async ({ data }) => {
+    const { sellerExists } = await import("@/server/seller-page");
+    return sellerExists(data.name);
+  });
+
+/**
+ * Bundle 19 turn 17 (DEC-107, DEC-108) — the seller's page at
+ * ethio.com/<name>. Every site page is a static first segment, which the
+ * router ranks before this dynamic one (isFrameMoreSpecific compares statics
+ * first — node_modules/@tanstack/router-core/dist/esm/new-process-route-tree.js),
+ * so this route only ever sees names no page claims. An upper-case letter
+ * redirects 301 to the lower-cased address; an unknown or malformed name is a
+ * 404. The guard scripts/check-root-routes.ts allows `$name` as the only
+ * dynamic first segment.
+ */
+export const Route = createFileRoute("/$name")({
+  loader: async ({ params }) => {
+    if (/[A-Z]/.test(params.name)) {
+      throw redirect({ href: `/${params.name.toLowerCase()}`, statusCode: 301 });
+    }
+    const exists = await sellerExistsFn({ data: { name: params.name } });
+    if (!exists) throw notFound();
+    return null;
+  },
+  notFoundComponent: SellerGonePage,
+  head: ({ params }) => ({
+    meta: [
+      { title: `${params.name} — ethio.com` },
+      // Bundle 19 turn 17 — noindex until the store spec ([6.19]) keeps the address.
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: SellerRoute,
+});
+
+function SellerGonePage() {
+  const { t } = useI18n();
+  return (
+    <PageShell as="main" width="wide" data-testid="seller-page-gone">
+      <h1 className="text-xl font-semibold text-foreground">{t("sellerPage.notFound.title")}</h1>
+      <p className="text-sm text-muted-foreground">{t("sellerPage.notFound.body")}</p>
+      <Link to="/" className="text-primary underline underline-offset-4">
+        {t("sellerPage.notFound.home")}
+      </Link>
+    </PageShell>
+  );
+}
+
+function SellerRoute() {
+  const { name } = Route.useParams();
+  return <SellerPage sellerKey={name} />;
+}
