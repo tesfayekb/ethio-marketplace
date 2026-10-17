@@ -256,7 +256,10 @@ export function ListingDetail(view: ListingDetailView) {
         </p>
         {view.priceNegotiable === true && <NegotiableBadge />}
         {typeof view.soldBadge === "string" && view.soldBadge.length > 0 && (
-          <span data-testid="listing-detail-sold-badge" className="inline-flex shrink-0 items-center rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold uppercase text-destructive-foreground">
+          <span
+            data-testid="listing-detail-sold-badge"
+            className="inline-flex shrink-0 items-center rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold uppercase text-destructive-foreground"
+          >
             {view.soldBadge}
           </span>
         )}
