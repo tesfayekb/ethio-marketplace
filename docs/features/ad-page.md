@@ -52,6 +52,8 @@ Turn 11 — the contact block's three states for a buyer: signed out, one senten
 
 Turn 12a — M3 in two parts: `saved_listings` (RLS on, a deny policy, no client privilege; the doors write it as the definer), the dial `save` 200 a day (new rows only), `save_listing` / `unsave_listing` / `listing_saved` / `my_saved_listings` by public id (the owner cannot save his own ad — `ownListing`; a sold ad within its 30 days can be saved; an ad that left the public lists as ids only, with Remove), `public_listing_json` gains `counts.saves` and `viewer.saved`, `listing_counts` gains `saves`; the strip's chips carry `data-fact-key` (INC-693).
 
+Turn 12b — the heart at the gallery's top-end corner for a buyer (signed out → sign-in and back; signed in → Save / Remove from saved, the state from `listing_saved` after the first paint, never the served HTML); "Saved by N" beside it, hidden at 0; the owner draws no heart after `ownListing` hides it and his ad page counts "N saves"; Account › Saved at /account/saved (newest first, Show more, a sold ad with its ribbon, an ad that left the public as a grey "No longer available" card, Remove on every card).
+
 ## Tests
 
 - AT-84: Key fact tick order, renumbering, four-fact cap and unchanged card ranks.
@@ -86,7 +88,7 @@ Turn 12a — M3 in two parts: `saved_listings` (RLS on, a deny policy, no client
 
 - LD-1…LD-5: `src/features/posting/preview/listing-detail.test.tsx` — the three actors on the contact rows and the counts row.
 - AV-7: `src/features/ad-page/public-listing.test.ts` — buyer actor and valueless channel entries.
-- ML-U22: `src/features/my-listings/my-listing.test.ts` — three non-negative integer counts, malformed answers refused.
+- ML-U22: `src/features/my-listings/my-listing.test.ts` — four non-negative integer counts, malformed answers refused.
 - VW-1…VW-3: `src/server/ad-view.test.ts` — the id, the dial, the viewer, the 503.
 - AP-17: `e2e/ad-page.spec.ts` — the count, the hour, the owner, the seller's page, the refusals.
 
@@ -98,3 +100,8 @@ Turn 12a — M3 in two parts: `saved_listings` (RLS on, a deny policy, no client
 - LD-9: `src/features/posting/preview/listing-detail.test.tsx` — the buyer's contact states.
 - `src/features/ad-page/contact.test.ts` — the link builders and the reveal answer's parser.
 - ML-4 (`e2e/my-listings-doors.spec.ts`): the reveal calls moved to the public id.
+
+- AP-26: sign-in return, save/unsave and reload persistence, counted DB rows, owner saves and ownListing hides the heart after a tap.
+- SAVED-1 (brief AS-1), SAVED-2 (brief AS-2): Account › Saved order, sold ribbon, unavailable card, removal, navigation, sign-in return, overflow and empty list.
+- SAVE-1…SAVE-4 (brief SV-1…SV-4): Save answer validation, refusals, unavailable errors and listingSaved failures.
+- LD-10: heart states and owner saves.

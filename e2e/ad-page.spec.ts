@@ -245,7 +245,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, `/my-listings/${ad.id}`);
     const count = page.getByTestId("listing-detail-counts");
     await expect(count).toHaveAttribute("data-state", "ready");
-    await expect(count).toHaveText(`${fill(en["feed.views"], { count: 2 })} · ${fill(en["adPage.counts.contacts"], { count: 0 })} · ${fill(en["adPage.counts.saves"], { count: 0 })}`);
+    await expect(count).toHaveText(
+      `${fill(en["feed.views"], { count: 2 })} · ${fill(en["adPage.counts.contacts"], { count: 0 })} · ${fill(en["adPage.counts.saves"], { count: 0 })}`,
+    );
     await expect(page.getByTestId("listing-detail")).toHaveAttribute("data-actor", "owner");
     for (const data of [{ publicId: "nope" }, {}]) {
       const refused = await page.request.post("/api/listings/view", { data });
@@ -444,7 +446,10 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await context.close();
     }
   });
-  test("AP-26 the heart: signed out sign-in return; signed in saves and unsaves with counts; owner sees saves and no heart", async ({ page, browser }) => {
+  test("AP-26 the heart: signed out sign-in return; signed in saves and unsaves with counts; owner sees saves and no heart", async ({
+    page,
+    browser,
+  }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller);
     const { canonical, publicId } = await address(ad);
@@ -463,7 +468,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect.poll(() => new URL(page.url()).pathname).toBe(canonical);
     await expect(heart).toHaveAttribute("data-state", "unsaved");
     const savedRows = async () => {
-      const { data, error } = await adminClient().from("saved_listings").select("listing_id").eq("user_id", buyer.id).eq("listing_id", ad.id);
+      const { data, error } = await adminClient()
+        .from("saved_listings")
+        .select("listing_id")
+        .eq("user_id", buyer.id)
+        .eq("listing_id", ad.id);
       if (error) throw new Error(`AP-26 read: ${error.message}`);
       return data;
     };
@@ -490,7 +499,10 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
       if (!url || !key) throw new Error("AP-26 staging configuration missing");
       const session = await passwordGrant(buyer.email, buyer.password);
-      const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, global: { headers: { Authorization: `Bearer ${session.access_token}` } } });
+      const client = createClient(url, key, {
+        auth: { persistSession: false, autoRefreshToken: false },
+        global: { headers: { Authorization: `Bearer ${session.access_token}` } },
+      });
       const result = await client.rpc("save_listing", { p_public_id: publicId });
       expect(result.error).toBeNull();
       expect(result.data).toMatchObject({ ok: true, saved: true, count: 1 });
@@ -501,7 +513,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await expect(ownHeart).toHaveAttribute("data-state", "unsaved");
       await ownHeart.click();
       await expect(ownHeart).toHaveCount(0);
-    } finally { await context.close(); }
+    } finally {
+      await context.close();
+    }
   });
-
 });

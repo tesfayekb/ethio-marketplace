@@ -55,8 +55,8 @@ function document(): PublicListingDoc {
     },
     seller: { alias: "seller", business_name: null, previous_alias: null, member_since: null },
     contact_channels: [],
-    counts: { views: 0, shares: 0 },
-    viewer: { owner: false },
+    counts: { views: 0, shares: 0, saves: 0 },
+    viewer: { owner: false, saved: false },
   };
 }
 

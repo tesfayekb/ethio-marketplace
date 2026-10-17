@@ -113,18 +113,27 @@ function AdPage() {
     setOwnAd(false);
     setSaveCount(doc.counts.saves);
     setSaveRefusal(null);
-    if (user !== null) void listingSaved(doc.public_id).then((answer) => { if (active) setSaved(answer); });
-    return () => { active = false; };
+    if (user !== null)
+      void listingSaved(doc.public_id).then((answer) => {
+        if (active) setSaved(answer);
+      });
+    return () => {
+      active = false;
+    };
   }, [user, doc.public_id, doc.counts.saves]);
   const onToggle = () => {
     if (saveBusy || saved === null || user === null) return;
     setSaveBusy(true);
     setSaveRefusal(null);
-    void (saved ? unsaveListing(doc.public_id) : saveListing(doc.public_id)).then((answer) => {
-      if (answer.ok) { setSaved(answer.saved); setSaveCount(answer.count); }
-      else if (answer.reason === "ownListing") setOwnAd(true);
-      else setSaveRefusal(answer.reason === "rateLimited" ? "rateLimited" : "failed");
-    }).finally(() => setSaveBusy(false));
+    void (saved ? unsaveListing(doc.public_id) : saveListing(doc.public_id))
+      .then((answer) => {
+        if (answer.ok) {
+          setSaved(answer.saved);
+          setSaveCount(answer.count);
+        } else if (answer.reason === "ownListing") setOwnAd(true);
+        else setSaveRefusal(answer.reason === "rateLimited" ? "rateLimited" : "failed");
+      })
+      .finally(() => setSaveBusy(false));
   };
   const onReveal = () => {
     if (contactState.kind === "loading") return;
@@ -157,11 +166,19 @@ function AdPage() {
           {...adPageView(doc, language)}
           ribbon={ribbonKey ? t(ribbonKey) : null}
           soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}
-          save={ownAd ? undefined : {
-            viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
-            saved, count: saveCount, busy: saveBusy, refusal: saveRefusal,
-            signInTo: { to: "/auth", search: { return: canonical } }, onToggle,
-          }}
+          save={
+            ownAd
+              ? undefined
+              : {
+                  viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
+                  saved,
+                  count: saveCount,
+                  busy: saveBusy,
+                  refusal: saveRefusal,
+                  signInTo: { to: "/auth", search: { return: canonical } },
+                  onToggle,
+                }
+          }
           contact={{
             viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
             signInTo: { to: "/auth", search: { return: `${canonical}#contact` } },

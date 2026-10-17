@@ -173,6 +173,7 @@ export interface ListingDetailView {
 
 export function ListingDetail(view: ListingDetailView) {
   const { t, entities, language } = useI18n();
+  const saveSignInLabel = t("adPage.save.signIn");
   const scope = useCatalogScope();
   const tree = useCountryTree(view.country);
   const nodes: TreeNode[] = tree.loadedCountry === view.country ? tree.nodes : [];
@@ -313,53 +314,82 @@ export function ListingDetail(view: ListingDetailView) {
       )}
       {/* ------------------------------ the gallery ------------------------- */}
       <div className="relative">
-      {images.length > 0 ? (
-        <PhotoGallery
-          photos={images}
-          markUnscreened={view.markUnscreened === true}
-          ribbon={view.ribbon ?? null}
-        />
-      ) : (
-        <ListingPicture
-          photoUrl={null}
-          categoryUrl={view.illustrationUrl}
-          photosSoon={view.photosSoon === true}
-          ribbon={view.ribbon ?? null}
-          boxTestId={
-            view.illustrationUrl !== null ? "listing-detail-illustration" : "listing-detail-nophoto"
-          }
-        />
-      )}
+        {images.length > 0 ? (
+          <PhotoGallery
+            photos={images}
+            markUnscreened={view.markUnscreened === true}
+            ribbon={view.ribbon ?? null}
+          />
+        ) : (
+          <ListingPicture
+            photoUrl={null}
+            categoryUrl={view.illustrationUrl}
+            photosSoon={view.photosSoon === true}
+            ribbon={view.ribbon ?? null}
+            boxTestId={
+              view.illustrationUrl !== null
+                ? "listing-detail-illustration"
+                : "listing-detail-nophoto"
+            }
+          />
+        )}
 
-      {view.save !== undefined && (
-        <Button
-          asChild={view.save.viewer === "signedOut"}
-          variant="ghost"
-          className="absolute end-2 top-2 z-10 h-11 min-w-11 max-w-[calc(100%-1rem)] gap-2 rounded-full bg-background/90 px-3 text-foreground shadow-sm"
-          {...(view.save.viewer === "signedOut" ? {} : {
-            type: "button" as const,
-            "data-testid": "listing-save",
-            "data-state": view.save.viewer === "unknown" ? "unknown" : view.save.saved ? "saved" : "unsaved",
-            "aria-pressed": view.save.saved === true,
-            "aria-label": t(view.save.saved ? "adPage.save.remove" : "adPage.save.add"),
-            disabled: view.save.viewer === "unknown" || view.save.busy || view.save.saved === null,
-            onClick: view.save.onToggle,
-          })}
-        >
-          {view.save.viewer === "signedOut" ? (
-            <Link to={view.save.signInTo.to} search={view.save.signInTo.search}
-              data-testid="listing-save" data-state="signedOut" aria-label={t("adPage.save.signIn")}>
-              <Heart aria-hidden="true" className="size-5 shrink-0" />
-              {view.save.count > 0 && <span className="whitespace-normal text-start" data-testid="listing-save-count">{fill(t("adPage.save.count"), { count: view.save.count })}</span>}
-            </Link>
-          ) : (
-            <>
-              <Heart aria-hidden="true" className={view.save.saved ? "size-5 shrink-0 text-destructive" : "size-5 shrink-0"} fill={view.save.saved ? "currentColor" : "none"} />
-              {view.save.count > 0 && <span className="whitespace-normal text-start" data-testid="listing-save-count">{fill(t("adPage.save.count"), { count: view.save.count })}</span>}
-            </>
-          )}
-        </Button>
-      )}
+        {view.save !== undefined && (
+          <Button
+            asChild={view.save.viewer === "signedOut"}
+            variant="ghost"
+            className="absolute end-2 top-2 z-10 h-11 min-w-11 max-w-[calc(100%-1rem)] gap-2 rounded-full bg-background/90 px-3 text-foreground shadow-sm"
+            {...(view.save.viewer === "signedOut"
+              ? {}
+              : {
+                  type: "button" as const,
+                  "data-testid": "listing-save",
+                  "data-state":
+                    view.save.viewer === "unknown"
+                      ? "unknown"
+                      : view.save.saved
+                        ? "saved"
+                        : "unsaved",
+                  "aria-pressed": view.save.saved === true,
+                  "aria-label": t(view.save.saved ? "adPage.save.remove" : "adPage.save.add"),
+                  disabled:
+                    view.save.viewer === "unknown" || view.save.busy || view.save.saved === null,
+                  onClick: view.save.onToggle,
+                })}
+          >
+            {view.save.viewer === "signedOut" ? (
+              <Link
+                to={view.save.signInTo.to}
+                search={view.save.signInTo.search}
+                data-testid="listing-save"
+                data-state="signedOut"
+                aria-label={saveSignInLabel}
+              >
+                <Heart aria-hidden="true" className="size-5 shrink-0" />
+                {view.save.count > 0 && (
+                  <span className="whitespace-normal text-start" data-testid="listing-save-count">
+                    {fill(t("adPage.save.count"), { count: view.save.count })}
+                  </span>
+                )}
+              </Link>
+            ) : (
+              <>
+                <Heart
+                  aria-hidden="true"
+                  className={
+                    view.save.saved ? "size-5 shrink-0 text-destructive" : "size-5 shrink-0"
+                  }
+                  fill={view.save.saved ? "currentColor" : "none"}
+                />
+                {view.save.count > 0 && (
+                  <span className="whitespace-normal text-start" data-testid="listing-save-count">
+                    {fill(t("adPage.save.count"), { count: view.save.count })}
+                  </span>
+                )}
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* ---------------------------- title and price ----------------------- */}
@@ -382,7 +412,9 @@ export function ListingDetail(view: ListingDetailView) {
       </div>
       {view.save?.refusal && (
         <p role="status" data-testid="listing-save-refusal" className="text-sm text-destructive">
-          {t(view.save.refusal === "rateLimited" ? "adPage.save.rateLimited" : "adPage.save.failed")}
+          {t(
+            view.save.refusal === "rateLimited" ? "adPage.save.rateLimited" : "adPage.save.failed",
+          )}
         </p>
       )}
       {highlighted.length > 0 && (

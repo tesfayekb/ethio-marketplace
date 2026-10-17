@@ -6,7 +6,8 @@ export const Route = createFileRoute("/account_/saved")({
   ssr: false,
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
-    if (data.session?.user == null) throw redirect({ to: "/auth", search: { return: "/account/saved" } });
+    if (data.session?.user == null)
+      throw redirect({ to: "/auth", search: { return: "/account/saved" } });
   },
   head: () => ({
     meta: [
