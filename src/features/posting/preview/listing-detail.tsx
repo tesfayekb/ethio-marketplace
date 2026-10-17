@@ -419,7 +419,7 @@ export function ListingDetail(view: ListingDetailView) {
               {t("post.preview.contactLabel")}
             </h4>
             {view.actor === "buyer" && view.contact !== undefined ? (
-              <BuyerContact contact={view.contact} channels={channels} contactPref={view.contactPref} />
+              <BuyerContact contact={view.contact} channels={channels} />
             ) : (
             <ul className="divide-y divide-border text-sm">
               {channels.map((channel) => {
@@ -513,11 +513,9 @@ export function ListingDetail(view: ListingDetailView) {
 function BuyerContact({
   contact,
   channels,
-  contactPref,
 }: {
   contact: NonNullable<ListingDetailView["contact"]>;
   channels: readonly ContactChannel[];
-  contactPref: Record<string, unknown>;
 }) {
   const { t } = useI18n();
 
