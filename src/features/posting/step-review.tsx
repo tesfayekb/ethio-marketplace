@@ -562,6 +562,7 @@ export function StepReview({
         <PreviewSheet
           onClose={() => setPreviewOpen(false)}
           view={{
+            actor: "owner",
             title: values.title,
             description: values.description,
             priceMode: values.priceMode,

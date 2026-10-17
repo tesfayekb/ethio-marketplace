@@ -703,12 +703,7 @@ test.describe("ADMIN SCREENING", () => {
         }),
       );
     });
-    expect(layout.map((entry) => entry.channel)).toEqual([
-      "messages",
-      "phone",
-      "telegram",
-      "whatsapp",
-    ]);
+    expect(layout.map((entry) => entry.channel)).toEqual(["phone", "telegram", "whatsapp"]);
     for (let index = 1; index < layout.length; index += 1) {
       expect(
         layout[index]!.row!.top,

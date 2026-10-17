@@ -52,6 +52,7 @@ import {
   editMyListing,
   primaryAction,
   readHistory,
+  readListingCounts,
   readMyListing,
   runAction,
   sellerLines,
@@ -136,6 +137,7 @@ import { REASON_WORD, SOLD_ON, stateLine, visibilityOf } from "./state-line";
 
 const adKey = (listingId: string) => authKey("my-listing", listingId);
 const historyKey = (listingId: string) => authKey("my-listing-history", listingId);
+const countsKey = (listingId: string) => authKey("my-listing-counts", listingId);
 const contentKey = (listingId: string) => authKey("my-listing-content", listingId);
 
 function BackLink() {
@@ -238,6 +240,11 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     queryKey: historyKey(listingId),
     queryFn: () => readHistory(listingId),
     enabled: ad !== null,
+  });
+  const counts = useQuery({
+    queryKey: countsKey(listingId),
+    queryFn: () => readListingCounts(listingId),
+    enabled: ad !== null && row !== null && row.publishedFirstAt !== null,
   });
   const unitLabels = usePriceUnitLabels(row !== null && row.priceUnit !== null);
 
@@ -583,6 +590,16 @@ export function MyListingPage({ listingId }: { listingId: string }) {
             </p>
           ) : (
             <ListingDetail
+              actor="owner"
+              counts={
+                row.publishedFirstAt === null
+                  ? undefined
+                  : counts.isError
+                    ? null
+                    : counts.data === undefined
+                      ? undefined
+                      : { views: counts.data.views }
+              }
               title={draft.draft.title ?? ""}
               description={draft.draft.description ?? ""}
               priceMode={draft.draft.priceMode ?? "contact"}

@@ -1,4 +1,7 @@
 import { expect, test } from "./fixtures";
+import { adminClient } from "./helpers/users";
+import { fill } from "../src/features/posting/refusal-text";
+import { token } from "./helpers/ad-page";
 import { adPageFixtures } from "./helpers/ad-page";
 import { signInViaSession, gotoReady, switchLanguage } from "./helpers/ui";
 import { listingPath, shortListingPath } from "../src/features/ad-page/address";
@@ -45,8 +48,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       seller.alias,
     );
     const channels = page.getByTestId("listing-detail-channel");
-    await expect(channels).toHaveCount(2);
-    await expect(channels.filter({ hasText: en["post.who.channel.messages"] })).toBeVisible();
+    await expect(channels).toHaveCount(1);
     await expect(channels.filter({ hasText: en["post.who.channel.phone"] })).toBeVisible();
     await expect(page.locator("body")).not.toContainText("251911000001");
     expect(html).not.toContain("251911000001");
@@ -156,5 +158,63 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, `/my-listings/${draft.id}`);
     await expect(page.getByTestId("my-listing-continue")).toBeVisible();
     await expect(page.getByTestId("my-listing-open-public")).toHaveCount(0);
+  });
+  test("AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller);
+    const { canonical } = await address(ad);
+    const runKey = `ap17-${token()}`;
+    let addressKey = `${runKey}-a`;
+    await page.route("**/api/listings/view", (route) =>
+      route.continue({
+        headers: { ...route.request().headers(), "x-e2e-catalog-find-key": addressKey },
+      }),
+    );
+    async function visit(reload = false) {
+      const response = page.waitForResponse(
+        (response) =>
+          new URL(response.url()).pathname === "/api/listings/view" &&
+          response.request().method() === "POST",
+      );
+      if (reload) await page.reload();
+      else await page.goto(canonical);
+      await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+      const counted = await response;
+      expect(counted.status()).toBe(200);
+      return counted.json();
+    }
+    async function views() {
+      const { data, error } = await adminClient()
+        .from("listing_counters")
+        .select("views")
+        .eq("listing_id", ad.id);
+      if (error) throw new Error(`[e2e:ap17] counter read failed: ${error.message}`);
+      return (data ?? []).reduce((sum, row) => sum + row.views, 0);
+    }
+    expect(await visit()).toEqual({ counted: true });
+    expect(await visit(true)).toEqual({ counted: false });
+    addressKey = `${runKey}-b`;
+    expect(await visit(true)).toEqual({ counted: true });
+    expect(await views()).toBe(2);
+    await signInViaSession(page, seller.email, seller.password);
+    addressKey = `${runKey}-c`;
+    expect(await visit()).toEqual({ counted: false });
+    expect(await views()).toBe(2);
+    await gotoReady(page, `/my-listings/${ad.id}`);
+    const count = page.getByTestId("listing-detail-counts");
+    await expect(count).toHaveAttribute("data-state", "ready");
+    await expect(count).toHaveText(fill(en["feed.views"], { count: 2 }));
+    await expect(page.getByTestId("listing-detail")).toHaveAttribute("data-actor", "owner");
+    for (const data of [{ publicId: "nope" }, {}]) {
+      const refused = await page.request.post("/api/listings/view", { data });
+      expect(refused.status()).toBe(400);
+    }
+    const unknown = await page.request.post("/api/listings/view", {
+      data: { publicId: "2345678923" },
+    });
+    expect(unknown.status()).toBe(200);
+    expect(await unknown.json()).toEqual({ counted: false });
   });
 });

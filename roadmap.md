@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-6.md (bundle 19 — turn 6: INC-678's fix of the page's mapping; M1b by the migration tool (DEC-188), mark 20261018140000 — feed_page, my_listings and my_listing carry publicId; the feed card as a link; the seller's link to the buyer's view; one string). Next: turn 7 — three actors, buyer previews and owner counters; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-7.md (bundle 19 — turn 7: three actors on ListingDetail; the owner's channel values and his "N views"; views counted from the page by /api/listings/view; the Messages row gone; one string; no migration). Next: turn 8 — M2: fact_rank and the key-facts strip; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -332,7 +332,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 4 (docs/governance/briefs/bundle-19-turn-4.md) — M1: public_id, public_listing, listing counters and listing_read
   - [ ] Turn 5 (docs/governance/briefs/bundle-19-turn-5.md; no migration; three strings) — the buyer's page `/l/$slug` server-rendered from public_listing, the gone page, the 301 to the canonical, the breadcrumb (AP-9…AP-13)
   - [ ] Turn 6 (docs/governance/briefs/bundle-19-turn-6.md) — M1b: feed_page, my_listings and my_listing carry public_id; the feed card as a link; the seller's link to his ad's page; INC-678's fix of turn 5's mapping (the options key; the null pin)
-  - [ ] Turn 7 (docs/governance/briefs/bundle-19-turn-7.md) — three actors, buyer previews and owner counters
+  - [ ] Turn 7 (docs/governance/briefs/bundle-19-turn-7.md) — three actors on the one component (`actor`), the owner's own channels and "N views", the view count from the page (`/api/listings/view`), the Messages row gone until messaging exists
   - [ ] Turn 8 (docs/governance/briefs/bundle-19-turn-8.md) — M2: fact_rank and the key-facts strip
   - [ ] Turn 9 (docs/governance/briefs/bundle-19-turn-9.md) — the contact block and sign-in return
   - [ ] Turn 10 (docs/governance/briefs/bundle-19-turn-10.md) — M5: reveal rules

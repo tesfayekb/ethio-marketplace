@@ -171,3 +171,11 @@ describe("ad page view mapping", () => {
     expect(adPageView(doc, "en").attributeOptions).toEqual({ mileage: [] });
   });
 });
+
+it("AV-7 the buyer's mapping says buyer and carries no value", () => {
+  const doc = document();
+  doc.contact_channels = ["phone", "telegram"];
+  const view = adPageView(doc, "en");
+  expect(view.actor).toBe("buyer");
+  expect(Object.values(view.contactPref)).toEqual([{ show: true }, { show: true }]);
+});

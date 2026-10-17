@@ -237,6 +237,7 @@ export const am: Messages = {
   "myListings.bulk.refused": "ያልተቀየሩ፦ {count}። {reason}",
 
   // Bundle 19 turn 5 — the gone ad page.
+  "adPage.counts.unavailable": "የእይታ ቆጠራውን መጫን አልተቻለም።",
   "adPage.gone.title": "ይህ ማስታወቂያ ከእንግዲህ አይገኝም",
   "adPage.gone.body": "ተሽጦ፣ በሻጩ ተወግዶ ወይም ጊዜው አልፎ ሊሆን ይችላል።",
   "adPage.gone.home": "ወደ መነሻ ተመለስ",

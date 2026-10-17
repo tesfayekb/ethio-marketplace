@@ -5,6 +5,8 @@ import { usePhotoLinks } from "../use-photo-links";
 import { PhotoGallery } from "./photo-gallery";
 import { lazy, Suspense, type ReactNode } from "react";
 import { SellerLine } from "../seller-line";
+import { fill } from "../refusal-text";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * U6-C1-R3b-4 — the still map is its own lazy chunk, shared with U7: a listing
@@ -69,7 +71,13 @@ function isPeriod(value: string | null): value is PricePeriod {
   return value !== null && value in PERIOD_KEYS;
 }
 
+export type ListingActor = "buyer" | "owner" | "staff";
+
 export interface ListingDetailView {
+  /** D201 §5 — who is looking: the buyer's page, the owner's previews (the seller's ad page, the wizard's Review), staff's previews (Admin › Listings, Screening). The component draws the same ad for all three and differs only where this brief says. */
+  actor: ListingActor;
+  /** D201 §0 rule 10 — the owner's counts, passed only by the seller's ad page: undefined = not asked (the wizard), null = asked and not answered, a number = the count. Only what is counted is passed — views now; shares when the share sheet lands; contacts when the contact block lands; Saves at M3 — never a count nothing writes. */
+  counts?: { views: number } | null;
   title: string;
   description: string;
   priceMode: string;
@@ -200,7 +208,22 @@ export function ListingDetail(view: ListingDetailView) {
   });
 
   return (
-    <article className="space-y-4" data-testid="listing-detail">
+    <article className="space-y-4" data-testid="listing-detail" data-actor={view.actor}>
+      {view.actor === "owner" && view.counts !== undefined && (
+        <p
+          data-testid="listing-detail-counts"
+          data-state={view.counts === null ? "unavailable" : "ready"}
+          className="text-sm text-muted-foreground"
+        >
+          {view.counts === null ? (
+            t("adPage.counts.unavailable")
+          ) : (
+            <span data-testid="listing-detail-count" data-count="views">
+              {fill(t("feed.views"), { count: view.counts.views })}
+            </span>
+          )}
+        </p>
+      )}
       {/* ------------------------------ the gallery ------------------------- */}
       {images.length > 0 ? (
         <PhotoGallery
@@ -332,16 +355,12 @@ export function ListingDetail(view: ListingDetailView) {
             {t("post.preview.contactLabel")}
           </h4>
           <ul className="divide-y divide-border text-sm">
-            <li
-              data-testid="listing-detail-channel"
-              data-channel="messages"
-              className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
-            >
-              <span className="me-auto text-foreground" data-testid="listing-detail-channel-label">
-                {t("post.who.channel.messages")}
-              </span>
-            </li>
             {channels.map((channel) => {
+              const entry = ownValue(view.contactPref, channel);
+              const value =
+                entry !== null && typeof entry === "object"
+                  ? ownValue(entry as Record<string, unknown>, "value")
+                  : undefined;
               const label =
                 channel === "phone"
                   ? t("post.who.channel.phone")
@@ -363,6 +382,15 @@ export function ListingDetail(view: ListingDetailView) {
                   >
                     {label}
                   </span>
+                  {view.actor === "owner" && typeof value === "string" && value.trim() !== "" && (
+                    <span
+                      data-testid="listing-detail-channel-value"
+                      data-channel={channel}
+                      className="text-foreground"
+                    >
+                      {value}
+                    </span>
+                  )}
                   {view.channelAction?.(channel) ?? null}
                 </li>
               );

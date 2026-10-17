@@ -98,6 +98,7 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
       ? doc.price.unit_text
       : (language === "am" && label?.am ? label.am : label?.en) || null;
   return {
+    actor: "buyer",
     title: doc.title,
     description: doc.description,
     priceMode: doc.price.mode,

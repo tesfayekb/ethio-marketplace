@@ -36,6 +36,8 @@ Not yet on this page: the counters line, sharing, the contact reveal action, sim
 
 Turn 6 — INC-678 fixes option lists to use `attr_key` (each reader's key), including an empty list for a number definition, and maps a null shown pin to no pin. An address longer than 200 characters answers the gone page, not an error. M1b (`feed_page`, `my_listings`, `my_listing`, mark `20261018140000`) carries `publicId`; older answers parse it as null. The feed card's content is one keyboard-focusable `listing-card-link` to `/l/<words>-<id>` with no nested controls; without the id its layout stays unchanged. The seller's actions offer `my-listing-open-public`, opening the buyer's view in a new tab for active or sold ads only. DEC-188 overrides the file route for this migration: applied on ethio-prod by the migration tool, with P1–P3 passing and the attachment's SHA-256 preserved; the operator applies the saved file on ethio-staging. AP-4 now asserts the stronger anonymous permission refusal. PW-162(d) waits for the failed-send notice to clear after the hook's successful retry before Back, without changing its observations, timeout or retry policy.
 
+Turn 7 — `ListingDetail` carries `actor` (buyer, owner, staff) and every mount names its own; the owner (the seller's ad page, the wizard's Review) sees his own channel values as text and, on his ad page, "N views" from `listing_counts` — only what is counted is drawn (views now; shares with the share sheet; contacts with the contact block; Saves at M3), the unavailable line when the read fails, nothing for an ad that was never live; the buyer and staff never see a value or a count; the Messages row is gone until messaging exists (ruling 8); a view is counted by `POST /api/listings/view` from the page after it renders — the route's own dial `listing-view:address` (600 an hour, `RATE_LIMIT_LISTING_VIEW_PER_HOUR`), then `count_listing_view` with the hashed address and the viewer's id when the bearer names one, so the owner's visits and a second visit from one address within the hour do not count, and a crawler without JavaScript does not count; the public page does not show its counts yet (turn 13).
+
 ## Tests
 
 - AP-1, AP-2: `e2e/ad-page-routes.spec.ts` — immutable SVG and malformed-id 404.
@@ -49,3 +51,9 @@ Turn 6 — INC-678 fixes option lists to use `attr_key` (each reader's key), inc
 - AP-16: `e2e/ad-page-doors.spec.ts` — all three reads carry the seeded public id.
 - AV-5, AV-6: `src/features/ad-page/public-listing.test.ts` — null pin preserves remaining mapping, missing option lists stay empty under their key.
 - FE-16: `src/features/feed/feed-page.test.ts`; ML-U21: `src/features/my-listings/my-listing.test.ts` — absent public id becomes null; supplied id is retained, malformed type refused.
+
+- LD-1…LD-5: `src/features/posting/preview/listing-detail.test.tsx` — the three actors on the contact rows and the counts row.
+- AV-7: `src/features/ad-page/public-listing.test.ts` — buyer actor and valueless channel entries.
+- ML-U22: `src/features/my-listings/my-listing.test.ts` — three non-negative integer counts, malformed answers refused.
+- VW-1…VW-3: `src/server/ad-view.test.ts` — the id, the dial, the viewer, the 503.
+- AP-17: `e2e/ad-page.spec.ts` — the count, the hour, the owner, the seller's page, the refusals.

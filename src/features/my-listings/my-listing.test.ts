@@ -22,6 +22,7 @@ import {
   actionsFor,
   DONE_KEY,
   parseHistory,
+  parseListingCounts,
   parseMyListing,
   sellerLines,
   STATUS_WORD,
@@ -279,4 +280,18 @@ describe("the list's actions (bundle 16 turn R1, D181, D182)", () => {
     expect(primaryAction(["delete"])).toBeNull();
     expect(primaryAction([])).toBeNull();
   });
+});
+
+it("ML-U22 listing_counts parses three non-negative integers; a missing or negative one is refused", () => {
+  const counts = { views: 3, shares: 0, contacts: 1 };
+  expect(parseListingCounts({ ...counts, shares_by_channel: { telegram: 2 } })).toEqual(counts);
+  for (const value of [
+    { ...counts, views: -1 },
+    { ...counts, views: "3" },
+    {},
+    { ...counts, contacts: 0.5 },
+    { ...counts, shares: Infinity },
+    { ...counts, contacts: undefined },
+  ])
+    expect(parseListingCounts(value)).toBeNull();
 });
