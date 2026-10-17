@@ -1,12 +1,12 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39009703768
-- Commit: `ee15261a3cda8bded7de5e16188b0ca459c37e65`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39013622206
+- Commit: `db18015052357cc00b3f189d6721753d512e411d`
 - Attempt: 1
-- Written (UTC): 2026-10-17T07:18:14.132Z
-- Passed: 1898 · Skipped: 128 · Failed: 12
-- Gating failures: 12 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 10
+- Written (UTC): 2026-10-17T08:11:34.811Z
+- Passed: 1960 · Skipped: 128 · Failed: 15
+- Gating failures: 15 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 1
 - Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, changed
 - Sources without results: none
 - Errors outside any test (INC-589): none
@@ -16,414 +16,41 @@
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) — Error: the two photos are not on one row: {"firstBox":{"x":81,"y":1227.5,"width":117,"height":135.75},"secondBox":{"x":210,"y":1263.5,"width":117,"height":135.75}}
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-129 Next waits for the identity read instead of refusing — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · posting-routes.spec.ts › POSTING ROUTES › PR-4 identity: the alias is saved, and a second seller cannot take it — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · shell.spec.ts › mobile chrome › the menu follows the active panel — Error: [e2e:pool] reaping e2e-pool-s3b-000@ethio-e2e.invalid (factors) failed: {}
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away — Error: expect(received).toBe(expected) // Object.is equality
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-25 Edit refuses an enforcer without a second factor, and writes nothing — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-locations.spec.ts › L2a locations console › LT-1 gating: a plain user is refused; the roster, its toolbar and the header's actions render for an admin — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · photo-pipeline.spec.ts › PHOTO PIPELINE › PP-13 photo links: the owner and staff get them; another seller and no session do not — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-129 Next waits for the identity read instead of refusing — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 6` · posting-routes.spec.ts › POSTING ROUTES › PR-4 identity: the alias is saved, and a second seller cannot take it — Test timeout of 60000ms exceeded.
+- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · post-wizard-specs.spec.ts › POSTING WIZARD › PW-22 a link's allowed options narrow the picker and its default prefills — Test timeout of 60000ms exceeded.
 
 ## Flaky bodies (DEC-078)
 
-### admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4)
-
-- Source: `shard 1`
-- Project: `mobile-360`
-
-```text
-Error: the two photos are not on one row: {"firstBox":{"x":81,"y":1227.5,"width":117,"height":135.75},"secondBox":{"x":210,"y":1263.5,"width":117,"height":135.75}}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
---- further error 1 ---
-Error: the two photos are not on one row: {"firstBox":{"x":81,"y":1227.5,"width":117,"height":135.75},"secondBox":{"x":210,"y":1263.5,"width":117,"height":135.75}}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-
-  1962 |       firstBox !== null && secondBox !== null && Math.abs(firstBox.y - secondBox.y) < 2,
-  1963 |       `the two photos are not on one row: ${JSON.stringify({ firstBox, secondBox })}`,
-> 1964 |     ).toBe(true);
-       |       ^
-  1965 |     await expect(card.getByTestId("listing-photos-hint")).toHaveText(
-  1966 |       en["admin.listings.photos.hint"],
-  1967 |     );
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-listings.spec.ts:1964:7
-```
-
-Context:
-
-```text
-          - listitem [ref=e361]:
-            - generic [ref=e362]: About
-          - listitem [ref=e363]:
-            - generic [ref=e364]: How it works
-      - navigation "Help" [ref=e365]:
-        - heading "Help" [level=2] [ref=e366]
-        - list [ref=e367]:
-          - listitem [ref=e368]:
-            - generic [ref=e369]: Safety
-          - listitem [ref=e370]:
-            - generic [ref=e371]: Contact
-      - navigation "Legal" [ref=e372]:
-        - heading "Legal" [level=2] [ref=e373]
-        - list [ref=e374]:
-          - listitem [ref=e375]:
-            - generic [ref=e376]: Terms
-          - listitem [ref=e377]:
-            - generic [ref=e378]: Privacy
-    - paragraph [ref=e380]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-129 Next waits for the identity read instead of refusing
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('post-step-8')
-
-
-  469 |
-  470 |     release();
-> 471 |     await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
-      |                                                   ^
-  472 |     await expect(page.getByTestId("post-who-country-refusal")).toHaveCount(0);
-  473 |   });
-  474 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-bundle2.spec.ts:471:51
-```
-
-Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-129-Next-waits-for-the-identity-read-instead-of-refusing-mobile-360` — Playwright's name `post-wizard-bundle2-POSTIN-a0549-ty-read-instead-of-refusing-mobile-360`; this run carried 11 context file(s); of the same spec: none
-
-### posting-routes.spec.ts › POSTING ROUTES › PR-4 identity: the alias is saved, and a second seller cannot take it
+### post-wizard-specs.spec.ts › POSTING WIZARD › PW-22 a link's allowed options narrow the picker and its default prefills
 
 - Source: `shard 3`
 - Project: `mobile-360`
 
 ```text
 Test timeout of 60000ms exceeded.
-```
-
-Context:
-
-```text
-          - listitem [ref=e221]:
-            - generic [ref=e222]: About
-          - listitem [ref=e223]:
-            - generic [ref=e224]: How it works
-      - navigation "Help" [ref=e225]:
-        - heading "Help" [level=2] [ref=e226]
-        - list [ref=e227]:
-          - listitem [ref=e228]:
-            - generic [ref=e229]: Safety
-          - listitem [ref=e230]:
-            - generic [ref=e231]: Contact
-      - navigation "Legal" [ref=e232]:
-        - heading "Legal" [level=2] [ref=e233]
-        - list [ref=e234]:
-          - listitem [ref=e235]:
-            - generic [ref=e236]: Terms
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Privacy
-    - paragraph [ref=e240]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### shell.spec.ts › mobile chrome › the menu follows the active panel
-
-- Source: `shard 3`
-- Project: `mobile-360`
-
-```text
-Error: [e2e:pool] reaping e2e-pool-s3b-000@ethio-e2e.invalid (factors) failed: {}
---- further error 1 ---
-Error: [e2e:pool] reaping e2e-pool-s3b-000@ethio-e2e.invalid (factors) failed: {}
-
-   at helpers/users.ts:243
-
-  241 |   const supabase = adminClient();
-  242 |   const fail = (step: string, message: string) => {
-> 243 |     throw new Error(`[e2e:pool] reaping ${email} (${step}) failed: ${message}`);
-      |           ^
-  244 |   };
-  245 |
-  246 |   // INC-377 counter census: rate_limits keyed by user id (upload, geocode,
-    at fail (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/users.ts:243:11)
-    at reapPoolAccount (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/users.ts:355:22)
-    at leaseUser (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/users.ts:390:3)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1036:18
-```
-
-Context: context file not found for `shell-mobile-chrome-the-menu-follows-the-active-panel-mobile-360` — Playwright's name `shell-mobile-chrome-the-menu-follows-the-active-panel-mobile-360`; this run carried 11 context file(s); of the same spec: none
-
-### admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away
-
-- Source: `shard 4`
-- Project: `desktop-1280`
-
-```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 404
-Received: 200
-
-Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
---- further error 1 ---
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: 404
-Received: 200
-
-Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
-
-  212 |         .poll(async () => (await readCountry(code))?.is_active, { timeout: 20000 })
-  213 |         .toBe(false);
-> 214 |       await expect
-      |       ^
-  215 |         .poll(async () => (await page.request.get(`/api/locations/${code}`)).status(), {
-  216 |           timeout: 20000,
-  217 |         })
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-countries.spec.ts:214:7
-```
-
-Context:
-
-```text
-          - listitem [ref=e346]:
-            - generic [ref=e347]: About
-          - listitem [ref=e348]:
-            - generic [ref=e349]: How it works
-      - navigation "Help" [ref=e350]:
-        - heading "Help" [level=2] [ref=e351]
-        - list [ref=e352]:
-          - listitem [ref=e353]:
-            - generic [ref=e354]: Safety
-          - listitem [ref=e355]:
-            - generic [ref=e356]: Contact
-      - navigation "Legal" [ref=e357]:
-        - heading "Legal" [level=2] [ref=e358]
-        - list [ref=e359]:
-          - listitem [ref=e360]:
-            - generic [ref=e361]: Terms
-          - listitem [ref=e362]:
-            - generic [ref=e363]: Privacy
-    - paragraph [ref=e365]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-25 Edit refuses an enforcer without a second factor, and writes nothing
-
-- Source: `shard 4`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-SyntaxError: Unexpected token 'u', "upstream r"... is not valid JSON
-
-   at helpers/session.ts:91
-
-  89 |     body: JSON.stringify({ email, password }),
-  90 |   });
-> 91 |   const body = (await response.json()) as Record<string, unknown>;
-     |                 ^
-  92 |   if (!response.ok || typeof body["access_token"] !== "string") {
-  93 |     throw new Error(
-  94 |       `[e2e:session] password grant failed for ${email} (HTTP ${response.status}): ` +
-    at passwordGrant (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/session.ts:91:17)
-    at asPerson (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-listings.spec.ts:89:19)
-    at refusedEdit (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-listings.spec.ts:425:20)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-listings.spec.ts:461:5
---- further error 2 ---
-Error: [e2e:reap] location aff3c680-b860-471d-9063-3424992e7fec failed: update or delete on table "locations" violates foreign key constraint "listings_location_id_fkey" on table "listings"
-
-   at helpers/locations.ts:277
-
-  275 |     const deleted = await supabase.from("locations").delete().eq("id", id);
-  276 |     if (deleted.error)
-> 277 |       throw new Error(`[e2e:reap] location ${id} failed: ${deleted.error.message}`);
-      |             ^
-  278 |   }
-  279 | }
-  280 |
-    at destroyLocation (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/locations.ts:277:13)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-listings.spec.ts:202:43
-```
-
-Context: context file not found for `admin-listings-ADMIN-LISTINGS-the-console-s-doors-AL-25-Edit-refuses-an-enforcer-without-a-second-factor-and-writes-nothing-desktop-1280` — Playwright's name `admin-listings-ADMIN-LISTI-96cb2-d-factor-and-writes-nothing-desktop-1280`; this run carried 11 context file(s); of the same spec: `admin-listings-ADMIN-LISTI-0ab5d-eller-is-told-D194-D154-B4--mobile-360`
-
-### admin-locations.spec.ts › L2a locations console › LT-1 gating: a plain user is refused; the roster, its toolbar and the header's actions render for an admin
-
-- Source: `shard 4`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('location-country-filter')
+Locator: getByTestId('post-step-2')
 Expected: visible
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('location-country-filter')
+  - waiting for getByTestId('post-step-2')
 
 
-   at helpers/locations.ts:130
-
-  128 | export async function selectMarket(page: Page, code: string) {
-  129 |   const picker = page.getByTestId("location-country-filter");
-> 130 |   await expect(picker).toBeVisible({ timeout: 20000 });
-      |                        ^
-  131 |   await picker.selectOption(code);
-  132 | }
-  133 |
---- client errors of this attempt (DEC-177) ---
-[client-error] console.error: [feed] first page failed TypeError: Failed to fetch at readPage (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:33479:25) at http://127.0.0.1:4173/assets/index-IqFaEmoG.js:33511:3 at commitHookEffectListMount (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:5123:20) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6028:21) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6019:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6027:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6019:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6027:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6019:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6027:5)
-```
-
-Context:
-
-```text
-          - listitem [ref=e130]:
-            - generic [ref=e131]: About
-          - listitem [ref=e132]:
-            - generic [ref=e133]: How it works
-      - navigation "Help" [ref=e134]:
-        - heading "Help" [level=2] [ref=e135]
-        - list [ref=e136]:
-          - listitem [ref=e137]:
-            - generic [ref=e138]: Safety
-          - listitem [ref=e139]:
-            - generic [ref=e140]: Contact
-      - navigation "Legal" [ref=e141]:
-        - heading "Legal" [level=2] [ref=e142]
-        - list [ref=e143]:
-          - listitem [ref=e144]:
-            - generic [ref=e145]: Terms
-          - listitem [ref=e146]:
-            - generic [ref=e147]: Privacy
-    - paragraph [ref=e149]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### photo-pipeline.spec.ts › PHOTO PIPELINE › PP-13 photo links: the owner and staff get them; another seller and no session do not
-
-- Source: `shard 5`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: PP-13: no card link for the owner
-
-expect(received).toMatch(expected)
-
-Expected pattern: /\/storage\/v1\/object\/sign\/listing-photos\//
-Received string:  ""
-
-  557 |     const ownLinks = (own.payload["links"] ?? {}) as Record<string, Record<string, string>>;
-  558 |     for (const variant of ["card", "thumb", "cover"]) {
-> 559 |       expect(ownLinks[photoId]?.[variant] ?? "", `PP-13: no ${variant} link for the owner`).toMatch(
-      |                                                                                             ^
-  560 |         /\/storage\/v1\/object\/sign\/listing-photos\//,
-  561 |       );
-  562 |     }
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/photo-pipeline.spec.ts:559:93
-```
-
-Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-13-photo-links-the-owner-and-staff-get-them-another-seller-and-no-session-do-not-desktop-1280` — Playwright's name `photo-pipeline-PHOTO-PIPEL-86e15-eller-and-no-session-do-not-desktop-1280`; this run carried 11 context file(s); of the same spec: none
-
-### post-wizard-bundle2.spec.ts › POSTING WIZARD — bundle 2 place and contact › PW-129 Next waits for the identity read instead of refusing
-
-- Source: `shard 5`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-step-8')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('post-step-8')
-
-
-  469 |
-  470 |     release();
-> 471 |     await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+  188 |   async function nextThroughPhotos(page: import("@playwright/test").Page) {
+  189 |     await page.getByTestId("post-next").click();
+> 190 |     await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
       |                                                   ^
-  472 |     await expect(page.getByTestId("post-who-country-refusal")).toHaveCount(0);
-  473 |   });
-  474 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-bundle2.spec.ts:471:51
+  191 |     await page.getByTestId("post-next").click();
+  192 |   }
+  193 |
+    at nextThroughPhotos (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-specs.spec.ts:190:51)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-specs.spec.ts:1451:5
 ```
 
-Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2-place-and-contact-PW-129-Next-waits-for-the-identity-read-instead-of-refusing-desktop-1280` — Playwright's name `post-wizard-bundle2-POSTIN-a0549-ty-read-instead-of-refusing-desktop-1280`; this run carried 11 context file(s); of the same spec: none
-
-### posting-routes.spec.ts › POSTING ROUTES › PR-4 identity: the alias is saved, and a second seller cannot take it
-
-- Source: `shard 6`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 60000ms exceeded.
-```
-
-Context:
-
-```text
-          - listitem [ref=e296]:
-            - generic [ref=e297]: About
-          - listitem [ref=e298]:
-            - generic [ref=e299]: How it works
-      - navigation "Help" [ref=e300]:
-        - heading "Help" [level=2] [ref=e301]
-        - list [ref=e302]:
-          - listitem [ref=e303]:
-            - generic [ref=e304]: Safety
-          - listitem [ref=e305]:
-            - generic [ref=e306]: Contact
-      - navigation "Legal" [ref=e307]:
-        - heading "Legal" [level=2] [ref=e308]
-        - list [ref=e309]:
-          - listitem [ref=e310]:
-            - generic [ref=e311]: Terms
-          - listitem [ref=e312]:
-            - generic [ref=e313]: Privacy
-    - paragraph [ref=e315]: © 2026 ethio.com — All rights reserved.
-```
-```
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-22-a-link-s-allowed-options-narrow-the-picker-and-its-default-prefills-mobile-360` — Playwright's name `post-wizard-specs-POSTING--b6583-er-and-its-default-prefills-mobile-360`; this run carried 10 context file(s); of the same spec: none
 
 ## Errors outside any test (INC-589)
 
@@ -437,7 +64,7 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 
 | Message | Count | Sources |
 | --- | --- | --- |
-| `listing not found` | 21 | shard 2, shard 3, shard 5, shard 6, changed |
+| `listing not found` | 21 | shard 3, shard 6, changed |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -471,30 +98,30 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, c
 | `strings tooManyRows` (quiet) | 2 | shard 2, shard 5 |
 | `strings unknownColumn` (quiet) | 2 | shard 2, shard 5 |
 | `strings wrongFile` (quiet) | 2 | shard 2, shard 5 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>w<n>w<n>z: e<n>e_par_rcn<n>v → e<n>e_chi_<n>ba<n>x<n>` (quiet) | 1 | shard 4 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-plgrj<n>: e<n>e_par_hegsli → e<n>e_chi_vm<n>plb` (quiet) | 1 | shard 1 |
-| `Error: The socket connection was closed unexpectedly. For more information, pass <q> in the second argument to fetch()` | 1 | shard 6 |
+| `catalog_find_refresh: canceling statement due to statement timeout` | 1 | shard 1 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-m<n>: e<n>e_par_<n>ugl → e<n>e_chi_w<n>dga<n>` (quiet) | 1 | shard 4 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-omnynm: e<n>e_par_<n>zjq<n> → e<n>e_chi_mrx<n>z` (quiet) | 1 | shard 1 |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>w<n>w<n>z: e<n>e_par_rcn<n>v → e<n>e_chi_<n>ba<n>x<n> ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-plgrj<n>: e<n>e_par_hegsli → e<n>e_chi_vm<n>plb ×1
+Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-m<n>: e<n>e_par_<n>ugl → e<n>e_chi_w<n>dga<n> ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-omnynm: e<n>e_par_<n>zjq<n> → e<n>e_chi_mrx<n>z ×1
 
 Off the allowlist:
 
 ### listing not found
 
-- Count: 21 · Sources: shard 2, shard 3, shard 5, shard 6, changed
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-63 the pricing basis is asked on the price step, refused there when empty, an ×4 · PW-109 a quote basis forces contact, and a changed basis releases it (INC-375) ×2 · PW-129 Next waits for the identity read instead of refusing ×2 · PW-13 review: the preview shows what was answered, and Publish lands in review — ×2 · PW-21 a child detail shows only the chosen parent's options and clears on change ×2 · PW-49 a prefill-only fact keeps its input while a settled one does not ×2
+- Count: 21 · Sources: shard 3, shard 6, changed
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-17 the currency is preselected and searchable by name in one control ×3 · PW-45 a declared swatch renders one ink, a two-tone and a pattern tile ×3 · LY-6 at 360 the open currency list is above the sticky action bar ×2 · PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it ×2 · PW-63 the pricing basis is asked on the price step, refused there when empty, an ×2 · PW-78 a big model list shows its required mark once the brand is chosen (INC-336 ×2
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
 ```
 
-### Error: The socket connection was closed unexpectedly. For more information, pass <q> in the second argument to fetch()
+### catalog_find_refresh: canceling statement due to statement timeout
 
-- Count: 1 · Sources: shard 6
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): VP-10 a browser pick saved before D106 (no time) loses to the account's place ×1 · VP-9 the account's newer pick wins over this browser's older one ×1
+- Count: 1 · Sources: shard 1
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): CO-1 gating: a plain user is refused; the roster, its toolbar and the header's t ×1 · CT-19 a create and a rename commit through the doors and undo ×1
 
 ```text
-[WebServer] [ssr-error] /api/locations Error: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()
+[WebServer] [ssr-error] /api/admin/categories/import catalog_find_refresh: canceling statement due to statement timeout
 ```
 
 ## Accessibility (DEC-084, gating)
@@ -509,88 +136,88 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-17T06:33:31.804Z | 16.4 min |
-| email | 2026-10-17T06:33:33.292Z | 0.2 min |
-| shard 1 | 2026-10-17T06:33:41.667Z | 44.2 min |
-| shard 2 | 2026-10-17T06:33:32.946Z | 37.1 min |
-| shard 3 | 2026-10-17T06:33:35.258Z | 35.0 min |
-| shard 4 | 2026-10-17T06:33:37.899Z | 40.9 min |
-| shard 5 | 2026-10-17T06:33:29.084Z | 37.1 min |
-| shard 6 | 2026-10-17T06:33:39.526Z | 34.6 min |
-| changed | 2026-10-17T06:33:32.293Z | 18.0 min |
+| smoke | 2026-10-17T07:27:43.451Z | 18.1 min |
+| email | 2026-10-17T07:27:32.818Z | 0.2 min |
+| shard 1 | 2026-10-17T07:27:29.187Z | 39.7 min |
+| shard 2 | 2026-10-17T07:27:30.951Z | 37.1 min |
+| shard 3 | 2026-10-17T07:27:36.778Z | 40.3 min |
+| shard 4 | 2026-10-17T07:27:33.926Z | 38.5 min |
+| shard 5 | 2026-10-17T07:27:36.980Z | 43.7 min |
+| shard 6 | 2026-10-17T07:27:34.582Z | 39.3 min |
+| changed | 2026-10-17T07:27:37.345Z | 32.0 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `post-wizard-pricing.spec.ts` | 104 | 37.7 min | shard 3, shard 6, changed |
+| `post-wizard-pricing.spec.ts` | 104 | 42.7 min | shard 3, shard 6, changed |
+| `admin-screening.spec.ts` | 104 | 37.7 min | shard 1, shard 4, changed |
+| `post-wizard-specs.spec.ts` | 82 | 31.1 min | shard 3, shard 6 |
 | `photo-pipeline.spec.ts` | 66 | 25.7 min | shard 2, shard 5 |
-| `post-wizard-specs.spec.ts` | 82 | 22.4 min | shard 3, shard 6 |
-| `shell.spec.ts` | 336 | 22.3 min | smoke, shard 3, shard 6 |
-| `admin-listings.spec.ts` | 60 | 22.3 min | shard 1, shard 4 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 19.5 min | shard 1, shard 4 |
-| `post-wizard-bundle2.spec.ts` | 68 | 18.5 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 64 | 16.0 min | shard 3, shard 6 |
-| `post-wizard-place.spec.ts` | 38 | 14.0 min | shard 3, shard 6 |
-| `my-listings-ad.spec.ts` | 36 | 12.9 min | shard 2, shard 5 |
-| `ad-page.spec.ts` | 28 | 12.7 min | shard 1, shard 4, changed |
-| `admin-attributes-library.spec.ts` | 42 | 12.3 min | shard 1, shard 4 |
-| `admin-screening.spec.ts` | 52 | 11.7 min | shard 1, shard 4 |
-| `my-listings-doors.spec.ts` | 28 | 11.7 min | shard 2, shard 5 |
-| `post-wizard-resets.spec.ts` | 34 | 11.1 min | shard 3, shard 6 |
-| `auth-signout.spec.ts` | 56 | 10.8 min | smoke, shard 2, shard 5 |
-| `admin-categories-console.spec.ts` | 34 | 10.6 min | shard 1, shard 4 |
-| `post-wizard-where.spec.ts` | 32 | 10.4 min | shard 3, shard 6 |
-| `admin-attributes-links.spec.ts` | 32 | 10.1 min | shard 1, shard 4 |
-| `admin-locations.spec.ts` | 38 | 9.7 min | shard 1, shard 4 |
-| `ad-page-doors.spec.ts` | 28 | 9.7 min | shard 1, shard 4, changed |
-| `feed-screens.spec.ts` | 30 | 9.4 min | shard 2, shard 5 |
-| `admin-attributes-editor.spec.ts` | 34 | 9.2 min | shard 1, shard 4 |
-| `my-listings-page.spec.ts` | 14 | 8.7 min | shard 2, shard 5 |
-| `admin-attributes-import.spec.ts` | 40 | 8.7 min | shard 1, shard 4 |
-| `admin-users.spec.ts` | 28 | 8.1 min | shard 2, shard 5 |
-| `posting-routes-catalog.spec.ts` | 18 | 7.5 min | shard 3, shard 6 |
-| `feed-index.spec.ts` | 30 | 7.3 min | shard 2, shard 5 |
-| `admin-attributes-safety.spec.ts` | 18 | 7.2 min | shard 1, shard 4 |
-| `feed-route.spec.ts` | 22 | 6.8 min | shard 2, shard 5 |
-| `import-security.spec.ts` | 36 | 6.7 min | shard 2, shard 5 |
-| `admin-translations-console.spec.ts` | 44 | 6.1 min | shard 1, shard 4 |
-| `viewing-place.spec.ts` | 22 | 5.8 min | shard 3, shard 6 |
-| `admin-roles.spec.ts` | 26 | 5.6 min | shard 1, shard 4 |
-| `post-wizard-category.spec.ts` | 48 | 5.5 min | shard 2, shard 5 |
-| `admin-countries.spec.ts` | 18 | 5.0 min | shard 1, shard 4 |
-| `admin-audit.spec.ts` | 14 | 4.4 min | shard 1, shard 4 |
-| `admin-coverage.spec.ts` | 16 | 4.2 min | shard 1, shard 4 |
-| `admin-categories-home.spec.ts` | 10 | 3.8 min | shard 1, shard 4 |
-| `posting-routes-dials.spec.ts` | 18 | 3.5 min | shard 3, shard 6 |
-| `admin-translations-governance.spec.ts` | 8 | 2.5 min | shard 2, shard 5 |
+| `admin-listings.spec.ts` | 60 | 20.7 min | shard 1, shard 4 |
+| `ad-page.spec.ts` | 32 | 20.7 min | shard 1, shard 4, changed |
+| `shell.spec.ts` | 336 | 20.3 min | smoke, shard 3, shard 6 |
+| `post-wizard-bundle2.spec.ts` | 68 | 16.9 min | shard 2, shard 5 |
+| `post-wizard-place.spec.ts` | 38 | 16.8 min | shard 3, shard 6 |
+| `my-listings-ad.spec.ts` | 36 | 16.7 min | shard 2, shard 5 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 16.0 min | shard 1, shard 4 |
+| `post-wizard-where.spec.ts` | 32 | 15.7 min | shard 3, shard 6 |
+| `my-listings-doors.spec.ts` | 28 | 14.7 min | shard 2, shard 5 |
+| `post-wizard-resets.spec.ts` | 34 | 14.2 min | shard 3, shard 6 |
+| `posting-routes.spec.ts` | 64 | 13.8 min | shard 3, shard 6 |
+| `auth-signout.spec.ts` | 56 | 11.5 min | smoke, shard 2, shard 5 |
+| `admin-attributes-library.spec.ts` | 42 | 11.0 min | shard 1, shard 4 |
+| `feed-screens.spec.ts` | 30 | 9.8 min | shard 2, shard 5 |
+| `admin-categories-console.spec.ts` | 34 | 9.2 min | shard 1, shard 4 |
+| `my-listings-page.spec.ts` | 14 | 8.9 min | shard 2, shard 5 |
+| `admin-attributes-links.spec.ts` | 32 | 8.7 min | shard 1, shard 4 |
+| `ad-page-doors.spec.ts` | 28 | 8.6 min | shard 1, shard 4, changed |
+| `post-wizard-category.spec.ts` | 48 | 8.4 min | shard 2, shard 5 |
+| `admin-locations.spec.ts` | 38 | 8.3 min | shard 1, shard 4 |
+| `admin-users.spec.ts` | 28 | 8.3 min | shard 2, shard 5 |
+| `import-security.spec.ts` | 36 | 7.8 min | shard 2, shard 5 |
+| `feed-index.spec.ts` | 30 | 7.6 min | shard 2, shard 5 |
+| `posting-routes-catalog.spec.ts` | 18 | 7.3 min | shard 3, shard 6 |
+| `admin-attributes-editor.spec.ts` | 34 | 7.2 min | shard 1, shard 4 |
+| `feed-route.spec.ts` | 22 | 7.0 min | shard 2, shard 5 |
+| `admin-attributes-import.spec.ts` | 40 | 7.0 min | shard 1, shard 4 |
+| `admin-attributes-safety.spec.ts` | 18 | 6.7 min | shard 1, shard 4 |
+| `admin-translations-console.spec.ts` | 44 | 6.6 min | shard 1, shard 4 |
+| `viewing-place.spec.ts` | 22 | 5.9 min | shard 3, shard 6 |
+| `admin-roles.spec.ts` | 26 | 5.8 min | shard 1, shard 4 |
+| `admin-countries.spec.ts` | 18 | 4.8 min | shard 1, shard 4 |
+| `admin-audit.spec.ts` | 14 | 4.0 min | shard 1, shard 4 |
+| `posting-routes-dials.spec.ts` | 18 | 3.6 min | shard 3, shard 6 |
+| `admin-categories-home.spec.ts` | 10 | 3.4 min | shard 1, shard 4 |
+| `admin-translations-governance.spec.ts` | 8 | 2.8 min | shard 2, shard 5 |
+| `admin-coverage.spec.ts` | 16 | 2.7 min | shard 1, shard 4 |
+| `mfa-stepup.spec.ts` | 18 | 2.7 min | shard 2, shard 5 |
+| `post-wizard-removed.spec.ts` | 4 | 2.5 min | shard 3, shard 6 |
 | `admin-translations-data.spec.ts` | 8 | 2.4 min | shard 1, shard 5 |
-| `mfa-stepup.spec.ts` | 18 | 2.2 min | shard 2, shard 5 |
-| `breadcrumbs.spec.ts` | 6 | 2.2 min | shard 2, shard 5 |
-| `post-wizard-removed.spec.ts` | 4 | 2.1 min | shard 3, shard 6 |
-| `posting-routes-identity.spec.ts` | 4 | 1.9 min | shard 3, shard 6 |
-| `post-wizard-finder.spec.ts` | 8 | 1.7 min | shard 3, shard 6 |
-| `admin-shell.spec.ts` | 10 | 1.7 min | shard 1, shard 4 |
-| `post-wizard-details.spec.ts` | 8 | 1.6 min | shard 3, shard 5 |
-| `phone-frame.spec.ts` | 18 | 1.3 min | shard 2, shard 5 |
-| `category-image-routes.spec.ts` | 10 | 1.3 min | shard 2, shard 5 |
+| `post-wizard-finder.spec.ts` | 8 | 2.2 min | shard 3, shard 6 |
+| `post-wizard-details.spec.ts` | 8 | 2.1 min | shard 3, shard 5 |
+| `admin-shell.spec.ts` | 10 | 1.9 min | shard 1, shard 4 |
+| `breadcrumbs.spec.ts` | 6 | 1.9 min | shard 2, shard 5 |
+| `posting-routes-identity.spec.ts` | 4 | 1.7 min | shard 3, shard 6 |
+| `post-wizard-units.spec.ts` | 4 | 1.6 min | shard 3, shard 6 |
+| `category-image-routes.spec.ts` | 10 | 1.2 min | shard 2, shard 5 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `post-wizard-units.spec.ts` | 4 | 1.0 min | shard 3, shard 6 |
-| `post-wizard-recent.spec.ts` | 2 | 0.9 min | shard 3, shard 6 |
+| `post-wizard-recent.spec.ts` | 2 | 1.1 min | shard 3, shard 6 |
+| `phone-frame.spec.ts` | 18 | 1.0 min | shard 2, shard 5 |
 | `admin-categories-images.spec.ts` | 2 | 0.8 min | shard 1, shard 4 |
-| `i18n-coverage.spec.ts` | 8 | 0.8 min | shard 2, shard 5 |
-| `settings.spec.ts` | 4 | 0.8 min | shard 3 |
-| `rbac.spec.ts` | 6 | 0.8 min | shard 3, shard 6 |
-| `i18n-bundle.spec.ts` | 6 | 0.7 min | shard 2, shard 5 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.7 min | smoke, shard 3, shard 6 |
 | `a11y.spec.ts` | 4 | 0.7 min | smoke |
-| `smoke-auth-i18n.spec.ts` | 4 | 0.6 min | smoke, shard 3, shard 6 |
+| `i18n-coverage.spec.ts` | 8 | 0.7 min | shard 2, shard 5 |
+| `i18n-bundle.spec.ts` | 6 | 0.7 min | shard 2, shard 5 |
+| `rbac.spec.ts` | 6 | 0.6 min | shard 3, shard 6 |
 | `admin-services.spec.ts` | 10 | 0.6 min | shard 1, shard 4 |
-| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
-| `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
+| `settings.spec.ts` | 4 | 0.6 min | shard 3 |
+| `category-nav.spec.ts` | 10 | 0.5 min | shard 2, shard 5 |
+| `primitives-law.spec.ts` | 24 | 0.5 min | shard 3, shard 6 |
 | `house-style.spec.ts` | 12 | 0.4 min | shard 2, shard 5 |
 | `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
 | `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
 | `shell-table-law.spec.ts` | 2 | 0.2 min | shard 3, shard 6 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
-| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `auth-signup.spec.ts` | 3 | 0.1 min | email |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
@@ -600,21 +227,21 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-listings.spec.ts` › AL-25 Edit refuses an enforcer without a second factor, and writes nothing | desktop-1280 | 130.8 s |
-| `photo-pipeline.spec.ts` › PP-13 photo links: the owner and staff get them; another seller and no session do not | desktop-1280 | 119.1 s |
-| `photo-pipeline.spec.ts` › PP-13 photo links: the owner and staff get them; another seller and no session do not | mobile-360 | 111.8 s |
-| `posting-routes.spec.ts` › PR-4 identity: the alias is saved, and a second seller cannot take it | mobile-360 | 111.6 s |
-| `posting-routes.spec.ts` › PR-4 identity: the alias is saved, and a second seller cannot take it | desktop-1280 | 109.1 s |
-| `post-wizard-bundle2.spec.ts` › PW-129 Next waits for the identity read instead of refusing | desktop-1280 | 105.2 s |
-| `post-wizard-bundle2.spec.ts` › PW-129 Next waits for the identity read instead of refusing | mobile-360 | 104.1 s |
-| `post-wizard-pricing.spec.ts` › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) | desktop-1280 | 98.3 s |
-| `post-wizard-pricing.spec.ts` › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) | mobile-360 | 92.3 s |
-| `admin-categories-lifecycle.spec.ts` › CT-20 action=retire and action=reactivate walk the state machine | mobile-360 | 90.4 s |
-| `post-wizard-pricing.spec.ts` › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) | desktop-1280 | 87.0 s |
-| `admin-locations.spec.ts` › LT-1 gating: a plain user is refused; the roster, its toolbar and the header's actions render for an admin | desktop-1280 | 84.4 s |
-| `post-wizard-pricing.spec.ts` › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) | mobile-360 | 83.5 s |
-| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 77.7 s |
-| `admin-locations.spec.ts` › LT-7 import round trip: a three-row file previews, commits, exports, deletes and undoes with the original ids | desktop-1280 | 73.6 s |
+| `ad-page.spec.ts` › AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id | desktop-1280 | 137.1 s |
+| `ad-page.spec.ts` › AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id | mobile-360 | 135.9 s |
+| `ad-page.spec.ts` › AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id | mobile-360 | 132.1 s |
+| `ad-page.spec.ts` › AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id | desktop-1280 | 128.0 s |
+| `post-wizard-pricing.spec.ts` › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) | desktop-1280 | 110.1 s |
+| `post-wizard-pricing.spec.ts` › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) | mobile-360 | 97.1 s |
+| `post-wizard-pricing.spec.ts` › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) | desktop-1280 | 97.1 s |
+| `post-wizard-pricing.spec.ts` › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) | mobile-360 | 94.5 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 93.2 s |
+| `post-wizard-specs.spec.ts` › PW-22 a link's allowed options narrow the picker and its default prefills | mobile-360 | 88.9 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | mobile-360 | 88.1 s |
+| `my-listings-page.spec.ts` › MLP-2 The My listings page: the groups with their counts, each row's line, Continue on a draft (D138) | mobile-360 | 86.0 s |
+| `admin-locations.spec.ts` › LT-7 import round trip: a three-row file previews, commits, exports, deletes and undoes with the original ids | desktop-1280 | 72.1 s |
+| `my-listings-ad.spec.ts` › MLA-7 Delete asks first; the deleted ad leaves My listings for good (call F) | desktop-1280 | 71.7 s |
+| `my-listings-ad.spec.ts` › MLA-6 Renew an expired ad; a draft continues; an ad in review waits; another seller's ad and a signed-out visit | desktop-1280 | 70.3 s |
 
 ## Post-test errors: smoke
 
@@ -623,7 +250,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 39009703768-smoke
+[e2e:teardown] deleted 3 user(s) owned by process 39013622206-smoke
 ```
 
 ## Post-test errors: email
@@ -633,7 +260,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 39009703768-email
+[e2e:teardown] deleted 4 user(s) owned by process 39013622206-email
 ```
 
 ## Post-test errors: shard 1
@@ -643,7 +270,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 11 (pool 4, fresh 7)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 39009703768-1
+[e2e:teardown] deleted 8 user(s) owned by process 39013622206-1
 ```
 
 ## Post-test errors: shard 2
@@ -653,7 +280,7 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 36 (pool 4, fresh 32)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 48 user(s) owned by process 39009703768-2
+[e2e:teardown] deleted 48 user(s) owned by process 39013622206-2
 ```
 
 ## Post-test errors: shard 3
@@ -663,7 +290,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 39009703768-3
+[e2e:teardown] deleted 4 user(s) owned by process 39013622206-3
 ```
 
 ## Post-test errors: shard 4
@@ -673,7 +300,7 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 11 (pool 4, fresh 7)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 39009703768-4
+[e2e:teardown] deleted 8 user(s) owned by process 39013622206-4
 ```
 
 ## Post-test errors: shard 5
@@ -683,7 +310,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 31 (pool 4, fresh 27)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 41 user(s) owned by process 39009703768-5
+[e2e:teardown] deleted 41 user(s) owned by process 39013622206-5
 ```
 
 ## Post-test errors: shard 6
@@ -693,7 +320,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 39009703768-6
+[e2e:teardown] deleted 4 user(s) owned by process 39013622206-6
 ```
 
 ## Post-test errors: changed
@@ -701,9 +328,9 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 changed: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
+[e2e:teardown] accounts signed in this run: 5 (pool 3, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 39009703768-changed
+[e2e:teardown] deleted 3 user(s) owned by process 39013622206-changed
 ```
 
 ## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-9 a live ad opens at its canonical address, server-rendered
@@ -740,36 +367,82 @@ Call log:
        - unexpected value "0"
 
 
-  32 |     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
-  33 |     await expect(page.getByTestId("listing-detail-price")).toContainText("100");
-> 34 |     await expect(page.getByTestId("gallery-thumb")).toHaveCount(2);
+  35 |     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+  36 |     await expect(page.getByTestId("listing-detail-price")).toContainText("100");
+> 37 |     await expect(page.getByTestId("gallery-thumb")).toHaveCount(2);
      |                                                     ^
-  35 |     await expect(page.getByTestId("gallery-thumbs").locator("img")).toHaveCount(2);
-  36 |     await expect
+  38 |     await expect(page.getByTestId("gallery-thumbs").locator("img")).toHaveCount(2);
+  39 |     await expect
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e295]:
-            - generic [ref=e296]: About
-          - listitem [ref=e297]:
-            - generic [ref=e298]: How it works
-      - navigation "Help" [ref=e299]:
-        - heading "Help" [level=2] [ref=e300]
-        - list [ref=e301]:
-          - listitem [ref=e302]:
-            - generic [ref=e303]: Safety
-          - listitem [ref=e304]:
-            - generic [ref=e305]: Contact
-      - navigation "Legal" [ref=e306]:
-        - heading "Legal" [level=2] [ref=e307]
-        - list [ref=e308]:
-          - listitem [ref=e309]:
-            - generic [ref=e310]: Terms
-          - listitem [ref=e311]:
-            - generic [ref=e312]: Privacy
-    - paragraph [ref=e314]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e272]:
+            - generic [ref=e273]: About
+          - listitem [ref=e274]:
+            - generic [ref=e275]: How it works
+      - navigation "Help" [ref=e276]:
+        - heading "Help" [level=2] [ref=e277]
+        - list [ref=e278]:
+          - listitem [ref=e279]:
+            - generic [ref=e280]: Safety
+          - listitem [ref=e281]:
+            - generic [ref=e282]: Contact
+      - navigation "Legal" [ref=e283]:
+        - heading "Legal" [level=2] [ref=e284]
+        - list [ref=e285]:
+          - listitem [ref=e286]:
+            - generic [ref=e287]: Terms
+          - listitem [ref=e288]:
+            - generic [ref=e289]: Privacy
+    - paragraph [ref=e291]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+--- further error 1 ---
+Error: response.json: Test timeout of 60000ms exceeded.
+
+  184 |       const counted = await response;
+  185 |       expect(counted.status()).toBe(200);
+> 186 |       return counted.json();
+      |                      ^
+  187 |     }
+  188 |     async function views() {
+  189 |       const { data, error } = await adminClient()
+    at visit (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:186:22)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:196:12
+```
+
+Context:
+
+```text
+          - listitem [ref=e275]:
+            - generic [ref=e276]: About
+          - listitem [ref=e277]:
+            - generic [ref=e278]: How it works
+      - navigation "Help" [ref=e279]:
+        - heading "Help" [level=2] [ref=e280]
+        - list [ref=e281]:
+          - listitem [ref=e282]:
+            - generic [ref=e283]: Safety
+          - listitem [ref=e284]:
+            - generic [ref=e285]: Contact
+      - navigation "Legal" [ref=e286]:
+        - heading "Legal" [level=2] [ref=e287]
+        - list [ref=e288]:
+          - listitem [ref=e289]:
+            - generic [ref=e290]: Terms
+          - listitem [ref=e291]:
+            - generic [ref=e292]: Privacy
+    - paragraph [ref=e294]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -819,18 +492,7 @@ Error: expect(received).toEqual(expected) // deep equality
   242 |     expect(r.body.cards.length).toBeGreaterThan(0);
 ```
 
-Context: context file not found for `feed-route-FEED-ROUTE-FR-6-the-answer-is-public-and-carries-no-seller-mobile-360` — Playwright's name `feed-route-FEED-ROUTE-FR-6-7591a-ublic-and-carries-no-seller-mobile-360`; this run carried 11 context file(s); of the same spec: none
-
-## photo-pipeline.spec.ts › PHOTO PIPELINE › PP-13 photo links: the owner and staff get them; another seller and no session do not
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
-```
-
-Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-13-photo-links-the-owner-and-staff-get-them-another-seller-and-no-session-do-not-mobile-360` — Playwright's name `photo-pipeline-PHOTO-PIPEL-86e15-eller-and-no-session-do-not-mobile-360`; this run carried 11 context file(s); of the same spec: none
+Context: context file not found for `feed-route-FEED-ROUTE-FR-6-the-answer-is-public-and-carries-no-seller-mobile-360` — Playwright's name `feed-route-FEED-ROUTE-FR-6-7591a-ublic-and-carries-no-seller-mobile-360`; this run carried 10 context file(s); of the same spec: none
 
 ## post-wizard-pricing.spec.ts › POSTING WIZARD › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455)
 
@@ -840,39 +502,39 @@ Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-13-photo-l
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('post-next-unreachable')
+Locator: getByTestId('post-step-2')
 Expected: visible
-Timeout: 10000ms
+Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-next-unreachable')
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-step-2')
 
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('post-next-unreachable')
+Locator: getByTestId('post-step-2')
 Expected: visible
-Timeout: 10000ms
+Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('post-next-unreachable')
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-step-2')
 
 
-  836 |     await page.getByTestId("post-next").click();
-  837 |     await expect.poll(() => aborted, { timeout: 20_000 }).toBe(true);
-> 838 |     await expect(page.getByTestId("post-next-unreachable")).toBeVisible();
-      |                                                             ^
-  839 |     await expect(page.getByTestId("post-step-4")).toBeVisible();
-  840 |     // INC-679: the hook's successful retry clears the transport block before Back.
-  841 |     await expect(page.getByTestId("post-next-unreachable")).toBeHidden();
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-pricing.spec.ts:838:61
+  772 |       else {
+  773 |         await page.getByTestId("post-back").click();
+> 774 |         await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+      |                                                       ^
+  775 |         await page.getByTestId("post-back").click();
+  776 |       }
+  777 |       await expect(page.getByTestId("post-step-3")).toBeVisible({ timeout: 20_000 });
+    at toSpecs (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-pricing.spec.ts:774:55)
 ```
 
-Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a-refusal-left-on-the-price-page-never-stands-on-specifications-and-names-the-question-INC-455-mobile-360` — Playwright's name `post-wizard-pricing-POSTIN-25b43-names-the-question-INC-455--mobile-360`; this run carried 11 context file(s); of the same spec: none
+Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a-refusal-left-on-the-price-page-never-stands-on-specifications-and-names-the-question-INC-455-mobile-360` — Playwright's name `post-wizard-pricing-POSTIN-25b43-names-the-question-INC-455--mobile-360`; this run carried 10 context file(s); of the same spec: none
 
 ## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-9 a live ad opens at its canonical address, server-rendered
 
@@ -908,36 +570,82 @@ Call log:
        - unexpected value "0"
 
 
-  32 |     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
-  33 |     await expect(page.getByTestId("listing-detail-price")).toContainText("100");
-> 34 |     await expect(page.getByTestId("gallery-thumb")).toHaveCount(2);
+  35 |     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+  36 |     await expect(page.getByTestId("listing-detail-price")).toContainText("100");
+> 37 |     await expect(page.getByTestId("gallery-thumb")).toHaveCount(2);
      |                                                     ^
-  35 |     await expect(page.getByTestId("gallery-thumbs").locator("img")).toHaveCount(2);
-  36 |     await expect
+  38 |     await expect(page.getByTestId("gallery-thumbs").locator("img")).toHaveCount(2);
+  39 |     await expect
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e282]:
-            - generic [ref=e283]: About
-          - listitem [ref=e284]:
-            - generic [ref=e285]: How it works
-      - navigation "Help" [ref=e286]:
-        - heading "Help" [level=2] [ref=e287]
-        - list [ref=e288]:
-          - listitem [ref=e289]:
-            - generic [ref=e290]: Safety
-          - listitem [ref=e291]:
-            - generic [ref=e292]: Contact
-      - navigation "Legal" [ref=e293]:
-        - heading "Legal" [level=2] [ref=e294]
-        - list [ref=e295]:
+          - listitem [ref=e294]:
+            - generic [ref=e295]: About
           - listitem [ref=e296]:
-            - generic [ref=e297]: Terms
+            - generic [ref=e297]: How it works
+      - navigation "Help" [ref=e298]:
+        - heading "Help" [level=2] [ref=e299]
+        - list [ref=e300]:
+          - listitem [ref=e301]:
+            - generic [ref=e302]: Safety
+          - listitem [ref=e303]:
+            - generic [ref=e304]: Contact
+      - navigation "Legal" [ref=e305]:
+        - heading "Legal" [level=2] [ref=e306]
+        - list [ref=e307]:
+          - listitem [ref=e308]:
+            - generic [ref=e309]: Terms
+          - listitem [ref=e310]:
+            - generic [ref=e311]: Privacy
+    - paragraph [ref=e313]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+--- further error 1 ---
+Error: response.json: Test timeout of 60000ms exceeded.
+
+  184 |       const counted = await response;
+  185 |       expect(counted.status()).toBe(200);
+> 186 |       return counted.json();
+      |                      ^
+  187 |     }
+  188 |     async function views() {
+  189 |       const { data, error } = await adminClient()
+    at visit (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:186:22)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:196:12
+```
+
+Context:
+
+```text
+          - listitem [ref=e291]:
+            - generic [ref=e292]: About
+          - listitem [ref=e293]:
+            - generic [ref=e294]: How it works
+      - navigation "Help" [ref=e295]:
+        - heading "Help" [level=2] [ref=e296]
+        - list [ref=e297]:
           - listitem [ref=e298]:
-            - generic [ref=e299]: Privacy
-    - paragraph [ref=e301]: © 2026 ethio.com — All rights reserved.
+            - generic [ref=e299]: Safety
+          - listitem [ref=e300]:
+            - generic [ref=e301]: Contact
+      - navigation "Legal" [ref=e302]:
+        - heading "Legal" [level=2] [ref=e303]
+        - list [ref=e304]:
+          - listitem [ref=e305]:
+            - generic [ref=e306]: Terms
+          - listitem [ref=e307]:
+            - generic [ref=e308]: Privacy
+    - paragraph [ref=e310]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -949,26 +657,26 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('location-ethiopia__e2e-loc-4-6-lt7r-thd3cq')
+Locator: getByRole('table').getByTestId('location-ethiopia__e2e-loc-4-5-lt7r-99llbi')
 Expected: visible
 Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByRole('table').getByTestId('location-ethiopia__e2e-loc-4-6-lt7r-thd3cq')
+  - waiting for getByRole('table').getByTestId('location-ethiopia__e2e-loc-4-5-lt7r-99llbi')
 
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('location-ethiopia__e2e-loc-4-6-lt7r-thd3cq')
+Locator: getByRole('table').getByTestId('location-ethiopia__e2e-loc-4-5-lt7r-99llbi')
 Expected: visible
 Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByRole('table').getByTestId('location-ethiopia__e2e-loc-4-6-lt7r-thd3cq')
+  - waiting for getByRole('table').getByTestId('location-ethiopia__e2e-loc-4-5-lt7r-99llbi')
 
 
   731 |       // A second undo of the same batch is refused by name.
@@ -984,25 +692,25 @@ Call log:
 Context:
 
 ```text
+          - listitem [ref=e1001]:
+            - generic [ref=e1002]: About
           - listitem [ref=e1003]:
-            - generic [ref=e1004]: About
-          - listitem [ref=e1005]:
-            - generic [ref=e1006]: How it works
-      - navigation "Help" [ref=e1007]:
-        - heading "Help" [level=2] [ref=e1008]
-        - list [ref=e1009]:
+            - generic [ref=e1004]: How it works
+      - navigation "Help" [ref=e1005]:
+        - heading "Help" [level=2] [ref=e1006]
+        - list [ref=e1007]:
+          - listitem [ref=e1008]:
+            - generic [ref=e1009]: Safety
           - listitem [ref=e1010]:
-            - generic [ref=e1011]: Safety
-          - listitem [ref=e1012]:
-            - generic [ref=e1013]: Contact
-      - navigation "Legal" [ref=e1014]:
-        - heading "Legal" [level=2] [ref=e1015]
-        - list [ref=e1016]:
+            - generic [ref=e1011]: Contact
+      - navigation "Legal" [ref=e1012]:
+        - heading "Legal" [level=2] [ref=e1013]
+        - list [ref=e1014]:
+          - listitem [ref=e1015]:
+            - generic [ref=e1016]: Terms
           - listitem [ref=e1017]:
-            - generic [ref=e1018]: Terms
-          - listitem [ref=e1019]:
-            - generic [ref=e1020]: Privacy
-    - paragraph [ref=e1022]: © 2026 ethio.com — All rights reserved.
+            - generic [ref=e1018]: Privacy
+    - paragraph [ref=e1020]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1052,7 +760,7 @@ Error: expect(received).toEqual(expected) // deep equality
   242 |     expect(r.body.cards.length).toBeGreaterThan(0);
 ```
 
-Context: context file not found for `feed-route-FEED-ROUTE-FR-6-the-answer-is-public-and-carries-no-seller-desktop-1280` — Playwright's name `feed-route-FEED-ROUTE-FR-6-7591a-ublic-and-carries-no-seller-desktop-1280`; this run carried 11 context file(s); of the same spec: none
+Context: context file not found for `feed-route-FEED-ROUTE-FR-6-the-answer-is-public-and-carries-no-seller-desktop-1280` — Playwright's name `feed-route-FEED-ROUTE-FR-6-7591a-ublic-and-carries-no-seller-desktop-1280`; this run carried 10 context file(s); of the same spec: none
 
 ## post-wizard-pricing.spec.ts › POSTING WIZARD › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455)
 
@@ -1094,7 +802,7 @@ Call log:
     at toSpecs (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-pricing.spec.ts:774:55)
 ```
 
-Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a-refusal-left-on-the-price-page-never-stands-on-specifications-and-names-the-question-INC-455-desktop-1280` — Playwright's name `post-wizard-pricing-POSTIN-25b43-names-the-question-INC-455--desktop-1280`; this run carried 11 context file(s); of the same spec: none
+Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a-refusal-left-on-the-price-page-never-stands-on-specifications-and-names-the-question-INC-455-desktop-1280` — Playwright's name `post-wizard-pricing-POSTIN-25b43-names-the-question-INC-455--desktop-1280`; this run carried 10 context file(s); of the same spec: none
 
 ## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-9 a live ad opens at its canonical address, server-rendered
 
@@ -1130,103 +838,195 @@ Call log:
        - unexpected value "0"
 
 
-  32 |     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
-  33 |     await expect(page.getByTestId("listing-detail-price")).toContainText("100");
-> 34 |     await expect(page.getByTestId("gallery-thumb")).toHaveCount(2);
+  35 |     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+  36 |     await expect(page.getByTestId("listing-detail-price")).toContainText("100");
+> 37 |     await expect(page.getByTestId("gallery-thumb")).toHaveCount(2);
      |                                                     ^
-  35 |     await expect(page.getByTestId("gallery-thumbs").locator("img")).toHaveCount(2);
-  36 |     await expect
+  38 |     await expect(page.getByTestId("gallery-thumbs").locator("img")).toHaveCount(2);
+  39 |     await expect
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e295]:
-            - generic [ref=e296]: About
-          - listitem [ref=e297]:
-            - generic [ref=e298]: How it works
-      - navigation "Help" [ref=e299]:
-        - heading "Help" [level=2] [ref=e300]
-        - list [ref=e301]:
-          - listitem [ref=e302]:
-            - generic [ref=e303]: Safety
-          - listitem [ref=e304]:
-            - generic [ref=e305]: Contact
-      - navigation "Legal" [ref=e306]:
-        - heading "Legal" [level=2] [ref=e307]
-        - list [ref=e308]:
-          - listitem [ref=e309]:
-            - generic [ref=e310]: Terms
-          - listitem [ref=e311]:
-            - generic [ref=e312]: Privacy
-    - paragraph [ref=e314]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e272]:
+            - generic [ref=e273]: About
+          - listitem [ref=e274]:
+            - generic [ref=e275]: How it works
+      - navigation "Help" [ref=e276]:
+        - heading "Help" [level=2] [ref=e277]
+        - list [ref=e278]:
+          - listitem [ref=e279]:
+            - generic [ref=e280]: Safety
+          - listitem [ref=e281]:
+            - generic [ref=e282]: Contact
+      - navigation "Legal" [ref=e283]:
+        - heading "Legal" [level=2] [ref=e284]
+        - list [ref=e285]:
+          - listitem [ref=e286]:
+            - generic [ref=e287]: Terms
+          - listitem [ref=e288]:
+            - generic [ref=e289]: Privacy
+    - paragraph [ref=e291]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-9 a live ad opens at its canonical address, server-rendered
+## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id
 
 - Source: `changed`
-- Project: `desktop-1280`
+- Project: `mobile-360`
 
 ```text
-Error: expect(locator).toHaveCount(expected) failed
-
-Locator:  getByTestId('gallery-thumb')
-Expected: 2
-Received: 0
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('gallery-thumb')
-    14 × locator resolved to 0 elements
-       - unexpected value "0"
-
+Test timeout of 60000ms exceeded.
 --- further error 1 ---
-Error: expect(locator).toHaveCount(expected) failed
+Error: response.json: Test timeout of 60000ms exceeded.
 
-Locator:  getByTestId('gallery-thumb')
-Expected: 2
-Received: 0
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('gallery-thumb')
-    14 × locator resolved to 0 elements
-       - unexpected value "0"
-
-
-  32 |     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
-  33 |     await expect(page.getByTestId("listing-detail-price")).toContainText("100");
-> 34 |     await expect(page.getByTestId("gallery-thumb")).toHaveCount(2);
-     |                                                     ^
-  35 |     await expect(page.getByTestId("gallery-thumbs").locator("img")).toHaveCount(2);
-  36 |     await expect
+  184 |       const counted = await response;
+  185 |       expect(counted.status()).toBe(200);
+> 186 |       return counted.json();
+      |                      ^
+  187 |     }
+  188 |     async function views() {
+  189 |       const { data, error } = await adminClient()
+    at visit (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:186:22)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:196:12
 ```
 
 Context:
 
 ```text
+          - listitem [ref=e275]:
+            - generic [ref=e276]: About
+          - listitem [ref=e277]:
+            - generic [ref=e278]: How it works
+      - navigation "Help" [ref=e279]:
+        - heading "Help" [level=2] [ref=e280]
+        - list [ref=e281]:
           - listitem [ref=e282]:
-            - generic [ref=e283]: About
+            - generic [ref=e283]: Safety
           - listitem [ref=e284]:
-            - generic [ref=e285]: How it works
-      - navigation "Help" [ref=e286]:
-        - heading "Help" [level=2] [ref=e287]
+            - generic [ref=e285]: Contact
+      - navigation "Legal" [ref=e286]:
+        - heading "Legal" [level=2] [ref=e287]
         - list [ref=e288]:
           - listitem [ref=e289]:
-            - generic [ref=e290]: Safety
+            - generic [ref=e290]: Terms
           - listitem [ref=e291]:
-            - generic [ref=e292]: Contact
-      - navigation "Legal" [ref=e293]:
-        - heading "Legal" [level=2] [ref=e294]
-        - list [ref=e295]:
+            - generic [ref=e292]: Privacy
+    - paragraph [ref=e294]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-9 a live ad opens at its canonical address, server-rendered
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toHaveCount(expected) failed
+
+Locator:  getByTestId('gallery-thumb')
+Expected: 2
+Received: 0
+Timeout:  10000ms
+
+Call log:
+  - Expect "toHaveCount" with timeout 10000ms
+  - waiting for getByTestId('gallery-thumb')
+    14 × locator resolved to 0 elements
+       - unexpected value "0"
+
+--- further error 1 ---
+Error: expect(locator).toHaveCount(expected) failed
+
+Locator:  getByTestId('gallery-thumb')
+Expected: 2
+Received: 0
+Timeout:  10000ms
+
+Call log:
+  - Expect "toHaveCount" with timeout 10000ms
+  - waiting for getByTestId('gallery-thumb')
+    14 × locator resolved to 0 elements
+       - unexpected value "0"
+
+
+  35 |     await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+  36 |     await expect(page.getByTestId("listing-detail-price")).toContainText("100");
+> 37 |     await expect(page.getByTestId("gallery-thumb")).toHaveCount(2);
+     |                                                     ^
+  38 |     await expect(page.getByTestId("gallery-thumbs").locator("img")).toHaveCount(2);
+  39 |     await expect
+```
+
+Context:
+
+```text
+          - listitem [ref=e294]:
+            - generic [ref=e295]: About
           - listitem [ref=e296]:
-            - generic [ref=e297]: Terms
+            - generic [ref=e297]: How it works
+      - navigation "Help" [ref=e298]:
+        - heading "Help" [level=2] [ref=e299]
+        - list [ref=e300]:
+          - listitem [ref=e301]:
+            - generic [ref=e302]: Safety
+          - listitem [ref=e303]:
+            - generic [ref=e304]: Contact
+      - navigation "Legal" [ref=e305]:
+        - heading "Legal" [level=2] [ref=e306]
+        - list [ref=e307]:
+          - listitem [ref=e308]:
+            - generic [ref=e309]: Terms
+          - listitem [ref=e310]:
+            - generic [ref=e311]: Privacy
+    - paragraph [ref=e313]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id
+
+- Source: `changed`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+--- further error 1 ---
+Error: response.json: Test timeout of 60000ms exceeded.
+
+  184 |       const counted = await response;
+  185 |       expect(counted.status()).toBe(200);
+> 186 |       return counted.json();
+      |                      ^
+  187 |     }
+  188 |     async function views() {
+  189 |       const { data, error } = await adminClient()
+    at visit (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:186:22)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:196:12
+```
+
+Context:
+
+```text
+          - listitem [ref=e291]:
+            - generic [ref=e292]: About
+          - listitem [ref=e293]:
+            - generic [ref=e294]: How it works
+      - navigation "Help" [ref=e295]:
+        - heading "Help" [level=2] [ref=e296]
+        - list [ref=e297]:
           - listitem [ref=e298]:
-            - generic [ref=e299]: Privacy
-    - paragraph [ref=e301]: © 2026 ethio.com — All rights reserved.
+            - generic [ref=e299]: Safety
+          - listitem [ref=e300]:
+            - generic [ref=e301]: Contact
+      - navigation "Legal" [ref=e302]:
+        - heading "Legal" [level=2] [ref=e303]
+        - list [ref=e304]:
+          - listitem [ref=e305]:
+            - generic [ref=e306]: Terms
+          - listitem [ref=e307]:
+            - generic [ref=e308]: Privacy
+    - paragraph [ref=e310]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1270,7 +1070,7 @@ Call log:
     at toSpecs (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-pricing.spec.ts:774:55)
 ```
 
-Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a-refusal-left-on-the-price-page-never-stands-on-specifications-and-names-the-question-INC-455-mobile-360` — Playwright's name `post-wizard-pricing-POSTIN-25b43-names-the-question-INC-455--mobile-360`; this run carried 11 context file(s); of the same spec: none
+Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a-refusal-left-on-the-price-page-never-stands-on-specifications-and-names-the-question-INC-455-mobile-360` — Playwright's name `post-wizard-pricing-POSTIN-25b43-names-the-question-INC-455--mobile-360`; this run carried 10 context file(s); of the same spec: none
 
 ## post-wizard-pricing.spec.ts › POSTING WIZARD › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455)
 
@@ -1312,18 +1112,19 @@ Call log:
     at toSpecs (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-pricing.spec.ts:774:55)
 ```
 
-Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a-refusal-left-on-the-price-page-never-stands-on-specifications-and-names-the-question-INC-455-desktop-1280` — Playwright's name `post-wizard-pricing-POSTIN-25b43-names-the-question-INC-455--desktop-1280`; this run carried 11 context file(s); of the same spec: none
+Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a-refusal-left-on-the-price-page-never-stands-on-specifications-and-names-the-question-INC-455-desktop-1280` — Playwright's name `post-wizard-pricing-POSTIN-25b43-names-the-question-INC-455--desktop-1280`; this run carried 10 context file(s); of the same spec: none
 
 ## Server errors: shard 1
 
 ```text
+[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
 [WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
 [WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
 [WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
 [WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
 [WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-1-3-plgrj5: e2e_par_hegsli → e2e_chi_vm2plb
+[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-1-0-omnynm: e2e_par_5zjq95 → e2e_chi_mrx37z
+[WebServer] [ssr-error] /api/admin/categories/import catalog_find_refresh: canceling statement due to statement timeout
 [WebServer] [ssr-error] /api/admin/categories/import categories badHeader
 [WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
 [WebServer] [ssr-error] /api/admin/categories/import digest mismatch
@@ -1338,6 +1139,7 @@ No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 ## Server errors: shard 2
 
 ```text
+[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
 [WebServer] [ssr-error] /api/admin/translations/import too many previews
@@ -1357,7 +1159,6 @@ No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 [WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft listing not found
 ```
 
 ## Client errors: shard 2
@@ -1367,7 +1168,7 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 ## Server errors: shard 3
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×6
+[WebServer] [ssr-error] /api/listings/draft listing not found ×11
 ```
 
 ## Client errors: shard 3
@@ -1379,13 +1180,13 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 ## Server errors: shard 4
 
 ```text
+[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
 [WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
 [WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
 [WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
 [WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
 [WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-4-3-7w9w9z: e2e_par_rcn86v → e2e_chi_2ba4x1
+[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-4-0-m49731: e2e_par_665ugl → e2e_chi_w9dga0
 [WebServer] [ssr-error] /api/admin/categories/import categories badHeader
 [WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
 [WebServer] [ssr-error] /api/admin/categories/import digest mismatch
@@ -1395,13 +1196,12 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 
 ## Client errors: shard 4
 
-```text
-[client-error] console.error: [feed] first page failed TypeError: Failed to fetch at readPage (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:33479:25) at http://127.0.0.1:4173/assets/index-IqFaEmoG.js:33511:3 at commitHookEffectListMount (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:5123:20) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6028:21) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6019:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6027:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6019:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6027:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6019:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-IqFaEmoG.js:6027:5)
-```
+No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
 
 ## Server errors: shard 5
 
 ```text
+[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
 [WebServer] [ssr-error] /api/admin/translations/import too many previews
@@ -1421,7 +1221,6 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/locations/import digest mismatch
 [WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/listings/draft listing not found
 ```
 
 ## Client errors: shard 5
@@ -1431,8 +1230,7 @@ No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
 ## Server errors: shard 6
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×9
-[WebServer] [ssr-error] /api/locations Error: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()
+[WebServer] [ssr-error] /api/listings/draft listing not found ×6
 ```
 
 ## Client errors: shard 6
