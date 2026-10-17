@@ -198,7 +198,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     addressKey = `${runKey}-b`;
     expect(await visit(true)).toEqual({ counted: true });
     expect(await views()).toBe(2);
-    await signInViaSession(page, seller);
+    await signInViaSession(page, seller.email, seller.password);
     addressKey = `${runKey}-c`;
     expect(await visit()).toEqual({ counted: false });
     expect(await views()).toBe(2);
