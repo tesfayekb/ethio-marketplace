@@ -64,6 +64,8 @@ Turn 14 — INC-699: the links rows’ trailing fact_rank cell in AT-15/AT-18; I
 
 Turn 14: AP-30, AP-31, SH-1…SH-5, LD-12, LD-13; changed AT-15, AT-18, AP-25, AP-17. AP-24 is the unchanged cursor proof.
 
+Turn 15: AP-32, AP-33, SIM-1…SIM-4.
+
 - AP-29 — Report sign-in return, reason and note, thanks, duplicate, owner omission.
 - AL-31 — open report count and identity-free report list for listings:review; no reports for listings:view alone.
 - RD-1…RD-5 — report arguments, parser and dialog states; note cap 500, nine reasons, ownListing.
