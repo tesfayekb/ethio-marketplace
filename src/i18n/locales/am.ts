@@ -234,6 +234,12 @@ export const am: Messages = {
   "myListings.bulk.deleteBody": "ከማስታወቂያዎችዎ እና ከድረ-ገጹ ለዘለቄታው ይወገዳሉ። ይህን መቀልበስ አይችሉም።",
   "myListings.bulk.done": "የተቀየሩ፦ {count}።",
   "myListings.bulk.refused": "ያልተቀየሩ፦ {count}። {reason}",
+
+  // Bundle 19 turn 5 — the gone ad page.
+  "adPage.gone.title": "ይህ ማስታወቂያ ከእንግዲህ አይገኝም",
+  "adPage.gone.body": "ተሽጦ፣ በሻጩ ተወግዶ ወይም ጊዜው አልፎ ሊሆን ይችላል።",
+  "adPage.gone.home": "ወደ መነሻ ተመለስ",
+
   "auth.errorWrongCurrentPassword": "አሁን ያለው የይለፍ ቃል ትክክል አይደለም።",
   "auth.errorLastMethod": "ብቸኛውን የመግቢያ መንገድዎን ማስወገድ አይችሉም። መጀመሪያ ሌላ ይጨምሩ።",
   "auth.errorPasswordTooShort": "ቢያንስ 8 ቁምፊዎችን ይጠቀሙ።",

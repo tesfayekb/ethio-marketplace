@@ -1,12 +1,6 @@
 import { expect, test } from "./fixtures";
-import { destroyLocation, seedScratchChain } from "./helpers/locations";
-import {
-  destroyCategoryBranch,
-  destroyListingsOf,
-  leaseSeller,
-  RUN,
-  seedCategoryBranch,
-} from "./helpers/posting";
+import { RUN } from "./helpers/posting";
+import { adPageFixtures, token } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -93,139 +87,9 @@ async function asAnonymous() {
   };
 }
 
-/** Letters only: a scratch name the contact-in-text rule never reads as a number. */
-function token(): string {
-  return Math.random()
-    .toString(36)
-    .slice(2, 10)
-    .replace(/[0-9]/g, (digit) => "abcdefghij"[Number(digit)] ?? "x");
-}
-
-const DAY = 86_400_000;
-const days = (n: number) => new Date(Date.now() + n * DAY).toISOString();
-
 test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
-  const sellers: string[] = [];
-  const listingIds: string[] = [];
-  const regions: string[] = [];
-  const branches: string[][] = [];
-  const rateTokens: string[] = [];
-
-  test.afterEach(async () => {
-    const supabase = adminClient();
-    for (const id of listingIds.splice(0)) {
-      const removed = await supabase.from("listings").delete().eq("id", id);
-      if (removed.error) throw new Error(`[e2e:ap] listing reap failed: ${removed.error.message}`);
-    }
-    for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
-    for (const slug of regions.splice(0)) await destroyLocation(slug);
-    for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
-    for (const key of rateTokens.splice(0)) {
-      const swept = await supabase.from("rate_limits").delete().like("key", `%${key}%`);
-      if (swept.error) throw new Error(`[e2e:ap] rate row reap failed: ${swept.error.message}`);
-    }
-  });
-
-  /** A scratch seller with a public name and its own category branch and place. */
-  async function scratchSeller() {
-    const seller = await leaseSeller({ alias: true, named: true });
-    sellers.push(seller.id);
-    const { parent, leaf } = await seedCategoryBranch();
-    branches.push([parent.slug as string, leaf.slug as string]);
-    const chain = await seedScratchChain("ET");
-    regions.push(chain.region.slug as string);
-    const { data: profile, error } = await adminClient()
-      .from("profiles")
-      .select("seller_alias")
-      .eq("user_id", seller.id)
-      .single();
-    if (error || !profile) throw new Error(`[e2e:ap] reading the alias failed: ${error?.message}`);
-    return {
-      ...seller,
-      alias: profile.seller_alias as string,
-      parentId: parent.id as string,
-      leafId: leaf.id as string,
-      leafSlug: leaf.slug as string,
-      cityId: chain.city.id as string,
-    };
-  }
-
-  type Seller = Awaited<ReturnType<typeof scratchSeller>>;
-
-  /**
-   * A scratch ad in the shape of my-listings-doors' seed, with the extra columns
-   * each test names. Times are days from now. Unless told otherwise: active,
-   * published 2 days ago, expiring in 28, contact { messages: true }.
-   */
-  async function seed(
-    seller: Pick<Seller, "id" | "leafId" | "cityId">,
-    status = "active",
-    options: {
-      publishedAt?: number;
-      expiresAt?: number;
-      soldAt?: number;
-      contactPref?: Row;
-      pin?: boolean;
-    } = {},
-  ) {
-    const live = ["active", "reduced", "expired", "sold", "removed", "closed"].includes(status);
-    const published = options.publishedAt ?? -2;
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
-        category_id: seller.leafId,
-        seller_id: seller.id,
-        location_id: seller.cityId,
-        home_country_code: "ET",
-        title: `E2E ad page ${RUN.replace(/[0-9]/g, "x")} ${token()}`,
-        description: "e2e scratch listing for the ad page's doors",
-        attributes: {},
-        price_mode: "fixed",
-        price_amount: 100,
-        price_currency: "ETB",
-        price_period: "once",
-        price_set_at: days(published),
-        contact_pref: options.contactPref ?? { messages: true },
-        status,
-        tier: "regular",
-        published_at: live ? days(published) : null,
-        published_first_at: live ? days(published) : null,
-        expires_at: live ? days(options.expiresAt ?? 28) : null,
-        sold_at: status === "sold" ? days(options.soldAt ?? -1) : null,
-        ...(options.pin === true
-          ? {
-              pin_lat: 8.9876543,
-              pin_lng: 38.7612345,
-              pin_precision: "approx",
-              pin_show_lat: 8.99,
-              pin_show_lng: 38.76,
-              pin_zoom: 14,
-              street_address: "E2E street",
-            }
-          : {}),
-      })
-      .select("id,title,status")
-      .single();
-    if (error || !data) throw new Error(`[e2e:ap] seeding failed: ${error?.message ?? "no row"}`);
-    const row = data as unknown as Row & { id: string; title: string };
-    listingIds.push(row.id);
-    const located = await adminClient()
-      .from("listing_locations")
-      .insert({ listing_id: row.id, location_id: seller.cityId, position: 1 });
-    if (located.error) throw new Error(`[e2e:ap] coverage failed: ${located.error.message}`);
-    return row;
-  }
-
-  /** The ad's public id, read as DB truth through the service client. */
-  async function publicIdOf(listingId: string): Promise<string> {
-    const { data, error } = await adminClient()
-      .from("listings")
-      .select("public_id")
-      .eq("id", listingId)
-      .single();
-    if (error || !data) throw new Error(`[e2e:ap] public id read failed: ${error?.message}`);
-    return data.public_id as string;
-  }
+  const { scratchSeller, seed, publicIdOf, cleanup, listingIds, rateTokens } = adPageFixtures();
+  test.afterEach(cleanup);
 
   /** A rate key of this file, reaped in afterEach: `e2e-<RUN><token>-<name>`. */
   function rateKey(name: string): string {

@@ -900,7 +900,7 @@ function shapeDefinition(row: Record<string, unknown>): AttrDef {
 }
 
 /** DEC-109 — the door's `deal` block; a missing or malformed list reads as empty. */
-function shapeDeal(raw: unknown): CategoryFacts["deal"] {
+export function shapeDeal(raw: unknown): CategoryFacts["deal"] {
   const row =
     raw !== null && typeof raw === "object" && !Array.isArray(raw)
       ? (raw as Record<string, unknown>)

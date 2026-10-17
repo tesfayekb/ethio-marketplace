@@ -22,9 +22,23 @@ The migration of turn 4 (its mark `20261018130000`) gives every ad a `public_id`
 
 The backfill paused the two triggers that fire on any update (`update_listings_updated_at`, `feed_index_on_listing_update`) for its one statement, so no ad's `updated_at` moved and no live ad was re-indexed; the proofs check both are enabled again. The migration travels the file route (DEC-182: longer than 12 KB): the operator applies it from the raw file on ethio-staging, then ethio-prod, each read back by the mark.
 
+## The page (turn 5)
+
+`/l/$slug` now reads the public document on the server through the GET server function `readAdPageFn`, validating a non-empty slug under 200 characters. `readAdPage` parses the address before work, then spends the shared address dial `listing-read:address`: 600 calls an hour, overridden by `RATE_LIMIT_LISTING_READ_PER_HOUR`. It uses `clientAddress` and `consumeRate` (the database hashes the address key). The publishable-key `anonymousClient` is moved unchanged from photo-links into user-client.ts; no session or privileged listing read is used.
+
+The loader returns the ad at its canonical address, sends a 301 when the short address or old words differ, and throws not-found for missing, private or long-sold ads. A spent dial logs `[ssr-error] /l rateLimited` and also gives the gone page (404). Failed public reads log and throw, never pretending the ad is gone. The gone page has its own title, caption and Home link, from the three supplied `adPage.gone.*` keys in English and Amharic.
+
+The head carries the ad's title followed by ethio.com, the first 160 characters of its description, canonical and Open Graph addresses on the request origin, and `noindex` for a sold ad. `adPageView` is the one pure mapping from the public document onto the shared `ListingDetail`, inside the seller page's same PageShell and PageCard: embedded price basis, deal groups, answered definitions and option labels, public photos, seller line, shown pin and contact channel names only. The existing option shaper is exported as `shapeAttrOption`, and `shapeDeal` is exported unchanged. The ribbon key is translated by the page.
+
+The `/l/` breadcrumb reads only the title and leaf id from the route's loaded document and lazily loads its own crumb module: Home › the category path from the shared tree › the ad title. Until the tree loads it shows Home › title; for the gone page, Home alone. It adds no second title truncation rule.
+
+Not yet on this page: the counters line, sharing, the contact reveal action, similar ads and the key-facts strip. The feed card and the seller's link await turn 6's public-id reads; the address is the entry this turn.
+
 ## Tests
 
 - AP-1, AP-2: `e2e/ad-page-routes.spec.ts` — immutable SVG and malformed-id 404.
+- AP-9…AP-13: `e2e/ad-page.spec.ts` — server-rendered live page, canonical redirects, gone ads, sold-page ribbon and noindex, Amharic.
+- AV-1…AV-4: `src/features/ad-page/public-listing.test.ts` — price basis, channel names, ribbon priority, embedded definition and option labels.
 - AP-3…AP-8: `e2e/ad-page-doors.spec.ts` — the public document and what it never carries, the owner's flag and counts, which ads have a page, the view and share counting, the buckets' deny, the id's shape and uniqueness.
 - LA-1…LA-6: `src/features/ad-page/address.test.ts` — the alphabet, the fold, the 60-character cut, the paths, the parse and the round trip.
 - QR-1…QR-3: `src/server/qr.test.ts` — public-id shape, SVG output and determinism.

@@ -245,6 +245,13 @@ export const en = {
     "They are removed from your listings and from the site for good. You cannot undo this.",
   "myListings.bulk.done": "Changed: {count}.",
   "myListings.bulk.refused": "Not changed: {count}. {reason}",
+
+  // Bundle 19 turn 5 — the gone ad page.
+  "adPage.gone.title": "This ad is no longer available",
+  "adPage.gone.body":
+    "It may have been sold, taken down by the seller, or its time may have run out.",
+  "adPage.gone.home": "Back to Home",
+
   "auth.errorWrongCurrentPassword": "That current password is not correct.",
   "auth.errorLastMethod": "You can't remove your only sign-in method. Add another one first.",
   "auth.errorPasswordTooShort": "Use at least 8 characters.",

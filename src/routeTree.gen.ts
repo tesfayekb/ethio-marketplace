@@ -41,6 +41,7 @@ import { Route as CSlugRouteImport } from './routes/c.$slug'
 import { Route as DevPrimitivesRouteImport } from './routes/dev.primitives'
 import { Route as DevStyleRouteImport } from './routes/dev.style'
 import { Route as DevTallRouteImport } from './routes/dev.tall'
+import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as MyListingsListingIdRouteImport } from './routes/my-listings_.$listingId'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
@@ -237,6 +238,11 @@ const DevStyleRoute = DevStyleRouteImport.update({
 const DevTallRoute = DevTallRouteImport.update({
   id: '/dev/tall',
   path: '/dev/tall',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LSlugRoute = LSlugRouteImport.update({
+  id: '/l/$slug',
+  path: '/l/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyListingsListingIdRoute = MyListingsListingIdRouteImport.update({
@@ -466,6 +472,7 @@ export interface FileRoutesByFullPath {
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
+  '/l/$slug': typeof LSlugRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -536,6 +543,7 @@ export interface FileRoutesByTo {
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
+  '/l/$slug': typeof LSlugRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin': typeof AdminIndexRoute
@@ -608,6 +616,7 @@ export interface FileRoutesById {
   '/dev/primitives': typeof DevPrimitivesRoute
   '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
+  '/l/$slug': typeof LSlugRoute
   '/my-listings_/$listingId': typeof MyListingsListingIdRoute
   '/post_/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -681,6 +690,7 @@ export interface FileRouteTypes {
     | '/dev/primitives'
     | '/dev/style'
     | '/dev/tall'
+    | '/l/$slug'
     | '/my-listings/$listingId'
     | '/post/$listingId'
     | '/admin/'
@@ -751,6 +761,7 @@ export interface FileRouteTypes {
     | '/dev/primitives'
     | '/dev/style'
     | '/dev/tall'
+    | '/l/$slug'
     | '/my-listings/$listingId'
     | '/post/$listingId'
     | '/admin'
@@ -822,6 +833,7 @@ export interface FileRouteTypes {
     | '/dev/primitives'
     | '/dev/style'
     | '/dev/tall'
+    | '/l/$slug'
     | '/my-listings_/$listingId'
     | '/post_/$listingId'
     | '/admin/'
@@ -880,6 +892,7 @@ export interface RootRouteChildren {
   DevPrimitivesRoute: typeof DevPrimitivesRoute
   DevStyleRoute: typeof DevStyleRoute
   DevTallRoute: typeof DevTallRoute
+  LSlugRoute: typeof LSlugRoute
   MyListingsListingIdRoute: typeof MyListingsListingIdRoute
   PostListingIdRoute: typeof PostListingIdRoute
   ApiCatalogFindRoute: typeof ApiCatalogFindRoute
@@ -1133,6 +1146,13 @@ declare module '@tanstack/react-router' {
       path: '/dev/tall'
       fullPath: '/dev/tall'
       preLoaderRoute: typeof DevTallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/l/$slug': {
+      id: '/l/$slug'
+      path: '/l/$slug'
+      fullPath: '/l/$slug'
+      preLoaderRoute: typeof LSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-listings_/$listingId': {
@@ -1492,6 +1512,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevPrimitivesRoute: DevPrimitivesRoute,
   DevStyleRoute: DevStyleRoute,
   DevTallRoute: DevTallRoute,
+  LSlugRoute: LSlugRoute,
   MyListingsListingIdRoute: MyListingsListingIdRoute,
   PostListingIdRoute: PostListingIdRoute,
   ApiCatalogFindRoute: ApiCatalogFindRoute,

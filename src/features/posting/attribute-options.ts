@@ -116,7 +116,7 @@ function stringList(raw: unknown): string[] {
     : [];
 }
 
-function shape(row: Record<string, unknown>): AttrOption {
+export function shapeAttrOption(row: Record<string, unknown>): AttrOption {
   const value = typeof row["value"] === "string" ? row["value"] : "";
   const facts = row["facts"];
   const boundsRaw = row["bounds"];
@@ -186,11 +186,11 @@ export async function loadAttributeOptions(
     const list = Array.isArray(payload["options"]) ? payload["options"] : null;
     if (list === null) return held ? held.options : null;
     const options = list
-      .map((entry) => shape((entry ?? {}) as Record<string, unknown>))
+      .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
       .filter((option) => option.value !== "");
     const retiredList = Array.isArray(payload["retired"]) ? payload["retired"] : [];
     const retired = retiredList
-      .map((entry) => shape((entry ?? {}) as Record<string, unknown>))
+      .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
       .filter((option) => option.value !== "");
     cache.set(attributeId, {
       options,

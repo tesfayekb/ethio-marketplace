@@ -215,7 +215,7 @@ export const AREAS: Area[] = [
   },
   {
     name: "ad-page",
-    src: ["src/routes/l.*", "src/server/qr.ts", "src/features/ad-page/**"],
+    src: ["src/routes/l.*", "src/server/qr.ts", "src/server/ad-page.ts", "src/features/ad-page/**"],
     specs: ["e2e/ad-page-routes.spec.ts", "e2e/ad-page*.spec.ts"],
   },
   {
