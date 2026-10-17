@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 486,
-  "dynamicCallSites": 346,
+  "scanned": 487,
+  "dynamicCallSites": 349,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -93,6 +93,18 @@
       "/post",
       "/post/$listingId"
     ],
+    "adPage.contact.link": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "adPage.contact.rateLimited": [
       "(every page)",
       "/admin/listings/$listingId",
@@ -118,18 +130,6 @@
       "/post/$listingId"
     ],
     "adPage.contact.show": [
-      "(every page)",
-      "/admin/listings/$listingId",
-      "/admin/listings/$listingId/edit",
-      "/admin/screening",
-      "/l/$id/photo[/]jpg",
-      "/l/$slug",
-      "/my-listings/$listingId",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "adPage.contact.signIn": [
       "(every page)",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -226,6 +226,18 @@
     "adPage.gone.title": [
       "/l/$slug"
     ],
+    "adPage.map.enlarge": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "adPage.report.note": [
       "/l/$slug"
     ],
@@ -251,6 +263,30 @@
       "/post/$listingId"
     ],
     "adPage.save.signIn": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "adPage.section.location": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "adPage.sections.label": [
       "(every page)",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -5822,18 +5858,6 @@
       "/post/$listingId"
     ],
     "post.preview.detailsLabel": [
-      "(every page)",
-      "/admin/listings/$listingId",
-      "/admin/listings/$listingId/edit",
-      "/admin/screening",
-      "/l/$id/photo[/]jpg",
-      "/l/$slug",
-      "/my-listings/$listingId",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.preview.mapPlaceholder": [
       "(every page)",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
