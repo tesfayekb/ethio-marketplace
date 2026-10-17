@@ -8,7 +8,7 @@ import { revealContact, type ContactState } from "@/features/ad-page/contact";
 import { countView } from "@/features/ad-page/count-view";
 import { useAuth } from "@/features/auth/use-auth";
 import { fill } from "@/features/posting/refusal-text";
-import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useHydrated } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { PageShell } from "@/components/layout/page-shell";
@@ -99,6 +99,7 @@ function GonePage() {
 
 function AdPage() {
   const { doc, canonical } = Route.useLoaderData();
+  const hydrated = useHydrated();
   const countedId = useRef<string | null>(null);
   const { user, loading: authLoading } = useAuth();
   // Bundle 19 turn 11 (D201 §6) — the reveal is a tap, never automatic; the
@@ -216,7 +217,13 @@ function AdPage() {
           ownAd
             ? undefined
             : {
-                viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
+                viewer: !hydrated
+                  ? "signedOut"
+                  : authLoading
+                    ? "unknown"
+                    : user === null
+                      ? "signedOut"
+                      : "signedIn",
                 saved,
                 count: saveCount,
                 busy: saveBusy,
@@ -229,14 +236,28 @@ function AdPage() {
           ownAd ? undefined : (
             <ReportAd
               publicId={doc.public_id}
-              viewer={authLoading ? "unknown" : user === null ? "signedOut" : "signedIn"}
+              viewer={
+                !hydrated
+                  ? "signedOut"
+                  : authLoading
+                    ? "unknown"
+                    : user === null
+                      ? "signedOut"
+                      : "signedIn"
+              }
               signInTo={{ to: "/auth", search: { return: `${canonical}#report` } }}
               onOwn={() => setOwnAd(true)}
             />
           )
         }
         contact={{
-          viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
+          viewer: !hydrated
+            ? "signedOut"
+            : authLoading
+              ? "unknown"
+              : user === null
+                ? "signedOut"
+                : "signedIn",
           signInTo: { to: "/auth", search: { return: `${canonical}?reveal=1#contact` } },
           state: contactState,
           onReveal,
