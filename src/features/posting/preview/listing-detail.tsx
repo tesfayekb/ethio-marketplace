@@ -1146,7 +1146,7 @@ export function ListingDetail(view: ListingDetailView) {
         }}
       >
         {mapsChoice !== null && (
-          <DialogContent>
+          <DialogContent aria-describedby={undefined}>
             <DialogTitle>{t("adPage.map.google")}</DialogTitle>
             <Button asChild variant="outline" className="min-h-11">
               <a

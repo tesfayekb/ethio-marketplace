@@ -4,7 +4,11 @@ export function mapsPlaceQuery(nodes: TreeNode[], coverage: string[]): string {
   const paths = coverage.map((id) => pathToNode(nodes, id)).filter((path) => path.length > 0);
   const first = paths[0];
   if (!first) return "";
-  const common = first.filter((node, index) => paths.every((path) => path[index]?.id === node.id));
+  const common: TreeNode[] = [];
+  for (const [index, node] of first.entries()) {
+    if (!paths.every((path) => path[index]?.id === node.id)) break;
+    common.push(node);
+  }
   return common
     .reverse()
     .map((node) => node.nameEn ?? node.slug)
