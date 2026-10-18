@@ -24,14 +24,24 @@ export function boxLayout(show: {
     : show.details
       ? "@2xl:col-span-3 @4xl:order-2 @4xl:col-span-2"
       : "@2xl:col-span-6 @4xl:order-2 @4xl:col-span-3";
-  const sellerAt2xl =
-    show.location || show.safety ? "@2xl:col-span-3" : "@2xl:col-span-6";
-  const seller =
+  const sellerAt4xl =
     show.details && show.description
-      ? `${sellerAt2xl} @4xl:order-3 @4xl:col-span-2`
+      ? "@4xl:order-3 @4xl:col-span-2"
       : show.details || show.description
-        ? `${sellerAt2xl} @4xl:order-3 @4xl:col-span-3`
-        : `${sellerAt2xl} @4xl:order-3 @4xl:col-span-6`;
+        ? "@4xl:order-3 @4xl:col-span-3"
+        : "@4xl:order-3 @4xl:col-span-6";
+  const seller =
+    show.location || show.safety
+      ? sellerAt4xl === "@4xl:order-3 @4xl:col-span-2"
+        ? "@2xl:col-span-3 @4xl:order-3 @4xl:col-span-2"
+        : sellerAt4xl === "@4xl:order-3 @4xl:col-span-3"
+          ? "@2xl:col-span-3 @4xl:order-3 @4xl:col-span-3"
+          : "@2xl:col-span-3 @4xl:order-3 @4xl:col-span-6"
+      : sellerAt4xl === "@4xl:order-3 @4xl:col-span-2"
+        ? "@2xl:col-span-6 @4xl:order-3 @4xl:col-span-2"
+        : sellerAt4xl === "@4xl:order-3 @4xl:col-span-3"
+          ? "@2xl:col-span-6 @4xl:order-3 @4xl:col-span-3"
+          : "@2xl:col-span-6 @4xl:order-3 @4xl:col-span-6";
   const location = !show.location
     ? ""
     : show.safety
