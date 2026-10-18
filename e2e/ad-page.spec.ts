@@ -1509,7 +1509,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     }
     await expect(page.getByTestId("listing-card")).toHaveCount(3);
     // The first card's picture loads at once, already at its signed card link.
-    const firstImg = page.getByTestId("listing-card-picture").locator("img").first();
+    const firstImg = page.getByTestId("listing-card-picture").locator("img").nth(0);
     await expect(firstImg).toHaveAttribute("loading", "eager");
     await expect(firstImg).toHaveAttribute("fetchpriority", "high");
     const cardLinks = Object.values(body.coverLinks ?? {}).map((links) => links.card);
