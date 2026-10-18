@@ -34,6 +34,7 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { destroyCountry } from "./helpers/countries";
+import { destroyCategory, scratchSlug } from "./helpers/categories";
 import { adminClient, leaseUser } from "./helpers/users";
 import { distanceKm } from "../src/lib/geo-distance";
 
@@ -1198,18 +1199,30 @@ test.describe("mobile chrome", () => {
     await expect(menu.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
 
-  test("search opens a full-width row BELOW the bar", async ({ page }) => {
+  test("SR-1 search opens a row below the bar, beside the strip, as the page", async ({ page }) => {
     await gotoReady(page, "/");
     await page.getByTestId("search-toggle").click();
-    await expect(page.getByTestId("search-input")).toBeVisible();
+    const input = page.getByTestId("search-input");
+    await expect(input).toBeVisible();
 
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     const bar = (await page.locator("header").first().boundingBox())!;
     const row = (await page.getByTestId("search-row").boundingBox())!;
-    // Below the bar, and the full viewport width — room to type.
+    const strip = (await page.getByTestId("rail-strip").boundingBox())!;
+    const main = (await page.locator("main#main").boundingBox())!;
     expect(row.y).toBeGreaterThanOrEqual(bar.y + bar.height - 1);
-    expect(Math.round(row.width)).toBe(page.viewportSize()!.width);
+    expect(Math.abs(row.x - (strip.x + strip.width))).toBeLessThanOrEqual(1);
+    expect(Math.abs(row.x - main.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(row.x + row.width - page.viewportSize()!.width)).toBeLessThanOrEqual(1);
+    const field = (await input.boundingBox())!;
+    const hit = await page.evaluate(
+      ([x, y]) => document.elementFromPoint(x, y)?.getAttribute("data-testid") ?? null,
+      [field.x + 4, field.y + field.height / 2],
+    );
+    expect(hit, "SR-1 the strip covers the field's start").toBe("search-input");
     await expectNoHorizontalOverflow(page);
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("search-row")).toHaveCount(0);
   });
 
   test("no horizontal overflow and text stays legible at 360", async ({ page }) => {
@@ -3197,19 +3210,29 @@ test("RM-3 the menu ends above the tappable bottom bar and identity stays inside
 
 test("RM-4 the row icons use the approved rail and phone sizes", async ({ page }, testInfo) => {
   await gotoReady(page, "/");
+  const sizesOf = (scope: import("@playwright/test").Locator, selector: string) =>
+    scope.locator(selector).evaluateAll((icons) =>
+      icons.map((icon) => {
+        const box = icon.getBoundingClientRect();
+        return { width: box.width, height: box.height };
+      }),
+    );
   const check = async (scope: import("@playwright/test").Locator, expected: number) => {
-    const sizes = await scope
-      .locator("li > a > svg, li > span > svg, li > button > svg")
-      .evaluateAll((icons) =>
-        icons.map((icon) => {
-          const box = icon.getBoundingClientRect();
-          return { width: box.width, height: box.height };
-        }),
-      );
+    // INC-740 — the row icon is the row's FIRST child; a branch row's chevron
+    // (turn 5) ends the row and is judged at its own 16 px.
+    const sizes = await sizesOf(
+      scope,
+      "li > a > svg:first-child, li > span > svg:first-child, li > button > svg:first-child",
+    );
     expect(sizes.length).toBeGreaterThan(0);
     for (const size of sizes) {
       expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
       expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
+    }
+    const chevrons = await sizesOf(scope, "li > a > svg:last-child:not(:first-child)");
+    for (const size of chevrons) {
+      expect(Math.abs(size.width - 16)).toBeLessThanOrEqual(1);
+      expect(Math.abs(size.height - 16)).toBeLessThanOrEqual(1);
     }
   };
   if (testInfo.project.name === "mobile-360") {
@@ -3226,84 +3249,131 @@ test("RM-4 the row icons use the approved rail and phone sizes", async ({ page }
 });
 
 test.describe("in-place category menu (bundle 21 turn 5)", () => {
+  /**
+   * INC-738 — a three-level SCRATCH branch (root › branch › leaf): the real
+   * catalogue may hold no such shape (smartphones was retired 2026-09-03), and
+   * real rows are read only (G27). Inserted before the page opens; removed in
+   * finally, child first.
+   */
+  async function seedBranch() {
+    const supabase = adminClient();
+    const base = scratchSlug();
+    const slugs = { r: `${base}-r`, b: `${base}-b`, l: `${base}-l` };
+    const { data: rows, error } = await supabase
+      .from("categories")
+      .insert(
+        [slugs.r, slugs.b, slugs.l].map((slug) => ({
+          slug,
+          name_en: slug,
+          is_active: true,
+          allow_listings: true,
+        })),
+      )
+      .select("id, slug");
+    if (error || !rows) throw new Error(`[e2e:sc] seeding the branch failed: ${error?.message}`);
+    const id = (slug: string) => rows.find((row) => row.slug === slug)!.id as string;
+    const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
+      { parent_id: null, child_id: id(slugs.r), display_order: 2_009_300 },
+      { parent_id: id(slugs.r), child_id: id(slugs.b), display_order: 1 },
+      { parent_id: id(slugs.b), child_id: id(slugs.l), display_order: 1 },
+    ]);
+    if (pointerError) {
+      throw new Error(`[e2e:sc] linking the branch failed: ${pointerError.message}`);
+    }
+    return slugs;
+  }
+
+  async function reapBranch(slugs: { r: string; b: string; l: string }) {
+    await destroyCategory(slugs.l);
+    await destroyCategory(slugs.b);
+    await destroyCategory(slugs.r);
+  }
+
   test("B21SC-1 SC-1 the phone drills down and a leaf folds into the strip", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile-360");
-    await gotoReady(page, "/");
-    await page.getByTestId("strip-category-electronics").click();
-    const menu = await openRailScope(page);
-    await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
-    await menu.getByTestId("rail-category-electronics").click();
-    await expect(page).toHaveURL(/\/c\/electronics$/);
-    await expect(menu).toBeVisible();
-    await expect(menu.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
-    const electronics = menu.getByTestId("rail-category-electronics");
-    const phones = menu.getByTestId("rail-category-phones-tablets");
-    await expect(electronics).toHaveAttribute("aria-current", "page");
-    await expect(phones).toBeVisible();
-    const rootIcon = await electronics.locator("svg:nth-of-type(1)").boundingBox();
-    const childIcon = await phones.locator("svg:nth-of-type(1)").boundingBox();
-    if (!rootIcon || !childIcon) throw new Error("SC-1 missing category glyphs");
-    expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
-    await phones.click();
-    await expect(page).toHaveURL(/\/c\/phones-tablets$/);
-    await expect(menu.getByTestId("rail-menu-back")).toHaveText("Electronics");
-    await menu.getByTestId("rail-category-smartphones").click();
-    await expect(page).toHaveURL(/\/c\/smartphones$/);
-    await expect(menu).toBeHidden({ timeout: 2000 });
-    await expect(page.getByTestId("strip-category-electronics")).toHaveAttribute(
-      "aria-current",
-      "true",
-    );
-    const reopened = await openRailScope(page);
-    await expect(reopened.getByTestId("rail-menu-back")).toHaveCount(0);
-    await reopened.getByTestId("rail-category-electronics").click();
-    await expect(page).toHaveURL(/\/c\/electronics$/);
-    const url = page.url();
-    await reopened.getByTestId("rail-menu-back").click();
-    await expect(reopened.getByTestId("rail-menu-back")).toHaveCount(0);
-    await expect(reopened.getByTestId("rail-category-electronics")).toBeVisible();
-    await expect(page).toHaveURL(url);
+    const { r, b, l } = await seedBranch();
+    try {
+      await gotoReady(page, "/");
+      await page.getByTestId(`strip-category-${r}`).click();
+      // INC-739 — the strip tap opens the menu (D205): read it directly, settled.
+      const menu = page.getByTestId("rail-menu");
+      await expect(menu).toBeVisible();
+      // eslint-disable-next-line no-restricted-syntax -- C2f.3: the menu has one responsive instance and this selects its first real control
+      await expect(menu.getByTestId("rail-scroll").locator("a, button").first()).toBeVisible({
+        timeout: 10000,
+      });
+      await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
+      await menu.getByTestId(`rail-category-${r}`).click();
+      await expect(page).toHaveURL(new RegExp(`/c/${r}$`));
+      await expect(menu).toBeVisible();
+      await expect(menu.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+      const root = menu.getByTestId(`rail-category-${r}`);
+      const branch = menu.getByTestId(`rail-category-${b}`);
+      await expect(root).toHaveAttribute("aria-current", "page");
+      await expect(branch).toBeVisible();
+      const rootIcon = await root.locator("svg:nth-of-type(1)").boundingBox();
+      const childIcon = await branch.locator("svg:nth-of-type(1)").boundingBox();
+      if (!rootIcon || !childIcon) throw new Error("SC-1 missing category glyphs");
+      expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
+      await branch.click();
+      await expect(page).toHaveURL(new RegExp(`/c/${b}$`));
+      await expect(menu.getByTestId("rail-menu-back")).toHaveText(r);
+      await menu.getByTestId(`rail-category-${l}`).click();
+      await expect(page).toHaveURL(new RegExp(`/c/${l}$`));
+      await expect(menu).toBeHidden({ timeout: 2000 });
+      await expect(page.getByTestId(`strip-category-${r}`)).toHaveAttribute("aria-current", "true");
+      const reopened = await openRailScope(page);
+      await expect(reopened.getByTestId("rail-menu-back")).toHaveCount(0);
+      await reopened.getByTestId(`rail-category-${r}`).click();
+      await expect(page).toHaveURL(new RegExp(`/c/${r}$`));
+      const url = page.url();
+      await reopened.getByTestId("rail-menu-back").click();
+      await expect(reopened.getByTestId("rail-menu-back")).toHaveCount(0);
+      await expect(reopened.getByTestId(`rail-category-${r}`)).toBeVisible();
+      await expect(page).toHaveURL(url);
+    } finally {
+      await reapBranch({ r, b, l });
+    }
   });
 
   test("B21SC-2 SC-2 the persistent rail follows the URL and folds to main categories", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280");
-    await gotoReady(page, "/c/electronics");
-    const rail = await openRailScope(page);
-    await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
-    const electronics = rail.getByTestId("rail-category-electronics");
-    const phones = rail.getByTestId("rail-category-phones-tablets");
-    await expect(electronics).toHaveAttribute("aria-current", "page");
-    await expect(phones).toBeVisible();
-    const rootIcon = await electronics.locator("svg:nth-of-type(1)").boundingBox();
-    const childIcon = await phones.locator("svg:nth-of-type(1)").boundingBox();
-    if (!rootIcon || !childIcon) throw new Error("SC-2 missing category glyphs");
-    expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
-    await gotoReady(page, "/c/smartphones");
-    await expect(rail.getByTestId("rail-menu-back")).toHaveText("Electronics");
-    await expect(rail.getByTestId("rail-category-smartphones")).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    const url = page.url();
-    await rail.getByTestId("rail-menu-back").click();
-    await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
-    await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
-    await expect(page).toHaveURL(url);
-    await page.getByTestId("rail-collapse-toggle").click();
-    await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
-    await expect(rail.getByTestId("rail-menu-back")).toHaveCount(0);
-    await expect(rail.getByTestId("rail-category-smartphones")).toHaveCount(0);
-    await expect(rail.getByTestId("rail-category-phones-tablets")).toHaveCount(0);
-    await expect(rail.getByTestId("rail-category-electronics")).toHaveAttribute(
-      "aria-current",
-      "true",
-    );
-    await page.getByTestId("rail-collapse-toggle").click();
-    await expect(page.locator("html")).toHaveAttribute("data-rail", "expanded");
+    const { r, b, l } = await seedBranch();
+    try {
+      await gotoReady(page, `/c/${r}`);
+      const rail = await openRailScope(page);
+      await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+      const root = rail.getByTestId(`rail-category-${r}`);
+      const branch = rail.getByTestId(`rail-category-${b}`);
+      await expect(root).toHaveAttribute("aria-current", "page");
+      await expect(branch).toBeVisible();
+      const rootIcon = await root.locator("svg:nth-of-type(1)").boundingBox();
+      const childIcon = await branch.locator("svg:nth-of-type(1)").boundingBox();
+      if (!rootIcon || !childIcon) throw new Error("SC-2 missing category glyphs");
+      expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
+      await gotoReady(page, `/c/${l}`);
+      await expect(rail.getByTestId("rail-menu-back")).toHaveText(r);
+      await expect(rail.getByTestId(`rail-category-${l}`)).toHaveAttribute("aria-current", "page");
+      const url = page.url();
+      await rail.getByTestId("rail-menu-back").click();
+      await expect(rail.getByTestId(`rail-category-${r}`)).toBeVisible();
+      await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+      await expect(page).toHaveURL(url);
+      await page.getByTestId("rail-collapse-toggle").click();
+      await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
+      await expect(rail.getByTestId("rail-menu-back")).toHaveCount(0);
+      await expect(rail.getByTestId(`rail-category-${l}`)).toHaveCount(0);
+      await expect(rail.getByTestId(`rail-category-${b}`)).toHaveCount(0);
+      await expect(rail.getByTestId(`rail-category-${r}`)).toHaveAttribute("aria-current", "true");
+      await page.getByTestId("rail-collapse-toggle").click();
+      await expect(page.locator("html")).toHaveAttribute("data-rail", "expanded");
+    } finally {
+      await reapBranch({ r, b, l });
+    }
   });
 
   test("PK-1 the forced peek opens without focus, folds, and does not repeat", async ({
@@ -3312,22 +3382,97 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     test.skip(testInfo.project.name !== "mobile-360");
     // Playwright has no removeInitScript: this self-consuming script writes the
     // force word only once in this tab and never rewrites the subsequent seen.
+    // INC-741 — the same script watches the menu from BEFORE the load, so a
+    // peek that opens and closes while page.goto is still waiting is recorded.
     await page.addInitScript(() => {
       if (window.location.origin !== "null" && sessionStorage.getItem("ethio.peek") === null) {
         sessionStorage.setItem("ethio.peek", "force");
       }
+      type PeekRecord = {
+        shownAt: number | null;
+        focusedAtShow: boolean | null;
+        focusedLater: boolean | null;
+        goneAt: number | null;
+      };
+      const record: PeekRecord = {
+        shownAt: null,
+        focusedAtShow: null,
+        focusedLater: null,
+        goneAt: null,
+      };
+      (window as unknown as { __peek: PeekRecord }).__peek = record;
+      const visibleMenu = () => {
+        const menu = document.querySelector<HTMLElement>('[data-testid="rail-menu"]');
+        if (!menu) return null;
+        const box = menu.getBoundingClientRect();
+        const style = getComputedStyle(menu);
+        return box.width > 0 && box.height > 0 && style.visibility !== "hidden" ? menu : null;
+      };
+      const look = () => {
+        const menu = visibleMenu();
+        if (menu && record.shownAt === null) {
+          record.shownAt = performance.now();
+          record.focusedAtShow = menu.contains(document.activeElement);
+          window.setTimeout(() => {
+            const later = visibleMenu();
+            record.focusedLater = later ? later.contains(document.activeElement) : false;
+          }, 300);
+        } else if (!menu && record.shownAt !== null && record.goneAt === null) {
+          record.goneAt = performance.now();
+        }
+      };
+      new MutationObserver(look).observe(document, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+      });
     });
+    const readRecord = () =>
+      page.evaluate(
+        () =>
+          (
+            window as unknown as {
+              __peek: {
+                shownAt: number | null;
+                focusedAtShow: boolean | null;
+                focusedLater: boolean | null;
+                goneAt: number | null;
+              };
+            }
+          ).__peek,
+      );
     await gotoReady(page, "/");
-    const menu = page.getByTestId("rail-menu");
-    await expect(menu).toBeVisible({ timeout: 2000 });
-    expect(await menu.evaluate((el) => el.contains(document.activeElement))).toBe(false);
-    await expect(menu).toBeHidden({ timeout: 5000 });
+    await expect
+      .poll(async () => (await readRecord()).shownAt !== null, {
+        timeout: 5000,
+        message: "INC-741: the peek never showed",
+      })
+      .toBe(true);
+    await expect
+      .poll(async () => (await readRecord()).goneAt !== null, {
+        timeout: 5000,
+        message: "INC-741: the peek did not fold",
+      })
+      .toBe(true);
+    const record = await readRecord();
+    expect(record.focusedAtShow, "the peek took focus when it showed").toBe(false);
+    expect(record.focusedLater, "the peek took focus after it showed").toBe(false);
+    expect(record.goneAt! - record.shownAt!).toBeLessThanOrEqual(5000);
     expect(await page.evaluate(() => sessionStorage.getItem("ethio.peek"))).toBe("seen");
     await page.reload();
     await waitForHydration(page);
-    await expect(menu).toBeHidden();
     await expect(page.locator("html")).toHaveAttribute("data-app-ready", "1");
-    await expect(menu).toBeHidden();
+    // Polled on the record itself: no show in the 4 s after data-app-ready.
+    const readyAt = Date.now();
+    await expect
+      .poll(
+        async () => {
+          if ((await readRecord()).shownAt !== null) return "shown";
+          return Date.now() - readyAt >= 4000 ? "held" : "waiting";
+        },
+        { timeout: 6000, intervals: [250], message: "the peek repeated after reload" },
+      )
+      .toBe("held");
   });
 });
 
@@ -3511,7 +3656,13 @@ test("BK-1 ‹ Main Menu starts where the rows start, both words capitalised", a
   if (mobile) {
     await gotoReady(page, "/");
     await page.getByTestId("strip-category-electronics").click();
-    scope = await openRailScope(page);
+    // INC-739 — the strip tap opens the menu (D205): read it directly, settled.
+    scope = page.getByTestId("rail-menu");
+    await expect(scope).toBeVisible();
+    // eslint-disable-next-line no-restricted-syntax -- C2f.3: the menu has one responsive instance and this selects its first real control
+    await expect(scope.getByTestId("rail-scroll").locator("a, button").first()).toBeVisible({
+      timeout: 10000,
+    });
     await scope.getByTestId("rail-category-electronics").click();
     await expect(page).toHaveURL(/\/c\/electronics$/);
     await expect(scope).toBeVisible();
@@ -3535,4 +3686,39 @@ test("BK-1 ‹ Main Menu starts where the rows start, both words capitalised", a
     Math.abs(arrow.x + arrow.width / 2 - (icon.x + icon.width / 2)),
     "BK-1 the arrow is not on the icons' centre",
   ).toBeLessThanOrEqual(1);
+});
+
+test("SB-1 the search field takes three quarters of the band's free space, up to 42rem", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1280", "the field shows from 768 px");
+  const widths: number[] = [];
+  for (const width of [768, 1024, 1280, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    await gotoReady(page, "/");
+    const search = await page.getByTestId("search-inline").boundingBox();
+    const spacers = await page
+      .getByTestId("search-spacer")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+    const controls = await page.getByTestId("topbar-controls").boundingBox();
+    if (!search || !controls) throw new Error(`SB-1 no search or controls box at ${width}`);
+    expect(spacers, `SB-1 two spacers at ${width}`).toHaveLength(2);
+    const [s1, s2] = spacers as [number, number];
+    const w = search.width;
+    expect(Math.abs(s1 - s2), `SB-1 the field is off-centre at ${width}`).toBeLessThanOrEqual(1);
+    if (w < 671) {
+      expect(Math.abs(w - 6 * s1), `SB-1 not 6 : 1 : 1 at ${width}`).toBeLessThanOrEqual(2);
+    } else {
+      expect(Math.abs(w - 672), `SB-1 not capped at 42rem at ${width}`).toBeLessThanOrEqual(1);
+    }
+    expect(search.x + search.width).toBeLessThanOrEqual(controls.x);
+    await expectNoHorizontalOverflow(page);
+    widths.push(w);
+  }
+  for (let i = 1; i < widths.length; i += 1) {
+    expect(widths[i]!, "SB-1 the field shrank as the screen grew").toBeGreaterThanOrEqual(
+      widths[i - 1]! - 0.5,
+    );
+  }
+  expect(widths[1]!).toBeGreaterThan(widths[0]! + 50);
 });

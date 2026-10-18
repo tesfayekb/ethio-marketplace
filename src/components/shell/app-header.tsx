@@ -43,7 +43,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
     <form
       role="search"
       data-testid="search-row"
-      className="w-full border-b border-border bg-card px-2 py-2 md:px-4"
+      className="w-full border-b border-border bg-card px-2 py-2 max-md:ms-12 max-md:w-auto md:px-4"
       onSubmit={(event) => event.preventDefault()}
     >
       <label className="relative block">
@@ -132,16 +132,18 @@ export function AppHeader() {
 
         <div
           aria-hidden="true"
+          data-testid="search-spacer"
           className="hidden min-w-0 md:ms-2 md:block md:flex-1 rail-icons:ms-0"
         />
 
-        {/* md+ : the real search field, in the bar. INC-049: its width is
-            CAPPED per breakpoint so it can never grow into the right-side
-            controls (language, theme, account) at tablet width. */}
+        {/* Bundle 21 turn 9 (the operator, 2026-10-18): the field takes three
+            quarters of the band's free space (6 : 1 : 1 with the spacers), up to
+            42rem; the controls are a non-shrinking sibling, so it can never grow
+            into them (INC-049). */}
         <form
           role="search"
           data-testid="search-inline"
-          className="hidden min-w-0 flex-1 md:block md:max-w-xs lg:max-w-md xl:max-w-[28rem]"
+          className="hidden min-w-0 md:block md:flex-[6] md:max-w-2xl"
           onSubmit={(event) => event.preventDefault()}
         >
           <label className="relative block">
@@ -159,7 +161,11 @@ export function AppHeader() {
           </label>
         </form>
 
-        <div aria-hidden="true" className="hidden min-w-0 md:block md:flex-1" />
+        <div
+          aria-hidden="true"
+          data-testid="search-spacer"
+          className="hidden min-w-0 md:block md:flex-1"
+        />
         {/* Equal spacers centre search between the logo and flush-right controls. */}
         <div
           data-testid="topbar-controls"
