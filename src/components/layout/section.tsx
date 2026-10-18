@@ -25,11 +25,7 @@ export function Section({
     <section
       data-testid={testid}
       data-grid-span={span}
-      className={cn(
-        CARD_SURFACE,
-        "min-w-0 p-4 md:p-6",
-        className,
-      )}
+      className={cn(CARD_SURFACE, "min-w-0 p-4 md:p-6", className)}
       {...props}
     >
       {title ? <h2 className="text-base font-semibold text-foreground">{title}</h2> : null}

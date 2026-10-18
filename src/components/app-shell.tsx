@@ -844,7 +844,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* The top band is fixed at every width. On phones its content sets
               its height; the opened search row overlays the page below the bar.
               From md up the logo cell and top bar share the 3.5rem band. */}
-          <div data-testid="shell-band" className="fixed inset-x-0 top-0 z-30 bg-card shadow-bar md:flex md:h-14">
+          <div
+            data-testid="shell-band"
+            className="fixed inset-x-0 top-0 z-30 bg-card shadow-bar md:flex md:h-14"
+          >
             <div
               data-testid="shell-logo-cell"
               className="hidden min-w-0 bg-card px-4 md:flex md:h-14 md:w-64 md:shrink-0 md:items-center rail-icons:w-16 rail-icons:justify-center rail-icons:px-0"

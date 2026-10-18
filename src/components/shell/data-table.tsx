@@ -518,13 +518,7 @@ export function DataTable<T>({
   );
   const stateBox = (testid: string, node: ReactNode) =>
     frame(
-      <div
-        data-testid={testid}
-        className={cn(
-          CARD_SURFACE, "min-w-0 p-6",
-          STATE_AT[cardUntil],
-        )}
-      >
+      <div data-testid={testid} className={cn(CARD_SURFACE, "min-w-0 p-6", STATE_AT[cardUntil])}>
         {node}
       </div>,
     );

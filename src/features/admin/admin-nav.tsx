@@ -28,7 +28,10 @@ export function AdminNav() {
             <Link
               to={section.path}
               data-testid={`admin-section-link-${section.id}`}
-              className={cn(CARD_SURFACE, "flex min-h-16 flex-col justify-center p-4 text-start transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring")}
+              className={cn(
+                CARD_SURFACE,
+                "flex min-h-16 flex-col justify-center p-4 text-start transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              )}
             >
               <span className="text-sm font-semibold text-foreground">{t(section.titleKey)}</span>
               <span className="mt-1 text-xs text-muted-foreground">{t(section.bodyKey)}</span>

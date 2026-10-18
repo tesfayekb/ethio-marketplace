@@ -30,15 +30,29 @@ export function AppFooter() {
         data-testid="footer-columns"
         className="mx-auto grid w-full max-w-5xl grid-cols-3 gap-x-4 gap-y-2 px-4 py-4 md:grid-cols-[1.3fr_1fr_1fr_1fr] md:gap-x-8 md:px-10 md:py-8"
       >
-        <div data-testid="footer-brand" className="col-span-3 min-w-0 text-center md:col-span-1 md:text-start">
-          <Link to="/" data-testid="footer-home" aria-label={t("app.name")} className="inline-flex min-h-11 items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <div
+          data-testid="footer-brand"
+          className="col-span-3 min-w-0 text-center md:col-span-1 md:text-start"
+        >
+          <Link
+            to="/"
+            data-testid="footer-home"
+            aria-label={t("app.name")}
+            className="inline-flex min-h-11 items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
             <Logo variant="full" />
           </Link>
           <p className="text-sm text-muted-foreground">{t("app.tagline")}</p>
         </div>
         {COLUMNS.map((column) => (
-          <nav key={column.headingKey} aria-label={t(column.headingKey)} className="min-w-0 text-center md:text-start">
-            <h2 className="text-sm font-semibold leading-tight text-foreground">{t(column.headingKey)}</h2>
+          <nav
+            key={column.headingKey}
+            aria-label={t(column.headingKey)}
+            className="min-w-0 text-center md:text-start"
+          >
+            <h2 className="text-sm font-semibold leading-tight text-foreground">
+              {t(column.headingKey)}
+            </h2>
             <ul className="flex flex-col items-center md:items-start">
               {column.items.map((item) => (
                 <li key={item} className="min-h-11">

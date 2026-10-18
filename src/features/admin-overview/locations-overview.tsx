@@ -88,20 +88,14 @@ export function LocationsOverview() {
         className="grid grid-cols-1 gap-3 sm:grid-cols-3"
         aria-label={t("admin.overview.stats")}
       >
-        <article
-          className={cn(CARD_SURFACE, "p-4")}
-          data-testid="overview-stat-markets"
-        >
+        <article className={cn(CARD_SURFACE, "p-4")} data-testid="overview-stat-markets">
           <h2 className="text-sm font-semibold text-foreground">{t("admin.overview.markets")}</h2>
           <p className="mt-2 text-2xl font-semibold tabular-nums">{`${marketStats.open} · ${marketStats.closed}`}</p>
           <p className="mt-1 text-xs text-muted-foreground">
             {t("admin.overview.markets.caption")}
           </p>
         </article>
-        <article
-          className={cn(CARD_SURFACE, "p-4")}
-          data-testid="overview-stat-places"
-        >
+        <article className={cn(CARD_SURFACE, "p-4")} data-testid="overview-stat-places">
           <h2 className="text-sm font-semibold text-foreground">{t("admin.overview.places")}</h2>
           <p className="mt-2 text-2xl font-semibold tabular-nums">{`${placeStats.active} · ${placeStats.total}`}</p>
           <p className="mt-1 text-xs text-muted-foreground">{t("admin.overview.places.caption")}</p>
@@ -111,10 +105,7 @@ export function LocationsOverview() {
               .join(" · ")}
           </p>
         </article>
-        <article
-          className={cn(CARD_SURFACE, "p-4")}
-          data-testid="overview-stat-plans"
-        >
+        <article className={cn(CARD_SURFACE, "p-4")} data-testid="overview-stat-plans">
           <h2 className="text-sm font-semibold text-foreground">{t("admin.overview.plans")}</h2>
           <p className="mt-2 text-2xl font-semibold tabular-nums">{coverage.data?.length ?? 0}</p>
           <p className="mt-1 text-xs text-muted-foreground">{t("admin.overview.plans.caption")}</p>
@@ -127,7 +118,10 @@ export function LocationsOverview() {
             key={item.key}
             to={item.path}
             data-testid={`overview-link-${item.key}`}
-            className={cn(CARD_SURFACE, "flex min-h-16 flex-col justify-center p-4 text-start transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring")}
+            className={cn(
+              CARD_SURFACE,
+              "flex min-h-16 flex-col justify-center p-4 text-start transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            )}
           >
             <span className="text-sm font-semibold text-foreground">{t(item.titleKey)}</span>
             <span className="mt-1 text-xs text-muted-foreground">{t(item.bodyKey)}</span>
