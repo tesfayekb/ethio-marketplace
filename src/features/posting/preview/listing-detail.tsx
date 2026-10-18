@@ -892,7 +892,7 @@ export function ListingDetail(view: ListingDetailView) {
           <section
             id="ad-location"
             data-testid="listing-detail-location"
-            className="isolate order-7 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+            className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.location}`}
           >
             <h3 className="font-display text-base font-semibold">{t("adPage.section.location")}</h3>
             {places.length > 0 && (
@@ -907,7 +907,7 @@ export function ListingDetail(view: ListingDetailView) {
                 {view.directions ? (
                   <div data-testid="listing-detail-directions">
                     <dt className="text-xs text-muted-foreground">
-                      {t("post.where.directionsLabel")}
+                      {t("adPage.directions")}
                     </dt>
                     <dd className="text-foreground">{view.directions}</dd>
                   </div>
@@ -992,7 +992,16 @@ export function ListingDetail(view: ListingDetailView) {
               </div>
             )}
           </section>
-        </div>
+        {!sold && <SafetyBox className={layout.safety} />}
+        {view.report !== undefined && (
+          <div
+            id="report"
+            data-testid="listing-detail-report"
+            className={`isolate min-w-0 ${layout.report}`}
+          >
+            {view.report}
+          </div>
+        )}
       </div>
     </article>
   );
