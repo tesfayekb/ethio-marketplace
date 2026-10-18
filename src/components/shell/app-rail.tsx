@@ -549,13 +549,20 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
               variant="ghost"
               data-testid="rail-menu-back"
               onClick={() => setLocalLevel({ slug: selectedCategorySlug, id: parent?.id ?? null })}
+              style={{ "--rail-pad": "0.75rem" } as React.CSSProperties}
               className={cn(
                 ITEM_CORE,
                 ITEM_IDLE,
-                compact && "h-full min-h-0 justify-start gap-3 pe-2",
+                "justify-start",
+                compact && "h-full min-h-0 gap-3 pe-2",
               )}
             >
-              <ChevronLeft aria-hidden="true" className="h-4 w-4 shrink-0 rtl:rotate-180" />
+              <span
+                aria-hidden="true"
+                className={cn("flex shrink-0 items-center justify-center", compact ? "w-6" : "w-5")}
+              >
+                <ChevronLeft aria-hidden="true" className="h-4 w-4 shrink-0 rtl:rotate-180" />
+              </span>
               <CutText
                 text={parent ? entityName("category", parent, entities) : t("shell.mainMenu")}
               />

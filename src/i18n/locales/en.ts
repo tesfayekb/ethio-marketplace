@@ -407,7 +407,7 @@ export const en = {
   "shell.skipToContent": "Skip to content",
   "shell.openMenu": "Open menu",
   "shell.closeMenu": "Close menu",
-  "shell.mainMenu": "Main menu",
+  "shell.mainMenu": "Main Menu",
   "shell.favouriteAdd": "Make favourite",
   "shell.favouriteRemove": "Remove favourite",
   "shell.favouriteBadge": "Your favourite",
