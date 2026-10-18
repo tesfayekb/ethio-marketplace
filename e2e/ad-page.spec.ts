@@ -1244,6 +1244,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         return bar.contains(hit) ? "inside" : "outside";
       }, id);
     // Scroll until the map's box is under the shell's band (the map's top above the band's bottom).
+    // INC-718: on the wide window the document bottoms out before the map can pass under the band,
+    // so desktop-1280 shortens the window first; mobile-360 keeps its window.
+    if (testInfo.project.name === "desktop-1280") {
+      await page.setViewportSize({ width: 1280, height: 500 });
+    }
     await page.getByTestId("listing-detail-map").scrollIntoViewIfNeeded();
     await expect
       .poll(async () => {
