@@ -487,18 +487,24 @@ it("LD-15 seller line precedes contact, which precedes All ads", () => {
   expect(identity.compareDocumentPosition(contact) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(contact.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
-it("LD-16 no pin draws no map or placeholder", () => {
+it("LD-16 no pin draws no map or placeholder; without any place of the seller's own the Location box is gone (turn 23)", () => {
   render(<ListingDetail {...BASE} />);
   expect(screen.queryByTestId("listing-detail-map")).toBeNull();
   expect(screen.queryByText(en["post.preview.mapPlaceholder"])).toBeNull();
-  expect(screen.getByTestId("listing-detail-location")).toBeInTheDocument();
+  expect(screen.queryByTestId("listing-detail-location")).toBeNull();
 });
-it("LD-17 section bar belongs to buyers, with present sections only", () => {
+it("LD-17 section bar belongs to buyers, with present sections only (turn 23: Location only with a place of the seller's own)", () => {
   const { rerender } = render(<ListingDetail {...BASE} actor="buyer" />);
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["seller", "location"]);
+  ).toEqual(["seller"]);
   rerender(<ListingDetail {...BASE} actor="buyer" description="scratch description" />);
+  expect(
+    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
+  ).toEqual(["description", "seller"]);
+  rerender(
+    <ListingDetail {...BASE} actor="buyer" description="scratch description" directions="scratch directions" />,
+  );
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
   ).toEqual(["description", "seller", "location"]);
@@ -509,7 +515,7 @@ it("LD-17 section bar belongs to buyers, with present sections only", () => {
   rerender(<ListingDetail {...BASE} actor="buyer" soldBadge="Sold" />);
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["seller", "location"]);
+  ).toEqual(["seller"]);
 });
 
 it("LD-18 the buyer's page with photos holds each block's test id exactly once (INC-714)", () => {
@@ -517,6 +523,7 @@ it("LD-18 the buyer's page with photos holds each block's test id exactly once (
     <ListingDetail
       {...BASE}
       actor="buyer"
+      directions="scratch directions"
       photos={[{ id: "ld-18-photo", displayOrder: 0, paths: null, storagePath: null }]}
       save={{
         viewer: "signedIn",
