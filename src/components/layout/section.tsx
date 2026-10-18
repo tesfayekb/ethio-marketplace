@@ -1,3 +1,4 @@
+import { CARD_SURFACE } from "@/components/layout/surface";
 import type { HTMLAttributes, ReactNode } from "react";
 
 import type { ContentGridSpan } from "@/components/layout/content-grid";
@@ -25,7 +26,8 @@ export function Section({
       data-testid={testid}
       data-grid-span={span}
       className={cn(
-        "min-w-0 rounded-lg border border-border bg-card p-4 shadow-card md:p-6",
+        CARD_SURFACE,
+        "min-w-0 p-4 md:p-6",
         className,
       )}
       {...props}

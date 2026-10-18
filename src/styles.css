@@ -86,8 +86,8 @@
  * ribbon and outline on the photo step (D163, 2026-10-13: red is for danger).
  * Selection/emphasis is green (sidebar-accent) everywhere.
  *
- * Flat surfaces only — soft shadows are allowed; images and gradients are not
- * (performance stance — see docs/features/design-foundation.md).
+ * Look B (D135): surfaces lift by soft shadows, not lines; state borders
+ * (destructive, gold, focus, a dashed placeholder) stay.
  */
 
 @theme inline {
@@ -98,6 +98,7 @@
   --radius-2xl: calc(var(--radius) + 6px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+  --radius-card: 0.75rem;
   /*
    * Typography. Inter carries Latin; Noto Sans Ethiopic carries Ge'ez —
    * Inter has NO Ethiopic glyphs, so Amharic (and any Ge'ez codepoint in mixed
@@ -172,15 +173,20 @@
    * outline button, a toolbar icon) by a hairline and a bottom edge; the
    * filled button by a firmer bottom edge; a bottom sheet by an upward drop.
    */
-  --shadow-card: 0 1px 2px rgb(30 35 41 / 0.06), 0 3px 10px rgb(30 35 41 / 0.07);
+  --shadow-card: var(--lift-card);
   --shadow-button: inset 0 -2px 0 rgb(0 0 0 / 0.22), 0 2px 4px rgb(30 35 41 / 0.18);
   --shadow-tile: inset 0 -1px 0 rgb(30 35 41 / 0.06), 0 1px 2px rgb(30 35 41 / 0.08);
   --shadow-sheet: 0 -8px 28px rgb(30 35 41 / 0.22);
-  --shadow-bar: 0 1px 2px rgb(30 35 41 / 0.06);
-  --shadow-bar-up: 0 -1px 2px rgb(30 35 41 / 0.06);
+  --shadow-bar: var(--lift-bar);
+  --shadow-bar-up: var(--lift-bar-up);
+  --shadow-side: var(--lift-side);
 }
 
 :root {
+  --lift-card: 0 1px 2px oklch(0.254 0.014 253.1 / 0.06), 0 3px 10px oklch(0.254 0.014 253.1 / 0.07);
+  --lift-bar: 0 1px 6px oklch(0.254 0.014 253.1 / 0.07);
+  --lift-bar-up: 0 -2px 14px oklch(0.254 0.014 253.1 / 0.09);
+  --lift-side: 1px 0 8px oklch(0.254 0.014 253.1 / 0.06);
   --radius: 0.375rem;
   /* C2b — the phone bottom bar's height; every sticky/fixed bottom edge
      below md sits above it through this one variable (0px from 48rem). */
@@ -240,6 +246,10 @@
 }
 
 .dark {
+  --lift-card: 0 0 0 1px oklch(0.349 0.017 251.8 / 0.7), 0 2px 8px oklch(0 0 0 / 0.35);
+  --lift-bar: 0 1px 0 oklch(0.349 0.017 251.8 / 0.7), 0 2px 8px oklch(0 0 0 / 0.3);
+  --lift-bar-up: 0 -1px 0 oklch(0.349 0.017 251.8 / 0.7), 0 -2px 12px oklch(0 0 0 / 0.35);
+  --lift-side: 1px 0 0 oklch(0.349 0.017 251.8 / 0.7);
   --background: oklch(0.207 0.01 248.3); /* #14181C */
   --foreground: oklch(0.93 0.005 258.3); /* #E6E8EB */
   --card: oklch(0.236 0.012 248.3); /* #1A1F24 */

@@ -1,3 +1,4 @@
+import { CARD_SURFACE } from "@/components/layout/surface";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
@@ -56,7 +57,7 @@ import { ShellContext, type LocationNode, type ShellValue } from "./shell-contex
 function PanelPlaceholder() {
   const { t } = useI18n();
   return (
-    <div className="rounded-lg border border-border bg-card p-6">
+    <div className={cn(CARD_SURFACE, "p-6")}>
       <h1 className="text-lg font-semibold text-foreground">{t("shell.placeholderTitle")}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{t("shell.placeholderBody")}</p>
     </div>
@@ -101,9 +102,7 @@ function PermissionsLoader({
  * Alignment is EXACT, not approximate, because the logo cell and the rail are
  * the SAME grid column (so identical width by construction) and the logo cell
  * and the top bar are the SAME grid row (so identical height by construction).
- * Both column-1 cells carry `border-e`, which makes the sidebar's edge ONE
- * continuous vertical hairline running from the very top of the logo cell
- * straight down past the rail.
+ * The rail is set apart by its side shadow, without a divider in the top band.
  *
  * THE STACK (bands 2-4) lives in the content column, right of the rail, and
  * stacks full-width below the bar on mobile. Their spacing is SYMMETRIC and
@@ -786,7 +785,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-idle-warning"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+0.5rem)] z-50 mx-auto flex max-w-md flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
+          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+0.5rem)] z-50 mx-auto flex max-w-md flex-col gap-2 rounded-card bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
         >
           <p className="text-sm text-foreground">
             {t("session.idleWarning").replace("{s}", String(warningSecondsLeft))}
@@ -807,7 +806,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-notice"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+0.5rem)] z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-lg border border-border bg-card p-3 shadow-lg"
+          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+0.5rem)] z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-card bg-card p-3 shadow-lg"
         >
           <p className="text-sm text-foreground">{t(sessionNotice)}</p>
           <button
@@ -845,10 +844,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* The top band is fixed at every width. On phones its content sets
               its height; the opened search row overlays the page below the bar.
               From md up the logo cell and top bar share the 3.5rem band. */}
-          <div data-testid="shell-band" className="fixed inset-x-0 top-0 z-30 md:flex md:h-14">
+          <div data-testid="shell-band" className="fixed inset-x-0 top-0 z-30 bg-card shadow-bar md:flex md:h-14">
             <div
               data-testid="shell-logo-cell"
-              className="hidden min-w-0 border-b border-e border-border bg-card px-4 md:flex md:h-14 md:w-64 md:shrink-0 md:items-center rail-icons:w-16 rail-icons:justify-center rail-icons:px-0"
+              className="hidden min-w-0 bg-card px-4 md:flex md:h-14 md:w-64 md:shrink-0 md:items-center rail-icons:w-16 rail-icons:justify-center rail-icons:px-0"
             >
               <Link
                 to="/"
@@ -903,7 +902,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="sticky top-13 z-20 bg-card shadow-bar md:top-14"
             >
               <PanelTabs />
-              <div className="flex min-h-8 min-w-0 items-center border-b border-border px-2 md:px-4">
+              <div className="flex min-h-8 min-w-0 items-center border-b border-neutral-soft px-2 md:px-4">
                 <Breadcrumbs />
               </div>
             </div>
@@ -938,8 +937,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div
           data-testid="shell-footer-wrapper"
           className={cn(
-            "relative z-0 w-full bg-card md:z-40 md:[&>footer>*]:ps-64 rail-icons:[&>footer>*]:ps-16",
-            PHONE_STRIP && "[&>footer>*]:ps-16",
+            "relative z-0 w-full bg-card md:z-40",
+            PHONE_STRIP && "max-md:[&>footer>*]:ps-12",
           )}
         >
           <AppFooter />

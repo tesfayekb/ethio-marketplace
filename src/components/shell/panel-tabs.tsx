@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  * entirely (the shell then closes the gap — see app-shell.tsx).
  *
  * Selecting a tab sets activePanel through useShell, which swaps BOTH the rail
- * and the body. Emphasis is the locked green (underline + text); no new colour.
+ * and the body. Emphasis is the locked green (pill + text); no new colour.
  */
 export function PanelTabs() {
   const { t } = useI18n();
@@ -33,9 +33,9 @@ export function PanelTabs() {
       aria-label={t("shell.panelLabel")}
       // INC-056: the row used to scroll horizontally (`overflow-x-auto`), which
       // put a scrollbar under the tabs at phone widths. Tabs now SHARE the row:
-      // each is `min-w-0 flex-1` and its label truncates, so the set always fits
+      // each is `min-w-0 flex-none shrink` and its label truncates, so the set always fits
       // and no axis ever overflows.
-      className="hidden w-full min-w-0 items-stretch md:flex gap-1 border-b border-border bg-card px-2 md:px-4"
+      className="hidden w-full min-w-0 items-stretch md:flex gap-1 border-b border-neutral-soft bg-card px-2 py-1 md:px-4"
     >
       {panels.map((panel) => {
         const Icon = panel.icon;
@@ -49,11 +49,11 @@ export function PanelTabs() {
             data-testid={`panel-tab-${panel.id}`}
             onClick={() => switchPanel(panel.id)}
             className={cn(
-              "inline-flex min-h-11 md:pointer-fine:min-h-10 flex-1 items-center justify-center gap-2 border-b-2 px-2 text-sm transition-colors md:px-3",
+              "inline-flex min-h-11 md:pointer-fine:min-h-10 min-w-0 flex-none shrink items-center justify-center gap-2 px-2 text-sm transition-colors md:px-3",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               active
-                ? "border-primary font-medium text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground",
+                ? "rounded-full bg-nav-active font-medium text-primary"
+                : "rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />

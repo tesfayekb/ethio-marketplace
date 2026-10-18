@@ -1,3 +1,5 @@
+import { CARD_SURFACE } from "@/components/layout/surface";
+import { cn } from "@/lib/utils";
 import {
   mapsPlaceQuery,
   webPlaceUrl,
@@ -595,7 +597,7 @@ export function ListingDetail(view: ListingDetailView) {
           {/* ------------------------------ the gallery ------------------------- */}
           <div
             data-testid="listing-detail-media"
-            className="relative isolate min-w-0 rounded-md border border-border bg-card p-2 @2xl:flex @2xl:flex-col @2xl:p-3 @2xl:@max-[57.5rem]:shrink-0 @2xl:@max-[57.5rem]:basis-[calc(60%-0.6rem)]"
+            className={cn(CARD_SURFACE, "relative isolate min-w-0 p-2 @2xl:flex @2xl:flex-col @2xl:p-3 @2xl:@max-[57.5rem]:shrink-0 @2xl:@max-[57.5rem]:basis-[calc(60%-0.6rem)]")}
           >
             {images.length > 0 ? (
               <PhotoGallery
@@ -624,7 +626,7 @@ export function ListingDetail(view: ListingDetailView) {
           <div className="flex min-w-0 flex-col gap-4 @max-[57.5rem]:contents">
             <section
               data-testid="listing-detail-headline"
-              className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 @2xl:@max-[57.5rem]:flex-1"
+              className={cn(CARD_SURFACE, "isolate min-w-0 flex flex-col gap-3 p-4 @2xl:p-5 @2xl:@max-[57.5rem]:flex-1")}
             >
               {/* ---------------------------- title and price ----------------------- */}
               <Title
@@ -816,14 +818,12 @@ export function ListingDetail(view: ListingDetailView) {
             the column's height. */}
             <section
               id="contact"
-              className={`isolate flex min-w-0 flex-1 scroll-mt-14 flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.seller} ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`}
+              aria-label={t("post.preview.sellerLabel")}
+              className={cn(CARD_SURFACE, `isolate flex min-w-0 flex-1 scroll-mt-14 flex-col gap-3 p-4 @2xl:p-5 ${layout.seller} ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`)}
               data-testid="listing-detail-seller"
               data-highlight={contactHighlight ? "true" : undefined}
             >
               <div className="space-y-1">
-                <h3 className="font-display text-base font-semibold text-foreground">
-                  {t("post.preview.sellerLabel")}
-                </h3>
                 <SellerLine
                   alias={view.sellerAlias}
                   businessName={view.sellerBusinessName}
@@ -837,11 +837,6 @@ export function ListingDetail(view: ListingDetailView) {
                   ? view.contact?.viewer !== "unknown"
                   : channels.length > 0) && (
                   <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
-                    {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
-                      <h4 className="text-xs font-medium text-muted-foreground">
-                        {t("post.preview.contactLabel")}
-                      </h4>
-                    )}
                     {view.actor === "buyer" && view.contact !== undefined ? (
                       <BuyerContact
                         contact={view.contact}
@@ -920,11 +915,11 @@ export function ListingDetail(view: ListingDetailView) {
             ref={navRef}
             data-testid="listing-section-nav"
             aria-label={t("adPage.sections.label")}
-            className={`scrollbar-none sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto rounded-md border border-border bg-card @2xl:@max-[57.5rem]:basis-full ${
+            className={cn(CARD_SURFACE, `scrollbar-none sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto @2xl:@max-[57.5rem]:basis-full ${
               // DEC-201 — below 57.5rem Seller and one other section show
               // the bar; large screens keep DEC-197's "two or more".
               sections.length < 3 ? "@min-[57.5rem]:hidden" : ""
-            }`}
+            }`)}
           >
             {sections.map((section) => (
               <Button
@@ -963,7 +958,7 @@ export function ListingDetail(view: ListingDetailView) {
           {facts.length > 0 && (
             <section
               id="ad-details"
-              className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.details}`}
+              className={cn(CARD_SURFACE, `isolate min-w-0 scroll-mt-14 space-y-3 p-4 @2xl:p-5 ${layout.details}`)}
               data-testid="listing-detail-specs"
             >
               <h3 className="font-display text-base font-semibold text-foreground">
@@ -989,7 +984,7 @@ export function ListingDetail(view: ListingDetailView) {
           {view.description !== "" && (
             <section
               id="ad-description"
-              className={`isolate flex min-w-0 scroll-mt-14 flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.description}`}
+              className={cn(CARD_SURFACE, `isolate flex min-w-0 scroll-mt-14 flex-col gap-3 p-4 @2xl:p-5 ${layout.description}`)}
             >
               <h3 className="font-display text-base font-semibold text-foreground">
                 {t("post.preview.descriptionLabel")}
@@ -1019,7 +1014,7 @@ export function ListingDetail(view: ListingDetailView) {
             <section
               id="ad-location"
               data-testid="listing-detail-location"
-              className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.location}`}
+              className={cn(CARD_SURFACE, `isolate min-w-0 scroll-mt-14 space-y-3 p-4 @2xl:p-5 ${layout.location}`)}
             >
               <h3 className="font-display text-base font-semibold">
                 {t("adPage.section.location")}

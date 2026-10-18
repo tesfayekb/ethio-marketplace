@@ -1,3 +1,5 @@
+import { CARD_SURFACE } from "@/components/layout/surface";
+import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 
@@ -87,7 +89,7 @@ export function LocationsOverview() {
         aria-label={t("admin.overview.stats")}
       >
         <article
-          className="rounded-md border border-border bg-card p-4"
+          className={cn(CARD_SURFACE, "p-4")}
           data-testid="overview-stat-markets"
         >
           <h2 className="text-sm font-semibold text-foreground">{t("admin.overview.markets")}</h2>
@@ -97,7 +99,7 @@ export function LocationsOverview() {
           </p>
         </article>
         <article
-          className="rounded-md border border-border bg-card p-4"
+          className={cn(CARD_SURFACE, "p-4")}
           data-testid="overview-stat-places"
         >
           <h2 className="text-sm font-semibold text-foreground">{t("admin.overview.places")}</h2>
@@ -110,7 +112,7 @@ export function LocationsOverview() {
           </p>
         </article>
         <article
-          className="rounded-md border border-border bg-card p-4"
+          className={cn(CARD_SURFACE, "p-4")}
           data-testid="overview-stat-plans"
         >
           <h2 className="text-sm font-semibold text-foreground">{t("admin.overview.plans")}</h2>
@@ -125,7 +127,7 @@ export function LocationsOverview() {
             key={item.key}
             to={item.path}
             data-testid={`overview-link-${item.key}`}
-            className="flex min-h-16 flex-col justify-center rounded-md border border-border bg-card p-4 text-start transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={cn(CARD_SURFACE, "flex min-h-16 flex-col justify-center p-4 text-start transition-colors hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring")}
           >
             <span className="text-sm font-semibold text-foreground">{t(item.titleKey)}</span>
             <span className="mt-1 text-xs text-muted-foreground">{t(item.bodyKey)}</span>

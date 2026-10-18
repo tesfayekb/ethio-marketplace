@@ -1,3 +1,5 @@
+import { CARD_SURFACE } from "@/components/layout/surface";
+import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { canonicalSegment } from "@/features/ad-page/address";
 import { CutText } from "@/components/ui/cut-text";
@@ -194,7 +196,7 @@ export function ListingCard({
     <article
       data-testid="listing-card"
       data-listing={listing.id}
-      className="@container flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card"
+      className={cn(CARD_SURFACE, "@container flex h-full flex-col overflow-hidden")}
     >
       {typeof listing.publicId === "string" ? (
         <Link

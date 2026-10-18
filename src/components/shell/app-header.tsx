@@ -114,7 +114,7 @@ export function AppHeader() {
     <div className="w-full min-w-0 md:h-full">
       <header
         className={cn(
-          "flex h-13 w-full min-w-0 items-center gap-1 border-b border-border bg-card pe-2 md:h-full md:gap-2 md:px-4",
+          "flex h-13 w-full min-w-0 items-center gap-1 bg-card pe-2 md:h-full md:gap-2 md:px-4",
           !PHONE_STRIP && "ps-2",
         )}
       >

@@ -1,3 +1,4 @@
+import { CARD_SURFACE } from "@/components/layout/surface";
 import { Link, useNavigate, type LinkProps } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cloneElement, Fragment, isValidElement, type KeyboardEvent, type ReactNode } from "react";
@@ -387,9 +388,9 @@ export function DataTablePagination({
  * toolbar and the footer sit on the page and every row is its own card.
  */
 const FRAME_AT: Record<CardUntil, string> = {
-  md: "md:space-y-0 md:rounded-lg md:border md:border-border md:bg-card md:shadow-card",
-  lg: "lg:space-y-0 lg:rounded-lg lg:border lg:border-border lg:bg-card lg:shadow-card",
-  xl: "xl:space-y-0 xl:rounded-lg xl:border xl:border-border xl:bg-card xl:shadow-card",
+  md: "md:space-y-0 md:rounded-card md:bg-card md:shadow-card",
+  lg: "lg:space-y-0 lg:rounded-card lg:bg-card lg:shadow-card",
+  xl: "xl:space-y-0 xl:rounded-card xl:bg-card xl:shadow-card",
 };
 const BODY_AT: Record<CardUntil, string> = {
   md: "md:space-y-0",
@@ -520,7 +521,7 @@ export function DataTable<T>({
       <div
         data-testid={testid}
         className={cn(
-          "min-w-0 rounded-lg border border-border bg-card p-6 shadow-card",
+          CARD_SURFACE, "min-w-0 p-6",
           STATE_AT[cardUntil],
         )}
       >
@@ -699,7 +700,7 @@ export function DataTable<T>({
               <li key={key} className="min-w-0">
                 <div
                   data-testid={rowActions ? `${rid}-actions` : undefined}
-                  className="relative flex min-w-0 flex-col rounded-lg border border-border bg-card shadow-card"
+                  className={cn(CARD_SURFACE, "relative flex min-w-0 flex-col")}
                 >
                   <div className="flex min-w-0 items-start gap-2.5 px-3 pb-3 pt-3">
                     {selection ? (

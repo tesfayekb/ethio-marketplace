@@ -37,3 +37,5 @@ Rules: Lovable Project Knowledge; summary: modify only files the task names; no 
 - Flake-fix proofs use manual Flake check, separate from CI/promotion: no local browsers (DEC-184).
 
 - QR encoding stays in `src/server/qr.ts`; public QR routes validate id shape without database reads and the marketplace guard forbids the encoder — immutable sharing must not add first-paint weight.
+
+- Cards take `CARD_SURFACE` (src/components/layout/surface.ts): 12-px corners, the card background and a soft shadow, never a 1-px border; a state border (destructive, gold, a focus ring, a dashed placeholder) goes on top. Why: Look B (D135); the look law (src/look-law.test.ts) fails a card with a plain border.
