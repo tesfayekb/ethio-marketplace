@@ -3104,7 +3104,7 @@ test.describe("top band law (bundle 21 turn 2)", () => {
       const row = page
         .getByTestId("app-rail")
         .getByTestId("rail-scroll")
-        .getByTestId("rail-category-all");
+        .getByTestId("rail-category-electronics");
       await expect(row).toBeVisible();
       for (const folded of [false, true]) {
         if (folded) await toggle.click();
@@ -3353,7 +3353,7 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
     const mainSlugs: string[] = [];
     for (const mainRow of await mainRows.all()) {
       const id = await mainRow.getAttribute("data-testid");
-      if (id && slugOfRow(id) !== "all") mainSlugs.push(slugOfRow(id));
+      if (id) mainSlugs.push(slugOfRow(id));
     }
     const firstMain = mainSlugs[0];
     if (!firstMain) throw new Error("FV-1 no main catalogue category");
@@ -3398,4 +3398,103 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
   if (!mobile && (await back.count())) await back.click();
   await expect(scope.getByTestId("rail-favourite")).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("ethio.fav"))).toBeNull();
+});
+
+/** The data-testids of a scope's links, in document order (no .first()). */
+async function linkIds(scope: ReturnType<Page["getByTestId"]>): Promise<string[]> {
+  return scope
+    .getByRole("link")
+    .evaluateAll((links) => links.map((link) => link.getAttribute("data-testid") ?? ""));
+}
+
+test("HR-1 Home is not a menu row; the breadcrumb and the bottom bar carry it", async ({
+  page,
+}, testInfo) => {
+  const mobile = testInfo.project.name === "mobile-360";
+  await gotoReady(page, "/");
+  await expect(page.getByTestId("rail-category-all")).toHaveCount(0);
+  await expect(page.getByTestId("breadcrumb-home")).toBeVisible();
+  if (mobile) {
+    await expect(page.getByTestId("bottom-bar-home")).toBeVisible();
+    const scope = await openRailScope(page);
+    await expect(scope.getByTestId("rail-category-all")).toHaveCount(0);
+    return;
+  }
+  const scroll = page.getByTestId("app-rail").getByTestId("rail-scroll");
+  await expect(scroll.getByTestId("rail-category-electronics")).toBeVisible();
+  const ids = await linkIds(scroll);
+  expect(ids[0] ?? "", "HR-1 the menu's first link is not a category").toMatch(/^rail-category-/);
+  await page.getByTestId("shell-logo-cell").getByTestId("rail-collapse-toggle").click();
+  await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
+  await expect(page.getByTestId("rail-category-all")).toHaveCount(0);
+});
+
+test("FV-3 one favourite: the last one chosen wins", async ({ page }, testInfo) => {
+  const mobile = testInfo.project.name === "mobile-360";
+  const star = page.getByTestId("category-favourite");
+  await gotoReady(page, "/c/electronics");
+  await star.click();
+  await expect(star).toHaveAttribute("aria-pressed", "true");
+  await gotoReady(page, "/c/phones-tablets");
+  await star.click();
+  await expect(star).toHaveAttribute("aria-pressed", "true");
+  await gotoReady(page, "/c/electronics");
+  await expect(star).toHaveAttribute("aria-pressed", "false");
+  await gotoReady(page, "/");
+  if (mobile) {
+    await expect(page.getByTestId("rail-strip").getByTestId("strip-favourite")).toHaveCount(1);
+    const scope = await openRailScope(page);
+    await expect(scope.getByTestId("rail-favourite")).toHaveAttribute("href", "/c/phones-tablets");
+    const ids = await linkIds(scope);
+    expect(ids[0], "FV-3 the favourite is not the menu's first row").toBe("rail-favourite");
+  } else {
+    const scroll = page.getByTestId("app-rail").getByTestId("rail-scroll");
+    const favourite = scroll.getByTestId("rail-favourite");
+    await expect(favourite).toHaveAttribute("href", "/c/phones-tablets");
+    const ids = await linkIds(scroll);
+    expect(ids[0], "FV-3 the favourite is not the menu's first row").toBe("rail-favourite");
+    const line = favourite.locator("xpath=ancestor::li[1]/following-sibling::li[1]");
+    await expect(line).toHaveAttribute("aria-hidden", "true");
+  }
+  expect(await page.evaluate(() => localStorage.getItem("ethio.fav"))).toBe("phones-tablets");
+});
+
+test("FV-2 the ☆ explains itself: fine print without a mouse, a tooltip with one", async ({
+  page,
+}, testInfo) => {
+  const mobile = testInfo.project.name === "mobile-360";
+  await gotoReady(page, "/c/electronics");
+  const name = ((await page.getByTestId("breadcrumb-category").textContent()) ?? "").trim();
+  expect(name, "FV-2 the breadcrumb names no category").not.toBe("");
+  const hintText = en["shell.favouriteHint"].replace("{category}", name);
+  const isText = en["shell.favouriteIs"].replace("{category}", name);
+  const star = page.getByTestId("category-favourite");
+  const hint = page.getByTestId("category-favourite-hint");
+  if (mobile) {
+    await expect(hint).toBeVisible();
+    await expect(hint).toHaveText(hintText);
+    const starBox = await star.boundingBox();
+    const hintBox = await hint.boundingBox();
+    if (!starBox || !hintBox) throw new Error("FV-2 the ☆ or its hint has no box");
+    expect(hintBox.x).toBeGreaterThanOrEqual(starBox.x + starBox.width - 1);
+    expect(
+      Math.abs(hintBox.y + hintBox.height / 2 - (starBox.y + starBox.height / 2)),
+    ).toBeLessThanOrEqual(2);
+    await expect(star).toHaveAccessibleDescription(hintText);
+    await expectNoHorizontalOverflow(page);
+    await star.click();
+    await expect(hint).toHaveText(isText);
+    return;
+  }
+  await expect(hint).toBeHidden();
+  const tip = page.getByTestId("category-favourite-tip");
+  await star.hover();
+  await expect(tip).toBeVisible();
+  await expect(tip).toContainText(hintText);
+  await star.click();
+  await page.mouse.move(0, 0);
+  await expect(tip).toBeHidden();
+  await star.hover();
+  await expect(tip).toBeVisible();
+  await expect(tip).toContainText(isText);
 });
