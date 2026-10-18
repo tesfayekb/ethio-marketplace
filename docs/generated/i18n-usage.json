@@ -4352,6 +4352,7 @@
       "(every page)"
     ],
     "common.error": [
+      "(every page)",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/screening"
@@ -7963,6 +7964,9 @@
       "(every page)"
     ],
     "shell.expandRail": [
+      "(every page)"
+    ],
+    "shell.mainMenu": [
       "(every page)"
     ],
     "shell.mainNav": [

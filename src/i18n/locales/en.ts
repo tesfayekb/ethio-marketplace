@@ -407,6 +407,7 @@ export const en = {
   "shell.skipToContent": "Skip to content",
   "shell.openMenu": "Open menu",
   "shell.closeMenu": "Close menu",
+  "shell.mainMenu": "Main menu",
   "shell.menuTitle": "Menu",
   "shell.searchLabel": "Search listings",
   "shell.searchPlaceholder": "Search listings",

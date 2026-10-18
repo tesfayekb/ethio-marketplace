@@ -68,10 +68,11 @@ test.describe("category selection navigates", () => {
     await gotoReady(page, "/");
     const first = await firstCategory(page);
     test.skip(first === null, "needs at least one seeded category");
-
-    await gotoReady(page, first!.href);
+    if (!first) throw new Error("C-7 needs a seeded category");
+    await gotoReady(page, first.href);
     const scope = await openRailScope(page);
-    await expect(scope.locator("a[aria-current='page']")).toHaveText(first!.label);
+    if (isMobile(page)) await scope.getByRole("link", { name: first.label, exact: true }).click();
+    await expect(scope.locator("a[aria-current='page']")).toHaveText(first.label);
   });
 
   test("C-8: Home clears the category", async ({ page }) => {

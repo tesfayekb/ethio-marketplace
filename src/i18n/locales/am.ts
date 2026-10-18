@@ -390,6 +390,7 @@ export const am: Messages = {
   "shell.skipToContent": "ወደ ይዘቱ ዝለል",
   "shell.openMenu": "ዝርዝሩን ክፈት",
   "shell.closeMenu": "ዝርዝሩን ዝጋ",
+  "shell.mainMenu": "ዋና ዝርዝር",
   "shell.menuTitle": "ዝርዝር",
   "shell.searchLabel": "ማስታወቂያዎችን ይፈልጉ",
   "shell.searchPlaceholder": "ማስታወቂያዎችን ይፈልጉ",

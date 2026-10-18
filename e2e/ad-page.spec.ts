@@ -1013,12 +1013,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(sellerItem).toHaveAttribute("aria-current", "true");
     await expect
       .poll(async () => {
-        const heading = await page
+        const seller = await page
           .locator('section[data-testid="listing-detail-seller"]')
-          .getByRole("heading")
           .boundingBox();
         const nav = await bar.boundingBox();
-        return heading && nav ? heading.y - nav.y - nav.height : -1;
+        return seller && nav ? seller.y - nav.y - nav.height : -1;
       })
       .toBeGreaterThanOrEqual(0);
     const locationItem = bar.locator('[data-target="location"]');

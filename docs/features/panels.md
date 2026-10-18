@@ -104,6 +104,8 @@ STUBBED — see `docs/features/location-scoping.md`.
 
 ## Rail collapse state (2026-08-05)
 
+Subcategories open in place at every width (D98 with D213): the list follows the URL, with ‹ Main menu / ‹ <parent> moving it up without navigation. The phone menu opens at the main list, stays open on a category with subcategories, and folds into the strip on one without. The folded rail and strip show main categories with the current ancestor marked. Every category link preloads on intent. The peek opens once a visit on phones (sessionStorage `ethio.peek`), without taking focus; it is off under test unless forced.
+
 Sub-items indent 16 px a level in the open rail and the opened phone menu; the folded rail and the phone strip keep one icon column (the operator, 2026-10-18 14:45 local).
 
 D113 — rows are 32 px with a mouse and 44 px with touch; phone rows fit the strip at 32–40 px. Icons are 20 px in the rail and 24 px on phones. Home replaces All categories. The phone menu has a × and ends above the bottom bar. D205 — a tap on the strip opens the menu; the strip is aria-hidden and the ☰ is the accessible way in.
