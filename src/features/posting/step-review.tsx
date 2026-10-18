@@ -112,6 +112,7 @@ function dayFromToday(days: number): string {
 export function StepReview({
   listingId,
   categoryPath,
+  placeCountry,
   values,
   photos,
   illustrationUrl,
@@ -132,6 +133,8 @@ export function StepReview({
   listingId: string | null;
   /** The chosen category's full path, in the seller's language. */
   categoryPath: string;
+  /** INC-724 — the country of the draft's own place, before the visitor's area. */
+  placeCountry?: string | null;
   values: DraftValues;
   photos: DraftPhotoRow[];
   /** The nearest ancestor category's picture, the stand-in when there is no photo. */
@@ -540,7 +543,7 @@ export function StepReview({
         attributeOptions={attributeOptions}
         photos={photos}
         coverage={values.coverage}
-        country={readAreaCookie()?.country ?? null}
+        country={placeCountry ?? readAreaCookie()?.country ?? null}
         contactPref={values.contactPref}
       />
 
@@ -580,7 +583,7 @@ export function StepReview({
             illustrationUrl,
             photosSoon,
             coverage: values.coverage,
-            country: readAreaCookie()?.country ?? null,
+            country: placeCountry ?? readAreaCookie()?.country ?? null,
             contactPref: values.contactPref,
             sellerAlias: identity?.alias ?? null,
             sellerBusinessName:

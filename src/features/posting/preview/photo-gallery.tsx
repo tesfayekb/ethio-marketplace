@@ -151,7 +151,7 @@ export function PhotoGallery({
               alt=""
               width={480}
               height={360}
-              className={`h-full w-full object-contain${fillColumn ? "" : " @min-[32rem]:object-top"}`}
+              className="h-full w-full object-contain @min-[32rem]:object-top"
               draggable={false}
             />
           </button>
@@ -208,7 +208,7 @@ export function PhotoGallery({
           ) : null}
         </div>
         {several ? (
-          <div className="relative @min-[32rem]:shrink-0">
+          <div className="relative @min-[32rem]:shrink-0 @min-[32rem]:self-start">
             <Thumbs
               ref={stripRef}
               photos={photos}
