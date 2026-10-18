@@ -29,6 +29,8 @@ test.describe("category selection navigates", () => {
    */
   async function firstCategory(page: import("@playwright/test").Page) {
     const scope = await openRailScope(page);
+    await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
     const rows = catalogueRows(scope, "nav li > a");
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(rows.first()).toBeVisible();
@@ -71,6 +73,8 @@ test.describe("category selection navigates", () => {
     if (!first) throw new Error("C-7 needs a seeded category");
     await gotoReady(page, first.href);
     const scope = await openRailScope(page);
+    await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(scope.getByRole("link", { name: first.label, exact: true })).toBeVisible();
     if (isMobile(page)) await scope.getByRole("link", { name: first.label, exact: true }).click();
     await expect(scope.locator("a[aria-current='page']")).toHaveText(first.label);
   });
@@ -88,6 +92,8 @@ test.describe("category selection navigates", () => {
       await expect(page.getByTestId("bottom-bar-home")).toHaveAttribute("aria-current", "page");
     } else {
       const scope = await openRailScope(page);
+      await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
+      await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
       await expect(scope.locator("a[aria-current]")).toHaveCount(0);
       await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
     }
@@ -148,6 +154,8 @@ test.describe("category selection navigates", () => {
 
       const railOrder = async () => {
         const scope = await openRailScope(page);
+        await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
+        await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
         const a = scope.getByTestId(`rail-category-${first}`);
         const b = scope.getByTestId(`rail-category-${second}`);
         await expect(a, "C-5 the first scratch root is not in the rail").toHaveCount(1, {

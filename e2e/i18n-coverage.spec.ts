@@ -198,6 +198,9 @@ test.describe("i18n chrome coverage (Amharic)", () => {
 
     assertAmharicChrome(await chromeTexts(page), "marketplace shell");
     if ((viewport?.width ?? 0) >= 768) {
+      const rail = page.getByTestId("app-rail");
+      await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+      await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
       await assertAmharicCategories(
         page,
         '[data-testid="app-rail"]',
@@ -215,6 +218,8 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     const drawer = await openRailScope(page);
     await expect(drawer).toBeVisible();
 
+    await expect(drawer.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(drawer.getByTestId("rail-category-electronics")).toBeVisible();
     assertAmharicChrome(await drawerTexts(page), "mobile drawer");
     await assertAmharicCategories(page, '[data-testid="rail-menu"]', "mobile drawer categories");
   });
@@ -286,6 +291,8 @@ test("B21SC-3 SC-3 the phone category level and Main menu are Amharic", async ({
   await gotoReady(page, "/c/electronics");
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
   const menu = await openRailScope(page);
+  await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+  await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
   await menu.getByTestId("rail-category-electronics").click();
   await expect(menu.getByTestId("rail-menu-back")).toHaveText(am["shell.mainMenu"]);
   await expect(menu.getByTestId("rail-category-phones-tablets")).toBeVisible();
