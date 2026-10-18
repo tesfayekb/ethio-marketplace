@@ -885,39 +885,48 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       )
         throw new Error("AP-36 missing layout boxes");
       const near = (a: number, b: number, tolerance: number) => Math.abs(a - b) <= tolerance;
+      // DEC-199 — the top row by the article's width.
       if (article.width < 672) {
         // DEC-197 — phone: the seller card follows the title box, then the bar
         // and the boxes in their DOM order.
         const order = [media, headline, sellerBox, nav, details, description, location, safety];
         for (let i = 1; i < order.length; i += 1)
           expect(order[i].y).toBeGreaterThanOrEqual(order[i - 1].y + order[i - 1].height);
-      } else if (article.width < 896) {
-        // The media card and the right column side by side; the media card
-        // grows to the column, so its bottom meets the seller card's bottom.
+      } else if (article.width < 920) {
+        // The photo box and the title box side by side at one height; the
+        // seller card across the article under both, its contents in two
+        // columns; the bar under the seller card.
         expect(headline.x).toBeGreaterThanOrEqual(media.x + media.width);
         expect(near(headline.y, media.y, 1)).toBe(true);
-        expect(near(media.y + media.height, sellerBox.y + sellerBox.height, 1)).toBe(true);
-        expect(sellerBox.y).toBeGreaterThanOrEqual(headline.y + headline.height);
-        expect(near(sellerBox.x, headline.x, 1)).toBe(true);
-        expect(near(nav.width, article.width, 1)).toBe(true);
-        expect(nav.y).toBeGreaterThanOrEqual(
-          Math.max(media.y + media.height, sellerBox.y + sellerBox.height),
+        expect(near(headline.y + headline.height, media.y + media.height, 1)).toBe(true);
+        expect(near(sellerBox.x, article.x, 1)).toBe(true);
+        expect(near(sellerBox.width, article.width, 1)).toBe(true);
+        expect(sellerBox.y).toBeGreaterThanOrEqual(
+          Math.max(media.y + media.height, headline.y + headline.height),
         );
-        // Details | Description, then Location | the safety box.
-        expect(description.x).toBeGreaterThanOrEqual(details.x + details.width);
-        expect(near(description.y, details.y, 1)).toBe(true);
-        expect(near(description.height, details.height, 1)).toBe(true);
-        expect(safety.x).toBeGreaterThanOrEqual(location.x + location.width);
-        expect(near(safety.y, location.y, 1)).toBe(true);
-        expect(location.y).toBeGreaterThanOrEqual(details.y + details.height);
+        const contact = await page.getByTestId("listing-detail-contact").boundingBox();
+        if (!contact) throw new Error("AP-36 contact missing");
+        expect(contact.x).toBeGreaterThanOrEqual(sellerBox.x + sellerBox.width / 2);
+        expect(contact.y).toBeLessThan(sellerBox.y + sellerBox.height / 2);
+        expect(near(nav.width, article.width, 1)).toBe(true);
+        expect(nav.y).toBeGreaterThanOrEqual(sellerBox.y + sellerBox.height);
       } else {
         expect(headline.x).toBeGreaterThanOrEqual(media.x + media.width);
         expect(near(headline.y, media.y, 1)).toBe(true);
         expect(near(media.y + media.height, sellerBox.y + sellerBox.height, 1)).toBe(true);
         expect(sellerBox.y).toBeGreaterThanOrEqual(headline.y + headline.height);
         expect(near(nav.width, article.width, 1)).toBe(true);
-        // Details | Description | Location in one row of thirds, then the
-        // safety box across the article.
+      }
+      // The boxes by width: under 896 Details | Description then Location |
+      // the safety box; from 896 the row of thirds then the safety box across.
+      if (article.width >= 672 && article.width < 896) {
+        expect(description.x).toBeGreaterThanOrEqual(details.x + details.width);
+        expect(near(description.y, details.y, 1)).toBe(true);
+        expect(near(description.height, details.height, 1)).toBe(true);
+        expect(safety.x).toBeGreaterThanOrEqual(location.x + location.width);
+        expect(near(safety.y, location.y, 1)).toBe(true);
+        expect(location.y).toBeGreaterThanOrEqual(details.y + details.height);
+      } else if (article.width >= 896) {
         const third = (article.width - 32) / 3;
         const row = [details, description, location];
         for (let i = 1; i < row.length; i += 1)
@@ -935,13 +944,22 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       );
       return article.width;
     };
-    await check();
+    const wideWidth = await check();
     if (testInfo.project.name === "desktop-1280") {
       const original = page.viewportSize();
       await page.setViewportSize({ width: 1100, height: 900 });
       const width = await check();
       expect(width).toBeGreaterThanOrEqual(672);
       expect(width).toBeLessThan(896);
+      // A third pass whose article lies in 896–919 px: article = viewport −
+      // (1280 − the article's width at 1280), aimed at the range's middle.
+      const viewportWidth = Math.round(907.5 + (1280 - wideWidth));
+      await page.setViewportSize({ width: viewportWidth, height: 900 });
+      const middleWidth = await check();
+      if (middleWidth < 896 || middleWidth > 919)
+        console.log(
+          `AP-36: the third pass was skipped — the article measured ${middleWidth} px at a ${viewportWidth} px viewport, outside 896–919`,
+        );
       if (original) await page.setViewportSize(original);
       await check();
     }
@@ -964,7 +982,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await seedPhotos(ad.id);
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(3);
     expect(
       await bar
         .getByTestId("listing-section-nav-item")
@@ -1541,6 +1559,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
             page.getByTestId("listing-detail-actions").boundingBox(),
             headline.boundingBox(),
             media.boundingBox(),
+            page.locator('section[data-testid="listing-detail-seller"]').boundingBox(),
           ]),
         );
         const stable = previous === current;
@@ -1556,15 +1575,26 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       Math.abs(actions.y + actions.height - (headlineBox.y + headlineBox.height)),
     ).toBeLessThanOrEqual(24);
     const article = await page.getByTestId("listing-detail").boundingBox();
-    if (!article) throw new Error("AP-46 article missing");
-    if (article.width >= 672)
+    const sellerBox = await page
+      .locator('section[data-testid="listing-detail-seller"]')
+      .boundingBox();
+    if (!article || !sellerBox) throw new Error("AP-46 article or seller missing");
+    // DEC-199 — the last check depends on the width: below 920 px the title
+    // box's bottom meets the photo box's bottom; from 920 px the seller card
+    // sits under the title box and its bottom meets the photo box's bottom.
+    if (article.width >= 920) {
+      expect(sellerBox.y).toBeGreaterThanOrEqual(headlineBox.y + headlineBox.height);
+      expect(
+        Math.abs(sellerBox.y + sellerBox.height - (mediaBox.y + mediaBox.height)),
+      ).toBeLessThanOrEqual(1);
+    } else if (article.width >= 672)
       expect(
         Math.abs(headlineBox.y + headlineBox.height - (mediaBox.y + mediaBox.height)),
       ).toBeLessThanOrEqual(1);
   });
 
   test("AP-47 the in-page bar shows no scrollbar (INC-717)", async ({ page }, testInfo) => {
-    // AP-36's ad shape: a fact and an exact pin, so all four tabs show.
+    // AP-36's ad shape: a fact and an exact pin, so all three tabs show.
     const seller = await scratchSeller();
     const key = `e2e-scrollbar-${token()}`;
     factKeys.push(key);
@@ -1578,7 +1608,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await page.setViewportSize({ width: 600, height: 900 });
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(3);
     const scrollbarWidth = await bar.evaluate((nav) => getComputedStyle(nav).scrollbarWidth);
     expect(scrollbarWidth).toBe("none");
     // At 360 the items share the row: nothing overflows.
