@@ -1060,13 +1060,6 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-detail-posted")).toContainText(
       fill(en["adPage.posted"], { when: "today" }),
     );
-    await switchLanguage(page, "am");
-    await expect(page.getByTestId("listing-detail-posted")).toContainText(
-      fill(am["adPage.posted"], {
-        when: new Intl.RelativeTimeFormat("am", { numeric: "auto" }).format(0, "day"),
-      }),
-    );
-    await switchLanguage(page, "en");
     const text = page.getByTestId("listing-detail-description");
     const toggle = page.getByTestId("listing-description-toggle");
     await expect(toggle).toHaveText(en["adPage.description.more"]);
@@ -1087,7 +1080,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-places-maps")).toHaveAttribute("target", "_blank");
     await expect(page.getByTestId("listing-map-google")).toHaveAttribute(
       "href",
-      "https://www.google.com/maps/search/?api=1&query=8.9876543,38.7612345",
+      "https://www.google.com/maps/search/?api=1&query=8.9876543%2C38.7612345",
     );
     await expect(page.getByTestId("listing-map-google")).toHaveAttribute("target", "_blank");
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
@@ -1110,7 +1103,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, (await address(approx)).canonical);
     const href = await page.getByTestId("listing-map-google").getAttribute("href");
     expect(href).toBe(
-      `https://www.google.com/maps/search/?api=1&query=${Math.round(coords.data.pin_show_lat / 0.01) * 0.01},${Math.round(coords.data.pin_show_lng / 0.01) * 0.01}`,
+      `https://www.google.com/maps/search/?api=1&query=${(Math.round(coords.data.pin_show_lat / 0.01) * 0.01).toFixed(2)}%2C${(Math.round(coords.data.pin_show_lng / 0.01) * 0.01).toFixed(2)}`,
     );
     expect(href).not.toContain(String(coords.data.pin_lat));
     expect(href).not.toContain(String(coords.data.pin_lng));
@@ -1127,6 +1120,88 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(toggle).toHaveCount(0);
     await expect(page.getByTestId("listing-map-google")).toHaveCount(0);
     await expect(page.getByTestId("listing-places-maps")).toBeVisible();
+    // INC-715 — the other-language check is LAST; a test never switches back.
+    await gotoReady(page, (await address(today)).canonical);
+    await switchLanguage(page, "am");
+    await expect(page.getByTestId("listing-detail-posted")).toContainText(
+      fill(am["adPage.posted"], {
+        when: new Intl.RelativeTimeFormat("am", { numeric: "auto" }).format(0, "day"),
+      }),
+    );
+  });
+
+  test("AP-43 the buyer reads his own map words", async ({ page }) => {
+    const seller = await scratchSeller();
+    const exact = await seed(seller, "active", { pin: true });
+    const pin = await adminClient()
+      .from("listings")
+      .update({ pin_precision: "exact", pin_show_lat: 8.9876543, pin_show_lng: 38.7612345 })
+      .eq("id", exact.id);
+    expect(pin.error).toBeNull();
+    await gotoReady(page, (await address(exact)).canonical);
+    await expect(page.locator(`text=${en["post.pin.previewExact"]}`)).toHaveCount(0);
+    await expect(page.getByTestId("listing-map-pin")).toHaveAttribute(
+      "aria-label",
+      en["adPage.map.label"],
+    );
+    const approx = await seed(seller, "active", { pin: true });
+    await gotoReady(page, (await address(approx)).canonical);
+    await expect(page.locator(`text=${en["post.pin.previewApprox"]}`)).toHaveCount(0);
+    await expect(page.getByTestId("listing-map-caption")).toHaveText(en["adPage.map.approx"]);
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${exact.id}`);
+    await expect(page.getByText(en["post.pin.previewExact"]).first()).toBeVisible();
+  });
+
+  test("AP-44 nothing covers the top bars", async ({ page }, testInfo) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active", { pin: true });
+    const pin = await adminClient()
+      .from("listings")
+      .update({ pin_precision: "exact", pin_show_lat: 8.9876543, pin_show_lng: 38.7612345 })
+      .eq("id", ad.id);
+    expect(pin.error).toBeNull();
+    await gotoReady(page, (await address(ad)).canonical);
+    const box = async (id: string) => {
+      const found = await page.getByTestId(id).boundingBox();
+      if (!found) throw new Error(`AP-44 ${id} missing`);
+      return found;
+    };
+    /** The element at a bar's centre must be INSIDE that bar, never inside the map. */
+    const hitInside = (id: string) =>
+      page.evaluate((target) => {
+        const bar = document.querySelector<HTMLElement>(`[data-testid="${target}"]`);
+        if (!bar) return "missing";
+        const rect = bar.getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+        if (hit === null) return "none";
+        if (hit.closest('[data-testid="listing-detail-map"]') !== null) return "map";
+        return bar.contains(hit) ? "inside" : "outside";
+      }, id);
+    // Scroll until the map's box is under the shell's band (the map's top above the band's bottom).
+    await page.getByTestId("listing-detail-map").scrollIntoViewIfNeeded();
+    await expect
+      .poll(async () => {
+        await page.mouse.wheel(0, 120);
+        const map = await box("listing-detail-map");
+        const band = await box("shell-band");
+        return map.y < band.y + band.height;
+      })
+      .toBe(true);
+    expect(await hitInside("shell-band")).toBe("inside");
+    expect(await hitInside("shell-subband")).toBe("inside");
+    if (testInfo.project.name === "mobile-360") {
+      // With the Enlarge button scrolled under the in-page bar, the point answers the bar.
+      await expect
+        .poll(async () => {
+          await page.mouse.wheel(0, 120);
+          const enlarge = await box("listing-map-enlarge");
+          const nav = await box("listing-section-nav");
+          return enlarge.y < nav.y + nav.height;
+        })
+        .toBe(true);
+      expect(await hitInside("listing-section-nav")).toBe("inside");
+    }
   });
 
   test("AP-42 no half-empty row", async ({ page }, testInfo) => {
