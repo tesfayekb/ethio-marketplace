@@ -1,12 +1,12 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39096720222
-- Commit: `4322efa1cf7120d5aaf6ce79aed982e4bee848e2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39099449802
+- Commit: `e3e364bc042b0df6d67268d62eceb10f8b82127f`
 - Attempt: 1
-- Written (UTC): 2026-10-18T05:11:30.751Z
-- Passed: 1896 · Skipped: 130 · Failed: 9
-- Gating failures: 9 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 13
+- Written (UTC): 2026-10-18T06:02:20.192Z
+- Passed: 1892 · Skipped: 130 · Failed: 16
+- Gating failures: 16 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 10
 - Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 - Sources without results: none
 - Errors outside any test (INC-589): none
@@ -16,23 +16,65 @@
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-coverage.spec.ts › L2b coverage console › CV-2 roster: the free plan renders its three limits and its everywhere state, on the agreed toolbar — Error: expect(locator).toBeVisible() failed
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · my-listings-doors.spec.ts › MY LISTINGS — the seller's doors (bundle 16 turn 1) › ML-11 edit_my_listing: amounts and picked answers apply at once; words and a refused ad's edit go to review (D177) — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · my-listings-page.spec.ts › MY LISTINGS — the list page (bundle 16 turn 2) › MLP-3 My Listings opens its own page; signed out, the page asks to sign in — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · photo-pipeline.spec.ts › PHOTO PIPELINE › PP-2 a PNG and a WebP carrying metadata chunks are stored as image data only — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · posting-routes.spec.ts › POSTING ROUTES › PR-9 catalog finder is bounded, multilingual and rate-limited — Error: expect(received).toBe(expected) // Object.is equality
-- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · posting-routes.spec.ts › POSTING ROUTES › D189 deactivated seller › PR-52 the assist peek answers the budget without spending, and refuses what is not the caller's (INC-669) — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · shell.spec.ts › L4b location picker › LS-13 a second city stops the auto-select at the region — Error: the open-market list never carried QS within 20 s
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-countries.spec.ts › L2b countries console › CO-1 gating: a plain user is refused; the roster, its toolbar and the header's transfer group render for an admin — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-3 An account with no listing right: All listings, the listing's page and Edit refuse it; nothing is written — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · my-listings-ad.spec.ts › MY LISTINGS — one ad's page (bundle 16 turn 3) › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) — Error: expect(locator).toBeVisible() failed
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · my-listings-doors.spec.ts › MY LISTINGS — the seller's doors (bundle 16 turn 1) › ML-12 edit_my_listing refuses what a box may not change, an ad it may not edit and another seller's, and writes nothing — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · my-listings-page.spec.ts › MY LISTINGS — the list page (bundle 16 turn 2) › MLP-3 My Listings opens its own page; signed out, the page asks to sign in — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · photo-pipeline.spec.ts › PHOTO PIPELINE › PP-3 a PDF renamed .jpg is refused unsupportedFormat — Test timeout of 60000ms exceeded.
+- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-attributes-links.spec.ts › C3 attributes console › AT-42 toggling Required keeps the card rank and never loses the link — Error: Timeout 20000ms exceeded while waiting on the predicate
+- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-attributes-links.spec.ts › C3 attributes console › AT-66 the link editor saves and reopens a two-pair condition — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · feed-screens.spec.ts › FEED SCREENS › FS-12 on a phone three cards share a row and the invitation is the size of a card (D123) — Error: expect(received).toEqual(expected) // deep equality
+- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · import-security.spec.ts › IMPORT-GATE locations-countries › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited — TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.
+- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · post-wizard-specs.spec.ts › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it — Error: expect(locator).toBeVisible() failed
+- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · post-wizard-specs.spec.ts › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, no-preference) — Error: expect(locator).toHaveAttribute(expected) failed
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-attributes-safety.spec.ts › Bundle 7 attribute safety › AT-76b the link editor refuses a condition on the upper question naming the lower one, and accepts the reverse — Test timeout of 60000ms exceeded.
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-attributes-safety.spec.ts › Bundle 7 attribute safety › AT-77 an import whose end state asks a child first is refused whole at the commit — Error: [e2e:setup] POST /token?grant_type=password failed (504): upstream request timeout
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 6` · post-wizard-resets.spec.ts › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) — Error: PW-61: Undo did not restore the title
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 6` · post-wizard-specs.spec.ts › POSTING WIZARD › PW-74 a step-3 round trip keeps every answer (INC-329, big model list) — Error: expect(locator).toHaveAttribute(expected) failed
 
 ## Flaky bodies (DEC-078)
 
-### admin-coverage.spec.ts › L2b coverage console › CV-2 roster: the free plan renders its three limits and its everywhere state, on the agreed toolbar
+### admin-attributes-links.spec.ts › C3 attributes console › AT-42 toggling Required keeps the card rank and never loses the link
+
+- Source: `shard 1`
+- Project: `mobile-360`
+
+```text
+Error: Timeout 20000ms exceeded while waiting on the predicate
+--- further error 1 ---
+Error: Timeout 20000ms exceeded while waiting on the predicate
+
+  624 |       await page.getByTestId(`category-attribute-card-${key}`).click();
+  625 |       await stepUpIfPrompted(page, secret);
+> 626 |       await expect
+      |       ^
+  627 |         .poll(async () => (await readLinks(scratch!.id))[0]?.card_rank ?? null, { timeout: 20000 })
+  628 |         .not.toBeNull();
+  629 |       const before = (await readLinks(scratch!.id))[0]!;
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-attributes-links.spec.ts:626:7
+```
+
+Context:
+
+```text
+              - combobox [ref=e32]:
+                - option "Always visible" [selected]
+              - button "Save" [disabled]
+          - generic [ref=e33]:
+            - generic [ref=e34]: Order 0
+            - button "Move up" [disabled]
+            - button "Move down" [disabled]
+            - button "Unlink" [ref=e35] [cursor=pointer]
+      - generic [ref=e36]:
+        - textbox "Search the library" [ref=e37]: e2e_attr_njp6wz
+        - combobox "Add attribute" [ref=e38]:
+          - option "Choose an attribute" [selected]
+        - button "Add attribute" [disabled]
+      - generic [ref=e39]:
+        - paragraph [ref=e40]: Changes save as you go
+        - button "Done" [ref=e41] [cursor=pointer]
+    - button "Close" [ref=e42] [cursor=pointer]:
+      - img [ref=e43]
+      - generic [ref=e46]: Close
+```
+```
+
+### admin-attributes-links.spec.ts › C3 attributes console › AT-66 the link editor saves and reopens a two-pair condition
 
 - Source: `shard 1`
 - Project: `mobile-360`
@@ -40,6 +82,185 @@ a test flaky 3× in 7 days gets an INC and root-cause work.
 ```text
 Error: expect(locator).toBeVisible() failed
 
+Locator: getByTestId('category-attribute-cell-saved-condition-e2e_attr_oq6ztr')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('category-attribute-cell-saved-condition-e2e_attr_oq6ztr')
+
+--- further error 1 ---
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('category-attribute-cell-saved-condition-e2e_attr_oq6ztr')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('category-attribute-cell-saved-condition-e2e_attr_oq6ztr')
+
+
+  1476 |       await page.getByTestId(`category-attribute-save-condition-${id}`).click();
+  1477 |       await stepUpIfPrompted(page, secret);
+> 1478 |       await expect(page.getByTestId(`category-attribute-cell-saved-condition-${id}`)).toBeVisible({
+       |                                                                                       ^
+  1479 |         timeout: 20_000,
+  1480 |       });
+  1481 |       await expect
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-attributes-links.spec.ts:1478:87
+```
+
+Context:
+
+```text
+          - option "Toy Type (toy_type)"
+          - option "Transmission (transmission-cars)"
+          - option "Transmission (transmission-vehicles)"
+          - option "Utilities Available (utilities_available)"
+          - option "Warranty (warranty)"
+          - option "Water Type (water_type)"
+          - option "Weight Capacity (weight_capacity)"
+          - option "Clothing Type (womens_clothing_type)"
+          - option "Size (womens_size)"
+          - option "Year (year)"
+          - option "Year Built (year_built)"
+          - option "Zoning / Land Use (zoning)"
+        - button "Add attribute" [disabled]
+      - generic [ref=e122]:
+        - paragraph [ref=e123]: Changes save as you go
+        - button "Done" [ref=e124] [cursor=pointer]
+    - button "Close" [ref=e125] [cursor=pointer]:
+      - img [ref=e126]
+      - generic [ref=e129]: Close
+```
+```
+
+### feed-screens.spec.ts › FEED SCREENS › FS-12 on a phone three cards share a row and the invitation is the size of a card (D123)
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 3
++ Received  + 1
+
+- Array [
+-   "52415db8-d9ec-4904-8221-baa7a8fd74bc",
+- ]
++ Array []
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+--- further error 1 ---
+Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 3
++ Received  + 1
+
+- Array [
+-   "52415db8-d9ec-4904-8221-baa7a8fd74bc",
+- ]
++ Array []
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+
+  486 |     await openArea(page, fx, baseURL!);
+  487 |
+> 488 |     await expect.poll(() => sectionIds(page, 1)).toEqual([a1]);
+      |     ^
+  489 |     const row = await page.locator('[data-testid="feed-section"][data-step="1"] ul').boundingBox();
+  490 |     const card = await page
+  491 |       .locator(`[data-testid="listing-card"][data-listing="${a1}"]`)
+```
+
+Context:
+
+```text
+          - listitem [ref=e285]:
+            - generic [ref=e286]: About
+          - listitem [ref=e287]:
+            - generic [ref=e288]: How it works
+      - navigation "Help" [ref=e289]:
+        - heading "Help" [level=2] [ref=e290]
+        - list [ref=e291]:
+          - listitem [ref=e292]:
+            - generic [ref=e293]: Safety
+          - listitem [ref=e294]:
+            - generic [ref=e295]: Contact
+      - navigation "Legal" [ref=e296]:
+        - heading "Legal" [level=2] [ref=e297]
+        - list [ref=e298]:
+          - listitem [ref=e299]:
+            - generic [ref=e300]: Terms
+          - listitem [ref=e301]:
+            - generic [ref=e302]: Privacy
+    - paragraph [ref=e304]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+### import-security.spec.ts › IMPORT-GATE locations-countries › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.
+--- further error 1 ---
+TimeoutError: page.waitForFunction: Timeout 15000ms exceeded.
+
+   at helpers/ui.ts:539
+
+  537 |   // the header renders its auth branch asynchronously; an instantaneous count
+  538 |   // is a race (INC-074 addendum).
+> 539 |   await page.waitForFunction(
+      |              ^
+  540 |     ([enSignIn, amSignIn]) => {
+  541 |       const accountMenu = document.querySelector('[data-testid="account-menu"]');
+  542 |       if (accountMenu && accountMenu.isConnected) return true;
+    at switchUser (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/ui.ts:539:14)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/import-security.spec.ts:804:7
+```
+
+Context:
+
+```text
+          - listitem [ref=e91]:
+            - generic [ref=e92]: About
+          - listitem [ref=e93]:
+            - generic [ref=e94]: How it works
+      - navigation "Help" [ref=e95]:
+        - heading "Help" [level=2] [ref=e96]
+        - list [ref=e97]:
+          - listitem [ref=e98]:
+            - generic [ref=e99]: Safety
+          - listitem [ref=e100]:
+            - generic [ref=e101]: Contact
+      - navigation "Legal" [ref=e102]:
+        - heading "Legal" [level=2] [ref=e103]
+        - list [ref=e104]:
+          - listitem [ref=e105]:
+            - generic [ref=e106]: Terms
+          - listitem [ref=e107]:
+            - generic [ref=e108]: Privacy
+    - paragraph [ref=e110]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+### post-wizard-specs.spec.ts › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
 Locator: getByTestId('bottom-bar-account')
 Expected: visible
 Timeout: 15000ms
@@ -62,356 +283,207 @@ Call log:
   - waiting for getByTestId('bottom-bar-account')
 
 
-   at helpers/ui.ts:941
+   at helpers/ui.ts:509
 
-  939 |   await gotoReady(page, "/");
-  940 |   await assertInjectedIdentity(page, session);
-> 941 |   await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
+  507 |   // ids here, not surface later as an inexplicable permission assertion.
+  508 |   await assertInjectedIdentity(page, session);
+> 509 |   await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
       |                                      ^
-  942 |   await waitForHydration(page);
-  943 |   // READ-BACK from the client: the injected session really is AAL2.
+  510 |   await page.waitForFunction(
+  511 |     () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
 ```
 
-Context:
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-5-the-specification-form-is-generated-its-options-load-on-the-first-tap-and-an-empty-required-detail-is-refused-under-it-mobile-360` — Playwright's name `post-wizard-specs-POSTING--44a2d--detail-is-refused-under-it-mobile-360`; this run carried 16 context file(s); of the same spec: none
 
-```text
-          - listitem [ref=e87]:
-            - generic [ref=e88]: About
-          - listitem [ref=e89]:
-            - generic [ref=e90]: How it works
-      - navigation "Help" [ref=e91]:
-        - heading "Help" [level=2] [ref=e92]
-        - list [ref=e93]:
-          - listitem [ref=e94]:
-            - generic [ref=e95]: Safety
-          - listitem [ref=e96]:
-            - generic [ref=e97]: Contact
-      - navigation "Legal" [ref=e98]:
-        - heading "Legal" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Terms
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Privacy
-    - paragraph [ref=e106]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### my-listings-doors.spec.ts › MY LISTINGS — the seller's doors (bundle 16 turn 1) › ML-11 edit_my_listing: amounts and picked answers apply at once; words and a refused ad's edit go to review (D177)
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: [e2e:ml] listing 72a4feee-4418-4596-a91b-4bae3190357d not found
-
-  172 |     .maybeSingle();
-  173 |   if (error) throw new Error(`[e2e:ml] listing read failed: ${error.message}`);
-> 174 |   if (!data) throw new Error(`[e2e:ml] listing ${listingId} not found`);
-      |                    ^
-  175 |   return data as unknown as Row;
-  176 | }
-  177 |
-    at listingTruth (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-doors.spec.ts:174:20)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-doors.spec.ts:951:15
-```
-
-Context: context file not found for `my-listings-doors-MY-LISTINGS-the-seller-s-doors-bundle-16-turn-1-ML-11-edit_my_listing-amounts-and-picked-answers-apply-at-once-words-and-a-refused-ad-s-edit-go-to-review-D177-mobile-360` — Playwright's name `my-listings-doors-MY-LISTI-d5fb4-d-s-edit-go-to-review-D177--mobile-360`; this run carried 18 context file(s); of the same spec: none
-
-### my-listings-page.spec.ts › MY LISTINGS — the list page (bundle 16 turn 2) › MLP-3 My Listings opens its own page; signed out, the page asks to sign in
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
-```
-
-Context:
-
-```text
-          - listitem [ref=e266]:
-            - generic [ref=e267]: About
-          - listitem [ref=e268]:
-            - generic [ref=e269]: How it works
-      - navigation "Help" [ref=e270]:
-        - heading "Help" [level=2] [ref=e271]
-        - list [ref=e272]:
-          - listitem [ref=e273]:
-            - generic [ref=e274]: Safety
-          - listitem [ref=e275]:
-            - generic [ref=e276]: Contact
-      - navigation "Legal" [ref=e277]:
-        - heading "Legal" [level=2] [ref=e278]
-        - list [ref=e279]:
-          - listitem [ref=e280]:
-            - generic [ref=e281]: Terms
-          - listitem [ref=e282]:
-            - generic [ref=e283]: Privacy
-    - paragraph [ref=e285]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### photo-pipeline.spec.ts › PHOTO PIPELINE › PP-2 a PNG and a WebP carrying metadata chunks are stored as image data only
-
-- Source: `shard 2`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: meta.webp: {"ok":false,"refusals":[{"field":"door","reason":"doorError"}]}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-
-  197 |       const answer = await uploadPhoto(page, { listingId, token, cover: { name } });
-  198 |       expect(answer.status, `${name}: ${JSON.stringify(answer.payload)}`).toBe(200);
-> 199 |       expect(answer.payload["ok"], `${name}: ${JSON.stringify(answer.payload)}`).toBe(true);
-      |                                                                                  ^
-  200 |
-  201 |       const rows = await photoRowsOf(listingId);
-  202 |       expect(rows, `PP-2 ${name}: no row was registered`).toHaveLength(1);
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/photo-pipeline.spec.ts:199:82
-```
-
-Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-2-a-PNG-and-a-WebP-carrying-metadata-chunks-are-stored-as-image-data-only-mobile-360` — Playwright's name `photo-pipeline-PHOTO-PIPEL-0aed8-e-stored-as-image-data-only-mobile-360`; this run carried 18 context file(s); of the same spec: none
-
-### posting-routes.spec.ts › POSTING ROUTES › PR-9 catalog finder is bounded, multilingual and rate-limited
+### post-wizard-specs.spec.ts › POSTING WIZARD › PW-77 the first refused field's label lands below the header (D2, no-preference)
 
 - Source: `shard 3`
 - Project: `mobile-360`
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
+Error: expect(locator).toHaveAttribute(expected) failed
 
-Expected: 200
-Received: 500
+Locator:  getByTestId('post-save-state')
+Expected: "saved"
+Received: "saving"
+Timeout:  10000ms
+
+Call log:
+  - Expect "toHaveAttribute" with timeout 10000ms
+  - waiting for getByTestId('post-save-state')
+    14 × locator resolved to <p data-state="saving" data-testid="post-save-state" class="text-xs text-muted-foreground">Saving…</p>
+       - unexpected value "saving"
+
 --- further error 1 ---
-Error: expect(received).toBe(expected) // Object.is equality
+Error: expect(locator).toHaveAttribute(expected) failed
 
-Expected: 200
-Received: 500
+Locator:  getByTestId('post-save-state')
+Expected: "saved"
+Received: "saving"
+Timeout:  10000ms
 
-  603 |       { headers },
-  604 |     );
-> 605 |     expect(amharic.status()).toBe(200);
-      |                              ^
-  606 |     const amharicBody = (await amharic.json()) as {
-  607 |       results?: Array<{ slug?: string; path?: string[] }>;
-  608 |     };
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/posting-routes.spec.ts:605:30
+Call log:
+  - Expect "toHaveAttribute" with timeout 10000ms
+  - waiting for getByTestId('post-save-state')
+    14 × locator resolved to <p data-state="saving" data-testid="post-save-state" class="text-xs text-muted-foreground">Saving…</p>
+       - unexpected value "saving"
+
+
+  151 |     await hit.click();
+  152 |     if (expectSaved) {
+> 153 |       await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved");
+      |                                                         ^
+  154 |       // AUTO-ADVANCE: the leaf IS the answer; D39 — specifications open next.
+  155 |       await expect(page.getByTestId("post-step-3")).toBeVisible();
 ```
 
-Context: context file not found for `posting-routes-POSTING-ROUTES-PR-9-catalog-finder-is-bounded-multilingual-and-rate-limited-mobile-360` — Playwright's name `posting-routes-POSTING-ROU-a9542-ltilingual-and-rate-limited-mobile-360`; this run carried 18 context file(s); of the same spec: `posting-routes-POSTING-ROU-87ecb-s-not-the-caller-s-INC-669--mobile-360`
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-77-the-first-refused-field-s-label-lands-below-the-header-D2-no-preference-mobile-360` — Playwright's name `post-wizard-specs-POSTING--ebaac-he-header-D2-no-preference--mobile-360`; this run carried 16 context file(s); of the same spec: none
 
-### posting-routes.spec.ts › POSTING ROUTES › D189 deactivated seller › PR-52 the assist peek answers the budget without spending, and refuses what is not the caller's (INC-669)
-
-- Source: `shard 3`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: {"ok":false,"refusals":[{"field":"listingId","reason":"notYourListing"}]}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-
-  1476 |         expect(peek.status()).toBe(200);
-  1477 |         const payload = await peek.json();
-> 1478 |         expect(payload["ok"], JSON.stringify(payload)).toBe(true);
-       |                                                        ^
-  1479 |         expect(payload["triesLeft"], JSON.stringify(payload)).toBe(4);
-  1480 |       }
-  1481 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/posting-routes.spec.ts:1478:56
-```
-
-Context:
-
-```text
-          - listitem [ref=e263]:
-            - generic [ref=e264]: About
-          - listitem [ref=e265]:
-            - generic [ref=e266]: How it works
-      - navigation "Help" [ref=e267]:
-        - heading "Help" [level=2] [ref=e268]
-        - list [ref=e269]:
-          - listitem [ref=e270]:
-            - generic [ref=e271]: Safety
-          - listitem [ref=e272]:
-            - generic [ref=e273]: Contact
-      - navigation "Legal" [ref=e274]:
-        - heading "Legal" [level=2] [ref=e275]
-        - list [ref=e276]:
-          - listitem [ref=e277]:
-            - generic [ref=e278]: Terms
-          - listitem [ref=e279]:
-            - generic [ref=e280]: Privacy
-    - paragraph [ref=e282]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### shell.spec.ts › L4b location picker › LS-13 a second city stops the auto-select at the region
-
-- Source: `shard 3`
-- Project: `mobile-360`
-
-```text
-Error: the open-market list never carried QS within 20 s
-
-expect(received).toContain(expected) // indexOf
-
-Expected value: "QS"
-Received array: ["ET", "QM", "US"]
-
-Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
---- further error 1 ---
-Error: the open-market list never carried QS within 20 s
-
-expect(received).toContain(expected) // indexOf
-
-Expected value: "QS"
-Received array: ["ET", "QM", "US"]
-
-Call Log:
-- Timeout 20000ms exceeded while waiting on the predicate
-
-   at helpers/locations.ts:618
-
-  616 |
-  617 | export async function waitForOpenMarket(page: Page, code: string, timeoutMs = 20_000) {
-> 618 |   await expect
-      |   ^
-  619 |     .poll(
-  620 |       async () => {
-  621 |         // A test poll must never PRIME the browser cache with a stale answer the
-    at waitForOpenMarket (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/locations.ts:618:3)
-```
-
-Context: context file not found for `shell-L4b-location-picker-LS-13-a-second-city-stops-the-auto-select-at-the-region-mobile-360` — Playwright's name `shell-L4b-location-picker--28524-e-auto-select-at-the-region-mobile-360`; this run carried 18 context file(s); of the same spec: none
-
-### admin-countries.spec.ts › L2b countries console › CO-1 gating: a plain user is refused; the roster, its toolbar and the header's transfer group render for an admin
+### admin-attributes-safety.spec.ts › Bundle 7 attribute safety › AT-76b the link editor refuses a condition on the upper question naming the lower one, and accepts the reverse
 
 - Source: `shard 4`
 - Project: `desktop-1280`
 
 ```text
 Test timeout of 60000ms exceeded.
+--- client errors of this attempt (DEC-177) ---
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
+[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_update_attribute_link ({"code":"P0010","details":null,"hint":null,"message":"admin.attributes.error.parentAfterChild:e2e-cat-4-1-cvcx2n: e2e_low_35vwa3 → e2e_up_974pv1"})
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e312]:
-            - generic [ref=e313]: About
-          - listitem [ref=e314]:
-            - generic [ref=e315]: How it works
-      - navigation "Help" [ref=e316]:
-        - heading "Help" [level=2] [ref=e317]
-        - list [ref=e318]:
-          - listitem [ref=e319]:
-            - generic [ref=e320]: Safety
-          - listitem [ref=e321]:
-            - generic [ref=e322]: Contact
-      - navigation "Legal" [ref=e323]:
-        - heading "Legal" [level=2] [ref=e324]
-        - list [ref=e325]:
-          - listitem [ref=e326]:
-            - generic [ref=e327]: Terms
-          - listitem [ref=e328]:
-            - generic [ref=e329]: Privacy
-    - paragraph [ref=e331]: © 2026 ethio.com — All rights reserved.
+          - option "Toy Type (toy_type)"
+          - option "Transmission (transmission-cars)"
+          - option "Transmission (transmission-vehicles)"
+          - option "Utilities Available (utilities_available)"
+          - option "Warranty (warranty)"
+          - option "Water Type (water_type)"
+          - option "Weight Capacity (weight_capacity)"
+          - option "Clothing Type (womens_clothing_type)"
+          - option "Size (womens_size)"
+          - option "Year (year)"
+          - option "Year Built (year_built)"
+          - option "Zoning / Land Use (zoning)"
+        - button "Add attribute" [disabled]
+      - generic [ref=e81]:
+        - paragraph [ref=e82]: Changes save as you go
+        - button "Done" [ref=e83] [cursor=pointer]
+    - button "Close" [ref=e84] [cursor=pointer]:
+      - img [ref=e85]
+      - generic [ref=e88]: Close
 ```
 ```
 
-### admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-3 An account with no listing right: All listings, the listing's page and Edit refuse it; nothing is written
+### admin-attributes-safety.spec.ts › Bundle 7 attribute safety › AT-77 an import whose end state asks a child first is refused whole at the commit
 
 - Source: `shard 4`
 - Project: `desktop-1280`
 
 ```text
-Test timeout of 60000ms exceeded.
+Error: [e2e:setup] POST /token?grant_type=password failed (504): upstream request timeout
+--- further error 1 ---
+Error: [e2e:setup] POST /token?grant_type=password failed (504): upstream request timeout
+
+   at global-setup.ts:233
+
+  231 |   const text = await response.text();
+  232 |   if (!response.ok) {
+> 233 |     throw new Error(`[e2e:setup] ${init.method} ${path} failed (${response.status}): ${text}`);
+      |           ^
+  234 |   }
+  235 |   return text ? (JSON.parse(text) as Record<string, unknown>) : {};
+  236 | }
+    at authFetch (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:233:11)
+    at freshAal2Session (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/ui.ts:817:17)
+    at useJobSuperAdmin (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/ui.ts:936:19)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-attributes-safety.spec.ts:485:24
 ```
 
-Context: context file not found for `admin-listings-ADMIN-LISTINGS-the-console-s-doors-AL-3-An-account-with-no-listing-right-All-listings-the-listing-s-page-and-Edit-refuse-it-nothing-is-written-desktop-1280` — Playwright's name `admin-listings-ADMIN-LISTI-7bc3c-efuse-it-nothing-is-written-desktop-1280`; this run carried 18 context file(s); of the same spec: none
+Context: context file not found for `admin-attributes-safety-Bundle-7-attribute-safety-AT-77-an-import-whose-end-state-asks-a-child-first-is-refused-whole-at-the-commit-desktop-1280` — Playwright's name `admin-attributes-safety-Bu-667ec-refused-whole-at-the-commit-desktop-1280`; this run carried 16 context file(s); of the same spec: `admin-attributes-safety-Bu-aac42-nswer-a-type-change-removes-mobile-360`, `admin-attributes-safety-Bu-23ac4-one-and-accepts-the-reverse-desktop-1280`
 
-### my-listings-ad.spec.ts › MY LISTINGS — one ad's page (bundle 16 turn 3) › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659)
+### post-wizard-resets.spec.ts › POSTING WIZARD › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59)
 
-- Source: `shard 5`
+- Source: `shard 6`
 - Project: `desktop-1280`
 
 ```text
-Error: expect(locator).toBeVisible() failed
+Error: PW-61: Undo did not restore the title
 
-Locator: getByTestId('post-review')
-Expected: visible
-Timeout: 15000ms
-Error: element(s) not found
+expect(received).toBe(expected) // Object.is equality
 
-Call log:
-  - Expect "toBeVisible" with timeout 15000ms
-  - waiting for getByTestId('post-review')
+Expected: "e2e d59 title"
+Received: ""
 
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
 --- further error 1 ---
-Error: expect(locator).toBeVisible() failed
+Error: PW-61: Undo did not restore the title
 
-Locator: getByTestId('post-review')
-Expected: visible
-Timeout: 15000ms
-Error: element(s) not found
+expect(received).toBe(expected) // Object.is equality
 
-Call log:
-  - Expect "toBeVisible" with timeout 15000ms
-  - waiting for getByTestId('post-review')
+Expected: "e2e d59 title"
+Received: ""
 
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
 
-  1199 |       await page.keyboard.press("Tab");
-  1200 |       await page.getByTestId("post-next").click();
-> 1201 |       await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
-       |                                                     ^
-  1202 |       await expect(page.getByTestId("post-edit-notice")).toHaveText(
-  1203 |         en["myListings.editBox.doneReview"],
-  1204 |         { timeout: 15000 },
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-ad.spec.ts:1201:53
+  552 |       typedValue,
+  553 |     );
+> 554 |     await expect
+      |     ^
+  555 |       .poll(async () => (await textOf(listingId)).title, {
+  556 |         message: "PW-61: Undo did not restore the title",
+  557 |       })
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-resets.spec.ts:554:5
 ```
 
-Context:
+Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-61-a-category-change-resets-details-title-description-and-price-and-Undo-within-ten-seconds-restores-them-D59-desktop-1280` — Playwright's name `post-wizard-resets-POSTING-e57e3--seconds-restores-them-D59--desktop-1280`; this run carried 16 context file(s); of the same spec: none
+
+### post-wizard-specs.spec.ts › POSTING WIZARD › PW-74 a step-3 round trip keeps every answer (INC-329, big model list)
+
+- Source: `shard 6`
+- Project: `desktop-1280`
 
 ```text
-          - listitem [ref=e324]:
-            - generic [ref=e325]: About
-          - listitem [ref=e326]:
-            - generic [ref=e327]: How it works
-      - navigation "Help" [ref=e328]:
-        - heading "Help" [level=2] [ref=e329]
-        - list [ref=e330]:
-          - listitem [ref=e331]:
-            - generic [ref=e332]: Safety
-          - listitem [ref=e333]:
-            - generic [ref=e334]: Contact
-      - navigation "Legal" [ref=e335]:
-        - heading "Legal" [level=2] [ref=e336]
-        - list [ref=e337]:
-          - listitem [ref=e338]:
-            - generic [ref=e339]: Terms
-          - listitem [ref=e340]:
-            - generic [ref=e341]: Privacy
-    - paragraph [ref=e343]: © 2026 ethio.com — All rights reserved.
-```
+Error: expect(locator).toHaveAttribute(expected) failed
+
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_trip_desktop1280_0_1792301453490_model"]')
+Expected: "ready"
+Received: "loading"
+Timeout:  20000ms
+
+Call log:
+  - Expect "toHaveAttribute" with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_desktop1280_0_1792301453490_model"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_trip_desktop1280_0_1792301453490_model" id="post-attr-e2e_trip_desktop1280_0_1792301453490_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+       - unexpected value "loading"
+
+--- further error 1 ---
+Error: expect(locator).toHaveAttribute(expected) failed
+
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_trip_desktop1280_0_1792301453490_model"]')
+Expected: "ready"
+Received: "loading"
+Timeout:  20000ms
+
+Call log:
+  - Expect "toHaveAttribute" with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_desktop1280_0_1792301453490_model"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_trip_desktop1280_0_1792301453490_model" id="post-attr-e2e_trip_desktop1280_0_1792301453490_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+       - unexpected value "loading"
+
+
+   997 |       await expect(model).toBeEnabled();
+   998 |       await model.focus();
+>  999 |       await expect(model).toHaveAttribute("data-options", "ready", { timeout: 20_000 });
+       |                           ^
+  1000 |       await model.selectOption(chosenModel);
+  1001 |       await expect(control("doors")).toHaveValue("3", { timeout: 20_000 });
 ```
 
-- my-listings-doors.spec.ts › MY LISTINGS — the seller's doors (bundle 16 turn 1) › ML-12 edit_my_listing refuses what a box may not change, an ad it may not edit and another seller's, and writes nothing · `desktop-1280` · source `shard 5` — body omitted: cap
-- my-listings-page.spec.ts › MY LISTINGS — the list page (bundle 16 turn 2) › MLP-3 My Listings opens its own page; signed out, the page asks to sign in · `desktop-1280` · source `shard 5` — body omitted: cap
-- photo-pipeline.spec.ts › PHOTO PIPELINE › PP-3 a PDF renamed .jpg is refused unsupportedFormat · `desktop-1280` · source `shard 5` — body omitted: cap
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-74-a-step-3-round-trip-keeps-every-answer-INC-329-big-model-list-desktop-1280` — Playwright's name `post-wizard-specs-POSTING--c2c01-wer-INC-329-big-model-list--desktop-1280`; this run carried 16 context file(s); of the same spec: none
 
 ## Errors outside any test (INC-589)
 
@@ -421,13 +493,13 @@ None: no results file lists one and no log's summary names one (8 of 8 results f
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-109 line(s), 38 message(s): 3 off the allowlist, 35 allowlisted.
+114 line(s), 38 message(s): 3 off the allowlist, 35 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
+| `listing not found` | 11 | shard 3, shard 6 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
-| `listing not found` | 7 | shard 3, shard 6 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `category-images: no GEMINI_API_KEY — fake mode` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -435,6 +507,7 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 ·
 | `definitions wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `export_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
 | `preview_failed permission denied` (quiet) | 4 | shard 1, shard 4 |
+| `auth upstream unavailable (<n>)` | 2 | shard 6 |
 | `categories file too large` (quiet) | 2 | shard 2, shard 5 |
 | `categories nulByte` (quiet) | 2 | shard 2, shard 5 |
 | `categories unknownColumn` (quiet) | 2 | shard 2, shard 5 |
@@ -459,40 +532,39 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 ·
 | `strings tooManyRows` (quiet) | 2 | shard 2, shard 5 |
 | `strings unknownColumn` (quiet) | 2 | shard 2, shard 5 |
 | `strings wrongFile` (quiet) | 2 | shard 2, shard 5 |
-| `catalog search: canceling statement due to statement timeout \| at catalogSearch (/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_ssr/address-JXvhEq<n>i.mjs:<n>:<n>)` | 1 | shard 3 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>k<n>a<n>p: e<n>e_par_<n>y<n>y<n> → e<n>e_chi_<n>btwyd` (quiet) | 1 | shard 1 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-cyhu<n>g: e<n>e_par_<n>ysa<n> → e<n>e_chi_vyxafz` (quiet) | 1 | shard 4 |
-| `register_listing_photo: listing not found` | 1 | shard 2 |
+| `canceling statement due to lock timeout` | 1 | shard 6 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-adexr<n>: e<n>e_par_tjzykf → e<n>e_chi_<n>yy<n>` (quiet) | 1 | shard 1 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-hm<n>lj: e<n>e_par_puu<n>wv → e<n>e_chi_<n>mnx<n>o` (quiet) | 1 | shard 4 |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-<n>k<n>a<n>p: e<n>e_par_<n>y<n>y<n> → e<n>e_chi_<n>btwyd ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-cyhu<n>g: e<n>e_par_<n>ysa<n> → e<n>e_chi_vyxafz ×1
+Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-adexr<n>: e<n>e_par_tjzykf → e<n>e_chi_<n>yy<n> ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-hm<n>lj: e<n>e_par_puu<n>wv → e<n>e_chi_<n>mnx<n>o ×1
 
 Off the allowlist:
 
 ### listing not found
 
-- Count: 7 · Sources: shard 3, shard 6
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PR-15 a save on a deleted draft is a refusal, never a 5xx or a null revision (IN ×2 · PW-45 a declared swatch renders one ink, a two-tone and a pattern tile ×2 · PW-112 who: a new post opens with the last post's channels, stored on the draft  ×1 · PW-17 the currency is preselected and searchable by name in one control ×1 · PW-26 a category change drops the details the new category never asks ×1 · PW-31 the market select waits for the prefill chain and never preselects ×1
+- Count: 11 · Sources: shard 3, shard 6
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PR-15 a save on a deleted draft is a refusal, never a 5xx or a null revision (IN ×2 · location row is present on Marketplace and absent on Account ×1 · LY-6 at 360 the open currency list is above the sticky action bar ×1 · PW-108 an Other basis names the seller's written unit (INC-371) ×1 · PW-109 a quote basis forces contact, and a changed basis releases it (INC-375) ×1 · PW-138 a required unit left empty is refused on the price page's Next, not on th ×1
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
 ```
 
-### catalog search: canceling statement due to statement timeout | at catalogSearch (/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_ssr/address-JXvhEq<n>i.mjs:<n>:<n>)
+### auth upstream unavailable (<n>)
 
-- Count: 1 · Sources: shard 3
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): primary touch targets are at least 44px ×1 · the bottom bar, signed out ×1
+- Count: 2 · Sources: shard 6
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-28 a conditional detail appears only when its condition is met (retry #1) ×2 · PW-84 a new post opens on the seller's own last post, never another seller's (re ×2
 
 ```text
-[WebServer] [ssr-error] /api/catalog/find catalog search: canceling statement due to statement timeout | at catalogSearch (/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_ssr/address-JXvhEq3i.mjs:40:23)
+[WebServer] [ssr-error] /api/attributes/ff42ddc0-0c2c-4b79-ae57-608e17375535/options auth upstream unavailable (504)
 ```
 
-### register_listing_photo: listing not found
+### canceling statement due to lock timeout
 
-- Count: 1 · Sources: shard 2
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): MLP-3 My Listings opens its own page; signed out, the page asks to sign in ×1 · PP-2 a PNG and a WebP carrying metadata chunks are stored as image data only ×1
+- Count: 1 · Sources: shard 6
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-166 a prefill the seller left goes with the old choice; one the seller change ×1 · PW-74 a step-3 round trip keeps every answer (INC-329, big model list) ×1
 
 ```text
-[WebServer] [ssr-error] /api/upload/photo register_listing_photo: listing not found
+[WebServer] [ssr-error] /api/attributes/8c7dd217-840e-49c1-a75c-df85f386cba8/options canceling statement due to lock timeout
 ```
 
 ## Accessibility (DEC-084, gating)
@@ -507,88 +579,88 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-18T04:26:59.351Z | 17.4 min |
-| email | 2026-10-18T04:27:00.422Z | 0.2 min |
-| shard 1 | 2026-10-18T04:27:10.008Z | 44.1 min |
-| shard 2 | 2026-10-18T04:27:19.026Z | 43.8 min |
-| shard 3 | 2026-10-18T04:27:00.128Z | 33.9 min |
-| shard 4 | 2026-10-18T04:26:59.172Z | 41.3 min |
-| shard 5 | 2026-10-18T04:27:07.029Z | 43.2 min |
-| shard 6 | 2026-10-18T04:27:02.197Z | 32.9 min |
+| smoke | 2026-10-18T05:12:48.051Z | 16.3 min |
+| email | 2026-10-18T05:12:51.080Z | 0.2 min |
+| shard 1 | 2026-10-18T05:12:57.756Z | 49.0 min |
+| shard 2 | 2026-10-18T05:12:47.715Z | 39.7 min |
+| shard 3 | 2026-10-18T05:13:01.530Z | 43.9 min |
+| shard 4 | 2026-10-18T05:12:49.831Z | 44.9 min |
+| shard 5 | 2026-10-18T05:12:48.714Z | 40.1 min |
+| shard 6 | 2026-10-18T05:12:55.340Z | 42.2 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `ad-page.spec.ts` | 66 | 27.1 min | shard 1, shard 4 |
-| `photo-pipeline.spec.ts` | 66 | 24.9 min | shard 2, shard 5 |
-| `post-wizard-specs.spec.ts` | 82 | 21.9 min | shard 3, shard 6 |
-| `shell.spec.ts` | 336 | 21.9 min | smoke, shard 3, shard 6 |
-| `my-listings-ad.spec.ts` | 36 | 17.0 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 66 | 16.4 min | shard 3, shard 6 |
-| `admin-listings.spec.ts` | 62 | 15.7 min | shard 1, shard 4 |
-| `my-listings-doors.spec.ts` | 28 | 15.5 min | shard 2, shard 5 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 14.3 min | shard 1, shard 4 |
-| `post-wizard-pricing.spec.ts` | 52 | 14.1 min | shard 3, shard 6 |
-| `post-wizard-bundle2.spec.ts` | 68 | 14.0 min | shard 2, shard 5 |
-| `post-wizard-place.spec.ts` | 38 | 13.6 min | shard 3, shard 6 |
-| `auth-signout.spec.ts` | 56 | 11.9 min | smoke, shard 2, shard 5 |
-| `post-wizard-resets.spec.ts` | 34 | 11.8 min | shard 3, shard 6 |
-| `ad-page-doors.spec.ts` | 30 | 11.2 min | shard 1, shard 4 |
-| `admin-attributes-library.spec.ts` | 42 | 11.1 min | shard 1, shard 4 |
-| `post-wizard-where.spec.ts` | 32 | 10.7 min | shard 3, shard 6 |
-| `feed-screens.spec.ts` | 30 | 10.3 min | shard 2, shard 5 |
-| `admin-screening.spec.ts` | 52 | 10.3 min | shard 1, shard 4 |
-| `admin-attributes-links.spec.ts` | 34 | 9.6 min | shard 1, shard 4 |
-| `admin-categories-console.spec.ts` | 34 | 9.6 min | shard 1, shard 4 |
-| `my-listings-page.spec.ts` | 14 | 9.5 min | shard 2, shard 5 |
-| `admin-users.spec.ts` | 28 | 9.4 min | shard 2, shard 5 |
-| `feed-index.spec.ts` | 30 | 8.7 min | shard 2, shard 5 |
-| `import-security.spec.ts` | 36 | 8.6 min | shard 2, shard 5 |
-| `admin-translations-console.spec.ts` | 44 | 8.3 min | shard 2, shard 5 |
-| `admin-attributes-editor.spec.ts` | 36 | 8.1 min | shard 1, shard 4 |
-| `post-wizard-category.spec.ts` | 48 | 7.8 min | shard 2, shard 5 |
-| `feed-route.spec.ts` | 22 | 7.4 min | shard 2, shard 5 |
-| `admin-attributes-import.spec.ts` | 40 | 7.1 min | shard 1, shard 4 |
-| `viewing-place.spec.ts` | 22 | 7.0 min | shard 3, shard 6 |
-| `admin-locations.spec.ts` | 38 | 6.4 min | shard 1, shard 4 |
-| `admin-attributes-safety.spec.ts` | 18 | 6.1 min | shard 1, shard 4 |
-| `posting-routes-catalog.spec.ts` | 18 | 5.3 min | shard 3, shard 6 |
-| `admin-roles.spec.ts` | 26 | 5.2 min | shard 1, shard 4 |
-| `admin-countries.spec.ts` | 18 | 4.6 min | shard 1, shard 4 |
-| `admin-categories-home.spec.ts` | 10 | 4.0 min | shard 1, shard 4 |
-| `admin-audit.spec.ts` | 14 | 3.8 min | shard 1, shard 4 |
-| `posting-routes-dials.spec.ts` | 18 | 3.0 min | shard 3, shard 6 |
-| `admin-translations-governance.spec.ts` | 8 | 2.9 min | shard 2, shard 5 |
-| `admin-coverage.spec.ts` | 16 | 2.8 min | shard 1, shard 4 |
-| `admin-translations-data.spec.ts` | 8 | 2.8 min | shard 2, shard 5 |
-| `mfa-stepup.spec.ts` | 18 | 2.6 min | shard 2, shard 5 |
-| `breadcrumbs.spec.ts` | 6 | 2.3 min | shard 2, shard 5 |
-| `admin-shell.spec.ts` | 10 | 2.3 min | shard 1, shard 5 |
-| `post-wizard-details.spec.ts` | 8 | 2.2 min | shard 3, shard 6 |
-| `post-wizard-removed.spec.ts` | 4 | 2.0 min | shard 3, shard 6 |
-| `post-wizard-finder.spec.ts` | 8 | 1.8 min | shard 3, shard 6 |
-| `category-image-routes.spec.ts` | 10 | 1.6 min | shard 2, shard 5 |
-| `posting-routes-identity.spec.ts` | 4 | 1.3 min | shard 3, shard 6 |
-| `post-wizard-units.spec.ts` | 4 | 1.2 min | shard 3, shard 6 |
-| `account-saved.spec.ts` | 4 | 1.2 min | shard 1, shard 4 |
+| `post-wizard-specs.spec.ts` | 82 | 35.3 min | shard 3, shard 6 |
+| `ad-page.spec.ts` | 66 | 27.7 min | shard 1, shard 4 |
+| `photo-pipeline.spec.ts` | 66 | 22.4 min | shard 2, shard 5 |
+| `shell.spec.ts` | 336 | 20.0 min | smoke, shard 3, shard 6 |
+| `post-wizard-pricing.spec.ts` | 52 | 19.5 min | shard 3, shard 6 |
+| `admin-listings.spec.ts` | 62 | 18.7 min | shard 1, shard 4 |
+| `my-listings-ad.spec.ts` | 36 | 18.3 min | shard 2, shard 5 |
+| `post-wizard-place.spec.ts` | 38 | 18.2 min | shard 3, shard 6 |
+| `post-wizard-resets.spec.ts` | 34 | 17.5 min | shard 3, shard 6 |
+| `post-wizard-where.spec.ts` | 32 | 16.7 min | shard 3, shard 6 |
+| `post-wizard-bundle2.spec.ts` | 68 | 16.5 min | shard 2, shard 5 |
+| `my-listings-doors.spec.ts` | 28 | 16.2 min | shard 2, shard 5 |
+| `posting-routes.spec.ts` | 66 | 14.6 min | shard 3, shard 6 |
+| `admin-attributes-links.spec.ts` | 34 | 14.2 min | shard 1, shard 4 |
+| `admin-attributes-library.spec.ts` | 42 | 13.5 min | shard 1, shard 4 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 13.3 min | shard 1, shard 4 |
+| `ad-page-doors.spec.ts` | 30 | 11.0 min | shard 1, shard 4 |
+| `admin-screening.spec.ts` | 52 | 10.8 min | shard 1, shard 4 |
+| `admin-attributes-safety.spec.ts` | 18 | 10.4 min | shard 1, shard 4 |
+| `auth-signout.spec.ts` | 56 | 9.9 min | smoke, shard 2, shard 5 |
+| `feed-screens.spec.ts` | 30 | 9.8 min | shard 2, shard 5 |
+| `admin-categories-console.spec.ts` | 34 | 9.2 min | shard 1, shard 4 |
+| `admin-attributes-editor.spec.ts` | 36 | 9.1 min | shard 1, shard 4 |
+| `admin-attributes-import.spec.ts` | 40 | 8.5 min | shard 1, shard 4 |
+| `post-wizard-category.spec.ts` | 48 | 8.2 min | shard 2, shard 5 |
+| `posting-routes-catalog.spec.ts` | 18 | 7.8 min | shard 3, shard 6 |
+| `admin-locations.spec.ts` | 38 | 7.6 min | shard 1, shard 4 |
+| `import-security.spec.ts` | 36 | 7.4 min | shard 2, shard 5 |
+| `admin-users.spec.ts` | 28 | 7.1 min | shard 2, shard 5 |
+| `admin-translations-console.spec.ts` | 44 | 7.0 min | shard 2, shard 5 |
+| `feed-index.spec.ts` | 30 | 7.0 min | shard 2, shard 5 |
+| `admin-audit.spec.ts` | 14 | 6.6 min | shard 1, shard 4 |
+| `viewing-place.spec.ts` | 22 | 5.9 min | shard 3, shard 6 |
+| `feed-route.spec.ts` | 22 | 5.8 min | shard 2, shard 5 |
+| `admin-roles.spec.ts` | 26 | 5.6 min | shard 1, shard 4 |
+| `my-listings-page.spec.ts` | 14 | 5.4 min | shard 2, shard 5 |
+| `posting-routes-dials.spec.ts` | 18 | 4.1 min | shard 3, shard 6 |
+| `admin-countries.spec.ts` | 18 | 3.8 min | shard 1, shard 4 |
+| `admin-categories-home.spec.ts` | 10 | 3.3 min | shard 1, shard 4 |
+| `post-wizard-details.spec.ts` | 8 | 3.2 min | shard 3, shard 6 |
+| `post-wizard-finder.spec.ts` | 8 | 2.7 min | shard 3, shard 6 |
+| `post-wizard-removed.spec.ts` | 4 | 2.7 min | shard 3, shard 6 |
+| `admin-translations-data.spec.ts` | 8 | 2.5 min | shard 2, shard 5 |
+| `admin-translations-governance.spec.ts` | 8 | 2.5 min | shard 2, shard 5 |
+| `admin-shell.spec.ts` | 10 | 2.2 min | shard 1, shard 5 |
+| `admin-coverage.spec.ts` | 16 | 2.1 min | shard 1, shard 4 |
+| `mfa-stepup.spec.ts` | 18 | 2.1 min | shard 2, shard 5 |
+| `posting-routes-identity.spec.ts` | 4 | 1.8 min | shard 3, shard 6 |
+| `post-wizard-units.spec.ts` | 4 | 1.7 min | shard 3, shard 6 |
+| `breadcrumbs.spec.ts` | 6 | 1.5 min | shard 2, shard 5 |
+| `account-saved.spec.ts` | 4 | 1.5 min | shard 1, shard 4 |
+| `post-wizard-recent.spec.ts` | 2 | 1.2 min | shard 3, shard 6 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `smoke-auth-i18n.spec.ts` | 4 | 1.0 min | smoke, shard 3, shard 6 |
-| `phone-frame.spec.ts` | 18 | 1.0 min | shard 2, shard 5 |
-| `admin-categories-images.spec.ts` | 2 | 0.9 min | shard 1, shard 4 |
+| `category-image-routes.spec.ts` | 10 | 1.0 min | shard 2, shard 5 |
+| `phone-frame.spec.ts` | 18 | 0.9 min | shard 2, shard 5 |
+| `admin-categories-images.spec.ts` | 2 | 0.8 min | shard 1, shard 4 |
+| `settings.spec.ts` | 4 | 0.8 min | shard 3 |
+| `rbac.spec.ts` | 6 | 0.8 min | shard 3, shard 6 |
 | `i18n-coverage.spec.ts` | 8 | 0.8 min | shard 2, shard 5 |
-| `post-wizard-recent.spec.ts` | 2 | 0.8 min | shard 3, shard 6 |
-| `admin-services.spec.ts` | 10 | 0.8 min | shard 1, shard 5 |
 | `i18n-bundle.spec.ts` | 6 | 0.7 min | shard 2, shard 5 |
-| `a11y.spec.ts` | 4 | 0.6 min | smoke |
-| `settings.spec.ts` | 4 | 0.5 min | shard 3 |
-| `rbac.spec.ts` | 6 | 0.5 min | shard 3, shard 6 |
-| `category-nav.spec.ts` | 10 | 0.5 min | shard 2, shard 5 |
+| `admin-services.spec.ts` | 10 | 0.7 min | shard 1, shard 5 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.6 min | smoke, shard 3, shard 6 |
+| `a11y.spec.ts` | 4 | 0.5 min | smoke |
 | `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
-| `layout.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
-| `house-style.spec.ts` | 12 | 0.4 min | shard 2, shard 5 |
-| `auth-reset.spec.ts` | 6 | 0.4 min | shard 2 |
-| `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
-| `auth-callback.spec.ts` | 4 | 0.2 min | shard 2 |
+| `category-nav.spec.ts` | 10 | 0.4 min | shard 2, shard 5 |
+| `house-style.spec.ts` | 12 | 0.3 min | shard 2, shard 5 |
+| `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
+| `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
 | `shell-table-law.spec.ts` | 2 | 0.2 min | shard 3, shard 6 |
+| `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `auth-signup.spec.ts` | 3 | 0.1 min | email |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
@@ -598,21 +670,21 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | desktop-1280 | 123.2 s |
-| `my-listings-doors.spec.ts` › ML-12 edit_my_listing refuses what a box may not change, an ad it may not edit and another seller's, and writes nothing | desktop-1280 | 121.2 s |
-| `my-listings-doors.spec.ts` › ML-11 edit_my_listing: amounts and picked answers apply at once; words and a refused ad's edit go to review (D177) | mobile-360 | 111.2 s |
-| `photo-pipeline.spec.ts` › PP-2 a PNG and a WebP carrying metadata chunks are stored as image data only | mobile-360 | 107.1 s |
-| `my-listings-page.spec.ts` › MLP-3 My Listings opens its own page; signed out, the page asks to sign in | mobile-360 | 102.0 s |
-| `my-listings-page.spec.ts` › MLP-3 My Listings opens its own page; signed out, the page asks to sign in | desktop-1280 | 100.3 s |
-| `admin-countries.spec.ts` › CO-1 gating: a plain user is refused; the roster, its toolbar and the header's transfer group render for an admin | desktop-1280 | 83.8 s |
-| `posting-routes.spec.ts` › PR-52 the assist peek answers the budget without spending, and refuses what is not the caller's (INC-669) | mobile-360 | 79.4 s |
-| `shell.spec.ts` › LS-13 a second city stops the auto-select at the region | mobile-360 | 79.0 s |
-| `photo-pipeline.spec.ts` › PP-3 a PDF renamed .jpg is refused unsupportedFormat | desktop-1280 | 78.8 s |
-| `admin-listings.spec.ts` › AL-3 An account with no listing right: All listings, the listing's page and Edit refuse it; nothing is written | desktop-1280 | 77.8 s |
-| `photo-pipeline.spec.ts` › PP-23 the gallery draws the middle size, and on a computer a wide photo's top meets the first thumbnail (D162, INC-613) | desktop-1280 | 77.8 s |
-| `admin-categories-lifecycle.spec.ts` › CT-37 undoing a category delete restores its attribute links or names the skipped ones | mobile-360 | 71.7 s |
-| `ad-page.spec.ts` › AP-45 the tabs on a wide screen | desktop-1280 | 67.1 s |
-| `my-listings-ad.spec.ts` › MLA-14 Edit from the list's row opens the wizard's Review; Post similar opens a new draft (D194, D182 4) | mobile-360 | 65.0 s |
+| `post-wizard-where.spec.ts` › PW-84 a new post opens on the seller's own last post, never another seller's | desktop-1280 | 196.6 s |
+| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | desktop-1280 | 180.3 s |
+| `post-wizard-specs.spec.ts` › PW-19 the seller's own phrase survives into the suggestion | mobile-360 | 164.3 s |
+| `my-listings-doors.spec.ts` › ML-12 edit_my_listing refuses what a box may not change, an ad it may not edit and another seller's, and writes nothing | desktop-1280 | 161.7 s |
+| `admin-attributes-links.spec.ts` › AT-66 the link editor saves and reopens a two-pair condition | mobile-360 | 159.1 s |
+| `my-listings-ad.spec.ts` › MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it | mobile-360 | 150.2 s |
+| `post-wizard-specs.spec.ts` › PW-28 a conditional detail appears only when its condition is met | desktop-1280 | 147.2 s |
+| `my-listings-doors.spec.ts` › ML-14 edit_my_listing: places and contact apply at once, the first place the ad's own; the written directions go to review (D187) | mobile-360 | 142.3 s |
+| `post-wizard-where.spec.ts` › PW-83 the ad's places: new heading, the single city box ticked, the ticked node is the item place | mobile-360 | 130.1 s |
+| `admin-audit.spec.ts` › IMP-3 server refusals: self and a super-admin target | desktop-1280 | 120.8 s |
+| `post-wizard-resets.spec.ts` › PW-61 a category change resets details, title, description and price, and Undo within ten seconds restores them (D59) | desktop-1280 | 116.0 s |
+| `admin-attributes-safety.spec.ts` › AT-81 the editor names the listings holding an answer a type change removes | mobile-360 | 107.4 s |
+| `admin-attributes-safety.spec.ts` › AT-76b the link editor refuses a condition on the upper question naming the lower one, and accepts the reverse | desktop-1280 | 105.3 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 86.8 s |
+| `photo-pipeline.spec.ts` › PP-23 the gallery draws the middle size, and on a computer a wide photo's top meets the first thumbnail (D162, INC-613) | desktop-1280 | 84.8 s |
 
 ## Post-test errors: smoke
 
@@ -621,7 +693,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 39096720222-smoke
+[e2e:teardown] deleted 3 user(s) owned by process 39099449802-smoke
 ```
 
 ## Post-test errors: email
@@ -631,7 +703,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 39096720222-email
+[e2e:teardown] deleted 4 user(s) owned by process 39099449802-email
 ```
 
 ## Post-test errors: shard 1
@@ -641,7 +713,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 13 (pool 4, fresh 9)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 12 user(s) owned by process 39096720222-1
+[e2e:teardown] deleted 12 user(s) owned by process 39099449802-1
 ```
 
 ## Post-test errors: shard 2
@@ -649,9 +721,9 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 37 (pool 4, fresh 33)
+[e2e:teardown] accounts signed in this run: 38 (pool 4, fresh 34)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 49 user(s) owned by process 39096720222-2
+[e2e:teardown] deleted 51 user(s) owned by process 39099449802-2
 ```
 
 ## Post-test errors: shard 3
@@ -661,7 +733,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 39096720222-3
+[e2e:teardown] deleted 4 user(s) owned by process 39099449802-3
 ```
 
 ## Post-test errors: shard 4
@@ -669,9 +741,9 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 13 (pool 4, fresh 9)
+[e2e:teardown] accounts signed in this run: 14 (pool 4, fresh 10)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 12 user(s) owned by process 39096720222-4
+[e2e:teardown] deleted 13 user(s) owned by process 39099449802-4
 ```
 
 ## Post-test errors: shard 5
@@ -681,7 +753,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 32 (pool 4, fresh 28)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 42 user(s) owned by process 39096720222-5
+[e2e:teardown] deleted 42 user(s) owned by process 39099449802-5
 ```
 
 ## Post-test errors: shard 6
@@ -691,142 +763,102 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 39096720222-6
+[e2e:teardown] deleted 4 user(s) owned by process 39099449802-6
 ```
 
-## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-37 the in-page bar scrolls to each section and stays under the sub-band
+## admin-attributes-safety.spec.ts › Bundle 7 attribute safety › AT-81 the editor names the listings holding an answer a type change removes
 
 - Source: `shard 1`
 - Project: `mobile-360`
 
 ```text
-Error: expect(locator).toHaveCount(expected) failed
-
-Locator:  getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-Expected: 4
-Received: 3
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-    14 × locator resolved to 3 elements
-       - unexpected value "3"
-
---- further error 1 ---
-Error: expect(locator).toHaveCount(expected) failed
-
-Locator:  getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-Expected: 4
-Received: 3
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-    14 × locator resolved to 3 elements
-       - unexpected value "3"
-
-
-  965 |     await gotoReady(page, (await address(ad)).canonical);
-  966 |     const bar = page.getByTestId("listing-section-nav");
-> 967 |     await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
-      |                                                               ^
-  968 |     expect(
-  969 |       await bar
+Test timeout of 60000ms exceeded.
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e345]:
-            - generic [ref=e346]: About
-          - listitem [ref=e347]:
-            - generic [ref=e348]: How it works
-      - navigation "Help" [ref=e349]:
-        - heading "Help" [level=2] [ref=e350]
-        - list [ref=e351]:
-          - listitem [ref=e352]:
-            - generic [ref=e353]: Safety
-          - listitem [ref=e354]:
-            - generic [ref=e355]: Contact
-      - navigation "Legal" [ref=e356]:
-        - heading "Legal" [level=2] [ref=e357]
-        - list [ref=e358]:
-          - listitem [ref=e359]:
-            - generic [ref=e360]: Terms
-          - listitem [ref=e361]:
-            - generic [ref=e362]: Privacy
-    - paragraph [ref=e364]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e269]:
+            - generic [ref=e270]: About
+          - listitem [ref=e271]:
+            - generic [ref=e272]: How it works
+      - navigation "Help" [ref=e273]:
+        - heading "Help" [level=2] [ref=e274]
+        - list [ref=e275]:
+          - listitem [ref=e276]:
+            - generic [ref=e277]: Safety
+          - listitem [ref=e278]:
+            - generic [ref=e279]: Contact
+      - navigation "Legal" [ref=e280]:
+        - heading "Legal" [level=2] [ref=e281]
+        - list [ref=e282]:
+          - listitem [ref=e283]:
+            - generic [ref=e284]: Terms
+          - listitem [ref=e285]:
+            - generic [ref=e286]: Privacy
+    - paragraph [ref=e288]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-47 the in-page bar shows no scrollbar (INC-717)
+## my-listings-ad.spec.ts › MY LISTINGS — one ad's page (bundle 16 turn 3) › MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it
 
-- Source: `shard 1`
+- Source: `shard 2`
 - Project: `mobile-360`
 
 ```text
-Error: expect(locator).toHaveCount(expected) failed
-
-Locator:  getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-Expected: 4
-Received: 3
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-    14 × locator resolved to 3 elements
-       - unexpected value "3"
-
---- further error 1 ---
-Error: expect(locator).toHaveCount(expected) failed
-
-Locator:  getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-Expected: 4
-Received: 3
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-    14 × locator resolved to 3 elements
-       - unexpected value "3"
-
-
-  1579 |     await gotoReady(page, (await address(ad)).canonical);
-  1580 |     const bar = page.getByTestId("listing-section-nav");
-> 1581 |     await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
-       |                                                               ^
-  1582 |     const scrollbarWidth = await bar.evaluate((nav) => getComputedStyle(nav).scrollbarWidth);
-  1583 |     expect(scrollbarWidth).toBe("none");
+Test timeout of 60000ms exceeded.
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e319]:
-            - generic [ref=e320]: About
-          - listitem [ref=e321]:
-            - generic [ref=e322]: How it works
-      - navigation "Help" [ref=e323]:
-        - heading "Help" [level=2] [ref=e324]
-        - list [ref=e325]:
-          - listitem [ref=e326]:
-            - generic [ref=e327]: Safety
-          - listitem [ref=e328]:
-            - generic [ref=e329]: Contact
-      - navigation "Legal" [ref=e330]:
-        - heading "Legal" [level=2] [ref=e331]
-        - list [ref=e332]:
-          - listitem [ref=e333]:
-            - generic [ref=e334]: Terms
-          - listitem [ref=e335]:
-            - generic [ref=e336]: Privacy
-    - paragraph [ref=e338]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e284]:
+            - generic [ref=e285]: About
+          - listitem [ref=e286]:
+            - generic [ref=e287]: How it works
+      - navigation "Help" [ref=e288]:
+        - heading "Help" [level=2] [ref=e289]
+        - list [ref=e290]:
+          - listitem [ref=e291]:
+            - generic [ref=e292]: Safety
+          - listitem [ref=e293]:
+            - generic [ref=e294]: Contact
+      - navigation "Legal" [ref=e295]:
+        - heading "Legal" [level=2] [ref=e296]
+        - list [ref=e297]:
+          - listitem [ref=e298]:
+            - generic [ref=e299]: Terms
+          - listitem [ref=e300]:
+            - generic [ref=e301]: Privacy
+    - paragraph [ref=e303]: © 2026 ethio.com — All rights reserved.
 ```
 ```
+
+## my-listings-doors.spec.ts › MY LISTINGS — the seller's doors (bundle 16 turn 1) › ML-14 edit_my_listing: places and contact apply at once, the first place the ad's own; the written directions go to review (D187)
+
+- Source: `shard 2`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+--- further error 1 ---
+SyntaxError: Unexpected token 'u', "upstream r"... is not valid JSON
+
+   at helpers/session.ts:91
+
+  89 |     body: JSON.stringify({ email, password }),
+  90 |   });
+> 91 |   const body = (await response.json()) as Record<string, unknown>;
+     |                 ^
+  92 |   if (!response.ok || typeof body["access_token"] !== "string") {
+  93 |     throw new Error(
+  94 |       `[e2e:session] password grant failed for ${email} (HTTP ${response.status}): ` +
+    at passwordGrant (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/session.ts:91:17)
+    at asPerson (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-doors.spec.ts:92:19)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-doors.spec.ts:1170:16
+```
+
+Context: context file not found for `my-listings-doors-MY-LISTINGS-the-seller-s-doors-bundle-16-turn-1-ML-14-edit_my_listing-places-and-contact-apply-at-once-the-first-place-the-ad-s-own-the-written-directions-go-to-review-D187-mobile-360` — Playwright's name `my-listings-doors-MY-LISTI-d27e2-rections-go-to-review-D187--mobile-360`; this run carried 16 context file(s); of the same spec: none
 
 ## post-wizard-place.spec.ts › POSTING WIZARD › PW-13 review: the preview shows what was answered, and Publish lands in review — never live
 
@@ -868,7 +900,119 @@ Call log:
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-place.spec.ts:649:62
 ```
 
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-review-the-preview-shows-what-was-answered-and-Publish-lands-in-review-never-live-mobile-360` — Playwright's name `post-wizard-place-POSTING--4521b-ands-in-review-—-never-live-mobile-360`; this run carried 18 context file(s); of the same spec: none
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-review-the-preview-shows-what-was-answered-and-Publish-lands-in-review-never-live-mobile-360` — Playwright's name `post-wizard-place-POSTING--4521b-ands-in-review-—-never-live-mobile-360`; this run carried 16 context file(s); of the same spec: none
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-19 the seller's own phrase survives into the suggestion
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+--- further error 1 ---
+Error: expect(locator).toBeVisible() failed
+
+Locator: getByTestId('post-step-2')
+Expected: visible
+Timeout: 20000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 20000ms
+  - waiting for getByTestId('post-step-2')
+
+
+  188 |   async function nextThroughPhotos(page: import("@playwright/test").Page) {
+  189 |     await page.getByTestId("post-next").click();
+> 190 |     await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+      |                                                   ^
+  191 |     await page.getByTestId("post-next").click();
+  192 |   }
+  193 |
+    at nextThroughPhotos (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-specs.spec.ts:190:51)
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-19-the-seller-s-own-phrase-survives-into-the-suggestion-mobile-360` — Playwright's name `post-wizard-specs-POSTING--4f5a5-urvives-into-the-suggestion-mobile-360`; this run carried 16 context file(s); of the same spec: none
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-83 the ad's places: new heading, the single city box ticked, the ticked node is the item place
+
+- Source: `shard 3`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+--- further error 1 ---
+Error: step-5 draft refused: {"ok":false,"refusals":[{"field":"category_id","reason":"categoryNotPostable"}]}
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: true
+Received: false
+
+  116 |       { token, country: "ET" },
+  117 |     );
+> 118 |     expect(draft.payload["ok"], `step-5 draft refused: ${JSON.stringify(draft.payload)}`).toBe(
+      |                                                                                           ^
+  119 |       true,
+  120 |     );
+  121 |     const listingId = String(draft.payload["listing_id"] ?? "");
+    at openAtStep6 (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-where.spec.ts:118:91)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-where.spec.ts:166:23
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-83-the-ad-s-places-new-heading-the-single-city-box-ticked-the-ticked-node-is-the-item-place-mobile-360` — Playwright's name `post-wizard-where-POSTING--ee489-cked-node-is-the-item-place-mobile-360`; this run carried 16 context file(s); of the same spec: none
+
+## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-36 the layout follows the article's width (DEC-192, drawings v13)
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+Expected: >= 134
+Received:    -52.109375
+--- further error 1 ---
+Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+Expected: >= 134
+Received:    -52.109375
+
+  920 |         expect(near(description.height, details.height, 1)).toBe(true);
+  921 |         expect(near(description.width, details.width, 1)).toBe(true);
+> 922 |         expect(details.y).toBeGreaterThanOrEqual(nav.y + nav.height);
+      |                           ^
+  923 |         expect(near(sellerBox.x, article.x, 1)).toBe(true);
+  924 |         expect(near(sellerBox.width, details.width, 1)).toBe(true);
+  925 |         expect(near(sellerBox.y, location.y, 1)).toBe(true);
+    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:922:27)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:977:27
+```
+
+Context:
+
+```text
+          - listitem [ref=e362]:
+            - generic [ref=e363]: About
+          - listitem [ref=e364]:
+            - generic [ref=e365]: How it works
+      - navigation "Help" [ref=e366]:
+        - heading "Help" [level=2] [ref=e367]
+        - list [ref=e368]:
+          - listitem [ref=e369]:
+            - generic [ref=e370]: Safety
+          - listitem [ref=e371]:
+            - generic [ref=e372]: Contact
+      - navigation "Legal" [ref=e373]:
+        - heading "Legal" [level=2] [ref=e374]
+        - list [ref=e375]:
+          - listitem [ref=e376]:
+            - generic [ref=e377]: Terms
+          - listitem [ref=e378]:
+            - generic [ref=e379]: Privacy
+    - paragraph [ref=e381]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-45 the tabs on a wide screen
 
@@ -904,154 +1048,36 @@ Call log:
        - unexpected value "true"
 
 
-  1426 |         "true",
-  1427 |       );
-> 1428 |       await expect(bar.locator('[data-target="details"]')).not.toHaveAttribute(
+  1470 |         "true",
+  1471 |       );
+> 1472 |       await expect(bar.locator('[data-target="details"]')).not.toHaveAttribute(
        |                                                                ^
-  1429 |         "aria-current",
-  1430 |         "true",
+  1473 |         "aria-current",
+  1474 |         "true",
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e361]:
-            - generic [ref=e362]: About
-          - listitem [ref=e363]:
-            - generic [ref=e364]: How it works
-      - navigation "Help" [ref=e365]:
-        - heading "Help" [level=2] [ref=e366]
-        - list [ref=e367]:
-          - listitem [ref=e368]:
-            - generic [ref=e369]: Safety
-          - listitem [ref=e370]:
-            - generic [ref=e371]: Contact
-      - navigation "Legal" [ref=e372]:
-        - heading "Legal" [level=2] [ref=e373]
-        - list [ref=e374]:
-          - listitem [ref=e375]:
-            - generic [ref=e376]: Terms
-          - listitem [ref=e377]:
-            - generic [ref=e378]: Privacy
-    - paragraph [ref=e380]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-46 Save and Share sit in the title box
-
-- Source: `shard 4`
-- Project: `desktop-1280`
-
-```text
-Error: expect(received).toBeLessThanOrEqual(expected)
-
-Expected: <= 1
-Received:    251
---- further error 1 ---
-Error: expect(received).toBeLessThanOrEqual(expected)
-
-Expected: <= 1
-Received:    251
-
-  1561 |       expect(
-  1562 |         Math.abs(headlineBox.y + headlineBox.height - (mediaBox.y + mediaBox.height)),
-> 1563 |       ).toBeLessThanOrEqual(1);
-       |         ^
-  1564 |   });
-  1565 |
-  1566 |   test("AP-47 the in-page bar shows no scrollbar (INC-717)", async ({ page }, testInfo) => {
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:1563:9
-```
-
-Context:
-
-```text
-          - listitem [ref=e286]:
-            - generic [ref=e287]: About
-          - listitem [ref=e288]:
-            - generic [ref=e289]: How it works
-      - navigation "Help" [ref=e290]:
-        - heading "Help" [level=2] [ref=e291]
-        - list [ref=e292]:
-          - listitem [ref=e293]:
-            - generic [ref=e294]: Safety
-          - listitem [ref=e295]:
-            - generic [ref=e296]: Contact
-      - navigation "Legal" [ref=e297]:
-        - heading "Legal" [level=2] [ref=e298]
-        - list [ref=e299]:
-          - listitem [ref=e300]:
-            - generic [ref=e301]: Terms
-          - listitem [ref=e302]:
-            - generic [ref=e303]: Privacy
-    - paragraph [ref=e305]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-47 the in-page bar shows no scrollbar (INC-717)
-
-- Source: `shard 4`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toHaveCount(expected) failed
-
-Locator:  getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-Expected: 4
-Received: 3
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-    14 × locator resolved to 3 elements
-       - unexpected value "3"
-
---- further error 1 ---
-Error: expect(locator).toHaveCount(expected) failed
-
-Locator:  getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-Expected: 4
-Received: 3
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveCount" with timeout 10000ms
-  - waiting for getByTestId('listing-section-nav').getByTestId('listing-section-nav-item')
-    14 × locator resolved to 3 elements
-       - unexpected value "3"
-
-
-  1579 |     await gotoReady(page, (await address(ad)).canonical);
-  1580 |     const bar = page.getByTestId("listing-section-nav");
-> 1581 |     await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
-       |                                                               ^
-  1582 |     const scrollbarWidth = await bar.evaluate((nav) => getComputedStyle(nav).scrollbarWidth);
-  1583 |     expect(scrollbarWidth).toBe("none");
-```
-
-Context:
-
-```text
-          - listitem [ref=e332]:
-            - generic [ref=e333]: About
-          - listitem [ref=e334]:
-            - generic [ref=e335]: How it works
-      - navigation "Help" [ref=e336]:
-        - heading "Help" [level=2] [ref=e337]
-        - list [ref=e338]:
-          - listitem [ref=e339]:
-            - generic [ref=e340]: Safety
-          - listitem [ref=e341]:
-            - generic [ref=e342]: Contact
-      - navigation "Legal" [ref=e343]:
-        - heading "Legal" [level=2] [ref=e344]
-        - list [ref=e345]:
-          - listitem [ref=e346]:
-            - generic [ref=e347]: Terms
-          - listitem [ref=e348]:
-            - generic [ref=e349]: Privacy
-    - paragraph [ref=e351]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e362]:
+            - generic [ref=e363]: About
+          - listitem [ref=e364]:
+            - generic [ref=e365]: How it works
+      - navigation "Help" [ref=e366]:
+        - heading "Help" [level=2] [ref=e367]
+        - list [ref=e368]:
+          - listitem [ref=e369]:
+            - generic [ref=e370]: Safety
+          - listitem [ref=e371]:
+            - generic [ref=e372]: Contact
+      - navigation "Legal" [ref=e373]:
+        - heading "Legal" [level=2] [ref=e374]
+        - list [ref=e375]:
+          - listitem [ref=e376]:
+            - generic [ref=e377]: Terms
+          - listitem [ref=e378]:
+            - generic [ref=e379]: Privacy
+    - paragraph [ref=e381]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1071,40 +1097,130 @@ Error: expect(received).toBeLessThanOrEqual(expected)
 Expected: <= 1
 Received:    30
 
-  1616 |       expect(
-  1617 |         Math.abs(moreBox.y + moreBox.height - (stripBox.y + stripBox.height)),
-> 1618 |       ).toBeLessThanOrEqual(1);
+  1674 |       expect(
+  1675 |         Math.abs(moreBox.y + moreBox.height - (stripBox.y + stripBox.height)),
+> 1676 |       ).toBeLessThanOrEqual(1);
        |         ^
-  1619 |       await more.click();
-  1620 |       await expect(page.getByTestId("gallery-strip-back")).toBeVisible();
-  1621 |       await expect.poll(async () => strip.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:1618:9
+  1677 |       await more.click();
+  1678 |       await expect(page.getByTestId("gallery-strip-back")).toBeVisible();
+  1679 |       await expect.poll(async () => strip.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:1676:9
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e328]:
-            - generic [ref=e329]: About
-          - listitem [ref=e330]:
-            - generic [ref=e331]: How it works
-      - navigation "Help" [ref=e332]:
-        - heading "Help" [level=2] [ref=e333]
-        - list [ref=e334]:
-          - listitem [ref=e335]:
-            - generic [ref=e336]: Safety
-          - listitem [ref=e337]:
-            - generic [ref=e338]: Contact
-      - navigation "Legal" [ref=e339]:
-        - heading "Legal" [level=2] [ref=e340]
-        - list [ref=e341]:
-          - listitem [ref=e342]:
-            - generic [ref=e343]: Terms
-          - listitem [ref=e344]:
-            - generic [ref=e345]: Privacy
-    - paragraph [ref=e347]: © 2026 ethio.com — All rights reserved.
+          - listitem [ref=e349]:
+            - generic [ref=e350]: About
+          - listitem [ref=e351]:
+            - generic [ref=e352]: How it works
+      - navigation "Help" [ref=e353]:
+        - heading "Help" [level=2] [ref=e354]
+        - list [ref=e355]:
+          - listitem [ref=e356]:
+            - generic [ref=e357]: Safety
+          - listitem [ref=e358]:
+            - generic [ref=e359]: Contact
+      - navigation "Legal" [ref=e360]:
+        - heading "Legal" [level=2] [ref=e361]
+        - list [ref=e362]:
+          - listitem [ref=e363]:
+            - generic [ref=e364]: Terms
+          - listitem [ref=e365]:
+            - generic [ref=e366]: Privacy
+    - paragraph [ref=e368]: © 2026 ethio.com — All rights reserved.
 ```
 ```
+
+## admin-audit.spec.ts › U3 audit & security › IMP-3 server refusals: self and a super-admin target
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+          - listitem [ref=e824]:
+            - generic [ref=e825]: About
+          - listitem [ref=e826]:
+            - generic [ref=e827]: How it works
+      - navigation "Help" [ref=e828]:
+        - heading "Help" [level=2] [ref=e829]
+        - list [ref=e830]:
+          - listitem [ref=e831]:
+            - generic [ref=e832]: Safety
+          - listitem [ref=e833]:
+            - generic [ref=e834]: Contact
+      - navigation "Legal" [ref=e835]:
+        - heading "Legal" [level=2] [ref=e836]
+        - list [ref=e837]:
+          - listitem [ref=e838]:
+            - generic [ref=e839]: Terms
+          - listitem [ref=e840]:
+            - generic [ref=e841]: Privacy
+    - paragraph [ref=e843]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## my-listings-ad.spec.ts › MY LISTINGS — one ad's page (bundle 16 turn 3) › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659)
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded while running "afterEach" hook.
+--- further error 1 ---
+Test timeout of 60000ms exceeded while running "afterEach" hook.
+
+  182 |   const roles: string[] = [];
+  183 |
+> 184 |   test.afterEach(async () => {
+      |        ^
+  185 |     const supabase = adminClient();
+  186 |     for (const roleId of roles.splice(0)) {
+  187 |       const a = await supabase.from("role_permissions").delete().eq("role_id", roleId);
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-ad.spec.ts:184:8
+```
+
+Context:
+
+```text
+          - listitem [ref=e324]:
+            - generic [ref=e325]: About
+          - listitem [ref=e326]:
+            - generic [ref=e327]: How it works
+      - navigation "Help" [ref=e328]:
+        - heading "Help" [level=2] [ref=e329]
+        - list [ref=e330]:
+          - listitem [ref=e331]:
+            - generic [ref=e332]: Safety
+          - listitem [ref=e333]:
+            - generic [ref=e334]: Contact
+      - navigation "Legal" [ref=e335]:
+        - heading "Legal" [level=2] [ref=e336]
+        - list [ref=e337]:
+          - listitem [ref=e338]:
+            - generic [ref=e339]: Terms
+          - listitem [ref=e340]:
+            - generic [ref=e341]: Privacy
+    - paragraph [ref=e343]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## my-listings-doors.spec.ts › MY LISTINGS — the seller's doors (bundle 16 turn 1) › ML-12 edit_my_listing refuses what a box may not change, an ad it may not edit and another seller's, and writes nothing
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context: context file not found for `my-listings-doors-MY-LISTINGS-the-seller-s-doors-bundle-16-turn-1-ML-12-edit_my_listing-refuses-what-a-box-may-not-change-an-ad-it-may-not-edit-and-another-seller-s-and-writes-nothing-desktop-1280` — Playwright's name `my-listings-doors-MY-LISTI-db191-seller-s-and-writes-nothing-desktop-1280`; this run carried 16 context file(s); of the same spec: none
 
 ## photo-pipeline.spec.ts › PHOTO PIPELINE › PP-23 the gallery draws the middle size, and on a computer a wide photo's top meets the first thumbnail (D162, INC-613)
 
@@ -1142,7 +1258,7 @@ Call Log:
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/photo-pipeline.spec.ts:1303:7
 ```
 
-Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-23-the-gallery-draws-the-middle-size-and-on-a-computer-a-wide-photo-s-top-meets-the-first-thumbnail-D162-INC-613-desktop-1280` — Playwright's name `photo-pipeline-PHOTO-PIPEL-63be5-rst-thumbnail-D162-INC-613--desktop-1280`; this run carried 18 context file(s); of the same spec: none
+Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-23-the-gallery-draws-the-middle-size-and-on-a-computer-a-wide-photo-s-top-meets-the-first-thumbnail-D162-INC-613-desktop-1280` — Playwright's name `photo-pipeline-PHOTO-PIPEL-63be5-rst-thumbnail-D162-INC-613--desktop-1280`; this run carried 16 context file(s); of the same spec: none
 
 ## post-wizard-place.spec.ts › POSTING WIZARD › PW-13 review: the preview shows what was answered, and Publish lands in review — never live
 
@@ -1184,7 +1300,40 @@ Call log:
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-place.spec.ts:649:62
 ```
 
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-review-the-preview-shows-what-was-answered-and-Publish-lands-in-review-never-live-desktop-1280` — Playwright's name `post-wizard-place-POSTING--4521b-ands-in-review-—-never-live-desktop-1280`; this run carried 18 context file(s); of the same spec: none
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-review-the-preview-shows-what-was-answered-and-Publish-lands-in-review-never-live-desktop-1280` — Playwright's name `post-wizard-place-POSTING--4521b-ands-in-review-—-never-live-desktop-1280`; this run carried 16 context file(s); of the same spec: none
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-28 a conditional detail appears only when its condition is met
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-28-a-conditional-detail-appears-only-when-its-condition-is-met-desktop-1280` — Playwright's name `post-wizard-specs-POSTING--25a96-y-when-its-condition-is-met-desktop-1280`; this run carried 16 context file(s); of the same spec: none
+
+## post-wizard-where.spec.ts › POSTING WIZARD — where the ad is shown (W6b-1) › PW-84 a new post opens on the seller's own last post, never another seller's
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded while running "afterEach" hook.
+--- further error 1 ---
+Test timeout of 60000ms exceeded while running "afterEach" hook.
+
+  69 |   const specs: string[] = [];
+  70 |
+> 71 |   test.afterEach(async ({ page }) => {
+     |        ^
+  72 |     await stopPageBeforePurge(page);
+  73 |     for (const ref of objects.splice(0)) await purgeListingObjects(ref.userId, ref.listingId);
+  74 |     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/post-wizard-where.spec.ts:71:8
+```
+
+Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-ad-is-shown-W6b-1-PW-84-a-new-post-opens-on-the-seller-s-own-last-post-never-another-seller-s-desktop-1280` — Playwright's name `post-wizard-where-POSTING--f3e54-post-never-another-seller-s-desktop-1280`; this run carried 16 context file(s); of the same spec: none
 
 ## Server errors: shard 1
 
@@ -1192,10 +1341,10 @@ Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-revi
 [WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
 [WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
 [WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
 [WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-1-5-2k7a4p: e2e_par_34y1y4 → e2e_chi_2btwyd
+[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-1-5-adexr6: e2e_par_tjzykf → e2e_chi_3yy498
 [WebServer] [ssr-error] /api/admin/categories/import categories badHeader
 [WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
 [WebServer] [ssr-error] /api/admin/categories/import digest mismatch
@@ -1207,11 +1356,39 @@ Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-13-revi
 
 No `[client-error]` lines in the `shard 1` log (or no log was uploaded).
 
+## Server errors: shard 2
+
+```text
+[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
+[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
+[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
+[WebServer] [ssr-error] /api/admin/translations/import too many previews
+[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
+[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
+[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
+[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
+[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
+[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
+[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
+[WebServer] [ssr-error] /api/admin/locations/import too many previews
+[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
+[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
+[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
+[WebServer] [ssr-error] /api/admin/locations/import locations file too large
+[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
+[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
+[WebServer] [ssr-error] /api/admin/locations/import too many previews
+[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
+```
+
+## Client errors: shard 2
+
+No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
+
 ## Server errors: shard 3
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×3
-[WebServer] [ssr-error] /api/catalog/find catalog search: canceling statement due to statement timeout | at catalogSearch (/home/runner/work/ethio-marketplace/ethio-marketplace/dist/server/_ssr/address-JXvhEq3i.mjs:40:23)
+[WebServer] [ssr-error] /api/listings/draft listing not found ×5
 ```
 
 ## Client errors: shard 3
@@ -1227,7 +1404,7 @@ No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
 [WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
 [WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-4-1-cyhu1g: e2e_par_88ysa1 → e2e_chi_vyxafz
+[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-4-11-hm97lj: e2e_par_puu2wv → e2e_chi_1mnx3o
 [WebServer] [ssr-error] /api/admin/categories/import categories badHeader
 [WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
 [WebServer] [ssr-error] /api/admin/categories/import digest mismatch
@@ -1237,7 +1414,15 @@ No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 
 ## Client errors: shard 4
 
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
+```text
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
+[client-error] HTTP 400 POST /rest/v1/rpc/begin_impersonation ({"code":"P0001","details":null,"hint":null,"message":"cannot impersonate yourself"})
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
+[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_update_attribute_link ({"code":"P0010","details":null,"hint":null,"message":"admin.attributes.error.parentAfterChild:e2e-cat-4-1-cvcx2n: e2e_low_35vwa3 → e2e_up_974pv1"})
+[client-error] console.error: [feed] first page failed TypeError: Failed to fetch at readPage (http://127.0.0.1:4173/assets/index-DEHO52pt.js:30219:25) at http://127.0.0.1:4173/assets/index-DEHO52pt.js:30253:3 at commitHookEffectListMount (http://127.0.0.1:4173/assets/index-DEHO52pt.js:5124:20) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-DEHO52pt.js:6029:21) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-DEHO52pt.js:6020:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-DEHO52pt.js:6028:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-DEHO52pt.js:6020:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-DEHO52pt.js:6028:5) at recursivelyTraversePassiveMountEffects (http://127.0.0.1:4173/assets/index-DEHO52pt.js:6020:102) at commitPassiveMountOnFiber (http://127.0.0.1:4173/assets/index-DEHO52pt.js:6028:5)
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
+[client-error] HTTP 400 POST /rest/v1/rpc/begin_impersonation ({"code":"P0001","details":null,"hint":null,"message":"cannot impersonate yourself"})
+```
 
 ## Server errors: shard 5
 
@@ -1271,7 +1456,12 @@ No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
 ## Server errors: shard 6
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×4
+[WebServer] [ssr-error] /api/listings/draft listing not found ×3
+[WebServer] [ssr-error] /api/attributes/8c7dd217-840e-49c1-a75c-df85f386cba8/options canceling statement due to lock timeout
+[WebServer] [ssr-error] /api/listings/draft listing not found
+[WebServer] [ssr-error] /api/attributes/ff42ddc0-0c2c-4b79-ae57-608e17375535/options auth upstream unavailable (504)
+[WebServer] [ssr-error] /api/attributes/43112aed-50af-4d1a-81b5-af2ffbf58ba5/options auth upstream unavailable (504)
+[WebServer] [ssr-error] /api/listings/draft listing not found ×2
 ```
 
 ## Client errors: shard 6
