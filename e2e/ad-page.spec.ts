@@ -969,8 +969,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       const width = await check();
       expect(width).toBeGreaterThanOrEqual(672);
       expect(width).toBeLessThan(896);
-      // A third pass whose article lies in 896–919 px: article = viewport −
-      // (1280 − the article's width at 1280), aimed at the range's middle.
+      // A third pass whose article lies in 896–919 px — now the medium range
+      // (DEC-200: the halves, not the thirds): article = viewport − (1280 −
+      // the article's width at 1280), aimed at the range's middle.
       const viewportWidth = Math.round(907.5 + (1280 - wideWidth));
       await page.setViewportSize({ width: viewportWidth, height: 900 });
       const middleWidth = await check();
