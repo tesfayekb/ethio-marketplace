@@ -204,13 +204,15 @@ test.describe("app shell", () => {
     }
   });
 
-  test("feed renders its empty state", async ({ page }) => {
+  test("an empty category shows the invitation alone, never the old box (D215)", async ({
+    page,
+  }) => {
     /**
      * C2-SETTLE PART C (INC-153) — SCOPED EMPTINESS. The class rule, verbatim:
      * "specs never assume a globally empty table; they scope their emptiness."
      * The fence scope here is a scratch top-level category with zero listings:
      * the feed of /c/<slug> is empty BY CONSTRUCTION, whatever the rest of the
-     * table holds.
+     * table holds. No place is chosen (no ethio_area cookie).
      */
     const fenceSlug = `e2e-feed-empty-${Date.now().toString(36)}`;
     const supabase = adminClient();
@@ -224,10 +226,22 @@ test.describe("app shell", () => {
     }
     try {
       await gotoReady(page, `/c/${fenceSlug}`);
-      const empty = page.getByTestId("feed-empty");
-      await expect(empty).toBeVisible({ timeout: 20000 });
-      await expect(empty.getByText(en["feed.emptyTitle"], { exact: true })).toBeVisible();
-      await expect(empty.getByText(en["feed.emptyBody"], { exact: true })).toBeVisible();
+      const container = page.getByTestId("feed-container");
+      const invite = container.getByTestId("feed-invite");
+      await expect(invite).toBeVisible({ timeout: 20000 });
+      await expect(invite).toHaveAttribute("data-at", "alone");
+      await expect(container.locator("li")).toHaveCount(1);
+      await expect(container.locator("li").getByTestId("feed-invite")).toHaveCount(1);
+      await expect(invite.getByTestId("feed-invite-text")).toHaveText(
+        en["feed.invite.noneCategory"].replace("{category}", fenceSlug),
+      );
+      const href = await invite.getByTestId("feed-invite-post").getAttribute("href");
+      if (href === null) throw new Error("D215: the invitation's link has no address");
+      const search = new URL(href, "http://x").searchParams;
+      expect(search.get("category")).toBe(fence.id);
+      expect(search.has("place")).toBe(false);
+      await expect(page.getByTestId("feed-empty")).toHaveCount(0);
+      await expect(page.getByText(en["feed.emptyTitle"], { exact: true })).toHaveCount(0);
     } finally {
       await supabase.from("categories").delete().eq("id", fence.id);
     }
@@ -431,24 +445,24 @@ test.describe("app shell", () => {
       await gotoReady(page, `/c/${fenceSlug}`);
       const main = page.locator("main#main");
       const container = page.getByTestId("feed-container");
-      const emptyState = page.getByTestId("feed-empty");
+      const invite = page.getByTestId("feed-invite");
       // INC-282 (product) — measure only once the feed's inputs have settled.
       await expect(page.locator('[data-testid="feed-container"][data-ready="1"]')).toBeAttached({
         timeout: 20000,
       });
-      await expect(emptyState).toBeVisible({ timeout: 20000 });
-      // Pre-committed rule: once shown, the empty state is not swapped out.
+      await expect(invite).toBeVisible({ timeout: 20000 });
+      // Pre-committed rule: once shown, the invitation is not swapped out.
       const shownAt = Date.now();
       await expect
         .poll(
           async () => {
-            if ((await emptyState.count()) === 0) return "detached";
+            if ((await invite.count()) === 0) return "detached";
             return Date.now() - shownAt >= 2000 ? "held" : "waiting";
           },
           {
             timeout: 5000,
             intervals: [200],
-            message: "INC-282: feed-empty detached after it rendered",
+            message: "INC-282: the invitation detached after it rendered",
           },
         )
         .toBe("held");
@@ -465,10 +479,12 @@ test.describe("app shell", () => {
       const right = mainBox.x + mainBox.width - (box.x + box.width);
       expect(Math.abs(left - right), "feed container gutters are unequal").toBeLessThanOrEqual(1);
 
-      const empty = await boxOf(emptyState, "feed-empty");
-      const emptyLeft = empty.x - mainBox.x;
-      const emptyRight = mainBox.x + mainBox.width - (empty.x + empty.width);
-      expect(Math.abs(emptyLeft - emptyRight), "empty state is off-centre").toBeLessThanOrEqual(1);
+      // D215 — the invitation stands in the grid's first cell.
+      const card = await boxOf(invite, "feed-invite");
+      expect(
+        Math.abs(card.x - box.x),
+        "the invitation is not in the grid's first cell",
+      ).toBeLessThanOrEqual(1);
     } finally {
       await supabase.from("categories").delete().eq("id", fence.id);
     }
@@ -495,9 +511,9 @@ test.describe("app shell", () => {
     await expect
       .poll(
         async () =>
-          (await page.getByTestId("feed-empty").isVisible()) ||
-          (await container.locator("ul > li").count()) > 0,
-        { timeout: 20000, message: "INC-282: neither the empty state nor a listing rendered" },
+          (await page.getByTestId("feed-invite").isVisible()) ||
+          (await container.getByTestId("listing-card").count()) > 0,
+        { timeout: 20000, message: "INC-282: neither the invitation nor a listing rendered" },
       )
       .toBe(true);
     expect(errors, "INC-282: the page raised an error").toEqual([]);
@@ -582,8 +598,8 @@ test.describe("app shell", () => {
     await expectNoHorizontalOverflow(page);
 
     // Data-dependent: staging may hold zero active listings. With cards the
-    // grid must reflow per breakpoint; without them the empty state stands in.
-    const cards = page.locator("[data-testid='feed-empty'] , main ul > li");
+    // grid must reflow per breakpoint; without them the invitation stands in (D215).
+    const cards = page.locator("main ul > li");
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
     await expect(cards.first()).toBeVisible();
 
@@ -691,12 +707,11 @@ test.describe("corner-block grid", () => {
     // U0l: category rows are LINKS now (each category is a real URL).
     const rows = page.getByTestId("app-rail").locator("nav li > a");
     const count = await rows.count();
-    // Row 0 is Home; real categories follow. Needs at least two
-    // seeded categories for the claim to mean anything.
-    if (count < 3) return;
+    // Needs at least two seeded categories for the claim to mean anything.
+    if (count < 2) return;
 
     const paths = new Set<string>();
-    for (let i = 1; i < count; i += 1) {
+    for (let i = 0; i < count; i += 1) {
       // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
       const d = await rows.nth(i).locator("svg").first().innerHTML();
       paths.add(d);
@@ -724,23 +739,26 @@ test.describe("corner-block grid", () => {
     if (!toggleBox || !logoBox) throw new Error("corner controls have no bounds");
     expect(toggleBox.x).toBeLessThan(logoBox.x);
     await expect(html).toHaveAttribute("data-rail", "expanded");
-    const allCategories = rail.getByText(en["nav.home"], { exact: true });
-    await expect(allCategories).toBeVisible();
+    const electronics = rail.getByTestId("rail-category-electronics");
+    const electronicsName = electronics.locator("[data-cut]");
+    await expect(electronicsName).toBeVisible();
     const wide = await rail.boundingBox();
     if (!wide) throw new Error("expanded rail has no bounds");
     await toggle.click();
     await expect(html).toHaveAttribute("data-rail", "collapsed");
     await expect(toggle).toHaveAttribute("aria-pressed", "true");
-    await expect(allCategories).toBeHidden();
+    await expect(electronicsName).toBeHidden();
     const narrow = await rail.boundingBox();
     if (!narrow) throw new Error("folded rail has no bounds");
     expect(narrow.width).toBeLessThan(wide.width);
     expect(Math.abs(narrow.width - 64)).toBeLessThanOrEqual(1);
-    await expect(rail.getByTestId("rail-category-all").locator("svg")).toBeVisible();
-    await rail.getByRole("link", { name: en["nav.home"] }).hover();
+    await expect(electronics.locator("svg").nth(0)).toBeVisible();
+    const electronicsLabel = await electronics.getAttribute("aria-label");
+    if (electronicsLabel === null) throw new Error("the Electronics row has no aria-label");
+    await electronics.hover();
     const tip = page.getByTestId("rail-tooltip");
     await expect(tip).toBeVisible();
-    await expect(tip).toContainText(en["nav.home"]);
+    await expect(tip).toContainText(electronicsLabel);
     await page.reload();
     await waitForHydration(page);
     await expect(html).toHaveAttribute("data-rail", "collapsed");
