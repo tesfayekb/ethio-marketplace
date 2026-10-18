@@ -13,7 +13,7 @@
 
 ## Project constitution (all agents)
 
-Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only; no extras; disclose limits first; search before creating. 360px-first, logical RTL CSS, EN+AM translation keys. Tables: append-only migrations with RLS/policies/GRANTs; personal data: home_country_code. UTC timestamps; integer money; no secrets in code/commits. Server/RLS alone authorizes. No silent catch-and-continue. Public pages: SSR, absolute canonical/og URLs. Structural edits update /docs/features/<name>.md + \_changelog.md together.
+Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only; no extras; honesty first: disclose limits; search before creating; no duplicates. 360px-first, logical RTL CSS; no literal UI text (EN+AM keys). Tables: RLS/policies/GRANTs in the same append-only migration; personal data: home_country_code. UTC timestamps; integer money; no secrets in code/commits. Server/RLS alone authorizes. No silent catch-and-continue. Public pages: SSR, absolute canonical/og URLs. Structural edits update /docs/features/<name>.md + \_changelog.md together.
 
 - A new table, sequence or function of schema public is born closed to the browser roles: its migration names every GRANT it needs (a browser grant only with its line in scripts/public-surface-allowlist.txt), and every new function restates REVOKE … FROM PUBLIC in its own file (bundle 8).
 - The database tool applies its input immediately: write and check a scratch migration, then submit FINAL text once, never a stub, comment or draft; remove scratch drafts before turn end (prevents comment-only applies, 2026-10-04/07).
@@ -38,4 +38,4 @@ Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only
 
 - QR encoding stays in `src/server/qr.ts`; public QR routes validate id shape without database reads and the marketplace guard forbids the encoder — immutable sharing must not add first-paint weight.
 
-- Cards take `CARD_SURFACE` (src/components/layout/surface.ts): 12-px corners, the card background and a soft shadow, never a 1-px border; a state border (destructive, gold, a focus ring, a dashed placeholder) goes on top. Why: Look B (D135); the look law (src/look-law.test.ts) fails a card with a plain border.
+- Shell (bundle 21): cards take `CARD_SURFACE` (src/components/layout/surface.ts) — no 1-px border, state borders on top (the look law); one ☰ per width, top-left: below 768 it opens rail-menu, from 768 it folds the menu; md tables use `tbl-md:`. Why: D135, D115, D204.

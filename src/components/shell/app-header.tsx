@@ -1,17 +1,6 @@
 import { CutText } from "@/components/ui/cut-text";
 import { Link } from "@tanstack/react-router";
-import {
-  ChevronsLeft,
-  ChevronsRight,
-  LogOut,
-  Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Search,
-  Settings as SettingsIcon,
-  User,
-  X,
-} from "lucide-react";
+import { LogOut, Menu, Search, Settings as SettingsIcon, User, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Logo } from "@/components/brand/logo";
@@ -28,9 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { PHONE_STRIP } from "@/config/panels";
 import { useShell } from "@/components/shell-context";
-import { useRailCollapsed } from "@/providers/rail-state";
 
 const ICON_BUTTON =
   "inline-flex min-h-11 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -107,93 +94,46 @@ function SearchRow({ onClose }: { onClose: () => void }) {
 export function AppHeader() {
   const { t } = useI18n();
   const { auth, authLoading, user, requestSignOut, navOpen, setNavOpen, signingOut } = useShell();
-  const { collapsed, toggle } = useRailCollapsed();
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <div className="w-full min-w-0 md:h-full">
-      <header
-        className={cn(
-          "flex h-13 w-full min-w-0 items-center gap-1 bg-card pe-2 md:h-full md:gap-2 md:px-4",
-          !PHONE_STRIP && "ps-2",
-        )}
-      >
-        {PHONE_STRIP ? (
-          <button
-            type="button"
-            aria-label={t(navOpen ? "shell.closeMenu" : "shell.openMenu")}
-            aria-expanded={navOpen}
-            aria-controls="rail-menu"
-            className="inline-flex h-11 w-12 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
-            onClick={() => setNavOpen(!navOpen)}
-          >
-            {navOpen ? (
-              <ChevronsLeft className="h-5 w-5" aria-hidden="true" />
-            ) : (
-              <ChevronsRight className="h-5 w-5" aria-hidden="true" />
-            )}
-          </button>
-        ) : (
-          <button
-            type="button"
-            aria-label={t("shell.openMenu")}
-            className={cn(ICON_BUTTON, "md:hidden")}
-            onClick={() => setNavOpen(true)}
-          >
-            <Menu className="h-5 w-5" aria-hidden="true" />
-          </button>
-        )}
+      <header className="flex h-13 w-full min-w-0 items-center gap-1 bg-card pe-2 md:h-full md:gap-2 md:px-4">
+        {/* One ☰: below 768 it opens the phone menu; from 768 the corner folds the rail. */}
+        <button
+          type="button"
+          aria-label={t(navOpen ? "shell.closeMenu" : "shell.openMenu")}
+          aria-expanded={navOpen}
+          aria-controls="rail-menu"
+          className="inline-flex h-11 w-12 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+          onClick={() => setNavOpen(!navOpen)}
+        >
+          <Menu className="h-6 w-6" aria-hidden="true" />
+        </button>
         {/* The wordmark — never icon-only in the bar; the icon-only variant is
             reserved for the collapsed rail. md+ shows it in the corner cell. */}
         <Link
           to="/"
           aria-label={t("app.name")}
-          className="inline-flex min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+          className="ms-1 inline-flex min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
         >
           <Logo variant="wordmark" />
         </Link>
 
-        {/* lg+ ONLY: the rail collapse control, top-left of the bar and BEFORE
-            the search field (INC-040 — it used to sit at the rail's bottom,
-            out of reach on long pages). Below 1024 px the » / « menu control
-            owns this job, so the toggle does not exist there — exactly ONE
-            menu control per width (INC-046). */}
-        <button
-          type="button"
-          data-testid="rail-collapse-toggle"
-          aria-pressed={collapsed === true}
-          aria-label={collapsed ? t("shell.expandRail") : t("shell.collapseRail")}
-          onClick={toggle}
-          // INC-055: ICON_BUTTON sets `inline-flex`, so a raw
-          // `${ICON_BUTTON} hidden md:inline-flex` left TWO base display
-          // utilities on the element and the cascade — not the attribute order
-          // — decided the winner, leaking the toggle onto phones. cn()/twMerge
-          // drops the earlier display class, so `hidden` genuinely wins below lg.
-          className={cn(ICON_BUTTON, "hidden lg:inline-flex")}
-        >
-          {collapsed ? (
-            <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
-          )}
-        </button>
-
-        {/* md+ AND collapsed rail ONLY (INC-045/INC-048): the corner cell shows
-            the icon-only mark when the rail is collapsed, so the LOCKUP —
-            "ethio.com" with its MARKETPLACE line — moves into the bar, after
-            the toggle and before search. The bar carries the lockup WITHOUT
-            the mark (the corner already shows it), so the brand appears in
-            exactly ONE place per state and is never duplicated. Layout keys
-            off the attribute, not React state, so there is no first-frame
-            flash. */}
+        {/* Folded from 768: the full logo moves from the corner into the bar. */}
         <Link
           to="/"
           aria-label={t("app.name")}
           data-testid="topbar-wordmark"
           className="hidden min-h-11 shrink-0 items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rail-icons:inline-flex"
         >
-          <Logo variant="lockup" />
+          <Logo variant="full" />
         </Link>
+
+        <div
+          aria-hidden="true"
+          className="hidden min-w-0 md:ms-2 md:block md:flex-1 rail-icons:ms-0"
+        />
 
         {/* md+ : the real search field, in the bar. INC-049: its width is
             CAPPED per breakpoint so it can never grow into the right-side
@@ -201,7 +141,7 @@ export function AppHeader() {
         <form
           role="search"
           data-testid="search-inline"
-          className="hidden min-w-0 flex-1 md:block md:max-w-[13rem] lg:max-w-xs xl:max-w-sm"
+          className="hidden min-w-0 flex-1 md:block md:max-w-xs lg:max-w-md xl:max-w-[28rem]"
           onSubmit={(event) => event.preventDefault()}
         >
           <label className="relative block">
@@ -219,12 +159,11 @@ export function AppHeader() {
           </label>
         </form>
 
-        {/* INC-059: at md+ the capped search field cannot absorb the row's free
-            space, so the cluster used to stop short of the bar's right edge.
-            `md:ms-auto` pushes it flush right (Apex pattern). */}
+        <div aria-hidden="true" className="hidden min-w-0 md:block md:flex-1" />
+        {/* Equal spacers centre search between the logo and flush-right controls. */}
         <div
           data-testid="topbar-controls"
-          className="flex min-w-0 flex-1 items-center justify-end gap-0.5 md:ms-auto md:flex-none md:shrink-0 md:gap-2"
+          className="flex min-w-0 flex-1 items-center justify-end gap-0.5 md:flex-none md:shrink-0 md:gap-2"
         >
           {/* Phones only: the icon that opens the full-width row below. */}
           <button

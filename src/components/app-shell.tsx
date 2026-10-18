@@ -28,7 +28,7 @@ import { LocationSelector } from "@/components/shell/location-selector";
 import { chooseCarry } from "@/components/shell/place-carry";
 import { readAccountPlace, saveAccountPlace } from "@/components/shell/place-carry-service";
 import { PanelTabs } from "@/components/shell/panel-tabs";
-import { PHONE_STRIP } from "@/config/panels";
+import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
@@ -49,7 +49,7 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
-import { RAIL_INIT_SCRIPT } from "@/providers/rail-state";
+import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 import { ShellContext, type LocationNode, type ShellValue } from "./shell-context";
 
@@ -112,6 +112,7 @@ function PermissionsLoader({
  * Bands that render nothing (panel tabs when logged out) collapse completely.
  */
 export function AppShell({ children }: { children: ReactNode }) {
+  const { collapsed, toggle } = useRailCollapsed();
   const { t } = useI18n();
   const { user, loading: authLoading, hadSession, signOut } = useAuth();
   const [panelChoice, setPanelChoice] = useState<PanelId>("marketplace");
@@ -850,21 +851,24 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <div
               data-testid="shell-logo-cell"
-              className="hidden min-w-0 bg-card px-4 md:flex md:h-14 md:w-64 md:shrink-0 md:items-center rail-icons:w-16 rail-icons:justify-center rail-icons:px-0"
+              className="hidden min-w-0 bg-card ps-1.5 md:flex md:h-14 md:w-56 lg:w-64 md:shrink-0 md:items-center rail-icons:w-16 rail-icons:justify-center rail-icons:px-0"
             >
+              <button
+                type="button"
+                data-testid="rail-collapse-toggle"
+                aria-pressed={collapsed === true}
+                aria-label={collapsed ? t("shell.expandRail") : t("shell.collapseRail")}
+                onClick={toggle}
+                className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:inline-flex"
+              >
+                <Menu className="h-6 w-6" aria-hidden="true" />
+              </button>
               <Link
                 to="/"
                 aria-label={t("app.name")}
-                className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="-ms-1.5 inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rail-icons:hidden"
               >
-                {/* Collapsed rail = icon-only logo; the two swap by attribute, so
-                the swap is already correct on the first painted frame. */}
-                <span className="inline-flex rail-icons:hidden">
-                  <Logo variant="full" />
-                </span>
-                <span className="hidden rail-icons:inline-flex">
-                  <Logo variant="icon" />
-                </span>
+                <Logo variant="full" />
               </Link>
             </div>
 
@@ -896,8 +900,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div
             data-testid="shell-stack"
             className={cn(
-              "col-start-1 row-start-2 flex min-w-0 flex-col pt-13 md:ms-64 md:pt-14 rail-icons:ms-16",
-              PHONE_STRIP && "ms-12",
+              "col-start-1 row-start-2 flex min-w-0 flex-col pt-13 ms-12 md:ms-56 lg:ms-64 md:pt-14 rail-icons:ms-16",
             )}
           >
             <div
@@ -939,10 +942,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <BottomBar />
         <div
           data-testid="shell-footer-wrapper"
-          className={cn(
-            "relative z-0 w-full bg-card md:z-40",
-            PHONE_STRIP && "max-md:[&>footer>*]:ps-12",
-          )}
+          className={cn("relative z-0 w-full bg-card md:z-40", "max-md:[&>footer>*]:ps-12")}
         >
           <AppFooter />
         </div>

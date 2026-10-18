@@ -372,6 +372,8 @@ Below 768px one top-bar menu control sits above the 48px strip and toggles the d
 
 ### Three widths, one frame rule each (bundle 9 C2g/C2h)
 
+Bundle 21: one ☰ per width in the top-left corner (D115, D117), the logo after it over the menu’s labels; folded, the logo with its mark moves into the bar. Search is centred (D111); tables switch on the space they have (`tbl-md`). D204 supersedes the historical width rules below: from 768 the rail is open by default (224 px to 1023, 256 px from 1024), or 64 px when folded; only phones use the overlay.
+
 - Below 768 px: the strip, the bottom bar and the » / « in-place menu.
 - 768–1023 px: the icon rail (64 px, tooltips), the same » / « menu (the rail's content with names, no foot band), the tabs at the top.
 - From 1024 px: the rail with its stored choice and the collapse toggle.

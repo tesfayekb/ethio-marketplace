@@ -2,14 +2,7 @@ import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
 import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
@@ -19,7 +12,7 @@ import { useFooterInset } from "@/components/shell/use-footer-inset";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PANELS, PHONE_STRIP, categoryIcon, visibleItems } from "@/config/panels";
+import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
 import type { NavItem } from "@/config/panels.types";
 import { useCategories } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
@@ -42,28 +35,10 @@ export { categoryGlyph } from "@/components/shell/category-glyphs";
  * expressed in CSS — the toggle's aria-pressed and whether hovering a row
  * shows its label as a tooltip.
  *
- * C2g.1 — every `rail-icons:` below holds from 768 to 1023 px whatever the
- * stored choice, and from 1024 px when the rail is collapsed; the strip and the
- * opened menu never carry them (see `hideWhenIcons`), so their names show.
+ * One ☰ per width, top-left: below 768 it opens the phone menu; from 768
+ * it folds the persistent menu. Only the stored choice activates rail-icons.
  */
 const HIDE_WHEN_COLLAPSED = "rail-icons:hidden";
-
-/** Width media query, false on the server; live across a resize (C2g). */
-function useWidthQuery(query: string): boolean {
-  const subscribe = useCallback(
-    (onChange: () => void) => {
-      const mql = window.matchMedia(query);
-      mql.addEventListener("change", onChange);
-      return () => mql.removeEventListener("change", onChange);
-    },
-    [query],
-  );
-  return useSyncExternalStore(
-    subscribe,
-    () => window.matchMedia(query).matches,
-    () => false,
-  );
-}
 
 const ITEM_CORE =
   "flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
@@ -90,8 +65,8 @@ const ITEM_ACTIVE = "bg-nav-active font-semibold text-primary";
 /** True only after hydration on a collapsed desktop rail. */
 
 const CollapsedContext = createContext(false);
-/** "overlay" = the opened menu from 768 px: the rail's content, every name shown. */
-const RailVariantContext = createContext<"rail" | "strip" | "menu" | "overlay">("rail");
+/** The persistent rail, phone icon strip and opened phone menu. */
+const RailVariantContext = createContext<"rail" | "strip" | "menu">("rail");
 
 /** Icons-only hiding belongs to the persistent rail alone. */
 function useHide(): string {
@@ -613,21 +588,17 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
 
 /**
  * The rail. From md up it is grid column 1 / row 2 — directly beneath the logo
- * cell, sharing its `border-e` so the sidebar edge is one continuous hairline.
- * Below 1024 px the » / « control opens the in-place menu (rail-menu).
+ * cell. One ☰ opens the phone menu below 768 and folds the rail from 768.
  */
 export function AppRail() {
   const { t } = useI18n();
   const { navOpen, setNavOpen, user, auth, activePanel } = useShell();
   const { collapsed } = useRailCollapsed();
   const footerInset = useFooterInset();
-  // C2g.1/C2g.2 — width media queries only, never a device test.
-  const iconsByWidth = useWidthQuery("(min-width: 48rem) and (max-width: 63.98rem)");
-  const fromMd = useWidthQuery("(min-width: 48rem)");
 
   return (
     <TooltipProvider delayDuration={150}>
-      <CollapsedContext.Provider value={collapsed === true || iconsByWidth}>
+      <CollapsedContext.Provider value={collapsed === true}>
         <aside
           data-testid="app-rail"
           // U0g-2 — FIXED, never sticky: the rail must not move at any scroll
@@ -638,7 +609,7 @@ export function AppRail() {
           // inner rail-scroll region keeps its scrollbar and every item stays
           // reachable instead of hiding under the footer.
           style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-          className="hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden rail-icons:w-16 rail-icons:px-1"
+          className="hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-56 lg:w-64 md:overflow-hidden rail-icons:w-16 rail-icons:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
@@ -656,29 +627,27 @@ export function AppRail() {
         </aside>
       </CollapsedContext.Provider>
 
-      {PHONE_STRIP ? (
-        <RailVariantContext.Provider value="strip">
+      <RailVariantContext.Provider value="strip">
+        <div
+          data-testid="rail-strip"
+          style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
+          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-20 flex w-12 flex-col bg-sidebar shadow-side md:hidden"
+        >
           <div
-            data-testid="rail-strip"
-            style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-            className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-20 flex w-12 flex-col bg-sidebar shadow-side md:hidden"
+            data-testid="strip-scroll"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
           >
-            <div
-              data-testid="strip-scroll"
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
-            >
-              <RailBody onNavigate={() => undefined} />
-            </div>
+            <RailBody onNavigate={() => undefined} />
           </div>
-        </RailVariantContext.Provider>
-      ) : null}
+        </div>
+      </RailVariantContext.Provider>
 
       <DialogPrimitive.Root open={navOpen} onOpenChange={setNavOpen} modal={false}>
         {navOpen ? (
           <div
             data-testid="rail-menu-scrim"
             aria-hidden="true"
-            className="fixed inset-x-0 top-13 bottom-0 z-[35] bg-foreground/40 md:top-14 lg:hidden"
+            className="fixed inset-x-0 top-13 bottom-0 z-[35] bg-foreground/40 md:hidden"
             onClick={() => setNavOpen(false)}
           />
         ) : null}
@@ -688,7 +657,7 @@ export function AppRail() {
           data-panel={activePanel}
           aria-label={t("shell.menuTitle")}
           aria-describedby={undefined}
-          className="fixed start-0 top-13 bottom-0 z-40 flex w-64 flex-col rounded-e-[1rem] bg-sidebar shadow-lg md:top-14 md:bottom-0 lg:hidden"
+          className="fixed start-0 top-13 bottom-0 z-40 flex w-64 flex-col rounded-e-[1rem] bg-sidebar shadow-lg md:hidden"
           onPointerDownOutside={(event) => {
             if ((event.target as Element | null)?.closest('[aria-controls="rail-menu"]')) {
               event.preventDefault();
@@ -714,11 +683,9 @@ export function AppRail() {
           }}
         >
           <DialogPrimitive.Title className="sr-only">{t("shell.menuTitle")}</DialogPrimitive.Title>
-          {/* C2g.2 — from 768 px the menu holds the RAIL's content (headings,
-              "All categories", "Post listing") with every name, and no foot
-              band: the top bar's account menu says who is signed in there. */}
-          <RailVariantContext.Provider value={fromMd ? "overlay" : "menu"}>
-            <div className={cn("h-[calc(100%-var(--bottom-bar))] min-h-0", fromMd && "h-full p-2")}>
+          {/* The opened menu belongs to phones only and keeps its identity foot. */}
+          <RailVariantContext.Provider value="menu">
+            <div className="h-[calc(100%-var(--bottom-bar))] min-h-0">
               <div
                 data-testid="rail-scroll"
                 className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
@@ -727,15 +694,13 @@ export function AppRail() {
               </div>
             </div>
           </RailVariantContext.Provider>
-          {fromMd ? null : (
-            <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
-              {user !== null && auth.isAuthenticated ? (
-                <p data-testid="drawer-identity" className="text-sm text-muted-foreground">
-                  <CutText text={user.displayName ?? t("auth.signedInAs")} />
-                </p>
-              ) : null}
-            </div>
-          )}
+          <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
+            {user !== null && auth.isAuthenticated ? (
+              <p data-testid="drawer-identity" className="text-sm text-muted-foreground">
+                <CutText text={user.displayName ?? t("auth.signedInAs")} />
+              </p>
+            ) : null}
+          </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Root>
     </TooltipProvider>

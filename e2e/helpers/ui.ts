@@ -205,9 +205,9 @@ export function isMobile(page: Page) {
   return (page.viewportSize()?.width ?? 1280) < 768;
 }
 
-/** C2g.3 — below 1024 px the menu is the » / « overlay (`rail-menu`). */
+/** Below 768 the menu is the ☰ overlay (`rail-menu`). */
 export function menuIsOverlay(page: Page) {
-  return (page.viewportSize()?.width ?? 1280) < 1024;
+  return (page.viewportSize()?.width ?? 1280) < 768;
 }
 
 /** C2b.5 — the element that says "signed in" at THIS viewport. */
@@ -335,7 +335,7 @@ export async function signOutViaUi(page: Page, labels: { signIn?: string } = {})
     await page.getByTestId("account-menu").click();
     await page.getByTestId("account-menu-sign-out").click();
   } else {
-    // C2g.3 — from 768 px the rail's own sign-out (an icon to 1023, named from 1024).
+    // From 768 the rail's Sign out is named when open.
     await page.getByTestId("app-rail").getByTestId("rail-sign-out").click();
   }
 

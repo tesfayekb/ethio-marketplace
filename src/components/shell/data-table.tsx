@@ -388,32 +388,32 @@ export function DataTablePagination({
  * toolbar and the footer sit on the page and every row is its own card.
  */
 const FRAME_AT: Record<CardUntil, string> = {
-  md: "md:space-y-0 md:rounded-card md:bg-card md:shadow-card",
+  md: "tbl-md:space-y-0 tbl-md:rounded-card tbl-md:bg-card tbl-md:shadow-card",
   lg: "lg:space-y-0 lg:rounded-card lg:bg-card lg:shadow-card",
   xl: "xl:space-y-0 xl:rounded-card xl:bg-card xl:shadow-card",
 };
 const BODY_AT: Record<CardUntil, string> = {
-  md: "md:space-y-0",
+  md: "tbl-md:space-y-0",
   lg: "lg:space-y-0",
   xl: "xl:space-y-0",
 };
 const TOOLBAR_AT: Record<CardUntil, string> = {
-  md: "md:border-b md:border-border md:px-4 md:py-3",
+  md: "tbl-md:border-b tbl-md:border-border tbl-md:px-4 tbl-md:py-3",
   lg: "lg:border-b lg:border-border lg:px-4 lg:py-3",
   xl: "xl:border-b xl:border-border xl:px-4 xl:py-3",
 };
 const FOOTER_AT: Record<CardUntil, string> = {
-  md: "md:border-t md:border-border md:px-4 md:py-3",
+  md: "tbl-md:border-t tbl-md:border-border tbl-md:px-4 tbl-md:py-3",
   lg: "lg:border-t lg:border-border lg:px-4 lg:py-3",
   xl: "xl:border-t xl:border-border xl:px-4 xl:py-3",
 };
 const STATE_AT: Record<CardUntil, string> = {
-  md: "md:rounded-none md:border-0 md:bg-transparent md:shadow-none",
+  md: "tbl-md:rounded-none tbl-md:border-0 tbl-md:bg-transparent tbl-md:shadow-none",
   lg: "lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none",
   xl: "xl:rounded-none xl:border-0 xl:bg-transparent xl:shadow-none",
 };
 const SELECTION_AT: Record<CardUntil, string> = {
-  md: "md:rounded-none md:border-x-0 md:border-t-0",
+  md: "tbl-md:rounded-none tbl-md:border-x-0 tbl-md:border-t-0",
   lg: "lg:rounded-none lg:border-x-0 lg:border-t-0",
   xl: "xl:rounded-none xl:border-x-0 xl:border-t-0",
 };
@@ -475,9 +475,9 @@ export function DataTable<T>({
       ? allRows.slice((page ?? 0) * pageSize, (page ?? 0) * pageSize + pageSize)
       : allRows;
   const cardsHiddenClass =
-    cardUntil === "xl" ? "xl:hidden" : cardUntil === "lg" ? "lg:hidden" : "md:hidden";
+    cardUntil === "xl" ? "xl:hidden" : cardUntil === "lg" ? "lg:hidden" : "tbl-md:hidden";
   const tableShownClass =
-    cardUntil === "xl" ? "xl:block" : cardUntil === "lg" ? "lg:block" : "md:block";
+    cardUntil === "xl" ? "xl:block" : cardUntil === "lg" ? "lg:block" : "tbl-md:block";
   /**
    * INC-136 — the pin offset. A selection column is 40px (`w-10`) wide and is
    * itself pinned at 0, so the first data column pins at `start-10`.

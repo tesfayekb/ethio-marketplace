@@ -67,8 +67,8 @@ test.describe("display primitives law (test-once responsiveness)", () => {
         table.clientWidth + 1,
       );
 
-      // L3 — cards at 360, table from 768, detail columns only at 1280.
-      if (viewport.width < 768) {
+      // L3 — cards below 768 and at 768 with the rail open; table at 1280.
+      if (viewport.width <= 768) {
         await expect(page.getByTestId("data-table-cards")).toBeVisible();
         await expect(page.locator("table")).toBeHidden();
       } else {
