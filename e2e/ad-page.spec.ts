@@ -930,7 +930,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const buyer = await leaseUser();
     await signInViaSession(page, buyer.email, buyer.password);
     await gotoReady(page, canonical);
-    await expect(page.getByTestId("listing-detail-seller").getByTestId("listing-contact-show")).toBeVisible();
+    await expect(
+      page.getByTestId("listing-detail-seller").getByTestId("listing-contact-show"),
+    ).toBeVisible();
     await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
 
