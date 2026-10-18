@@ -1907,6 +1907,27 @@ export type Database = {
         }
         Relationships: []
       }
+      name_rule_words: {
+        Row: {
+          list: string
+          reason: string
+          source: string
+          word: string
+        }
+        Insert: {
+          list: string
+          reason: string
+          source?: string
+          word: string
+        }
+        Update: {
+          list?: string
+          reason?: string
+          source?: string
+          word?: string
+        }
+        Relationships: []
+      }
       permissions: {
         Row: {
           action: string
@@ -2090,29 +2111,69 @@ export type Database = {
           },
         ]
       }
+      protected_handles_am: {
+        Row: {
+          handle_am: string
+          handle_am_fold: string
+          name_id: number
+        }
+        Insert: {
+          handle_am: string
+          handle_am_fold: string
+          name_id: number
+        }
+        Update: {
+          handle_am?: string
+          handle_am_fold?: string
+          name_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "protected_handles_am_name_id_fkey"
+            columns: ["name_id"]
+            isOneToOne: false
+            referencedRelation: "protected_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       protected_names: {
         Row: {
           country: string
+          country_code: string | null
           id: number
+          international: boolean
           kind: string
           name_am: string | null
           name_en: string
         }
         Insert: {
           country: string
+          country_code?: string | null
           id: number
+          international?: boolean
           kind: string
           name_am?: string | null
           name_en: string
         }
         Update: {
           country?: string
+          country_code?: string | null
           id?: number
+          international?: boolean
           kind?: string
           name_am?: string | null
           name_en?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "protected_names_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       rate_dials: {
         Row: {
@@ -4309,6 +4370,7 @@ export type Database = {
       name_one_edit: { Args: { a: string; b: string }; Returns: boolean }
       name_protected_folds: { Args: never; Returns: string[] }
       name_second_fold: { Args: { p_value: string }; Returns: string }
+      name_unaccent: { Args: { p: string }; Returns: string }
       new_public_id: { Args: never; Returns: string }
       next_language_sort: { Args: never; Returns: number }
       peek_rate_limit: {
