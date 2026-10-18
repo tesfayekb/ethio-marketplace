@@ -443,6 +443,12 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     try {
       const visitor = await context.newPage();
       await gotoReady(visitor, canonical);
+      const revealsBefore = await adminClient()
+        .from("contact_reveals")
+        .select("listing_id")
+        .eq("viewer_id", buyer.id)
+        .eq("listing_id", ad.id);
+      expect(revealsBefore.error).toBeNull();
       await visitor.getByTestId("listing-contact-sign-in").click();
       await waitForHydration(visitor);
       const { email, password, submit } = authFields(visitor);
@@ -455,7 +461,25 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
           return `${url.pathname}${url.search}${url.hash}`;
         })
         .toBe(`${canonical}#contact`);
+      // DEC-196 — the return brings the visitor to the seller card, highlighted,
+      // with the focus on Show contact; the number shows only on the tap.
       await expect(visitor.getByTestId("listing-detail-seller")).toBeInViewport();
+      await expect(visitor.getByTestId("listing-detail-seller")).toHaveAttribute(
+        "data-highlight",
+        "true",
+      );
+      await expect(visitor.getByTestId("listing-contact-show")).toBeVisible();
+      await expect(visitor.getByTestId("listing-contact-show")).toBeFocused();
+      await expect(visitor.getByTestId("listing-contact-phone")).toHaveCount(0);
+      await expect(visitor.locator("body")).not.toContainText("251911000001");
+      const revealsAfter = await adminClient()
+        .from("contact_reveals")
+        .select("listing_id")
+        .eq("viewer_id", buyer.id)
+        .eq("listing_id", ad.id);
+      expect(revealsAfter.error).toBeNull();
+      expect(revealsAfter.data ?? []).toHaveLength((revealsBefore.data ?? []).length);
+      await visitor.getByTestId("listing-contact-show").click();
       await expect(visitor.getByTestId("listing-contact-phone")).toHaveText("+251911000001");
     } finally {
       await context.close();

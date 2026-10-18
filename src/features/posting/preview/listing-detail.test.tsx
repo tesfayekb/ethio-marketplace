@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { shapePostingSchema } from "../posting-service";
@@ -640,4 +640,45 @@ it("LD-21 the Location box and its tab only with a place of the seller's own (tu
   expect(screen.getByTestId("listing-detail-location")).toBeInTheDocument();
   expect(screen.getByTestId("listing-detail-details")).toHaveTextContent("Bole, near the stadium");
   expect(screen.queryByTestId("listing-detail-map")).toBeNull();
+});
+
+it("LD-22 the sign-in return focuses Show contact and highlights the seller card for three seconds; it never reveals (DEC-196)", () => {
+  const onReveal = vi.fn();
+  const contact = {
+    viewer: "signedIn" as const,
+    signInTo: { to: "/auth" as const, search: { return: "/l/scratch#contact" } },
+    state: { kind: "idle" as const },
+    onReveal,
+    onSignInTap: vi.fn(),
+    whatsappText: "I'm interested in your ethio.com ad: /l/scratch",
+  };
+
+  // With the flag: the focus is on Show contact, the seller card is highlighted, no reveal.
+  const { unmount } = render(
+    <ListingDetail {...BASE} actor="buyer" contact={{ ...contact, focusOnReturn: true }} />,
+  );
+  expect(screen.getByTestId("listing-contact-show")).toHaveFocus();
+  expect(screen.getByTestId("listing-detail-seller")).toHaveAttribute("data-highlight", "true");
+  expect(onReveal).not.toHaveBeenCalled();
+  unmount();
+
+  // Without the flag: nothing focused, no highlight.
+  const second = render(<ListingDetail {...BASE} actor="buyer" contact={contact} />);
+  expect(screen.getByTestId("listing-contact-show")).not.toHaveFocus();
+  expect(screen.getByTestId("listing-detail-seller")).not.toHaveAttribute("data-highlight");
+  second.unmount();
+
+  // Three seconds on, the highlight is gone.
+  vi.useFakeTimers();
+  try {
+    render(<ListingDetail {...BASE} actor="buyer" contact={{ ...contact, focusOnReturn: true }} />);
+    expect(screen.getByTestId("listing-detail-seller")).toHaveAttribute("data-highlight", "true");
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(screen.getByTestId("listing-detail-seller")).not.toHaveAttribute("data-highlight");
+    expect(onReveal).not.toHaveBeenCalled();
+  } finally {
+    vi.useRealTimers();
+  }
 });

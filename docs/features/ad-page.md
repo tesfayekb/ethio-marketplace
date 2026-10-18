@@ -66,8 +66,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 ## Tests
 
-Turn 19: AP-40, AP-41, AP-42, RI-1…RI-5, PO-1…PO-2; AP-9, AP-36, AP-37, AP-38, AL-31 and the LD fixture changed.
-
+Turn 26: LD-22; AP-23 changed.
 Turn 25: AP-48, SA-1…SA-3, GAL-8, GAL-9.
 Turn 24: AP-44 changed (the wide window shortened before scrolling — INC-718; the in-page bar's cover check at both widths).
 Turn 23: AP-47, LD-21, VW-4, VW-5, VC-1; AP-17, AP-37, AP-42 and LD-19 changed.
@@ -153,3 +152,5 @@ Turn 22 — the wide layout of DEC-192 (drawings v13, option A): the top row (th
 Turn 23 — the in-page bar's items share the row below 42rem and every swipe strip hides its scrollbar with the `scrollbar-none` utility (INC-717 — the class rule: a swipe strip of tabs, chips or thumbnails never shows a scrollbar; a wide table keeps its own); the Location box and its tab show only when the seller placed a pin or wrote directions or location details, the city staying in the title box; a view counts once per browser session and ad (a sessionStorage id; the route's session gate over 24 hours; at most 30 counted views per address and ad an hour — ESTIMATE, env `RATE_LIMIT_LISTING_VIEW_PER_ADDRESS_AD`; without a session, one per address and ad an hour as before).
 
 Turn 25 — INC-717's class rule's second half: a strip that hides its scrollbar and has more than fits shows double-chevron arrows at the ends where more lies (one primitive, src/components/ui/strip-arrows.tsx: « » on a row, ▲ ▼ on a column; a tap scrolls the strip only), on the photo thumbnails (a row under the photo below 32rem, a column beside it from 32rem), the full-screen viewer's row and the posting step strip; the selected thumbnail is kept inside its strip when the photo changes; the viewer's row is centred safely (`justify-center-safe`) so its first photos stay reachable (INC-720).
+
+Turn 26 — after "Contact seller" and sign-in the page returns to the seller card, highlights it for three seconds and focuses "Show contact"; the number shows only on the visitor's own tap, recorded by the door (DEC-196; D201 §6 restored; turn 19's automatic reveal on return removed); the tab intent of turn 19 now only carries the visitor back.

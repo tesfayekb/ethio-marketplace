@@ -19,7 +19,7 @@ import { PhotoGallery } from "./photo-gallery";
 import { SafetyBox } from "./safety-box";
 import { boxLayout } from "./box-layout";
 import { keyFacts } from "../key-facts";
-import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { SellerLine } from "../seller-line";
 import { fill } from "../refusal-text";
 import { ownValue } from "@/lib/own-key";
@@ -174,6 +174,8 @@ export interface ListingDetailView {
     state: ContactState;
     onReveal: () => void;
     onSignInTap: () => void;
+    // DEC-196 — set once by the public ad page when the tab's sign-in return intent was taken.
+    focusOnReturn?: boolean;
     whatsappText: string;
   };
   // Bundle 19 turn 13b (D201 §11) — the buyer's Report link, passed by the public ad page only
@@ -232,6 +234,30 @@ export function ListingDetail(view: ListingDetailView) {
     t,
     t("post.review.noPrice"),
   );
+
+  // DEC-196 — the sign-in return scrolls the seller card into view, highlights
+  // it for three seconds and focuses Show contact; it never reveals. The flag
+  // is used once, so a later re-render never moves the page again.
+  const showContactRef = useRef<HTMLButtonElement | null>(null);
+  const focusOnReturnDone = useRef(false);
+  const [contactHighlight, setContactHighlight] = useState(false);
+  useEffect(() => {
+    if (focusOnReturnDone.current) return;
+    if (view.contact?.focusOnReturn !== true || view.contact.viewer !== "signedIn") return;
+    const button = showContactRef.current;
+    const card = typeof document === "undefined" ? null : document.getElementById("contact");
+    if (button === null || card === null) return;
+    focusOnReturnDone.current = true;
+    const reduced =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (typeof card.scrollIntoView === "function") {
+      card.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    }
+    button.focus({ preventScroll: true });
+    setContactHighlight(true);
+    window.setTimeout(() => setContactHighlight(false), 3000);
+  });
 
   const channels = (["phone", "phone2", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = view.contactPref[channel];
@@ -803,8 +829,9 @@ export function ListingDetail(view: ListingDetailView) {
           them, one method per row with its control at the row's end. */}
         <section
           id="contact"
-          className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.seller}`}
+          className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.seller} ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`}
           data-testid="listing-detail-seller"
+          data-highlight={contactHighlight ? "true" : undefined}
         >
           <div className="space-y-1">
             <h3 className="font-display text-base font-semibold text-foreground">
@@ -827,7 +854,11 @@ export function ListingDetail(view: ListingDetailView) {
                   </h4>
                 )}
                 {view.actor === "buyer" && view.contact !== undefined ? (
-                  <BuyerContact contact={view.contact} channels={channels} />
+                  <BuyerContact
+                    contact={view.contact}
+                    channels={channels}
+                    showRef={showContactRef}
+                  />
                 ) : (
                   <ul className="divide-y divide-border text-sm">
                     {channels.map((channel) => {
@@ -1010,9 +1041,12 @@ export function ListingDetail(view: ListingDetailView) {
 function BuyerContact({
   contact,
   channels,
+  showRef,
 }: {
   contact: NonNullable<ListingDetailView["contact"]>;
   channels: readonly ContactChannel[];
+  // DEC-196 — the sign-in return's one-time focus target.
+  showRef?: Ref<HTMLButtonElement>;
 }) {
   const { t } = useI18n();
 
@@ -1049,6 +1083,7 @@ function BuyerContact({
     <div className="space-y-2">
       {state.kind !== "revealed" && (
         <Button
+          ref={showRef}
           type="button"
           variant="default"
           size="touch"
