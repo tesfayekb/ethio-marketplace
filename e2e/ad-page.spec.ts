@@ -1507,7 +1507,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       const moreBox = await more.boundingBox();
       if (!stripBox || !moreBox) throw new Error("AP-48 strip boxes missing");
       expect(Math.abs(moreBox.y + moreBox.height - (stripBox.y + stripBox.height))).toBeLessThanOrEqual(1);
-      await more.tap();
+      await more.click();
       await expect(page.getByTestId("gallery-strip-back")).toBeVisible();
       await expect
         .poll(async () => strip.evaluate((el) => el.scrollTop))
@@ -1520,7 +1520,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       const more = page.getByTestId("gallery-strip-more");
       await expect(more).toBeVisible();
       await expect(page.getByTestId("gallery-strip-back")).toHaveCount(0);
-      await more.tap();
+      await more.click();
       await expect(page.getByTestId("gallery-strip-back")).toBeVisible();
       await expect
         .poll(async () => strip.evaluate((el) => el.scrollLeft))
@@ -1530,7 +1530,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     // The photo's › nine times: the tenth thumbnail lies inside the strip and
     // the page itself never scrolled.
     const pageY = await page.evaluate(() => window.scrollY);
-    for (let step = 0; step < 9; step++) await page.getByTestId("gallery-next").tap();
+    for (let step = 0; step < 9; step++) await page.getByTestId("gallery-next").click();
     await expect(page.getByTestId("gallery-count")).toHaveText("10 / 10");
     const stripBox = await strip.boundingBox();
     const tenthBox = await strip.getByTestId("gallery-thumb").nth(9).boundingBox();
@@ -1545,7 +1545,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     // row is scrolled to its start, the first thumbnail lies at or after the
     // row's own left (INC-720).
     await page.setViewportSize({ width: 360, height: 900 });
-    await page.getByTestId("gallery-main").tap();
+    await page.getByTestId("gallery-main").click();
     const row = page.getByTestId("gallery-viewer-thumbs");
     await expect(row.getByTestId("gallery-thumb")).toHaveCount(10);
     await row.evaluate((el) => {
