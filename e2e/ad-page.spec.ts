@@ -885,7 +885,18 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       )
         throw new Error("AP-36 missing layout boxes");
       const near = (a: number, b: number, tolerance: number) => Math.abs(a - b) <= tolerance;
-      // DEC-199 — the top row by the article's width.
+      // DEC-200 — the bar's VISIBLE targets by width (the Seller tab shows in
+      // the medium range only).
+      const visibleTargets = await page
+        .getByTestId("listing-section-nav")
+        .locator('[data-testid="listing-section-nav-item"]:visible')
+        .evaluateAll((items) => items.map((item) => item.getAttribute("data-target")));
+      expect(visibleTargets).toEqual(
+        article.width < 672 || article.width >= 920
+          ? ["details", "description", "location"]
+          : ["details", "description", "seller", "location"],
+      );
+      // DEC-200 — the top row and the boxes by the article's width.
       if (article.width < 672) {
         // DEC-197 — phone: the seller card follows the title box, then the bar
         // and the boxes in their DOM order.
@@ -893,40 +904,47 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         for (let i = 1; i < order.length; i += 1)
           expect(order[i].y).toBeGreaterThanOrEqual(order[i - 1].y + order[i - 1].height);
       } else if (article.width < 920) {
-        // The photo box and the title box side by side at one height; the
-        // seller card across the article under both, its contents in two
-        // columns; the bar under the seller card.
+        // DEC-200 — medium: the photo box and the title box side by side at
+        // one height; the bar across the article under both; Details |
+        // Description under the bar; then the seller card | Location; then
+        // the safety box across.
         expect(headline.x).toBeGreaterThanOrEqual(media.x + media.width);
         expect(near(headline.y, media.y, 1)).toBe(true);
         expect(near(headline.y + headline.height, media.y + media.height, 1)).toBe(true);
-        expect(near(sellerBox.x, article.x, 1)).toBe(true);
-        expect(near(sellerBox.width, article.width, 1)).toBe(true);
-        expect(sellerBox.y).toBeGreaterThanOrEqual(
+        expect(near(nav.width, article.width, 1)).toBe(true);
+        expect(nav.y).toBeGreaterThanOrEqual(
           Math.max(media.y + media.height, headline.y + headline.height),
         );
-        const contact = await page.getByTestId("listing-detail-contact").boundingBox();
-        if (!contact) throw new Error("AP-36 contact missing");
-        expect(contact.x).toBeGreaterThanOrEqual(sellerBox.x + sellerBox.width / 2);
-        expect(contact.y).toBeLessThan(sellerBox.y + sellerBox.height / 2);
-        expect(near(nav.width, article.width, 1)).toBe(true);
-        expect(nav.y).toBeGreaterThanOrEqual(sellerBox.y + sellerBox.height);
+        expect(description.x).toBeGreaterThanOrEqual(details.x + details.width);
+        expect(near(description.y, details.y, 1)).toBe(true);
+        expect(near(description.height, details.height, 1)).toBe(true);
+        expect(near(description.width, details.width, 1)).toBe(true);
+        expect(details.y).toBeGreaterThanOrEqual(nav.y + nav.height);
+        expect(near(sellerBox.x, article.x, 1)).toBe(true);
+        expect(near(sellerBox.width, details.width, 1)).toBe(true);
+        expect(near(sellerBox.y, location.y, 1)).toBe(true);
+        expect(near(sellerBox.height, location.height, 1)).toBe(true);
+        expect(sellerBox.y).toBeGreaterThanOrEqual(details.y + details.height - 1);
+        expect(near(safety.width, article.width, 1)).toBe(true);
+        expect(safety.y).toBeGreaterThanOrEqual(
+          Math.max(sellerBox.y + sellerBox.height, location.y + location.height) - 1,
+        );
+        // The bar sticks: after the safety box is scrolled into view, the
+        // bar's top lies within 8 px of the sub-band's bottom.
+        await page.getByTestId("listing-safety").scrollIntoViewIfNeeded();
+        const stuckNav = await page.getByTestId("listing-section-nav").boundingBox();
+        const band = await page.getByTestId("shell-subband").boundingBox();
+        if (!stuckNav || !band) throw new Error("AP-36 sticky boxes missing");
+        expect(Math.abs(stuckNav.y - band.y - band.height)).toBeLessThanOrEqual(8);
       } else {
+        // DEC-197 — large: the seller card under the title box beside the
+        // photo; Details | Description | Location in thirds; the safety box
+        // across.
         expect(headline.x).toBeGreaterThanOrEqual(media.x + media.width);
         expect(near(headline.y, media.y, 1)).toBe(true);
         expect(near(media.y + media.height, sellerBox.y + sellerBox.height, 1)).toBe(true);
         expect(sellerBox.y).toBeGreaterThanOrEqual(headline.y + headline.height);
         expect(near(nav.width, article.width, 1)).toBe(true);
-      }
-      // The boxes by width: under 896 Details | Description then Location |
-      // the safety box; from 896 the row of thirds then the safety box across.
-      if (article.width >= 672 && article.width < 896) {
-        expect(description.x).toBeGreaterThanOrEqual(details.x + details.width);
-        expect(near(description.y, details.y, 1)).toBe(true);
-        expect(near(description.height, details.height, 1)).toBe(true);
-        expect(safety.x).toBeGreaterThanOrEqual(location.x + location.width);
-        expect(near(safety.y, location.y, 1)).toBe(true);
-        expect(location.y).toBeGreaterThanOrEqual(details.y + details.height);
-      } else if (article.width >= 896) {
         const third = (article.width - 32) / 3;
         const row = [details, description, location];
         for (let i = 1; i < row.length; i += 1)
@@ -982,12 +1000,16 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await seedPhotos(ad.id);
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(3);
+    // DEC-200 — the visible items are three; the Seller item is in the DOM
+    // and hidden on a phone.
+    await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(3);
     expect(
       await bar
-        .getByTestId("listing-section-nav-item")
+        .locator('[data-testid="listing-section-nav-item"]:visible')
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
     ).toEqual(["details", "description", "location"]);
+    await expect(bar.locator('[data-target="seller"]')).toHaveCount(1);
+    await expect(bar.locator('[data-target="seller"]')).toBeHidden();
     const locationItem = bar.locator('[data-target="location"]');
     await locationItem.click();
     await expect(locationItem).toHaveAttribute("aria-current", "true");
@@ -1011,8 +1033,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     // Turn 23: a sold ad without a pin has no Location box and no tab.
     const sold = await seed(seller, "sold", { soldAt: -1 });
     await gotoReady(page, (await address(sold)).canonical);
-    // DEC-197 — the sold ad has a description only: one section, no bar.
-    await expect(page.getByTestId("listing-section-nav")).toHaveCount(0);
+    // DEC-200 — the sold ad has a description only: two sections with Seller,
+    // so the bar is rendered and hidden on a phone.
+    await expect(page.getByTestId("listing-section-nav")).toBeHidden();
     await expect(page.getByTestId("listing-detail-location")).toHaveCount(0);
     await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
