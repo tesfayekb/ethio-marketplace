@@ -66,6 +66,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 ## Tests
 
+Turn 30: RV-1; AP-36, AP-37, AP-47, LD-17, LD-19, GAL-10 changed.
 Turn 29: AP-36, AP-37, AP-45, AP-47, LD-17, LD-19 changed.
 Turn 28: AP-36, AP-37, AP-46, AP-47 changed.
 Turn 27: AP-49, AP-50, LP-10, UC-1, FD-4; AP-36, AP-37, AP-42, AP-45, PW-13, LD-18, LD-19 and two LD order tests changed. (The brief's LP-1/FD-1 ids were taken — INC-536 assigns an id once — so the next free ids carry the cases.)
@@ -163,3 +164,5 @@ Turn 27 — PW-13 follows DEC-193 (INC-721); the seller card moves into the righ
 Turn 28 — from 42rem to 57.5rem the seller card is a full-width row under the photo and the title box with its contents in two columns, from 57.5rem beside the photo under the title box (DEC-199); AP-37 and AP-47 count the bar's three items and AP-46 measures the title box by width (INC-723).
 
 Turn 29 — on a medium screen (42rem to 57.5rem) the seller card goes back where it was before turn 27: after Details | Description, beside Location, with its Seller tab in the bar (DEC-200, replacing turn 28's full-width row). Phones and large screens stay as they are.
+
+Turn 30 — below 57.5rem, on phones and medium screens, the seller card follows Details and Description and the bar reads Details · Description · Seller · Location (DEC-201); from 57.5rem the card stays under the title box beside the photo (DEC-197). The Review sheet and card name places with the draft's own country before the visitor's area (INC-724). In the grown photo box the photo's top meets the first thumbnail (INC-613 stands; extra height below), and the thumbnail column keeps its arrows at its own ends (INC-725, INC-726).

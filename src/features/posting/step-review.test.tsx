@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { en } from "@/i18n/locales/en";
 import { ownValue } from "@/lib/own-key";
 import type { DraftValues } from "./use-draft";
@@ -52,19 +53,21 @@ it("RV-1 the review card and sheet name the draft's city, not the visitor's othe
   for (const country of ["US", null]) {
     area.country = country;
     const { unmount } = render(
-      <StepReview
-        listingId={null}
-        categoryPath="Scratch category"
-        placeCountry="ET"
-        values={values}
-        photos={[]}
-        illustrationUrl={null}
-        expiryDays={null}
-        refusals={[]}
-        onChangeExpiry={vi.fn()}
-        onGoTo={vi.fn()}
-        maxPhotos={null}
-      />,
+      <QueryClientProvider client={new QueryClient()}>
+        <StepReview
+          listingId={null}
+          categoryPath="Scratch category"
+          placeCountry="ET"
+          values={values}
+          photos={[]}
+          illustrationUrl={null}
+          expiryDays={null}
+          refusals={[]}
+          onChangeExpiry={vi.fn()}
+          onGoTo={vi.fn()}
+          maxPhotos={null}
+        />
+      </QueryClientProvider>,
     );
     await waitFor(() =>
       expect(screen.getByTestId("post-review-places")).toHaveTextContent("Adama"),
