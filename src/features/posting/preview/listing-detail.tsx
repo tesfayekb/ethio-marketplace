@@ -19,7 +19,7 @@ import { PhotoGallery } from "./photo-gallery";
 import { SafetyBox } from "./safety-box";
 import { boxLayout } from "./box-layout";
 import { keyFacts } from "../key-facts";
-import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { SellerLine } from "../seller-line";
 import { fill } from "../refusal-text";
 import { ownValue } from "@/lib/own-key";
@@ -1041,9 +1041,12 @@ export function ListingDetail(view: ListingDetailView) {
 function BuyerContact({
   contact,
   channels,
+  showRef,
 }: {
   contact: NonNullable<ListingDetailView["contact"]>;
   channels: readonly ContactChannel[];
+  // DEC-196 — the sign-in return's one-time focus target.
+  showRef?: Ref<HTMLButtonElement>;
 }) {
   const { t } = useI18n();
 
@@ -1080,6 +1083,7 @@ function BuyerContact({
     <div className="space-y-2">
       {state.kind !== "revealed" && (
         <Button
+          ref={showRef}
           type="button"
           variant="default"
           size="touch"
