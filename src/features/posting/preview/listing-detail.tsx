@@ -525,14 +525,10 @@ export function ListingDetail(view: ListingDetailView) {
 
         </div>
 
-        <aside
-          data-testid="listing-detail-aside"
-          className="contents @2xl:sticky @2xl:top-[calc(var(--listing-nav-top,8.5rem)+1rem)] @2xl:col-start-2 @2xl:row-start-2 @2xl:block @2xl:min-w-0 @2xl:self-start @2xl:space-y-4 @4xl:row-start-1 @4xl:row-span-2"
+        <section
+          data-testid="listing-detail-headline"
+          className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
         >
-          <section
-            data-testid="listing-detail-headline"
-            className="isolate order-2 min-w-0 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-          >
             {/* ---------------------------- title and price ----------------------- */}
             <Title
               className="font-display text-xl font-semibold leading-tight text-foreground @4xl:text-2xl"
@@ -641,13 +637,167 @@ export function ListingDetail(view: ListingDetailView) {
                   )}
                 </p>
               )}
+          {/* DEC-192 (bundle 19 turn 22) — Save and Share are text links at the
+            title box's foot, at every width; the count sits at the row's end. */}
+          {(view.save !== undefined || view.share !== undefined) && (
+            <div
+              data-testid="listing-detail-actions"
+              className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border pt-2"
+            >
+              {view.save !== undefined && (
+                <Button
+                  asChild={view.save.viewer === "signedOut"}
+                  variant="ghost"
+                  className="h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
+                  {...(view.save.viewer === "signedOut"
+                    ? {}
+                    : {
+                        type: "button" as const,
+                        "data-testid": "listing-save",
+                        "data-state":
+                          view.save.viewer === "unknown"
+                            ? "unknown"
+                            : view.save.saved
+                              ? "saved"
+                              : "unsaved",
+                        "aria-pressed": view.save.saved === true,
+                        "aria-label": t(view.save.saved ? "adPage.save.remove" : "adPage.save.add"),
+                        disabled:
+                          view.save.viewer === "unknown" ||
+                          view.save.busy ||
+                          view.save.saved === null,
+                        onClick: view.save.onToggle,
+                      })}
+                >
+                  {view.save.viewer === "signedOut" ? (
+                    <Link
+                      to={view.save.signInTo.to}
+                      search={view.save.signInTo.search}
+                      data-testid="listing-save"
+                      data-state="signedOut"
+                      aria-label={saveSignInLabel}
+                    >
+                      <Heart aria-hidden="true" className="size-5 shrink-0" />
+                      {t("adPage.save.add")}
+                    </Link>
+                  ) : (
+                    <>
+                      <Heart
+                        aria-hidden="true"
+                        className="size-5 shrink-0"
+                        fill={view.save.saved ? "currentColor" : "none"}
+                      />
+                      {t(view.save.saved ? "adPage.save.saved" : "adPage.save.add")}
+                    </>
+                  )}
+                </Button>
+              )}
+              {view.share}
+              {view.save !== undefined && view.save.count > 0 && (
+                <span
+                  className="ms-auto text-sm text-muted-foreground"
+                  data-testid="listing-save-count"
+                >
+                  {fill(t("adPage.save.count"), { count: view.save.count })}
+                </span>
+              )}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {showSections && (
+        <nav
+          ref={navRef}
+          data-testid="listing-section-nav"
+          aria-label={t("adPage.sections.label")}
+          className="sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto rounded-md border border-border bg-card"
+        >
+          {sections.map((section) => (
+            <Button
+              key={section.target}
+              variant="ghost"
+              type="button"
+              data-testid="listing-section-nav-item"
+              data-target={section.target}
+              aria-current={currentSection === section.target ? "true" : undefined}
+              className={`min-h-11 shrink-0 rounded-none border-b-2 px-3 ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
+              onClick={() => {
+                setCurrentSection(section.target);
+                scrollSection(section.id);
+              }}
+            >
+              {t(section.label)}
+            </Button>
+          ))}
+        </nav>
+      )}
+
+      <div
+        data-testid="listing-detail-boxes"
+        className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-6"
+      >
+        {/* ------------------------------ the facts --------------------------- */}
+        {facts.length > 0 && (
+          <section
+            id="ad-details"
+            className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.details}`}
+            data-testid="listing-detail-specs"
+          >
+            <h3 className="font-display text-base font-semibold text-foreground">
+              {t("post.preview.detailsLabel")}
+            </h3>
+            <dl className="space-y-2 text-sm">
+              {facts.map((definition) => (
+                <div key={definition.attrKey} className="grid grid-cols-2 gap-3">
+                  <dt className="text-muted-foreground">{factLabel(definition)}</dt>
+                  <dd
+                    className="text-start text-foreground"
+                    data-testid="listing-detail-spec"
+                    data-key={definition.attrKey}
+                  >
+                    {factValue(definition)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
           </section>
-          {/* ----------------------------- the seller --------------------------- */}
+        )}
+        {/* --------------------------- the description ------------------------ */}
+        {view.description !== "" && (
+          <section
+            id="ad-description"
+            className={`isolate flex min-w-0 scroll-mt-14 flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.description}`}
+          >
+            <h3 className="font-display text-base font-semibold text-foreground">
+              {t("post.preview.descriptionLabel")}
+            </h3>
+            <p
+              ref={descriptionRef}
+              className={`whitespace-pre-line text-sm leading-relaxed text-foreground ${view.actor === "buyer" && !expanded ? "line-clamp-8" : ""}`}
+              data-testid="listing-detail-description"
+            >
+              {view.description}
+            </p>
+            {view.actor === "buyer" && overflows && (
+              <Button
+                variant="ghost"
+                className="mt-auto min-h-11 self-start text-primary"
+                data-testid="listing-description-toggle"
+                aria-expanded={expanded}
+                onClick={() => setExpanded((current) => !current)}
+              >
+                {t(expanded ? "adPage.description.less" : "adPage.description.more")}
+              </Button>
+            )}
+          </section>
+        )}
+        {/* ----------------------------- the seller --------------------------- */}
           {/* Bundle 11 A3 (D130) — one box, in order: who sells, then how to reach
           them, one method per row with its control at the row's end. */}
           <section
             id="contact"
-            className="isolate order-8 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+            className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.seller}`}
             data-testid="listing-detail-seller"
           >
             <div className="space-y-1">
@@ -737,105 +887,7 @@ export function ListingDetail(view: ListingDetailView) {
             )}
           </section>
 
-          {view.report !== undefined && (
-            <div id="report" data-testid="listing-detail-report" className="isolate order-9">
-              {view.report}
-            </div>
-          )}
-        </aside>
-        <div
-          data-testid="listing-detail-main"
-          className="contents @2xl:col-start-1 @2xl:row-start-2 @2xl:flex @2xl:min-w-0 @2xl:flex-col @2xl:gap-6"
-        >
-          {showSections && (
-            <nav
-              ref={navRef}
-              data-testid="listing-section-nav"
-              aria-label={t("adPage.sections.label")}
-              className="sticky top-[var(--listing-nav-top,8.5rem)] z-10 order-3 flex min-w-0 overflow-x-auto border-b border-border bg-card @2xl:hidden @4xl:flex"
-            >
-              {sections.map((section) => (
-                <Button
-                  key={section.target}
-                  variant="ghost"
-                  type="button"
-                  data-testid="listing-section-nav-item"
-                  data-target={section.target}
-                  aria-current={currentSection === section.target ? "true" : undefined}
-                  className={`min-h-11 shrink-0 rounded-none border-b-2 px-3 ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
-                  onClick={() => {
-                    setCurrentSection(section.target);
-                    scrollSection(section.id);
-                  }}
-                >
-                  {t(section.label)}
-                </Button>
-              ))}
-            </nav>
-          )}
-          {(!sold || facts.length > 0) && (
-            <div
-              className={`contents @4xl:order-4 @4xl:grid @4xl:gap-4 ${!sold && facts.length > 0 ? "@4xl:grid-cols-2" : "@4xl:grid-cols-1"}`}
-            >
-              {!sold && <SafetyBox />}
-
-              {/* ------------------------------ the facts --------------------------- */}
-              {facts.length > 0 && (
-                <section
-                  id="ad-details"
-                  className="isolate order-5 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-                  data-testid="listing-detail-specs"
-                >
-                  <h3 className="font-display text-base font-semibold text-foreground">
-                    {t("post.preview.detailsLabel")}
-                  </h3>
-                  <dl className="space-y-2 text-sm">
-                    {facts.map((definition) => (
-                      <div key={definition.attrKey} className="grid grid-cols-2 gap-3">
-                        <dt className="text-muted-foreground">{factLabel(definition)}</dt>
-                        <dd
-                          className="text-start text-foreground"
-                          data-testid="listing-detail-spec"
-                          data-key={definition.attrKey}
-                        >
-                          {factValue(definition)}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-              )}
-            </div>
-          )}
-          {/* --------------------------- the description ------------------------ */}
-          {view.description !== "" && (
-            <section
-              id="ad-description"
-              className="isolate order-6 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-            >
-              <h3 className="font-display text-base font-semibold text-foreground">
-                {t("post.preview.descriptionLabel")}
-              </h3>
-              <p
-                ref={descriptionRef}
-                className={`whitespace-pre-line text-sm leading-relaxed text-foreground ${view.actor === "buyer" && !expanded ? "line-clamp-8" : ""}`}
-                data-testid="listing-detail-description"
-              >
-                {view.description}
-              </p>
-              {view.actor === "buyer" && overflows && (
-                <Button
-                  variant="ghost"
-                  className="min-h-11 text-primary"
-                  data-testid="listing-description-toggle"
-                  aria-expanded={expanded}
-                  onClick={() => setExpanded((current) => !current)}
-                >
-                  {t(expanded ? "adPage.description.less" : "adPage.description.more")}
-                </Button>
-              )}
-            </section>
-          )}
+          </section>
 
           <section
             id="ad-location"
