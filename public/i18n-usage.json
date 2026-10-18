@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 491,
+  "scanned": 492,
   "dynamicCallSites": 351,
   "keys": {
     "account.deactivatedBanner": [
@@ -238,6 +238,18 @@
     "adPage.gone.title": [
       "/l/$slug"
     ],
+    "adPage.map.app": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "adPage.map.approx": [
       "(every page)",
       "/admin/listings/$listingId",
@@ -263,6 +275,18 @@
       "/post/$listingId"
     ],
     "adPage.map.google": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "adPage.map.web": [
       "(every page)",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4272,6 +4296,7 @@
       "/settings"
     ],
     "common.cancel": [
+      "(every page)",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -4283,6 +4308,7 @@
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
+      "/l/$id/photo[/]jpg",
       "/l/$slug",
       "/my-listings",
       "/my-listings/$listingId",

@@ -316,6 +316,8 @@ export const en = {
   "adPage.description.more": "Read more",
   "adPage.description.less": "Show less",
   "adPage.map.google": "Open in Google Maps",
+  "adPage.map.app": "Google Maps app",
+  "adPage.map.web": "Map in the browser",
   "adPage.map.label": "Map of the ad's location",
   "adPage.map.approx": "The ad's area, about 500 metres across.",
   "adPage.save.saved": "Saved",
