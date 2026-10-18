@@ -665,7 +665,7 @@ export function AppRail() {
           >
             <div
               data-testid="strip-scroll"
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
             >
               <RailBody onNavigate={() => undefined} />
             </div>
@@ -721,7 +721,7 @@ export function AppRail() {
             <div className={cn("h-[calc(100%-var(--bottom-bar))] min-h-0", fromMd && "h-full p-2")}>
               <div
                 data-testid="rail-scroll"
-                className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
               >
                 <RailBody onNavigate={() => setNavOpen(false)} />
               </div>

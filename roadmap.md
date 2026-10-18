@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-22.md (bundle 19 — turn 22: the ad page's wide layout as drawn — DEC-192, drawings v13, option A: the photo and the title box side by side at one height, Save and Share in the title box, the tabs across the full width in the boxes' order, the boxes two or three a row at one height, a missing box giving its room to its row; INC-716 the buyer's Directions label; two strings). Next: Publish and the one walk on the newest green run, then the close; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-23.md (bundle 19 — turn 23: the operator's review of turn 22 — no scrollbar under the tabs, the class rule for swipe strips (INC-717); no Location box when the seller placed nothing beyond the city; views counted once per browser session with an address-and-ad ceiling). Next: Publish and the one walk on the newest green run, then the close; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 

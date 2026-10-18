@@ -200,28 +200,31 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("my-listing-continue")).toBeVisible();
     await expect(page.getByTestId("my-listing-open-public")).toHaveCount(0);
   });
-  test("AP-17 a visit counts one view, the same address not twice in the hour, the owner never; the seller's page shows the count; the route refuses a bad id", async ({
+  test("AP-17 a view counts once per browser session; reloads in the session do not; another session from the same address does; the owner never; the seller's page shows the count; the route refuses a bad id", async ({
     page,
+    browser,
   }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller);
     const { canonical } = await address(ad);
-    const runKey = `ap17-${token()}`;
-    let addressKey = `${runKey}-a`;
-    await page.route("**/api/listings/view", (route) =>
-      route.continue({
-        headers: { ...route.request().headers(), "x-e2e-catalog-find-key": addressKey },
-      }),
-    );
-    async function visit(reload = false) {
-      const response = page.waitForResponse(
+    // The address key stays FIXED for the whole test: only the session changes.
+    const addressKey = `ap17-${token()}`;
+    const pin = async (context: import("@playwright/test").BrowserContext) =>
+      context.route("**/api/listings/view", (route) =>
+        route.continue({
+          headers: { ...route.request().headers(), "x-e2e-catalog-find-key": addressKey },
+        }),
+      );
+    await pin(page.context());
+    async function visit(target: import("@playwright/test").Page, reload = false) {
+      const response = target.waitForResponse(
         (response) =>
           new URL(response.url()).pathname === "/api/listings/view" &&
           response.request().method() === "POST",
       );
-      if (reload) await page.reload();
-      else await page.goto(canonical);
-      await expect(page.getByTestId("listing-detail-title")).toHaveText(ad.title);
+      if (reload) await target.reload();
+      else await target.goto(canonical);
+      await expect(target.getByTestId("listing-detail-title")).toHaveText(ad.title);
       const counted = await response;
       expect(counted.status()).toBe(200);
     }
@@ -233,16 +236,25 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       if (error) throw new Error(`[e2e:ap17] counter read failed: ${error.message}`);
       return (data ?? []).reduce((sum, row) => sum + row.views, 0);
     }
-    await visit();
+    await visit(page);
     expect(await views()).toBe(1);
-    await visit(true);
+    // A reload in the same tab keeps the same session id: no second count.
+    await visit(page, true);
     expect(await views()).toBe(1);
-    addressKey = `${runKey}-b`;
-    await visit(true);
-    expect(await views()).toBe(2);
+    // A second browser context has its own sessionStorage: a new session from
+    // the same address counts once more.
+    const second = await browser.newContext();
+    try {
+      await pin(second);
+      const secondPage = await second.newPage();
+      await visit(secondPage);
+      expect(await views()).toBe(2);
+    } finally {
+      await second.close();
+    }
+    // The owner's own view is never counted.
     await signInViaSession(page, seller.email, seller.password);
-    addressKey = `${runKey}-c`;
-    await visit();
+    await visit(page);
     expect(await views()).toBe(2);
     await gotoReady(page, `/my-listings/${ad.id}`);
     const count = page.getByTestId("listing-detail-counts");
@@ -919,7 +931,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       .from("category_attribute_links")
       .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
     expect(linked.error).toBeNull();
-    const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" } });
+    // Turn 23: a pin so the Location box and its tab exist.
+    const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" }, pin: true });
     await seedPhotos(ad.id);
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
@@ -949,15 +962,17 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         return nav && band ? Math.abs(nav.y - band.y - band.height) : 100;
       })
       .toBeLessThanOrEqual(8);
+    // Turn 23: a sold ad without a pin has no Location box and no tab.
     const sold = await seed(seller, "sold", { soldAt: -1 });
     await gotoReady(page, (await address(sold)).canonical);
     await expect(page.getByTestId("listing-section-nav")).toBeVisible();
-    await expect(page.getByTestId("listing-section-nav-item")).toHaveCount(3);
+    await expect(page.getByTestId("listing-section-nav-item")).toHaveCount(2);
     expect(
       await page
         .getByTestId("listing-section-nav-item")
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
-    ).toEqual(["description", "seller", "location"]);
+    ).toEqual(["description", "seller"]);
+    await expect(page.getByTestId("listing-detail-location")).toHaveCount(0);
     await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
 
@@ -1273,7 +1288,12 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       .update({ description: "" })
       .eq("id", live.id);
     expect(cleared.error).toBeNull();
-    const sold = await seed(seller, "sold", { soldAt: -1, attributes: { [key]: "scratch value" } });
+    // Turn 23: a pin so the sold ad keeps its Location box for the full-row check.
+    const sold = await seed(seller, "sold", {
+      soldAt: -1,
+      attributes: { [key]: "scratch value" },
+      pin: true,
+    });
     for (const ad of [live, sold]) {
       await gotoReady(page, (await address(ad)).canonical);
       await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
@@ -1315,6 +1335,20 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         expect(Math.abs(location.width - article.width)).toBeLessThanOrEqual(1);
       }
     }
+    // Turn 23: a live ad with a fact, a description and NO pin has no Location
+    // box; the safety box takes the whole row under the seller card.
+    const noPin = await seed(seller, "active", { attributes: { [key]: "scratch value" } });
+    await gotoReady(page, (await address(noPin)).canonical);
+    await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
+    await expect(page.getByTestId("listing-detail-location")).toHaveCount(0);
+    const articleBox = await page.getByTestId("listing-detail").boundingBox();
+    const sellerCard = await page
+      .locator('section[data-testid="listing-detail-seller"]')
+      .boundingBox();
+    const safety = await page.getByTestId("listing-safety").boundingBox();
+    if (!articleBox || !sellerCard || !safety) throw new Error("AP-42 no-pin boxes missing");
+    expect(Math.abs(safety.width - articleBox.width)).toBeLessThanOrEqual(1);
+    expect(safety.y).toBeGreaterThan(sellerCard.y);
   });
 
   test("AP-45 the tabs on a wide screen", async ({ page }, testInfo) => {
@@ -1416,5 +1450,38 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       expect(
         Math.abs(headlineBox.y + headlineBox.height - (mediaBox.y + mediaBox.height)),
       ).toBeLessThanOrEqual(1);
+  });
+
+  test("AP-47 the in-page bar shows no scrollbar (INC-717)", async ({ page }, testInfo) => {
+    // AP-36's ad shape: a fact and an exact pin, so all four tabs show.
+    const seller = await scratchSeller();
+    const key = `e2e-scrollbar-${token()}`;
+    factKeys.push(key);
+    const attributeId = await seedAttribute(key, "text");
+    const linked = await adminClient()
+      .from("category_attribute_links")
+      .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
+    expect(linked.error).toBeNull();
+    const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" }, pin: true });
+    if (testInfo.project.name === "desktop-1280")
+      await page.setViewportSize({ width: 600, height: 900 });
+    await gotoReady(page, (await address(ad)).canonical);
+    const bar = page.getByTestId("listing-section-nav");
+    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    const scrollbarWidth = await bar.evaluate((nav) => getComputedStyle(nav).scrollbarWidth);
+    expect(scrollbarWidth).toBe("none");
+    // At 360 the items share the row: nothing overflows.
+    await page.setViewportSize({ width: 360, height: 900 });
+    const nav = await bar.boundingBox();
+    if (!nav) throw new Error("AP-47 nav missing");
+    const overflow = await bar.evaluate((el) => el.scrollWidth - el.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    const items = await bar.getByTestId("listing-section-nav-item").all();
+    for (const item of items) {
+      const box = await item.boundingBox();
+      if (!box) throw new Error("AP-47 item missing");
+      expect(box.x).toBeGreaterThanOrEqual(nav.x - 1);
+      expect(box.x + box.width).toBeLessThanOrEqual(nav.x + nav.width + 1);
+    }
   });
 });

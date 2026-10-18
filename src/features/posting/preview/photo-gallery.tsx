@@ -185,7 +185,7 @@ export function PhotoGallery({
             at={at}
             onPick={go}
             testid="gallery-thumbs"
-            className="flex gap-2 overflow-x-auto @min-[32rem]:max-h-[27rem] @min-[32rem]:w-16 @min-[32rem]:shrink-0 @min-[32rem]:flex-col @min-[32rem]:overflow-x-hidden @min-[32rem]:overflow-y-auto"
+            className="scrollbar-none flex gap-2 overflow-x-auto @min-[32rem]:max-h-[27rem] @min-[32rem]:w-16 @min-[32rem]:shrink-0 @min-[32rem]:flex-col @min-[32rem]:overflow-x-hidden @min-[32rem]:overflow-y-auto"
           />
         ) : null}
       </div>
@@ -370,7 +370,7 @@ function Viewer({
           at={at}
           onPick={onGo}
           testid="gallery-viewer-thumbs"
-          className="flex justify-center gap-2 overflow-x-auto p-2"
+          className="scrollbar-none flex justify-center gap-2 overflow-x-auto p-2"
         />
       ) : null}
     </div>,
