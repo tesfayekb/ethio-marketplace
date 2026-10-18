@@ -1675,4 +1675,36 @@ test.describe("POSTING ROUTES", () => {
     expectRefused(await businessReasons(page, token, "Éthio Coffee"), "businessEthio");
     expectPasses(await businessReasons(page, token, "Café Selam " + rand().replace(/[0-9]/g, "q")));
   });
+
+  test("PR-59 the v4 organisations are reserved for every seller in every country (DEC-202, DEC-203)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    for (const alias of [
+      "barclays",
+      "sparkasse",
+      "seb_bank",
+      "nibremit",
+      "united_nations",
+      "swish",
+    ]) {
+      expectRefused(await aliasReasons(page, token, alias), "aliasReserved");
+    }
+    expectRefused(await aliasReasons(page, token, "barclays", "KE"), "aliasReserved");
+    for (const alias of ["swish_shop", "absher_tours"]) {
+      expectPasses(await aliasReasons(page, token, alias));
+    }
+    for (const name of ["Barclays", "JPMorgan Chase Bank", "NibRemit"]) {
+      expectRefused(await businessReasons(page, token, name), "businessReserved");
+    }
+  });
+
+  test("PR-60 the Amharic names and short forms of the list are reserved (R2)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    for (const name of ["ባርክሌይስ", "ንግድ ባንክ", "ሲቢኢ"]) {
+      expectRefused(await businessReasons(page, token, name), "businessReserved");
+    }
+  });
 });
