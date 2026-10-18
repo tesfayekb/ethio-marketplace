@@ -31,12 +31,23 @@ async function readCardLinks(photoIds: string[]): Promise<PhotoLinks> {
   return linksOf((await response.json()) as Record<string, unknown>);
 }
 
-/** The card-size link of each card's cover, by photo id; null when there is none. */
+/**
+ * The card-size link of each card's cover, by photo id; null when there is
+ * none. DEC-195 — `preset` carries the links a feed answer already signed:
+ * a cover the preset holds is never asked for again; only the rest are
+ * requested, and the preset's links win for the ids they hold.
+ */
 export function useCardPhotos(
   cards: readonly { coverPhotoId: string | null }[],
+  preset?: PhotoLinks,
 ): (photoId: string | null) => string | null {
+  const held = preset ?? {};
   const ids = [
-    ...new Set(cards.map((card) => card.coverPhotoId).filter((id): id is string => id !== null)),
+    ...new Set(
+      cards
+        .map((card) => card.coverPhotoId)
+        .filter((id): id is string => id !== null && held[id] === undefined),
+    ),
   ];
   const groups: string[][] = [];
   for (let start = 0; start < ids.length; start += GROUP)
@@ -50,7 +61,7 @@ export function useCardPhotos(
       retry: 2,
     })),
   });
-  const links: Record<string, Readonly<Record<string, string>>> = {};
+  const links: Record<string, Readonly<Record<string, string>>> = { ...held };
   for (const answer of answers) if (answer.data) Object.assign(links, answer.data);
   return (photoId) => (photoId === null ? null : photoUrl({ id: photoId }, CARD_THEN_THUMB, links));
 }

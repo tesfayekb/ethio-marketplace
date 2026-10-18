@@ -84,12 +84,15 @@ export function PhotoGallery({
   photos,
   markUnscreened = false,
   ribbon = null,
+  fill: fillColumn = false,
 }: {
   photos: readonly GalleryPhoto[];
   /** D158 — staff's preview marks a photo held while photo screening was off. */
   markUnscreened?: boolean;
   /** D180 — the ad's status word, drawn as the gold ribbon on the large photo; null when it has none. */
   ribbon?: string | null;
+  /** DEC-197 — from a 32rem container the gallery grows to its card's height (the photo whole, centred, never shorter than its 4:3 height). Below 32rem nothing changes. */
+  fill?: boolean;
 }) {
   const { t } = useI18n();
   const total = photos.length;
@@ -113,9 +116,16 @@ export function PhotoGallery({
   const several = total > 1;
 
   return (
-    <div data-testid="listing-detail-gallery" className="@container">
-      <div className="flex flex-col gap-2 @min-[32rem]:flex-row-reverse @min-[32rem]:items-start">
-        <div className="relative min-w-0 flex-1">
+    <div
+      data-testid="listing-detail-gallery"
+      className={`@container${fillColumn ? " @min-[32rem]:flex @min-[32rem]:h-full @min-[32rem]:flex-1 @min-[32rem]:flex-col" : ""}`}
+    >
+      <div
+        className={`flex flex-col gap-2 @min-[32rem]:flex-row-reverse ${fillColumn ? "@min-[32rem]:min-h-0 @min-[32rem]:flex-1 @min-[32rem]:items-stretch" : "@min-[32rem]:items-start"}`}
+      >
+        <div
+          className={`relative min-w-0 flex-1${fillColumn ? " @min-[32rem]:flex @min-[32rem]:flex-col" : ""}`}
+        >
           <button
             ref={mainRef}
             type="button"
@@ -123,7 +133,7 @@ export function PhotoGallery({
             data-index={at}
             aria-label={t("post.gallery.enlarge")}
             aria-describedby={placeId}
-            className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md bg-muted"
+            className={`flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md bg-muted${fillColumn ? " @min-[32rem]:min-h-full" : ""}`}
             style={{ touchAction: "pan-y" }}
             {...swipe.handlers}
             onClick={() => {
@@ -141,12 +151,14 @@ export function PhotoGallery({
               alt=""
               width={480}
               height={360}
-              className="h-full w-full object-contain @min-[32rem]:object-top"
+              className={`h-full w-full object-contain${fillColumn ? "" : " @min-[32rem]:object-top"}`}
               draggable={false}
             />
           </button>
           {ribbon !== null ? (
-            <div className="pointer-events-none absolute inset-x-0 top-0 aspect-[4/3] overflow-hidden rounded-md">
+            <div
+              className={`pointer-events-none absolute overflow-hidden rounded-md ${fillColumn ? "inset-0" : "inset-x-0 top-0 aspect-[4/3]"}`}
+            >
               <ListingRibbon text={ribbon} />
               <span className="sr-only">{ribbon}</span>
             </div>

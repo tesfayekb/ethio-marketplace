@@ -391,12 +391,14 @@ test.describe("POSTING WIZARD", () => {
         nodes.map((node) => (node as HTMLOptionElement).value).filter((value) => value !== ""),
       );
     let picked = false;
+    let cityName = "";
     for (const value of values) {
       await region.selectOption(value);
       const cityPicker = page.getByTestId("post-where-city");
       if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {
         await cityPicker.selectOption(city.id);
         picked = true;
+        cityName = ((await cityPicker.locator("option:checked").textContent()) ?? "").trim();
         break;
       }
     }
@@ -426,6 +428,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
       timeout: 20_000,
     });
+    return cityName;
   }
 
   async function reachStep7(
@@ -443,9 +446,9 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-description").fill("e2e listing description");
     await nextToStep(page, 6);
 
-    await chooseOneCity(page);
+    const cityName = await chooseOneCity(page);
     await nextToStep(page, 7);
-    return listingId;
+    return { listingId, cityName };
   }
 
   test("PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored", async ({
@@ -454,7 +457,7 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page);
     const category = await seedPostableCategory();
     categories.push(category.slug);
-    const listingId = await reachStep7(page, user.id, category);
+    const { listingId } = await reachStep7(page, user.id, category);
 
     // MESSAGES IS A FACT, NOT A CHOICE (`listing_contact_refusals`). Bundle 3
     // step 10: one always-on box, with no control that could switch it off.
@@ -562,7 +565,7 @@ test.describe("POSTING WIZARD", () => {
     if (error)
       throw new Error(`[e2e:pw112] seeding the last post's contact failed: ${error.message}`);
 
-    const listingId = await reachStep7(page, user.id, category);
+    const { listingId } = await reachStep7(page, user.id, category);
     await expect(
       page.getByTestId("post-who-contact-carried"),
       "PW-112: the line naming the last post never showed",
@@ -593,7 +596,7 @@ test.describe("POSTING WIZARD", () => {
     const user = await seller(page, { named: true });
     const category = await seedPostableCategory();
     categories.push(category.slug);
-    const listingId = await reachStep7(page, user.id, category);
+    const { listingId, cityName } = await reachStep7(page, user.id, category);
 
     await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
@@ -640,7 +643,10 @@ test.describe("POSTING WIZARD", () => {
       "PW-13: the buyer preview shows no seller block",
     ).toBeVisible();
     await expect(sheet.getByTestId("listing-detail-map")).toHaveCount(0);
-    await expect(sheet.getByTestId("listing-detail-location")).toBeVisible();
+    // DEC-193 — a city only, no pin, directions or details: NO Location box; the
+    // city shows in the sheet's place line (INC-721).
+    await expect(sheet.getByTestId("listing-detail-location")).toHaveCount(0);
+    await expect(sheet.getByTestId("listing-detail-places")).toContainText(cityName);
     await expect(sheet.getByTestId("listing-section-nav")).toHaveCount(0);
     await page.getByTestId("post-preview-close").click();
     await expect(sheet, "PW-13: the preview sheet would not close").toHaveCount(0);

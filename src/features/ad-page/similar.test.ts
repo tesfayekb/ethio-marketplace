@@ -72,7 +72,7 @@ describe("SIM — similar ads read (D201 §12)", () => {
     ];
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok(page(cards))));
     const byId = await similarListings("c-leaf", null, "l-self");
-    expect(byId.map((one) => one.id)).toEqual([
+    expect(byId.cards.map((one) => one.id)).toEqual([
       "l-1",
       "l-2",
       "l-3",
@@ -86,7 +86,7 @@ describe("SIM — similar ads read (D201 §12)", () => {
     ]);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok(page(cards))));
     const byPublicId = await similarListings("c-leaf", null, "p-self");
-    expect(byPublicId.map((one) => one.id)).toEqual([
+    expect(byPublicId.cards.map((one) => one.id)).toEqual([
       "l-1",
       "l-2",
       "l-3",
@@ -100,14 +100,15 @@ describe("SIM — similar ads read (D201 §12)", () => {
     ]);
   });
 
-  it("SIM-3 a 404/500 answer, an unparsable body and a thrown fetch each give []", async () => {
+  it("SIM-3 a 404/500 answer, an unparsable body and a thrown fetch each give the empty answer", async () => {
+    const empty = { cards: [], coverLinks: {} };
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("no", { status: 404 })));
-    expect(await similarListings("c-leaf", null, "l-self")).toEqual([]);
+    expect(await similarListings("c-leaf", null, "l-self")).toEqual(empty);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("no", { status: 500 })));
-    expect(await similarListings("c-leaf", null, "l-self")).toEqual([]);
+    expect(await similarListings("c-leaf", null, "l-self")).toEqual(empty);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok({ not: "a feed page" })));
-    expect(await similarListings("c-leaf", null, "l-self")).toEqual([]);
+    expect(await similarListings("c-leaf", null, "l-self")).toEqual(empty);
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
-    expect(await similarListings("c-leaf", null, "l-self")).toEqual([]);
+    expect(await similarListings("c-leaf", null, "l-self")).toEqual(empty);
   });
 });

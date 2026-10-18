@@ -102,6 +102,7 @@ export function ListingPicture({
   rounded = "rounded-md",
   fill = false,
   ribbon = null,
+  priority = false,
 }: {
   photoUrl: string | null;
   categoryUrl: string | null;
@@ -121,6 +122,8 @@ export function ListingPicture({
   fill?: boolean;
   /** D180 — the ad's status word, drawn as the gold ribbon; null when it has none. */
   ribbon?: string | null;
+  /** DEC-195 — the grid's first cards load at once with high fetch priority; the rest lazily. */
+  priority?: boolean;
 }) {
   const { t } = useI18n();
   const source = photoUrl ?? categoryUrl;
@@ -154,7 +157,9 @@ export function ListingPicture({
             alt=""
             width={320}
             height={240}
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : undefined}
+            decoding="async"
             onLoad={(event) => {
               const { naturalWidth, naturalHeight } = event.currentTarget;
               if (naturalWidth > 0 && naturalHeight > 0) setRatio(naturalWidth / naturalHeight);

@@ -241,6 +241,19 @@ describe("PhotoGallery — the thumbnails' strip (INC-717, INC-720)", () => {
     expect(row).toHaveClass("justify-center-safe");
     expect(row.className).not.toMatch(/(?:^|\s)justify-center(?:\s|$)/);
   });
+
+  it("GAL-10 fill: the gallery grows to its card's height from 32rem; without it nothing changes (DEC-197)", () => {
+    const { unmount } = render(<PhotoGallery photos={THREE} fill />);
+    expect(screen.getByTestId("listing-detail-gallery")).toHaveClass("@min-[32rem]:h-full");
+    expect(screen.getByTestId("gallery-main").parentElement).toHaveClass("@min-[32rem]:flex-col");
+    const filledImage = mainImage();
+    expect(filledImage.className).not.toMatch(/object-top/);
+    unmount();
+
+    render(<PhotoGallery photos={THREE} />);
+    expect(screen.getByTestId("listing-detail-gallery")).not.toHaveClass("@min-[32rem]:h-full");
+    expect(mainImage()).toHaveClass("@min-[32rem]:object-top");
+  });
 });
 
 describe("PhotoGallery — the middle size (D162)", () => {

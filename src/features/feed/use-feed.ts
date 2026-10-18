@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { rootsOf, useCategoryTree } from "@/features/categories/category-tree";
 
+import type { PhotoLinks } from "@/features/posting/photo-links";
 import { parseFeedPage, type FeedListing } from "./feed-page";
 
 export type { FeedListing } from "./feed-page";
@@ -50,6 +51,8 @@ export function useFeed({
   const [cards, setCards] = useState<FeedListing[]>([]);
   const [ladder, setLadder] = useState<string[]>([]);
   const [next, setNext] = useState<string | null>(null);
+  /** DEC-195 — the covers' links the pages answered with, merged over the pages. */
+  const [coverLinks, setCoverLinks] = useState<PhotoLinks>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(false);
@@ -81,6 +84,7 @@ export function useFeed({
         setCards(page.cards);
         setLadder(page.ladder);
         setNext(page.next);
+        setCoverLinks(page.coverLinks ?? {});
         setIsLoading(false);
       })
       .catch((cause: unknown) => {
@@ -108,6 +112,7 @@ export function useFeed({
         }
         setCards((held) => [...held, ...page.cards]);
         setNext(page.next);
+        setCoverLinks((held) => ({ ...held, ...page.coverLinks }));
         setIsLoadingMore(false);
       })
       .catch((cause: unknown) => {
@@ -131,7 +136,18 @@ export function useFeed({
     setFirstToken((n) => n + 1);
   }, [moreError, fetchMore]);
 
-  return { cards, ladder, hasMore, isLoading, isLoadingMore, error, moreError, loadMore, retry };
+  return {
+    cards,
+    ladder,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    error,
+    moreError,
+    loadMore,
+    retry,
+    coverLinks,
+  };
 }
 
 export interface FeedCategory {

@@ -82,7 +82,7 @@ export function SavedPage() {
         </p>
       )}
       <ul className="mt-4 grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
-        {cards.map((card) => (
+        {cards.map((card, index) => (
           <li
             key={card.id}
             data-testid="saved-item"
@@ -92,7 +92,11 @@ export function SavedPage() {
           >
             <div className="flex-1">
               {card.available ? (
-                <ListingCard listing={card} photoUrl={coverOf(card.coverPhotoId)} />
+                <ListingCard
+                  listing={card}
+                  photoUrl={coverOf(card.coverPhotoId)}
+                  priority={index < 6}
+                />
               ) : (
                 <div
                   data-testid="saved-unavailable"

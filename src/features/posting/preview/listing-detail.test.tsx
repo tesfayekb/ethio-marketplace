@@ -493,15 +493,11 @@ it("LD-16 no pin draws no map or placeholder; without any place of the seller's 
   expect(screen.queryByText(en["post.preview.mapPlaceholder"])).toBeNull();
   expect(screen.queryByTestId("listing-detail-location")).toBeNull();
 });
-it("LD-17 section bar belongs to buyers, with present sections only (turn 23: Location only with a place of the seller's own)", () => {
+it("LD-17 section bar belongs to buyers, with present sections only, and only when two or more sections show (turn 23: Location only with a place of the seller's own; turn 27: the seller card is no longer a section)", () => {
   const { rerender } = render(<ListingDetail {...BASE} actor="buyer" />);
-  expect(
-    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["seller"]);
+  expect(screen.queryByTestId("listing-section-nav")).toBeNull();
   rerender(<ListingDetail {...BASE} actor="buyer" description="scratch description" />);
-  expect(
-    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["description", "seller"]);
+  expect(screen.queryByTestId("listing-section-nav")).toBeNull();
   rerender(
     <ListingDetail
       {...BASE}
@@ -512,15 +508,13 @@ it("LD-17 section bar belongs to buyers, with present sections only (turn 23: Lo
   );
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["description", "seller", "location"]);
+  ).toEqual(["description", "location"]);
   for (const actor of ["owner", "staff"] as const) {
     rerender(<ListingDetail {...BASE} actor={actor} />);
     expect(screen.queryByTestId("listing-section-nav")).toBeNull();
   }
   rerender(<ListingDetail {...BASE} actor="buyer" soldBadge="Sold" />);
-  expect(
-    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["seller"]);
+  expect(screen.queryByTestId("listing-section-nav")).toBeNull();
 });
 
 it("LD-18 the buyer's page with photos holds each block's test id exactly once (INC-714)", () => {
@@ -528,6 +522,7 @@ it("LD-18 the buyer's page with photos holds each block's test id exactly once (
     <ListingDetail
       {...BASE}
       actor="buyer"
+      description="scratch description"
       directions="scratch directions"
       photos={[{ id: "ld-18-photo", displayOrder: 0, paths: null, storagePath: null }]}
       save={{
@@ -556,6 +551,13 @@ it("LD-18 the buyer's page with photos holds each block's test id exactly once (
   // DEC-192 — the old two-column wrappers are gone.
   expect(screen.queryAllByTestId("listing-detail-aside")).toHaveLength(0);
   expect(screen.queryAllByTestId("listing-detail-main")).toHaveLength(0);
+  // DEC-197 — the seller card sits in the right column of the top row,
+  // inside listing-detail-top, never in the boxes grid.
+  const top = screen.getByTestId("listing-detail-top");
+  const boxes = screen.getByTestId("listing-detail-boxes");
+  const sellerCard = screen.getByTestId("listing-detail-seller");
+  expect(top.contains(sellerCard)).toBe(true);
+  expect(boxes.contains(sellerCard)).toBe(false);
 });
 
 it("LD-20 Save and Share sit at the title box's foot; the buyer's Directions label (INC-716)", () => {
@@ -620,8 +622,9 @@ it("LD-20 Save and Share sit at the title box's foot; the buyer's Directions lab
 it("LD-21 the Location box and its tab only with a place of the seller's own (turn 23)", () => {
   const { rerender } = render(<ListingDetail {...BASE} actor="buyer" />);
   expect(screen.queryByTestId("listing-detail-location")).toBeNull();
+  // DEC-197 — one section (or none) draws no bar at all, so no Location tab.
   expect(
-    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
+    screen.queryAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
   ).not.toContain("location");
   // Directions alone: the box shows with the directions and no map.
   rerender(<ListingDetail {...BASE} actor="buyer" directions="scratch directions" />);

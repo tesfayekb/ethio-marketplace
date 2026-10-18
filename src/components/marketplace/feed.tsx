@@ -72,12 +72,22 @@ export function Feed() {
   const { selectedCategoryId, categoryLookup, locationPath, feedInputsReady } = useShell();
   const place: LocationNode | null = locationPath[locationPath.length - 1] ?? null;
   const placeId = place?.id ?? null;
-  const { cards, ladder, hasMore, isLoading, isLoadingMore, error, moreError, loadMore, retry } =
-    useFeed({
-      categoryId: selectedCategoryId,
-      placeId,
-      enabled: feedInputsReady && (categoryLookup === "none" || categoryLookup === "found"),
-    });
+  const {
+    cards,
+    ladder,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    error,
+    moreError,
+    loadMore,
+    retry,
+    coverLinks,
+  } = useFeed({
+    categoryId: selectedCategoryId,
+    placeId,
+    enabled: feedInputsReady && (categoryLookup === "none" || categoryLookup === "found"),
+  });
 
   const nameOf = (node: LocationNode) =>
     entityName("location", { id: node.id, nameEn: node.name_en, nameAm: node.name_am }, entities);
@@ -100,8 +110,9 @@ export function Feed() {
   }, [hasMore, loadMore]);
 
   const sections = feedSections(cards, ladder);
-  // INC-606 — each card's cover photo, at card size.
-  const coverOf = useCardPhotos(cards);
+  // INC-606 — each card's cover photo, at card size. DEC-195 — the links the
+  // feed's answer already signed are the preset; only the rest are asked for.
+  const coverOf = useCardPhotos(cards, coverLinks);
 
   const { tree } = useCategoryTree();
   const categoryNode =
@@ -191,9 +202,14 @@ export function Feed() {
                 </h2>
               ) : null}
               <ul className="grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
-                {section.cards.map((listing) => (
+                {section.cards.map((listing, index) => (
                   <li key={listing.id}>
-                    <ListingCard listing={listing} photoUrl={coverOf(listing.coverPhotoId)} />
+                    {/* DEC-195 — the first six cards of a grid load at once. */}
+                    <ListingCard
+                      listing={listing}
+                      photoUrl={coverOf(listing.coverPhotoId)}
+                      priority={index < 6}
+                    />
                   </li>
                 ))}
                 {section.step === 1 && invite !== null ? (
