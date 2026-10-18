@@ -964,7 +964,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await seedPhotos(ad.id);
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(3);
     expect(
       await bar
         .getByTestId("listing-section-nav-item")
@@ -1564,7 +1564,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
   });
 
   test("AP-47 the in-page bar shows no scrollbar (INC-717)", async ({ page }, testInfo) => {
-    // AP-36's ad shape: a fact and an exact pin, so all four tabs show.
+    // AP-36's ad shape: a fact and an exact pin, so all three tabs show.
     const seller = await scratchSeller();
     const key = `e2e-scrollbar-${token()}`;
     factKeys.push(key);
@@ -1578,7 +1578,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await page.setViewportSize({ width: 600, height: 900 });
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(3);
     const scrollbarWidth = await bar.evaluate((nav) => getComputedStyle(nav).scrollbarWidth);
     expect(scrollbarWidth).toBe("none");
     // At 360 the items share the row: nothing overflows.
