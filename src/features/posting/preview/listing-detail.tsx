@@ -565,180 +565,182 @@ export function ListingDetail(view: ListingDetailView) {
             data-testid="listing-detail-headline"
             className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
           >
-          {/* ---------------------------- title and price ----------------------- */}
-          <Title
-            className="font-display text-xl font-semibold leading-tight text-foreground @4xl:text-2xl"
-            data-testid="listing-detail-title"
-          >
-            {view.title === "" ? t("post.review.noTitle") : view.title}
-          </Title>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-2xl font-bold text-primary" data-testid="listing-detail-price">
-              {priceLine}
-            </p>
-            {view.priceNegotiable === true && <NegotiableBadge />}
-            {typeof view.soldBadge === "string" && view.soldBadge.length > 0 && (
-              <span
-                data-testid="listing-detail-sold-badge"
-                className="inline-flex shrink-0 items-center rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold uppercase text-destructive-foreground"
-              >
-                {view.soldBadge}
-              </span>
-            )}
-          </div>
-          {view.save?.refusal && (
-            <p
-              role="status"
-              data-testid="listing-save-refusal"
-              className="text-sm text-destructive"
+            {/* ---------------------------- title and price ----------------------- */}
+            <Title
+              className="font-display text-xl font-semibold leading-tight text-foreground @4xl:text-2xl"
+              data-testid="listing-detail-title"
             >
-              {t(
-                view.save.refusal === "rateLimited"
-                  ? "adPage.save.rateLimited"
-                  : "adPage.save.failed",
-              )}
-            </p>
-          )}
-          {highlighted.length > 0 && (
-            <ul data-testid="listing-key-facts" className="flex flex-wrap gap-2">
-              {highlighted.map((definition) => (
-                <li
-                  key={definition.attrKey}
-                  data-testid="listing-key-fact"
-                  data-fact-key={definition.attrKey}
-                  className="rounded-md border border-border px-2 py-1 text-xs"
-                >
-                  <span className="text-muted-foreground">{factLabel(definition)}</span>
-                  {definition.attrType !== "boolean" && (
-                    <span className="ms-1 font-semibold text-foreground">
-                      {factValue(definition)}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-          {dealText.size !== null && (
-            <p className="text-sm text-muted-foreground" data-testid="listing-detail-deal-size">
-              {dealText.size}
-            </p>
-          )}
-          {dealText.terms.map((line) => (
-            <p
-              key={line}
-              className="text-sm text-muted-foreground"
-              data-testid="listing-detail-deal-term"
-            >
-              {line}
-            </p>
-          ))}
-          <div className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
-            {places.length > 0 && (
-              <a
-                data-testid="listing-places-maps"
-                href={placesMaps}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
-              >
-                <span data-testid="listing-detail-places">{places.join(", ")}</span>
-              </a>
-            )}
-            {posted !== null && (
-              <p data-testid="listing-detail-posted">
-                {places.length > 0 && <span aria-hidden="true">{" · "}</span>}
-                {fill(t("adPage.posted"), { when: posted })}
+              {view.title === "" ? t("post.review.noTitle") : view.title}
+            </Title>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-2xl font-bold text-primary" data-testid="listing-detail-price">
+                {priceLine}
               </p>
-            )}
-          </div>
-
-          {view.actor === "buyer" &&
-            view.publicCounts !== undefined &&
-            (view.publicCounts.views >= 10 || view.publicCounts.shares >= 1) && (
-              <p
-                data-testid="listing-detail-public-counts"
-                className="text-xs text-muted-foreground"
-              >
-                {/* INC-712 (D201 §19 Q-B) — "Seen" shows from ten views. */}
-                {view.publicCounts.views >= 10 && (
-                  <span data-count="seen">
-                    {fill(t("adPage.counts.seen"), { count: view.publicCounts.views })}
-                  </span>
-                )}
-                {view.publicCounts.views >= 10 && view.publicCounts.shares >= 1 && " · "}
-                {view.publicCounts.shares >= 1 && (
-                  <span data-count="shared">
-                    {fill(t("adPage.counts.shared"), { count: view.publicCounts.shares })}
-                  </span>
-                )}
-              </p>
-            )}
-          {/* DEC-192 (bundle 19 turn 22) — Save and Share are text links at the
-            title box's foot, at every width; the count sits at the row's end. */}
-          {(view.save !== undefined || view.share !== undefined) && (
-            <div
-              data-testid="listing-detail-actions"
-              className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border pt-2"
-            >
-              {view.save !== undefined && (
-                <Button
-                  asChild={view.save.viewer === "signedOut"}
-                  variant="ghost"
-                  className="h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
-                  {...(view.save.viewer === "signedOut"
-                    ? {}
-                    : {
-                        type: "button" as const,
-                        "data-testid": "listing-save",
-                        "data-state":
-                          view.save.viewer === "unknown"
-                            ? "unknown"
-                            : view.save.saved
-                              ? "saved"
-                              : "unsaved",
-                        "aria-pressed": view.save.saved === true,
-                        "aria-label": t(view.save.saved ? "adPage.save.remove" : "adPage.save.add"),
-                        disabled:
-                          view.save.viewer === "unknown" ||
-                          view.save.busy ||
-                          view.save.saved === null,
-                        onClick: view.save.onToggle,
-                      })}
-                >
-                  {view.save.viewer === "signedOut" ? (
-                    <Link
-                      to={view.save.signInTo.to}
-                      search={view.save.signInTo.search}
-                      data-testid="listing-save"
-                      data-state="signedOut"
-                      aria-label={saveSignInLabel}
-                    >
-                      <Heart aria-hidden="true" className="size-5 shrink-0" />
-                      {t("adPage.save.add")}
-                    </Link>
-                  ) : (
-                    <>
-                      <Heart
-                        aria-hidden="true"
-                        className="size-5 shrink-0"
-                        fill={view.save.saved ? "currentColor" : "none"}
-                      />
-                      {t(view.save.saved ? "adPage.save.saved" : "adPage.save.add")}
-                    </>
-                  )}
-                </Button>
-              )}
-              {view.share}
-              {view.save !== undefined && view.save.count > 0 && (
+              {view.priceNegotiable === true && <NegotiableBadge />}
+              {typeof view.soldBadge === "string" && view.soldBadge.length > 0 && (
                 <span
-                  className="ms-auto text-sm text-muted-foreground"
-                  data-testid="listing-save-count"
+                  data-testid="listing-detail-sold-badge"
+                  className="inline-flex shrink-0 items-center rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold uppercase text-destructive-foreground"
                 >
-                  {fill(t("adPage.save.count"), { count: view.save.count })}
+                  {view.soldBadge}
                 </span>
               )}
             </div>
-          )}
+            {view.save?.refusal && (
+              <p
+                role="status"
+                data-testid="listing-save-refusal"
+                className="text-sm text-destructive"
+              >
+                {t(
+                  view.save.refusal === "rateLimited"
+                    ? "adPage.save.rateLimited"
+                    : "adPage.save.failed",
+                )}
+              </p>
+            )}
+            {highlighted.length > 0 && (
+              <ul data-testid="listing-key-facts" className="flex flex-wrap gap-2">
+                {highlighted.map((definition) => (
+                  <li
+                    key={definition.attrKey}
+                    data-testid="listing-key-fact"
+                    data-fact-key={definition.attrKey}
+                    className="rounded-md border border-border px-2 py-1 text-xs"
+                  >
+                    <span className="text-muted-foreground">{factLabel(definition)}</span>
+                    {definition.attrType !== "boolean" && (
+                      <span className="ms-1 font-semibold text-foreground">
+                        {factValue(definition)}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {dealText.size !== null && (
+              <p className="text-sm text-muted-foreground" data-testid="listing-detail-deal-size">
+                {dealText.size}
+              </p>
+            )}
+            {dealText.terms.map((line) => (
+              <p
+                key={line}
+                className="text-sm text-muted-foreground"
+                data-testid="listing-detail-deal-term"
+              >
+                {line}
+              </p>
+            ))}
+            <div className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
+              {places.length > 0 && (
+                <a
+                  data-testid="listing-places-maps"
+                  href={placesMaps}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
+                >
+                  <span data-testid="listing-detail-places">{places.join(", ")}</span>
+                </a>
+              )}
+              {posted !== null && (
+                <p data-testid="listing-detail-posted">
+                  {places.length > 0 && <span aria-hidden="true">{" · "}</span>}
+                  {fill(t("adPage.posted"), { when: posted })}
+                </p>
+              )}
+            </div>
+
+            {view.actor === "buyer" &&
+              view.publicCounts !== undefined &&
+              (view.publicCounts.views >= 10 || view.publicCounts.shares >= 1) && (
+                <p
+                  data-testid="listing-detail-public-counts"
+                  className="text-xs text-muted-foreground"
+                >
+                  {/* INC-712 (D201 §19 Q-B) — "Seen" shows from ten views. */}
+                  {view.publicCounts.views >= 10 && (
+                    <span data-count="seen">
+                      {fill(t("adPage.counts.seen"), { count: view.publicCounts.views })}
+                    </span>
+                  )}
+                  {view.publicCounts.views >= 10 && view.publicCounts.shares >= 1 && " · "}
+                  {view.publicCounts.shares >= 1 && (
+                    <span data-count="shared">
+                      {fill(t("adPage.counts.shared"), { count: view.publicCounts.shares })}
+                    </span>
+                  )}
+                </p>
+              )}
+            {/* DEC-192 (bundle 19 turn 22) — Save and Share are text links at the
+            title box's foot, at every width; the count sits at the row's end. */}
+            {(view.save !== undefined || view.share !== undefined) && (
+              <div
+                data-testid="listing-detail-actions"
+                className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border pt-2"
+              >
+                {view.save !== undefined && (
+                  <Button
+                    asChild={view.save.viewer === "signedOut"}
+                    variant="ghost"
+                    className="h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
+                    {...(view.save.viewer === "signedOut"
+                      ? {}
+                      : {
+                          type: "button" as const,
+                          "data-testid": "listing-save",
+                          "data-state":
+                            view.save.viewer === "unknown"
+                              ? "unknown"
+                              : view.save.saved
+                                ? "saved"
+                                : "unsaved",
+                          "aria-pressed": view.save.saved === true,
+                          "aria-label": t(
+                            view.save.saved ? "adPage.save.remove" : "adPage.save.add",
+                          ),
+                          disabled:
+                            view.save.viewer === "unknown" ||
+                            view.save.busy ||
+                            view.save.saved === null,
+                          onClick: view.save.onToggle,
+                        })}
+                  >
+                    {view.save.viewer === "signedOut" ? (
+                      <Link
+                        to={view.save.signInTo.to}
+                        search={view.save.signInTo.search}
+                        data-testid="listing-save"
+                        data-state="signedOut"
+                        aria-label={saveSignInLabel}
+                      >
+                        <Heart aria-hidden="true" className="size-5 shrink-0" />
+                        {t("adPage.save.add")}
+                      </Link>
+                    ) : (
+                      <>
+                        <Heart
+                          aria-hidden="true"
+                          className="size-5 shrink-0"
+                          fill={view.save.saved ? "currentColor" : "none"}
+                        />
+                        {t(view.save.saved ? "adPage.save.saved" : "adPage.save.add")}
+                      </>
+                    )}
+                  </Button>
+                )}
+                {view.share}
+                {view.save !== undefined && view.save.count > 0 && (
+                  <span
+                    className="ms-auto text-sm text-muted-foreground"
+                    data-testid="listing-save-count"
+                  >
+                    {fill(t("adPage.save.count"), { count: view.save.count })}
+                  </span>
+                )}
+              </div>
+            )}
           </section>
 
           {/* ----------------------------- the seller --------------------------- */}
@@ -765,7 +767,9 @@ export function ListingDetail(view: ListingDetailView) {
               />
             </div>
             {!sold &&
-              (view.actor === "buyer" ? view.contact?.viewer !== "unknown" : channels.length > 0) && (
+              (view.actor === "buyer"
+                ? view.contact?.viewer !== "unknown"
+                : channels.length > 0) && (
                 <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
                   {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
                     <h4 className="text-xs font-medium text-muted-foreground">

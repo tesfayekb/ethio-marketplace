@@ -84,10 +84,10 @@ export function Feed() {
     retry,
     coverLinks,
   } = useFeed({
-      categoryId: selectedCategoryId,
-      placeId,
-      enabled: feedInputsReady && (categoryLookup === "none" || categoryLookup === "found"),
-    });
+    categoryId: selectedCategoryId,
+    placeId,
+    enabled: feedInputsReady && (categoryLookup === "none" || categoryLookup === "found"),
+  });
 
   const nameOf = (node: LocationNode) =>
     entityName("location", { id: node.id, nameEn: node.name_en, nameAm: node.name_am }, entities);

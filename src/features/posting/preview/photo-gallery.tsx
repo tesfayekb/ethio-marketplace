@@ -123,7 +123,9 @@ export function PhotoGallery({
       <div
         className={`flex flex-col gap-2 @min-[32rem]:flex-row-reverse ${fillColumn ? "@min-[32rem]:min-h-0 @min-[32rem]:flex-1 @min-[32rem]:items-stretch" : "@min-[32rem]:items-start"}`}
       >
-        <div className={`relative min-w-0 flex-1${fillColumn ? " @min-[32rem]:flex @min-[32rem]:flex-col" : ""}`}>
+        <div
+          className={`relative min-w-0 flex-1${fillColumn ? " @min-[32rem]:flex @min-[32rem]:flex-col" : ""}`}
+        >
           <button
             ref={mainRef}
             type="button"

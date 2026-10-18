@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
 
-const similarListings = vi.fn<() => Promise<{ cards: FeedListing[]; coverLinks: Record<string, never> }>>();
+const similarListings =
+  vi.fn<() => Promise<{ cards: FeedListing[]; coverLinks: Record<string, never> }>>();
 vi.mock("./similar", () => ({
   similarListings: (...args: unknown[]) => similarListings(...(args as [])),
 }));
@@ -61,8 +62,10 @@ const props = { categoryId: "c-leaf", placeId: "place-1", excludeId: "l-self" };
 
 describe("SIM-4 the similar-ads section", () => {
   it("draws nothing while loading and nothing when the answer is empty", async () => {
-    let resolve: (answer: { cards: FeedListing[]; coverLinks: Record<string, never> }) => void =
-      () => {};
+    let resolve: (answer: {
+      cards: FeedListing[];
+      coverLinks: Record<string, never>;
+    }) => void = () => {};
     similarListings.mockReturnValue(
       new Promise((done) => {
         resolve = done;

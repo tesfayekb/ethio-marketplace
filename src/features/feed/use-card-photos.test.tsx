@@ -48,7 +48,10 @@ describe("useCardPhotos — the preset (DEC-195)", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     const { result } = renderHook(
-      () => useCardPhotos([{ coverPhotoId: "p1" }, { coverPhotoId: "p2" }], { p1: { card: CARD("p1") } }),
+      () =>
+        useCardPhotos([{ coverPhotoId: "p1" }, { coverPhotoId: "p2" }], {
+          p1: { card: CARD("p1") },
+        }),
       { wrapper },
     );
     await waitFor(() => expect(result.current("p2")).toBe(CARD("p2")));

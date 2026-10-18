@@ -2,7 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
-import { photoIdsOf, PHOTO_LINK_SECONDS, readAndSignPhotoLinks, variantsOf } from "@/server/media/links";
+import {
+  photoIdsOf,
+  PHOTO_LINK_SECONDS,
+  readAndSignPhotoLinks,
+  variantsOf,
+} from "@/server/media/links";
 import {
   anonymousClient,
   consumeRate,

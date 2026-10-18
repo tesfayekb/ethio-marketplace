@@ -39,15 +39,15 @@ describe("boxLayout", () => {
   });
 
   it("details true, description true, safety false, location false", () => {
-    expect(
-      boxLayout({ details: true, description: true, safety: false, location: false }),
-    ).toEqual({
-      details: "@2xl:col-span-3 @4xl:col-span-3",
-      description: "@2xl:col-span-3 @4xl:col-span-3",
-      location: "",
-      safety: "",
-      report: "@2xl:col-span-6 @4xl:col-span-6",
-    });
+    expect(boxLayout({ details: true, description: true, safety: false, location: false })).toEqual(
+      {
+        details: "@2xl:col-span-3 @4xl:col-span-3",
+        description: "@2xl:col-span-3 @4xl:col-span-3",
+        location: "",
+        safety: "",
+        report: "@2xl:col-span-6 @4xl:col-span-6",
+      },
+    );
   });
 
   it("details true, description false, safety true, location true", () => {
@@ -61,27 +61,27 @@ describe("boxLayout", () => {
   });
 
   it("details true, description false, safety true, location false", () => {
-    expect(
-      boxLayout({ details: true, description: false, safety: true, location: false }),
-    ).toEqual({
-      details: "@2xl:col-span-6 @4xl:col-span-6",
-      description: "",
-      location: "",
-      safety: "@2xl:col-span-6 @4xl:col-span-6",
-      report: "@2xl:col-span-6 @4xl:col-span-6",
-    });
+    expect(boxLayout({ details: true, description: false, safety: true, location: false })).toEqual(
+      {
+        details: "@2xl:col-span-6 @4xl:col-span-6",
+        description: "",
+        location: "",
+        safety: "@2xl:col-span-6 @4xl:col-span-6",
+        report: "@2xl:col-span-6 @4xl:col-span-6",
+      },
+    );
   });
 
   it("details true, description false, safety false, location true", () => {
-    expect(
-      boxLayout({ details: true, description: false, safety: false, location: true }),
-    ).toEqual({
-      details: "@2xl:col-span-6 @4xl:col-span-3",
-      description: "",
-      location: "@2xl:col-span-6 @4xl:col-span-3",
-      safety: "",
-      report: "@2xl:col-span-6 @4xl:col-span-6",
-    });
+    expect(boxLayout({ details: true, description: false, safety: false, location: true })).toEqual(
+      {
+        details: "@2xl:col-span-6 @4xl:col-span-3",
+        description: "",
+        location: "@2xl:col-span-6 @4xl:col-span-3",
+        safety: "",
+        report: "@2xl:col-span-6 @4xl:col-span-6",
+      },
+    );
   });
 
   it("details true, description false, safety false, location false", () => {
@@ -107,27 +107,27 @@ describe("boxLayout", () => {
   });
 
   it("details false, description true, safety true, location false", () => {
-    expect(
-      boxLayout({ details: false, description: true, safety: true, location: false }),
-    ).toEqual({
-      details: "",
-      description: "@2xl:col-span-6 @4xl:col-span-6",
-      location: "",
-      safety: "@2xl:col-span-6 @4xl:col-span-6",
-      report: "@2xl:col-span-6 @4xl:col-span-6",
-    });
+    expect(boxLayout({ details: false, description: true, safety: true, location: false })).toEqual(
+      {
+        details: "",
+        description: "@2xl:col-span-6 @4xl:col-span-6",
+        location: "",
+        safety: "@2xl:col-span-6 @4xl:col-span-6",
+        report: "@2xl:col-span-6 @4xl:col-span-6",
+      },
+    );
   });
 
   it("details false, description true, safety false, location true", () => {
-    expect(
-      boxLayout({ details: false, description: true, safety: false, location: true }),
-    ).toEqual({
-      details: "",
-      description: "@2xl:col-span-6 @4xl:col-span-3",
-      location: "@2xl:col-span-6 @4xl:col-span-3",
-      safety: "",
-      report: "@2xl:col-span-6 @4xl:col-span-6",
-    });
+    expect(boxLayout({ details: false, description: true, safety: false, location: true })).toEqual(
+      {
+        details: "",
+        description: "@2xl:col-span-6 @4xl:col-span-3",
+        location: "@2xl:col-span-6 @4xl:col-span-3",
+        safety: "",
+        report: "@2xl:col-span-6 @4xl:col-span-6",
+      },
+    );
   });
 
   it("details false, description true, safety false, location false", () => {
@@ -143,15 +143,15 @@ describe("boxLayout", () => {
   });
 
   it("details false, description false, safety true, location true", () => {
-    expect(
-      boxLayout({ details: false, description: false, safety: true, location: true }),
-    ).toEqual({
-      details: "",
-      description: "",
-      location: "@2xl:col-span-3 @4xl:col-span-6",
-      safety: "@2xl:col-span-3 @4xl:col-span-6",
-      report: "@2xl:col-span-6 @4xl:col-span-6",
-    });
+    expect(boxLayout({ details: false, description: false, safety: true, location: true })).toEqual(
+      {
+        details: "",
+        description: "",
+        location: "@2xl:col-span-3 @4xl:col-span-6",
+        safety: "@2xl:col-span-3 @4xl:col-span-6",
+        report: "@2xl:col-span-6 @4xl:col-span-6",
+      },
+    );
   });
 
   it("details false, description false, safety true, location false", () => {

@@ -12,7 +12,8 @@ vi.mock("@/i18n", () => ({
   }),
 }));
 
-const PHOTO = "https://staging.example/storage/v1/object/sign/listing-photos/default/u/l/p1/card.webp?token=a";
+const PHOTO =
+  "https://staging.example/storage/v1/object/sign/listing-photos/default/u/l/p1/card.webp?token=a";
 
 /** DEC-195 — LP-10: the grid's first cards load at once, the rest lazily. */
 describe("ListingPicture — the loading priority (DEC-195)", () => {
