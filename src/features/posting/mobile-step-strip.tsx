@@ -22,6 +22,7 @@ export function MobileStepStrip({
   onGoTo: (step: number) => void;
 }) {
   const { t } = useI18n();
+  const stripRef = useRef<HTMLOListElement>(null);
   const currentRef = useRef<HTMLLIElement | null>(null);
   const [furthestVisited, setFurthestVisited] = useState(positionOf(step));
 
@@ -32,7 +33,6 @@ export function MobileStepStrip({
 
   return (
     <div className="relative">
-      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- INC-325: the strip itself takes focus (see the label below). */}
       {/* INC-325 — on step 1 no strip item is a button, so the scroll container
           itself takes focus (axe scrollable-region-focusable); it carries a label. */}
       <ol
