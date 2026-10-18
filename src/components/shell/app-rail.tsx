@@ -1,7 +1,7 @@
 import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, House, LogOut, Star, X, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, Star, X, type LucideIcon } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -561,18 +561,6 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
               />
             </Button>
           </li>
-        ) : !compact ? (
-          <RailRow
-            node={{
-              key: "all",
-              testid: "rail-category-all",
-              label: t("nav.home"),
-              icon: House,
-              active: selectedCategorySlug === null,
-              path: "/",
-              onSelect: onNavigate,
-            }}
-          />
         ) : null}
         {!level && favouriteCategory ? (
           <>
