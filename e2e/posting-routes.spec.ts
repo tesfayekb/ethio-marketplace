@@ -1661,7 +1661,7 @@ test.describe("POSTING ROUTES", () => {
     for (const alias of ["norway_visa_lottery", "canada_agency_098", "sweden_embassy"]) {
       expectRefused(await aliasReasons(page, token, alias), "aliasClaim");
     }
-    for (const alias of ["us_embassy", "visa_help_for_me", "my_travel_agency"]) {
+    for (const alias of ["ke_embassy", "visa_help_for_me", "my_travel_agency"]) {
       expectPasses(await aliasReasons(page, token, alias));
     }
     expectRefused(await businessReasons(page, token, "Embassy of Sweden"), "businessClaim");
