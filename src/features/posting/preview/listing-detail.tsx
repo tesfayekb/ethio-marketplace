@@ -235,6 +235,30 @@ export function ListingDetail(view: ListingDetailView) {
     t("post.review.noPrice"),
   );
 
+  // DEC-196 — the sign-in return scrolls the seller card into view, highlights
+  // it for three seconds and focuses Show contact; it never reveals. The flag
+  // is used once, so a later re-render never moves the page again.
+  const showContactRef = useRef<HTMLButtonElement | null>(null);
+  const focusOnReturnDone = useRef(false);
+  const [contactHighlight, setContactHighlight] = useState(false);
+  useEffect(() => {
+    if (focusOnReturnDone.current) return;
+    if (view.contact?.focusOnReturn !== true || view.contact.viewer !== "signedIn") return;
+    const button = showContactRef.current;
+    const card = typeof document === "undefined" ? null : document.getElementById("contact");
+    if (button === null || card === null) return;
+    focusOnReturnDone.current = true;
+    const reduced =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (typeof card.scrollIntoView === "function") {
+      card.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    }
+    button.focus({ preventScroll: true });
+    setContactHighlight(true);
+    window.setTimeout(() => setContactHighlight(false), 3000);
+  });
+
   const channels = (["phone", "phone2", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = view.contactPref[channel];
     return (
