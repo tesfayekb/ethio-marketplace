@@ -93,9 +93,13 @@ export function SellerPage({ sellerKey }: { sellerKey: string }) {
         </p>
       ) : (
         <ul className="mt-6 grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
-          {cards.map((listing) => (
+          {cards.map((listing, index) => (
             <li key={listing.id} data-testid="seller-page-card">
-              <ListingCard listing={listing} photoUrl={coverOf(listing.coverPhotoId)} />
+              <ListingCard
+                listing={listing}
+                photoUrl={coverOf(listing.coverPhotoId)}
+                priority={index < 6}
+              />
             </li>
           ))}
         </ul>

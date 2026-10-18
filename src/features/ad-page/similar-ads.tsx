@@ -57,11 +57,9 @@ export function SimilarAds({
                 index >= 8 ? "hidden lg:block" : index >= 6 ? "hidden sm:block" : undefined
               }
             >
-              <ListingCard
-                listing={listing}
-                photoUrl={coverOf(listing.coverPhotoId)}
-                priority={index < 6}
-              />
+              {/* DEC-195 — below the fold: the cover links arrive with the
+                  answer, but no load priority. */}
+              <ListingCard listing={listing} photoUrl={coverOf(listing.coverPhotoId)} />
             </li>
           ))}
         </ul>

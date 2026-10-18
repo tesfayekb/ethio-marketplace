@@ -223,7 +223,12 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 /** DEC-195 — the photo server's origin: the public Supabase address's origin, or null when unset or unparsable. */
 const PHOTO_ORIGIN = (() => {
   try {
-    const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
+    // Same resolution order as the loader (:116): dev serves VITE_*; the
+    // deployed Worker serves the unprefixed name. Never a hard-coded URL.
+    const url =
+      (import.meta.env.VITE_SUPABASE_URL as string | undefined) ||
+      process.env["SUPABASE_URL"] ||
+      "";
     return url === "" ? null : new URL(url).origin;
   } catch {
     return null;
