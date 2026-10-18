@@ -88,7 +88,8 @@ test.describe("category selection navigates", () => {
       await expect(page.getByTestId("bottom-bar-home")).toHaveAttribute("aria-current", "page");
     } else {
       const scope = await openRailScope(page);
-      await expect(scope.getByTestId("rail-category-all")).toHaveAttribute("aria-current", "page");
+      await expect(scope.locator("a[aria-current]")).toHaveCount(0);
+      await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
     }
   });
 

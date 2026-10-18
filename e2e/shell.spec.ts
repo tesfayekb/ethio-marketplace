@@ -1468,7 +1468,7 @@ test.describe("marketplace rail is categories only", () => {
   test("no Settings item leaks into the category rail", async ({ page }) => {
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
-    await expect(rail.getByText(en["nav.home"], { exact: true })).toBeVisible();
+    await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
     await expect(rail.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
 });
@@ -1489,13 +1489,13 @@ test.describe("panel follows the route", () => {
     // Operator's path: land on marketplace first.
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
-    await expect(rail.getByText(en["nav.home"], { exact: true })).toBeVisible();
+    await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
 
     await gotoReady(page, "/settings");
     await expectActivePanel(page, "account");
     // Account rail, not the category tree; and no marketplace location row.
     await expect(rail.getByText(en["nav.overview"], { exact: true })).toBeVisible();
-    await expect(rail.getByText(en["nav.home"], { exact: true })).toHaveCount(0);
+    await expect(rail.getByTestId("rail-category-electronics")).toHaveCount(0);
     await expect(page.getByTestId("location-row")).toHaveCount(0);
     // The settings page itself still renders (no placeholder).
     await expect(page.getByRole("heading", { name: en["settings.title"] })).toBeVisible();
@@ -1503,7 +1503,7 @@ test.describe("panel follows the route", () => {
     // Back to Marketplace: categories again, Settings not among them.
     await openPanel(page, "marketplace");
     await expect(page).toHaveURL(/\/$/);
-    await expect(rail.getByText(en["nav.home"], { exact: true })).toBeVisible();
+    await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
     await expect(rail.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
     await expect(page.getByTestId("location-row")).toBeVisible();
   });
@@ -1570,7 +1570,7 @@ test.describe("panel header band (U0d)", () => {
     await expect(page).toHaveURL(/\/account$/);
     await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
     await expect(rail.getByTestId("rail-item-ac-overview")).toBeVisible();
-    await expect(rail.getByText(en["nav.home"], { exact: true })).toHaveCount(0);
+    await expect(rail.getByTestId("rail-category-electronics")).toHaveCount(0);
   });
 });
 
