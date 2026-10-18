@@ -3134,7 +3134,7 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     if (!rootIcon || !childIcon) throw new Error("SC-2 missing category glyphs");
     expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
     await gotoReady(page, "/c/smartphones");
-    await expect(rail.getByTestId("rail-menu-back")).toHaveText("Phones & Tablets");
+    await expect(rail.getByTestId("rail-menu-back")).toHaveText("Electronics");
     await expect(rail.getByTestId("rail-category-smartphones")).toHaveAttribute(
       "aria-current",
       "page",
