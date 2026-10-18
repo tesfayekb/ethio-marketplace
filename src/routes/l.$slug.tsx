@@ -157,12 +157,14 @@ function AdPage() {
         revealing.current = false;
       });
   }, [doc.public_id]);
+  const [contactFocusOnReturn, setContactFocusOnReturn] = useState(false);
   useEffect(() => {
     if (authLoading || user === null || doc.is_sold || returnedReveal.current === doc.public_id)
       return;
     returnedReveal.current = doc.public_id;
-    if (takeRevealIntent(doc.public_id)) onReveal();
-  }, [authLoading, user, doc.is_sold, doc.public_id, onReveal]);
+    // DEC-196 — the return carries the visitor back to the contact; it never reveals.
+    if (takeRevealIntent(doc.public_id)) setContactFocusOnReturn(true);
+  }, [authLoading, user, doc.is_sold, doc.public_id]);
   useEffect(() => {
     if (countedId.current === doc.public_id) return;
     countedId.current = doc.public_id;
@@ -232,6 +234,7 @@ function AdPage() {
           viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
           signInTo: { to: "/auth", search: { return: `${canonical}#contact` } },
           onSignInTap: () => rememberRevealIntent(doc.public_id),
+          focusOnReturn: contactFocusOnReturn,
           state: contactState,
           onReveal,
           whatsappText: fill(t("adPage.contact.whatsappText"), { url: canonical }),

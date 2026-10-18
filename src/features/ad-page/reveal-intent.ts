@@ -1,4 +1,4 @@
-/** D201 §14: only a visitor's tap in this tab can carry a reveal through sign-in. */
+/** D201 §14: only a visitor's tap in this tab can carry an intent through sign-in; DEC-196 — the intent now carries the visitor back to the contact, it never reveals. */
 const KEY = "ethio.revealIntent";
 const MAX_AGE = 15 * 60_000;
 

@@ -174,6 +174,8 @@ export interface ListingDetailView {
     state: ContactState;
     onReveal: () => void;
     onSignInTap: () => void;
+    // DEC-196 — set once by the public ad page when the tab's sign-in return intent was taken.
+    focusOnReturn?: boolean;
     whatsappText: string;
   };
   // Bundle 19 turn 13b (D201 §11) — the buyer's Report link, passed by the public ad page only
