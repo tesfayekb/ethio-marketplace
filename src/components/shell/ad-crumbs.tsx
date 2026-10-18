@@ -37,7 +37,8 @@ export function AdCrumbs({ title, categoryId }: { title: string; categoryId: str
       <BreadcrumbItem>
         <BreadcrumbPage
           data-testid="breadcrumb-ad"
-          className="font-semibold text-foreground underline underline-offset-4"
+          className="min-w-0 truncate font-semibold text-foreground underline underline-offset-4"
+          title={title}
         >
           {title}
         </BreadcrumbPage>

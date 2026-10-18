@@ -340,6 +340,12 @@
     border-color: var(--color-border);
   }
 
+  /* INC-743 — a phone widens its page to any content wider than the screen, moving every fixed bar with it; clip (never hidden: hidden makes a scroll container and breaks the sticky bands) keeps the page the screen's width whatever overflows. The root fix is that text breaks inside its box (wrap-anywhere); this is the guard. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
   html {
     /* INC-106d: scroll targets clear the fixed bars — phone 52 + 77 px, desktop 56 + 74 px. */
     scroll-padding-top: 8.5rem;

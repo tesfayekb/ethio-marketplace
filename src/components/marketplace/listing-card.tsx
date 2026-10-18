@@ -196,7 +196,7 @@ export function ListingCard({
     <article
       data-testid="listing-card"
       data-listing={listing.id}
-      className={cn(CARD_SURFACE, "@container flex h-full flex-col overflow-hidden")}
+      className={cn(CARD_SURFACE, "@container flex h-full flex-col overflow-hidden wrap-anywhere")}
     >
       {typeof listing.publicId === "string" ? (
         <Link

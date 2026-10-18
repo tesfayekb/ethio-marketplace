@@ -37,7 +37,7 @@ import type { PublicListingDoc } from "@/features/ad-page/public-listing";
  * every earlier one links to its /c/<slug> (`breadcrumb-category-parent`).
  */
 /** Operator directive (U0c): the CURRENT segment is underlined and heavier. */
-const CURRENT = "font-semibold text-foreground underline underline-offset-4";
+const CURRENT = "min-w-0 truncate font-semibold text-foreground underline underline-offset-4";
 
 /** INC-554 — the listing and language crumbs load only on their pages (never in the first paint). */
 const AdminListingCrumb = lazy(() =>
@@ -111,7 +111,11 @@ export function Breadcrumbs() {
                 <>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    <BreadcrumbPage data-testid="breadcrumb-ad" className={CURRENT}>
+                    <BreadcrumbPage
+                      data-testid="breadcrumb-ad"
+                      className={CURRENT}
+                      title={publicAd.title}
+                    >
                       {publicAd.title}
                     </BreadcrumbPage>
                   </BreadcrumbItem>
@@ -435,7 +439,13 @@ export function Breadcrumbs() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {isLast ? (
-                  <BreadcrumbPage data-testid="breadcrumb-category">{label}</BreadcrumbPage>
+                  <BreadcrumbPage
+                    data-testid="breadcrumb-category"
+                    className="min-w-0 truncate"
+                    title={label}
+                  >
+                    {label}
+                  </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link

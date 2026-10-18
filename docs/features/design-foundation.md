@@ -278,6 +278,7 @@ ONE breakpoint governs both the sidebar collapse and the top-bar minimization:
   rows and widens in place to a 256px named menu from the top bar. The 52px bar, strip and
   tabs/breadcrumb band stay while the page scrolls; search opens a row over the page below the bar, from the strip's edge to the screen's edge, as the page (bundle 21 turn 9). Only this size minimizes the bar.
   `PHONE_STRIP=false` restores the header menu button and removes the strip offset.
+  A phone never widens the page (bundle 21 turn 10, INC-743): html and body clip horizontal overflow, person- and catalogue-written text breaks inside its box (wrap-anywhere on the ad and the listing card), and the breadcrumb stays one line, cutting its last crumb.
 
 - **Top bar** is minimal and evenly distributed at 360px, full at `md`+. On
   phones search is an icon that opens a row below the bar beside the strip (room for

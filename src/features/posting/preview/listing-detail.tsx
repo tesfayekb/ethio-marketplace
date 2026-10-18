@@ -529,7 +529,7 @@ export function ListingDetail(view: ListingDetailView) {
   return (
     <article
       ref={articleRef}
-      className="@container flex min-w-0 flex-col gap-4"
+      className="@container flex min-w-0 flex-col gap-4 wrap-anywhere"
       data-testid="listing-detail"
       data-actor={view.actor}
     >
