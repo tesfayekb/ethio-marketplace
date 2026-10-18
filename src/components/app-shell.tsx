@@ -24,7 +24,7 @@ import {
   useOpenMarkets,
   writeAreaCookie,
 } from "@/components/shell/location-data";
-import { LocationSelector } from "@/components/shell/location-selector";
+import { LocationSelector, PlaceNotice } from "@/components/shell/location-selector";
 import { chooseCarry } from "@/components/shell/place-carry";
 import { readAccountPlace, saveAccountPlace } from "@/components/shell/place-carry-service";
 import { PanelTabs } from "@/components/shell/panel-tabs";
@@ -122,6 +122,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   /** L4b-2 — the node the guess resolved to, so the caption can NAME it. */
   const [guessNode, setGuessNode] = useState<LocationNode | null>(null);
   const [navOpen, setNavOpen] = useState(false);
+  const [noticeNode, setNoticeNode] = useState<LocationNode | null>(null);
+  const [keptPlace, setKeptPlace] = useState<string | null>(null);
 
   /**
    * L4b-2 — THE INITIAL AREA, DERIVED ONCE, in this order (laws 10, 12, 13):
@@ -235,6 +237,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const savePick = useCallback(
     (country: string, id: string) => {
       writeAreaCookie(country, id);
+      setNoticeNode(null);
+      setDeriveTick((tick) => tick + 1);
       if (signedInRef.current) void saveToAccount(id);
     },
     [saveToAccount],
@@ -242,6 +246,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const clearPick = useCallback(() => {
     clearAreaCookie();
+    setNoticeNode(null);
+    setDeriveTick((tick) => tick + 1);
     if (signedInRef.current) void saveToAccount(null);
   }, [saveToAccount]);
 
@@ -310,6 +316,43 @@ export function AppShell({ children }: { children: ReactNode }) {
     deriveTick,
   ]);
 
+  /** D214 — compare only the saved market's already loaded tree, after an own pick's day. */
+  useEffect(() => {
+    let kept: string | null = keptPlace;
+    try {
+      const stored = window.localStorage.getItem("ethio.place.keep");
+      // Reuse the cookie parser's UUID pattern, not a second validation rule.
+      kept = stored === null ? keptPlace : (parseAreaCookie(`XX:${stored}`)?.id ?? keptPlace);
+    } catch {
+      console.warn("[location] device Keep storage is unavailable");
+    }
+    if (
+      savedArea === null ||
+      savedArea.at === null ||
+      Date.now() - savedArea.at < 24 * 60 * 60 * 1000 ||
+      geo.country !== savedArea.country ||
+      treeLoadedCountry !== savedArea.country
+    ) {
+      setNoticeNode(null);
+      return;
+    }
+    const guessed = resolveGuess(treeNodes, geo);
+    const savedPath = pathToNode(treeNodes, savedArea.id);
+    const guessedPath = guessed ? pathToNode(treeNodes, guessed.id) : [];
+    if (
+      !guessed ||
+      savedPath.length === 0 ||
+      guessedPath.length === 0 ||
+      guessed.id === kept ||
+      savedPath.some((node) => node.id === guessed.id) ||
+      guessedPath.some((node) => node.id === savedArea.id)
+    ) {
+      setNoticeNode(null);
+      return;
+    }
+    setNoticeNode(asLocationNode(guessed));
+  }, [savedArea, treeNodes, treeLoadedCountry, geo, keptPlace]);
+
   /**
    * A market picked in the picker lands on its anchor as soon as ITS OWN tree is
    * in (INC-211). The tree route's rows carry no country field, so the hook
@@ -376,6 +419,29 @@ export function AppShell({ children }: { children: ReactNode }) {
       if (deepest && locationCountry !== null) savePick(locationCountry, deepest.id);
     },
     [locationCountry, savePick],
+  );
+
+  const placeNotice = useMemo<ShellValue["placeNotice"]>(
+    () =>
+      noticeNode === null
+        ? null
+        : {
+            node: noticeNode,
+            switchTo: () => {
+              const path = pathToNode(treeNodes, noticeNode.id);
+              if (path.length > 0) persistLocationPath(path.map(asLocationNode));
+            },
+            keep: () => {
+              try {
+                window.localStorage.setItem("ethio.place.keep", noticeNode.id);
+              } catch {
+                console.warn("[location] device Keep choice was not saved");
+              }
+              setKeptPlace(noticeNode.id);
+              setNoticeNode(null);
+            },
+          },
+    [noticeNode, treeNodes, persistLocationPath],
   );
 
   /**
@@ -738,6 +804,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       selectLocationCountry,
       guessInUse,
       guessNode,
+      placeNotice,
       accountPlace,
       navOpen,
       setNavOpen,
@@ -760,6 +827,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     selectLocationCountry,
     guessInUse,
     guessNode,
+    placeNotice,
     accountPlace,
     navOpen,
     signingOut,
@@ -916,7 +984,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               gated by the SAME condition as the body: no location band on My
               Listings / Account / Admin (INC-052), and none on a route-owned
               page such as /settings (INC-058). */}
-            {isFeedRoute && activePanel === "marketplace" ? <LocationSelector /> : null}
+            {isFeedRoute && activePanel === "marketplace" ? (
+              <>
+                <LocationSelector />
+                <PlaceNotice />
+              </>
+            ) : null}
             {/* Band 4 + 5 */}
             <main id="main" className="min-w-0 flex-1 p-2 md:p-4">
               {/* A route-owned page always renders itself. The placeholder is

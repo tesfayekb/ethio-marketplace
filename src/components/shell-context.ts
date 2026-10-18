@@ -49,6 +49,7 @@ export type ShellValue = {
   guessInUse: boolean;
   /** L4b-2 — the node the guess resolved to, so the caption can name it. */
   guessNode: LocationNode | null;
+  placeNotice: { node: LocationNode; switchTo: () => void; keep: () => void } | null;
   /**
    * D106 — the sign-in carry of the account's place: "off" while signed out,
    * "pending" while it runs, "done" once the newest pick has been applied or saved.

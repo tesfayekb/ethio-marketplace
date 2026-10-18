@@ -1,8 +1,17 @@
 import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, House, LogOut, X, type LucideIcon } from "lucide-react";
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight, House, LogOut, Star, X, type LucideIcon } from "lucide-react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 
 import { useShell } from "@/components/shell-context";
 import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
@@ -27,12 +36,65 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
 
 /** FIX-SCAN-1 ISSUE 4 — the glyph map now lives in category-glyphs.ts, the one
  *  allowlist the server suggester validates against; re-exported here so the
  *  console's existing imports keep working. */
 export { categoryGlyph } from "@/components/shell/category-glyphs";
+
+/** D207 — one device favourite, shared by every mounted reader. */
+const FAVOURITE_KEY = "ethio.fav";
+const FAVOURITE_SLUG = /^[a-z0-9-]{1,80}$/;
+const favouriteReaders = new Set<() => void>();
+function readFavourite(): string | null {
+  try {
+    const slug = window.localStorage.getItem(FAVOURITE_KEY);
+    return slug !== null && FAVOURITE_SLUG.test(slug) ? slug : null;
+  } catch {
+    // D207: unavailable storage deliberately means no device favourite.
+    return null;
+  }
+}
+function subscribeFavourite(reader: () => void): () => void {
+  favouriteReaders.add(reader);
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === FAVOURITE_KEY || event.key === null) reader();
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    favouriteReaders.delete(reader);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+const favouriteServerSnapshot = () => null;
+function writeFavourite(slug: string | null): void {
+  try {
+    if (slug === null) window.localStorage.removeItem(FAVOURITE_KEY);
+    else window.localStorage.setItem(FAVOURITE_KEY, slug);
+  } catch {
+    console.warn("[favourite] device storage is unavailable");
+  }
+  for (const reader of favouriteReaders) reader();
+}
+export function useFavouriteCategory(): {
+  slug: string | null;
+  set: (slug: string | null) => void;
+} {
+  const { tree } = useCategoryTree();
+  const bySlug = useMemo(
+    () => Object.fromEntries(tree.nodes.map((node) => [node.slug, node])),
+    [tree],
+  );
+  const stored = useSyncExternalStore(subscribeFavourite, readFavourite, favouriteServerSnapshot);
+  const slug = stored !== null && ownValue(bySlug, stored) ? stored : null;
+  const set = (next: string | null) => {
+    if (next === null || (FAVOURITE_SLUG.test(next) && ownValue(bySlug, next)))
+      writeFavourite(next);
+  };
+  return { slug, set };
+}
 
 /**
  * COLLAPSE — an OPTION on md+, never the default and never on mobile.
@@ -118,6 +180,8 @@ type RailNode = {
   /** Stable hook for tests; config items pass their item id. */
   testid?: string;
   label: string;
+  favourite?: boolean;
+  accessibleLabel?: string;
   icon?: NavItem["icon"];
   path?: string;
   /**
@@ -173,7 +237,17 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const inner = (
     <>
       {Icon ? (
-        <Icon className={cn("shrink-0", compact ? "h-6 w-6" : "h-5 w-5")} aria-hidden="true" />
+        node.favourite ? (
+          <span className={cn("relative shrink-0", compact ? "h-6 w-6" : "h-5 w-5")}>
+            <Icon className="h-full w-full" aria-hidden="true" />
+            <Star
+              className="absolute -end-1 -top-1 h-3 w-3 fill-gold text-gold"
+              aria-hidden="true"
+            />
+          </span>
+        ) : (
+          <Icon className={cn("shrink-0", compact ? "h-6 w-6" : "h-5 w-5")} aria-hidden="true" />
+        )
       ) : null}
       <CutText className={cn(hide, strip && "sr-only")} text={node.label} />
     </>
@@ -186,6 +260,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <li className={cn(hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1")}>
         <span
           data-testid={testid}
+          aria-label={node.accessibleLabel ?? node.label}
           aria-current={node.ancestorActive ? "true" : node.active ? "page" : undefined}
           style={pad}
           className={cn(
@@ -229,7 +304,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             to={node.path}
             onClick={node.onSelect}
             data-testid={testid}
-            aria-label={node.label}
+            aria-label={node.accessibleLabel ?? node.label}
             aria-current={node.active ? "page" : containsActive(node) ? "true" : undefined}
             style={pad}
             className={groupClassName}
@@ -239,7 +314,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
         ) : (
           <div
             data-testid={testid}
-            aria-label={node.label}
+            aria-label={node.accessibleLabel ?? node.label}
             aria-current={containsActive(node) ? "true" : undefined}
             style={pad}
             className={groupClassName}
@@ -281,7 +356,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
                 type="button"
                 data-testid={strip ? "strip-submenu-trigger" : "rail-submenu-trigger"}
                 aria-expanded={open}
-                aria-label={node.label}
+                aria-label={node.accessibleLabel ?? node.label}
                 style={pad}
                 className={cn(
                   itemBase,
@@ -336,7 +411,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             onClick={node.onSelect}
             data-testid={testid}
             aria-current={node.ancestorActive ? "true" : node.active ? "page" : undefined}
-            aria-label={node.label}
+            aria-label={node.accessibleLabel ?? node.label}
             style={pad}
             className={cn(
               itemBase,
@@ -370,7 +445,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             onClick={node.onSelect}
             data-testid={testid}
             aria-current={node.active ? "true" : undefined}
-            aria-label={node.label}
+            aria-label={node.accessibleLabel ?? node.label}
             style={pad}
             className={cn(
               itemBase,
@@ -399,7 +474,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           data-testid={testid}
           className={cn(itemBase, "text-muted-foreground", compactClass)}
           aria-disabled="true"
-          aria-label={node.label}
+          aria-label={node.accessibleLabel ?? node.label}
         >
           {inner}
         </span>
@@ -417,6 +492,8 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const { t, entities } = useI18n();
   const { tree, isLoading, error } = useCategoryTree();
   const { selectedCategorySlug } = useShell();
+  const favourite = useFavouriteCategory();
+  const favouriteCategory = tree.nodes.find((category) => category.slug === favourite.slug);
   const collapsed = useContext(CollapsedContext);
   const selected = tree.nodes.find((category) => category.slug === selectedCategorySlug);
   const fromUrl = selected
@@ -496,6 +573,20 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
               onSelect: onNavigate,
             }}
           />
+        ) : null}
+        {!level && favouriteCategory ? (
+          <>
+            <RailRow
+              node={{
+                ...toNode(favouriteCategory),
+                key: "favourite",
+                testid: "rail-favourite",
+                favourite: true,
+                accessibleLabel: `${entityName("category", favouriteCategory, entities)} — ${t("shell.favouriteBadge")}`,
+              }}
+            />
+            <li aria-hidden="true" className="shrink-0 border-b border-neutral-soft" />
+          </>
         ) : null}
         {/* INC-050: while the tree is being read the rail shows placeholder
             rows at the real pointer-dependent row height, so the sidebar does not jump when

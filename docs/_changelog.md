@@ -954,3 +954,5 @@
 - 2026-10-18 — Bundle 21 turn 4 (no migration): the compact phone footer — no brand block below 768, one 28-px row rhythm, less padding (the operator, 14:38 local); sub-items indented 16 px a level in the open rail and the opened phone menu, one icon column folded and in the strip (14:45 local); FT-1, IN-1.
 
 - 2026-10-18 — Bundle 21 turn 5 (no migration): subcategories in place with ‹ Main menu at every width (D98 with D213), the ancestor marked, hover preloading, the fold into the strip, the peek (D206); the footer's logo link named Home (INC-736); AP-37 measures the seller card (S298); SC-1…SC-3, PK-1.
+
+- 2026-10-18 — Bundle 21 turn 6 (no migration): the ★ favourite on this device, first in every main list, set beside a category page's title (D207); the different-place notice — one line in the place band, a day after the person's own choice, Switch and Keep (D214, changing D107); FV-1, PN-1, PN-2.
