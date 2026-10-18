@@ -434,7 +434,7 @@ export function MapPinDropper({
 
           <div
             ref={boxRef}
-            className="h-72 w-full overflow-hidden rounded-md border border-border sm:h-80"
+            className="isolate h-72 w-full overflow-hidden rounded-md border border-border sm:h-80"
             data-testid="post-pin-map"
             data-ready="0"
             data-outline="0"
