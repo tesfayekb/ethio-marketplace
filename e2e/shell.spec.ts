@@ -3722,3 +3722,57 @@ test("SB-1 the search field takes three quarters of the band's free space, up to
   }
   expect(widths[1]!).toBeGreaterThan(widths[0]! + 50);
 });
+
+/** Bundle 21 turn 10 (INC-743) — the page-wide guard: any overflow at all leaves the page the screen's width. */
+test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () => {
+  test.use({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 3,
+  });
+
+  test("OV-2 a 2000-px child never widens the page, and the sub-band still sticks", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name === "desktop-1280", "phone emulation, run once");
+    await page.goto("/");
+    await expect(page.locator("main#main")).toBeVisible();
+    try {
+      await page.evaluate(() => {
+        const wide = document.createElement("div");
+        wide.id = "ov2-wide";
+        wide.style.width = "2000px";
+        wide.style.height = "10px";
+        document.querySelector("main#main")?.appendChild(wide);
+      });
+      const before = await page.evaluate(() => ({
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        bottomBar:
+          document.querySelector('[data-testid="bottom-bar"]')?.getBoundingClientRect().width ?? -1,
+      }));
+      expect(before.innerWidth, JSON.stringify(before)).toBe(390);
+      expect(before.scrollWidth, JSON.stringify(before)).toBeLessThanOrEqual(390);
+      expect(Math.abs(before.bottomBar - 390), JSON.stringify(before)).toBeLessThanOrEqual(1);
+      await page.evaluate(() => window.scrollTo(0, 600));
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () =>
+              document.querySelector('[data-testid="shell-subband"]')?.getBoundingClientRect()
+                .top ?? -1,
+          ),
+        )
+        .toBeGreaterThanOrEqual(51);
+      const top = await page.evaluate(
+        () =>
+          document.querySelector('[data-testid="shell-subband"]')?.getBoundingClientRect().top ??
+          -1,
+      );
+      expect(Math.abs(top - 52), `sub-band top ${top}`).toBeLessThanOrEqual(1);
+    } finally {
+      await page.evaluate(() => document.getElementById("ov2-wide")?.remove());
+    }
+  });
+});

@@ -1735,3 +1735,95 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     expect(firstBox.x).toBeGreaterThanOrEqual(rowBox.x - 1);
   });
 });
+
+/** Bundle 21 turn 10 (INC-743) — a word longer than its box never widens the phone page. */
+test.describe("AD PAGE — the phone page never widens (bundle 21 turn 10)", () => {
+  test.use({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 3,
+  });
+  const { scratchSeller, seed, publicIdOf, cleanup } = adPageFixtures();
+  test.afterEach(async () => {
+    await cleanup();
+  });
+
+  /** One unbroken run of letters (no digits: the alias door forbids none, the fence keeps it plain). */
+  function longWord(length: number) {
+    const letters = "abcdefghijklmnopqrstuvwxyz";
+    let word = "E";
+    while (word.length < length) word += letters[Math.floor(Math.random() * letters.length)];
+    return word;
+  }
+
+  test("OV-1 long unbroken words keep the ad page the screen's width", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name === "desktop-1280", "phone emulation, run once");
+    const seller = await scratchSeller();
+    // The alias column allows 30 characters at most (profiles_seller_alias check), so the
+    // alias is one 30-letter word; the business name is the brief's 48.
+    const alias = longWord(30);
+    const business = longWord(48);
+    const profile = await adminClient()
+      .from("profiles")
+      .update({ seller_alias: alias, seller_type: "business", business_name: business })
+      .eq("user_id", seller.id);
+    if (profile.error) throw new Error(`[e2e:ov1] profile update failed: ${profile.error.message}`);
+    const ad = await seed(seller, "active", { pin: true });
+    const title = `E2E ${longWord(48)}`;
+    const listing = await adminClient()
+      .from("listings")
+      .update({
+        title,
+        description: `e2e ${longWord(48)} scratch`,
+        directions: `e2e ${longWord(48)}`,
+        street_address: `e2e ${longWord(48)}`,
+      })
+      .eq("id", ad.id);
+    if (listing.error) throw new Error(`[e2e:ov1] ad update failed: ${listing.error.message}`);
+    const publicId = await publicIdOf(ad.id);
+    await page.goto(listingPath(title, publicId));
+    await expect(page.getByTestId("listing-detail-title")).toHaveText(title);
+
+    const measured = await page.evaluate(() => {
+      const width = (id: string) =>
+        document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().width ?? -1;
+      let furthest = 0;
+      let furthestText = "";
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (!node.textContent?.trim()) continue;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        for (const rect of Array.from(range.getClientRects())) {
+          if (rect.width > 0 && rect.right > furthest) {
+            furthest = rect.right;
+            furthestText = node.textContent.slice(0, 60);
+          }
+        }
+      }
+      const crumbs = document.querySelector(
+        '[data-testid="shell-subband"] nav[aria-label="breadcrumb"] ol',
+      );
+      return {
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        bottomBar: width("bottom-bar"),
+        band: width("shell-band"),
+        furthest,
+        furthestText,
+        crumbHeight: crumbs?.getBoundingClientRect().height ?? -1,
+      };
+    });
+    expect(measured.innerWidth, JSON.stringify(measured)).toBe(390);
+    expect(measured.scrollWidth, JSON.stringify(measured)).toBeLessThanOrEqual(390);
+    expect(Math.abs(measured.bottomBar - 390), JSON.stringify(measured)).toBeLessThanOrEqual(1);
+    expect(Math.abs(measured.band - 390), JSON.stringify(measured)).toBeLessThanOrEqual(1);
+    expect(measured.furthest, JSON.stringify(measured)).toBeLessThanOrEqual(390);
+    expect(measured.crumbHeight, JSON.stringify(measured)).toBeGreaterThan(0);
+    expect(measured.crumbHeight, JSON.stringify(measured)).toBeLessThanOrEqual(34);
+    await expect(page.getByTestId("breadcrumb-ad")).toHaveText(title);
+  });
+});

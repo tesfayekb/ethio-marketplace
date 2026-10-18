@@ -28,10 +28,14 @@ BreadcrumbList.displayName = "BreadcrumbList";
 
 const BreadcrumbItem = React.forwardRef<HTMLLIElement, React.ComponentPropsWithoutRef<"li">>(
   ({ className, ...props }, ref) => (
-    <li ref={ref} className={cn(
+    <li
+      ref={ref}
+      className={cn(
         "inline-flex shrink-0 items-center gap-1.5 last:min-w-0 last:shrink",
         className,
-      )} {...props} />
+      )}
+      {...props}
+    />
   ),
 );
 BreadcrumbItem.displayName = "BreadcrumbItem";
