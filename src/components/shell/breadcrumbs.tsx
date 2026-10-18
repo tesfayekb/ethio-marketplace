@@ -439,7 +439,13 @@ export function Breadcrumbs() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {isLast ? (
-                  <BreadcrumbPage data-testid="breadcrumb-category">{label}</BreadcrumbPage>
+                  <BreadcrumbPage
+                    data-testid="breadcrumb-category"
+                    className="min-w-0 truncate"
+                    title={label}
+                  >
+                    {label}
+                  </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link
