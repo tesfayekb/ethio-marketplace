@@ -37,7 +37,7 @@ export function AppFooter() {
           <Link
             to="/"
             data-testid="footer-home"
-            aria-label={t("app.name")}
+            aria-label={t("nav.home")}
             className="inline-flex min-h-11 items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Logo variant="full" />

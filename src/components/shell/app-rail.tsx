@@ -1,8 +1,8 @@
 import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, House, LogOut, X, type LucideIcon } from "lucide-react";
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { ChevronLeft, ChevronRight, House, LogOut, X, type LucideIcon } from "lucide-react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
 import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
@@ -15,7 +15,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
 import type { NavItem } from "@/config/panels.types";
-import { useCategories } from "@/features/feed/use-feed";
+import {
+  childrenOf,
+  pathOf,
+  rootsOf,
+  useCategoryTree,
+  type CategoryNode,
+} from "@/features/categories/category-tree";
+import { isE2E } from "@/lib/env-flags";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
@@ -122,6 +129,9 @@ type RailNode = {
   /** Route params for a dynamic path (U0l: /c/$slug). */
   params?: Record<string, string>;
   active?: boolean;
+  ancestorActive?: boolean;
+  categoryBranch?: boolean;
+  preload?: "intent";
   onSelect?: () => void;
   children?: RailNode[];
   /** C3-UX-2 — a group that renders expanded on its first frame. */
@@ -176,11 +186,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <li className={cn(hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1")}>
         <span
           data-testid={testid}
-          aria-current={node.active ? "page" : undefined}
+          aria-current={node.ancestorActive ? "true" : node.active ? "page" : undefined}
           style={pad}
           className={cn(
             itemBase,
-            node.active ? ITEM_ACTIVE : ITEM_IDLE,
+            node.active || node.ancestorActive ? ITEM_ACTIVE : ITEM_IDLE,
             compactClass,
             hasChildren && "h-8 min-h-8 max-h-10 flex-1",
           )}
@@ -322,14 +332,25 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             to={node.path}
             params={node.params}
             hash={node.hash}
+            preload={node.preload}
             onClick={node.onSelect}
             data-testid={testid}
-            aria-current={node.active ? "page" : undefined}
+            aria-current={node.ancestorActive ? "true" : node.active ? "page" : undefined}
             aria-label={node.label}
             style={pad}
-            className={cn(itemBase, node.active ? ITEM_ACTIVE : ITEM_IDLE, compactClass)}
+            className={cn(
+              itemBase,
+              node.active || node.ancestorActive ? ITEM_ACTIVE : ITEM_IDLE,
+              compactClass,
+            )}
           >
             {inner}
+            {node.categoryBranch ? (
+              <ChevronRight
+                aria-hidden="true"
+                className={cn("ms-auto h-4 w-4 shrink-0 rtl:rotate-180", hide)}
+              />
+            ) : null}
           </Link>
         </WithTooltip>
       </li>
@@ -351,7 +372,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             aria-current={node.active ? "true" : undefined}
             aria-label={node.label}
             style={pad}
-            className={cn(itemBase, node.active ? ITEM_ACTIVE : ITEM_IDLE, compactClass)}
+            className={cn(
+              itemBase,
+              node.active || node.ancestorActive ? ITEM_ACTIVE : ITEM_IDLE,
+              compactClass,
+            )}
           >
             {inner}
           </button>
@@ -390,38 +415,76 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const compact = variant === "strip" || variant === "menu";
   const hide = useHide();
   const { t, entities } = useI18n();
-  const { categories, isLoading } = useCategories();
-  // U0l (INC-073): the highlight reads the URL, exactly like the body and the
-  // breadcrumb — never a private selection state.
+  const { tree, isLoading, error } = useCategoryTree();
   const { selectedCategorySlug } = useShell();
-
-  const nodes: RailNode[] = categories.map((category) => ({
+  const collapsed = useContext(CollapsedContext);
+  const selected = tree.nodes.find((category) => category.slug === selectedCategorySlug);
+  const fromUrl = selected
+    ? childrenOf(tree, selected.id).length > 0
+      ? selected.id
+      : (tree.parentOf.get(selected.id) ?? null)
+    : null;
+  // Each phone opening starts over the strip's main rows. After navigation the
+  // same mounted menu follows the whole URL tree, including third-level leaves.
+  const [localLevel, setLocalLevel] = useState<{
+    slug: string | null;
+    id: string | null | undefined;
+  }>(() => ({ slug: selectedCategorySlug, id: variant === "menu" ? null : undefined }));
+  if (localLevel.slug !== selectedCategorySlug) {
+    setLocalLevel({ slug: selectedCategorySlug, id: undefined });
+  }
+  const iconsOnly = strip || (variant === "rail" && collapsed);
+  const levelId =
+    localLevel.slug === selectedCategorySlug && localLevel.id !== undefined
+      ? localLevel.id
+      : fromUrl;
+  const level = !iconsOnly && levelId ? tree.byId.get(levelId) : undefined;
+  const parentId = level ? tree.parentOf.get(level.id) : undefined;
+  const parent = parentId ? tree.byId.get(parentId) : undefined;
+  const roots = rootsOf(tree);
+  const ancestors = selected ? pathOf(tree, selected.id) : [];
+  const toNode = (category: CategoryNode): RailNode => ({
     key: category.id,
     testid: `rail-category-${category.slug}`,
     label: entityName("category", category, entities),
-    // C5i PART B.3 — the STORED icon first (the operator's choice, visible on
-    // the public rail), then the slug map in src/config/panels.ts, then Tag.
-    // D38 — an UNKNOWN stored name renders no glyph (logged once), never Package.
-    // A row with NO stored name keeps the slug map: the collapsed rail is
-    // icons-only, so an absent glyph there would be an empty target.
     icon: category.icon
       ? (categoryGlyphOrNull(category.icon) ?? undefined)
       : categoryIcon(category.slug),
-
     active: category.slug === selectedCategorySlug,
+    ancestorActive: !level && ancestors.some((ancestor) => ancestor.id === category.id),
+    categoryBranch: !iconsOnly && childrenOf(tree, category.id).length > 0,
     path: "/c/$slug",
     params: { slug: category.slug },
-    onSelect: onNavigate,
-    // Subcategories dive in place through the same RailRow recursion the admin
-    // tree uses. useCategories currently returns top-level nodes only, so this
-    // is empty until the category-children read lands with its own feature.
-    children: [],
-  }));
+    preload: "intent",
+    onSelect: () => {
+      if (childrenOf(tree, category.id).length === 0) onNavigate();
+      else setLocalLevel({ slug: selectedCategorySlug, id: category.id });
+    },
+  });
+  const nodes = (level ? [level, ...childrenOf(tree, level.id)] : roots).map(toNode);
 
   return (
     <nav aria-label={t("shell.categoriesLabel")} className={cn(compact && "flex h-full flex-col")}>
       <ul className={cn("flex flex-col gap-0.5", compact && "h-full")}>
-        {!compact ? (
+        {level ? (
+          <li className={cn(compact && "min-h-8 max-h-10 flex-1")}>
+            <Button
+              variant="ghost"
+              data-testid="rail-menu-back"
+              onClick={() => setLocalLevel({ slug: selectedCategorySlug, id: parent?.id ?? null })}
+              className={cn(
+                ITEM_CORE,
+                ITEM_IDLE,
+                compact && "h-full min-h-0 justify-start gap-3 pe-2",
+              )}
+            >
+              <ChevronLeft aria-hidden="true" className="h-4 w-4 shrink-0 rtl:rotate-180" />
+              <CutText
+                text={parent ? entityName("category", parent, entities) : t("shell.mainMenu")}
+              />
+            </Button>
+          </li>
+        ) : !compact ? (
           <RailRow
             node={{
               key: "all",
@@ -467,13 +530,20 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
                 </div>
               </li>
             ))
-          : nodes.map((node) => <RailRow key={node.key} node={node} />)}
-        {!compact && !isLoading && categories.length === 0 ? (
+          : nodes.map((node, index) => (
+              <RailRow key={node.key} node={node} depth={level && index > 0 ? 1 : 0} />
+            ))}
+        {!compact && !isLoading && roots.length === 0 ? (
           <li className={cn("px-3 text-sm text-muted-foreground", hide)}>
             {t("shell.categoriesEmpty")}
           </li>
         ) : null}
       </ul>
+      {error ? (
+        <p role="alert" className="px-3 text-sm text-destructive">
+          {t("common.error")}
+        </p>
+      ) : null}
     </nav>
   );
 }
@@ -621,9 +691,74 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
  */
 export function AppRail() {
   const { t } = useI18n();
-  const { navOpen, setNavOpen, user, auth, activePanel } = useShell();
+  const { navOpen, setNavOpen, user, auth, authLoading, activePanel } = useShell();
   const { collapsed } = useRailCollapsed();
   const footerInset = useFooterInset();
+  const pathname = useShownPathname();
+  const [peeking, setPeeking] = useState(false);
+  const peekAttempted = useRef(false);
+  const peekFocus = useRef(false);
+
+  // D206: one fixed session word; denied storage deliberately disables the peek.
+  useEffect(() => {
+    if (
+      authLoading ||
+      peekAttempted.current ||
+      window.innerWidth >= 768 ||
+      activePanel !== "marketplace" ||
+      !(pathname === "/" || pathname.startsWith("/c/"))
+    )
+      return;
+    peekAttempted.current = true;
+    try {
+      const word = sessionStorage.getItem("ethio.peek");
+      if (word === "seen" || (isE2E && word !== "force")) return;
+      sessionStorage.setItem("ethio.peek", "seen");
+    } catch {
+      return; // Blocked storage means no peek, not a repeat on every page.
+    }
+    peekFocus.current = true;
+    setPeeking(true);
+    setNavOpen(true);
+  }, [authLoading, activePanel, pathname, setNavOpen]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    try {
+      sessionStorage.setItem("ethio.peek", "seen");
+    } catch {
+      // The person's menu still works when session storage is unavailable.
+    }
+  }, [navOpen]);
+
+  useEffect(() => {
+    if (!peeking || !navOpen) return;
+    const end = () => {
+      setNavOpen(false);
+      setPeeking(false);
+    };
+    const outside = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest('[data-testid="rail-menu"]'))
+        return;
+      end();
+    };
+    const timer = window.setTimeout(end, 3000);
+    document.addEventListener("pointerdown", outside, true);
+    document.addEventListener("scroll", outside, true);
+    document.addEventListener("keydown", outside, true);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("pointerdown", outside, true);
+      document.removeEventListener("scroll", outside, true);
+      document.removeEventListener("keydown", outside, true);
+    };
+  }, [peeking, navOpen, setNavOpen]);
+
+  const changeMenu = (open: boolean) => {
+    peekFocus.current = false;
+    setPeeking(false);
+    setNavOpen(open);
+  };
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -660,9 +795,9 @@ export function AppRail() {
         <div
           data-testid="rail-strip"
           aria-hidden="true"
-          onClick={() => setNavOpen(true)}
+          onClick={() => changeMenu(true)}
           style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-20 flex w-12 flex-col bg-sidebar shadow-side md:hidden"
+          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-[38] flex w-12 flex-col bg-sidebar shadow-side md:hidden"
         >
           <div
             data-testid="strip-scroll"
@@ -674,7 +809,7 @@ export function AppRail() {
         </div>
       </RailVariantContext.Provider>
 
-      <DialogPrimitive.Root open={navOpen} onOpenChange={setNavOpen} modal={false}>
+      <DialogPrimitive.Root open={navOpen} onOpenChange={changeMenu} modal={false}>
         {navOpen ? (
           <div
             data-testid="rail-menu-scrim"
@@ -689,7 +824,13 @@ export function AppRail() {
           data-panel={activePanel}
           aria-label={t("shell.menuTitle")}
           aria-describedby={undefined}
-          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-40 flex w-64 flex-col rounded-e-[1rem] bg-sidebar shadow-lg md:hidden"
+          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-40 flex w-64 flex-col rounded-e-[1rem] bg-sidebar shadow-lg md:hidden data-[state=open]:animate-in data-[state=open]:slide-in-from-left data-[state=open]:duration-200 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=closed]:duration-[250ms] data-[state=closed]:z-[37] motion-reduce:animate-none"
+          onPointerDownCapture={() => {
+            if (peeking) {
+              peekFocus.current = false;
+              setPeeking(false);
+            }
+          }}
           onPointerDownOutside={(event) => {
             if ((event.target as Element | null)?.closest('[aria-controls="rail-menu"]')) {
               event.preventDefault();
@@ -702,6 +843,8 @@ export function AppRail() {
           }}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
+            if (peeking) return;
+            peekFocus.current = false;
             document
               .getElementById("rail-menu")
               ?.querySelector<HTMLElement>(
@@ -711,7 +854,8 @@ export function AppRail() {
           }}
           onCloseAutoFocus={(event) => {
             event.preventDefault();
-            document.querySelector<HTMLElement>('[aria-controls="rail-menu"]')?.focus();
+            if (!peekFocus.current)
+              document.querySelector<HTMLElement>('[aria-controls="rail-menu"]')?.focus();
           }}
         >
           <Button

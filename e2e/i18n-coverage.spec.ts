@@ -266,3 +266,19 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     assertAmharicChrome(labels, "roles permission matrix");
   });
 });
+
+test("B21SC-3 SC-3 the phone category level and Main menu are Amharic", async ({
+  page,
+  viewport,
+}) => {
+  test.skip((viewport?.width ?? 0) >= 768, "mobile only");
+  await useAmharic(page);
+  await gotoReady(page, "/c/electronics");
+  await expect(page.locator("html")).toHaveAttribute("lang", "am");
+  const menu = await openRailScope(page);
+  await menu.getByTestId("rail-category-electronics").click();
+  await expect(menu.getByTestId("rail-menu-back")).toHaveText(am["shell.mainMenu"]);
+  await expect(menu.getByTestId("rail-category-phones-tablets")).toBeVisible();
+  assertAmharicChrome(await drawerTexts(page), "SC-3 category level");
+  await assertAmharicCategories(page, '[data-testid="rail-menu"]', "SC-3 category level");
+});

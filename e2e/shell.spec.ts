@@ -974,18 +974,8 @@ test.describe("mobile chrome", () => {
   test("RM-1 a tap on the strip opens the menu; the row under the finger opens the category", async ({
     page,
   }) => {
-    const { data, error } = await adminClient()
-      .from("category_tree_pointers")
-      .select("category:categories!category_tree_pointers_child_id_fkey!inner(slug, is_active)")
-      .is("parent_id", null)
-      .eq("category.is_active", true)
-      .not("category.slug", "like", "e2e-%")
-      .order("id")
-      .limit(1)
-      .single();
-    if (error || !data) throw new Error(`Category anchor: ${error?.message ?? "no row"}`);
-    const category = Array.isArray(data.category) ? data.category[0] : data.category;
-    if (!category) throw new Error("Category anchor: no joined category");
+    // The catalogue is read only; this branch has subcategories at every width.
+    const category = { slug: "electronics" };
     await gotoReady(page, "/");
     const row = page.getByTestId(`strip-category-${category.slug}`);
     await expect(row).toBeVisible();
@@ -1005,12 +995,19 @@ test.describe("mobile chrome", () => {
     expect(Math.abs(menuBox.height - rowBox.height)).toBeLessThanOrEqual(1);
     await page.mouse.click(tap.x, tap.y);
     await expect(page).toHaveURL(new RegExp(`/c/${category.slug}$`));
-    await expect(row).toHaveAttribute("aria-current", "page");
-    await expect(page.getByTestId("rail-menu")).toBeHidden();
-    const reopened = await openRailScope(page);
-    await expect(reopened.getByTestId(`rail-category-${category.slug}`)).toHaveAttribute(
+    await expect(row).toHaveAttribute("aria-current", "true");
+    await expect(menu).toBeVisible();
+    await expect(menu.getByTestId("rail-category-electronics")).toHaveAttribute(
       "aria-current",
       "page",
+    );
+    await menu.getByTestId("rail-category-audio-sound").click();
+    await expect(page).toHaveURL(/\/c\/audio-sound$/);
+    await expect(menu).toBeHidden();
+    const reopened = await openRailScope(page);
+    await expect(reopened.getByTestId("rail-category-electronics")).toHaveAttribute(
+      "aria-current",
+      "true",
     );
     await page.keyboard.press("Escape");
   });
@@ -1076,7 +1073,7 @@ test.describe("mobile chrome", () => {
     expect(Math.abs(rowBox.height - stripBox.height)).toBeLessThanOrEqual(1);
     expect(rowBox.height).toBeGreaterThanOrEqual(31);
     expect(rowBox.height).toBeLessThanOrEqual(41);
-    const iconBox = await row.locator("svg").boundingBox();
+    const iconBox = await row.locator("svg:nth-of-type(1)").boundingBox();
     const nameBox = await row.locator("[data-cut]").boundingBox();
     if (!iconBox || !nameBox) throw new Error("Missing menu row icon or name");
     expect(
@@ -1145,24 +1142,23 @@ test.describe("mobile chrome", () => {
     await expect(control).toBeFocused();
 
     menu = await openRailScope(page);
-    // INC-528 — other tests' scratch categories (slugs "e2e-…") come and go in
-    // the rail while this test runs; the navigation subject is a real category.
-    const realRows = catalogueRows(menu);
-    // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the navigation subject
-    const category = realRows.first();
-    const testid = await category.getAttribute("data-testid");
-    const href = await category.getAttribute("href");
-    if (!testid || !href) throw new Error("Missing category row destination");
-    await category.click();
-    await expect(page).toHaveURL(new RegExp(`${href}$`));
+    // The last item folds the names back under the main-category icons.
+    await menu.getByTestId("rail-category-electronics").click();
+    await expect(page).toHaveURL(/\/c\/electronics$/);
+    await expect(menu).toBeVisible();
+    await menu.getByTestId("rail-category-audio-sound").click();
+    await expect(page).toHaveURL(/\/c\/audio-sound$/);
     await expect(menu).toBeHidden();
-    const slug = slugOfRow(testid);
-    await expect(page.getByTestId(`strip-category-${slug}`)).toHaveAttribute(
+    await expect(page.getByTestId("strip-category-electronics")).toHaveAttribute(
       "aria-current",
-      "page",
+      "true",
     );
     menu = await openRailScope(page);
-    await expect(menu.getByTestId(testid)).toHaveAttribute("aria-current", "page");
+    await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
+    await expect(menu.getByTestId("rail-category-electronics")).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
   });
 
   test("the rail-collapse toggle does not exist on mobile", async ({ page }) => {
@@ -3078,4 +3074,110 @@ test("RM-4 the row icons use the approved rail and phone sizes", async ({ page }
     await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
     await check(rail, 20);
   }
+});
+
+test.describe("in-place category menu (bundle 21 turn 5)", () => {
+  test("B21SC-1 SC-1 the phone drills down and a leaf folds into the strip", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360");
+    await gotoReady(page, "/");
+    await page.getByTestId("strip-category-electronics").click();
+    const menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
+    await menu.getByTestId("rail-category-electronics").click();
+    await expect(page).toHaveURL(/\/c\/electronics$/);
+    await expect(menu).toBeVisible();
+    await expect(menu.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+    const electronics = menu.getByTestId("rail-category-electronics");
+    const phones = menu.getByTestId("rail-category-phones-tablets");
+    await expect(electronics).toHaveAttribute("aria-current", "page");
+    await expect(phones).toBeVisible();
+    const rootIcon = await electronics.locator("svg:nth-of-type(1)").boundingBox();
+    const childIcon = await phones.locator("svg:nth-of-type(1)").boundingBox();
+    if (!rootIcon || !childIcon) throw new Error("SC-1 missing category glyphs");
+    expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
+    await phones.click();
+    await expect(page).toHaveURL(/\/c\/phones-tablets$/);
+    await expect(menu.getByTestId("rail-menu-back")).toHaveText("Electronics");
+    await menu.getByTestId("rail-category-smartphones").click();
+    await expect(page).toHaveURL(/\/c\/smartphones$/);
+    await expect(menu).toBeHidden({ timeout: 2000 });
+    await expect(page.getByTestId("strip-category-electronics")).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    const reopened = await openRailScope(page);
+    await expect(reopened.getByTestId("rail-menu-back")).toHaveCount(0);
+    await reopened.getByTestId("rail-category-electronics").click();
+    await expect(page).toHaveURL(/\/c\/electronics$/);
+    const url = page.url();
+    await reopened.getByTestId("rail-menu-back").click();
+    await expect(reopened.getByTestId("rail-menu-back")).toHaveCount(0);
+    await expect(reopened.getByTestId("rail-category-electronics")).toBeVisible();
+    await expect(page).toHaveURL(url);
+  });
+
+  test("B21SC-2 SC-2 the persistent rail follows the URL and folds to main categories", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280");
+    await gotoReady(page, "/c/electronics");
+    const rail = await openRailScope(page);
+    await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+    const electronics = rail.getByTestId("rail-category-electronics");
+    const phones = rail.getByTestId("rail-category-phones-tablets");
+    await expect(electronics).toHaveAttribute("aria-current", "page");
+    await expect(phones).toBeVisible();
+    const rootIcon = await electronics.locator("svg:nth-of-type(1)").boundingBox();
+    const childIcon = await phones.locator("svg:nth-of-type(1)").boundingBox();
+    if (!rootIcon || !childIcon) throw new Error("SC-2 missing category glyphs");
+    expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
+    await gotoReady(page, "/c/smartphones");
+    await expect(rail.getByTestId("rail-menu-back")).toHaveText("Phones & Tablets");
+    await expect(rail.getByTestId("rail-category-smartphones")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    const url = page.url();
+    await rail.getByTestId("rail-menu-back").click();
+    await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
+    await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+    await expect(page).toHaveURL(url);
+    await page.getByTestId("rail-collapse-toggle").click();
+    await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
+    await expect(rail.getByTestId("rail-menu-back")).toHaveCount(0);
+    await expect(rail.getByTestId("rail-category-smartphones")).toHaveCount(0);
+    await expect(rail.getByTestId("rail-category-phones-tablets")).toHaveCount(0);
+    await expect(rail.getByTestId("rail-category-electronics")).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    await page.getByTestId("rail-collapse-toggle").click();
+    await expect(page.locator("html")).toHaveAttribute("data-rail", "expanded");
+  });
+
+  test("PK-1 the forced peek opens without focus, folds, and does not repeat", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360");
+    // Playwright has no removeInitScript: this self-consuming script writes the
+    // force word only once in this tab and never rewrites the subsequent seen.
+    await page.addInitScript(() => {
+      if (window.location.origin !== "null" && sessionStorage.getItem("ethio.peek") === null) {
+        sessionStorage.setItem("ethio.peek", "force");
+      }
+    });
+    await gotoReady(page, "/");
+    const menu = page.getByTestId("rail-menu");
+    await expect(menu).toBeVisible({ timeout: 2000 });
+    expect(await menu.evaluate((el) => el.contains(document.activeElement))).toBe(false);
+    await expect(menu).toBeHidden({ timeout: 5000 });
+    expect(await page.evaluate(() => sessionStorage.getItem("ethio.peek"))).toBe("seen");
+    await page.reload();
+    await waitForHydration(page);
+    await expect(menu).toBeHidden();
+    await expect(page.locator("html")).toHaveAttribute("data-app-ready", "1");
+    await expect(menu).toBeHidden();
+  });
 });

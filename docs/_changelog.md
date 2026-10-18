@@ -952,3 +952,5 @@
 - 2026-10-18 — Bundle 21 turn 3 (no migration): the menus' rows and icons (D113: 32-px mouse rows, phone rows 32–40 px, 20-px rail and 24-px phone icons), Home in place of All categories, the rail's Categories heading removed, the phone menu's × and its place above the bottom bar, a tap on the strip opens the menu (D205); RM-1…RM-4.
 
 - 2026-10-18 — Bundle 21 turn 4 (no migration): the compact phone footer — no brand block below 768, one 28-px row rhythm, less padding (the operator, 14:38 local); sub-items indented 16 px a level in the open rail and the opened phone menu, one icon column folded and in the strip (14:45 local); FT-1, IN-1.
+
+- 2026-10-18 — Bundle 21 turn 5 (no migration): subcategories in place with ‹ Main menu at every width (D98 with D213), the ancestor marked, hover preloading, the fold into the strip, the peek (D206); the footer's logo link named Home (INC-736); AP-37 measures the seller card (S298); SC-1…SC-3, PK-1.
