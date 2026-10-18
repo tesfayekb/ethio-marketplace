@@ -155,19 +155,22 @@ export function adPageFixtures() {
   }
 
   /** Two actual stored images, readable through the unchanged public photo-links route. */
-  async function seedPhotos(listingId: string) {
+  async function seedPhotos(listingId: string, count = 2) {
     const supabase = adminClient();
-    for (const displayOrder of [0, 1]) {
-      const key = `e2e-${RUN}/ad-page-${token()}-${displayOrder}.jpg`;
-      const uploaded = await supabase.storage
-        .from(BUCKET)
-        .upload(key, jpeg.encode(jpeg.decode(fixture("gps.jpg")), 80).data, {
-          contentType: "image/jpeg",
-        });
-      if (uploaded.error)
-        throw new Error(`[e2e:ap] photo upload failed: ${uploaded.error.message}`);
-      storageKeys.push(key);
-      const path = { partition: "default", key };
+    /* Census (bundle 19 turn 25): listing_photos' only uniqueness is
+      (listing_id, display_order) — storage_path is not unique, so the rows of
+      one ad may share one uploaded image; upload once. */
+    const key = `e2e-${RUN}/ad-page-${token()}.jpg`;
+    const uploaded = await supabase.storage
+      .from(BUCKET)
+      .upload(key, jpeg.encode(jpeg.decode(fixture("gps.jpg")), 80).data, {
+        contentType: "image/jpeg",
+      });
+    if (uploaded.error)
+      throw new Error(`[e2e:ap] photo upload failed: ${uploaded.error.message}`);
+    storageKeys.push(key);
+    const path = { partition: "default", key };
+    for (let displayOrder = 0; displayOrder < count; displayOrder++) {
       const inserted = await supabase.from("listing_photos").insert({
         listing_id: listingId,
         storage_path: key,
