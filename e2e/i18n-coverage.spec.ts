@@ -282,3 +282,68 @@ test("B21SC-3 SC-3 the phone category level and Main menu are Amharic", async ({
   assertAmharicChrome(await drawerTexts(page), "SC-3 category level");
   await assertAmharicCategories(page, '[data-testid="rail-menu"]', "SC-3 category level");
 });
+
+// Read-only catalogue places: no translation row is created or changed.
+test("PN-AM-1 the different-place notice and place name are Amharic", async ({ page, baseURL }) => {
+  if (!baseURL) throw new Error("PN-AM-1 needs the staging base URL");
+  const response = await page.request.get("/api/locations/ET");
+  expect(response.status()).toBe(200);
+  const body = (await response.json()) as {
+    nodes: {
+      id: string;
+      parent_id: string | null;
+      level: string;
+      slug: string;
+      name_en: string | null;
+    }[];
+  };
+  const cities = body.nodes.filter(
+    (node) =>
+      node.level === "city" &&
+      !node.slug.startsWith("e2e-") &&
+      /^[A-Za-z ]+$/.test(node.name_en ?? ""),
+  );
+  const { data: translations, error } = await adminClient()
+    .from("entity_translations")
+    .select("entity_id, value")
+    .eq("entity_type", "location")
+    .eq("field", "name")
+    .eq("lang_code", "am")
+    .eq("status", "approved")
+    .in(
+      "entity_id",
+      cities.map((node) => node.id),
+    );
+  if (error) throw new Error(`PN-AM-1 reading approved place names failed: ${error.message}`);
+  const guessed = cities.find((city) =>
+    translations?.some((row) => row.entity_id === city.id && /[\u1200-\u137f]/.test(row.value)),
+  );
+  const saved = cities.find((city) => city.id !== guessed?.id);
+  const translated = translations?.find((row) => row.entity_id === guessed?.id)?.value;
+  if (!guessed || !saved || !translated || !guessed.name_en)
+    throw new Error("PN-AM-1 needs two curated cities and an approved Amharic name");
+  await page.context().setExtraHTTPHeaders({ "cf-ipcountry": "ET", "cf-ipcity": guessed.name_en });
+  await page
+    .context()
+    .addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${saved.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
+        url: baseURL,
+      },
+    ]);
+  await useAmharic(page);
+  await gotoReady(page, "/");
+  await expect(page.locator("html")).toHaveAttribute("lang", "am");
+  const notice = page.getByTestId("place-notice");
+  await expect(notice).toBeVisible();
+  await expect(notice).toContainText(am["location.noticeAsk"].replace("{place}", translated));
+  await expect(page.getByTestId("place-notice-switch")).toHaveText(am["location.noticeSwitch"]);
+  await expect(page.getByTestId("place-notice-keep")).toHaveText(am["location.noticeKeep"]);
+  const text = await notice.innerText();
+  expect(text).not.toMatch(/[A-Za-z]/);
+  assertAmharicChrome(
+    await textsWithin(page, ['[data-testid="place-notice"]']),
+    "PN-AM-1 place notice",
+  );
+});
