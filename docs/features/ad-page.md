@@ -68,6 +68,8 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 Turn 19: AP-40, AP-41, AP-42, RI-1…RI-5, PO-1…PO-2; AP-9, AP-36, AP-37, AP-38, AL-31 and the LD fixture changed.
 
+Turn 21: AP-43, AP-44, LD-18; AP-30, AP-36, AP-38, AP-41 and LD-13 changed.
+
 Turn 18: AP-36…AP-39, LD-15…LD-17; AP-9, AP-13, AP-23, PW-13, SIM-1, SIM-2 and the similar-ads unit test changed.
 
 Turn 14: AP-30, AP-31, SH-1…SH-5, LD-12, LD-13; changed AT-15, AT-18, AP-25, AP-17. AP-24 is the unchanged cursor proof.
@@ -140,3 +142,5 @@ Tests: AP-35 (e2e/ad-page.spec.ts) — the link's new address, the 301, 404s for
 Turn 18 — the page follows D201 §5's drawings (docs/design/d201/) by the article's own width (container queries: one column below 42rem, two columns from 42rem, desktop from 56rem — because the rail and the previews make the screen's width the wrong measure); the blocks are cards; the in-page bar (buyer only; hidden in the two-column layout); the phone's contact bar on the app's bottom bar; "Contact seller" before "All ads by this seller", signing in and returning with `reveal=1` — the page reveals once and removes it; the Location card; the map only with a pin, Enlarge opening a movable map (an approximate pin to zoom 15 at most); similar ads in the home feed's grid, two full rows (6, 8, 10).
 
 Turn 19 — The right column’s sticky top follows the measured shell (INC-709); the in-page bar shows on sold ads too. Reveal after sign-in follows the visitor’s own signed-out Contact seller tap: a tab-only sessionStorage intent, valid for 15 minutes and this ad only, taken once after sign-in. No address triggers a reveal (D201 §14; turn 18’s `?reveal=1` removed). First paint waits for the session (INC-707). Posted uses Intl after mount; buyer descriptions fold at eight lines with Read more. Places and maps open Google Maps, with only the snapped centre for approximate pins. The title is the buyer page’s h1; a missing second box leaves the remaining box full width, including sold Details. The drawings are the platform’s WebP copies at reduced size, saved as received: d201-360.webp, d201-768.webp, d201-1280.webp and d201-sold-360.webp. Full-size drawings are in the Design canvas “Product detail page — D201 drawings”.
+
+Turn 21 — the operator's phone review: the phone's contact bar removed, nothing ever covers the top bars (every Leaflet box and every card of the page isolates its stacking; the in-page bar is the article's only layered element), “Contact seller” in the seller card only; the Maps links encode the coordinates' comma (%2C, Google's Maps URLs rule) so the app opens at the pin when installed (the browser otherwise), the approximate centre with two decimals; MapPreview and MapLarge take `audience` (default “seller”) and the buyer's page reads `adPage.map.label` / `adPage.map.approx` instead of the seller's preview words; “Seen N times” from ten views (INC-712, Q-B).

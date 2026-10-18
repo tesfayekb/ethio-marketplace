@@ -45,12 +45,15 @@ export function MapPreview({
   lng,
   precision,
   zoom = null,
+  audience = "seller",
 }: {
   lat: number;
   lng: number;
   precision: string | null;
   /** Part L — the saved zoom for an exact pin; an approximate pin keeps 13 (privacy). */
   zoom?: number | null;
+  /** Turn 21 (D201) — "buyer" swaps the seller's preview words for the buyer's own. */
+  audience?: "seller" | "buyer";
 }) {
   const { t } = useI18n();
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -114,17 +117,33 @@ export function MapPreview({
     <div className="space-y-1">
       <div
         ref={boxRef}
-        className="h-48 w-full overflow-hidden rounded-md border border-border"
+        className="isolate h-48 w-full overflow-hidden rounded-md border border-border"
         data-testid={approx ? "listing-map-circle" : "listing-map-pin"}
         data-precision={approx ? "approx" : "exact"}
-        aria-label={t(approx ? "post.pin.previewApprox" : "post.pin.previewExact")}
+        aria-label={t(
+          audience === "buyer"
+            ? approx
+              ? "adPage.map.approx"
+              : "adPage.map.label"
+            : approx
+              ? "post.pin.previewApprox"
+              : "post.pin.previewExact",
+        )}
       />
       <p className="text-end text-xs text-muted-foreground" data-testid="listing-map-credit">
         {credit}
       </p>
-      <p className="text-xs text-muted-foreground" data-testid="listing-map-caption">
-        {t(approx ? "post.pin.previewApprox" : "post.pin.previewExact")}
-      </p>
+      {audience === "buyer" ? (
+        approx ? (
+          <p className="text-xs text-muted-foreground" data-testid="listing-map-caption">
+            {t("adPage.map.approx")}
+          </p>
+        ) : null
+      ) : (
+        <p className="text-xs text-muted-foreground" data-testid="listing-map-caption">
+          {t(approx ? "post.pin.previewApprox" : "post.pin.previewExact")}
+        </p>
+      )}
     </div>
   );
 }

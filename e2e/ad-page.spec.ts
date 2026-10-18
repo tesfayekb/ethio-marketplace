@@ -656,7 +656,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await page.reload();
     await reViewed;
     await expect(page.getByTestId("listing-detail-public-counts")).toHaveText(
-      `${fill(en["adPage.counts.seen"], { count: 1 })} · ${fill(en["adPage.counts.shared"], { count: 2 })}`,
+      fill(en["adPage.counts.shared"], { count: 2 }),
     );
     await signInViaSession(page, seller.email, seller.password);
     await gotoReady(page, `/my-listings/${ad.id}`);
@@ -816,7 +816,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await expect
         .poll(async () => {
           const boxes = await Promise.all([
-            page.getByTestId("listing-detail-gallery").boundingBox(),
+            page.getByTestId("listing-detail-media").boundingBox(),
             page.getByTestId("listing-detail-headline").boundingBox(),
           ]);
           const current = JSON.stringify(boxes);
@@ -826,7 +826,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         })
         .toBe(true);
       const article = await page.getByTestId("listing-detail").boundingBox();
-      const gallery = await page.getByTestId("listing-detail-gallery").boundingBox();
+      const gallery = await page.getByTestId("listing-detail-media").boundingBox();
       const headline = await page.getByTestId("listing-detail-headline").boundingBox();
       const main = await page.getByTestId("listing-detail-specs").boundingBox();
       const sellerBox = await page
@@ -913,43 +913,27 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
 
-  test("AP-38 the phone's contact bar", async ({ page }, testInfo) => {
+  test("AP-38 no contact bar: Contact seller lives in the seller card only", async ({ page }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active", {
       contactPref: { phone: { show: true, value: "+251911000001" } },
     });
     const { canonical } = await address(ad);
     await gotoReady(page, canonical);
-    const bar = page.getByTestId("listing-contact-bar");
-    if (testInfo.project.name === "desktop-1280") {
-      await expect(bar).toBeHidden();
-      return;
-    }
-    const action = page.getByTestId("listing-contact-bar-action");
-    await expect(action).toHaveAttribute("href", /auth\?return=/);
-    const href = await action.getAttribute("href");
+    await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
+    const sellerCard = page.getByTestId("listing-detail-seller");
+    const signIn = sellerCard.getByTestId("listing-contact-sign-in");
+    await expect(signIn).toBeVisible();
+    const href = await signIn.getAttribute("href");
     if (href === null) throw new Error("AP-38 contact return missing");
     expect(new URL(href, page.url()).searchParams.get("return")).toBe(`${canonical}#contact`);
-    const box = await bar.boundingBox();
-    const bottom = await page.getByTestId("bottom-bar").boundingBox();
-    if (!box || !bottom) throw new Error("AP-38 bar boxes missing");
-    expect(Math.abs(box.y + box.height - bottom.y)).toBeLessThanOrEqual(1);
     const buyer = await leaseUser();
     await signInViaSession(page, buyer.email, buyer.password);
     await gotoReady(page, canonical);
-    await expect(action).toBeEnabled();
-    await action.click();
-    await expect(page.getByTestId("listing-contact-phone")).toHaveText("+251911000001");
-    const reveals = await adminClient()
-      .from("contact_reveals")
-      .select("listing_id")
-      .eq("viewer_id", buyer.id)
-      .eq("listing_id", ad.id);
-    expect(reveals.error).toBeNull();
-    expect(reveals.data).toHaveLength(1);
-    const sold = await seed(seller, "sold", { soldAt: -1 });
-    await gotoReady(page, (await address(sold)).canonical);
-    await expect(bar).toHaveCount(0);
+    await expect(
+      page.getByTestId("listing-detail-seller").getByTestId("listing-contact-show"),
+    ).toBeVisible();
+    await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
 
   test("AP-39 the map: only with a pin; Enlarge opens a movable map and closes", async ({
@@ -1078,13 +1062,6 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-detail-posted")).toContainText(
       fill(en["adPage.posted"], { when: "today" }),
     );
-    await switchLanguage(page, "am");
-    await expect(page.getByTestId("listing-detail-posted")).toContainText(
-      fill(am["adPage.posted"], {
-        when: new Intl.RelativeTimeFormat("am", { numeric: "auto" }).format(0, "day"),
-      }),
-    );
-    await switchLanguage(page, "en");
     const text = page.getByTestId("listing-detail-description");
     const toggle = page.getByTestId("listing-description-toggle");
     await expect(toggle).toHaveText(en["adPage.description.more"]);
@@ -1105,7 +1082,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-places-maps")).toHaveAttribute("target", "_blank");
     await expect(page.getByTestId("listing-map-google")).toHaveAttribute(
       "href",
-      "https://www.google.com/maps/search/?api=1&query=8.9876543,38.7612345",
+      "https://www.google.com/maps/search/?api=1&query=8.9876543%2C38.7612345",
     );
     await expect(page.getByTestId("listing-map-google")).toHaveAttribute("target", "_blank");
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
@@ -1128,7 +1105,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, (await address(approx)).canonical);
     const href = await page.getByTestId("listing-map-google").getAttribute("href");
     expect(href).toBe(
-      `https://www.google.com/maps/search/?api=1&query=${Math.round(coords.data.pin_show_lat / 0.01) * 0.01},${Math.round(coords.data.pin_show_lng / 0.01) * 0.01}`,
+      `https://www.google.com/maps/search/?api=1&query=${(Math.round(coords.data.pin_show_lat / 0.01) * 0.01).toFixed(2)}%2C${(Math.round(coords.data.pin_show_lng / 0.01) * 0.01).toFixed(2)}`,
     );
     expect(href).not.toContain(String(coords.data.pin_lat));
     expect(href).not.toContain(String(coords.data.pin_lng));
@@ -1145,6 +1122,88 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(toggle).toHaveCount(0);
     await expect(page.getByTestId("listing-map-google")).toHaveCount(0);
     await expect(page.getByTestId("listing-places-maps")).toBeVisible();
+    // INC-715 — the other-language check is LAST; a test never switches back.
+    await gotoReady(page, (await address(today)).canonical);
+    await switchLanguage(page, "am");
+    await expect(page.getByTestId("listing-detail-posted")).toContainText(
+      fill(am["adPage.posted"], {
+        when: new Intl.RelativeTimeFormat("am", { numeric: "auto" }).format(0, "day"),
+      }),
+    );
+  });
+
+  test("AP-43 the buyer reads his own map words", async ({ page }) => {
+    const seller = await scratchSeller();
+    const exact = await seed(seller, "active", { pin: true });
+    const pin = await adminClient()
+      .from("listings")
+      .update({ pin_precision: "exact", pin_show_lat: 8.9876543, pin_show_lng: 38.7612345 })
+      .eq("id", exact.id);
+    expect(pin.error).toBeNull();
+    await gotoReady(page, (await address(exact)).canonical);
+    await expect(page.locator(`text=${en["post.pin.previewExact"]}`)).toHaveCount(0);
+    await expect(page.getByTestId("listing-map-pin")).toHaveAttribute(
+      "aria-label",
+      en["adPage.map.label"],
+    );
+    const approx = await seed(seller, "active", { pin: true });
+    await gotoReady(page, (await address(approx)).canonical);
+    await expect(page.locator(`text=${en["post.pin.previewApprox"]}`)).toHaveCount(0);
+    await expect(page.getByTestId("listing-map-caption")).toHaveText(en["adPage.map.approx"]);
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${exact.id}`);
+    await expect(page.getByTestId("listing-map-caption")).toHaveText(en["post.pin.previewExact"]);
+  });
+
+  test("AP-44 nothing covers the top bars", async ({ page }, testInfo) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active", { pin: true });
+    const pin = await adminClient()
+      .from("listings")
+      .update({ pin_precision: "exact", pin_show_lat: 8.9876543, pin_show_lng: 38.7612345 })
+      .eq("id", ad.id);
+    expect(pin.error).toBeNull();
+    await gotoReady(page, (await address(ad)).canonical);
+    const box = async (id: string) => {
+      const found = await page.getByTestId(id).boundingBox();
+      if (!found) throw new Error(`AP-44 ${id} missing`);
+      return found;
+    };
+    /** The element at a bar's centre must be INSIDE that bar, never inside the map. */
+    const hitInside = (id: string) =>
+      page.evaluate((target) => {
+        const bar = document.querySelector<HTMLElement>(`[data-testid="${target}"]`);
+        if (!bar) return "missing";
+        const rect = bar.getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+        if (hit === null) return "none";
+        if (hit.closest('[data-testid="listing-detail-map"]') !== null) return "map";
+        return bar.contains(hit) ? "inside" : "outside";
+      }, id);
+    // Scroll until the map's box is under the shell's band (the map's top above the band's bottom).
+    await page.getByTestId("listing-detail-map").scrollIntoViewIfNeeded();
+    await expect
+      .poll(async () => {
+        await page.mouse.wheel(0, 120);
+        const map = await box("listing-detail-map");
+        const band = await box("shell-band");
+        return map.y < band.y + band.height;
+      })
+      .toBe(true);
+    expect(await hitInside("shell-band")).toBe("inside");
+    expect(await hitInside("shell-subband")).toBe("inside");
+    if (testInfo.project.name === "mobile-360") {
+      // With the Enlarge button scrolled under the in-page bar, the point answers the bar.
+      await expect
+        .poll(async () => {
+          await page.mouse.wheel(0, 120);
+          const enlarge = await box("listing-map-enlarge");
+          const nav = await box("listing-section-nav");
+          return enlarge.y < nav.y + nav.height;
+        })
+        .toBe(true);
+      expect(await hitInside("listing-section-nav")).toBe("inside");
+    }
   });
 
   test("AP-42 no half-empty row", async ({ page }, testInfo) => {

@@ -20,11 +20,14 @@ export function MapLarge({
   lng,
   precision,
   zoom = null,
+  audience = "seller",
 }: {
   lat: number;
   lng: number;
   precision: string | null;
   zoom?: number | null;
+  /** Turn 21 (D201) — "buyer" swaps the seller's preview words for the buyer's own. */
+  audience?: "seller" | "buyer";
 }) {
   const { t } = useI18n();
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -81,13 +84,27 @@ export function MapLarge({
         ref={boxRef}
         data-testid="listing-map-large"
         data-precision={approx ? "approx" : "exact"}
-        className="min-h-48 w-full flex-1 touch-none overflow-hidden rounded-md border border-border"
-        aria-label={t(approx ? "post.pin.previewApprox" : "post.pin.previewExact")}
+        className="isolate min-h-48 w-full flex-1 touch-none overflow-hidden rounded-md border border-border"
+        aria-label={t(
+          audience === "buyer"
+            ? approx
+              ? "adPage.map.approx"
+              : "adPage.map.label"
+            : approx
+              ? "post.pin.previewApprox"
+              : "post.pin.previewExact",
+        )}
       />
       <p className="text-end text-xs text-muted-foreground">{credit}</p>
-      <p className="text-xs text-muted-foreground">
-        {t(approx ? "post.pin.previewApprox" : "post.pin.previewExact")}
-      </p>
+      {audience === "buyer" ? (
+        approx ? (
+          <p className="text-xs text-muted-foreground">{t("adPage.map.approx")}</p>
+        ) : null
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          {t(approx ? "post.pin.previewApprox" : "post.pin.previewExact")}
+        </p>
+      )}
     </div>
   );
 }
