@@ -3423,7 +3423,10 @@ test("HR-1 Home is not a menu row; the breadcrumb and the bottom bar carry it", 
   const scroll = page.getByTestId("app-rail").getByTestId("rail-scroll");
   await expect(scroll.getByTestId("rail-category-electronics")).toBeVisible();
   const ids = await linkIds(scroll);
-  expect(ids[0] ?? "", "HR-1 the menu's first link is not a category").toMatch(/^rail-category-/);
+  expect(
+    (ids[0] ?? "").startsWith("rail-category-"),
+    `HR-1 the menu's first link is not a category (${ids[0] ?? "none"})`,
+  ).toBe(true);
   await page.getByTestId("shell-logo-cell").getByTestId("rail-collapse-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
   await expect(page.getByTestId("rail-category-all")).toHaveCount(0);
