@@ -1836,7 +1836,6 @@ test.describe("AD PAGE — the phone page never widens (bundle 21 turn 10)", () 
         crumbHeight: crumbs?.getBoundingClientRect().height ?? -1,
       };
     });
-    });
     expect(measured.innerWidth, JSON.stringify(measured)).toBe(390);
     expect(measured.scrollWidth, JSON.stringify(measured)).toBeLessThanOrEqual(390);
     expect(Math.abs(measured.bottomBar - 390), JSON.stringify(measured)).toBeLessThanOrEqual(1);

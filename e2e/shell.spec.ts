@@ -686,6 +686,8 @@ test.describe("corner-block grid", () => {
   test("every rail row carries a leading icon on one gutter", async ({ page }) => {
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
+    await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
     const rows = rail.locator("li > a, li > button, li > span[aria-disabled]");
     const count = await rows.count();
     expect(count).toBeGreaterThan(0);
@@ -706,6 +708,9 @@ test.describe("corner-block grid", () => {
   test("category rows carry DISTINCT icons, not one repeated glyph", async ({ page }) => {
     await gotoReady(page, "/");
     // U0l: category rows are LINKS now (each category is a real URL).
+    const rail = page.getByTestId("app-rail");
+    await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
     const rows = page.getByTestId("app-rail").locator("nav li > a");
     const count = await rows.count();
     // Needs at least two seeded categories for the claim to mean anything.
@@ -967,6 +972,8 @@ test.describe("mobile chrome", () => {
     }
     await expect(strip).toHaveAttribute("aria-hidden", "true");
     await expect(strip.getByRole("link", { includeHidden: true })).toHaveCount(0);
+    await expect(strip.getByTestId("strip-category-skeleton")).toHaveCount(0);
+    await expect(strip.getByTestId("strip-category-electronics")).toBeVisible();
     const scroll = page.getByTestId("strip-scroll");
     const capacity = await scroll.evaluate((el) => ({
       height: el.clientHeight,
@@ -996,6 +1003,12 @@ test.describe("mobile chrome", () => {
     // The catalogue is read only; this branch has subcategories at every width.
     const category = { slug: "electronics" };
     await gotoReady(page, "/");
+    await expect(page.getByTestId("rail-strip").getByTestId("strip-category-skeleton")).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByTestId("rail-strip").getByTestId("strip-category-electronics"),
+    ).toBeVisible();
     const row = page.getByTestId(`strip-category-${category.slug}`);
     await expect(row).toBeVisible();
     const originalUrl = page.url();
@@ -1006,6 +1019,8 @@ test.describe("mobile chrome", () => {
     await expect(page).toHaveURL(originalUrl);
     const menu = page.getByTestId("rail-menu");
     await expect(menu).toBeVisible();
+    await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
     await expect(menuRow).toBeVisible();
     const menuBox = await menuRow.boundingBox();
@@ -1024,6 +1039,8 @@ test.describe("mobile chrome", () => {
     await expect(page).toHaveURL(/\/c\/audio-sound$/);
     await expect(menu).toBeHidden();
     const reopened = await openRailScope(page);
+    await expect(reopened.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(reopened.getByTestId("rail-category-electronics")).toBeVisible();
     await expect(reopened.getByTestId("rail-category-electronics")).toHaveAttribute(
       "aria-current",
       "true",
@@ -1078,6 +1095,8 @@ test.describe("mobile chrome", () => {
 
     // INC-528 — other tests' scratch categories (slugs "e2e-…") come and go in
     // the rail while this test runs; the anchor is a real category.
+    await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     const realRows = catalogueRows(menu);
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the geometry anchor
     const row = realRows.first();
@@ -1113,6 +1132,8 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
 
     const menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; any first category proves the active panel
     await expect(catalogueRows(menu).first()).toBeVisible();
     await expect(menu.getByTestId("rail-item-ac-overview")).toHaveCount(0);
@@ -1194,6 +1215,8 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     const menu = await openRailScope(page);
     await expect(menu).toHaveAttribute("data-panel", "marketplace");
+    await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; any first category proves Marketplace content
     await expect(catalogueRows(menu).first()).toBeVisible();
     await expect(menu.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
@@ -1272,6 +1295,12 @@ test.describe("mobile chrome", () => {
     await expectTapTarget(page, page.getByTestId("bottom-bar-sign-in"), "bar sign in");
 
     // The phone strip uses the authorized fitted 32–40px section rows.
+    await expect(page.getByTestId("rail-strip").getByTestId("strip-category-skeleton")).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByTestId("rail-strip").getByTestId("strip-category-electronics"),
+    ).toBeVisible();
     const firstStripRow = page.getByTestId("strip-scroll").locator("li > span").nth(0);
     const stripRowBox = await firstStripRow.boundingBox();
     if (!stripRowBox) throw new Error("Missing strip category");
@@ -1280,6 +1309,8 @@ test.describe("mobile chrome", () => {
 
     // Category rows inside the opened menu share the strip's fitted height.
     const menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the fitted-row anchor
     const firstMenuRow = await catalogueRows(menu).first().boundingBox();
     if (!firstMenuRow) throw new Error("Missing menu category");
@@ -1609,6 +1640,7 @@ test.describe("rail scroll regions (U0f)", () => {
     // not merely hydration. The non-blocking provider surfaced the assumption.
     await expect(drawer.getByTestId("rail-category-skeleton")).toHaveCount(0);
     // Categories must overflow for this proof to mean anything.
+    await expect(drawer.getByTestId("rail-category-electronics")).toBeVisible();
     await expect
       .poll(async () => scroll.evaluate((el) => el.scrollHeight - el.clientHeight))
       .toBeGreaterThan(0);
@@ -1814,6 +1846,7 @@ test.describe("desktop layout laws (U0g)", () => {
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
     await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
     const heights = await rail
       .getByTestId("rail-scroll")
       .getByRole("link")
@@ -1974,6 +2007,10 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(railAtBottom.bottom).toBeLessThanOrEqual(footer.top + 1);
     // Still anchored under the fixed band — clamping changes the bottom only.
     expect(Math.abs(railAtBottom.y - ROW1)).toBeLessThanOrEqual(1);
+    await expect(page.getByTestId("app-rail").getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(
+      page.getByTestId("app-rail").getByTestId("rail-category-electronics"),
+    ).toBeVisible();
 
     const scroller = page.getByTestId("app-rail").getByTestId("rail-scroll");
     const overflows = await scroller.evaluate((el) => el.scrollHeight > el.clientHeight);
@@ -3093,6 +3130,12 @@ test.describe("top band law (bundle 21 turn 2)", () => {
       await page.setViewportSize({ width: 360, height: 800 });
       await gotoReady(page, "/");
       const menu = page.getByRole("button", { name: en["shell.openMenu"], exact: true });
+      await expect(
+        page.getByTestId("rail-strip").getByTestId("strip-category-skeleton"),
+      ).toHaveCount(0);
+      await expect(
+        page.getByTestId("rail-strip").getByTestId("strip-category-electronics"),
+      ).toBeVisible();
       const stripRow = page.getByTestId("strip-scroll").locator("li > span").nth(0);
       await expect(stripRow).toBeVisible();
       expect(
@@ -3237,13 +3280,18 @@ test("RM-4 the row icons use the approved rail and phone sizes", async ({ page }
   };
   if (testInfo.project.name === "mobile-360") {
     await expect(page.getByTestId("strip-category-skeleton")).toHaveCount(0);
+    await expect(
+      page.getByTestId("rail-strip").getByTestId("strip-category-electronics"),
+    ).toBeVisible();
     await check(page.getByTestId("rail-strip"), 24);
     const menu = await openRailScope(page);
     await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     await check(menu, 24);
   } else {
     const rail = page.getByTestId("app-rail");
     await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
     await check(rail, 20);
   }
 });
@@ -3346,6 +3394,8 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     try {
       await gotoReady(page, `/c/${r}`);
       const rail = await openRailScope(page);
+      await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+      await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
       await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
       const root = rail.getByTestId(`rail-category-${r}`);
       const branch = rail.getByTestId(`rail-category-${b}`);
@@ -3494,6 +3544,8 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
     const row = scope.getByTestId("rail-favourite");
     await expect(row).toHaveAttribute("href", `/c/${slug}`);
     await expect(row).toHaveAccessibleName(new RegExp(escapeRe(en["shell.favouriteBadge"])));
+    await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
     const mainRows = catalogueRows(scope);
     const mainSlugs: string[] = [];
     for (const mainRow of await mainRows.all()) {
@@ -3510,6 +3562,8 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
     if (mobile) {
       const strip = page.getByTestId("rail-strip");
       const stripRow = strip.getByTestId("strip-favourite");
+      await expect(strip.getByTestId("strip-category-skeleton")).toHaveCount(0);
+      await expect(strip.getByTestId("strip-category-electronics")).toBeVisible();
       await expect(stripRow).toHaveAttribute(
         "aria-label",
         new RegExp(escapeRe(en["shell.favouriteBadge"])),
@@ -3562,10 +3616,13 @@ test("HR-1 Home is not a menu row; the breadcrumb and the bottom bar carry it", 
   if (mobile) {
     await expect(page.getByTestId("bottom-bar-home")).toBeVisible();
     const scope = await openRailScope(page);
+    await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
     await expect(scope.getByTestId("rail-category-all")).toHaveCount(0);
     return;
   }
   const scroll = page.getByTestId("app-rail").getByTestId("rail-scroll");
+  await expect(scroll.getByTestId("rail-category-skeleton")).toHaveCount(0);
   await expect(scroll.getByTestId("rail-category-electronics")).toBeVisible();
   const ids = await linkIds(scroll);
   expect(
@@ -3655,6 +3712,12 @@ test("BK-1 ‹ Main Menu starts where the rows start, both words capitalised", a
   let scope: Awaited<ReturnType<typeof openRailScope>>;
   if (mobile) {
     await gotoReady(page, "/");
+    await expect(page.getByTestId("rail-strip").getByTestId("strip-category-skeleton")).toHaveCount(
+      0,
+    );
+    await expect(
+      page.getByTestId("rail-strip").getByTestId("strip-category-electronics"),
+    ).toBeVisible();
     await page.getByTestId("strip-category-electronics").click();
     // INC-739 — the strip tap opens the menu (D205): read it directly, settled.
     scope = page.getByTestId("rail-menu");
@@ -3663,6 +3726,8 @@ test("BK-1 ‹ Main Menu starts where the rows start, both words capitalised", a
     await expect(scope.getByTestId("rail-scroll").locator("a, button").first()).toBeVisible({
       timeout: 10000,
     });
+    await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
     await scope.getByTestId("rail-category-electronics").click();
     await expect(page).toHaveURL(/\/c\/electronics$/);
     await expect(scope).toBeVisible();
@@ -3670,6 +3735,8 @@ test("BK-1 ‹ Main Menu starts where the rows start, both words capitalised", a
     await gotoReady(page, "/c/electronics");
     scope = await openRailScope(page);
   }
+  await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
+  await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
   const back = scope.getByTestId("rail-menu-back");
   await expect(back).toHaveText(en["shell.mainMenu"]);
   const row = scope.getByTestId("rail-category-electronics");
