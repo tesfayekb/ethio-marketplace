@@ -226,6 +226,18 @@
     "adPage.gone.title": [
       "/l/$slug"
     ],
+    "adPage.map.approx": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "adPage.map.enlarge": [
       "(every page)",
       "/admin/listings/$listingId",
