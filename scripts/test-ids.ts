@@ -19,6 +19,7 @@ export const CASE_GROUPS: Record<string, string> = {
   "PW-61": "e2e/post-wizard-resets.spec.ts",
   "PW-110": "src/features/posting/step-where.test.tsx",
   "PW-162": "e2e/post-wizard-pricing.spec.ts",
+  "VC-1": "src/features/ad-page/count-view.test.ts",
 };
 
 const RECORD_PREFIXES = new Set(["DEC", "INC", "REQ", "ACT", "MIG"]);
