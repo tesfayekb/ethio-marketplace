@@ -665,17 +665,18 @@ export function ListingDetail(view: ListingDetailView) {
 
             {view.actor === "buyer" &&
               view.publicCounts !== undefined &&
-              (view.publicCounts.views >= 1 || view.publicCounts.shares >= 1) && (
+              (view.publicCounts.views >= 10 || view.publicCounts.shares >= 1) && (
                 <p
                   data-testid="listing-detail-public-counts"
                   className="text-xs text-muted-foreground"
                 >
-                  {view.publicCounts.views >= 1 && (
+                  {/* INC-712 (D201 §19 Q-B) — "Seen" shows from ten views. */}
+                  {view.publicCounts.views >= 10 && (
                     <span data-count="seen">
                       {fill(t("adPage.counts.seen"), { count: view.publicCounts.views })}
                     </span>
                   )}
-                  {view.publicCounts.views >= 1 && view.publicCounts.shares >= 1 && " · "}
+                  {view.publicCounts.views >= 10 && view.publicCounts.shares >= 1 && " · "}
                   {view.publicCounts.shares >= 1 && (
                     <span data-count="shared">
                       {fill(t("adPage.counts.shared"), { count: view.publicCounts.shares })}
@@ -923,6 +924,7 @@ export function ListingDetail(view: ListingDetailView) {
                     lng={view.pinLng}
                     precision={view.pinPrecision ?? "exact"}
                     zoom={view.pinZoom ?? null}
+                    {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
                   />
                 </Suspense>
                 <Button
@@ -961,6 +963,7 @@ export function ListingDetail(view: ListingDetailView) {
                           lng={view.pinLng}
                           precision={view.pinPrecision ?? "exact"}
                           zoom={view.pinZoom ?? null}
+                          {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
                         />
                       </Suspense>
                     </DialogContent>
@@ -982,48 +985,6 @@ export function ListingDetail(view: ListingDetailView) {
           </section>
         </div>
       </div>
-      {showContactBar && view.contact && (
-        <div
-          data-testid="listing-contact-bar"
-          className="fixed inset-x-0 bottom-[var(--bottom-bar)] z-20 border-t border-border bg-card p-2 md:hidden"
-        >
-          <Button
-            variant="default"
-            size="touch"
-            asChild={view.contact.viewer === "signedOut"}
-            data-testid={
-              view.contact.viewer === "signedOut" ? undefined : "listing-contact-bar-action"
-            }
-            className="w-full"
-            disabled={view.contact.viewer === "unknown" || view.contact.state.kind === "loading"}
-            onClick={
-              view.contact.viewer === "signedOut"
-                ? undefined
-                : () => {
-                    scrollSection("contact");
-                    if (
-                      view.contact?.state.kind !== "revealed" &&
-                      view.contact?.state.kind !== "loading"
-                    )
-                      view.contact?.onReveal();
-                  }
-            }
-          >
-            {view.contact.viewer === "signedOut" ? (
-              <Link
-                to={view.contact.signInTo.to}
-                search={view.contact.signInTo.search}
-                data-testid="listing-contact-bar-action"
-                onClick={view.contact.onSignInTap}
-              >
-                {t("adPage.contact.link")}
-              </Link>
-            ) : (
-              t("adPage.contact.link")
-            )}
-          </Button>
-        </div>
-      )}
     </article>
   );
 }
