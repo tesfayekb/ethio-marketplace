@@ -2746,53 +2746,45 @@ test.describe("L4b location picker", () => {
     const guessed = await seedGuessFixture("ET", point);
     seededChains.add(guessed.region.slug);
     const saved = await seedChain();
-    await page
-      .context()
-      .setExtraHTTPHeaders({
-        "cf-ipcountry": "ET",
-        "cf-iplatitude": String(point.lat),
-        "cf-iplongitude": String(point.lng),
-        "cf-ipcity": guessed.cityName,
-      });
+    await page.context().setExtraHTTPHeaders({
+      "cf-ipcountry": "ET",
+      "cf-iplatitude": String(point.lat),
+      "cf-iplongitude": String(point.lng),
+      "cf-ipcity": guessed.cityName,
+    });
     await waitForTreeSlug(page, "ET", guessed.city.slug);
     await waitForTreeSlug(page, "ET", saved.city.slug);
-    await page
-      .context()
-      .addCookies([
-        {
-          name: "ethio_area",
-          value: `ET:${saved.city.id}:${Date.now() - 5 * 60 * 1000}`,
-          url: baseURL,
-        },
-      ]);
+    await page.context().addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${saved.city.id}:${Date.now() - 5 * 60 * 1000}`,
+        url: baseURL,
+      },
+    ]);
     await gotoReady(page, "/");
     await expect(page.getByTestId("location-level-city")).toContainText(
       saved.city.name_en ?? saved.city.slug,
     );
     await expect(page.getByTestId("place-notice")).toHaveCount(0);
     // The saved region is the guessed city's ancestor; the city lies inside it.
-    await page
-      .context()
-      .addCookies([
-        {
-          name: "ethio_area",
-          value: `ET:${guessed.region.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
-          url: baseURL,
-        },
-      ]);
+    await page.context().addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${guessed.region.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
+        url: baseURL,
+      },
+    ]);
     await page.reload();
     await waitForHydration(page);
     await expect(page.getByTestId("location-level-city")).toContainText(guessed.cityName);
     await expect(page.getByTestId("place-notice")).toHaveCount(0);
-    await page
-      .context()
-      .addCookies([
-        {
-          name: "ethio_area",
-          value: `ET:${guessed.city.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
-          url: baseURL,
-        },
-      ]);
+    await page.context().addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${guessed.city.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
+        url: baseURL,
+      },
+    ]);
     await page.reload();
     await waitForHydration(page);
     await expect(page.getByTestId("location-level-city")).toContainText(guessed.cityName);
@@ -3339,7 +3331,15 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
     const row = scope.getByTestId("rail-favourite");
     await expect(row).toHaveAttribute("href", `/c/${slug}`);
     await expect(row).toHaveAccessibleName(new RegExp(escapeRe(en["shell.favouriteBadge"])));
-    const regular = catalogueRows(scope).nth(0);
+    const mainRows = catalogueRows(scope);
+    const mainSlugs: string[] = [];
+    for (const mainRow of await mainRows.all()) {
+      const id = await mainRow.getAttribute("data-testid");
+      if (id && slugOfRow(id) !== "all") mainSlugs.push(slugOfRow(id));
+    }
+    const firstMain = mainSlugs[0];
+    if (!firstMain) throw new Error("FV-1 no main catalogue category");
+    const regular = scope.getByTestId(`rail-category-${firstMain}`);
     const favouriteBox = await row.boundingBox();
     const regularBox = await regular.boundingBox();
     if (!favouriteBox || !regularBox) throw new Error("FV-1 missing main-list bounds");
@@ -3355,11 +3355,7 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
       if (!stripBox) throw new Error("FV-1 missing strip favourite bounds");
       expect(Math.abs(stripBox.y - favouriteBox.y)).toBeLessThanOrEqual(1);
       expect(Math.abs(stripBox.height - favouriteBox.height)).toBeLessThanOrEqual(1);
-      const rows = catalogueRows(scope);
-      const slugs = await rows.evaluateAll((nodes) =>
-        nodes.map((node) => node.getAttribute("data-testid")?.replace("rail-category-", "") ?? ""),
-      );
-      for (const mainSlug of slugs) {
+      for (const mainSlug of mainSlugs) {
         const menuBox = await scope.getByTestId(`rail-category-${mainSlug}`).boundingBox();
         const paintedBox = await strip.getByTestId(`strip-category-${mainSlug}`).boundingBox();
         if (!menuBox || !paintedBox) throw new Error(`FV-1 missing ${mainSlug} bounds`);

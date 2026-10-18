@@ -322,7 +322,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     try {
       const stored = window.localStorage.getItem("ethio.place.keep");
       // Reuse the cookie parser's UUID pattern, not a second validation rule.
-      kept = stored === null ? keptPlace : (parseAreaCookie(`XX:${stored}`)?.id ?? keptPlace);
+      const parsedKeep = stored === null ? null : parseAreaCookie(`XX:${stored}`);
+      kept = parsedKeep?.at === null ? parsedKeep.id : keptPlace;
     } catch {
       console.warn("[location] device Keep storage is unavailable");
     }
@@ -393,6 +394,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const selectLocationCountry = useCallback(
     (code: string | null) => {
+      setNoticeNode(null);
       setGuessInUse(false);
       setGuessNode(null);
       appliedRef.current = true;

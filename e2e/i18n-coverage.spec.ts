@@ -323,15 +323,13 @@ test("PN-AM-1 the different-place notice and place name are Amharic", async ({ p
   if (!guessed || !saved || !translated || !guessed.name_en)
     throw new Error("PN-AM-1 needs two curated cities and an approved Amharic name");
   await page.context().setExtraHTTPHeaders({ "cf-ipcountry": "ET", "cf-ipcity": guessed.name_en });
-  await page
-    .context()
-    .addCookies([
-      {
-        name: "ethio_area",
-        value: `ET:${saved.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
-        url: baseURL,
-      },
-    ]);
+  await page.context().addCookies([
+    {
+      name: "ethio_area",
+      value: `ET:${saved.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
+      url: baseURL,
+    },
+  ]);
   await useAmharic(page);
   await gotoReady(page, "/");
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
