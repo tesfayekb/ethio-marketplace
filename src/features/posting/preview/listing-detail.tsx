@@ -17,6 +17,7 @@ import { galleryPhotos } from "../photo-links";
 import { usePhotoLinks } from "../use-photo-links";
 import { PhotoGallery } from "./photo-gallery";
 import { SafetyBox } from "./safety-box";
+import { boxLayout } from "./box-layout";
 import { keyFacts } from "../key-facts";
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { SellerLine } from "../seller-line";
@@ -363,10 +364,14 @@ export function ListingDetail(view: ListingDetailView) {
           },
         ]
       : []),
-    { target: "location", id: "ad-location", label: "adPage.section.location" },
     { target: "seller", id: "contact", label: "post.preview.sellerLabel" },
+    { target: "location", id: "ad-location", label: "adPage.section.location" },
   ];
   const sectionIds = sections.map((section) => section.id).join(",");
+  const currentSectionRef = useRef(currentSection);
+  useEffect(() => {
+    currentSectionRef.current = currentSection;
+  }, [currentSection]);
   useEffect(() => {
     const article = articleRef.current;
     if (!article) return;
@@ -400,9 +405,21 @@ export function ListingDetail(view: ListingDetailView) {
                   visible.set(entry.target.id, entry.boundingClientRect.top);
                 else visible.delete(entry.target.id);
               }
-              const first = [...visible].sort((a, b) => a[1] - b[1])[0]?.[0];
-              if (first)
-                setCurrentSection(first === "contact" ? "seller" : first.replace("ad-", ""));
+              if (visible.size === 0) return;
+              /* DEC-192 (bundle 19 turn 22) — boxes that start at one height:
+                the visible sections whose tops lie within 8 px of the smallest
+                top are the candidates; a current candidate stays current,
+                otherwise the first candidate in the bar's order takes over. */
+              const minTop = Math.min(...visible.values());
+              const candidates = new Set(
+                [...visible].filter(([, top]) => top - minTop <= 8).map(([id]) => id),
+              );
+              const toTarget = (id: string) =>
+                id === "contact" ? "seller" : id.replace("ad-", "");
+              const current = currentSectionRef.current;
+              if ([...candidates].some((id) => toTarget(id) === current)) return;
+              const first = sectionIds.split(",").find((id) => candidates.has(id));
+              if (first) setCurrentSection(toTarget(first));
             },
             { rootMargin: "-180px 0px -45% 0px", threshold: 0 },
           );
@@ -423,10 +440,16 @@ export function ListingDetail(view: ListingDetailView) {
     });
   };
 
+  const layout = boxLayout({
+    details: facts.length > 0,
+    description: view.description !== "",
+    safety: !sold,
+  });
+
   return (
     <article
       ref={articleRef}
-      className="@container min-w-0"
+      className="@container flex min-w-0 flex-col gap-4"
       data-testid="listing-detail"
       data-actor={view.actor}
     >
@@ -471,11 +494,14 @@ export function ListingDetail(view: ListingDetailView) {
           )}
         </p>
       )}
-      <div className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @2xl:gap-6 @4xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div
+        data-testid="listing-detail-top"
+        className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+      >
         {/* ------------------------------ the gallery ------------------------- */}
         <div
           data-testid="listing-detail-media"
-          className="relative isolate order-1 min-w-0 @2xl:col-span-2 @4xl:col-span-1"
+          className="relative isolate min-w-0 rounded-md border border-border bg-card p-2 @2xl:p-3"
         >
           {images.length > 0 ? (
             <PhotoGallery
@@ -497,75 +523,6 @@ export function ListingDetail(view: ListingDetailView) {
             />
           )}
 
-          {(view.share !== undefined || view.save !== undefined) && (
-            <div className="absolute end-2 top-2 z-10 flex max-w-[calc(100%-1rem)] items-start gap-2">
-              {view.share}
-              {view.save !== undefined && (
-                <Button
-                  asChild={view.save.viewer === "signedOut"}
-                  variant="ghost"
-                  className="h-11 min-w-11 gap-2 rounded-full bg-background/90 px-3 text-foreground shadow-sm"
-                  {...(view.save.viewer === "signedOut"
-                    ? {}
-                    : {
-                        type: "button" as const,
-                        "data-testid": "listing-save",
-                        "data-state":
-                          view.save.viewer === "unknown"
-                            ? "unknown"
-                            : view.save.saved
-                              ? "saved"
-                              : "unsaved",
-                        "aria-pressed": view.save.saved === true,
-                        "aria-label": t(view.save.saved ? "adPage.save.remove" : "adPage.save.add"),
-                        disabled:
-                          view.save.viewer === "unknown" ||
-                          view.save.busy ||
-                          view.save.saved === null,
-                        onClick: view.save.onToggle,
-                      })}
-                >
-                  {view.save.viewer === "signedOut" ? (
-                    <Link
-                      to={view.save.signInTo.to}
-                      search={view.save.signInTo.search}
-                      data-testid="listing-save"
-                      data-state="signedOut"
-                      aria-label={saveSignInLabel}
-                    >
-                      <Heart aria-hidden="true" className="size-5 shrink-0" />
-                      {view.save.count > 0 && (
-                        <span
-                          className="whitespace-normal text-start"
-                          data-testid="listing-save-count"
-                        >
-                          {fill(t("adPage.save.count"), { count: view.save.count })}
-                        </span>
-                      )}
-                    </Link>
-                  ) : (
-                    <>
-                      <Heart
-                        aria-hidden="true"
-                        className={
-                          view.save.saved ? "size-5 shrink-0 text-destructive" : "size-5 shrink-0"
-                        }
-                        fill={view.save.saved ? "currentColor" : "none"}
-                      />
-                      {view.save.count > 0 && (
-                        <span
-                          className="whitespace-normal text-start"
-                          data-testid="listing-save-count"
-                        >
-                          {fill(t("adPage.save.count"), { count: view.save.count })}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-          )}
         </div>
 
         <aside
