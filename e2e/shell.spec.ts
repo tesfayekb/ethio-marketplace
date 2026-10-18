@@ -767,7 +767,7 @@ test.describe("corner-block grid", () => {
     expect(reloaded.width).toBe(narrow.width);
     await toggle.click();
     await expect(html).toHaveAttribute("data-rail", "expanded");
-    await expect(allCategories).toBeVisible();
+    await expect(electronicsName).toBeVisible();
   });
 
   test("exactly one collapse toggle, and the wordmark moves into the bar when collapsed", async ({
