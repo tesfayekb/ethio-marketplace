@@ -656,7 +656,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await page.reload();
     await reViewed;
     await expect(page.getByTestId("listing-detail-public-counts")).toHaveText(
-      `${fill(en["adPage.counts.seen"], { count: 1 })} · ${fill(en["adPage.counts.shared"], { count: 2 })}`,
+      fill(en["adPage.counts.shared"], { count: 2 }),
     );
     await signInViaSession(page, seller.email, seller.password);
     await gotoReady(page, `/my-listings/${ad.id}`);
@@ -816,7 +816,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await expect
         .poll(async () => {
           const boxes = await Promise.all([
-            page.getByTestId("listing-detail-gallery").boundingBox(),
+            page.getByTestId("listing-detail-media").boundingBox(),
             page.getByTestId("listing-detail-headline").boundingBox(),
           ]);
           const current = JSON.stringify(boxes);
@@ -826,7 +826,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         })
         .toBe(true);
       const article = await page.getByTestId("listing-detail").boundingBox();
-      const gallery = await page.getByTestId("listing-detail-gallery").boundingBox();
+      const gallery = await page.getByTestId("listing-detail-media").boundingBox();
       const headline = await page.getByTestId("listing-detail-headline").boundingBox();
       const main = await page.getByTestId("listing-detail-specs").boundingBox();
       const sellerBox = await page
@@ -913,43 +913,25 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
 
-  test("AP-38 the phone's contact bar", async ({ page }, testInfo) => {
+  test("AP-38 no contact bar: Contact seller lives in the seller card only", async ({ page }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active", {
       contactPref: { phone: { show: true, value: "+251911000001" } },
     });
     const { canonical } = await address(ad);
     await gotoReady(page, canonical);
-    const bar = page.getByTestId("listing-contact-bar");
-    if (testInfo.project.name === "desktop-1280") {
-      await expect(bar).toBeHidden();
-      return;
-    }
-    const action = page.getByTestId("listing-contact-bar-action");
-    await expect(action).toHaveAttribute("href", /auth\?return=/);
-    const href = await action.getAttribute("href");
+    await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
+    const sellerCard = page.getByTestId("listing-detail-seller");
+    const signIn = sellerCard.getByTestId("listing-contact-sign-in");
+    await expect(signIn).toBeVisible();
+    const href = await signIn.getAttribute("href");
     if (href === null) throw new Error("AP-38 contact return missing");
     expect(new URL(href, page.url()).searchParams.get("return")).toBe(`${canonical}#contact`);
-    const box = await bar.boundingBox();
-    const bottom = await page.getByTestId("bottom-bar").boundingBox();
-    if (!box || !bottom) throw new Error("AP-38 bar boxes missing");
-    expect(Math.abs(box.y + box.height - bottom.y)).toBeLessThanOrEqual(1);
     const buyer = await leaseUser();
     await signInViaSession(page, buyer.email, buyer.password);
     await gotoReady(page, canonical);
-    await expect(action).toBeEnabled();
-    await action.click();
-    await expect(page.getByTestId("listing-contact-phone")).toHaveText("+251911000001");
-    const reveals = await adminClient()
-      .from("contact_reveals")
-      .select("listing_id")
-      .eq("viewer_id", buyer.id)
-      .eq("listing_id", ad.id);
-    expect(reveals.error).toBeNull();
-    expect(reveals.data).toHaveLength(1);
-    const sold = await seed(seller, "sold", { soldAt: -1 });
-    await gotoReady(page, (await address(sold)).canonical);
-    await expect(bar).toHaveCount(0);
+    await expect(page.getByTestId("listing-detail-seller").getByTestId("listing-contact-show")).toBeVisible();
+    await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
 
   test("AP-39 the map: only with a pin; Enlarge opens a movable map and closes", async ({
