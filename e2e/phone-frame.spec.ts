@@ -123,7 +123,8 @@ async function checkFrame(page: Page, width: number) {
     await expect(page.getByTestId("bottom-bar"), `${at}: no bar`).toBeHidden();
     await expect(page.getByTestId("rail-strip"), `${at}: no strip`).toBeHidden();
     if (width < 1024) {
-      const box = (await page.getByTestId("app-rail").boundingBox())!;
+      const box = await page.getByTestId("app-rail").boundingBox();
+      if (!box) throw new Error(`${at}: rail has no bounds`);
       expect(Math.abs(box.width - 224), `${at}: rail width`).toBeLessThanOrEqual(1);
     }
   }

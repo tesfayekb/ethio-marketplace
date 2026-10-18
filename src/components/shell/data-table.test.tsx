@@ -81,7 +81,7 @@ describe("DataTable C7 contract", () => {
     renderTable({ cardUntil: "lg" });
     expect(screen.getByTestId("data-table-cards").className).toContain("lg:hidden");
     expect(screen.getByTestId("data-table-scroller").className).toContain("lg:block");
-    expect(screen.getByTestId("data-table-scroller").className).not.toContain("tbl-md:block");
+    expect(screen.getByTestId("data-table-scroller").className).not.toContain("md:block");
   });
 
   it("applies a declared column min-width and drops fixed layout", () => {

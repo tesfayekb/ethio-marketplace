@@ -130,7 +130,10 @@ export function AppHeader() {
           <Logo variant="full" />
         </Link>
 
-        <div aria-hidden="true" className="hidden min-w-0 md:block md:flex-1" />
+        <div
+          aria-hidden="true"
+          className="hidden min-w-0 md:ms-2 md:block md:flex-1 rail-icons:ms-0"
+        />
 
         {/* md+ : the real search field, in the bar. INC-049: its width is
             CAPPED per breakpoint so it can never grow into the right-side
