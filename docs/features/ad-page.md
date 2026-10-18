@@ -68,6 +68,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 Turn 19: AP-40, AP-41, AP-42, RI-1…RI-5, PO-1…PO-2; AP-9, AP-36, AP-37, AP-38, AL-31 and the LD fixture changed.
 
+Turn 23: AP-47, LD-21, VW-4, VW-5, VC-1; AP-17, AP-37, AP-42 and LD-19 changed.
 Turn 22: AP-45, AP-46, LD-19, LD-20; AP-36, AP-37, AP-42 and LD-18 changed.
 Turn 21: AP-43, AP-44, LD-18; AP-30, AP-36, AP-38, AP-41 and LD-13 changed.
 
@@ -147,3 +148,4 @@ Turn 19 — The right column’s sticky top follows the measured shell (INC-709)
 Turn 21 — the operator's phone review: the phone's contact bar removed, nothing ever covers the top bars (every Leaflet box and every card of the page isolates its stacking; the in-page bar is the article's only layered element), “Contact seller” in the seller card only; the Maps links encode the coordinates' comma (%2C, Google's Maps URLs rule) so the app opens at the pin when installed (the browser otherwise), the approximate centre with two decimals; MapPreview and MapLarge take `audience` (default “seller”) and the buyer's page reads `adPage.map.label` / `adPage.map.approx` instead of the seller's preview words; “Seen N times” from ten views (INC-712, Q-B).
 
 Turn 22 — the wide layout of DEC-192 (drawings v13, option A): the top row (the gallery and the title box at one height from 42rem, no sticky column), Save and Share as text links at the title box's foot at every width, the in-page bar across the full width at every width in the boxes' order with the current-tab rule for boxes that start at one height, the boxes in a six-column grid placed by box-layout.ts (two a row from 42rem; Details | Description | Seller, then the safety box | Location from 56rem; a missing box gives its room to its row); the buyer's Directions label (INC-716).
+Turn 23 — the in-page bar's items share the row below 42rem and every swipe strip hides its scrollbar with the `scrollbar-none` utility (INC-717 — the class rule: a swipe strip of tabs, chips or thumbnails never shows a scrollbar; a wide table keeps its own); the Location box and its tab show only when the seller placed a pin or wrote directions or location details, the city staying in the title box; a view counts once per browser session and ad (a sessionStorage id; the route's session gate over 24 hours; at most 30 counted views per address and ad an hour — ESTIMATE, env `RATE_LIMIT_LISTING_VIEW_PER_ADDRESS_AD`; without a session, one per address and ad an hour as before).
