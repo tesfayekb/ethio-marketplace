@@ -537,14 +537,33 @@ export function ListingDetail(view: ListingDetailView) {
           )}
         </p>
       )}
+      {/* DEC-200 (the operator, 2026-10-18, replacing DEC-199) — three widths,
+          three places for the one seller card: under 42rem it follows the title
+          box; from 42rem to 57.5rem it sits after Details | Description, beside
+          Location; from 57.5rem it sits under the title box beside the photo.
+          In the medium range the top row, the right column and the boxes grid
+          become `display: contents` inside this ONE FLEX wrapper that wraps its
+          items into rows, and CSS `order` puts the seller card after
+          Description — a flex wrapper, not a grid, because a sticky bar inside
+          a grid sticks only within its own grid row, while inside a flex
+          container it sticks as today. Why 57.5rem (turn 28): from there the
+          photo grows with its column, so the seller card may sit beside it;
+          below it the photo cannot grow, so the card goes back into the boxes.
+          The cost, recorded: in the medium range only, the keyboard reaches
+          Contact seller before the bar (the DOM order), while the eye sees it
+          after Description. */}
+      <div
+        data-testid="listing-detail-layout"
+        className="flex min-w-0 flex-col gap-4 @2xl:@max-[57.5rem]:flex-row @2xl:@max-[57.5rem]:flex-wrap"
+      >
       <div
         data-testid="listing-detail-top"
-        className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+        className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @2xl:@max-[57.5rem]:contents"
       >
         {/* ------------------------------ the gallery ------------------------- */}
         <div
           data-testid="listing-detail-media"
-          className="relative isolate min-w-0 rounded-md border border-border bg-card p-2 @2xl:flex @2xl:flex-col @2xl:p-3"
+          className="relative isolate min-w-0 rounded-md border border-border bg-card p-2 @2xl:flex @2xl:flex-col @2xl:p-3 @2xl:@max-[57.5rem]:shrink-0 @2xl:@max-[57.5rem]:basis-[calc(60%-0.6rem)]"
         >
           {images.length > 0 ? (
             <PhotoGallery
@@ -569,16 +588,11 @@ export function ListingDetail(view: ListingDetailView) {
         </div>
 
         {/* DEC-197 (bundle 19 turn 27) — the right column: the title box, then
-            the seller card under it; together they are the photo's height.
-            DEC-199 (bundle 19 turn 28, the operator's walk of 2026-10-18) — why
-            57.5rem: the gallery reaches 32rem — the strip beside the photo, the
-            photo able to grow — at about 913 px of article; from 57.5rem the
-            right column may be taller than the photo because the photo grows
-            with it, below it the photo cannot, so the seller card goes under. */}
+            the seller card under it; together they are the photo's height. */}
         <div className="flex min-w-0 flex-col gap-4 @2xl:@max-[57.5rem]:contents">
           <section
             data-testid="listing-detail-headline"
-            className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+            className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 @2xl:@max-[57.5rem]:flex-1"
           >
             {/* ---------------------------- title and price ----------------------- */}
             <Title
@@ -765,7 +779,7 @@ export function ListingDetail(view: ListingDetailView) {
             the column's height. */}
           <section
             id="contact"
-            className={`isolate flex min-w-0 flex-1 scroll-mt-14 flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 @2xl:@max-[57.5rem]:col-span-2 @2xl:@max-[57.5rem]:grid @2xl:@max-[57.5rem]:grid-cols-2 @2xl:@max-[57.5rem]:gap-x-6 ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`}
+            className={`isolate flex min-w-0 flex-1 scroll-mt-14 flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.seller} ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`}
             data-testid="listing-detail-seller"
             data-highlight={contactHighlight ? "true" : undefined}
           >
@@ -786,7 +800,7 @@ export function ListingDetail(view: ListingDetailView) {
                 ? view.contact?.viewer !== "unknown"
                 : channels.length > 0) && (
                 <div
-                  className="border-t border-border pt-3 @2xl:@max-[57.5rem]:col-start-2 @2xl:@max-[57.5rem]:row-span-2 @2xl:@max-[57.5rem]:row-start-1 @2xl:@max-[57.5rem]:border-t-0 @2xl:@max-[57.5rem]:pt-0"
+                  className="border-t border-border pt-3"
                   data-testid="listing-detail-contact"
                 >
                   {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
@@ -858,7 +872,7 @@ export function ListingDetail(view: ListingDetailView) {
                 data-testid="listing-seller-all-ads"
                 to="/$name"
                 params={{ name: view.sellerAdsKey }}
-                className="mt-auto inline-flex min-h-11 items-center self-start text-sm text-primary underline underline-offset-4 @2xl:@max-[57.5rem]:col-start-1 @2xl:@max-[57.5rem]:row-start-2"
+                className="mt-auto inline-flex min-h-11 items-center self-start text-sm text-primary underline underline-offset-4"
               >
                 {t("adPage.seller.allAds")}
               </Link>
@@ -872,7 +886,12 @@ export function ListingDetail(view: ListingDetailView) {
           ref={navRef}
           data-testid="listing-section-nav"
           aria-label={t("adPage.sections.label")}
-          className="scrollbar-none sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto rounded-md border border-border bg-card"
+          className={`scrollbar-none sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto rounded-md border border-border bg-card @2xl:@max-[57.5rem]:basis-full ${
+            // DEC-200 — with fewer than two sections other than Seller the bar
+            // shows only in the medium range; phones and large screens keep
+            // DEC-197's "two or more".
+            sections.length < 3 ? "@max-[42rem]:hidden @min-[57.5rem]:hidden" : ""
+          }`}
         >
           {sections.map((section) => (
             <Button
@@ -882,7 +901,10 @@ export function ListingDetail(view: ListingDetailView) {
               data-testid="listing-section-nav-item"
               data-target={section.target}
               aria-current={currentSection === section.target ? "true" : undefined}
-              className={`min-h-11 flex-1 justify-center rounded-none border-b-2 px-2 whitespace-nowrap @2xl:flex-none @2xl:justify-start @2xl:px-3 ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
+              className={`min-h-11 flex-1 justify-center rounded-none border-b-2 px-2 whitespace-nowrap @2xl:flex-none @2xl:justify-start @2xl:px-3 ${
+                // DEC-200 — the Seller tab shows only in the medium range.
+                section.target === "seller" ? "@max-[42rem]:hidden @min-[57.5rem]:hidden" : ""
+              } ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
               onClick={() => {
                 setCurrentSection(section.target);
                 scrollSection(section.id);
@@ -896,7 +918,7 @@ export function ListingDetail(view: ListingDetailView) {
 
       <div
         data-testid="listing-detail-boxes"
-        className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-6"
+        className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-6 @2xl:@max-[57.5rem]:contents"
       >
         {/* ------------------------------ the facts --------------------------- */}
         {facts.length > 0 && (
@@ -1064,6 +1086,7 @@ export function ListingDetail(view: ListingDetailView) {
             {view.report}
           </div>
         )}
+      </div>
       </div>
     </article>
   );
