@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 493,
-  "dynamicCallSites": 351,
+  "dynamicCallSites": 352,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -4276,13 +4276,17 @@
       "/auth"
     ],
     "auth.signOut": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "auth.signUpButton": [
       "/auth"
     ],
     "auth.signedInAs": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "auth.telegramSlot": [
       "/auth"
@@ -4321,6 +4325,7 @@
     ],
     "common.close": [
       "(every page)",
+      "/",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4339,6 +4344,7 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/admin/users/$userId",
+      "/c/$slug",
       "/dev/style",
       "/l/$id/photo[/]jpg",
       "/l/$slug",
@@ -4353,9 +4359,11 @@
     ],
     "common.error": [
       "(every page)",
+      "/",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/screening"
+      "/admin/screening",
+      "/c/$slug"
     ],
     "common.goHome": [
       "(every page)"
@@ -4686,6 +4694,15 @@
       "/admin/screening"
     ],
     "location.empty": [
+      "(every page)"
+    ],
+    "location.noticeAsk": [
+      "(every page)"
+    ],
+    "location.noticeKeep": [
+      "(every page)"
+    ],
+    "location.noticeSwitch": [
       "(every page)"
     ],
     "location.readFailed": [
@@ -5051,7 +5068,9 @@
       "/c/$slug"
     ],
     "nav.home": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "nav.myListings": [
       "/my-listings",
@@ -7955,10 +7974,14 @@
       "(every page)"
     ],
     "shell.categoriesEmpty": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "shell.categoriesLabel": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "shell.collapseRail": [
       "(every page)"
@@ -7966,14 +7989,25 @@
     "shell.expandRail": [
       "(every page)"
     ],
+    "shell.favouriteBadge": [
+      "(every page)",
+      "/",
+      "/c/$slug"
+    ],
     "shell.mainMenu": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "shell.mainNav": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "shell.menuTitle": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "shell.panelLabel": [
       "(every page)"
@@ -7997,7 +8031,9 @@
       "(every page)"
     ],
     "shell.switchPanel": [
-      "(every page)"
+      "(every page)",
+      "/",
+      "/c/$slug"
     ],
     "shell.themeToggle": [
       "(every page)"

@@ -99,10 +99,14 @@ category children land.
 
 ## Location row
 
+D214 (changing D107) — the different-place notice is one line in the place band on marketplace feeds, only when the saved own choice is at least 24 hours old and the detected place is unrelated within the same saved market. Switch picks through the ordinary picker path, saving the cookie, account place and current pick time. Keep hides that detected node until it changes again; `ethio.place.keep` holds only its validated UUID. The guess uses the loaded tree, with no extra request.
+
 Band 3 is the cascading area picker. It is BUILT-VISIBLE and its filtering is
 STUBBED — see `docs/features/location-scoping.md`.
 
 ## Rail collapse state (2026-08-05)
+
+D207 — one ★ favourite category or subcategory lives on this device in `ethio.fav`, a validated category slug. The ☆ beside a category page's title sets or clears it; another category replaces it. Its category icon gains a gold ★ badge and it is first in every main list (after Home in the persistent rail), including the folded rail, strip and opened phone menu. It is absent at subcategory levels and before hydration; no request is added.
 
 Subcategories open in place at every width (D98 with D213): the list follows the URL, with ‹ Main menu / ‹ <parent> moving it up without navigation. The phone menu opens at the main list, stays open on a category with subcategories, and folds into the strip on one without. The folded rail and strip show main categories with the current ancestor marked. Every category link preloads on intent. The peek opens once a visit on phones (sessionStorage `ethio.peek`), without taking focus; it is off under test unless forced.
 

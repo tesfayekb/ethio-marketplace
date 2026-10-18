@@ -2659,6 +2659,137 @@ test.describe("L4b location picker", () => {
       await destroyLocation(fixture.region.slug);
     }
   });
+
+  test("PN-1 an old own choice offers an unrelated same-market place, Keep and Switch", async ({
+    page,
+    browser,
+    baseURL,
+  }) => {
+    if (!baseURL) throw new Error("PN-1 needs the staging base URL");
+    const point = guessPoint(test.info().project.name, test.info().workerIndex);
+    const guessed = await seedGuessFixture("ET", point);
+    seededChains.add(guessed.region.slug);
+    const saved = await seedChain();
+    const headers = {
+      "cf-ipcountry": "ET",
+      "cf-iplatitude": String(point.lat),
+      "cf-iplongitude": String(point.lng),
+      "cf-ipcity": guessed.cityName,
+    };
+    await page.context().setExtraHTTPHeaders(headers);
+    await waitForTreeSlug(page, "ET", guessed.city.slug);
+    await waitForTreeSlug(page, "ET", saved.city.slug);
+    const cookie = {
+      name: "ethio_area",
+      value: `ET:${saved.city.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
+      url: baseURL,
+    };
+    await page.context().addCookies([cookie]);
+    await gotoReady(page, "/");
+    const notice = page.getByTestId("place-notice");
+    await expect(notice).toBeVisible();
+    await expect(notice).toContainText(
+      en["location.noticeAsk"].replace("{place}", guessed.cityName),
+    );
+    const bounds = await notice.boundingBox();
+    if (!bounds) throw new Error("PN-1 missing notice bounds");
+    expect(bounds.height).toBeLessThanOrEqual(34);
+    await expect(page.getByTestId("location-level-city")).toContainText(
+      saved.city.name_en ?? saved.city.slug,
+    );
+    await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
+    await page.getByTestId("place-notice-keep").click();
+    await expect(notice).toHaveCount(0);
+    expect(await page.evaluate(() => localStorage.getItem("ethio.place.keep"))).toBe(
+      guessed.city.id,
+    );
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("location-level-city")).toContainText(
+      saved.city.name_en ?? saved.city.slug,
+    );
+    await expect(notice).toHaveCount(0);
+    const fresh = await browser.newContext({
+      viewport: page.viewportSize() ?? undefined,
+      extraHTTPHeaders: headers,
+    });
+    try {
+      await fresh.addCookies([cookie]);
+      const freshPage = await fresh.newPage();
+      await gotoReady(freshPage, baseURL);
+      await expect(freshPage.getByTestId("place-notice")).toBeVisible();
+      await freshPage.getByTestId("place-notice-switch").click();
+      await expect(freshPage.getByTestId("location-level-city")).toContainText(guessed.cityName);
+      await expect(freshPage.getByTestId("place-notice")).toHaveCount(0);
+      const chosen = (await fresh.cookies()).find((entry) => entry.name === "ethio_area");
+      if (!chosen) throw new Error("PN-1 Switch did not save a cookie");
+      const [country, id, at] = chosen.value.split(":");
+      expect(country).toBe("ET");
+      expect(id).toBe(guessed.city.id);
+      expect(Number(at)).toBeGreaterThanOrEqual(Date.now() - 60_000);
+      expect(Number(at)).toBeLessThanOrEqual(Date.now());
+      await expect(freshPage.getByTestId("location-row")).toHaveAttribute(
+        "data-area-source",
+        "chosen",
+      );
+    } finally {
+      await fresh.close();
+    }
+  });
+
+  test("PN-2 recent own picks and the saved place's descendants show no notice", async ({
+    page,
+    baseURL,
+  }) => {
+    if (!baseURL) throw new Error("PN-2 needs the staging base URL");
+    const point = guessPoint(test.info().project.name, test.info().workerIndex);
+    const guessed = await seedGuessFixture("ET", point);
+    seededChains.add(guessed.region.slug);
+    const saved = await seedChain();
+    await page.context().setExtraHTTPHeaders({
+      "cf-ipcountry": "ET",
+      "cf-iplatitude": String(point.lat),
+      "cf-iplongitude": String(point.lng),
+      "cf-ipcity": guessed.cityName,
+    });
+    await waitForTreeSlug(page, "ET", guessed.city.slug);
+    await waitForTreeSlug(page, "ET", saved.city.slug);
+    await page.context().addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${saved.city.id}:${Date.now() - 5 * 60 * 1000}`,
+        url: baseURL,
+      },
+    ]);
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("location-level-city")).toContainText(
+      saved.city.name_en ?? saved.city.slug,
+    );
+    await expect(page.getByTestId("place-notice")).toHaveCount(0);
+    // The saved region is the guessed city's ancestor; the city lies inside it.
+    await page.context().addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${guessed.region.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
+        url: baseURL,
+      },
+    ]);
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("location-level-city")).toContainText(guessed.cityName);
+    await expect(page.getByTestId("place-notice")).toHaveCount(0);
+    await page.context().addCookies([
+      {
+        name: "ethio_area",
+        value: `ET:${guessed.city.id}:${Date.now() - 48 * 60 * 60 * 1000}`,
+        url: baseURL,
+      },
+    ]);
+    await page.reload();
+    await waitForHydration(page);
+    await expect(page.getByTestId("location-level-city")).toContainText(guessed.cityName);
+    await expect(page.getByTestId("place-notice")).toHaveCount(0);
+  });
   /**
    * INC-211 — SWITCHING MARKETS WITHOUT A RELOAD. The picker used to keep the
    * previous market's tree in state until the new fetch resolved, so the second
@@ -3180,4 +3311,73 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     await expect(page.locator("html")).toHaveAttribute("data-app-ready", "1");
     await expect(menu).toBeHidden();
   });
+});
+
+test("FV-1 one device favourite leads every main list and survives reload", async ({
+  page,
+}, testInfo) => {
+  const mobile = testInfo.project.name === "mobile-360";
+  await gotoReady(page, "/c/electronics");
+  const toggle = page.getByTestId("category-favourite");
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(toggle).toHaveAccessibleName(en["shell.favouriteAdd"]);
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(toggle).toHaveAccessibleName(en["shell.favouriteRemove"]);
+  const checkFavourite = async (slug: string) => {
+    const scope = await openRailScope(page);
+    const back = scope.getByTestId("rail-menu-back");
+    if (!mobile && (await back.count())) await back.click();
+    const row = scope.getByTestId("rail-favourite");
+    await expect(row).toHaveAttribute("href", `/c/${slug}`);
+    await expect(row).toHaveAccessibleName(new RegExp(escapeRe(en["shell.favouriteBadge"])));
+    const mainRows = catalogueRows(scope);
+    const mainSlugs: string[] = [];
+    for (const mainRow of await mainRows.all()) {
+      const id = await mainRow.getAttribute("data-testid");
+      if (id && slugOfRow(id) !== "all") mainSlugs.push(slugOfRow(id));
+    }
+    const firstMain = mainSlugs[0];
+    if (!firstMain) throw new Error("FV-1 no main catalogue category");
+    const regular = scope.getByTestId(`rail-category-${firstMain}`);
+    const favouriteBox = await row.boundingBox();
+    const regularBox = await regular.boundingBox();
+    if (!favouriteBox || !regularBox) throw new Error("FV-1 missing main-list bounds");
+    expect(favouriteBox.y).toBeLessThan(regularBox.y);
+    if (mobile) {
+      const strip = page.getByTestId("rail-strip");
+      const stripRow = strip.getByTestId("strip-favourite");
+      await expect(stripRow).toHaveAttribute(
+        "aria-label",
+        new RegExp(escapeRe(en["shell.favouriteBadge"])),
+      );
+      const stripBox = await stripRow.boundingBox();
+      if (!stripBox) throw new Error("FV-1 missing strip favourite bounds");
+      expect(Math.abs(stripBox.y - favouriteBox.y)).toBeLessThanOrEqual(1);
+      expect(Math.abs(stripBox.height - favouriteBox.height)).toBeLessThanOrEqual(1);
+      for (const mainSlug of mainSlugs) {
+        const menuBox = await scope.getByTestId(`rail-category-${mainSlug}`).boundingBox();
+        const paintedBox = await strip.getByTestId(`strip-category-${mainSlug}`).boundingBox();
+        if (!menuBox || !paintedBox) throw new Error(`FV-1 missing ${mainSlug} bounds`);
+        expect(Math.abs(menuBox.y - paintedBox.y)).toBeLessThanOrEqual(1);
+      }
+      await page.getByTestId("rail-menu-close").click();
+    }
+  };
+  await checkFavourite("electronics");
+  await page.reload();
+  await waitForHydration(page);
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await checkFavourite("electronics");
+  await gotoReady(page, "/c/vehicles");
+  await page.getByTestId("category-favourite").click();
+  await checkFavourite("vehicles");
+  await page.getByTestId("category-favourite").click();
+  await expect(page.getByTestId("category-favourite")).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByTestId("strip-favourite")).toHaveCount(0);
+  const scope = await openRailScope(page);
+  const back = scope.getByTestId("rail-menu-back");
+  if (!mobile && (await back.count())) await back.click();
+  await expect(scope.getByTestId("rail-favourite")).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("ethio.fav"))).toBeNull();
 });

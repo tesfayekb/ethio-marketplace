@@ -50,6 +50,7 @@ vi.mock("@/components/shell-context", () => ({
     selectLocationCountry: () => undefined,
     guessInUse: false,
     guessNode: null,
+    placeNotice: null,
   }),
 }));
 vi.mock("@/components/shell/location-data", () => ({

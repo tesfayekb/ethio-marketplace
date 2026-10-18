@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useRef } from "react";
 import { useLabelRoom } from "@/components/ui/use-label-room";
 import { CutText } from "@/components/ui/cut-text";
@@ -288,6 +289,46 @@ export function LocationSelector() {
           ))}
         </>
       )}
+    </div>
+  );
+}
+
+/** D214 — one warning line; the place name yields before either action does. */
+export function PlaceNotice() {
+  const { placeNotice } = useShell();
+  const { t, entities } = useI18n();
+  if (placeNotice === null) return null;
+  const { node, switchTo, keep } = placeNotice;
+  const name = entityName(
+    "location",
+    { id: node.id, nameEn: node.name_en, nameAm: node.name_am },
+    entities,
+  );
+  return (
+    <div
+      data-testid="place-notice"
+      role="status"
+      className="flex h-8 min-w-0 flex-nowrap items-center gap-2 overflow-hidden bg-warning-soft px-2 text-sm text-warning md:px-4"
+    >
+      <CutText className="min-w-0 flex-1" text={t("location.noticeAsk").replace("{place}", name)} />
+      <Button
+        variant="ghost"
+        size="sm"
+        data-testid="place-notice-switch"
+        onClick={switchTo}
+        className="h-8 shrink-0 px-1 font-semibold text-warning underline"
+      >
+        {t("location.noticeSwitch")}
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        data-testid="place-notice-keep"
+        onClick={keep}
+        className="h-8 shrink-0 px-1 text-warning"
+      >
+        {t("location.noticeKeep")}
+      </Button>
     </div>
   );
 }

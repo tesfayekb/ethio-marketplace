@@ -8,6 +8,8 @@ import { Spinner } from "@/components/brand/spinner";
 import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { PageCard } from "@/components/shell/page-card";
+import { Star } from "lucide-react";
+import { useFavouriteCategory } from "@/components/shell/app-rail";
 import { Button } from "@/components/ui/button";
 import { useCategoryTree } from "@/features/categories/category-tree";
 import { feedSections, inviteShown, placeCount } from "@/features/feed/feed-page";
@@ -67,6 +69,7 @@ function InviteFirst({ invite }: { invite: Invite }) {
  */
 export function Feed() {
   const { t, entities } = useI18n();
+  const favourite = useFavouriteCategory();
   const { selectedCategoryId, categoryLookup, locationPath, feedInputsReady } = useShell();
   const place: LocationNode | null = locationPath[locationPath.length - 1] ?? null;
   const placeId = place?.id ?? null;
@@ -239,10 +242,32 @@ export function Feed() {
       data-ready={feedInputsReady ? "1" : "0"}
       className="mx-auto w-full max-w-6xl"
     >
-      <h1 className="text-xl font-semibold text-foreground">
-        {/* D127 — no place chosen: the everywhere feed is "All listings", not "near you". */}
-        {place ? inHeading(place) : t("nav.allListings")}
-      </h1>
+      <div className="flex min-w-0 items-center gap-2">
+        <h1 className="min-w-0 text-xl font-semibold text-foreground">
+          {/* D127 — no place chosen: the everywhere feed is "All listings", not "near you". */}
+          {place ? inHeading(place) : t("nav.allListings")}
+        </h1>
+        {categoryNode ? (
+          <Button
+            variant="ghost"
+            size="touch"
+            data-testid="category-favourite"
+            aria-pressed={favourite.slug === categoryNode.slug}
+            aria-label={t(
+              favourite.slug === categoryNode.slug ? "shell.favouriteRemove" : "shell.favouriteAdd",
+            )}
+            className="w-11 shrink-0 p-0 [&_svg]:size-5"
+            onClick={() =>
+              favourite.set(favourite.slug === categoryNode.slug ? null : categoryNode.slug)
+            }
+          >
+            <Star
+              aria-hidden="true"
+              className={cn(favourite.slug === categoryNode.slug && "fill-gold text-gold")}
+            />
+          </Button>
+        ) : null}
+      </div>
 
       <div className="mt-4">{body}</div>
     </section>
