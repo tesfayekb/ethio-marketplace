@@ -1451,4 +1451,37 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         Math.abs(headlineBox.y + headlineBox.height - (mediaBox.y + mediaBox.height)),
       ).toBeLessThanOrEqual(1);
   });
+
+  test("AP-47 the in-page bar shows no scrollbar (INC-717)", async ({ page }, testInfo) => {
+    // AP-36's ad shape: a fact and an exact pin, so all four tabs show.
+    const seller = await scratchSeller();
+    const key = `e2e-scrollbar-${token()}`;
+    factKeys.push(key);
+    const attributeId = await seedAttribute(key, "text");
+    const linked = await adminClient()
+      .from("category_attribute_links")
+      .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
+    expect(linked.error).toBeNull();
+    const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" }, pin: true });
+    if (testInfo.project.name === "desktop-1280")
+      await page.setViewportSize({ width: 600, height: 900 });
+    await gotoReady(page, (await address(ad)).canonical);
+    const bar = page.getByTestId("listing-section-nav");
+    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    const scrollbarWidth = await bar.evaluate((nav) => getComputedStyle(nav).scrollbarWidth);
+    expect(scrollbarWidth).toBe("none");
+    // At 360 the items share the row: nothing overflows.
+    await page.setViewportSize({ width: 360, height: 900 });
+    const nav = await bar.boundingBox();
+    if (!nav) throw new Error("AP-47 nav missing");
+    const overflow = await bar.evaluate((el) => el.scrollWidth - el.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    const items = await bar.getByTestId("listing-section-nav-item").all();
+    for (const item of items) {
+      const box = await item.boundingBox();
+      if (!box) throw new Error("AP-47 item missing");
+      expect(box.x).toBeGreaterThanOrEqual(nav.x - 1);
+      expect(box.x + box.width).toBeLessThanOrEqual(nav.x + nav.width + 1);
+    }
+  });
 });
