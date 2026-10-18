@@ -394,7 +394,6 @@ export function ListingDetail(view: ListingDetailView) {
           },
         ]
       : []),
-    { target: "seller", id: "contact", label: "post.preview.sellerLabel" },
     ...(showLocation
       ? [{ target: "location", id: "ad-location", label: "adPage.section.location" as const }]
       : []),
@@ -425,7 +424,8 @@ export function ListingDetail(view: ListingDetailView) {
   }, []);
   useEffect(() => {
     const article = articleRef.current;
-    if (!article || !showSections) return;
+    // DEC-197 — a page with fewer than two sections has no bar and no watcher.
+    if (!article || !showSections || sectionIds === "") return;
     const visible = new Map<string, number>();
     const observer =
       typeof IntersectionObserver === "undefined"
@@ -446,8 +446,8 @@ export function ListingDetail(view: ListingDetailView) {
               const candidates = new Set(
                 [...visible].filter(([, top]) => top - minTop <= 8).map(([id]) => id),
               );
-              const toTarget = (id: string) =>
-                id === "contact" ? "seller" : id.replace("ad-", "");
+              // DEC-197 — every watched id is its target (the seller card is no longer a section).
+              const toTarget = (id: string) => id.replace("ad-", "");
               const current = currentSectionRef.current;
               if ([...candidates].some((id) => toTarget(id) === current)) return;
               const first = sectionIds.split(",").find((id) => candidates.has(id));
@@ -534,13 +534,14 @@ export function ListingDetail(view: ListingDetailView) {
         {/* ------------------------------ the gallery ------------------------- */}
         <div
           data-testid="listing-detail-media"
-          className="relative isolate min-w-0 rounded-md border border-border bg-card p-2 @2xl:p-3"
+          className="relative isolate min-w-0 rounded-md border border-border bg-card p-2 @2xl:flex @2xl:flex-col @2xl:p-3"
         >
           {images.length > 0 ? (
             <PhotoGallery
               photos={images}
               markUnscreened={view.markUnscreened === true}
               ribbon={view.ribbon ?? null}
+              fill
             />
           ) : (
             <ListingPicture
@@ -557,10 +558,13 @@ export function ListingDetail(view: ListingDetailView) {
           )}
         </div>
 
-        <section
-          data-testid="listing-detail-headline"
-          className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-        >
+        {/* DEC-197 (bundle 19 turn 27) — the right column: the title box, then
+            the seller card under it; together they are the photo's height. */}
+        <div className="flex min-w-0 flex-col gap-4">
+          <section
+            data-testid="listing-detail-headline"
+            className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+          >
           {/* ---------------------------- title and price ----------------------- */}
           <Title
             className="font-display text-xl font-semibold leading-tight text-foreground @4xl:text-2xl"
@@ -735,10 +739,113 @@ export function ListingDetail(view: ListingDetailView) {
               )}
             </div>
           )}
-        </section>
+          </section>
+
+          {/* ----------------------------- the seller --------------------------- */}
+          {/* Bundle 11 A3 (D130) — one box, in order: who sells, then how to reach
+            them, one method per row with its control at the row's end. DEC-197 —
+            the seller card sits in the right column under the title box, filling
+            the column's height. */}
+          <section
+            id="contact"
+            className={`isolate flex min-w-0 flex-1 scroll-mt-14 flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`}
+            data-testid="listing-detail-seller"
+            data-highlight={contactHighlight ? "true" : undefined}
+          >
+            <div className="space-y-1">
+              <h3 className="font-display text-base font-semibold text-foreground">
+                {t("post.preview.sellerLabel")}
+              </h3>
+              <SellerLine
+                alias={view.sellerAlias}
+                businessName={view.sellerBusinessName}
+                previousAlias={view.sellerPreviousAlias ?? null}
+                memberSince={view.sellerMemberSince ?? null}
+                testId="listing-detail-seller"
+              />
+            </div>
+            {!sold &&
+              (view.actor === "buyer" ? view.contact?.viewer !== "unknown" : channels.length > 0) && (
+                <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
+                  {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
+                    <h4 className="text-xs font-medium text-muted-foreground">
+                      {t("post.preview.contactLabel")}
+                    </h4>
+                  )}
+                  {view.actor === "buyer" && view.contact !== undefined ? (
+                    <BuyerContact
+                      contact={view.contact}
+                      channels={channels}
+                      showRef={showContactRef}
+                    />
+                  ) : (
+                    <ul className="divide-y divide-border text-sm">
+                      {channels.map((channel) => {
+                        const entry = ownValue(view.contactPref, channel);
+                        const value =
+                          entry !== null && typeof entry === "object"
+                            ? ownValue(entry as Record<string, unknown>, "value")
+                            : undefined;
+                        const label =
+                          channel === "phone"
+                            ? t("post.who.channel.phone")
+                            : channel === "phone2"
+                              ? t("post.who.channel.phone2")
+                              : channel === "telegram"
+                                ? t("post.who.channel.telegram")
+                                : t("post.who.channel.whatsapp");
+                        return (
+                          <li
+                            key={channel}
+                            data-testid="listing-detail-channel"
+                            data-channel={channel}
+                            className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
+                          >
+                            <span
+                              className="me-auto text-foreground"
+                              data-testid="listing-detail-channel-label"
+                            >
+                              {label}
+                            </span>
+                            {view.actor === "owner" &&
+                              typeof value === "string" &&
+                              value.trim() !== "" && (
+                                <span
+                                  data-testid="listing-detail-channel-value"
+                                  data-channel={channel}
+                                  className="text-foreground"
+                                >
+                                  {value}
+                                </span>
+                              )}
+                            {view.channelAction?.(channel) ?? null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              )}
+            {/* Bundle 19 turn 16 (D201 §12) — All ads by this seller; a seller
+              with no alias (a business named by its business name alone) gets
+              no link. The owner's and staff's previews pass no key. DEC-197 —
+              it sits at the card's foot when the card is taller than its
+              content. */}
+            {typeof view.sellerAdsKey === "string" && view.sellerAdsKey !== "" && (
+              <Link
+                data-testid="listing-seller-all-ads"
+                to="/$name"
+                params={{ name: view.sellerAdsKey }}
+                className="mt-auto inline-flex min-h-11 items-center self-start text-sm text-primary underline underline-offset-4"
+              >
+                {t("adPage.seller.allAds")}
+              </Link>
+            )}
+          </section>
+        </div>
       </div>
 
-      {showSections && (
+      {showSections && sections.length >= 2 && (
         <nav
           ref={navRef}
           data-testid="listing-section-nav"
@@ -824,103 +931,6 @@ export function ListingDetail(view: ListingDetailView) {
             )}
           </section>
         )}
-        {/* ----------------------------- the seller --------------------------- */}
-        {/* Bundle 11 A3 (D130) — one box, in order: who sells, then how to reach
-          them, one method per row with its control at the row's end. */}
-        <section
-          id="contact"
-          className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.seller} ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`}
-          data-testid="listing-detail-seller"
-          data-highlight={contactHighlight ? "true" : undefined}
-        >
-          <div className="space-y-1">
-            <h3 className="font-display text-base font-semibold text-foreground">
-              {t("post.preview.sellerLabel")}
-            </h3>
-            <SellerLine
-              alias={view.sellerAlias}
-              businessName={view.sellerBusinessName}
-              previousAlias={view.sellerPreviousAlias ?? null}
-              memberSince={view.sellerMemberSince ?? null}
-              testId="listing-detail-seller"
-            />
-          </div>
-          {!sold &&
-            (view.actor === "buyer" ? view.contact?.viewer !== "unknown" : channels.length > 0) && (
-              <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
-                {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
-                  <h4 className="text-xs font-medium text-muted-foreground">
-                    {t("post.preview.contactLabel")}
-                  </h4>
-                )}
-                {view.actor === "buyer" && view.contact !== undefined ? (
-                  <BuyerContact
-                    contact={view.contact}
-                    channels={channels}
-                    showRef={showContactRef}
-                  />
-                ) : (
-                  <ul className="divide-y divide-border text-sm">
-                    {channels.map((channel) => {
-                      const entry = ownValue(view.contactPref, channel);
-                      const value =
-                        entry !== null && typeof entry === "object"
-                          ? ownValue(entry as Record<string, unknown>, "value")
-                          : undefined;
-                      const label =
-                        channel === "phone"
-                          ? t("post.who.channel.phone")
-                          : channel === "phone2"
-                            ? t("post.who.channel.phone2")
-                            : channel === "telegram"
-                              ? t("post.who.channel.telegram")
-                              : t("post.who.channel.whatsapp");
-                      return (
-                        <li
-                          key={channel}
-                          data-testid="listing-detail-channel"
-                          data-channel={channel}
-                          className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
-                        >
-                          <span
-                            className="me-auto text-foreground"
-                            data-testid="listing-detail-channel-label"
-                          >
-                            {label}
-                          </span>
-                          {view.actor === "owner" &&
-                            typeof value === "string" &&
-                            value.trim() !== "" && (
-                              <span
-                                data-testid="listing-detail-channel-value"
-                                data-channel={channel}
-                                className="text-foreground"
-                              >
-                                {value}
-                              </span>
-                            )}
-                          {view.channelAction?.(channel) ?? null}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            )}
-          {/* Bundle 19 turn 16 (D201 §12) — All ads by this seller; a seller
-              with no alias (a business named by its business name alone) gets
-              no link. The owner's and staff's previews pass no key. */}
-          {typeof view.sellerAdsKey === "string" && view.sellerAdsKey !== "" && (
-            <Link
-              data-testid="listing-seller-all-ads"
-              to="/$name"
-              params={{ name: view.sellerAdsKey }}
-              className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
-            >
-              {t("adPage.seller.allAds")}
-            </Link>
-          )}
-        </section>
 
         {showLocation && (
           <section

@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import { errorText } from "@/lib/error-text";
+import { PHOTO_LINK_SECONDS, readAndSignPhotoLinks } from "@/server/media/links";
 
 /**
  * Bundle 10 E2b — THE PUBLIC FEED'S READ DOOR.
@@ -139,13 +140,39 @@ async function handleGet(request: Request): Promise<Response> {
   ) {
     return fail("feed_page returned no page", 502);
   }
-  const body = {
+  const body: Record<string, unknown> = {
     cards: page.cards,
     ladder: page.ladder,
     steps: page.steps,
     next:
       page.next === null || page.next === undefined ? null : toBase64Url(JSON.stringify(page.next)),
   };
+  // DEC-195 — the covers' card and thumb links ride INSIDE the answer, signed
+  // for a visitor exactly as /api/media/photo-links signs them (one shared
+  // reader-and-signer, the feed's own anonymous client), so the first page's
+  // cards ask no second request. A failed or empty signing never fails the
+  // feed: the cards answer without `coverLinks` (one [feed-links] line) and
+  // the client falls back to the request.
+  const coverIds = [
+    ...new Set(
+      (page.cards as { coverPhotoId?: unknown }[])
+        .map((card) => card.coverPhotoId)
+        .filter((id): id is string => typeof id === "string" && id !== ""),
+    ),
+  ];
+  if (coverIds.length > 0) {
+    try {
+      const links = await readAndSignPhotoLinks(supabase, coverIds, ["card", "thumb"]);
+      if (Object.keys(links).length > 0) {
+        body.coverLinks = links;
+        body.linksExpireIn = PHOTO_LINK_SECONDS;
+      } else {
+        console.error("[feed-links]", PATH, "signing answered no links");
+      }
+    } catch (linksError) {
+      console.error("[feed-links]", PATH, errorText(linksError));
+    }
+  }
   return new Response(JSON.stringify(body), {
     status: 200,
     headers: {

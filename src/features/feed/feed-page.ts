@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/i18n";
+import { linksOf, type PhotoLinks } from "@/features/posting/photo-links";
 
 import type { ListingTier } from "./ranking";
 
@@ -78,6 +79,8 @@ export interface FeedPage {
   cards: FeedListing[];
   ladder: string[];
   next: string | null;
+  /** DEC-195 — the covers' signed card/thumb links, when the route answered them. */
+  coverLinks?: PhotoLinks;
 }
 
 const TIERS: readonly string[] = ["premium", "featured", "regular"];
@@ -174,7 +177,15 @@ export function parseFeedPage(value: unknown): FeedPage | null {
     if (one === null) return null;
     parsed.push(one);
   }
-  return { cards: parsed, ladder: [...ladder], next };
+  // DEC-195 — `coverLinks` is optional; a door from before it answers without
+  // it, and the client then asks /api/media/photo-links as before.
+  const coverLinks = linksOf({ links: value.coverLinks });
+  return {
+    cards: parsed,
+    ladder: [...ladder],
+    next,
+    ...(Object.keys(coverLinks).length > 0 ? { coverLinks } : {}),
+  };
 }
 
 /**

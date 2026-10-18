@@ -220,6 +220,16 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
+/** DEC-195 — the photo server's origin: the public Supabase address's origin, or null when unset or unparsable. */
+const PHOTO_ORIGIN = (() => {
+  try {
+    const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? "";
+    return url === "" ? null : new URL(url).origin;
+  } catch {
+    return null;
+  }
+})();
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   // The origin/path are re-read on the client so a client-side navigation's
   // alternates point at the page the visitor is actually on, not at the
@@ -253,6 +263,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // remote @import from src/styles.css.
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      // DEC-195 — an early connection to the photo server's origin (the
+      // project's own Supabase address, read from the public env, never
+      // hard-coded), so the first cards' photos start sooner.
+      ...(PHOTO_ORIGIN === null
+        ? []
+        : [
+            { rel: "preconnect", href: PHOTO_ORIGIN },
+            { rel: "dns-prefetch", href: PHOTO_ORIGIN },
+          ]),
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Bricolage+Grotesque:wght@600;700&display=swap",

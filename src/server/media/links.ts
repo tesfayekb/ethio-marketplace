@@ -84,6 +84,28 @@ export function photoIdsOf(raw: unknown): string[] | null {
 }
 
 /**
+ * DEC-195 (bundle 19 turn 27) — ONE READER-AND-SIGNER for every door that
+ * hands out photo links: the rows are read as the CALLER's client (so
+ * `listing_photos`' own policies decide what comes back), then signed by the
+ * service client for PHOTO_LINK_SECONDS. Throws on a failed read or a failed
+ * signature — each door turns that into its own refusal (the photo-links
+ * route a 503; the feed an answer without `coverLinks`).
+ */
+export async function readAndSignPhotoLinks(
+  reader: SupabaseClient<Database>,
+  photoIds: readonly string[],
+  variants: readonly string[] = READ_VARIANTS,
+): Promise<Record<string, Record<string, string>>> {
+  const { data: rows, error } = await reader
+    .from("listing_photos")
+    .select("id, paths, exif_stripped")
+    .in("id", [...photoIds]);
+  if (error) throw new Error(`listing_photos read: ${error.message}`);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return signPhotoRows(supabaseAdmin, rows ?? [], variants);
+}
+
+/**
  * Signs every readable variant of the given rows: `{ [photoId]: { [variant]: link } }`.
  * Rows not stripped are left out; a photo with no signable variant is absent.
  */

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
-import { photoIdsOf, PHOTO_LINK_SECONDS, signPhotoRows, variantsOf } from "@/server/media/links";
+import { photoIdsOf, PHOTO_LINK_SECONDS, readAndSignPhotoLinks, variantsOf } from "@/server/media/links";
 import {
   anonymousClient,
   consumeRate,
@@ -88,18 +88,10 @@ async function handlePost(request: Request): Promise<Response> {
   const variants = variantsOf(body["variants"]);
   if (variants === null) return refusal("variants", "badShape");
 
-  const { data: rows, error } = await supabase
-    .from("listing_photos")
-    .select("id, paths, exif_stripped")
-    .in("id", photoIds);
-  if (error) {
-    logRouteError(PATH, error.message);
-    return routeJson({ error: "upstream unavailable" }, 503);
-  }
-
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  // DEC-195 — the read-and-sign moved to src/server/media/links.ts whole
+  // (G1: moved code, not behaviour); the feed route signs through the same door.
   try {
-    const links = await signPhotoRows(supabaseAdmin, rows ?? [], variants);
+    const links = await readAndSignPhotoLinks(supabase, photoIds, variants);
     return routeJson({ ok: true, links, expiresIn: PHOTO_LINK_SECONDS }, 200);
   } catch (signError) {
     logRouteError(PATH, signError);

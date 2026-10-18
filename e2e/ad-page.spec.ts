@@ -886,32 +886,40 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         throw new Error("AP-36 missing layout boxes");
       const near = (a: number, b: number, tolerance: number) => Math.abs(a - b) <= tolerance;
       if (article.width < 672) {
-        const order = [media, headline, nav, details, description, sellerBox, location, safety];
+        // DEC-197 — phone: the seller card follows the title box, then the bar
+        // and the boxes in their DOM order.
+        const order = [media, headline, sellerBox, nav, details, description, location, safety];
         for (let i = 1; i < order.length; i += 1)
           expect(order[i].y).toBeGreaterThanOrEqual(order[i - 1].y + order[i - 1].height);
       } else if (article.width < 896) {
+        // The media card and the right column side by side; the media card
+        // grows to the column, so its bottom meets the seller card's bottom.
         expect(headline.x).toBeGreaterThanOrEqual(media.x + media.width);
         expect(near(headline.y, media.y, 1)).toBe(true);
-        expect(near(headline.y + headline.height, media.y + media.height, 1)).toBe(true);
+        expect(near(media.y + media.height, sellerBox.y + sellerBox.height, 1)).toBe(true);
+        expect(sellerBox.y).toBeGreaterThanOrEqual(headline.y + headline.height);
+        expect(near(sellerBox.x, headline.x, 1)).toBe(true);
         expect(near(nav.width, article.width, 1)).toBe(true);
         expect(nav.y).toBeGreaterThanOrEqual(
-          Math.max(media.y + media.height, headline.y + headline.height),
+          Math.max(media.y + media.height, sellerBox.y + sellerBox.height),
         );
+        // Details | Description, then Location | the safety box.
         expect(description.x).toBeGreaterThanOrEqual(details.x + details.width);
         expect(near(description.y, details.y, 1)).toBe(true);
         expect(near(description.height, details.height, 1)).toBe(true);
-        expect(sellerBox.x).toBeLessThan(location.x);
-        expect(near(sellerBox.y, location.y, 1)).toBe(true);
-        expect(near(sellerBox.height, location.height, 1)).toBe(true);
-        expect(near(safety.width, article.width, 1)).toBe(true);
-        expect(safety.y).toBeGreaterThanOrEqual(sellerBox.y + sellerBox.height);
+        expect(safety.x).toBeGreaterThanOrEqual(location.x + location.width);
+        expect(near(safety.y, location.y, 1)).toBe(true);
+        expect(location.y).toBeGreaterThanOrEqual(details.y + details.height);
       } else {
         expect(headline.x).toBeGreaterThanOrEqual(media.x + media.width);
         expect(near(headline.y, media.y, 1)).toBe(true);
-        expect(near(headline.y + headline.height, media.y + media.height, 1)).toBe(true);
+        expect(near(media.y + media.height, sellerBox.y + sellerBox.height, 1)).toBe(true);
+        expect(sellerBox.y).toBeGreaterThanOrEqual(headline.y + headline.height);
         expect(near(nav.width, article.width, 1)).toBe(true);
+        // Details | Description | Location in one row of thirds, then the
+        // safety box across the article.
         const third = (article.width - 32) / 3;
-        const row = [details, description, sellerBox];
+        const row = [details, description, location];
         for (let i = 1; i < row.length; i += 1)
           expect(row[i].x).toBeGreaterThanOrEqual(row[i - 1].x + row[i - 1].width);
         for (const item of row) {
@@ -919,12 +927,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
           expect(near(item.height, details.height, 1)).toBe(true);
           expect(near(item.width, third, 2)).toBe(true);
         }
-        expect(near(safety.x, article.x, 1)).toBe(true);
-        expect(location.x).toBeGreaterThanOrEqual(safety.x + safety.width);
-        expect(near(location.y, safety.y, 1)).toBe(true);
-        expect(near(location.height, safety.height, 1)).toBe(true);
-        expect(near(safety.width, third, 2)).toBe(true);
-        expect(near(location.width, 2 * third + 16, 2)).toBe(true);
+        expect(near(safety.width, article.width, 1)).toBe(true);
+        expect(safety.y).toBeGreaterThanOrEqual(location.y + location.height);
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
@@ -965,7 +969,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await bar
         .getByTestId("listing-section-nav-item")
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
-    ).toEqual(["details", "description", "seller", "location"]);
+    ).toEqual(["details", "description", "location"]);
     const locationItem = bar.locator('[data-target="location"]');
     await locationItem.click();
     await expect(locationItem).toHaveAttribute("aria-current", "true");
@@ -989,13 +993,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     // Turn 23: a sold ad without a pin has no Location box and no tab.
     const sold = await seed(seller, "sold", { soldAt: -1 });
     await gotoReady(page, (await address(sold)).canonical);
-    await expect(page.getByTestId("listing-section-nav")).toBeVisible();
-    await expect(page.getByTestId("listing-section-nav-item")).toHaveCount(2);
-    expect(
-      await page
-        .getByTestId("listing-section-nav-item")
-        .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
-    ).toEqual(["description", "seller"]);
+    // DEC-197 — the sold ad has a description only: one section, no bar.
+    await expect(page.getByTestId("listing-section-nav")).toHaveCount(0);
     await expect(page.getByTestId("listing-detail-location")).toHaveCount(0);
     await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
@@ -1348,19 +1347,23 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         .boundingBox();
       if (!details || !sellerBox) throw new Error("AP-42 boxes missing");
       if (ad.id === live.id) {
-        // No description: Details and the seller card share the row in halves.
-        expect(Math.abs(details.y - sellerBox.y)).toBeLessThanOrEqual(1);
-        expect(Math.abs(details.width - (article.width - 16) / 2)).toBeLessThanOrEqual(2);
-        expect(Math.abs(sellerBox.width - (article.width - 16) / 2)).toBeLessThanOrEqual(2);
+        // DEC-197 — no description and no pin: Details alone across the row,
+        // then the safety box across; the seller card is in the top row.
+        expect(Math.abs(details.width - article.width)).toBeLessThanOrEqual(1);
+        const safetyBox = await page.getByTestId("listing-safety").boundingBox();
+        if (!safetyBox) throw new Error("AP-42 live safety missing");
+        expect(Math.abs(safetyBox.width - article.width)).toBeLessThanOrEqual(1);
+        expect(safetyBox.y).toBeGreaterThanOrEqual(details.y + details.height);
       } else {
-        // A sold ad: no safety box, so Location takes the whole row.
+        // DEC-197 — a sold ad with a fact, a description and a pin: Details |
+        // Description | Location in thirds; no safety box.
         const description = await page.locator("#ad-description").boundingBox();
         const location = await page.getByTestId("listing-detail-location").boundingBox();
         if (!description || !location) throw new Error("AP-42 sold boxes missing");
         await expect(page.getByTestId("listing-safety")).toHaveCount(0);
-        for (const item of [details, description, sellerBox])
+        for (const item of [details, description, location])
           expect(Math.abs(item.width - (article.width - 32) / 3)).toBeLessThanOrEqual(2);
-        expect(Math.abs(location.width - article.width)).toBeLessThanOrEqual(1);
+        expect(sellerBox.y).toBeLessThan(details.y);
       }
     }
     // Turn 23: a live ad with a fact, a description and NO pin has no Location
@@ -1398,7 +1401,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     expect(exact.error).toBeNull();
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(3);
     const settle = async () => {
       let previous = "";
       await expect
@@ -1431,9 +1434,89 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       if (!heading || !nav) throw new Error(`AP-45 ${target} boxes missing`);
       expect(heading.y).toBeGreaterThanOrEqual(nav.y + nav.height);
     };
-    await tap("seller", 'section[data-testid="listing-detail-seller"]');
     await tap("description", "#ad-description");
     await tap("location", '[data-testid="listing-detail-location"]');
+    await tap("details", '[data-testid="listing-detail-specs"]');
+  });
+
+  test("AP-50 the seller card fills the right column", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280");
+    // DEC-197 — AP-36's ad: a fact, a description, an exact pin, photos.
+    const seller = await scratchSeller();
+    const key = `e2e-sellercol-${token()}`;
+    factKeys.push(key);
+    const attributeId = await seedAttribute(key, "text");
+    const linked = await adminClient()
+      .from("category_attribute_links")
+      .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
+    expect(linked.error).toBeNull();
+    const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" }, pin: true });
+    await seedPhotos(ad.id);
+    await gotoReady(page, (await address(ad)).canonical);
+    await expect
+      .poll(() =>
+        page
+          .getByTestId("gallery-main")
+          .locator("img")
+          .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
+      )
+      .toBe(true);
+    const media = await page.getByTestId("listing-detail-media").boundingBox();
+    const sellerBox = await page
+      .locator('section[data-testid="listing-detail-seller"]')
+      .boundingBox();
+    if (!media || !sellerBox) throw new Error("AP-50 boxes missing");
+    // The media card grows to the right column: its bottom meets the seller
+    // card's bottom, and the photo lies wholly inside the media card.
+    expect(Math.abs(media.y + media.height - (sellerBox.y + sellerBox.height))).toBeLessThanOrEqual(
+      1,
+    );
+    const img = await page.getByTestId("gallery-main").locator("img").boundingBox();
+    if (!img) throw new Error("AP-50 photo missing");
+    expect(img.y).toBeGreaterThanOrEqual(media.y);
+    expect(img.y + img.height).toBeLessThanOrEqual(media.y + media.height);
+    // The seller's-page link sits in the card's lower half.
+    const allAds = await page.getByTestId("listing-seller-all-ads").boundingBox();
+    if (!allAds) throw new Error("AP-50 seller link missing");
+    expect(allAds.y).toBeGreaterThanOrEqual(sellerBox.y + sellerBox.height / 2);
+  });
+
+  test("AP-49 the feed's first page asks no second request for its photos (DEC-195)", async ({
+    page,
+  }) => {
+    // One scratch seller's three live ads with photos in a scratch leaf: the
+    // leaf's feed holds only the seeded cards.
+    const seller = await scratchSeller();
+    const ads = [await seed(seller), await seed(seller), await seed(seller)];
+    for (const ad of ads) await seedPhotos(ad.id);
+    const photoLinkPosts: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/api/media/photo-links") && request.method() === "POST")
+        photoLinkPosts.push(request.url());
+    });
+    const feedAnswer = page.waitForResponse(
+      (response) => response.url().includes("/api/feed") && response.status() === 200,
+    );
+    await page.goto(`/c/${seller.leafSlug}`);
+    const body = (await (await feedAnswer).json()) as {
+      coverLinks?: Record<string, { card?: string; thumb?: string }>;
+    };
+    // The answer itself carries the three covers' card and thumb links.
+    expect(Object.keys(body.coverLinks ?? {})).toHaveLength(3);
+    for (const links of Object.values(body.coverLinks ?? {})) {
+      expect(links.card).toMatch(/^https:\/\//);
+      expect(links.thumb).toMatch(/^https:\/\//);
+    }
+    await expect(page.getByTestId("listing-card")).toHaveCount(3);
+    // The first card's picture loads at once, already at its signed card link.
+    const firstImg = page.getByTestId("listing-card-picture").locator("img").first();
+    await expect(firstImg).toHaveAttribute("loading", "eager");
+    await expect(firstImg).toHaveAttribute("fetchpriority", "high");
+    const cardLinks = Object.values(body.coverLinks ?? {}).map((links) => links.card);
+    const src = await firstImg.getAttribute("src");
+    expect(src !== null && cardLinks.includes(src)).toBe(true);
+    // No card asked /api/media/photo-links while the first page loaded.
+    expect(photoLinkPosts).toEqual([]);
   });
 
   test("AP-46 Save and Share sit in the title box", async ({ page }) => {

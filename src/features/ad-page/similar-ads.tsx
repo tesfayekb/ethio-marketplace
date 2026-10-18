@@ -4,6 +4,7 @@ import { ListingCard } from "@/components/marketplace/listing-card";
 import { PageCard } from "@/components/shell/page-card";
 import { similarListings } from "@/features/ad-page/similar";
 import type { FeedListing } from "@/features/feed/feed-page";
+import type { PhotoLinks } from "@/features/posting/photo-links";
 import { useCardPhotos } from "@/features/feed/use-card-photos";
 import { useI18n } from "@/i18n";
 
@@ -26,16 +27,21 @@ export function SimilarAds({
 }) {
   const { t } = useI18n();
   const [cards, setCards] = useState<FeedListing[] | null>(null);
+  const [coverLinks, setCoverLinks] = useState<PhotoLinks>({});
   useEffect(() => {
     let active = true;
     void similarListings(categoryId, placeId, excludeId).then((answer) => {
-      if (active) setCards(answer);
+      if (active) {
+        setCards(answer.cards);
+        setCoverLinks(answer.coverLinks);
+      }
     });
     return () => {
       active = false;
     };
   }, [categoryId, placeId, excludeId]);
-  const coverOf = useCardPhotos(cards ?? []);
+  // DEC-195 — the answer's own links are the preset; only the rest are asked for.
+  const coverOf = useCardPhotos(cards ?? [], coverLinks);
   if (cards === null || cards.length === 0) return null;
   return (
     <PageCard className="mt-6 min-w-0">
@@ -51,7 +57,11 @@ export function SimilarAds({
                 index >= 8 ? "hidden lg:block" : index >= 6 ? "hidden sm:block" : undefined
               }
             >
-              <ListingCard listing={listing} photoUrl={coverOf(listing.coverPhotoId)} />
+              <ListingCard
+                listing={listing}
+                photoUrl={coverOf(listing.coverPhotoId)}
+                priority={index < 6}
+              />
             </li>
           ))}
         </ul>

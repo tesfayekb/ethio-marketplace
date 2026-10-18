@@ -66,6 +66,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 ## Tests
 
+Turn 27: AP-49, AP-50, LP-1, UC-1, FD-1; AP-36, AP-37, AP-42, AP-45, PW-13, LD-18, LD-19 and two LD order tests changed.
 Turn 26: LD-22; AP-23 changed.
 Turn 25: AP-48, SA-1…SA-3, GAL-8, GAL-9.
 Turn 24: AP-44 changed (the wide window shortened before scrolling — INC-718; the in-page bar's cover check at both widths).
@@ -154,3 +155,5 @@ Turn 23 — the in-page bar's items share the row below 42rem and every swipe st
 Turn 25 — INC-717's class rule's second half: a strip that hides its scrollbar and has more than fits shows double-chevron arrows at the ends where more lies (one primitive, src/components/ui/strip-arrows.tsx: « » on a row, ▲ ▼ on a column; a tap scrolls the strip only), on the photo thumbnails (a row under the photo below 32rem, a column beside it from 32rem), the full-screen viewer's row and the posting step strip; the selected thumbnail is kept inside its strip when the photo changes; the viewer's row is centred safely (`justify-center-safe`) so its first photos stay reachable (INC-720).
 
 Turn 26 — after "Contact seller" and sign-in the page returns to the seller card, highlights it for three seconds and focuses "Show contact"; the number shows only on the visitor's own tap, recorded by the door (DEC-196; D201 §6 restored; turn 19's automatic reveal on return removed); the tab intent of turn 19 now only carries the visitor back.
+
+Turn 27 — PW-13 follows DEC-193 (INC-721); the seller card moves into the right column under the title box, the photo box grows with the column, the boxes close up (Details | Description | Location, the safety box last), the bar loses its Seller tab and shows only with two or more sections (DEC-197, drawings v16).

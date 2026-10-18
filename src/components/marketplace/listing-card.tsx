@@ -32,10 +32,13 @@ export function NegotiableBadge() {
 export function ListingCard({
   listing,
   photoUrl = null,
+  priority = false,
 }: {
   listing: FeedListing;
   /** INC-606 — the cover photo's card-size link, when the feed has one; else the category's picture. */
   photoUrl?: string | null;
+  /** DEC-195 — the grid's first cards load their picture at once with high fetch priority. */
+  priority?: boolean;
 }) {
   const { t, entities, language } = useI18n();
   const { tree } = useCategoryTree();
@@ -142,6 +145,7 @@ export function ListingCard({
           boxTestId="listing-card-picture"
           rounded=""
           fill
+          priority={priority}
         />
         {tierPill}
       </div>

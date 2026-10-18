@@ -1,4 +1,11 @@
 import { parseFeedPage, type FeedListing } from "@/features/feed/feed-page";
+import type { PhotoLinks } from "@/features/posting/photo-links";
+
+/** DEC-195 — the cards and the cover links the answer already signed. */
+export interface SimilarAnswer {
+  cards: FeedListing[];
+  coverLinks: PhotoLinks;
+}
 
 /**
  * D201 §12 — SIMILAR ADS. One read of the public feed route with the ad's leaf
@@ -12,18 +19,22 @@ export async function similarListings(
   categoryId: string,
   placeId: string | null,
   excludeId: string,
-): Promise<FeedListing[]> {
+): Promise<SimilarAnswer> {
+  const empty: SimilarAnswer = { cards: [], coverLinks: {} };
   try {
     const params = new URLSearchParams({ category: categoryId, size: "11" });
     if (placeId !== null) params.set("place", placeId);
     const response = await fetch(`/api/feed?${params.toString()}`);
-    if (!response.ok) return [];
+    if (!response.ok) return empty;
     const page = parseFeedPage(await response.json());
-    if (page === null) return [];
-    return page.cards
-      .filter((card) => card.id !== excludeId && card.publicId !== excludeId)
-      .slice(0, 10);
+    if (page === null) return empty;
+    return {
+      cards: page.cards
+        .filter((card) => card.id !== excludeId && card.publicId !== excludeId)
+        .slice(0, 10),
+      coverLinks: page.coverLinks ?? {},
+    };
   } catch {
-    return [];
+    return empty;
   }
 }

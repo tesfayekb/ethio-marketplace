@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
 
-const similarListings = vi.fn<() => Promise<FeedListing[]>>();
+const similarListings = vi.fn<() => Promise<{ cards: FeedListing[]; coverLinks: Record<string, never> }>>();
 vi.mock("./similar", () => ({
   similarListings: (...args: unknown[]) => similarListings(...(args as [])),
 }));
@@ -61,16 +61,17 @@ const props = { categoryId: "c-leaf", placeId: "place-1", excludeId: "l-self" };
 
 describe("SIM-4 the similar-ads section", () => {
   it("draws nothing while loading and nothing when the answer is empty", async () => {
-    let resolve: (cards: FeedListing[]) => void = () => {};
+    let resolve: (answer: { cards: FeedListing[]; coverLinks: Record<string, never> }) => void =
+      () => {};
     similarListings.mockReturnValue(
-      new Promise<FeedListing[]>((done) => {
+      new Promise((done) => {
         resolve = done;
       }),
     );
     const { container, rerender } = render(<SimilarAds {...props} />);
     // INC-704: while loading the container holds no element at all (no frame).
     expect(container.firstElementChild).toBeNull();
-    resolve([]);
+    resolve({ cards: [], coverLinks: {} });
     await waitFor(() => expect(similarListings).toHaveBeenCalledTimes(1));
     rerender(<SimilarAds {...props} />);
     await waitFor(() => expect(container.firstElementChild).toBeNull());
@@ -78,9 +79,10 @@ describe("SIM-4 the similar-ads section", () => {
   });
 
   it("draws the heading and one card per listing when there are some", async () => {
-    similarListings.mockResolvedValue(
-      Array.from({ length: 10 }, (_, index) => card(`l-${index + 1}`)),
-    );
+    similarListings.mockResolvedValue({
+      cards: Array.from({ length: 10 }, (_, index) => card(`l-${index + 1}`)),
+      coverLinks: {},
+    });
     render(<SimilarAds {...props} />);
     const section = await screen.findByTestId("listing-similar");
     // INC-704: with cards, the section sits inside the card frame.
