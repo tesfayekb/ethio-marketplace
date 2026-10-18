@@ -58,7 +58,8 @@ describe("useCardPhotos — the preset (DEC-195)", () => {
     await waitFor(() => expect(result.current("p2")).toBe(CARD("p2")));
     expect(result.current("p1")).toBe(CARD("p1"));
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const init = fetchMock.mock.calls[0]?.[1] as unknown as RequestInit;
+    const call = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const init = call[1];
     const body = JSON.parse(String(init.body)) as { photoIds: string[]; variants: string[] };
     expect(body.photoIds).toEqual(["p2"]);
     expect(body.variants).toEqual(["card", "thumb"]);
