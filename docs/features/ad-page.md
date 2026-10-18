@@ -174,4 +174,4 @@ Turn 31 — a tapped tab stays current while the page scrolls to its section (th
 
 Turn 32 — AP-45 now checks that every other tab is not current after a tap; INC-727's cause was the test's own check, which excluded the Details tab even after a tap on Details (turn 31's watcher change stays as sound behaviour, not as this fix).
 
-Turn 34 — the Maps search names the full place, from the ad's place up to the country, in English (the deepest place common to the ad's places — INC-730); on an iPhone home-screen app, where an outside link opens in an in-app window that cannot hand a Google Maps web link to the app, both Maps links offer "Google Maps app" (Google's own app address) or "Map in the browser" (INC-731); elsewhere the links open as before.
+Turn 34 — the Maps search names the full place, from the ad's place up to the country, in English (the deepest place common to the ad's places — INC-730); on an iPhone home-screen app, where an outside link opens in an in-app window that cannot hand a Google Maps web link to the app, both Maps links offer "Google Maps app" (Google's own app address) or "Open in browser" (INC-731); elsewhere the links open as before.

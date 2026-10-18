@@ -14,7 +14,8 @@ vi.mock("@/i18n", async (original) => ({
     entities: { map: {}, lang: "en" },
   }),
 }));
-vi.mock("@/components/shell/location-data", () => ({
+vi.mock("@/components/shell/location-data", async (original) => ({
+  ...(await original<typeof import("@/components/shell/location-data")>()),
   readAreaCookie: () => (area.country === null ? null : { country: area.country }),
   useCountryTree: (country: string | null) => ({
     loadedCountry: country,
