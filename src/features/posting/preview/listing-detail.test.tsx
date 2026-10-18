@@ -712,6 +712,7 @@ it("LD-23 a tapped tab stays current through its scroll; fresh tops decide after
   class TestObserver implements IntersectionObserver {
     readonly root = null;
     readonly rootMargin = "";
+    readonly scrollMargin = "";
     readonly thresholds = [0];
     readonly targets = new Set<Element>();
     constructor(readonly callback: IntersectionObserverCallback) {
@@ -747,6 +748,10 @@ it("LD-23 a tapped tab stays current through its scroll; fresh tops decide after
   }
   vi.useFakeTimers();
   vi.stubGlobal("IntersectionObserver", TestObserver);
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches: false })),
+  );
   let unmount: (() => void) | undefined;
   try {
     const definitions =
