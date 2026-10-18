@@ -76,18 +76,21 @@ export function StripArrows({
         : "smooth";
     if (state.vertical) {
       strip.scrollBy({
-        top: direction * (strip.clientHeight - (item instanceof HTMLElement ? item.offsetHeight : 0)),
+        top:
+          direction * (strip.clientHeight - (item instanceof HTMLElement ? item.offsetHeight : 0)),
         behavior,
       });
     } else {
       strip.scrollBy({
-        left: direction * (strip.clientWidth - (item instanceof HTMLElement ? item.offsetWidth : 0)),
+        left:
+          direction * (strip.clientWidth - (item instanceof HTMLElement ? item.offsetWidth : 0)),
         behavior,
       });
     }
   };
 
-  const buttonClass = "absolute z-10 inline-flex items-center justify-center bg-card/90 shadow-sm rounded-sm";
+  const buttonClass =
+    "absolute z-10 inline-flex items-center justify-center bg-card/90 shadow-sm rounded-sm";
   const iconClass = "size-5";
 
   return (
@@ -98,9 +101,7 @@ export function StripArrows({
           aria-label={backLabel}
           data-testid={`${testIdPrefix}-back`}
           className={`${buttonClass} ${
-            state.vertical
-              ? "inset-x-0 top-0 h-11 w-full"
-              : "inset-y-0 start-0 h-full w-11"
+            state.vertical ? "inset-x-0 top-0 h-11 w-full" : "inset-y-0 start-0 h-full w-11"
           }`}
           onClick={() => scrollByOnePage(-1)}
         >
@@ -117,9 +118,7 @@ export function StripArrows({
           aria-label={moreLabel}
           data-testid={`${testIdPrefix}-more`}
           className={`${buttonClass} ${
-            state.vertical
-              ? "inset-x-0 bottom-0 h-11 w-full"
-              : "inset-y-0 end-0 h-full w-11"
+            state.vertical ? "inset-x-0 bottom-0 h-11 w-full" : "inset-y-0 end-0 h-full w-11"
           }`}
           onClick={() => scrollByOnePage(1)}
         >

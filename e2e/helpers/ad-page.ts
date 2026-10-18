@@ -166,8 +166,7 @@ export function adPageFixtures() {
       .upload(key, jpeg.encode(jpeg.decode(fixture("gps.jpg")), 80).data, {
         contentType: "image/jpeg",
       });
-    if (uploaded.error)
-      throw new Error(`[e2e:ap] photo upload failed: ${uploaded.error.message}`);
+    if (uploaded.error) throw new Error(`[e2e:ap] photo upload failed: ${uploaded.error.message}`);
     storageKeys.push(key);
     const path = { partition: "default", key };
     for (let displayOrder = 0; displayOrder < count; displayOrder++) {

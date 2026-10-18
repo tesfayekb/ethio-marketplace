@@ -1506,12 +1506,12 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       const stripBox = await strip.boundingBox();
       const moreBox = await more.boundingBox();
       if (!stripBox || !moreBox) throw new Error("AP-48 strip boxes missing");
-      expect(Math.abs(moreBox.y + moreBox.height - (stripBox.y + stripBox.height))).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(moreBox.y + moreBox.height - (stripBox.y + stripBox.height)),
+      ).toBeLessThanOrEqual(1);
       await more.click();
       await expect(page.getByTestId("gallery-strip-back")).toBeVisible();
-      await expect
-        .poll(async () => strip.evaluate((el) => el.scrollTop))
-        .toBeGreaterThan(0);
+      await expect.poll(async () => strip.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
       const backBox = await page.getByTestId("gallery-strip-back").boundingBox();
       if (!backBox) throw new Error("AP-48 back box missing");
       expect(Math.abs(backBox.y - stripBox.y)).toBeLessThanOrEqual(1);
@@ -1522,9 +1522,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await expect(page.getByTestId("gallery-strip-back")).toHaveCount(0);
       await more.click();
       await expect(page.getByTestId("gallery-strip-back")).toBeVisible();
-      await expect
-        .poll(async () => strip.evaluate((el) => el.scrollLeft))
-        .toBeGreaterThan(0);
+      await expect.poll(async () => strip.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
     }
 
     // The photo's › nine times: the tenth thumbnail lies inside the strip and
