@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-23.md (bundle 19 — turn 23: the operator's review of turn 22 — no scrollbar under the tabs, the class rule for swipe strips (INC-717); no Location box when the seller placed nothing beyond the city; views counted once per browser session with an address-and-ad ceiling). Next: Publish and the one walk on the newest green run, then the close; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-24.md (bundle 19 — turn 24: AP-44's wide-screen precondition — INC-718; the in-page bar's cover check at every width). Next: Publish and the one walk on the newest green run, then the close; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
