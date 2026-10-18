@@ -31,14 +31,17 @@ export function MobileStepStrip({
   }, [step]);
 
   return (
-    // INC-325 — on step 1 no strip item is a button, so the scroll container
-    // itself takes focus (axe scrollable-region-focusable); it carries a label.
-    <ol
-      aria-label={t("post.progress.stripLabel")}
-      data-testid="post-step-strip"
-      tabIndex={0}
-      className="scrollbar-none -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
-    >
+    <div className="relative">
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- INC-325: the strip itself takes focus (see the label below). */}
+      {/* INC-325 — on step 1 no strip item is a button, so the scroll container
+          itself takes focus (axe scrollable-region-focusable); it carries a label. */}
+      <ol
+        ref={stripRef}
+        aria-label={t("post.progress.stripLabel")}
+        data-testid="post-step-strip"
+        tabIndex={0}
+        className="scrollbar-none -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+      >
       {WALK.map((entry) => {
         const position = positionOf(entry.step);
         const current = entry.step === step;
