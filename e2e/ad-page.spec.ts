@@ -1442,7 +1442,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     expect(exact.error).toBeNull();
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(3);
+    // DEC-200 — count and walk the VISIBLE items (three; Seller is hidden at
+    // this width).
+    await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(3);
     const settle = async () => {
       let previous = "";
       await expect
@@ -1631,7 +1633,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await page.setViewportSize({ width: 600, height: 900 });
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(3);
+    // DEC-200 — count and walk the VISIBLE items (three; Seller is hidden at
+    // this width).
+    await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(3);
     const scrollbarWidth = await bar.evaluate((nav) => getComputedStyle(nav).scrollbarWidth);
     expect(scrollbarWidth).toBe("none");
     // At 360 the items share the row: nothing overflows.
@@ -1640,7 +1644,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     if (!nav) throw new Error("AP-47 nav missing");
     const overflow = await bar.evaluate((el) => el.scrollWidth - el.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    const items = await bar.getByTestId("listing-section-nav-item").all();
+    const items = await bar.locator('[data-testid="listing-section-nav-item"]:visible').all();
     for (const item of items) {
       const box = await item.boundingBox();
       if (!box) throw new Error("AP-47 item missing");
