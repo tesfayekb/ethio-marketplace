@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * DEC-195 (bundle 19 turn 27) — FD-1: THE FEED'S COVER LINKS. The covers' card
+ * DEC-195 (bundle 19 turn 27) — FD-4: THE FEED'S COVER LINKS. The covers' card
  * and thumb links ride inside the answer, signed through the shared
  * reader-and-signer; a failed or empty signing never fails the feed.
  */
@@ -93,7 +93,7 @@ beforeEach(() => {
 });
 
 describe("/api/feed — the cover links (DEC-195)", () => {
-  it("FD-1 a page with three covers answers coverLinks for the three, at card and thumb sizes", async () => {
+  it("FD-4 a page with three covers answers coverLinks for the three, at card and thumb sizes", async () => {
     state.rpcData = {
       cards: [card(CARD_A, "p1"), card(CARD_B, "p2"), card(CARD_C, "p3")],
       ladder: ["step"],
@@ -114,7 +114,7 @@ describe("/api/feed — the cover links (DEC-195)", () => {
     expect(state.signedWith?.variants).toEqual(["card", "thumb"]);
   });
 
-  it("FD-1b a page whose signing throws answers 200 with its cards and no coverLinks", async () => {
+  it("FD-4b a page whose signing throws answers 200 with its cards and no coverLinks", async () => {
     state.rpcData = {
       cards: [card(CARD_A, "p1")],
       ladder: ["step"],
@@ -130,7 +130,7 @@ describe("/api/feed — the cover links (DEC-195)", () => {
     expect("coverLinks" in body).toBe(false);
   });
 
-  it("FD-1c a page with no covers answers no coverLinks and makes no signing call", async () => {
+  it("FD-4c a page with no covers answers no coverLinks and makes no signing call", async () => {
     state.rpcData = {
       cards: [card(CARD_A, null)],
       ladder: ["step"],
