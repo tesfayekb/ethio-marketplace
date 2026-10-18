@@ -78,12 +78,12 @@ export function ShareAd({
     <>
       <Button
         variant="ghost"
-        className="h-11 w-11 shrink-0 rounded-full bg-background/90 p-0 text-foreground shadow-sm"
+        className="h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
         data-testid="listing-share-open"
-        aria-label={t("adPage.share.open")}
         onClick={() => changeOpen(true)}
       >
         <Share2 className="size-5" aria-hidden="true" />
+        {t("adPage.share.open")}
       </Button>
       <Dialog open={open} onOpenChange={changeOpen}>
         <DialogContent
