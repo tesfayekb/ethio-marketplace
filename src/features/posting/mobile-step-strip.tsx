@@ -89,6 +89,13 @@ export function MobileStepStrip({
           </li>
         );
       })}
-    </ol>
+      </ol>
+      <StripArrows
+        stripRef={stripRef}
+        backLabel={t("post.progress.stripBack")}
+        moreLabel={t("post.progress.stripMore")}
+        testIdPrefix="post-step-strip"
+      />
+    </div>
   );
 }
