@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 490,
+  "scanned": 491,
   "dynamicCallSites": 351,
   "keys": {
     "account.deactivatedBanner": [
@@ -5458,6 +5458,30 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.gallery.stripBack": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.gallery.stripMore": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.gallery.unscreened": [
       "(every page)",
       "/admin/listings/$listingId",
@@ -6158,7 +6182,19 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.progress.stripBack": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.progress.stripLabel": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.progress.stripMore": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",
