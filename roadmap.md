@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-21-turn-10.md (bundle 21 — turn 10: the phone page never widens). Next: bundle 21's Publish and walk, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-21-turn-11.md (bundle 21 — turn 11: #1031's reds). Next: bundle 21's Publish and walk, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -394,6 +394,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 8 (docs/governance/briefs/bundle-21-turn-8.md; no migration) — the ‹ Main Menu row: both words capitalised, the arrow and words at the rows' start on every menu (the row padding variable and start alignment the other rows have); BK-1
   - [ ] Turn 9 (docs/governance/briefs/bundle-21-turn-9.md; no migration) — #1026's reds (INC-738…INC-742: RM-4's selector, SC-1/SC-2 on a scratch three-level branch, the menu read once open, PK-1 watched from before the load, SC-3 judged against the tree's own names); the search field three quarters of the band's free space up to 42rem; the phone search row beside the strip; SB-1, SR-1
   - [ ] Turn 10 (docs/governance/briefs/bundle-21-turn-10.md; no migration) — INC-743: a word longer than its box widened the whole phone page; the page-wide guard (overflow-x: clip on html and body), long words break inside the ad page and the listing card, the breadcrumb one line with its last crumb cut; OVW-1, OVW-2 (OV-1 was taken by admin-locations)
+  - [ ] Turn 11 (docs/governance/briefs/bundle-21-turn-11.md; no migration) — #1031's reds: the peek shows to signed-out visitors (INC-741 — the signed-out effect closed it on every load), the rail readers wait for the tree (INC-744), OVW-1 measures the visible extent and finds the trail by its testid
 - [ ] D207 (the operator, 2026-10-18) — the categories a person browses kept on the device, and on the account when signed in, to bring back the ones he returns to (the ★ favourite itself rides bundle 21). Owed: the spec.
 - [ ] D208 (the operator, 2026-10-18) — the category pictures: one bulk regeneration of every picture, with a record of which were regenerated (today a few at a time, and after many it is hard to tell which are new); each picture fills its 4:3 frame (D122). Owed: the spec; the spend is his call (one AI call a picture).
 - [ ] D209 (the operator, 2026-10-18) — a "Why ethio.com" page: visibility, ease of use, local language, instant services, AI assistance, localization, easy posting steps, security, privacy and more, from a review of every feature; the footer links to it. Owed: the feature review and the text.
