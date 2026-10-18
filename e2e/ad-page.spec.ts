@@ -1488,4 +1488,72 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       expect(box.x + box.width).toBeLessThanOrEqual(nav.x + nav.width + 1);
     }
   });
+
+  test("AP-48 the thumbnails' arrows (INC-717, INC-720)", async ({ page }, testInfo) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active", {});
+    await seedPhotos(ad.id, 10);
+    await gotoReady(page, (await address(ad)).canonical);
+    const strip = page.getByTestId("gallery-thumbs");
+    await expect(strip.getByTestId("gallery-thumb")).toHaveCount(10);
+
+    if (testInfo.project.name === "desktop-1280") {
+      // From 32rem the thumbnails are a column beside the photo: ▼ at its
+      // bottom edge, no ▲ yet.
+      const more = page.getByTestId("gallery-strip-more");
+      await expect(more).toBeVisible();
+      await expect(page.getByTestId("gallery-strip-back")).toHaveCount(0);
+      const stripBox = await strip.boundingBox();
+      const moreBox = await more.boundingBox();
+      if (!stripBox || !moreBox) throw new Error("AP-48 strip boxes missing");
+      expect(Math.abs(moreBox.y + moreBox.height - (stripBox.y + stripBox.height))).toBeLessThanOrEqual(1);
+      await more.tap();
+      await expect(page.getByTestId("gallery-strip-back")).toBeVisible();
+      await expect
+        .poll(async () => strip.evaluate((el) => el.scrollTop))
+        .toBeGreaterThan(0);
+      const backBox = await page.getByTestId("gallery-strip-back").boundingBox();
+      if (!backBox) throw new Error("AP-48 back box missing");
+      expect(Math.abs(backBox.y - stripBox.y)).toBeLessThanOrEqual(1);
+    } else {
+      // At 360 the thumbnails are a row under the photo: » only, then « after a tap.
+      const more = page.getByTestId("gallery-strip-more");
+      await expect(more).toBeVisible();
+      await expect(page.getByTestId("gallery-strip-back")).toHaveCount(0);
+      await more.tap();
+      await expect(page.getByTestId("gallery-strip-back")).toBeVisible();
+      await expect
+        .poll(async () => strip.evaluate((el) => el.scrollLeft))
+        .toBeGreaterThan(0);
+    }
+
+    // The photo's › nine times: the tenth thumbnail lies inside the strip and
+    // the page itself never scrolled.
+    const pageY = await page.evaluate(() => window.scrollY);
+    for (let step = 0; step < 9; step++) await page.getByTestId("gallery-next").tap();
+    await expect(page.getByTestId("gallery-count")).toHaveText("10 / 10");
+    const stripBox = await strip.boundingBox();
+    const tenthBox = await strip.getByTestId("gallery-thumb").nth(9).boundingBox();
+    if (!stripBox || !tenthBox) throw new Error("AP-48 tenth thumbnail missing");
+    expect(tenthBox.x).toBeGreaterThanOrEqual(stripBox.x - 1);
+    expect(tenthBox.x + tenthBox.width).toBeLessThanOrEqual(stripBox.x + stripBox.width + 1);
+    expect(tenthBox.y).toBeGreaterThanOrEqual(stripBox.y - 1);
+    expect(tenthBox.y + tenthBox.height).toBeLessThanOrEqual(stripBox.y + stripBox.height + 1);
+    expect(await page.evaluate(() => window.scrollY)).toBe(pageY);
+
+    // The viewer's row at 360: its first thumbnail is reachable — after the
+    // row is scrolled to its start, the first thumbnail lies at or after the
+    // row's own left (INC-720).
+    await page.setViewportSize({ width: 360, height: 900 });
+    await page.getByTestId("gallery-main").tap();
+    const row = page.getByTestId("gallery-viewer-thumbs");
+    await expect(row.getByTestId("gallery-thumb")).toHaveCount(10);
+    await row.evaluate((el) => {
+      el.scrollLeft = 0;
+    });
+    const rowBox = await row.boundingBox();
+    const firstBox = await row.getByTestId("gallery-thumb").first().boundingBox();
+    if (!rowBox || !firstBox) throw new Error("AP-48 viewer row missing");
+    expect(firstBox.x).toBeGreaterThanOrEqual(rowBox.x - 1);
+  });
 });
