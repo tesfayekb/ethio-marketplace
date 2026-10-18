@@ -417,7 +417,6 @@ export const en = {
   "shell.switchPanel": "Switch section",
   "shell.panelLabel": "Section",
   "shell.mainNav": "Main navigation",
-  "shell.allCategories": "All categories",
   "shell.categoriesLabel": "Categories",
   "shell.categoriesEmpty": "No categories yet",
   "shell.placeholderTitle": "Coming in its own feature",

@@ -3,7 +3,12 @@ import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
 import { adminClient, leaseUser } from "./helpers/users";
-import { expectNoHorizontalOverflow, gotoReady, signInViaSession } from "./helpers/ui";
+import {
+  expectNoHorizontalOverflow,
+  gotoReady,
+  openRailScope,
+  signInViaSession,
+} from "./helpers/ui";
 import { listingPath } from "../src/features/ad-page/address";
 import en from "../src/i18n/locales/en";
 
@@ -76,9 +81,8 @@ test.describe("Account saved", () => {
       .eq("listing_id", C.id);
     if (truth.error) throw new Error(`AS-1 removal read: ${truth.error.message}`);
     expect(truth.data).toEqual([]);
-    const nav = page.getByTestId(
-      (page.viewportSize()?.width ?? 0) < 768 ? "strip-item-ac-saved" : "rail-item-ac-saved",
-    );
+    const scope = await openRailScope(page);
+    const nav = scope.getByTestId("rail-item-ac-saved");
     await expect(nav).toHaveAttribute("href", "/account/saved");
     await nav.click();
     await expect(page).toHaveURL(/\/account\/saved$/);
