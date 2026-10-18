@@ -1,0 +1,89 @@
+﻿list,word,reason,source
+claim,eth,"R1: the short form and three-letter code of Ethiopia, which the ""ethio"" rule does not reach (""cbe_eth"", ""commercial_bank_eth"")",
+claim,etiopia,"R1: Ethiopia as Italian, Spanish and Norwegian write it (Italy and Norway are diaspora markets)",
+claim,etiopien,R1: Ethiopia in Swedish and Danish (Sweden is a diaspora market),
+claim,athiopien,R1: Äthiopien (German) written without the umlaut,
+claim,ityopya,R1: a transliteration of ኢትዮጵያ,
+claim,prize,"R3: case: CBE ""80th anniversary"" prize quiz; fake Safaricom Ethiopia prize page",https://haqcheck.org/november-monthly-information-disorder-summary/
+claim,reward,"R3: case: Telegram account in Awash Bank's name, ""Invite and get a reward""",https://pesacheck-ui.dev.codeforafrica.org/fact-checks/english/fake-this-telegram-account-doesn-t-belong-to-awash-bank
+claim,gift,"R3: case: ""$8,000 Eid al-Adha gift"" in Ethiopian Airlines' name",https://ethiopiacheck.org/ethiopianairlineseidscam%e1%8b%a8%e1%8a%a2%e1%89%b5%e1%8b%ae%e1%8c%b5%e1%8b%ab-%e1%8a%a0%e1%8b%a8%e1%88%ad-%e1%88%98%e1%8a%95%e1%8c%88%e1%8b%b5/
+claim,bonus,"R3: case: ""50% airtime top-up bonus"" in ethio telecom's name",https://haqcheck.org/scam-ethio-telecom-is-not-offering-bonus-for-topping-up-airtime-using-new-mmi-codes/
+claim,giveaway,"R3: pattern: ""cash give out"" in Ethiopian Airlines' name (PesaCheck title; page not opened)",
+claim,free,"R3: case: fake ""free travel to America"" post; pattern: free tickets, free internet (PesaCheck titles)",https://globalvoices.org/2025/11/12/when-algorithms-bless-the-scammers-how-facebook-and-tiktok-are-failing-ethiopias-poor/
+claim,discount,"R3: pattern: ""50% discount"" in ethio telecom's name (PesaCheck titles; pages not opened)",
+claim,topup,R3: case: airtime top-up bonus in ethio telecom's name,https://haqcheck.org/scam-ethio-telecom-is-not-offering-bonus-for-topping-up-airtime-using-new-mmi-codes/
+claim,loan,"R3: case: Facebook page ""Mpesa Ethiopia"" offering loans up to 50,000 birr",https://ethiopiacheck.org/scam-alert-fake-facebook-page-impersonating-safaricom-ethiopias-m-pesa-service/
+claim,job,"R3: case: ""20,000 US jobs"" on a Telegram channel named for the US Embassy",https://haqcheck.org/monthly-disinformation-analysis-may-2022/
+claim,jobs,"R3: case: same; and a fake UNICEF Ethiopia ad for 2,800 jobs",https://haqcheck.org/monthly-disinformation-analysis-may-2022/
+claim,vacancy,R3: case: the fake UNICEF Ethiopia job ad with a form fee,https://ethiopiacheck.org/scamalert/
+claim,recruitment,"R3: case: an ""aviation institute"" claiming Ethiopian Airlines let it recruit",https://ethiopiacheck.org/ethiopianairlinesjobwebsite/
+claim,hiring,"R3: pattern: the job lure, next to ""job"", ""vacancy"" and ""recruitment""",
+claim,registration,"R3: case: ""35,000 ETB financial aid"" registration with a deposit",https://haqcheck.org/does-the-government-call-for-citizens-to-register-to-get-financial-aid/
+claim,visa,R3: case: social-media ads claiming to speed up US visa appointments,https://ethiopiacheck.org/the-u-s-embassy-in-addis-ababa-issued-a-public-alert-warning-against-social-media-and-digital-advertisements-claiming-to-expedite-visa-appointments-for-ethiopians-%e1%8a%a0%e1%88%9c%e1%88%aa-2/
+claim,lottery,"R3: case: ""Norway Visa Lottery Application Form""",https://haqcheck.org/is-there-a-visa-lottery-application-for-norway/
+claim,passport,"R3: case: a ""verified"" Telegram channel selling 2–15-day passports in the immigration service's name",https://ethiopiacheck.org/scamimmigration%e1%8b%a8%e1%88%9b%e1%8c%ad%e1%89%a0%e1%88%ad%e1%89%a0%e1%88%ad/
+claim,aid,"R3: case: ""UN aid through its channel""; ""financial aid"" registration",https://ethiopiacheck.org/telegram-message-which-claims-that-the-un-is-providing-assistance-to-ethiopians-through-its-telegram-channel-is-false-%e1%89%b4%e1%88%8c%e1%8c%8d%e1%88%ab%e1%88%9d/
+claim,donation,"R3: case: faceless ""charity"" videos asking for donations",https://globalvoices.org/2025/11/12/when-algorithms-bless-the-scammers-how-facebook-and-tiktok-are-failing-ethiopias-poor/
+claim,customer,"R3: case: Telegram bot ""Telebirr Online customer servive"" (sic)",https://ethiopiacheck.org/telebirr-online-scam-alert-%e1%89%b4%e1%88%8c-%e1%89%a5%e1%88%ad/
+claim,help,"R3: pattern: ""help desk"" beside a protected name, as ""customer"" and ""service"" are used",
+claim,update,"R3: case: the fake telebirr bot offered to ""upgrade"" the account; CBE warns of ""update"" calls",https://ethiopiacheck.org/commercialbankofethiopiaaccountscam%e1%8b%a8%e1%8a%a2%e1%89%b5%e1%8b%ae%e1%8c%b5%e1%8b%ab%e1%8a%95%e1%8c%8d%e1%8b%b5%e1%89%a3%e1%8a%95%e1%8a%ad/
+claim,result,R3: pattern: fake national exam results sites (PesaCheck titles; pages not opened),
+claim,results,R3: pattern: same,
+claim,mobile,"R3: the banks' own product word (""CBE Mobile Banking"")",https://apps.apple.com/app/id1534203410
+claim,app,"R3: the banks' own product word (""Merchant App"", ""CBE Fuel App"")",https://combanketh.et/ways-of-banking/applications
+claim,digital,"R3: the banks' own product word (""Apollo Digital Bank"", ""Siinqee Digital"")",
+claim,plus,"R3: the banks' own product word (""Dashen Plus"", ""Anbesa Plus"")",https://dashenbanksc.com/app-downloads/
+claim,wallet,"R3: the banks' own product word (""Awash Wallet"")",https://awashbank.com/wp-content/uploads/2024/10/Awash-Bank-Digital-Product-Catalogue.pdf
+claim,pay,"R3: the banks' own product word (""Awash Pay"", ""DubePay"")",https://awashbank.com/wp-content/uploads/2024/10/Awash-Bank-Digital-Product-Catalogue.pdf
+claim,merchant,"R3: the banks' own product word (""DubeAle Merchant"", ""Chapa Merchant"")",https://dashenbanksc.com/app-downloads/
+institution,embassy,"R5: case: Telegram channel ""US Embassy Addis Ababa""",https://haqcheck.org/monthly-disinformation-analysis-may-2022/
+institution,consulate,R5: ruled with embassy (no case of its own),
+institution,visa,"R5: case: ""Norway Visa Lottery""",https://haqcheck.org/is-there-a-visa-lottery-application-for-norway/
+institution,immigration,R5: case: TikTok account promising immigration to Canada,https://haqcheck.org/exposed-the-deceptive-tactics-of-a-scam-tiktok-account-promising-immigration-to-canada/
+institution,government,R5: ruled (no country-named case of its own),
+institution,agency,"case: TikTok account ""canada.agency.098"" with a forged ministry letter (added under R5's ""only with a case"")",https://haqcheck.org/false-the-letter-does-not-show-a-legal-representation-of-the-agency-by-the-ministry-of-foreign-affairs-and-has-been-altered/
+exact_only,amole,"R8: an ordinary word (the salt bar); ""amole_shop"" is refused today",
+exact_only,siinqee,R8: an Oromo word and women's institution,
+exact_only,golis,R8: the Golis mountain range; a common Somali business name,
+exact_only,waafi,R8: an ordinary Somali word,
+exact_only,hormuud,R8: a Somali clan name,
+exact_only,destta,"R8: one letter from Desta (ደስታ), a common name and word",https://forebears.io/ethiopia/surnames
+exact_only,kacha,"R11: «ቃጫ» (fibre) and «ካቻ», both in the geezorg phone-book list; ""kacha_shop"" passes",https://github.com/geezorg/data (amharic/toponymic/BA-SGC-PhoneBook-SingleNames-Merged)
+exact_only,chapa,"R11: an ordinary Swahili word (print, brand; 37 times in the Swahili news corpus)",https://github.com/masakhane-io/masakhane-news (data/swa)
+exact_only,faiba,"R11: the Swahili word for fibre, used by other operators too (""Faiba hutumia nyaya…"", Vodacom Tanzania)",https://vodafibre.vodacom.co.tz/SelfService/Content/Documents/Vodacom_Tanz/FAQs_Swahili.pdf
+exact_only,amerga,R11: a given name in the geezorg phone-book list («አመርጋ»),https://github.com/geezorg/data (amharic/toponymic/BA-SGC-PhoneBook-SingleNames-Merged)
+exact_only,jiji,"R11: an ordinary Swahili word (""city""; 172 times in the Swahili news corpus)",https://github.com/masakhane-io/masakhane-news (data/swa)
+drop_handle,moshe,"R8: the old abbreviation of the Ministry of Science and Higher Education, merged into Education in 2021; it refuses the given name Moshe",
+drop_handle,dars,"R11: the Arabic word for a lesson (Somali «darsi»); DARS keeps dars_ethiopia, dara_ethiopia and its full names",curator's own word list
+drop_handle,esl,"R11: the common acronym ""ESL"" (English as a second language); the row keeps eslse, esl_ethiopia and its full names","English top 40,000 (wordfreq)"
+drop_handle,hormud,"R11: the clan name with the double vowel written single, as names often are; the row's one exact-only word is hormuud (R8), and hormud_telecom stays",https://github.com/masakhane-io/masakhane-news (data/som)
+drop_handle,moa,"R11: a given name («ሞኣ», geezorg phone-book list); the Ministry keeps moa_ethiopia, gibrina_minister and its full names",https://github.com/geezorg/data (amharic/toponymic/BA-SGC-PhoneBook-SingleNames-Merged)
+drop_handle,moe,"R11: the given name Moe; the Ministry keeps moe_ethiopia, timhirt_minister and its full names","English top 40,000 (wordfreq)"
+drop_handle,mofa,"R11: Oromo «moofaa» (old; 5 times in the Oromo news corpus); the Ministry keeps mfa, mofa_ethiopia and its full names",https://github.com/masakhane-io/masakhane-news (data/orm)
+drop_handle,moti,"R11: Oromo «mootii» (king; 83 times in the Oromo news corpus), also a given name; the Ministry keeps motri, motri_ethiopia and its full names",https://github.com/masakhane-io/masakhane-news (data/orm)
+drop_handle,wu,"R11: the surname Wu; Western Union keeps western_union, westernunion and its full names","English top 40,000 (wordfreq)"
+allow,banked,one letter from bankmed (BankMed),"English top 40,000 (wordfreq)"
+allow,barclay,one letter from barclays (Barclays),"English top 40,000 (wordfreq)"
+allow,bolted,one letter from bolteu (Bolt),"English top 40,000 (wordfreq)"
+allow,citizen,one letter from ecitizen (eCitizen),"English top 40,000 (wordfreq)"
+allow,cloud,one letter from icloud (iCloud Mail),"English top 40,000 (wordfreq)"
+allow,dahab,one letter from edahab (e-Dahab),curator's own word list
+allow,discard,one letter from discord (Discord),"English top 40,000 (wordfreq)"
+allow,finance,one letter from binance (Binance),"English top 40,000 (wordfreq)"
+allow,finlay,one letter from finpay (FinPay Digital Financial Solution),"English top 40,000 (wordfreq)"
+allow,firsthand,one letter from firstrand (First National Bank (FNB)),"English top 40,000 (wordfreq)"
+allow,interest,one letter from pinterest (Pinterest),"English top 40,000 (wordfreq)"
+allow,invested,one letter from investec (Investec),"English top 40,000 (wordfreq)"
+allow,money,one letter from dmoney (D-Money),"English top 40,000 (wordfreq)"
+allow,papal,one letter from paypal (PayPal),"English top 40,000 (wordfreq)"
+allow,radeet,one letter from rideet (RIDE),https://github.com/geezorg/data (amharic/toponymic/BA-SingleNames)
+allow,remit,one letter from uremit (U Remit International),"English top 40,000 (wordfreq)"
+allow,revolt,one letter from revolut (Revolut),"English top 40,000 (wordfreq)"
+allow,shrill,one letter from skrill (Skrill),"English top 40,000 (wordfreq)"
+allow,skill,one letter from skrill (Skrill),"English top 40,000 (wordfreq)"
+allow,telecom,one letter from telesom (Telesom),"English top 40,000 (wordfreq)"
+allow,tunes,one letter from thunes (Thunes (Transfer to Mobile Financial Service Ltd)),"English top 40,000 (wordfreq)"
+allow,twister,one letter from twitter (X (Twitter)),"English top 40,000 (wordfreq)"
+allow,youtuber,one letter from youtube (YouTube),"English top 40,000 (wordfreq)"
+allow_am,ኤክስፔሪያ,one letter from ኤክስፔዲያ (Expedia),ethio.com catalogue labels (definitions_51)
+allow_am,ጎልድስታር,one letter from ጎልድስታክ (Goldstack Technologies),ethio.com catalogue labels (definitions_51)
