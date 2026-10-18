@@ -472,6 +472,24 @@ test.describe("FEED SCREENS", () => {
     ).toHaveText(heading, { timeout: 20_000 });
   });
 
+  test("FS-16 listing cards lift without a border in both themes", async ({ page, baseURL }) => {
+    if (!baseURL) throw new Error("FS-16: missing base URL");
+    const fx = await areaFixture(page);
+    const id = await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", 1);
+    await openArea(page, fx, baseURL);
+    const card = page.locator(`[data-testid="listing-card"][data-listing="${id}"]`);
+    await expect(card).toBeVisible();
+    await expect(card).toHaveCSS("border-top-width", "0px");
+    await expect(card).toHaveCSS("border-top-left-radius", "12px");
+    await expect(card).not.toHaveCSS("box-shadow", "none");
+    // The framed child owns the invitation's intentional gold outline.
+    await expect(inviteOf(page).locator(":scope > div")).toHaveCSS("border-top-width", "2px");
+    const before = await page.getAttribute("html", "data-mode");
+    await page.getByTestId("theme-toggle").click();
+    await expect.poll(() => page.getAttribute("html", "data-mode")).not.toBe(before);
+    await expect(card).not.toHaveCSS("box-shadow", "none");
+  });
+
   /**
    * FS-12 — D123 (the operator, 2026-10-10): on a phone three cards share a row,
    * and the invitation is one of them, the size of a card.

@@ -77,7 +77,7 @@ export function InviteCard({ invite }: { invite: Invite }) {
       data-category={invite.categoryId ?? undefined}
       className="@container h-full"
     >
-      <div className="flex h-full flex-col items-center justify-center gap-1 overflow-hidden rounded-lg border-2 border-gold bg-gold/15 p-2 text-center @min-[11rem]:gap-3 @min-[11rem]:p-4">
+      <div className="flex h-full flex-col items-center justify-center gap-1 overflow-hidden rounded-card border-2 border-gold bg-gold/15 p-2 text-center @min-[11rem]:gap-3 @min-[11rem]:p-4">
         <span
           aria-hidden="true"
           className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-gold-foreground @min-[11rem]:h-9 @min-[11rem]:w-9"

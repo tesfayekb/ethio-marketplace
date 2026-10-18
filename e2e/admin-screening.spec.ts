@@ -672,9 +672,7 @@ test.describe("ADMIN SCREENING", () => {
     await expect(page.getByTestId("listing-detail-seller-alias")).toHaveText(
       profile?.seller_alias as string,
     );
-    await expect(page.getByTestId("listing-detail-contact")).toContainText(
-      en["post.preview.contactLabel"],
-    );
+    await expect(page.getByTestId("listing-detail-contact").getByRole("heading")).toHaveCount(0);
     const channel = (name: string) =>
       sheet.locator(`[data-testid="listing-detail-channel"][data-channel="${name}"]`);
     await expect(channel("phone")).toBeVisible();

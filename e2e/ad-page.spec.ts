@@ -158,11 +158,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-safety").getByRole("heading")).toHaveText(
       am["listing.safety.header"],
     );
-    await expect(
-      page
-        .locator('section[data-testid="listing-detail-seller"]')
-        .getByRole("heading", { level: 3 }),
-    ).toHaveText(am["post.preview.sellerLabel"]);
+    const sellerSection = page.locator('section[data-testid="listing-detail-seller"]');
+    await expect(sellerSection).toHaveAccessibleName(am["post.preview.sellerLabel"]);
+    await expect(sellerSection.getByRole("heading", { level: 3 })).toHaveCount(0);
     await expect(page.getByTestId("listing-detail-contact").getByRole("heading")).toHaveCount(0);
     await expect(page.getByTestId("listing-contact-sign-in")).toHaveText(am["adPage.contact.link"]);
     await page.goto((await address(draft)).canonical);

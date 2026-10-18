@@ -1,3 +1,5 @@
+import { CARD_SURFACE } from "@/components/layout/surface";
+import { cn } from "@/lib/utils";
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { useShell, type LocationNode } from "@/components/shell-context";
@@ -26,11 +28,7 @@ function FeedError({
 }) {
   const { t } = useI18n();
   return (
-    <div
-      role="alert"
-      data-testid={testid}
-      className="mb-4 rounded-lg border border-border bg-card p-6 text-center"
-    >
+    <div role="alert" data-testid={testid} className={cn(CARD_SURFACE, "mb-4 p-6 text-center")}>
       <h2 className="text-base font-semibold text-foreground">{t("feed.errorTitle")}</h2>
       <p className="mt-1 text-sm text-muted-foreground">{t("feed.errorBody")}</p>
       <Button type="button" className="mt-4 min-h-11" data-testid={retryTestid} onClick={onRetry}>

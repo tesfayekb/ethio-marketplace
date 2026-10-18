@@ -638,7 +638,7 @@ export function AppRail() {
           // inner rail-scroll region keeps its scrollbar and every item stays
           // reachable instead of hiding under the footer.
           style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-          className="hidden min-h-0 min-w-0 flex-col border-e border-border bg-sidebar p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden rail-icons:w-16 rail-icons:px-1"
+          className="hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-64 md:overflow-hidden rail-icons:w-16 rail-icons:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
@@ -661,7 +661,7 @@ export function AppRail() {
           <div
             data-testid="rail-strip"
             style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-            className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-20 flex w-12 flex-col border-e border-border bg-sidebar md:hidden"
+            className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-20 flex w-12 flex-col bg-sidebar shadow-side md:hidden"
           >
             <div
               data-testid="strip-scroll"
@@ -688,7 +688,7 @@ export function AppRail() {
           data-panel={activePanel}
           aria-label={t("shell.menuTitle")}
           aria-describedby={undefined}
-          className="fixed start-0 top-13 bottom-0 z-40 flex w-64 flex-col border-e border-border bg-sidebar shadow-lg md:top-14 md:bottom-0 lg:hidden"
+          className="fixed start-0 top-13 bottom-0 z-40 flex w-64 flex-col rounded-e-[1rem] bg-sidebar shadow-lg md:top-14 md:bottom-0 lg:hidden"
           onPointerDownOutside={(event) => {
             if ((event.target as Element | null)?.closest('[aria-controls="rail-menu"]')) {
               event.preventDefault();

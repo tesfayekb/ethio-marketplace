@@ -39,7 +39,7 @@ function AdminLanding() {
       {sections.length === 0 ? (
         <section
           data-testid="admin-no-sections"
-          className="mt-4 rounded-lg border border-dashed border-border bg-card p-6"
+          className="mt-4 rounded-card border border-dashed border-border bg-card p-6"
         >
           <h2 className="text-sm font-semibold text-foreground">{t("admin.noSections.title")}</h2>
           <p className="mt-2 text-sm text-muted-foreground">{t("admin.noSections.body")}</p>

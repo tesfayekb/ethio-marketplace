@@ -1,64 +1,61 @@
 import { Link } from "@tanstack/react-router";
 
+import { Logo } from "@/components/brand/logo";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
 type FooterColumn = { headingKey: MessageKey; items: MessageKey[] };
 
 /**
- * Three COMPACT columns, centred as a group AND centred within themselves,
- * with the © line on its own centred row below. Flat surface, no woven band,
- * no gradient (see the motif rule in docs/features/panels.md).
- *
- * Compactness without losing the target: the rows are visually tight
- * (leading-tight, no row gap) while each link keeps its 44px tap height.
- *
- * TODO(footer-links): About / How it works / Safety / Terms / Privacy /
- * Contact have no routes yet; they render as non-navigating text buttons so
- * they are still keyboard-reachable and correctly sized.
+ * D116 / D135: full-width footer with a brand block and three equal link columns.
+ * TODO(footer-links): About / Safety / Terms / Privacy / Contact have no routes
+ * yet; they remain non-navigating text with a 44px target.
  */
 const COLUMNS: FooterColumn[] = [
-  { headingKey: "footer.sectionCompany", items: ["footer.about", "footer.howItWorks"] },
-  { headingKey: "footer.sectionHelp", items: ["footer.safety", "footer.contact"] },
+  { headingKey: "footer.sectionCompany", items: ["footer.about", "footer.contact"] },
+  { headingKey: "footer.sectionHelp", items: ["footer.safety"] },
   { headingKey: "footer.sectionLegal", items: ["footer.terms", "footer.privacy"] },
 ];
 
 const LINK =
-  "inline-flex min-h-11 items-center justify-center text-sm leading-tight text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded";
+  "inline-flex min-h-11 items-center justify-center rounded text-sm leading-tight text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:justify-start";
 
 export function AppFooter() {
   const { t } = useI18n();
   const year = new Date().getUTCFullYear();
 
   return (
-    <footer className="w-full border-t border-border bg-card">
-      {/* EXACT thirds: an explicit 3-column grid, not flex-1 guesses. The group
-          is centred by the auto margins; each column centres its own content.
-          Rows are pulled together (-my-1) so the stack is visually tighter still (INC-047) as
-          tall while every link's own box stays a 44px tap target. */}
+    <footer className="w-full bg-card shadow-bar-up">
       <div
         data-testid="footer-columns"
-        className="mx-auto grid w-full max-w-3xl grid-cols-3 gap-4 px-4 py-2"
+        className="mx-auto grid w-full max-w-5xl grid-cols-3 gap-x-4 gap-y-2 px-4 py-4 md:grid-cols-[1.3fr_1fr_1fr_1fr] md:gap-x-8 md:px-10 md:py-8"
       >
-        {COLUMNS.map((column, index) => (
+        <div
+          data-testid="footer-brand"
+          className="col-span-3 min-w-0 text-center md:col-span-1 md:text-start"
+        >
+          <Link
+            to="/"
+            data-testid="footer-home"
+            aria-label={t("app.name")}
+            className="inline-flex min-h-11 items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Logo variant="full" />
+          </Link>
+          <p className="text-sm text-muted-foreground">{t("app.tagline")}</p>
+        </div>
+        {COLUMNS.map((column) => (
           <nav
             key={column.headingKey}
             aria-label={t(column.headingKey)}
-            className="min-w-0 text-center"
+            className="min-w-0 text-center md:text-start"
           >
             <h2 className="text-sm font-semibold leading-tight text-foreground">
               {t(column.headingKey)}
             </h2>
-            <ul className="flex flex-col items-center">
-              {index === 0 ? (
-                <li className="-my-1.5">
-                  <Link to="/" data-testid="footer-home" className={LINK}>
-                    {t("nav.home")}
-                  </Link>
-                </li>
-              ) : null}
+            <ul className="flex flex-col items-center md:items-start">
               {column.items.map((item) => (
-                <li key={item} className="-my-1.5">
+                <li key={item} className="min-h-11">
                   <span className={LINK}>{t(item)}</span>
                 </li>
               ))}
@@ -66,7 +63,7 @@ export function AppFooter() {
           </nav>
         ))}
       </div>
-      <div className="border-t border-border px-4 py-2 text-center">
+      <div className="mx-auto w-full max-w-5xl border-t border-neutral-soft px-4 py-2 text-center md:px-10 md:text-start">
         <p data-testid="footer-copyright" className="text-sm text-muted-foreground">
           © {year} {t("app.name")} — {t("footer.rights")}
         </p>

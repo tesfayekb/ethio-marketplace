@@ -227,7 +227,7 @@ export function LocationSelector() {
       data-account-place={accountPlace}
       role="group"
       aria-labelledby="location-row-label location-row-label-short"
-      className="flex h-8 w-full flex-nowrap items-center gap-x-0.5 md:gap-x-1 overflow-hidden border-b border-border bg-card px-2 md:px-4"
+      className="flex h-8 w-full flex-nowrap items-center gap-x-0.5 md:gap-x-1 overflow-hidden bg-card shadow-bar px-2 md:px-4"
     >
       <span
         ref={longLabelRef}

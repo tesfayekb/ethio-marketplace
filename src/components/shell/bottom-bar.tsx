@@ -78,7 +78,7 @@ export function BottomBar() {
     <nav
       data-testid="bottom-bar"
       aria-label={t("shell.panelLabel")}
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-card pb-[env(safe-area-inset-bottom)] shadow-bar-up md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex rounded-t-[1rem] bg-card pb-[env(safe-area-inset-bottom)] shadow-bar-up md:hidden"
     >
       <Link
         to="/"
@@ -117,10 +117,10 @@ export function BottomBar() {
       <Link
         to="/post"
         data-testid="bottom-bar-post"
-        aria-label={label("nav.postListing")}
+        aria-label={label("nav.postShort")}
         className={cn(ITEM, tone(false))}
       >
-        <ItemBody icon={Plus} label={label("nav.postListing")} emphasised />
+        <ItemBody icon={Plus} label={label("nav.postShort")} emphasised />
       </Link>
       {signedIn ? (
         <Link

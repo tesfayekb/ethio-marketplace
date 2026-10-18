@@ -1,8 +1,9 @@
+import { CARD_SURFACE } from "@/components/layout/surface";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-export const PAGE_CARD_CLASS = "rounded-lg border border-border bg-card p-6 shadow-card";
+export const PAGE_CARD_CLASS = cn(CARD_SURFACE, "p-6");
 
 /**
  * @deprecated LAYOUT-1: content pages use `Section`; this framed block remains
@@ -26,7 +27,7 @@ export function PageCard({
   return (
     <As
       data-testid={testid}
-      className={cn(PAGE_CARD_CLASS, dashed && "border-dashed", className)}
+      className={cn(PAGE_CARD_CLASS, dashed && "border border-dashed border-border", className)}
       {...props}
     >
       {children}
