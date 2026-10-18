@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-21-turn-6.md (bundle 21 — turn 6: the ★ favourite and the different-place notice). Next: bundle 21's Publish and walk, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-21-turn-7.md (bundle 21 — turn 7: CI fixes, Home out of the menu, the favourite's hint, the invitation card everywhere). Next: bundle 21's Publish and walk, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -387,9 +387,10 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 2 (docs/governance/briefs/bundle-21-turn-2.md; no migration) — the top band: one ☰ at every width, the logo after it, search centred (D110–D112, D115, D117); tablets with the menu open (D204); tables by the space they have; TB-1, TB-2
   - [ ] Turn 3 (docs/governance/briefs/bundle-21-turn-3.md; no migration) — the menus' rows and icons (D113), Home in place of All categories, the phone menu's × and its place above the bottom bar, a tap on the strip opens the menu (D205); RM-1…RM-4
   - [ ] Turn 4 (docs/governance/briefs/bundle-21-turn-4.md; no migration) — the compact phone footer (the operator, 14:38 local: no brand block below 768, one 28-px row rhythm) and indented sub-items in the opened menus (14:45 local: 16 px a level open, one icon column folded and in the strip); FT-1, IN-1
-    - [ ] Part A — resolve #1022’s non-HS-13/SIM-4 failures: blocked until its failure bodies publish in ci-evidence or authorised logs/artifacts become available; GitHub log/artifact downloads refused (403/401).
+    - [ ] Part A — #1022's failures read from ci-evidence: HS-13 and SIM-4 fixed by turn 2; the smoke's two links and AP-37 by turn 5; proven when CI is green on the bundle's last commit
   - [ ] Turn 5 (docs/governance/briefs/bundle-21-turn-5.md; no migration) — subcategories in place with ‹ Main menu at every width (D98 with D213), hover preloading, the fold into the strip, the peek (D206); the fixes from turn 1's run (INC-736, S298); SC-1…SC-3, PK-1
   - [ ] Turn 6 (docs/governance/briefs/bundle-21-turn-6.md; no migration) — the ★ favourite on this device (D207) and the different-place notice (D214, changing D107); FV-1, PN-1, PN-2
+  - [ ] Turn 7 (docs/governance/briefs/bundle-21-turn-7.md; no migration) — #1024's fixes (TB-1, CT-8); Home out of the menu (the breadcrumb and the bottom bar carry it); the favourite's hint (tooltip / fine print) and the last one chosen wins; the invitation card on every list, the old empty box retired (D215); HR-1, FV-2, FV-3, FV-AM-1, FS-17, FS-18, FP-14, LC-7
 - [ ] D207 (the operator, 2026-10-18) — the categories a person browses kept on the device, and on the account when signed in, to bring back the ones he returns to (the ★ favourite itself rides bundle 21). Owed: the spec.
 - [ ] D208 (the operator, 2026-10-18) — the category pictures: one bulk regeneration of every picture, with a record of which were regenerated (today a few at a time, and after many it is hard to tell which are new); each picture fills its 4:3 frame (D122). Owed: the spec; the spend is his call (one AI call a picture).
 - [ ] D209 (the operator, 2026-10-18) — a "Why ethio.com" page: visibility, ease of use, local language, instant services, AI assistance, localization, easy posting steps, security, privacy and more, from a review of every feature; the footer links to it. Owed: the feature review and the text.
