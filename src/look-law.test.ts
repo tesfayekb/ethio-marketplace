@@ -26,9 +26,19 @@ function sourceFiles(dir: string): string[] {
 it("LL-1 cards never carry a plain border", () => {
   const findings: string[] = [];
   for (const path of sourceFiles(resolve("src"))) {
-    const source = ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const source = ts.createSourceFile(
+      path,
+      readFileSync(path, "utf8"),
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
     function visit(node: ts.Node) {
-      if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node)) {
+      if (
+        ts.isStringLiteral(node) ||
+        ts.isNoSubstitutionTemplateLiteral(node) ||
+        ts.isTemplateExpression(node)
+      ) {
         const value = ts.isTemplateExpression(node)
           ? [node.head.text, ...node.templateSpans.map((span) => span.literal.text)].join(" ")
           : node.text;
@@ -41,7 +51,10 @@ it("LL-1 cards never carry a plain border", () => {
     }
     visit(source);
   }
-  expect(findings, `${findings.length} sites in ${new Set(findings.map((site) => site.split(":")[0])).size} files\n${findings.join("\n")}`).toEqual([]);
+  expect(
+    findings,
+    `${findings.length} sites in ${new Set(findings.map((site) => site.split(":")[0])).size} files\n${findings.join("\n")}`,
+  ).toEqual([]);
 });
 
 it("LL-2 the look-law matcher distinguishes surfaces and state borders", () => {
@@ -49,5 +62,7 @@ it("LL-2 the look-law matcher distinguishes surfaces and state borders", () => {
   expect(plainCardBorder("md:rounded-lg md:border md:border-border md:bg-card")).toBe(true);
   expect(plainCardBorder("rounded-card bg-card shadow-card")).toBe(false);
   expect(plainCardBorder("rounded-card border-2 border-gold bg-gold/15")).toBe(false);
-  expect(plainCardBorder("mt-4 rounded-card border border-dashed border-border bg-card p-6")).toBe(false);
+  expect(plainCardBorder("mt-4 rounded-card border border-dashed border-border bg-card p-6")).toBe(
+    false,
+  );
 });

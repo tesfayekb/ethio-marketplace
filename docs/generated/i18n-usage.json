@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 492,
+  "scanned": 493,
   "dynamicCallSites": 351,
   "keys": {
     "account.deactivatedBanner": [
@@ -4137,6 +4137,9 @@
       "/dev/primitives",
       "/dev/tall"
     ],
+    "app.tagline": [
+      "(every page)"
+    ],
     "auth.alreadyConfirmedPrompt": [
       "/auth"
     ],
@@ -5939,18 +5942,6 @@
     "post.preview.close": [
       "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.preview.contactLabel": [
-      "(every page)",
-      "/admin/listings/$listingId",
-      "/admin/listings/$listingId/edit",
-      "/admin/screening",
-      "/l/$id/photo[/]jpg",
-      "/l/$slug",
-      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"

@@ -4,6 +4,7 @@ import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+import { am } from "../src/i18n/locales/am";
 import {
   expectNoHorizontalOverflow,
   expectSignedIn,
@@ -147,11 +148,41 @@ async function railLaw(page: Page) {
 }
 
 test.describe("app shell", () => {
+  test("LB-1 bands and bars lift without hard borders", async ({ page }, testInfo) => {
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("shell-band")).not.toHaveCSS("box-shadow", "none");
+    await expect(page.getByTestId("shell-topbar").locator("header")).toHaveCSS(
+      "border-bottom-width",
+      "0px",
+    );
+    const location = page.getByTestId("location-row");
+    await expect(location).toHaveCSS("border-bottom-width", "0px");
+    await expect(location).not.toHaveCSS("box-shadow", "none");
+    if (testInfo.project.name === "desktop-1280") {
+      const logo = page.getByTestId("shell-logo-cell");
+      await expect(logo).toHaveCSS("border-right-width", "0px");
+      await expect(logo).toHaveCSS("border-bottom-width", "0px");
+      const rail = page.getByTestId("app-rail");
+      await expect(rail).toHaveCSS("border-right-width", "0px");
+      await expect(rail).not.toHaveCSS("box-shadow", "none");
+    } else {
+      const strip = page.getByTestId("rail-strip");
+      await expect(strip).toHaveCSS("border-right-width", "0px");
+      await expect(strip).not.toHaveCSS("box-shadow", "none");
+      const bottom = page.getByTestId("bottom-bar");
+      await expect(bottom).toHaveCSS("border-top-width", "0px");
+      await expect(bottom).toHaveCSS("border-top-left-radius", "16px");
+      await expect(bottom).not.toHaveCSS("box-shadow", "none");
+    }
+  });
+
   test("mounts with header, rail slot and footer, logged out", async ({ page }, testInfo) => {
     await page.goto("/");
 
     // Header: the brand link is present.
-    await expect(page.getByRole("link", { name: en["app.name"], exact: true })).toBeVisible();
+    await expect(
+      page.getByTestId("shell-band").getByRole("link", { name: en["app.name"], exact: true }),
+    ).toBeVisible();
 
     // Footer: a known column heading.
     await expect(
@@ -489,45 +520,49 @@ test.describe("app shell", () => {
     expect(animation).toBe("none");
   });
 
-  test("footer columns are centred as a group and each is centred", async ({ page }) => {
+  test("FT-1 the footer brand and three link columns fit every width", async ({ page }) => {
     await gotoReady(page, "/");
     const columns = page.getByTestId("footer-columns");
-    const group = (await columns.boundingBox())!;
-    const page_width = page.viewportSize()!.width;
-    // Desktop remains centred in the viewport; phone measures the content column.
-    if (page_width >= 768) {
-      expect(Math.abs(group.x - (page_width - (group.x + group.width)))).toBeLessThanOrEqual(2);
+    const brand = columns.getByTestId("footer-brand");
+    await expect(brand).toBeVisible();
+    const navs = columns.locator("nav");
+    await expect(navs).toHaveCount(3);
+    const widths = await navs.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().width),
+    );
+    expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
+    const viewport = page.viewportSize();
+    const group = await columns.boundingBox();
+    if (!viewport || !group) throw new Error("FT-1: missing viewport or column group");
+    const alignments = await navs.evaluateAll((els) =>
+      els.map((el) => getComputedStyle(el).textAlign),
+    );
+    if (viewport.width >= 768) {
+      expect(Math.abs(group.x + group.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
+      expect(alignments).toHaveLength(3);
+      for (const alignment of alignments) expect(["start", "left"]).toContain(alignment);
     } else {
-      const padding = await columns.evaluate((el) => {
-        const style = getComputedStyle(el);
+      const geometry = await columns.evaluate((el) => {
+        const brandEl = el.querySelector('[data-testid="footer-brand"]');
+        const nav = el.querySelector("nav");
+        if (!brandEl || !nav) throw new Error("FT-1: missing brand or nav");
         return {
-          start: parseFloat(style.paddingInlineStart),
-          end: parseFloat(style.paddingInlineEnd),
+          brandBottom: brandEl.getBoundingClientRect().bottom,
+          navTop: nav.getBoundingClientRect().top,
         };
       });
-      const startSlack = group.x + padding.start - 48;
-      const endSlack = page_width - (group.x + group.width - padding.end);
-      expect(Math.abs(startSlack - endSlack)).toBeLessThanOrEqual(2);
+      expect(geometry.brandBottom).toBeLessThanOrEqual(geometry.navTop);
+      expect(alignments).toEqual(["center", "center", "center"]);
     }
-    // Each column centres its own content.
-    const alignments = await columns
-      .locator("nav")
-      .evaluateAll((els) => els.map((el) => getComputedStyle(el).textAlign));
-    expect(alignments.every((a) => a === "center")).toBe(true);
-    expect(alignments.length).toBe(3);
-
-    // FIX 3: exactly three EQUAL columns (an explicit grid, not flex guesses).
-    const tracks = await columns.evaluate((el) =>
-      getComputedStyle(el).gridTemplateColumns.split(" ").map(parseFloat),
-    );
-    expect(tracks.length).toBe(3);
-    expect(Math.max(...tracks) - Math.min(...tracks)).toBeLessThanOrEqual(1);
-
-    // Tightened rows: every link still owns a 44px tap box.
-    const heights = await columns
-      .locator("a, span.inline-flex")
+    const heights = await navs
+      .locator("a, li, span.inline-flex")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
-    expect(Math.min(...heights)).toBeGreaterThanOrEqual(44);
+    expect(heights.length).toBeGreaterThan(0);
+    for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
+    const home = await brand.getByTestId("footer-home").boundingBox();
+    if (!home) throw new Error("FT-1: missing footer Home target");
+    expect(home.height).toBeGreaterThanOrEqual(44);
+    await expect(page.locator("footer")).not.toContainText("How it works");
   });
 
   test("feed grid reflows without clipping and never overflows", async ({ page }) => {
@@ -1226,6 +1261,19 @@ test.describe("mobile chrome", () => {
       "page",
     );
   });
+  test("BB-1 Post uses its short Amharic visible and accessible name", async ({ page }) => {
+    await gotoReady(page, "/");
+    await switchLanguage(page, "am");
+    const post = page.getByTestId("bottom-bar-post");
+    await expect(post).toHaveText(am["nav.postShort"]);
+    await expect(post).toHaveAccessibleName(am["nav.postShort"]);
+    await poolSignIn(page);
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("bottom-bar-account")).toBeVisible();
+    await switchLanguage(page, "am");
+    await expect(post).toHaveText(am["nav.postShort"]);
+    await expect(post).toHaveAccessibleName(am["nav.postShort"]);
+  });
 
   test("the posting wizard keeps the frame", async ({ page }) => {
     await poolSignIn(page);
@@ -1799,11 +1847,10 @@ test.describe("desktop layout laws (U0g)", () => {
     expect(Math.abs(footer.x)).toBeLessThanOrEqual(1);
     expect(Math.abs(footer.width - (viewport?.width ?? 0))).toBeLessThanOrEqual(1);
 
-    // Its CONTENT is inset past the rail, so nothing readable hides behind it.
-    const linkX = await page.evaluate(
-      () => document.querySelector("footer a")!.getBoundingClientRect().x,
-    );
-    expect(linkX).toBeGreaterThanOrEqual(256);
+    // D116: the columns are centred across the full viewport, not inset by the rail.
+    const columns = await page.getByTestId("footer-columns").boundingBox();
+    if (!columns || !viewport) throw new Error("L3: missing footer columns or viewport");
+    expect(Math.abs(columns.x + columns.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
 
     /**
      * U0i-3 — THE CLAMP LAW IS GEOMETRY, not compositor hit-testing: the

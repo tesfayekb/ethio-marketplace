@@ -135,6 +135,8 @@ during the first read so the rail does not jump when the categories arrive.
 
 ## Panel tabs — fit, never scroll (INC-056)
 
+Look B (D135): tabs are pills sized to their labels (`min-w-0 flex-none shrink`) that still shrink to fit, retaining their icon and CutText without horizontal scrolling.
+
 Band 2 does not scroll horizontally. Tabs share the row (`min-w-0 flex-1`) and their
 labels truncate, so the set fits at 360px and never paints a scrollbar. The Marketplace
 rail stays the live category tree only: no Settings entry in the rail or the mobile

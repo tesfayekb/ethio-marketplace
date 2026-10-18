@@ -389,3 +389,9 @@ Action-control rings show after keyboard input only; `installInputModality` reco
 ## The agreed look (bundle 11 V2; D132)
 
 The operator chose the boards' look for every page (2026-10-11): the page tone **cool grey** (`--background` `#F3F5F8`, was `#F6F7F9`; foreground on it 14.48:1, muted text 7.35:1), the depth **Soft**, pills for every badge. Soft depth is four tokens: `shadow-card` (a hairline and a short soft drop: `0 1px 2px` at 6 % and `0 3px 10px` at 7 %) on cards and the table's card; `shadow-tile` (a hairline and a bottom edge) on every white tile — an outline button, a toolbar icon, the pager's arrows; `shadow-button` (a firmer bottom edge and a drop) on a filled button; `shadow-sheet` (an upward drop) on a bottom sheet. An outline button and a native select are white (`bg-card`), so they read as tiles on the grey page. A badge is a pill (`rounded-full`); `TipBadge`'s tones are drawn soft — a live state green (`success`), a stopping state red (`danger`), a classification grey (`neutral`) — with `data-tone` unchanged. The table blocks are in docs/features/display-primitives.md ("The agreed tables").
+
+## Look B — soft surfaces (bundle 21, D135)
+
+Cards take `CARD_SURFACE` (`rounded-card`, 12-px corners; `bg-card`; `shadow-card`), never a 1-px border. State borders (destructive, gold, focus rings and dashed placeholders) go on top. The `--lift-*` shadows are defined in `:root` and `.dark`; dark mode keeps a faint ring to separate surfaces.
+
+The top band and place row lift by shadow; the breadcrumb and panel-tab rows part by the faint `--neutral-soft` line. Panel tabs are pills sized to their labels and shrink to fit. The rail and phone strip use a side shadow. The bottom bar has 16-px top corners and the short Post label (D97). The footer spans the page with its brand block and three equal link columns (D116), without How it works. The look law in `src/look-law.test.ts` guards the card class across all non-primitive surfaces.

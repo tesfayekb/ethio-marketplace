@@ -101,6 +101,7 @@ async function useAmharic(page: Page) {
 /** The chrome regions this guard owns. Absent regions are simply skipped. */
 const CHROME_TESTIDS = [
   "shell-topbar",
+  "bottom-bar",
   "panel-tabs",
   "panel-header",
   "breadcrumbs",
