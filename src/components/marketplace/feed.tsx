@@ -1,9 +1,8 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 
 import { useShell, type LocationNode } from "@/components/shell-context";
-import { WovenMark } from "@/components/brand/logo";
 import { Spinner } from "@/components/brand/spinner";
 import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
 import { ListingCard } from "@/components/marketplace/listing-card";
@@ -11,8 +10,9 @@ import { PageCard } from "@/components/shell/page-card";
 import { Star } from "lucide-react";
 import { useFavouriteCategory } from "@/components/shell/app-rail";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCategoryTree } from "@/features/categories/category-tree";
-import { feedSections, inviteShown, placeCount } from "@/features/feed/feed-page";
+import { feedSections, inviteSpot, placeCount, type InviteSpot } from "@/features/feed/feed-page";
 import { useCardPhotos } from "@/features/feed/use-card-photos";
 import { useFeed } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
@@ -45,12 +45,12 @@ function FeedError({
  * place's row — whether wider places follow or nothing exists anywhere (the
  * operator's walk, 2026-10-09).
  */
-function InviteFirst({ invite }: { invite: Invite }) {
+function InviteFirst({ invite, at }: { invite: Invite; at: InviteSpot }) {
   return (
     <section data-testid="feed-section" data-step="1" className="mt-6 first:mt-0">
       <ul className="grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
         <li>
-          <InviteCard invite={invite} />
+          <InviteCard invite={invite} at={at} />
         </li>
       </ul>
     </section>
@@ -118,19 +118,29 @@ export function Feed() {
   const { tree } = useCategoryTree();
   const categoryNode =
     selectedCategoryId === null ? null : (tree.byId.get(selectedCategoryId) ?? null);
-  // D119 — the card belongs to the chosen place only; on a category page it waits
-  // for the category's name rather than drawing a sentence without it.
+  // D119 / D215 — the invitation is on every list, place or none; on a category
+  // page it waits for the category's name rather than drawing a sentence without it.
+  const spot = inviteSpot(cards, place !== null, hasMore);
   const invite: Invite | null =
-    place !== null && (selectedCategoryId === null || categoryNode !== null) && inviteShown(cards)
+    selectedCategoryId === null || categoryNode !== null
       ? {
-          placeId: place.id,
-          placeName: nameOf(place),
+          placeId: place?.id ?? null,
+          placeName: place ? nameOf(place) : null,
           categoryId: selectedCategoryId,
           categoryName:
             categoryNode === null ? null : entityName("category", categoryNode, entities),
-          placeCount: placeCount(cards),
+          placeCount: place ? placeCount(cards) : cards.length,
         }
       : null;
+  const favouriteOn = categoryNode !== null && favourite.slug === categoryNode.slug;
+  const hint =
+    categoryNode === null
+      ? ""
+      : t(favouriteOn ? "shell.favouriteIs" : "shell.favouriteHint").replace(
+          "{category}",
+          entityName("category", categoryNode, entities),
+        );
+  const hintId = useId();
   const firstStep = cards[0]?.step ?? 1;
 
   let body: ReactNode;
@@ -155,18 +165,14 @@ export function Feed() {
   } else if (error) {
     body = <FeedError testid="feed-error" retryTestid="feed-retry" onRetry={retry} />;
   } else if (cards.length === 0 && invite !== null) {
-    body = <InviteFirst invite={invite} />;
+    // D215 — an empty list shows the invitation alone; the old empty box is retired.
+    body = <InviteFirst invite={invite} at="alone" />;
   } else if (cards.length === 0) {
+    // The category's name is still loading: the card waits for it.
     body = (
-      <PageCard
-        testid="feed-empty"
-        className="mx-auto flex w-full flex-col items-center p-10 text-center"
-      >
-        {/* Allowed motif placement: logo, spinner, empty state. */}
-        <WovenMark className="h-10 w-10" />
-        <h2 className="mt-4 text-base font-semibold text-foreground">{t("feed.emptyTitle")}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t("feed.emptyBody")}</p>
-      </PageCard>
+      <div className="flex justify-center py-12">
+        <Spinner label={t("feed.loading")} />
+      </div>
     );
   } else {
     body = (
@@ -178,8 +184,8 @@ export function Feed() {
           </p>
         ) : null}
         {/* D119 — nothing in the chosen place: its invitation comes first. */}
-        {firstStep > 1 && invite !== null ? <InviteFirst invite={invite} /> : null}
-        {sections.map((section) => {
+        {spot === "lead" && invite !== null ? <InviteFirst invite={invite} at="lead" /> : null}
+        {sections.map((section, sectionIndex) => {
           let label: string | null = null;
           if (section.label?.kind === "all") label = t("nav.allListings");
           else if (section.label?.kind === "place") {
@@ -213,9 +219,11 @@ export function Feed() {
                     />
                   </li>
                 ))}
-                {section.step === 1 && invite !== null ? (
+                {invite !== null &&
+                ((spot === "afterPlace" && section.step === 1 && sectionIndex === 0) ||
+                  (spot === "end" && sectionIndex === sections.length - 1)) ? (
                   <li key="invite">
-                    <InviteCard invite={invite} />
+                    <InviteCard invite={invite} at={spot} />
                   </li>
                 ) : null}
               </ul>
@@ -242,30 +250,42 @@ export function Feed() {
       data-ready={feedInputsReady ? "1" : "0"}
       className="mx-auto w-full max-w-6xl"
     >
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2">
         <h1 className="min-w-0 text-xl font-semibold text-foreground">
           {/* D127 — no place chosen: the everywhere feed is "All listings", not "near you". */}
           {place ? inHeading(place) : t("nav.allListings")}
         </h1>
         {categoryNode ? (
-          <Button
-            variant="ghost"
-            size="touch"
-            data-testid="category-favourite"
-            aria-pressed={favourite.slug === categoryNode.slug}
-            aria-label={t(
-              favourite.slug === categoryNode.slug ? "shell.favouriteRemove" : "shell.favouriteAdd",
-            )}
-            className="w-11 shrink-0 p-0 [&_svg]:size-5"
-            onClick={() =>
-              favourite.set(favourite.slug === categoryNode.slug ? null : categoryNode.slug)
-            }
-          >
-            <Star
-              aria-hidden="true"
-              className={cn(favourite.slug === categoryNode.slug && "fill-gold text-gold")}
-            />
-          </Button>
+          <div className="flex min-w-0 items-center">
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="touch"
+                    data-testid="category-favourite"
+                    aria-pressed={favouriteOn}
+                    aria-label={t(favouriteOn ? "shell.favouriteRemove" : "shell.favouriteAdd")}
+                    aria-describedby={hintId}
+                    className="w-11 shrink-0 p-0 [&_svg]:size-5"
+                    onClick={() => favourite.set(favouriteOn ? null : categoryNode.slug)}
+                  >
+                    <Star aria-hidden="true" className={cn(favouriteOn && "fill-gold text-gold")} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent data-testid="category-favourite-tip" side="bottom">
+                  {hint}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <span
+              id={hintId}
+              data-testid="category-favourite-hint"
+              className="min-w-0 truncate text-xs text-muted-foreground md:pointer-fine:hidden"
+            >
+              {hint}
+            </span>
+          </div>
         ) : null}
       </div>
 
