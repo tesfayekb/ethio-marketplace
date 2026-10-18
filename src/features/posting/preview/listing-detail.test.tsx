@@ -493,11 +493,27 @@ it("LD-16 no pin draws no map or placeholder; without any place of the seller's 
   expect(screen.queryByText(en["post.preview.mapPlaceholder"])).toBeNull();
   expect(screen.queryByTestId("listing-detail-location")).toBeNull();
 });
-it("LD-17 section bar belongs to buyers, with present sections only, and only when two or more sections show (turn 23: Location only with a place of the seller's own; turn 27: the seller card is no longer a section)", () => {
+it("LD-17 section bar belongs to buyers, with present sections only; the Seller tab is always present on a buyer's page and shows only in the medium range (turn 23: Location only with a place of the seller's own; DEC-200)", () => {
   const { rerender } = render(<ListingDetail {...BASE} actor="buyer" />);
   expect(screen.queryByTestId("listing-section-nav")).toBeNull();
+  const sellerItem = () => {
+    const item = screen
+      .getAllByTestId("listing-section-nav-item")
+      .find((node) => node.dataset.target === "seller");
+    if (!item) throw new Error("seller item missing");
+    return item;
+  };
+  // A description alone: the bar is rendered with two items, hidden outside
+  // the medium range (fewer than two sections other than Seller).
   rerender(<ListingDetail {...BASE} actor="buyer" description="scratch description" />);
-  expect(screen.queryByTestId("listing-section-nav")).toBeNull();
+  expect(
+    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
+  ).toEqual(["description", "seller"]);
+  expect(screen.getByTestId("listing-section-nav").className).toContain("@max-[42rem]:hidden");
+  expect(screen.getByTestId("listing-section-nav").className).toContain("@min-[57.5rem]:hidden");
+  expect(sellerItem().className).toContain("@max-[42rem]:hidden");
+  expect(sellerItem().className).toContain("@min-[57.5rem]:hidden");
+  // A description and directions: three items, the bar at every width.
   rerender(
     <ListingDetail
       {...BASE}
@@ -508,7 +524,13 @@ it("LD-17 section bar belongs to buyers, with present sections only, and only wh
   );
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["description", "location"]);
+  ).toEqual(["description", "seller", "location"]);
+  expect(screen.getByTestId("listing-section-nav").className).not.toContain("@max-[42rem]:hidden");
+  expect(screen.getByTestId("listing-section-nav").className).not.toContain(
+    "@min-[57.5rem]:hidden",
+  );
+  expect(sellerItem().className).toContain("@max-[42rem]:hidden");
+  expect(sellerItem().className).toContain("@min-[57.5rem]:hidden");
   for (const actor of ["owner", "staff"] as const) {
     rerender(<ListingDetail {...BASE} actor={actor} />);
     expect(screen.queryByTestId("listing-section-nav")).toBeNull();
