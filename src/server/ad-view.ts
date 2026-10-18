@@ -37,11 +37,17 @@ export async function countAdView(request: Request): Promise<Response> {
   );
   if (!rate.allowed) return routeJson({ counted: false }, 200);
   const rawSession = body["session"];
-  const session = typeof rawSession === "string" && SESSION_PATTERN.test(rawSession) ? rawSession : null;
+  const session =
+    typeof rawSession === "string" && SESSION_PATTERN.test(rawSession) ? rawSession : null;
   let rateKey = hashAddress(address);
   if (session) {
     const sessionKey = hashAddress(session);
-    const sessionGate = await consumeRate("listing-view:session", `${sessionKey}:${publicId}`, 1, "24 hours");
+    const sessionGate = await consumeRate(
+      "listing-view:session",
+      `${sessionKey}:${publicId}`,
+      1,
+      "24 hours",
+    );
     if (!sessionGate.allowed) return routeJson({ counted: false }, 200);
     const ceiling = await consumeRate(
       "listing-view:address-ad",

@@ -892,102 +892,104 @@ export function ListingDetail(view: ListingDetailView) {
         </section>
 
         {showLocation && (
-        <section
-          id="ad-location"
-          data-testid="listing-detail-location"
-          className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.location}`}
-        >
-          <h3 className="font-display text-base font-semibold">{t("adPage.section.location")}</h3>
-          {places.length > 0 && (
-            <p className="text-sm text-muted-foreground">{places.join(", ")}</p>
-          )}
-          {/* Step 10 (P4) — directions above the location details, as text (F2). */}
-          {(view.directions || view.streetAddress) && (
-            <dl className="space-y-1 text-sm" data-testid="listing-detail-place-text">
-              {view.directions ? (
-                <div data-testid="listing-detail-directions">
-                  <dt className="text-xs text-muted-foreground">{t("adPage.directions")}</dt>
-                  <dd className="text-foreground">{view.directions}</dd>
-                </div>
-              ) : null}
-              {view.streetAddress ? (
-                <div data-testid="listing-detail-details">
-                  <dt className="text-xs text-muted-foreground">{t("post.where.detailsLabel")}</dt>
-                  <dd className="text-foreground">{view.streetAddress}</dd>
-                </div>
-              ) : null}
-            </dl>
-          )}
+          <section
+            id="ad-location"
+            data-testid="listing-detail-location"
+            className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.location}`}
+          >
+            <h3 className="font-display text-base font-semibold">{t("adPage.section.location")}</h3>
+            {places.length > 0 && (
+              <p className="text-sm text-muted-foreground">{places.join(", ")}</p>
+            )}
+            {/* Step 10 (P4) — directions above the location details, as text (F2). */}
+            {(view.directions || view.streetAddress) && (
+              <dl className="space-y-1 text-sm" data-testid="listing-detail-place-text">
+                {view.directions ? (
+                  <div data-testid="listing-detail-directions">
+                    <dt className="text-xs text-muted-foreground">{t("adPage.directions")}</dt>
+                    <dd className="text-foreground">{view.directions}</dd>
+                  </div>
+                ) : null}
+                {view.streetAddress ? (
+                  <div data-testid="listing-detail-details">
+                    <dt className="text-xs text-muted-foreground">
+                      {t("post.where.detailsLabel")}
+                    </dt>
+                    <dd className="text-foreground">{view.streetAddress}</dd>
+                  </div>
+                ) : null}
+              </dl>
+            )}
 
-          {hasPin && typeof view.pinLat === "number" && typeof view.pinLng === "number" && (
-            <div className="relative isolate" data-testid="listing-detail-map">
-              <Suspense
-                fallback={<p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>}
-              >
-                <MapPreview
-                  lat={view.pinLat}
-                  lng={view.pinLng}
-                  precision={view.pinPrecision ?? "exact"}
-                  zoom={view.pinZoom ?? null}
-                  {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
-                />
-              </Suspense>
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
-                data-testid="listing-map-enlarge"
-                className="absolute end-2 top-2 z-10 gap-2 bg-card"
-                onClick={() => setMapOpen(true)}
-              >
-                <Expand className="size-4" aria-hidden="true" />
-                {t("adPage.map.enlarge")}
-              </Button>
-              <Dialog open={mapOpen} onOpenChange={setMapOpen}>
-                {mapOpen && (
-                  <DialogContent
-                    data-testid="listing-map-dialog"
-                    aria-describedby={undefined}
-                    className="flex h-[90dvh] w-[calc(100%-1rem)] flex-col p-4 md:h-[70vh] md:max-w-4xl"
-                  >
-                    <div className="flex items-center justify-between gap-2 pe-8">
-                      <DialogTitle>{t("adPage.section.location")}</DialogTitle>
-                      <DialogClose asChild>
-                        <Button variant="outline" size="touch" data-testid="listing-map-close">
-                          {t("common.close")}
-                        </Button>
-                      </DialogClose>
-                    </div>
-                    <Suspense
-                      fallback={
-                        <p className="text-sm text-muted-foreground">{t("post.pin.title")}</p>
-                      }
-                    >
-                      <MapLarge
-                        lat={view.pinLat}
-                        lng={view.pinLng}
-                        precision={view.pinPrecision ?? "exact"}
-                        zoom={view.pinZoom ?? null}
-                        {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
-                      />
-                    </Suspense>
-                  </DialogContent>
-                )}
-              </Dialog>
-              {mapMaps !== null && (
-                <a
-                  data-testid="listing-map-google"
-                  href={mapMaps}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+            {hasPin && typeof view.pinLat === "number" && typeof view.pinLng === "number" && (
+              <div className="relative isolate" data-testid="listing-detail-map">
+                <Suspense
+                  fallback={<p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>}
                 >
-                  {t("adPage.map.google")}
-                </a>
-              )}
-            </div>
-          )}
-        </section>
+                  <MapPreview
+                    lat={view.pinLat}
+                    lng={view.pinLng}
+                    precision={view.pinPrecision ?? "exact"}
+                    zoom={view.pinZoom ?? null}
+                    {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
+                  />
+                </Suspense>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  data-testid="listing-map-enlarge"
+                  className="absolute end-2 top-2 z-10 gap-2 bg-card"
+                  onClick={() => setMapOpen(true)}
+                >
+                  <Expand className="size-4" aria-hidden="true" />
+                  {t("adPage.map.enlarge")}
+                </Button>
+                <Dialog open={mapOpen} onOpenChange={setMapOpen}>
+                  {mapOpen && (
+                    <DialogContent
+                      data-testid="listing-map-dialog"
+                      aria-describedby={undefined}
+                      className="flex h-[90dvh] w-[calc(100%-1rem)] flex-col p-4 md:h-[70vh] md:max-w-4xl"
+                    >
+                      <div className="flex items-center justify-between gap-2 pe-8">
+                        <DialogTitle>{t("adPage.section.location")}</DialogTitle>
+                        <DialogClose asChild>
+                          <Button variant="outline" size="touch" data-testid="listing-map-close">
+                            {t("common.close")}
+                          </Button>
+                        </DialogClose>
+                      </div>
+                      <Suspense
+                        fallback={
+                          <p className="text-sm text-muted-foreground">{t("post.pin.title")}</p>
+                        }
+                      >
+                        <MapLarge
+                          lat={view.pinLat}
+                          lng={view.pinLng}
+                          precision={view.pinPrecision ?? "exact"}
+                          zoom={view.pinZoom ?? null}
+                          {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
+                        />
+                      </Suspense>
+                    </DialogContent>
+                  )}
+                </Dialog>
+                {mapMaps !== null && (
+                  <a
+                    data-testid="listing-map-google"
+                    href={mapMaps}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+                  >
+                    {t("adPage.map.google")}
+                  </a>
+                )}
+              </div>
+            )}
+          </section>
         )}
         {!sold && <SafetyBox className={layout.safety} />}
         {view.report !== undefined && (

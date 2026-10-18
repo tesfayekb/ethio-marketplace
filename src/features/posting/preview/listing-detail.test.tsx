@@ -503,7 +503,12 @@ it("LD-17 section bar belongs to buyers, with present sections only (turn 23: Lo
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
   ).toEqual(["description", "seller"]);
   rerender(
-    <ListingDetail {...BASE} actor="buyer" description="scratch description" directions="scratch directions" />,
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      description="scratch description"
+      directions="scratch directions"
+    />,
   );
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
@@ -564,7 +569,12 @@ it("LD-20 Save and Share sit at the title box's foot; the buyer's Directions lab
     onToggle: vi.fn(),
   };
   const share = (
-    <ShareAd publicId="scratch" canonicalPath="/l/scratch" title={en["post.review.noTitle"]} priceText={null} />
+    <ShareAd
+      publicId="scratch"
+      canonicalPath="/l/scratch"
+      title={en["post.review.noTitle"]}
+      priceText={null}
+    />
   );
   const { rerender } = render(
     <ListingDetail
@@ -619,7 +629,9 @@ it("LD-21 the Location box and its tab only with a place of the seller's own (tu
   expect(screen.getByTestId("listing-detail-directions")).toHaveTextContent("scratch directions");
   expect(screen.queryByTestId("listing-detail-map")).toBeNull();
   // An exact pin alone: the box shows with the map.
-  rerender(<ListingDetail {...BASE} actor="buyer" pinLat={9.0054} pinLng={38.7636} pinPrecision="exact" />);
+  rerender(
+    <ListingDetail {...BASE} actor="buyer" pinLat={9.0054} pinLng={38.7636} pinPrecision="exact" />,
+  );
   expect(screen.getByTestId("listing-detail-location")).toBeInTheDocument();
   expect(screen.getByTestId("listing-detail-map")).toBeInTheDocument();
   expect(screen.queryByTestId("listing-detail-directions")).toBeNull();
