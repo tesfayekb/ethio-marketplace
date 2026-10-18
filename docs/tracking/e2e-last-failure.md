@@ -1,13 +1,12 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39158966306
-- Commit: `a40e124742b8b1c0219c14155d8b94a30f26b6e8`
-- PLATFORM-ORIGIN? the head commit's subject is `Lovable update` — a Lovable auto-push, so suspect platform-injected code before ours.
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39163320324
+- Commit: `05959c4d789a041efdde97a62c9b97b3689c59e7`
 - Attempt: 1
-- Written (UTC): 2026-10-18T20:40:31.686Z
-- Passed: 1944 · Skipped: 143 · Failed: 14
-- Gating failures: 14 · Quarantined (@global-state, INC-117, non-gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 3
+- Written (UTC): 2026-10-18T21:33:27.997Z
+- Passed: 1972 · Skipped: 144 · Failed: 13
+- Gating failures: 13 · Quarantined (@global-state, INC-117, non-gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 7
 - Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 - Sources without results: none
 - Errors outside any test (INC-589): none
@@ -17,171 +16,274 @@
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `desktop-1280` · source `smoke` · shell.spec.ts › corner-block grid › the rail collapses to icons, shows a tooltip, and remembers the choice — Error: locator.hover: Error: strict mode violation: getByTestId('app-rail').getByRole('link', { name: 'Home' }) resolved to 2 elements:
-- FLAKY (passed on retry) · `mobile-360` · source `shard 2` · photo-pipeline.spec.ts › PHOTO PIPELINE › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover — Test timeout of 60000ms exceeded.
-- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · post-wizard-place.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans — Error: PW-30: no place was chosen
+- FLAKY (passed on retry) · `desktop-1280` · source `smoke` · auth-signout.spec.ts › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface — Error: expect(page).toHaveURL(expected) failed
+- FLAKY (passed on retry) · `mobile-360` · source `shard 1` · admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away — Test timeout of 60000ms exceeded.
+- FLAKY (passed on retry) · `mobile-360` · source `shard 3` · posting-routes.spec.ts › POSTING ROUTES › PR-21 step 7: private columns are owner-only, through my_listing_private — Test timeout of 60000ms exceeded.
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-categories-console.spec.ts › C2 categories console › CT-7 step-up: the server refuses the write until AAL2 is proven — Test timeout of 60000ms exceeded.
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 4` · admin-categories-home.spec.ts › Bundle 7 category doors › CT-41 the admin's own client cannot write the eight door tables; the doors still can — Error: Timeout 20000ms exceeded while waiting on the predicate
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · my-listings-page.spec.ts › MY LISTINGS — the list page (bundle 16 turn 2) › MLP-5 my_listings: the search, the filters and the renew setting; the counts follow them (D181) — Test timeout of 60000ms exceeded.
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 6` · posting-routes-catalog.spec.ts › POSTING ROUTES — catalogue changes › PR-40 a removed question or option is let go once, then the same body is refused — Test timeout of 60000ms exceeded.
 
 ## Flaky bodies (DEC-078)
 
-### shell.spec.ts › corner-block grid › the rail collapses to icons, shows a tooltip, and remembers the choice
+### auth-signout.spec.ts › U0j sign-out hard reset › SO-2 settings: confirmed sign-out empties the gated surface
 
 - Source: `smoke`
 - Project: `desktop-1280`
 
 ```text
-Error: locator.hover: Error: strict mode violation: getByTestId('app-rail').getByRole('link', { name: 'Home' }) resolved to 2 elements:
-    1) <a href="/" aria-label="Home" aria-current="page" data-state="closed" data-status="active" data-testid="rail-category-all" class="flex min-h-11 md:pointer-fine:min-h-8 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ps-[var(--rail-pad)] rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0 bg-nav-active font-semibold text-primary active">…</a> aka getByTestId('rail-category-all')
-    2) <a data-state="closed" href="/c/home-garden" aria-label="Home & Garden" data-testid="rail-category-home-garden" class="flex min-h-11 md:pointer-fine:min-h-8 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ps-[var(--rail-pad)] rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0 text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground">…</a> aka getByTestId('rail-category-home-garden')
+Error: expect(page).toHaveURL(expected) failed
+
+Expected pattern: /\/$/
+Received string:  "http://127.0.0.1:4173/auth"
+Timeout: 10000ms
 
 Call log:
-  - waiting for getByTestId('app-rail').getByRole('link', { name: 'Home' })
+  - Expect "toHaveURL" with timeout 10000ms
+    14 × unexpected value "http://127.0.0.1:4173/auth"
 
 --- further error 1 ---
-Error: locator.hover: Error: strict mode violation: getByTestId('app-rail').getByRole('link', { name: 'Home' }) resolved to 2 elements:
-    1) <a href="/" aria-label="Home" aria-current="page" data-state="closed" data-status="active" data-testid="rail-category-all" class="flex min-h-11 md:pointer-fine:min-h-8 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ps-[var(--rail-pad)] rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0 bg-nav-active font-semibold text-primary active">…</a> aka getByTestId('rail-category-all')
-    2) <a data-state="closed" href="/c/home-garden" aria-label="Home & Garden" data-testid="rail-category-home-garden" class="flex min-h-11 md:pointer-fine:min-h-8 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ps-[var(--rail-pad)] rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0 text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground">…</a> aka getByTestId('rail-category-home-garden')
+Error: expect(page).toHaveURL(expected) failed
+
+Expected pattern: /\/$/
+Received string:  "http://127.0.0.1:4173/auth"
+Timeout: 10000ms
 
 Call log:
-  - waiting for getByTestId('app-rail').getByRole('link', { name: 'Home' })
+  - Expect "toHaveURL" with timeout 10000ms
+    14 × unexpected value "http://127.0.0.1:4173/auth"
 
 
-  738 |     expect(Math.abs(narrow.width - 64)).toBeLessThanOrEqual(1);
-  739 |     await expect(rail.getByTestId("rail-category-all").locator("svg")).toBeVisible();
-> 740 |     await rail.getByRole("link", { name: en["nav.home"] }).hover();
-      |                                                            ^
-  741 |     const tip = page.getByTestId("rail-tooltip");
-  742 |     await expect(tip).toBeVisible();
-  743 |     await expect(tip).toContainText(en["nav.home"]);
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:740:60
+  59 |
+  60 | async function expectSignedOutMarketplace(page: Page) {
+> 61 |   await expect(page).toHaveURL(/\/$/);
+     |                      ^
+  62 |   await expect(page.getByTestId("admin-panel-root")).toHaveCount(0);
+  63 |   await expect(page.getByTestId("panel-tab-admin")).toHaveCount(0);
+  64 |   await expect(page.getByRole("button", { name: en["shell.accountMenu"] })).toHaveCount(0);
+    at expectSignedOutMarketplace (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:61:22)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:101:11
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e204]
-        - list [ref=e205]:
-          - listitem [ref=e206]:
-            - generic [ref=e207]: About
-          - listitem [ref=e208]:
-            - generic [ref=e209]: Contact
-      - navigation "Help" [ref=e210]:
-        - heading "Help" [level=2] [ref=e211]
-        - list [ref=e212]:
-          - listitem [ref=e213]:
-            - generic [ref=e214]: Safety
-      - navigation "Legal" [ref=e215]:
-        - heading "Legal" [level=2] [ref=e216]
-        - list [ref=e217]:
-          - listitem [ref=e218]:
-            - generic [ref=e219]: Terms
-          - listitem [ref=e220]:
-            - generic [ref=e221]: Privacy
-    - paragraph [ref=e223]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e314]
+        - list [ref=e315]:
+          - listitem [ref=e316]:
+            - generic [ref=e317]: About
+          - listitem [ref=e318]:
+            - generic [ref=e319]: Contact
+      - navigation "Help" [ref=e320]:
+        - heading "Help" [level=2] [ref=e321]
+        - list [ref=e322]:
+          - listitem [ref=e323]:
+            - generic [ref=e324]: Safety
+      - navigation "Legal" [ref=e325]:
+        - heading "Legal" [level=2] [ref=e326]
+        - list [ref=e327]:
+          - listitem [ref=e328]:
+            - generic [ref=e329]: Terms
+          - listitem [ref=e330]:
+            - generic [ref=e331]: Privacy
+    - paragraph [ref=e333]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-### photo-pipeline.spec.ts › PHOTO PIPELINE › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover
+### admin-countries.spec.ts › L2b countries console › CO-4 open and close: opening publishes the market's tree, closing takes it away
 
-- Source: `shard 2`
+- Source: `shard 1`
 - Project: `mobile-360`
 
 ```text
 Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: apiRequestContext.post: Request context disposed.
-Call log:
-  - → POST http://127.0.0.1:4173/api/listings/photos/8b2c88da-50e9-457e-8393-342281e1010d
-    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.7632.6 Safari/537.36
-    - accept: */*
-    - accept-encoding: gzip,deflate,br
-    - Content-Type: application/json
-    - Authorization: Bearer [redacted-jwt]
-    - content-length: 30
-
-
-   at helpers/photos.ts:136
-
-  134 |     verb === "delete"
-  135 |       ? await page.request.delete(url, { headers })
-> 136 |       : await page.request.post(url, {
-      |                            ^
-  137 |           headers,
-  138 |           data: verb === "move" ? { action: "move", position } : { action: "cover" },
-  139 |         });
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e87]
-        - list [ref=e88]:
-          - listitem [ref=e89]:
-            - generic [ref=e90]: About
-          - listitem [ref=e91]:
-            - generic [ref=e92]: Contact
-      - navigation "Help" [ref=e93]:
-        - heading "Help" [level=2] [ref=e94]
-        - list [ref=e95]:
-          - listitem [ref=e96]:
-            - generic [ref=e97]: Safety
-      - navigation "Legal" [ref=e98]:
-        - heading "Legal" [level=2] [ref=e99]
-        - list [ref=e100]:
-          - listitem [ref=e101]:
-            - generic [ref=e102]: Terms
-          - listitem [ref=e103]:
-            - generic [ref=e104]: Privacy
-    - paragraph [ref=e106]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e310]
+        - list [ref=e311]:
+          - listitem [ref=e312]:
+            - generic [ref=e313]: About
+          - listitem [ref=e314]:
+            - generic [ref=e315]: Contact
+      - navigation "Help" [ref=e316]:
+        - heading "Help" [level=2] [ref=e317]
+        - list [ref=e318]:
+          - listitem [ref=e319]:
+            - generic [ref=e320]: Safety
+      - navigation "Legal" [ref=e321]:
+        - heading "Legal" [level=2] [ref=e322]
+        - list [ref=e323]:
+          - listitem [ref=e324]:
+            - generic [ref=e325]: Terms
+          - listitem [ref=e326]:
+            - generic [ref=e327]: Privacy
+    - paragraph [ref=e329]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-### post-wizard-place.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans
+### posting-routes.spec.ts › POSTING ROUTES › PR-21 step 7: private columns are owner-only, through my_listing_private
 
 - Source: `shard 3`
 - Project: `mobile-360`
 
 ```text
-Error: PW-30: no place was chosen
-PW-30 step timings: signed in @ 9374 ms | category and specifications seeded @ 10024 ms | step 3 reached @ 13745 ms | specifications answered @ 14100 ms | step 6 open @ 19768 ms | tree served @ 20489 ms
-
-expect(locator).toHaveAttribute(expected) failed
-
-Locator:  getByTestId('post-where-chosen')
-Expected: "1"
-Received: "0"
-Timeout:  20000ms
-
-Call log:
-  - PW-30: no place was chosen
-PW-30 step timings: signed in @ 9374 ms | category and specifications seeded @ 10024 ms | step 3 reached @ 13745 ms | specifications answered @ 14100 ms | step 6 open @ 19768 ms | tree served @ 20489 ms with timeout 20000ms
-  - waiting for getByTestId('post-where-chosen')
-    24 × locator resolved to <ul data-count="0" class="space-y-1" data-testid="post-where-chosen"></ul>
-       - unexpected value "0"
-
---- further error 1 ---
-Error: PW-30: no place was chosen
-PW-30 step timings: signed in @ 9374 ms | category and specifications seeded @ 10024 ms | step 3 reached @ 13745 ms | specifications answered @ 14100 ms | step 6 open @ 19768 ms | tree served @ 20489 ms
-
-expect(locator).toHaveAttribute(expected) failed
-
-Locator:  getByTestId('post-where-chosen')
-Expected: "1"
-Received: "0"
-Timeout:  20000ms
-
-Call log:
-  - PW-30: no place was chosen
-PW-30 step timings: signed in @ 9374 ms | category and specifications seeded @ 10024 ms | step 3 reached @ 13745 ms | specifications answered @ 14100 ms | step 6 open @ 19768 ms | tree served @ 20489 ms with timeout 20000ms
-  - waiting for getByTestId('post-where-chosen')
-    24 × locator resolved to <ul data-count="0" class="space-y-1" data-testid="post-where-chosen"></ul>
-       - unexpected value "0"
-
-
-  780 |       page.getByTestId("post-where-chosen"),
-  781 |       why("PW-30: no place was chosen"),
+Test timeout of 60000ms exceeded.
 ```
 
-Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-30-review-and-buyer-preview-render-option-labels-units-multi-values-and-booleans-mobile-360` — Playwright's name `post-wizard-place-POSTING--6247a-s-multi-values-and-booleans-mobile-360`; this run carried 18 context file(s); of the same spec: none
+Context:
+
+```text
+        - heading "Company" [level=2] [ref=e242]
+        - list [ref=e243]:
+          - listitem [ref=e244]:
+            - generic [ref=e245]: About
+          - listitem [ref=e246]:
+            - generic [ref=e247]: Contact
+      - navigation "Help" [ref=e248]:
+        - heading "Help" [level=2] [ref=e249]
+        - list [ref=e250]:
+          - listitem [ref=e251]:
+            - generic [ref=e252]: Safety
+      - navigation "Legal" [ref=e253]:
+        - heading "Legal" [level=2] [ref=e254]
+        - list [ref=e255]:
+          - listitem [ref=e256]:
+            - generic [ref=e257]: Terms
+          - listitem [ref=e258]:
+            - generic [ref=e259]: Privacy
+    - paragraph [ref=e261]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+### admin-categories-console.spec.ts › C2 categories console › CT-7 step-up: the server refuses the write until AAL2 is proven
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+        - heading "Company" [level=2] [ref=e390]
+        - list [ref=e391]:
+          - listitem [ref=e392]:
+            - generic [ref=e393]: About
+          - listitem [ref=e394]:
+            - generic [ref=e395]: Contact
+      - navigation "Help" [ref=e396]:
+        - heading "Help" [level=2] [ref=e397]
+        - list [ref=e398]:
+          - listitem [ref=e399]:
+            - generic [ref=e400]: Safety
+      - navigation "Legal" [ref=e401]:
+        - heading "Legal" [level=2] [ref=e402]
+        - list [ref=e403]:
+          - listitem [ref=e404]:
+            - generic [ref=e405]: Terms
+          - listitem [ref=e406]:
+            - generic [ref=e407]: Privacy
+    - paragraph [ref=e409]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+### admin-categories-home.spec.ts › Bundle 7 category doors › CT-41 the admin's own client cannot write the eight door tables; the doors still can
+
+- Source: `shard 4`
+- Project: `desktop-1280`
+
+```text
+Error: Timeout 20000ms exceeded while waiting on the predicate
+--- further error 1 ---
+Error: Timeout 20000ms exceeded while waiting on the predicate
+
+  312 |       await page.getByTestId("category-delete-submit").click();
+  313 |       await stepUpIfPrompted(page, secret);
+> 314 |       await expect.poll(async () => await readCategory(slug), { timeout: 20000 }).toBeNull();
+      |       ^
+  315 |     } finally {
+  316 |       if (slug) await destroyCategory(slug);
+  317 |     }
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-categories-home.spec.ts:314:7
+--- client errors of this attempt (DEC-177) ---
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
+[client-error] HTTP 500 POST https://jatpuhfdjfzctjipklmk.supabase.co/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"57014","details":null,"hint":null,"message":"canceling statement due to statement timeout"})
+```
+
+Context:
+
+```text
+        - heading "Company" [level=2] [ref=e321]
+        - list [ref=e322]:
+          - listitem [ref=e323]:
+            - generic [ref=e324]: About
+          - listitem [ref=e325]:
+            - generic [ref=e326]: Contact
+      - navigation "Help" [ref=e327]:
+        - heading "Help" [level=2] [ref=e328]
+        - list [ref=e329]:
+          - listitem [ref=e330]:
+            - generic [ref=e331]: Safety
+      - navigation "Legal" [ref=e332]:
+        - heading "Legal" [level=2] [ref=e333]
+        - list [ref=e334]:
+          - listitem [ref=e335]:
+            - generic [ref=e336]: Terms
+          - listitem [ref=e337]:
+            - generic [ref=e338]: Privacy
+    - paragraph [ref=e340]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+### my-listings-page.spec.ts › MY LISTINGS — the list page (bundle 16 turn 2) › MLP-5 my_listings: the search, the filters and the renew setting; the counts follow them (D181)
+
+- Source: `shard 5`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context: context file not found for `my-listings-page-MY-LISTINGS-the-list-page-bundle-16-turn-2-MLP-5-my_listings-the-search-the-filters-and-the-renew-setting-the-counts-follow-them-D181-desktop-1280` — Playwright's name `my-listings-page-MY-LISTIN-68d07-he-counts-follow-them-D181--desktop-1280`; this run carried 20 context file(s); of the same spec: none
+
+### posting-routes-catalog.spec.ts › POSTING ROUTES — catalogue changes › PR-40 a removed question or option is let go once, then the same body is refused
+
+- Source: `shard 6`
+- Project: `desktop-1280`
+
+```text
+Test timeout of 60000ms exceeded.
+```
+
+Context:
+
+```text
+        - heading "Company" [level=2] [ref=e325]
+        - list [ref=e326]:
+          - listitem [ref=e327]:
+            - generic [ref=e328]: About
+          - listitem [ref=e329]:
+            - generic [ref=e330]: Contact
+      - navigation "Help" [ref=e331]:
+        - heading "Help" [level=2] [ref=e332]
+        - list [ref=e333]:
+          - listitem [ref=e334]:
+            - generic [ref=e335]: Safety
+      - navigation "Legal" [ref=e336]:
+        - heading "Legal" [level=2] [ref=e337]
+        - list [ref=e338]:
+          - listitem [ref=e339]:
+            - generic [ref=e340]: Terms
+          - listitem [ref=e341]:
+            - generic [ref=e342]: Privacy
+    - paragraph [ref=e344]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Errors outside any test (INC-589)
 
@@ -191,12 +293,12 @@ None: no results file lists one and no log's summary names one (8 of 8 results f
 
 Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 · unavailable: none
 
-110 line(s), 36 message(s): 1 off the allowlist, 35 allowlisted.
+111 line(s), 36 message(s): 1 off the allowlist, 35 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `digest mismatch` (quiet) | 12 | shard 1, shard 2, shard 4, shard 5 |
-| `listing not found` | 10 | shard 3, shard 6 |
+| `listing not found` | 11 | shard 3, shard 6 |
 | `too many previews` (quiet) | 10 | shard 2, shard 5 |
 | `categories badHeader` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
 | `categories wrongFile` (quiet) | 4 | shard 1, shard 2, shard 4, shard 5 |
@@ -229,17 +331,17 @@ Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6 ·
 | `strings tooManyRows` (quiet) | 2 | shard 2, shard 5 |
 | `strings unknownColumn` (quiet) | 2 | shard 2, shard 5 |
 | `strings wrongFile` (quiet) | 2 | shard 2, shard 5 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-ol<n>ty<n>: e<n>e_par_etgngk → e<n>e_chi_lg<n>m<n>` (quiet) | 1 | shard 1 |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-tz<n>w<n>b: e<n>e_par_se<n>hgz → e<n>e_chi_spkajw` (quiet) | 1 | shard 4 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-hqxdyo: e<n>e_par_i<n>afjo → e<n>e_chi_kxhdgy` (quiet) | 1 | shard 4 |
+| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-wy<n>jj<n>: e<n>e_par_ly<n>ra → e<n>e_chi_gu<n>f<n>l` (quiet) | 1 | shard 1 |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-ol<n>ty<n>: e<n>e_par_etgngk → e<n>e_chi_lg<n>m<n> ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-tz<n>w<n>b: e<n>e_par_se<n>hgz → e<n>e_chi_spkajw ×1
+Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · category-images: no GEMINI_API_KEY — fake mode ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-hqxdyo: e<n>e_par_i<n>afjo → e<n>e_chi_kxhdgy ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-<n>-<n>-wy<n>jj<n>: e<n>e_par_ly<n>ra → e<n>e_chi_gu<n>f<n>l ×1
 
 Off the allowlist:
 
 ### listing not found
 
-- Count: 10 · Sources: shard 3, shard 6
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-17 the currency is preselected and searchable by name in one control ×2 · Sign out is in the account menu at the top right @private-identity ×2 · PR-15 a save on a deleted draft is a refusal, never a 5xx or a null revision (IN ×1 · PW-109 a quote basis forces contact, and a changed basis releases it (INC-375) ×1 · PW-112 who: a new post opens with the last post's channels, stored on the draft  ×1 · PW-13 review: the preview shows what was answered, and Publish lands in review — ×1
+- Count: 11 · Sources: shard 3, shard 6
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PR-15 a save on a deleted draft is a refusal, never a 5xx or a null revision (IN ×2 · PW-63 the pricing basis is asked on the price step, refused there when empty, an ×2 · admin panel is absent for a normal signed-in user ×1 · PW-10 pricing: currency comes before the amount, a locked period shows no line,  ×1 · PW-108 an Other basis names the seller's written unit (INC-371) ×1 · PW-109 a quote basis forces contact, and a changed basis releases it (INC-375) ×1
 
 ```text
 [WebServer] [ssr-error] /api/listings/draft listing not found
@@ -257,89 +359,89 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-18T19:51:20.259Z | 19.6 min |
-| email | 2026-10-18T19:51:18.599Z | 0.2 min |
-| shard 1 | 2026-10-18T19:51:19.083Z | 48.8 min |
-| shard 2 | 2026-10-18T19:51:23.900Z | 42.9 min |
-| shard 3 | 2026-10-18T19:51:22.647Z | 39.3 min |
-| shard 4 | 2026-10-18T19:51:15.787Z | 48.3 min |
-| shard 5 | 2026-10-18T19:51:16.517Z | 44.8 min |
-| shard 6 | 2026-10-18T19:51:19.324Z | 37.7 min |
+| smoke | 2026-10-18T20:41:49.988Z | 21.5 min |
+| email | 2026-10-18T20:41:56.057Z | 0.3 min |
+| shard 1 | 2026-10-18T20:41:50.423Z | 46.7 min |
+| shard 2 | 2026-10-18T20:41:44.887Z | 40.9 min |
+| shard 3 | 2026-10-18T20:41:44.558Z | 37.3 min |
+| shard 4 | 2026-10-18T20:41:53.606Z | 51.2 min |
+| shard 5 | 2026-10-18T20:41:45.983Z | 44.4 min |
+| shard 6 | 2026-10-18T20:41:56.355Z | 43.2 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `photo-pipeline.spec.ts` | 66 | 30.2 min | shard 2, shard 5 |
-| `ad-page.spec.ts` | 66 | 28.2 min | shard 1, shard 4 |
-| `post-wizard-specs.spec.ts` | 82 | 26.2 min | shard 3, shard 6 |
-| `shell.spec.ts` | 372 | 24.3 min | smoke, shard 3, shard 6 |
-| `admin-listings.spec.ts` | 62 | 20.9 min | shard 1, shard 4 |
-| `post-wizard-bundle2.spec.ts` | 68 | 20.9 min | shard 2, shard 5 |
-| `posting-routes.spec.ts` | 80 | 20.1 min | shard 3, shard 6 |
-| `post-wizard-pricing.spec.ts` | 52 | 18.0 min | shard 3, shard 6 |
-| `post-wizard-place.spec.ts` | 38 | 16.8 min | shard 3, shard 6 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 16.3 min | shard 1, shard 4 |
-| `my-listings-ad.spec.ts` | 36 | 14.7 min | shard 2, shard 5 |
-| `post-wizard-resets.spec.ts` | 34 | 14.0 min | shard 3, shard 6 |
-| `admin-screening.spec.ts` | 52 | 13.5 min | shard 1, shard 4 |
-| `ad-page-doors.spec.ts` | 30 | 13.3 min | shard 1, shard 4 |
-| `my-listings-doors.spec.ts` | 28 | 12.9 min | shard 2, shard 5 |
-| `auth-signout.spec.ts` | 56 | 12.4 min | smoke, shard 2, shard 5 |
-| `post-wizard-where.spec.ts` | 32 | 12.1 min | shard 3, shard 6 |
-| `admin-attributes-library.spec.ts` | 42 | 11.8 min | shard 1, shard 4 |
-| `feed-screens.spec.ts` | 32 | 11.2 min | shard 2, shard 5 |
-| `admin-attributes-links.spec.ts` | 34 | 10.6 min | shard 1, shard 4 |
-| `admin-categories-console.spec.ts` | 34 | 10.6 min | shard 1, shard 4 |
-| `admin-attributes-editor.spec.ts` | 36 | 9.6 min | shard 1, shard 4 |
-| `post-wizard-category.spec.ts` | 48 | 9.1 min | shard 2, shard 5 |
-| `admin-users.spec.ts` | 28 | 8.9 min | shard 2, shard 5 |
-| `admin-attributes-import.spec.ts` | 40 | 8.5 min | shard 1, shard 4 |
-| `import-security.spec.ts` | 36 | 8.4 min | shard 2, shard 5 |
-| `admin-locations.spec.ts` | 38 | 8.1 min | shard 1, shard 4 |
-| `my-listings-page.spec.ts` | 14 | 7.9 min | shard 2, shard 5 |
+| `ad-page.spec.ts` | 66 | 29.6 min | shard 1, shard 4 |
+| `post-wizard-specs.spec.ts` | 82 | 29.0 min | shard 3, shard 6 |
+| `photo-pipeline.spec.ts` | 66 | 27.3 min | shard 2, shard 5 |
+| `shell.spec.ts` | 396 | 26.4 min | smoke, shard 3, shard 6 |
+| `admin-listings.spec.ts` | 62 | 20.2 min | shard 1, shard 4 |
+| `post-wizard-bundle2.spec.ts` | 68 | 19.5 min | shard 2, shard 5 |
+| `posting-routes.spec.ts` | 80 | 19.4 min | shard 3, shard 6 |
+| `post-wizard-pricing.spec.ts` | 52 | 18.3 min | shard 3, shard 6 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 15.6 min | shard 1, shard 4 |
+| `my-listings-ad.spec.ts` | 36 | 15.3 min | shard 2, shard 5 |
+| `post-wizard-place.spec.ts` | 38 | 15.2 min | shard 3, shard 6 |
+| `post-wizard-resets.spec.ts` | 34 | 14.9 min | shard 3, shard 6 |
+| `feed-screens.spec.ts` | 36 | 13.2 min | shard 2, shard 5 |
+| `my-listings-doors.spec.ts` | 28 | 13.1 min | shard 2, shard 5 |
+| `ad-page-doors.spec.ts` | 30 | 13.1 min | shard 1, shard 4 |
+| `post-wizard-where.spec.ts` | 32 | 12.9 min | shard 3, shard 6 |
+| `admin-screening.spec.ts` | 52 | 12.7 min | shard 1, shard 4 |
+| `auth-signout.spec.ts` | 56 | 12.5 min | smoke, shard 2, shard 5 |
+| `admin-attributes-library.spec.ts` | 42 | 12.4 min | shard 1, shard 4 |
+| `admin-categories-console.spec.ts` | 34 | 11.5 min | shard 1, shard 4 |
+| `admin-attributes-links.spec.ts` | 34 | 11.0 min | shard 1, shard 4 |
+| `admin-attributes-editor.spec.ts` | 36 | 9.9 min | shard 1, shard 4 |
+| `admin-attributes-import.spec.ts` | 40 | 9.2 min | shard 1, shard 4 |
+| `my-listings-page.spec.ts` | 14 | 8.9 min | shard 2, shard 5 |
+| `posting-routes-catalog.spec.ts` | 18 | 8.3 min | shard 3, shard 6 |
+| `post-wizard-category.spec.ts` | 48 | 8.3 min | shard 2, shard 5 |
+| `admin-users.spec.ts` | 28 | 8.3 min | shard 2, shard 5 |
+| `import-security.spec.ts` | 36 | 7.8 min | shard 2, shard 5 |
 | `feed-index.spec.ts` | 30 | 7.8 min | shard 2, shard 5 |
-| `admin-translations-console.spec.ts` | 44 | 7.4 min | shard 1, shard 5 |
-| `admin-attributes-safety.spec.ts` | 18 | 6.7 min | shard 1, shard 4 |
-| `viewing-place.spec.ts` | 22 | 6.7 min | shard 3, shard 6 |
-| `feed-route.spec.ts` | 22 | 6.7 min | shard 2, shard 5 |
-| `posting-routes-catalog.spec.ts` | 18 | 6.1 min | shard 3, shard 6 |
-| `admin-roles.spec.ts` | 26 | 5.9 min | shard 1, shard 4 |
-| `admin-countries.spec.ts` | 18 | 4.6 min | shard 1, shard 4 |
-| `admin-audit.spec.ts` | 14 | 4.4 min | shard 1, shard 4 |
-| `admin-categories-home.spec.ts` | 10 | 3.5 min | shard 1, shard 4 |
-| `posting-routes-dials.spec.ts` | 18 | 3.3 min | shard 3, shard 6 |
-| `admin-translations-data.spec.ts` | 8 | 3.0 min | shard 2, shard 5 |
-| `post-wizard-details.spec.ts` | 8 | 2.9 min | shard 3, shard 6 |
-| `admin-translations-governance.spec.ts` | 8 | 2.8 min | shard 2, shard 5 |
-| `admin-shell.spec.ts` | 12 | 2.7 min | shard 1, shard 5 |
-| `admin-coverage.spec.ts` | 16 | 2.6 min | shard 1, shard 4 |
-| `post-wizard-removed.spec.ts` | 4 | 2.6 min | shard 3, shard 6 |
-| `mfa-stepup.spec.ts` | 18 | 2.5 min | shard 2, shard 5 |
-| `post-wizard-finder.spec.ts` | 8 | 2.4 min | shard 3, shard 6 |
-| `breadcrumbs.spec.ts` | 6 | 2.0 min | shard 2, shard 5 |
-| `posting-routes-identity.spec.ts` | 4 | 1.5 min | shard 3, shard 6 |
+| `admin-locations.spec.ts` | 38 | 7.6 min | shard 1, shard 4 |
+| `admin-attributes-safety.spec.ts` | 18 | 7.0 min | shard 1, shard 4 |
+| `admin-translations-console.spec.ts` | 44 | 6.9 min | shard 1, shard 5 |
+| `viewing-place.spec.ts` | 22 | 6.6 min | shard 3, shard 6 |
+| `feed-route.spec.ts` | 22 | 5.9 min | shard 2, shard 5 |
+| `admin-roles.spec.ts` | 26 | 5.7 min | shard 1, shard 4 |
+| `admin-countries.spec.ts` | 18 | 5.0 min | shard 1, shard 4 |
+| `admin-categories-home.spec.ts` | 10 | 4.9 min | shard 1, shard 4 |
+| `posting-routes-dials.spec.ts` | 18 | 4.6 min | shard 3, shard 6 |
+| `admin-audit.spec.ts` | 14 | 4.5 min | shard 1, shard 4 |
+| `admin-translations-data.spec.ts` | 8 | 2.7 min | shard 2, shard 5 |
+| `mfa-stepup.spec.ts` | 18 | 2.6 min | shard 2, shard 5 |
+| `admin-translations-governance.spec.ts` | 8 | 2.6 min | shard 2, shard 5 |
+| `post-wizard-removed.spec.ts` | 4 | 2.4 min | shard 3, shard 6 |
+| `admin-coverage.spec.ts` | 16 | 2.2 min | shard 1, shard 4 |
+| `post-wizard-finder.spec.ts` | 8 | 2.1 min | shard 3, shard 6 |
+| `admin-shell.spec.ts` | 12 | 2.0 min | shard 1, shard 4 |
+| `breadcrumbs.spec.ts` | 6 | 1.9 min | shard 2, shard 5 |
+| `post-wizard-details.spec.ts` | 8 | 1.7 min | shard 3, shard 5 |
+| `posting-routes-identity.spec.ts` | 4 | 1.7 min | shard 3, shard 6 |
+| `post-wizard-units.spec.ts` | 4 | 1.7 min | shard 3, shard 6 |
 | `account-saved.spec.ts` | 4 | 1.4 min | shard 1, shard 4 |
-| `category-image-routes.spec.ts` | 10 | 1.3 min | shard 2, shard 5 |
+| `phone-frame.spec.ts` | 18 | 1.3 min | shard 2, shard 5 |
+| `category-image-routes.spec.ts` | 10 | 1.2 min | shard 2, shard 5 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 2, shard 5 |
-| `post-wizard-units.spec.ts` | 4 | 1.1 min | shard 3, shard 6 |
-| `post-wizard-recent.spec.ts` | 2 | 1.0 min | shard 3, shard 6 |
-| `phone-frame.spec.ts` | 18 | 0.9 min | shard 2, shard 5 |
-| `i18n-coverage.spec.ts` | 10 | 0.9 min | shard 2, shard 5 |
-| `admin-categories-images.spec.ts` | 2 | 0.9 min | shard 1, shard 4 |
-| `smoke-auth-i18n.spec.ts` | 4 | 0.8 min | smoke, shard 3, shard 6 |
-| `settings.spec.ts` | 4 | 0.7 min | shard 3 |
+| `post-wizard-recent.spec.ts` | 2 | 0.9 min | shard 3, shard 6 |
+| `i18n-coverage.spec.ts` | 14 | 0.9 min | shard 2, shard 5 |
+| `admin-categories-images.spec.ts` | 2 | 0.8 min | shard 1, shard 4 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.7 min | smoke, shard 3, shard 6 |
+| `a11y.spec.ts` | 4 | 0.7 min | smoke |
 | `rbac.spec.ts` | 6 | 0.7 min | shard 3, shard 6 |
-| `admin-services.spec.ts` | 10 | 0.7 min | shard 1, shard 4 |
 | `i18n-bundle.spec.ts` | 6 | 0.7 min | shard 2, shard 5 |
-| `a11y.spec.ts` | 4 | 0.6 min | smoke |
+| `admin-services.spec.ts` | 10 | 0.6 min | shard 1, shard 4 |
+| `settings.spec.ts` | 4 | 0.6 min | shard 3 |
 | `category-nav.spec.ts` | 10 | 0.5 min | shard 2, shard 5 |
 | `primitives-law.spec.ts` | 24 | 0.4 min | shard 3, shard 6 |
+| `house-style.spec.ts` | 12 | 0.4 min | shard 2, shard 5 |
 | `layout.spec.ts` | 10 | 0.3 min | shard 2, shard 5 |
 | `auth-reset.spec.ts` | 6 | 0.3 min | shard 2 |
-| `house-style.spec.ts` | 12 | 0.3 min | shard 2, shard 5 |
 | `shell-table-law.spec.ts` | 2 | 0.2 min | shard 3, shard 6 |
 | `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 2 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `auth-signup.spec.ts` | 3 | 0.1 min | email |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 2 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 2, shard 5 |
 | `ad-page-routes.spec.ts` | 4 | 0.0 min | shard 1, shard 4 |
@@ -348,21 +450,21 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `photo-pipeline.spec.ts` › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover | mobile-360 | 116.9 s |
-| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 81.6 s |
-| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 74.0 s |
-| `post-wizard-place.spec.ts` › PW-30 review and buyer preview render option labels, units, multi-values and booleans | mobile-360 | 72.5 s |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | mobile-360 | 69.3 s |
-| `admin-categories-console.spec.ts` › CT-8 every verb is reachable from the editor with no horizontal scroll | desktop-1280 | 67.8 s |
-| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | desktop-1280 | 65.2 s |
-| `my-listings-page.spec.ts` › MLP-5 my_listings: the search, the filters and the renew setting; the counts follow them (D181) | desktop-1280 | 55.0 s |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | desktop-1280 | 54.7 s |
-| `my-listings-ad.spec.ts` › MLA-6 Renew an expired ad; a draft continues; an ad in review waits; another seller's ad and a signed-out visit | desktop-1280 | 54.4 s |
-| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | mobile-360 | 54.0 s |
-| `ad-page.spec.ts` › AP-40 an address never reveals: only the visitor's own tap does (D201 §14) | mobile-360 | 52.1 s |
-| `admin-categories-lifecycle.spec.ts` › CT-37 undoing a category delete restores its attribute links or names the skipped ones | desktop-1280 | 51.1 s |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | desktop-1280 | 49.9 s |
-| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 48.7 s |
+| `my-listings-page.spec.ts` › MLP-5 my_listings: the search, the filters and the renew setting; the counts follow them (D181) | desktop-1280 | 112.8 s |
+| `posting-routes-catalog.spec.ts` › PR-40 a removed question or option is let go once, then the same body is refused | desktop-1280 | 93.5 s |
+| `admin-categories-home.spec.ts` › CT-41 the admin's own client cannot write the eight door tables; the doors still can | desktop-1280 | 89.0 s |
+| `admin-countries.spec.ts` › CO-4 open and close: opening publishes the market's tree, closing takes it away | mobile-360 | 87.4 s |
+| `posting-routes.spec.ts` › PR-21 step 7: private columns are owner-only, through my_listing_private | mobile-360 | 86.9 s |
+| `admin-categories-console.spec.ts` › CT-7 step-up: the server refuses the write until AAL2 is proven | desktop-1280 | 85.0 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | desktop-1280 | 60.6 s |
+| `admin-categories-lifecycle.spec.ts` › CT-36 a created leaf gets its secondary parents and the undo removes both pointers | mobile-360 | 60.5 s |
+| `photo-pipeline.spec.ts` › PP-16 a photo dropped on the step is added like a picked one | mobile-360 | 60.5 s |
+| `admin-categories-console.spec.ts` › CT-32 a reactivate row carries its cell changes through commit and undo, and an empty root deletes and undoes | mobile-360 | 60.3 s |
+| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | mobile-360 | 60.1 s |
+| `my-listings-page.spec.ts` › MLP-2 The My listings page: the groups with their counts, each row's line, Continue on a draft (D138) | desktop-1280 | 59.6 s |
+| `post-wizard-where.spec.ts` › PW-173 a draft placed in another market opens there, on resume and after Back | desktop-1280 | 55.1 s |
+| `admin-categories-lifecycle.spec.ts` › CT-42 the undo of an import removes a created chain and its guest link, whatever order its rows were stored in | mobile-360 | 55.0 s |
+| `photo-pipeline.spec.ts` › PP-7 the eleventh photo is refused tooManyPhotos | desktop-1280 | 54.6 s |
 
 ## Post-test errors: smoke
 
@@ -371,7 +473,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 39158966306-smoke
+[e2e:teardown] deleted 3 user(s) owned by process 39163320324-smoke
 ```
 
 ## Post-test errors: email
@@ -381,7 +483,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 39158966306-email
+[e2e:teardown] deleted 4 user(s) owned by process 39163320324-email
 ```
 
 ## Post-test errors: shard 1
@@ -391,7 +493,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 14 (pool 4, fresh 10)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 13 user(s) owned by process 39158966306-1
+[e2e:teardown] deleted 13 user(s) owned by process 39163320324-1
 ```
 
 ## Post-test errors: shard 2
@@ -401,7 +503,7 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 36 (pool 4, fresh 32)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 48 user(s) owned by process 39158966306-2
+[e2e:teardown] deleted 48 user(s) owned by process 39163320324-2
 ```
 
 ## Post-test errors: shard 3
@@ -411,7 +513,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 39158966306-3
+[e2e:teardown] deleted 4 user(s) owned by process 39163320324-3
 ```
 
 ## Post-test errors: shard 4
@@ -421,7 +523,7 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 13 (pool 4, fresh 9)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 12 user(s) owned by process 39158966306-4
+[e2e:teardown] deleted 12 user(s) owned by process 39163320324-4
 ```
 
 ## Post-test errors: shard 5
@@ -431,7 +533,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 32 (pool 4, fresh 28)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 42 user(s) owned by process 39158966306-5
+[e2e:teardown] deleted 42 user(s) owned by process 39163320324-5
 ```
 
 ## Post-test errors: shard 6
@@ -441,7 +543,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 39158966306-6
+[e2e:teardown] deleted 4 user(s) owned by process 39163320324-6
 ```
 
 ## shell.spec.ts › RM-4 the row icons use the approved rail and phone sizes
@@ -460,39 +562,39 @@ Error: expect(received).toBeLessThanOrEqual(expected)
 Expected: <= 1
 Received:    8
 
-  3060 |     expect(sizes.length).toBeGreaterThan(0);
-  3061 |     for (const size of sizes) {
-> 3062 |       expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
+  3209 |     expect(sizes.length).toBeGreaterThan(0);
+  3210 |     for (const size of sizes) {
+> 3211 |       expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
        |                                               ^
-  3063 |       expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
-  3064 |     }
-  3065 |   };
-    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3062:47)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3071:5
+  3212 |       expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
+  3213 |     }
+  3214 |   };
+    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3211:47)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3220:5
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e455]
-        - list [ref=e456]:
-          - listitem [ref=e457]:
-            - generic [ref=e458]: About
-          - listitem [ref=e459]:
-            - generic [ref=e460]: Contact
-      - navigation "Help" [ref=e461]:
-        - heading "Help" [level=2] [ref=e462]
-        - list [ref=e463]:
-          - listitem [ref=e464]:
-            - generic [ref=e465]: Safety
-      - navigation "Legal" [ref=e466]:
-        - heading "Legal" [level=2] [ref=e467]
-        - list [ref=e468]:
-          - listitem [ref=e469]:
-            - generic [ref=e470]: Terms
-          - listitem [ref=e471]:
-            - generic [ref=e472]: Privacy
-    - paragraph [ref=e474]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e456]
+        - list [ref=e457]:
+          - listitem [ref=e458]:
+            - generic [ref=e459]: About
+          - listitem [ref=e460]:
+            - generic [ref=e461]: Contact
+      - navigation "Help" [ref=e462]:
+        - heading "Help" [level=2] [ref=e463]
+        - list [ref=e464]:
+          - listitem [ref=e465]:
+            - generic [ref=e466]: Safety
+      - navigation "Legal" [ref=e467]:
+        - heading "Legal" [level=2] [ref=e468]
+        - list [ref=e469]:
+          - listitem [ref=e470]:
+            - generic [ref=e471]: Terms
+          - listitem [ref=e472]:
+            - generic [ref=e473]: Privacy
+    - paragraph [ref=e475]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -512,90 +614,90 @@ Error: expect(received).toBeLessThanOrEqual(expected)
 Expected: <= 1
 Received:    4
 
-  3060 |     expect(sizes.length).toBeGreaterThan(0);
-  3061 |     for (const size of sizes) {
-> 3062 |       expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
+  3209 |     expect(sizes.length).toBeGreaterThan(0);
+  3210 |     for (const size of sizes) {
+> 3211 |       expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
        |                                               ^
-  3063 |       expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
-  3064 |     }
-  3065 |   };
-    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3062:47)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3075:5
+  3212 |       expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
+  3213 |     }
+  3214 |   };
+    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3211:47)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3224:5
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e392]
-        - list [ref=e393]:
-          - listitem [ref=e394]:
-            - generic [ref=e395]: About
-          - listitem [ref=e396]:
-            - generic [ref=e397]: Contact
-      - navigation "Help" [ref=e398]:
-        - heading "Help" [level=2] [ref=e399]
-        - list [ref=e400]:
-          - listitem [ref=e401]:
-            - generic [ref=e402]: Safety
-      - navigation "Legal" [ref=e403]:
-        - heading "Legal" [level=2] [ref=e404]
-        - list [ref=e405]:
-          - listitem [ref=e406]:
-            - generic [ref=e407]: Terms
-          - listitem [ref=e408]:
-            - generic [ref=e409]: Privacy
-    - paragraph [ref=e411]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e312]
+        - list [ref=e313]:
+          - listitem [ref=e314]:
+            - generic [ref=e315]: About
+          - listitem [ref=e316]:
+            - generic [ref=e317]: Contact
+      - navigation "Help" [ref=e318]:
+        - heading "Help" [level=2] [ref=e319]
+        - list [ref=e320]:
+          - listitem [ref=e321]:
+            - generic [ref=e322]: Safety
+      - navigation "Legal" [ref=e323]:
+        - heading "Legal" [level=2] [ref=e324]
+        - list [ref=e325]:
+          - listitem [ref=e326]:
+            - generic [ref=e327]: Terms
+          - listitem [ref=e328]:
+            - generic [ref=e329]: Privacy
+    - paragraph [ref=e331]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## shell.spec.ts › top band law (bundle 21 turn 2) › TB-1 the corner and the band line up
+## shell.spec.ts › corner-block grid › every rail row carries a leading icon on one gutter
 
 - Source: `smoke`
 - Project: `desktop-1280`
 
 ```text
-Error: expect(received).toBeLessThanOrEqual(expected)
+Error: expect(received).toBeGreaterThan(expected)
 
-Expected: <= 2
-Received:    4
+Expected: > 0
+Received:   0
 --- further error 1 ---
-Error: expect(received).toBeLessThanOrEqual(expected)
+Error: expect(received).toBeGreaterThan(expected)
 
-Expected: <= 2
-Received:    4
+Expected: > 0
+Received:   0
 
-  2974 |           expect(
-  2975 |             Math.abs((await bounds(mark)).x - (await bounds(row.locator("[data-cut-text]"))).x),
-> 2976 |           ).toBeLessThanOrEqual(2);
-       |             ^
-  2977 |         }
-  2978 |         if (width === 1280) {
-  2979 |           const word = page.getByTestId("topbar-wordmark");
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:2976:13
+  688 |     const rows = rail.locator("li > a, li > button, li > span[aria-disabled]");
+  689 |     const count = await rows.count();
+> 690 |     expect(count).toBeGreaterThan(0);
+      |                   ^
+  691 |
+  692 |     const starts = new Set<number>();
+  693 |     for (let i = 0; i < count; i += 1) {
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:690:19
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e321]
-        - list [ref=e322]:
-          - listitem [ref=e323]:
-            - generic [ref=e324]: About
-          - listitem [ref=e325]:
-            - generic [ref=e326]: Contact
-      - navigation "Help" [ref=e327]:
-        - heading "Help" [level=2] [ref=e328]
-        - list [ref=e329]:
-          - listitem [ref=e330]:
-            - generic [ref=e331]: Safety
-      - navigation "Legal" [ref=e332]:
-        - heading "Legal" [level=2] [ref=e333]
-        - list [ref=e334]:
-          - listitem [ref=e335]:
-            - generic [ref=e336]: Terms
-          - listitem [ref=e337]:
-            - generic [ref=e338]: Privacy
-    - paragraph [ref=e340]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e134]
+        - list [ref=e135]:
+          - listitem [ref=e136]:
+            - generic [ref=e137]: About
+          - listitem [ref=e138]:
+            - generic [ref=e139]: Contact
+      - navigation "Help" [ref=e140]:
+        - heading "Help" [level=2] [ref=e141]
+        - list [ref=e142]:
+          - listitem [ref=e143]:
+            - generic [ref=e144]: Safety
+      - navigation "Legal" [ref=e145]:
+        - heading "Legal" [level=2] [ref=e146]
+        - list [ref=e147]:
+          - listitem [ref=e148]:
+            - generic [ref=e149]: Terms
+          - listitem [ref=e150]:
+            - generic [ref=e151]: Privacy
+    - paragraph [ref=e153]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -644,25 +746,25 @@ Call log:
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e428]
-        - list [ref=e429]:
-          - listitem [ref=e430]:
-            - generic [ref=e431]: About
-          - listitem [ref=e432]:
-            - generic [ref=e433]: Contact
-      - navigation "Help" [ref=e434]:
-        - heading "Help" [level=2] [ref=e435]
-        - list [ref=e436]:
-          - listitem [ref=e437]:
-            - generic [ref=e438]: Safety
-      - navigation "Legal" [ref=e439]:
-        - heading "Legal" [level=2] [ref=e440]
-        - list [ref=e441]:
-          - listitem [ref=e442]:
-            - generic [ref=e443]: Terms
-          - listitem [ref=e444]:
-            - generic [ref=e445]: Privacy
-    - paragraph [ref=e447]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e456]
+        - list [ref=e457]:
+          - listitem [ref=e458]:
+            - generic [ref=e459]: About
+          - listitem [ref=e460]:
+            - generic [ref=e461]: Contact
+      - navigation "Help" [ref=e462]:
+        - heading "Help" [level=2] [ref=e463]
+        - list [ref=e464]:
+          - listitem [ref=e465]:
+            - generic [ref=e466]: Safety
+      - navigation "Legal" [ref=e467]:
+        - heading "Legal" [level=2] [ref=e468]
+        - list [ref=e469]:
+          - listitem [ref=e470]:
+            - generic [ref=e471]: Terms
+          - listitem [ref=e472]:
+            - generic [ref=e473]: Privacy
+    - paragraph [ref=e475]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -696,38 +798,38 @@ Call log:
   - waiting for getByTestId('rail-menu')
 
 
-  3171 |     await gotoReady(page, "/");
-  3172 |     const menu = page.getByTestId("rail-menu");
-> 3173 |     await expect(menu).toBeVisible({ timeout: 2000 });
+  3320 |     await gotoReady(page, "/");
+  3321 |     const menu = page.getByTestId("rail-menu");
+> 3322 |     await expect(menu).toBeVisible({ timeout: 2000 });
        |                        ^
-  3174 |     expect(await menu.evaluate((el) => el.contains(document.activeElement))).toBe(false);
-  3175 |     await expect(menu).toBeHidden({ timeout: 5000 });
-  3176 |     expect(await page.evaluate(() => sessionStorage.getItem("ethio.peek"))).toBe("seen");
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3173:24
+  3323 |     expect(await menu.evaluate((el) => el.contains(document.activeElement))).toBe(false);
+  3324 |     await expect(menu).toBeHidden({ timeout: 5000 });
+  3325 |     expect(await page.evaluate(() => sessionStorage.getItem("ethio.peek"))).toBe("seen");
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3322:24
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e236]
-        - list [ref=e237]:
-          - listitem [ref=e238]:
-            - generic [ref=e239]: About
-          - listitem [ref=e240]:
-            - generic [ref=e241]: Contact
-      - navigation "Help" [ref=e242]:
-        - heading "Help" [level=2] [ref=e243]
-        - list [ref=e244]:
-          - listitem [ref=e245]:
-            - generic [ref=e246]: Safety
-      - navigation "Legal" [ref=e247]:
-        - heading "Legal" [level=2] [ref=e248]
-        - list [ref=e249]:
-          - listitem [ref=e250]:
-            - generic [ref=e251]: Terms
-          - listitem [ref=e252]:
-            - generic [ref=e253]: Privacy
-    - paragraph [ref=e255]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e254]
+        - list [ref=e255]:
+          - listitem [ref=e256]:
+            - generic [ref=e257]: About
+          - listitem [ref=e258]:
+            - generic [ref=e259]: Contact
+      - navigation "Help" [ref=e260]:
+        - heading "Help" [level=2] [ref=e261]
+        - list [ref=e262]:
+          - listitem [ref=e263]:
+            - generic [ref=e264]: Safety
+      - navigation "Legal" [ref=e265]:
+        - heading "Legal" [level=2] [ref=e266]
+        - list [ref=e267]:
+          - listitem [ref=e268]:
+            - generic [ref=e269]: Terms
+          - listitem [ref=e270]:
+            - generic [ref=e271]: Privacy
+    - paragraph [ref=e273]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -761,38 +863,38 @@ Call log:
   - waiting for getByTestId('app-rail').getByTestId('rail-menu-back')
 
 
-  3135 |     expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
-  3136 |     await gotoReady(page, "/c/smartphones");
-> 3137 |     await expect(rail.getByTestId("rail-menu-back")).toHaveText("Electronics");
+  3284 |     expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
+  3285 |     await gotoReady(page, "/c/smartphones");
+> 3286 |     await expect(rail.getByTestId("rail-menu-back")).toHaveText("Electronics");
        |                                                      ^
-  3138 |     await expect(rail.getByTestId("rail-category-smartphones")).toHaveAttribute(
-  3139 |       "aria-current",
-  3140 |       "page",
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3137:54
+  3287 |     await expect(rail.getByTestId("rail-category-smartphones")).toHaveAttribute(
+  3288 |       "aria-current",
+  3289 |       "page",
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3286:54
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e309]
-        - list [ref=e310]:
-          - listitem [ref=e311]:
-            - generic [ref=e312]: About
-          - listitem [ref=e313]:
-            - generic [ref=e314]: Contact
-      - navigation "Help" [ref=e315]:
-        - heading "Help" [level=2] [ref=e316]
-        - list [ref=e317]:
-          - listitem [ref=e318]:
-            - generic [ref=e319]: Safety
-      - navigation "Legal" [ref=e320]:
-        - heading "Legal" [level=2] [ref=e321]
-        - list [ref=e322]:
-          - listitem [ref=e323]:
-            - generic [ref=e324]: Terms
-          - listitem [ref=e325]:
-            - generic [ref=e326]: Privacy
-    - paragraph [ref=e328]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e277]
+        - list [ref=e278]:
+          - listitem [ref=e279]:
+            - generic [ref=e280]: About
+          - listitem [ref=e281]:
+            - generic [ref=e282]: Contact
+      - navigation "Help" [ref=e283]:
+        - heading "Help" [level=2] [ref=e284]
+        - list [ref=e285]:
+          - listitem [ref=e286]:
+            - generic [ref=e287]: Safety
+      - navigation "Legal" [ref=e288]:
+        - heading "Legal" [level=2] [ref=e289]
+        - list [ref=e290]:
+          - listitem [ref=e291]:
+            - generic [ref=e292]: Terms
+          - listitem [ref=e293]:
+            - generic [ref=e294]: Privacy
+    - paragraph [ref=e296]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -841,25 +943,25 @@ expect(received).toEqual(expected) // deep equality
 Context:
 
 ```text
-        - heading "ድርጅት" [level=2] [ref=e353]
-        - list [ref=e354]:
-          - listitem [ref=e355]:
-            - generic [ref=e356]: ስለ እኛ
-          - listitem [ref=e357]:
-            - generic [ref=e358]: ያግኙን
-      - navigation "እገዛ" [ref=e359]:
-        - heading "እገዛ" [level=2] [ref=e360]
-        - list [ref=e361]:
-          - listitem [ref=e362]:
-            - generic [ref=e363]: ደህንነት
-      - navigation "ሕጋዊ" [ref=e364]:
-        - heading "ሕጋዊ" [level=2] [ref=e365]
-        - list [ref=e366]:
-          - listitem [ref=e367]:
-            - generic [ref=e368]: ውሎች
-          - listitem [ref=e369]:
-            - generic [ref=e370]: ግላዊነት
-    - paragraph [ref=e372]: © 2026 ethio.com — መብቱ በሙሉ የተጠበቀ ነው።
+        - heading "ድርጅት" [level=2] [ref=e352]
+        - list [ref=e353]:
+          - listitem [ref=e354]:
+            - generic [ref=e355]: ስለ እኛ
+          - listitem [ref=e356]:
+            - generic [ref=e357]: ያግኙን
+      - navigation "እገዛ" [ref=e358]:
+        - heading "እገዛ" [level=2] [ref=e359]
+        - list [ref=e360]:
+          - listitem [ref=e361]:
+            - generic [ref=e362]: ደህንነት
+      - navigation "ሕጋዊ" [ref=e363]:
+        - heading "ሕጋዊ" [level=2] [ref=e364]
+        - list [ref=e365]:
+          - listitem [ref=e366]:
+            - generic [ref=e367]: ውሎች
+          - listitem [ref=e368]:
+            - generic [ref=e369]: ግላዊነት
+    - paragraph [ref=e371]: © 2026 ethio.com — መብቱ በሙሉ የተጠበቀ ነው።
 ```
 ```
 
@@ -879,39 +981,39 @@ Error: expect(received).toBeLessThanOrEqual(expected)
 Expected: <= 1
 Received:    8
 
-  3060 |     expect(sizes.length).toBeGreaterThan(0);
-  3061 |     for (const size of sizes) {
-> 3062 |       expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
+  3209 |     expect(sizes.length).toBeGreaterThan(0);
+  3210 |     for (const size of sizes) {
+> 3211 |       expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
        |                                               ^
-  3063 |       expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
-  3064 |     }
-  3065 |   };
-    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3062:47)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3071:5
+  3212 |       expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
+  3213 |     }
+  3214 |   };
+    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3211:47)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3220:5
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e455]
-        - list [ref=e456]:
-          - listitem [ref=e457]:
-            - generic [ref=e458]: About
-          - listitem [ref=e459]:
-            - generic [ref=e460]: Contact
-      - navigation "Help" [ref=e461]:
-        - heading "Help" [level=2] [ref=e462]
-        - list [ref=e463]:
-          - listitem [ref=e464]:
-            - generic [ref=e465]: Safety
-      - navigation "Legal" [ref=e466]:
-        - heading "Legal" [level=2] [ref=e467]
-        - list [ref=e468]:
-          - listitem [ref=e469]:
-            - generic [ref=e470]: Terms
-          - listitem [ref=e471]:
-            - generic [ref=e472]: Privacy
-    - paragraph [ref=e474]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e456]
+        - list [ref=e457]:
+          - listitem [ref=e458]:
+            - generic [ref=e459]: About
+          - listitem [ref=e460]:
+            - generic [ref=e461]: Contact
+      - navigation "Help" [ref=e462]:
+        - heading "Help" [level=2] [ref=e463]
+        - list [ref=e464]:
+          - listitem [ref=e465]:
+            - generic [ref=e466]: Safety
+      - navigation "Legal" [ref=e467]:
+        - heading "Legal" [level=2] [ref=e468]
+        - list [ref=e469]:
+          - listitem [ref=e470]:
+            - generic [ref=e471]: Terms
+          - listitem [ref=e472]:
+            - generic [ref=e473]: Privacy
+    - paragraph [ref=e475]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -960,25 +1062,25 @@ Call log:
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e428]
-        - list [ref=e429]:
-          - listitem [ref=e430]:
-            - generic [ref=e431]: About
-          - listitem [ref=e432]:
-            - generic [ref=e433]: Contact
-      - navigation "Help" [ref=e434]:
-        - heading "Help" [level=2] [ref=e435]
-        - list [ref=e436]:
-          - listitem [ref=e437]:
-            - generic [ref=e438]: Safety
-      - navigation "Legal" [ref=e439]:
-        - heading "Legal" [level=2] [ref=e440]
-        - list [ref=e441]:
-          - listitem [ref=e442]:
-            - generic [ref=e443]: Terms
-          - listitem [ref=e444]:
-            - generic [ref=e445]: Privacy
-    - paragraph [ref=e447]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e456]
+        - list [ref=e457]:
+          - listitem [ref=e458]:
+            - generic [ref=e459]: About
+          - listitem [ref=e460]:
+            - generic [ref=e461]: Contact
+      - navigation "Help" [ref=e462]:
+        - heading "Help" [level=2] [ref=e463]
+        - list [ref=e464]:
+          - listitem [ref=e465]:
+            - generic [ref=e466]: Safety
+      - navigation "Legal" [ref=e467]:
+        - heading "Legal" [level=2] [ref=e468]
+        - list [ref=e469]:
+          - listitem [ref=e470]:
+            - generic [ref=e471]: Terms
+          - listitem [ref=e472]:
+            - generic [ref=e473]: Privacy
+    - paragraph [ref=e475]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1012,103 +1114,38 @@ Call log:
   - waiting for getByTestId('rail-menu')
 
 
-  3171 |     await gotoReady(page, "/");
-  3172 |     const menu = page.getByTestId("rail-menu");
-> 3173 |     await expect(menu).toBeVisible({ timeout: 2000 });
+  3320 |     await gotoReady(page, "/");
+  3321 |     const menu = page.getByTestId("rail-menu");
+> 3322 |     await expect(menu).toBeVisible({ timeout: 2000 });
        |                        ^
-  3174 |     expect(await menu.evaluate((el) => el.contains(document.activeElement))).toBe(false);
-  3175 |     await expect(menu).toBeHidden({ timeout: 5000 });
-  3176 |     expect(await page.evaluate(() => sessionStorage.getItem("ethio.peek"))).toBe("seen");
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3173:24
+  3323 |     expect(await menu.evaluate((el) => el.contains(document.activeElement))).toBe(false);
+  3324 |     await expect(menu).toBeHidden({ timeout: 5000 });
+  3325 |     expect(await page.evaluate(() => sessionStorage.getItem("ethio.peek"))).toBe("seen");
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3322:24
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e236]
-        - list [ref=e237]:
-          - listitem [ref=e238]:
-            - generic [ref=e239]: About
-          - listitem [ref=e240]:
-            - generic [ref=e241]: Contact
-      - navigation "Help" [ref=e242]:
-        - heading "Help" [level=2] [ref=e243]
-        - list [ref=e244]:
-          - listitem [ref=e245]:
-            - generic [ref=e246]: Safety
-      - navigation "Legal" [ref=e247]:
-        - heading "Legal" [level=2] [ref=e248]
-        - list [ref=e249]:
-          - listitem [ref=e250]:
-            - generic [ref=e251]: Terms
-          - listitem [ref=e252]:
-            - generic [ref=e253]: Privacy
-    - paragraph [ref=e255]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## admin-categories-console.spec.ts › C2 categories console › CT-8 every verb is reachable from the editor with no horizontal scroll
-
-- Source: `shard 4`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table')
-
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table')
-
-
-  531 |         const cardTwin = width < TWIN_BOUNDARY;
-  532 |         const twin = cardTwin ? page.getByTestId("data-table-cards") : page.getByRole("table");
-> 533 |         await expect(twin).toBeVisible({ timeout: 20000 });
-      |                            ^
-  534 |         await page.getByTestId("category-search").fill(slug);
-  535 |         await expect(
-  536 |           cardTwin
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-categories-console.spec.ts:533:28
-```
-
-Context:
-
-```text
-        - heading "Company" [level=2] [ref=e1576]
-        - list [ref=e1577]:
-          - listitem [ref=e1578]:
-            - generic [ref=e1579]: About
-          - listitem [ref=e1580]:
-            - generic [ref=e1581]: Contact
-      - navigation "Help" [ref=e1582]:
-        - heading "Help" [level=2] [ref=e1583]
-        - list [ref=e1584]:
-          - listitem [ref=e1585]:
-            - generic [ref=e1586]: Safety
-      - navigation "Legal" [ref=e1587]:
-        - heading "Legal" [level=2] [ref=e1588]
-        - list [ref=e1589]:
-          - listitem [ref=e1590]:
-            - generic [ref=e1591]: Terms
-          - listitem [ref=e1592]:
-            - generic [ref=e1593]: Privacy
-    - paragraph [ref=e1595]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e254]
+        - list [ref=e255]:
+          - listitem [ref=e256]:
+            - generic [ref=e257]: About
+          - listitem [ref=e258]:
+            - generic [ref=e259]: Contact
+      - navigation "Help" [ref=e260]:
+        - heading "Help" [level=2] [ref=e261]
+        - list [ref=e262]:
+          - listitem [ref=e263]:
+            - generic [ref=e264]: Safety
+      - navigation "Legal" [ref=e265]:
+        - heading "Legal" [level=2] [ref=e266]
+        - list [ref=e267]:
+          - listitem [ref=e268]:
+            - generic [ref=e269]: Terms
+          - listitem [ref=e270]:
+            - generic [ref=e271]: Privacy
+    - paragraph [ref=e273]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1128,90 +1165,90 @@ Error: expect(received).toBeLessThanOrEqual(expected)
 Expected: <= 1
 Received:    4
 
-  3060 |     expect(sizes.length).toBeGreaterThan(0);
-  3061 |     for (const size of sizes) {
-> 3062 |       expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
+  3209 |     expect(sizes.length).toBeGreaterThan(0);
+  3210 |     for (const size of sizes) {
+> 3211 |       expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
        |                                               ^
-  3063 |       expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
-  3064 |     }
-  3065 |   };
-    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3062:47)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3075:5
+  3212 |       expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
+  3213 |     }
+  3214 |   };
+    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3211:47)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3224:5
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e392]
-        - list [ref=e393]:
-          - listitem [ref=e394]:
-            - generic [ref=e395]: About
-          - listitem [ref=e396]:
-            - generic [ref=e397]: Contact
-      - navigation "Help" [ref=e398]:
-        - heading "Help" [level=2] [ref=e399]
-        - list [ref=e400]:
-          - listitem [ref=e401]:
-            - generic [ref=e402]: Safety
-      - navigation "Legal" [ref=e403]:
-        - heading "Legal" [level=2] [ref=e404]
-        - list [ref=e405]:
-          - listitem [ref=e406]:
-            - generic [ref=e407]: Terms
-          - listitem [ref=e408]:
-            - generic [ref=e409]: Privacy
-    - paragraph [ref=e411]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e312]
+        - list [ref=e313]:
+          - listitem [ref=e314]:
+            - generic [ref=e315]: About
+          - listitem [ref=e316]:
+            - generic [ref=e317]: Contact
+      - navigation "Help" [ref=e318]:
+        - heading "Help" [level=2] [ref=e319]
+        - list [ref=e320]:
+          - listitem [ref=e321]:
+            - generic [ref=e322]: Safety
+      - navigation "Legal" [ref=e323]:
+        - heading "Legal" [level=2] [ref=e324]
+        - list [ref=e325]:
+          - listitem [ref=e326]:
+            - generic [ref=e327]: Terms
+          - listitem [ref=e328]:
+            - generic [ref=e329]: Privacy
+    - paragraph [ref=e331]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-## shell.spec.ts › top band law (bundle 21 turn 2) › TB-1 the corner and the band line up
+## shell.spec.ts › corner-block grid › every rail row carries a leading icon on one gutter
 
 - Source: `shard 6`
 - Project: `desktop-1280`
 
 ```text
-Error: expect(received).toBeLessThanOrEqual(expected)
+Error: expect(received).toBeGreaterThan(expected)
 
-Expected: <= 2
-Received:    4
+Expected: > 0
+Received:   0
 --- further error 1 ---
-Error: expect(received).toBeLessThanOrEqual(expected)
+Error: expect(received).toBeGreaterThan(expected)
 
-Expected: <= 2
-Received:    4
+Expected: > 0
+Received:   0
 
-  2974 |           expect(
-  2975 |             Math.abs((await bounds(mark)).x - (await bounds(row.locator("[data-cut-text]"))).x),
-> 2976 |           ).toBeLessThanOrEqual(2);
-       |             ^
-  2977 |         }
-  2978 |         if (width === 1280) {
-  2979 |           const word = page.getByTestId("topbar-wordmark");
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:2976:13
+  688 |     const rows = rail.locator("li > a, li > button, li > span[aria-disabled]");
+  689 |     const count = await rows.count();
+> 690 |     expect(count).toBeGreaterThan(0);
+      |                   ^
+  691 |
+  692 |     const starts = new Set<number>();
+  693 |     for (let i = 0; i < count; i += 1) {
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:690:19
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e321]
-        - list [ref=e322]:
-          - listitem [ref=e323]:
-            - generic [ref=e324]: About
-          - listitem [ref=e325]:
-            - generic [ref=e326]: Contact
-      - navigation "Help" [ref=e327]:
-        - heading "Help" [level=2] [ref=e328]
-        - list [ref=e329]:
-          - listitem [ref=e330]:
-            - generic [ref=e331]: Safety
-      - navigation "Legal" [ref=e332]:
-        - heading "Legal" [level=2] [ref=e333]
-        - list [ref=e334]:
-          - listitem [ref=e335]:
-            - generic [ref=e336]: Terms
-          - listitem [ref=e337]:
-            - generic [ref=e338]: Privacy
-    - paragraph [ref=e340]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e134]
+        - list [ref=e135]:
+          - listitem [ref=e136]:
+            - generic [ref=e137]: About
+          - listitem [ref=e138]:
+            - generic [ref=e139]: Contact
+      - navigation "Help" [ref=e140]:
+        - heading "Help" [level=2] [ref=e141]
+        - list [ref=e142]:
+          - listitem [ref=e143]:
+            - generic [ref=e144]: Safety
+      - navigation "Legal" [ref=e145]:
+        - heading "Legal" [level=2] [ref=e146]
+        - list [ref=e147]:
+          - listitem [ref=e148]:
+            - generic [ref=e149]: Terms
+          - listitem [ref=e150]:
+            - generic [ref=e151]: Privacy
+    - paragraph [ref=e153]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1245,38 +1282,38 @@ Call log:
   - waiting for getByTestId('app-rail').getByTestId('rail-menu-back')
 
 
-  3135 |     expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
-  3136 |     await gotoReady(page, "/c/smartphones");
-> 3137 |     await expect(rail.getByTestId("rail-menu-back")).toHaveText("Electronics");
+  3284 |     expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
+  3285 |     await gotoReady(page, "/c/smartphones");
+> 3286 |     await expect(rail.getByTestId("rail-menu-back")).toHaveText("Electronics");
        |                                                      ^
-  3138 |     await expect(rail.getByTestId("rail-category-smartphones")).toHaveAttribute(
-  3139 |       "aria-current",
-  3140 |       "page",
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3137:54
+  3287 |     await expect(rail.getByTestId("rail-category-smartphones")).toHaveAttribute(
+  3288 |       "aria-current",
+  3289 |       "page",
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3286:54
 ```
 
 Context:
 
 ```text
-        - heading "Company" [level=2] [ref=e309]
-        - list [ref=e310]:
-          - listitem [ref=e311]:
-            - generic [ref=e312]: About
-          - listitem [ref=e313]:
-            - generic [ref=e314]: Contact
-      - navigation "Help" [ref=e315]:
-        - heading "Help" [level=2] [ref=e316]
-        - list [ref=e317]:
-          - listitem [ref=e318]:
-            - generic [ref=e319]: Safety
-      - navigation "Legal" [ref=e320]:
-        - heading "Legal" [level=2] [ref=e321]
-        - list [ref=e322]:
-          - listitem [ref=e323]:
-            - generic [ref=e324]: Terms
-          - listitem [ref=e325]:
-            - generic [ref=e326]: Privacy
-    - paragraph [ref=e328]: © 2026 ethio.com — All rights reserved.
+        - heading "Company" [level=2] [ref=e277]
+        - list [ref=e278]:
+          - listitem [ref=e279]:
+            - generic [ref=e280]: About
+          - listitem [ref=e281]:
+            - generic [ref=e282]: Contact
+      - navigation "Help" [ref=e283]:
+        - heading "Help" [level=2] [ref=e284]
+        - list [ref=e285]:
+          - listitem [ref=e286]:
+            - generic [ref=e287]: Safety
+      - navigation "Legal" [ref=e288]:
+        - heading "Legal" [level=2] [ref=e289]
+        - list [ref=e290]:
+          - listitem [ref=e291]:
+            - generic [ref=e292]: Terms
+          - listitem [ref=e293]:
+            - generic [ref=e294]: Privacy
+    - paragraph [ref=e296]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1320,38 +1357,17 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 ## Server errors: shard 3
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×6
+[WebServer] [ssr-error] /api/listings/draft listing not found ×5
 ```
 
 ## Client errors: shard 3
 
 No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
 
-## Server errors: shard 4
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/attributes/import digest mismatch
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] category-images: no GEMINI_API_KEY — fake mode
-[WebServer] [ssr-error] /api/admin/attributes/export export_failed permission denied ×2
-[WebServer] [ssr-error] /api/admin/attributes/import commit_failed admin.attributes.error.parentAfterChild:e2e-cat-4-0-tz4w5b: e2e_par_se3hgz → e2e_chi_spkajw
-[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
-[WebServer] [ssr-error] /api/admin/categories/import preview_failed permission denied
-[WebServer] [ssr-error] /api/admin/categories/import digest mismatch
-[WebServer] [ssr-error] /api/admin/categories/import commit_failed step-up required: no verified factor
-[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
-```
-
-## Client errors: shard 4
-
-No `[client-error]` lines in the `shard 4` log (or no log was uploaded).
-
 ## Server errors: shard 6
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft listing not found ×4
+[WebServer] [ssr-error] /api/listings/draft listing not found ×6
 ```
 
 ## Client errors: shard 6
