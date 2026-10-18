@@ -557,7 +557,7 @@ it("LD-20 Save and Share sit at the title box's foot; the buyer's Directions lab
     onToggle: vi.fn(),
   };
   const share = (
-    <ShareAd publicId="scratch" canonicalPath="/l/scratch" title={en["post.preview.noTitle"]} priceText={null} />
+    <ShareAd publicId="scratch" canonicalPath="/l/scratch" title={en["post.review.noTitle"]} priceText={null} />
   );
   const { rerender } = render(
     <ListingDetail
