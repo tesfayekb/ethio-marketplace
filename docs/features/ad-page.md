@@ -66,6 +66,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 ## Tests
 
+Turn 31: LD-23; AP-36 changed.
 Turn 30: RV-1; AP-36, AP-37, AP-47, LD-17, LD-19, GAL-10 changed.
 Turn 29: AP-36, AP-37, AP-45, AP-47, LD-17, LD-19 changed.
 Turn 28: AP-36, AP-37, AP-46, AP-47 changed.
@@ -166,3 +167,5 @@ Turn 28 — from 42rem to 57.5rem the seller card is a full-width row under the 
 Turn 29 — on a medium screen (42rem to 57.5rem) the seller card goes back where it was before turn 27: after Details | Description, beside Location, with its Seller tab in the bar (DEC-200, replacing turn 28's full-width row). Phones and large screens stay as they are.
 
 Turn 30 — below 57.5rem, on phones and medium screens, the seller card follows Details and Description and the bar reads Details · Description · Seller · Location (DEC-201); from 57.5rem the card stays under the title box beside the photo (DEC-197). The Review sheet and card name places with the draft's own country before the visitor's area (INC-724). In the grown photo box the photo's top meets the first thumbnail (INC-613 stands; extra height below), and the thumbnail column keeps its arrows at its own ends (INC-725, INC-726).
+
+Turn 31 — a tapped tab stays current while the page scrolls to its section (the watcher waits for the scroll to end and reads the sections' tops at the moment it decides — INC-727); AP-36 measures from the top of the page (INC-728).

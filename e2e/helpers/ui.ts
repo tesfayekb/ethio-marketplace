@@ -573,7 +573,18 @@ export async function enrollAndStepUp(page: Page): Promise<string> {
   expect(secret.length, "TOTP secret was not shown").toBeGreaterThan(10);
   await page.getByTestId("mfa-code").fill(totp(secret));
   await page.getByTestId("mfa-verify").click();
-  await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOn"], { timeout: 20000 });
+  try {
+    await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOn"], { timeout: 20000 });
+  } catch (error) {
+    const refusal = page.getByTestId("mfa-error");
+    const message = (await refusal.isVisible()) ? await refusal.innerText() : "no error shown";
+    throw new Error(
+      `${error instanceof Error ? error.message : String(error)}\nmfa-error: ${message}`,
+      {
+        cause: error,
+      },
+    );
+  }
   return secret;
 }
 
