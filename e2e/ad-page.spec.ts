@@ -1335,6 +1335,20 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         expect(Math.abs(location.width - article.width)).toBeLessThanOrEqual(1);
       }
     }
+    // Turn 23: a live ad with a fact, a description and NO pin has no Location
+    // box; the safety box takes the whole row under the seller card.
+    const noPin = await seed(seller, "active", { attributes: { [key]: "scratch value" } });
+    await gotoReady(page, (await address(noPin)).canonical);
+    await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
+    await expect(page.getByTestId("listing-detail-location")).toHaveCount(0);
+    const articleBox = await page.getByTestId("listing-detail").boundingBox();
+    const sellerCard = await page
+      .locator('section[data-testid="listing-detail-seller"]')
+      .boundingBox();
+    const safety = await page.getByTestId("listing-safety").boundingBox();
+    if (!articleBox || !sellerCard || !safety) throw new Error("AP-42 no-pin boxes missing");
+    expect(Math.abs(safety.width - articleBox.width)).toBeLessThanOrEqual(1);
+    expect(safety.y).toBeGreaterThan(sellerCard.y);
   });
 
   test("AP-45 the tabs on a wide screen", async ({ page }, testInfo) => {
