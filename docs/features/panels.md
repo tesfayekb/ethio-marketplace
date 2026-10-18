@@ -105,7 +105,7 @@ STUBBED — see `docs/features/location-scoping.md`.
 
 ## Rail collapse state (2026-08-05)
 
-Bundle 21 turn 7: Home is not a menu row (the breadcrumb and the phone's bottom bar carry it). The favourite, when set, is the first row, then a line. The ☆ explains itself: a tooltip with a mouse from 768 px, a line of fine print otherwise. One favourite: the last one chosen wins. Turn 8: the ‹ Main Menu row starts where the rows start — the arrow on the icons, the words on the names — on every menu.
+Bundle 21 turn 7: Home is not a menu row (the breadcrumb and the phone's bottom bar carry it). The favourite, when set, is the first row, then a line. The ☆ explains itself: a tooltip with a mouse from 768 px, a line of fine print otherwise. One favourite: the last one chosen wins. Turn 8: the ‹ Main Menu row starts where the rows start — the arrow on the icons, the words on the names — on every menu. Turn 11 (INC-741): the peek shows to a signed-out first visitor — the signed-out effect closes the menu only when a session this tab held has gone.
 
 D207 — one ★ favourite category or subcategory lives on this device in `ethio.fav`, a validated category slug. The ☆ beside a category page's title sets or clears it; another category replaces it. Its category icon gains a gold ★ badge and it is first in every main list (after Home in the persistent rail), including the folded rail, strip and opened phone menu. It is absent at subcategory levels and before hydration; no request is added.
 

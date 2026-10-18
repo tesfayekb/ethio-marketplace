@@ -1792,20 +1792,38 @@ test.describe("AD PAGE — the phone page never widens (bundle 21 turn 10)", () 
         document.querySelector(`[data-testid="${id}"]`)?.getBoundingClientRect().width ?? -1;
       let furthest = 0;
       let furthestText = "";
+      let furthestElement = "";
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         if (!node.textContent?.trim()) continue;
         const range = document.createRange();
         range.selectNodeContents(node);
         for (const rect of Array.from(range.getClientRects())) {
-          if (rect.width > 0 && rect.right > furthest) {
-            furthest = rect.right;
+          let visibleLeft = rect.left;
+          let visibleRight = rect.right;
+          for (
+            let ancestor = node.parentElement;
+            ancestor && ancestor !== document.body && ancestor !== document.documentElement;
+            ancestor = ancestor.parentElement
+          ) {
+            const overflowX = getComputedStyle(ancestor).overflowX;
+            if (overflowX !== "hidden" && overflowX !== "clip") continue;
+            // The padding box excludes the border and any vertical scrollbar.
+            const box = ancestor.getBoundingClientRect();
+            const paddingLeft = box.left + ancestor.clientLeft;
+            visibleLeft = Math.max(visibleLeft, paddingLeft);
+            visibleRight = Math.min(visibleRight, paddingLeft + ancestor.clientWidth);
+          }
+          if (visibleRight > visibleLeft && visibleRight > furthest) {
+            furthest = visibleRight;
             furthestText = node.textContent.slice(0, 60);
+            furthestElement =
+              node.parentElement?.getAttribute("data-testid") ?? node.parentElement?.tagName ?? "";
           }
         }
       }
       const crumbs = document.querySelector(
-        '[data-testid="shell-subband"] nav[aria-label="breadcrumb"] ol',
+        '[data-testid="shell-subband"] [data-testid="breadcrumbs"] ol',
       );
       return {
         innerWidth: window.innerWidth,
@@ -1814,8 +1832,10 @@ test.describe("AD PAGE — the phone page never widens (bundle 21 turn 10)", () 
         band: width("shell-band"),
         furthest,
         furthestText,
+        furthestElement,
         crumbHeight: crumbs?.getBoundingClientRect().height ?? -1,
       };
+    });
     });
     expect(measured.innerWidth, JSON.stringify(measured)).toBe(390);
     expect(measured.scrollWidth, JSON.stringify(measured)).toBeLessThanOrEqual(390);

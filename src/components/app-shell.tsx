@@ -758,7 +758,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     queryClient.removeQueries({ queryKey: [AUTH_DERIVED_ROOT] });
     setPermissionsState({ permissions: [], loading: false });
     setPanelChoice("marketplace");
-    setNavOpen(false);
+    // INC-741 — a fresh signed-out visit is not a sign-out (INC-627's rule): closing the menu here
+    // closed the D206 peek in the commit that opened it (a child's effects run first), so the peek
+    // never showed to a signed-out visitor. Only a session this tab held, now gone, closes it;
+    // the deliberate sign-out closes it itself (:655).
+    if (hadSession) setNavOpen(false);
     // Bundle 16 turn S3 (D189) — a deactivated account's sign-out lands on the sign-in page with the reason.
     if (takeDeactivatedSignOut()) {
       void navigate({ to: "/auth", search: { reason: "deactivated" }, replace: true });
