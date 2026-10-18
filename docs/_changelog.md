@@ -938,3 +938,4 @@
 - 2026-10-18 — Bundle 19 turn 29 (no migration; no string): on a medium screen the seller card goes back after Details and Description with its Seller tab; phones and large screens unchanged (DEC-200, replacing DEC-199).
 - 2026-10-18 — Bundle 19 turn 30 (no migration; no string): below 57.5rem the seller card follows Details and Description with its Seller tab (DEC-201); the Review names the draft's own place (INC-724); the thumbnail arrows and the photo's top in the grown photo box (INC-725, INC-726).
 - 2026-10-18 — Bundle 19 turn 31 (no migration; no string): a tapped tab stays current while the page scrolls (INC-727); AP-36 measures an unscrolled page (INC-728); the two-factor helper's failure names the page's error (INC-729).
+- 2026-10-18 — Bundle 19 turn 32 (no migration; no string): AP-45 checks every other tab after a tap (INC-727's cause was the test's own check); the roadmap gains bundle 20, D202, D203, DEC-194 and DEC-195.

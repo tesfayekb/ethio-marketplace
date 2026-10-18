@@ -1486,10 +1486,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         "aria-current",
         "true",
       );
-      await expect(bar.locator('[data-target="details"]')).not.toHaveAttribute(
-        "aria-current",
-        "true",
-      );
+      const others = bar.locator('[data-testid="listing-section-nav-item"]:visible');
+      for (const item of await others.all()) {
+        if ((await item.getAttribute("data-target")) === target) continue;
+        await expect(item).not.toHaveAttribute("aria-current", "true");
+      }
       const heading = await page.locator(card).getByRole("heading").boundingBox();
       const nav = await bar.boundingBox();
       if (!heading || !nav) throw new Error(`AP-45 ${target} boxes missing`);
