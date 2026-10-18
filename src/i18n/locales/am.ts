@@ -303,6 +303,9 @@ export const am: Messages = {
   "adPage.description.more": "ተጨማሪ ያንብቡ",
   "adPage.description.less": "ያነሰ አሳይ",
   "adPage.map.google": "በGoogle ካርታ ይክፈቱ",
+  "adPage.map.label": "የማስታወቂያው ቦታ ካርታ",
+  "adPage.map.approx": "የማስታወቂያው አካባቢ፣ 500 ሜትር ገደማ ስፋት ያለው።",
+
   "adPage.seller.allAds": "የዚህ ሻጭ ሁሉም ማስታወቂያዎች",
   "adPage.gone.title": "ይህ ማስታወቂያ ከእንግዲህ አይገኝም",
   "adPage.gone.body": "ተሽጦ፣ በሻጩ ተወግዶ ወይም ጊዜው አልፎ ሊሆን ይችላል።",
