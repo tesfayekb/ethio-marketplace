@@ -33,13 +33,10 @@ export function InviteText({ invite, className }: { invite: Invite; className: s
             invite.categoryName,
           )
       : invite.categoryName === null
-      ? t(first ? "feed.invite.place" : "feed.invite.placeMore").replace(
-          "{place}",
-          placeName,
-        )
-      : t(first ? "feed.invite.placeCategory" : "feed.invite.placeCategoryMore")
-          .replace("{category}", invite.categoryName)
-          .replace("{place}", placeName);
+        ? t(first ? "feed.invite.place" : "feed.invite.placeMore").replace("{place}", placeName)
+        : t(first ? "feed.invite.placeCategory" : "feed.invite.placeCategoryMore")
+            .replace("{category}", invite.categoryName)
+            .replace("{place}", placeName);
   return (
     <p data-testid="feed-invite-text" className={className}>
       {text}
