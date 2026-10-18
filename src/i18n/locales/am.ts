@@ -400,7 +400,6 @@ export const am: Messages = {
   "shell.switchPanel": "ክፍል ቀይር",
   "shell.panelLabel": "ክፍል",
   "shell.mainNav": "ዋና አሰሳ",
-  "shell.allCategories": "ሁሉም ምድቦች",
   "shell.categoriesLabel": "ምድቦች",
   "shell.categoriesEmpty": "እስካሁን ምድብ የለም",
   "shell.placeholderTitle": "በራሱ ባህሪ ይመጣል",

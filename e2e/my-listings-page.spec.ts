@@ -16,6 +16,7 @@ import {
   expectNoHorizontalOverflow,
   gotoReady,
   isMobile,
+  openRailScope,
   openPanel,
   signInViaSession,
 } from "./helpers/ui";
@@ -443,10 +444,8 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       page.getByTestId(isMobile(page) ? "bottom-bar-my-listings" : "panel-tab-my-listings"),
     ).toContainText(en["panel.myListings"]);
     await expect(page.getByText(en["shell.placeholderTitle"])).toHaveCount(0);
-
-    const item = page.getByTestId(
-      isMobile(page) ? "strip-item-ml-listings" : "rail-item-ml-listings",
-    );
+    const scope = await openRailScope(page);
+    const item = scope.getByTestId("rail-item-ml-listings");
     await expect(item).toHaveAttribute("href", /\/my-listings$/);
     await expect(item).toContainText(en["nav.myListings"]);
 

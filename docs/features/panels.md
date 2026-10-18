@@ -104,6 +104,8 @@ STUBBED — see `docs/features/location-scoping.md`.
 
 ## Rail collapse state (2026-08-05)
 
+D113 — rows are 32 px with a mouse and 44 px with touch; phone rows fit the strip at 32–40 px. Icons are 20 px in the rail and 24 px on phones. Home replaces All categories. The phone menu has a × and ends above the bottom bar. D205 — a tap on the strip opens the menu; the strip is aria-hidden and the ☰ is the accessible way in.
+
 D204 — the menu is open by default at every width from 768 (224 px on tablets, 256 from 1024), folded to 64 px by ☰ and remembered in `ethio.rail`. The tablet overlay is gone; below 768 ☰ opens the phone menu.
 
 The desktop rail's collapsed/expanded choice lives in ONE place: the `data-rail`

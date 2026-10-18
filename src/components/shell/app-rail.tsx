@@ -1,7 +1,7 @@
 import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
+import { ChevronRight, House, LogOut, X, type LucideIcon } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
@@ -10,6 +10,7 @@ import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useFooterInset } from "@/components/shell/use-footer-inset";
 
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
@@ -41,7 +42,7 @@ export { categoryGlyph } from "@/components/shell/category-glyphs";
 const HIDE_WHEN_COLLAPSED = "rail-icons:hidden";
 
 const ITEM_CORE =
-  "flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
+  "flex min-h-11 md:pointer-fine:min-h-8 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
   "ps-[var(--rail-pad)]";
 const ITEM_ICONS = "rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0";
 const ITEM_BASE = `${ITEM_CORE} ${ITEM_ICONS}`;
@@ -158,11 +159,41 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const Icon = node.icon;
   const inner = (
     <>
-      {Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
+      {Icon ? (
+        <Icon className={cn("shrink-0", compact ? "h-6 w-6" : "h-5 w-5")} aria-hidden="true" />
+      ) : null}
       <CutText className={cn(hide, strip && "sr-only")} text={node.label} />
     </>
   );
   const pad = { "--rail-pad": `${0.75 + depth * 0.75}rem` } as React.CSSProperties;
+
+  // D205 — painted strip rows are not navigation controls; the strip opens the menu.
+  if (strip) {
+    return (
+      <li className={cn(hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1")}>
+        <span
+          data-testid={testid}
+          aria-current={node.active ? "page" : undefined}
+          style={pad}
+          className={cn(
+            itemBase,
+            node.active ? ITEM_ACTIVE : ITEM_IDLE,
+            compactClass,
+            hasChildren && "h-8 min-h-8 max-h-10 flex-1",
+          )}
+        >
+          {inner}
+        </span>
+        {hasChildren ? (
+          <ul className="mt-0.5 flex min-h-0 flex-1 flex-col gap-0.5">
+            {(node.children ?? []).map((child) => (
+              <RailRow key={child.key} node={child} depth={depth + 1} />
+            ))}
+          </ul>
+        ) : null}
+      </li>
+    );
+  }
 
   // C3-UX-2 amended — a GROUP is a visual cluster, NOT an accordion. A group
   // MAY own a page; only then is its header a link. Its sub-items remain
@@ -172,12 +203,12 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       itemBase,
       containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
       compactClass,
-      compact && "h-7 min-h-7 max-h-11 flex-1",
+      compact && "h-8 min-h-8 max-h-10 flex-1",
     );
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
         )}
       >
         {node.path ? (
@@ -216,7 +247,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
         )}
       >
         <Collapsible
@@ -243,7 +274,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
                   itemBase,
                   containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
                   compactClass,
-                  compact && "h-7 min-h-7 max-h-11 flex-1",
+                  compact && "h-8 min-h-8 max-h-10 flex-1",
                 )}
               >
                 {inner}
@@ -280,7 +311,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
         )}
       >
         <WithTooltip label={node.label}>
@@ -306,7 +337,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
         )}
       >
         <WithTooltip label={node.label}>
@@ -331,7 +362,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   return (
     <li
       className={cn(
-        compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-7 max-h-11 flex-1"),
+        compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
       )}
     >
       <WithTooltip label={node.label}>
@@ -386,24 +417,14 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
 
   return (
     <nav aria-label={t("shell.categoriesLabel")} className={cn(compact && "flex h-full flex-col")}>
-      {!compact ? (
-        <h2
-          className={cn(
-            "px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground",
-            hide,
-          )}
-        >
-          {t("shell.categoriesLabel")}
-        </h2>
-      ) : null}
       <ul className={cn("flex flex-col gap-0.5", compact && "h-full")}>
         {!compact ? (
           <RailRow
             node={{
               key: "all",
               testid: "rail-category-all",
-              label: t("shell.allCategories"),
-              icon: Tag,
+              label: t("nav.home"),
+              icon: House,
               active: selectedCategorySlug === null,
               path: "/",
               onSelect: onNavigate,
@@ -422,12 +443,17 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
               >
                 <div
                   className={cn(
-                    "flex min-h-11 md:pointer-fine:min-h-9 items-center gap-2 px-3",
+                    "flex min-h-11 md:pointer-fine:min-h-8 items-center gap-2 px-3",
                     compact && "h-full min-h-0",
                     strip ? "justify-center ps-0 pe-0" : compact && "justify-start gap-3 ps-3 pe-2",
                   )}
                 >
-                  <span className="h-4 w-4 shrink-0 animate-pulse rounded bg-muted" />
+                  <span
+                    className={cn(
+                      "shrink-0 animate-pulse rounded bg-muted",
+                      compact ? "h-6 w-6" : "h-5 w-5",
+                    )}
+                  />
                   <span
                     className={cn(
                       "h-3 w-24 animate-pulse rounded bg-muted",
@@ -575,7 +601,7 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
           }}
           className={cn(ITEM_BASE, ITEM_IDLE, strip && "h-full min-h-0 justify-center ps-0 pe-0")}
         >
-          <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
           <CutText
             className={cn(HIDE_WHEN_COLLAPSED, strip && "sr-only")}
             text={t("auth.signOut")}
@@ -630,6 +656,8 @@ export function AppRail() {
       <RailVariantContext.Provider value="strip">
         <div
           data-testid="rail-strip"
+          aria-hidden="true"
+          onClick={() => setNavOpen(true)}
           style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
           className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-20 flex w-12 flex-col bg-sidebar shadow-side md:hidden"
         >
@@ -639,6 +667,7 @@ export function AppRail() {
           >
             <RailBody onNavigate={() => undefined} />
           </div>
+          {user !== null && auth.isAuthenticated ? <div className="min-h-11 shrink-0" /> : null}
         </div>
       </RailVariantContext.Provider>
 
@@ -647,7 +676,7 @@ export function AppRail() {
           <div
             data-testid="rail-menu-scrim"
             aria-hidden="true"
-            className="fixed inset-x-0 top-13 bottom-0 z-[35] bg-foreground/40 md:hidden"
+            className="fixed inset-x-0 top-13 bottom-[var(--bottom-bar)] z-[35] bg-foreground/40 md:hidden"
             onClick={() => setNavOpen(false)}
           />
         ) : null}
@@ -657,7 +686,7 @@ export function AppRail() {
           data-panel={activePanel}
           aria-label={t("shell.menuTitle")}
           aria-describedby={undefined}
-          className="fixed start-0 top-13 bottom-0 z-40 flex w-64 flex-col rounded-e-[1rem] bg-sidebar shadow-lg md:hidden"
+          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-40 flex w-64 flex-col rounded-e-[1rem] bg-sidebar shadow-lg md:hidden"
           onPointerDownOutside={(event) => {
             if ((event.target as Element | null)?.closest('[aria-controls="rail-menu"]')) {
               event.preventDefault();
@@ -682,10 +711,20 @@ export function AppRail() {
             document.querySelector<HTMLElement>('[aria-controls="rail-menu"]')?.focus();
           }}
         >
+          <Button
+            variant="ghost"
+            size="touch"
+            data-testid="rail-menu-close"
+            aria-label={t("common.close")}
+            onClick={() => setNavOpen(false)}
+            className="fixed start-[calc(16rem-2.75rem)] top-1 z-50 w-11 p-0 md:hidden [&_svg]:size-5"
+          >
+            <X aria-hidden="true" />
+          </Button>
           <DialogPrimitive.Title className="sr-only">{t("shell.menuTitle")}</DialogPrimitive.Title>
           {/* The opened menu belongs to phones only and keeps its identity foot. */}
           <RailVariantContext.Provider value="menu">
-            <div className="h-[calc(100%-var(--bottom-bar))] min-h-0">
+            <div className="min-h-0 flex-1">
               <div
                 data-testid="rail-scroll"
                 className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
@@ -694,13 +733,13 @@ export function AppRail() {
               </div>
             </div>
           </RailVariantContext.Provider>
-          <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
-            {user !== null && auth.isAuthenticated ? (
+          {user !== null && auth.isAuthenticated ? (
+            <div className="flex min-h-11 shrink-0 items-center border-t border-neutral-soft px-3">
               <p data-testid="drawer-identity" className="text-sm text-muted-foreground">
                 <CutText text={user.displayName ?? t("auth.signedInAs")} />
               </p>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </DialogPrimitive.Content>
       </DialogPrimitive.Root>
     </TooltipProvider>

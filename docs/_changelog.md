@@ -948,3 +948,5 @@
 - 2026-10-18 — Bundle 21 turn 1 (no migration): Look B (D135) — one card surface (12-px corners, soft shadow, no border; a faint ring in dark mode) and the look law; the bars and bands without lines; the panel tabs as pills; the bottom bar's soft edges and its Amharic short label (D97); the footer full width with its brand block, How it works removed (D116); the seller card without its two duplicate labels (D211).
 
 - 2026-10-18 — Bundle 21 turn 2 (no migration): one ☰ at every width in the top-left corner, the logo after it, folded the logo with its mark in the bar (D115, D117); search centred (D111); tablets keep the menu open at 224 px, ☰ folds it (D204); md tables switch on the space beside the menu (tbl-md); PHONE_STRIP and the tablet overlay retired.
+
+- 2026-10-18 — Bundle 21 turn 3 (no migration): the menus' rows and icons (D113: 32-px mouse rows, phone rows 32–40 px, 20-px rail and 24-px phone icons), Home in place of All categories, the rail's Categories heading removed, the phone menu's × and its place above the bottom bar, a tap on the strip opens the menu (D205); RM-1…RM-4.

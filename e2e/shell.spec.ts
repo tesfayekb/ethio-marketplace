@@ -680,7 +680,7 @@ test.describe("corner-block grid", () => {
     // U0l: category rows are LINKS now (each category is a real URL).
     const rows = page.getByTestId("app-rail").locator("nav li > a");
     const count = await rows.count();
-    // Row 0 is "All categories"; real categories follow. Needs at least two
+    // Row 0 is Home; real categories follow. Needs at least two
     // seeded categories for the claim to mean anything.
     if (count < 3) return;
 
@@ -713,7 +713,7 @@ test.describe("corner-block grid", () => {
     if (!toggleBox || !logoBox) throw new Error("corner controls have no bounds");
     expect(toggleBox.x).toBeLessThan(logoBox.x);
     await expect(html).toHaveAttribute("data-rail", "expanded");
-    const allCategories = rail.getByText(en["shell.allCategories"], { exact: true });
+    const allCategories = rail.getByText(en["nav.home"], { exact: true });
     await expect(allCategories).toBeVisible();
     const wide = await rail.boundingBox();
     if (!wide) throw new Error("expanded rail has no bounds");
@@ -726,10 +726,10 @@ test.describe("corner-block grid", () => {
     expect(narrow.width).toBeLessThan(wide.width);
     expect(Math.abs(narrow.width - 64)).toBeLessThanOrEqual(1);
     await expect(rail.getByTestId("rail-category-all").locator("svg")).toBeVisible();
-    await rail.getByRole("link", { name: en["shell.allCategories"] }).hover();
+    await rail.getByRole("link", { name: en["nav.home"] }).hover();
     const tip = page.getByTestId("rail-tooltip");
     await expect(tip).toBeVisible();
-    await expect(tip).toContainText(en["shell.allCategories"]);
+    await expect(tip).toContainText(en["nav.home"]);
     await page.reload();
     await waitForHydration(page);
     await expect(html).toHaveAttribute("data-rail", "collapsed");
@@ -935,30 +935,34 @@ test.describe("mobile chrome", () => {
     for (const id of ["strip-category-all", "strip-post-entry", "strip-sign-out"]) {
       await expect(page.getByTestId(id)).toHaveCount(0);
     }
+    await expect(strip).toHaveAttribute("aria-hidden", "true");
+    await expect(strip.getByRole("link", { includeHidden: true })).toHaveCount(0);
     const scroll = page.getByTestId("strip-scroll");
     const capacity = await scroll.evaluate((el) => ({
       height: el.clientHeight,
       overflow: el.scrollHeight - el.clientHeight,
-      rows: el.querySelectorAll("li > a").length,
+      rows: el.querySelectorAll("li > span").length,
       gap: parseFloat(getComputedStyle(el.querySelector("ul") ?? el).rowGap) || 0,
     }));
-    const minimum = capacity.rows * 28 + Math.max(0, capacity.rows - 1) * capacity.gap;
+    const minimum = capacity.rows * 32 + Math.max(0, capacity.rows - 1) * capacity.gap;
     if (minimum <= capacity.height) {
       expect(capacity.overflow).toBeLessThanOrEqual(1);
     } else {
       expect(capacity.overflow).toBeGreaterThan(0);
     }
     const rows = await scroll
-      .locator("li > a")
+      .locator("li > span")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
     expect(rows.length).toBeGreaterThan(0);
     for (const height of rows) {
-      expect(height).toBeGreaterThanOrEqual(27);
-      expect(height).toBeLessThanOrEqual(45);
+      expect(height).toBeGreaterThanOrEqual(31);
+      expect(height).toBeLessThanOrEqual(41);
     }
   });
 
-  test("a strip row opens its category", async ({ page }) => {
+  test("RM-1 a tap on the strip opens the menu; the row under the finger opens the category", async ({
+    page,
+  }) => {
     const { data, error } = await adminClient()
       .from("category_tree_pointers")
       .select("category:categories!category_tree_pointers_child_id_fkey!inner(slug, is_active)")
@@ -974,9 +978,30 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     const row = page.getByTestId(`strip-category-${category.slug}`);
     await expect(row).toBeVisible();
+    const originalUrl = page.url();
+    const rowBox = await row.boundingBox();
+    if (!rowBox) throw new Error("Missing strip category bounds");
+    const tap = { x: rowBox.x + rowBox.width / 2, y: rowBox.y + rowBox.height / 2 };
     await row.click();
+    await expect(page).toHaveURL(originalUrl);
+    const menu = page.getByTestId("rail-menu");
+    await expect(menu).toBeVisible();
+    const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
+    await expect(menuRow).toBeVisible();
+    const menuBox = await menuRow.boundingBox();
+    if (!menuBox) throw new Error("Missing category menu row bounds");
+    expect(Math.abs(menuBox.y - rowBox.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(menuBox.height - rowBox.height)).toBeLessThanOrEqual(1);
+    await page.mouse.click(tap.x, tap.y);
     await expect(page).toHaveURL(new RegExp(`/c/${category.slug}$`));
     await expect(row).toHaveAttribute("aria-current", "page");
+    await expect(page.getByTestId("rail-menu")).toBeHidden();
+    const reopened = await openRailScope(page);
+    await expect(reopened.getByTestId(`rail-category-${category.slug}`)).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await page.keyboard.press("Escape");
   });
 
   test("the bar and the band stay while the page scrolls", async ({ page }) => {
@@ -1038,6 +1063,8 @@ test.describe("mobile chrome", () => {
     if (!rowBox || !stripBox) throw new Error("Missing aligned category rows");
     expect(Math.abs(rowBox.y - stripBox.y)).toBeLessThanOrEqual(1);
     expect(Math.abs(rowBox.height - stripBox.height)).toBeLessThanOrEqual(1);
+    expect(rowBox.height).toBeGreaterThanOrEqual(31);
+    expect(rowBox.height).toBeLessThanOrEqual(41);
     const iconBox = await row.locator("svg").boundingBox();
     const nameBox = await row.locator("[data-cut]").boundingBox();
     if (!iconBox || !nameBox) throw new Error("Missing menu row icon or name");
@@ -1071,12 +1098,26 @@ test.describe("mobile chrome", () => {
     await expect(accountMenu).toHaveAttribute("data-panel", "account");
   });
 
-  test("the menu closes back to the icons", async ({ page }) => {
+  test("RM-2 the menu closes back to the icons", async ({ page }) => {
     await gotoReady(page, "/");
     const control = page.getByRole("button", { name: en["shell.openMenu"] });
     let menu = await openRailScope(page);
     const menuBox = await menu.boundingBox();
     if (!menuBox) throw new Error("Missing opened menu box");
+    const close = page.getByTestId("rail-menu-close");
+    await expect(close).toBeVisible();
+    const closeBox = await close.boundingBox();
+    if (!closeBox) throw new Error("Missing close button box");
+    expect(closeBox.height).toBeGreaterThanOrEqual(44);
+    expect(closeBox.width).toBeGreaterThanOrEqual(44);
+    expect(Math.abs(closeBox.x + closeBox.width - menuBox.x - menuBox.width)).toBeLessThanOrEqual(
+      1,
+    );
+    await close.click();
+    await expect(menu).toBeHidden();
+    await expect(close).toBeHidden();
+    await expect(control).toBeFocused();
+    menu = await openRailScope(page);
     await page.mouse.click(menuBox.x + menuBox.width + 20, menuBox.y + 20);
     await expect(menu).toBeHidden();
     await expect(page.getByTestId("rail-strip")).toBeVisible();
@@ -1189,20 +1230,21 @@ test.describe("mobile chrome", () => {
     await expectTapTarget(page, page.getByTestId("bottom-bar-home"), "bar home");
     await expectTapTarget(page, page.getByTestId("bottom-bar-sign-in"), "bar sign in");
 
-    // The phone strip uses the authorized fitted 28–44px section rows.
-    const firstStripRow = page.getByTestId("strip-scroll").locator("li > a").nth(0);
+    // The phone strip uses the authorized fitted 32–40px section rows.
+    const firstStripRow = page.getByTestId("strip-scroll").locator("li > span").nth(0);
     const stripRowBox = await firstStripRow.boundingBox();
     if (!stripRowBox) throw new Error("Missing strip category");
-    expect(stripRowBox.height).toBeGreaterThanOrEqual(27);
-    expect(stripRowBox.height).toBeLessThanOrEqual(45);
+    expect(stripRowBox.height).toBeGreaterThanOrEqual(31);
+    expect(stripRowBox.height).toBeLessThanOrEqual(41);
 
     // Category rows inside the opened menu share the strip's fitted height.
     const menu = await openRailScope(page);
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the fitted-row anchor
     const firstMenuRow = await catalogueRows(menu).first().boundingBox();
     if (!firstMenuRow) throw new Error("Missing menu category");
-    expect(firstMenuRow.height).toBeGreaterThanOrEqual(27);
-    expect(firstMenuRow.height).toBeLessThanOrEqual(45);
+    expect(firstMenuRow.height).toBeGreaterThanOrEqual(31);
+    expect(firstMenuRow.height).toBeLessThanOrEqual(41);
+    await expectTapTarget(page, page.getByTestId("rail-menu-close"), "close menu");
   });
 
   test("the bottom bar, signed out", async ({ page }) => {
@@ -1392,7 +1434,7 @@ test.describe("marketplace rail is categories only", () => {
   test("no Settings item leaks into the category rail", async ({ page }) => {
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
-    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+    await expect(rail.getByText(en["nav.home"], { exact: true })).toBeVisible();
     await expect(rail.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
   });
 });
@@ -1413,13 +1455,13 @@ test.describe("panel follows the route", () => {
     // Operator's path: land on marketplace first.
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
-    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+    await expect(rail.getByText(en["nav.home"], { exact: true })).toBeVisible();
 
     await gotoReady(page, "/settings");
     await expectActivePanel(page, "account");
     // Account rail, not the category tree; and no marketplace location row.
     await expect(rail.getByText(en["nav.overview"], { exact: true })).toBeVisible();
-    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
+    await expect(rail.getByText(en["nav.home"], { exact: true })).toHaveCount(0);
     await expect(page.getByTestId("location-row")).toHaveCount(0);
     // The settings page itself still renders (no placeholder).
     await expect(page.getByRole("heading", { name: en["settings.title"] })).toBeVisible();
@@ -1427,7 +1469,7 @@ test.describe("panel follows the route", () => {
     // Back to Marketplace: categories again, Settings not among them.
     await openPanel(page, "marketplace");
     await expect(page).toHaveURL(/\/$/);
-    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+    await expect(rail.getByText(en["nav.home"], { exact: true })).toBeVisible();
     await expect(rail.getByText(en["settings.navLabel"], { exact: true })).toHaveCount(0);
     await expect(page.getByTestId("location-row")).toBeVisible();
   });
@@ -1494,7 +1536,7 @@ test.describe("panel header band (U0d)", () => {
     await expect(page).toHaveURL(/\/account$/);
     await expect(rail.getByTestId("panel-header-title")).toHaveText(en["panel.account"]);
     await expect(rail.getByTestId("rail-item-ac-overview")).toBeVisible();
-    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toHaveCount(0);
+    await expect(rail.getByText(en["nav.home"], { exact: true })).toHaveCount(0);
   });
 });
 
@@ -1525,6 +1567,9 @@ test.describe("rail scroll regions (U0f)", () => {
       .toBeGreaterThan(0);
 
     const before = (await drawer.boundingBox())!;
+    const barBox = await page.getByTestId("bottom-bar").boundingBox();
+    if (!barBox) throw new Error("Missing bottom bar box");
+    expect(Math.abs(before.y + before.height - barBox.y)).toBeLessThanOrEqual(1);
     const last = scroll.locator("li").last();
     await expect(last).not.toBeInViewport();
 
@@ -1717,7 +1762,7 @@ test.describe("desktop layout laws (U0g)", () => {
     await expect(page.getByTestId("breadcrumbs")).toBeInViewport();
   });
 
-  test("C1: a rail row is 36px high with a mouse from md", async ({ page, viewport }) => {
+  test("C1: a rail row is 32px high with a mouse from md", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
@@ -1729,7 +1774,7 @@ test.describe("desktop layout laws (U0g)", () => {
     const first = heights[0];
     expect(first).toBeDefined();
     if (first === undefined) throw new Error("the rail has no link");
-    expect(Math.abs(first - 36)).toBeLessThanOrEqual(1);
+    expect(Math.abs(first - 32)).toBeLessThanOrEqual(1);
   });
 
   test("L1/L2: the top band and the rail stay put while content scrolls", async ({
@@ -2870,7 +2915,7 @@ test.describe("top band law (bundle 21 turn 2)", () => {
       await page.setViewportSize({ width: 360, height: 800 });
       await gotoReady(page, "/");
       const menu = page.getByRole("button", { name: en["shell.openMenu"], exact: true });
-      const stripRow = page.getByTestId("strip-scroll").locator("li > a, li > button").nth(0);
+      const stripRow = page.getByTestId("strip-scroll").locator("li > span").nth(0);
       await expect(stripRow).toBeVisible();
       expect(
         Math.abs(
@@ -2960,4 +3005,57 @@ test.describe("top band law (bundle 21 turn 2)", () => {
     if (!box) throw new Error("folded 1280 rail has no bounds");
     expect(Math.abs(box.width - 64)).toBeLessThanOrEqual(1);
   });
+});
+
+test("RM-3 the menu ends above the tappable bottom bar and identity stays inside", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-360", "phone menu only");
+  const user = await leaseUser();
+  await signIn(page, user.email, user.password);
+  await gotoReady(page, "/account");
+  const menu = await openRailScope(page);
+  const bar = page.getByTestId("bottom-bar");
+  const identity = menu.getByTestId("drawer-identity");
+  await expect(identity).toBeVisible();
+  const menuBox = await menu.boundingBox();
+  const barBox = await bar.boundingBox();
+  const identityBox = await identity.boundingBox();
+  if (!menuBox || !barBox || !identityBox) throw new Error("Missing menu, bar or identity bounds");
+  expect(Math.abs(menuBox.y + menuBox.height - barBox.y)).toBeLessThanOrEqual(1);
+  expect(identityBox.y).toBeGreaterThanOrEqual(menuBox.y);
+  expect(identityBox.y + identityBox.height).toBeLessThanOrEqual(barBox.y);
+  await page.getByTestId("bottom-bar-home").click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(menu).toBeHidden();
+});
+
+test("RM-4 the row icons use the approved rail and phone sizes", async ({ page }, testInfo) => {
+  await gotoReady(page, "/");
+  const check = async (scope: import("@playwright/test").Locator, expected: number) => {
+    const sizes = await scope
+      .locator("li > a > svg, li > span > svg, li > button > svg")
+      .evaluateAll((icons) =>
+        icons.map((icon) => {
+          const box = icon.getBoundingClientRect();
+          return { width: box.width, height: box.height };
+        }),
+      );
+    expect(sizes.length).toBeGreaterThan(0);
+    for (const size of sizes) {
+      expect(Math.abs(size.width - expected)).toBeLessThanOrEqual(1);
+      expect(Math.abs(size.height - expected)).toBeLessThanOrEqual(1);
+    }
+  };
+  if (testInfo.project.name === "mobile-360") {
+    await expect(page.getByTestId("strip-category-skeleton")).toHaveCount(0);
+    await check(page.getByTestId("rail-strip"), 24);
+    const menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await check(menu, 24);
+  } else {
+    const rail = page.getByTestId("app-rail");
+    await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await check(rail, 20);
+  }
 });
