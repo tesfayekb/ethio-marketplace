@@ -524,7 +524,6 @@ test.describe("app shell", () => {
     await gotoReady(page, "/");
     const columns = page.getByTestId("footer-columns");
     const brand = columns.getByTestId("footer-brand");
-    await expect(brand).toBeVisible();
     const navs = columns.locator("nav");
     await expect(navs).toHaveCount(3);
     const widths = await navs.evaluateAll((els) =>
@@ -538,30 +537,42 @@ test.describe("app shell", () => {
       els.map((el) => getComputedStyle(el).textAlign),
     );
     if (viewport.width >= 768) {
+      await expect(brand).toBeVisible();
       expect(Math.abs(group.x + group.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
       expect(alignments).toHaveLength(3);
       for (const alignment of alignments) expect(["start", "left"]).toContain(alignment);
+      const home = await brand.getByTestId("footer-home").boundingBox();
+      if (!home) throw new Error("FT-1: missing footer Home target");
+      expect(home.height).toBeGreaterThanOrEqual(44);
     } else {
-      const geometry = await columns.evaluate((el) => {
-        const brandEl = el.querySelector('[data-testid="footer-brand"]');
-        const nav = el.querySelector("nav");
-        if (!brandEl || !nav) throw new Error("FT-1: missing brand or nav");
-        return {
-          brandBottom: brandEl.getBoundingClientRect().bottom,
-          navTop: nav.getBoundingClientRect().top,
-        };
-      });
-      expect(geometry.brandBottom).toBeLessThanOrEqual(geometry.navTop);
+      await expect(brand).toBeHidden();
       expect(alignments).toEqual(["center", "center", "center"]);
+      const footer = await page.locator("footer").boundingBox();
+      if (!footer) throw new Error("FT-1: missing footer");
+      if (viewport.width === 360) expect(footer.height).toBeLessThanOrEqual(130);
     }
     const heights = await navs
-      .locator("a, li, span.inline-flex")
+      .locator("a, span.inline-flex")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
     expect(heights.length).toBeGreaterThan(0);
     for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
-    const home = await brand.getByTestId("footer-home").boundingBox();
-    if (!home) throw new Error("FT-1: missing footer Home target");
-    expect(home.height).toBeGreaterThanOrEqual(44);
+    const rhythms = await navs.evaluateAll((els) =>
+      els.map((nav) => {
+        const elements = Array.from(nav.querySelectorAll("h2, li > span"));
+        return elements.map((element) => {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const box = range.getBoundingClientRect();
+          return box.y + box.height / 2;
+        });
+      }),
+    );
+    for (const centres of rhythms) {
+      expect(centres.length).toBeGreaterThan(1);
+      for (let index = 1; index < centres.length; index += 1) {
+        expect(Math.abs(centres[index] - centres[index - 1] - 28)).toBeLessThanOrEqual(2);
+      }
+    }
     await expect(page.locator("footer")).not.toContainText("How it works");
   });
 
@@ -1216,11 +1227,14 @@ test.describe("mobile chrome", () => {
       "sign in",
     );
     await expectTapTarget(page, page.getByTestId("language-switcher"), "language");
-    // Scoped to the FOOTER on purpose: shadcn's BreadcrumbPage renders
-    // role="link" for the current page, so an unscoped role query matched the
-    // breadcrumb's 20px "Home" instead of the footer link (INC-051). The 44px
-    // floor is unchanged — this asserts the element the test always meant.
-    await expectTapTarget(page, page.getByTestId("footer-home"), "footer home");
+    // The brand block is hidden on phones; measure the first footer item's target.
+    const footerItem = page
+      .getByTestId("footer-columns")
+      .locator("nav")
+      .nth(0)
+      .locator("li > span")
+      .nth(0);
+    await expectTapTarget(page, footerItem, "footer item");
     await expectTapTarget(
       page,
       page.getByRole("button", { name: en["shell.themeToggle"] }),
@@ -1355,7 +1369,13 @@ test.describe("mobile chrome", () => {
     ).toBe(true);
     expect(Math.abs((await bottomOf(page, "rail-strip")) - bar.y)).toBeLessThanOrEqual(1);
     const strip = await page.getByTestId("rail-strip").boundingBox();
-    const firstLink = await page.getByTestId("footer-home").boundingBox();
+    const firstLink = await page
+      .getByTestId("footer-columns")
+      .locator("nav")
+      .nth(0)
+      .locator("li > span")
+      .nth(0)
+      .boundingBox();
     if (!strip || !firstLink) throw new Error("Missing footer or strip");
     expect(firstLink.x).toBeGreaterThanOrEqual(strip.x + strip.width - 1);
   });

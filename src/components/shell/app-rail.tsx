@@ -147,7 +147,10 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     node.testid && (strip ? `strip-${node.testid.replace(/^rail-/, "")}` : node.testid);
   const compactClass =
     compact &&
-    cn("h-full min-h-0", strip ? "justify-center ps-0 pe-0" : "justify-start gap-3 ps-[var(--rail-pad)] pe-2");
+    cn(
+      "h-full min-h-0",
+      strip ? "justify-center ps-0 pe-0" : "justify-start gap-3 ps-[var(--rail-pad)] pe-2",
+    );
   const hasChildren = (node.children?.length ?? 0) > 0;
   // An active descendant keeps its ancestor open.
   const containsActive = (n: RailNode): boolean =>

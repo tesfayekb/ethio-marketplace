@@ -380,4 +380,52 @@ test.describe("Admin shell (U0)", () => {
       await expect(page.getByTestId("admin-access-notice")).toBeVisible({ timeout: 15000 });
     }
   });
+
+  test("IN-1 sub-items indent when open and share one folded icon column", async ({
+    page,
+  }, testInfo) => {
+    const staff = await leaseUser();
+    await grantRole(staff.id, "admin");
+    const perms = await permissionsOfRole("admin");
+    const section = ADMIN_SECTIONS.find(
+      (item) => sectionGroupId(item) === "categories" && perms.includes(item.permission),
+    );
+    if (!section) throw new Error("IN-1: admin holds no grouped section");
+    await signIn(page, staff.email, staff.password);
+    await gotoReady(page, section.path);
+    await expect(page.getByTestId(`admin-section-${section.id}`)).toBeVisible();
+    const iconBox = async (scope: import("@playwright/test").Locator, id: string) => {
+      const icon = scope.getByTestId(id).locator("svg").nth(0);
+      await expect(icon).toBeVisible();
+      const box = await icon.boundingBox();
+      if (!box) throw new Error(`IN-1: missing icon bounds for ${id}`);
+      return box;
+    };
+    const mobile = testInfo.project.name === "mobile-360";
+    await page.setViewportSize({ width: mobile ? 360 : 1280, height: 780 });
+    const scope = await openRailScope(page);
+    const group = await iconBox(scope, "admin-group-categories");
+    const child = await iconBox(scope, `rail-item-ad-${section.id}`);
+    expect(child.x).toBeGreaterThanOrEqual(group.x + 14);
+    if (mobile) {
+      await page.keyboard.press("Escape");
+      const strip = page.getByTestId("rail-strip");
+      const foldedGroup = await iconBox(strip, "strip-admin-group-categories");
+      const foldedChild = await iconBox(strip, `strip-item-ad-${section.id}`);
+      expect(
+        Math.abs(foldedChild.x + foldedChild.width / 2 - foldedGroup.x - foldedGroup.width / 2),
+      ).toBeLessThanOrEqual(1);
+    } else {
+      await expect(page.locator("html")).toHaveAttribute("data-rail", "expanded");
+      await page.getByTestId("rail-collapse-toggle").click();
+      await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
+      const foldedGroup = await iconBox(scope, "admin-group-categories");
+      const foldedChild = await iconBox(scope, `rail-item-ad-${section.id}`);
+      expect(
+        Math.abs(foldedChild.x + foldedChild.width / 2 - foldedGroup.x - foldedGroup.width / 2),
+      ).toBeLessThanOrEqual(1);
+      await page.getByTestId("rail-collapse-toggle").click();
+      await expect(page.locator("html")).toHaveAttribute("data-rail", "expanded");
+    }
+  });
 });
