@@ -829,8 +829,9 @@ export function ListingDetail(view: ListingDetailView) {
           them, one method per row with its control at the row's end. */}
         <section
           id="contact"
-          className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.seller}`}
+          className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.seller} ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`}
           data-testid="listing-detail-seller"
+          data-highlight={contactHighlight ? "true" : undefined}
         >
           <div className="space-y-1">
             <h3 className="font-display text-base font-semibold text-foreground">
