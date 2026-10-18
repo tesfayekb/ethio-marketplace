@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { shapePostingSchema } from "../posting-service";
@@ -703,6 +703,136 @@ it("LD-22 the sign-in return focuses Show contact and highlights the seller card
     expect(screen.getByTestId("listing-detail-seller")).not.toHaveAttribute("data-highlight");
     expect(onReveal).not.toHaveBeenCalled();
   } finally {
+    vi.useRealTimers();
+  }
+});
+
+it("LD-23 a tapped tab stays current through its scroll; fresh tops decide after scrollend or the 1000 ms fallback (INC-727)", () => {
+  const observers: TestObserver[] = [];
+  class TestObserver implements IntersectionObserver {
+    readonly root = null;
+    readonly rootMargin = "";
+    readonly scrollMargin = "";
+    readonly thresholds = [0];
+    readonly targets = new Set<Element>();
+    constructor(readonly callback: IntersectionObserverCallback) {
+      observers.push(this);
+    }
+    observe(target: Element) {
+      this.targets.add(target);
+    }
+    unobserve(target: Element) {
+      this.targets.delete(target);
+    }
+    disconnect() {
+      this.targets.clear();
+    }
+    takeRecords(): IntersectionObserverEntry[] {
+      return [];
+    }
+    report(ids: string[]) {
+      const entries = [...this.targets].map(
+        (target, index): IntersectionObserverEntry => ({
+          target,
+          isIntersecting: ids.includes(target.id),
+          intersectionRatio: ids.includes(target.id) ? 1 : 0,
+          // Deliberately stale, different tops: the live sections share top 0 in jsdom.
+          boundingClientRect: new DOMRect(0, index * 100, 100, 100),
+          intersectionRect: new DOMRect(),
+          rootBounds: null,
+          time: 0,
+        }),
+      );
+      act(() => this.callback(entries, this));
+    }
+  }
+  vi.useFakeTimers();
+  vi.stubGlobal("IntersectionObserver", TestObserver);
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn(() => ({ matches: false })),
+  );
+  let unmount: (() => void) | undefined;
+  try {
+    const definitions =
+      shapePostingSchema({
+        attributes: [{ attr_key: "note", attr_type: "text", name_en: "Note" }],
+      })?.attributes ?? [];
+    const rendered = render(
+      <ListingDetail
+        {...BASE}
+        actor="buyer"
+        definitions={definitions}
+        attributes={{ note: "scratch fact" }}
+        description="scratch description"
+        directions="scratch directions"
+      />,
+    );
+    unmount = rendered.unmount;
+    const observer = observers[0];
+    if (!observer) throw new Error("section observer missing");
+    expect([...observer.targets].map((target) => target.id)).toEqual([
+      "ad-details",
+      "ad-description",
+      "contact",
+      "ad-location",
+    ]);
+    const item = (target: string) => {
+      const button = screen
+        .getAllByTestId("listing-section-nav-item")
+        .find((node) => node.dataset.target === target);
+      if (!button) throw new Error(`section item missing: ${target}`);
+      return button;
+    };
+    for (const target of ["details", "description", "location"]) {
+      vi.spyOn(item(target), "getClientRects").mockReturnValue(
+        Object.assign([new DOMRect()], {
+          item: (index: number) => (index === 0 ? new DOMRect() : null),
+        }),
+      );
+    }
+    fireEvent.click(item("description"));
+    observer.report(["ad-details"]);
+    expect(item("description")).toHaveAttribute("aria-current", "true");
+    act(() => window.dispatchEvent(new Event("scrollend")));
+    // Ending the pin itself makes no new decision, despite the last Details-only report.
+    expect(item("description")).toHaveAttribute("aria-current", "true");
+    observer.report(["ad-details", "ad-description", "ad-location"]);
+    expect(item("description")).toHaveAttribute("aria-current", "true");
+
+    fireEvent.click(item("description"));
+    act(() => {
+      vi.advanceTimersByTime(999);
+    });
+    observer.report(["ad-details"]);
+    expect(item("description")).toHaveAttribute("aria-current", "true");
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(item("description")).toHaveAttribute("aria-current", "true");
+    observer.report(["ad-details"]);
+    expect(item("details")).toHaveAttribute("aria-current", "true");
+
+    // A second tap replaces both the chosen target and the first tap's expiry.
+    fireEvent.click(item("description"));
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    fireEvent.click(item("location"));
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    observer.report(["ad-details"]);
+    expect(item("location")).toHaveAttribute("aria-current", "true");
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    observer.report(["ad-details"]);
+    expect(item("details")).toHaveAttribute("aria-current", "true");
+  } finally {
+    unmount?.();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     vi.useRealTimers();
   }
 });

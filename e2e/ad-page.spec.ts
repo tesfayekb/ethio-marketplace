@@ -840,6 +840,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, (await address(ad)).canonical);
     await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
     const check = async () => {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
       await expect
         .poll(() =>
           page
@@ -934,6 +936,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         const band = await page.getByTestId("shell-subband").boundingBox();
         if (!stuckNav || !band) throw new Error("AP-36 sticky boxes missing");
         expect(Math.abs(stuckNav.y - band.y - band.height)).toBeLessThanOrEqual(8);
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
       } else {
         // DEC-197 — large: the seller card under the title box beside the
         // photo; Details | Description | Location in thirds; the safety box

@@ -381,6 +381,8 @@ export function ListingDetail(view: ListingDetailView) {
   const [currentSection, setCurrentSection] = useState("details");
   const articleRef = useRef<HTMLElement | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
+  const pinnedRef = useRef<string | null>(null);
+  const pinTimerRef = useRef<number | null>(null);
   const sections: { target: string; id: string; label: MessageKey }[] = [
     ...(facts.length > 0
       ? [{ target: "details", id: "ad-details", label: "post.preview.detailsLabel" as const }]
@@ -423,12 +425,21 @@ export function ListingDetail(view: ListingDetailView) {
       window.removeEventListener("resize", align);
     };
   }, []);
+  // INC-727 — a tap is the visitor's choice; the observer's view during
+  // the tab's own scroll is not. Hold that choice until scrolling ends, and
+  // read the sections' tops fresh when the next observer change decides.
   useEffect(() => {
     const article = articleRef.current;
     // DEC-197 — a page with fewer than two sections has no bar and no watcher.
     // DEC-200 — in the medium range the bar shows with ONE other section
     // (the Seller tab is always there), so the watcher runs from one.
     if (!article || !showSections || sectionIds === "") return;
+    const endPin = () => {
+      pinnedRef.current = null;
+      if (pinTimerRef.current !== null) window.clearTimeout(pinTimerRef.current);
+      pinTimerRef.current = null;
+    };
+    window.addEventListener("scrollend", endPin);
     const visible = new Map<string, number>();
     const observer =
       typeof IntersectionObserver === "undefined"
@@ -439,6 +450,12 @@ export function ListingDetail(view: ListingDetailView) {
                 if (entry.isIntersecting)
                   visible.set(entry.target.id, entry.boundingClientRect.top);
                 else visible.delete(entry.target.id);
+              }
+              if (pinnedRef.current !== null) return;
+              for (const id of visible.keys()) {
+                const section = article.querySelector(`#${id}`);
+                if (section) visible.set(id, section.getBoundingClientRect().top);
+                else visible.delete(id);
               }
               if (visible.size === 0) return;
               /* DEC-192 (bundle 19 turn 22) — boxes that start at one height:
@@ -472,6 +489,8 @@ export function ListingDetail(view: ListingDetailView) {
     }
     return () => {
       observer?.disconnect();
+      window.removeEventListener("scrollend", endPin);
+      endPin();
     };
   }, [showSections, sectionIds]);
   const scrollSection = (id: string) => {
@@ -900,6 +919,12 @@ export function ListingDetail(view: ListingDetailView) {
                   section.target === "seller" ? "@min-[57.5rem]:hidden" : ""
                 } ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
                 onClick={() => {
+                  pinnedRef.current = section.target;
+                  if (pinTimerRef.current !== null) window.clearTimeout(pinTimerRef.current);
+                  pinTimerRef.current = window.setTimeout(() => {
+                    pinnedRef.current = null;
+                    pinTimerRef.current = null;
+                  }, 1000);
                   setCurrentSection(section.target);
                   scrollSection(section.id);
                 }}
