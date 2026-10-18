@@ -400,13 +400,24 @@ function Viewer({
         ) : null}
       </div>
       {total > 1 ? (
-        <Thumbs
-          photos={photos}
-          at={at}
-          onPick={onGo}
-          testid="gallery-viewer-thumbs"
-          className="scrollbar-none flex justify-center gap-2 overflow-x-auto p-2"
-        />
+        <div className="relative">
+          <Thumbs
+            ref={stripRef}
+            photos={photos}
+            at={at}
+            onPick={onGo}
+            testid="gallery-viewer-thumbs"
+            // INC-720 — safe centre: centred while the row fits, start-aligned
+            // when it overflows, so the first photos stay reachable.
+            className="scrollbar-none flex justify-center-safe gap-2 overflow-x-auto p-2"
+          />
+          <StripArrows
+            stripRef={stripRef}
+            backLabel={t("post.gallery.stripBack")}
+            moreLabel={t("post.gallery.stripMore")}
+            testIdPrefix="gallery-viewer-strip"
+          />
+        </div>
       ) : null}
     </div>,
     document.body,

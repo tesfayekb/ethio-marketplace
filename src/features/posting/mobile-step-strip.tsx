@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { StripArrows } from "@/components/ui/strip-arrows";
 import { useI18n } from "@/i18n";
 
 import { fill } from "./refusal-text";
