@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39091699511
-- Commit: `2c0a03ab38e52f58b5e5064c9d79b92b4fb9227e`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39092521982
+- Commit: `3765f0478617120dcbc3457621105cd54c5fed55`
 - Attempt: 1
-- Written (UTC): 2026-10-18T03:41:40.914Z
+- Written (UTC): 2026-10-18T04:26:05.518Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -26,9 +26,6 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
-[36;1m  exit "$reporter"[0m
-[36;1mfi[0m
-[36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
   E2E_RESULTS_DIR: shard-results
@@ -36,10 +33,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39091699511
-  E2E_HEAD_COMMIT_MESSAGE: Added scroll strip arrows
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39092521982
+  E2E_HEAD_COMMIT_MESSAGE: Applied bundle 19 turn 26 changes
 
-X-Lovable-Edit-ID: edt-1ff66299-2ce8-4058-9b6c-4a8c59a8ee10
+X-Lovable-Edit-ID: edt-a861ccf2-6760-4ccd-814b-4afe2b901ce1
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -57,6 +54,9 @@ context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
 Wrote docs/tracking/e2e-last-failure.md (8/8 source(s) with usable results, 0 context file(s) found).
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 1 already there for this run (INC-495).
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "smoke=success email=success shards=failure"
 [36;1mecho "smoke=success email=success shards=failure"[0m
@@ -73,7 +73,7 @@ smoke=success email=success shards=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/d178a1cd-41a8-4aff-a0ad-2903c6910cd0' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/b7ba4717-a7ce-47c9-a30c-b87b907dc0f0' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
