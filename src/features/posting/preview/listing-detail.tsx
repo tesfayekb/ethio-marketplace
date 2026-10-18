@@ -710,7 +710,7 @@ export function ListingDetail(view: ListingDetailView) {
           ref={navRef}
           data-testid="listing-section-nav"
           aria-label={t("adPage.sections.label")}
-          className="sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto rounded-md border border-border bg-card"
+          className="scrollbar-none sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto rounded-md border border-border bg-card"
         >
           {sections.map((section) => (
             <Button
@@ -720,7 +720,7 @@ export function ListingDetail(view: ListingDetailView) {
               data-testid="listing-section-nav-item"
               data-target={section.target}
               aria-current={currentSection === section.target ? "true" : undefined}
-              className={`min-h-11 shrink-0 rounded-none border-b-2 px-3 ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
+              className={`min-h-11 flex-1 justify-center rounded-none border-b-2 px-2 whitespace-nowrap @2xl:flex-none @2xl:justify-start @2xl:px-3 ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
               onClick={() => {
                 setCurrentSection(section.target);
                 scrollSection(section.id);

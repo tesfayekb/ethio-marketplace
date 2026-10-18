@@ -17,6 +17,17 @@
   }
 }
 
+/* INC-717 — the class rule: a swipe strip (tabs, chips, thumbnails) never
+   shows a scrollbar. Its items share the row where they fit; where they may
+   not, the strip hides its scrollbar with this one utility. A wide data
+   table keeps its own scrollbar (data-table.tsx). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /*
  * Design system definition — the ethio.com house style ("coffee on cool slate").
  *
