@@ -5,6 +5,7 @@ import { shapePostingSchema } from "../posting-service";
 import { ownValue } from "@/lib/own-key";
 import { ListingDetail, type ListingDetailView } from "./listing-detail";
 import { ShareAd } from "@/features/ad-page/share-ad";
+import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
 vi.mock("@/i18n", async (original) => ({
   ...(await original<typeof import("@/i18n")>()),
@@ -14,8 +15,9 @@ vi.mock("@/i18n", async (original) => ({
     entities: { map: {}, lang: "en" },
   }),
 }));
-vi.mock("@/components/shell/location-data", () => ({
-  useCountryTree: () => ({ loadedCountry: null, nodes: [] }),
+vi.mock("@/components/shell/location-data", async (original) => ({
+  ...(await original<typeof import("@/components/shell/location-data")>()),
+  useCountryTree: vi.fn(() => ({ loadedCountry: null, nodes: [] })),
 }));
 vi.mock("../catalog-scope", () => ({
   useCatalogScope: () => ({ country: "country", categoryPath: () => null, moveTo: null }),
@@ -834,5 +836,89 @@ it("LD-23 a tapped tab stays current through its scroll; fresh tops decide after
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     vi.useRealTimers();
+  }
+});
+
+it("LD-24 iPhone home-screen Maps choices preserve the tapped place or pin; ordinary clicks are untouched", async () => {
+  const standalone = Object.getOwnPropertyDescriptor(navigator, "standalone");
+  const treeNode = (id: string, parentId: string | null, nameEn: string): TreeNode => ({
+    id,
+    parentId,
+    nameEn,
+    slug: id,
+    level: parentId === null ? "country" : "city",
+    centerLat: null,
+    centerLng: null,
+    isoCode: null,
+  });
+  const nodes = [
+    treeNode("et", null, "Ethiopia"),
+    treeNode("addis", "et", "Addis Ababa"),
+    treeNode("bole", "addis", "Bole"),
+  ];
+  vi.mocked(useCountryTree).mockReturnValue({
+    loadedCountry: "ET",
+    nodes,
+    isLoading: false,
+    failed: false,
+  });
+  let unmount: (() => void) | undefined;
+  try {
+    Object.defineProperty(navigator, "standalone", { configurable: true, value: true });
+    const rendered = render(
+      <ListingDetail
+        {...BASE}
+        actor="buyer"
+        country="ET"
+        coverage={["bole"]}
+        pinLat={8.9876543}
+        pinLng={38.7612345}
+        pinPrecision="exact"
+      />,
+    );
+    unmount = rendered.unmount;
+    const place = screen.getByTestId("listing-places-maps");
+    const pin = await screen.findByTestId("listing-map-google");
+    const click = (link: HTMLElement) => {
+      const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+      fireEvent(link, event);
+      return event.defaultPrevented;
+    };
+    expect(click(place)).toBe(true);
+    expect(screen.getByTestId("listing-maps-app")).toHaveAttribute(
+      "href",
+      "comgooglemaps://?q=Bole%2C%20Addis%20Ababa%2C%20Ethiopia",
+    );
+    expect(screen.getByTestId("listing-maps-web")).toHaveAttribute(
+      "href",
+      place.getAttribute("href"),
+    );
+    fireEvent.click(screen.getByTestId("listing-maps-cancel"));
+    expect(screen.queryByTestId("listing-maps-app")).toBeNull();
+    expect(click(pin)).toBe(true);
+    expect(screen.getByTestId("listing-maps-app")).toHaveAttribute(
+      "href",
+      "comgooglemaps://?q=8.9876543,38.7612345&center=8.9876543,38.7612345&zoom=15",
+    );
+    expect(screen.getByTestId("listing-maps-web")).toHaveAttribute(
+      "href",
+      pin.getAttribute("href"),
+    );
+    fireEvent.click(screen.getByTestId("listing-maps-cancel"));
+    Reflect.deleteProperty(navigator, "standalone");
+    for (const link of [place, pin]) {
+      expect(click(link)).toBe(false);
+      expect(screen.queryByTestId("listing-maps-app")).toBeNull();
+    }
+  } finally {
+    unmount?.();
+    vi.mocked(useCountryTree).mockReturnValue({
+      loadedCountry: null,
+      nodes: [],
+      isLoading: false,
+      failed: false,
+    });
+    if (standalone) Object.defineProperty(navigator, "standalone", standalone);
+    else Reflect.deleteProperty(navigator, "standalone");
   }
 });

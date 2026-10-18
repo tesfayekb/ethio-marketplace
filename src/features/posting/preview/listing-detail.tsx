@@ -1,4 +1,11 @@
-import { mapsPlaceQuery, webPlaceUrl, webPinUrl, appPlaceUrl, appPinUrl, isIosHomeScreen } from "@/features/ad-page/maps-links";
+import {
+  mapsPlaceQuery,
+  webPlaceUrl,
+  webPinUrl,
+  appPlaceUrl,
+  appPinUrl,
+  isIosHomeScreen,
+} from "@/features/ad-page/maps-links";
 import { postedWhen } from "@/features/ad-page/posted";
 import { Heart, Expand } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -347,7 +354,10 @@ export function ListingDetail(view: ListingDetailView) {
         if (active) {
           const snappedLat = snap(lat).toFixed(2);
           const snappedLng = snap(lng).toFixed(2);
-          setMapMaps({ web: webPinUrl(snappedLat, snappedLng), app: appPinUrl(snappedLat, snappedLng, 13) });
+          setMapMaps({
+            web: webPinUrl(snappedLat, snappedLng),
+            app: appPinUrl(snappedLat, snappedLng, 13),
+          });
         }
       })
       .catch((error: unknown) => console.error("[listing-maps]", error));
@@ -1129,22 +1139,39 @@ export function ListingDetail(view: ListingDetailView) {
       {/* INC-731: an iPhone home-screen app opens outside links in an in-app window
           where Google's web link cannot open the Google Maps app. A web page cannot
           test whether the app is installed, so it offers both. */}
-      <Dialog open={mapsChoice !== null} onOpenChange={(open) => { if (!open) setMapsChoice(null); }}>
+      <Dialog
+        open={mapsChoice !== null}
+        onOpenChange={(open) => {
+          if (!open) setMapsChoice(null);
+        }}
+      >
         {mapsChoice !== null && (
           <DialogContent>
             <DialogTitle>{t("adPage.map.google")}</DialogTitle>
             <Button asChild variant="outline" className="min-h-11">
-              <a data-testid="listing-maps-app" href={mapsChoice.app} onClick={() => setMapsChoice(null)}>
+              <a
+                data-testid="listing-maps-app"
+                href={mapsChoice.app}
+                onClick={() => setMapsChoice(null)}
+              >
                 {t("adPage.map.app")}
               </a>
             </Button>
             <Button asChild variant="outline" className="min-h-11">
-              <a data-testid="listing-maps-web" href={mapsChoice.web} target="_blank" rel="noopener noreferrer" onClick={() => setMapsChoice(null)}>
+              <a
+                data-testid="listing-maps-web"
+                href={mapsChoice.web}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMapsChoice(null)}
+              >
                 {t("adPage.map.web")}
               </a>
             </Button>
             <DialogClose asChild>
-              <Button data-testid="listing-maps-cancel" variant="outline" className="min-h-11">{t("common.cancel")}</Button>
+              <Button data-testid="listing-maps-cancel" variant="outline" className="min-h-11">
+                {t("common.cancel")}
+              </Button>
             </DialogClose>
           </DialogContent>
         )}

@@ -5,7 +5,10 @@ export function mapsPlaceQuery(nodes: TreeNode[], coverage: string[]): string {
   const first = paths[0];
   if (!first) return "";
   const common = first.filter((node, index) => paths.every((path) => path[index]?.id === node.id));
-  return common.reverse().map((node) => node.nameEn ?? node.slug).join(", ");
+  return common
+    .reverse()
+    .map((node) => node.nameEn ?? node.slug)
+    .join(", ");
 }
 
 export function webPlaceUrl(query: string): string {
@@ -25,6 +28,8 @@ export function appPinUrl(lat: number | string, lng: number | string, zoom: numb
 }
 
 export function isIosHomeScreen(): boolean {
-  return typeof navigator !== "undefined" &&
-    (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  return (
+    typeof navigator !== "undefined" &&
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
 }
