@@ -1,8 +1,16 @@
-import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type RefObject,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { Z_VIEWER } from "@/components/layout/layers";
 import { ListingRibbon } from "@/components/marketplace/listing-picture";
+import { StripArrows, keepInStrip } from "@/components/ui/strip-arrows";
 import { useI18n } from "@/i18n";
 
 import type { GalleryPhoto } from "../photo-links";
@@ -88,10 +96,18 @@ export function PhotoGallery({
   const [index, setIndex] = useState(0);
   const [viewer, setViewer] = useState(false);
   const mainRef = useRef<HTMLButtonElement>(null);
+  const stripRef = useRef<HTMLUListElement>(null);
   const placeId = useId();
   const at = Math.min(index, total - 1);
   const go = (next: number) => setIndex(Math.max(0, Math.min(total - 1, next)));
   const swipe = useSwipe((direction) => go(at + direction));
+  // When the shown photo changes (the photo's ‹ ›, a swipe, a key), its
+  // thumbnail is kept fully inside the strip — the strip's own scroll only.
+  useEffect(() => {
+    const strip = stripRef.current;
+    const item = strip?.children[at];
+    if (strip && item instanceof HTMLElement) keepInStrip(strip, item);
+  }, [at, total]);
   if (total === 0) return null;
   const photo = photos[at]!;
   const several = total > 1;
@@ -180,13 +196,22 @@ export function PhotoGallery({
           ) : null}
         </div>
         {several ? (
-          <Thumbs
-            photos={photos}
-            at={at}
-            onPick={go}
-            testid="gallery-thumbs"
-            className="scrollbar-none flex gap-2 overflow-x-auto @min-[32rem]:max-h-[27rem] @min-[32rem]:w-16 @min-[32rem]:shrink-0 @min-[32rem]:flex-col @min-[32rem]:overflow-x-hidden @min-[32rem]:overflow-y-auto"
-          />
+          <div className="relative @min-[32rem]:shrink-0">
+            <Thumbs
+              ref={stripRef}
+              photos={photos}
+              at={at}
+              onPick={go}
+              testid="gallery-thumbs"
+              className="scrollbar-none flex gap-2 overflow-x-auto @min-[32rem]:max-h-[27rem] @min-[32rem]:w-16 @min-[32rem]:flex-col @min-[32rem]:overflow-x-hidden @min-[32rem]:overflow-y-auto"
+            />
+            <StripArrows
+              stripRef={stripRef}
+              backLabel={t("post.gallery.stripBack")}
+              moreLabel={t("post.gallery.stripMore")}
+              testIdPrefix="gallery-strip"
+            />
+          </div>
         ) : null}
       </div>
       {viewer ? (
