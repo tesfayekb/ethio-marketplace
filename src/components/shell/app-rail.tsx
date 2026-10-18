@@ -147,7 +147,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     node.testid && (strip ? `strip-${node.testid.replace(/^rail-/, "")}` : node.testid);
   const compactClass =
     compact &&
-    cn("h-full min-h-0", strip ? "justify-center ps-0 pe-0" : "justify-start gap-3 ps-3 pe-2");
+    cn("h-full min-h-0", strip ? "justify-center ps-0 pe-0" : "justify-start gap-3 ps-[var(--rail-pad)] pe-2");
   const hasChildren = (node.children?.length ?? 0) > 0;
   // An active descendant keeps its ancestor open.
   const containsActive = (n: RailNode): boolean =>
@@ -165,7 +165,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <CutText className={cn(hide, strip && "sr-only")} text={node.label} />
     </>
   );
-  const pad = { "--rail-pad": `${0.75 + depth * 0.75}rem` } as React.CSSProperties;
+  const pad = { "--rail-pad": `${0.75 + depth * 1}rem` } as React.CSSProperties;
 
   // D205 — painted strip rows are not navigation controls; the strip opens the menu.
   if (strip) {

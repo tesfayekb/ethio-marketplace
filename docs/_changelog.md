@@ -950,3 +950,5 @@
 - 2026-10-18 — Bundle 21 turn 2 (no migration): one ☰ at every width in the top-left corner, the logo after it, folded the logo with its mark in the bar (D115, D117); search centred (D111); tablets keep the menu open at 224 px, ☰ folds it (D204); md tables switch on the space beside the menu (tbl-md); PHONE_STRIP and the tablet overlay retired.
 
 - 2026-10-18 — Bundle 21 turn 3 (no migration): the menus' rows and icons (D113: 32-px mouse rows, phone rows 32–40 px, 20-px rail and 24-px phone icons), Home in place of All categories, the rail's Categories heading removed, the phone menu's × and its place above the bottom bar, a tap on the strip opens the menu (D205); RM-1…RM-4.
+
+- 2026-10-18 — Bundle 21 turn 4 (no migration): the compact phone footer — no brand block below 768, one 28-px row rhythm, less padding (the operator, 14:38 local); sub-items indented 16 px a level in the open rail and the opened phone menu, one icon column folded and in the strip (14:45 local); FT-1, IN-1.
