@@ -891,6 +891,7 @@ export function ListingDetail(view: ListingDetailView) {
           )}
         </section>
 
+        {showLocation && (
         <section
           id="ad-location"
           data-testid="listing-detail-location"
@@ -899,9 +900,6 @@ export function ListingDetail(view: ListingDetailView) {
           <h3 className="font-display text-base font-semibold">{t("adPage.section.location")}</h3>
           {places.length > 0 && (
             <p className="text-sm text-muted-foreground">{places.join(", ")}</p>
-          )}
-          {places.length === 0 && !view.directions && !view.streetAddress && !hasPin && (
-            <p className="text-sm text-muted-foreground">{t("post.review.notGiven")}</p>
           )}
           {/* Step 10 (P4) — directions above the location details, as text (F2). */}
           {(view.directions || view.streetAddress) && (
@@ -990,6 +988,7 @@ export function ListingDetail(view: ListingDetailView) {
             </div>
           )}
         </section>
+        )}
         {!sold && <SafetyBox className={layout.safety} />}
         {view.report !== undefined && (
           <div
