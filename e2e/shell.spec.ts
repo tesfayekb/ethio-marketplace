@@ -3395,7 +3395,7 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       await gotoReady(page, `/c/${r}`);
       const rail = await openRailScope(page);
       await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
-      await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
+      await expect(rail.getByTestId(`rail-category-${r}`)).toBeVisible();
       await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
       const root = rail.getByTestId(`rail-category-${r}`);
       const branch = rail.getByTestId(`rail-category-${b}`);

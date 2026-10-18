@@ -74,7 +74,7 @@ test.describe("category selection navigates", () => {
     await gotoReady(page, first.href);
     const scope = await openRailScope(page);
     await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
-    await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
+    await expect(scope.getByRole("link", { name: first.label, exact: true })).toBeVisible();
     if (isMobile(page)) await scope.getByRole("link", { name: first.label, exact: true }).click();
     await expect(scope.locator("a[aria-current='page']")).toHaveText(first.label);
   });
