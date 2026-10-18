@@ -68,6 +68,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 Turn 19: AP-40, AP-41, AP-42, RI-1…RI-5, PO-1…PO-2; AP-9, AP-36, AP-37, AP-38, AL-31 and the LD fixture changed.
 
+Turn 25: AP-48, SA-1…SA-3, GAL-8, GAL-9.
 Turn 24: AP-44 changed (the wide window shortened before scrolling — INC-718; the in-page bar's cover check at both widths).
 Turn 23: AP-47, LD-21, VW-4, VW-5, VC-1; AP-17, AP-37, AP-42 and LD-19 changed.
 Turn 22: AP-45, AP-46, LD-19, LD-20; AP-36, AP-37, AP-42 and LD-18 changed.
