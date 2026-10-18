@@ -887,8 +887,6 @@ export function ListingDetail(view: ListingDetailView) {
             )}
           </section>
 
-          </section>
-
           <section
             id="ad-location"
             data-testid="listing-detail-location"
