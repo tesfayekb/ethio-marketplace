@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi, type ReactNode } from "vitest";
+import type { ReactNode } from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useCardPhotos } from "./use-card-photos";
 
@@ -57,7 +58,7 @@ describe("useCardPhotos — the preset (DEC-195)", () => {
     await waitFor(() => expect(result.current("p2")).toBe(CARD("p2")));
     expect(result.current("p1")).toBe(CARD("p1"));
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const init = fetchMock.mock.calls[0]?.[1] as unknown as RequestInit;
     const body = JSON.parse(String(init.body)) as { photoIds: string[]; variants: string[] };
     expect(body.photoIds).toEqual(["p2"]);
     expect(body.variants).toEqual(["card", "thumb"]);
