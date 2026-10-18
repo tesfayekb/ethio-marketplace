@@ -1541,6 +1541,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
             page.getByTestId("listing-detail-actions").boundingBox(),
             headline.boundingBox(),
             media.boundingBox(),
+            page.locator('section[data-testid="listing-detail-seller"]').boundingBox(),
           ]),
         );
         const stable = previous === current;
@@ -1556,8 +1557,19 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       Math.abs(actions.y + actions.height - (headlineBox.y + headlineBox.height)),
     ).toBeLessThanOrEqual(24);
     const article = await page.getByTestId("listing-detail").boundingBox();
-    if (!article) throw new Error("AP-46 article missing");
-    if (article.width >= 672)
+    const sellerBox = await page
+      .locator('section[data-testid="listing-detail-seller"]')
+      .boundingBox();
+    if (!article || !sellerBox) throw new Error("AP-46 article or seller missing");
+    // DEC-199 — the last check depends on the width: below 920 px the title
+    // box's bottom meets the photo box's bottom; from 920 px the seller card
+    // sits under the title box and its bottom meets the photo box's bottom.
+    if (article.width >= 920) {
+      expect(sellerBox.y).toBeGreaterThanOrEqual(headlineBox.y + headlineBox.height);
+      expect(
+        Math.abs(sellerBox.y + sellerBox.height - (mediaBox.y + mediaBox.height)),
+      ).toBeLessThanOrEqual(1);
+    } else if (article.width >= 672)
       expect(
         Math.abs(headlineBox.y + headlineBox.height - (mediaBox.y + mediaBox.height)),
       ).toBeLessThanOrEqual(1);
