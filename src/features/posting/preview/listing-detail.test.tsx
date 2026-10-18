@@ -560,7 +560,13 @@ it("LD-20 Save and Share sit at the title box's foot; the buyer's Directions lab
     <ShareAd publicId="scratch" canonicalPath="/l/scratch" title="Scratch ad" priceText={null} />
   );
   const { rerender } = render(
-    <ListingDetail {...BASE} actor="buyer" directions="scratch directions" save={save} share={share} />,
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      directions="scratch directions"
+      save={save}
+      share={share}
+    />,
   );
   const headline = screen.getByTestId("listing-detail-headline");
   const actions = within(headline).getByTestId("listing-detail-actions");
