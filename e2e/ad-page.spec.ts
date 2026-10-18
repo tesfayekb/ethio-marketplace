@@ -962,15 +962,17 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         return nav && band ? Math.abs(nav.y - band.y - band.height) : 100;
       })
       .toBeLessThanOrEqual(8);
+    // Turn 23: a sold ad without a pin has no Location box and no tab.
     const sold = await seed(seller, "sold", { soldAt: -1 });
     await gotoReady(page, (await address(sold)).canonical);
     await expect(page.getByTestId("listing-section-nav")).toBeVisible();
-    await expect(page.getByTestId("listing-section-nav-item")).toHaveCount(3);
+    await expect(page.getByTestId("listing-section-nav-item")).toHaveCount(2);
     expect(
       await page
         .getByTestId("listing-section-nav-item")
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
-    ).toEqual(["description", "seller", "location"]);
+    ).toEqual(["description", "seller"]);
+    await expect(page.getByTestId("listing-detail-location")).toHaveCount(0);
     await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
 
@@ -1286,7 +1288,12 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       .update({ description: "" })
       .eq("id", live.id);
     expect(cleared.error).toBeNull();
-    const sold = await seed(seller, "sold", { soldAt: -1, attributes: { [key]: "scratch value" } });
+    // Turn 23: a pin so the sold ad keeps its Location box for the full-row check.
+    const sold = await seed(seller, "sold", {
+      soldAt: -1,
+      attributes: { [key]: "scratch value" },
+      pin: true,
+    });
     for (const ad of [live, sold]) {
       await gotoReady(page, (await address(ad)).canonical);
       await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
