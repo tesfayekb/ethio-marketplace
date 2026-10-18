@@ -251,7 +251,7 @@ export function Feed() {
       className="mx-auto w-full max-w-6xl"
     >
       <div className="flex min-w-0 flex-wrap items-center gap-x-2">
-        <h1 className="min-w-0 text-xl font-semibold text-foreground">
+        <h1 className="min-w-0 text-xl font-semibold text-foreground wrap-anywhere">
           {/* D127 — no place chosen: the everywhere feed is "All listings", not "near you". */}
           {place ? inHeading(place) : t("nav.allListings")}
         </h1>

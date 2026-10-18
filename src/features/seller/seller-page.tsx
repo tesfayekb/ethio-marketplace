@@ -75,7 +75,10 @@ export function SellerPage({ sellerKey }: { sellerKey: string }) {
   const name = seller.businessName ?? seller.alias ?? "";
   return (
     <PageShell as="main" width="wide">
-      <h1 data-testid="seller-page-title" className="text-xl font-semibold text-foreground">
+      <h1
+        data-testid="seller-page-title"
+        className="text-xl font-semibold text-foreground wrap-anywhere"
+      >
         {fill(t("sellerPage.title"), { name })}
       </h1>
       <div className="mt-2">
