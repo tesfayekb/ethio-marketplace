@@ -303,6 +303,8 @@ export const am: Messages = {
   "adPage.description.more": "ተጨማሪ ያንብቡ",
   "adPage.description.less": "ያነሰ አሳይ",
   "adPage.map.google": "በGoogle ካርታ ይክፈቱ",
+  "adPage.map.app": "የGoogle ካርታ መተግበሪያ",
+  "adPage.map.web": "ካርታ በአሳሽ",
   "adPage.map.label": "የማስታወቂያው ቦታ ካርታ",
   "adPage.map.approx": "የማስታወቂያው አካባቢ፣ 500 ሜትር ገደማ ስፋት ያለው።",
   "adPage.save.saved": "ተቀምጧል",

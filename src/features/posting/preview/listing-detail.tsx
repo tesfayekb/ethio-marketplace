@@ -1,3 +1,4 @@
+import { mapsPlaceQuery, webPlaceUrl, webPinUrl, appPlaceUrl, appPinUrl, isIosHomeScreen } from "@/features/ad-page/maps-links";
 import { postedWhen } from "@/features/ad-page/posted";
 import { Heart, Expand } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -324,8 +325,11 @@ export function ListingDetail(view: ListingDetailView) {
   // seller's own: a pin, directions or location details. An ad with only its
   // city keeps the city in the title box (listing-detail-places).
   const showLocation = hasPin || Boolean(view.directions) || Boolean(view.streetAddress);
-  const placesMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(places.join(", "))}`;
-  const [mapMaps, setMapMaps] = useState<string | null>(null);
+  const query = mapsPlaceQuery(nodes, view.coverage) || places.join(", ");
+  const placesMaps = webPlaceUrl(query);
+  const placesApp = appPlaceUrl(query);
+  const [mapMaps, setMapMaps] = useState<{ web: string; app: string } | null>(null);
+  const [mapsChoice, setMapsChoice] = useState<{ web: string; app: string } | null>(null);
   useEffect(() => {
     let active = true;
     setMapMaps(null);
@@ -334,16 +338,17 @@ export function ListingDetail(view: ListingDetailView) {
     if (typeof lat !== "number" || typeof lng !== "number") return;
     if (view.pinPrecision !== "approx") {
       // Google's Maps URLs require the comma between lat and lng as %2C.
-      setMapMaps(`https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`);
+      setMapMaps({ web: webPinUrl(lat, lng), app: appPinUrl(lat, lng, 15) });
       return;
     }
     // Keep the still-map module off the marketplace's first-paint graph.
     void import("../map/map-preview")
       .then(({ snap }) => {
-        if (active)
-          setMapMaps(
-            `https://www.google.com/maps/search/?api=1&query=${snap(lat).toFixed(2)}%2C${snap(lng).toFixed(2)}`,
-          );
+        if (active) {
+          const snappedLat = snap(lat).toFixed(2);
+          const snappedLng = snap(lng).toFixed(2);
+          setMapMaps({ web: webPinUrl(snappedLat, snappedLng), app: appPinUrl(snappedLat, snappedLng, 13) });
+        }
       })
       .catch((error: unknown) => console.error("[listing-maps]", error));
     return () => {
@@ -683,6 +688,11 @@ export function ListingDetail(view: ListingDetailView) {
                   <a
                     data-testid="listing-places-maps"
                     href={placesMaps}
+                    onClick={(event) => {
+                      if (!isIosHomeScreen()) return;
+                      event.preventDefault();
+                      setMapsChoice({ web: placesMaps, app: placesApp });
+                    }}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
@@ -1087,7 +1097,12 @@ export function ListingDetail(view: ListingDetailView) {
                   {mapMaps !== null && (
                     <a
                       data-testid="listing-map-google"
-                      href={mapMaps}
+                      href={mapMaps.web}
+                      onClick={(event) => {
+                        if (!isIosHomeScreen()) return;
+                        event.preventDefault();
+                        setMapsChoice(mapMaps);
+                      }}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
@@ -1111,6 +1126,29 @@ export function ListingDetail(view: ListingDetailView) {
           )}
         </div>
       </div>
+      {/* INC-731: an iPhone home-screen app opens outside links in an in-app window
+          where Google's web link cannot open the Google Maps app. A web page cannot
+          test whether the app is installed, so it offers both. */}
+      <Dialog open={mapsChoice !== null} onOpenChange={(open) => { if (!open) setMapsChoice(null); }}>
+        {mapsChoice !== null && (
+          <DialogContent>
+            <DialogTitle>{t("adPage.map.google")}</DialogTitle>
+            <Button asChild variant="outline" className="min-h-11">
+              <a data-testid="listing-maps-app" href={mapsChoice.app} onClick={() => setMapsChoice(null)}>
+                {t("adPage.map.app")}
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="min-h-11">
+              <a data-testid="listing-maps-web" href={mapsChoice.web} target="_blank" rel="noopener noreferrer" onClick={() => setMapsChoice(null)}>
+                {t("adPage.map.web")}
+              </a>
+            </Button>
+            <DialogClose asChild>
+              <Button data-testid="listing-maps-cancel" variant="outline" className="min-h-11">{t("common.cancel")}</Button>
+            </DialogClose>
+          </DialogContent>
+        )}
+      </Dialog>
     </article>
   );
 }

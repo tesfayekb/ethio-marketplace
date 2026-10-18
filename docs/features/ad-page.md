@@ -66,6 +66,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 ## Tests
 
+Turn 34: GML-1…GML-4, LD-24.
 Turn 32: AP-45 changed.
 Turn 31: LD-23; AP-36 changed.
 Turn 30: RV-1; AP-36, AP-37, AP-47, LD-17, LD-19, GAL-10 changed.
@@ -172,3 +173,5 @@ Turn 30 — below 57.5rem, on phones and medium screens, the seller card follows
 Turn 31 — a tapped tab stays current while the page scrolls to its section (the watcher waits for the scroll to end and reads the sections' tops at the moment it decides — INC-727); AP-36 measures from the top of the page (INC-728).
 
 Turn 32 — AP-45 now checks that every other tab is not current after a tap; INC-727's cause was the test's own check, which excluded the Details tab even after a tap on Details (turn 31's watcher change stays as sound behaviour, not as this fix).
+
+Turn 34 — the Maps search names the full place, from the ad's place up to the country, in English (the deepest place common to the ad's places — INC-730); on an iPhone home-screen app, where an outside link opens in an in-app window that cannot hand a Google Maps web link to the app, both Maps links offer "Google Maps app" (Google's own app address) or "Map in the browser" (INC-731); elsewhere the links open as before.
