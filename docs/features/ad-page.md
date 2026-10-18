@@ -66,6 +66,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 ## Tests
 
+Turn 28: AP-36, AP-37, AP-46, AP-47 changed.
 Turn 27: AP-49, AP-50, LP-10, UC-1, FD-4; AP-36, AP-37, AP-42, AP-45, PW-13, LD-18, LD-19 and two LD order tests changed. (The brief's LP-1/FD-1 ids were taken — INC-536 assigns an id once — so the next free ids carry the cases.)
 Turn 26: LD-22; AP-23 changed.
 Turn 25: AP-48, SA-1…SA-3, GAL-8, GAL-9.
@@ -157,3 +158,5 @@ Turn 25 — INC-717's class rule's second half: a strip that hides its scrollbar
 Turn 26 — after "Contact seller" and sign-in the page returns to the seller card, highlights it for three seconds and focuses "Show contact"; the number shows only on the visitor's own tap, recorded by the door (DEC-196; D201 §6 restored; turn 19's automatic reveal on return removed); the tab intent of turn 19 now only carries the visitor back.
 
 Turn 27 — PW-13 follows DEC-193 (INC-721); the seller card moves into the right column under the title box, the photo box grows with the column, the boxes close up (Details | Description | Location, the safety box last), the bar loses its Seller tab and shows only with two or more sections (DEC-197, drawings v16).
+
+Turn 28 — from 42rem to 57.5rem the seller card is a full-width row under the photo and the title box with its contents in two columns, from 57.5rem beside the photo under the title box (DEC-199); AP-37 and AP-47 count the bar's three items and AP-46 measures the title box by width (INC-723).
