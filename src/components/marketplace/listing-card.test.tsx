@@ -23,7 +23,24 @@ vi.mock("@/features/posting/use-price-unit-labels", () => ({
   usePriceUnitLabels: () => null,
 }));
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children, ...props }: { children?: React.ReactNode }) => <a {...props}>{children}</a>,
+  // LC-7 reads the address the link would open: `to` with its search params.
+  Link: ({
+    children,
+    to,
+    search,
+    ...props
+  }: {
+    children?: React.ReactNode;
+    to?: string;
+    search?: Record<string, string>;
+  }) => {
+    const query = search ? new URLSearchParams(search).toString() : "";
+    return (
+      <a {...props} href={query === "" ? to : `${to}?${query}`}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 const BASE: FeedListing = {
@@ -94,6 +111,7 @@ describe("ListingCard and InviteCard — one card shape", () => {
           categoryName: null,
           placeCount: 0,
         }}
+        at="alone"
       />,
     );
     const invite = screen.getByTestId("feed-invite");
@@ -205,5 +223,33 @@ describe("ListingPicture — ribbon colour", () => {
     expect(soonShape.textStyle).toContain("clamp(9px, 5cqw, 20px)");
     // One band only (D180): the status word took the band's corner.
     expect(screen.queryByTestId("listing-photos-soon-ribbon")).toBeNull();
+  });
+
+  it("LC-7 with no place chosen the invitation names no place and its link carries none (D215)", () => {
+    const base = { placeId: null, placeName: null, categoryId: null, categoryName: null };
+    const cases = [
+      { invite: { ...base, placeCount: 0 }, key: "feed.invite.none", href: "/post" },
+      { invite: { ...base, placeCount: 2 }, key: "feed.invite.noneMore", href: "/post" },
+      {
+        invite: { ...base, categoryId: "c1", categoryName: "Phones", placeCount: 0 },
+        key: "feed.invite.noneCategory",
+        href: "/post?category=c1",
+      },
+      {
+        invite: { ...base, categoryId: "c1", categoryName: "Phones", placeCount: 2 },
+        key: "feed.invite.noneCategoryMore",
+        href: "/post?category=c1",
+      },
+    ];
+    for (const { invite, key, href } of cases) {
+      const { unmount } = render(<InviteCard invite={invite} at="end" />);
+      expect(screen.getByTestId("feed-invite-text")).toHaveTextContent(key);
+      const link = screen.getByTestId("feed-invite-post");
+      expect(link.getAttribute("href")).toBe(href);
+      expect(link.getAttribute("href")).not.toContain("place=");
+      expect(screen.getByTestId("feed-invite")).toHaveAttribute("data-at", "end");
+      expect(screen.getByTestId("feed-invite")).not.toHaveAttribute("data-place");
+      unmount();
+    }
   });
 });
