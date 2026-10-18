@@ -45,10 +45,10 @@ export function scratchSlug() {
 
 /**
  * The twin boundary for THIS console. C2-UI-FIX-5 dropped the `cardUntil`
- * override, so the roster uses the primitive's DEFAULT (cards below md) — the
- * same boundary every other console table uses.
+ * override, so the roster uses the primitive's DEFAULT: cards below tbl-md —
+ * 928 px with the menu open (the tests never fold it), src/styles.css.
  */
-export const TWIN_BOUNDARY = 768;
+export const TWIN_BOUNDARY = 928;
 
 export function isCardTwin(page: Page) {
   return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;

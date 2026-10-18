@@ -59,11 +59,10 @@ The tibeb woven-diamond motif is **religiously neutral geometry only**. It must
 never contain a cross or any faith iconography of any tradition, ever. This is a
 standing design rule, not a per-feature preference.
 
-Allowed placements — exactly three:
+Allowed placements — exactly two (the feed empty state was retired by D215, 2026-10-18):
 
 1. the logo (`src/components/brand/logo.tsx`),
-2. the loading spinner (`src/components/brand/spinner.tsx`),
-3. the feed empty state.
+2. the loading spinner (`src/components/brand/spinner.tsx`).
 
 Never on browse, feed, listing, or category surfaces. Never as a footer band.
 
@@ -105,6 +104,8 @@ Band 3 is the cascading area picker. It is BUILT-VISIBLE and its filtering is
 STUBBED — see `docs/features/location-scoping.md`.
 
 ## Rail collapse state (2026-08-05)
+
+Bundle 21 turn 7: Home is not a menu row (the breadcrumb and the phone's bottom bar carry it). The favourite, when set, is the first row, then a line. The ☆ explains itself: a tooltip with a mouse from 768 px, a line of fine print otherwise. One favourite: the last one chosen wins.
 
 D207 — one ★ favourite category or subcategory lives on this device in `ethio.fav`, a validated category slug. The ☆ beside a category page's title sets or clears it; another category replaces it. Its category icon gains a gold ★ badge and it is first in every main list (after Home in the persistent rail), including the folded rail, strip and opened phone menu. It is absent at subcategory levels and before hydration; no request is added.
 

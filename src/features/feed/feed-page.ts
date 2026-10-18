@@ -222,6 +222,26 @@ export function inviteShown(cards: FeedListing[]): boolean {
   return placeCount(cards) < INVITE_BELOW;
 }
 
+/** D119 / D215 — where the page's one invitation card stands. */
+export type InviteSpot = "alone" | "lead" | "afterPlace" | "end";
+
+/**
+ * D119 / D215 — the page's one invitation card. No cards: alone (place or none).
+ * A chosen place holding fewer than INVITE_BELOW of its own (D119, unchanged):
+ * first when it has none and wider places follow, else at the end of its row.
+ * Otherwise the card is the list's last, once the last page has loaded; until
+ * then null (the card waits for the end of the list).
+ */
+export function inviteSpot(
+  cards: FeedListing[],
+  hasPlace: boolean,
+  hasMore: boolean,
+): InviteSpot | null {
+  if (cards.length === 0) return "alone";
+  if (hasPlace && inviteShown(cards)) return (cards[0]?.step ?? 1) > 1 ? "lead" : "afterPlace";
+  return hasMore ? null : "end";
+}
+
 /** D119 — how many of the chosen place's own listings (ladder step 1) are on screen. */
 export function placeCount(cards: FeedListing[]): number {
   return cards.filter((card) => card.step === 1).length;

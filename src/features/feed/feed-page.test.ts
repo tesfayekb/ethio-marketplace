@@ -4,6 +4,7 @@ import {
   EVERYWHERE,
   feedSections,
   inviteShown,
+  inviteSpot,
   placeCount,
   parseFeedPage,
   ribbonOf,
@@ -177,5 +178,19 @@ describe("placeCount", () => {
     const of = (steps: number[]) => steps.map((s, i) => card(String(i), s) as FeedListing);
     expect(placeCount([])).toBe(0);
     expect(placeCount(of([1, 1, 2, 3]))).toBe(2);
+  });
+});
+
+describe("inviteSpot", () => {
+  it("FP-14 the page's one invitation: alone, lead, after the place's row, or at the end once complete (D215)", () => {
+    const of = (steps: number[]) => steps.map((s, i) => card(String(i), s) as FeedListing);
+    expect(inviteSpot([], true, false)).toBe("alone");
+    expect(inviteSpot([], false, true)).toBe("alone");
+    expect(inviteSpot(of([1, 1]), true, false)).toBe("afterPlace");
+    expect(inviteSpot(of([2, 2]), true, false)).toBe("lead");
+    expect(inviteSpot(of([1, 1, 1, 1]), true, true)).toBeNull();
+    expect(inviteSpot(of([1, 1, 1, 1]), true, false)).toBe("end");
+    expect(inviteSpot(of([1, 1]), false, false)).toBe("end");
+    expect(inviteSpot(of([1, 1]), false, true)).toBeNull();
   });
 });

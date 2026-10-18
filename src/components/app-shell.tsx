@@ -921,7 +921,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <div
               data-testid="shell-logo-cell"
-              className="hidden min-w-0 bg-card ps-1.5 md:flex md:h-14 md:w-56 lg:w-64 md:shrink-0 md:items-center rail-icons:w-16 rail-icons:justify-center rail-icons:px-0"
+              className="hidden min-w-0 bg-card ps-2 md:flex md:h-14 md:w-56 lg:w-64 md:shrink-0 md:items-center rail-icons:w-16 rail-icons:justify-center rail-icons:px-0"
             >
               <button
                 type="button"
@@ -936,7 +936,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 to="/"
                 aria-label={t("app.name")}
-                className="-ms-1.5 inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rail-icons:hidden"
+                className="-ms-1 inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rail-icons:hidden"
               >
                 <Logo variant="full" />
               </Link>

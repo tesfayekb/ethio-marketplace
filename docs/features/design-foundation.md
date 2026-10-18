@@ -117,7 +117,7 @@ logical properties only (`ps-*`, `pe-*`, `me-*`, `text-start`).
 ## Motif rule
 
 See `docs/features/panels.md`. In short: religiously neutral tibeb geometry
-only, and it appears in exactly three places — logo, spinner, feed empty state.
+only, and it appears in exactly two places — logo, spinner (the feed empty state was retired by D215).
 
 ## Verified posture (2026-08-04)
 

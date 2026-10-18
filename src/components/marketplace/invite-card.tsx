@@ -2,15 +2,19 @@ import { Link } from "@tanstack/react-router";
 import { Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import type { InviteSpot } from "@/features/feed/feed-page";
 import { useI18n } from "@/i18n";
 
 /** D119 — the invitation for the chosen place (and, on a category page, its category). */
 export interface Invite {
-  placeId: string;
-  placeName: string;
+  placeId: string | null;
+  placeName: string | null;
   categoryId: string | null;
   categoryName: string | null;
-  /** How many of the place's own listings are shown: none → "Be the first", some → "Advertise in …". */
+  /**
+   * The chosen place's own listings shown, or, with no place chosen, all the
+   * listings shown: none → "Be the first", some → "Advertise …".
+   */
   placeCount: number;
 }
 
@@ -19,15 +23,20 @@ export function InviteText({ invite, className }: { invite: Invite; className: s
   const { t } = useI18n();
   // The operator, 2026-10-10: "Be the first" only where nobody has advertised yet.
   const first = invite.placeCount === 0;
+  const placeName = invite.placeName;
   const text =
-    invite.categoryName === null
-      ? t(first ? "feed.invite.place" : "feed.invite.placeMore").replace(
-          "{place}",
-          invite.placeName,
-        )
-      : t(first ? "feed.invite.placeCategory" : "feed.invite.placeCategoryMore")
-          .replace("{category}", invite.categoryName)
-          .replace("{place}", invite.placeName);
+    placeName === null
+      ? invite.categoryName === null
+        ? t(first ? "feed.invite.none" : "feed.invite.noneMore")
+        : t(first ? "feed.invite.noneCategory" : "feed.invite.noneCategoryMore").replace(
+            "{category}",
+            invite.categoryName,
+          )
+      : invite.categoryName === null
+        ? t(first ? "feed.invite.place" : "feed.invite.placeMore").replace("{place}", placeName)
+        : t(first ? "feed.invite.placeCategory" : "feed.invite.placeCategoryMore")
+            .replace("{category}", invite.categoryName)
+            .replace("{place}", placeName);
   return (
     <p data-testid="feed-invite-text" className={className}>
       {text}
@@ -45,11 +54,10 @@ export function InvitePostButton({ invite }: { invite: Invite }) {
     >
       <Link
         to="/post"
-        search={
-          invite.categoryId === null
-            ? { place: invite.placeId }
-            : { category: invite.categoryId, place: invite.placeId }
-        }
+        search={{
+          ...(invite.categoryId === null ? {} : { category: invite.categoryId }),
+          ...(invite.placeId === null ? {} : { place: invite.placeId }),
+        }}
         data-testid="feed-invite-post"
       >
         {t("nav.postListing")}
@@ -63,7 +71,7 @@ export function InvitePostButton({ invite }: { invite: Invite }) {
  * DEC-169 — it stands out in gold, the token's third placement (the operator's
  * choice of 2026-10-09): a gold border and tint, a star, the green button.
  */
-export function InviteCard({ invite }: { invite: Invite }) {
+export function InviteCard({ invite, at }: { invite: Invite; at: InviteSpot }) {
   // The operator, 2026-10-10: one card among the others, never a wider one; below
   // 11rem (three or four a row) it is compact, as the listing card is.
   // Bundle 11 V2b (the operator, 2026-10-11: every card one size) — never a
@@ -73,7 +81,8 @@ export function InviteCard({ invite }: { invite: Invite }) {
   return (
     <div
       data-testid="feed-invite"
-      data-place={invite.placeId}
+      data-at={at}
+      data-place={invite.placeId ?? undefined}
       data-category={invite.categoryId ?? undefined}
       className="@container h-full"
     >
