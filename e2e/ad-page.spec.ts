@@ -1152,7 +1152,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(page.getByTestId("listing-map-caption")).toHaveText(en["adPage.map.approx"]);
     await signInViaSession(page, seller.email, seller.password);
     await gotoReady(page, `/my-listings/${exact.id}`);
-    await expect(page.getByText(en["post.pin.previewExact"]).first()).toBeVisible();
+    await expect(page.getByTestId("listing-map-caption")).toHaveText(en["post.pin.previewExact"]);
   });
 
   test("AP-44 nothing covers the top bars", async ({ page }, testInfo) => {
