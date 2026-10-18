@@ -957,3 +957,4 @@
 
 - 2026-10-18 — Bundle 21 turn 6 (no migration): the ★ favourite on this device, first in every main list, set beside a category page's title (D207); the different-place notice — one line in the place band, a day after the person's own choice, Switch and Keep (D214, changing D107); FV-1, PN-1, PN-2.
 - 2026-10-18 — Bundle 21 turn 7 (no migration): #1024's fixes (the corner mark on the menu's names — TB-1; the categories console's card boundary at 928 px — CT-8); Home out of the menu (the breadcrumb and the bottom bar carry it); the ☆'s hint and the last favourite chosen wins; the invitation card on every list, the old empty box retired (D215); HR-1, FV-2, FV-3, FV-AM-1, FS-17, FS-18, FP-14, LC-7.
+- 2026-10-18 — Bundle 21 turn 8 (no migration): ‹ Main Menu with both words capitalised; the back row's arrow and words at the rows' start on every menu (it lacked the rows' padding variable and start alignment); BK-1.

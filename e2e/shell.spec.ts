@@ -3501,3 +3501,38 @@ test("FV-2 the ☆ explains itself: fine print without a mouse, a tooltip with o
   await expect(tip).toBeVisible();
   await expect(tip).toContainText(isText);
 });
+
+test("BK-1 ‹ Main Menu starts where the rows start, both words capitalised", async ({
+  page,
+}, testInfo) => {
+  expect(en["shell.mainMenu"]).toBe("Main Menu");
+  const mobile = testInfo.project.name === "mobile-360";
+  let scope: Awaited<ReturnType<typeof openRailScope>>;
+  if (mobile) {
+    await gotoReady(page, "/");
+    await page.getByTestId("strip-category-electronics").click();
+    scope = await openRailScope(page);
+    await scope.getByTestId("rail-category-electronics").click();
+    await expect(page).toHaveURL(/\/c\/electronics$/);
+    await expect(scope).toBeVisible();
+  } else {
+    await gotoReady(page, "/c/electronics");
+    scope = await openRailScope(page);
+  }
+  const back = scope.getByTestId("rail-menu-back");
+  await expect(back).toHaveText(en["shell.mainMenu"]);
+  const row = scope.getByTestId("rail-category-electronics");
+  const words = await back.locator("[data-cut-text]").boundingBox();
+  const name = await row.locator("[data-cut-text]").boundingBox();
+  const arrow = await back.locator("svg").nth(0).boundingBox();
+  const icon = await row.locator("svg").nth(0).boundingBox();
+  if (!words || !name || !arrow || !icon) throw new Error("BK-1 a back-row or row part has no box");
+  expect(
+    Math.abs(words.x - name.x),
+    "BK-1 the words do not start on the names",
+  ).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(arrow.x + arrow.width / 2 - (icon.x + icon.width / 2)),
+    "BK-1 the arrow is not on the icons' centre",
+  ).toBeLessThanOrEqual(1);
+});
