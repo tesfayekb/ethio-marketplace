@@ -3732,7 +3732,7 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
     deviceScaleFactor: 3,
   });
 
-  test("OV-2 a 2000-px child never widens the page, and the sub-band still sticks", async ({
+  test("OVW-2 a 2000-px child never widens the page, and the sub-band still sticks", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name === "desktop-1280", "phone emulation, run once");

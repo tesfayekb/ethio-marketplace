@@ -1757,7 +1757,7 @@ test.describe("AD PAGE — the phone page never widens (bundle 21 turn 10)", () 
     return word;
   }
 
-  test("OV-1 long unbroken words keep the ad page the screen's width", async ({
+  test("OVW-1 long unbroken words keep the ad page the screen's width", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name === "desktop-1280", "phone emulation, run once");
