@@ -394,6 +394,7 @@ export function ListingDetail(view: ListingDetailView) {
           },
         ]
       : []),
+    { target: "seller", id: "contact", label: "post.preview.sellerLabel" as const },
     ...(showLocation
       ? [{ target: "location", id: "ad-location", label: "adPage.section.location" as const }]
       : []),
@@ -425,6 +426,8 @@ export function ListingDetail(view: ListingDetailView) {
   useEffect(() => {
     const article = articleRef.current;
     // DEC-197 — a page with fewer than two sections has no bar and no watcher.
+    // DEC-200 — in the medium range the bar shows with ONE other section
+    // (the Seller tab is always there), so the watcher runs from one.
     if (!article || !showSections || sectionIds === "") return;
     const visible = new Map<string, number>();
     const observer =
@@ -446,11 +449,18 @@ export function ListingDetail(view: ListingDetailView) {
               const candidates = new Set(
                 [...visible].filter(([, top]) => top - minTop <= 8).map(([id]) => id),
               );
-              // DEC-197 — every watched id is its target (the seller card is no longer a section).
-              const toTarget = (id: string) => id.replace("ad-", "");
+              // DEC-200 — the seller card is a section again; `contact` maps back to `seller`.
+              const toTarget = (id: string) => (id === "contact" ? "seller" : id.replace("ad-", ""));
+              // DEC-200 — a section whose bar item is hidden at this width (no client
+              // rects) is never chosen as current, so Seller is never current on a
+              // phone or a large screen.
+              const shown = (id: string) => {
+                const item = navRef.current?.querySelector(`[data-target="${toTarget(id)}"]`);
+                return item != null && item.getClientRects().length > 0;
+              };
               const current = currentSectionRef.current;
-              if ([...candidates].some((id) => toTarget(id) === current)) return;
-              const first = sectionIds.split(",").find((id) => candidates.has(id));
+              if ([...candidates].some((id) => shown(id) && toTarget(id) === current)) return;
+              const first = sectionIds.split(",").find((id) => candidates.has(id) && shown(id));
               if (first) setCurrentSection(toTarget(first));
             },
             { rootMargin: "-180px 0px -45% 0px", threshold: 0 },
