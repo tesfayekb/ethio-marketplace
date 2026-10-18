@@ -241,12 +241,15 @@ function srcSetOf(photo: GalleryPhoto): string | undefined {
 }
 
 function Thumbs({
+  ref,
   photos,
   at,
   onPick,
   testid,
   className,
 }: {
+  /** The strip itself, so the arrows and the keep-in-view rule can read it. */
+  ref: RefObject<HTMLUListElement | null>;
   photos: readonly GalleryPhoto[];
   at: number;
   onPick: (index: number) => void;
@@ -255,7 +258,7 @@ function Thumbs({
 }) {
   const { t } = useI18n();
   return (
-    <ul data-testid={testid} className={className}>
+    <ul ref={ref} data-testid={testid} className={className}>
       {photos.map((photo, index) => (
         <li key={photo.id} className="shrink-0">
           <button
@@ -299,7 +302,14 @@ function Viewer({
   const total = photos.length;
   const photo = photos[at]!;
   const closeRef = useRef<HTMLButtonElement>(null);
+  const stripRef = useRef<HTMLUListElement>(null);
   const [zoomed, setZoomed] = useState(false);
+  // The viewer's row keeps the shown photo's thumbnail fully inside it.
+  useEffect(() => {
+    const strip = stripRef.current;
+    const item = strip?.children[at];
+    if (strip && item instanceof HTMLElement) keepInStrip(strip, item);
+  }, [at, total]);
   const swipe = useSwipe((direction) => {
     if (!zoomed) onGo(at + direction);
   });
