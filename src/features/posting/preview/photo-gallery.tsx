@@ -1,8 +1,16 @@
-import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type RefObject,
+} from "react";
 import { createPortal } from "react-dom";
 
 import { Z_VIEWER } from "@/components/layout/layers";
 import { ListingRibbon } from "@/components/marketplace/listing-picture";
+import { StripArrows, keepInStrip } from "@/components/ui/strip-arrows";
 import { useI18n } from "@/i18n";
 
 import type { GalleryPhoto } from "../photo-links";
@@ -88,10 +96,18 @@ export function PhotoGallery({
   const [index, setIndex] = useState(0);
   const [viewer, setViewer] = useState(false);
   const mainRef = useRef<HTMLButtonElement>(null);
+  const stripRef = useRef<HTMLUListElement>(null);
   const placeId = useId();
   const at = Math.min(index, total - 1);
   const go = (next: number) => setIndex(Math.max(0, Math.min(total - 1, next)));
   const swipe = useSwipe((direction) => go(at + direction));
+  // When the shown photo changes (the photo's ‹ ›, a swipe, a key), its
+  // thumbnail is kept fully inside the strip — the strip's own scroll only.
+  useEffect(() => {
+    const strip = stripRef.current;
+    const item = strip?.children[at];
+    if (strip && item instanceof HTMLElement) keepInStrip(strip, item);
+  }, [at, total]);
   if (total === 0) return null;
   const photo = photos[at]!;
   const several = total > 1;
@@ -180,13 +196,22 @@ export function PhotoGallery({
           ) : null}
         </div>
         {several ? (
-          <Thumbs
-            photos={photos}
-            at={at}
-            onPick={go}
-            testid="gallery-thumbs"
-            className="scrollbar-none flex gap-2 overflow-x-auto @min-[32rem]:max-h-[27rem] @min-[32rem]:w-16 @min-[32rem]:shrink-0 @min-[32rem]:flex-col @min-[32rem]:overflow-x-hidden @min-[32rem]:overflow-y-auto"
-          />
+          <div className="relative @min-[32rem]:shrink-0">
+            <Thumbs
+              ref={stripRef}
+              photos={photos}
+              at={at}
+              onPick={go}
+              testid="gallery-thumbs"
+              className="scrollbar-none flex gap-2 overflow-x-auto @min-[32rem]:max-h-[27rem] @min-[32rem]:w-16 @min-[32rem]:flex-col @min-[32rem]:overflow-x-hidden @min-[32rem]:overflow-y-auto"
+            />
+            <StripArrows
+              stripRef={stripRef}
+              backLabel={t("post.gallery.stripBack")}
+              moreLabel={t("post.gallery.stripMore")}
+              testIdPrefix="gallery-strip"
+            />
+          </div>
         ) : null}
       </div>
       {viewer ? (
@@ -216,12 +241,15 @@ function srcSetOf(photo: GalleryPhoto): string | undefined {
 }
 
 function Thumbs({
+  ref,
   photos,
   at,
   onPick,
   testid,
   className,
 }: {
+  /** The strip itself, so the arrows and the keep-in-view rule can read it. */
+  ref: RefObject<HTMLUListElement | null>;
   photos: readonly GalleryPhoto[];
   at: number;
   onPick: (index: number) => void;
@@ -230,7 +258,7 @@ function Thumbs({
 }) {
   const { t } = useI18n();
   return (
-    <ul data-testid={testid} className={className}>
+    <ul ref={ref} data-testid={testid} className={className}>
       {photos.map((photo, index) => (
         <li key={photo.id} className="shrink-0">
           <button
@@ -274,7 +302,14 @@ function Viewer({
   const total = photos.length;
   const photo = photos[at]!;
   const closeRef = useRef<HTMLButtonElement>(null);
+  const stripRef = useRef<HTMLUListElement>(null);
   const [zoomed, setZoomed] = useState(false);
+  // The viewer's row keeps the shown photo's thumbnail fully inside it.
+  useEffect(() => {
+    const strip = stripRef.current;
+    const item = strip?.children[at];
+    if (strip && item instanceof HTMLElement) keepInStrip(strip, item);
+  }, [at, total]);
   const swipe = useSwipe((direction) => {
     if (!zoomed) onGo(at + direction);
   });
@@ -365,13 +400,24 @@ function Viewer({
         ) : null}
       </div>
       {total > 1 ? (
-        <Thumbs
-          photos={photos}
-          at={at}
-          onPick={onGo}
-          testid="gallery-viewer-thumbs"
-          className="scrollbar-none flex justify-center gap-2 overflow-x-auto p-2"
-        />
+        <div className="relative">
+          <Thumbs
+            ref={stripRef}
+            photos={photos}
+            at={at}
+            onPick={onGo}
+            testid="gallery-viewer-thumbs"
+            // INC-720 — safe centre: centred while the row fits, start-aligned
+            // when it overflows, so the first photos stay reachable.
+            className="scrollbar-none flex justify-center-safe gap-2 overflow-x-auto p-2"
+          />
+          <StripArrows
+            stripRef={stripRef}
+            backLabel={t("post.gallery.stripBack")}
+            moreLabel={t("post.gallery.stripMore")}
+            testIdPrefix="gallery-viewer-strip"
+          />
+        </div>
       ) : null}
     </div>,
     document.body,

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GalleryPhoto } from "../photo-links";
 
@@ -194,6 +194,55 @@ describe("PhotoGallery — a held photo (D158)", () => {
  * drawn from the card or the middle size; the full size is fetched for the
  * full-screen viewer only.
  */
+describe("PhotoGallery — the thumbnails' strip (INC-717, INC-720)", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("GAL-8 moving to the tenth photo keeps its thumbnail inside the strip; the page never scrolls", () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    const ten = Array.from({ length: 10 }, (_, i) => photo(`p${i + 1}`));
+    render(<PhotoGallery photos={ten} />);
+    const strip = screen.getByTestId("gallery-thumbs");
+    // jsdom measures nothing: the strip shows two thumbnails of a hundred each.
+    Object.defineProperty(strip, "clientWidth", { configurable: true, value: 200 });
+    Object.defineProperty(strip, "scrollWidth", { configurable: true, value: 1000 });
+    Object.defineProperty(strip, "scrollLeft", { configurable: true, writable: true, value: 0 });
+    [...strip.children].forEach((li, i) => {
+      Object.defineProperty(li, "offsetLeft", { configurable: true, value: i * 100 });
+      Object.defineProperty(li, "offsetWidth", { configurable: true, value: 100 });
+    });
+
+    for (let step = 0; step < 9; step++) fireEvent.click(screen.getByTestId("gallery-next"));
+    expect(screen.getByTestId("gallery-count")).toHaveTextContent("10 / 10");
+    // The tenth thumbnail (offset 900, 100 wide) lies fully inside the strip.
+    expect(strip.scrollLeft).toBe(900 + 100 - 200);
+    expect(900).toBeGreaterThanOrEqual(strip.scrollLeft);
+    expect(900 + 100).toBeLessThanOrEqual(strip.scrollLeft + 200);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("GAL-9 the viewer's row is centred safely, so its first photos stay reachable (INC-720)", () => {
+    render(<PhotoGallery photos={THREE} />);
+    fireEvent.click(screen.getByTestId("gallery-main"));
+    const row = screen.getByTestId("gallery-viewer-thumbs");
+    expect(row).toHaveClass("justify-center-safe");
+    expect(row.className).not.toMatch(/(?:^|\s)justify-center(?:\s|$)/);
+  });
+});
+
 describe("PhotoGallery — the middle size (D162)", () => {
   it("GAL-6 a photo with a middle size offers the card and the middle size, never the cover; the viewer draws the cover", () => {
     const withMiddle: GalleryPhoto = { ...photo("p1"), middle: link("p1", "mid") };

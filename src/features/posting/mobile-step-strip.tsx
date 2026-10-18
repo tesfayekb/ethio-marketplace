@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { StripArrows } from "@/components/ui/strip-arrows";
 import { useI18n } from "@/i18n";
 
 import { fill } from "./refusal-text";
@@ -21,6 +22,7 @@ export function MobileStepStrip({
   onGoTo: (step: number) => void;
 }) {
   const { t } = useI18n();
+  const stripRef = useRef<HTMLOListElement>(null);
   const currentRef = useRef<HTMLLIElement | null>(null);
   const [furthestVisited, setFurthestVisited] = useState(positionOf(step));
 
@@ -30,61 +32,70 @@ export function MobileStepStrip({
   }, [step]);
 
   return (
-    // INC-325 — on step 1 no strip item is a button, so the scroll container
-    // itself takes focus (axe scrollable-region-focusable); it carries a label.
-    <ol
-      aria-label={t("post.progress.stripLabel")}
-      data-testid="post-step-strip"
-      tabIndex={0}
-      className="scrollbar-none -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
-    >
-      {WALK.map((entry) => {
-        const position = positionOf(entry.step);
-        const current = entry.step === step;
-        const completed = isStepFinished(entry.step, { draftStep, photosCount });
-        const visited = position <= furthestVisited;
-        const content = (
-          <>
-            <span aria-hidden="true">{completed ? "✓" : position}</span>
-            <span>{t(entry.nameKey)}</span>
-          </>
-        );
-        return (
-          <li
-            ref={current ? currentRef : undefined}
-            key={entry.step}
-            aria-current={current ? "step" : undefined}
-            data-testid="post-step-strip-item"
-            data-step={entry.step}
-            data-state={current ? "current" : completed ? "completed" : "later"}
-            className="shrink-0"
-          >
-            {visited && !current ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="touch"
-                data-testid={`post-step-strip-go-${entry.step}`}
-                className="gap-1.5 rounded-full border border-border px-3 text-xs"
-                aria-label={fill(t("post.progress.stepNumber"), { step: position })}
-                onClick={() => onGoTo(entry.step)}
-              >
-                {content}
-              </Button>
-            ) : (
-              <span
-                className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-xs font-medium ${
-                  current
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border text-muted-foreground"
-                }`}
-              >
-                {content}
-              </span>
-            )}
-          </li>
-        );
-      })}
-    </ol>
+    <div className="relative">
+      {/* INC-325 — on step 1 no strip item is a button, so the scroll container
+          itself takes focus (axe scrollable-region-focusable); it carries a label. */}
+      <ol
+        ref={stripRef}
+        aria-label={t("post.progress.stripLabel")}
+        data-testid="post-step-strip"
+        tabIndex={0}
+        className="scrollbar-none -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+      >
+        {WALK.map((entry) => {
+          const position = positionOf(entry.step);
+          const current = entry.step === step;
+          const completed = isStepFinished(entry.step, { draftStep, photosCount });
+          const visited = position <= furthestVisited;
+          const content = (
+            <>
+              <span aria-hidden="true">{completed ? "✓" : position}</span>
+              <span>{t(entry.nameKey)}</span>
+            </>
+          );
+          return (
+            <li
+              ref={current ? currentRef : undefined}
+              key={entry.step}
+              aria-current={current ? "step" : undefined}
+              data-testid="post-step-strip-item"
+              data-step={entry.step}
+              data-state={current ? "current" : completed ? "completed" : "later"}
+              className="shrink-0"
+            >
+              {visited && !current ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="touch"
+                  data-testid={`post-step-strip-go-${entry.step}`}
+                  className="gap-1.5 rounded-full border border-border px-3 text-xs"
+                  aria-label={fill(t("post.progress.stepNumber"), { step: position })}
+                  onClick={() => onGoTo(entry.step)}
+                >
+                  {content}
+                </Button>
+              ) : (
+                <span
+                  className={`flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-xs font-medium ${
+                    current
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {content}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+      <StripArrows
+        stripRef={stripRef}
+        backLabel={t("post.progress.stripBack")}
+        moreLabel={t("post.progress.stripMore")}
+        testIdPrefix="post-step-strip"
+      />
+    </div>
   );
 }

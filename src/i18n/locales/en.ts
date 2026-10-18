@@ -2969,6 +2969,8 @@ export const en = {
   "post.action.backToReview": "Back to review",
   "post.progress.stripLabel": "Steps",
   "post.progress.stepNumber": "Step {step}",
+  "post.progress.stripBack": "Earlier steps",
+  "post.progress.stripMore": "More steps",
   // D59 — a category change resets the category-shaped answers; changedCleared retired.
   "post.category.changedReset":
     "Category changed to {category} — details, title, description and price were cleared. Photos, place and contact stay.",
@@ -2993,6 +2995,8 @@ export const en = {
   "post.gallery.previous": "Previous photo",
   "post.gallery.next": "Next photo",
   "post.gallery.show": "Show photo {index}",
+  "post.gallery.stripBack": "Earlier photos",
+  "post.gallery.stripMore": "More photos",
   "post.gallery.unscreened": "Not checked by AI",
   "post.gallery.inReview": "Waiting for review",
   "admin.attributes.link.allowedOptions": "Allowed options",
