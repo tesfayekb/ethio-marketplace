@@ -13,7 +13,7 @@
 
 ## Project constitution (all agents)
 
-Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only; no extras; disclose limits first; search before creating. 360px-first, logical RTL CSS, EN+AM translation keys. Tables: append-only migrations with RLS/policies/GRANTs; personal data: home_country_code. UTC timestamps; integer money; no secrets in code/commits. Server/RLS alone authorizes. No silent catch-and-continue. Public pages: SSR, absolute canonical/og URLs. Structural edits update /docs/features/<name>.md + _changelog.md together.
+Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only; no extras; disclose limits first; search before creating. 360px-first, logical RTL CSS, EN+AM translation keys. Tables: append-only migrations with RLS/policies/GRANTs; personal data: home_country_code. UTC timestamps; integer money; no secrets in code/commits. Server/RLS alone authorizes. No silent catch-and-continue. Public pages: SSR, absolute canonical/og URLs. Structural edits update /docs/features/<name>.md + \_changelog.md together.
 
 - A new table, sequence or function of schema public is born closed to the browser roles: its migration names every GRANT it needs (a browser grant only with its line in scripts/public-surface-allowlist.txt), and every new function restates REVOKE … FROM PUBLIC in its own file (bundle 8).
 - The database tool applies its input immediately: write and check a scratch migration, then submit FINAL text once, never a stub, comment or draft; remove scratch drafts before turn end (prevents comment-only applies, 2026-10-04/07).
