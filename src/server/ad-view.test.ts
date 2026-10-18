@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { countAdView, VIEW_LIMIT_PER_HOUR } from "./ad-view";
+import { countAdView, VIEW_LIMIT_PER_ADDRESS_AD, VIEW_LIMIT_PER_HOUR } from "./ad-view";
 import { hashAddress } from "./catalog-find.server";
 
 const mocks = vi.hoisted(() => ({ rate: vi.fn(), rpc: vi.fn(), caller: vi.fn(), log: vi.fn() }));
