@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-21-turn-3.md (bundle 21 — turn 3: the menus' rows and icons, Home in place of All categories, the phone menu's ×, a tap on the strip opens the menu). Next: bundle 21 turns 4–5 (the ★, subcategories in place, the fold and the peek; the place notice), then its Publish and walk; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-21-turn-4.md (bundle 21 — turn 4: the compact phone footer and indented sub-items in the opened menus). Next: bundle 21 turns 5–6 (the ★, subcategories in place, the fold and the peek; the place notice), then its Publish and walk; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -386,8 +386,10 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 1 (docs/governance/briefs/bundle-21-turn-1.md; no migration) — Look B: one card surface (12-px corners, a soft shadow, no border; a faint ring in dark mode), the bars and bands without lines, the panel tabs as pills, the bottom bar's soft edges and its Amharic short label (D97), the footer full width without How it works (D116), the seller card without its two duplicate labels (D211); LL-1, LL-2, LB-1, FS-16, BB-1, FT-1
   - [ ] Turn 2 (docs/governance/briefs/bundle-21-turn-2.md; no migration) — the top band: one ☰ at every width, the logo after it, search centred (D110–D112, D115, D117); tablets with the menu open (D204); tables by the space they have; TB-1, TB-2
   - [ ] Turn 3 (docs/governance/briefs/bundle-21-turn-3.md; no migration) — the menus' rows and icons (D113), Home in place of All categories, the phone menu's × and its place above the bottom bar, a tap on the strip opens the menu (D205); RM-1…RM-4
-  - [ ] Turn 4 — the ★ favourite (D207), subcategories in place with ‹ Main menu (D98 with D213), the fold into the strip, the peek (D206)
-  - [ ] Turn 5 — the place notice (D214)
+  - [ ] Turn 4 (docs/governance/briefs/bundle-21-turn-4.md; no migration) — the compact phone footer (the operator, 14:38 local: no brand block below 768, one 28-px row rhythm) and indented sub-items in the opened menus (14:45 local: 16 px a level open, one icon column folded and in the strip); FT-1, IN-1
+    - [ ] Part A — resolve #1022’s non-HS-13/SIM-4 failures: blocked until its failure bodies publish in ci-evidence or authorised logs/artifacts become available; GitHub log/artifact downloads refused (403/401).
+  - [ ] Turn 5 — the ★ favourite (D207), subcategories in place with ‹ Main menu (D98 with D213), the fold into the strip, the peek (D206)
+  - [ ] Turn 6 — the place notice (D214)
 - [ ] D207 (the operator, 2026-10-18) — the categories a person browses kept on the device, and on the account when signed in, to bring back the ones he returns to (the ★ favourite itself rides bundle 21). Owed: the spec.
 - [ ] D208 (the operator, 2026-10-18) — the category pictures: one bulk regeneration of every picture, with a record of which were regenerated (today a few at a time, and after many it is hard to tell which are new); each picture fills its 4:3 frame (D122). Owed: the spec; the spend is his call (one AI call a picture).
 - [ ] D209 (the operator, 2026-10-18) — a "Why ethio.com" page: visibility, ease of use, local language, instant services, AI assistance, localization, easy posting steps, security, privacy and more, from a review of every feature; the footer links to it. Owed: the feature review and the text.

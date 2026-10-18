@@ -28,11 +28,11 @@ export function AppFooter() {
     <footer className="w-full bg-card shadow-bar-up">
       <div
         data-testid="footer-columns"
-        className="mx-auto grid w-full max-w-5xl grid-cols-3 gap-x-4 gap-y-2 px-4 py-4 md:grid-cols-[1.3fr_1fr_1fr_1fr] md:gap-x-8 md:px-10 md:py-8"
+        className="mx-auto grid w-full max-w-5xl grid-cols-3 gap-x-4 gap-y-0 px-4 py-1 md:grid-cols-[1.3fr_1fr_1fr_1fr] md:gap-x-8 md:px-10 md:py-8"
       >
         <div
           data-testid="footer-brand"
-          className="col-span-3 min-w-0 text-center md:col-span-1 md:text-start"
+          className="hidden col-span-3 min-w-0 text-center md:block md:col-span-1 md:text-start"
         >
           <Link
             to="/"
@@ -50,12 +50,12 @@ export function AppFooter() {
             aria-label={t(column.headingKey)}
             className="min-w-0 text-center md:text-start"
           >
-            <h2 className="text-sm font-semibold leading-tight text-foreground">
+            <h2 className="flex h-7 items-center justify-center text-sm font-semibold text-foreground md:justify-start">
               {t(column.headingKey)}
             </h2>
             <ul className="flex flex-col items-center md:items-start">
               {column.items.map((item) => (
-                <li key={item} className="min-h-11">
+                <li key={item} className="-my-2">
                   <span className={LINK}>{t(item)}</span>
                 </li>
               ))}
@@ -63,7 +63,7 @@ export function AppFooter() {
           </nav>
         ))}
       </div>
-      <div className="mx-auto w-full max-w-5xl border-t border-neutral-soft px-4 py-2 text-center md:px-10 md:text-start">
+      <div className="mx-auto w-full max-w-5xl border-t border-neutral-soft px-4 py-1.5 text-center md:px-10 md:py-2 md:text-start">
         <p data-testid="footer-copyright" className="text-sm text-muted-foreground">
           © {year} {t("app.name")} — {t("footer.rights")}
         </p>
