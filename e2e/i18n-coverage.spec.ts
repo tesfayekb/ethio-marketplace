@@ -6,7 +6,7 @@ import { en } from "../src/i18n/locales/en";
 import { LANGUAGE_STORAGE_KEY } from "../src/i18n/provider";
 
 import { gotoReady, openRailScope, signIn } from "./helpers/ui";
-import { ANY_MENU_ROW, isScratchSlug, slugOfRow } from "./helpers/category-menu";
+import { ANY_MENU_ROW, catalogueRows, isScratchSlug, slugOfRow } from "./helpers/category-menu";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -270,8 +270,18 @@ test.describe("i18n chrome coverage (Amharic)", () => {
 test("B21SC-3 SC-3 the phone category level and Main menu are Amharic", async ({
   page,
   viewport,
-}) => {
+}, testInfo) => {
   test.skip((viewport?.width ?? 0) >= 768, "mobile only");
+  // INC-742 — the level is judged against the tree's own names (read only):
+  // a real row with no Amharic name is catalogue data, named, not judged.
+  const response = await page.request.get("/api/categories/tree");
+  expect(response.status()).toBe(200);
+  const tree = (await response.json()) as {
+    nodes: { slug: string; name_am: string | null }[];
+  };
+  const hasAmharic = new Map(
+    tree.nodes.map((node) => [node.slug, (node.name_am ?? "").trim() !== ""]),
+  );
   await useAmharic(page);
   await gotoReady(page, "/c/electronics");
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
@@ -280,7 +290,30 @@ test("B21SC-3 SC-3 the phone category level and Main menu are Amharic", async ({
   await expect(menu.getByTestId("rail-menu-back")).toHaveText(am["shell.mainMenu"]);
   await expect(menu.getByTestId("rail-category-phones-tablets")).toBeVisible();
   assertAmharicChrome(await drawerTexts(page), "SC-3 category level");
-  await assertAmharicCategories(page, '[data-testid="rail-menu"]', "SC-3 category level");
+  const rows = await catalogueRows(menu).evaluateAll((els) =>
+    els.map((el) => ({
+      testid: el.getAttribute("data-testid") ?? "",
+      label: (el.textContent ?? "").trim(),
+    })),
+  );
+  const judged = rows
+    .map((row) => ({ slug: slugOfRow(row.testid), label: row.label }))
+    .filter((row) => row.label !== "" && hasAmharic.get(row.slug) === true);
+  const unnamed = rows
+    .map((row) => slugOfRow(row.testid))
+    .filter((slug) => hasAmharic.get(slug) !== true);
+  if (unnamed.length > 0) {
+    testInfo.annotations.push({
+      type: "no Amharic name in the catalogue",
+      description: unnamed.join(", "),
+    });
+  }
+  expect(judged.length, "SC-3 no row of the level has an Amharic name").toBeGreaterThan(0);
+  const english = judged.filter((row) => !ALLOW.has(row.label) && LATIN_ONLY.test(row.label));
+  expect(
+    english.map((row) => `${row.slug} => "${row.label}"`),
+    "SC-3 category labels still in English",
+  ).toEqual([]);
 });
 
 // Read-only catalogue places: no translation row is created or changed.

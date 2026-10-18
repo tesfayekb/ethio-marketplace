@@ -270,18 +270,17 @@ ONE breakpoint governs both the sidebar collapse and the top-bar minimization:
 `md` (768px). Tablets are NOT phones.
 
 - **`md` and up** (tablets ~768px, desktops): persistent sidebar + FULL top-bar
-  controls — a real search FIELD with its placeholder text, the language control
+  controls — a real search FIELD with its placeholder text, three quarters of the band's free space up to 42rem, centred and proportional to the screen (bundle 21 turn 9), the language control
   reading the language NAME ("English"), and a labelled account control /
   "Sign in" button. No bare icon a non-technical user has to decode. Verified to
   fit with zero horizontal overflow at exactly 768px.
 - **Below `md`** (phones only): a 48px icon strip shares the collapsed rail’s
   rows and widens in place to a 256px named menu from the top bar. The 52px bar, strip and
-  tabs/breadcrumb band stay while the page scrolls; search opens a full-width
-  row over the page below the bar. Only this size minimizes the bar.
+  tabs/breadcrumb band stay while the page scrolls; search opens a row over the page below the bar, from the strip's edge to the screen's edge, as the page (bundle 21 turn 9). Only this size minimizes the bar.
   `PHONE_STRIP=false` restores the header menu button and removes the strip offset.
 
 - **Top bar** is minimal and evenly distributed at 360px, full at `md`+. On
-  phones search is an icon that opens a FULL-WIDTH row below the bar (room for
+  phones search is an icon that opens a row below the bar beside the strip (room for
   long queries) rather than a cramped in-bar field. The panel dropdown is gone.
 - **Panel tabs** (`shell/panel-tabs.tsx`) use the locked green for emphasis
   (underline + text). Mobile users switch panels through the bottom bar; the
