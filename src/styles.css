@@ -3,11 +3,19 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-/* C2g.1 — the icons-only rail: 768–1023 px always, and from 768 px whenever
-   the stored choice (html[data-rail="collapsed"]) says so. Width media queries
-   and an attribute only, so it holds on the first painted frame. */
+/* D204 — from 768 the menu is open unless the person folded it.
+   The stored attribute holds on the first painted frame. */
 @custom-variant rail-icons {
-  @media (min-width: 48rem) and (max-width: 63.98rem) {
+  @media (min-width: 48rem) {
+    html[data-rail="collapsed"] & {
+      @slot;
+    }
+  }
+}
+/* 58rem = 928px: 928 - 224 (open tablet rail) - 32 (page padding) = 672px.
+   Folded: 768 - 64 - 32 = 672px, the old md table's available width. */
+@custom-variant tbl-md {
+  @media (min-width: 58rem) {
     @slot;
   }
   @media (min-width: 48rem) {
@@ -88,6 +96,7 @@
  *
  * Look B (D135): surfaces lift by soft shadows, not lines; state borders
  * (destructive, gold, focus, a dashed placeholder) stay.
+ * Images and gradients are not surfaces (performance stance — see docs/features/design-foundation.md).
  */
 
 @theme inline {

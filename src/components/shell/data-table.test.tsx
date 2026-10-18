@@ -370,9 +370,10 @@ describe("DataTable V2 card and frame (D132)", () => {
       pagination: <div data-testid="pager" />,
     });
     const frame = screen.getByTestId("data-table").parentElement!.parentElement!;
-    for (const name of ["lg:rounded-lg", "lg:border", "lg:bg-card", "lg:shadow-card"]) {
+    for (const name of ["lg:rounded-card", "lg:bg-card", "lg:shadow-card"]) {
       expect(frame.className).toContain(name);
     }
+    expect(frame.className).not.toContain("lg:border-border");
     expect(frame.className).not.toContain("md:bg-card");
     expect(frame.contains(screen.getByTestId("data-table-toolbar"))).toBe(true);
     expect(frame.contains(screen.getByTestId("pager"))).toBe(true);

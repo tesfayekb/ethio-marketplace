@@ -89,7 +89,7 @@ describe("SIM-4 the similar-ads section", () => {
     render(<SimilarAds {...props} />);
     const section = await screen.findByTestId("listing-similar");
     // INC-704: with cards, the section sits inside the card frame.
-    expect(section.parentElement?.className).toContain("rounded-lg");
+    expect(section.parentElement?.className).toContain("rounded-card");
     expect(section.getAttribute("aria-labelledby")).toBe("listing-similar-title");
     expect(screen.getByRole("heading", { name: "adPage.similar.title" })).toBeTruthy();
     await waitFor(() => expect(section.querySelectorAll("ul > li")).toHaveLength(10));

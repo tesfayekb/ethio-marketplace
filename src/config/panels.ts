@@ -39,9 +39,6 @@ import { ADMIN_NAV_ITEMS } from "@/features/admin/rail-items";
 import type { NavItem, Panel, PanelAuthContext, PanelId } from "./panels.types";
 import { ownValue } from "@/lib/own-key";
 
-// Operator preview switch: false restores the menu button and removes the phone strip offset.
-export const PHONE_STRIP = true;
-
 /**
  * The panel/nav configuration — the single source of truth for the shell's
  * navigation. See docs/features/panels.md.
