@@ -66,7 +66,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 ## Tests
 
-Turn 27: AP-49, AP-50, LP-1, UC-1, FD-1; AP-36, AP-37, AP-42, AP-45, PW-13, LD-18, LD-19 and two LD order tests changed.
+Turn 27: AP-49, AP-50, LP-10, UC-1, FD-4; AP-36, AP-37, AP-42, AP-45, PW-13, LD-18, LD-19 and two LD order tests changed. (The brief's LP-1/FD-1 ids were taken — INC-536 assigns an id once — so the next free ids carry the cases.)
 Turn 26: LD-22; AP-23 changed.
 Turn 25: AP-48, SA-1…SA-3, GAL-8, GAL-9.
 Turn 24: AP-44 changed (the wide window shortened before scrolling — INC-718; the in-page bar's cover check at both widths).
