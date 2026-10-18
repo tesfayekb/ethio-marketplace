@@ -1550,7 +1550,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       el.scrollLeft = 0;
     });
     const rowBox = await row.boundingBox();
-    const firstBox = await row.getByTestId("gallery-thumb").first().boundingBox();
+    const firstBox = await row.getByTestId("gallery-thumb").nth(0).boundingBox();
     if (!rowBox || !firstBox) throw new Error("AP-48 viewer row missing");
     expect(firstBox.x).toBeGreaterThanOrEqual(rowBox.x - 1);
   });
