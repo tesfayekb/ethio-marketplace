@@ -19,7 +19,14 @@ vi.mock("@/components/shell/location-data", () => ({
 vi.mock("../catalog-scope", () => ({
   useCatalogScope: () => ({ country: "country", categoryPath: () => null, moveTo: null }),
 }));
-vi.mock("../use-photo-links", () => ({ usePhotoLinks: () => ({}) }));
+vi.mock("../use-photo-links", () => ({
+  usePhotoLinks: (photos: readonly { id: string }[]) =>
+    Object.fromEntries(
+      photos
+        .filter((photo) => photo.id === "ld-18-photo")
+        .map((photo) => [photo.id, { card: "https://cdn.example/scratch.jpg" }]),
+    ),
+}));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ to, search, children, ...rest }: Record<string, unknown>) => (
     <a
@@ -30,7 +37,7 @@ vi.mock("@tanstack/react-router", () => ({
     </a>
   ),
 }));
-vi.mock("./photo-gallery", () => ({ PhotoGallery: () => null }));
+// LD-18 renders the real PhotoGallery, so this file mocks no gallery.
 vi.mock("../map/map-preview", () => ({ MapPreview: () => null }));
 vi.mock("../map/map-large", () => ({ MapLarge: () => null }));
 
@@ -400,15 +407,23 @@ describe("turn 14 sharing and counts", () => {
     expect(heart).toHaveAttribute("aria-pressed", "true");
     expect(heart.parentElement).toBe(screen.getByTestId("share-slot").parentElement);
   });
-  it("LD-13 buyers see positive counts only; owners have Views Shares Saves Contacts", () => {
+  it("LD-13 Seen from ten views, Shared from one; owners have Views Shares Saves Contacts", () => {
     const { rerender } = render(
       <ListingDetail {...BASE} actor="buyer" publicCounts={{ views: 0, shares: 0 }} />,
     );
     expect(screen.queryByTestId("listing-detail-public-counts")).toBeNull();
+    // INC-712 — one view is under ten: Shared alone.
     rerender(<ListingDetail {...BASE} actor="buyer" publicCounts={{ views: 1, shares: 2 }} />);
+    expect(screen.getByTestId("listing-detail-public-counts")).toHaveTextContent("Shared 2 times");
+    // Nine views and no shares: no line at all.
+    rerender(<ListingDetail {...BASE} actor="buyer" publicCounts={{ views: 9, shares: 0 }} />);
+    expect(screen.queryByTestId("listing-detail-public-counts")).toBeNull();
+    rerender(<ListingDetail {...BASE} actor="buyer" publicCounts={{ views: 10, shares: 2 }} />);
     expect(screen.getByTestId("listing-detail-public-counts")).toHaveTextContent(
-      "Seen 1 times · Shared 2 times",
+      "Seen 10 times · Shared 2 times",
     );
+    rerender(<ListingDetail {...BASE} actor="buyer" publicCounts={{ views: 10, shares: 0 }} />);
+    expect(screen.getByTestId("listing-detail-public-counts")).toHaveTextContent("Seen 10 times");
     rerender(<ListingDetail {...BASE} actor="buyer" publicCounts={{ views: 0, shares: 1 }} />);
     expect(screen.getByTestId("listing-detail-public-counts")).toHaveTextContent("Shared 1 times");
     for (const actor of ["owner", "staff"] as const) {
@@ -491,4 +506,24 @@ it("LD-17 section bar belongs to buyers, with present sections only", () => {
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
   ).toEqual(["location", "seller"]);
+});
+
+it("LD-18 the buyer's page with photos holds each block's test id exactly once (INC-714)", () => {
+  render(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      photos={[{ id: "ld-18-photo", displayOrder: 0, paths: null, storagePath: null }]}
+    />,
+  );
+  for (const id of [
+    "listing-detail-media",
+    "listing-detail-gallery",
+    "listing-detail-headline",
+    "listing-detail-aside",
+    "listing-detail-location",
+    "listing-section-nav",
+  ]) {
+    expect(screen.queryAllByTestId(id), id).toHaveLength(1);
+  }
 });
