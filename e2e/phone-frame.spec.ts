@@ -107,7 +107,7 @@ async function checkFrame(page: Page, width: number) {
   await expect(topbar, `${at}: top bar`).toBeVisible();
   const menuButton = topbar.getByRole("button", { name: /Open menu|Close menu/ });
   const toggle = page.getByTestId("rail-collapse-toggle");
-  if (width < 1024) {
+  if (width < 768) {
     await expect(menuButton, `${at}: menu control`).toBeVisible();
     await expect(toggle, `${at}: no collapse toggle`).toBeHidden();
   } else {
@@ -124,10 +124,10 @@ async function checkFrame(page: Page, width: number) {
     await expect(page.getByTestId("rail-strip"), `${at}: no strip`).toBeHidden();
     if (width < 1024) {
       const box = (await page.getByTestId("app-rail").boundingBox())!;
-      expect(Math.abs(box.width - 64), `${at}: rail width`).toBeLessThanOrEqual(1);
+      expect(Math.abs(box.width - 224), `${at}: rail width`).toBeLessThanOrEqual(1);
     }
   }
-  if (width < 1024) {
+  if (width < 768) {
     const short = await page.evaluate(() => {
       const scopes = ['[data-testid="shell-topbar"]', '[data-testid="bottom-bar"]'];
       const out: string[] = [];

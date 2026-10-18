@@ -942,10 +942,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <BottomBar />
         <div
           data-testid="shell-footer-wrapper"
-          className={cn(
-            "relative z-0 w-full bg-card md:z-40",
-            "max-md:[&>footer>*]:ps-12",
-          )}
+          className={cn("relative z-0 w-full bg-card md:z-40", "max-md:[&>footer>*]:ps-12")}
         >
           <AppFooter />
         </div>

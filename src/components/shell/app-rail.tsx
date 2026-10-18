@@ -2,12 +2,7 @@ import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRight, LogOut, Tag, type LucideIcon } from "lucide-react";
-import {
-  createContext,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
 import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
@@ -632,22 +627,20 @@ export function AppRail() {
         </aside>
       </CollapsedContext.Provider>
 
-      
-        <RailVariantContext.Provider value="strip">
+      <RailVariantContext.Provider value="strip">
+        <div
+          data-testid="rail-strip"
+          style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
+          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-20 flex w-12 flex-col bg-sidebar shadow-side md:hidden"
+        >
           <div
-            data-testid="rail-strip"
-            style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-            className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-20 flex w-12 flex-col bg-sidebar shadow-side md:hidden"
+            data-testid="strip-scroll"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
           >
-            <div
-              data-testid="strip-scroll"
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
-            >
-              <RailBody onNavigate={() => undefined} />
-            </div>
+            <RailBody onNavigate={() => undefined} />
           </div>
-        </RailVariantContext.Provider>
-
+        </div>
+      </RailVariantContext.Provider>
 
       <DialogPrimitive.Root open={navOpen} onOpenChange={setNavOpen} modal={false}>
         {navOpen ? (
@@ -701,13 +694,13 @@ export function AppRail() {
               </div>
             </div>
           </RailVariantContext.Provider>
-            <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
-              {user !== null && auth.isAuthenticated ? (
-                <p data-testid="drawer-identity" className="text-sm text-muted-foreground">
-                  <CutText text={user.displayName ?? t("auth.signedInAs")} />
-                </p>
-              ) : null}
-            </div>
+          <div className="mt-auto flex h-[var(--bottom-bar)] shrink-0 items-center border-t border-border px-3 pb-[env(safe-area-inset-bottom)]">
+            {user !== null && auth.isAuthenticated ? (
+              <p data-testid="drawer-identity" className="text-sm text-muted-foreground">
+                <CutText text={user.displayName ?? t("auth.signedInAs")} />
+              </p>
+            ) : null}
+          </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Root>
     </TooltipProvider>

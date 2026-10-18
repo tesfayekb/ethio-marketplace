@@ -1,13 +1,6 @@
 import { CutText } from "@/components/ui/cut-text";
 import { Link } from "@tanstack/react-router";
-import {
-  LogOut,
-  Menu,
-  Search,
-  Settings as SettingsIcon,
-  User,
-  X,
-} from "lucide-react";
+import { LogOut, Menu, Search, Settings as SettingsIcon, User, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Logo } from "@/components/brand/logo";
@@ -105,9 +98,7 @@ export function AppHeader() {
 
   return (
     <div className="w-full min-w-0 md:h-full">
-      <header
-        className="flex h-13 w-full min-w-0 items-center gap-1 bg-card pe-2 md:h-full md:gap-2 md:px-4"
-      >
+      <header className="flex h-13 w-full min-w-0 items-center gap-1 bg-card pe-2 md:h-full md:gap-2 md:px-4">
         {/* One ☰: below 768 it opens the phone menu; from 768 the corner folds the rail. */}
         <button
           type="button"

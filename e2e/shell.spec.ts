@@ -698,53 +698,47 @@ test.describe("corner-block grid", () => {
   }) => {
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
-    const toggle = page.getByTestId("rail-collapse-toggle");
+    const cell = page.getByTestId("shell-logo-cell");
+    const toggle = cell.getByTestId("rail-collapse-toggle");
     const html = page.locator("html");
-
-    // FIX 2: the toggle lives in the TOP BAR, before the search field — and
-    // nowhere inside the rail any more.
-    await expect(
-      page.getByTestId("shell-topbar").getByTestId("rail-collapse-toggle"),
-    ).toBeVisible();
+    await expect(toggle).toBeVisible();
+    await expect(page.getByTestId("shell-topbar").getByTestId("rail-collapse-toggle")).toHaveCount(
+      0,
+    );
     await expect(rail.getByTestId("rail-collapse-toggle")).toHaveCount(0);
-    const toggleBox = (await toggle.boundingBox())!;
-    const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
-    expect(toggleBox.x).toBeLessThan(searchBox.x);
-
-    // Default is EXPANDED: labels visible, full rail width.
+    const toggleBox = await toggle.boundingBox();
+    const logoBox = await cell
+      .getByRole("link", { name: en["app.name"], exact: true })
+      .boundingBox();
+    if (!toggleBox || !logoBox) throw new Error("corner controls have no bounds");
+    expect(toggleBox.x).toBeLessThan(logoBox.x);
     await expect(html).toHaveAttribute("data-rail", "expanded");
     const allCategories = rail.getByText(en["shell.allCategories"], { exact: true });
     await expect(allCategories).toBeVisible();
-    const wide = (await rail.boundingBox())!.width;
-
+    const wide = await rail.boundingBox();
+    if (!wide) throw new Error("expanded rail has no bounds");
     await toggle.click();
-
     await expect(html).toHaveAttribute("data-rail", "collapsed");
     await expect(toggle).toHaveAttribute("aria-pressed", "true");
     await expect(allCategories).toBeHidden();
-    const narrow = (await rail.boundingBox())!.width;
-    expect(narrow).toBeLessThan(wide);
-    // Icons survive the collapse — that is what makes it usable.
-    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
-    await expect(rail.locator("li svg").first()).toBeVisible();
-
-    // Hovering an icon-only row reveals its label.
+    const narrow = await rail.boundingBox();
+    if (!narrow) throw new Error("folded rail has no bounds");
+    expect(narrow.width).toBeLessThan(wide.width);
+    expect(Math.abs(narrow.width - 64)).toBeLessThanOrEqual(1);
+    await expect(rail.getByTestId("rail-category-all").locator("svg")).toBeVisible();
     await rail.getByRole("link", { name: en["shell.allCategories"] }).hover();
-    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
-    const tip = page.getByTestId("rail-tooltip").first();
+    const tip = page.getByTestId("rail-tooltip");
     await expect(tip).toBeVisible();
     await expect(tip).toContainText(en["shell.allCategories"]);
-
-    // The choice survives a reload, applied before the first paint.
     await page.reload();
     await waitForHydration(page);
     await expect(html).toHaveAttribute("data-rail", "collapsed");
-    expect((await rail.boundingBox())!.width).toBe(narrow);
-
-    // And it expands back.
-    await page.getByTestId("rail-collapse-toggle").click();
+    const reloaded = await rail.boundingBox();
+    if (!reloaded) throw new Error("reloaded rail has no bounds");
+    expect(reloaded.width).toBe(narrow.width);
+    await toggle.click();
     await expect(html).toHaveAttribute("data-rail", "expanded");
-    await expect(rail.getByText(en["shell.allCategories"], { exact: true })).toBeVisible();
+    await expect(allCategories).toBeVisible();
   });
 
   test("exactly one collapse toggle, and the wordmark moves into the bar when collapsed", async ({
@@ -753,35 +747,27 @@ test.describe("corner-block grid", () => {
     await gotoReady(page, "/");
     const html = page.locator("html");
     const bar = page.getByTestId("shell-topbar");
-
-    // INC-046: exactly ONE desktop collapse affordance, and no hamburger here.
-    await expect(page.getByTestId("rail-collapse-toggle")).toHaveCount(1);
+    const toggle = page.getByTestId("rail-collapse-toggle");
+    await expect(toggle).toHaveCount(1);
     await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toBeHidden();
-
-    // Rail OPEN: the wordmark lives in the corner cell only — never twice.
     await expect(html).toHaveAttribute("data-rail", "expanded");
     await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toBeVisible();
     await expect(bar.getByTestId("topbar-wordmark")).toBeHidden();
-
-    await page.getByTestId("rail-collapse-toggle").click();
+    await toggle.click();
     await expect(html).toHaveAttribute("data-rail", "collapsed");
-
-    // Rail COLLAPSED: corner cell is the icon-only mark, the bar carries the
-    // wordmark — after the toggle, before the search field (INC-045).
     await expect(page.getByTestId("shell-logo-cell").getByTestId("logo-wordmark")).toBeHidden();
     const word = bar.getByTestId("topbar-wordmark");
     await expect(word).toBeVisible();
-    // INC-048: the bar lockup carries the MARKETPLACE line too, and it is the
-    // lockup ONLY — the mark stays in the corner cell, never duplicated.
     await expect(word.getByTestId("logo-subline")).toBeVisible();
-    await expect(word.locator("svg")).toHaveCount(0);
-    const toggleBox = (await page.getByTestId("rail-collapse-toggle").boundingBox())!;
-    const wordBox = (await word.boundingBox())!;
-    const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
+    await expect(word.locator("svg")).toBeVisible();
+    const toggleBox = await toggle.boundingBox();
+    const wordBox = await word.boundingBox();
+    const searchBox = await page.getByTestId("search-inline").boundingBox();
+    const langBox = await page.getByTestId("language-switcher").boundingBox();
+    if (!toggleBox || !wordBox || !searchBox || !langBox)
+      throw new Error("band controls have no bounds");
     expect(toggleBox.x).toBeLessThan(wordBox.x);
     expect(wordBox.x).toBeLessThan(searchBox.x);
-    // INC-049: search never grows into the right-side controls.
-    const langBox = (await page.getByTestId("language-switcher").boundingBox())!;
     expect(searchBox.x + searchBox.width).toBeLessThanOrEqual(langBox.x);
   });
 
@@ -797,40 +783,40 @@ test.describe("tablet chrome (md = 768px)", () => {
   test.use({ viewport: { width: 768, height: 1024 } });
 
   test("tablets get the persistent rail and the FULL controls", async ({ page }, testInfo) => {
-    // Run once: the viewport here is fixed, so the second project would repeat it.
     test.skip(testInfo.project.name !== "desktop-1280", "run once");
     await gotoReady(page, "/");
-
-    // C2g — the persistent icon rail, and the » / « menu control (not the
-    // collapse toggle) is the one menu control from 768 to 1023 px.
-    await expect(page.getByTestId("app-rail")).toBeVisible();
-    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toHaveCount(1);
-    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toBeVisible();
-    await expect(page.getByTestId("rail-collapse-toggle")).toBeHidden();
-    const railWidth = (await page.getByTestId("app-rail").boundingBox())!.width;
-    expect(Math.abs(railWidth - 64)).toBeLessThanOrEqual(1);
-    const cellWidth = (await page.getByTestId("shell-logo-cell").boundingBox())!.width;
-    expect(Math.abs(cellWidth - 64)).toBeLessThanOrEqual(1);
-
-    // A real search FIELD in the bar (no icon-only toggle).
-    await expect(page.getByTestId("search-inline-input")).toBeVisible();
-    await expect(page.getByTestId("search-toggle")).toBeHidden();
-
-    // The language control reads the language NAME, and sign in has text.
-    const fullLabel = page.getByTestId("language-switcher-full");
-    await expect(fullLabel).toBeVisible();
-    await expect(fullLabel).toHaveText(en["language.english"]);
-    await expect(page.getByTestId("language-switcher-short")).toBeHidden();
-    await expect(page.getByRole("link", { name: en["auth.signIn"], exact: true })).toBeVisible();
-
-    // INC-049: at tablet width the search field must not run into the language
-    // control — it is capped, so the two never overlap and nothing is clipped.
-    const searchBox = (await page.getByTestId("search-inline").boundingBox())!;
-    const langBox = (await page.getByTestId("language-switcher").boundingBox())!;
-    expect(searchBox.x + searchBox.width).toBeLessThanOrEqual(langBox.x);
-    expect(langBox.width).toBeGreaterThan(40);
-
-    await expectNoHorizontalOverflow(page);
+    const rail = page.getByTestId("app-rail");
+    const cell = page.getByTestId("shell-logo-cell");
+    const toggle = cell.getByTestId("rail-collapse-toggle");
+    await expect(rail).toBeVisible();
+    await expect(page.getByRole("button", { name: en["shell.openMenu"] })).toBeHidden();
+    await expect(toggle).toBeVisible();
+    for (const state of ["open", "folded", "reloaded", "open-again"]) {
+      if (state === "folded" || state === "open-again") await toggle.click();
+      if (state === "reloaded") {
+        await page.reload();
+        await waitForHydration(page);
+      }
+      const expectedWidth = state === "folded" || state === "reloaded" ? 64 : 224;
+      for (const element of [rail, cell]) {
+        const box = await element.boundingBox();
+        if (!box) throw new Error("tablet rail/corner has no bounds");
+        expect(Math.abs(box.width - expectedWidth)).toBeLessThanOrEqual(1);
+      }
+      await expect(page.getByTestId("search-inline-input")).toBeVisible();
+      await expect(page.getByTestId("search-toggle")).toBeHidden();
+      const fullLabel = page.getByTestId("language-switcher-full");
+      await expect(fullLabel).toBeVisible();
+      await expect(fullLabel).toHaveText(en["language.english"]);
+      await expect(page.getByTestId("language-switcher-short")).toBeHidden();
+      await expect(page.getByRole("link", { name: en["auth.signIn"], exact: true })).toBeVisible();
+      const searchBox = await page.getByTestId("search-inline").boundingBox();
+      const langBox = await page.getByTestId("language-switcher").boundingBox();
+      if (!searchBox || !langBox) throw new Error("tablet controls have no bounds");
+      expect(searchBox.x + searchBox.width).toBeLessThanOrEqual(langBox.x);
+      expect(langBox.width).toBeGreaterThan(40);
+      await expectNoHorizontalOverflow(page);
+    }
   });
 
   test("the top bar is ONE band: logo-cell height AND background, location row separate", async ({
@@ -2870,4 +2856,108 @@ test("password visibility stays inside the full-width field", async ({ page }) =
   await expect(toggle).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator("#auth-password")).toHaveAttribute("type", "password");
   await expect(page.locator('form button[type="submit"]')).toHaveCount(1);
+});
+
+test.describe("top band law (bundle 21 turn 2)", () => {
+  test("TB-1 the corner and the band line up", async ({ page }, testInfo) => {
+    const bounds = async (locator: import("@playwright/test").Locator) => {
+      const box = await locator.boundingBox();
+      if (!box) throw new Error("alignment target has no bounds");
+      return box;
+    };
+    const centre = (box: { x: number; width: number }) => box.x + box.width / 2;
+    if (testInfo.project.name === "mobile-360") {
+      await page.setViewportSize({ width: 360, height: 800 });
+      await gotoReady(page, "/");
+      const menu = page.getByRole("button", { name: en["shell.openMenu"], exact: true });
+      const stripRow = page.getByTestId("strip-scroll").locator("li > a, li > button").nth(0);
+      await expect(stripRow).toBeVisible();
+      expect(
+        Math.abs(
+          centre(await bounds(menu.locator("svg"))) -
+            centre(await bounds(stripRow.locator("svg").nth(0))),
+        ),
+      ).toBeLessThanOrEqual(2);
+      const logo = page
+        .getByTestId("shell-topbar")
+        .getByRole("link", { name: en["app.name"], exact: true });
+      expect(
+        Math.abs((await bounds(logo)).x - (await bounds(page.getByTestId("breadcrumb-home"))).x),
+      ).toBeLessThanOrEqual(2);
+      return;
+    }
+    for (const width of [1280, 768]) {
+      await page.setViewportSize({ width, height: 1024 });
+      await gotoReady(page, "/");
+      const cell = page.getByTestId("shell-logo-cell");
+      const toggle = cell.getByTestId("rail-collapse-toggle");
+      const row = page
+        .getByTestId("app-rail")
+        .getByTestId("rail-scroll")
+        .getByTestId("rail-category-all");
+      await expect(row).toBeVisible();
+      for (const folded of [false, true]) {
+        if (folded) await toggle.click();
+        await expect(page.locator("html")).toHaveAttribute(
+          "data-rail",
+          folded ? "collapsed" : "expanded",
+        );
+        expect(
+          Math.abs(
+            centre(await bounds(toggle.locator("svg"))) -
+              centre(await bounds(row.locator("svg").nth(0))),
+          ),
+        ).toBeLessThanOrEqual(2);
+        if (!folded) {
+          const mark = cell.getByRole("link", { name: en["app.name"], exact: true }).locator("svg");
+          expect(
+            Math.abs((await bounds(mark)).x - (await bounds(row.locator("[data-cut-text]"))).x),
+          ).toBeLessThanOrEqual(2);
+        }
+        if (width === 1280) {
+          const word = page.getByTestId("topbar-wordmark");
+          const header = page.getByTestId("shell-topbar").locator("header");
+          const left = folded
+            ? (await bounds(word)).x + (await bounds(word)).width
+            : await header.evaluate(
+                (el) =>
+                  el.getBoundingClientRect().left + parseFloat(getComputedStyle(el).paddingLeft),
+              );
+          const right = (await bounds(page.getByTestId("topbar-controls"))).x;
+          expect(
+            Math.abs(centre(await bounds(page.getByTestId("search-inline"))) - (left + right) / 2),
+          ).toBeLessThanOrEqual(2);
+          if (folded)
+            expect(
+              Math.abs(
+                (await bounds(word)).x - (await bounds(page.getByTestId("breadcrumb-home"))).x,
+              ),
+            ).toBeLessThanOrEqual(2);
+        }
+      }
+      await toggle.click();
+    }
+  });
+
+  test("TB-2 one menu control per width", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "desktop width walk");
+    await gotoReady(page, "/");
+    for (const width of [767, 768, 1023, 1024, 1280]) {
+      await page.setViewportSize({ width, height: 1024 });
+      const menu = page.getByRole("button", { name: en["shell.openMenu"], exact: true });
+      const toggle = page.getByTestId("rail-collapse-toggle");
+      if (width < 768) {
+        await expect(menu).toBeVisible();
+        await expect(toggle).toBeHidden();
+      } else {
+        await expect(menu).toBeHidden();
+        await expect(toggle).toBeVisible();
+      }
+    }
+    await page.getByTestId("rail-collapse-toggle").click();
+    await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
+    const box = await page.getByTestId("app-rail").boundingBox();
+    if (!box) throw new Error("folded 1280 rail has no bounds");
+    expect(Math.abs(box.width - 64)).toBeLessThanOrEqual(1);
+  });
 });

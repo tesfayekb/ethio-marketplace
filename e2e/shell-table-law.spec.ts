@@ -47,11 +47,16 @@ test.describe("shell table law", () => {
     await expect(page.locator("table")).toBeHidden();
     await expectFits(page);
 
-    // (b) 768 — the table renders and still fits.
+    // (b) 768 — open rail leaves cards; folding gives the table its old space.
     await page.setViewportSize({ width: 768, height: 1024 });
     await waitForHydration(page);
+    await expect(page.getByTestId("data-table-cards")).toBeVisible();
+    await expect(page.locator("table")).toBeHidden();
+    await expectFits(page);
+    await page.getByTestId("rail-collapse-toggle").click();
     await expect(page.locator("table")).toBeVisible({ timeout: 15000 });
     await expectFits(page);
+    await page.getByTestId("rail-collapse-toggle").click();
 
     // (c) 1280 — fits, and the container has no inner horizontal scroll.
     await page.setViewportSize({ width: 1280, height: 800 });

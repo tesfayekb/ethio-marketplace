@@ -72,16 +72,16 @@ function renderTable(props: Partial<React.ComponentProps<typeof DataTable<Row>>>
 describe("DataTable C7 contract", () => {
   it("splits the twins at md when cardUntil is absent (default path)", () => {
     renderTable();
-    expect(screen.getByTestId("data-table-cards").className).toContain("md:hidden");
+    expect(screen.getByTestId("data-table-cards").className).toContain("tbl-md:hidden");
     expect(screen.getByTestId("data-table-cards").className).not.toContain("lg:hidden");
-    expect(screen.getByTestId("data-table-scroller").className).toContain("md:block");
+    expect(screen.getByTestId("data-table-scroller").className).toContain("tbl-md:block");
   });
 
   it('splits the twins at lg when cardUntil="lg"', () => {
     renderTable({ cardUntil: "lg" });
     expect(screen.getByTestId("data-table-cards").className).toContain("lg:hidden");
     expect(screen.getByTestId("data-table-scroller").className).toContain("lg:block");
-    expect(screen.getByTestId("data-table-scroller").className).not.toContain("md:block");
+    expect(screen.getByTestId("data-table-scroller").className).not.toContain("tbl-md:block");
   });
 
   it("applies a declared column min-width and drops fixed layout", () => {

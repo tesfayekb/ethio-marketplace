@@ -104,6 +104,8 @@ STUBBED — see `docs/features/location-scoping.md`.
 
 ## Rail collapse state (2026-08-05)
 
+D204 — the menu is open by default at every width from 768 (224 px on tablets, 256 from 1024), folded to 64 px by ☰ and remembered in `ethio.rail`. The tablet overlay is gone; below 768 ☰ opens the phone menu.
+
 The desktop rail's collapsed/expanded choice lives in ONE place: the `data-rail`
 attribute on `<html>`, persisted to `localStorage` and applied pre-paint. Every
 consumer reads it through `useRailCollapsed` (`src/providers/rail-state.ts`),
