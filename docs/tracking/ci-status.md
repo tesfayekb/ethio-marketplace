@@ -1,37 +1,11 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `114537ea66ef094c8b5c056ab954d538009740a7` (short `114537e`)
-- Conclusion: **FAILURE**
-- Completed (UTC): 2026-10-18T18:13:00Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39147828324
+- Commit: `1ae95e38e7398f2ff9cd71094955b3ef2f0fb43b` (short `1ae95e3`)
+- Conclusion: **CANCELLED**
+- Completed (UTC): 2026-10-18T18:44:16Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39154285881
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Build, typecheck, lint | success |
-| Hardcoded string scan (enforcing) | success |
-| Migration linter (with self-test) | success |
-| Listing-write seam guard (with self-test) | success |
-| E2E preflight (migration parity, staging) | success |
-| Gitleaks secrets scan | success |
-| Semgrep (enforcing on ERROR) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
-| i18n used-on map is fresh (U4i ②) | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| Component tests | success |
-| Import gate guard (with self-test) | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| E2E build (shared dist) | success |
-| E2E changed specs (fast lane) | failure |
-| E2E smoke tier | success |
-| E2E shard 5/6 | success |
-| E2E email (serial, quota-bound) | success |
-| E2E shard 4/6 | success |
-| E2E shard 2/6 | success |
-| E2E shard 6/6 | failure |
-| E2E shard 3/6 | failure |
-| E2E shard 1/6 | success |
-| E2E (Playwright, ethio-staging) | failure |
-| Promote to main (fast-forward on green) | skipped |
