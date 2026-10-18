@@ -345,3 +345,17 @@ test("PN-AM-1 the different-place notice and place name are Amharic", async ({ p
     "PN-AM-1 place notice",
   );
 });
+
+// Read-only catalogue: electronics is found by slug; no translation row is touched.
+test("FV-AM-1 the ☆'s fine print is Amharic", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-360", "the fine print shows without a mouse");
+  await useAmharic(page);
+  await gotoReady(page, "/c/electronics");
+  await expect(page.locator("html")).toHaveAttribute("lang", "am");
+  const hint = page.getByTestId("category-favourite-hint");
+  await expect(hint).toBeVisible();
+  const tail = (am["shell.favouriteHint"].split("{category}")[1] ?? "").trim();
+  expect(tail, "FV-AM-1 the Amharic hint has no words after the category").not.toBe("");
+  await expect(hint).toContainText(tail);
+  expect(await hint.innerText()).not.toMatch(/[A-Za-z]/);
+});

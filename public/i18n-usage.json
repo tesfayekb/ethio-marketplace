@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 493,
-  "dynamicCallSites": 352,
+  "dynamicCallSites": 355,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -4434,10 +4434,6 @@
       "/",
       "/c/$slug"
     ],
-    "feed.emptyBody": [
-      "/",
-      "/c/$slug"
-    ],
     "feed.emptyTitle": [
       "/",
       "/c/$slug"
@@ -5068,9 +5064,7 @@
       "/c/$slug"
     ],
     "nav.home": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "nav.myListings": [
       "/my-listings",
