@@ -175,11 +175,31 @@ test.describe("FEED SCREENS", () => {
     await gotoReady(page, `/c/${leaf.slug}`);
     await expect.poll(() => cardIds(page)).toEqual(expected.slice(0, 20));
     expect(calls.filter((u) => new URL(u).searchParams.has("after"))).toEqual([]);
+    // D215 — a next page is to come: the invitation waits for the end of the list.
+    await expect(page.getByTestId("feed-invite")).toHaveCount(0);
 
     await page.getByTestId("feed-more").scrollIntoViewIfNeeded();
     await expect.poll(() => cardIds(page)).toEqual(expected);
     await expect(page.getByTestId("feed-more")).toHaveCount(0);
     expect(calls.filter((u) => new URL(u).searchParams.has("after"))).toHaveLength(1);
+    // D215 — the list is complete: one invitation, the last item of the last list.
+    const invite = page.getByTestId("feed-invite");
+    await expect(invite).toHaveCount(1);
+    await expect(invite).toHaveAttribute("data-at", "end");
+    const lastItem = await page
+      .locator('[data-testid="feed-section"]')
+      .last()
+      .locator("ul > li > *")
+      .evaluateAll((els) => els[els.length - 1]?.getAttribute("data-testid") ?? "");
+    expect(lastItem).toBe("feed-invite");
+    await expect(invite.getByTestId("feed-invite-text")).toHaveText(
+      en["feed.invite.noneCategoryMore"].replace("{category}", leaf.slug),
+    );
+    const href = await invite.getByTestId("feed-invite-post").getAttribute("href");
+    expect(href, "the invitation has no address").not.toBeNull();
+    const search = new URL(href!, "http://local.test").searchParams;
+    expect(search.get("category")).toBe(leaf.id);
+    expect(search.has("place")).toBe(false);
   });
 
   async function areaFixture(page: Page) {
@@ -325,6 +345,7 @@ test.describe("FEED SCREENS", () => {
     await expect(unknown).toContainText(en["error.pageNotFound"]);
     await expect(unknown).toContainText(en["error.pageNotFoundBody"]);
     await expect(page.getByTestId("feed-empty")).toHaveCount(0);
+    await expect(page.getByTestId("feed-invite")).toHaveCount(0);
     expect(calls).toEqual([]);
   });
 
@@ -416,15 +437,29 @@ test.describe("FEED SCREENS", () => {
     expect(params.has("category")).toBe(false);
   });
 
-  test("FS-9 four listings in the chosen place: no invitation", async ({ page, baseURL }) => {
+  test("FS-9 four listings in the chosen place: no card after them until the list ends, then one at its end (D215)", async ({
+    page,
+    baseURL,
+  }) => {
     const fx = await areaFixture(page);
     for (const minutes of [1, 2, 3, 4])
       await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", minutes);
     await openArea(page, fx, baseURL!);
 
-    await expect.poll(() => sectionIds(page, 1)).toHaveLength(4);
-    await expect(page.getByTestId("feed-invite")).toHaveCount(0);
-    await expect(page.getByTestId("feed-invite-post")).toHaveCount(0);
+    await expect
+      .poll(() => rowOrder(page, 1))
+      .toEqual(["listing-card", "listing-card", "listing-card", "listing-card", "feed-invite"]);
+    const invite = page.getByTestId("feed-invite");
+    await expect(invite).toHaveCount(1);
+    await expect(invite).toHaveAttribute("data-at", "end");
+    await expect(invite.getByTestId("feed-invite-text")).toHaveText(
+      en["feed.invite.placeCategoryMore"]
+        .replace("{category}", fx.leaf.slug)
+        .replace("{place}", fx.a.city.name_en as string),
+    );
+    const params = await inviteSearch(invite.getByTestId("feed-invite-post"));
+    expect(params.get("category")).toBe(fx.leaf.id);
+    expect(params.get("place")).toBe(fx.a.city.id);
   });
 
   test("FS-10 nothing anywhere: the invitation card comes first, with the category and the place", async ({
@@ -587,6 +622,74 @@ test.describe("FEED SCREENS", () => {
     await expect.poll(() => cardIds(page)).toEqual([a]);
     await expect(page.locator("main h1")).toHaveText(en["nav.allListings"]);
     await expect(page.getByTestId("feed-step-label")).toHaveCount(0);
+  });
+
+  /** D215 — the testids of the page's last list, in order. */
+  function lastListOrder(page: Page) {
+    return page
+      .locator('[data-testid="feed-section"]')
+      .last()
+      .locator("ul > li > *")
+      .evaluateAll((els) => els.map((el) => el.getAttribute("data-testid") ?? ""));
+  }
+
+  test("FS-17 a complete list across places ends with the one invitation (D215)", async ({
+    page,
+    baseURL,
+  }) => {
+    const fx = await areaFixture(page);
+    for (const minutes of [1, 2, 3, 4])
+      await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", minutes);
+    for (const minutes of [5, 6])
+      await addListing(fx.leaf.id, fx.user.id, fx.b.city.id, "regular", minutes);
+    await openArea(page, fx, baseURL!);
+
+    await expect
+      .poll(() => rowOrder(page, 3))
+      .toEqual(["listing-card", "listing-card", "feed-invite"]);
+    expect(await rowOrder(page, 1)).toEqual([
+      "listing-card",
+      "listing-card",
+      "listing-card",
+      "listing-card",
+    ]);
+    const invite = page.getByTestId("feed-invite");
+    await expect(invite).toHaveCount(1);
+    await expect(invite).toHaveAttribute("data-at", "end");
+    await expect(invite.getByTestId("feed-invite-text")).toHaveText(
+      en["feed.invite.placeCategoryMore"]
+        .replace("{category}", fx.leaf.slug)
+        .replace("{place}", fx.a.city.name_en as string),
+    );
+    const params = await inviteSearch(invite.getByTestId("feed-invite-post"));
+    expect(params.get("category")).toBe(fx.leaf.id);
+    expect(params.get("place")).toBe(fx.a.city.id);
+  });
+
+  test("FS-18 with no place chosen the complete list ends with the invitation, naming no place (D215)", async ({
+    page,
+  }) => {
+    const user = await seller();
+    const { leaf } = await branch();
+    const c = await chain();
+    const a = await addListing(leaf.id, user.id, c.city.id, "regular", 1);
+    const b = await addListing(leaf.id, user.id, c.city.id, "regular", 2);
+
+    await gotoReady(page, `/c/${leaf.slug}`);
+    await expect.poll(() => cardIds(page)).toEqual([a, b]);
+    await expect
+      .poll(() => lastListOrder(page))
+      .toEqual(["listing-card", "listing-card", "feed-invite"]);
+    const invite = page.getByTestId("feed-invite");
+    await expect(invite).toHaveCount(1);
+    await expect(invite).toHaveAttribute("data-at", "end");
+    await expect(invite.getByTestId("feed-invite-text")).toHaveText(
+      en["feed.invite.noneCategoryMore"].replace("{category}", leaf.slug),
+    );
+    const params = await inviteSearch(invite.getByTestId("feed-invite-post"));
+    expect(params.get("category")).toBe(leaf.id);
+    expect(params.has("place")).toBe(false);
+    await expect(page.locator("main h1")).toHaveText(en["nav.allListings"]);
   });
 
   test("FS-15 the card's ribbon and the old price (D173, D175 1, D180)", async ({ page }) => {
