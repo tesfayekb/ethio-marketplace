@@ -854,7 +854,11 @@ export function ListingDetail(view: ListingDetailView) {
                   </h4>
                 )}
                 {view.actor === "buyer" && view.contact !== undefined ? (
-                  <BuyerContact contact={view.contact} channels={channels} />
+                  <BuyerContact
+                    contact={view.contact}
+                    channels={channels}
+                    showRef={showContactRef}
+                  />
                 ) : (
                   <ul className="divide-y divide-border text-sm">
                     {channels.map((channel) => {
