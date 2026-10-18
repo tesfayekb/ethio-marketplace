@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-19-turn-24.md (bundle 19 — turn 24: AP-44's wide-screen precondition — INC-718; the in-page bar's cover check at every width). Next: Publish and the one walk on the newest green run, then the close; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-19-turn-25.md (bundle 19 — turn 25: arrows on every strip whose hidden scrollbar hides more — the photo thumbnails in a row and in a column, the viewer's row, the posting step strip; the viewer's row that cut off its first photos — INC-720; four strings). Next: Publish and the one walk on the newest green run, then the close; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
