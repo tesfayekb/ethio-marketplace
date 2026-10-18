@@ -111,7 +111,11 @@ export function Breadcrumbs() {
                 <>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    <BreadcrumbPage data-testid="breadcrumb-ad" className={CURRENT}>
+                    <BreadcrumbPage
+                      data-testid="breadcrumb-ad"
+                      className={CURRENT}
+                      title={publicAd.title}
+                    >
                       {publicAd.title}
                     </BreadcrumbPage>
                   </BreadcrumbItem>
