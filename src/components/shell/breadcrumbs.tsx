@@ -37,7 +37,7 @@ import type { PublicListingDoc } from "@/features/ad-page/public-listing";
  * every earlier one links to its /c/<slug> (`breadcrumb-category-parent`).
  */
 /** Operator directive (U0c): the CURRENT segment is underlined and heavier. */
-const CURRENT = "font-semibold text-foreground underline underline-offset-4";
+const CURRENT = "min-w-0 truncate font-semibold text-foreground underline underline-offset-4";
 
 /** INC-554 — the listing and language crumbs load only on their pages (never in the first paint). */
 const AdminListingCrumb = lazy(() =>
