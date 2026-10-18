@@ -783,7 +783,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const auth = await page.request.get("/auth");
     expect(auth.status()).toBe(200);
   });
-  test("AP-36 the layout follows the article's width: one column, two columns, desktop (D201 §5)", async ({
+  test("AP-36 the layout follows the article's width (DEC-192, drawings v13)", async ({
     page,
   }, testInfo) => {
     const seller = await scratchSeller();
@@ -826,26 +826,69 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         })
         .toBe(true);
       const article = await page.getByTestId("listing-detail").boundingBox();
-      const gallery = await page.getByTestId("listing-detail-media").boundingBox();
+      const media = await page.getByTestId("listing-detail-media").boundingBox();
       const headline = await page.getByTestId("listing-detail-headline").boundingBox();
-      const main = await page.getByTestId("listing-detail-specs").boundingBox();
+      const nav = await page.getByTestId("listing-section-nav").boundingBox();
+      const details = await page.getByTestId("listing-detail-specs").boundingBox();
+      const description = await page.locator("#ad-description").boundingBox();
       const sellerBox = await page
         .locator('section[data-testid="listing-detail-seller"]')
         .boundingBox();
       const location = await page.getByTestId("listing-detail-location").boundingBox();
-      if (!article || !gallery || !headline || !main || !sellerBox || !location)
+      const safety = await page.getByTestId("listing-safety").boundingBox();
+      if (
+        !article ||
+        !media ||
+        !headline ||
+        !nav ||
+        !details ||
+        !description ||
+        !sellerBox ||
+        !location ||
+        !safety
+      )
         throw new Error("AP-36 missing layout boxes");
+      const near = (a: number, b: number, tolerance: number) => Math.abs(a - b) <= tolerance;
       if (article.width < 672) {
-        expect(headline.y).toBeGreaterThanOrEqual(gallery.y + gallery.height);
-        expect(sellerBox.y).toBeGreaterThanOrEqual(location.y + location.height);
+        const order = [media, headline, nav, details, description, sellerBox, location, safety];
+        for (let i = 1; i < order.length; i += 1)
+          expect(order[i].y).toBeGreaterThanOrEqual(order[i - 1].y + order[i - 1].height);
       } else if (article.width < 896) {
-        expect(Math.abs(gallery.width - article.width)).toBeLessThanOrEqual(1);
-        expect(main.y).toBeGreaterThanOrEqual(gallery.y + gallery.height);
-        expect(headline.y).toBeGreaterThanOrEqual(gallery.y + gallery.height);
-        expect(headline.x).toBeGreaterThan(main.x + main.width);
+        expect(headline.x).toBeGreaterThanOrEqual(media.x + media.width);
+        expect(near(headline.y, media.y, 1)).toBe(true);
+        expect(near(headline.y + headline.height, media.y + media.height, 1)).toBe(true);
+        expect(near(nav.width, article.width, 1)).toBe(true);
+        expect(nav.y).toBeGreaterThanOrEqual(
+          Math.max(media.y + media.height, headline.y + headline.height),
+        );
+        expect(description.x).toBeGreaterThanOrEqual(details.x + details.width);
+        expect(near(description.y, details.y, 1)).toBe(true);
+        expect(near(description.height, details.height, 1)).toBe(true);
+        expect(sellerBox.x).toBeLessThan(location.x);
+        expect(near(sellerBox.y, location.y, 1)).toBe(true);
+        expect(near(sellerBox.height, location.height, 1)).toBe(true);
+        expect(near(safety.width, article.width, 1)).toBe(true);
+        expect(safety.y).toBeGreaterThanOrEqual(sellerBox.y + sellerBox.height);
       } else {
-        expect(headline.x).toBeGreaterThan(gallery.x + gallery.width);
-        expect(Math.abs(headline.y - gallery.y)).toBeLessThanOrEqual(8);
+        expect(headline.x).toBeGreaterThanOrEqual(media.x + media.width);
+        expect(near(headline.y, media.y, 1)).toBe(true);
+        expect(near(headline.y + headline.height, media.y + media.height, 1)).toBe(true);
+        expect(near(nav.width, article.width, 1)).toBe(true);
+        const third = (article.width - 32) / 3;
+        const row = [details, description, sellerBox];
+        for (let i = 1; i < row.length; i += 1)
+          expect(row[i].x).toBeGreaterThanOrEqual(row[i - 1].x + row[i - 1].width);
+        for (const item of row) {
+          expect(near(item.y, details.y, 1)).toBe(true);
+          expect(near(item.height, details.height, 1)).toBe(true);
+          expect(near(item.width, third, 2)).toBe(true);
+        }
+        expect(near(safety.x, article.x, 1)).toBe(true);
+        expect(location.x).toBeGreaterThanOrEqual(safety.x + safety.width);
+        expect(near(location.y, safety.y, 1)).toBe(true);
+        expect(near(location.height, safety.height, 1)).toBe(true);
+        expect(near(safety.width, third, 2)).toBe(true);
+        expect(near(location.width, 2 * third + 16, 2)).toBe(true);
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
@@ -881,6 +924,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
     await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    expect(
+      await bar
+        .getByTestId("listing-section-nav-item")
+        .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
+    ).toEqual(["details", "description", "seller", "location"]);
     const locationItem = bar.locator('[data-target="location"]');
     await locationItem.click();
     await expect(locationItem).toHaveAttribute("aria-current", "true");
@@ -909,7 +957,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await page
         .getByTestId("listing-section-nav-item")
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
-    ).toEqual(["description", "location", "seller"]);
+    ).toEqual(["description", "seller", "location"]);
     await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
 
@@ -1206,8 +1254,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     }
   });
 
-  test("AP-42 no half-empty row", async ({ page }, testInfo) => {
+  test("AP-42 a missing box gives its room to its row", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280");
+    /* Census: seed()'s default description is the one-sentence literal "e2e
+      scratch listing for the ad page's doors" (helpers/ad-page.ts), so the
+      empty-description case overwrites it and the one-sentence case keeps it. */
     const seller = await scratchSeller();
     const key = `e2e-fullrow-${token()}`;
     factKeys.push(key);
@@ -1217,26 +1268,22 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
     expect(linked.error).toBeNull();
     const live = await seed(seller, "active", { attributes: { [key]: "scratch value" } });
+    const cleared = await adminClient()
+      .from("listings")
+      .update({ description: "" })
+      .eq("id", live.id);
+    expect(cleared.error).toBeNull();
     const sold = await seed(seller, "sold", { soldAt: -1, attributes: { [key]: "scratch value" } });
     for (const ad of [live, sold]) {
-      await seedPhotos(ad.id);
       await gotoReady(page, (await address(ad)).canonical);
       await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
-      await expect
-        .poll(() =>
-          page
-            .getByTestId("gallery-main")
-            .locator("img")
-            .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
-        )
-        .toBe(true);
       let previous = "";
       await expect
         .poll(async () => {
           const current = JSON.stringify(
             await Promise.all([
-              page.getByTestId("listing-detail-main").boundingBox(),
               page.getByTestId("listing-detail-specs").boundingBox(),
+              page.locator('section[data-testid="listing-detail-seller"]').boundingBox(),
             ]),
           );
           const stable = previous === current;
@@ -1246,20 +1293,128 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         .toBe(true);
       const article = await page.getByTestId("listing-detail").boundingBox();
       if (!article) throw new Error("AP-42 article missing");
-      if (article.width < 896) continue;
-      const main = await page.getByTestId("listing-detail-main").boundingBox();
+      if (article.width < 896) throw new Error("AP-42 article under 896 on desktop-1280");
       const details = await page.getByTestId("listing-detail-specs").boundingBox();
-      if (!main || !details) throw new Error("AP-42 main boxes missing");
-      if (ad.id === sold.id) {
-        await expect(page.getByTestId("listing-safety")).toHaveCount(0);
-        expect(Math.abs(details.width - main.width)).toBeLessThanOrEqual(2);
+      const sellerBox = await page
+        .locator('section[data-testid="listing-detail-seller"]')
+        .boundingBox();
+      if (!details || !sellerBox) throw new Error("AP-42 boxes missing");
+      if (ad.id === live.id) {
+        // No description: Details and the seller card share the row in halves.
+        expect(Math.abs(details.y - sellerBox.y)).toBeLessThanOrEqual(1);
+        expect(Math.abs(details.width - (article.width - 16) / 2)).toBeLessThanOrEqual(2);
+        expect(Math.abs(sellerBox.width - (article.width - 16) / 2)).toBeLessThanOrEqual(2);
       } else {
-        const safety = await page.getByTestId("listing-safety").boundingBox();
-        if (!safety) throw new Error("AP-42 safety missing");
-        expect(Math.abs(safety.y - details.y)).toBeLessThanOrEqual(8);
-        expect(Math.abs(safety.width - (main.width - 16) / 2)).toBeLessThanOrEqual(2);
-        expect(Math.abs(details.width - (main.width - 16) / 2)).toBeLessThanOrEqual(2);
+        // A sold ad: no safety box, so Location takes the whole row.
+        const description = await page.locator("#ad-description").boundingBox();
+        const location = await page.getByTestId("listing-detail-location").boundingBox();
+        if (!description || !location) throw new Error("AP-42 sold boxes missing");
+        await expect(page.getByTestId("listing-safety")).toHaveCount(0);
+        for (const item of [details, description, sellerBox])
+          expect(Math.abs(item.width - (article.width - 32) / 3)).toBeLessThanOrEqual(2);
+        expect(Math.abs(location.width - article.width)).toBeLessThanOrEqual(1);
       }
     }
+  });
+
+  test("AP-45 the tabs on a wide screen", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280");
+    // The ad of AP-36 without photos: a fact, an exact pin, the default one-sentence description.
+    const seller = await scratchSeller();
+    const key = `e2e-tabs-${token()}`;
+    factKeys.push(key);
+    const attributeId = await seedAttribute(key, "text");
+    const linked = await adminClient()
+      .from("category_attribute_links")
+      .insert({ category_id: seller.leafId, attribute_id: attributeId, display_order: 1 });
+    expect(linked.error).toBeNull();
+    const ad = await seed(seller, "active", { attributes: { [key]: "scratch value" }, pin: true });
+    const exact = await adminClient()
+      .from("listings")
+      .update({ pin_precision: "exact", pin_show_lat: 8.9876543, pin_show_lng: 38.7612345 })
+      .eq("id", ad.id);
+    expect(exact.error).toBeNull();
+    await gotoReady(page, (await address(ad)).canonical);
+    const bar = page.getByTestId("listing-section-nav");
+    await expect(bar.getByTestId("listing-section-nav-item")).toHaveCount(4);
+    const settle = async () => {
+      let previous = "";
+      await expect
+        .poll(async () => {
+          const current = JSON.stringify(
+            await Promise.all([
+              bar.boundingBox(),
+              page.locator('section[data-testid="listing-detail-seller"]').boundingBox(),
+            ]),
+          );
+          const stable = previous === current && current !== "null";
+          previous = current;
+          return stable;
+        })
+        .toBe(true);
+    };
+    const tap = async (target: string, card: string) => {
+      await bar.locator(`[data-target="${target}"]`).click();
+      await settle();
+      await expect(bar.locator(`[data-target="${target}"]`)).toHaveAttribute(
+        "aria-current",
+        "true",
+      );
+      await expect(bar.locator('[data-target="details"]')).not.toHaveAttribute(
+        "aria-current",
+        "true",
+      );
+      const heading = await page.locator(card).getByRole("heading").first().boundingBox();
+      const nav = await bar.boundingBox();
+      if (!heading || !nav) throw new Error(`AP-45 ${target} boxes missing`);
+      expect(heading.y).toBeGreaterThanOrEqual(nav.y + nav.height);
+    };
+    await tap("seller", 'section[data-testid="listing-detail-seller"]');
+    await tap("description", "#ad-description");
+    await tap("location", '[data-testid="listing-detail-location"]');
+  });
+
+  test("AP-46 Save and Share sit in the title box", async ({ page }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active");
+    await seedPhotos(ad.id);
+    await gotoReady(page, (await address(ad)).canonical);
+    await expect(page.getByTestId("listing-save")).toBeVisible();
+    const headline = page.getByTestId("listing-detail-headline");
+    await expect(headline.getByTestId("listing-save")).toHaveCount(1);
+    await expect(headline.getByTestId("listing-share-open")).toHaveCount(1);
+    const media = page.getByTestId("listing-detail-media");
+    await expect(media.getByTestId("listing-save")).toHaveCount(0);
+    await expect(media.getByTestId("listing-share-open")).toHaveCount(0);
+    await expect(page.getByTestId("listing-save")).toHaveText(en["adPage.save.add"]);
+    await expect(page.getByTestId("listing-share-open")).toHaveText(en["adPage.share.open"]);
+    let previous = "";
+    await expect
+      .poll(async () => {
+        const current = JSON.stringify(
+          await Promise.all([
+            page.getByTestId("listing-detail-actions").boundingBox(),
+            headline.boundingBox(),
+            media.boundingBox(),
+          ]),
+        );
+        const stable = previous === current;
+        previous = current;
+        return stable;
+      })
+      .toBe(true);
+    const actions = await page.getByTestId("listing-detail-actions").boundingBox();
+    const headlineBox = await headline.boundingBox();
+    const mediaBox = await media.boundingBox();
+    if (!actions || !headlineBox || !mediaBox) throw new Error("AP-46 boxes missing");
+    expect(
+      Math.abs(actions.y + actions.height - (headlineBox.y + headlineBox.height)),
+    ).toBeLessThanOrEqual(24);
+    const article = await page.getByTestId("listing-detail").boundingBox();
+    if (!article) throw new Error("AP-46 article missing");
+    if (article.width >= 672)
+      expect(
+        Math.abs(headlineBox.y + headlineBox.height - (mediaBox.y + mediaBox.height)),
+      ).toBeLessThanOrEqual(1);
   });
 });
