@@ -17,6 +17,7 @@ import { galleryPhotos } from "../photo-links";
 import { usePhotoLinks } from "../use-photo-links";
 import { PhotoGallery } from "./photo-gallery";
 import { SafetyBox } from "./safety-box";
+import { boxLayout } from "./box-layout";
 import { keyFacts } from "../key-facts";
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { SellerLine } from "../seller-line";
@@ -363,10 +364,14 @@ export function ListingDetail(view: ListingDetailView) {
           },
         ]
       : []),
-    { target: "location", id: "ad-location", label: "adPage.section.location" },
     { target: "seller", id: "contact", label: "post.preview.sellerLabel" },
+    { target: "location", id: "ad-location", label: "adPage.section.location" },
   ];
   const sectionIds = sections.map((section) => section.id).join(",");
+  const currentSectionRef = useRef(currentSection);
+  useEffect(() => {
+    currentSectionRef.current = currentSection;
+  }, [currentSection]);
   useEffect(() => {
     const article = articleRef.current;
     if (!article) return;
@@ -400,9 +405,21 @@ export function ListingDetail(view: ListingDetailView) {
                   visible.set(entry.target.id, entry.boundingClientRect.top);
                 else visible.delete(entry.target.id);
               }
-              const first = [...visible].sort((a, b) => a[1] - b[1])[0]?.[0];
-              if (first)
-                setCurrentSection(first === "contact" ? "seller" : first.replace("ad-", ""));
+              if (visible.size === 0) return;
+              /* DEC-192 (bundle 19 turn 22) — boxes that start at one height:
+                the visible sections whose tops lie within 8 px of the smallest
+                top are the candidates; a current candidate stays current,
+                otherwise the first candidate in the bar's order takes over. */
+              const minTop = Math.min(...visible.values());
+              const candidates = new Set(
+                [...visible].filter(([, top]) => top - minTop <= 8).map(([id]) => id),
+              );
+              const toTarget = (id: string) =>
+                id === "contact" ? "seller" : id.replace("ad-", "");
+              const current = currentSectionRef.current;
+              if ([...candidates].some((id) => toTarget(id) === current)) return;
+              const first = sectionIds.split(",").find((id) => candidates.has(id));
+              if (first) setCurrentSection(toTarget(first));
             },
             { rootMargin: "-180px 0px -45% 0px", threshold: 0 },
           );
@@ -423,10 +440,16 @@ export function ListingDetail(view: ListingDetailView) {
     });
   };
 
+  const layout = boxLayout({
+    details: facts.length > 0,
+    description: view.description !== "",
+    safety: !sold,
+  });
+
   return (
     <article
       ref={articleRef}
-      className="@container min-w-0"
+      className="@container flex min-w-0 flex-col gap-4"
       data-testid="listing-detail"
       data-actor={view.actor}
     >
@@ -471,11 +494,14 @@ export function ListingDetail(view: ListingDetailView) {
           )}
         </p>
       )}
-      <div className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @2xl:gap-6 @4xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div
+        data-testid="listing-detail-top"
+        className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+      >
         {/* ------------------------------ the gallery ------------------------- */}
         <div
           data-testid="listing-detail-media"
-          className="relative isolate order-1 min-w-0 @2xl:col-span-2 @4xl:col-span-1"
+          className="relative isolate min-w-0 rounded-md border border-border bg-card p-2 @2xl:p-3"
         >
           {images.length > 0 ? (
             <PhotoGallery
@@ -496,15 +522,132 @@ export function ListingDetail(view: ListingDetailView) {
               }
             />
           )}
+        </div>
 
-          {(view.share !== undefined || view.save !== undefined) && (
-            <div className="absolute end-2 top-2 z-10 flex max-w-[calc(100%-1rem)] items-start gap-2">
-              {view.share}
+        <section
+          data-testid="listing-detail-headline"
+          className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+        >
+          {/* ---------------------------- title and price ----------------------- */}
+          <Title
+            className="font-display text-xl font-semibold leading-tight text-foreground @4xl:text-2xl"
+            data-testid="listing-detail-title"
+          >
+            {view.title === "" ? t("post.review.noTitle") : view.title}
+          </Title>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-2xl font-bold text-primary" data-testid="listing-detail-price">
+              {priceLine}
+            </p>
+            {view.priceNegotiable === true && <NegotiableBadge />}
+            {typeof view.soldBadge === "string" && view.soldBadge.length > 0 && (
+              <span
+                data-testid="listing-detail-sold-badge"
+                className="inline-flex shrink-0 items-center rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold uppercase text-destructive-foreground"
+              >
+                {view.soldBadge}
+              </span>
+            )}
+          </div>
+          {view.save?.refusal && (
+            <p
+              role="status"
+              data-testid="listing-save-refusal"
+              className="text-sm text-destructive"
+            >
+              {t(
+                view.save.refusal === "rateLimited"
+                  ? "adPage.save.rateLimited"
+                  : "adPage.save.failed",
+              )}
+            </p>
+          )}
+          {highlighted.length > 0 && (
+            <ul data-testid="listing-key-facts" className="flex flex-wrap gap-2">
+              {highlighted.map((definition) => (
+                <li
+                  key={definition.attrKey}
+                  data-testid="listing-key-fact"
+                  data-fact-key={definition.attrKey}
+                  className="rounded-md border border-border px-2 py-1 text-xs"
+                >
+                  <span className="text-muted-foreground">{factLabel(definition)}</span>
+                  {definition.attrType !== "boolean" && (
+                    <span className="ms-1 font-semibold text-foreground">
+                      {factValue(definition)}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {dealText.size !== null && (
+            <p className="text-sm text-muted-foreground" data-testid="listing-detail-deal-size">
+              {dealText.size}
+            </p>
+          )}
+          {dealText.terms.map((line) => (
+            <p
+              key={line}
+              className="text-sm text-muted-foreground"
+              data-testid="listing-detail-deal-term"
+            >
+              {line}
+            </p>
+          ))}
+          <div className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
+            {places.length > 0 && (
+              <a
+                data-testid="listing-places-maps"
+                href={placesMaps}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
+              >
+                <span data-testid="listing-detail-places">{places.join(", ")}</span>
+              </a>
+            )}
+            {posted !== null && (
+              <p data-testid="listing-detail-posted">
+                {places.length > 0 && <span aria-hidden="true">{" · "}</span>}
+                {fill(t("adPage.posted"), { when: posted })}
+              </p>
+            )}
+          </div>
+
+          {view.actor === "buyer" &&
+            view.publicCounts !== undefined &&
+            (view.publicCounts.views >= 10 || view.publicCounts.shares >= 1) && (
+              <p
+                data-testid="listing-detail-public-counts"
+                className="text-xs text-muted-foreground"
+              >
+                {/* INC-712 (D201 §19 Q-B) — "Seen" shows from ten views. */}
+                {view.publicCounts.views >= 10 && (
+                  <span data-count="seen">
+                    {fill(t("adPage.counts.seen"), { count: view.publicCounts.views })}
+                  </span>
+                )}
+                {view.publicCounts.views >= 10 && view.publicCounts.shares >= 1 && " · "}
+                {view.publicCounts.shares >= 1 && (
+                  <span data-count="shared">
+                    {fill(t("adPage.counts.shared"), { count: view.publicCounts.shares })}
+                  </span>
+                )}
+              </p>
+            )}
+          {/* DEC-192 (bundle 19 turn 22) — Save and Share are text links at the
+            title box's foot, at every width; the count sits at the row's end. */}
+          {(view.save !== undefined || view.share !== undefined) && (
+            <div
+              data-testid="listing-detail-actions"
+              className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border pt-2"
+            >
               {view.save !== undefined && (
                 <Button
                   asChild={view.save.viewer === "signedOut"}
                   variant="ghost"
-                  className="h-11 min-w-11 gap-2 rounded-full bg-background/90 px-3 text-foreground shadow-sm"
+                  className="h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
                   {...(view.save.viewer === "signedOut"
                     ? {}
                     : {
@@ -534,456 +677,322 @@ export function ListingDetail(view: ListingDetailView) {
                       aria-label={saveSignInLabel}
                     >
                       <Heart aria-hidden="true" className="size-5 shrink-0" />
-                      {view.save.count > 0 && (
-                        <span
-                          className="whitespace-normal text-start"
-                          data-testid="listing-save-count"
-                        >
-                          {fill(t("adPage.save.count"), { count: view.save.count })}
-                        </span>
-                      )}
+                      {t("adPage.save.add")}
                     </Link>
                   ) : (
                     <>
                       <Heart
                         aria-hidden="true"
-                        className={
-                          view.save.saved ? "size-5 shrink-0 text-destructive" : "size-5 shrink-0"
-                        }
+                        className="size-5 shrink-0"
                         fill={view.save.saved ? "currentColor" : "none"}
                       />
-                      {view.save.count > 0 && (
-                        <span
-                          className="whitespace-normal text-start"
-                          data-testid="listing-save-count"
-                        >
-                          {fill(t("adPage.save.count"), { count: view.save.count })}
-                        </span>
-                      )}
+                      {t(view.save.saved ? "adPage.save.saved" : "adPage.save.add")}
                     </>
                   )}
                 </Button>
               )}
-            </div>
-          )}
-        </div>
-
-        <aside
-          data-testid="listing-detail-aside"
-          className="contents @2xl:sticky @2xl:top-[calc(var(--listing-nav-top,8.5rem)+1rem)] @2xl:col-start-2 @2xl:row-start-2 @2xl:block @2xl:min-w-0 @2xl:self-start @2xl:space-y-4 @4xl:row-start-1 @4xl:row-span-2"
-        >
-          <section
-            data-testid="listing-detail-headline"
-            className="isolate order-2 min-w-0 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-          >
-            {/* ---------------------------- title and price ----------------------- */}
-            <Title
-              className="font-display text-xl font-semibold leading-tight text-foreground @4xl:text-2xl"
-              data-testid="listing-detail-title"
-            >
-              {view.title === "" ? t("post.review.noTitle") : view.title}
-            </Title>
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-2xl font-bold text-primary" data-testid="listing-detail-price">
-                {priceLine}
-              </p>
-              {view.priceNegotiable === true && <NegotiableBadge />}
-              {typeof view.soldBadge === "string" && view.soldBadge.length > 0 && (
+              {view.share}
+              {view.save !== undefined && view.save.count > 0 && (
                 <span
-                  data-testid="listing-detail-sold-badge"
-                  className="inline-flex shrink-0 items-center rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold uppercase text-destructive-foreground"
+                  className="ms-auto text-sm text-muted-foreground"
+                  data-testid="listing-save-count"
                 >
-                  {view.soldBadge}
+                  {fill(t("adPage.save.count"), { count: view.save.count })}
                 </span>
               )}
             </div>
-            {view.save?.refusal && (
-              <p
-                role="status"
-                data-testid="listing-save-refusal"
-                className="text-sm text-destructive"
-              >
-                {t(
-                  view.save.refusal === "rateLimited"
-                    ? "adPage.save.rateLimited"
-                    : "adPage.save.failed",
-                )}
-              </p>
-            )}
-            {highlighted.length > 0 && (
-              <ul data-testid="listing-key-facts" className="flex flex-wrap gap-2">
-                {highlighted.map((definition) => (
-                  <li
-                    key={definition.attrKey}
-                    data-testid="listing-key-fact"
-                    data-fact-key={definition.attrKey}
-                    className="rounded-md border border-border px-2 py-1 text-xs"
-                  >
-                    <span className="text-muted-foreground">{factLabel(definition)}</span>
-                    {definition.attrType !== "boolean" && (
-                      <span className="ms-1 font-semibold text-foreground">
-                        {factValue(definition)}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {dealText.size !== null && (
-              <p className="text-sm text-muted-foreground" data-testid="listing-detail-deal-size">
-                {dealText.size}
-              </p>
-            )}
-            {dealText.terms.map((line) => (
-              <p
-                key={line}
-                className="text-sm text-muted-foreground"
-                data-testid="listing-detail-deal-term"
-              >
-                {line}
-              </p>
-            ))}
-            <div className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
-              {places.length > 0 && (
-                <a
-                  data-testid="listing-places-maps"
-                  href={placesMaps}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
-                >
-                  <span data-testid="listing-detail-places">{places.join(", ")}</span>
-                </a>
-              )}
-              {posted !== null && (
-                <p data-testid="listing-detail-posted">
-                  {places.length > 0 && <span aria-hidden="true">{" · "}</span>}
-                  {fill(t("adPage.posted"), { when: posted })}
-                </p>
-              )}
-            </div>
-
-            {view.actor === "buyer" &&
-              view.publicCounts !== undefined &&
-              (view.publicCounts.views >= 10 || view.publicCounts.shares >= 1) && (
-                <p
-                  data-testid="listing-detail-public-counts"
-                  className="text-xs text-muted-foreground"
-                >
-                  {/* INC-712 (D201 §19 Q-B) — "Seen" shows from ten views. */}
-                  {view.publicCounts.views >= 10 && (
-                    <span data-count="seen">
-                      {fill(t("adPage.counts.seen"), { count: view.publicCounts.views })}
-                    </span>
-                  )}
-                  {view.publicCounts.views >= 10 && view.publicCounts.shares >= 1 && " · "}
-                  {view.publicCounts.shares >= 1 && (
-                    <span data-count="shared">
-                      {fill(t("adPage.counts.shared"), { count: view.publicCounts.shares })}
-                    </span>
-                  )}
-                </p>
-              )}
-          </section>
-          {/* ----------------------------- the seller --------------------------- */}
-          {/* Bundle 11 A3 (D130) — one box, in order: who sells, then how to reach
-          them, one method per row with its control at the row's end. */}
-          <section
-            id="contact"
-            className="isolate order-8 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-            data-testid="listing-detail-seller"
-          >
-            <div className="space-y-1">
-              <h3 className="font-display text-base font-semibold text-foreground">
-                {t("post.preview.sellerLabel")}
-              </h3>
-              <SellerLine
-                alias={view.sellerAlias}
-                businessName={view.sellerBusinessName}
-                previousAlias={view.sellerPreviousAlias ?? null}
-                memberSince={view.sellerMemberSince ?? null}
-                testId="listing-detail-seller"
-              />
-            </div>
-            {!sold &&
-              (view.actor === "buyer"
-                ? view.contact?.viewer !== "unknown"
-                : channels.length > 0) && (
-                <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
-                  {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
-                    <h4 className="text-xs font-medium text-muted-foreground">
-                      {t("post.preview.contactLabel")}
-                    </h4>
-                  )}
-                  {view.actor === "buyer" && view.contact !== undefined ? (
-                    <BuyerContact contact={view.contact} channels={channels} />
-                  ) : (
-                    <ul className="divide-y divide-border text-sm">
-                      {channels.map((channel) => {
-                        const entry = ownValue(view.contactPref, channel);
-                        const value =
-                          entry !== null && typeof entry === "object"
-                            ? ownValue(entry as Record<string, unknown>, "value")
-                            : undefined;
-                        const label =
-                          channel === "phone"
-                            ? t("post.who.channel.phone")
-                            : channel === "phone2"
-                              ? t("post.who.channel.phone2")
-                              : channel === "telegram"
-                                ? t("post.who.channel.telegram")
-                                : t("post.who.channel.whatsapp");
-                        return (
-                          <li
-                            key={channel}
-                            data-testid="listing-detail-channel"
-                            data-channel={channel}
-                            className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
-                          >
-                            <span
-                              className="me-auto text-foreground"
-                              data-testid="listing-detail-channel-label"
-                            >
-                              {label}
-                            </span>
-                            {view.actor === "owner" &&
-                              typeof value === "string" &&
-                              value.trim() !== "" && (
-                                <span
-                                  data-testid="listing-detail-channel-value"
-                                  data-channel={channel}
-                                  className="text-foreground"
-                                >
-                                  {value}
-                                </span>
-                              )}
-                            {view.channelAction?.(channel) ?? null}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </div>
-              )}
-            {/* Bundle 19 turn 16 (D201 §12) — All ads by this seller; a seller
-              with no alias (a business named by its business name alone) gets
-              no link. The owner's and staff's previews pass no key. */}
-            {typeof view.sellerAdsKey === "string" && view.sellerAdsKey !== "" && (
-              <Link
-                data-testid="listing-seller-all-ads"
-                to="/$name"
-                params={{ name: view.sellerAdsKey }}
-                className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
-              >
-                {t("adPage.seller.allAds")}
-              </Link>
-            )}
-          </section>
-
-          {view.report !== undefined && (
-            <div id="report" data-testid="listing-detail-report" className="isolate order-9">
-              {view.report}
-            </div>
           )}
-        </aside>
-        <div
-          data-testid="listing-detail-main"
-          className="contents @2xl:col-start-1 @2xl:row-start-2 @2xl:flex @2xl:min-w-0 @2xl:flex-col @2xl:gap-6"
+        </section>
+      </div>
+
+      {showSections && (
+        <nav
+          ref={navRef}
+          data-testid="listing-section-nav"
+          aria-label={t("adPage.sections.label")}
+          className="sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto rounded-md border border-border bg-card"
         >
-          {showSections && (
-            <nav
-              ref={navRef}
-              data-testid="listing-section-nav"
-              aria-label={t("adPage.sections.label")}
-              className="sticky top-[var(--listing-nav-top,8.5rem)] z-10 order-3 flex min-w-0 overflow-x-auto border-b border-border bg-card @2xl:hidden @4xl:flex"
+          {sections.map((section) => (
+            <Button
+              key={section.target}
+              variant="ghost"
+              type="button"
+              data-testid="listing-section-nav-item"
+              data-target={section.target}
+              aria-current={currentSection === section.target ? "true" : undefined}
+              className={`min-h-11 shrink-0 rounded-none border-b-2 px-3 ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
+              onClick={() => {
+                setCurrentSection(section.target);
+                scrollSection(section.id);
+              }}
             >
-              {sections.map((section) => (
-                <Button
-                  key={section.target}
-                  variant="ghost"
-                  type="button"
-                  data-testid="listing-section-nav-item"
-                  data-target={section.target}
-                  aria-current={currentSection === section.target ? "true" : undefined}
-                  className={`min-h-11 shrink-0 rounded-none border-b-2 px-3 ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
-                  onClick={() => {
-                    setCurrentSection(section.target);
-                    scrollSection(section.id);
-                  }}
-                >
-                  {t(section.label)}
-                </Button>
-              ))}
-            </nav>
-          )}
-          {(!sold || facts.length > 0) && (
-            <div
-              className={`contents @4xl:order-4 @4xl:grid @4xl:gap-4 ${!sold && facts.length > 0 ? "@4xl:grid-cols-2" : "@4xl:grid-cols-1"}`}
-            >
-              {!sold && <SafetyBox />}
+              {t(section.label)}
+            </Button>
+          ))}
+        </nav>
+      )}
 
-              {/* ------------------------------ the facts --------------------------- */}
-              {facts.length > 0 && (
-                <section
-                  id="ad-details"
-                  className="isolate order-5 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-                  data-testid="listing-detail-specs"
-                >
-                  <h3 className="font-display text-base font-semibold text-foreground">
-                    {t("post.preview.detailsLabel")}
-                  </h3>
-                  <dl className="space-y-2 text-sm">
-                    {facts.map((definition) => (
-                      <div key={definition.attrKey} className="grid grid-cols-2 gap-3">
-                        <dt className="text-muted-foreground">{factLabel(definition)}</dt>
-                        <dd
-                          className="text-start text-foreground"
-                          data-testid="listing-detail-spec"
-                          data-key={definition.attrKey}
-                        >
-                          {factValue(definition)}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-              )}
-            </div>
-          )}
-          {/* --------------------------- the description ------------------------ */}
-          {view.description !== "" && (
-            <section
-              id="ad-description"
-              className="isolate order-6 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
-            >
-              <h3 className="font-display text-base font-semibold text-foreground">
-                {t("post.preview.descriptionLabel")}
-              </h3>
-              <p
-                ref={descriptionRef}
-                className={`whitespace-pre-line text-sm leading-relaxed text-foreground ${view.actor === "buyer" && !expanded ? "line-clamp-8" : ""}`}
-                data-testid="listing-detail-description"
-              >
-                {view.description}
-              </p>
-              {view.actor === "buyer" && overflows && (
-                <Button
-                  variant="ghost"
-                  className="min-h-11 text-primary"
-                  data-testid="listing-description-toggle"
-                  aria-expanded={expanded}
-                  onClick={() => setExpanded((current) => !current)}
-                >
-                  {t(expanded ? "adPage.description.less" : "adPage.description.more")}
-                </Button>
-              )}
-            </section>
-          )}
-
+      <div
+        data-testid="listing-detail-boxes"
+        className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-6"
+      >
+        {/* ------------------------------ the facts --------------------------- */}
+        {facts.length > 0 && (
           <section
-            id="ad-location"
-            data-testid="listing-detail-location"
-            className="isolate order-7 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+            id="ad-details"
+            className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.details}`}
+            data-testid="listing-detail-specs"
           >
-            <h3 className="font-display text-base font-semibold">{t("adPage.section.location")}</h3>
-            {places.length > 0 && (
-              <p className="text-sm text-muted-foreground">{places.join(", ")}</p>
-            )}
-            {places.length === 0 && !view.directions && !view.streetAddress && !hasPin && (
-              <p className="text-sm text-muted-foreground">{t("post.review.notGiven")}</p>
-            )}
-            {/* Step 10 (P4) — directions above the location details, as text (F2). */}
-            {(view.directions || view.streetAddress) && (
-              <dl className="space-y-1 text-sm" data-testid="listing-detail-place-text">
-                {view.directions ? (
-                  <div data-testid="listing-detail-directions">
-                    <dt className="text-xs text-muted-foreground">
-                      {t("post.where.directionsLabel")}
-                    </dt>
-                    <dd className="text-foreground">{view.directions}</dd>
-                  </div>
-                ) : null}
-                {view.streetAddress ? (
-                  <div data-testid="listing-detail-details">
-                    <dt className="text-xs text-muted-foreground">
-                      {t("post.where.detailsLabel")}
-                    </dt>
-                    <dd className="text-foreground">{view.streetAddress}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            )}
-
-            {hasPin && typeof view.pinLat === "number" && typeof view.pinLng === "number" && (
-              <div className="relative isolate" data-testid="listing-detail-map">
-                <Suspense
-                  fallback={<p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>}
-                >
-                  <MapPreview
-                    lat={view.pinLat}
-                    lng={view.pinLng}
-                    precision={view.pinPrecision ?? "exact"}
-                    zoom={view.pinZoom ?? null}
-                    {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
-                  />
-                </Suspense>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
-                  data-testid="listing-map-enlarge"
-                  className="absolute end-2 top-2 z-10 gap-2 bg-card"
-                  onClick={() => setMapOpen(true)}
-                >
-                  <Expand className="size-4" aria-hidden="true" />
-                  {t("adPage.map.enlarge")}
-                </Button>
-                <Dialog open={mapOpen} onOpenChange={setMapOpen}>
-                  {mapOpen && (
-                    <DialogContent
-                      data-testid="listing-map-dialog"
-                      aria-describedby={undefined}
-                      className="flex h-[90dvh] w-[calc(100%-1rem)] flex-col p-4 md:h-[70vh] md:max-w-4xl"
-                    >
-                      <div className="flex items-center justify-between gap-2 pe-8">
-                        <DialogTitle>{t("adPage.section.location")}</DialogTitle>
-                        <DialogClose asChild>
-                          <Button variant="outline" size="touch" data-testid="listing-map-close">
-                            {t("common.close")}
-                          </Button>
-                        </DialogClose>
-                      </div>
-                      <Suspense
-                        fallback={
-                          <p className="text-sm text-muted-foreground">{t("post.pin.title")}</p>
-                        }
-                      >
-                        <MapLarge
-                          lat={view.pinLat}
-                          lng={view.pinLng}
-                          precision={view.pinPrecision ?? "exact"}
-                          zoom={view.pinZoom ?? null}
-                          {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
-                        />
-                      </Suspense>
-                    </DialogContent>
-                  )}
-                </Dialog>
-                {mapMaps !== null && (
-                  <a
-                    data-testid="listing-map-google"
-                    href={mapMaps}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+            <h3 className="font-display text-base font-semibold text-foreground">
+              {t("post.preview.detailsLabel")}
+            </h3>
+            <dl className="space-y-2 text-sm">
+              {facts.map((definition) => (
+                <div key={definition.attrKey} className="grid grid-cols-2 gap-3">
+                  <dt className="text-muted-foreground">{factLabel(definition)}</dt>
+                  <dd
+                    className="text-start text-foreground"
+                    data-testid="listing-detail-spec"
+                    data-key={definition.attrKey}
                   >
-                    {t("adPage.map.google")}
-                  </a>
+                    {factValue(definition)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+        {/* --------------------------- the description ------------------------ */}
+        {view.description !== "" && (
+          <section
+            id="ad-description"
+            className={`isolate flex min-w-0 scroll-mt-14 flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.description}`}
+          >
+            <h3 className="font-display text-base font-semibold text-foreground">
+              {t("post.preview.descriptionLabel")}
+            </h3>
+            <p
+              ref={descriptionRef}
+              className={`whitespace-pre-line text-sm leading-relaxed text-foreground ${view.actor === "buyer" && !expanded ? "line-clamp-8" : ""}`}
+              data-testid="listing-detail-description"
+            >
+              {view.description}
+            </p>
+            {view.actor === "buyer" && overflows && (
+              <Button
+                variant="ghost"
+                className="mt-auto min-h-11 self-start text-primary"
+                data-testid="listing-description-toggle"
+                aria-expanded={expanded}
+                onClick={() => setExpanded((current) => !current)}
+              >
+                {t(expanded ? "adPage.description.less" : "adPage.description.more")}
+              </Button>
+            )}
+          </section>
+        )}
+        {/* ----------------------------- the seller --------------------------- */}
+        {/* Bundle 11 A3 (D130) — one box, in order: who sells, then how to reach
+          them, one method per row with its control at the row's end. */}
+        <section
+          id="contact"
+          className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.seller}`}
+          data-testid="listing-detail-seller"
+        >
+          <div className="space-y-1">
+            <h3 className="font-display text-base font-semibold text-foreground">
+              {t("post.preview.sellerLabel")}
+            </h3>
+            <SellerLine
+              alias={view.sellerAlias}
+              businessName={view.sellerBusinessName}
+              previousAlias={view.sellerPreviousAlias ?? null}
+              memberSince={view.sellerMemberSince ?? null}
+              testId="listing-detail-seller"
+            />
+          </div>
+          {!sold &&
+            (view.actor === "buyer" ? view.contact?.viewer !== "unknown" : channels.length > 0) && (
+              <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
+                {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
+                  <h4 className="text-xs font-medium text-muted-foreground">
+                    {t("post.preview.contactLabel")}
+                  </h4>
+                )}
+                {view.actor === "buyer" && view.contact !== undefined ? (
+                  <BuyerContact contact={view.contact} channels={channels} />
+                ) : (
+                  <ul className="divide-y divide-border text-sm">
+                    {channels.map((channel) => {
+                      const entry = ownValue(view.contactPref, channel);
+                      const value =
+                        entry !== null && typeof entry === "object"
+                          ? ownValue(entry as Record<string, unknown>, "value")
+                          : undefined;
+                      const label =
+                        channel === "phone"
+                          ? t("post.who.channel.phone")
+                          : channel === "phone2"
+                            ? t("post.who.channel.phone2")
+                            : channel === "telegram"
+                              ? t("post.who.channel.telegram")
+                              : t("post.who.channel.whatsapp");
+                      return (
+                        <li
+                          key={channel}
+                          data-testid="listing-detail-channel"
+                          data-channel={channel}
+                          className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2"
+                        >
+                          <span
+                            className="me-auto text-foreground"
+                            data-testid="listing-detail-channel-label"
+                          >
+                            {label}
+                          </span>
+                          {view.actor === "owner" &&
+                            typeof value === "string" &&
+                            value.trim() !== "" && (
+                              <span
+                                data-testid="listing-detail-channel-value"
+                                data-channel={channel}
+                                className="text-foreground"
+                              >
+                                {value}
+                              </span>
+                            )}
+                          {view.channelAction?.(channel) ?? null}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 )}
               </div>
             )}
-          </section>
-        </div>
+          {/* Bundle 19 turn 16 (D201 §12) — All ads by this seller; a seller
+              with no alias (a business named by its business name alone) gets
+              no link. The owner's and staff's previews pass no key. */}
+          {typeof view.sellerAdsKey === "string" && view.sellerAdsKey !== "" && (
+            <Link
+              data-testid="listing-seller-all-ads"
+              to="/$name"
+              params={{ name: view.sellerAdsKey }}
+              className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+            >
+              {t("adPage.seller.allAds")}
+            </Link>
+          )}
+        </section>
+
+        <section
+          id="ad-location"
+          data-testid="listing-detail-location"
+          className={`isolate min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${layout.location}`}
+        >
+          <h3 className="font-display text-base font-semibold">{t("adPage.section.location")}</h3>
+          {places.length > 0 && (
+            <p className="text-sm text-muted-foreground">{places.join(", ")}</p>
+          )}
+          {places.length === 0 && !view.directions && !view.streetAddress && !hasPin && (
+            <p className="text-sm text-muted-foreground">{t("post.review.notGiven")}</p>
+          )}
+          {/* Step 10 (P4) — directions above the location details, as text (F2). */}
+          {(view.directions || view.streetAddress) && (
+            <dl className="space-y-1 text-sm" data-testid="listing-detail-place-text">
+              {view.directions ? (
+                <div data-testid="listing-detail-directions">
+                  <dt className="text-xs text-muted-foreground">{t("adPage.directions")}</dt>
+                  <dd className="text-foreground">{view.directions}</dd>
+                </div>
+              ) : null}
+              {view.streetAddress ? (
+                <div data-testid="listing-detail-details">
+                  <dt className="text-xs text-muted-foreground">{t("post.where.detailsLabel")}</dt>
+                  <dd className="text-foreground">{view.streetAddress}</dd>
+                </div>
+              ) : null}
+            </dl>
+          )}
+
+          {hasPin && typeof view.pinLat === "number" && typeof view.pinLng === "number" && (
+            <div className="relative isolate" data-testid="listing-detail-map">
+              <Suspense
+                fallback={<p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>}
+              >
+                <MapPreview
+                  lat={view.pinLat}
+                  lng={view.pinLng}
+                  precision={view.pinPrecision ?? "exact"}
+                  zoom={view.pinZoom ?? null}
+                  {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
+                />
+              </Suspense>
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                data-testid="listing-map-enlarge"
+                className="absolute end-2 top-2 z-10 gap-2 bg-card"
+                onClick={() => setMapOpen(true)}
+              >
+                <Expand className="size-4" aria-hidden="true" />
+                {t("adPage.map.enlarge")}
+              </Button>
+              <Dialog open={mapOpen} onOpenChange={setMapOpen}>
+                {mapOpen && (
+                  <DialogContent
+                    data-testid="listing-map-dialog"
+                    aria-describedby={undefined}
+                    className="flex h-[90dvh] w-[calc(100%-1rem)] flex-col p-4 md:h-[70vh] md:max-w-4xl"
+                  >
+                    <div className="flex items-center justify-between gap-2 pe-8">
+                      <DialogTitle>{t("adPage.section.location")}</DialogTitle>
+                      <DialogClose asChild>
+                        <Button variant="outline" size="touch" data-testid="listing-map-close">
+                          {t("common.close")}
+                        </Button>
+                      </DialogClose>
+                    </div>
+                    <Suspense
+                      fallback={
+                        <p className="text-sm text-muted-foreground">{t("post.pin.title")}</p>
+                      }
+                    >
+                      <MapLarge
+                        lat={view.pinLat}
+                        lng={view.pinLng}
+                        precision={view.pinPrecision ?? "exact"}
+                        zoom={view.pinZoom ?? null}
+                        {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
+                      />
+                    </Suspense>
+                  </DialogContent>
+                )}
+              </Dialog>
+              {mapMaps !== null && (
+                <a
+                  data-testid="listing-map-google"
+                  href={mapMaps}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+                >
+                  {t("adPage.map.google")}
+                </a>
+              )}
+            </div>
+          )}
+        </section>
+        {!sold && <SafetyBox className={layout.safety} />}
+        {view.report !== undefined && (
+          <div
+            id="report"
+            data-testid="listing-detail-report"
+            className={`isolate min-w-0 ${layout.report}`}
+          >
+            {view.report}
+          </div>
+        )}
       </div>
     </article>
   );

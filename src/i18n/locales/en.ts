@@ -318,6 +318,8 @@ export const en = {
   "adPage.map.google": "Open in Google Maps",
   "adPage.map.label": "Map of the ad's location",
   "adPage.map.approx": "The ad's area, about 500 metres across.",
+  "adPage.save.saved": "Saved",
+  "adPage.directions": "Directions",
 
   "adPage.seller.allAds": "All ads by this seller",
   "adPage.gone.title": "This ad is no longer available",

@@ -305,6 +305,8 @@ export const am: Messages = {
   "adPage.map.google": "በGoogle ካርታ ይክፈቱ",
   "adPage.map.label": "የማስታወቂያው ቦታ ካርታ",
   "adPage.map.approx": "የማስታወቂያው አካባቢ፣ 500 ሜትር ገደማ ስፋት ያለው።",
+  "adPage.save.saved": "ተቀምጧል",
+  "adPage.directions": "አቅጣጫ",
 
   "adPage.seller.allAds": "የዚህ ሻጭ ሁሉም ማስታወቂያዎች",
   "adPage.gone.title": "ይህ ማስታወቂያ ከእንግዲህ አይገኝም",

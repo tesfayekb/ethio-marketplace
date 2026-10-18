@@ -4,6 +4,7 @@ import { en } from "@/i18n/locales/en";
 import { shapePostingSchema } from "../posting-service";
 import { ownValue } from "@/lib/own-key";
 import { ListingDetail, type ListingDetailView } from "./listing-detail";
+import { ShareAd } from "@/features/ad-page/share-ad";
 
 vi.mock("@/i18n", async (original) => ({
   ...(await original<typeof import("@/i18n")>()),
@@ -377,7 +378,10 @@ describe("LD-11 report slot", () => {
     );
     const slot = screen.getByTestId("listing-detail-report");
     const seller = screen.getByTestId("listing-detail-seller").closest("section");
-    expect(seller?.nextElementSibling).toBe(slot);
+    if (!seller) throw new Error("seller card missing");
+    /* DEC-192 — the report slot closes the boxes (Location and the safety box
+      lie between it and the seller card), so it follows the seller card. */
+    expect(seller.compareDocumentPosition(slot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     rerender(<ListingDetail {...BASE} actor="owner" />);
     expect(screen.queryByTestId("listing-detail-report")).toBeNull();
     rerender(<ListingDetail {...BASE} actor="staff" />);
@@ -493,11 +497,11 @@ it("LD-17 section bar belongs to buyers, with present sections only", () => {
   const { rerender } = render(<ListingDetail {...BASE} actor="buyer" />);
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["location", "seller"]);
+  ).toEqual(["seller", "location"]);
   rerender(<ListingDetail {...BASE} actor="buyer" description="scratch description" />);
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["description", "location", "seller"]);
+  ).toEqual(["description", "seller", "location"]);
   for (const actor of ["owner", "staff"] as const) {
     rerender(<ListingDetail {...BASE} actor={actor} />);
     expect(screen.queryByTestId("listing-section-nav")).toBeNull();
@@ -505,7 +509,7 @@ it("LD-17 section bar belongs to buyers, with present sections only", () => {
   rerender(<ListingDetail {...BASE} actor="buyer" soldBadge="Sold" />);
   expect(
     screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
-  ).toEqual(["location", "seller"]);
+  ).toEqual(["seller", "location"]);
 });
 
 it("LD-18 the buyer's page with photos holds each block's test id exactly once (INC-714)", () => {
@@ -514,16 +518,84 @@ it("LD-18 the buyer's page with photos holds each block's test id exactly once (
       {...BASE}
       actor="buyer"
       photos={[{ id: "ld-18-photo", displayOrder: 0, paths: null, storagePath: null }]}
+      save={{
+        viewer: "signedIn",
+        saved: false,
+        count: 0,
+        busy: false,
+        refusal: null,
+        signInTo: { to: "/auth", search: { return: "/l/scratch" } },
+        onToggle: vi.fn(),
+      }}
     />,
   );
   for (const id of [
     "listing-detail-media",
     "listing-detail-gallery",
     "listing-detail-headline",
-    "listing-detail-aside",
+    "listing-detail-top",
+    "listing-detail-boxes",
+    "listing-detail-actions",
     "listing-detail-location",
     "listing-section-nav",
   ]) {
     expect(screen.queryAllByTestId(id), id).toHaveLength(1);
   }
+  // DEC-192 — the old two-column wrappers are gone.
+  expect(screen.queryAllByTestId("listing-detail-aside")).toHaveLength(0);
+  expect(screen.queryAllByTestId("listing-detail-main")).toHaveLength(0);
+});
+
+it("LD-20 Save and Share sit at the title box's foot; the buyer's Directions label (INC-716)", () => {
+  const save = {
+    viewer: "signedIn" as const,
+    saved: false,
+    count: 0,
+    busy: false,
+    refusal: null,
+    signInTo: { to: "/auth" as const, search: { return: "/l/scratch" } },
+    onToggle: vi.fn(),
+  };
+  const share = (
+    <ShareAd publicId="scratch" canonicalPath="/l/scratch" title={en["post.review.noTitle"]} priceText={null} />
+  );
+  const { rerender } = render(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      directions="scratch directions"
+      save={save}
+      share={share}
+    />,
+  );
+  const headline = screen.getByTestId("listing-detail-headline");
+  const actions = within(headline).getByTestId("listing-detail-actions");
+  expect(within(actions).getByTestId("listing-save")).toHaveTextContent(en["adPage.save.add"]);
+  expect(within(actions).getByTestId("listing-share-open")).toBeInTheDocument();
+  const media = screen.getByTestId("listing-detail-media");
+  expect(within(media).queryByTestId("listing-save")).toBeNull();
+  expect(within(media).queryByTestId("listing-share-open")).toBeNull();
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      directions="scratch directions"
+      save={{ ...save, saved: true }}
+      share={share}
+    />,
+  );
+  expect(screen.getByTestId("listing-save")).toHaveTextContent(en["adPage.save.saved"]);
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      directions="scratch directions"
+      save={{ ...save, viewer: "signedOut" }}
+      share={share}
+    />,
+  );
+  expect(screen.getByTestId("listing-save")).toHaveTextContent(en["adPage.save.add"]);
+  const directions = screen.getByTestId("listing-detail-directions");
+  expect(within(directions).getByText(en["adPage.directions"])).toBeInTheDocument();
+  expect(document.body.textContent ?? "").not.toContain("(optional)");
 });

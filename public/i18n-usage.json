@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 489,
-  "dynamicCallSites": 350,
+  "scanned": 490,
+  "dynamicCallSites": 351,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -216,6 +216,18 @@
       "/post",
       "/post/$listingId"
     ],
+    "adPage.directions": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "adPage.gone.body": [
       "/l/$slug"
     ],
@@ -285,6 +297,18 @@
     ],
     "adPage.report.send": [
       "/l/$slug"
+    ],
+    "adPage.save.add": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.save.count": [
       "(every page)",
@@ -6716,13 +6740,7 @@
       "/post/$listingId"
     ],
     "post.where.directionsLabel": [
-      "(every page)",
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
-      "/l/$id/photo[/]jpg",
-      "/l/$slug",
-      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
