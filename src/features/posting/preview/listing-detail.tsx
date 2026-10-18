@@ -559,8 +559,13 @@ export function ListingDetail(view: ListingDetailView) {
         </div>
 
         {/* DEC-197 (bundle 19 turn 27) — the right column: the title box, then
-            the seller card under it; together they are the photo's height. */}
-        <div className="flex min-w-0 flex-col gap-4">
+            the seller card under it; together they are the photo's height.
+            DEC-199 (bundle 19 turn 28, the operator's walk of 2026-10-18) — why
+            57.5rem: the gallery reaches 32rem — the strip beside the photo, the
+            photo able to grow — at about 913 px of article; from 57.5rem the
+            right column may be taller than the photo because the photo grows
+            with it, below it the photo cannot, so the seller card goes under. */}
+        <div className="flex min-w-0 flex-col gap-4 @2xl:@max-[57.5rem]:contents">
           <section
             data-testid="listing-detail-headline"
             className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
@@ -750,7 +755,7 @@ export function ListingDetail(view: ListingDetailView) {
             the column's height. */}
           <section
             id="contact"
-            className={`isolate flex min-w-0 flex-1 scroll-mt-14 flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`}
+            className={`isolate flex min-w-0 flex-1 scroll-mt-14 flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 @2xl:@max-[57.5rem]:col-span-2 @2xl:@max-[57.5rem]:grid @2xl:@max-[57.5rem]:grid-cols-2 @2xl:@max-[57.5rem]:gap-x-6 ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`}
             data-testid="listing-detail-seller"
             data-highlight={contactHighlight ? "true" : undefined}
           >
@@ -770,7 +775,10 @@ export function ListingDetail(view: ListingDetailView) {
               (view.actor === "buyer"
                 ? view.contact?.viewer !== "unknown"
                 : channels.length > 0) && (
-                <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
+                <div
+                  className="border-t border-border pt-3 @2xl:@max-[57.5rem]:col-start-2 @2xl:@max-[57.5rem]:row-span-2 @2xl:@max-[57.5rem]:row-start-1 @2xl:@max-[57.5rem]:border-t-0 @2xl:@max-[57.5rem]:pt-0"
+                  data-testid="listing-detail-contact"
+                >
                   {!(view.actor === "buyer" && view.contact?.viewer === "signedOut") && (
                     <h4 className="text-xs font-medium text-muted-foreground">
                       {t("post.preview.contactLabel")}
@@ -840,7 +848,7 @@ export function ListingDetail(view: ListingDetailView) {
                 data-testid="listing-seller-all-ads"
                 to="/$name"
                 params={{ name: view.sellerAdsKey }}
-                className="mt-auto inline-flex min-h-11 items-center self-start text-sm text-primary underline underline-offset-4"
+                className="mt-auto inline-flex min-h-11 items-center self-start text-sm text-primary underline underline-offset-4 @2xl:@max-[57.5rem]:col-start-1 @2xl:@max-[57.5rem]:row-start-2"
               >
                 {t("adPage.seller.allAds")}
               </Link>
