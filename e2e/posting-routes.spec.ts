@@ -1559,4 +1559,120 @@ test.describe("POSTING ROUTES", () => {
     );
     expect(business.payload["ok"], JSON.stringify(business.payload)).toBe(true);
   });
+
+  /** Bundle 20 turn 1 — the reasons one door answer carries. */
+  async function aliasReasons(
+    page: import("@playwright/test").Page,
+    token: string,
+    alias: string,
+    country = "ET",
+  ) {
+    const answer = await postRoute(page, "/api/listings/alias", { alias }, { token, country });
+    expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
+    return {
+      ok: answer.payload["ok"],
+      reasons: reasonsOf(answer.payload).map((refusal) => refusal.reason),
+      raw: JSON.stringify(answer.payload),
+    };
+  }
+
+  async function businessReasons(
+    page: import("@playwright/test").Page,
+    token: string,
+    businessName: string,
+  ) {
+    const answer = await postRoute(
+      page,
+      IDENTITY,
+      { sellerType: "business", businessName },
+      { token, country: "ET" },
+    );
+    expect(answer.status, JSON.stringify(answer.payload)).toBe(200);
+    return {
+      ok: answer.payload["ok"],
+      reasons: reasonsOf(answer.payload).map((refusal) => refusal.reason),
+      raw: JSON.stringify(answer.payload),
+    };
+  }
+
+  const NAME_REFUSALS = [
+    "aliasReserved",
+    "aliasClaim",
+    "businessReserved",
+    "businessClaim",
+    "businessEthio",
+  ];
+
+  function expectRefused(answer: { ok: unknown; reasons: string[]; raw: string }, reason: string) {
+    expect(answer.ok, answer.raw).toBe(false);
+    expect(answer.reasons, answer.raw).toContain(reason);
+  }
+
+  function expectPasses(answer: { reasons: string[]; raw: string }) {
+    for (const reason of NAME_REFUSALS) expect(answer.reasons, answer.raw).not.toContain(reason);
+  }
+
+  test("PR-54 claim words and lure words refuse in every country; an ordinary name with a lure word inside passes (R1, R3, DEC-203)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    for (const alias of ["cbe_eth", "eth_telebirr", "telebirr_etiopia", "telebirr_bonus"]) {
+      expectRefused(await aliasReasons(page, token, alias), "aliasClaim");
+    }
+    expectPasses(await aliasReasons(page, token, `e2epost${rand()}_bonus`));
+    expectRefused(await businessReasons(page, token, "Telebirr Bonus"), "businessClaim");
+    expectRefused(await aliasReasons(page, token, "telebirr_bonus", "KE"), "aliasClaim");
+  });
+
+  test("PR-55 the never-refused words and the list fixes pass; an exact protected handle stays refused (R4, R8, R13)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    for (const alias of [
+      "discard",
+      "papal",
+      "shrill",
+      "desta",
+      "moshe",
+      "amole_shop",
+      "kacha_shop",
+    ]) {
+      expectPasses(await aliasReasons(page, token, alias));
+    }
+    for (const alias of ["discord", "amole", "destta"]) {
+      expectRefused(await aliasReasons(page, token, alias), "aliasReserved");
+    }
+  });
+
+  test("PR-56 an Amharic business name one letter off a protected Amharic name is refused as reserved; a never-refused Amharic word passes (R2)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    for (const name of ["አቢሲኒያ ባንክ", "ኦሮሚያ ኅብረት ሥራ ባንክ", "አቢሲንያ ባንክ"]) {
+      expectRefused(await businessReasons(page, token, name), "businessReserved");
+    }
+    expectPasses(await businessReasons(page, token, "ጎልድስታር"));
+  });
+
+  test("PR-57 a country's name beside an institution word is the claim refusal; a two-letter code is never a country (R5)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    for (const alias of ["norway_visa_lottery", "canada_agency_098", "sweden_embassy"]) {
+      expectRefused(await aliasReasons(page, token, alias), "aliasClaim");
+    }
+    for (const alias of ["us_embassy", "visa_help_for_me", "my_travel_agency"]) {
+      expectPasses(await aliasReasons(page, token, alias));
+    }
+    expectRefused(await businessReasons(page, token, "Embassy of Sweden"), "businessClaim");
+  });
+
+  test("PR-58 accented Latin letters are read as plain letters in business names (R10)", async ({
+    page,
+  }) => {
+    const { token } = await seller(page);
+    expectRefused(await businessReasons(page, token, "Télébirr"), "businessReserved");
+    expectRefused(await businessReasons(page, token, "Éthio Coffee"), "businessEthio");
+    expectPasses(await businessReasons(page, token, "Café Selam " + rand().replace(/[0-9]/g, "q")));
+  });
 });
