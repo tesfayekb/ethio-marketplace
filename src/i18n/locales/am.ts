@@ -2827,6 +2827,8 @@ export const am: Messages = {
   "post.action.backToReview": "ወደ ማጠቃለያው ተመለስ",
   "post.progress.stripLabel": "ደረጃዎች",
   "post.progress.stepNumber": "ደረጃ {step}",
+  "post.progress.stripBack": "ቀዳሚ ደረጃዎች",
+  "post.progress.stripMore": "ተጨማሪ ደረጃዎች",
   "post.category.changedReset":
     "ምድቡ ወደ {category} ተቀይሯል — ዝርዝሮች፣ ርዕስ፣ መግለጫና ዋጋ ተጠርገዋል። ፎቶዎች፣ ቦታና አድራሻ እንደነበሩ ናቸው።",
   "post.category.changedDismiss": "ዝጋ",
@@ -2850,6 +2852,8 @@ export const am: Messages = {
   "post.gallery.previous": "ቀዳሚው ፎቶ",
   "post.gallery.next": "የሚቀጥለው ፎቶ",
   "post.gallery.show": "{index}ኛውን ፎቶ አሳይ",
+  "post.gallery.stripBack": "ቀዳሚ ፎቶዎች",
+  "post.gallery.stripMore": "ተጨማሪ ፎቶዎች",
   "post.gallery.unscreened": "በሰው ሰራሽ አስተውሎት አልተፈተሸም",
   "post.gallery.inReview": "ግምገማ በመጠባበቅ ላይ",
   "admin.attributes.link.allowedOptions": "የተፈቀዱ አማራጮች",
