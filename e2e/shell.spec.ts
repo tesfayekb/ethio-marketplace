@@ -381,6 +381,305 @@ test.describe("app shell", () => {
     // Only the NAVIGATION rows — the rail foot (collapse toggle, sign out)
     // holds buttons too and must not be mistaken for a category (INC-032).
     const rows = page.getByTestId("app-rail").locator("nav").getByRole("button");
+    // Row 0 is "All categories"; row 1 is the first real category, if seeded.
+    if ((await rows.count()) < 2) return;
+    const name = (await rows.nth(1).textContent())!.trim();
+    await rows.nth(1).click();
+
+    const crumb = page.getByTestId("breadcrumb-category");
+    await expect(crumb).toHaveText(name);
+
+    // Clicking Home walks back up to the unfiltered MARKETPLACE feed: the
+    // category filter clears and the Marketplace panel is the active one.
+    await page.getByTestId("breadcrumb-home").click();
+    await expect(page.getByTestId("breadcrumb-category")).toHaveCount(0);
+    await expect(page.getByTestId("breadcrumb-panel")).toHaveCount(0);
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
+    await expect(page.getByText(en["panel.marketplace"], { exact: true }).first()).toBeVisible();
+  });
+
+  test("the marketplace breadcrumb is Home alone — no redundant panel segment", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/");
+    const crumbs = page.getByTestId("breadcrumbs");
+    await expect(crumbs.getByTestId("breadcrumb-home")).toBeVisible();
+    // INC-043: "Home" IS the marketplace, so the Marketplace segment is gone.
+    await expect(crumbs.getByTestId("breadcrumb-panel")).toHaveCount(0);
+    await expect(crumbs.getByText(en["panel.marketplace"], { exact: true })).toHaveCount(0);
+  });
+
+  test("the feed body is centred with equal left and right gutters", async ({ page }) => {
+    /**
+     * INC-153 SECOND INSTANCE (STAB-H PART B) — SCOPED EMPTINESS. This test
+     * measures the EMPTY state's centring, so it may never assume bare "/" is
+     * empty. It fences itself exactly like its sibling ("feed renders its
+     * empty state"): a scratch top-level category whose feed is empty BY
+     * CONSTRUCTION, whatever the listings table holds.
+     */
+    const fenceSlug = `e2e-feed-gutter-${Date.now().toString(36)}`;
+    const supabase = adminClient();
+    const { data: fence, error: fenceError } = await supabase
+      .from("categories")
+      .insert({ slug: fenceSlug, name_en: fenceSlug, is_active: true })
+      .select("id")
+      .single();
+    if (fenceError || !fence) {
+      throw new Error(`[e2e:shell] seeding the fence category failed: ${fenceError?.message}`);
+    }
+    try {
+      await gotoReady(page, `/c/${fenceSlug}`);
+      const main = page.locator("main#main");
+      const container = page.getByTestId("feed-container");
+      const emptyState = page.getByTestId("feed-empty");
+      // INC-282 (product) — measure only once the feed's inputs have settled.
+      await expect(page.locator('[data-testid="feed-container"][data-ready="1"]')).toBeAttached({
+        timeout: 20000,
+      });
+      await expect(emptyState).toBeVisible({ timeout: 20000 });
+      // Pre-committed rule: once shown, the empty state is not swapped out.
+      const shownAt = Date.now();
+      await expect
+        .poll(
+          async () => {
+            if ((await emptyState.count()) === 0) return "detached";
+            return Date.now() - shownAt >= 2000 ? "held" : "waiting";
+          },
+          {
+            timeout: 5000,
+            intervals: [200],
+            message: "INC-282: feed-empty detached after it rendered",
+          },
+        )
+        .toBe("held");
+      /** INC-282 — a null box names the state instead of throwing a TypeError. */
+      const boxOf = async (locator: typeof main, name: string) => {
+        await expect(locator).toBeVisible();
+        const b = await locator.boundingBox();
+        if (!b) throw new Error(`INC-282: ${name} had no box (detached or hidden)`);
+        return b;
+      };
+      const mainBox = await boxOf(main, "main#main");
+      const box = await boxOf(container, "feed-container");
+      const left = box.x - mainBox.x;
+      const right = mainBox.x + mainBox.width - (box.x + box.width);
+      expect(Math.abs(left - right), "feed container gutters are unequal").toBeLessThanOrEqual(1);
+
+      const empty = await boxOf(emptyState, "feed-empty");
+      const emptyLeft = empty.x - mainBox.x;
+      const emptyRight = mainBox.x + mainBox.width - (empty.x + empty.width);
+      expect(Math.abs(emptyLeft - emptyRight), "empty state is off-centre").toBeLessThanOrEqual(1);
+    } finally {
+      await supabase.from("categories").delete().eq("id", fence.id);
+    }
+  });
+
+  test("the feed still loads when the market tree cannot be fetched (INC-282)", async ({
+    page,
+    baseURL,
+  }) => {
+    // Only the per-market tree fails; the markets list at /api/locations keeps working.
+    // a regex: Playwright's glob `?` is a literal question mark, so `??` never matched /api/locations/ET (turn 3b); the markets list at /api/locations stays unmatched.
+    await page.route(/\/api\/locations\/[A-Z]{2}$/, (route) => route.abort());
+    // INC-282 — with no saved area the E2E runtime has no country (GE-1) and the gate settles before any tree read, so the test proved nothing; the id never resolves — the read is aborted first.
+    await page
+      .context()
+      .addCookies([{ name: "ethio_area", value: `ET:${crypto.randomUUID()}`, url: baseURL! }]);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await gotoReady(page, "/");
+    await expect(page.locator('[data-testid="feed-container"][data-ready="1"]')).toBeAttached({
+      timeout: 20000,
+    });
+    const container = page.getByTestId("feed-container");
+    await expect
+      .poll(
+        async () =>
+          (await page.getByTestId("feed-empty").isVisible()) ||
+          (await container.locator("ul > li").count()) > 0,
+        { timeout: 20000, message: "INC-282: neither the empty state nor a listing rendered" },
+      )
+      .toBe(true);
+    expect(errors, "INC-282: the page raised an error").toEqual([]);
+  });
+  test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
+    // Hold the listings read open so the busy state is observable.
+    await page.route("**/api/feed*", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await route.continue();
+    });
+    await page.goto("/");
+    const spinner = page.getByTestId("spinner");
+    await expect(spinner).toBeVisible();
+    // Self-drawing, not rotating: the sweeping stroke path is present and no
+    // spin animation is applied to the mark.
+    await expect(spinner.getByTestId("spinner-draw")).toHaveCount(1);
+    const animation = await spinner
+      .locator("svg")
+      .evaluate((el) => getComputedStyle(el).animationName);
+    expect(animation).toBe("none");
+  });
+
+  test("FT-1 the footer brand and three link columns fit every width", async ({ page }) => {
+    await gotoReady(page, "/");
+    const columns = page.getByTestId("footer-columns");
+    const brand = columns.getByTestId("footer-brand");
+    await expect(brand).toBeVisible();
+    const navs = columns.locator("nav");
+    await expect(navs).toHaveCount(3);
+    const widths = await navs.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().width),
+    );
+    expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
+    const viewport = page.viewportSize();
+    const group = await columns.boundingBox();
+    if (!viewport || !group) throw new Error("FT-1: missing viewport or column group");
+    const alignments = await navs.evaluateAll((els) =>
+      els.map((el) => getComputedStyle(el).textAlign),
+    );
+    if (viewport.width >= 768) {
+      expect(Math.abs(group.x + group.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
+      expect(alignments).toHaveLength(3);
+      for (const alignment of alignments) expect(["start", "left"]).toContain(alignment);
+    } else {
+      const geometry = await columns.evaluate((el) => {
+        const brandEl = el.querySelector('[data-testid="footer-brand"]');
+        const nav = el.querySelector("nav");
+        if (!brandEl || !nav) throw new Error("FT-1: missing brand or nav");
+        return {
+          brandBottom: brandEl.getBoundingClientRect().bottom,
+          navTop: nav.getBoundingClientRect().top,
+        };
+      });
+      expect(geometry.brandBottom).toBeLessThanOrEqual(geometry.navTop);
+      expect(alignments).toEqual(["center", "center", "center"]);
+    }
+    const heights = await navs
+      .locator("a, li, span.inline-flex")
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
+    expect(heights.length).toBeGreaterThan(0);
+    for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
+    const home = await brand.getByTestId("footer-home").boundingBox();
+    if (!home) throw new Error("FT-1: missing footer Home target");
+    expect(home.height).toBeGreaterThanOrEqual(44);
+    await expect(page.locator("footer")).not.toContainText("How it works");
+  });
+
+  test("feed grid reflows without clipping and never overflows", async ({ page }) => {
+    await page.goto("/");
+    await waitForHydration(page);
+    await expectNoHorizontalOverflow(page);
+
+    // Data-dependent: staging may hold zero active listings. With cards the
+    // grid must reflow per breakpoint; without them the empty state stands in.
+    const cards = page.locator("[data-testid='feed-empty'] , main ul > li");
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
+    await expect(cards.first()).toBeVisible();
+
+    const grid = page.locator("main ul.grid");
+    if ((await grid.count()) > 0) {
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
+      const columns = await grid
+        .first()
+        .evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+      const width = page.viewportSize()?.width ?? 0;
+      // D123 (operator, 2026-10-10): three a row on a phone, four from 640, five from 1024.
+      const expected = width < 640 ? 3 : width < 1024 ? 4 : 5;
+      expect(columns).toBe(expected);
+
+      // No card may spill past the grid's own box.
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
+      const clipped = await grid.first().evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        return Array.from(el.children).filter((c) => {
+          const r = c.getBoundingClientRect();
+          return r.right > box.right + 1 || r.left < box.left - 1;
+        }).length;
+      });
+      expect(clipped).toBe(0);
+    }
+  });
+});
+
+test.describe("corner-block grid", () => {
+  test.skip(({ viewport }) => (viewport?.width ?? 0) < 768, "md and up only");
+
+  test("logo cell sits exactly above the rail and beside the top bar", async ({ page }) => {
+    await gotoReady(page, "/");
+
+    const box = async (testId: string) => {
+      const b = await page.getByTestId(testId).boundingBox();
+      expect(b, `${testId} has no box`).not.toBeNull();
+      return b!;
+    };
+    const logo = await box("shell-logo-cell");
+    const bar = await box("shell-topbar");
+    const rail = await box("app-rail");
+
+    // Logo cell owns the corner: same start edge and width as the rail...
+    expect(Math.round(logo.x)).toBe(Math.round(rail.x));
+    expect(Math.round(logo.width)).toBe(Math.round(rail.width));
+    // ...and the same height/top as the bar it sits next to.
+    expect(Math.round(logo.y)).toBe(Math.round(bar.y));
+    expect(Math.round(logo.height)).toBe(Math.round(bar.height));
+    // The bar starts where the logo cell ends — no gap, no overlap.
+    expect(Math.round(bar.x)).toBe(Math.round(logo.x + logo.width));
+    // The rail starts where the logo cell ends vertically.
+    expect(Math.round(rail.y)).toBe(Math.round(logo.y + logo.height));
+  });
+
+  test("the lockup's second line spans the wordmark exactly", async ({ page }) => {
+    await gotoReady(page, "/");
+    const cell = page.getByTestId("shell-logo-cell");
+    const word = await cell.getByTestId("logo-wordmark").boundingBox();
+    const sub = await cell.getByTestId("logo-subline").boundingBox();
+    expect(word).not.toBeNull();
+    expect(sub).not.toBeNull();
+    // FIT rule: same start edge, same width (1px tolerance for subpixel layout).
+    expect(Math.abs(word!.x - sub!.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(word!.width - sub!.width)).toBeLessThanOrEqual(1);
+  });
+
+  test("rail submenus expand and collapse", async ({ page }) => {
+    await gotoReady(page, "/");
+    const triggers = page.getByTestId("rail-submenu-trigger");
+    const count = await triggers.count();
+    // Marketplace's rail is flat until category children land; the submenu
+    // mechanism is only asserted where a panel actually declares children.
+    if (count === 0) return;
+
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
+    const first = triggers.first();
+    const expanded = (await first.getAttribute("aria-expanded")) === "true";
+    await first.click();
+    await expect(first).toHaveAttribute("aria-expanded", expanded ? "false" : "true");
+  });
+
+  test("every rail row carries a leading icon on one gutter", async ({ page }) => {
+    await gotoReady(page, "/");
+    const rail = page.getByTestId("app-rail");
+    const rows = rail.locator("li > a, li > button, li > span[aria-disabled]");
+    const count = await rows.count();
+    expect(count).toBeGreaterThan(0);
+
+    const starts = new Set<number>();
+    for (let i = 0; i < count; i += 1) {
+      const row = rows.nth(i);
+      // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
+      const svg = row.locator("svg").first();
+      await expect(svg, `rail row ${i} has no icon`).toHaveCount(1);
+      const box = (await svg.boundingBox())!;
+      starts.add(Math.round(box.x));
+    }
+    // Top-level rows share ONE gutter (depth adds padding, but this rail is flat).
+    expect(starts.size).toBe(1);
+  });
+
+  test("category rows carry DISTINCT icons, not one repeated glyph", async ({ page }) => {
+    await gotoReady(page, "/");
+    // U0l: category rows are LINKS now (each category is a real URL).
+    const rows = page.getByTestId("app-rail").locator("nav li > a");
+    const count = await rows.count();
     // Row 0 is Home; real categories follow. Needs at least two
     // seeded categories for the claim to mean anything.
     if (count < 3) return;
@@ -942,10 +1241,10 @@ test.describe("mobile chrome", () => {
     const menu = await openRailScope(page);
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the fitted-row anchor
     const firstMenuRow = await catalogueRows(menu).first().boundingBox();
+    if (!firstMenuRow) throw new Error("Missing menu category");
     expect(firstMenuRow.height).toBeGreaterThanOrEqual(31);
     expect(firstMenuRow.height).toBeLessThanOrEqual(41);
     await expectTapTarget(page, page.getByTestId("rail-menu-close"), "close menu");
-    expect(firstMenuRow.height).toBeLessThanOrEqual(45);
   });
 
   test("the bottom bar, signed out", async ({ page }) => {
