@@ -34,11 +34,11 @@ export function boxLayout(show: {
   return {
     details: show.details ? `${fact} ${wide}` : "",
     description: show.description ? `${fact} ${wide}` : "",
-    seller: `@2xl:@max-[57.5rem]:order-1 ${show.location || show.safety ? half : full}`,
-    location: show.location ? `@2xl:@max-[57.5rem]:order-2 ${half} ${wide}` : "",
+    seller: `@max-[57.5rem]:order-1 ${show.location || show.safety ? half : full}`,
+    location: show.location ? `@max-[57.5rem]:order-2 ${half} ${wide}` : "",
     safety: show.safety
-      ? `@2xl:@max-[57.5rem]:order-3 ${show.location ? full : half} @min-[57.5rem]:col-span-6`
+      ? `@max-[57.5rem]:order-3 ${show.location ? full : half} @min-[57.5rem]:col-span-6`
       : "",
-    report: `@2xl:@max-[57.5rem]:order-4 ${full} @min-[57.5rem]:col-span-6`,
+    report: `@max-[57.5rem]:order-4 ${full} @min-[57.5rem]:col-span-6`,
   };
 }

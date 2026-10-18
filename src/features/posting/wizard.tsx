@@ -1572,6 +1572,7 @@ function WizardShell({
                         )}
                         {draft.step === 8 && (
                           <StepReview
+                            placeCountry={itemCountry}
                             listingId={draft.listingId}
                             categoryPath={categoryPath}
                             values={draft.values}

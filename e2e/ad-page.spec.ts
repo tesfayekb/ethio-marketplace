@@ -885,22 +885,20 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       )
         throw new Error("AP-36 missing layout boxes");
       const near = (a: number, b: number, tolerance: number) => Math.abs(a - b) <= tolerance;
-      // DEC-200 — the bar's VISIBLE targets by width (the Seller tab shows in
-      // the medium range only).
+      // DEC-201 — the Seller tab shows on phones and medium screens.
       const visibleTargets = await page
         .getByTestId("listing-section-nav")
         .locator('[data-testid="listing-section-nav-item"]:visible')
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-target")));
       expect(visibleTargets).toEqual(
-        article.width < 672 || article.width >= 920
+        article.width >= 920
           ? ["details", "description", "location"]
           : ["details", "description", "seller", "location"],
       );
       // DEC-200 — the top row and the boxes by the article's width.
       if (article.width < 672) {
-        // DEC-197 — phone: the seller card follows the title box, then the bar
-        // and the boxes in their DOM order.
-        const order = [media, headline, sellerBox, nav, details, description, location, safety];
+        // DEC-201 — phone: the seller card follows Details and Description.
+        const order = [media, headline, nav, details, description, sellerBox, location, safety];
         for (let i = 1; i < order.length; i += 1)
           expect(order[i].y).toBeGreaterThanOrEqual(order[i - 1].y + order[i - 1].height);
       } else if (article.width < 920) {
@@ -1001,16 +999,26 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await seedPhotos(ad.id);
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    // DEC-200 — the visible items are three; the Seller item is in the DOM
-    // and hidden on a phone.
-    await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(3);
+    // DEC-201 — all four items show on a phone, including Seller.
+    await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(4);
     expect(
       await bar
         .locator('[data-testid="listing-section-nav-item"]:visible')
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
-    ).toEqual(["details", "description", "location"]);
-    await expect(bar.locator('[data-target="seller"]')).toHaveCount(1);
-    await expect(bar.locator('[data-target="seller"]')).toBeHidden();
+    ).toEqual(["details", "description", "seller", "location"]);
+    const sellerItem = bar.locator('[data-target="seller"]');
+    await sellerItem.click();
+    await expect(sellerItem).toHaveAttribute("aria-current", "true");
+    await expect
+      .poll(async () => {
+        const heading = await page
+          .locator('section[data-testid="listing-detail-seller"]')
+          .getByRole("heading")
+          .boundingBox();
+        const nav = await bar.boundingBox();
+        return heading && nav ? heading.y - nav.y - nav.height : -1;
+      })
+      .toBeGreaterThanOrEqual(0);
     const locationItem = bar.locator('[data-target="location"]');
     await locationItem.click();
     await expect(locationItem).toHaveAttribute("aria-current", "true");
@@ -1034,9 +1042,14 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     // Turn 23: a sold ad without a pin has no Location box and no tab.
     const sold = await seed(seller, "sold", { soldAt: -1 });
     await gotoReady(page, (await address(sold)).canonical);
-    // DEC-200 — the sold ad has a description only: two sections with Seller,
-    // so the bar is rendered and hidden on a phone.
-    await expect(page.getByTestId("listing-section-nav")).toBeHidden();
+    // DEC-201 — Description and Seller show even with one other section.
+    const soldBar = page.getByTestId("listing-section-nav");
+    await expect(soldBar).toBeVisible();
+    expect(
+      await soldBar
+        .locator('[data-testid="listing-section-nav-item"]:visible')
+        .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
+    ).toEqual(["description", "seller"]);
     await expect(page.getByTestId("listing-detail-location")).toHaveCount(0);
     await expect(page.getByTestId("listing-contact-bar")).toHaveCount(0);
   });
@@ -1620,7 +1633,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
   });
 
   test("AP-47 the in-page bar shows no scrollbar (INC-717)", async ({ page }, testInfo) => {
-    // AP-36's ad shape: a fact and an exact pin, so all three tabs show.
+    // AP-36's ad shape: a fact and an exact pin, so all four tabs show.
     const seller = await scratchSeller();
     const key = `e2e-scrollbar-${token()}`;
     factKeys.push(key);
@@ -1634,13 +1647,13 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       await page.setViewportSize({ width: 600, height: 900 });
     await gotoReady(page, (await address(ad)).canonical);
     const bar = page.getByTestId("listing-section-nav");
-    // DEC-200 — count and walk the VISIBLE items (three; Seller is hidden at
-    // this width).
-    await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(3);
+    // DEC-201 — four visible items at 600 and 360.
+    await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(4);
     const scrollbarWidth = await bar.evaluate((nav) => getComputedStyle(nav).scrollbarWidth);
     expect(scrollbarWidth).toBe("none");
     // At 360 the items share the row: nothing overflows.
     await page.setViewportSize({ width: 360, height: 900 });
+    await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(4);
     const nav = await bar.boundingBox();
     if (!nav) throw new Error("AP-47 nav missing");
     const overflow = await bar.evaluate((el) => el.scrollWidth - el.clientWidth);

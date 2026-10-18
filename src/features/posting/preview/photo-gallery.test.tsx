@@ -247,7 +247,10 @@ describe("PhotoGallery — the thumbnails' strip (INC-717, INC-720)", () => {
     expect(screen.getByTestId("listing-detail-gallery")).toHaveClass("@min-[32rem]:h-full");
     expect(screen.getByTestId("gallery-main").parentElement).toHaveClass("@min-[32rem]:flex-col");
     const filledImage = mainImage();
-    expect(filledImage.className).not.toMatch(/object-top/);
+    expect(filledImage).toHaveClass("@min-[32rem]:object-top");
+    expect(screen.getByTestId("gallery-thumbs").parentElement).toHaveClass(
+      "@min-[32rem]:self-start",
+    );
     unmount();
 
     render(<PhotoGallery photos={THREE} />);

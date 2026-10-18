@@ -538,28 +538,25 @@ export function ListingDetail(view: ListingDetailView) {
           )}
         </p>
       )}
-      {/* DEC-200 (the operator, 2026-10-18, replacing DEC-199) — three widths,
-          three places for the one seller card: under 42rem it follows the title
-          box; from 42rem to 57.5rem it sits after Details | Description, beside
-          Location; from 57.5rem it sits under the title box beside the photo.
-          In the medium range the top row, the right column and the boxes grid
-          become `display: contents` inside this ONE FLEX wrapper that wraps its
-          items into rows, and CSS `order` puts the seller card after
-          Description — a flex wrapper, not a grid, because a sticky bar inside
-          a grid sticks only within its own grid row, while inside a flex
-          container it sticks as today. Why 57.5rem (turn 28): from there the
-          photo grows with its column, so the seller card may sit beside it;
-          below it the photo cannot grow, so the card goes back into the boxes.
-          The cost, recorded: in the medium range only, the keyboard reaches
-          Contact seller before the bar (the DOM order), while the eye sees it
-          after Description. */}
+      {/* DEC-201 (the operator's walk of turn 29, 2026-10-18) — below
+          57.5rem the seller card follows Details and Description and the Seller
+          tab shows; from 57.5rem it sits under the title box beside the photo.
+          Below 57.5rem the top row, right column and boxes grid become
+          `display: contents` inside this ONE FLEX wrapper: a column on phones,
+          wrapping rows in the medium range. CSS `order` puts the seller card
+          after Description. A flex wrapper, not a grid, lets the sticky bar
+          stick beyond its own grid row. Why 57.5rem: from there the photo grows
+          with its column, so the seller card may sit beside it; below it the
+          card goes back into the boxes. The recorded keyboard order below
+          57.5rem reaches Contact seller before the bar (the DOM order), while
+          the eye sees it after Description. */}
       <div
         data-testid="listing-detail-layout"
         className="flex min-w-0 flex-col gap-4 @2xl:@max-[57.5rem]:flex-row @2xl:@max-[57.5rem]:flex-wrap"
       >
         <div
           data-testid="listing-detail-top"
-          className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @2xl:@max-[57.5rem]:contents"
+          className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @max-[57.5rem]:contents"
         >
           {/* ------------------------------ the gallery ------------------------- */}
           <div
@@ -590,7 +587,7 @@ export function ListingDetail(view: ListingDetailView) {
 
           {/* DEC-197 (bundle 19 turn 27) — the right column: the title box, then
             the seller card under it; together they are the photo's height. */}
-          <div className="flex min-w-0 flex-col gap-4 @2xl:@max-[57.5rem]:contents">
+          <div className="flex min-w-0 flex-col gap-4 @max-[57.5rem]:contents">
             <section
               data-testid="listing-detail-headline"
               className="isolate min-w-0 flex flex-col gap-3 rounded-md border border-border bg-card p-4 @2xl:p-5 @2xl:@max-[57.5rem]:flex-1"
@@ -885,10 +882,9 @@ export function ListingDetail(view: ListingDetailView) {
             data-testid="listing-section-nav"
             aria-label={t("adPage.sections.label")}
             className={`scrollbar-none sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto rounded-md border border-border bg-card @2xl:@max-[57.5rem]:basis-full ${
-              // DEC-200 — with fewer than two sections other than Seller the bar
-              // shows only in the medium range; phones and large screens keep
-              // DEC-197's "two or more".
-              sections.length < 3 ? "@max-[42rem]:hidden @min-[57.5rem]:hidden" : ""
+              // DEC-201 — below 57.5rem Seller and one other section show
+              // the bar; large screens keep DEC-197's "two or more".
+              sections.length < 3 ? "@min-[57.5rem]:hidden" : ""
             }`}
           >
             {sections.map((section) => (
@@ -900,8 +896,8 @@ export function ListingDetail(view: ListingDetailView) {
                 data-target={section.target}
                 aria-current={currentSection === section.target ? "true" : undefined}
                 className={`min-h-11 flex-1 justify-center rounded-none border-b-2 px-2 whitespace-nowrap @2xl:flex-none @2xl:justify-start @2xl:px-3 ${
-                  // DEC-200 — the Seller tab shows only in the medium range.
-                  section.target === "seller" ? "@max-[42rem]:hidden @min-[57.5rem]:hidden" : ""
+                  // DEC-201 — the Seller tab shows below 57.5rem.
+                  section.target === "seller" ? "@min-[57.5rem]:hidden" : ""
                 } ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
                 onClick={() => {
                   setCurrentSection(section.target);
@@ -916,7 +912,7 @@ export function ListingDetail(view: ListingDetailView) {
 
         <div
           data-testid="listing-detail-boxes"
-          className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-6 @2xl:@max-[57.5rem]:contents"
+          className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-6 @max-[57.5rem]:contents"
         >
           {/* ------------------------------ the facts --------------------------- */}
           {facts.length > 0 && (
