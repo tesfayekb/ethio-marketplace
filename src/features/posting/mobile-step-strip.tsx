@@ -36,7 +36,7 @@ export function MobileStepStrip({
       aria-label={t("post.progress.stripLabel")}
       data-testid="post-step-strip"
       tabIndex={0}
-      className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+      className="scrollbar-none -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
     >
       {WALK.map((entry) => {
         const position = positionOf(entry.step);
