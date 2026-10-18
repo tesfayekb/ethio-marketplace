@@ -606,3 +606,26 @@ it("LD-20 Save and Share sit at the title box's foot; the buyer's Directions lab
   expect(within(directions).getByText(en["adPage.directions"])).toBeInTheDocument();
   expect(document.body.textContent ?? "").not.toContain("(optional)");
 });
+
+it("LD-21 the Location box and its tab only with a place of the seller's own (turn 23)", () => {
+  const { rerender } = render(<ListingDetail {...BASE} actor="buyer" />);
+  expect(screen.queryByTestId("listing-detail-location")).toBeNull();
+  expect(
+    screen.getAllByTestId("listing-section-nav-item").map((item) => item.dataset.target),
+  ).not.toContain("location");
+  // Directions alone: the box shows with the directions and no map.
+  rerender(<ListingDetail {...BASE} actor="buyer" directions="scratch directions" />);
+  expect(screen.getByTestId("listing-detail-location")).toBeInTheDocument();
+  expect(screen.getByTestId("listing-detail-directions")).toHaveTextContent("scratch directions");
+  expect(screen.queryByTestId("listing-detail-map")).toBeNull();
+  // An exact pin alone: the box shows with the map.
+  rerender(<ListingDetail {...BASE} actor="buyer" pinLat={9.0054} pinLng={38.7636} pinPrecision="exact" />);
+  expect(screen.getByTestId("listing-detail-location")).toBeInTheDocument();
+  expect(screen.getByTestId("listing-detail-map")).toBeInTheDocument();
+  expect(screen.queryByTestId("listing-detail-directions")).toBeNull();
+  // Location details alone also show the box.
+  rerender(<ListingDetail {...BASE} actor="buyer" streetAddress="Bole, near the stadium" />);
+  expect(screen.getByTestId("listing-detail-location")).toBeInTheDocument();
+  expect(screen.getByTestId("listing-detail-details")).toHaveTextContent("Bole, near the stadium");
+  expect(screen.queryByTestId("listing-detail-map")).toBeNull();
+});
