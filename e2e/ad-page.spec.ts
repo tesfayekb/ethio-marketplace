@@ -898,9 +898,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         // columns; the bar under the seller card.
         expect(headline.x).toBeGreaterThanOrEqual(media.x + media.width);
         expect(near(headline.y, media.y, 1)).toBe(true);
-        expect(
-          near(headline.y + headline.height, media.y + media.height, 1),
-        ).toBe(true);
+        expect(near(headline.y + headline.height, media.y + media.height, 1)).toBe(true);
         expect(near(sellerBox.x, article.x, 1)).toBe(true);
         expect(near(sellerBox.width, article.width, 1)).toBe(true);
         expect(sellerBox.y).toBeGreaterThanOrEqual(
