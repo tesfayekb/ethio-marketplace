@@ -292,7 +292,6 @@ export function ListingDetail(view: ListingDetailView) {
 
   const sold = typeof view.soldBadge === "string" && view.soldBadge.length > 0;
   const showSections = view.actor === "buyer";
-  const showContactBar = view.actor === "buyer" && !sold && view.contact !== undefined;
   const hasPin = typeof view.pinLat === "number" && typeof view.pinLng === "number";
   const placesMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(places.join(", "))}`;
   const [mapMaps, setMapMaps] = useState<string | null>(null);
@@ -303,14 +302,17 @@ export function ListingDetail(view: ListingDetailView) {
     const lng = view.pinLng;
     if (typeof lat !== "number" || typeof lng !== "number") return;
     if (view.pinPrecision !== "approx") {
-      setMapMaps(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
+      // Google's Maps URLs require the comma between lat and lng as %2C.
+      setMapMaps(`https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`);
       return;
     }
     // Keep the still-map module off the marketplace's first-paint graph.
     void import("../map/map-preview")
       .then(({ snap }) => {
         if (active)
-          setMapMaps(`https://www.google.com/maps/search/?api=1&query=${snap(lat)},${snap(lng)}`);
+          setMapMaps(
+            `https://www.google.com/maps/search/?api=1&query=${snap(lat).toFixed(2)}%2C${snap(lng).toFixed(2)}`,
+          );
       })
       .catch((error: unknown) => console.error("[listing-maps]", error));
     return () => {
@@ -424,7 +426,7 @@ export function ListingDetail(view: ListingDetailView) {
   return (
     <article
       ref={articleRef}
-      className={`@container min-w-0 ${showContactBar ? "pb-20 md:pb-0" : ""}`}
+      className="@container min-w-0"
       data-testid="listing-detail"
       data-actor={view.actor}
     >
@@ -472,8 +474,8 @@ export function ListingDetail(view: ListingDetailView) {
       <div className="grid min-w-0 grid-cols-1 gap-4 @2xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @2xl:gap-6 @4xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         {/* ------------------------------ the gallery ------------------------- */}
         <div
-          data-testid="listing-detail-gallery"
-          className="relative order-1 min-w-0 @2xl:col-span-2 @4xl:col-span-1"
+          data-testid="listing-detail-media"
+          className="relative isolate order-1 min-w-0 @2xl:col-span-2 @4xl:col-span-1"
         >
           {images.length > 0 ? (
             <PhotoGallery
@@ -572,7 +574,7 @@ export function ListingDetail(view: ListingDetailView) {
         >
           <section
             data-testid="listing-detail-headline"
-            className="order-2 min-w-0 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+            className="isolate order-2 min-w-0 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
           >
             {/* ---------------------------- title and price ----------------------- */}
             <Title
@@ -687,7 +689,7 @@ export function ListingDetail(view: ListingDetailView) {
           them, one method per row with its control at the row's end. */}
           <section
             id="contact"
-            className="order-8 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+            className="isolate order-8 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
             data-testid="listing-detail-seller"
           >
             <div className="space-y-1">
@@ -778,7 +780,7 @@ export function ListingDetail(view: ListingDetailView) {
           </section>
 
           {view.report !== undefined && (
-            <div id="report" data-testid="listing-detail-report" className="order-9">
+            <div id="report" data-testid="listing-detail-report" className="isolate order-9">
               {view.report}
             </div>
           )}
@@ -823,7 +825,7 @@ export function ListingDetail(view: ListingDetailView) {
               {facts.length > 0 && (
                 <section
                   id="ad-details"
-                  className="order-5 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+                  className="isolate order-5 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
                   data-testid="listing-detail-specs"
                 >
                   <h3 className="font-display text-base font-semibold text-foreground">
@@ -851,7 +853,7 @@ export function ListingDetail(view: ListingDetailView) {
           {view.description !== "" && (
             <section
               id="ad-description"
-              className="order-6 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+              className="isolate order-6 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
             >
               <h3 className="font-display text-base font-semibold text-foreground">
                 {t("post.preview.descriptionLabel")}
@@ -880,7 +882,7 @@ export function ListingDetail(view: ListingDetailView) {
           <section
             id="ad-location"
             data-testid="listing-detail-location"
-            className="order-7 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
+            className="isolate order-7 min-w-0 scroll-mt-14 space-y-3 rounded-md border border-border bg-card p-4 @2xl:p-5"
           >
             <h3 className="font-display text-base font-semibold">{t("adPage.section.location")}</h3>
             {places.length > 0 && (
@@ -912,7 +914,7 @@ export function ListingDetail(view: ListingDetailView) {
             )}
 
             {hasPin && typeof view.pinLat === "number" && typeof view.pinLng === "number" && (
-              <div className="relative" data-testid="listing-detail-map">
+              <div className="relative isolate" data-testid="listing-detail-map">
                 <Suspense
                   fallback={<p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>}
                 >
