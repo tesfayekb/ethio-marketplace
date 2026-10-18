@@ -294,6 +294,10 @@ export function ListingDetail(view: ListingDetailView) {
   const sold = typeof view.soldBadge === "string" && view.soldBadge.length > 0;
   const showSections = view.actor === "buyer";
   const hasPin = typeof view.pinLat === "number" && typeof view.pinLng === "number";
+  // Turn 23 — the Location box and its tab exist only for a place of the
+  // seller's own: a pin, directions or location details. An ad with only its
+  // city keeps the city in the title box (listing-detail-places).
+  const showLocation = hasPin || Boolean(view.directions) || Boolean(view.streetAddress);
   const placesMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(places.join(", "))}`;
   const [mapMaps, setMapMaps] = useState<string | null>(null);
   useEffect(() => {
@@ -365,7 +369,9 @@ export function ListingDetail(view: ListingDetailView) {
         ]
       : []),
     { target: "seller", id: "contact", label: "post.preview.sellerLabel" },
-    { target: "location", id: "ad-location", label: "adPage.section.location" },
+    ...(showLocation
+      ? [{ target: "location", id: "ad-location", label: "adPage.section.location" as const }]
+      : []),
   ];
   const sectionIds = sections.map((section) => section.id).join(",");
   const currentSectionRef = useRef(currentSection);
@@ -444,6 +450,7 @@ export function ListingDetail(view: ListingDetailView) {
     details: facts.length > 0,
     description: view.description !== "",
     safety: !sold,
+    location: showLocation,
   });
 
   return (
