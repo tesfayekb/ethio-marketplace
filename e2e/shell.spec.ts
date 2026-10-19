@@ -17,6 +17,7 @@ import {
   signIn,
   signInViaSession,
   signOutViaUi,
+  settled,
   switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
@@ -1019,6 +1020,7 @@ test.describe("mobile chrome", () => {
     await expect(page).toHaveURL(originalUrl);
     const menu = page.getByTestId("rail-menu");
     await expect(menu).toBeVisible();
+    await settled(page);
     await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
     await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
@@ -1088,6 +1090,7 @@ test.describe("mobile chrome", () => {
     await expect(page.getByTestId("app-rail")).toBeHidden();
 
     const menu = await openRailScope(page);
+    await settled(page);
     const menuBox = await menu.boundingBox();
     if (!menuBox) throw new Error("Missing opened menu box");
     expect(Math.abs(menuBox.width - 256)).toBeLessThanOrEqual(1);
@@ -1150,6 +1153,7 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     const control = page.getByRole("button", { name: en["shell.openMenu"] });
     let menu = await openRailScope(page);
+    await settled(page);
     const menuBox = await menu.boundingBox();
     if (!menuBox) throw new Error("Missing opened menu box");
     const close = page.getByTestId("rail-menu-close");
@@ -1309,6 +1313,7 @@ test.describe("mobile chrome", () => {
 
     // Category rows inside the opened menu share the strip's fitted height.
     const menu = await openRailScope(page);
+    await settled(page);
     await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
     await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     // eslint-disable-next-line no-restricted-syntax -- C2f.4: menu-only scope has one viewport instance; the first category is the fitted-row anchor
@@ -1633,6 +1638,7 @@ test.describe("rail scroll regions (U0f)", () => {
 
     // INC-082: opened through the one drawer contract, never inline.
     const drawer = await openRailScope(page);
+    await settled(page);
 
     const scroll = drawer.getByTestId("rail-scroll");
     await expect(scroll).toBeVisible();
@@ -3236,6 +3242,7 @@ test("RM-3 the menu ends above the tappable bottom bar and identity stays inside
   await signIn(page, user.email, user.password);
   await gotoReady(page, "/account");
   const menu = await openRailScope(page);
+  await settled(page);
   const bar = page.getByTestId("bottom-bar");
   const identity = menu.getByTestId("drawer-identity");
   await expect(identity).toBeVisible();
@@ -3285,6 +3292,7 @@ test("RM-4 the row icons use the approved rail and phone sizes", async ({ page }
     ).toBeVisible();
     await check(page.getByTestId("rail-strip"), 24);
     const menu = await openRailScope(page);
+    await settled(page);
     await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
     await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     await check(menu, 24);
@@ -3348,6 +3356,7 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       // INC-739 — the strip tap opens the menu (D205): read it directly, settled.
       const menu = page.getByTestId("rail-menu");
       await expect(menu).toBeVisible();
+      await settled(page);
       // eslint-disable-next-line no-restricted-syntax -- C2f.3: the menu has one responsive instance and this selects its first real control
       await expect(menu.getByTestId("rail-scroll").locator("a, button").first()).toBeVisible({
         timeout: 10000,
@@ -3539,6 +3548,7 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
   await expect(toggle).toHaveAccessibleName(en["shell.favouriteRemove"]);
   const checkFavourite = async (slug: string) => {
     const scope = await openRailScope(page);
+    await settled(page);
     const back = scope.getByTestId("rail-menu-back");
     if (!mobile && (await back.count())) await back.click();
     const row = scope.getByTestId("rail-favourite");
@@ -3722,6 +3732,7 @@ test("BK-1 ‹ Main Menu starts where the rows start, both words capitalised", a
     // INC-739 — the strip tap opens the menu (D205): read it directly, settled.
     scope = page.getByTestId("rail-menu");
     await expect(scope).toBeVisible();
+    await settled(page);
     // eslint-disable-next-line no-restricted-syntax -- C2f.3: the menu has one responsive instance and this selects its first real control
     await expect(scope.getByTestId("rail-scroll").locator("a, button").first()).toBeVisible({
       timeout: 10000,
@@ -3840,6 +3851,44 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
       expect(Math.abs(top - 52), `sub-band top ${top}`).toBeLessThanOrEqual(1);
     } finally {
       await page.evaluate(() => document.getElementById("ov2-wide")?.remove());
+    }
+  });
+
+  test("OP-1 the ?overflow=1 probe measures the screen and names an offender", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360", "phone only");
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("overflow-probe")).toHaveCount(0);
+    await gotoReady(page, "/?overflow=1");
+    const probe = page.getByTestId("overflow-probe");
+    await expect(probe).toBeVisible();
+    const probeText = async () => (await probe.textContent()) ?? "";
+    await expect.poll(async () => (await probeText()).split("\n")[0]?.split(" ").length).toBe(5);
+    const numbers = (await probeText()).split("\n")[0]?.split(" ") ?? [];
+    expect(Number(numbers[0]), `probe screen numbers: ${numbers.join(" ")}`).toBe(360);
+    try {
+      await page.evaluate(() => {
+        const main = document.querySelector("main#main");
+        if (!main) throw new Error("OP-1 no main#main");
+        const wide = document.createElement("div");
+        wide.id = "op1-wide";
+        wide.style.width = "2000px";
+        wide.style.height = "10px";
+        main.appendChild(wide);
+      });
+      await expect
+        .poll(async () => (await probeText()).includes("div[-]"), { timeout: 2000 })
+        .toBe(true);
+      const pageWidth = await page.evaluate(() => ({
+        innerWidth: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+      }));
+      expect(pageWidth.scrollWidth, JSON.stringify(pageWidth)).toBeLessThanOrEqual(
+        pageWidth.innerWidth + 1,
+      );
+    } finally {
+      await page.evaluate(() => document.getElementById("op1-wide")?.remove());
     }
   });
 });

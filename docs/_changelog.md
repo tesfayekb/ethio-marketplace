@@ -962,3 +962,4 @@
 - 2026-10-18 — Bundle 21 turn 10 (no migration): INC-743 — a word longer than its box widened the whole phone page and moved every bar; the page-wide guard (overflow-x: clip on html and body), long words break inside the ad and the listing card, the breadcrumb one line with its last crumb cut; OVW-1, OVW-2 (OV-1 was taken by admin-locations).
 
 - 2026-10-18 — Bundle 21 turn 11 (no migration): #1031's reds — the D206 peek shows to signed-out visitors (INC-741: the signed-out effect closed it on every load); the rail readers wait for the tree (INC-744); OVW-1 measures the visible extent and finds the trail by its testid.
+- 2026-10-18 — Bundle 21 turn 12 (no migration): the trail shrinks and truncates (INC-745); the overflow guard on the shell's wrapper, html hidden and body clip (INC-743 reopened — the iPhone still widened after turn 11); the ?overflow=1 probe for the operator's iPhone; the menu read once its slide has settled (INC-746); OP-1.
