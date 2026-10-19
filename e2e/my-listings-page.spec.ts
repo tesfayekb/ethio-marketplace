@@ -822,4 +822,59 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     expect(s["status"], "[e2e:mlp] S still sold").toBe("sold");
     expect(s["deleted_at"], "[e2e:mlp] S not deleted").toBeNull();
   });
+
+  // MLP-8 (D224) — a live ad's ⋯ menu carries Share, which opens the share
+  // sheet on the ad's own address; an ad still in review has no Share.
+  test("MLP-8 a live ad's ⋯ menu carries Share, opening the share sheet on the ad's address (D224)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const X = await seed(seller, "screening");
+    const R = await seed(seller, "screening");
+    // Live the PS-1 way: this test's own scratch ad only, by id, seller and status.
+    const live = await adminClient()
+      .from("listings")
+      .update({
+        status: "active",
+        published_at: at(-HOUR),
+        published_first_at: at(-HOUR),
+        expires_at: at(10 * DAY),
+      })
+      .eq("id", X)
+      .eq("seller_id", seller.id)
+      .eq("status", "screening");
+    if (live.error) throw new Error(`[e2e:mlp] making X live failed: ${live.error.message}`);
+    const truth = await adminClient()
+      .from("listings")
+      .select("status,public_id")
+      .eq("id", X)
+      .eq("seller_id", seller.id)
+      .single();
+    if (truth.error || !truth.data) {
+      throw new Error(`[e2e:mlp] X truth failed: ${truth.error?.message ?? "no row"}`);
+    }
+    const publicId = (truth.data as unknown as Row)["public_id"];
+    expect(typeof publicId, "[e2e:mlp] X carries its public id").toBe("string");
+    expect((truth.data as unknown as Row)["status"], "[e2e:mlp] X live").toBe("active");
+
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, "/my-listings");
+    await expect(twin(page, X)).toBeVisible({ timeout: 15000 });
+    await box(page, X).getByTestId(`my-listing-${X}-more`).click();
+    await page.getByTestId(`my-listing-${X}-more-share`).click();
+    await expect(page.getByTestId("listing-share-copy")).toBeVisible({ timeout: 15000 });
+    const address = await page.getByTestId("listing-share-telegram").getAttribute("href");
+    expect(
+      address,
+      "[e2e:mlp] the share sheet opens on X's own address, ending with its public id",
+    ).toContain(encodeURIComponent(String(publicId)));
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("listing-share-copy")).toHaveCount(0);
+
+    // An ad still in review offers no Share.
+    await page.getByTestId("my-listings-group-review").click();
+    await expect(twin(page, R)).toBeVisible({ timeout: 15000 });
+    await box(page, R).getByTestId(`my-listing-${R}-more`).click();
+    await expect(page.getByTestId(`my-listing-${R}-more-share`)).toHaveCount(0);
+  });
 });
