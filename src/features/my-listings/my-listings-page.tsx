@@ -354,6 +354,7 @@ export function MyListingsPage() {
     let done = 0;
     let reason: string | null = null;
     let handled = false;
+    const needsStatement: string[] = [];
     try {
       for (const row of targets) {
         const outcome = await runListAction(row.id, action, certification);
@@ -361,8 +362,17 @@ export function MyListingsPage() {
           done += 1;
           continue;
         }
-        // Bundle 22 turn 4 — one ad's legal refusal goes through certifyRefusal; a bulk set reports it.
-        if (!bulk && outcome.reason !== undefined && certifyRefusal(outcome.reason, navigate)) {
+        // Bundle 22 turn 5 — a bulk set names the ads that need the statement and goes on;
+        // an owed acceptance stops any set and opens the acceptance screen.
+        if (bulk && outcome.reason === "certificationRequired") {
+          needsStatement.push(row.title ?? t("myListings.untitled"));
+          continue;
+        }
+        if (
+          (!bulk || outcome.reason === "acceptanceRequired") &&
+          outcome.reason !== undefined &&
+          certifyRefusal(outcome.reason, navigate)
+        ) {
           handled = true;
           break;
         }
@@ -390,19 +400,8 @@ export function MyListingsPage() {
       );
       return;
     }
-    const doneText = fill(t("myListings.bulk.done"), { count: done });
-    const notChanged = targets.length - done;
-    setNotice(
-      notChanged === 0
-        ? { text: doneText, tone: "done" }
-        : {
-            text: `${done > 0 ? `${doneText} ` : ""}${fill(t("myListings.bulk.refused"), {
-              count: notChanged,
-              reason: reason ?? "",
-            })}`,
-            tone: "error",
-          },
-    );
+    const notChanged = targets.length - done - needsStatement.length;
+    setNotice(bulkNotice(t, { done, notChanged, reason, needsStatement }));
   };
 
   /** D182 4 — Post a similar ad: a new draft with this ad's details, opened in the posting form. */

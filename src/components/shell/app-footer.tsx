@@ -85,7 +85,7 @@ export function AppFooter() {
           </nav>
         ))}
       </div>
-      <div className="mx-auto w-full max-w-5xl border-t border-neutral-soft px-4 py-1.5 text-center md:px-10 md:py-2 md:text-start">
+      <div className="mx-auto w-full max-w-5xl border-t border-neutral-soft px-4 py-1.5 text-center md:px-10 md:py-2">
         <p data-testid="footer-copyright" className="text-sm text-muted-foreground">
           © {year} {t("app.name")} — {t("footer.rights")}
         </p>
