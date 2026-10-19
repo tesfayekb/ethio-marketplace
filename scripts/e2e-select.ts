@@ -96,6 +96,12 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-roles.spec.ts", "e2e/rbac.spec.ts"],
   },
   {
+    // Bundle 22 (Stage 1) — the legal documents' database and, from turn 2, its screens.
+    name: "legal",
+    src: ["src/features/legal/**"],
+    specs: ["e2e/legal-*.spec.ts"],
+  },
+  {
     name: "admin-translations",
     src: ["src/features/admin-translations/**", "src/routes/api/admin/translations/**"],
     specs: ["e2e/admin-translations-*.spec.ts"],

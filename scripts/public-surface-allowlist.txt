@@ -99,3 +99,16 @@ report_listing | a buyer's report of an ad by public id (D201 §11): signed in, 
 admin_listing_reports | the listing's reports for listings:review (B19 M4)
 admin_open_report_counts | open-report counts per listing for the console's rows, listings:review, at most 100 ids (B19 M4)
 seller_feed_page | the seller's live ads by his public key (the alias lower-cased, never an id) for the seller's ads page (D201 §12): anonymous and signed in, feed_page's card shape and order (B19 M8)
+legal_in_force | the in-force legal texts are public (anon read); never the change log (B22 Stage 1 turn 1)
+my_legal_status | the caller's own legal standing (acceptance screen, turn 2); signed in, own rows only
+accept_legal | the caller accepts versions for himself; signed in, own rows only, adult statement and language required
+my_legal_history | the caller's own acceptances and legal e-mails; signed in, own rows only
+my_legal_version | the whole text of a version the caller accepted, was sent or that is in force; signed in
+admin_legal_documents | staff list of documents and versions; checks legal:view inside
+admin_legal_version | one version for staff, change log included; checks legal:view inside
+admin_save_legal_draft | the draft door; checks legal:edit and the step-up inside
+admin_discard_legal_draft | discards the one draft; checks legal:edit and the step-up inside
+admin_publish_legal_version | publishes a draft with the notice-period rule; checks legal:publish and the step-up inside
+admin_legal_settings | the legal-facts row for staff; checks legal:view inside
+admin_set_legal_settings | sets the legal facts; checks legal:edit and the step-up inside
+admin_user_legal_history | a person's legal history for staff; checks profiles:view inside

@@ -1111,6 +1111,296 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_acceptances: {
+        Row: {
+          accepted_at: string
+          adult_confirmed: boolean
+          home_country_code: string | null
+          id: string
+          language: string
+          method: string
+          user_id: string
+          version_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          adult_confirmed?: boolean
+          home_country_code?: string | null
+          id?: string
+          language: string
+          method: string
+          user_id: string
+          version_id: string
+        }
+        Update: {
+          accepted_at?: string
+          adult_confirmed?: boolean
+          home_country_code?: string | null
+          id?: string
+          language?: string
+          method?: string
+          user_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_acceptances_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "legal_acceptances_language_fkey"
+            columns: ["language"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "legal_acceptances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "legal_acceptances_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "legal_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_documents: {
+        Row: {
+          country_code: string | null
+          created_at: string
+          id: string
+          kind: string
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_documents_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      legal_notices: {
+        Row: {
+          channel: string
+          home_country_code: string | null
+          id: string
+          provider_ref: string | null
+          sent_at: string
+          status: string
+          user_id: string
+          version_id: string
+        }
+        Insert: {
+          channel: string
+          home_country_code?: string | null
+          id?: string
+          provider_ref?: string | null
+          sent_at?: string
+          status: string
+          user_id: string
+          version_id: string
+        }
+        Update: {
+          channel?: string
+          home_country_code?: string | null
+          id?: string
+          provider_ref?: string | null
+          sent_at?: string
+          status?: string
+          user_id?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_notices_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "legal_notices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "legal_notices_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "legal_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_settings: {
+        Row: {
+          copyright_agent: string | null
+          deleted_ad_keep_months: number
+          dispute_keep_years: number
+          governing_law: string
+          id: boolean
+          legal_email: string
+          liability_limit_usd: number
+          notice_days: number
+          operator_address: string
+          operator_name: string
+          privacy_email: string
+          providers: string
+          response_days: number
+          response_extra_days: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          copyright_agent?: string | null
+          deleted_ad_keep_months?: number
+          dispute_keep_years?: number
+          governing_law?: string
+          id?: boolean
+          legal_email?: string
+          liability_limit_usd?: number
+          notice_days?: number
+          operator_address?: string
+          operator_name?: string
+          privacy_email?: string
+          providers?: string
+          response_days?: number
+          response_extra_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          copyright_agent?: string | null
+          deleted_ad_keep_months?: number
+          dispute_keep_years?: number
+          governing_law?: string
+          id?: boolean
+          legal_email?: string
+          liability_limit_usd?: number
+          notice_days?: number
+          operator_address?: string
+          operator_name?: string
+          privacy_email?: string
+          providers?: string
+          response_days?: number
+          response_extra_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      legal_versions: {
+        Row: {
+          body_am: string | null
+          body_en: string | null
+          changelog: string | null
+          created_at: string
+          created_by: string | null
+          document_id: string
+          effective_at: string | null
+          id: string
+          label: string
+          material: boolean
+          published_at: string | null
+          published_by: string | null
+          settings_snapshot: Json | null
+          status: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body_am?: string | null
+          body_en?: string | null
+          changelog?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id: string
+          effective_at?: string | null
+          id?: string
+          label: string
+          material?: boolean
+          published_at?: string | null
+          published_by?: string | null
+          settings_snapshot?: Json | null
+          status?: string
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          body_am?: string | null
+          body_en?: string | null
+          changelog?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string
+          effective_at?: string | null
+          id?: string
+          label?: string
+          material?: boolean
+          published_at?: string | null
+          published_by?: string | null
+          settings_snapshot?: Json | null
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "legal_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_versions_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       listing_counters: {
         Row: {
           day: string
@@ -2867,6 +3157,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_legal: {
+        Args: { p_adult: boolean; p_language: string; p_version_ids: string[] }
+        Returns: Json
+      }
       admin_accept_category_image: { Args: { p_id: string }; Returns: string }
       admin_add_category_pointer: {
         Args: { p_child_id: string; p_parent_id: string }
@@ -2971,6 +3265,10 @@ export type Database = {
         Returns: undefined
       }
       admin_delete_role: { Args: { p_role_id: string }; Returns: undefined }
+      admin_discard_legal_draft: {
+        Args: { p_version_id: string }
+        Returns: Json
+      }
       admin_edit_listing: {
         Args: {
           p_changes: Json
@@ -3074,6 +3372,9 @@ export type Database = {
         Returns: Json
       }
       admin_language_delete_preview: { Args: { p_code: string }; Returns: Json }
+      admin_legal_documents: { Args: never; Returns: Json }
+      admin_legal_settings: { Args: never; Returns: Json }
+      admin_legal_version: { Args: { p_version_id: string }; Returns: Json }
       admin_link_attribute: {
         Args: {
           p_allowed_options?: string[]
@@ -3495,6 +3796,14 @@ export type Database = {
         Args: { p_countries: Json; p_locations: Json; p_scope: string }
         Returns: Json
       }
+      admin_publish_legal_version: {
+        Args: {
+          p_effective_at?: string
+          p_material: boolean
+          p_version_id: string
+        }
+        Returns: Json
+      }
       admin_reactivate_category: { Args: { p_id: string }; Returns: undefined }
       admin_remove_category_pointer: {
         Args: { p_pointer_id: string }
@@ -3529,6 +3838,17 @@ export type Database = {
           p_value: string
         }
         Returns: undefined
+      }
+      admin_save_legal_draft: {
+        Args: {
+          p_body_am: string
+          p_body_en: string
+          p_changelog: string
+          p_country: string
+          p_kind: string
+          p_label: string
+        }
+        Returns: Json
       }
       admin_save_translation: {
         Args: { p_key: string; p_lang: string; p_value: string }
@@ -3623,6 +3943,7 @@ export type Database = {
         Args: { p_codes: string[] }
         Returns: undefined
       }
+      admin_set_legal_settings: { Args: { p_settings: Json }; Returns: Json }
       admin_set_listing_policy: {
         Args: { p_renew_allowed: boolean; p_renew_days: number }
         Returns: Json
@@ -3784,6 +4105,7 @@ export type Database = {
           meta: Json
         }[]
       }
+      admin_user_legal_history: { Args: { p_user_id: string }; Returns: Json }
       ai_feature_gate: { Args: { p_feature: string }; Returns: Json }
       ai_record_spend: {
         Args: { p_feature: string; p_units: number }
@@ -4281,6 +4603,10 @@ export type Database = {
       }
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
+      legal_in_force: {
+        Args: { p_country?: string; p_kind: string }
+        Returns: Json
+      }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
@@ -4338,6 +4664,9 @@ export type Database = {
         Returns: Json
       }
       my_last_listing_private: { Args: { p_exclude?: string }; Returns: Json }
+      my_legal_history: { Args: never; Returns: Json }
+      my_legal_status: { Args: { p_kinds?: string[] }; Returns: Json }
+      my_legal_version: { Args: { p_version_id: string }; Returns: Json }
       my_listing: { Args: { p_listing_id: string }; Returns: Json }
       my_listing_private: { Args: { p_listing_id: string }; Returns: Json }
       my_listings: {
@@ -4421,6 +4750,16 @@ export type Database = {
       publish_listing: { Args: { p_listing_id: string }; Returns: Json }
       rate_gate: { Args: { p_action: string }; Returns: Json }
       rate_limits_prune: { Args: never; Returns: number }
+      record_legal_notice: {
+        Args: {
+          p_channel: string
+          p_provider_ref?: string
+          p_status: string
+          p_user_id: string
+          p_version_id: string
+        }
+        Returns: Json
+      }
       register_listing_photo: {
         Args: {
           p_bytes: number
