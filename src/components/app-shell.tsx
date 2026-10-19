@@ -971,6 +971,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           root rule. clip, never hidden — this is no scroll container, so the
           sticky sub-band keeps working; the fixed bars are not clipped by it. */}
       <div className="flex min-h-screen flex-col overflow-x-clip bg-background pb-[var(--bottom-bar)]">
+        <OverflowProbe />
         {/* Mobile keeps the one-column grid. From md up the layout is FIXED
             geometry (U0g-2): the band and the rail are position:fixed and the
             content column offsets itself with padding/margin. */}
