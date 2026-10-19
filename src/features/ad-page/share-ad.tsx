@@ -38,6 +38,8 @@ export function ShareAd({
   title,
   priceText,
   prominent = false,
+  open,
+  onOpenChange,
 }: {
   publicId: string;
   canonicalPath: string;
@@ -45,9 +47,18 @@ export function ShareAd({
   priceText: string | null;
   /** D218 — a primary opener after posting; existing ad-page callers stay ghost. */
   prominent?: boolean;
+  /**
+   * D224 — OPTIONAL caller-held open state (My listings' ⋯ menu). With both
+   * given, ShareAd renders no opener button of its own; the open-time setup
+   * runs the same whichever way it opens. Without them, exactly as before.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
+  const callerHeld = open !== undefined && onOpenChange !== undefined;
+  const [innerOpen, setInnerOpen] = useState(false);
+  const shown = callerHeld ? open : innerOpen;
   const [url, setUrl] = useState("");
   const [canShare, setCanShare] = useState(false);
   const [qr, setQr] = useState(false);
@@ -59,7 +70,8 @@ export function ShareAd({
       setQr(false);
       setStatus(null);
     }
-    setOpen(next);
+    if (callerHeld) onOpenChange(next);
+    else setInnerOpen(next);
   };
   const key = priceText === null ? "adPage.share.textNoPrice" : "adPage.share.text";
   const text = fill(t(key), { title, price: priceText ?? "", url });

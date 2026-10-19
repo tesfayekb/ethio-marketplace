@@ -102,6 +102,14 @@ export const NO_FILTERS: MyListingsFilters = { search: "", category: null, mark:
 /** The longest search the door takes. */
 export const SEARCH_MAX = 100;
 
+/**
+ * D224 — one rule for "this ad can be shared", for the list's ⋯ menu and the
+ * ad's own page alike: live, with a public address.
+ */
+export function shareable(row: { status: string; publicId: string | null }): boolean {
+  return row.status === "active" && typeof row.publicId === "string";
+}
+
 type Rec = Record<string, unknown>;
 
 function isObject(value: unknown): value is Rec {
