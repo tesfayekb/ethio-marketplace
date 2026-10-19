@@ -91,20 +91,22 @@ export function ShareAd({
   const row = "min-h-11 w-full justify-start gap-3 whitespace-normal text-start";
   return (
     <>
-      <Button
-        variant={prominent ? "default" : "ghost"}
-        className={
-          prominent
-            ? "h-auto min-h-11 gap-2 font-semibold"
-            : "h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
-        }
-        data-testid="listing-share-open"
-        onClick={() => changeOpen(true)}
-      >
-        <Share2 className="size-5" aria-hidden="true" />
-        {t("adPage.share.open")}
-      </Button>
-      <Dialog open={open} onOpenChange={changeOpen}>
+      {!callerHeld && (
+        <Button
+          variant={prominent ? "default" : "ghost"}
+          className={
+            prominent
+              ? "h-auto min-h-11 gap-2 font-semibold"
+              : "h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
+          }
+          data-testid="listing-share-open"
+          onClick={() => changeOpen(true)}
+        >
+          <Share2 className="size-5" aria-hidden="true" />
+          {t("adPage.share.open")}
+        </Button>
+      )}
+      <Dialog open={shown} onOpenChange={changeOpen}>
         <DialogContent
           aria-describedby={undefined}
           className="inset-x-0 bottom-0 top-auto grid max-h-[85dvh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-md sm:inset-x-auto sm:bottom-auto sm:start-1/2 sm:top-1/2 sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-md"
