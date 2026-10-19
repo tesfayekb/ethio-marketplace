@@ -2,8 +2,8 @@ import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { grantRole } from "./helpers/categories";
 import { passwordGrant } from "./helpers/session";
-import { gotoReady, useJobSuperAdmin } from "./helpers/ui";
-import { adminClient, leaseUser, switchUser } from "./helpers/users";
+import { gotoReady, useJobSuperAdmin, switchUser } from "./helpers/ui";
+import { adminClient, leaseUser } from "./helpers/users";
 
 // J1: each kind includes run, worker, project and test axes; no real legal document is written.
 const RUN_TAG = `e2e-al-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "x").slice(0, 8)}-${Math.random().toString(36).slice(2, 7)}`;
