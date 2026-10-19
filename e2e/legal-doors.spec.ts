@@ -178,31 +178,60 @@ async function seedFixture(
     .single();
   if (published.error || !published.data)
     throw new Error(`[e2e:legal] version seed: ${published.error?.message}`);
-  return {
+  const fixture: Fixture = {
     documentId: doc.data.id as string,
     draftId: null,
     publishedId: published.data.id as string,
     countryDocumentId: null,
     countryPublishedId: null,
   };
+  seeded.push(fixture);
+  return fixture;
 }
 
-/** Cleanup order (J3): acceptances and notices, then versions, then documents. */
+/** The fixtures this test seeded; afterEach destroys them, newest first (J3). */
+const seeded: Fixture[] = [];
+
+/** Cleanup order (J3): acceptances and notices, then versions, then documents; throws on any failure. */
 async function destroyFixture(fixture: Fixture) {
   const supabase = adminClient();
+  const failures: string[] = [];
+  const step = (label: string, error: { message: string } | null) => {
+    if (error) failures.push(`${label}: ${error.message}`);
+  };
   const versionIds = [fixture.publishedId, fixture.draftId, fixture.countryPublishedId].filter(
     (id): id is string => id !== null,
   );
-  await supabase.from("legal_acceptances").delete().in("version_id", versionIds);
-  await supabase.from("legal_notices").delete().in("version_id", versionIds);
-  await supabase.from("legal_versions").delete().in("id", versionIds);
+  step(
+    "acceptances",
+    (await supabase.from("legal_acceptances").delete().in("version_id", versionIds)).error,
+  );
+  step(
+    "notices",
+    (await supabase.from("legal_notices").delete().in("version_id", versionIds)).error,
+  );
+  step("versions", (await supabase.from("legal_versions").delete().in("id", versionIds)).error);
   const documentIds = [fixture.documentId, fixture.countryDocumentId].filter(
     (id): id is string => id !== null,
   );
-  await supabase.from("legal_documents").delete().in("id", documentIds);
+  step("documents", (await supabase.from("legal_documents").delete().in("id", documentIds)).error);
+  if (failures.length > 0) throw new Error(`[e2e:legal] cleanup failed: ${failures.join("; ")}`);
 }
 
 test.describe("Legal doors", () => {
+  test.afterEach(async () => {
+    const failures: string[] = [];
+    while (seeded.length > 0) {
+      const fixture = seeded.pop() as Fixture;
+      try {
+        await destroyFixture(fixture);
+      } catch (error) {
+        failures.push(error instanceof Error ? error.message : String(error));
+      }
+    }
+    if (failures.length > 0) throw new Error(failures.join("; "));
+  });
+
   test("LG-1 legal_in_force answers the highest published version whose time has come, global and per country, and never the change log", async () => {
     const kind = `${RUN_TAG}-a`;
     const fixture = await seedFixture(kind, null);
