@@ -73,6 +73,15 @@ export function ShareAd({
     if (callerHeld) onOpenChange(next);
     else setInnerOpen(next);
   };
+  // D224 — a caller-held open mounts the sheet already open, so the open-time
+  // setup runs here as well as in changeOpen: the same either way it opens.
+  useEffect(() => {
+    if (!shown) return;
+    setUrl(window.location.origin + canonicalPath);
+    setCanShare(typeof navigator.share === "function");
+    setQr(false);
+    setStatus(null);
+  }, [shown, canonicalPath]);
   const key = priceText === null ? "adPage.share.textNoPrice" : "adPage.share.text";
   const text = fill(t(key), { title, price: priceText ?? "", url });
   const textWithoutUrl = fill(t(key), { title, price: priceText ?? "", url: "" })
