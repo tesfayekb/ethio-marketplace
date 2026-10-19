@@ -66,6 +66,19 @@ describe("LanguageSwitcher — device star", () => {
     expect(setLanguage).not.toHaveBeenCalled();
   });
 
+  it("a complete star press never selects the row and keeps the menu open", async () => {
+    star = "am";
+    render(<LanguageSwitcher />);
+    openMenu();
+    const control = await screen.findByTestId("language-star-en");
+    fireEvent.pointerDown(control, { button: 0, ctrlKey: false, pointerType: "touch" });
+    fireEvent.pointerUp(control, { button: 0, ctrlKey: false, pointerType: "touch" });
+    fireEvent.click(control);
+    expect(setStar).toHaveBeenCalledWith("en");
+    expect(setLanguage).not.toHaveBeenCalled();
+    expect(screen.getByTestId("language-star-am")).toBeInTheDocument();
+  });
+
   it("lets a DB-only language be starred", async () => {
     star = null;
     render(<LanguageSwitcher />);

@@ -1237,6 +1237,9 @@ test.describe("mobile chrome", () => {
 
   test("SR-1 search opens a row below the bar, beside the strip, as the page", async ({ page }) => {
     await gotoReady(page, "/");
+    const trail = page.locator('[data-testid="shell-subband"] [data-testid="breadcrumbs"]');
+    const before = await trail.boundingBox();
+    if (before === null) throw new Error("SR-1 trail missing before search");
     await page.getByTestId("search-toggle").click();
     const input = page.getByTestId("search-input");
     await expect(input).toBeVisible();
@@ -1256,9 +1259,30 @@ test.describe("mobile chrome", () => {
       [field.x + 4, field.y + field.height / 2],
     );
     expect(hit, "SR-1 the strip covers the field's start").toBe("search-input");
+    expect(
+      await input.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
+    ).toBeGreaterThanOrEqual(16);
+    await expect(trail).toBeVisible();
+    const trailBox = await trail.boundingBox();
+    if (trailBox === null) throw new Error("SR-1 trail missing while search open");
+    expect(trailBox.y).toBeGreaterThanOrEqual(row.y + row.height - 1);
+    expect(
+      await trail.evaluate((el) => {
+        const crumb = el.querySelector("li");
+        if (crumb === null) return false;
+        const box = crumb.getBoundingClientRect();
+        return el.contains(
+          document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2),
+        );
+      }),
+      "SR-1 search covers the first crumb",
+    ).toBe(true);
     await expectNoHorizontalOverflow(page);
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("search-row")).toHaveCount(0);
+    const after = await trail.boundingBox();
+    if (after === null) throw new Error("SR-1 trail missing after Escape");
+    expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
   });
 
   test("no horizontal overflow and text stays legible at 360", async ({ page }) => {
@@ -2116,10 +2140,29 @@ test.describe("U4h device language star", () => {
   async function starLanguage(page: Page, code: "en" | "am") {
     await waitForHydration(page);
     await page.getByTestId("language-switcher").click();
-    await page.getByTestId(`language-star-${code}`).click();
-    await expect(page.getByTestId("language-switcher")).toBeVisible();
+    const star = page.getByTestId(`language-star-${code}`);
+    await star.click();
+    await expect(star).toBeVisible();
+    await expect(star).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
+    await page.keyboard.press("Escape");
+    await expect(star).toBeHidden();
+    await expect(page.getByTestId("language-switcher")).toBeVisible();
   }
+
+  test("TR-41 a starred language stays the default after another is chosen", async ({ page }) => {
+    await gotoReady(page, "/");
+    await starLanguage(page, "am");
+    await page.getByTestId("language-switcher").click();
+    await page.getByTestId("language-option-en").click();
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForHydration(page);
+    await expect(page.locator("html")).toHaveAttribute("lang", "am");
+    await page.getByTestId("language-switcher").click();
+    await expect(page.getByTestId("language-star-am")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("language-star-en")).toHaveAttribute("aria-pressed", "false");
+  });
 
   /** Seeds a star the way a returning device carries one: both stores, pre-boot. */
   async function seedStar(page: Page, code: string) {
@@ -2364,7 +2407,7 @@ test.describe("L4b location picker", () => {
     }
   });
 
-  test("LS-2 a pick is remembered, clearing forgets it", async ({ page }) => {
+  test("LS-2 a pick is remembered; Any area is remembered as everywhere", async ({ page }) => {
     const chain = await seedScratchChain("ET");
     try {
       const ethiopia = await marketName(page, "ET");
@@ -2385,15 +2428,48 @@ test.describe("L4b location picker", () => {
       );
       await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
 
-      // Clearing the country forgets the saved area entirely.
       await page.getByTestId("location-level-country").click();
       await page.getByRole("menuitem", { name: en["location.anyArea"], exact: true }).click();
-      await expect
-        .poll(async () => await page.evaluate("document.cookie"), { timeout: 5000 })
-        .not.toContain("ethio_area=ET:");
+      const everywhere = async () => {
+        await expect
+          .poll(() => page.evaluate(() => document.cookie), { timeout: 5000 })
+          .toMatch(/ethio_area=everywhere:\d+/);
+        expect(await page.evaluate(() => document.cookie)).not.toContain("ethio_area=ET:");
+        await expect(page.getByTestId("location-level-country")).toHaveText(en["location.country"]);
+        await expect(page.getByTestId("location-level-region")).toHaveCount(0);
+        await expect(page.getByTestId("location-row")).toHaveAttribute(
+          "data-area-source",
+          "chosen",
+        );
+      };
+      await everywhere();
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await waitForHydration(page);
+      await everywhere();
     } finally {
       await destroyLocation(chain.region.slug);
     }
+  });
+
+  test("EV-1 a guessed country never overrides Any area", async ({ page }) => {
+    await page.context().setExtraHTTPHeaders({ "cf-ipcountry": "ET" });
+    const guessed = await marketName(page, "ET");
+    await gotoReady(page, "/");
+    await expect(page.getByTestId("location-level-country")).toHaveText(guessed);
+    await page.getByTestId("location-level-country").click();
+    await page.getByRole("menuitem", { name: en["location.anyArea"], exact: true }).click();
+    const everywhere = async () => {
+      await expect(page.getByTestId("location-level-country")).toHaveText(en["location.country"]);
+      await expect(page.getByTestId("location-level-region")).toHaveCount(0);
+      await expect(
+        page.getByRole("heading", { name: en["nav.allListings"], exact: true }),
+      ).toBeVisible();
+      await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
+    };
+    await everywhere();
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await waitForHydration(page);
+    await everywhere();
   });
 
   test("long location names share one 32px line", async ({ page, viewport }) => {
@@ -3444,12 +3520,11 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     }
   });
 
-  test("PK-1 the forced peek opens without focus, folds, and does not repeat", async ({
+  test("PK-1 the forced peek opens without focus, folds, and shows again on every load", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile-360");
-    // Playwright has no removeInitScript: this self-consuming script writes the
-    // force word only once in this tab and never rewrites the subsequent seen.
+    // D216: every load opts in; no production session marker is written.
     // INC-741 — the same script watches the menu from BEFORE the load, so a
     // peek that opens and closes while page.goto is still waiting is recorded.
     await page.addInitScript(() => {
@@ -3457,12 +3532,14 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
         sessionStorage.setItem("ethio.peek", "force");
       }
       type PeekRecord = {
+        shows: number;
         shownAt: number | null;
         focusedAtShow: boolean | null;
         focusedLater: boolean | null;
         goneAt: number | null;
       };
       const record: PeekRecord = {
+        shows: 0,
         shownAt: null,
         focusedAtShow: null,
         focusedLater: null,
@@ -3478,7 +3555,9 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       };
       const look = () => {
         const menu = visibleMenu();
-        if (menu && record.shownAt === null) {
+        if (menu && (record.shownAt === null || record.goneAt !== null)) {
+          record.shows += 1;
+          record.goneAt = null;
           record.shownAt = performance.now();
           record.focusedAtShow = menu.contains(document.activeElement);
           window.setTimeout(() => {
@@ -3501,6 +3580,7 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
           (
             window as unknown as {
               __peek: {
+                shows: number;
                 shownAt: number | null;
                 focusedAtShow: boolean | null;
                 focusedLater: boolean | null;
@@ -3509,7 +3589,7 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
             }
           ).__peek,
       );
-    await gotoReady(page, "/");
+    await gotoReady(page, "/c/electronics");
     await expect
       .poll(async () => (await readRecord()).shownAt !== null, {
         timeout: 5000,
@@ -3525,20 +3605,37 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     const record = await readRecord();
     expect(record.focusedAtShow, "the peek took focus when it showed").toBe(false);
     expect(record.focusedLater, "the peek took focus after it showed").toBe(false);
-    expect(record.goneAt! - record.shownAt!).toBeLessThanOrEqual(5000);
-    expect(await page.evaluate(() => sessionStorage.getItem("ethio.peek"))).toBe("seen");
+    if (record.goneAt === null || record.shownAt === null)
+      throw new Error("PK-1 incomplete first peek");
+    expect(record.goneAt - record.shownAt).toBeLessThanOrEqual(5000);
+    expect(record.shows).toBe(1);
+    expect(await page.evaluate(() => sessionStorage.getItem("ethio.peek"))).toBe("force");
     await page.reload();
     await waitForHydration(page);
+    await expect.poll(async () => (await readRecord()).shows, { timeout: 5000 }).toBe(1);
+    await expect
+      .poll(async () => (await readRecord()).goneAt !== null, { timeout: 5000 })
+      .toBe(true);
+    const reloaded = await readRecord();
+    expect(reloaded.focusedAtShow).toBe(false);
+    expect(reloaded.focusedLater).toBe(false);
+    if (reloaded.goneAt === null || reloaded.shownAt === null)
+      throw new Error("PK-1 incomplete reloaded peek");
+    expect(reloaded.goneAt - reloaded.shownAt).toBeLessThanOrEqual(5000);
+    await page
+      .locator('[data-testid="shell-subband"] [data-testid="breadcrumbs"]')
+      .getByRole("link", { name: en["nav.home"], exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/$/);
     await expect(page.locator("html")).toHaveAttribute("data-app-ready", "1");
-    // Polled on the record itself: no show in the 4 s after data-app-ready.
     const readyAt = Date.now();
     await expect
       .poll(
         async () => {
-          if ((await readRecord()).shownAt !== null) return "shown";
+          if ((await readRecord()).shows !== 1) return "shown";
           return Date.now() - readyAt >= 4000 ? "held" : "waiting";
         },
-        { timeout: 6000, intervals: [250], message: "the peek repeated after reload" },
+        { timeout: 6000, intervals: [250], message: "the peek repeated on in-app navigation" },
       )
       .toBe("held");
   });
@@ -3817,6 +3914,41 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
     isMobile: true,
     hasTouch: true,
     deviceScaleFactor: 3,
+  });
+
+  test("FF-1 every text field is at least 16 px on a phone", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360");
+    const sweep = async (path: string) => {
+      const fields = page.locator(
+        'input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"], [type="button"], [type="submit"], [type="reset"], [type="image"]), textarea, select',
+      );
+      let visible = 0;
+      for (const field of await fields.all()) {
+        if (!(await field.isVisible())) continue;
+        visible += 1;
+        const measured = await field.evaluate((el) => ({
+          name: el.getAttribute("data-testid") ?? el.getAttribute("name") ?? el.tagName,
+          size: parseFloat(getComputedStyle(el).fontSize),
+        }));
+        expect(
+          measured.size,
+          `${path}: ${measured.name}: ${measured.size}px`,
+        ).toBeGreaterThanOrEqual(16);
+      }
+      expect(visible, `${path}: no visible fields reached`).toBeGreaterThan(0);
+    };
+    await gotoReady(page, "/");
+    await page.getByTestId("search-toggle").click();
+    await expect(page.getByTestId("search-input")).toBeVisible();
+    await sweep("/");
+    await gotoReady(page, "/auth");
+    await sweep("/auth");
+    const user = await leaseUser();
+    await signInViaSession(page, user.email, user.password);
+    await gotoReady(page, "/post");
+    await sweep("/post");
+    await gotoReady(page, "/settings");
+    await sweep("/settings");
   });
 
   test("OVW-2 a 2000-px child never widens the page, and the sub-band still sticks", async ({

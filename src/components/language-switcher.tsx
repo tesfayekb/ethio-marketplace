@@ -107,7 +107,9 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                   aria-pressed={starred}
                   aria-label={t(starred ? "language.starred" : "language.star")}
                   title={t(starred ? "language.starred" : "language.star")}
+                  // INC-748 — the star is a control inside a menu item. Radix's MenuItem clicks ITSELF on a pointerup it saw no pointerdown for (@radix-ui/react-menu, MenuItem's onPointerUp), which selected the row and closed the menu before the star's own click could land — on the iPhone it never did. Both halves of the press stop here, so the row never selects on a star tap; the star's click sets the star (setStar also selects the language) and the menu stays open, the star filled.
                   onPointerDown={(event) => event.stopPropagation()}
+                  onPointerUp={(event) => event.stopPropagation()}
                   onClick={(event) => {
                     event.preventDefault();
                     event.stopPropagation();

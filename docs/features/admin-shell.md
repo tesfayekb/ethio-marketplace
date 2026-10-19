@@ -212,7 +212,7 @@ page bottom, where sticky used to creep upward against the footer.
 - **L1 — fixed top band.** The logo cell and the top bar live inside one
   wrapper (`data-testid="shell-band"`) that is fixed at every width:
   `fixed inset-x-0 top-0 z-30 md:flex md:h-14`. Below md its content sets
-  its height and the open search row overlays the page; from md up it is 56px. Inside
+  its height; the open search row is the first row of the sticky sub-band and pushes the page down (INC-749); from md up it is 56px. Inside
   it the corner block is preserved by construction: the logo cell is
   `md:w-64 md:h-14 md:shrink-0` (`md:w-16` when `html[data-rail=collapsed]`)
   and the top bar is `md:flex-1`. Measured at 1280: logo 0/256×56, bar

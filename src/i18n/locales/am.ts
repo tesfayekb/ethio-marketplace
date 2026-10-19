@@ -394,7 +394,7 @@ export const am: Messages = {
   "shell.favouriteAdd": "ተወዳጅ አድርግ",
   "shell.favouriteRemove": "ከተወዳጅ አስወግድ",
   "shell.favouriteBadge": "የእርስዎ ተወዳጅ",
-  "shell.favouriteHint": "{category} ተወዳጅዎ ይሁን",
+  "shell.favouriteHint": "{category} ተወዳጅዎ ያድርጉ።",
   "shell.favouriteIs": "{category} ተወዳጅዎ ነው",
   "shell.menuTitle": "ዝርዝር",
   "shell.searchLabel": "ማስታወቂያዎችን ይፈልጉ",

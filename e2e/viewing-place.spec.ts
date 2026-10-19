@@ -298,7 +298,7 @@ test.describe("VIEWING PLACE — the shell carries it (D106 part 2)", () => {
     });
   }
 
-  test("VP-6 a pick while signed in is saved on the account, with its time here too; any area clears it", async ({
+  test("VP-6 a pick while signed in is saved on the account, with its time here too; any area clears it on the account and remembers every area here", async ({
     page,
   }) => {
     const user = await lease();
@@ -322,7 +322,7 @@ test.describe("VIEWING PLACE — the shell carries it (D106 part 2)", () => {
     await page.getByTestId("location-level-country").click();
     await page.getByRole("menuitem", { name: en["location.anyArea"], exact: true }).click();
     await expect.poll(async () => (await accountOf(user.id)).id, { timeout: 15_000 }).toBeNull();
-    expect(await areaCookie(page)).toBeNull();
+    expect(await areaCookie(page)).toMatch(/^everywhere:\d+$/);
   });
 
   test("VP-7 another browser opens on the account's place, and signing out there keeps it", async ({

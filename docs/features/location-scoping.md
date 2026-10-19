@@ -43,8 +43,7 @@ nothing: there is no default market. Production stays country-level until the
 ethio.com cutover behind the operator's zone (see `geography.md`).
 
 **The saved area.** A pick writes the cookie `ethio_area` as `<CC>:<node id>`
-for one year, so the country is known before the tree loads; clearing the
-country forgets it. The GUESS IS NEVER WRITTEN (law 10) — only a choice is.
+for one year, so the country is known before the tree loads; 'Any area' for the country saves `everywhere:<ms>` — every area, the person's own choice — and the guess never overrides it (D219, INC-750). The GUESS IS NEVER WRITTEN (law 10) — only a choice is.
 
 **Sub-city.** The cascade renders one step per level that exists in the data, so
 a market with sub-city rows gains a fourth step with no code change (LS-1).
@@ -194,7 +193,7 @@ Part 2 (the shell reading and writing it) follows in the next turn.
 The shell reads and writes the account's place:
 
 - **The cookie carries the pick's time.** `ethio_area` is `<CC>:<uuid>:<ms>`; a cookie written before D106 (`<CC>:<uuid>`) still reads, with no time (`parseAreaCookie`, `SavedArea.at`; the SSR shape check in src/routes/\_\_root.tsx accepts both).
-- **A pick saves here and on the account.** Every pick (a market's anchor, a deeper place) writes the cookie with the time now and, when signed in, calls `user_set_viewing_location`; "any area" clears both. The saves run one after another in the order of the picks. The account's answer stamps this browser's copy with the account's time, only while the cookie still names the same place. A refusal or a failure logs one `[location]` line and leaves this browser's pick as it is.
+- **A pick saves here and on the account.** Every pick (a market's anchor, a deeper place) writes the cookie with the time now and, when signed in, calls `user_set_viewing_location`; 'any area' saves every area here (`everywhere:<ms>`) and clears the account's place. The saves run one after another in the order of the picks. The account's answer stamps this browser's copy with the account's time, only while the cookie still names the same place. A refusal or a failure logs one `[location]` line and leaves this browser's pick as it is.
 - **The sign-in carry, once per signed-in identity** (the INC-121 latch): `my_viewing_location` is read and `chooseCarry` (src/components/shell/place-carry.ts) applies the operator's rule — the NEWEST pick wins. The account's place is written into this browser and shown (the place is derived again, as after a sign-out), or this browser's pick is saved to the account; a pick without a time counts as older than any account pick; an account place no longer shown counts as none; with neither, nothing is saved — the guess never is. The location row's `data-account-place` reads `off` while signed out, `pending` while the carry runs and `done` after it.
 - **Sign-out keeps the place** (INC-532): the account's place was written into this browser at sign-in.
 - The pool reset clears both columns, so a leased test account starts with no place.

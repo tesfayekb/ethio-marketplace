@@ -5,7 +5,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 
 import { Logo } from "@/components/brand/logo";
 import { AppFooter } from "@/components/shell/app-footer";
-import { AppHeader } from "@/components/shell/app-header";
+import { AppHeader, SearchRow } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { BottomBar } from "@/components/shell/bottom-bar";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
@@ -14,7 +14,9 @@ import {
   anchorOf,
   asLocationNode,
   autoExtendPath,
-  clearAreaCookie,
+  parseEverywhere,
+  readEverywhere,
+  writeEverywhereCookie,
   type GuessFacts,
   parseAreaCookie,
   pathToNode,
@@ -122,6 +124,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   /** L4b-2 — the node the guess resolved to, so the caption can NAME it. */
   const [guessNode, setGuessNode] = useState<LocationNode | null>(null);
   const [navOpen, setNavOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [noticeNode, setNoticeNode] = useState<LocationNode | null>(null);
   const [keptPlace, setKeptPlace] = useState<string | null>(null);
 
@@ -172,9 +175,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       deriveTick === 0 ? (parseAreaCookie(areaCookieRaw) ?? readAreaCookie()) : readAreaCookie(),
     [areaCookieRaw, deriveTick],
   );
+  const everywhere = useMemo(
+    () =>
+      deriveTick === 0 ? (parseEverywhere(areaCookieRaw) ?? readEverywhere()) : readEverywhere(),
+    [areaCookieRaw, deriveTick],
+  );
   const { markets, isLoading: marketsLoading } = useOpenMarkets();
   const guessCountry =
     savedArea === null &&
+    everywhere === null &&
     geoCountry !== null &&
     markets.some((market) => market.code === geoCountry)
       ? geoCountry
@@ -245,7 +254,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 
   const clearPick = useCallback(() => {
-    clearAreaCookie();
+    writeEverywhereCookie();
     setNoticeNode(null);
     setDeriveTick((tick) => tick + 1);
     if (signedInRef.current) void saveToAccount(null);
@@ -492,7 +501,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           console.warn(`[location] the account place was not read: ${read.reason}`);
           return;
         }
-        const carry = chooseCarry(readAreaCookie(), read.place);
+        const carry = chooseCarry(readAreaCookie() ?? readEverywhere(), read.place);
         if (carry.kind === "apply") {
           writeAreaCookie(carry.country, carry.id, carry.at);
           resetLocationState();
@@ -812,6 +821,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       guessNode,
       placeNotice,
       accountPlace,
+      searchOpen,
+      setSearchOpen,
       navOpen,
       setNavOpen,
       signingOut,
@@ -836,6 +847,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     placeNotice,
     accountPlace,
     navOpen,
+    searchOpen,
     signingOut,
   ]);
 
@@ -921,7 +933,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </a>
 
           {/* The top band is fixed at every width. On phones its content sets
-              its height; the opened search row overlays the page below the bar.
+              its height; the open search row is the first sticky sub-band row,
+              pushing the breadcrumb and page down and covering nothing.
               From md up the logo cell and top bar share the 3.5rem band. */}
           <div
             data-testid="shell-band"
@@ -985,6 +998,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               data-testid="shell-subband"
               className="sticky top-13 z-20 bg-card shadow-bar md:top-14"
             >
+              {searchOpen ? <SearchRow onClose={() => setSearchOpen(false)} /> : null}
               <PanelTabs />
               <div className="flex min-h-8 min-w-0 items-center border-b border-neutral-soft px-2 md:px-4">
                 <Breadcrumbs />
