@@ -967,3 +967,5 @@
 
 - 2026-10-18 — Bundle 21 turn 14 (no migration): the walk's findings — every text field at least 16 px on phones (INC-747, the iPhone zoom); the search row in the sticky sub-band (INC-749); the language star takes on a tap (INC-748); the peek on every page load (D216); the Amharic favourite line (D217); 'Any area' for the country remembered as everywhere, the guess never over it (INC-750, D219); SR-1, TR-27's helper, PK-1, LS-2 and VP-6 follow; FF-1, TR-41 and EV-1 new.
 - 2026-10-18 — Bundle 21 turn 15 (no migration): Share at the end of posting — grey while in review, the share button once live (D218); card photos fill their 4:3 box, the ad's page keeps the whole photo (D220); PS-1 and LP-11 new; FS-15 extended.
+
+- 2026-10-18 — Bundle 21 turn 16 (no migration): CI #1035's reds — FF-1 waits for each page's field before sweeping (INC-752); a tapped tab on the ad page holds until its scroll ends and at the page's end the last section on screen is current (INC-753); AP-37 samples the tabs through each scroll.
