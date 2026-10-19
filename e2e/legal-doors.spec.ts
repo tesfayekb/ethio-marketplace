@@ -203,7 +203,6 @@ async function destroyFixture(fixture: Fixture) {
   const step = (label: string, error: { message: string } | null) => {
     if (error) failures.push(`${label}: ${error.message}`);
   };
-  const versionIds = [fixture.publishedId, fixture.draftId, fixture.countryPublishedId].filter(
   if (fixture.homeReset) {
     step(
       "home country",
@@ -231,6 +230,7 @@ async function destroyFixture(fixture: Fixture) {
       (await supabase.from("legal_versions").delete().in("id", fixture.extraVersionIds)).error,
     );
   }
+  const versionIds = [fixture.publishedId, fixture.draftId, fixture.countryPublishedId].filter(
     (id): id is string => id !== null,
   );
   step(
@@ -716,9 +716,7 @@ test.describe("Legal doors", () => {
     const relisted = await caller.rpc("my_legal_status", { p_kinds: [kind] });
     expect(relisted.error).toBeNull();
     expect((relisted.data as Row[]).map((r) => r["version_id"])).toContain(fixture.draftId);
-    expect(relisted.data, "only the material version already in force is returned").toHaveLength(
-      1,
-    );
+    expect(relisted.data, "only the material version already in force is returned").toHaveLength(1);
 
     // A country document applies only to a matching home country.
     const country = await seedFixture(kind, "DE");
