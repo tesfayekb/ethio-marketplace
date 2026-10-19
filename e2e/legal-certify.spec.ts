@@ -531,10 +531,7 @@ test.describe("Legal certification", () => {
         await expect(tick).toBeVisible({ timeout: 15_000 });
         await tick.click();
       }
-      await page
-        .getByTestId("data-table-selection")
-        .getByTestId("my-listings-bulk-renew")
-        .click();
+      await page.getByTestId("data-table-selection").getByTestId("my-listings-bulk-renew").click();
       await page.getByTestId("my-listings-confirm-yes").click();
       const expected = `${en["myListings.bulk.done"].replace("{count}", "1")} ${en[
         "myListings.bulk.needsStatement"
