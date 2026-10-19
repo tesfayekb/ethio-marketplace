@@ -1091,6 +1091,7 @@ test.describe("mobile chrome", () => {
       ).toBeGreaterThanOrEqual(after.top - 1);
       return "scrolls";
     };
+
     const strip = page.getByTestId("strip-scroll");
     await expect(strip.locator("li")).not.toHaveCount(0, { timeout: 20_000 });
     await checkVariant(strip, "Admin", "strip");
