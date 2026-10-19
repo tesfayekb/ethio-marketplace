@@ -695,7 +695,8 @@ test.describe("Legal doors", () => {
         .from("profiles")
         .update({ home_country_code: null })
         .eq("user_id", person.id);
-      if (extraVersionIds.length > 0) {
+      await (async () => {
+        if (extraVersionIds.length === 0) return;
         const acceptances = await supabase
           .from("legal_acceptances")
           .delete()
@@ -708,7 +709,7 @@ test.describe("Legal doors", () => {
         if (notices.error) throw notices.error;
         const versions = await supabase.from("legal_versions").delete().in("id", extraVersionIds);
         if (versions.error) throw versions.error;
-      }
+      })();
       await destroyFixture(fixture);
     }
   });
