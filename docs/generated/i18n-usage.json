@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 493,
-  "dynamicCallSites": 356,
+  "scanned": 508,
+  "dynamicCallSites": 379,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2479,6 +2479,167 @@
     "admin.landing.title": [
       "/admin"
     ],
+    "admin.legal.acceptedBy": [
+      "/admin/legal"
+    ],
+    "admin.legal.action.back": [
+      "/admin/legal/$versionId",
+      "/admin/legal/edit"
+    ],
+    "admin.legal.action.discardDraft": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.action.editDraft": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.action.editFacts": [
+      "/admin/legal"
+    ],
+    "admin.legal.action.history": [
+      "/admin/legal"
+    ],
+    "admin.legal.action.publish": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.action.saveDraft": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.action.saveFacts": [
+      "/admin/legal"
+    ],
+    "admin.legal.action.view": [
+      "/admin/legal"
+    ],
+    "admin.legal.addCountry.action": [
+      "/admin/legal"
+    ],
+    "admin.legal.addCountry.help": [
+      "/admin/legal"
+    ],
+    "admin.legal.addCountry.label": [
+      "/admin/legal"
+    ],
+    "admin.legal.badDocument": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.change.correction": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.change.material": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.count": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.discardBody": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.discardTitle": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.error.load": [
+      "/admin/legal",
+      "/admin/legal/$versionId",
+      "/admin/legal/edit",
+      "/admin/users/$userId"
+    ],
+    "admin.legal.facts.help": [
+      "/admin/legal"
+    ],
+    "admin.legal.facts.notSet": [
+      "/admin/legal",
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.facts.saved": [
+      "/admin/legal"
+    ],
+    "admin.legal.facts.title": [
+      "/admin/legal"
+    ],
+    "admin.legal.field.bodyHelp": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.field.changelog": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.field.changelogHelp": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.field.label": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.field.labelHelp": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.none": [
+      "/admin/legal"
+    ],
+    "admin.legal.notFound": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.otherDocuments": [
+      "/admin/legal"
+    ],
+    "admin.legal.prefilled": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.publish.correctionHelp": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.publish.earliest": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.publish.effective": [
+      "/admin/legal/$versionId",
+      "/admin/legal/edit"
+    ],
+    "admin.legal.publish.final": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.publish.first": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.publish.materialHelp": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.publish.question": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.publish.title": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.publishedOn": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.saveFirst": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.saved": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.scope.global": [
+      "/admin/legal",
+      "/admin/legal/$versionId",
+      "/admin/legal/edit",
+      "/admin/users/$userId"
+    ],
+    "admin.legal.unknownTokens": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.version": [
+      "/admin/legal",
+      "/admin/legal/$versionId",
+      "/admin/users/$userId"
+    ],
+    "admin.legal.view.changelog": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.view.draftFacts": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.view.facts": [
+      "/admin/legal/$versionId"
+    ],
     "admin.listings.action.edit": [
       "/admin/listings/$listingId",
       "/admin/screening"
@@ -3476,6 +3637,9 @@
     "admin.section.coverage.title": [
       "/admin/coverage"
     ],
+    "admin.section.legal.title": [
+      "/admin/legal"
+    ],
     "admin.section.places.title": [
       "/admin/places"
     ],
@@ -4096,6 +4260,27 @@
     "admin.users.filter.all": [
       "/admin/users"
     ],
+    "admin.users.legal.accepted": [
+      "/admin/users/$userId"
+    ],
+    "admin.users.legal.acceptedMeta": [
+      "/admin/users/$userId"
+    ],
+    "admin.users.legal.noAcceptances": [
+      "/admin/users/$userId"
+    ],
+    "admin.users.legal.noNotices": [
+      "/admin/users/$userId"
+    ],
+    "admin.users.legal.noticeMeta": [
+      "/admin/users/$userId"
+    ],
+    "admin.users.legal.notices": [
+      "/admin/users/$userId"
+    ],
+    "admin.users.legal.title": [
+      "/admin/users/$userId"
+    ],
     "admin.users.loading": [
       "/admin/users",
       "/admin/users/$userId"
@@ -4349,6 +4534,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4373,6 +4560,8 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4414,10 +4603,14 @@
       "/account/saved",
       "/admin/ai",
       "/admin/categories",
+      "/admin/legal",
+      "/admin/legal/$versionId",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
+      "/admin/users/$userId",
       "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
@@ -4759,6 +4952,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4777,6 +4972,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4831,6 +5028,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4848,6 +5047,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4865,6 +5066,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4882,6 +5085,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4900,6 +5105,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -4917,6 +5124,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -7899,6 +8108,8 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/coverage",
+      "/admin/legal",
+      "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",

@@ -148,6 +148,13 @@ export const ADMIN_SECTIONS = [
     bodyKey: "admin.section.translations.body",
   },
   {
+    id: "legal",
+    path: "/admin/legal",
+    permission: "legal:view",
+    titleKey: "admin.section.legal.title",
+    bodyKey: "admin.section.legal.body",
+  },
+  {
     id: "ai",
     path: "/admin/ai",
     permission: "services:view",

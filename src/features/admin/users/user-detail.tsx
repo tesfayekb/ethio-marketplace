@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { FormField, FormSection } from "@/components/shell/form-section";
+import { UserLegalCard } from "@/features/admin/legal/user-legal-card";
 import { TranslatorLanguagesCard } from "@/features/admin/translations/translator-card";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
@@ -399,6 +400,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               </p>
             ) : null}
           </PageCard>
+          <UserLegalCard userId={user.userId} />
         </div>
       )}
     </StepUpGate>

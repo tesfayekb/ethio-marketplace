@@ -26,6 +26,7 @@ import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminCountriesRouteImport } from './routes/admin.countries'
 import { Route as AdminCoverageRouteImport } from './routes/admin.coverage'
 import { Route as AdminImagesRouteImport } from './routes/admin.images'
+import { Route as AdminLegalRouteImport } from './routes/admin.legal'
 import { Route as AdminListingsRouteImport } from './routes/admin.listings'
 import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
 import { Route as AdminPlacesRouteImport } from './routes/admin.places'
@@ -48,6 +49,8 @@ import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as MyListingsListingIdRouteImport } from './routes/my-listings_.$listingId'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
+import { Route as AdminLegalVersionIdRouteImport } from './routes/admin.legal_.$versionId'
+import { Route as AdminLegalEditRouteImport } from './routes/admin.legal_.edit'
 import { Route as AdminListingsListingIdRouteImport } from './routes/admin.listings_.$listingId'
 import { Route as AdminRolesRoleIdRouteImport } from './routes/admin.roles_.$roleId'
 import { Route as AdminTranslationsLangRouteImport } from './routes/admin.translations_.$lang'
@@ -171,6 +174,11 @@ const AdminImagesRoute = AdminImagesRouteImport.update({
   path: '/images',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLegalRoute = AdminLegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminListingsRoute = AdminListingsRouteImport.update({
   id: '/listings',
   path: '/listings',
@@ -282,6 +290,16 @@ const AdminImpersonationSessionIdRoute =
     path: '/impersonation/$sessionId',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminLegalVersionIdRoute = AdminLegalVersionIdRouteImport.update({
+  id: '/legal_/$versionId',
+  path: '/legal/$versionId',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLegalEditRoute = AdminLegalEditRouteImport.update({
+  id: '/legal_/edit',
+  path: '/legal/edit',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminListingsListingIdRoute = AdminListingsListingIdRouteImport.update({
   id: '/listings_/$listingId',
   path: '/listings/$listingId',
@@ -493,6 +511,7 @@ export interface FileRoutesByFullPath {
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
+  '/admin/legal': typeof AdminLegalRoute
   '/admin/listings': typeof AdminListingsRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/places': typeof AdminPlacesRoute
@@ -516,6 +535,8 @@ export interface FileRoutesByFullPath {
   '/post/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
+  '/admin/legal/$versionId': typeof AdminLegalVersionIdRoute
+  '/admin/legal/edit': typeof AdminLegalEditRoute
   '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
@@ -570,6 +591,7 @@ export interface FileRoutesByTo {
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
+  '/admin/legal': typeof AdminLegalRoute
   '/admin/listings': typeof AdminListingsRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/places': typeof AdminPlacesRoute
@@ -593,6 +615,8 @@ export interface FileRoutesByTo {
   '/post/$listingId': typeof PostListingIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
+  '/admin/legal/$versionId': typeof AdminLegalVersionIdRoute
+  '/admin/legal/edit': typeof AdminLegalEditRoute
   '/admin/listings/$listingId': typeof AdminListingsListingIdRoute
   '/admin/roles/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations/$lang': typeof AdminTranslationsLangRoute
@@ -649,6 +673,7 @@ export interface FileRoutesById {
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/coverage': typeof AdminCoverageRoute
   '/admin/images': typeof AdminImagesRoute
+  '/admin/legal': typeof AdminLegalRoute
   '/admin/listings': typeof AdminListingsRoute
   '/admin/locations': typeof AdminLocationsRoute
   '/admin/places': typeof AdminPlacesRoute
@@ -672,6 +697,8 @@ export interface FileRoutesById {
   '/post_/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
+  '/admin/legal_/$versionId': typeof AdminLegalVersionIdRoute
+  '/admin/legal_/edit': typeof AdminLegalEditRoute
   '/admin/listings_/$listingId': typeof AdminListingsListingIdRoute
   '/admin/roles_/$roleId': typeof AdminRolesRoleIdRoute
   '/admin/translations_/$lang': typeof AdminTranslationsLangRoute
@@ -729,6 +756,7 @@ export interface FileRouteTypes {
     | '/admin/countries'
     | '/admin/coverage'
     | '/admin/images'
+    | '/admin/legal'
     | '/admin/listings'
     | '/admin/locations'
     | '/admin/places'
@@ -752,6 +780,8 @@ export interface FileRouteTypes {
     | '/post/$listingId'
     | '/admin/'
     | '/admin/impersonation/$sessionId'
+    | '/admin/legal/$versionId'
+    | '/admin/legal/edit'
     | '/admin/listings/$listingId'
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
@@ -806,6 +836,7 @@ export interface FileRouteTypes {
     | '/admin/countries'
     | '/admin/coverage'
     | '/admin/images'
+    | '/admin/legal'
     | '/admin/listings'
     | '/admin/locations'
     | '/admin/places'
@@ -829,6 +860,8 @@ export interface FileRouteTypes {
     | '/post/$listingId'
     | '/admin'
     | '/admin/impersonation/$sessionId'
+    | '/admin/legal/$versionId'
+    | '/admin/legal/edit'
     | '/admin/listings/$listingId'
     | '/admin/roles/$roleId'
     | '/admin/translations/$lang'
@@ -884,6 +917,7 @@ export interface FileRouteTypes {
     | '/admin/countries'
     | '/admin/coverage'
     | '/admin/images'
+    | '/admin/legal'
     | '/admin/listings'
     | '/admin/locations'
     | '/admin/places'
@@ -907,6 +941,8 @@ export interface FileRouteTypes {
     | '/post_/$listingId'
     | '/admin/'
     | '/admin/impersonation_/$sessionId'
+    | '/admin/legal_/$versionId'
+    | '/admin/legal_/edit'
     | '/admin/listings_/$listingId'
     | '/admin/roles_/$roleId'
     | '/admin/translations_/$lang'
@@ -1121,6 +1157,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImagesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/legal': {
+      id: '/admin/legal'
+      path: '/legal'
+      fullPath: '/admin/legal'
+      preLoaderRoute: typeof AdminLegalRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/listings': {
       id: '/admin/listings'
       path: '/listings'
@@ -1273,6 +1316,20 @@ declare module '@tanstack/react-router' {
       path: '/impersonation/$sessionId'
       fullPath: '/admin/impersonation/$sessionId'
       preLoaderRoute: typeof AdminImpersonationSessionIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/legal_/$versionId': {
+      id: '/admin/legal_/$versionId'
+      path: '/legal/$versionId'
+      fullPath: '/admin/legal/$versionId'
+      preLoaderRoute: typeof AdminLegalVersionIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/legal_/edit': {
+      id: '/admin/legal_/edit'
+      path: '/legal/edit'
+      fullPath: '/admin/legal/edit'
+      preLoaderRoute: typeof AdminLegalEditRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/listings_/$listingId': {
@@ -1545,6 +1602,7 @@ interface AdminRouteChildren {
   AdminCountriesRoute: typeof AdminCountriesRoute
   AdminCoverageRoute: typeof AdminCoverageRoute
   AdminImagesRoute: typeof AdminImagesRoute
+  AdminLegalRoute: typeof AdminLegalRoute
   AdminListingsRoute: typeof AdminListingsRoute
   AdminLocationsRoute: typeof AdminLocationsRoute
   AdminPlacesRoute: typeof AdminPlacesRoute
@@ -1554,6 +1612,8 @@ interface AdminRouteChildren {
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminImpersonationSessionIdRoute: typeof AdminImpersonationSessionIdRoute
+  AdminLegalVersionIdRoute: typeof AdminLegalVersionIdRoute
+  AdminLegalEditRoute: typeof AdminLegalEditRoute
   AdminListingsListingIdRoute: typeof AdminListingsListingIdRoute
   AdminRolesRoleIdRoute: typeof AdminRolesRoleIdRoute
   AdminTranslationsLangRoute: typeof AdminTranslationsLangRoute
@@ -1569,6 +1629,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCountriesRoute: AdminCountriesRoute,
   AdminCoverageRoute: AdminCoverageRoute,
   AdminImagesRoute: AdminImagesRoute,
+  AdminLegalRoute: AdminLegalRoute,
   AdminListingsRoute: AdminListingsRoute,
   AdminLocationsRoute: AdminLocationsRoute,
   AdminPlacesRoute: AdminPlacesRoute,
@@ -1578,6 +1639,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminImpersonationSessionIdRoute: AdminImpersonationSessionIdRoute,
+  AdminLegalVersionIdRoute: AdminLegalVersionIdRoute,
+  AdminLegalEditRoute: AdminLegalEditRoute,
   AdminListingsListingIdRoute: AdminListingsListingIdRoute,
   AdminRolesRoleIdRoute: AdminRolesRoleIdRoute,
   AdminTranslationsLangRoute: AdminTranslationsLangRoute,
