@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { MessageKey } from "@/i18n";
-import en from "@/i18n/locales/en";
+import { en } from "@/i18n/locales/en";
 import { ownValue } from "@/lib/own-key";
 
 import { bulkNotice } from "./my-listing";
