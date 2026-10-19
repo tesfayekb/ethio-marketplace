@@ -87,17 +87,22 @@ factor). No role holds any of them: the super admin holds every permission (`has
 - `/admin/legal/edit`: validated kind and country, draft or published-body prefill, bilingual write/preview,
   name and staff-only change log (`legal-field-*`, `legal-tab-*`, `legal-mode-*`, `legal-preview`).
   Save/discard/publish use the existing step-up gate; changed or unsaved drafts cannot publish.
+  The editor form is separate from its data-loading wrapper. Fields lock throughout a save, including
+  step-up; saved feedback is shown only while current values match the submitted snapshot.
+  Publish and discard feedback is carried to the Legal page in validated navigation search.
 - Publishing (`legal-publish-*`): first versions and corrections publish immediately with material false.
   Material changes begin unselected. The earliest choice is the UTC date of now plus the notice days;
   choosing it omits the date so the door uses the precise notice-period instant. Later choices send
   midnight UTC. Published versions are final.
 - `/admin/legal/<version id>` (`legal-version-view`, `legal-view-*`): bilingual text, table of contents,
   staff change log and frozen publishing facts; drafts use current facts and offer permission-gated editing.
+  Status uses the document's full version list, including Replaced.
 - Facts edits send all 13 keys. Integer bounds: liability 0–1,000,000; notice 0–365; response 1–90;
   extra 0–90; deleted ads 1–120 months; disputes 0–20 years. Texts are required except the copyright
   agent; both e-mails are validated. Invalid forms send no request, Cancel restores read-only values.
 - User detail (`user-legal-*`): newest-first acceptances and e-mail notices, named empty/error/loading
-  states, version links only when the viewer holds legal:view.
+  states, version links only when the viewer holds legal:view. Notices show Version n without a
+  version name because the existing history door does not return one.
 
 LegalText renders React nodes only, never HTML: h1–h3, paragraph lines joined by spaces, single-level
 bullet/number lists with indented continuations, trimmed pipe tables, bold, inline code, safe explicit
@@ -106,3 +111,6 @@ commas and unknown tokens stay literal. h2 ids `s-1` onward drive the optional c
 Phone tables scroll within their own box; external links use a new tab and noopener/noreferrer.
 
 Next: turn 3 public Terms and Privacy, the 18+ acceptance at sign-in and the person's legal history.
+
+Tests: LG-1…LG-10 exercise the doors; LGA-1…LGA-7 exercise Admin › Legal and the user card.
+The phone-frame super admin route census includes `/admin/legal`.

@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-22-turn-2-v2.md (bundle 22 — Stage 1, turn 2: Admin › Legal, the user page's Legal card and LegalText; M2). Next: Stage 1's turn 3 — /terms, /privacy, the 18+ acceptance at sign-in and the person's legal history; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-22-turn-2-v2.md (bundle 22 — Stage 1, turn 2: Admin › Legal, the user page's Legal card and LegalText; M2; Ruling 1 — LGA ids and report corrections). Next: Stage 1's turn 3 — /terms, /privacy, the 18+ acceptance at sign-in and the person's legal history; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
