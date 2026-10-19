@@ -3864,9 +3864,7 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
     const probe = page.getByTestId("overflow-probe");
     await expect(probe).toBeVisible();
     const probeText = async () => (await probe.textContent()) ?? "";
-    await expect
-      .poll(async () => (await probeText()).split("\n")[0]?.split(" ").length)
-      .toBe(5);
+    await expect.poll(async () => (await probeText()).split("\n")[0]?.split(" ").length).toBe(5);
     const numbers = (await probeText()).split("\n")[0]?.split(" ") ?? [];
     expect(Number(numbers[0]), `probe screen numbers: ${numbers.join(" ")}`).toBe(360);
     try {
