@@ -681,8 +681,10 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       .getByTestId(`my-listing-${X}-menu`)
       .locator(`[data-testid^="my-listing-${X}-more-"]`)
       .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")));
+    // D224 — Share sits right after Open on a live ad (MLP-8 proves the sheet).
     expect(menuItems).toEqual([
       `my-listing-${X}-more-open`,
+      `my-listing-${X}-more-share`,
       `my-listing-${X}-more-reserve`,
       `my-listing-${X}-more-sell`,
       `my-listing-${X}-more-close`,
