@@ -10,6 +10,7 @@ import {
   NO_FILTERS,
   parseMyListings,
   SEARCH_MAX,
+  shareable,
   totalOf,
 } from "./my-listings";
 import { SOLD_SHOWN_DAYS, visibilityOf } from "./state-line";
