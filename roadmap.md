@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-21-turn-11.md (bundle 21 — turn 11: #1031's reds). Next: bundle 21's Publish and walk, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-21-turn-12.md (bundle 21 — turn 12: the iPhone overflow). Next: the operator's probe on his iPhone, bundle 21's walk, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
