@@ -206,7 +206,6 @@ test.describe("Legal doors", () => {
   test("LG-1 legal_in_force answers the highest published version whose time has come, global and per country, and never the change log", async () => {
     const kind = `${RUN_TAG}-a`;
     const fixture = await seedFixture(kind, null);
-    try {
       // A newer draft and a future-dated published version never outrank the version in force.
       const supabase = adminClient();
       const future = await supabase
@@ -253,9 +252,6 @@ test.describe("Legal doors", () => {
       const countryAnswer = await anon.rpc("legal_in_force", { p_kind: kind, p_country: "ET" });
       expect(countryAnswer.error).toBeNull();
       expect((countryAnswer.data as Row)["version_id"]).toBe(countryDoc.publishedId);
-    } finally {
-      await destroyFixture(fixture);
-    }
   });
 
   test("LG-2 publish and draft refusals: plain user, admin by role, stale second factor, and every content rule", async ({
@@ -266,7 +262,6 @@ test.describe("Legal doors", () => {
     const plain = await leaseUser();
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    try {
       const asPlain = await asPerson(plain);
       const asAdmin = await asPerson(admin);
       const save = {
@@ -356,9 +351,6 @@ test.describe("Legal doors", () => {
         p_material: false,
       });
       expect(again.error, "already published").toContain("notDraft");
-    } finally {
-      await destroyFixture(fixture);
-    }
   });
 
   test("LG-3 finality: a published scratch row refuses updates, deletes only for the service role's cleanup; the draft doors behave", async ({
@@ -367,7 +359,6 @@ test.describe("Legal doors", () => {
     const kind = `${RUN_TAG}-c`;
     const fixture = await seedFixture(kind, null);
     const supabase = adminClient();
-    try {
       const updated = await supabase
         .from("legal_versions")
         .update({ label: "moved" })
@@ -432,16 +423,12 @@ test.describe("Legal doors", () => {
       expect(refusePublished.error, "a published version cannot be discarded").toContain(
         "notDraft",
       );
-    } finally {
-      await destroyFixture(fixture);
-    }
   });
 
   test("LG-4 accept_legal writes the caller's own row with language, adult statement and session method; every refusal named", async () => {
     const kind = `${RUN_TAG}-d`;
     const fixture = await seedFixture(kind, null);
     const person = await leaseUser();
-    try {
       const caller = await asPerson(person);
       const empty = await caller.rpc("accept_legal", {
         p_version_ids: [],
@@ -565,9 +552,6 @@ test.describe("Legal doors", () => {
           false,
         );
       }
-    } finally {
-      await destroyFixture(fixture);
-    }
   });
 
   test("LG-5 my_legal_status lists the version in force until accepted, again after a material version, and scopes country documents to the home country", async () => {
@@ -714,7 +698,6 @@ test.describe("Legal doors", () => {
         const versions = await supabase.from("legal_versions").delete().in("id", extraVersionIds);
         if (versions.error) throw versions.error;
       })();
-      await destroyFixture(fixture);
     }
   });
 
@@ -785,7 +768,6 @@ test.describe("Legal doors", () => {
     const person = await leaseUser();
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    try {
       const caller = await asPerson(person);
       await caller.rpc("accept_legal", {
         p_version_ids: [fixture.publishedId],
@@ -855,9 +837,6 @@ test.describe("Legal doors", () => {
       const adminHistory = await asAdmin.rpc("admin_user_legal_history", { p_user_id: person.id });
       // The admin role holds profiles:view, so it sees the history (the door's own permission, D5).
       expect(adminHistory.error).toBeNull();
-    } finally {
-      await destroyFixture(fixture);
-    }
   });
 
   test("LG-8 my_legal_history and my_legal_version: the caller's own rows only; an accepted version stays readable after it is replaced", async () => {
@@ -866,7 +845,6 @@ test.describe("Legal doors", () => {
     const other = await seedFixture(`${RUN_TAG}-h`, null);
     const person = await leaseUser();
     const bystander = await leaseUser();
-    try {
       const caller = await asPerson(person);
       await caller.rpc("accept_legal", {
         p_version_ids: [fixture.publishedId],
@@ -944,10 +922,6 @@ test.describe("Legal doors", () => {
       other.draftId = future.data.id as string;
       const notYours = await otherCaller.rpc("my_legal_version", { p_version_id: other.draftId });
       expect(notYours.error).toContain("notYours");
-    } finally {
-      await destroyFixture(fixture);
-      await destroyFixture(other);
-    }
   });
 
   test("LG-9 the staff reads: admin_legal_documents and admin_legal_version refuse every lesser caller; the super admin reads a scratch version whole, its change log included", async ({
@@ -957,7 +931,6 @@ test.describe("Legal doors", () => {
     const plain = await leaseUser();
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    try {
       // Service execution has no person's JWT: exercise the missing-caller gate,
       // without granting anonymous callers access to either staff function.
       const missingList = await adminClient().rpc("admin_legal_documents");
@@ -1004,9 +977,6 @@ test.describe("Legal doors", () => {
       const list = await staff.rpc("admin_legal_documents");
       expect(list.error).toBeNull();
       expect(Array.isArray(list.data)).toBe(true);
-    } finally {
-      await destroyFixture(fixture);
-    }
   });
   test("LG-10 admin_legal_documents lists a scratch document with each version's publisher and acceptance count, newest version first, after the real kinds", async ({
     page,
@@ -1014,7 +984,6 @@ test.describe("Legal doors", () => {
     const kind = `${RUN_TAG}-j`;
     const fixture = await seedFixture(kind, null);
     const person = await leaseUser();
-    try {
       const job = await useJobSuperAdmin(page);
       const staff = await asToken(await superAdminToken(page));
       const saved = await staff.rpc("admin_save_legal_draft", {
@@ -1062,9 +1031,6 @@ test.describe("Legal doors", () => {
         if (["terms", "privacy", "publishing"].includes(docKind))
           expect(scratchSeen, "real kind before scratch kinds").toBe(false);
       }
-    } finally {
-      await destroyFixture(fixture);
-    }
   });
 
   test("LG-11 accept_legal and the consent: a Privacy Policy version needs the storage consent; the histories show it and a notice's version name", async ({
@@ -1073,7 +1039,6 @@ test.describe("Legal doors", () => {
     const terms = await seedFixture(`${RUN_TAG}-k-terms`, null);
     const privacy = await seedFixture(`${RUN_TAG}-k-privacy`, null);
     const person = await leaseUser();
-    try {
       const caller = await asPerson(person);
       const both = [terms.publishedId, privacy.publishedId];
       const withoutConsent = await caller.rpc("accept_legal", {
@@ -1136,10 +1101,6 @@ test.describe("Legal doors", () => {
         const notice = notices.find((n) => n["version_id"] === terms.publishedId);
         expect(notice?.["label"], `${who}: the notice names its version`).toBe("v1");
       }
-    } finally {
-      await destroyFixture(terms);
-      await destroyFixture(privacy);
-    }
   });
 
   test("LG-12 the frozen facts and legal_scheduled: the version in force and the one ahead of its date, each with its own facts and never the change log", async () => {
@@ -1148,7 +1109,6 @@ test.describe("Legal doors", () => {
       legal_email: "frozen-one@example.invalid",
     });
     const person = await leaseUser();
-    try {
       const supabase = adminClient();
       const ahead = await supabase
         .from("legal_versions")
@@ -1196,9 +1156,6 @@ test.describe("Legal doors", () => {
       expect((own.data as Row)["settings_snapshot"]).toEqual({
         legal_email: "frozen-one@example.invalid",
       });
-    } finally {
-      await destroyFixture(fixture);
-    }
   });
 
   test("LG-13 the new facts' refusals: phone, security e-mail and the three periods, each named; the row is never written", async ({
@@ -1250,7 +1207,6 @@ test.describe("Legal doors", () => {
       );
     const kind = `${RUN_TAG}-n`;
     const fixture = await seedFixture(kind, null);
-    try {
       await useJobSuperAdmin(page);
       const staff = await asToken(await superAdminToken(page));
       const saved = await staff.rpc("admin_save_legal_draft", {
@@ -1282,8 +1238,5 @@ test.describe("Legal doors", () => {
         .eq("id", id);
       expect(toFilled.error).toBeNull();
       expect((await publish()).error, "a filled fact publishes").toBeNull();
-    } finally {
-      await destroyFixture(fixture);
-    }
   });
 });
