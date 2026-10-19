@@ -190,6 +190,22 @@ async function handlePost(request: Request): Promise<Response> {
   const replacesField = form.get("replaces");
   const replaces = typeof replacesField === "string" ? replacesField.trim() : "";
   if (replacesField !== null && !UUID.test(replaces)) return refusal("replaces", "badValue");
+  const certifiedField = form.get("certified");
+  const certified =
+    typeof certifiedField === "string" && certifiedField !== "" ? certifiedField.split(",") : [];
+  if (
+    certifiedField !== null &&
+    (typeof certifiedField !== "string" ||
+      certified.length > 20 ||
+      certified.some((id) => !UUID.test(id)))
+  ) {
+    return refusal("certified", "badValue");
+  }
+  const languageField = form.get("language");
+  if (languageField !== null && (typeof languageField !== "string" || languageField.length > 10)) {
+    return refusal("language", "badValue");
+  }
+  const language = typeof languageField === "string" ? languageField : undefined;
 
   // 3 — ownership, as the caller: `listings_seller_read` is the authority (F3).
   const { data: listing, error: listingError } = await supabase
@@ -212,6 +228,46 @@ async function handlePost(request: Request): Promise<Response> {
       { ok: false, refusals: [{ field: "status", reason: "listingNotOpenForPhotos" }] },
       409,
     );
+  }
+
+  if (listing.status !== "draft") {
+    const { data, error, status } = await supabase.rpc("my_listing_certification", {
+      p_listing_id: listingId,
+    });
+    if (error) {
+      if (upstreamFailed(error, status))
+        return upstreamUnavailable(PATH, "my_listing_certification", status);
+      logRouteError(PATH, `my_listing_certification: ${error.message}`);
+      return routeJson({ error: "server error" }, 500);
+    }
+    if (data === null || typeof data !== "object" || Array.isArray(data)) {
+      logRouteError(PATH, "my_listing_certification: invalid answer");
+      return routeJson({ error: "server error" }, 500);
+    }
+    const answer = data as Record<string, unknown>;
+    if (answer["acceptance_pending"] === true) {
+      return routeJson(
+        { ok: false, refusals: [{ field: "legal", reason: "acceptanceRequired" }] },
+        409,
+      );
+    }
+    const statements = answer["statements"];
+    if (
+      !Array.isArray(statements) ||
+      statements.some(
+        (row) => row === null || typeof row !== "object" || typeof row["version_id"] !== "string",
+      )
+    ) {
+      logRouteError(PATH, "my_listing_certification: invalid statements");
+      return routeJson({ error: "server error" }, 500);
+    }
+    const expected = statements.map((row) => row["version_id"] as string).sort();
+    if (JSON.stringify(expected) !== JSON.stringify([...certified].sort())) {
+      return routeJson(
+        { ok: false, refusals: [{ field: "legal", reason: "certificationRequired" }] },
+        409,
+      );
+    }
   }
 
   // Bundle 16 turn S2 (D185, the operator 2026-10-15) — photos added to drafts by a
@@ -456,6 +512,12 @@ async function handlePost(request: Request): Promise<Response> {
       p_warnings: warnings,
       // Bundle 16 turn 4a (D178) — why the photo is hidden, for a person to decide.
       ...(review === null ? {} : { p_review: review }),
+      ...(listing.status === "draft"
+        ? {}
+        : {
+            ...(certifiedField === null ? {} : { p_certified: certified }),
+            ...(language === undefined ? {} : { p_language: language }),
+          }),
     };
     // D154 B2 — an edit takes the old photo's place in one transaction.
     const door = replaced === null ? "register_listing_photo" : "replace_listing_photo";

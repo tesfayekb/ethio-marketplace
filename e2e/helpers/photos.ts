@@ -94,6 +94,8 @@ export async function uploadPhoto(
     thumb?: { name: FixtureName; as?: string };
     /** D154 B2 — the stored photo this upload replaces (an edit); absent, a new photo. */
     replaces?: string;
+    certified?: string[];
+    language?: string;
   },
 ): Promise<UploadAnswer> {
   const headers: Record<string, string> = {};
@@ -107,6 +109,8 @@ export async function uploadPhoto(
       card: part((options.card ?? small).name, (options.card ?? small).as),
       thumb: part((options.thumb ?? small).name, (options.thumb ?? small).as),
       ...(options.replaces === undefined ? {} : { replaces: options.replaces }),
+      ...(options.certified === undefined ? {} : { certified: options.certified.join(",") }),
+      ...(options.language === undefined ? {} : { language: options.language }),
     },
   });
   let payload: Record<string, unknown> = {};

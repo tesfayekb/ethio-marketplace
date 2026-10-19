@@ -82,7 +82,7 @@ export function CertifyBlock({
   return (
     <section data-testid="certify-block" className="space-y-3">
       <h3 className="text-base font-semibold text-foreground">{t("legal.certify.title")}</h3>
-      <p className="text-sm text-muted-foreground">{t("legal.certify.lead")}</p>
+      <p className="text-sm text-muted-foreground">{t("legal.certify.leadOnce")}</p>
       {statements.map((s) => (
         <div
           key={s.version_id}

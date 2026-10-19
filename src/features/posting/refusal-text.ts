@@ -103,6 +103,8 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
 };
 
 const PHOTO_REASONS: Record<string, MessageKey> = {
+  certificationRequired: "legal.certify.photosWait",
+  acceptanceRequired: "legal.certify.photosWait",
   nudity: "post.photo.refusal.nudity",
   violence: "post.photo.refusal.violence",
   weapon: "post.photo.refusal.weapon",

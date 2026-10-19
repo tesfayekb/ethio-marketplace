@@ -1,3 +1,6 @@
+import { useNavigate } from "@tanstack/react-router";
+import type { Certification } from "@/features/my-listings/my-listing";
+import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { AlertTriangle, ChevronLeft, ChevronRight, Crop, Eraser, EyeOff } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
@@ -92,6 +95,8 @@ export function StepPhotos({
   maxPhotos,
   onHeldChange,
   onSendingChange,
+  certification,
+  waitForStatement = false,
 }: {
   listingId: string | null;
   photos: DraftPhotoRow[];
@@ -118,8 +123,11 @@ export function StepPhotos({
    * leaving the step.
    */
   onSendingChange?: (count: number) => void;
+  certification?: Certification;
+  waitForStatement?: boolean;
 }) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   /** The one dial, for this render: the plan's number, or no cap of our own. */
   const MAX_PHOTOS = maxPhotos ?? NO_CAP;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -221,6 +229,8 @@ export function StepPhotos({
         (percent) => {
           if (aliveRef.current) patchItem(localId, { percent });
         },
+        undefined,
+        certification,
       );
       // INC-596 — removed while it was on its way: a photo the server stored is
       // deleted now, whether or not the step is still open. A failed delete is
@@ -259,13 +269,14 @@ export function StepPhotos({
         return;
       }
 
+      certifyRefusal(answer.refusals[0]?.reason ?? "", navigate);
       // A verdict. Final by definition — the tile stops here (PP-10).
       patchItem(localId, {
         state: "refused",
         refusalKey: photoRefusalKey(answer.refusals[0]?.reason ?? ""),
       });
     },
-    [listingId, onChanged, patchItem],
+    [listingId, onChanged, patchItem, certification, navigate],
   );
 
   /** Sequential, deliberately: parallel uploads on 2G starve each other. */
@@ -427,6 +438,10 @@ export function StepPhotos({
         picture.close();
         return "post.photos.couldNotSend";
       }
+      if (waitForStatement) {
+        picture.close();
+        return "legal.certify.photosWait";
+      }
       setEditSaving(true);
       setRowBusy((prev) => new Set(prev).add(photoId));
       try {
@@ -442,6 +457,7 @@ export function StepPhotos({
           encoded.extension,
           undefined,
           photoId,
+          certification,
         );
         if (answer.ok) {
           // The old photo's tile from this visit leaves with it.
@@ -462,6 +478,7 @@ export function StepPhotos({
           return null;
         }
         if (answer.unreachable) return "post.photos.couldNotSend";
+        certifyRefusal(answer.refusals[0]?.reason ?? "", navigate);
         return photoRefusalKey(answer.refusals[0]?.reason ?? "");
       } finally {
         if (aliveRef.current) {
@@ -474,7 +491,7 @@ export function StepPhotos({
         }
       }
     },
-    [listingId, onChanged],
+    [listingId, onChanged, waitForStatement, certification, navigate],
   );
 
   const stored = items.filter((item) => item.state === "stored").length;
@@ -938,11 +955,16 @@ export function StepPhotos({
           type="button"
           data-testid="post-photos-add"
           className={addButtonClass}
-          disabled={busy || listingId === null || total >= MAX_PHOTOS}
+          disabled={waitForStatement || busy || listingId === null || total >= MAX_PHOTOS}
           onClick={() => inputRef.current?.click()}
         >
           {t("post.photos.add")}
         </button>
+        {waitForStatement ? (
+          <p className="text-xs text-muted-foreground" data-testid="post-photos-certify-wait">
+            {t("legal.certify.photosWait")}
+          </p>
+        ) : null}
         {/* U6-C1-R2 — ONE helper line, and no second button: `validate_listing_draft`
             step 2 asks for nothing, so plain `Next` already moves a seller on with
             no photos and the category illustration stands in for them. */}

@@ -1,3 +1,4 @@
+import { photoRowsOf, reasons, uploadPhoto } from "./helpers/photos";
 import { type Page } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
@@ -17,7 +18,7 @@ import {
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
-import { adminClient } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * Bundle 22 (Stage 1), turn 4 — THE PUBLISHING STATEMENT AND ITS CERTIFICATION (LG-15..LG-18, LGC-1..LGC-3).
@@ -148,6 +149,36 @@ async function seedDocument(s: Scratch, kind: string, country: string | null, bo
     throw new Error(`[e2e:certify] version seed: ${version.error?.message}`);
   s.versions.push(version.data.id as string);
   return { id: version.data.id as string, label: version.data.label as string };
+}
+
+async function assertRevealCleanup(error: { message: string } | null) {
+  if (error) throw new Error(`[e2e:certify] reveal cleanup: ${error.message}`);
+}
+
+/** LG-21 — a new in-force version of this test's own document. */
+async function seedSecondVersion(s: Scratch, documentId: string, body: string) {
+  const version = await adminClient()
+    .from("legal_versions")
+    .insert({
+      document_id: documentId,
+      version: 2,
+      status: "published",
+      label: `e2e ${rand()}`,
+      body_en: body,
+      body_am: body,
+      changelog: "second version",
+      material: false,
+      effective_at: new Date(Date.now() - 60_000).toISOString(),
+      published_at: new Date(Date.now() - 60_000).toISOString(),
+      settings_snapshot: {},
+    })
+    .select("id")
+    .single();
+  if (version.error || !version.data)
+    throw new Error(`[e2e:certify] version two seed: ${version.error?.message}`);
+  const id = String((version.data as Row)["id"]);
+  s.versions.push(id);
+  return id;
 }
 
 /** A named, ET-confirmed seller signed in on the page, with a scratch category. */
@@ -543,6 +574,175 @@ test.describe("Legal certification", () => {
       await expect.poll(() => statusOf(a), { timeout: 20_000 }).toBe("expired");
       expect(await certificationsOf(a)).toHaveLength(0);
       expect(await certificationsOf(b)).toHaveLength(0);
+    } finally {
+      await destroy(s);
+    }
+  });
+  test("LG-19 a photo added to a published ad needs the certification; a draft's photo does not", async ({
+    page,
+  }) => {
+    const s = scratch();
+    try {
+      const { categoryId, cityId } = await sellerOnPage(page, s);
+      const a = await draftOf(page, s, categoryId, cityId);
+      const token = await bearerOf(page);
+      const published = await postRoute(page, PUBLISH, { listingId: a }, { token, country: "ET" });
+      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+      await makeState(a, "active");
+      const statement = await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement");
+      const bare = await uploadPhoto(page, { listingId: a, token, cover: { name: "gps.jpg" } });
+      expect(bare.status).toBe(409);
+      expect(reasons(bare.payload)).toEqual([{ field: "legal", reason: "certificationRequired" }]);
+      expect(await photoRowsOf(a)).toHaveLength(0);
+      const accepted = await uploadPhoto(page, {
+        listingId: a,
+        token,
+        cover: { name: "gps.jpg" },
+        certified: [statement.id],
+        language: "en",
+      });
+      expect(accepted.payload["ok"], JSON.stringify(accepted.payload)).toBe(true);
+      expect(await photoRowsOf(a)).toHaveLength(1);
+      expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["edit"]);
+      const b = await draftOf(page, s, categoryId, cityId);
+      await seedDocument(s, `e2e-pub-${hex(b)}`, null, "Draft statement");
+      const draftPhoto = await uploadPhoto(page, {
+        listingId: b,
+        token,
+        cover: { name: "gps.jpg" },
+      });
+      expect(draftPhoto.payload["ok"], JSON.stringify(draftPhoto.payload)).toBe(true);
+      expect(await photoRowsOf(b)).toHaveLength(1);
+      expect(await certificationsOf(b)).toHaveLength(0);
+    } finally {
+      await destroy(s);
+    }
+  });
+
+  test("LG-20 the contact reveal answers acceptanceRequired to a viewer who owes an acceptance; the owner still sees his own", async ({
+    page,
+  }) => {
+    const s = scratch();
+    let buyerId: string | undefined;
+    let listingId: string | undefined;
+    try {
+      const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+      listingId = await draftOf(page, s, categoryId, cityId);
+      const token = await bearerOf(page);
+      const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+      await makeState(listingId, "active");
+      const stored = await adminClient()
+        .from("listings")
+        .update({ contact_pref: { phone: { show: true, value: "+251911000001" } } })
+        .eq("id", listingId)
+        .select("public_id")
+        .single();
+      if (stored.error || !stored.data)
+        throw new Error(`[e2e:certify] contact seed: ${stored.error?.message}`);
+      const args = { p_public_id: String((stored.data as Row)["public_id"]) };
+      const buyerPerson = await leaseUser();
+      buyerId = buyerPerson.id;
+      const buyer = await asPerson(buyerPerson);
+      const first = await buyer.rpc("reveal_listing_contact", args);
+      expect(first.error).toBeNull();
+      expect((first.data as Row)["ok"]).toBe(true);
+      await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
+      const refused = await buyer.rpc("reveal_listing_contact", args);
+      expect(refused.error).toBeNull();
+      expect(refused.data).toEqual({ ok: false, reason: "acceptanceRequired" });
+      const owner = await (await asPerson(seller)).rpc("reveal_listing_contact", args);
+      expect(owner.error).toBeNull();
+      expect((owner.data as Row)["ok"]).toBe(true);
+    } finally {
+      try {
+        if (buyerId && listingId) {
+          const { error } = await adminClient()
+            .from("contact_reveals")
+            .delete()
+            .eq("viewer_id", buyerId)
+            .eq("listing_id", listingId);
+          await assertRevealCleanup(error);
+        }
+      } finally {
+        await destroy(s);
+      }
+    }
+  });
+
+  test("LG-21 the statement is certified once per ad: edits, renewals and photos ask again only for a new version", async ({
+    page,
+  }) => {
+    const s = scratch();
+    try {
+      const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+      const a = await draftOf(page, s, categoryId, cityId);
+      const v1 = await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement one");
+      const documentId = s.documents.at(-1);
+      if (!documentId) throw new Error("[e2e:certify] missing scratch document");
+      const token = await bearerOf(page);
+      const published = await postRoute(
+        page,
+        PUBLISH,
+        { listingId: a, certified: [v1.id], language: "en" },
+        { token, country: "ET" },
+      );
+      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+      expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish"]);
+      await makeState(a, "active");
+      const me = await asPerson(seller);
+      const read = await me.rpc("my_listing_certification", { p_listing_id: a });
+      expect(read.error).toBeNull();
+      expect((read.data as { statements: Row[] }).statements).toEqual([]);
+      const edited = await me.rpc("edit_my_listing", {
+        p_listing_id: a,
+        p_changes: { title: `e2e once ${rand()}` },
+      });
+      expect(edited.error, JSON.stringify(edited)).toBeNull();
+      expect((edited.data as Row)["ok"]).toBe(true);
+      expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish"]);
+      const v2 = await seedSecondVersion(s, documentId, "Statement two");
+      const changed = await me.rpc("my_listing_certification", { p_listing_id: a });
+      expect(changed.error).toBeNull();
+      expect(
+        (changed.data as { statements: Row[] }).statements.map((row) => row["version_id"]),
+      ).toEqual([v2]);
+      const changes = { title: `e2e once changed ${rand()}` };
+      const bare = await me.rpc("edit_my_listing", { p_listing_id: a, p_changes: changes });
+      expect(bare.error).toContain("certificationRequired");
+      const certified = await me.rpc("edit_my_listing", {
+        p_listing_id: a,
+        p_changes: changes,
+        p_certified: [v2],
+        p_language: "en",
+      });
+      expect(certified.error, JSON.stringify(certified)).toBeNull();
+      expect((certified.data as Row)["ok"]).toBe(true);
+      expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish", "edit"]);
+    } finally {
+      await destroy(s);
+    }
+  });
+
+  test("LGC-5 the photos step of a seller's edit waits for the statement", async ({ page }) => {
+    const s = scratch();
+    try {
+      const { categoryId, cityId } = await sellerOnPage(page, s);
+      const a = await draftOf(page, s, categoryId, cityId);
+      const token = await bearerOf(page);
+      const published = await postRoute(page, PUBLISH, { listingId: a }, { token, country: "ET" });
+      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+      await makeState(a, "active");
+      await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement");
+      await gotoReady(page, `/my-listings/${a}/edit`);
+      await expect(page.getByTestId("post-review")).toBeVisible();
+      await page.locator('[data-testid="post-review-edit"][data-step="2"]').click();
+      await expect(page.getByTestId("post-step-2")).toBeVisible();
+      await expect(page.getByTestId("post-photos-add")).toBeDisabled();
+      await expect(page.getByTestId("post-photos-certify-wait")).toBeVisible();
+      await page.getByTestId("certify-tick").click();
+      await expect(page.getByTestId("post-photos-add")).toBeEnabled();
+      await expect(page.getByTestId("post-photos-certify-wait")).toHaveCount(0);
     } finally {
       await destroy(s);
     }

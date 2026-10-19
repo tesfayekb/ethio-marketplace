@@ -53,3 +53,14 @@ describe("revealContact's parser (bundle 19 turn 11)", () => {
     expect(await revealContact("abc")).toEqual({ ok: false, reason: "failed" });
   });
 });
+
+describe("contact acceptance (bundle 22 turn 6)", () => {
+  it("passes acceptanceRequired through", async () => {
+    rpc.mockResolvedValueOnce({ data: { ok: false, reason: "acceptanceRequired" }, error: null });
+    expect(await revealContact("abc")).toEqual({ ok: false, reason: "acceptanceRequired" });
+  });
+  it("still refuses an unknown reason as failed", async () => {
+    rpc.mockResolvedValueOnce({ data: { ok: false, reason: "unknown" }, error: null });
+    expect(await revealContact("abc")).toEqual({ ok: false, reason: "failed" });
+  });
+});

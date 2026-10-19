@@ -8,7 +8,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-import { call, SAVE_TIMEOUT_MS, shapePostingSchema } from "./posting-service";
+import { call, SAVE_TIMEOUT_MS, shapePostingSchema, uploadPhoto } from "./posting-service";
 
 let afterEachRestore: () => void = () => {};
 
@@ -109,5 +109,46 @@ describe("the publish route's certification (bundle 22 turn 4)", () => {
       certified: [ID],
       language: "en",
     });
+  });
+});
+
+describe("photo upload certification (bundle 22 turn 6)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const ids = ["0b9a6c1e-2f3d-4e5a-8b7c-9d0e1f2a3b4c", "1b9a6c1e-2f3d-4e5a-8b7c-9d0e1f2a3b4c"];
+  async function sent(certification?: { certified: string[]; language: string }) {
+    let body: FormData | undefined;
+    class RequestDouble {
+      upload = {};
+      status = 200;
+      responseText = '{"ok":true}';
+      onload?: () => void;
+      open() {}
+      setRequestHeader() {}
+      send(form: FormData) {
+        body = form;
+        this.onload?.();
+      }
+    }
+    vi.stubGlobal("XMLHttpRequest", RequestDouble);
+    const image = new Blob(["photo"]);
+    await uploadPhoto(
+      "listing",
+      { cover: image, mid: image, card: image, thumb: image },
+      "jpg",
+      undefined,
+      undefined,
+      certification,
+    );
+    return body;
+  }
+  it("sends the exact version ids joined by commas and language when given", async () => {
+    const form = await sent({ certified: ids, language: "en" });
+    expect(form?.get("certified")).toBe(ids.join(","));
+    expect(form?.get("language")).toBe("en");
+  });
+  it("omits both fields without certification", async () => {
+    const form = await sent();
+    expect(form?.has("certified")).toBe(false);
+    expect(form?.has("language")).toBe(false);
   });
 });

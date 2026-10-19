@@ -3082,12 +3082,13 @@ export const en = {
   "legal.accept.changed": "The documents have just changed. Please read them again.",
   "legal.accept.loadError": "The documents could not be loaded.",
   "legal.certify.title": "Your statement",
-  "legal.certify.lead":
-    "Read the statement below. You confirm it each time you publish, edit or renew an ad.",
+  "legal.certify.leadOnce":
+    "Read the statement below. You confirm it once for this ad, and again only if it changes.",
   "legal.certify.forCountry": "For {country}",
   "legal.certify.tick": "I certify the above.",
   "legal.certify.changed": "The statement has just changed. Read it and tick again.",
   "legal.certify.loadError": "The statement could not be loaded. Try again.",
+  "legal.certify.photosWait": "Tick the statement below before you add or change a photo.",
   "admin.section.legal.title": "Legal",
   "admin.section.legal.body":
     "Terms, Privacy and the publishing statement in named versions, final once published, and the facts they quote.",
