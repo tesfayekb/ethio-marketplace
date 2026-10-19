@@ -1012,29 +1012,32 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       const started = Date.now();
       let stillSince = started;
       let previousY = await page.evaluate(() => window.scrollY);
-      while (Date.now() - stillSince < 300) {
       const samples: { elapsed: number; current: (string | null)[] }[] = [];
       await expect
-        .poll(async () => {
-          const sample = await bar.evaluate((nav) => ({
-            y: window.scrollY,
-            current: Array.from(nav.querySelectorAll('[data-testid="listing-section-nav-item"]'))
-              .filter((item) => item.getAttribute("aria-current") === "true")
-              .map((item) => item.getAttribute("data-target")),
-          }));
-          const now = Date.now();
-          samples.push({ elapsed: now - started, current: sample.current });
-          if (sample.y !== previousY) {
-            previousY = sample.y;
-            stillSince = now;
-          }
-          return now - stillSince >= 300;
-        }, { intervals: [50] })
+        .poll(
+          async () => {
+            const sample = await bar.evaluate((nav) => ({
+              y: window.scrollY,
+              current: Array.from(nav.querySelectorAll('[data-testid="listing-section-nav-item"]'))
+                .filter((item) => item.getAttribute("aria-current") === "true")
+                .map((item) => item.getAttribute("data-target")),
+            }));
+            const now = Date.now();
+            samples.push({ elapsed: now - started, current: sample.current });
+            if (sample.y !== previousY) {
+              previousY = sample.y;
+              stillSince = now;
+            }
+            return now - stillSince >= 300;
+          },
+          { intervals: [50] },
+        )
         .toBe(true);
       for (const sample of samples) {
-        expect(sample.current,
-          `AP-37 ${target} at ${sample.elapsed} ms: current ${sample.current.join(",") || "none"}`)
-          .toEqual([target]);
+        expect(
+          sample.current,
+          `AP-37 ${target} at ${sample.elapsed} ms: current ${sample.current.join(",") || "none"}`,
+        ).toEqual([target]);
       }
     };
     const sellerItem = bar.locator('[data-target="seller"]');
