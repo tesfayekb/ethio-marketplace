@@ -1259,17 +1259,24 @@ test.describe("mobile chrome", () => {
       [field.x + 4, field.y + field.height / 2],
     );
     expect(hit, "SR-1 the strip covers the field's start").toBe("search-input");
-    expect(await input.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
+    expect(
+      await input.evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
+    ).toBeGreaterThanOrEqual(16);
     await expect(trail).toBeVisible();
     const trailBox = await trail.boundingBox();
     if (trailBox === null) throw new Error("SR-1 trail missing while search open");
     expect(trailBox.y).toBeGreaterThanOrEqual(row.y + row.height - 1);
-    expect(await trail.evaluate((el) => {
-      const crumb = el.querySelector("li");
-      if (crumb === null) return false;
-      const box = crumb.getBoundingClientRect();
-      return el.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
-    }), "SR-1 search covers the first crumb").toBe(true);
+    expect(
+      await trail.evaluate((el) => {
+        const crumb = el.querySelector("li");
+        if (crumb === null) return false;
+        const box = crumb.getBoundingClientRect();
+        return el.contains(
+          document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2),
+        );
+      }),
+      "SR-1 search covers the first crumb",
+    ).toBe(true);
     await expectNoHorizontalOverflow(page);
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("search-row")).toHaveCount(0);
@@ -2424,11 +2431,16 @@ test.describe("L4b location picker", () => {
       await page.getByTestId("location-level-country").click();
       await page.getByRole("menuitem", { name: en["location.anyArea"], exact: true }).click();
       const everywhere = async () => {
-        await expect.poll(() => page.evaluate(() => document.cookie), { timeout: 5000 }).toMatch(/ethio_area=everywhere:\d+/);
+        await expect
+          .poll(() => page.evaluate(() => document.cookie), { timeout: 5000 })
+          .toMatch(/ethio_area=everywhere:\d+/);
         expect(await page.evaluate(() => document.cookie)).not.toContain("ethio_area=ET:");
         await expect(page.getByTestId("location-level-country")).toHaveText(en["location.country"]);
         await expect(page.getByTestId("location-level-region")).toHaveCount(0);
-        await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
+        await expect(page.getByTestId("location-row")).toHaveAttribute(
+          "data-area-source",
+          "chosen",
+        );
       };
       await everywhere();
       await page.reload({ waitUntil: "domcontentloaded" });
@@ -2449,7 +2461,9 @@ test.describe("L4b location picker", () => {
     const everywhere = async () => {
       await expect(page.getByTestId("location-level-country")).toHaveText(en["location.country"]);
       await expect(page.getByTestId("location-level-region")).toHaveCount(0);
-      await expect(page.getByRole("heading", { name: en["nav.allListings"], exact: true })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: en["nav.allListings"], exact: true }),
+      ).toBeVisible();
       await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
     };
     await everywhere();
@@ -3567,7 +3581,7 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
             window as unknown as {
               __peek: {
                 shows: number;
-        shownAt: number | null;
+                shownAt: number | null;
                 focusedAtShow: boolean | null;
                 focusedLater: boolean | null;
                 goneAt: number | null;
@@ -3591,27 +3605,39 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     const record = await readRecord();
     expect(record.focusedAtShow, "the peek took focus when it showed").toBe(false);
     expect(record.focusedLater, "the peek took focus after it showed").toBe(false);
-    if (record.goneAt === null || record.shownAt === null) throw new Error("PK-1 incomplete first peek");
+    if (record.goneAt === null || record.shownAt === null)
+      throw new Error("PK-1 incomplete first peek");
     expect(record.goneAt - record.shownAt).toBeLessThanOrEqual(5000);
     expect(record.shows).toBe(1);
     expect(await page.evaluate(() => sessionStorage.getItem("ethio.peek"))).toBe("force");
     await page.reload();
     await waitForHydration(page);
     await expect.poll(async () => (await readRecord()).shows, { timeout: 5000 }).toBe(1);
-    await expect.poll(async () => (await readRecord()).goneAt !== null, { timeout: 5000 }).toBe(true);
+    await expect
+      .poll(async () => (await readRecord()).goneAt !== null, { timeout: 5000 })
+      .toBe(true);
     const reloaded = await readRecord();
     expect(reloaded.focusedAtShow).toBe(false);
     expect(reloaded.focusedLater).toBe(false);
-    if (reloaded.goneAt === null || reloaded.shownAt === null) throw new Error("PK-1 incomplete reloaded peek");
+    if (reloaded.goneAt === null || reloaded.shownAt === null)
+      throw new Error("PK-1 incomplete reloaded peek");
     expect(reloaded.goneAt - reloaded.shownAt).toBeLessThanOrEqual(5000);
-    await page.locator('[data-testid="shell-subband"] [data-testid="breadcrumbs"]').getByRole("link", { name: en["nav.home"], exact: true }).click();
+    await page
+      .locator('[data-testid="shell-subband"] [data-testid="breadcrumbs"]')
+      .getByRole("link", { name: en["nav.home"], exact: true })
+      .click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator("html")).toHaveAttribute("data-app-ready", "1");
     const readyAt = Date.now();
-    await expect.poll(async () => {
-      if ((await readRecord()).shows !== 1) return "shown";
-      return Date.now() - readyAt >= 4000 ? "held" : "waiting";
-    }, { timeout: 6000, intervals: [250], message: "the peek repeated on in-app navigation" }).toBe("held");
+    await expect
+      .poll(
+        async () => {
+          if ((await readRecord()).shows !== 1) return "shown";
+          return Date.now() - readyAt >= 4000 ? "held" : "waiting";
+        },
+        { timeout: 6000, intervals: [250], message: "the peek repeated on in-app navigation" },
+      )
+      .toBe("held");
   });
 });
 
@@ -3893,13 +3919,21 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
   test("FF-1 every text field is at least 16 px on a phone", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile-360");
     const sweep = async (path: string) => {
-      const fields = page.locator('input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"], [type="button"], [type="submit"], [type="reset"], [type="image"]), textarea, select');
+      const fields = page.locator(
+        'input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"], [type="button"], [type="submit"], [type="reset"], [type="image"]), textarea, select',
+      );
       let visible = 0;
       for (const field of await fields.all()) {
         if (!(await field.isVisible())) continue;
         visible += 1;
-        const measured = await field.evaluate((el) => ({ name: el.getAttribute("data-testid") ?? el.getAttribute("name") ?? el.tagName, size: parseFloat(getComputedStyle(el).fontSize) }));
-        expect(measured.size, `${path}: ${measured.name}: ${measured.size}px`).toBeGreaterThanOrEqual(16);
+        const measured = await field.evaluate((el) => ({
+          name: el.getAttribute("data-testid") ?? el.getAttribute("name") ?? el.tagName,
+          size: parseFloat(getComputedStyle(el).fontSize),
+        }));
+        expect(
+          measured.size,
+          `${path}: ${measured.name}: ${measured.size}px`,
+        ).toBeGreaterThanOrEqual(16);
       }
       expect(visible, `${path}: no visible fields reached`).toBeGreaterThan(0);
     };

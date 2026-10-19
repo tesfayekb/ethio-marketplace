@@ -176,7 +176,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     [areaCookieRaw, deriveTick],
   );
   const everywhere = useMemo(
-    () => deriveTick === 0 ? (parseEverywhere(areaCookieRaw) ?? readEverywhere()) : readEverywhere(),
+    () =>
+      deriveTick === 0 ? (parseEverywhere(areaCookieRaw) ?? readEverywhere()) : readEverywhere(),
     [areaCookieRaw, deriveTick],
   );
   const { markets, isLoading: marketsLoading } = useOpenMarkets();

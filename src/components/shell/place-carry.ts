@@ -65,13 +65,18 @@ export type Carry =
  * everywhere choice clears the account place; without a usable account place
  * it does nothing. An equal or newer account place still applies.
  */
-export function chooseCarry(device: SavedArea | { at: number } | null, account: AccountPlace | null): Carry {
+export function chooseCarry(
+  device: SavedArea | { at: number } | null,
+  account: AccountPlace | null,
+): Carry {
   const usable = account !== null && account.usable ? account : null;
   if (usable !== null) {
     const fromAccount = { country: usable.country, id: usable.id, at: usable.at };
     if (device === null) return { kind: "apply", ...fromAccount };
     if (!("id" in device)) {
-      return usable.at >= device.at ? { kind: "apply", ...fromAccount } : { kind: "upload", id: null };
+      return usable.at >= device.at
+        ? { kind: "apply", ...fromAccount }
+        : { kind: "upload", id: null };
     }
     if (device.id === usable.id) {
       return device.at === usable.at ? { kind: "none" } : { kind: "align", ...fromAccount };
@@ -79,5 +84,7 @@ export function chooseCarry(device: SavedArea | { at: number } | null, account: 
     if (device.at === null || usable.at >= device.at) return { kind: "apply", ...fromAccount };
     return { kind: "upload", id: device.id };
   }
-  return device === null || !("id" in device) ? { kind: "none" } : { kind: "upload", id: device.id };
+  return device === null || !("id" in device)
+    ? { kind: "none" }
+    : { kind: "upload", id: device.id };
 }

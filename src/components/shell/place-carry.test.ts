@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { parseAreaCookie, parseEverywhere, readEverywhere, writeEverywhereCookie, readAreaCookie, writeAreaCookie } from "./location-data";
+import {
+  parseAreaCookie,
+  parseEverywhere,
+  readEverywhere,
+  writeEverywhereCookie,
+  readAreaCookie,
+  writeAreaCookie,
+} from "./location-data";
 import { chooseCarry, parseAccountPlace, type AccountPlace } from "./place-carry";
 
 /** D106 — the saved area's time, the account read's shape and the newest-pick rule. */
@@ -97,13 +104,20 @@ describe("chooseCarry", () => {
   });
 });
 
-
 describe("D219 everywhere choice", () => {
   it("reads exactly everywhere and a 1–15 digit time, never a place", () => {
     expect(parseEverywhere("everywhere:1760000000123")).toEqual({ at: 1760000000123 });
     expect(parseEverywhere("everywhere:0")).toEqual({ at: 0 });
     expect(parseEverywhere("everywhere:999999999999999")).toEqual({ at: 999999999999999 });
-    for (const bad of [null, "everywhere:", "everywhere:1234567890123456", `ET:${A}:100`, "garbage", "Everywhere:1", "everywhere:1:2"]) {
+    for (const bad of [
+      null,
+      "everywhere:",
+      "everywhere:1234567890123456",
+      `ET:${A}:100`,
+      "garbage",
+      "Everywhere:1",
+      "everywhere:1:2",
+    ]) {
       expect(parseEverywhere(bad), String(bad)).toBeNull();
     }
     expect(parseAreaCookie("everywhere:100")).toBeNull();
@@ -114,19 +128,34 @@ describe("D219 everywhere choice", () => {
 
   it("applies a newer account place over everywhere", () => {
     const account = { id: A, country: "ET", at: 200, usable: true };
-    expect(chooseCarry({ at: 100 }, account)).toEqual({ kind: "apply", id: A, country: "ET", at: 200 });
+    expect(chooseCarry({ at: 100 }, account)).toEqual({
+      kind: "apply",
+      id: A,
+      country: "ET",
+      at: 200,
+    });
   });
 
   it("applies an equal account place over everywhere", () => {
-    expect(chooseCarry({ at: 200 }, { id: A, country: "ET", at: 200, usable: true })).toEqual({ kind: "apply", id: A, country: "ET", at: 200 });
+    expect(chooseCarry({ at: 200 }, { id: A, country: "ET", at: 200, usable: true })).toEqual({
+      kind: "apply",
+      id: A,
+      country: "ET",
+      at: 200,
+    });
   });
 
   it("clears an older account place for newer everywhere", () => {
-    expect(chooseCarry({ at: 200 }, { id: A, country: "ET", at: 100, usable: true })).toEqual({ kind: "upload", id: null });
+    expect(chooseCarry({ at: 200 }, { id: A, country: "ET", at: 100, usable: true })).toEqual({
+      kind: "upload",
+      id: null,
+    });
   });
 
   it("does nothing for everywhere without a usable account place", () => {
     expect(chooseCarry({ at: 200 }, null)).toEqual({ kind: "none" });
-    expect(chooseCarry({ at: 200 }, { id: A, country: "ET", at: 300, usable: false })).toEqual({ kind: "none" });
+    expect(chooseCarry({ at: 200 }, { id: A, country: "ET", at: 300, usable: false })).toEqual({
+      kind: "none",
+    });
   });
 });

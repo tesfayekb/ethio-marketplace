@@ -92,8 +92,17 @@ export function SearchRow({ onClose }: { onClose: () => void }) {
  */
 export function AppHeader() {
   const { t } = useI18n();
-  const { auth, authLoading, user, requestSignOut, navOpen, setNavOpen, signingOut, searchOpen, setSearchOpen } = useShell();
-
+  const {
+    auth,
+    authLoading,
+    user,
+    requestSignOut,
+    navOpen,
+    setNavOpen,
+    signingOut,
+    searchOpen,
+    setSearchOpen,
+  } = useShell();
 
   return (
     <div className="w-full min-w-0 md:h-full">
@@ -248,7 +257,6 @@ export function AppHeader() {
           )}
         </div>
       </header>
-
     </div>
   );
 }

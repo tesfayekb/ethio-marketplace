@@ -389,7 +389,18 @@
 
 /* INC-747 — iPhone Safari zooms the whole page into a focused text field whose text is under 16 px, and stays zoomed after the field closes: the strip slides off the left and the page looks wider than the phone. Below 768 px every text field is at least 16 px, whatever its own classes say — shared primitive or hand-made, today or later. Unlayered on purpose: it outranks every Tailwind layer. 1em keeps a larger inherited size. */
 @media (max-width: 47.999rem) {
-  input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"], [type="button"], [type="submit"], [type="reset"], [type="image"]),
+  input:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="range"],
+    [type="file"],
+    [type="color"],
+    [type="hidden"],
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    [type="image"]
+  ),
   textarea,
   select {
     font-size: max(16px, 1em);
