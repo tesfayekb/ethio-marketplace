@@ -1099,19 +1099,19 @@ test.describe("mobile chrome", () => {
     };
 
     const strip = page.getByTestId("strip-scroll");
-    await expect(strip.getByRole("listitem")).not.toHaveCount(0, { timeout: 20_000 });
+    await expect(strip.locator("li")).not.toHaveCount(0, { timeout: 20_000 });
     await checkVariant(strip, "Admin", "strip", true);
     await page
       .getByTestId("shell-topbar")
       .getByRole("button", { name: en["shell.openMenu"] })
       .click();
-    const menu = page.getByTestId("rail-scroll");
+    const menu = page.getByTestId("rail-menu").getByTestId("rail-scroll");
     await expect(menu).toBeVisible();
     await checkVariant(menu, "Admin", "menu", true);
     await page.getByTestId("rail-menu-close").click();
 
     await page.getByTestId("bottom-bar-account").click();
-    await expect(strip.getByRole("listitem")).not.toHaveCount(0, { timeout: 20_000 });
+    await expect(strip.locator("li")).not.toHaveCount(0, { timeout: 20_000 });
     await checkVariant(strip, "Account", "strip", false);
     await page
       .getByTestId("shell-topbar")

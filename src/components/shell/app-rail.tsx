@@ -219,10 +219,12 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const itemBase = useItemBase();
   const testid =
     node.testid && (strip ? `strip-${node.testid.replace(/^rail-/, "")}` : node.testid);
+  // INC-756 — a phone row fills its item by flex: a percentage height (h-full)
+  // under the nav's min-h-full resolved to the row's content, 24 px (run 1038).
   const compactClass =
     compact &&
     cn(
-      "h-full min-h-0",
+      "min-h-0 flex-1",
       strip ? "justify-center ps-0 pe-0" : "justify-start gap-3 ps-[var(--rail-pad)] pe-2",
     );
   const hasChildren = (node.children?.length ?? 0) > 0;
@@ -257,7 +259,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // D205 — painted strip rows are not navigation controls; the strip opens the menu.
   if (strip) {
     return (
-      <li className={cn(hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1")}>
+      <li
+        className={cn(
+          hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col",
+        )}
+      >
         <span
           data-testid={testid}
           aria-label={node.accessibleLabel ?? node.label}
@@ -296,7 +302,8 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
+          compact &&
+            (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
         )}
       >
         {node.path ? (
@@ -335,7 +342,8 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
+          compact &&
+            (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
         )}
       >
         <Collapsible
@@ -399,7 +407,8 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
+          compact &&
+            (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
         )}
       >
         <WithTooltip label={node.label}>
@@ -436,7 +445,8 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
+          compact &&
+            (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
         )}
       >
         <WithTooltip label={node.label}>
@@ -464,7 +474,9 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // testid, so every rail item is addressable regardless of how it renders.
   return (
     <li
-      className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"))}
+      className={cn(
+        compact && (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
+      )}
     >
       <WithTooltip label={node.label}>
         <span
@@ -545,7 +557,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     >
       <ul className={cn("flex flex-col gap-0.5", compact && "flex-1")}>
         {level ? (
-          <li className={cn(compact && "min-h-8 max-h-10 flex-1")}>
+          <li className={cn(compact && "flex min-h-8 max-h-10 flex-1 flex-col")}>
             <Button
               variant="ghost"
               data-testid="rail-menu-back"
@@ -555,7 +567,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
                 ITEM_CORE,
                 ITEM_IDLE,
                 "justify-start",
-                compact && "h-full min-h-0 gap-3 pe-2",
+                compact && "min-h-0 flex-1 gap-3 pe-2",
               )}
             >
               <span
@@ -590,6 +602,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         {isLoading
           ? Array.from({ length: 6 }).map((_, index) => (
               <li
+                className={cn(compact && "flex min-h-8 max-h-10 flex-1 flex-col")}
                 key={`skeleton-${index}`}
                 data-testid={strip ? "strip-category-skeleton" : "rail-category-skeleton"}
                 aria-hidden="true"
@@ -597,7 +610,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
                 <div
                   className={cn(
                     "flex min-h-11 md:pointer-fine:min-h-8 items-center gap-2 px-3",
-                    compact && "h-full min-h-0",
+                    compact && "min-h-0 flex-1",
                     strip ? "justify-center ps-0 pe-0" : compact && "justify-start gap-3 ps-3 pe-2",
                   )}
                 >
