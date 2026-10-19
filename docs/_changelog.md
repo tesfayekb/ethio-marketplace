@@ -963,3 +963,4 @@
 
 - 2026-10-18 — Bundle 21 turn 11 (no migration): #1031's reds — the D206 peek shows to signed-out visitors (INC-741: the signed-out effect closed it on every load); the rail readers wait for the tree (INC-744); OVW-1 measures the visible extent and finds the trail by its testid.
 - 2026-10-18 — Bundle 21 turn 12 (no migration): the trail shrinks and truncates (INC-745); the overflow guard on the shell's wrapper, html hidden and body clip (INC-743 reopened — the iPhone still widened after turn 11); the ?overflow=1 probe for the operator's iPhone; the menu read once its slide has settled (INC-746); OP-1.
+- 2026-10-18 — Bundle 21 turn 13 (no migration): the footer's tagline centred under the wordmark from 768 px; the ?overflow=1 probe and OP-1 removed (the operator's iPhone showed the page at the screen's width); FT-1 extended.
