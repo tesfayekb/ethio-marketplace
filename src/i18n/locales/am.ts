@@ -2702,7 +2702,8 @@ export const am: Messages = {
   "post.review.publishing": "በማውጣት ላይ…",
   "post.review.fixStep": "ደረጃ {step} ይክፈቱ",
   "post.review.reviewTitle": "በግምገማ ላይ",
-  "post.review.reviewBody": "ዝርዝርዎ በመመርመር ላይ ነው። አብዛኛውን ጊዜ ጥቂት ደቂቃዎች ይወስዳል፤ ሲወጣ በ«የእኔ ማስታወቂያዎች» ውስጥ ያዩታል።",
+  "post.review.reviewBody":
+    "ዝርዝርዎ በመመርመር ላይ ነው። አብዛኛውን ጊዜ ጥቂት ደቂቃዎች ይወስዳል፤ ሲወጣ በ«የእኔ ማስታወቂያዎች» ውስጥ ያዩታል።",
   "post.review.myListings": "ወደ «የእኔ ማስታወቂያዎች» ይሂዱ",
   "post.review.postAnother": "ሌላ ማስታወቂያ ይለጥፉ",
   "post.review.shareChecking": "ማስታወቂያዎ እስኪጸድቅ በመጠበቅ ላይ…",

@@ -1047,8 +1047,13 @@ test.describe("mobile chrome", () => {
       const rows: RowRect[] = await rowsOf(box);
       expect(rows.length, `${panel} ${variant}: no rows`).toBeGreaterThan(0);
       for (const row of rows) {
-        expect(row.height, `${panel} ${variant}: ${row.id} shorter than 31 px`).toBeGreaterThanOrEqual(31);
-        expect(row.height, `${panel} ${variant}: ${row.id} taller than 41 px`).toBeLessThanOrEqual(41);
+        expect(
+          row.height,
+          `${panel} ${variant}: ${row.id} shorter than 31 px`,
+        ).toBeGreaterThanOrEqual(31);
+        expect(row.height, `${panel} ${variant}: ${row.id} taller than 41 px`).toBeLessThanOrEqual(
+          41,
+        );
       }
       for (let i = 1; i < rows.length; i += 1) {
         expect(
@@ -1094,7 +1099,7 @@ test.describe("mobile chrome", () => {
     };
 
     const strip = page.getByTestId("strip-scroll");
-    await expect(strip.locator("li").first()).toBeVisible({ timeout: 20_000 });
+    await expect(strip.getByRole("listitem")).not.toHaveCount(0, { timeout: 20_000 });
     await checkVariant(strip, "Admin", "strip", true);
     await page
       .getByTestId("shell-topbar")
@@ -1106,7 +1111,7 @@ test.describe("mobile chrome", () => {
     await page.getByTestId("rail-menu-close").click();
 
     await page.getByTestId("bottom-bar-account").click();
-    await expect(strip.locator("li").first()).toBeVisible({ timeout: 20_000 });
+    await expect(strip.getByRole("listitem")).not.toHaveCount(0, { timeout: 20_000 });
     await checkVariant(strip, "Account", "strip", false);
     await page
       .getByTestId("shell-topbar")

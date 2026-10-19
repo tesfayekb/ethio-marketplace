@@ -464,9 +464,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // testid, so every rail item is addressable regardless of how it renders.
   return (
     <li
-      className={cn(
-        compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
-      )}
+      className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"))}
     >
       <WithTooltip label={node.label}>
         <span
@@ -541,7 +539,10 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const nodes = (level ? [level, ...childrenOf(tree, level.id)] : roots).map(toNode);
 
   return (
-    <nav aria-label={t("shell.categoriesLabel")} className={cn(compact && "flex min-h-full flex-col")}>
+    <nav
+      aria-label={t("shell.categoriesLabel")}
+      className={cn(compact && "flex min-h-full flex-col")}
+    >
       <ul className={cn("flex flex-col gap-0.5", compact && "flex-1")}>
         {level ? (
           <li className={cn(compact && "min-h-8 max-h-10 flex-1")}>
