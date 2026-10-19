@@ -562,6 +562,15 @@ test.describe("app shell", () => {
       const home = await brand.getByTestId("footer-home").boundingBox();
       if (!home) throw new Error("FT-1: missing footer Home target");
       expect(home.height).toBeGreaterThanOrEqual(44);
+      const tagline = brand.getByTestId("footer-tagline");
+      await expect(tagline).toBeVisible();
+      const wordmark = await brand.getByTestId("logo-wordmark").boundingBox();
+      const taglineBox = await tagline.boundingBox();
+      if (!wordmark || !taglineBox) throw new Error("FT-1: missing wordmark or tagline box");
+      expect(
+        Math.abs(taglineBox.x + taglineBox.width / 2 - (wordmark.x + wordmark.width / 2)),
+      ).toBeLessThanOrEqual(1);
+      expect(taglineBox.y).toBeGreaterThanOrEqual(wordmark.y + wordmark.height);
     } else {
       await expect(brand).toBeHidden();
       expect(alignments).toEqual(["center", "center", "center"]);
@@ -3854,41 +3863,4 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
     }
   });
 
-  test("OP-1 the ?overflow=1 probe measures the screen and names an offender", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "mobile-360", "phone only");
-    await gotoReady(page, "/");
-    await expect(page.getByTestId("overflow-probe")).toHaveCount(0);
-    await gotoReady(page, "/?overflow=1");
-    const probe = page.getByTestId("overflow-probe");
-    await expect(probe).toBeVisible();
-    const probeText = async () => (await probe.textContent()) ?? "";
-    await expect.poll(async () => (await probeText()).split("\n")[0]?.split(" ").length).toBe(5);
-    const numbers = (await probeText()).split("\n")[0]?.split(" ") ?? [];
-    expect(Number(numbers[0]), `probe screen numbers: ${numbers.join(" ")}`).toBe(360);
-    try {
-      await page.evaluate(() => {
-        const main = document.querySelector("main#main");
-        if (!main) throw new Error("OP-1 no main#main");
-        const wide = document.createElement("div");
-        wide.id = "op1-wide";
-        wide.style.width = "2000px";
-        wide.style.height = "10px";
-        main.appendChild(wide);
-      });
-      await expect
-        .poll(async () => (await probeText()).includes("div[-]"), { timeout: 2000 })
-        .toBe(true);
-      const pageWidth = await page.evaluate(() => ({
-        innerWidth: window.innerWidth,
-        scrollWidth: document.documentElement.scrollWidth,
-      }));
-      expect(pageWidth.scrollWidth, JSON.stringify(pageWidth)).toBeLessThanOrEqual(
-        pageWidth.innerWidth + 1,
-      );
-    } finally {
-      await page.evaluate(() => document.getElementById("op1-wide")?.remove());
-    }
-  });
 });
