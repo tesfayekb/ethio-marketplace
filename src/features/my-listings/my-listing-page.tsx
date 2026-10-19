@@ -62,7 +62,7 @@ import {
   type ListingAction,
   type MyListing,
 } from "./my-listing";
-import { GROUP_LABEL } from "./my-listings";
+import { GROUP_LABEL, shareable } from "./my-listings";
 import { REASON_WORD, SOLD_ON, stateLine, visibilityOf } from "./state-line";
 
 /**
@@ -644,7 +644,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               directions={draft.draft.directions}
               streetAddress={draft.draft.streetAddress}
               share={
-                row.status === "active" && typeof row.publicId === "string" ? (
+                shareable(row) ? (
                   <ShareAd
                     publicId={row.publicId}
                     canonicalPath={listingPath(row.title ?? "", row.publicId)}
