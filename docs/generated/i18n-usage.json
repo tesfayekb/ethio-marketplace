@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 508,
+  "scanned": 509,
   "dynamicCallSites": 379,
   "keys": {
     "account.deactivatedBanner": [
@@ -2537,6 +2537,9 @@
     "admin.legal.discardTitle": [
       "/admin/legal/edit"
     ],
+    "admin.legal.discarded": [
+      "/admin/legal"
+    ],
     "admin.legal.error.load": [
       "/admin/legal",
       "/admin/legal/$versionId",
@@ -2607,6 +2610,9 @@
     ],
     "admin.legal.publish.title": [
       "/admin/legal/edit"
+    ],
+    "admin.legal.published": [
+      "/admin/legal"
     ],
     "admin.legal.publishedOn": [
       "/admin/legal/$versionId"
