@@ -1,5 +1,6 @@
 import { type Page } from "@playwright/test";
 
+import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 
 import {
@@ -490,6 +491,58 @@ test.describe("Legal certification", () => {
       await expect(page.getByTestId("listing-certifications-none")).toBeVisible({
         timeout: 20_000,
       });
+    } finally {
+      await destroy(s);
+    }
+  });
+
+  test("LGC-4 bulk Renew renews the ads no statement applies to and names the one that needs it; nothing is certified", async ({
+    page,
+  }) => {
+    const width = page.viewportSize()?.width ?? 0;
+    test.skip(width < 768, "ticks exist from 768 only (D128)");
+    const s = scratch();
+    try {
+      await renewAllowed();
+      const { categoryId, cityId } = await sellerOnPage(page, s);
+      const a = await draftOf(page, s, categoryId, cityId);
+      const b = await draftOf(page, s, categoryId, cityId);
+      const token = await bearerOf(page);
+      for (const listingId of [a, b]) {
+        const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+        expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+        await makeState(listingId, "expired");
+      }
+      const { data: stored, error } = await adminClient()
+        .from("listings")
+        .select("title")
+        .eq("id", a)
+        .single();
+      if (error || !stored) throw new Error(`[e2e:certify] reading A's title: ${error?.message}`);
+      const titleA = String((stored as Row)["title"]);
+      await seedDocument(s, `e2e-pub-${hex(a)}`, null, `Statement ${rand()}`);
+
+      await gotoReady(page, "/my-listings");
+      await page.getByTestId("my-listings-group-closed").click();
+      for (const id of [a, b]) {
+        const tick = page.getByTestId(
+          width >= 1280 ? `my-listing-${id}-select-cell` : `my-listing-${id}-select`,
+        );
+        await expect(tick).toBeVisible({ timeout: 15_000 });
+        await tick.click();
+      }
+      await page.getByTestId("data-table-selection").getByTestId("my-listings-bulk-renew").click();
+      await page.getByTestId("my-listings-confirm-yes").click();
+      const expected = `${en["myListings.bulk.done"].replace("{count}", "1")} ${en[
+        "myListings.bulk.needsStatement"
+      ].replace("{titles}", titleA)}`;
+      await expect(page.getByTestId("my-listings-notice")).toHaveText(expected, {
+        timeout: 20_000,
+      });
+      await expect.poll(() => statusOf(b), { timeout: 20_000 }).toBe("active");
+      await expect.poll(() => statusOf(a), { timeout: 20_000 }).toBe("expired");
+      expect(await certificationsOf(a)).toHaveLength(0);
+      expect(await certificationsOf(b)).toHaveLength(0);
     } finally {
       await destroy(s);
     }

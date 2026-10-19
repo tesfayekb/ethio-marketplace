@@ -251,6 +251,8 @@ export const en = {
     "They are removed from your listings and from the site for good. You cannot undo this.",
   "myListings.bulk.done": "Changed: {count}.",
   "myListings.bulk.refused": "Not changed: {count}. {reason}",
+  "myListings.bulk.needsStatement":
+    "Not renewed: {titles}. Each one needs your statement: renew it on its own.",
 
   // Bundle 19 turn 5 — the gone ad page.
   "listing.safety.header": "Meet, inspect, then pay — no deposit, no payment link, no code",

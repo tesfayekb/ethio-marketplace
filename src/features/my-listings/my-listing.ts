@@ -1,3 +1,4 @@
+import { fill } from "@/features/posting/refusal-text";
 import type { Refusal } from "@/features/posting/types";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -349,6 +350,28 @@ export async function runListAction(
   if (ad === "notYours") return { ok: false, key: "myListings.error.notYours" };
   if (!actionsFor(ad).includes(action)) return { ok: false, key: "myListings.error.changed" };
   return runAction(ad, action, certification);
+}
+
+/**
+ * Bundle 22 turn 5 — the notice after a bulk action: the done sentence, the refused sentence and
+ * the ads that need the publishing statement (each renewed on its own), joined by one space.
+ */
+export function bulkNotice(
+  t: (key: MessageKey) => string,
+  result: { done: number; notChanged: number; reason: string | null; needsStatement: string[] },
+): { text: string; tone: "done" | "error" } {
+  const { done, notChanged, reason, needsStatement } = result;
+  const parts: string[] = [];
+  if (done > 0 || (notChanged === 0 && needsStatement.length === 0))
+    parts.push(fill(t("myListings.bulk.done"), { count: done }));
+  if (notChanged > 0)
+    parts.push(fill(t("myListings.bulk.refused"), { count: notChanged, reason: reason ?? "" }));
+  if (needsStatement.length > 0)
+    parts.push(fill(t("myListings.bulk.needsStatement"), { titles: needsStatement.join(", ") }));
+  return {
+    text: parts.join(" "),
+    tone: notChanged === 0 && needsStatement.length === 0 ? "done" : "error",
+  };
 }
 
 /** What the page says once an action is done (a deleted ad's page leaves for My listings). */

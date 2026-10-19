@@ -240,6 +240,7 @@ export const am: Messages = {
   "myListings.bulk.deleteBody": "ከማስታወቂያዎችዎ እና ከድረ-ገጹ ለዘለቄታው ይወገዳሉ። ይህን መቀልበስ አይችሉም።",
   "myListings.bulk.done": "የተቀየሩ፦ {count}።",
   "myListings.bulk.refused": "ያልተቀየሩ፦ {count}። {reason}",
+  "myListings.bulk.needsStatement": "ያልታደሱ፦ {titles}። እያንዳንዱ ማረጋገጫዎን ይፈልጋል፤ ለብቻው ያድሱት።",
 
   // Bundle 19 turn 5 — the gone ad page.
   "listing.safety.header": "ተገናኙ፣ ይመርምሩ፣ ከዚያ ይክፈሉ — ቅድመ ክፍያ፣ የክፍያ ሊንክ ወይም ኮድ የለም",
