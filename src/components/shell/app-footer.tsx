@@ -45,7 +45,7 @@ export function AppFooter() {
             </Link>
             <p
               data-testid="footer-tagline"
-              className="self-stretch ps-10 text-center text-sm text-muted-foreground"
+              className="self-stretch ms-10 text-center text-sm text-muted-foreground"
             >
               {t("app.tagline")}
             </p>
