@@ -142,3 +142,23 @@ describe("what buyers see of the ad (bundle 16 turn 3c, D180)", () => {
     }
   });
 });
+
+describe("D224 one rule for what can be shared", () => {
+  it("ML-U12 live with a string public id shares; every other status or a missing id does not", () => {
+    expect(shareable({ status: "active", publicId: "2345678923" })).toBe(true);
+    expect(shareable({ status: "active", publicId: null })).toBe(false);
+    for (const status of [
+      "screening",
+      "held",
+      "rejected",
+      "removed",
+      "draft",
+      "closed",
+      "expired",
+      "sold",
+      "reduced",
+    ]) {
+      expect(shareable({ status, publicId: "2345678923" })).toBe(false);
+    }
+  });
+});
