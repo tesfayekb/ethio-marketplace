@@ -1090,6 +1090,7 @@ test.describe("mobile chrome", () => {
     await expect(page.getByTestId("app-rail")).toBeHidden();
 
     const menu = await openRailScope(page);
+    await settled(page);
     const menuBox = await menu.boundingBox();
     if (!menuBox) throw new Error("Missing opened menu box");
     expect(Math.abs(menuBox.width - 256)).toBeLessThanOrEqual(1);
@@ -1152,6 +1153,7 @@ test.describe("mobile chrome", () => {
     await gotoReady(page, "/");
     const control = page.getByRole("button", { name: en["shell.openMenu"] });
     let menu = await openRailScope(page);
+    await settled(page);
     const menuBox = await menu.boundingBox();
     if (!menuBox) throw new Error("Missing opened menu box");
     const close = page.getByTestId("rail-menu-close");
