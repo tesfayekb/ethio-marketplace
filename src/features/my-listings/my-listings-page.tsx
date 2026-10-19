@@ -859,6 +859,31 @@ export function MyListingsPage() {
           </AlertDialogContent>
         ) : null}
       </AlertDialog>
+      {/* D224 — one ShareAd for the whole list, opened by the ⋯ menu's Share;
+          the same sheet the ad's own page shows. */}
+      {sharing !== null && shareable(sharing) ? (
+        <ShareAd
+          open
+          onOpenChange={(next) => {
+            if (!next) setSharing(null);
+          }}
+          publicId={sharing.publicId as string}
+          canonicalPath={listingPath(sharing.title ?? "", sharing.publicId as string)}
+          title={sharing.title ?? ""}
+          priceText={sharePriceText(
+            {
+              mode: sharing.priceMode ?? "contact",
+              amount: sharing.priceAmount,
+              currency: sharing.priceCurrency,
+              period: sharing.pricePeriod,
+              bp: sharing.priceBp,
+              unit: storedUnitNoun(sharing.priceUnit, sharing.priceUnitText, unitLabels, language),
+            },
+            t,
+            language,
+          )}
+        />
+      ) : null}
     </PageShell>
   );
 }
