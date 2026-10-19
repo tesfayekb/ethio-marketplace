@@ -216,7 +216,6 @@ export function StepReview({
     let stopped = false;
     let reading = false;
     let reads = 0;
-    let interval: ReturnType<typeof setInterval> | undefined;
     const stop = () => {
       stopped = true;
       clearInterval(interval);
@@ -244,7 +243,7 @@ export function StepReview({
         reading = false;
       }
     };
-    interval = setInterval(() => void read(), 10_000);
+    const interval = setInterval(() => void read(), 10_000);
     void read();
     return () => {
       cancelled = true;

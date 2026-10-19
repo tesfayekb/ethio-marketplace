@@ -55,14 +55,14 @@ it("LP-11 crop fills the card with a tall seller photo; default and category pic
 
   rerender(<ListingPicture photoUrl={PHOTO} categoryUrl={null} imgTestId="lp-11-img" />);
   loadTall(screen.getByTestId("lp-11-img"));
-  expect(frame.style.aspectRatio).toBe("0.5");
+  expect(frame.style.aspectRatio).toBe("0.5 / 1");
   expect(frame.style.width).toBe("min(100cqw, 37.5cqw)");
   expect(frame.style.height).toBe("");
   expect(screen.getByTestId("lp-11-img")).toHaveClass("object-contain");
 
   rerender(<ListingPicture photoUrl={null} categoryUrl={PHOTO} imgTestId="lp-11-img" crop />);
   loadTall(screen.getByTestId("lp-11-img"));
-  expect(frame.style.aspectRatio).toBe("0.5");
+  expect(frame.style.aspectRatio).toBe("0.5 / 1");
   expect(frame.style.width).toBe("min(100cqw, 37.5cqw)");
   expect(frame.style.height).toBe("");
   expect(screen.getByTestId("lp-11-img")).toHaveClass("object-contain");
