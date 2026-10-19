@@ -579,6 +579,25 @@ test.describe("app shell", () => {
       if (!footer) throw new Error("FT-1: missing footer");
       if (viewport.width === 360) expect(footer.height).toBeLessThanOrEqual(130);
     }
+    // Bundle 22 turn 5 — the © line's text is centred at every width (the operator 2026-10-19).
+    const copyrightCentre = await page.getByTestId("footer-copyright").evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const box = range.getBoundingClientRect();
+      return box.x + box.width / 2;
+    });
+    if (viewport.width >= 768) {
+      expect(Math.abs(copyrightCentre - viewport.width / 2)).toBeLessThanOrEqual(2);
+    } else {
+      const contentCentre = await columns.evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        const style = getComputedStyle(el);
+        const left = box.x + parseFloat(style.paddingLeft);
+        const right = box.right - parseFloat(style.paddingRight);
+        return (left + right) / 2;
+      });
+      expect(Math.abs(copyrightCentre - contentCentre)).toBeLessThanOrEqual(2);
+    }
     const heights = await navs
       .locator("a, span.inline-flex")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
