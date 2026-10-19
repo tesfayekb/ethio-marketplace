@@ -4899,67 +4899,63 @@
       "(every page)",
       "/account/legal",
       "/account/legal/$versionId",
+      "/legal/$kind",
       "/legal/accept",
-      "/privacy"
+      "/privacy",
+      "/terms"
     ],
     "legal.kind.terms": [
       "(every page)",
       "/account/legal",
       "/account/legal/$versionId",
+      "/legal/$kind",
       "/legal/accept",
+      "/privacy",
       "/terms"
     ],
     "legal.lang.label": [
-      "/account/legal",
       "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.loadError": [
-      "/account/legal",
       "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.meta": [
-      "/account/legal",
       "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.none": [
-      "/account/legal",
       "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.print": [
-      "/account/legal",
       "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.showCurrent": [
-      "/account/legal",
       "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.showUpcoming": [
-      "/account/legal",
       "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.upcoming": [
-      "/account/legal",
       "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
