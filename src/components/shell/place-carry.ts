@@ -55,24 +55,29 @@ export type Carry =
   /** The same place on both: this browser's copy takes the account's time. */
   | { kind: "align"; country: string; id: string; at: number }
   /** This browser's pick is newer (or the account has none usable): save it to the account. */
-  | { kind: "upload"; id: string }
+  | { kind: "upload"; id: string | null }
   | { kind: "none" };
 
 /**
  * THE NEWEST PICK WINS. A browser pick saved before D106 carries no time and
  * counts as older than any account pick (typed absence, never a made-up time).
- * An account place that is no longer shown counts as none.
+ * An account place that is no longer shown counts as none. D219: a newer
+ * everywhere choice clears the account place; without a usable account place
+ * it does nothing. An equal or newer account place still applies.
  */
-export function chooseCarry(device: SavedArea | null, account: AccountPlace | null): Carry {
+export function chooseCarry(device: SavedArea | { at: number } | null, account: AccountPlace | null): Carry {
   const usable = account !== null && account.usable ? account : null;
   if (usable !== null) {
     const fromAccount = { country: usable.country, id: usable.id, at: usable.at };
     if (device === null) return { kind: "apply", ...fromAccount };
+    if (!("id" in device)) {
+      return usable.at >= device.at ? { kind: "apply", ...fromAccount } : { kind: "upload", id: null };
+    }
     if (device.id === usable.id) {
       return device.at === usable.at ? { kind: "none" } : { kind: "align", ...fromAccount };
     }
     if (device.at === null || usable.at >= device.at) return { kind: "apply", ...fromAccount };
     return { kind: "upload", id: device.id };
   }
-  return device === null ? { kind: "none" } : { kind: "upload", id: device.id };
+  return device === null || !("id" in device) ? { kind: "none" } : { kind: "upload", id: device.id };
 }

@@ -55,6 +55,8 @@ export type ShellValue = {
    * "pending" while it runs, "done" once the newest pick has been applied or saved.
    */
   accountPlace: "off" | "pending" | "done";
+  searchOpen: boolean;
+  setSearchOpen: (open: boolean) => void;
   navOpen: boolean;
   setNavOpen: (open: boolean) => void;
   /** U0l-2 (SO-2): true while the hard-reset sign-out sequence is running. */

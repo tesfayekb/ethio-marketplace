@@ -1,7 +1,7 @@
 import { CutText } from "@/components/ui/cut-text";
 import { Link } from "@tanstack/react-router";
 import { LogOut, Menu, Search, Settings as SettingsIcon, User, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -24,14 +24,13 @@ const ICON_BUTTON =
 
 /**
  * Search field. On mobile it is NOT squeezed into the bar: the icon opens a
- * FULL-WIDTH row directly BELOW the top bar, so long queries have room. On
- * desktop the same row simply sits under the bar too, spanning the content
- * column — one implementation, no duplicated markup.
+ * FULL-WIDTH first row of the sticky sub-band, so long queries have room.
+ * It pushes the breadcrumb and page down and covers nothing.
  *
  * TODO(search): still visual only. There is no /search route yet — submitting
  * is a deliberate no-op until the search feature lands.
  */
-function SearchRow({ onClose }: { onClose: () => void }) {
+export function SearchRow({ onClose }: { onClose: () => void }) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,7 +42,7 @@ function SearchRow({ onClose }: { onClose: () => void }) {
     <form
       role="search"
       data-testid="search-row"
-      className="w-full border-b border-border bg-card px-2 py-2 max-md:ms-12 max-md:w-auto md:px-4"
+      className="border-b border-border bg-card px-2 py-2 md:hidden"
       onSubmit={(event) => event.preventDefault()}
     >
       <label className="relative block">
@@ -93,8 +92,8 @@ function SearchRow({ onClose }: { onClose: () => void }) {
  */
 export function AppHeader() {
   const { t } = useI18n();
-  const { auth, authLoading, user, requestSignOut, navOpen, setNavOpen, signingOut } = useShell();
-  const [searchOpen, setSearchOpen] = useState(false);
+  const { auth, authLoading, user, requestSignOut, navOpen, setNavOpen, signingOut, searchOpen, setSearchOpen } = useShell();
+
 
   return (
     <div className="w-full min-w-0 md:h-full">
@@ -178,7 +177,7 @@ export function AppHeader() {
             aria-expanded={searchOpen}
             data-testid="search-toggle"
             className={cn(ICON_BUTTON, "md:hidden")}
-            onClick={() => setSearchOpen((open) => !open)}
+            onClick={() => setSearchOpen(!searchOpen)}
           >
             <Search className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -250,7 +249,6 @@ export function AppHeader() {
         </div>
       </header>
 
-      {searchOpen ? <SearchRow onClose={() => setSearchOpen(false)} /> : null}
     </div>
   );
 }

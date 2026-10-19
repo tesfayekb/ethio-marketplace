@@ -785,7 +785,9 @@ export function AppRail() {
   const peekAttempted = useRef(false);
   const peekFocus = useRef(false);
 
-  // D206: one fixed session word; denied storage deliberately disables the peek.
+  // D216 (the operator, 2026-10-18) changes D206's once a visit: on every
+  // page load, a reload included; never on an in-app navigation. Tests opt in
+  // only with the force word; production never reads or writes storage.
   useEffect(() => {
     if (
       authLoading ||
@@ -796,26 +798,17 @@ export function AppRail() {
     )
       return;
     peekAttempted.current = true;
-    try {
-      const word = sessionStorage.getItem("ethio.peek");
-      if (word === "seen" || (isE2E && word !== "force")) return;
-      sessionStorage.setItem("ethio.peek", "seen");
-    } catch {
-      return; // Blocked storage means no peek, not a repeat on every page.
+    if (isE2E) {
+      try {
+        if (sessionStorage.getItem("ethio.peek") !== "force") return;
+      } catch {
+        return; // A denied test opt-in means no peek.
+      }
     }
     peekFocus.current = true;
     setPeeking(true);
     setNavOpen(true);
   }, [authLoading, activePanel, pathname, setNavOpen]);
-
-  useEffect(() => {
-    if (!navOpen) return;
-    try {
-      sessionStorage.setItem("ethio.peek", "seen");
-    } catch {
-      // The person's menu still works when session storage is unavailable.
-    }
-  }, [navOpen]);
 
   useEffect(() => {
     if (!peeking || !navOpen) return;

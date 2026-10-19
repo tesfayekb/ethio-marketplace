@@ -27,7 +27,8 @@ import { distanceKm } from "@/lib/geo-distance";
  * so the country is known BEFORE the tree loads. The GUESS is never written to
  * it (law 10). D106 adds the pick's time, `<CC>:<node id>:<ms>`, so the newest
  * pick wins between this browser and the account (place-carry.ts); a cookie
- * written before D106 has no time and still reads.
+ * written before D106 has no time and still reads. D219 adds `everywhere:<ms>`
+ * for the person's own choice of every area; the guess never overrides it.
  */
 
 export interface OpenMarket {
@@ -97,6 +98,27 @@ export function readAreaCookie(): SavedArea | null {
 export function writeAreaCookie(country: string, id: string, at: number = Date.now()): void {
   if (typeof document === "undefined") return;
   document.cookie = `${AREA_COOKIE}=${country.toUpperCase()}:${id}:${Math.trunc(at)}; Path=/; Max-Age=${AREA_COOKIE_MAX_AGE}; SameSite=Lax`;
+}
+
+/** D219 — the exact device choice of every area, never a saved place. */
+export function parseEverywhere(raw: string | null): { at: number } | null {
+  if (raw === null || !/^everywhere:\d{1,15}$/.test(raw)) return null;
+  return { at: Number(raw.slice("everywhere:".length)) };
+}
+
+export function readEverywhere(): { at: number } | null {
+  if (typeof document === "undefined") return null;
+  try {
+    const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${AREA_COOKIE}=([^;]*)`));
+    return parseEverywhere(match ? decodeURIComponent(match[1] ?? "") : null);
+  } catch {
+    return null;
+  }
+}
+
+export function writeEverywhereCookie(at: number = Date.now()): void {
+  if (typeof document === "undefined") return;
+  document.cookie = `${AREA_COOKIE}=everywhere:${Math.trunc(at)}; Path=/; Max-Age=${AREA_COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
 export function clearAreaCookie(): void {
