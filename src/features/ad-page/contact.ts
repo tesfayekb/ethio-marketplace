@@ -21,7 +21,15 @@ export type ContactState =
 
 export type RevealAnswer =
   | { ok: true; channels: Partial<Record<ContactChannel, string>> }
-  | { ok: false; reason: "sellersCapReached" | "rateLimited" | "listingNotAvailable" | "failed" };
+  | {
+      ok: false;
+      reason:
+        | "sellersCapReached"
+        | "rateLimited"
+        | "listingNotAvailable"
+        | "acceptanceRequired"
+        | "failed";
+    };
 
 const CHANNELS: readonly ContactChannel[] = ["phone", "phone2", "telegram", "whatsapp"];
 
@@ -41,7 +49,12 @@ export async function revealContact(publicId: string): Promise<RevealAnswer> {
     const reason = answer["reason"];
     return {
       ok: false,
-      reason: reason === "sellersCapReached" || reason === "rateLimited" ? reason : "failed",
+      reason:
+        reason === "sellersCapReached" ||
+        reason === "rateLimited" ||
+        reason === "acceptanceRequired"
+          ? reason
+          : "failed",
     };
   }
   const source = answer["channels"];

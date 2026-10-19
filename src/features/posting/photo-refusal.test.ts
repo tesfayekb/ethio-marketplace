@@ -13,3 +13,8 @@ describe("photo refusals (bundle 16 S1, S2)", () => {
     expect(en["auth.errorDisposableEmail"]).toBeTruthy();
   });
 });
+
+it("maps the photo certification and acceptance refusals to the wait message", () => {
+  expect(photoRefusalKey("certificationRequired")).toBe("legal.certify.photosWait");
+  expect(photoRefusalKey("acceptanceRequired")).toBe("legal.certify.photosWait");
+});

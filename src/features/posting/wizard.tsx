@@ -1468,6 +1468,8 @@ function WizardShell({
                             maxPhotos={planCaps?.maxPhotos ?? null}
                             onHeldChange={setPhotosHeld}
                             onSendingChange={setPhotosSending}
+                            certification={sellerEdit ? certifyArgs(certify, language) : undefined}
+                            waitForStatement={sellerEdit && !certifyAllows(certify)}
                           />
                         )}
                         {draft.step === 3 && (

@@ -1,3 +1,4 @@
+import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/reveal-intent";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { SimilarAds } from "@/features/ad-page/similar-ads";
@@ -9,7 +10,7 @@ import { revealContact, type ContactState } from "@/features/ad-page/contact";
 import { countView } from "@/features/ad-page/count-view";
 import { useAuth } from "@/features/auth/use-auth";
 import { fill } from "@/features/posting/refusal-text";
-import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { PageShell } from "@/components/layout/page-shell";
@@ -99,6 +100,7 @@ function GonePage() {
 }
 
 function AdPage() {
+  const navigate = useNavigate();
   const { doc, canonical } = Route.useLoaderData();
   const countedId = useRef<string | null>(null);
   const { user, loading: authLoading } = useAuth();
@@ -147,16 +149,19 @@ function AdPage() {
     setContactState({ kind: "loading" });
     void revealContact(doc.public_id)
       .then((answer) => {
-        setContactState(
-          answer.ok
-            ? { kind: "revealed", channels: answer.channels }
-            : { kind: "refused", reason: answer.reason },
-        );
+        if (answer.ok) {
+          setContactState({ kind: "revealed", channels: answer.channels });
+        } else if (answer.reason === "acceptanceRequired") {
+          certifyRefusal("acceptanceRequired", navigate);
+          setContactState({ kind: "idle" });
+        } else {
+          setContactState({ kind: "refused", reason: answer.reason });
+        }
       })
       .finally(() => {
         revealing.current = false;
       });
-  }, [doc.public_id]);
+  }, [doc.public_id, navigate]);
   const [contactFocusOnReturn, setContactFocusOnReturn] = useState(false);
   useEffect(() => {
     if (authLoading || user === null || doc.is_sold || returnedReveal.current === doc.public_id)

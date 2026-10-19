@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Certification } from "@/features/my-listings/my-listing";
 
 import { createDoorQueue, type DoorQueue } from "./door-queue";
 import type { CategoryFacts, DoorAnswer, Refusal } from "./types";
@@ -146,6 +147,7 @@ export async function uploadPhoto(
   extension: string,
   onProgress?: (percent: number) => void,
   replaces?: string,
+  certification?: Certification,
 ): Promise<DoorAnswer> {
   const token = await bearer();
   if (token === null) return { ...UNREACHABLE, status: 401 };
@@ -153,6 +155,10 @@ export async function uploadPhoto(
   const form = new FormData();
   form.set("listingId", listingId);
   if (replaces !== undefined) form.set("replaces", replaces);
+  if (certification !== undefined) {
+    form.set("certified", certification.certified.join(","));
+    form.set("language", certification.language);
+  }
   for (const variant of ["cover", "mid", "card", "thumb"] as const) {
     // No Content-Type header: the browser sets the multipart boundary itself.
     form.set(variant, variants[variant], `${variant}.${extension}`);

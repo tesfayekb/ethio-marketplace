@@ -2933,11 +2933,13 @@ export const am: Messages = {
   "legal.accept.changed": "ሰነዶቹ አሁን ተለውጠዋል። እባክዎ እንደገና ያንብቧቸው።",
   "legal.accept.loadError": "ሰነዶቹን መጫን አልተቻለም።",
   "legal.certify.title": "የእርስዎ ማረጋገጫ",
-  "legal.certify.lead": "ከታች ያለውን ማረጋገጫ ያንብቡ። ማስታወቂያ ባተሙ፣ ባስተካከሉ ወይም ባደሱ ቁጥር ያረጋግጡታል።",
+  "legal.certify.leadOnce":
+    "ከታች ያለውን ማረጋገጫ ያንብቡ። ለዚህ ማስታወቂያ አንድ ጊዜ ያረጋግጡታል፤ ማረጋገጫው ከተቀየረ ብቻ እንደገና ይጠየቃሉ።",
   "legal.certify.forCountry": "ለ{country}",
   "legal.certify.tick": "ከላይ ያለውን አረጋግጣለሁ።",
   "legal.certify.changed": "ማረጋገጫው አሁን ተለውጧል። ያንብቡት፤ እንደገና ምልክት ያድርጉ።",
   "legal.certify.loadError": "ማረጋገጫውን መጫን አልተቻለም። እንደገና ይሞክሩ።",
+  "legal.certify.photosWait": "ፎቶ ከመጨመርዎ ወይም ከመቀየርዎ በፊት ከታች ያለውን ማረጋገጫ ምልክት ያድርጉ።",
   "admin.section.legal.title": "ሕጋዊ",
   "admin.section.legal.body":
     "ውሎች፣ ግላዊነት እና የማስታወቂያ ማረጋገጫ ቃል በስም በተሰየሙ ስሪቶች — ከታተሙ በኋላ አይለወጡም — እና የሚጠቅሷቸው መረጃዎች።",

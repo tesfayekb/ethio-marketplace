@@ -4934,7 +4934,7 @@
       "/post",
       "/post/$listingId"
     ],
-    "legal.certify.lead": [
+    "legal.certify.leadOnce": [
       "/admin/listings/$listingId/edit",
       "/my-listings",
       "/my-listings/$listingId",
@@ -4946,6 +4946,12 @@
       "/admin/listings/$listingId/edit",
       "/my-listings",
       "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "legal.certify.photosWait": [
+      "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -5420,7 +5426,14 @@
     ],
     "myListings.bulk.done": [
       "(every page)",
+      "/admin/attributes",
+      "/admin/categories",
+      "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
       "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
@@ -5429,7 +5442,14 @@
     ],
     "myListings.bulk.needsStatement": [
       "(every page)",
+      "/admin/attributes",
+      "/admin/categories",
+      "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
       "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
@@ -5438,7 +5458,14 @@
     ],
     "myListings.bulk.refused": [
       "(every page)",
+      "/admin/attributes",
+      "/admin/categories",
+      "/admin/listings",
+      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
       "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
