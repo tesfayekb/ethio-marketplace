@@ -340,8 +340,11 @@
     border-color: var(--color-border);
   }
 
-  /* INC-743 — a phone widens its page to any content wider than the screen, moving every fixed bar with it; clip (never hidden: hidden makes a scroll container and breaks the sticky bands) keeps the page the screen's width whatever overflows. The root fix is that text breaks inside its box (wrap-anywhere); this is the guard. */
-  html,
+  /* INC-743 — a phone widens its page to any content wider than the screen, moving every fixed bar with it. The root fix is that text breaks inside its box (wrap-anywhere); the guard that does not depend on the root is overflow-x-clip on the shell's own outermost wrapper (app-shell.tsx). Here: hidden on the root is the form both engines carry to the viewport (the root's overflow goes to the viewport, so html is not a scroll container and the sticky bands are unaffected); body keeps clip (hidden there would make body a scroll container once html is not visible). */
+  html {
+    overflow-x: hidden;
+  }
+
   body {
     overflow-x: clip;
   }
