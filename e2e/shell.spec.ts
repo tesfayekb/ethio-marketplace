@@ -1038,12 +1038,7 @@ test.describe("mobile chrome", () => {
           })
           .filter((rect) => rect.height > 0),
       );
-    const checkVariant = async (
-      box: Locator,
-      panel: string,
-      variant: string,
-      mustScroll: boolean,
-    ) => {
+    const checkVariant = async (box: Locator, panel: string, variant: string) => {
       const rows: RowRect[] = await rowsOf(box);
       expect(rows.length, `${panel} ${variant}: no rows`).toBeGreaterThan(0);
       for (const row of rows) {
@@ -1066,17 +1061,15 @@ test.describe("mobile chrome", () => {
         scroll: el.scrollHeight,
         gap: parseFloat(getComputedStyle(el.querySelector("ul") ?? el).rowGap) || 0,
       }));
-      if (!mustScroll) {
-        // Account's rows may fit: the scroll proof applies only when they do
-        // not (the strip test's capacity arithmetic).
-        const minimum = rows.length * 32 + Math.max(0, rows.length - 1) * metrics.gap;
-        if (minimum <= metrics.client) {
-          expect(
-            metrics.scroll - metrics.client,
-            `${panel} ${variant}: the rows fit yet the box scrolls`,
-          ).toBeLessThanOrEqual(1);
-          return;
-        }
+      // The capacity arithmetic picks the branch for every panel: the scroll
+      // proof applies only when the rows do not fit (rows at their 32 px floor).
+      const minimum = rows.length * 32 + Math.max(0, rows.length - 1) * metrics.gap;
+      if (minimum <= metrics.client) {
+        expect(
+          metrics.scroll - metrics.client,
+          `${panel} ${variant}: the rows fit yet the box scrolls`,
+        ).toBeLessThanOrEqual(1);
+        return "fits";
       }
       expect(
         metrics.scroll,
@@ -1096,29 +1089,49 @@ test.describe("mobile chrome", () => {
         last.top,
         `${panel} ${variant}: ${last.id} sits above the box's top`,
       ).toBeGreaterThanOrEqual(after.top - 1);
+      return "scrolls";
     };
 
     const strip = page.getByTestId("strip-scroll");
     await expect(strip.locator("li")).not.toHaveCount(0, { timeout: 20_000 });
-    await checkVariant(strip, "Admin", "strip", true);
+    await checkVariant(strip, "Admin", "strip");
     await page
       .getByTestId("shell-topbar")
       .getByRole("button", { name: en["shell.openMenu"] })
       .click();
     const menu = page.getByTestId("rail-menu").getByTestId("rail-scroll");
     await expect(menu).toBeVisible();
-    await checkVariant(menu, "Admin", "menu", true);
+    await checkVariant(menu, "Admin", "menu");
     await page.getByTestId("rail-menu-close").click();
+
+    // INC-759: prove scrolling where the Admin strip is one row's floor short.
+    const n = (await rowsOf(strip)).length;
+    const capacity = await strip.evaluate((el) => ({
+      client: el.clientHeight,
+      gap: parseFloat(getComputedStyle(el.querySelector("ul") ?? el).rowGap) || 0,
+    }));
+    const chrome = 640 - capacity.client;
+    const minimum = n * 32 + Math.max(0, n - 1) * capacity.gap;
+    const height = chrome + Math.floor(minimum) - 32;
+    await page.setViewportSize({ width: 360, height });
+    await expect.poll(() => strip.evaluate((el) => el.clientHeight)).not.toBe(capacity.client);
+    const clientHeight = await strip.evaluate((el) => el.clientHeight);
+    expect(
+      minimum,
+      `Admin strip at 360×${height}: its rows must not fit — this step proves the scroll branch`,
+    ).toBeGreaterThan(clientHeight);
+    expect(await checkVariant(strip, "Admin", `strip at 360×${height}`)).toBe("scrolls");
+    await page.setViewportSize({ width: 360, height: 640 });
 
     await page.getByTestId("bottom-bar-account").click();
     await expect(strip.locator("li")).not.toHaveCount(0, { timeout: 20_000 });
-    await checkVariant(strip, "Account", "strip", false);
+    await checkVariant(strip, "Account", "strip");
     await page
       .getByTestId("shell-topbar")
       .getByRole("button", { name: en["shell.openMenu"] })
       .click();
     await expect(menu).toBeVisible();
-    await checkVariant(menu, "Account", "menu", false);
+    await checkVariant(menu, "Account", "menu");
     await page.getByTestId("rail-menu-close").click();
   });
 

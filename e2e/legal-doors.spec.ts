@@ -370,6 +370,19 @@ test.describe("Legal doors", () => {
         .eq("id", fixture.publishedId);
       expect(updated.error?.message, "a published version is final").toContain("publishedIsFinal");
 
+      const changedKind = await supabase
+        .from("legal_documents")
+        .update({ kind: `${kind}-moved` })
+        .eq("id", fixture.documentId);
+      expect(changedKind.error?.message).toContain("kindIsFinal");
+      const keptKind = await supabase
+        .from("legal_documents")
+        .select("kind")
+        .eq("id", fixture.documentId)
+        .single();
+      expect(keptKind.error).toBeNull();
+      expect(keptKind.data?.kind).toBe(kind);
+
       // The service role's cleanup DELETE of a published SCRATCH row is the one allowed path
       // (destroyFixture proves it in finally; here it is proven against a throwaway row).
       const extra = await seedFixture(kind, "DE");
@@ -482,6 +495,21 @@ test.describe("Legal doors", () => {
         .eq("user_id", person.id)
         .eq("version_id", fixture.publishedId);
       expect(after.data?.length, "a second call writes nothing").toBe(1);
+
+      const acceptanceId = row["id"];
+      if (typeof acceptanceId !== "string") throw new Error("[e2e:legal] missing acceptance id");
+      const changedAcceptance = await supabase
+        .from("legal_acceptances")
+        .update({ language: "am" })
+        .eq("id", acceptanceId);
+      expect(changedAcceptance.error?.message).toContain("acceptanceIsFinal");
+      const keptAcceptance = await supabase
+        .from("legal_acceptances")
+        .select("language")
+        .eq("id", acceptanceId)
+        .single();
+      expect(keptAcceptance.error).toBeNull();
+      expect(keptAcceptance.data?.language).toBe("en");
 
       // A draft is refused.
       const draft = await supabase
@@ -689,6 +717,28 @@ test.describe("Legal doors", () => {
       });
       expect(recorded.error, "the service role records a notice").toBeNull();
 
+      const supabase = adminClient();
+      const notice = await supabase
+        .from("legal_notices")
+        .select("id, status")
+        .eq("user_id", person.id)
+        .eq("version_id", fixture.publishedId)
+        .single();
+      if (notice.error || !notice.data)
+        throw new Error(`[e2e:legal] notice read: ${notice.error?.message}`);
+      const changedNotice = await supabase
+        .from("legal_notices")
+        .update({ status: "failed" })
+        .eq("id", notice.data.id);
+      expect(changedNotice.error?.message).toContain("noticeIsFinal");
+      const keptNotice = await supabase
+        .from("legal_notices")
+        .select("status")
+        .eq("id", notice.data.id)
+        .single();
+      expect(keptNotice.error).toBeNull();
+      expect(keptNotice.data?.status).toBe(notice.data.status);
+
       // The same door refuses a signed-in user.
       const refused = await caller.rpc("record_legal_notice", {
         p_user_id: person.id,
@@ -812,6 +862,65 @@ test.describe("Legal doors", () => {
     } finally {
       await destroyFixture(fixture);
       await destroyFixture(other);
+    }
+  });
+
+  test("LG-9 the staff reads: admin_legal_documents and admin_legal_version refuse every lesser caller; the super admin reads a scratch version whole, its change log included", async ({
+    page,
+  }) => {
+    const fixture = await seedFixture(`${RUN_TAG}-i`, null);
+    const plain = await leaseUser();
+    const admin = await leaseUser();
+    await grantRole(admin.id, "admin");
+    try {
+      // Service execution has no person's JWT: exercise the missing-caller gate,
+      // without granting anonymous callers access to either staff function.
+      const missingList = await adminClient().rpc("admin_legal_documents");
+      expect(missingList.error?.message, "missing caller: staff list").toContain(
+        "not authenticated",
+      );
+      const missingVersion = await adminClient().rpc("admin_legal_version", {
+        p_version_id: fixture.publishedId,
+      });
+      expect(missingVersion.error?.message, "missing caller: staff version").toContain(
+        "not authenticated",
+      );
+
+      const asPlain = await asPerson(plain);
+      const asAdmin = await asPerson(admin);
+      for (const [who, caller] of [
+        ["plain user", asPlain],
+        ["admin by role", asAdmin],
+      ] as const) {
+        const list = await caller.rpc("admin_legal_documents");
+        expect(list.error, `${who}: staff list`).toContain("permission denied");
+        const version = await caller.rpc("admin_legal_version", {
+          p_version_id: fixture.publishedId,
+        });
+        expect(version.error, `${who}: staff version`).toContain("permission denied");
+      }
+
+      await useJobSuperAdmin(page);
+      const staff = await asToken(await superAdminToken(page));
+      const version = await staff.rpc("admin_legal_version", {
+        p_version_id: fixture.publishedId,
+      });
+      expect(version.error).toBeNull();
+      const body = version.data as Row;
+      expect(body["label"]).toBe("v1");
+      expect(body["body_en"]).toBe("English body");
+      expect(body["body_am"]).toBe("Amharic body");
+      expect(body["changelog"]).toBe("first version");
+      expect(body["status"]).toBe("published");
+      const unknown = await staff.rpc("admin_legal_version", {
+        p_version_id: crypto.randomUUID(),
+      });
+      expect(unknown.error).toContain("unknownVersion");
+      const list = await staff.rpc("admin_legal_documents");
+      expect(list.error).toBeNull();
+      expect(Array.isArray(list.data)).toBe(true);
+    } finally {
+      await destroyFixture(fixture);
     }
   });
 });
