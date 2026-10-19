@@ -81,6 +81,14 @@ factor). No role holds any of them: the super admin holds every permission (`has
 
 ## Admin › Legal (turn 2)
 
+M2 v2 re-declares four doors whole: `admin_legal_documents` adds publisher names and acceptance counts
+and lists scratch documents; `legal_in_force` answers a named scratch kind; `my_legal_status` returns
+one version in force per applicable document and counts only material versions already in force
+(INC-761); `admin_set_legal_settings` validates every number before writing and refuses invalid values
+as `badValue:<key>` (INC-762). The roles matrix receives the supplied legal, edit and publish labels
+in English and Amharic (INC-763). LG-5 proves the newest in-force version appears once, an accepted
+document stays absent while a material version is ahead, and returns when a material version is in force.
+
 - `/admin/legal`: three kind cards (`legal-kind-*`), global then country document blocks
   (`legal-doc-*`), current, scheduled and draft versions, newest-first history (`legal-history-*`),
   country creation and Legal facts (`legal-facts`, `legal-fact-*`). Scratch documents occupy Other documents.
