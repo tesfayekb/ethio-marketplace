@@ -48,29 +48,29 @@ only); all reads and writes go through the doors below.
 
 Reader doors:
 
-| Door | Caller | Refusals |
-| --- | --- | --- |
-| `legal_in_force(p_kind, p_country)` | anyone (anon + authenticated) | — (answers NULL when nothing is in force) |
-| `my_legal_status(p_kinds)` | signed in, own standing | not authenticated |
-| `accept_legal(p_version_ids, p_language, p_adult)` | signed in, own rows | not authenticated, emptyList, adultRequired, badLanguage, notInForce, notApplicable |
-| `my_legal_history()` | signed in, own rows | not authenticated |
-| `my_legal_version(p_version_id)` | signed in; accepted, noticed or in-force versions | not authenticated, notYours |
-| `record_legal_notice(...)` | service role only | permission denied, notPublished |
+| Door                                               | Caller                                            | Refusals                                                                            |
+| -------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `legal_in_force(p_kind, p_country)`                | anyone (anon + authenticated)                     | — (answers NULL when nothing is in force)                                           |
+| `my_legal_status(p_kinds)`                         | signed in, own standing                           | not authenticated                                                                   |
+| `accept_legal(p_version_ids, p_language, p_adult)` | signed in, own rows                               | not authenticated, emptyList, adultRequired, badLanguage, notInForce, notApplicable |
+| `my_legal_history()`                               | signed in, own rows                               | not authenticated                                                                   |
+| `my_legal_version(p_version_id)`                   | signed in; accepted, noticed or in-force versions | not authenticated, notYours                                                         |
+| `record_legal_notice(...)`                         | service role only                                 | permission denied, notPublished                                                     |
 
 Staff doors (each checks its own permission through `has_permission`; the mutating ones also call
 `require_step_up_if_needed('legal', <action>)`; every refusal of a missing or lesser caller is
 `permission denied` or the step-up refusal; `e2e-` scratch documents are excluded from the staff lists):
 
-| Door | Permission | Refusals |
-| --- | --- | --- |
-| `admin_legal_documents()` | legal:view | — |
-| `admin_legal_version(p_version_id)` | legal:view (change log included) | unknownVersion |
-| `admin_save_legal_draft(...)` | legal:edit + step-up | badValue:kind, badValue:country, labelRequired, labelTaken |
-| `admin_discard_legal_draft(p_version_id)` | legal:edit + step-up | unknownVersion, notDraft |
-| `admin_publish_legal_version(...)` | legal:publish + step-up | badValue:material, unknownVersion, notDraft, labelRequired, bothLanguages, changelogRequired, noticeTooShort |
-| `admin_legal_settings()` | legal:view | — |
-| `admin_set_legal_settings(p_settings)` | legal:edit + step-up | badValue:&lt;field&gt; (bad e-mail, out-of-range number, over-long text, unknown key) |
-| `admin_user_legal_history(p_user_id)` | profiles:view | unknownUser |
+| Door                                      | Permission                       | Refusals                                                                                                     |
+| ----------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `admin_legal_documents()`                 | legal:view                       | —                                                                                                            |
+| `admin_legal_version(p_version_id)`       | legal:view (change log included) | unknownVersion                                                                                               |
+| `admin_save_legal_draft(...)`             | legal:edit + step-up             | badValue:kind, badValue:country, labelRequired, labelTaken                                                   |
+| `admin_discard_legal_draft(p_version_id)` | legal:edit + step-up             | unknownVersion, notDraft                                                                                     |
+| `admin_publish_legal_version(...)`        | legal:publish + step-up          | badValue:material, unknownVersion, notDraft, labelRequired, bothLanguages, changelogRequired, noticeTooShort |
+| `admin_legal_settings()`                  | legal:view                       | —                                                                                                            |
+| `admin_set_legal_settings(p_settings)`    | legal:edit + step-up             | badValue:&lt;field&gt; (bad e-mail, out-of-range number, over-long text, unknown key)                        |
+| `admin_user_legal_history(p_user_id)`     | profiles:view                    | unknownUser                                                                                                  |
 
 The mutating staff doors write an audit row (`legal.draft_saved`, `legal.draft_discarded`,
 `legal.published`, `legal.settings_set`).
