@@ -1,5 +1,12 @@
 import { priceLine as sharedPriceLine } from "./price-line";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { listingPath } from "@/features/ad-page/address";
+import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
+import { readMyListing, type MyListing } from "@/features/my-listings/my-listing";
+import { storedUnitNoun } from "./price-line";
+import { usePriceUnitLabels } from "./use-price-unit-labels";
 import { Link } from "@tanstack/react-router";
 
 import { isoDay } from "@/components/shell/date-day";
@@ -195,9 +202,55 @@ export function StepReview({
   // Step 16 — the date box shows while the switch is on; a saved date opens it.
   const [dateOn, setDateOn] = useState(values.posterExpiresAt !== "");
   const [inReview, setInReview] = useState(false);
+  const [shareListing, setShareListing] = useState<MyListing | null>(null);
+  const shareNoteId = useId();
+  const shareRow = shareListing?.listing;
+  const unitLabels = usePriceUnitLabels(shareRow !== undefined && shareRow.priceUnit !== null);
 
   /** D194 — staff editing another seller's ad: their own identity is nobody's seller block. */
   const staffEdit = edit !== null && edit.actor === "admin";
+  // D218 — seller-only, bounded reads; a refusal or failure never enables Share.
+  useEffect(() => {
+    if (!inReview || staffEdit || listingId === null) return;
+    let cancelled = false;
+    let stopped = false;
+    let reading = false;
+    let reads = 0;
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const stop = () => {
+      stopped = true;
+      clearInterval(interval);
+    };
+    const read = async () => {
+      if (cancelled || stopped || reading) return;
+      reading = true;
+      reads += 1;
+      if (reads === 12) stop();
+      try {
+        const found = await readMyListing(listingId);
+        if (cancelled) return;
+        if (found === "notYours") {
+          stop();
+          return;
+        }
+        if (found.listing.status === "active" && typeof found.listing.publicId === "string") {
+          setShareListing(found);
+          stop();
+        }
+      } catch (error: unknown) {
+        if (!cancelled) console.warn("[post-review-share] read failed", error);
+        stop();
+      } finally {
+        reading = false;
+      }
+    };
+    interval = setInterval(() => void read(), 10_000);
+    void read();
+    return () => {
+      cancelled = true;
+      stop();
+    };
+  }, [inReview, staffEdit, listingId]);
   useEffect(() => {
     if (staffEdit) return;
     let cancelled = false;
@@ -399,8 +452,61 @@ export function StepReview({
   if (inReview) {
     return (
       <div className="space-y-3" data-testid="post-in-review">
-        <h2 className="text-base font-semibold text-foreground">{t("post.review.reviewTitle")}</h2>
-        <p className="text-sm text-muted-foreground">{t("post.review.reviewBody")}</p>
+        <h2 className="text-base font-semibold text-foreground">
+          {t(shareRow === undefined ? "post.review.reviewTitle" : "post.review.liveTitle")}
+        </h2>
+        {shareRow === undefined && (
+          <p className="text-sm text-muted-foreground">{t("post.review.reviewBody")}</p>
+        )}
+        {!staffEdit && (
+          <div className="space-y-2" data-testid="post-review-share">
+            {shareRow?.status === "active" && typeof shareRow.publicId === "string" ? (
+              <ShareAd
+                prominent
+                publicId={shareRow.publicId}
+                canonicalPath={listingPath(shareRow.title ?? "", shareRow.publicId)}
+                title={shareRow.title ?? ""}
+                priceText={sharePriceText(
+                  {
+                    mode: values.priceMode ?? "contact",
+                    amount: values.priceAmount,
+                    currency: values.priceCurrency,
+                    period: values.pricePeriod,
+                    bp: values.priceBp,
+                    unit: storedUnitNoun(
+                      shareRow.priceUnit,
+                      shareRow.priceUnitText,
+                      unitLabels,
+                      language,
+                    ),
+                  },
+                  t,
+                  language,
+                )}
+              />
+            ) : (
+              <>
+                <Button
+                  variant="secondary"
+                  className="min-h-11 gap-2"
+                  data-testid="post-review-share-wait"
+                  disabled
+                  aria-describedby={shareNoteId}
+                >
+                  <Share2 className="size-5" aria-hidden="true" />
+                  {t("adPage.share.open")}
+                </Button>
+                <p
+                  id={shareNoteId}
+                  data-testid="post-review-share-note"
+                  className="text-sm text-muted-foreground"
+                >
+                  {t("post.review.shareWait")}
+                </p>
+              </>
+            )}
+          </div>
+        )}
         {/*
          * INC-641 — "Go to My listings" goes to My listings. The button pointed
          * at the feed from before My listings had a page (bundle 16 turn 1 gave

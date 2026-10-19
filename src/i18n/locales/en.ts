@@ -2837,6 +2837,8 @@ export const en = {
     "Your listing is being checked. It usually takes a few minutes, and you'll see it in My listings when it goes live.",
   "post.review.myListings": "Go to My listings",
   "post.review.postAnother": "Post another ad",
+  "post.review.shareWait": "Not ready to share yet. Check again later.",
+  "post.review.liveTitle": "Your ad is live",
   // U6-C1-R1 — the required-field primitive, the one-control category step,
   // optional photos, the ordered price step and the review window.
   "post.field.required": "Required",

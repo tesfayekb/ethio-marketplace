@@ -173,6 +173,7 @@ export function ListingPreview({
         hasPhoto={photos.length > 0}
         boxTestId={cover !== null ? "post-review-cover-box" : "post-review-nophoto"}
         rounded="rounded-sm"
+        crop
       />
 
       <h3 className="text-base font-semibold text-foreground" data-testid="post-review-title">

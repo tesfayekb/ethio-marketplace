@@ -2705,6 +2705,8 @@ export const am: Messages = {
   "post.review.reviewBody": "ዝርዝርዎ በመመርመር ላይ ነው። አብዛኛውን ጊዜ ጥቂት ደቂቃዎች ይወስዳል፤ ሲወጣ በ«ዝርዝሮቼ» ውስጥ ያዩታል።",
   "post.review.myListings": "ወደ ዝርዝሮቼ ይሂዱ",
   "post.review.postAnother": "ሌላ ማስታወቂያ ይለጥፉ",
+  "post.review.shareWait": "ለማጋራት ገና ዝግጁ አይደለም። ቆይተው እንደገና ይመልከቱ።",
+  "post.review.liveTitle": "ማስታወቂያዎ አሁን በቀጥታ ነው",
   // U6-C1-R1
   "post.field.required": "ያስፈልጋል",
   "post.refusalSummary": "ለመቀጠል እነዚህን ይሙሉ፦",
