@@ -36,7 +36,7 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { destroyCountry } from "./helpers/countries";
-import { destroyCategory, grantRole, scratchSlug } from "./helpers/categories";
+import { destroyCategory, scratchSlug } from "./helpers/categories";
 import { adminClient, leaseUser } from "./helpers/users";
 import { distanceKm } from "../src/lib/geo-distance";
 

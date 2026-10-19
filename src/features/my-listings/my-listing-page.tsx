@@ -644,7 +644,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               directions={draft.draft.directions}
               streetAddress={draft.draft.streetAddress}
               share={
-                shareable(row) ? (
+                row.publicId !== null && shareable(row) ? (
                   <ShareAd
                     publicId={row.publicId}
                     canonicalPath={listingPath(row.title ?? "", row.publicId)}
