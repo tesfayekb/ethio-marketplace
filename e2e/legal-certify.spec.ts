@@ -279,234 +279,234 @@ test.describe("Legal certification", () => {
   test("LG-15 my_listing_certification lists the statements for all countries and the ad's countries, never another country's; another seller is refused", async ({
     page,
   }) => {
-      const { seller, categoryId, cityId } = await sellerOnPage(page, s);
-      const listingId = await draftOf(page, s, categoryId, cityId);
-      const kind = `e2e-pub-${hex(listingId)}`;
-      const global = await seedDocument(s, kind, null, "Global statement");
-      const et = await seedDocument(s, kind, "ET", "Ethiopia statement");
-      await seedDocument(s, kind, "KE", "Kenya statement");
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    const kind = `e2e-pub-${hex(listingId)}`;
+    const global = await seedDocument(s, kind, null, "Global statement");
+    const et = await seedDocument(s, kind, "ET", "Ethiopia statement");
+    await seedDocument(s, kind, "KE", "Kenya statement");
 
-      const me = await asPerson(seller);
-      const answer = await me.rpc("my_listing_certification", { p_listing_id: listingId });
-      expect(answer.error).toBeNull();
-      const body = answer.data as { statements: Row[]; acceptance_pending: boolean };
-      expect(body.statements.map((row) => row["version_id"])).toEqual([global.id, et.id]);
-      expect(body.statements.map((row) => row["country_code"])).toEqual([null, "ET"]);
-      expect(body.acceptance_pending).toBe(false);
+    const me = await asPerson(seller);
+    const answer = await me.rpc("my_listing_certification", { p_listing_id: listingId });
+    expect(answer.error).toBeNull();
+    const body = answer.data as { statements: Row[]; acceptance_pending: boolean };
+    expect(body.statements.map((row) => row["version_id"])).toEqual([global.id, et.id]);
+    expect(body.statements.map((row) => row["country_code"])).toEqual([null, "ET"]);
+    expect(body.acceptance_pending).toBe(false);
 
-      const other = await leaseSeller();
-      s.sellers.push(other.id);
-      const refused = await (
-        await asPerson(other)
-      ).rpc("my_listing_certification", {
-        p_listing_id: listingId,
-      });
-      expect(refused.error).toContain("not your listing");
+    const other = await leaseSeller();
+    s.sellers.push(other.id);
+    const refused = await (
+      await asPerson(other)
+    ).rpc("my_listing_certification", {
+      p_listing_id: listingId,
+    });
+    expect(refused.error).toContain("not your listing");
   });
 
   test("LG-16 publish_listing refuses without the exact certified set and records the certification; a draft with no statement publishes as today", async ({
     page,
   }) => {
-      const { seller, categoryId, cityId } = await sellerOnPage(page, s);
-      const listingId = await draftOf(page, s, categoryId, cityId);
-      const kind = `e2e-pub-${hex(listingId)}`;
-      const global = await seedDocument(s, kind, null, "Global statement");
-      const et = await seedDocument(s, kind, "ET", "Ethiopia statement");
-      const me = await asPerson(seller);
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    const kind = `e2e-pub-${hex(listingId)}`;
+    const global = await seedDocument(s, kind, null, "Global statement");
+    const et = await seedDocument(s, kind, "ET", "Ethiopia statement");
+    const me = await asPerson(seller);
 
-      const bare = await me.rpc("publish_listing", { p_listing_id: listingId });
-      expect(bare.error).toContain("certificationRequired");
-      expect(await statusOf(listingId)).toBe("draft");
+    const bare = await me.rpc("publish_listing", { p_listing_id: listingId });
+    expect(bare.error).toContain("certificationRequired");
+    expect(await statusOf(listingId)).toBe("draft");
 
-      const missing = await me.rpc("publish_listing", {
-        p_listing_id: listingId,
-        p_certified: [global.id],
-        p_language: "en",
-      });
-      expect(missing.error).toContain("certificationRequired");
-      expect(await statusOf(listingId)).toBe("draft");
+    const missing = await me.rpc("publish_listing", {
+      p_listing_id: listingId,
+      p_certified: [global.id],
+      p_language: "en",
+    });
+    expect(missing.error).toContain("certificationRequired");
+    expect(await statusOf(listingId)).toBe("draft");
 
-      const ok = await me.rpc("publish_listing", {
-        p_listing_id: listingId,
-        p_certified: [et.id, global.id],
-        p_language: "en",
-      });
-      expect(ok.error, JSON.stringify(ok)).toBeNull();
-      expect((ok.data as Row)["status"]).toBe("screening");
-      const rows = await certificationsOf(listingId);
-      expect(rows).toHaveLength(1);
-      expect(rows[0]?.["action"]).toBe("publish");
-      expect(sorted(rows[0]?.["version_ids"])).toEqual([global.id, et.id].sort());
-      expect(rows[0]?.["countries"]).toEqual(["ET"]);
-      expect(rows[0]?.["language"]).toBe("en");
-      expect(rows[0]?.["home_country_code"]).toBe("ET");
-      expect(rows[0]?.["user_id"]).toBe(seller.id);
+    const ok = await me.rpc("publish_listing", {
+      p_listing_id: listingId,
+      p_certified: [et.id, global.id],
+      p_language: "en",
+    });
+    expect(ok.error, JSON.stringify(ok)).toBeNull();
+    expect((ok.data as Row)["status"]).toBe("screening");
+    const rows = await certificationsOf(listingId);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.["action"]).toBe("publish");
+    expect(sorted(rows[0]?.["version_ids"])).toEqual([global.id, et.id].sort());
+    expect(rows[0]?.["countries"]).toEqual(["ET"]);
+    expect(rows[0]?.["language"]).toBe("en");
+    expect(rows[0]?.["home_country_code"]).toBe("ET");
+    expect(rows[0]?.["user_id"]).toBe(seller.id);
 
-      const plain = await draftOf(page, s, categoryId, cityId);
-      const token = await bearerOf(page);
-      const published = await postRoute(
-        page,
-        PUBLISH,
-        { listingId: plain },
-        { token, country: "ET" },
-      );
-      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
-      expect(await certificationsOf(plain)).toHaveLength(0);
+    const plain = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    const published = await postRoute(
+      page,
+      PUBLISH,
+      { listingId: plain },
+      { token, country: "ET" },
+    );
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    expect(await certificationsOf(plain)).toHaveLength(0);
   });
 
   test("LG-17 an owed acceptance refuses a certified publish until it is accepted", async ({
     page,
   }) => {
-      const { seller, categoryId, cityId } = await sellerOnPage(page, s);
-      const listingId = await draftOf(page, s, categoryId, cityId);
-      const statement = await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, "Statement");
-      const owed = await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
-      const me = await asPerson(seller);
-      const args = { p_listing_id: listingId, p_certified: [statement.id], p_language: "en" };
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    const statement = await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, "Statement");
+    const owed = await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
+    const me = await asPerson(seller);
+    const args = { p_listing_id: listingId, p_certified: [statement.id], p_language: "en" };
 
-      const refused = await me.rpc("publish_listing", args);
-      expect(refused.error).toContain("acceptanceRequired");
-      expect(await statusOf(listingId)).toBe("draft");
+    const refused = await me.rpc("publish_listing", args);
+    expect(refused.error).toContain("acceptanceRequired");
+    expect(await statusOf(listingId)).toBe("draft");
 
-      const accepted = await me.rpc("accept_legal", {
-        p_version_ids: [owed.id],
-        p_language: "en",
-        p_adult: true,
-      });
-      expect(accepted.error, JSON.stringify(accepted)).toBeNull();
-      const ok = await me.rpc("publish_listing", args);
-      expect(ok.error, JSON.stringify(ok)).toBeNull();
-      expect(await statusOf(listingId)).toBe("screening");
+    const accepted = await me.rpc("accept_legal", {
+      p_version_ids: [owed.id],
+      p_language: "en",
+      p_adult: true,
+    });
+    expect(accepted.error, JSON.stringify(accepted)).toBeNull();
+    const ok = await me.rpc("publish_listing", args);
+    expect(ok.error, JSON.stringify(ok)).toBeNull();
+    expect(await statusOf(listingId)).toBe("screening");
   });
 
   test("LG-18 edit_my_listing and renew_listing refuse without the certification and record it with it", async ({
     page,
   }) => {
-      await renewAllowed();
-      const { seller, categoryId, cityId } = await sellerOnPage(page, s);
-      const me = await asPerson(seller);
+    await renewAllowed();
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const me = await asPerson(seller);
 
-      const live = await draftOf(page, s, categoryId, cityId);
-      const token = await bearerOf(page);
-      const first = await postRoute(page, PUBLISH, { listingId: live }, { token, country: "ET" });
-      expect(first.payload["status"], JSON.stringify(first.payload)).toBe("screening");
-      await makeState(live, "active");
-      const liveStatement = await seedDocument(s, `e2e-pub-${hex(live)}`, null, "Statement");
-      const changes = { title: `e2e certify edited ${rand()}` };
-      const bareEdit = await me.rpc("edit_my_listing", { p_listing_id: live, p_changes: changes });
-      expect(bareEdit.error).toContain("certificationRequired");
-      const edited = await me.rpc("edit_my_listing", {
-        p_listing_id: live,
-        p_changes: changes,
-        p_certified: [liveStatement.id],
-        p_language: "en",
-      });
-      expect(edited.error, JSON.stringify(edited)).toBeNull();
-      expect((edited.data as Row)["ok"]).toBe(true);
-      expect((await certificationsOf(live)).map((row) => row["action"])).toEqual(["edit"]);
+    const live = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    const first = await postRoute(page, PUBLISH, { listingId: live }, { token, country: "ET" });
+    expect(first.payload["status"], JSON.stringify(first.payload)).toBe("screening");
+    await makeState(live, "active");
+    const liveStatement = await seedDocument(s, `e2e-pub-${hex(live)}`, null, "Statement");
+    const changes = { title: `e2e certify edited ${rand()}` };
+    const bareEdit = await me.rpc("edit_my_listing", { p_listing_id: live, p_changes: changes });
+    expect(bareEdit.error).toContain("certificationRequired");
+    const edited = await me.rpc("edit_my_listing", {
+      p_listing_id: live,
+      p_changes: changes,
+      p_certified: [liveStatement.id],
+      p_language: "en",
+    });
+    expect(edited.error, JSON.stringify(edited)).toBeNull();
+    expect((edited.data as Row)["ok"]).toBe(true);
+    expect((await certificationsOf(live)).map((row) => row["action"])).toEqual(["edit"]);
 
-      const old = await draftOf(page, s, categoryId, cityId);
-      const second = await postRoute(page, PUBLISH, { listingId: old }, { token, country: "ET" });
-      expect(second.payload["status"], JSON.stringify(second.payload)).toBe("screening");
-      await makeState(old, "expired");
-      const oldStatement = await seedDocument(s, `e2e-pub-${hex(old)}`, null, "Statement");
-      const bareRenew = await me.rpc("renew_listing", { p_listing_id: old });
-      expect(bareRenew.error).toContain("certificationRequired");
-      expect(await statusOf(old)).toBe("expired");
-      const renewed = await me.rpc("renew_listing", {
-        p_listing_id: old,
-        p_certified: [oldStatement.id],
-        p_language: "en",
-      });
-      expect(renewed.error, JSON.stringify(renewed)).toBeNull();
-      expect((renewed.data as Row)["ok"]).toBe(true);
-      expect((await certificationsOf(old)).map((row) => row["action"])).toEqual(["renew"]);
+    const old = await draftOf(page, s, categoryId, cityId);
+    const second = await postRoute(page, PUBLISH, { listingId: old }, { token, country: "ET" });
+    expect(second.payload["status"], JSON.stringify(second.payload)).toBe("screening");
+    await makeState(old, "expired");
+    const oldStatement = await seedDocument(s, `e2e-pub-${hex(old)}`, null, "Statement");
+    const bareRenew = await me.rpc("renew_listing", { p_listing_id: old });
+    expect(bareRenew.error).toContain("certificationRequired");
+    expect(await statusOf(old)).toBe("expired");
+    const renewed = await me.rpc("renew_listing", {
+      p_listing_id: old,
+      p_certified: [oldStatement.id],
+      p_language: "en",
+    });
+    expect(renewed.error, JSON.stringify(renewed)).toBeNull();
+    expect((renewed.data as Row)["ok"]).toBe(true);
+    expect((await certificationsOf(old)).map((row) => row["action"])).toEqual(["renew"]);
   });
 
   test("LGC-1 the review step shows the statement with one tick, Publish waits for it; a draft with no statement shows today's line", async ({
     page,
   }) => {
-      const { categoryId, cityId } = await sellerOnPage(page, s);
-      const listingId = await draftOf(page, s, categoryId, cityId);
-      const statementText = `Statement ${rand()}`;
-      await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, statementText);
+    const { categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    const statementText = `Statement ${rand()}`;
+    await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, statementText);
 
-      await gotoReady(page, `/post/${listingId}`);
-      const block = page.getByTestId("certify-block");
-      await expect(block).toBeVisible({ timeout: 20_000 });
-      await expect(block.getByTestId("certify-statement")).toContainText(statementText);
-      await expect(page.getByTestId("post-publish-statement")).toHaveCount(0);
-      const publish = page.getByTestId("post-publish");
-      await expect(publish).toBeDisabled();
-      await page.getByTestId("certify-tick").click();
-      await expect(publish).toBeEnabled();
-      await publish.click();
-      await expect(page.getByTestId("post-in-review")).toBeVisible({ timeout: 20_000 });
-      await expect.poll(async () => (await certificationsOf(listingId)).length).toBe(1);
+    await gotoReady(page, `/post/${listingId}`);
+    const block = page.getByTestId("certify-block");
+    await expect(block).toBeVisible({ timeout: 20_000 });
+    await expect(block.getByTestId("certify-statement")).toContainText(statementText);
+    await expect(page.getByTestId("post-publish-statement")).toHaveCount(0);
+    const publish = page.getByTestId("post-publish");
+    await expect(publish).toBeDisabled();
+    await page.getByTestId("certify-tick").click();
+    await expect(publish).toBeEnabled();
+    await publish.click();
+    await expect(page.getByTestId("post-in-review")).toBeVisible({ timeout: 20_000 });
+    await expect.poll(async () => (await certificationsOf(listingId)).length).toBe(1);
 
-      const plain = await draftOf(page, s, categoryId, cityId);
-      await gotoReady(page, `/post/${plain}`);
-      await expect(page.getByTestId("post-publish-statement")).toBeVisible({ timeout: 20_000 });
-      await expect(page.getByTestId("post-publish")).toBeEnabled();
-      await expect(page.getByTestId("certify-block")).toHaveCount(0);
+    const plain = await draftOf(page, s, categoryId, cityId);
+    await gotoReady(page, `/post/${plain}`);
+    await expect(page.getByTestId("post-publish-statement")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-publish")).toBeEnabled();
+    await expect(page.getByTestId("certify-block")).toHaveCount(0);
   });
 
   test("LGC-2 Renew in My listings shows the statement; confirm waits for the tick and records the renewal", async ({
     page,
   }) => {
-      await renewAllowed();
-      const { categoryId, cityId } = await sellerOnPage(page, s);
-      const listingId = await draftOf(page, s, categoryId, cityId);
-      const token = await bearerOf(page);
-      const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
-      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
-      await makeState(listingId, "expired");
-      await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, `Statement ${rand()}`);
+    await renewAllowed();
+    const { categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    await makeState(listingId, "expired");
+    await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, `Statement ${rand()}`);
 
-      await gotoReady(page, `/my-listings/${listingId}`);
-      await page.getByTestId("my-listing-action-renew").click();
-      const dialog = page.getByTestId("certify-confirm");
-      await expect(dialog).toBeVisible({ timeout: 20_000 });
-      await expect(dialog.getByTestId("certify-block")).toBeVisible();
-      const yes = dialog.getByTestId("certify-confirm-yes");
-      await expect(yes).toBeDisabled();
-      await dialog.getByTestId("certify-tick").click();
-      await expect(yes).toBeEnabled();
-      await yes.click();
-      await expect.poll(() => statusOf(listingId), { timeout: 20_000 }).toBe("active");
-      expect((await certificationsOf(listingId)).map((row) => row["action"])).toEqual(["renew"]);
+    await gotoReady(page, `/my-listings/${listingId}`);
+    await page.getByTestId("my-listing-action-renew").click();
+    const dialog = page.getByTestId("certify-confirm");
+    await expect(dialog).toBeVisible({ timeout: 20_000 });
+    await expect(dialog.getByTestId("certify-block")).toBeVisible();
+    const yes = dialog.getByTestId("certify-confirm-yes");
+    await expect(yes).toBeDisabled();
+    await dialog.getByTestId("certify-tick").click();
+    await expect(yes).toBeEnabled();
+    await yes.click();
+    await expect.poll(() => statusOf(listingId), { timeout: 20_000 }).toBe("active");
+    expect((await certificationsOf(listingId)).map((row) => row["action"])).toEqual(["renew"]);
   });
 
   test("LGC-3 the staff card lists an ad's certification with the statement's name; an ad with none says so", async ({
     page,
   }) => {
-      const { seller, categoryId, cityId } = await sellerOnPage(page, s);
-      const certified = await draftOf(page, s, categoryId, cityId);
-      const statement = await seedDocument(s, `e2e-pub-${hex(certified)}`, null, "Statement");
-      const plain = await draftOf(page, s, categoryId, cityId);
-      const me = await asPerson(seller);
-      const ok = await me.rpc("publish_listing", {
-        p_listing_id: certified,
-        p_certified: [statement.id],
-        p_language: "en",
-      });
-      expect(ok.error, JSON.stringify(ok)).toBeNull();
-      const token = await bearerOf(page);
-      const second = await postRoute(page, PUBLISH, { listingId: plain }, { token, country: "ET" });
-      expect(second.payload["status"], JSON.stringify(second.payload)).toBe("screening");
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const certified = await draftOf(page, s, categoryId, cityId);
+    const statement = await seedDocument(s, `e2e-pub-${hex(certified)}`, null, "Statement");
+    const plain = await draftOf(page, s, categoryId, cityId);
+    const me = await asPerson(seller);
+    const ok = await me.rpc("publish_listing", {
+      p_listing_id: certified,
+      p_certified: [statement.id],
+      p_language: "en",
+    });
+    expect(ok.error, JSON.stringify(ok)).toBeNull();
+    const token = await bearerOf(page);
+    const second = await postRoute(page, PUBLISH, { listingId: plain }, { token, country: "ET" });
+    expect(second.payload["status"], JSON.stringify(second.payload)).toBe("screening");
 
-      await page.context().clearCookies();
-      await useJobSuperAdmin(page);
-      await gotoReady(page, `/admin/listings/${certified}`);
-      await expect(page.getByTestId("listing-certification")).toHaveCount(1, { timeout: 20_000 });
-      const row = page.locator('[data-testid="listing-certification"][data-action="publish"]');
-      await expect(row).toHaveCount(1);
-      await expect(row).toContainText(statement.label);
+    await page.context().clearCookies();
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/listings/${certified}`);
+    await expect(page.getByTestId("listing-certification")).toHaveCount(1, { timeout: 20_000 });
+    const row = page.locator('[data-testid="listing-certification"][data-action="publish"]');
+    await expect(row).toHaveCount(1);
+    await expect(row).toContainText(statement.label);
 
-      await gotoReady(page, `/admin/listings/${plain}`);
-      await expect(page.getByTestId("listing-certifications-none")).toBeVisible({
-        timeout: 20_000,
-      });
+    await gotoReady(page, `/admin/listings/${plain}`);
+    await expect(page.getByTestId("listing-certifications-none")).toBeVisible({
+      timeout: 20_000,
+    });
   });
 
   test("LGC-4 bulk Renew renews the ads no statement applies to and names the one that needs it; nothing is certified", async ({
@@ -514,181 +514,181 @@ test.describe("Legal certification", () => {
   }) => {
     const width = page.viewportSize()?.width ?? 0;
     test.skip(width < 768, "ticks exist from 768 only (D128)");
-      await renewAllowed();
-      const { categoryId, cityId } = await sellerOnPage(page, s);
-      const a = await draftOf(page, s, categoryId, cityId);
-      const b = await draftOf(page, s, categoryId, cityId);
-      const token = await bearerOf(page);
-      for (const listingId of [a, b]) {
-        const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
-        expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
-        await makeState(listingId, "expired");
-      }
-      const { data: stored, error } = await adminClient()
-        .from("listings")
-        .select("title")
-        .eq("id", a)
-        .single();
-      if (error || !stored) throw new Error(`[e2e:certify] reading A's title: ${error?.message}`);
-      const titleA = String((stored as Row)["title"]);
-      await seedDocument(s, `e2e-pub-${hex(a)}`, null, `Statement ${rand()}`);
+    await renewAllowed();
+    const { categoryId, cityId } = await sellerOnPage(page, s);
+    const a = await draftOf(page, s, categoryId, cityId);
+    const b = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    for (const listingId of [a, b]) {
+      const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+      await makeState(listingId, "expired");
+    }
+    const { data: stored, error } = await adminClient()
+      .from("listings")
+      .select("title")
+      .eq("id", a)
+      .single();
+    if (error || !stored) throw new Error(`[e2e:certify] reading A's title: ${error?.message}`);
+    const titleA = String((stored as Row)["title"]);
+    await seedDocument(s, `e2e-pub-${hex(a)}`, null, `Statement ${rand()}`);
 
-      await gotoReady(page, "/my-listings");
-      await page.getByTestId("my-listings-group-closed").click();
-      for (const id of [a, b]) {
-        const tick = page.getByTestId(
-          width >= 1280 ? `my-listing-${id}-select-cell` : `my-listing-${id}-select`,
-        );
-        await expect(tick).toBeVisible({ timeout: 15_000 });
-        await tick.click();
-      }
-      await page.getByTestId("data-table-selection").getByTestId("my-listings-bulk-renew").click();
-      await page.getByTestId("my-listings-confirm-yes").click();
-      const expected = `${en["myListings.bulk.done"].replace("{count}", "1")} ${en[
-        "myListings.bulk.needsStatement"
-      ].replace("{titles}", titleA)}`;
-      await expect(page.getByTestId("my-listings-notice")).toHaveText(expected, {
-        timeout: 20_000,
-      });
-      await expect.poll(() => statusOf(b), { timeout: 20_000 }).toBe("active");
-      await expect.poll(() => statusOf(a), { timeout: 20_000 }).toBe("expired");
-      expect(await certificationsOf(a)).toHaveLength(0);
-      expect(await certificationsOf(b)).toHaveLength(0);
+    await gotoReady(page, "/my-listings");
+    await page.getByTestId("my-listings-group-closed").click();
+    for (const id of [a, b]) {
+      const tick = page.getByTestId(
+        width >= 1280 ? `my-listing-${id}-select-cell` : `my-listing-${id}-select`,
+      );
+      await expect(tick).toBeVisible({ timeout: 15_000 });
+      await tick.click();
+    }
+    await page.getByTestId("data-table-selection").getByTestId("my-listings-bulk-renew").click();
+    await page.getByTestId("my-listings-confirm-yes").click();
+    const expected = `${en["myListings.bulk.done"].replace("{count}", "1")} ${en[
+      "myListings.bulk.needsStatement"
+    ].replace("{titles}", titleA)}`;
+    await expect(page.getByTestId("my-listings-notice")).toHaveText(expected, {
+      timeout: 20_000,
+    });
+    await expect.poll(() => statusOf(b), { timeout: 20_000 }).toBe("active");
+    await expect.poll(() => statusOf(a), { timeout: 20_000 }).toBe("expired");
+    expect(await certificationsOf(a)).toHaveLength(0);
+    expect(await certificationsOf(b)).toHaveLength(0);
   });
   test("LG-19 a photo added to a published ad needs the certification; a draft's photo does not", async ({
     page,
   }) => {
-      const { categoryId, cityId } = await sellerOnPage(page, s);
-      const a = await draftOf(page, s, categoryId, cityId);
-      const token = await bearerOf(page);
-      const published = await postRoute(page, PUBLISH, { listingId: a }, { token, country: "ET" });
-      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
-      await makeState(a, "active");
-      const statement = await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement");
-      const bare = await uploadPhoto(page, { listingId: a, token, cover: { name: "gps.jpg" } });
-      expect(bare.status).toBe(409);
-      expect(reasons(bare.payload)).toEqual([{ field: "legal", reason: "certificationRequired" }]);
-      expect(await photoRowsOf(a)).toHaveLength(0);
-      const accepted = await uploadPhoto(page, {
-        listingId: a,
-        token,
-        cover: { name: "gps.jpg" },
-        certified: [statement.id],
-        language: "en",
-      });
-      expect(accepted.payload["ok"], JSON.stringify(accepted.payload)).toBe(true);
-      expect(await photoRowsOf(a)).toHaveLength(1);
-      expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["edit"]);
-      const b = await draftOf(page, s, categoryId, cityId);
-      await seedDocument(s, `e2e-pub-${hex(b)}`, null, "Draft statement");
-      const draftPhoto = await uploadPhoto(page, {
-        listingId: b,
-        token,
-        cover: { name: "gps.jpg" },
-      });
-      expect(draftPhoto.payload["ok"], JSON.stringify(draftPhoto.payload)).toBe(true);
-      expect(await photoRowsOf(b)).toHaveLength(1);
-      expect(await certificationsOf(b)).toHaveLength(0);
+    const { categoryId, cityId } = await sellerOnPage(page, s);
+    const a = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    const published = await postRoute(page, PUBLISH, { listingId: a }, { token, country: "ET" });
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    await makeState(a, "active");
+    const statement = await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement");
+    const bare = await uploadPhoto(page, { listingId: a, token, cover: { name: "gps.jpg" } });
+    expect(bare.status).toBe(409);
+    expect(reasons(bare.payload)).toEqual([{ field: "legal", reason: "certificationRequired" }]);
+    expect(await photoRowsOf(a)).toHaveLength(0);
+    const accepted = await uploadPhoto(page, {
+      listingId: a,
+      token,
+      cover: { name: "gps.jpg" },
+      certified: [statement.id],
+      language: "en",
+    });
+    expect(accepted.payload["ok"], JSON.stringify(accepted.payload)).toBe(true);
+    expect(await photoRowsOf(a)).toHaveLength(1);
+    expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["edit"]);
+    const b = await draftOf(page, s, categoryId, cityId);
+    await seedDocument(s, `e2e-pub-${hex(b)}`, null, "Draft statement");
+    const draftPhoto = await uploadPhoto(page, {
+      listingId: b,
+      token,
+      cover: { name: "gps.jpg" },
+    });
+    expect(draftPhoto.payload["ok"], JSON.stringify(draftPhoto.payload)).toBe(true);
+    expect(await photoRowsOf(b)).toHaveLength(1);
+    expect(await certificationsOf(b)).toHaveLength(0);
   });
 
   test("LG-20 the contact reveal answers acceptanceRequired to a viewer who owes an acceptance; the owner still sees his own", async ({
     page,
   }) => {
-      const { seller, categoryId, cityId } = await sellerOnPage(page, s);
-      const listingId = await draftOf(page, s, categoryId, cityId);
-      const token = await bearerOf(page);
-      const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
-      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
-      await makeState(listingId, "active");
-      const stored = await adminClient()
-        .from("listings")
-        .update({ contact_pref: { phone: { show: true, value: "+251911000001" } } })
-        .eq("id", listingId)
-        .select("public_id")
-        .single();
-      if (stored.error || !stored.data)
-        throw new Error(`[e2e:certify] contact seed: ${stored.error?.message}`);
-      const args = { p_public_id: String((stored.data as Row)["public_id"]) };
-      const buyerPerson = await leaseUser();
-      s.reveals.push({ viewerId: buyerPerson.id, listingId });
-      const buyer = await asPerson(buyerPerson);
-      const first = await buyer.rpc("reveal_listing_contact", args);
-      expect(first.error).toBeNull();
-      expect((first.data as Row)["ok"]).toBe(true);
-      await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
-      const refused = await buyer.rpc("reveal_listing_contact", args);
-      expect(refused.error).toBeNull();
-      expect(refused.data).toEqual({ ok: false, reason: "acceptanceRequired" });
-      const owner = await (await asPerson(seller)).rpc("reveal_listing_contact", args);
-      expect(owner.error).toBeNull();
-      expect((owner.data as Row)["ok"]).toBe(true);
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    await makeState(listingId, "active");
+    const stored = await adminClient()
+      .from("listings")
+      .update({ contact_pref: { phone: { show: true, value: "+251911000001" } } })
+      .eq("id", listingId)
+      .select("public_id")
+      .single();
+    if (stored.error || !stored.data)
+      throw new Error(`[e2e:certify] contact seed: ${stored.error?.message}`);
+    const args = { p_public_id: String((stored.data as Row)["public_id"]) };
+    const buyerPerson = await leaseUser();
+    s.reveals.push({ viewerId: buyerPerson.id, listingId });
+    const buyer = await asPerson(buyerPerson);
+    const first = await buyer.rpc("reveal_listing_contact", args);
+    expect(first.error).toBeNull();
+    expect((first.data as Row)["ok"]).toBe(true);
+    await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
+    const refused = await buyer.rpc("reveal_listing_contact", args);
+    expect(refused.error).toBeNull();
+    expect(refused.data).toEqual({ ok: false, reason: "acceptanceRequired" });
+    const owner = await (await asPerson(seller)).rpc("reveal_listing_contact", args);
+    expect(owner.error).toBeNull();
+    expect((owner.data as Row)["ok"]).toBe(true);
   });
 
   test("LG-21 the statement is certified once per ad: edits, renewals and photos ask again only for a new version", async ({
     page,
   }) => {
-      const { seller, categoryId, cityId } = await sellerOnPage(page, s);
-      const a = await draftOf(page, s, categoryId, cityId);
-      const v1 = await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement one");
-      const documentId = s.documents.at(-1);
-      if (!documentId) throw new Error("[e2e:certify] missing scratch document");
-      const token = await bearerOf(page);
-      const published = await postRoute(
-        page,
-        PUBLISH,
-        { listingId: a, certified: [v1.id], language: "en" },
-        { token, country: "ET" },
-      );
-      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
-      expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish"]);
-      await makeState(a, "active");
-      const me = await asPerson(seller);
-      const read = await me.rpc("my_listing_certification", { p_listing_id: a });
-      expect(read.error).toBeNull();
-      expect((read.data as { statements: Row[] }).statements).toEqual([]);
-      const edited = await me.rpc("edit_my_listing", {
-        p_listing_id: a,
-        p_changes: { title: `e2e once ${rand()}` },
-      });
-      expect(edited.error, JSON.stringify(edited)).toBeNull();
-      expect((edited.data as Row)["ok"]).toBe(true);
-      expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish"]);
-      const v2 = await seedSecondVersion(s, documentId, "Statement two");
-      const changed = await me.rpc("my_listing_certification", { p_listing_id: a });
-      expect(changed.error).toBeNull();
-      expect(
-        (changed.data as { statements: Row[] }).statements.map((row) => row["version_id"]),
-      ).toEqual([v2]);
-      const changes = { title: `e2e once changed ${rand()}` };
-      const bare = await me.rpc("edit_my_listing", { p_listing_id: a, p_changes: changes });
-      expect(bare.error).toContain("certificationRequired");
-      const certified = await me.rpc("edit_my_listing", {
-        p_listing_id: a,
-        p_changes: changes,
-        p_certified: [v2],
-        p_language: "en",
-      });
-      expect(certified.error, JSON.stringify(certified)).toBeNull();
-      expect((certified.data as Row)["ok"]).toBe(true);
-      expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish", "edit"]);
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const a = await draftOf(page, s, categoryId, cityId);
+    const v1 = await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement one");
+    const documentId = s.documents.at(-1);
+    if (!documentId) throw new Error("[e2e:certify] missing scratch document");
+    const token = await bearerOf(page);
+    const published = await postRoute(
+      page,
+      PUBLISH,
+      { listingId: a, certified: [v1.id], language: "en" },
+      { token, country: "ET" },
+    );
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish"]);
+    await makeState(a, "active");
+    const me = await asPerson(seller);
+    const read = await me.rpc("my_listing_certification", { p_listing_id: a });
+    expect(read.error).toBeNull();
+    expect((read.data as { statements: Row[] }).statements).toEqual([]);
+    const edited = await me.rpc("edit_my_listing", {
+      p_listing_id: a,
+      p_changes: { title: `e2e once ${rand()}` },
+    });
+    expect(edited.error, JSON.stringify(edited)).toBeNull();
+    expect((edited.data as Row)["ok"]).toBe(true);
+    expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish"]);
+    const v2 = await seedSecondVersion(s, documentId, "Statement two");
+    const changed = await me.rpc("my_listing_certification", { p_listing_id: a });
+    expect(changed.error).toBeNull();
+    expect(
+      (changed.data as { statements: Row[] }).statements.map((row) => row["version_id"]),
+    ).toEqual([v2]);
+    const changes = { title: `e2e once changed ${rand()}` };
+    const bare = await me.rpc("edit_my_listing", { p_listing_id: a, p_changes: changes });
+    expect(bare.error).toContain("certificationRequired");
+    const certified = await me.rpc("edit_my_listing", {
+      p_listing_id: a,
+      p_changes: changes,
+      p_certified: [v2],
+      p_language: "en",
+    });
+    expect(certified.error, JSON.stringify(certified)).toBeNull();
+    expect((certified.data as Row)["ok"]).toBe(true);
+    expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish", "edit"]);
   });
 
   test("LGC-5 the photos step of a seller's edit waits for the statement", async ({ page }) => {
-      const { categoryId, cityId } = await sellerOnPage(page, s);
-      const a = await draftOf(page, s, categoryId, cityId);
-      const token = await bearerOf(page);
-      const published = await postRoute(page, PUBLISH, { listingId: a }, { token, country: "ET" });
-      expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
-      await makeState(a, "active");
-      await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement");
-      await gotoReady(page, `/my-listings/${a}/edit`);
-      await expect(page.getByTestId("post-review")).toBeVisible();
-      await page.locator('[data-testid="post-review-edit"][data-step="2"]').click();
-      await expect(page.getByTestId("post-step-2")).toBeVisible();
-      await expect(page.getByTestId("post-photos-add")).toBeDisabled();
-      await expect(page.getByTestId("post-photos-certify-wait")).toBeVisible();
-      await page.getByTestId("certify-tick").click();
-      await expect(page.getByTestId("post-photos-add")).toBeEnabled();
-      await expect(page.getByTestId("post-photos-certify-wait")).toHaveCount(0);
+    const { categoryId, cityId } = await sellerOnPage(page, s);
+    const a = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    const published = await postRoute(page, PUBLISH, { listingId: a }, { token, country: "ET" });
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    await makeState(a, "active");
+    await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement");
+    await gotoReady(page, `/my-listings/${a}/edit`);
+    await expect(page.getByTestId("post-review")).toBeVisible();
+    await page.locator('[data-testid="post-review-edit"][data-step="2"]').click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible();
+    await expect(page.getByTestId("post-photos-add")).toBeDisabled();
+    await expect(page.getByTestId("post-photos-certify-wait")).toBeVisible();
+    await page.getByTestId("certify-tick").click();
+    await expect(page.getByTestId("post-photos-add")).toBeEnabled();
+    await expect(page.getByTestId("post-photos-certify-wait")).toHaveCount(0);
   });
 });
