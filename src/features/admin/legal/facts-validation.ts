@@ -10,6 +10,7 @@ export const FACT_BOUNDS: Partial<Record<FactKey, readonly [number, number]>> = 
   dispute_keep_years: [0, 20],
   account_keep_months: [1, 120],
   technical_keep_months: [1, 120],
+  sold_visible_days: [1, 365],
 };
 /** Facts that may be empty (sent as "", stored as nothing). */
 export const OPTIONAL_FACTS: readonly FactKey[] = [

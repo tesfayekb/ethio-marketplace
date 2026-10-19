@@ -143,6 +143,13 @@ describe("what buyers see of the ad (bundle 16 turn 3c, D180)", () => {
   });
 });
 
+it("a sold ad hidden after 35 days under the default remains visible with 40 days", () => {
+  const now = Date.parse("2026-10-19T12:00:00Z");
+  const sold = { status: "sold", soldAt: new Date(now - 35 * 86_400_000).toISOString() };
+  expect(visibilityOf(sold, now)).toBe("hidden");
+  expect(visibilityOf(sold, now, 40)).toBe("soldSeen");
+});
+
 describe("D224 one rule for what can be shared", () => {
   it("ML-U12 live with a string public id shares; every other status or a missing id does not", () => {
     expect(shareable({ status: "active", publicId: "2345678923" })).toBe(true);

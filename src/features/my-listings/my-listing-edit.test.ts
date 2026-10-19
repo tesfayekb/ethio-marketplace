@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const rpc = vi.hoisted(() => vi.fn());
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc } }));
 
-const { copyable, copyMyListing, EDITABLE_STATUSES, editMyListing } = await import("./my-listing");
+const { copyable, copyMyListing, EDITABLE_STATUSES, editMyListing, readSoldVisibleDays } =
+  await import("./my-listing");
 const { en } = await import("@/i18n/locales/en");
 
 /**
@@ -181,5 +182,32 @@ describe("the seller doors' certification (bundle 22 turn 4)", () => {
     });
     rpc.mockResolvedValueOnce({ data: null, error: { message: "acceptanceRequired" } });
     expect(await runAction(ad, "renew")).toMatchObject({ ok: false, reason: "acceptanceRequired" });
+  });
+});
+
+describe("the sold-visible-days public read", () => {
+  beforeEach(() => rpc.mockReset());
+  it("answers the number returned by the setting", async () => {
+    rpc.mockResolvedValueOnce({ data: 40, error: null });
+    expect(await readSoldVisibleDays()).toBe(40);
+    expect(rpc).toHaveBeenCalledWith("sold_visible_days");
+  });
+  it("answers null for an RPC error", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      rpc.mockResolvedValueOnce({ data: null, error: { message: "unavailable" } });
+      expect(await readSoldVisibleDays()).toBeNull();
+    } finally {
+      logged.mockRestore();
+    }
+  });
+  it.each([0, 1.5])("answers null for the invalid number %s", async (data) => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      rpc.mockResolvedValueOnce({ data, error: null });
+      expect(await readSoldVisibleDays()).toBeNull();
+    } finally {
+      logged.mockRestore();
+    }
   });
 });

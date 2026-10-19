@@ -653,6 +653,7 @@ test.describe("Legal certification", () => {
     expect(edited.error, JSON.stringify(edited)).toBeNull();
     expect((edited.data as Row)["ok"]).toBe(true);
     expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish"]);
+    await makeState(a, "active");
     const v2 = await seedSecondVersion(s, documentId, "Statement two");
     const changed = await me.rpc("my_listing_certification", { p_listing_id: a });
     expect(changed.error).toBeNull();
@@ -671,6 +672,62 @@ test.describe("Legal certification", () => {
     expect(certified.error, JSON.stringify(certified)).toBeNull();
     expect((certified.data as Row)["ok"]).toBe(true);
     expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish", "edit"]);
+  });
+
+  test("LG-22 the sold ad's shown days are the legal setting: the public read follows sold_cutoff()", async ({
+    page,
+  }) => {
+    const settings = await adminClient()
+      .from("legal_settings")
+      .select("sold_visible_days")
+      .eq("id", true)
+      .single();
+    if (settings.error || !settings.data)
+      throw new Error(`[e2e:certify] sold setting read: ${settings.error?.message}`);
+    const days = settings.data.sold_visible_days;
+    expect(Number.isInteger(days) && days >= 1 && days <= 365).toBe(true);
+    const { url, key } = restBase();
+    const anonRead = async (fn: string, args: Record<string, unknown> = {}) =>
+      answerOf(
+        await fetch(`${url}/rest/v1/rpc/${fn}`, {
+          method: "POST",
+          headers: { apikey: key, "Content-Type": "application/json" },
+          body: JSON.stringify(args),
+        }),
+      );
+    const settingAnswer = await anonRead("sold_visible_days");
+    expect(settingAnswer.error).toBeNull();
+    expect(settingAnswer.data).toBe(days);
+    const { categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    await makeState(listingId, "active");
+    const sold = await adminClient()
+      .from("listings")
+      .update({
+        status: "sold",
+        sold_at: new Date(Date.now() - (days - 1) * 86_400_000).toISOString(),
+      })
+      .eq("id", listingId)
+      .select("public_id")
+      .single();
+    if (sold.error || !sold.data)
+      throw new Error(`[e2e:certify] sold row seed: ${sold.error?.message}`);
+    const args = { p_public_id: sold.data.public_id };
+    const visible = await anonRead("public_listing", args);
+    expect(visible.error).toBeNull();
+    expect(visible.data).not.toBeNull();
+    expect((visible.data as Row)["public_id"]).toBe(sold.data.public_id);
+    const older = await adminClient()
+      .from("listings")
+      .update({ sold_at: new Date(Date.now() - (days + 1) * 86_400_000).toISOString() })
+      .eq("id", listingId);
+    if (older.error) throw new Error(`[e2e:certify] older sold row: ${older.error.message}`);
+    const hidden = await anonRead("public_listing", args);
+    expect(hidden.error).toBeNull();
+    expect(hidden.data).toBeNull();
   });
 
   test("LGC-5 the photos step of a seller's edit waits for the statement", async ({ page }) => {

@@ -5418,7 +5418,7 @@
     "myListings.ad.seen": [
       "/my-listings/$listingId"
     ],
-    "myListings.ad.soldSeen": [
+    "myListings.ad.soldSeenDays": [
       "/my-listings/$listingId"
     ],
     "myListings.ad.waiting": [

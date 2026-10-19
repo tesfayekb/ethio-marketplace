@@ -115,3 +115,5 @@ admin_set_legal_settings | sets the legal facts; checks legal:edit and the step-
 admin_user_legal_history | a person's legal history for staff; checks profiles:view inside
 my_listing_certification | the seller's own ad: the publishing statements that apply and whether an acceptance is owed; signed in, owner only (B22 Stage 1 turn 4)
 admin_listing_certifications | an ad's certification record for staff; checks listings:view inside (B22 Stage 1 turn 4)
+sold_visible_days | the sold ad's shown days (bundle 22 turn 8, M8a): a number from legal_settings, read by the seller's ad page and quoted by the Terms; no personal data
+sold_cutoff | now() minus the sold ad's shown days (bundle 22 turn 8, M8a): called by the three public row-level policies for every reader; no personal data

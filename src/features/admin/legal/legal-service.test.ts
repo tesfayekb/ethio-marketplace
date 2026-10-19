@@ -26,7 +26,7 @@ it("maps the publish fact refusals and reads the fact they name", () => {
   expect(legalErrorName({ message: "factMissing:legal_phone" })).toBe("legal_phone");
   expect(legalErrorName({ message: "notDraft" })).toBe("");
 });
-it("lists the 18 facts in order, without providers", () => {
+it("lists the 19 facts in order, without providers", () => {
   expect(FACT_KEYS).toEqual([
     "operator_name",
     "operator_details",
@@ -46,6 +46,7 @@ it("lists the 18 facts in order, without providers", () => {
     "dispute_keep_years",
     "account_keep_months",
     "technical_keep_months",
+    "sold_visible_days",
   ]);
 });
 it("maps all other failures to the generic sentence", () => {

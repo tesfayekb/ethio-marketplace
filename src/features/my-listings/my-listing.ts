@@ -336,6 +336,20 @@ export async function runAction(
  * comes with it. The action runs only when the ad still offers it; its door
  * re-checks everything anyway (F3).
  */
+/** Bundle 22 turn 8 — public legal setting; unavailable data never becomes a guessed sentence. */
+export async function readSoldVisibleDays(): Promise<number | null> {
+  const { data, error } = await supabase.rpc("sold_visible_days");
+  if (error) {
+    console.error("[client-error] sold-visible-days read failed", error);
+    return null;
+  }
+  if (typeof data !== "number" || !Number.isInteger(data) || data <= 0) {
+    console.error("[client-error] sold-visible-days malformed answer");
+    return null;
+  }
+  return data;
+}
+
 export async function runListAction(
   listingId: string,
   action: ListingAction,
