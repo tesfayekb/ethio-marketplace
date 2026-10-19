@@ -257,7 +257,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // D205 — painted strip rows are not navigation controls; the strip opens the menu.
   if (strip) {
     return (
-      <li className={cn(hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1")}>
+      <li className={cn(hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1")}>
         <span
           data-testid={testid}
           aria-label={node.accessibleLabel ?? node.label}
@@ -273,7 +273,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           {inner}
         </span>
         {hasChildren ? (
-          <ul className="mt-0.5 flex min-h-0 flex-1 flex-col gap-0.5">
+          <ul className="mt-0.5 flex flex-1 flex-col gap-0.5">
             {(node.children ?? []).map((child) => (
               <RailRow key={child.key} node={child} depth={depth + 1} />
             ))}
@@ -322,7 +322,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             {inner}
           </div>
         )}
-        <ul className={cn("mt-0.5 flex flex-col gap-0.5", compact && "min-h-0 flex-1")}>
+        <ul className={cn("mt-0.5 flex flex-col gap-0.5", compact && "flex-1")}>
           {(node.children ?? []).map((child) => (
             <RailRow key={child.key} node={child} depth={depth + 1} />
           ))}
@@ -341,7 +341,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
         <Collapsible
           open={open}
           onOpenChange={setOpen}
-          className={cn(compact && "flex min-h-0 flex-1 flex-col")}
+          className={cn(compact && "flex flex-1 flex-col")}
         >
           {/* INC-089 — the tooltip wraps the TRIGGER, never sits between the
               trigger and its DOM element: `CollapsibleTrigger asChild` must
@@ -383,7 +383,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           <CollapsibleContent asChild>
             <ul
               data-testid={strip ? "strip-submenu" : "rail-submenu"}
-              className={cn("mt-0.5 flex flex-col gap-0.5", compact && "min-h-0 flex-1")}
+              className={cn("mt-0.5 flex flex-col gap-0.5", compact && "flex-1")}
             >
               {(node.children ?? []).map((child) => (
                 <RailRow key={child.key} node={child} depth={depth + 1} />
@@ -541,8 +541,8 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const nodes = (level ? [level, ...childrenOf(tree, level.id)] : roots).map(toNode);
 
   return (
-    <nav aria-label={t("shell.categoriesLabel")} className={cn(compact && "flex h-full flex-col")}>
-      <ul className={cn("flex flex-col gap-0.5", compact && "h-full")}>
+    <nav aria-label={t("shell.categoriesLabel")} className={cn(compact && "flex min-h-full flex-col")}>
+      <ul className={cn("flex flex-col gap-0.5", compact && "flex-1")}>
         {level ? (
           <li className={cn(compact && "min-h-8 max-h-10 flex-1")}>
             <Button
@@ -691,12 +691,16 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   return (
     <nav
       aria-label={t("shell.mainNav")}
-      className={cn("flex flex-col gap-3", compact && "h-full min-h-0 gap-0.5")}
+      // INC-755 — the phone rail fills when its rows fit and scrolls when they
+      // do not: a container allowed to shrink (min-h-0) under rows with a 32 px
+      // floor let the rows spill over the next group (the Admin panel, the
+      // operator's iPhone, 2026-10-19).
+      className={cn("flex flex-col gap-3", compact && "min-h-full gap-0.5")}
     >
       {sections.map((section, index) => (
         <div
           key={section.key ?? `section-${index}`}
-          className={cn(compact && "flex min-h-0 flex-1 flex-col")}
+          className={cn(compact && "flex flex-1 flex-col")}
         >
           {section.key && !compact ? (
             <h2
@@ -708,7 +712,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
               {t(section.key)}
             </h2>
           ) : null}
-          <ul className={cn("flex flex-col gap-0.5", compact && "h-full min-h-0 flex-1")}>
+          <ul className={cn("flex flex-col gap-0.5", compact && "flex-1")}>
             {section.items.map((item) => (
               <RailRow key={item.id} node={toNode(item)} />
             ))}
