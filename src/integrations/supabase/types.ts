@@ -1281,6 +1281,7 @@ export type Database = {
           response_days: number
           response_extra_days: number
           security_email: string
+          sold_visible_days: number
           technical_keep_months: number
           updated_at: string
           updated_by: string | null
@@ -1305,6 +1306,7 @@ export type Database = {
           response_days?: number
           response_extra_days?: number
           security_email?: string
+          sold_visible_days?: number
           technical_keep_months?: number
           updated_at?: string
           updated_by?: string | null
@@ -1329,6 +1331,7 @@ export type Database = {
           response_days?: number
           response_extra_days?: number
           security_email?: string
+          sold_visible_days?: number
           technical_keep_months?: number
           updated_at?: string
           updated_by?: string | null
@@ -5029,6 +5032,8 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      sold_cutoff: { Args: never; Returns: string }
+      sold_visible_days: { Args: never; Returns: number }
       submit_listing: {
         Args: {
           p_attributes: Json
