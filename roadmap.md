@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-21-turn-12.md (bundle 21 — turn 12: the iPhone overflow). Next: the operator's probe on his iPhone, bundle 21's walk, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-21-turn-13.md (bundle 21 — turn 13: the footer's tagline; the probe removed). Next: bundle 21's walk, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -396,7 +396,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 10 (docs/governance/briefs/bundle-21-turn-10.md; no migration) — INC-743: a word longer than its box widened the whole phone page; the page-wide guard (overflow-x: clip on html and body), long words break inside the ad page and the listing card, the breadcrumb one line with its last crumb cut; OVW-1, OVW-2 (OV-1 was taken by admin-locations)
   - [ ] Turn 11 (docs/governance/briefs/bundle-21-turn-11.md; no migration) — #1031's reds: the peek shows to signed-out visitors (INC-741 — the signed-out effect closed it on every load), the rail readers wait for the tree (INC-744), OVW-1 measures the visible extent and finds the trail by its testid
   - [ ] Turn 12 (docs/governance/briefs/bundle-21-turn-12.md; no migration) — the trail shrinks (INC-745); the guard on the shell's wrapper (INC-743 reopened); the ?overflow=1 probe; the menu read once settled (INC-746); OP-1
-  - [ ] Remove the ?overflow=1 probe (app-shell.tsx OverflowProbe, OP-1) once the operator's iPhone shows nothing past the screen
+  - [ ] Turn 13 (docs/governance/briefs/bundle-21-turn-13.md; no migration) — "Buy and sell" centred under the wordmark from 768 px; the ?overflow=1 probe and OP-1 removed (the operator's iPhone, 2026-10-18 20:39 local); FT-1 extended
+  - [ ] Remove the ?overflow=1 probe — done in turn 13 (the operator's iPhone showed the page at the screen's width, 2026-10-18 20:39 local)
 - [ ] D207 (the operator, 2026-10-18) — the categories a person browses kept on the device, and on the account when signed in, to bring back the ones he returns to (the ★ favourite itself rides bundle 21). Owed: the spec.
 - [ ] D208 (the operator, 2026-10-18) — the category pictures: one bulk regeneration of every picture, with a record of which were regenerated (today a few at a time, and after many it is hard to tell which are new); each picture fills its 4:3 frame (D122). Owed: the spec; the spend is his call (one AI call a picture).
 - [ ] D209 (the operator, 2026-10-18) — a "Why ethio.com" page: visibility, ease of use, local language, instant services, AI assistance, localization, easy posting steps, security, privacy and more, from a review of every feature; the footer links to it. Owed: the feature review and the text.

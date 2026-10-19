@@ -34,15 +34,19 @@ export function AppFooter() {
           data-testid="footer-brand"
           className="hidden col-span-3 min-w-0 text-center md:block md:col-span-1 md:text-start"
         >
-          <Link
-            to="/"
-            data-testid="footer-home"
-            aria-label={t("nav.home")}
-            className="inline-flex min-h-11 items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Logo variant="full" />
-          </Link>
-          <p className="text-sm text-muted-foreground">{t("app.tagline")}</p>
+          <div className="inline-flex flex-col">
+            <Link
+              to="/"
+              data-testid="footer-home"
+              aria-label={t("nav.home")}
+              className="inline-flex min-h-11 items-center rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Logo variant="full" />
+            </Link>
+            <p data-testid="footer-tagline" className="self-stretch ps-10 text-center text-sm text-muted-foreground">
+              {t("app.tagline")}
+            </p>
+          </div>
         </div>
         {COLUMNS.map((column) => (
           <nav
